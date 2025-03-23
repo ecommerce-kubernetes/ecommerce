@@ -9,4 +9,4 @@ spring:
         git:
           uri: https://github.com/ecommerce-kubernetes/config.git
           default-label: main
-          search-paths: /**
+          search-paths: /
