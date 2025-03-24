@@ -42,4 +42,12 @@ public class ProductServiceImpl implements ProductService{
                 save.getCategory().getId()
         );
     }
+
+    @Override
+    @Transactional
+    public void deleteProduct(Long productId) {
+        Products product = productsRepository.findById(productId)
+                .orElseThrow(() -> new NotFoundException("Not Found Product"));
+        productsRepository.delete(product);
+    }
 }

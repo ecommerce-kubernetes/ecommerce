@@ -5,10 +5,7 @@ import com.example.product_service.dto.response.ProductResponseDto;
 import com.example.product_service.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/products")
@@ -21,5 +18,11 @@ public class ProductController {
     public ResponseEntity<ProductResponseDto> saveProduct(@RequestBody ProductRequestDto productRequestDto){
         ProductResponseDto product = productService.createProduct(productRequestDto);
         return ResponseEntity.ok(product);
+    }
+
+    @DeleteMapping("/{productId}")
+    public ResponseEntity<Void> deleteProduct(@PathVariable("productId") Long productId){
+        productService.deleteProduct(productId);
+        return ResponseEntity.noContent().build();
     }
 }
