@@ -16,9 +16,17 @@ public class Products extends BaseEntity {
     private Long id;
     private String name;
     private String description;
-    private Integer price;
-    private Integer stockQuantity;
+    private int price;
+    private int stockQuantity;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
     private Categories category;
+
+    public Products(String name, String description, int price, int stockQuantity, Categories category){
+        this.name = name;
+        this.description = description;
+        this.price = price;
+        this.stockQuantity = stockQuantity;
+        this.category = category;
+    }
 }
