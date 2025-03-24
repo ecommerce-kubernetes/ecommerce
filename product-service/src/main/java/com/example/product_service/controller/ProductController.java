@@ -1,6 +1,7 @@
 package com.example.product_service.controller;
 
 import com.example.product_service.dto.request.ProductRequestDto;
+import com.example.product_service.dto.request.StockQuantityRequestDto;
 import com.example.product_service.dto.response.ProductResponseDto;
 import com.example.product_service.service.ProductService;
 import lombok.RequiredArgsConstructor;
@@ -24,5 +25,14 @@ public class ProductController {
     public ResponseEntity<Void> deleteProduct(@PathVariable("productId") Long productId){
         productService.deleteProduct(productId);
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{productId}/stock")
+    public ResponseEntity<ProductResponseDto> updateProductStockQuantity(@PathVariable("productId") Long productId,
+                                                                         @RequestBody StockQuantityRequestDto stockQuantityRequestDto){
+        ProductResponseDto productResponseDto =
+                productService.modifyStockQuantity(productId, stockQuantityRequestDto);
+
+        return ResponseEntity.ok(productResponseDto);
     }
 }

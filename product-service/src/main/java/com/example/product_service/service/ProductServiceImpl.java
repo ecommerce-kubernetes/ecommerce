@@ -1,6 +1,7 @@
 package com.example.product_service.service;
 
 import com.example.product_service.dto.request.ProductRequestDto;
+import com.example.product_service.dto.request.StockQuantityRequestDto;
 import com.example.product_service.dto.response.ProductResponseDto;
 import com.example.product_service.entity.Categories;
 import com.example.product_service.entity.Products;
@@ -49,5 +50,22 @@ public class ProductServiceImpl implements ProductService{
         Products product = productsRepository.findById(productId)
                 .orElseThrow(() -> new NotFoundException("Not Found Product"));
         productsRepository.delete(product);
+    }
+
+    @Override
+    @Transactional
+    public ProductResponseDto modifyStockQuantity(Long productId, StockQuantityRequestDto stockQuantityRequestDto) {
+        Products product = productsRepository.findById(productId)
+                .orElseThrow(() -> new NotFoundException("Not Found Product"));
+        int updateStockQuantity = stockQuantityRequestDto.getUpdateStockQuantity();
+        product.setStockQuantity(updateStockQuantity);
+        return new ProductResponseDto(
+                product.getId(),
+                product.getName(),
+                product.getDescription(),
+                product.getPrice(),
+                product.getStockQuantity(),
+                product.getCategory().getId()
+        );
     }
 }
