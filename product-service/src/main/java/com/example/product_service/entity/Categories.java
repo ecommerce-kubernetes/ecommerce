@@ -18,4 +18,8 @@ public class Categories extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String name;
+
+    public Categories(String name){
+        this.name = name;
+    }
 }

@@ -36,4 +36,10 @@ public class ProductController {
                 productService.modifyStockQuantity(productId, stockQuantityRequestDto);
         return ResponseEntity.ok(productResponseDto);
     }
+
+    @GetMapping("/{productId}")
+    public ResponseEntity<ProductResponseDto> getProductById(@PathVariable("productId") Long productId){
+        ProductResponseDto productDetails = productService.getProductDetails(productId);
+        return ResponseEntity.ok(productDetails);
+    }
 }

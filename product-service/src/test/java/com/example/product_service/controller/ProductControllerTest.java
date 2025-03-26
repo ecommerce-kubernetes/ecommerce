@@ -173,6 +173,25 @@ class ProductControllerTest {
                 .andExpect(jsonPath("$.path").value("/products/1/stock"));
     }
 
+    @Test
+    @DisplayName("product Id 조회 테스트")
+    void getProductById() throws Exception {
+        ProductResponseDto productResponseDto = createDefaultProductResponseDto();
+
+        when(productService.getProductDetails(any(Long.class))).thenReturn(productResponseDto);
+        ResultActions perform = mockMvc.perform(get("/products/1")
+                .contentType(MediaType.APPLICATION_JSON));
+
+        perform
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1L))
+                .andExpect(jsonPath("$.name").value("테스트 상품 이름"))
+                .andExpect(jsonPath("$.description").value("테스트 상품 설명"))
+                .andExpect(jsonPath("$.price").value(10000))
+                .andExpect(jsonPath("$.stockQuantity").value(50))
+                .andExpect(jsonPath("$.categoryId").value(1L));
+    }
+
 
     private ProductRequestDto createDefaultProductRequestDto(){
         return new ProductRequestDto(

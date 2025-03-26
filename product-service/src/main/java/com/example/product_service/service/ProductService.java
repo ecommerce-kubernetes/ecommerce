@@ -8,4 +8,5 @@ public interface ProductService {
     ProductResponseDto saveProduct(ProductRequestDto productRequestDto);
     void deleteProduct(Long productId);
     ProductResponseDto modifyStockQuantity(Long productId, StockQuantityRequestDto stockQuantityRequestDto);
+    ProductResponseDto getProductDetails(Long productId);
 }

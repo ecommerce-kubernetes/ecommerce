@@ -68,4 +68,9 @@ public class ProductServiceImpl implements ProductService{
                 product.getCategory().getId()
         );
     }
+
+    @Override
+    public ProductResponseDto getProductDetails(Long productId) {
+        return null;
+    }
 }
