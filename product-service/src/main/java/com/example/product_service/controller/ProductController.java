@@ -31,10 +31,9 @@ public class ProductController {
 
     @PatchMapping("/{productId}/stock")
     public ResponseEntity<ProductResponseDto> updateProductStockQuantity(@PathVariable("productId") Long productId,
-                                                                         @RequestBody StockQuantityRequestDto stockQuantityRequestDto){
+                                                                         @RequestBody @Validated StockQuantityRequestDto stockQuantityRequestDto){
         ProductResponseDto productResponseDto =
                 productService.modifyStockQuantity(productId, stockQuantityRequestDto);
-
         return ResponseEntity.ok(productResponseDto);
     }
 }
