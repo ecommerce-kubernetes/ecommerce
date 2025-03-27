@@ -14,12 +14,9 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
-import static org.hamcrest.Matchers.hasItem;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -122,6 +119,33 @@ class CategoryControllerTest {
         ResultActions perform = mockMvc.perform(patch("/categories/1")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody));
+
+        perform
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("NotFound"))
+                .andExpect(jsonPath("$.message").value("Not Found Category"))
+                .andExpect(jsonPath("$.path").value("/categories/1"));
+    }
+
+    @Test
+    @DisplayName("카테고리 삭제 테스트")
+    void removeCategoryTest() throws Exception {
+        doNothing().when(categoryService).deleteCategory(anyLong());
+
+        ResultActions perform = mockMvc.perform(delete("/categories/1")
+                .contentType(MediaType.APPLICATION_JSON));
+
+        perform
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @DisplayName("카테고리 삭제 테스트 - 없는 카테고리 삭제시")
+    void removeCategoryTest_NotFoundCategory() throws Exception {
+        doThrow(new NotFoundException("Not Found Category"))
+                .when(categoryService).deleteCategory(anyLong());
+
+        ResultActions perform = mockMvc.perform(delete("/categories/1"));
 
         perform
                 .andExpect(status().isNotFound())
