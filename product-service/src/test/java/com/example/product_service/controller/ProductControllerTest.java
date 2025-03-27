@@ -2,6 +2,7 @@ package com.example.product_service.controller;
 
 import com.example.product_service.dto.request.ProductRequestDto;
 import com.example.product_service.dto.request.StockQuantityRequestDto;
+import com.example.product_service.dto.response.PageDto;
 import com.example.product_service.dto.response.ProductResponseDto;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.service.ProductService;
@@ -14,11 +15,16 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Stream;
 
 import static org.hamcrest.Matchers.hasItem;
@@ -175,7 +181,7 @@ class ProductControllerTest {
 
     @Test
     @DisplayName("product Id 조회 테스트")
-    void getProductById() throws Exception {
+    void getProductByIdTest() throws Exception {
         ProductResponseDto productResponseDto = createDefaultProductResponseDto();
 
         when(productService.getProductDetails(any(Long.class))).thenReturn(productResponseDto);
@@ -192,6 +198,54 @@ class ProductControllerTest {
                 .andExpect(jsonPath("$.categoryId").value(1L));
     }
 
+    @Test
+    @DisplayName("상품 리스트 조회 테스트")
+    void getAllProductsTest() throws Exception {
+
+        List<ProductResponseDto> productList = new ArrayList<>();
+        productList.add(new ProductResponseDto(1L, "사과", "사과 3EA", 5000, 50, 1L));
+        productList.add(new ProductResponseDto(2L, "바나나", "바나나 3EA", 5000, 50, 1L));
+        productList.add(new ProductResponseDto(3L, "파인애플", "파인애플 5EA", 6000, 40, 1L));
+        productList.add(new ProductResponseDto(4L, "포도", "포도 6EA",10000, 40, 1L));
+
+
+        PageDto<ProductResponseDto> pageDto = new PageDto<>(
+                productList,
+                0,
+                1,
+                10,
+                4
+        );
+
+        when(productService.getProductList(any(Pageable.class)))
+                .thenReturn(pageDto);
+
+        ResultActions perform = mockMvc.perform(get("/products")
+                .param("page", "0")
+                .param("size", "10")
+                .param("sort", "id")
+                .param("direction", "asc")
+                .contentType(MediaType.APPLICATION_JSON));
+
+        String content = mapper.writeValueAsString(productList);
+        perform
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.currentPage").value(0))
+                .andExpect(jsonPath("$.totalPage").value(1))
+                .andExpect(jsonPath("$.pageSize").value(10))
+                .andExpect(jsonPath("$.totalElement").value(4));
+
+        for (int i = 0; i < productList.size(); i++) {
+            ProductResponseDto expected = productList.get(i);
+            perform
+                    .andExpect(jsonPath("$.content[" + i + "].id").value(expected.getId()))
+                    .andExpect(jsonPath("$.content[" + i + "].name").value(expected.getName()))
+                    .andExpect(jsonPath("$.content[" + i + "].description").value(expected.getDescription()))
+                    .andExpect(jsonPath("$.content[" + i + "].price").value(expected.getPrice()))
+                    .andExpect(jsonPath("$.content[" + i + "].stockQuantity").value(expected.getStockQuantity()))
+                    .andExpect(jsonPath("$.content[" + i + "].categoryId").value(expected.getCategoryId()));
+        }
+    }
 
     private ProductRequestDto createDefaultProductRequestDto(){
         return new ProductRequestDto(
