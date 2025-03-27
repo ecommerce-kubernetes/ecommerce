@@ -7,11 +7,11 @@ import com.example.product_service.dto.response.ProductResponseDto;
 import com.example.product_service.entity.Products;
 import com.example.product_service.exception.BadRequestException;
 import com.example.product_service.service.ProductService;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.*;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/products")
@@ -31,7 +30,7 @@ public class ProductController {
     @PostMapping
     public ResponseEntity<ProductResponseDto> createProduct(@RequestBody @Validated ProductRequestDto productRequestDto){
         ProductResponseDto product = productService.saveProduct(productRequestDto);
-        return ResponseEntity.status(HttpServletResponse.SC_CREATED).body(product);
+        return ResponseEntity.status(HttpStatus.CREATED).body(product);
     }
 
     @DeleteMapping("/{productId}")
@@ -68,7 +67,7 @@ public class ProductController {
                 .toList();
         for (Sort.Order order : sort){
             if(!validFields.contains(order.getProperty())){
-                throw new BadRequestException(order.getProperty() + "is not Entity Field");
+                throw new BadRequestException(order.getProperty() + " is not Entity Field");
             }
         }
     }

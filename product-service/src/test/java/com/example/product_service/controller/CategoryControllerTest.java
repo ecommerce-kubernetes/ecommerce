@@ -1,0 +1,72 @@
+package com.example.product_service.controller;
+
+import com.example.product_service.dto.request.CategoryRequestDto;
+import com.example.product_service.dto.response.CategoryResponseDto;
+import com.example.product_service.service.CategoryService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
+
+import static org.hamcrest.Matchers.hasItem;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+
+@WebMvcTest(CategoryController.class)
+class CategoryControllerTest {
+
+    @Autowired
+    MockMvc mockMvc;
+    @MockitoBean
+    CategoryService categoryService;
+
+    ObjectMapper mapper = new ObjectMapper();
+
+    @Test
+    @DisplayName("Category 생성 테스트")
+    void createCategoryTest() throws Exception {
+        CategoryRequestDto categoryRequestDto = new CategoryRequestDto("식품");
+        CategoryResponseDto categoryResponseDto = new CategoryResponseDto(1L, "식품");
+
+        when(categoryService.saveCategory(any(CategoryRequestDto.class))).thenReturn(categoryResponseDto);
+
+        String requestBody = mapper.writeValueAsString(categoryRequestDto);
+        ResultActions perform = mockMvc.perform(post("/categories")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBody));
+
+        perform
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value(1L))
+                .andExpect(jsonPath("$.name").value(categoryRequestDto.getName()));
+    }
+
+    @Test
+    @DisplayName("Category 생성 테스트 - 입력값 검증 테스트")
+    void createCategoryTest_InvalidCategoryRequestDto() throws Exception {
+        CategoryRequestDto categoryRequestDto = new CategoryRequestDto();
+
+        String requestBody = mapper.writeValueAsString(categoryRequestDto);
+        ResultActions perform = mockMvc.perform(post("/categories")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBody));
+
+        perform
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("BadRequest"))
+                .andExpect(jsonPath("$.message").value("Validation Error"))
+                .andExpect(jsonPath("$.errors[*].fieldName").value("name"))
+                .andExpect(jsonPath("$.errors[*].message").value("Category name is required"))
+                .andExpect(jsonPath("$.path").value("/categories"));
+    }
+
+}

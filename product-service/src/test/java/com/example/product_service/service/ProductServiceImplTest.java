@@ -33,7 +33,6 @@ class ProductServiceImplTest {
 
     @Autowired
     ProductService productService;
-
     @Autowired
     ProductsRepository productsRepository;
     @Autowired

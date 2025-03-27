@@ -15,9 +15,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -55,10 +53,12 @@ class ProductControllerTest {
         ProductResponseDto productResponseDto = createDefaultProductResponseDto();
         when(productService.saveProduct(any(ProductRequestDto.class))).thenReturn(productResponseDto);
 
-        String jsonRequestBody = mapper.writeValueAsString(productRequestDto);
-        mockMvc.perform(post("/products")
+        String requestBody = mapper.writeValueAsString(productRequestDto);
+        ResultActions perform = mockMvc.perform(post("/products")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(jsonRequestBody))
+                .content(requestBody));
+
+        perform
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(productResponseDto.getId()))
                 .andExpect(jsonPath("$.name").value(productResponseDto.getName()))
@@ -165,7 +165,6 @@ class ProductControllerTest {
     void updateProductStockQuantityTest_invalidStockQuantityRequestDto
             (StockQuantityRequestDto stockQuantityRequestDto, String expectedField, String expectedMessage) throws Exception {
         String requestBody = mapper.writeValueAsString(stockQuantityRequestDto);
-        log.info("{}",requestBody);
         ResultActions perform = mockMvc.perform(patch("/products/1/stock")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody));
@@ -226,8 +225,6 @@ class ProductControllerTest {
                 .param("sort", "id")
                 .param("direction", "asc")
                 .contentType(MediaType.APPLICATION_JSON));
-
-        String content = mapper.writeValueAsString(productList);
         perform
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.currentPage").value(0))
