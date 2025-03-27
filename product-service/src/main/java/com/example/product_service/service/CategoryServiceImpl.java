@@ -3,6 +3,7 @@ package com.example.product_service.service;
 import com.example.product_service.dto.request.CategoryRequestDto;
 import com.example.product_service.dto.response.CategoryResponseDto;
 import com.example.product_service.entity.Categories;
+import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.repository.CategoriesRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,5 +23,16 @@ public class CategoryServiceImpl implements CategoryService{
         Categories save = categoriesRepository.save(categories);
 
         return new CategoryResponseDto(save);
+    }
+
+    @Override
+    @Transactional
+    public CategoryResponseDto modifyCategory(Long categoryId, CategoryRequestDto categoryRequestDto) {
+        Categories category = categoriesRepository.findById(categoryId)
+                .orElseThrow(() -> new NotFoundException("Not Found Category"));
+
+        category.setName(categoryRequestDto.getName());
+
+        return new CategoryResponseDto(category);
     }
 }
