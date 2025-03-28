@@ -2,9 +2,14 @@ package com.example.userservice.jpa;
 
 
 import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
-@Table
+@Table(name = "user")
 @Entity
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class UserEntity {
 
     @Id
@@ -18,8 +23,11 @@ public class UserEntity {
     private String name;
 
     @Column(nullable = false, unique = true)
-    private String userId;
-
-    @Column(nullable = false, unique = true)
     private String encryptedPwd;
+
+    public UserEntity(String email, String name, String encryptedPwd) {
+        this.email = email;
+        this.name = name;
+        this.encryptedPwd = encryptedPwd;
+    }
 }
