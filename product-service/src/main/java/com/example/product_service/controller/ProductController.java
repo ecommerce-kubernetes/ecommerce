@@ -55,9 +55,11 @@ public class ProductController {
 
     @GetMapping
     public ResponseEntity<PageDto<ProductResponseDto>> getAllProducts(
-            @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.ASC) Pageable pageable){
+            @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.ASC) Pageable pageable,
+            @RequestParam(value = "categoryId", required = false) Long categoryId,
+            @RequestParam(value = "name", required = false) String name){
         validateSortFields(pageable.getSort(), Products.class);
-        PageDto<ProductResponseDto> productList = productService.getProductList(pageable);
+        PageDto<ProductResponseDto> productList = productService.getProductList(pageable, categoryId, name);
         return ResponseEntity.ok(productList);
     }
 

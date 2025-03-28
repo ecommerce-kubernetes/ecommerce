@@ -12,6 +12,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -20,6 +21,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -197,43 +199,73 @@ class ProductControllerTest {
                 .andExpect(jsonPath("$.categoryId").value(1L));
     }
 
-    @Test
+    @ParameterizedTest
+    @CsvSource({
+            "'', ''",
+            "1, ''",
+            "'', 사과",
+            "1, 사과"
+    })
     @DisplayName("상품 리스트 조회 테스트")
-    void getAllProductsTest() throws Exception {
+    void getAllProductsTest(String categoryId, String name) throws Exception {
 
-        List<ProductResponseDto> productList = new ArrayList<>();
-        productList.add(new ProductResponseDto(1L, "사과", "사과 3EA", 5000, 50, 1L));
-        productList.add(new ProductResponseDto(2L, "바나나", "바나나 3EA", 5000, 50, 1L));
-        productList.add(new ProductResponseDto(3L, "파인애플", "파인애플 5EA", 6000, 40, 1L));
-        productList.add(new ProductResponseDto(4L, "포도", "포도 6EA",10000, 40, 1L));
+        List<ProductResponseDto> allProductList = new ArrayList<>();
+        allProductList.add(new ProductResponseDto(1L, "사과", "사과 3EA", 5000, 50, 1L));
+        allProductList.add(new ProductResponseDto(2L, "바나나", "바나나 3EA", 5000, 50, 1L));
+        allProductList.add(new ProductResponseDto(3L, "파인애플", "파인애플 5EA", 6000, 40, 1L));
+        allProductList.add(new ProductResponseDto(4L, "포도", "포도 6EA",10000, 40, 1L));
+        allProductList.add(new ProductResponseDto(5L, "아이폰 16", "애플 아이폰 16", 1250000, 50, 2L));
 
+        List<ProductResponseDto> filteredProductResponseDto = allProductList.stream()
+                .filter(product -> {
+                    if (!categoryId.isEmpty()) {
+                        return product.getCategoryId().toString().equals(categoryId);
+                    }
+                    return true;
+                })
+                .filter(product -> {
+                    if (!name.isEmpty()) {
+                        return product.getName().toLowerCase().contains(name.toLowerCase());
+                    }
+                    return true;
+                })
+                .toList();
 
         PageDto<ProductResponseDto> pageDto = new PageDto<>(
-                productList,
+                filteredProductResponseDto,
                 0,
                 1,
                 10,
-                4
+                filteredProductResponseDto.size()
         );
 
-        when(productService.getProductList(any(Pageable.class)))
+        when(productService.getProductList(any(Pageable.class) , nullable(Long.class), nullable(String.class)))
                 .thenReturn(pageDto);
 
-        ResultActions perform = mockMvc.perform(get("/products")
+        MockHttpServletRequestBuilder requestBuilder = get("/products")
                 .param("page", "0")
                 .param("size", "10")
                 .param("sort", "id")
                 .param("direction", "asc")
-                .contentType(MediaType.APPLICATION_JSON));
+                .contentType(MediaType.APPLICATION_JSON);
+
+        if(!categoryId.isEmpty()){
+            requestBuilder.param("categoryId", categoryId);
+        }
+        if (!name.isEmpty()) {
+            requestBuilder.param("name", name);
+        }
+        ResultActions perform = mockMvc.perform(requestBuilder);
+
         perform
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.currentPage").value(0))
                 .andExpect(jsonPath("$.totalPage").value(1))
                 .andExpect(jsonPath("$.pageSize").value(10))
-                .andExpect(jsonPath("$.totalElement").value(4));
+                .andExpect(jsonPath("$.totalElement").value(filteredProductResponseDto.size()));
 
-        for (int i = 0; i < productList.size(); i++) {
-            ProductResponseDto expected = productList.get(i);
+        for (int i = 0; i < filteredProductResponseDto.size(); i++) {
+            ProductResponseDto expected = filteredProductResponseDto.get(i);
             perform
                     .andExpect(jsonPath("$.content[" + i + "].id").value(expected.getId()))
                     .andExpect(jsonPath("$.content[" + i + "].name").value(expected.getName()))

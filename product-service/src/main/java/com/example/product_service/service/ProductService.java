@@ -11,5 +11,5 @@ public interface ProductService {
     void deleteProduct(Long productId);
     ProductResponseDto modifyStockQuantity(Long productId, StockQuantityRequestDto stockQuantityRequestDto);
     ProductResponseDto getProductDetails(Long productId);
-    PageDto<ProductResponseDto> getProductList(Pageable pageable);
+    PageDto<ProductResponseDto> getProductList(Pageable pageable, Long categoryId, String name);
 }

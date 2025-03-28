@@ -70,9 +70,10 @@ public class ProductServiceImpl implements ProductService{
     }
 
     @Override
-    public PageDto<ProductResponseDto> getProductList(Pageable pageable) {
-        Page<Products> productsPage = productsRepository.findAllProducts(pageable);
+    public PageDto<ProductResponseDto> getProductList(Pageable pageable, Long categoryId, String name) {
+//        Page<Products> productsPage = productsRepository.findAllProducts(pageable);
 
+        Page<Products> productsPage = productsRepository.findAllByParameter(name, categoryId, pageable);
         List<ProductResponseDto> content = productsPage.getContent().stream().map(ProductResponseDto::new).toList();
 
         return new PageDto<>(
