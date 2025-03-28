@@ -8,5 +8,7 @@ spring:
       server:
         git:
           uri: https://github.com/ecommerce-kubernetes/config.git
+          username: ${GITHUB_USERNAME}
+          password: ${GITHUB_TOKEN}
           default-label: main
           search-paths: /
