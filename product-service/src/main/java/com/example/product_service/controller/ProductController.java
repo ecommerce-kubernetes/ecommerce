@@ -1,5 +1,6 @@
 package com.example.product_service.controller;
 
+import com.example.product_service.controller.util.SortFieldValidator;
 import com.example.product_service.dto.request.ProductRequestDto;
 import com.example.product_service.dto.request.StockQuantityRequestDto;
 import com.example.product_service.dto.response.PageDto;
@@ -26,6 +27,7 @@ import java.util.List;
 public class ProductController {
 
     private final ProductService productService;
+    private final SortFieldValidator sortFieldValidator;
 
     @PostMapping
     public ResponseEntity<ProductResponseDto> createProduct(@RequestBody @Validated ProductRequestDto productRequestDto){
@@ -58,19 +60,8 @@ public class ProductController {
             @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.ASC) Pageable pageable,
             @RequestParam(value = "categoryId", required = false) Long categoryId,
             @RequestParam(value = "name", required = false) String name){
-        validateSortFields(pageable.getSort(), Products.class);
+        sortFieldValidator.validateSortFields(pageable.getSort(), Products.class);
         PageDto<ProductResponseDto> productList = productService.getProductList(pageable, categoryId, name);
         return ResponseEntity.ok(productList);
-    }
-
-    private void validateSortFields(Sort sort, Class<?> entityClass){
-        List<String> validFields = Arrays.stream(entityClass.getDeclaredFields())
-                .map(Field::getName)
-                .toList();
-        for (Sort.Order order : sort){
-            if(!validFields.contains(order.getProperty())){
-                throw new BadRequestException(order.getProperty() + " is not Entity Field");
-            }
-        }
     }
 }
