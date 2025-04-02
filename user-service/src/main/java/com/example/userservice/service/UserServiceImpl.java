@@ -28,22 +28,15 @@ public class UserServiceImpl implements UserService{
     }
 
     @Override
-    public UserDto createUser(UserDto userDto) {
+    public UserEntity createUser(UserDto userDto) {
 
-        UserEntity userEntity = new UserEntity(
-                userDto.getEmail(),
-                userDto.getName(),
-                bCryptPasswordEncoder.encode(userDto.getPwd())
-        );
+        UserEntity userEntity = UserEntity.builder()
+                .email(userDto.getEmail())
+                .encryptedPwd(bCryptPasswordEncoder.encode(userDto.getPwd()))
+                .name(userDto.getName())
+                .build();
 
-        UserEntity saveUserEntity = userRepository.save(userEntity);
-
-        UserDto result = new UserDto();
-        result.setId(saveUserEntity.getId());
-        result.setEmail(saveUserEntity.getEmail());
-        result.setName(saveUserEntity.getName());
-        return result;
-
+        return userRepository.save(userEntity);
     }
 
     @Override
@@ -51,9 +44,10 @@ public class UserServiceImpl implements UserService{
         Iterable<UserEntity> userList = userRepository.findAll();
         List<UserDto> result = new ArrayList<>();
         userList.forEach(v -> {
-            UserDto userDto = new UserDto();
-            userDto.setEmail(v.getEmail());
-            userDto.setName(v.getName());
+            UserDto userDto = UserDto.builder()
+                    .email(v.getEmail())
+                    .name(v.getName())
+                    .build();
             result.add(userDto);
         });
 
@@ -61,31 +55,32 @@ public class UserServiceImpl implements UserService{
     }
 
     @Override
-    public Optional<UserEntity> getUserById(Long userId) {
+    public UserEntity getUserById(Long userId) {
 
-        return userRepository.findById(userId);
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with id: " + userId));
     }
 
     @Override
     public UserDto getUserByEmail(String email) {
         Optional<UserEntity> userEntity = userRepository.findByEmail(email);
         if (userEntity.isEmpty()) {
-            throw new UsernameNotFoundException(email);
+            throw new UsernameNotFoundException("User not found with email");
         }
 
-        UserDto userDto = new UserDto();
-        userDto.setId(userEntity.get().getId());
-        userDto.setEmail(userEntity.get().getEmail());
-        userDto.setPwd(userEntity.get().getEncryptedPwd());
-        userDto.setName(userEntity.get().getName());
-        return userDto;
+        return UserDto.builder()
+                .id(userEntity.get().getId())
+                .email(userEntity.get().getEmail())
+                .pwd(userEntity.get().getEncryptedPwd())
+                .name(userEntity.get().getName())
+                .build();
     }
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         Optional<UserEntity> userEntity = userRepository.findByEmail(username);
         if (userEntity.isEmpty()) {
-            throw new UsernameNotFoundException(username);
+            throw new UsernameNotFoundException("User not found with username");
         }
 
         return new User(

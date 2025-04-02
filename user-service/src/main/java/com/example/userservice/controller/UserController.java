@@ -32,16 +32,16 @@ public class UserController {
     @PostMapping("/users")
     public ResponseEntity<ResponseUser> createUser(@RequestBody RequestUser user) {
 
+        UserDto userDto = UserDto.builder()
+                .email(user.getEmail())
+                .pwd(user.getPwd())
+                .name(user.getName())
+                .build();
 
-        UserDto userDto = new UserDto();
-        userDto.setEmail(user.getEmail());
-        userDto.setPwd(user.getPwd());
-        userDto.setName(user.getName());
-
-        UserDto createUserDto = userService.createUser(userDto);
+        UserEntity createUser = userService.createUser(userDto);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(
-                new ResponseUser(createUserDto.getId(), createUserDto.getEmail(), createUserDto.getName())
+                new ResponseUser(createUser.getId(), createUser.getEmail(), createUser.getName())
         );
     }
 
@@ -60,17 +60,13 @@ public class UserController {
     public ResponseEntity getUser(@PathVariable("userId") Long userId) {
         log.info("userId : {}", userId);
 
-        Optional<UserEntity> userEntity = userService.getUserById(userId);
-
-        if (userEntity.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-        }
+        UserEntity userEntity = userService.getUserById(userId);
 
         return ResponseEntity.status(HttpStatus.OK).body(
                 new ResponseUser(
-                        userEntity.get().getId(),
-                        userEntity.get().getEmail(),
-                        userEntity.get().getName()
+                        userEntity.getId(),
+                        userEntity.getEmail(),
+                        userEntity.getName()
                 )
         );
 //        //유저 상세 보기를 했을 때, 전체 목록 보기를 보여주기 위한 HATEOAS 기능 추가
