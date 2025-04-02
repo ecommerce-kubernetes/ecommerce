@@ -8,11 +8,11 @@ import java.util.List;
 import java.util.Optional;
 
 public interface UserService extends UserDetailsService {
-    UserDto createUser(UserDto userDto);
+    UserEntity createUser(UserDto userDto);
 
     List<UserDto> getUserByAll();
 
-    Optional<UserEntity> getUserById(Long userId);
+    UserEntity getUserById(Long userId);
 
     UserDto getUserByEmail(String email);
 }
