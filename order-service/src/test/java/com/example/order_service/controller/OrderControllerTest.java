@@ -5,8 +5,9 @@ import com.example.order_service.dto.request.OrderItemRequestDto;
 import com.example.order_service.dto.request.OrderRequestDto;
 import com.example.order_service.dto.response.OrderItemResponseDto;
 import com.example.order_service.dto.response.OrderResponseDto;
-import com.example.order_service.service.JwtValidator;
+import com.example.order_service.exception.NotFoundException;
 import com.example.order_service.service.OrderService;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -26,8 +27,9 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import static org.hamcrest.Matchers.hasItem;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -42,9 +44,6 @@ class OrderControllerTest {
 
     @MockitoBean
     OrderService orderService;
-
-    @MockitoBean
-    JwtValidator jwtValidator;
 
     ObjectMapper mapper = new ObjectMapper();
 
@@ -69,11 +68,10 @@ class OrderControllerTest {
         }
         OrderResponseDto orderResponseDto = new OrderResponseDto(1L, 1L, responseItems, "서울특별시 종로구 세종대로 209", totalPrice , "PENDING");
 
-        when(jwtValidator.getSub(any(String.class))).thenReturn("1");
         when(orderService.saveOrder(any(Long.class),any(OrderRequestDto.class))).thenReturn(orderResponseDto);
 
         ResultActions perform = mockMvc.perform(post("/orders")
-                .header("Authorization", "Bearer testToken")
+                .header("user-id", "1")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody));
 
@@ -102,7 +100,7 @@ class OrderControllerTest {
         String requestBody = mapper.writeValueAsString(orderRequestDto);
 
         ResultActions perform = mockMvc.perform(post("/orders")
-                .header("Authorization", "Bearer testToken")
+                .header("user-id", "1")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody));
 
@@ -112,6 +110,29 @@ class OrderControllerTest {
                 .andExpect(jsonPath("$.message").value("Validation Error"))
                 .andExpect(jsonPath("$.errors[*].fieldName").value(hasItem(expectedField)))
                 .andExpect(jsonPath("$.errors[*].message").value(hasItem(expectedMessage)))
+                .andExpect(jsonPath("$.path").value("/orders"));
+    }
+
+    @Test
+    void createOrderTest_NotFoundProduct() throws Exception {
+        List<OrderItemRequestDto> requestItems = new ArrayList<>();
+        requestItems.add(new OrderItemRequestDto(1L, 10));
+        requestItems.add(new OrderItemRequestDto(2L, 20));
+        requestItems.add(new OrderItemRequestDto(5L, 40));
+
+        OrderRequestDto orderRequestDto = new OrderRequestDto(requestItems, "서울특별시 종로구 세종대로 209");
+        String requestBody = mapper.writeValueAsString(orderRequestDto);
+        doThrow(new NotFoundException("Not Found Product")).when(orderService).saveOrder(anyLong(), any(OrderRequestDto.class));
+
+        ResultActions perform = mockMvc.perform(post("/orders")
+                .header("user-id", "1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBody));
+
+        perform
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("NotFound"))
+                .andExpect(jsonPath("$.message").value("Not Found Product"))
                 .andExpect(jsonPath("$.path").value("/orders"));
     }
 

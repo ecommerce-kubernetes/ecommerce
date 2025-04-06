@@ -1,7 +1,9 @@
 package com.example.order_service.common.advice;
 
 import com.example.order_service.common.advice.dto.DetailError;
+import com.example.order_service.common.advice.dto.ErrorResponse;
 import com.example.order_service.common.advice.dto.ValidationErrorResponse;
+import com.example.order_service.exception.NotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -35,5 +37,17 @@ public class ControllerAdvice {
                 request.getRequestURI()
         );
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(validationErrorResponse);
+    }
+
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity<ErrorResponse> notFoundExceptionHandler(HttpServletRequest request, NotFoundException e){
+        String timestamp = LocalDateTime.now().toString();
+        ErrorResponse errorResponse = new ErrorResponse(
+                "NotFound",
+                e.getMessage(),
+                timestamp,
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
     }
 }

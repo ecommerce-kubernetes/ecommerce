@@ -22,4 +22,11 @@ public class Orders extends BaseEntity {
     private int totalPrice;
     private String status;
     private String deliveryAddress;
+
+    public Orders(Long userId, int totalPrice, String status, String deliveryAddress){
+        this.userId = userId;
+        this.totalPrice = totalPrice;
+        this.status = status;
+        this.deliveryAddress = deliveryAddress;
+    }
 }
