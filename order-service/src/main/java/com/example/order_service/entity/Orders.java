@@ -1,13 +1,14 @@
 package com.example.order_service.entity;
 
 import com.example.order_service.entity.base.BaseEntity;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -20,8 +21,12 @@ public class Orders extends BaseEntity {
 
     private Long userId;
     private int totalPrice;
+    @Setter
     private String status;
     private String deliveryAddress;
+
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<OrderItems> orderItems = new ArrayList<>();
 
     public Orders(Long userId, int totalPrice, String status, String deliveryAddress){
         this.userId = userId;
@@ -29,4 +34,5 @@ public class Orders extends BaseEntity {
         this.status = status;
         this.deliveryAddress = deliveryAddress;
     }
+
 }

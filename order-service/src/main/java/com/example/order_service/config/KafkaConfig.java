@@ -16,7 +16,7 @@ import java.util.Map;
 public class KafkaConfig {
 
     private static final String BOOTSTRAP_SERVERS = "localhost:9092";
-    private static final String GROUP_ID = "my_group";
+    private static final String GROUP_ID = "orders";
 
     @Bean
     public ProducerFactory<String, Object> producerFactory(){

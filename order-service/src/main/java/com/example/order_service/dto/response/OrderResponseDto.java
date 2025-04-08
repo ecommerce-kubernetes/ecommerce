@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
@@ -18,4 +19,5 @@ public class OrderResponseDto {
     private String deliveryAddress;
     private int totalPrice;
     private String status;
+    private LocalDateTime createAt;
 }

@@ -7,6 +7,7 @@ import com.example.order_service.dto.request.OrderItemRequestDto;
 import com.example.order_service.dto.request.OrderRequestDto;
 import com.example.order_service.dto.response.OrderItemResponseDto;
 import com.example.order_service.dto.response.OrderResponseDto;
+import com.example.order_service.dto.response.PageDto;
 import com.example.order_service.entity.OrderItems;
 import com.example.order_service.entity.Orders;
 import com.example.order_service.repository.OrderItemsRepository;
@@ -15,6 +16,8 @@ import com.example.order_service.service.client.ProductClientService;
 import com.example.order_service.service.kafka.KafkaProducer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,12 +28,12 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Transactional(readOnly = true)
 public class OrderServiceImpl implements OrderService{
 
     private final ProductClientService productClientService;
     private final KafkaProducer kafkaProducer;
     private final OrdersRepository ordersRepository;
-    private final OrderItemsRepository orderItemsRepository;
 
     @Transactional
     @Override
@@ -51,16 +54,16 @@ public class OrderServiceImpl implements OrderService{
         Orders order = new Orders(userId, totalPrice, "PENDING", orderRequestDto.getDeliveryAddress());
         Orders savedOrder = ordersRepository.save(order);
 
-        List<OrderItems> orderItems = orderItemRequestMap.stream()
-                .map(entry -> new OrderItems(
-                        savedOrder,
-                        entry.getKey().getId(),
-                        entry.getKey().getName(),
-                        entry.getKey().getPrice(),
-                        entry.getValue().getQuantity()
-                )).toList();
 
-        List<OrderItems> savedOrderItems = orderItemsRepository.saveAll(orderItems);
+        orderItemRequestMap.forEach(entry -> new OrderItems(
+                savedOrder,
+                entry.getKey().getId(),
+                entry.getKey().getName(),
+                entry.getKey().getPrice(),
+                entry.getValue().getQuantity()
+        ));
+
+        List<OrderItems> savedOrderItems = savedOrder.getOrderItems();
 
         List<KafkaOrderItemDto> kafkaOrderItems = savedOrderItems.stream().map(orderItem ->
                 new KafkaOrderItemDto(orderItem.getProductId(), orderItem.getQuantity())).toList();
@@ -80,6 +83,42 @@ public class OrderServiceImpl implements OrderService{
                 orderItemResponseDtoList,
                 savedOrder.getDeliveryAddress(),
                 savedOrder.getTotalPrice(),
-                savedOrder.getStatus());
+                savedOrder.getStatus(),
+                savedOrder.getCreateAt());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PageDto<OrderResponseDto> getOrderList(Pageable pageable, Long userId, Integer year, String keyword) {
+        Page<Orders> findResult = ordersRepository.findAllByParameter(pageable, userId, year, keyword);
+
+        List<OrderResponseDto> orderResponseDtoList = findResult.getContent().stream().map(order -> {
+            List<OrderItems> orderItems = order.getOrderItems();
+            List<OrderItemResponseDto> orderItemResponseDtoList = orderItems.stream()
+                    .map(orderItem ->
+                            new OrderItemResponseDto(
+                                    orderItem.getProductId(),
+                                    orderItem.getProductName(),
+                                    orderItem.getQuantity(),
+                                    orderItem.getPrice())
+                    ).toList();
+
+            return new OrderResponseDto(
+                    order.getId(),
+                    order.getUserId(),
+                    orderItemResponseDtoList,
+                    order.getDeliveryAddress(),
+                    order.getTotalPrice(),
+                    order.getStatus(),
+                    order.getCreateAt());
+        }).toList();
+
+        return new PageDto<>(
+                orderResponseDtoList,
+                pageable.getPageNumber(),
+                findResult.getTotalPages(),
+                pageable.getPageSize(),
+                findResult.getTotalElements()
+        );
     }
 }
