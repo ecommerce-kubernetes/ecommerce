@@ -10,7 +10,6 @@ import com.example.order_service.dto.response.OrderResponseDto;
 import com.example.order_service.dto.response.PageDto;
 import com.example.order_service.entity.OrderItems;
 import com.example.order_service.entity.Orders;
-import com.example.order_service.repository.OrderItemsRepository;
 import com.example.order_service.repository.OrdersRepository;
 import com.example.order_service.service.client.ProductClientService;
 import com.example.order_service.service.kafka.KafkaProducer;
@@ -22,7 +21,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.AbstractMap;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -88,7 +86,6 @@ public class OrderServiceImpl implements OrderService{
     }
 
     @Override
-    @Transactional(readOnly = true)
     public PageDto<OrderResponseDto> getOrderList(Pageable pageable, Long userId, Integer year, String keyword) {
         Page<Orders> findResult = ordersRepository.findAllByParameter(pageable, userId, year, keyword);
 

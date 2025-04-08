@@ -1,6 +1,5 @@
 package com.example.order_service.controller;
 
-import com.example.order_service.common.SnowFlakeIdGenerator;
 import com.example.order_service.dto.request.OrderRequestDto;
 import com.example.order_service.dto.response.OrderResponseDto;
 import com.example.order_service.dto.response.PageDto;
@@ -11,7 +10,6 @@ import org.apache.http.HttpStatus;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
