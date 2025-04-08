@@ -1,6 +1,7 @@
 package com.example.order_service.service.client;
 
 import com.example.order_service.client.ProductClient;
+import com.example.order_service.dto.client.ProductRequestIdsDto;
 import com.example.order_service.dto.client.ProductResponseDto;
 import com.example.order_service.exception.NotFoundException;
 import feign.FeignException;
@@ -12,6 +13,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -22,6 +25,11 @@ public class ProductClientService {
     @CircuitBreaker(name = "productService", fallbackMethod = "getProductFallback")
     public ProductResponseDto fetchProduct(Long productId){
         return productClient.getProduct(productId);
+    }
+
+    @CircuitBreaker(name = "productService", fallbackMethod = "getProductFallback")
+    public List<ProductResponseDto> fetchProductBatch(ProductRequestIdsDto productRequestIdsDto){
+        return productClient.getProductsByIdBatch(productRequestIdsDto);
     }
 
     public ProductResponseDto getProductFallback(Long productId, Throwable throwable){

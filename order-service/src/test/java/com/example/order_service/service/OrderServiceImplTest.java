@@ -1,6 +1,6 @@
 package com.example.order_service.service;
 
-import com.example.order_service.client.ProductClient;
+import com.example.order_service.dto.client.ProductRequestIdsDto;
 import com.example.order_service.dto.client.ProductResponseDto;
 import com.example.order_service.dto.request.OrderItemRequestDto;
 import com.example.order_service.dto.request.OrderRequestDto;
@@ -15,7 +15,6 @@ import com.example.order_service.repository.OrdersRepository;
 import com.example.order_service.service.client.ProductClientService;
 import com.example.order_service.service.kafka.KafkaProducer;
 import lombok.extern.slf4j.Slf4j;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -64,17 +63,19 @@ class OrderServiceImplTest {
         orderItemRequestDtoList.add(new OrderItemRequestDto(2L, 20));
         OrderRequestDto orderRequestDto = new OrderRequestDto(orderItemRequestDtoList,"delivery Address");
 
-        when(productClientService.fetchProduct(anyLong()))
+        when(productClientService.fetchProductBatch(any(ProductRequestIdsDto.class)))
                 .thenAnswer(invocation -> {
-                    Long productId = invocation.getArgument(0);
-                    return new ProductResponseDto(
-                            productId,
-                            "name" + productId,
-                            "description" + productId,
-                            1000,
-                            10,
-                            1L
-                    );
+                    ProductRequestIdsDto dto = invocation.getArgument(0);
+                    // dto.getIds()에 담긴 각 productId에 대해 ProductResponseDto 생성.
+                    return dto.getIds().stream()
+                            .map(productId -> new ProductResponseDto(
+                                    productId,
+                                    "name" + productId,
+                                    "description" + productId,
+                                    1000,
+                                    10,
+                                    1L))
+                            .toList();
                 });
         OrderResponseDto orderResponseDto = orderService.saveOrder(userId, orderRequestDto);
 
@@ -121,7 +122,7 @@ class OrderServiceImplTest {
         orderItemRequestDtoList.add(new OrderItemRequestDto(2L, 20));
         OrderRequestDto orderRequestDto = new OrderRequestDto(orderItemRequestDtoList,"delivery Address");
 
-        doThrow(new NotFoundException("Not Found Product")).when(productClientService).fetchProduct(anyLong());
+        doThrow(new NotFoundException("Not Found Product")).when(productClientService).fetchProductBatch(any(ProductRequestIdsDto.class));
 
         assertThatThrownBy(() -> orderService.saveOrder(userId,orderRequestDto))
                 .isInstanceOf(NotFoundException.class)

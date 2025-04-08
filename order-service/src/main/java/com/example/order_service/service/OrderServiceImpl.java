@@ -2,6 +2,7 @@ package com.example.order_service.service;
 
 import com.example.order_service.dto.KafkaOrderDto;
 import com.example.order_service.dto.KafkaOrderItemDto;
+import com.example.order_service.dto.client.ProductRequestIdsDto;
 import com.example.order_service.dto.client.ProductResponseDto;
 import com.example.order_service.dto.request.OrderItemRequestDto;
 import com.example.order_service.dto.request.OrderRequestDto;
@@ -22,6 +23,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.AbstractMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -38,13 +42,23 @@ public class OrderServiceImpl implements OrderService{
     public OrderResponseDto saveOrder(Long userId, OrderRequestDto orderRequestDto) {
         List<OrderItemRequestDto> orderItemRequest = orderRequestDto.getItems();
 
+        List<Long> ids = orderItemRequest.stream().map(
+                OrderItemRequestDto::getProductId
+        ).toList();
+        ProductRequestIdsDto productRequestIdsDto = new ProductRequestIdsDto(ids);
+
+        List<ProductResponseDto> products = productClientService.fetchProductBatch(productRequestIdsDto);
+
+        Map<Long, ProductResponseDto> productMap = products.stream()
+                .collect(Collectors.toMap(ProductResponseDto::getId, Function.identity()));
+
         List<AbstractMap.SimpleEntry<ProductResponseDto, OrderItemRequestDto>> orderItemRequestMap =
-                orderItemRequest.stream().map(orderItemRequestDto ->
-                        new AbstractMap.SimpleEntry<>(
-                            productClientService.fetchProduct(orderItemRequestDto.getProductId()),
-                            orderItemRequestDto
-                        )
-                ).toList();
+                orderItemRequest.stream()
+                        .map(item -> new AbstractMap.SimpleEntry<>(
+                                productMap.get(item.getProductId()),
+                                item
+                        ))
+                        .toList();
 
         int totalPrice = orderItemRequestMap.stream()
                 .mapToInt(entry -> entry.getKey().getPrice() * entry.getValue().getQuantity()).sum();
