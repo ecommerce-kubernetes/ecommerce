@@ -2,14 +2,17 @@ package com.example.userservice.jpa;
 
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-@Table(name = "user")
+import java.util.Date;
+
+@Table(name = "users")
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@EntityListeners(AuditingEntityListener.class)
 public class UserEntity {
 
     @Id
@@ -25,6 +28,11 @@ public class UserEntity {
     @Column(nullable = false, unique = true)
     private String encryptedPwd;
 
+    @CreatedDate
+    @Column(updatable = false)
+    private Date createAt;
+
+    @Builder
     public UserEntity(String email, String name, String encryptedPwd) {
         this.email = email;
         this.name = name;
