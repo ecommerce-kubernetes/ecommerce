@@ -8,9 +8,9 @@ import lombok.Setter;
 
 @Getter
 @Setter
+@NoArgsConstructor
 @AllArgsConstructor
-@NoArgsConstructor        //TODO 상품 이미지로 확장가능
-public class ProductResponseDto {
+public class CompactProductResponseDto {
     private Long id;
     private String name;
     private String description;
@@ -18,7 +18,7 @@ public class ProductResponseDto {
     private int stockQuantity;
     private Long categoryId;
 
-    public ProductResponseDto(Products product){
+    public CompactProductResponseDto(Products product){
         this.id = product.getId();
         this.name = product.getName();
         this.description = product.getDescription();

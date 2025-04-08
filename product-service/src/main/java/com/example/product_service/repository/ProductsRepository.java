@@ -7,8 +7,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
-public interface ProductsRepository extends JpaRepository<Products, Long>, ProductQueryRepository {
+import java.util.List;
 
+public interface ProductsRepository extends JpaRepository<Products, Long>, ProductQueryRepository {
     @Query("SELECT p FROM Products p")
     Page<Products> findAllProducts(Pageable pageable);
+
+    List<Products> findAllByIdIn(List<Long> productIds);
 }
