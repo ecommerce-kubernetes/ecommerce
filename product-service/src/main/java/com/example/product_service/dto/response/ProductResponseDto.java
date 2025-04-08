@@ -9,7 +9,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @AllArgsConstructor
-@NoArgsConstructor
+@NoArgsConstructor        //TODO 상품 이미지로 확장가능
 public class ProductResponseDto {
     private Long id;
     private String name;

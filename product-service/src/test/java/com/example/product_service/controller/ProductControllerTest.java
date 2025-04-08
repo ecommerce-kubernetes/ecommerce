@@ -2,11 +2,14 @@ package com.example.product_service.controller;
 
 import com.example.product_service.controller.util.SortFieldValidator;
 import com.example.product_service.dto.request.ProductRequestDto;
+import com.example.product_service.dto.request.ProductRequestIdsDto;
 import com.example.product_service.dto.request.StockQuantityRequestDto;
+import com.example.product_service.dto.response.CompactProductResponseDto;
 import com.example.product_service.dto.response.PageDto;
 import com.example.product_service.dto.response.ProductResponseDto;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.service.ProductService;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
@@ -277,6 +280,57 @@ class ProductControllerTest {
                     .andExpect(jsonPath("$.content[" + i + "].stockQuantity").value(expected.getStockQuantity()))
                     .andExpect(jsonPath("$.content[" + i + "].categoryId").value(expected.getCategoryId()));
         }
+    }
+
+    @Test
+    @DisplayName("상품 조회 (배치)")
+    void getProductsByIdBatchTest() throws Exception {
+        ProductRequestIdsDto productRequestIdsDto = new ProductRequestIdsDto(List.of(1L,2L,3L));
+        List<CompactProductResponseDto> compactProductResponseDtoList =
+                List.of(new CompactProductResponseDto(1L, "사과" , "청송사과 3EA", 3000, 10, 1L),
+                        new CompactProductResponseDto(2L, "바나나", "바나나 5EA", 5000, 50, 1L),
+                        new CompactProductResponseDto(3L, "아이폰 16", "애플 아이폰 16", 1250000, 50, 2L));
+
+        when(productService.getProductListByIds(any(ProductRequestIdsDto.class))).thenReturn(compactProductResponseDtoList);
+        String content = mapper.writeValueAsString(productRequestIdsDto);
+
+        ResultActions perform = mockMvc.perform(post("/products/lookup-by-ids")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(content));
+
+        perform
+                .andExpect(status().isOk());
+
+        for (int i=0; i<compactProductResponseDtoList.size(); i++) {
+            perform
+                    .andExpect(jsonPath("[" + i + "].id").value(compactProductResponseDtoList.get(i).getId()))
+                    .andExpect(jsonPath("[" + i + "].name").value(compactProductResponseDtoList.get(i).getName()))
+                    .andExpect(jsonPath("[" + i + "].price").value(compactProductResponseDtoList.get(i).getPrice()))
+                    .andExpect(jsonPath("[" + i + "].stockQuantity").value(compactProductResponseDtoList.get(i).getStockQuantity()))
+                    .andExpect(jsonPath("[" + i + "].categoryId").value(compactProductResponseDtoList.get(i).getCategoryId()));
+        }
+    }
+
+    @Test
+    @DisplayName("상품 조회(배치) 상품 찾을 수 없는 경우")
+    void getProductsByIdBatchTest_NotFoundProduct() throws Exception {
+        ProductRequestIdsDto productRequestIdsDto = new ProductRequestIdsDto(List.of(1L,2L,99L, 100L));
+
+        String content = mapper.writeValueAsString(productRequestIdsDto);
+        List<Long> notFoundId = List.of(99L, 100L);
+        doThrow(new NotFoundException("Not Found Product by id: " + notFoundId))
+                .when(productService)
+                .getProductListByIds(any(ProductRequestIdsDto.class));
+
+        ResultActions perform = mockMvc.perform(post("/products/lookup-by-ids")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(content));
+
+        perform
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("NotFound"))
+                .andExpect(jsonPath("$.message").value("Not Found Product by id: " + notFoundId))
+                .andExpect(jsonPath("$.path").value("/products/lookup-by-ids"));
     }
 
     private ProductRequestDto createDefaultProductRequestDto(){
