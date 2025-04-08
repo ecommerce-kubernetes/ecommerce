@@ -2,7 +2,9 @@ package com.example.product_service.controller;
 
 import com.example.product_service.controller.util.SortFieldValidator;
 import com.example.product_service.dto.request.ProductRequestDto;
+import com.example.product_service.dto.request.ProductRequestIdsDto;
 import com.example.product_service.dto.request.StockQuantityRequestDto;
+import com.example.product_service.dto.response.CompactProductResponseDto;
 import com.example.product_service.dto.response.PageDto;
 import com.example.product_service.dto.response.ProductResponseDto;
 import com.example.product_service.entity.Products;
@@ -64,4 +66,11 @@ public class ProductController {
         PageDto<ProductResponseDto> productList = productService.getProductList(pageable, categoryId, name);
         return ResponseEntity.ok(productList);
     }
+
+    @PostMapping("/lookup-by-ids")
+    public ResponseEntity<List<CompactProductResponseDto>> getProductsByIdBatch(@RequestBody ProductRequestIdsDto productRequestIdsDto){
+        List<CompactProductResponseDto> productListByIds = productService.getProductListByIds(productRequestIdsDto);
+        return ResponseEntity.ok(productListByIds);
+    }
+
 }

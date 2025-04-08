@@ -1,7 +1,9 @@
 package com.example.product_service.service;
 
 import com.example.product_service.dto.request.ProductRequestDto;
+import com.example.product_service.dto.request.ProductRequestIdsDto;
 import com.example.product_service.dto.request.StockQuantityRequestDto;
+import com.example.product_service.dto.response.CompactProductResponseDto;
 import com.example.product_service.dto.response.PageDto;
 import com.example.product_service.dto.response.ProductResponseDto;
 import com.example.product_service.entity.Categories;
@@ -10,16 +12,20 @@ import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.repository.CategoriesRepository;
 import com.example.product_service.repository.ProductsRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
+@Slf4j
 public class ProductServiceImpl implements ProductService{
 
     private final ProductsRepository productsRepository;
@@ -83,5 +89,24 @@ public class ProductServiceImpl implements ProductService{
                 pageable.getPageSize(),
                 productsPage.getTotalElements()
         );
+    }
+
+    @Override
+    public List<CompactProductResponseDto> getProductListByIds(ProductRequestIdsDto productRequestIdsDto) {
+        List<Long> ids = productRequestIdsDto.getIds();
+
+        List<Products> findProducts = productsRepository.findAllByIdIn(ids);
+
+        Set<Long> findProductsId = findProducts.stream()
+                .map(Products::getId)
+                .collect(Collectors.toSet());
+
+        List<Long> foundIds = ids.stream().filter(id -> !findProductsId.contains(id)).toList();
+
+        if(!foundIds.isEmpty()){
+            throw new NotFoundException("Not Found product by id:" + foundIds);
+        }
+
+        return findProducts.stream().map(CompactProductResponseDto::new).toList();
     }
 }

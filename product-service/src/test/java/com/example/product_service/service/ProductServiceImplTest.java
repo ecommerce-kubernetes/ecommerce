@@ -1,7 +1,9 @@
 package com.example.product_service.service;
 
 import com.example.product_service.dto.request.ProductRequestDto;
+import com.example.product_service.dto.request.ProductRequestIdsDto;
 import com.example.product_service.dto.request.StockQuantityRequestDto;
+import com.example.product_service.dto.response.CompactProductResponseDto;
 import com.example.product_service.dto.response.PageDto;
 import com.example.product_service.dto.response.ProductResponseDto;
 import com.example.product_service.entity.Categories;
@@ -189,6 +191,35 @@ class ProductServiceImplTest {
             assertThat(actual.getStockQuantity()).isEqualTo(expected.getStockQuantity());
             assertThat(actual.getCategoryId()).isEqualTo(expected.getCategory().getId());
         }
+    }
+
+    @Test
+    @Transactional
+    void getProductListByIdsTest(){
+        Products banana = productsRepository.save(new Products("바나나", "바나나 3개입", 5000, 50, food));
+        Products apple = productsRepository.save(new Products("사과", "사과 3개입", 5000, 50, food));
+        Products iphone = productsRepository.save(new Products("아이폰 16", "애플 아이폰 16", 1250000, 50, electronicDevices));
+
+        ProductRequestIdsDto productRequestIdsDto = new ProductRequestIdsDto(List.of(banana.getId(), apple.getId()));
+
+        List<CompactProductResponseDto> productListByIds = productService.getProductListByIds(productRequestIdsDto);
+
+        assertThat(productListByIds.size()).isEqualTo(2);
+
+    }
+
+    @Test
+    @Transactional
+    void getProductListByIdsTest_NotFoundProduct(){
+        Products banana = productsRepository.save(new Products("바나나", "바나나 3개입", 5000, 50, food));
+        Products apple = productsRepository.save(new Products("사과", "사과 3개입", 5000, 50, food));
+        Products iphone = productsRepository.save(new Products("아이폰 16", "애플 아이폰 16", 1250000, 50, electronicDevices));
+
+        ProductRequestIdsDto productRequestIdsDto = new ProductRequestIdsDto(List.of(banana.getId(), 999L));
+        List<Long> notFoundId = List.of(999L);
+        assertThatThrownBy(() -> productService.getProductListByIds(productRequestIdsDto))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage("Not Found product by id:" + notFoundId);
 
     }
 
