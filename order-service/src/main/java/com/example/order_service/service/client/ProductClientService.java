@@ -27,12 +27,30 @@ public class ProductClientService {
         return productClient.getProduct(productId);
     }
 
-    @CircuitBreaker(name = "productService", fallbackMethod = "getProductFallback")
+    @CircuitBreaker(name = "productService", fallbackMethod = "getProductListFallback")
     public List<ProductResponseDto> fetchProductBatch(ProductRequestIdsDto productRequestIdsDto){
         return productClient.getProductsByIdBatch(productRequestIdsDto);
     }
 
     public ProductResponseDto getProductFallback(Long productId, Throwable throwable){
+        if(throwable instanceof CallNotPermittedException){
+            throw new ResponseStatusException(
+                    HttpStatus.SERVICE_UNAVAILABLE,
+                    "Product Service unavailable"
+            );
+        }
+        else if (throwable instanceof FeignException){
+            if (((FeignException) throwable).status() == 404){
+                throw new NotFoundException("Not Found Product");
+            }
+        }
+        throw new ResponseStatusException(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "Product Service Error"
+        );
+    }
+
+    public List<ProductResponseDto> getProductListFallback(ProductRequestIdsDto requestDto, Throwable throwable){
         if(throwable instanceof CallNotPermittedException){
             throw new ResponseStatusException(
                     HttpStatus.SERVICE_UNAVAILABLE,

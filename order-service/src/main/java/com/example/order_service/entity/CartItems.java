@@ -16,10 +16,18 @@ public class CartItems {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cart_id")
-    private Cart cart;
-
+    private Carts cart;
     private Long productId;
-    private String productName;
-    private int price;
     private int quantity;
+
+    public CartItems(Carts cart, Long productId, int quantity){
+        this.cart = cart;
+        this.productId = productId;
+        this.quantity = quantity;
+        cart.getCartItems().add(this);
+    }
+
+    public void addQuantity(int quantity){
+        this.quantity = this.quantity + quantity;
+    }
 }
