@@ -76,7 +76,7 @@ public class CartServiceImpl implements CartService{
     @Override
     public CartResponseDto getCartItemList(Long userId) {
         Carts cart = cartsRepository.findByUserId(userId)
-                .orElseThrow(() -> new NotFoundException("Not Found CartItem"));
+                .orElseThrow(() -> new NotFoundException("Not Found Cart"));
 
         List<CartItems> cartItems = cart.getCartItems();
 

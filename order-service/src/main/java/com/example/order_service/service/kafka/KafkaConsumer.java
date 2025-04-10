@@ -4,6 +4,7 @@ import com.example.order_service.dto.KafkaOrderStatusDto;
 import com.example.order_service.entity.Orders;
 import com.example.order_service.exception.NotFoundException;
 import com.example.order_service.repository.OrdersRepository;
+import com.example.order_service.service.OrderService;
 import com.fasterxml.jackson.core.JacksonException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -19,8 +20,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class KafkaConsumer {
 
     private ObjectMapper mapper = new ObjectMapper();
-    private final OrdersRepository ordersRepository;
-    @Transactional
+    private final OrderService orderService;
+
     @KafkaListener(topics = "change_orders", groupId = "orders")
     public void changeOrdersListen(ConsumerRecord<String, Object> record){
         KafkaOrderStatusDto kafkaOrderStatusDto;
@@ -30,14 +31,10 @@ public class KafkaConsumer {
             throw new RuntimeException(e);
         }
 
-        Orders order = ordersRepository.findById(kafkaOrderStatusDto.getOrderId())
-                .orElseThrow(() -> new NotFoundException("Not Found Order"));
-
-        if(kafkaOrderStatusDto.getStatus().equalsIgnoreCase("SUCCESS")){
-            order.setStatus("SUCCESS");
-        }
-        else {
-            order.setStatus("CANCEL");
-        }
+        String status = kafkaOrderStatusDto.getStatus().toUpperCase();
+        orderService.changeOrderStatus(kafkaOrderStatusDto.getOrderId(), status);
     }
+
+    //TODO 상품 서비스에서 상품이 삭제된 경우 주문서비스 장바구니에 포함된 해당 상품을 삭제해야함 추가 메서드 구현해야됨
+    // 배치쿼리로 구현
 }
