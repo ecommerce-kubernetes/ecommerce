@@ -9,4 +9,6 @@ import java.util.List;
 public interface CartService {
     CartItemResponseDto addItem(Long userId, CartItemRequestDto cartItemRequestDto);
     CartResponseDto getCartItemList(Long userId);
+    void deleteCartItemById(Long cartItemId);
+    void deleteCartAll(Long cartId);
 }

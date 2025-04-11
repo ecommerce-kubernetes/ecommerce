@@ -11,7 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
 @RestController
 @RequestMapping("/carts")
@@ -31,8 +30,20 @@ public class CartController {
     }
 
     @GetMapping("/{userId}")
-    public ResponseEntity<CartResponseDto> getAllCartItem(@PathVariable("userId") Long userId){
+    public ResponseEntity<CartResponseDto> getAllCartItem(@PathVariable("userId") Long userId) {
         CartResponseDto cartItemList = cartService.getCartItemList(userId);
         return ResponseEntity.ok(cartItemList);
+    }
+
+    @DeleteMapping("/{cartItemId}")
+    public ResponseEntity<Void> removeCartItem(@PathVariable("cartItemId") Long cartItemId){
+        cartService.deleteCartItemById(cartItemId);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+
+    @DeleteMapping("/{cartId}/all")
+    public ResponseEntity<Void> removeCartAll(@PathVariable("cartId") Long cartId){
+        cartService.deleteCartAll(cartId);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }

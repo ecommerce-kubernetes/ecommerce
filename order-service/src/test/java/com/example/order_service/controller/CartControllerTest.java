@@ -23,10 +23,8 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -118,5 +116,55 @@ class CartControllerTest {
                     .andExpect(jsonPath("$.cartItems[" + i + "].price").value(cartItemResponseDtoList.get(i).getPrice()))
                     .andExpect(jsonPath("$.cartItems[" + i + "].quantity").value(cartItemResponseDtoList.get(i).getQuantity()));
         }
+    }
+
+    @Test
+    @DisplayName("장바구니 아이템 개별 삭제 테스트")
+    void removeCartItemTest() throws Exception {
+        doNothing().when(cartService).deleteCartItemById(anyLong());
+
+        ResultActions perform = mockMvc.perform(delete("/carts/1"));
+
+        perform
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @DisplayName("장바구니 아이템 개별 삭제 테스트 _ 장바구니 아이탬을 찾을 수 없을때")
+    void removeCartItemTest_NotFound() throws Exception {
+        doThrow(new NotFoundException("Not Found CartItem")).when(cartService).deleteCartItemById(anyLong());
+
+        ResultActions perform = mockMvc.perform(delete("/carts/1"));
+
+        perform
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("NotFound"))
+                .andExpect(jsonPath("$.message").value("Not Found CartItem"))
+                .andExpect(jsonPath("$.path").value("/carts/1"));
+    }
+
+    @Test
+    @DisplayName("장바구니 일괄 삭제")
+    void removeCartAllTest() throws Exception {
+        doNothing().when(cartService).deleteCartAll(anyLong());
+
+        ResultActions perform = mockMvc.perform(delete("/carts/1/all"));
+
+        perform
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @DisplayName("장바구니 일괄 삭제 _ 장바구니 찾을수 없을때")
+    void removeCartAllTest_NotFound() throws Exception {
+        doThrow(new NotFoundException("Not Found Cart")).when(cartService).deleteCartAll(anyLong());
+
+        ResultActions perform = mockMvc.perform(delete("/carts/1/all"));
+
+        perform
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("NotFound"))
+                .andExpect(jsonPath("$.message").value("Not Found Cart"))
+                .andExpect(jsonPath("$.path").value("/carts/1/all"));
     }
 }

@@ -9,6 +9,7 @@ import com.example.order_service.dto.response.CartResponseDto;
 import com.example.order_service.entity.CartItems;
 import com.example.order_service.entity.Carts;
 import com.example.order_service.exception.NotFoundException;
+import com.example.order_service.repository.CartItemsRepository;
 import com.example.order_service.repository.CartsRepository;
 import com.example.order_service.service.client.ProductClientService;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +31,7 @@ import java.util.stream.Collectors;
 public class CartServiceImpl implements CartService{
     private final ProductClientService productClientService;
     private final CartsRepository cartsRepository;
+    private final CartItemsRepository cartItemsRepository;
 
     @Transactional
     @Override
@@ -107,5 +109,24 @@ public class CartServiceImpl implements CartService{
                         entry.getValue().getQuantity())).toList();
 
         return new CartResponseDto(cart.getId(), cartItemResponseDtoList, cartTotalPrice);
+    }
+
+    @Transactional
+    @Override
+    public void deleteCartItemById(Long cartItemId) {
+        CartItems cartItem = cartItemsRepository.findById(cartItemId)
+                .orElseThrow(() -> new NotFoundException("Not Found CartItem"));
+
+        Carts cart = cartItem.getCart();
+        cart.removeCartItem(cartItem);
+    }
+
+    @Transactional
+    @Override
+    public void deleteCartAll(Long cartId) {
+        Carts cart = cartsRepository.findById(cartId)
+                .orElseThrow(() -> new NotFoundException("Not Found Cart"));
+
+        cart.getCartItems().clear();
     }
 }

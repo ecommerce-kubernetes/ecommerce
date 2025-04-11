@@ -95,4 +95,42 @@ class CartServiceImplTest {
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage("Not Found Cart");
     }
+
+    @Test
+    @DisplayName("장바구니 개별 삭제 테스트")
+    @Transactional
+    void deleteCartItemByIdTest(){
+        Carts cart = new Carts(1L);
+        CartItems cartItems1 = new CartItems(cart, 1L, 20);
+        CartItems cartItems2 = new CartItems(cart, 2L, 30);
+
+        cartsRepository.save(cart);
+
+        Long id = cartItems1.getId();
+        cartService.deleteCartItemById(id);
+
+        Carts savedCart = cartsRepository.findById(cart.getId())
+                .orElseThrow(() -> new NotFoundException("Not Found Cart"));
+
+        assertThat(savedCart.getCartItems())
+                .doesNotContain(cartItems1);
+    }
+
+    @Test
+    @DisplayName("장바구니 일괄 삭제 테스트")
+    @Transactional
+    void deleteCartAllTest(){
+        Carts cart = new Carts(1L);
+        CartItems cartItems1 = new CartItems(cart, 1L, 20);
+        CartItems cartItems2 = new CartItems(cart, 2L, 30);
+
+        cartsRepository.save(cart);
+
+        cartService.deleteCartAll(cart.getId());
+
+        Carts savedCart = cartsRepository.findById(cart.getId())
+                .orElseThrow(() -> new NotFoundException("Not Found Cart"));
+
+        assertThat(savedCart.getCartItems().size()).isEqualTo(0);
+    }
 }
