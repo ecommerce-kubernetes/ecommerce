@@ -11,6 +11,7 @@ import com.example.product_service.entity.Products;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.repository.CategoriesRepository;
 import com.example.product_service.repository.ProductsRepository;
+import com.example.product_service.service.kafka.KafkaProducer;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,6 +24,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;

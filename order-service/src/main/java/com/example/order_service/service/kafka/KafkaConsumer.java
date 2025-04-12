@@ -35,7 +35,15 @@ public class KafkaConsumer {
         }
 
         String status = kafkaOrderStatusDto.getStatus().toUpperCase();
-        orderService.changeOrderStatus(kafkaOrderStatusDto.getOrderId(), status);
+        String orderStatus;
+        if(status.equalsIgnoreCase("SUCCESS")){
+            orderStatus = "COMPLETED";
+        }
+        else{
+            orderStatus = "CANCELLED";
+        }
+
+        orderService.changeOrderStatus(kafkaOrderStatusDto.getOrderId(), orderStatus);
     }
 
     @KafkaListener(topics = "delete_product", groupId = "orders")
