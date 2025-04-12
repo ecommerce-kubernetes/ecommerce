@@ -1,5 +1,7 @@
 package com.example.product_service.service;
 
+import com.example.product_service.dto.KafkaDeletedProduct;
+import com.example.product_service.dto.KafkaOrderItemDto;
 import com.example.product_service.dto.request.ProductRequestDto;
 import com.example.product_service.dto.request.ProductRequestIdsDto;
 import com.example.product_service.dto.request.StockQuantityRequestDto;
@@ -8,9 +10,11 @@ import com.example.product_service.dto.response.PageDto;
 import com.example.product_service.dto.response.ProductResponseDto;
 import com.example.product_service.entity.Categories;
 import com.example.product_service.entity.Products;
+import com.example.product_service.exception.InsufficientStockException;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.repository.CategoriesRepository;
 import com.example.product_service.repository.ProductsRepository;
+import com.example.product_service.service.kafka.KafkaProducer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -30,6 +34,7 @@ public class ProductServiceImpl implements ProductService{
 
     private final ProductsRepository productsRepository;
     private final CategoriesRepository categoriesRepository;
+    private final KafkaProducer kafkaProducer;
 
     @Override
     @Transactional
@@ -53,6 +58,8 @@ public class ProductServiceImpl implements ProductService{
     public void deleteProduct(Long productId) {
         Products product = productsRepository.findById(productId)
                 .orElseThrow(() -> new NotFoundException("Not Found Product"));
+        KafkaDeletedProduct kafkaDeletedProduct = new KafkaDeletedProduct(product.getId());
+        kafkaProducer.sendMessage("delete_product", kafkaDeletedProduct);
         productsRepository.delete(product);
     }
 
@@ -77,8 +84,6 @@ public class ProductServiceImpl implements ProductService{
 
     @Override
     public PageDto<ProductResponseDto> getProductList(Pageable pageable, Long categoryId, String name) {
-//        Page<Products> productsPage = productsRepository.findAllProducts(pageable);
-
         Page<Products> productsPage = productsRepository.findAllByParameter(name, categoryId, pageable);
         List<ProductResponseDto> content = productsPage.getContent().stream().map(ProductResponseDto::new).toList();
 
@@ -108,5 +113,22 @@ public class ProductServiceImpl implements ProductService{
         }
 
         return findProducts.stream().map(CompactProductResponseDto::new).toList();
+    }
+
+    @Override
+    @Transactional
+    public void decrementStockQuantity(List<KafkaOrderItemDto> orderedItems) {
+        for (KafkaOrderItemDto orderedItem : orderedItems) {
+            Products products = productsRepository.findById(orderedItem.getProductId())
+                    .orElseThrow(() -> new NotFoundException("Not Found Product"));
+
+            int currentStock = products.getStockQuantity();
+            int orderQuantity = orderedItem.getQuantity();
+            if(currentStock < orderQuantity) {
+                throw new InsufficientStockException("Not Enough  stock for product with id: " + products.getId());
+            }
+
+            products.decrementQuantity(orderedItem.getQuantity());
+        }
     }
 }

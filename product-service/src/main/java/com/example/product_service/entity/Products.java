@@ -31,4 +31,8 @@ public class Products extends BaseEntity {
         this.stockQuantity = stockQuantity;
         this.category = category;
     }
+
+    public void decrementQuantity(int quantity){
+        this.stockQuantity = this.stockQuantity - quantity;
+    }
 }
