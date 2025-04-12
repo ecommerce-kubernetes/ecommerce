@@ -1,5 +1,6 @@
 package com.example.product_service.service;
 
+import com.example.product_service.dto.KafkaOrderItemDto;
 import com.example.product_service.dto.request.ProductRequestDto;
 import com.example.product_service.dto.request.ProductRequestIdsDto;
 import com.example.product_service.dto.request.StockQuantityRequestDto;
@@ -17,4 +18,5 @@ public interface ProductService {
     ProductResponseDto getProductDetails(Long productId);
     PageDto<ProductResponseDto> getProductList(Pageable pageable, Long categoryId, String name);
     List<CompactProductResponseDto> getProductListByIds(ProductRequestIdsDto productRequestIdsDto);
+    void decrementStockQuantity(List<KafkaOrderItemDto> orderedItems);
 }
