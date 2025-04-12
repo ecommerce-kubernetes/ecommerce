@@ -1,4 +1,4 @@
-package com.example.filter;
+package com.example.apigatewayservice.filter;
 
 import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;

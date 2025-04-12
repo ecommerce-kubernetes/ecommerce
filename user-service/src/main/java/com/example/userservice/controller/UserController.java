@@ -6,13 +6,13 @@ import com.example.userservice.service.UserService;
 import com.example.userservice.vo.RequestUser;
 import com.example.userservice.vo.ResponseUser;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
 
 @RestController
 @Slf4j
@@ -29,6 +29,7 @@ public class UserController {
         return "Welcome";
     }
 
+    //회원가입
     @PostMapping("/users")
     public ResponseEntity<ResponseUser> createUser(@RequestBody RequestUser user) {
 
@@ -41,43 +42,39 @@ public class UserController {
         UserEntity createUser = userService.createUser(userDto);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(
-                new ResponseUser(createUser.getId(), createUser.getEmail(), createUser.getName())
+                new ResponseUser(createUser.getId(), createUser.getEmail(), createUser.getName(), createUser.getCreateAt())
         );
     }
 
+    //전체 유저 조회
     @GetMapping("/users")
-    public ResponseEntity<List<ResponseUser>> getUsers() {
-        List<UserDto> userList = userService.getUserByAll();
-        List<ResponseUser> result = new ArrayList<>();
-        userList.forEach(v -> {
-            result.add(new ResponseUser(v.getId(), v.getEmail(), v.getName()));
-        });
+    public ResponseEntity<Page<ResponseUser>> getUsers(@PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.ASC) Pageable pageable) {
+        Page<UserDto> userPage = userService.getUserByAll(pageable);
 
-        return ResponseEntity.status(HttpStatus.OK).body(result);
+        Page<ResponseUser> result = userPage.map(v -> new ResponseUser(
+                v.getId(),
+                v.getEmail(),
+                v.getName(),
+                v.getCreateAt()
+        ));
+
+        return ResponseEntity.ok(result);
     }
 
+    //유저아이디로 유저 조회
     @GetMapping("/users/{userId}")
     public ResponseEntity getUser(@PathVariable("userId") Long userId) {
-        log.info("userId : {}", userId);
 
-        UserEntity userEntity = userService.getUserById(userId);
+        UserDto userDto = userService.getUserById(userId);
 
         return ResponseEntity.status(HttpStatus.OK).body(
                 new ResponseUser(
-                        userEntity.getId(),
-                        userEntity.getEmail(),
-                        userEntity.getName()
+                        userDto.getId(),
+                        userDto.getEmail(),
+                        userDto.getName(),
+                        userDto.getCreateAt(),
+                        userDto.getAddresses()
                 )
         );
-//        //유저 상세 보기를 했을 때, 전체 목록 보기를 보여주기 위한 HATEOAS 기능 추가
-//        EntityModel entityModel = EntityModel.of(returnValue);
-//        WebMvcLinkBuilder linkTo = WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getUsers());
-//        entityModel.add(linkTo.withRel("all-users"));
-//
-//        try {
-//            return ResponseEntity.status(HttpStatus.OK).body(entityModel);
-//        } catch (Exception ex) {
-//            throw new RuntimeException();
-//        }
     }
 }

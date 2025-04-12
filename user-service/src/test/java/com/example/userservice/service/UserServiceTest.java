@@ -8,12 +8,14 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cloud.client.circuitbreaker.CircuitBreaker;
+import org.springframework.cloud.client.circuitbreaker.CircuitBreakerFactory;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -66,6 +68,23 @@ class UserServiceTest {
     }
 
     @Test
+    void createUser_실패_이미존재할경우() {
+        // Given
+        UserDto userDto = UserDto.builder()
+                .email("test@email.com")
+                .pwd("password")
+                .name("Test User")
+                .build();
+
+        // When
+        userService.createUser(userDto);
+
+
+        // Then
+        assertThrows(IllegalArgumentException.class, () -> userService.createUser(userDto));
+    }
+
+    @Test
     void getUserByAll_성공() {
         // Given
         UserDto userDto1 = UserDto.builder()
@@ -84,7 +103,8 @@ class UserServiceTest {
         userService.createUser(userDto2);
 
         // When
-        List<UserDto> result = userService.getUserByAll();
+        Pageable pageable = PageRequest.of(0, 10);
+        List<UserDto> result = userService.getUserByAll(pageable).getContent();
 
         // Then
         assertEquals(2, result.size());
@@ -106,7 +126,7 @@ class UserServiceTest {
         UserEntity user = userService.createUser(userDto);
 
         // When
-        UserEntity result = userService.getUserById(user.getId());
+        UserDto result = userService.getUserById(user.getId());
 
         // Then
         assertNotNull(result);
@@ -125,7 +145,6 @@ class UserServiceTest {
     @Test
     void getUserByEmail_존재하는_사용자() {
         // Given
-        Long userId = 1L;
         UserDto userDto = UserDto.builder()
                 .email("test@email.com")
                 .pwd("password")
