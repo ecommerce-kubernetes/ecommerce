@@ -129,4 +129,14 @@ public class CartServiceImpl implements CartService{
 
         cart.getCartItems().clear();
     }
+
+    @Transactional
+    @Override
+    public void deleteCartItemByProductId(Long productId) {
+        List<CartItems> cartItems = cartItemsRepository.findByProductId(productId);
+        for (CartItems cartItem : cartItems) {
+            Carts cart = cartItem.getCart();
+            cart.removeCartItem(cartItem);
+        }
+    }
 }
