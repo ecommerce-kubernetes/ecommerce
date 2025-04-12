@@ -34,6 +34,9 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.verify;
 
 @SpringBootTest
 @Slf4j
@@ -45,6 +48,9 @@ class ProductServiceImplTest {
     ProductsRepository productsRepository;
     @Autowired
     CategoriesRepository categoriesRepository;
+
+    @MockitoBean
+    KafkaProducer kafkaProducer;
 
     private Categories food;
     private Categories electronicDevices;
@@ -94,7 +100,7 @@ class ProductServiceImplTest {
 
         Optional<Products> bananaOptional = productsRepository.findById(banana.getId());
         assertThat(bananaOptional).isEmpty();
-
+        verify(kafkaProducer).sendMessage(anyString(), any());
     }
 
     @Test
