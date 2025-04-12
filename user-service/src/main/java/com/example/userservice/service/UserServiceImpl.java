@@ -3,8 +3,11 @@ package com.example.userservice.service;
 import com.example.userservice.dto.UserDto;
 import com.example.userservice.jpa.UserEntity;
 import com.example.userservice.jpa.UserRepository;
-import com.example.userservice.vo.ResponseUser;
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cloud.client.circuitbreaker.CircuitBreakerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -14,17 +17,21 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
+@Transactional
 public class UserServiceImpl implements UserService{
 
     UserRepository userRepository;
     BCryptPasswordEncoder bCryptPasswordEncoder;
+    CircuitBreakerFactory circuitBreakerFactory;
 
-    public UserServiceImpl(UserRepository userRepository, BCryptPasswordEncoder bCryptPasswordEncoder) {
+    public UserServiceImpl(UserRepository userRepository, BCryptPasswordEncoder bCryptPasswordEncoder, CircuitBreakerFactory circuitBreakerFactory) {
         this.userRepository = userRepository;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
+        this.circuitBreakerFactory = circuitBreakerFactory;
     }
 
     @Override
@@ -36,29 +43,45 @@ public class UserServiceImpl implements UserService{
                 .name(userDto.getName())
                 .build();
 
-        return userRepository.save(userEntity);
+        try {
+            return userRepository.save(userEntity);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("이미 등록된 이메일입니다.");
+        }
     }
 
     @Override
-    public List<UserDto> getUserByAll() {
-        Iterable<UserEntity> userList = userRepository.findAll();
-        List<UserDto> result = new ArrayList<>();
-        userList.forEach(v -> {
-            UserDto userDto = UserDto.builder()
-                    .email(v.getEmail())
-                    .name(v.getName())
-                    .build();
-            result.add(userDto);
-        });
+    public Page<UserDto> getUserByAll(Pageable pageable) {
+        Page<UserEntity> userList = userRepository.findAll(pageable);
 
-        return result;
+        return userList.map(v -> UserDto.builder()
+                .id(v.getId())
+                .email(v.getEmail())
+                .name(v.getName())
+                .createAt(v.getCreateAt())
+                .build());
     }
 
     @Override
-    public UserEntity getUserById(Long userId) {
+    public UserDto getUserById(Long userId) {
 
-        return userRepository.findById(userId)
+        UserEntity userEntity = userRepository.findById(userId)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with id: " + userId));
+
+        // Address 객체를 List<String> 형태로 변환
+        List<String> userAddresses = userEntity.getAddresses().stream()
+                .map(addr -> addr.getAddress().getAddressAll())
+                .collect(Collectors.toList());
+
+        return UserDto.builder()
+                .id(userEntity.getId())
+                .email(userEntity.getEmail())
+                .pwd(userEntity.getEncryptedPwd())
+                .name(userEntity.getName())
+                .createAt(userEntity.getCreateAt())
+                .addresses(userAddresses)
+                .build();
+
     }
 
     @Override
@@ -71,8 +94,6 @@ public class UserServiceImpl implements UserService{
         return UserDto.builder()
                 .id(userEntity.get().getId())
                 .email(userEntity.get().getEmail())
-                .pwd(userEntity.get().getEncryptedPwd())
-                .name(userEntity.get().getName())
                 .build();
     }
 

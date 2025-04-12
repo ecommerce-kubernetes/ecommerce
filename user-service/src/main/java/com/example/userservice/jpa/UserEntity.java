@@ -1,12 +1,15 @@
 package com.example.userservice.jpa;
 
 
+import com.example.userservice.jpa.AddressEntity.AddressEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.util.Date;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Table(name = "users")
 @Entity
@@ -30,7 +33,10 @@ public class UserEntity {
 
     @CreatedDate
     @Column(updatable = false)
-    private Date createAt;
+    private LocalDate createAt;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<AddressEntity> addresses = new ArrayList<>();
 
     @Builder
     public UserEntity(String email, String name, String encryptedPwd) {

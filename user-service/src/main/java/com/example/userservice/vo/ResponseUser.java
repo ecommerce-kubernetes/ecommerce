@@ -3,8 +3,8 @@ package com.example.userservice.vo;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.Getter;
 
+import java.time.LocalDate;
 import java.util.List;
 
 
@@ -15,6 +15,13 @@ public class ResponseUser {
     private Long userId;
     private String email;
     private String name;
+    private LocalDate createAt;
+    private List<String> addresses;
 
-//    private List<ResponseOrder> orders;
+    public ResponseUser(Long userId, String email, String name, LocalDate createAt) {
+        this.userId = userId;
+        this.email = email;
+        this.name = name;
+        this.createAt = createAt;
+    }
 }
