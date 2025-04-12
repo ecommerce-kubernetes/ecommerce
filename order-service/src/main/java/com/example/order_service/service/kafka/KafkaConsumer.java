@@ -1,9 +1,12 @@
 package com.example.order_service.service.kafka;
 
+import com.example.order_service.dto.KafkaDeletedProductDto;
 import com.example.order_service.dto.KafkaOrderStatusDto;
 import com.example.order_service.entity.Orders;
 import com.example.order_service.exception.NotFoundException;
 import com.example.order_service.repository.OrdersRepository;
+import com.example.order_service.service.CartService;
+import com.example.order_service.service.OrderService;
 import com.fasterxml.jackson.core.JacksonException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -19,8 +22,9 @@ import org.springframework.transaction.annotation.Transactional;
 public class KafkaConsumer {
 
     private ObjectMapper mapper = new ObjectMapper();
-    private final OrdersRepository ordersRepository;
-    @Transactional
+    private final OrderService orderService;
+    private final CartService cartService;
+
     @KafkaListener(topics = "change_orders", groupId = "orders")
     public void changeOrdersListen(ConsumerRecord<String, Object> record){
         KafkaOrderStatusDto kafkaOrderStatusDto;
@@ -30,14 +34,19 @@ public class KafkaConsumer {
             throw new RuntimeException(e);
         }
 
-        Orders order = ordersRepository.findById(kafkaOrderStatusDto.getOrderId())
-                .orElseThrow(() -> new NotFoundException("Not Found Order"));
+        String status = kafkaOrderStatusDto.getStatus().toUpperCase();
+        orderService.changeOrderStatus(kafkaOrderStatusDto.getOrderId(), status);
+    }
 
-        if(kafkaOrderStatusDto.getStatus().equalsIgnoreCase("SUCCESS")){
-            order.setStatus("SUCCESS");
+    @KafkaListener(topics = "delete_product", groupId = "orders")
+    public void deleteCartItemForDeletedProduct(ConsumerRecord<String, Object> record){
+        KafkaDeletedProductDto kafkaDeletedProductDto;
+        try{
+            kafkaDeletedProductDto = mapper.readValue(record.value().toString(), KafkaDeletedProductDto.class);
+        } catch (JacksonException e){
+            throw new RuntimeException(e);
         }
-        else {
-            order.setStatus("CANCEL");
-        }
+
+        cartService.deleteCartItemByProductId(kafkaDeletedProductDto.getProductId());
     }
 }

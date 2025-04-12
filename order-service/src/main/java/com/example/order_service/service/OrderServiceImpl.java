@@ -11,6 +11,7 @@ import com.example.order_service.dto.response.OrderResponseDto;
 import com.example.order_service.dto.response.PageDto;
 import com.example.order_service.entity.OrderItems;
 import com.example.order_service.entity.Orders;
+import com.example.order_service.exception.NotFoundException;
 import com.example.order_service.repository.OrdersRepository;
 import com.example.order_service.service.client.ProductClientService;
 import com.example.order_service.service.kafka.KafkaProducer;
@@ -132,4 +133,13 @@ public class OrderServiceImpl implements OrderService{
                 findResult.getTotalElements()
         );
     }
+
+    @Override
+    @Transactional
+    public void changeOrderStatus(Long orderId, String status) {
+        Orders order = ordersRepository.findById(orderId)
+                .orElseThrow(() -> new NotFoundException("Not Found Order"));
+        order.setStatus(status);
+    }
+
 }
