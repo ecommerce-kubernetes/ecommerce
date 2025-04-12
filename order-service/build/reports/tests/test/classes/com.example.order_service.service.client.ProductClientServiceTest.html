@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta http-equiv="x-ua-compatible" content="IE=edge"/>
+<title>Test results - ProductClientServiceTest</title>
+<link href="../css/base-style.css" rel="stylesheet" type="text/css"/>
+<link href="../css/style.css" rel="stylesheet" type="text/css"/>
+<script src="../js/report.js" type="text/javascript"></script>
+</head>
+<body>
+<div id="content">
+<h1>ProductClientServiceTest</h1>
+<div class="breadcrumbs">
+<a href="../index.html">all</a> &gt; 
+<a href="../packages/com.example.order_service.service.client.html">com.example.order_service.service.client</a> &gt; ProductClientServiceTest</div>
+<div id="summary">
+<table>
+<tr>
+<td>
+<div class="summaryGroup">
+<table>
+<tr>
+<td>
+<div class="infoBox" id="tests">
+<div class="counter">3</div>
+<p>tests</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="failures">
+<div class="counter">0</div>
+<p>failures</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="ignored">
+<div class="counter">0</div>
+<p>ignored</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="duration">
+<div class="counter">0.139s</div>
+<p>duration</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</td>
+<td>
+<div class="infoBox success" id="successRate">
+<div class="percent">100%</div>
+<p>successful</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="tab-container">
+<ul class="tabLinks">
+<li>
+<a href="#">Tests</a>
+</li>
+<li>
+<a href="#">Standard output</a>
+</li>
+</ul>
+<div class="tab">
+<h2>Tests</h2>
+<table>
+<thead>
+<tr>
+<th>Test</th>
+<th>Duration</th>
+<th>Result</th>
+</tr>
+</thead>
+<tr>
+<td class="success">fetchProductTest()</td>
+<td class="success">0.010s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">fetchProductTest_NotFoundProduct()</td>
+<td class="success">0.025s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">fetchProductTest_ServerError()</td>
+<td class="success">0.104s</td>
+<td class="success">passed</td>
+</tr>
+</table>
+</div>
+<div class="tab">
+<h2>Standard output</h2>
+<span class="code">
+<pre>2025-04-08T17:05:36.373+09:00  INFO 84365 --- [    Test worker] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.example.order_service.service.client.ProductClientServiceTest]: ProductClientServiceTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2025-04-08T17:05:36.385+09:00  INFO 84365 --- [    Test worker] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.example.order_service.OrderServiceApplication for test class com.example.order_service.service.client.ProductClientServiceTest
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.4.4)
+
+2025-04-08T17:05:36.491+09:00  INFO 84365 --- [    Test worker] c.c.c.ConfigServicePropertySourceLocator : Fetching config from server at : http://localhost:8888/
+2025-04-08T17:05:37.392+09:00  INFO 84365 --- [    Test worker] c.c.c.ConfigServicePropertySourceLocator : Located environment: name=order-service, profiles=[default], label=null, version=c09295434466eb8d59fa973dc3b559f3036f80df, state=
+2025-04-08T17:05:37.392+09:00  INFO 84365 --- [    Test worker] b.c.PropertySourceBootstrapConfiguration : Located property source: [BootstrapPropertySource {name='bootstrapProperties-configClient'}]
+2025-04-08T17:05:37.396+09:00  INFO 84365 --- [    Test worker] c.e.o.s.client.ProductClientServiceTest  : No active profile set, falling back to 1 default profile: &quot;default&quot;
+2025-04-08T17:05:37.584+09:00  INFO 84365 --- [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-orders-1, groupId=orders] Request joining group due to: group is already rebalancing
+2025-04-08T17:05:37.585+09:00  INFO 84365 --- [ntainer#0-0-C-1] k.c.c.i.ConsumerRebalanceListenerInvoker : [Consumer clientId=consumer-orders-1, groupId=orders] Revoke previously assigned partitions 
+2025-04-08T17:05:37.586+09:00  INFO 84365 --- [ntainer#0-0-C-1] o.s.k.l.KafkaMessageListenerContainer    : orders: partitions revoked: []
+2025-04-08T17:05:37.587+09:00  INFO 84365 --- [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-orders-1, groupId=orders] (Re-)joining group
+2025-04-08T17:05:37.593+09:00  INFO 84365 --- [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-orders-1, groupId=orders] Successfully joined group with generation Generation{generationId=192, memberId='consumer-orders-1-993509ea-a939-4fd3-a62b-befd6914dd4d', protocol='range'}
+2025-04-08T17:05:37.593+09:00  INFO 84365 --- [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-orders-2, groupId=orders] Successfully joined group with generation Generation{generationId=192, memberId='consumer-orders-2-5564906a-23cb-4255-b4a8-fd600aee4f63', protocol='range'}
+2025-04-08T17:05:37.595+09:00  INFO 84365 --- [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-04-08T17:05:37.606+09:00  INFO 84365 --- [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 9 ms. Found 2 JPA repository interfaces.
+2025-04-08T17:05:37.608+09:00  INFO 84365 --- [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-orders-1, groupId=orders] Successfully synced group in generation Generation{generationId=192, memberId='consumer-orders-1-993509ea-a939-4fd3-a62b-befd6914dd4d', protocol='range'}
+2025-04-08T17:05:37.608+09:00  INFO 84365 --- [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-orders-1, groupId=orders] Notifying assignor about the new Assignment(partitions=[])
+2025-04-08T17:05:37.608+09:00  INFO 84365 --- [ntainer#0-0-C-1] k.c.c.i.ConsumerRebalanceListenerInvoker : [Consumer clientId=consumer-orders-1, groupId=orders] Adding newly assigned partitions: 
+2025-04-08T17:05:37.608+09:00  INFO 84365 --- [ntainer#0-0-C-1] o.s.k.l.KafkaMessageListenerContainer    : orders: partitions assigned: []
+2025-04-08T17:05:37.608+09:00  INFO 84365 --- [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-orders-2, groupId=orders] Successfully synced group in generation Generation{generationId=192, memberId='consumer-orders-2-5564906a-23cb-4255-b4a8-fd600aee4f63', protocol='range'}
+2025-04-08T17:05:37.608+09:00  INFO 84365 --- [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-orders-2, groupId=orders] Notifying assignor about the new Assignment(partitions=[])
+2025-04-08T17:05:37.608+09:00  INFO 84365 --- [ntainer#0-0-C-1] k.c.c.i.ConsumerRebalanceListenerInvoker : [Consumer clientId=consumer-orders-2, groupId=orders] Adding newly assigned partitions: 
+2025-04-08T17:05:37.608+09:00  INFO 84365 --- [ntainer#0-0-C-1] o.s.k.l.KafkaMessageListenerContainer    : orders: partitions assigned: []
+2025-04-08T17:05:37.699+09:00  INFO 84365 --- [    Test worker] o.s.cloud.context.scope.GenericScope     : BeanFactory id=837f39ab-d83c-3623-9baf-d1b438a392a9
+2025-04-08T17:05:37.827+09:00  INFO 84365 --- [    Test worker] com.zaxxer.hikari.HikariDataSource       : HikariPool-3 - Starting...
+2025-04-08T17:05:37.829+09:00  INFO 84365 --- [    Test worker] com.zaxxer.hikari.pool.HikariPool        : HikariPool-3 - Added connection conn20: url=jdbc:h2:mem:019fb3f6-05e0-4c7c-84b0-6f9ba6ec4196 user=SA
+2025-04-08T17:05:37.830+09:00  INFO 84365 --- [    Test worker] com.zaxxer.hikari.HikariDataSource       : HikariPool-3 - Start completed.
+2025-04-08T17:05:37.831+09:00  INFO 84365 --- [    Test worker] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-04-08T17:05:37.833+09:00  INFO 84365 --- [    Test worker] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2025-04-08T17:05:37.839+09:00  INFO 84365 --- [    Test worker] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2025-04-08T17:05:37.840+09:00  INFO 84365 --- [    Test worker] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [Connecting through datasource 'HikariDataSource (HikariPool-3)']
+	Database driver: undefined/unknown
+	Database version: 2.3.232
+	Autocommit mode: undefined/unknown
+	Isolation level: undefined/unknown
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2025-04-08T17:05:37.909+09:00  INFO 84365 --- [    Test worker] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2025-04-08T17:05:37.914+09:00  INFO 84365 --- [    Test worker] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2025-04-08T17:05:37.973+09:00  WARN 84365 --- [    Test worker] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2025-04-08T17:05:38.961+09:00  INFO 84365 --- [    Test worker] DiscoveryClientOptionalArgsConfiguration : Eureka HTTP Client uses RestTemplate.
+2025-04-08T17:05:38.988+09:00  WARN 84365 --- [    Test worker] iguration$LoadBalancerCaffeineWarnLogger : Spring Cloud LoadBalancer is currently working with the default cache. While this cache implementation is useful for development and tests, it's recommended to use Caffeine cache in production.You can switch to using Caffeine cache, by adding it and org.springframework.cache.caffeine.CaffeineCacheManager to the classpath.
+2025-04-08T17:05:39.021+09:00  INFO 84365 --- [    Test worker] o.s.c.n.eureka.InstanceInfoFactory       : Setting initial instance status as: STARTING
+2025-04-08T17:05:39.023+09:00  INFO 84365 --- [    Test worker] com.netflix.discovery.DiscoveryClient    : Initializing Eureka in region us-east-1
+2025-04-08T17:05:39.023+09:00  INFO 84365 --- [    Test worker] com.netflix.discovery.DiscoveryClient    : Client configured to neither register nor query for data.
+2025-04-08T17:05:39.023+09:00  INFO 84365 --- [    Test worker] com.netflix.discovery.DiscoveryClient    : Discovery Client initialized at timestamp 1744099539023 with initial instances count: 0
+2025-04-08T17:05:39.028+09:00  INFO 84365 --- [    Test worker] o.s.c.n.e.s.EurekaServiceRegistry        : Registering application UNKNOWN with eureka with status UP
+2025-04-08T17:05:39.029+09:00  INFO 84365 --- [    Test worker] o.a.k.clients.consumer.ConsumerConfig    : ConsumerConfig values: 
+	allow.auto.create.topics = true
+	auto.commit.interval.ms = 5000
+	auto.include.jmx.reporter = true
+	auto.offset.reset = latest
+	bootstrap.servers = [localhost:9092]
+	check.crcs = true
+	client.dns.lookup = use_all_dns_ips
+	client.id = consumer-orders-3
+	client.rack = 
+	connections.max.idle.ms = 540000
+	default.api.timeout.ms = 60000
+	enable.auto.commit = false
+	enable.metrics.push = true
+	exclude.internal.topics = true
+	fetch.max.bytes = 52428800
+	fetch.max.wait.ms = 500
+	fetch.min.bytes = 1
+	group.id = orders
+	group.instance.id = null
+	group.protocol = classic
+	group.remote.assignor = null
+	heartbeat.interval.ms = 3000
+	interceptor.classes = []
+	internal.leave.group.on.close = true
+	internal.throw.on.fetch.stable.offset.unsupported = false
+	isolation.level = read_uncommitted
+	key.deserializer = class org.apache.kafka.common.serialization.StringDeserializer
+	max.partition.fetch.bytes = 1048576
+	max.poll.interval.ms = 300000
+	max.poll.records = 500
+	metadata.max.age.ms = 300000
+	metadata.recovery.strategy = none
+	metric.reporters = []
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	partition.assignment.strategy = [class org.apache.kafka.clients.consumer.RangeAssignor, class org.apache.kafka.clients.consumer.CooperativeStickyAssignor]
+	receive.buffer.bytes = 65536
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 30000
+	retry.backoff.max.ms = 1000
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.connect.timeout.ms = null
+	sasl.login.read.timeout.ms = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.login.retry.backoff.max.ms = 10000
+	sasl.login.retry.backoff.ms = 100
+	sasl.mechanism = GSSAPI
+	sasl.oauthbearer.clock.skew.seconds = 30
+	sasl.oauthbearer.expected.audience = null
+	sasl.oauthbearer.expected.issuer = null
+	sasl.oauthbearer.jwks.endpoint.refresh.ms = 3600000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.max.ms = 10000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.ms = 100
+	sasl.oauthbearer.jwks.endpoint.url = null
+	sasl.oauthbearer.scope.claim.name = scope
+	sasl.oauthbearer.sub.claim.name = sub
+	sasl.oauthbearer.token.endpoint.url = null
+	security.protocol = PLAINTEXT
+	security.providers = null
+	send.buffer.bytes = 131072
+	session.timeout.ms = 45000
+	socket.connection.setup.timeout.max.ms = 30000
+	socket.connection.setup.timeout.ms = 10000
+	ssl.cipher.suites = null
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+	ssl.endpoint.identification.algorithm = https
+	ssl.engine.factory.class = null
+	ssl.key.password = null
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.certificate.chain = null
+	ssl.keystore.key = null
+	ssl.keystore.location = null
+	ssl.keystore.password = null
+	ssl.keystore.type = JKS
+	ssl.protocol = TLSv1.3
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.certificates = null
+	ssl.truststore.location = null
+	ssl.truststore.password = null
+	ssl.truststore.type = JKS
+	value.deserializer = class org.apache.kafka.common.serialization.StringDeserializer
+
+2025-04-08T17:05:39.030+09:00  INFO 84365 --- [    Test worker] o.a.k.c.t.i.KafkaMetricsCollector        : initializing Kafka metrics collector
+2025-04-08T17:05:39.034+09:00  INFO 84365 --- [    Test worker] o.a.kafka.common.utils.AppInfoParser     : Kafka version: 3.8.1
+2025-04-08T17:05:39.034+09:00  INFO 84365 --- [    Test worker] o.a.kafka.common.utils.AppInfoParser     : Kafka commitId: 70d6ff42debf7e17
+2025-04-08T17:05:39.034+09:00  INFO 84365 --- [    Test worker] o.a.kafka.common.utils.AppInfoParser     : Kafka startTimeMs: 1744099539034
+2025-04-08T17:05:39.034+09:00  INFO 84365 --- [    Test worker] o.a.k.c.c.internals.LegacyKafkaConsumer  : [Consumer clientId=consumer-orders-3, groupId=orders] Subscribed to topic(s): change_orders
+2025-04-08T17:05:39.037+09:00  INFO 84365 --- [ntainer#0-0-C-1] org.apache.kafka.clients.Metadata        : [Consumer clientId=consumer-orders-3, groupId=orders] Cluster ID: ZNeUp5AeR0OtBj6vs-BNkA
+2025-04-08T17:05:39.038+09:00  INFO 84365 --- [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-orders-3, groupId=orders] Discovered group coordinator localhost:9092 (id: 2147483646 rack: null)
+2025-04-08T17:05:39.038+09:00  INFO 84365 --- [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-orders-3, groupId=orders] (Re-)joining group
+2025-04-08T17:05:39.040+09:00  INFO 84365 --- [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-orders-3, groupId=orders] Request joining group due to: need to re-join with the given member-id: consumer-orders-3-ce43d48c-f894-4b89-b920-aed6b70c9b85
+2025-04-08T17:05:39.040+09:00  INFO 84365 --- [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-orders-3, groupId=orders] (Re-)joining group
+2025-04-08T17:05:39.043+09:00  INFO 84365 --- [    Test worker] c.e.o.s.client.ProductClientServiceTest  : Started ProductClientServiceTest in 2.653 seconds (process running for 13.228)
+2025-04-08T17:05:39.139+09:00  INFO 84365 --- [qtp293241573-68] WireMock                                 : Request received:
+127.0.0.1 - GET /products/500
+
+Accept: [*/*]
+User-Agent: [Java/17.0.9]
+Host: [localhost:10309]
+Connection: [keep-alive]
+
+
+
+Matched response definition:
+{
+  &quot;status&quot; : 500
+}
+
+Response:
+HTTP/1.1 500
+Matched-Stub-Id: [330487d9-4a1a-4f78-927c-ede18af7892f]
+
+2025-04-08T17:05:39.153+09:00  INFO 84365 --- [qtp293241573-54] WireMock                                 : Request received:
+127.0.0.1 - GET /products/999
+
+Accept: [*/*]
+User-Agent: [Java/17.0.9]
+Host: [localhost:10309]
+Connection: [keep-alive]
+
+
+
+Matched response definition:
+(no response definition configured)
+
+Response:
+HTTP/1.1 404
+(no headers)
+
+2025-04-08T17:05:39.162+09:00  INFO 84365 --- [qtp293241573-54] WireMock                                 : Admin request received:
+127.0.0.1 - GET /not-matched
+
+Accept: [*/*]
+User-Agent: [Java/17.0.9]
+Host: [localhost:10309]
+Connection: [keep-alive]
+
+
+2025-04-08T17:05:39.169+09:00 ERROR 84365 --- [qtp293241573-54] WireMock                                 : 
+                                               Request was not matched
+                                               =======================
+
+-----------------------------------------------------------------------------------------------------------------------
+| Closest stub                                             | Request                                                  |
+-----------------------------------------------------------------------------------------------------------------------
+                                                           |
+GET                                                        | GET
+/product/999                                               | /products/999                                       &lt;&lt;&lt;&lt;&lt; URL does not match
+                                                           |
+                                                           |
+-----------------------------------------------------------------------------------------------------------------------
+
+2025-04-08T17:05:39.179+09:00  INFO 84365 --- [qtp293241573-66] WireMock                                 : Request received:
+127.0.0.1 - GET /products/1
+
+Accept: [*/*]
+User-Agent: [Java/17.0.9]
+Host: [localhost:10309]
+Connection: [keep-alive]
+
+
+
+Matched response definition:
+{
+  &quot;status&quot; : 200,
+  &quot;body&quot; : &quot;{\&quot;id\&quot;:1,\&quot;name\&quot;:\&quot;TestProduct\&quot;,\&quot;description\&quot;:\&quot;description\&quot;,\&quot;price\&quot;:500,\&quot;stockQuantity\&quot;:20,\&quot;categoryId\&quot;:1}&quot;,
+  &quot;headers&quot; : {
+    &quot;Content-Type&quot; : &quot;application/json&quot;
+  }
+}
+
+Response:
+HTTP/1.1 200
+Content-Type: [application/json]
+Matched-Stub-Id: [ed55bc11-3319-4a8d-aa39-dcf2e5650177]
+
+</pre>
+</span>
+</div>
+</div>
+<div id="footer">
+<p>
+<div>
+<label class="hidden" id="label-for-line-wrapping-toggle" for="line-wrapping-toggle">Wrap lines
+<input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
+</label>
+</div>Generated by 
+<a href="https://www.gradle.org">Gradle 8.13</a> at 2025. 4. 8. 오후 5:05:40</p>
+</div>
+</div>
+</body>
+</html>
