@@ -1,4 +1,4 @@
-package com.example.order_service.dto.response;
+package com.example.order_service.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -9,10 +9,6 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class CartItemResponseDto {
-    private Long id;
+public class KafkaDeletedProductDto {
     private Long productId;
-    private String productName;
-    private int price;
-    private int quantity;
 }

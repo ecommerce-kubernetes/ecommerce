@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -14,12 +15,21 @@ public class CartItems {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Setter
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cart_id")
-    private Cart cart;
-
+    private Carts cart;
     private Long productId;
-    private String productName;
-    private int price;
     private int quantity;
+
+    public CartItems(Carts cart, Long productId, int quantity){
+        this.cart = cart;
+        this.productId = productId;
+        this.quantity = quantity;
+        cart.getCartItems().add(this);
+    }
+
+    public void addQuantity(int quantity){
+        this.quantity = this.quantity + quantity;
+    }
 }
