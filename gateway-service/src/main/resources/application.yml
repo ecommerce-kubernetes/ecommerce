@@ -25,6 +25,14 @@ spring:
         - id: user-service
           uri: lb://USER-SERVICE
           predicates:
+            - Path=/user-service/users
+            - Method=POST
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/user-service/(?<segment>.*), /$\{segment}
+        - id: user-service
+          uri: lb://USER-SERVICE
+          predicates:
             - Path=/user-service/**
             - Method=GET,POST
           filters:
@@ -39,6 +47,7 @@ spring:
           filters:
             - RemoveRequestHeader=Cookie
             - RewritePath=/order-service/(?<segment>.*), /$\{segment}
+            - AuthorizationHeaderFilter
             - name: ExtractUserIdFromToken
         - id: order-service
           uri: lb://ORDER-SERVICE
@@ -48,4 +57,5 @@ spring:
           filters:
             - RemoveRequestHeader=Cookie
             - RewritePath=/order-service/(?<segment>.*), /$\{segment}
+            - AuthorizationHeaderFilter
             - name: ExtractUserIdFromToken
