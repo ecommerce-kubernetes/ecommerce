@@ -1,0 +1,88 @@
+pipeline {
+    agent any
+
+    environment {
+        GIT_REPO = 'https://github.com/ecommerce-kubernetes/ecommerce.git'
+        BRANCH = 'develop'
+        TARGET_DIR = 'discovery-service'
+        SSH_CREDENTIALS_ID = 'ansible-key' // Jenkins > Credentials에 등록한 SSH Private Key ID
+        REMOTE_HOST = '172.18.0.11'
+        REMOTE_USER = 'root'
+        REMOTE_PATH = '/ansible/playbooks/discovery-playbook'
+    }
+
+    stages {
+        stage('Git Sparse Checkout (discovery-service only)') {
+            steps {
+                echo '📥 discovery-service 디렉토리만 sparse checkout 중...'
+                sh """
+                    rm -rf repo
+                    git init repo
+                    cd repo
+                    git remote add origin ${GIT_REPO}
+                    git config core.sparseCheckout true
+                    echo '${TARGET_DIR}' > .git/info/sparse-checkout
+                    git pull origin ${BRANCH}
+                """
+            }
+        }
+
+        stage('Gradle Build') {
+            steps {
+                echo '⚙️ Gradle 빌드 시작'
+                dir("repo/${TARGET_DIR}") {
+                    sh '''
+                        chmod +x gradlew
+                        ./gradlew clean build
+                    '''
+                }
+            }
+        }
+
+        stage('Copy to Ansible Server (scp with sshagent)') {
+            steps {
+                echo '🚚 Ansible 서버로 JAR 파일 복사 중...'
+
+                script {
+                    def jarFiles = findFiles(glob: "repo/${TARGET_DIR}/build/libs/*.jar")
+                    def targetJar = jarFiles.find { file ->
+                        !file.name.contains("plain") && file.name.endsWith(".jar")
+                    }
+
+                    if (targetJar) {
+                        echo "📦 복사할 JAR 파일: ${targetJar.name}"
+
+                        sshagent (credentials: ["${SSH_CREDENTIALS_ID}"]) {
+                            sh """
+                                scp -o StrictHostKeyChecking=no ${targetJar.path} ${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_PATH}/
+                            """
+                        }
+                    } else {
+                        error("❌ plain이 아닌 JAR 파일을 찾을 수 없습니다.")
+                    }
+                }
+            }
+        }
+
+        stage('Run Ansible Playbook (ssh with sshagent)') {
+            steps {
+                echo '🚀 Ansible 플레이북 실행 중...'
+                sshagent (credentials: ["${SSH_CREDENTIALS_ID}"]) {
+                    sh """
+                        ssh -o StrictHostKeyChecking=no ${REMOTE_USER}@${REMOTE_HOST} \\
+                        'ansible-playbook -i /ansible/inventory/hosts /ansible/playbooks/discovery-playbook/discovery-playbook.yml'
+                    """
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo '✅ discovery-service 배포 완료!'
+        }
+        failure {
+            echo '❌ 빌드 또는 배포 실패!'
+        }
+    }
+}
