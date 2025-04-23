@@ -59,3 +59,12 @@ spring:
             - RewritePath=/order-service/(?<segment>.*), /$\{segment}
             - AuthorizationHeaderFilter
             - name: ExtractUserIdFromToken
+        - id: order-service
+          uri: lb://ORDER-SERVICE
+          predicates:
+            - Path=/order-service/orders/**
+            - Method=GET,POST,DELETE,PATCH
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/order-service/(?<segment>.*), /$\{segment}
+            - AuthorizationHeaderFilter
