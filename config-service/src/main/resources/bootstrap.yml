@@ -1,4 +1,0 @@
-encrypt:
-  key-store:
-    location: classpath:server.jks
-    alias: mykey

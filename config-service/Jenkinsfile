@@ -4,11 +4,11 @@ pipeline {
     environment {
         GIT_REPO = 'https://github.com/ecommerce-kubernetes/ecommerce.git'
         BRANCH = 'develop'
-        TARGET_DIR = 'discovery-service'
+        TARGET_DIR = 'config-service'
         SSH_CREDENTIALS_ID = 'ansible-key'
         REMOTE_HOST = '172.18.0.11'
         REMOTE_USER = 'root'
-        REMOTE_PATH = '/ansible/playbooks/discovery-playbook'
+        REMOTE_PATH = '/ansible/playbooks/config-playbook'
     }
 
     triggers {
@@ -19,7 +19,7 @@ pipeline {
     stages {
         stage('SCM Checkout (with Sparse Path)') {
             steps {
-                echo '📥 discovery-service 디렉토리만 sparse checkout 중...'
+                echo '📥 config-service 디렉토리만 sparse checkout 중...'
 
                 checkout([$class: 'GitSCM',
                     branches: [[name: "*/${BRANCH}"]],
@@ -53,10 +53,12 @@ pipeline {
             steps {
                 echo '⚙️ Gradle 빌드 시작'
                 dir("${TARGET_DIR}") {
-                    sh '''
-                        chmod +x gradlew
-                        ./gradlew clean build
-                    '''
+                    withCredentials([usernamePassword(credentialsId: 'github_credentials', usernameVariable: 'GITHUB_USERNAME', passwordVariable: 'GITHUB_TOKEN')]) {
+                        sh '''
+                            chmod +x gradlew
+                            GITHUB_USERNAME=$GITHUB_USERNAME GITHUB_TOKEN=$GITHUB_TOKEN ./gradlew clean build
+                        '''
+                    }
                 }
             }
         }
@@ -81,7 +83,7 @@ pipeline {
 
                             // 2. 새 JAR 파일을 이름을 바꿔서 복사 (discovery-service.jar)
                             sh """
-                                scp -o StrictHostKeyChecking=no ${targetJar.path} ${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_PATH}/discovery-service.jar
+                                scp -o StrictHostKeyChecking=no ${targetJar.path} ${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_PATH}/config-service.jar
                             """
                         }
                     } else {
@@ -97,7 +99,7 @@ pipeline {
                 sshagent (credentials: ["${SSH_CREDENTIALS_ID}"]) {
                     sh """
                         ssh -o StrictHostKeyChecking=no ${REMOTE_USER}@${REMOTE_HOST} \\
-                        'ansible-playbook -i /ansible/inventory/hosts /ansible/playbooks/discovery-playbook/discovery-playbook.yml'
+                        'ansible-playbook -i /ansible/inventory/hosts /ansible/playbooks/config-playbook/config-playbook.yml'
                     """
                 }
             }
@@ -106,7 +108,7 @@ pipeline {
 
     post {
         success {
-            echo '✅ discovery-service 배포 완료!'
+            echo '✅ config-service 배포 완료!'
         }
         failure {
             echo '❌ 빌드 또는 배포 실패!'
@@ -120,3 +122,4 @@ def hasChangesIn(String dir) {
         returnStdout: true
     ).trim() != ""
 }
+
