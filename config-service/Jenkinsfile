@@ -53,7 +53,7 @@ pipeline {
             steps {
                 echo '⚙️ Gradle 빌드 시작'
                 dir("${TARGET_DIR}") {
-                    withCredentials([usernamePassword(credentialsId: 'github_credentials', usernameVariable: 'GITHUB_USERNAME', passwordVariable: 'GITHUB_TOKEN')]) {
+                    withCredentials([usernamePassword(credentialsId: 'github_access_token', usernameVariable: 'GITHUB_USERNAME', passwordVariable: 'GITHUB_TOKEN')]) {
                         sh '''
                             chmod +x gradlew
                             GITHUB_USERNAME=$GITHUB_USERNAME GITHUB_TOKEN=$GITHUB_TOKEN ./gradlew clean build
