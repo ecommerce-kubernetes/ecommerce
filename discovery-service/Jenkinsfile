@@ -67,9 +67,9 @@ pipeline {
                                 'rm -f ${REMOTE_PATH}/*.jar'
                             """
 
-                            // 2. 새 JAR 복사
+                            // 2. 새 JAR 파일을 이름을 바꿔서 복사 (discovery-service.jar)
                             sh """
-                                scp -o StrictHostKeyChecking=no ${targetJar.path} ${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_PATH}/
+                                scp -o StrictHostKeyChecking=no ${targetJar.path} ${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_PATH}/discovery-service.jar
                             """
                         }
                     } else {
