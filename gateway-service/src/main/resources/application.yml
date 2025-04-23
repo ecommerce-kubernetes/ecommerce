@@ -39,7 +39,6 @@ spring:
           filters:
             - RemoveRequestHeader=Cookie
             - RewritePath=/order-service/(?<segment>.*), /$\{segment}
-            - AuthorizationHeaderFilter
             - name: ExtractUserIdFromToken
         - id: order-service
           uri: lb://ORDER-SERVICE
@@ -49,7 +48,6 @@ spring:
           filters:
             - RemoveRequestHeader=Cookie
             - RewritePath=/order-service/(?<segment>.*), /$\{segment}
-            - AuthorizationHeaderFilter
             - name: ExtractUserIdFromToken
         - id: order-service
           uri: lb://ORDER-SERVICE
