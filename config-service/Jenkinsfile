@@ -43,9 +43,11 @@ pipeline {
                     if (!hasChangesIn("${TARGET_DIR}")) {
                         echo "✅ ${TARGET_DIR}에 변경 사항 없음. 이후 단계 생략하고 파이프라인 정상 종료합니다."
                         currentBuild.result = 'SUCCESS'
-                        // Stage 이후 단계가 실행되지 않도록 exit
-                        // 단, error() 대신 return 사용!
-                        return
+                        // 파이프라인을 종료시키기 위한 강제 에러 처리
+                        // 하지만 실제로는 실패가 아니라 성공처럼 보여지게 함
+                        catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
+                            error("🎯 변경 사항이 없으므로 파이프라인 종료")
+                        }
                     } else {
                         echo "📂 변경 사항 감지됨. 계속 진행합니다."
                     }
