@@ -79,7 +79,7 @@ pipeline {
 
                             // 2. 새 JAR 파일을 이름을 바꿔서 복사 (config-service.jar)
                             sh """
-                                scp -o StrictHostKeyChecking=no ${targetJar.path} ${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_PATH}/discovery-service.jar
+                                scp -o StrictHostKeyChecking=no ${targetJar.path} ${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_PATH}/config-service.jar
                             """
                         }
                     } else {
