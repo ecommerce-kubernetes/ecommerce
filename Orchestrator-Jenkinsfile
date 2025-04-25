@@ -1,0 +1,18 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Deploy Core Services') {
+            steps {
+                build job: 'Discovery-Pipeline', wait: true
+                build job: 'Config-Pipeline', wait: true
+            }
+        }
+
+        // stage('Deploy user-service') {
+        //     steps {
+        //         build job: 'user-service-pipeline', wait: true
+        //     }
+        // }
+    }
+}
