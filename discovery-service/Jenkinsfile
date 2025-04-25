@@ -116,8 +116,10 @@ pipeline {
 }
 
 def hasChangesIn(String dir) {
+    def previous = env.GIT_PREVIOUS_SUCCESSFUL_COMMIT ?: 'HEAD~1'
+    def current = env.GIT_COMMIT
     return sh(
-        script: "git diff --name-only HEAD~1 HEAD | grep ^${dir}/ || true",
+        script: "git diff --name-only ${previous} ${current} | grep ^${dir}/ || true",
         returnStdout: true
     ).trim() != ""
 }
