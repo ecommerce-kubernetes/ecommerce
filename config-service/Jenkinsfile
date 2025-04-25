@@ -41,9 +41,13 @@ pipeline {
             steps {
                 script {
                     if (!hasChangesIn("${TARGET_DIR}")) {
-                        echo "❌ ${TARGET_DIR} 변경 없음. 스킵합니다."
+                        echo "✅ ${TARGET_DIR}에 변경 사항 없음. 이후 단계 생략하고 파이프라인 정상 종료합니다."
                         currentBuild.result = 'SUCCESS'
-                        error("No changes in ${TARGET_DIR}. Skipping pipeline.")
+                        // Stage 이후 단계가 실행되지 않도록 exit
+                        // 단, error() 대신 return 사용!
+                        return
+                    } else {
+                        echo "📂 변경 사항 감지됨. 계속 진행합니다."
                     }
                 }
             }
