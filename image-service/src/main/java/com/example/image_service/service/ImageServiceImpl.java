@@ -24,11 +24,15 @@ public class ImageServiceImpl implements ImageService{
     private final ImageRepository imageRepository;
     @Value("${upload-dir}")
     private String UPLOAD_DIR;
-    @Value("${server.domain}")
-    private String DOMAIN;
-    @Value("${server.port}")
-    private Integer PORT;
 
+    @Value("${gateway.domain}")
+    private String DOMAIN;
+
+    @Value("${gateway.port}")
+    private String PORT;
+
+    @Value("${spring.application.name}")
+    private String APPLICATION_NAME;
     @Override
     @Transactional
     public String saveImage(MultipartFile file) {
@@ -77,10 +81,10 @@ public class ImageServiceImpl implements ImageService{
     }
 
     private String createImageUrl(String savedUrl){
-        return DOMAIN + "/image/" + savedUrl;
+        return  DOMAIN + ":" + PORT + "/" + APPLICATION_NAME +"/images/" + savedUrl;
     }
 
     private String getFileName(String imageUrl){
-        return imageUrl.replace(DOMAIN + "/image/", "");
+        return imageUrl.replace(DOMAIN + ":" + PORT + "/" + APPLICATION_NAME +"/images/", "");
     }
 }
