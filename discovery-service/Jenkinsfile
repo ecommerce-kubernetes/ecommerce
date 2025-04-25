@@ -38,9 +38,10 @@ pipeline {
                     if (!hasChangesIn("${TARGET_DIR}")) {
                         echo "✅ 변경 사항 없음. 이후 단계 생략."
                         currentBuild.description = "🟢 변경 없음, 스킵됨"
-                        catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
-                            error("🎯 변경 사항 없음. 파이프라인 종료")
-                        }
+                        currentBuild.result = 'SUCCESS' // 결과를 성공으로 강제 지정
+                        error("🎯 변경 사항 없음. 논리적 종료")
+                    } else {
+                        echo "📂 변경 사항 감지됨. 계속 진행합니다."
                     }
                 }
             }
