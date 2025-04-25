@@ -4,6 +4,7 @@ pipeline {
     stages {
         stage('Deploy Core Services') {
             steps {
+                checkout scm
                 build job: 'Discovery-Pipeline', wait: true
                 build job: 'Config-Pipeline', wait: true
             }
