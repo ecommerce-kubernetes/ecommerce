@@ -3,6 +3,7 @@ server:
 spring:
   application:
     name: config-service
+    use-bootstrap: true
   cloud:
     config:
       server:
