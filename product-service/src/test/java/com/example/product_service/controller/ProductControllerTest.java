@@ -294,9 +294,9 @@ class ProductControllerTest {
     void getProductsByIdBatchTest() throws Exception {
         ProductRequestIdsDto productRequestIdsDto = new ProductRequestIdsDto(List.of(1L,2L,3L));
         List<CompactProductResponseDto> compactProductResponseDtoList =
-                List.of(new CompactProductResponseDto(1L, "사과" , "청송사과 3EA", 3000, 10, 1L),
-                        new CompactProductResponseDto(2L, "바나나", "바나나 5EA", 5000, 50, 1L),
-                        new CompactProductResponseDto(3L, "아이폰 16", "애플 아이폰 16", 1250000, 50, 2L));
+                List.of(new CompactProductResponseDto(1L, "사과" , "청송사과 3EA", 3000, 10, 1L,"http://test/image.jpg"),
+                        new CompactProductResponseDto(2L, "바나나", "바나나 5EA", 5000, 50, 1L,"http://test/image.jpg"),
+                        new CompactProductResponseDto(3L, "아이폰 16", "애플 아이폰 16", 1250000, 50, 2L,"http://test/image.jpg"));
 
         when(productService.getProductListByIds(any(ProductRequestIdsDto.class))).thenReturn(compactProductResponseDtoList);
         String content = mapper.writeValueAsString(productRequestIdsDto);

@@ -111,10 +111,10 @@ public class ProductServiceImpl implements ProductService{
     public List<CompactProductResponseDto> getProductListByIds(ProductRequestIdsDto productRequestIdsDto) {
         List<Long> ids = productRequestIdsDto.getIds();
 
-        List<Products> findProducts = productsRepository.findAllByIdIn(ids);
+        List<CompactProductResponseDto> findProducts = productsRepository.findAllWithRepresentativeImageByIds(ids);
 
         Set<Long> findProductsId = findProducts.stream()
-                .map(Products::getId)
+                .map(CompactProductResponseDto::getId)
                 .collect(Collectors.toSet());
 
         List<Long> foundIds = ids.stream().filter(id -> !findProductsId.contains(id)).toList();
@@ -123,7 +123,7 @@ public class ProductServiceImpl implements ProductService{
             throw new NotFoundException("Not Found product by id:" + foundIds);
         }
 
-        return findProducts.stream().map(CompactProductResponseDto::new).toList();
+        return findProducts;
     }
 
     @Override

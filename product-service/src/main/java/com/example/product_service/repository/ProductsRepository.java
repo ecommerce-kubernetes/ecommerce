@@ -1,5 +1,6 @@
 package com.example.product_service.repository;
 
+import com.example.product_service.dto.response.CompactProductResponseDto;
 import com.example.product_service.entity.Products;
 import com.example.product_service.repository.query.ProductQueryRepository;
 import org.springframework.data.domain.Page;
@@ -18,4 +19,15 @@ public interface ProductsRepository extends JpaRepository<Products, Long>, Produ
     Optional<Products> findByIdWithProductImages(@Param("id") Long id);
 
 
+    @Query("""
+            SELECT new com.example.product_service.dto.response.CompactProductResponseDto(
+                p,
+                img.imageUrl
+            )
+            FROM Products p
+            LEFT JOIN p.images img 
+                ON img.sortOrder = 0
+            WHERE p.id IN :ids
+            """)
+    List<CompactProductResponseDto> findAllWithRepresentativeImageByIds(@Param("ids") List<Long> ids);
 }

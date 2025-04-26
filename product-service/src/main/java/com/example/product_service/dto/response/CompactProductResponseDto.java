@@ -17,13 +17,15 @@ public class CompactProductResponseDto {
     private int price;
     private int stockQuantity;
     private Long categoryId;
+    private String mainImgUrl;
 
-    public CompactProductResponseDto(Products product){
+    public CompactProductResponseDto(Products product, String mainImgUrl){
         this.id = product.getId();
         this.name = product.getName();
         this.description = product.getDescription();
         this.price = product.getPrice();
         this.stockQuantity = product.getStockQuantity();
         this.categoryId = product.getCategory().getId();
+        this.mainImgUrl = mainImgUrl;
     }
 }

@@ -218,16 +218,33 @@ class ProductServiceImplTest {
     @Test
     @Transactional
     void getProductListByIdsTest(){
-        Products banana = productsRepository.save(new Products("바나나", "바나나 3개입", 5000, 50, food));
-        Products apple = productsRepository.save(new Products("사과", "사과 3개입", 5000, 50, food));
-        Products iphone = productsRepository.save(new Products("아이폰 16", "애플 아이폰 16", 1250000, 50, electronicDevices));
+        Products banana = new Products("바나나", "바나나 3개입", 5000, 50, food);
+        new ProductImages(banana, "http://banan.jpg", 0);
 
-        ProductRequestIdsDto productRequestIdsDto = new ProductRequestIdsDto(List.of(banana.getId(), apple.getId()));
+        Products apple = new Products("사과", "사과 3개입", 5000, 50, food);
+        new ProductImages(apple, "http://apple.jpg", 0);
+
+        Products iphone = new Products("아이폰 16", "애플 아이폰 16", 1250000, 50, electronicDevices);
+        new ProductImages(iphone, "http://iphone.jpg",0);
+
+        Products savedBanana = productsRepository.save(banana);
+        Products savedApple = productsRepository.save(apple);
+        productsRepository.save(iphone);
+
+        ProductRequestIdsDto productRequestIdsDto = new ProductRequestIdsDto(List.of(savedBanana.getId(), savedApple.getId()));
 
         List<CompactProductResponseDto> productListByIds = productService.getProductListByIds(productRequestIdsDto);
 
         assertThat(productListByIds.size()).isEqualTo(2);
 
+
+        //TODO 이 검증 부분 수정
+        CompactProductResponseDto bananaResponseDto = productListByIds.get(0);
+        assertThat(bananaResponseDto.getName()).isEqualTo(banana.getName());
+        assertThat(bananaResponseDto.getDescription()).isEqualTo(banana.getDescription());
+        assertThat(bananaResponseDto.getPrice()).isEqualTo(banana.getPrice());
+        assertThat(bananaResponseDto.getStockQuantity()).isEqualTo(banana.getStockQuantity());
+        assertThat(bananaResponseDto.getMainImgUrl()).isEqualTo(banana.getImages().get(0).getImageUrl());
     }
 
     @Test
