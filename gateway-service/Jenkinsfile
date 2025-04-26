@@ -56,20 +56,11 @@ pipeline {
                 echo '⚙️ Gradle 빌드 시작'
                 dir("${TARGET_DIR}") {
                     withCredentials([
-                        usernamePassword(
-                            credentialsId: 'github_access_token',
-                            usernameVariable: 'GITHUB_USERNAME',
-                            passwordVariable: 'GITHUB_TOKEN'
-                        ),
-                        string(
-                            credentialsId: 'key-store.secret',
-                            variable: 'ENCRYPT_KEY_STORE_SECRET'
-                        )
+                        usernamePassword(credentialsId: 'github_access_token', usernameVariable: 'GITHUB_USERNAME', passwordVariable: 'GITHUB_TOKEN')
                     ]) {
                         sh '''
                             export GITHUB_USERNAME=$GITHUB_USERNAME
                             export GITHUB_TOKEN=$GITHUB_TOKEN
-                            export ENCRYPT_KEY_STORE_SECRET=$ENCRYPT_KEY_STORE_SECRET
                             chmod +x gradlew
                             ./gradlew clean build
                         '''
