@@ -68,3 +68,10 @@ spring:
             - RemoveRequestHeader=Cookie
             - RewritePath=/order-service/(?<segment>.*), /$\{segment}
             - AuthorizationHeaderFilter
+        - id: image-service
+          uri: lb://IMAGE-SERVICE
+          predicates:
+            - Path=/image-service/images/**
+            - Method=GET,POST
+          filters:
+            - RewritePath=/image-service/(?<segment>.*), /$\{segment}
