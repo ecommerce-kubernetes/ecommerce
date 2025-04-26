@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest(properties = {
-		"encrypt.key-store.secret=dummy-secret"
+		"spring.cloud.config.server.encrypt.enabled=false"
 })
 class ConfigServiceApplicationTests {
 
