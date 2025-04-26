@@ -1,15 +1,15 @@
 package com.example.config_service;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 
-@SpringBootTest(properties = {
-		"spring.cloud.config.server.encrypt.enabled=false"
+
+@SpringBootTest
+@ImportAutoConfiguration(exclude = {
+		org.springframework.cloud.bootstrap.encrypt.EncryptionBootstrapConfiguration.class
 })
-@Import(TestEncryptConfiguration.class)
 class ConfigServiceApplicationTests {
-
 
 	@Test
 	void contextLoads() {
