@@ -69,7 +69,7 @@ pipeline {
                         sh '''
                             export GITHUB_USERNAME=$GITHUB_USERNAME
                             export GITHUB_TOKEN=$GITHUB_TOKEN
-                            export ENCRYPT_KEY_STORE_SECRET=$ENCRYPT_KEY_STORE_SECRET
+                            export KEY_SECRET=$ENCRYPT_KEY_STORE_SECRET
                             chmod +x gradlew
                             ./gradlew clean build
                         '''
