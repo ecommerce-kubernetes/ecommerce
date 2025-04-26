@@ -3,7 +3,9 @@ package com.example.config_service;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest
+@SpringBootTest(properties = {
+		"encrypt.key-store.secret=dummy-secret"
+})
 class ConfigServiceApplicationTests {
 
 	@Test
