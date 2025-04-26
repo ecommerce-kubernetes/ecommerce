@@ -12,3 +12,5 @@ spring:
           password: ${GITHUB_TOKEN}
           default-label: main
           search-paths: /
+    bootstrap:
+      enabled: true
