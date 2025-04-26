@@ -7,7 +7,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
 @ImportAutoConfiguration(exclude = {
-		org.springframework.cloud.bootstrap.encrypt.EncryptionBootstrapConfiguration.class
+		org.springframework.cloud.bootstrap.encrypt.EncryptionBootstrapConfiguration.class,
+		org.springframework.cloud.config.server.config.RsaEncryptionAutoConfiguration.class
 })
 class ConfigServiceApplicationTests {
 
