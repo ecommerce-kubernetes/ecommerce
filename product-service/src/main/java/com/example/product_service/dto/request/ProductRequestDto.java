@@ -1,13 +1,13 @@
 package com.example.product_service.dto.request;
 
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.validator.constraints.URL;
+
+import java.util.List;
 
 @Getter
 @Setter
@@ -24,4 +24,7 @@ public class ProductRequestDto {
     private int stockQuantity;
     @NotNull(message = "Product categoryId is required")
     private Long categoryId;
+
+    @NotEmpty(message = "At least one image URL is required")
+    private List<@NotBlank @URL(message = "Invalid image URL") String> imageUrls;
 }

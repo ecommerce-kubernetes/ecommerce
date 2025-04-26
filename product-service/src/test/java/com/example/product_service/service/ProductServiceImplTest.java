@@ -7,6 +7,7 @@ import com.example.product_service.dto.response.CompactProductResponseDto;
 import com.example.product_service.dto.response.PageDto;
 import com.example.product_service.dto.response.ProductResponseDto;
 import com.example.product_service.entity.Categories;
+import com.example.product_service.entity.ProductImages;
 import com.example.product_service.entity.Products;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.repository.CategoriesRepository;
@@ -70,7 +71,7 @@ class ProductServiceImplTest {
     @Transactional
     @DisplayName("상품 저장 테스트")
     void saveProductTest(){
-        ProductRequestDto productRequestDto = new ProductRequestDto("사과", "청송 사과 3EA",5000, 50, food.getId());
+        ProductRequestDto productRequestDto = new ProductRequestDto("사과", "청송 사과 3EA",5000, 50, food.getId(), List.of("http://test/image.jpg"));
         ProductResponseDto productResponseDto = productService.saveProduct(productRequestDto);
 
         assertThat(productResponseDto.getName()).isEqualTo("사과");
@@ -78,13 +79,14 @@ class ProductServiceImplTest {
         assertThat(productResponseDto.getPrice()).isEqualTo(5000);
         assertThat(productResponseDto.getStockQuantity()).isEqualTo(50);
         assertThat(productResponseDto.getCategoryId()).isEqualTo(food.getId());
+        assertThat(productResponseDto.getImages().size()).isEqualTo(1);
     }
 
     @Test
     @Transactional
     @DisplayName("상품 저장 테스트 - 카테고리를 찾을 수 없는 경우")
     void saveProductTest_NotFoundCategories(){
-        ProductRequestDto productRequestDto = new ProductRequestDto("사과", "청송 사과 3EA", 5000, 50, 999L);
+        ProductRequestDto productRequestDto = new ProductRequestDto("사과", "청송 사과 3EA", 5000, 50, 999L,List.of());
         assertThatThrownBy(() ->  productService.saveProduct(productRequestDto))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage("Not Found Category");
@@ -93,9 +95,11 @@ class ProductServiceImplTest {
     @Test
     @DisplayName("상품 삭제 테스트")
     void deleteProductTest(){
-        Products banana = productsRepository.save(
-                new Products("바나나", "바나나 3개입", 5000, 50, food)
-        );
+
+        Products product = new Products("바나나", "바나나 3개입", 5000, 50, food);
+        new ProductImages(product,"http://test/image.jpg",0);
+
+        Products banana = productsRepository.save(product);
         productService.deleteProduct(banana.getId());
 
         Optional<Products> bananaOptional = productsRepository.findById(banana.getId());
@@ -139,9 +143,9 @@ class ProductServiceImplTest {
     @Test
     @DisplayName("상품 정보 조회(상품 아이디)")
     void getProductDetailsTest(){
-        Products save = productsRepository.save(
-                new Products("바나나", "바나나 3개입", 5000, 50, food)
-        );
+        Products banana = new Products("바나나", "바나나 3개입", 5000, 50, food);
+        new ProductImages(banana,"http://test/image.jpg", 0);
+        Products save = productsRepository.save(banana);
 
         ProductResponseDto productDetails = productService.getProductDetails(save.getId());
 
@@ -151,6 +155,7 @@ class ProductServiceImplTest {
         assertThat(productDetails.getPrice()).isEqualTo(save.getPrice());
         assertThat(productDetails.getStockQuantity()).isEqualTo(save.getStockQuantity());
         assertThat(productDetails.getCategoryId()).isEqualTo(save.getCategory().getId());
+        assertThat(productDetails.getImages().size()).isEqualTo(1);
     }
 
     @ParameterizedTest
@@ -166,9 +171,17 @@ class ProductServiceImplTest {
         Long categoryId = categoryIdStr.isEmpty() ? null : food.getId();
         List<Products> list = new ArrayList<>();
         Products apple = new Products("사과", "청송 사과 3EA", 5000, 50, food);
+        new ProductImages(apple, "http://test/apple.jpg", 0);
+
         Products banana = new Products("바나나", "바나나 3개입", 5000, 50, food);
+        new ProductImages(banana, "http://test/banana.jpg", 0);
+
         Products pineApple = new Products("파인애플", "파인애플 5개입", 6000, 50, food);
+        new ProductImages(pineApple, "http://test/pineapple.jpg", 0);
+
         Products iphone = new Products("아이폰 16", "애플 아이폰 16", 1250000, 50, electronicDevices);
+        new ProductImages(iphone, "http://test/iphone.jpg", 0);
+
         list.add(apple);
         list.add(banana);
         list.add(pineApple);
@@ -198,22 +211,40 @@ class ProductServiceImplTest {
             assertThat(actual.getPrice()).isEqualTo(expected.getPrice());
             assertThat(actual.getStockQuantity()).isEqualTo(expected.getStockQuantity());
             assertThat(actual.getCategoryId()).isEqualTo(expected.getCategory().getId());
+            assertThat(actual.getImages().size()).isEqualTo(expected.getImages().size());
         }
     }
 
     @Test
     @Transactional
     void getProductListByIdsTest(){
-        Products banana = productsRepository.save(new Products("바나나", "바나나 3개입", 5000, 50, food));
-        Products apple = productsRepository.save(new Products("사과", "사과 3개입", 5000, 50, food));
-        Products iphone = productsRepository.save(new Products("아이폰 16", "애플 아이폰 16", 1250000, 50, electronicDevices));
+        Products banana = new Products("바나나", "바나나 3개입", 5000, 50, food);
+        new ProductImages(banana, "http://banan.jpg", 0);
 
-        ProductRequestIdsDto productRequestIdsDto = new ProductRequestIdsDto(List.of(banana.getId(), apple.getId()));
+        Products apple = new Products("사과", "사과 3개입", 5000, 50, food);
+        new ProductImages(apple, "http://apple.jpg", 0);
+
+        Products iphone = new Products("아이폰 16", "애플 아이폰 16", 1250000, 50, electronicDevices);
+        new ProductImages(iphone, "http://iphone.jpg",0);
+
+        Products savedBanana = productsRepository.save(banana);
+        Products savedApple = productsRepository.save(apple);
+        productsRepository.save(iphone);
+
+        ProductRequestIdsDto productRequestIdsDto = new ProductRequestIdsDto(List.of(savedBanana.getId(), savedApple.getId()));
 
         List<CompactProductResponseDto> productListByIds = productService.getProductListByIds(productRequestIdsDto);
 
         assertThat(productListByIds.size()).isEqualTo(2);
 
+
+        //TODO 이 검증 부분 수정
+        CompactProductResponseDto bananaResponseDto = productListByIds.get(0);
+        assertThat(bananaResponseDto.getName()).isEqualTo(banana.getName());
+        assertThat(bananaResponseDto.getDescription()).isEqualTo(banana.getDescription());
+        assertThat(bananaResponseDto.getPrice()).isEqualTo(banana.getPrice());
+        assertThat(bananaResponseDto.getStockQuantity()).isEqualTo(banana.getStockQuantity());
+        assertThat(bananaResponseDto.getMainImgUrl()).isEqualTo(banana.getImages().get(0).getImageUrl());
     }
 
     @Test
