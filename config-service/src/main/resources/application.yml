@@ -3,7 +3,6 @@ server:
 spring:
   application:
     name: config-service
-    use-bootstrap: true
   cloud:
     config:
       server:
@@ -13,3 +12,9 @@ spring:
           password: ${GITHUB_TOKEN}
           default-label: main
           search-paths: /
+
+encrypt:
+  key-store:
+    location: file:/app/keystore.jks
+    alias: my-config-key
+    secret: ${KEY_SECRET}
