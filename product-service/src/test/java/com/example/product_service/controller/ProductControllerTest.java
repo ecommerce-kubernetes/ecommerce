@@ -6,6 +6,7 @@ import com.example.product_service.dto.request.ProductRequestIdsDto;
 import com.example.product_service.dto.request.StockQuantityRequestDto;
 import com.example.product_service.dto.response.CompactProductResponseDto;
 import com.example.product_service.dto.response.PageDto;
+import com.example.product_service.dto.response.ProductImageDto;
 import com.example.product_service.dto.response.ProductResponseDto;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.service.ProductService;
@@ -216,11 +217,17 @@ class ProductControllerTest {
     void getAllProductsTest(String categoryId, String name) throws Exception {
 
         List<ProductResponseDto> allProductList = new ArrayList<>();
-        allProductList.add(new ProductResponseDto(1L, "사과", "사과 3EA", 5000, 50, 1L));
-        allProductList.add(new ProductResponseDto(2L, "바나나", "바나나 3EA", 5000, 50, 1L));
-        allProductList.add(new ProductResponseDto(3L, "파인애플", "파인애플 5EA", 6000, 40, 1L));
-        allProductList.add(new ProductResponseDto(4L, "포도", "포도 6EA",10000, 40, 1L));
-        allProductList.add(new ProductResponseDto(5L, "아이폰 16", "애플 아이폰 16", 1250000, 50, 2L));
+        allProductList.add(new ProductResponseDto(1L, "사과", "사과 3EA", 5000, 50, 1L,
+                List.of(new ProductImageDto(1L, "http://test/image1.jpg",0))
+        ));
+        allProductList.add(new ProductResponseDto(2L, "바나나", "바나나 3EA", 5000, 50, 1L,
+                List.of(new ProductImageDto(2L, "http://test/image2.jpg",0))));
+        allProductList.add(new ProductResponseDto(3L, "파인애플", "파인애플 5EA", 6000, 40, 1L,
+                List.of(new ProductImageDto(3L, "http://test/image3.jpg",0))));
+        allProductList.add(new ProductResponseDto(4L, "포도", "포도 6EA",10000, 40, 1L,
+                List.of(new ProductImageDto(4L, "http://test/image4.jpg",0))));
+        allProductList.add(new ProductResponseDto(5L, "아이폰 16", "애플 아이폰 16", 1250000, 50, 2L,
+                List.of(new ProductImageDto(5L, "http://test/image5.jpg",0))));
 
         List<ProductResponseDto> filteredProductResponseDto = allProductList.stream()
                 .filter(product -> {
@@ -339,7 +346,8 @@ class ProductControllerTest {
                     "테스트 상품 설명",
                     10000,
                     50,
-                    1L
+                    1L,
+                List.of("http://testimage.jpg")
                 );
     }
     private ProductResponseDto createDefaultProductResponseDto(){
@@ -350,7 +358,8 @@ class ProductControllerTest {
                 request.getDescription(),
                 request.getPrice(),
                 request.getStockQuantity(),
-                request.getCategoryId()
+                request.getCategoryId(),
+                List.of(new ProductImageDto(1L, "http://test/image1.jpg",0))
         );
     }
 
@@ -358,45 +367,55 @@ class ProductControllerTest {
         return Stream.of(
                 Arguments.of(
                         //이름이 비어있는 경우
-                        new ProductRequestDto("", "테스트 상품 설명",10000, 50, 1L),
+                        new ProductRequestDto("", "테스트 상품 설명",10000, 50, 1L,     List.of("http://testimage.jpg")),
                         "name", //오류 필드
                         "Product name is required" //오류 메시지
                 ),
                 Arguments.of(
                         //설명이 비어있는 경우
-                        new ProductRequestDto("테스트 상품", "", 10000, 50, 1L),
+                        new ProductRequestDto("테스트 상품", "", 10000, 50, 1L, List.of("http://testimage.jpg")),
                         "description",
                         "Product description is required"
                 ),
                 Arguments.of(
                         //상품 가격이 0원 미만일때
-                        new ProductRequestDto("테스트 상품", "테스트 상품 설명", -1, 50, 1L),
+                        new ProductRequestDto("테스트 상품", "테스트 상품 설명", -1, 50, 1L, List.of("http://testimage.jpg")),
                         "price",
                         "Product price must not be less than 0"
                 ),
                 Arguments.of(
                         //상품 가격이 10000000 이상일때
-                        new ProductRequestDto("테스트 상품", "테스트 상품 설명", 10000001, 50, 1L),
+                        new ProductRequestDto("테스트 상품", "테스트 상품 설명", 10000001, 50, 1L, List.of("http://testimage.jpg")),
                         "price",
                         "Product price must not be greater than 10,000,000"
                 ),
                 Arguments.of(
                         //상품 개수가 0개 이하일때
-                        new ProductRequestDto("테스트 상품", "테스트 상품 설명", 10000, -1, 1L),
+                        new ProductRequestDto("테스트 상품", "테스트 상품 설명", 10000, -1, 1L, List.of("http://testimage.jpg")),
                         "stockQuantity",
                         "Product stockQuantity must not be less than 0"
                 ),
                 Arguments.of(
                         //상품 개수가 100개 이상일때
-                        new ProductRequestDto("테스트 상품", "테스트 상품 설명", 10000, 101, 1L),
+                        new ProductRequestDto("테스트 상품", "테스트 상품 설명", 10000, 101, 1L, List.of("http://testimage.jpg")),
                         "stockQuantity",
                         "Product stockQuantity must not be greater than 100"
                 ),
                 Arguments.of(
                         //상품 카테고리가 없는 경우
-                        new ProductRequestDto("테스트 상품", "테스트 상품 설명", 10000, 101, null),
+                        new ProductRequestDto("테스트 상품", "테스트 상품 설명", 10000, 50, null, List.of("http://testimage.jpg")),
                         "categoryId",
                         "Product categoryId is required"
+                ),
+                Arguments.of(
+                        new ProductRequestDto("테스트 상품", "테스트 상품 설명", 10000, 50, 1L, List.of()),
+                        "imageUrls",
+                        "At least one image URL is required"
+                ),
+                Arguments.of(
+                        new ProductRequestDto("테스트 상품", "테스트 상품 설명", 10000, 50, 1L, List.of("test/image.jpg")),
+                        "imageUrls[0]",
+                        "Invalid image URL"
                 )
         );
     }
@@ -414,4 +433,5 @@ class ProductControllerTest {
                 )
         );
     }
+
 }

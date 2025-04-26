@@ -2,6 +2,7 @@ package com.example.product_service.repository.query;
 
 import com.example.product_service.entity.Products;
 //import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.example.product_service.entity.QProductImages;
 import com.example.product_service.entity.QProducts;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
@@ -23,7 +24,7 @@ public class ProductQueryRepositoryImpl implements ProductQueryRepository {
 
     private final JPAQueryFactory queryFactory;
     QProducts products = QProducts.products;
-
+    QProductImages productImages = QProductImages.productImages;
     public ProductQueryRepositoryImpl(EntityManager em) {
         this.queryFactory = new JPAQueryFactory(em);
     }
@@ -33,13 +34,15 @@ public class ProductQueryRepositoryImpl implements ProductQueryRepository {
         List<Products> content = queryFactory
                 .select(products)
                 .from(products)
+                .distinct()
+                .leftJoin(products.images, productImages).fetchJoin()
                 .where(containsName(name), eqCategoryId(categoryId))
                 .orderBy(createOrderSpecifierForProducts(pageable))
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize()).fetch();
 
         Long totalCount = queryFactory
-                .select(Wildcard.count)
+                .select(products.id.countDistinct())
                 .from(products)
                 .where(containsName(name), eqCategoryId(categoryId))
                 .fetchOne();
@@ -70,7 +73,6 @@ public class ProductQueryRepositoryImpl implements ProductQueryRepository {
         String sortProperty = order.getProperty();
 
         if ("categoryId".equals(sortProperty)) {
-            // products.category.id 로 정렬하기 위해 QCategories의 별칭을 활용할 수 있습니다.
             return new OrderSpecifier<>(
                     order.isAscending() ? Order.ASC : Order.DESC,
                     products.category.id

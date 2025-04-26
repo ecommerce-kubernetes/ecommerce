@@ -6,10 +6,12 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
 @AllArgsConstructor
-@NoArgsConstructor        //TODO 상품 이미지로 확장가능
+@NoArgsConstructor
 public class ProductResponseDto {
     private Long id;
     private String name;
@@ -17,6 +19,7 @@ public class ProductResponseDto {
     private int price;
     private int stockQuantity;
     private Long categoryId;
+    private List<ProductImageDto> images;
 
     public ProductResponseDto(Products product){
         this.id = product.getId();
@@ -25,5 +28,6 @@ public class ProductResponseDto {
         this.price = product.getPrice();
         this.stockQuantity = product.getStockQuantity();
         this.categoryId = product.getCategory().getId();
+        this.images = product.getImages().stream().map(ProductImageDto::new).toList();
     }
 }

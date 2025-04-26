@@ -9,14 +9,18 @@ import com.example.product_service.dto.response.CompactProductResponseDto;
 import com.example.product_service.dto.response.PageDto;
 import com.example.product_service.dto.response.ProductResponseDto;
 import com.example.product_service.entity.Categories;
+import com.example.product_service.entity.ProductImages;
 import com.example.product_service.entity.Products;
 import com.example.product_service.exception.InsufficientStockException;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.repository.CategoriesRepository;
+import com.example.product_service.repository.ProductImagesRepository;
 import com.example.product_service.repository.ProductsRepository;
 import com.example.product_service.service.kafka.KafkaProducer;
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.validator.constraints.URL;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -34,6 +38,7 @@ public class ProductServiceImpl implements ProductService{
 
     private final ProductsRepository productsRepository;
     private final CategoriesRepository categoriesRepository;
+    private final ProductImagesRepository productImagesRepository;
     private final KafkaProducer kafkaProducer;
 
     @Override
@@ -42,6 +47,8 @@ public class ProductServiceImpl implements ProductService{
         Long categoryId = productRequestDto.getCategoryId();
         Categories category = categoriesRepository.findById(categoryId)
                 .orElseThrow(() -> new NotFoundException("Not Found Category"));
+
+        List<String> imageUrls = productRequestDto.getImageUrls();
         Products products = new Products(
                 productRequestDto.getName(),
                 productRequestDto.getDescription(),
@@ -49,6 +56,10 @@ public class ProductServiceImpl implements ProductService{
                 productRequestDto.getStockQuantity(),
                 category
         );
+
+        for(int i=0; i<imageUrls.size(); i++){
+            new ProductImages(products,imageUrls.get(i), i);
+        }
         Products save = productsRepository.save(products);
         return new ProductResponseDto(save);
     }
@@ -76,7 +87,7 @@ public class ProductServiceImpl implements ProductService{
 
     @Override
     public ProductResponseDto getProductDetails(Long productId) {
-        Products product = productsRepository.findById(productId)
+        Products product = productsRepository.findByIdWithProductImages(productId)
                 .orElseThrow(() -> new NotFoundException("Not Found Product"));
 
         return new ProductResponseDto(product);

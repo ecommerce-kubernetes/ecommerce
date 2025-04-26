@@ -1,0 +1,13 @@
+package com.example.product_service.repository;
+
+import com.example.product_service.entity.ProductImages;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.util.Optional;
+
+public interface ProductImagesRepository extends JpaRepository<ProductImages, Long> {
+    @Query("SELECT pi FROM ProductImages pi WHERE pi.product.id =:id AND pi.sortOrder = 0")
+    Optional<ProductImages> findByMainImage(@Param("id") Long id);
+}

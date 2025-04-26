@@ -19,4 +19,11 @@ public class ProductImages extends BaseEntity {
     private Products product;
     private String imageUrl;
     private Integer sortOrder;
+
+    public ProductImages(Products product, String imageUrl, int sortOrder){
+        this.product = product;
+        this.imageUrl = imageUrl;
+        this.sortOrder = sortOrder;
+        product.getImages().add(this);
+    }
 }
