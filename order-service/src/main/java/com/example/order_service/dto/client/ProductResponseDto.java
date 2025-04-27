@@ -16,4 +16,5 @@ public class ProductResponseDto {
     private int price;
     private int stockQuantity;
     private Long categoryId;
+    private String mainImgUrl;
 }

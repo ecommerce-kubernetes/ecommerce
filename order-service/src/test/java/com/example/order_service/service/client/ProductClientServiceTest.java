@@ -31,7 +31,7 @@ class ProductClientServiceTest {
     @Test
     void fetchProductTest() throws JsonProcessingException {
         ProductResponseDto productResponseDto =
-                new ProductResponseDto(1L, "TestProduct", "description", 500, 20, 1L);
+                new ProductResponseDto(1L, "TestProduct", "description", 500, 20, 1L,"http://test.jpg");
 
         String content = mapper.writeValueAsString(productResponseDto);
         WireMock.stubFor(WireMock.get("/products/1")

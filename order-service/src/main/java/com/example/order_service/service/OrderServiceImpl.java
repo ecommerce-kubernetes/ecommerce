@@ -67,13 +67,15 @@ public class OrderServiceImpl implements OrderService{
         Orders order = new Orders(userId, totalPrice, "PENDING", orderRequestDto.getDeliveryAddress());
         Orders savedOrder = ordersRepository.save(order);
 
+        log.info("test:{}", orderItemRequestMap.get(0).getKey().getMainImgUrl());
 
         orderItemRequestMap.forEach(entry -> new OrderItems(
                 savedOrder,
                 entry.getKey().getId(),
                 entry.getKey().getName(),
                 entry.getKey().getPrice(),
-                entry.getValue().getQuantity()
+                entry.getValue().getQuantity(),
+                entry.getKey().getMainImgUrl()
         ));
 
         List<OrderItems> savedOrderItems = savedOrder.getOrderItems();
@@ -87,7 +89,8 @@ public class OrderServiceImpl implements OrderService{
                 orderItem.getProductId(),
                 orderItem.getProductName(),
                 orderItem.getQuantity(),
-                orderItem.getPrice()
+                orderItem.getPrice(),
+                orderItem.getMainImgUrl()
         )).toList();
 
         return new OrderResponseDto(
@@ -112,7 +115,8 @@ public class OrderServiceImpl implements OrderService{
                                     orderItem.getProductId(),
                                     orderItem.getProductName(),
                                     orderItem.getQuantity(),
-                                    orderItem.getPrice())
+                                    orderItem.getPrice(),
+                                    orderItem.getMainImgUrl())
                     ).toList();
 
             return new OrderResponseDto(
