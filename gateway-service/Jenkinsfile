@@ -55,16 +55,10 @@ pipeline {
             steps {
                 echo '⚙️ Gradle 빌드 시작'
                 dir("${TARGET_DIR}") {
-                    withCredentials([
-                        usernamePassword(credentialsId: 'github_access_token', usernameVariable: 'GITHUB_USERNAME', passwordVariable: 'GITHUB_TOKEN')
-                    ]) {
-                        sh '''
-                            export GITHUB_USERNAME=$GITHUB_USERNAME
-                            export GITHUB_TOKEN=$GITHUB_TOKEN
-                            chmod +x gradlew
-                            ./gradlew clean build
-                        '''
-                    }
+                    sh '''
+                        chmod +x gradlew
+                        ./gradlew clean build
+                    '''
                 }
             }
         }
@@ -105,12 +99,10 @@ pipeline {
             }
             steps {
                 echo '🚀 Ansible 플레이북 실행 중...'
-                sshagent (credentials: ["${SSH_CREDENTIALS_ID}"]) {
-                    sh """
-                        ssh -o StrictHostKeyChecking=no ${REMOTE_USER}@${REMOTE_HOST} \\
-                        'ansible-playbook -i /ansible/inventory/hosts ${REMOTE_PATH}/gateway-playbook.yml'
-                    """
-                }
+                sh """
+                    ssh -o StrictHostKeyChecking=no ${REMOTE_USER}@${REMOTE_HOST} \\
+                    'ansible-playbook -i /ansible/inventory/hosts ${REMOTE_PATH}/gateway-playbook.yml'
+                """
             }
         }
     }
