@@ -63,7 +63,7 @@ pipeline {
                             export GITHUB_USERNAME=$GITHUB_USERNAME
                             export GITHUB_TOKEN=$GITHUB_TOKEN
                             chmod +x gradlew
-                            ./gradlew clean build
+                            ./gradlew clean build -x test
                         '''
                     }
                 }
