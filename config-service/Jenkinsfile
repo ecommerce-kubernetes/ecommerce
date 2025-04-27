@@ -107,12 +107,13 @@ pipeline {
             steps {
                 echo '🚀 Ansible 플레이북 실행 중...'
                 withCredentials([
-                    string(credentialsId: 'key-store.secret', variable: 'KEY_SECRET')
+                    string(credentialsId: 'key-store.secret', variable: 'KEY_SECRET'),
+                    string(credentialsId: 'key-store.password', variable: 'KEY_PASSWORD')  // ➡️ 추가
                 ]) {
                     sshagent (credentials: ["${SSH_CREDENTIALS_ID}"]) {
                         sh """
                             ssh -o StrictHostKeyChecking=no ${REMOTE_USER}@${REMOTE_HOST} \\
-                            'ansible-playbook -i /ansible/inventory/hosts ${REMOTE_PATH}/config-playbook.yml --extra-vars "key_secret=${KEY_SECRET}"'
+                            'ansible-playbook -i /ansible/inventory/hosts ${REMOTE_PATH}/config-playbook.yml --extra-vars "key_secret=${KEY_SECRET} key_password=${KEY_PASSWORD}"'
                         """
                     }
                 }
