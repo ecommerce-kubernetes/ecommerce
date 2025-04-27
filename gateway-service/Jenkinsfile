@@ -6,11 +6,11 @@ pipeline {
     environment {
         GIT_REPO = 'https://github.com/ecommerce-kubernetes/ecommerce.git'
         BRANCH = 'develop'
-        TARGET_DIR = 'config-service'
+        TARGET_DIR = 'gateway-service'
         SSH_CREDENTIALS_ID = 'ansible-key'
         REMOTE_HOST = '172.18.0.11'
         REMOTE_USER = 'root'
-        REMOTE_PATH = '/ansible/playbooks/config-playbook'
+        REMOTE_PATH = '/ansible/playbooks/gateway-playbook'
     }
 
     stages {
@@ -89,7 +89,7 @@ pipeline {
                                 'rm -f ${REMOTE_PATH}/*.jar'
                             """
                             sh """
-                                scp -o StrictHostKeyChecking=no ${targetJar.path} ${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_PATH}/config-service.jar
+                                scp -o StrictHostKeyChecking=no ${targetJar.path} ${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_PATH}/gateway-service.jar
                             """
                         }
                     } else {
@@ -108,7 +108,7 @@ pipeline {
                 sshagent (credentials: ["${SSH_CREDENTIALS_ID}"]) {
                     sh """
                         ssh -o StrictHostKeyChecking=no ${REMOTE_USER}@${REMOTE_HOST} \\
-                        'ansible-playbook -i /ansible/inventory/hosts ${REMOTE_PATH}/config-playbook.yml'
+                        'ansible-playbook -i /ansible/inventory/hosts ${REMOTE_PATH}/gateway-playbook.yml'
                     """
                 }
             }

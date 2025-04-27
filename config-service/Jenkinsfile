@@ -17,7 +17,6 @@ pipeline {
         stage('SCM Checkout (with Sparse Path)') {
             steps {
                 echo '📥 config-service 디렉토리만 sparse checkout 중...'
-
                 checkout([$class: 'GitSCM',
                     branches: [[name: "*/${BRANCH}"]],
                     userRemoteConfigs: [[
@@ -25,9 +24,7 @@ pipeline {
                         credentialsId: 'github_access_token'
                     ]],
                     extensions: [
-                        [$class: 'SparseCheckoutPaths',
-                            sparseCheckoutPaths: [[path: "${TARGET_DIR}"]]
-                        ],
+                        [$class: 'SparseCheckoutPaths', sparseCheckoutPaths: [[path: "${TARGET_DIR}"]]],
                         [$class: 'CleanCheckout']
                     ]
                 ])
@@ -60,16 +57,11 @@ pipeline {
                             credentialsId: 'github_access_token',
                             usernameVariable: 'GITHUB_USERNAME',
                             passwordVariable: 'GITHUB_TOKEN'
-                        ),
-                        string(
-                            credentialsId: 'key-store.secret',
-                            variable: 'ENCRYPT_KEY_STORE_SECRET'
                         )
                     ]) {
                         sh '''
                             export GITHUB_USERNAME=$GITHUB_USERNAME
                             export GITHUB_TOKEN=$GITHUB_TOKEN
-                            export ENCRYPT_KEY_STORE_SECRET=$ENCRYPT_KEY_STORE_SECRET
                             chmod +x gradlew
                             ./gradlew clean build
                         '''
@@ -114,11 +106,16 @@ pipeline {
             }
             steps {
                 echo '🚀 Ansible 플레이북 실행 중...'
-                sshagent (credentials: ["${SSH_CREDENTIALS_ID}"]) {
-                    sh """
-                        ssh -o StrictHostKeyChecking=no ${REMOTE_USER}@${REMOTE_HOST} \\
-                        'ansible-playbook -i /ansible/inventory/hosts ${REMOTE_PATH}/config-playbook.yml'
-                    """
+                withCredentials([
+                    string(credentialsId: 'key-store.secret', variable: 'KEY_SECRET'),
+                    string(credentialsId: 'key-store.password', variable: 'KEY_PASSWORD')
+                ]) {
+                    sshagent (credentials: ["${SSH_CREDENTIALS_ID}"]) {
+                        sh """
+                            ssh -o StrictHostKeyChecking=no ${REMOTE_USER}@${REMOTE_HOST} \\
+                            'ansible-playbook -i /ansible/inventory/hosts ${REMOTE_PATH}/config-playbook.yml --extra-vars "key_secret=${KEY_SECRET} key_password=${KEY_PASSWORD}"'
+                        """
+                    }
                 }
             }
         }
