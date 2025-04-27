@@ -63,7 +63,7 @@ pipeline {
                             export GITHUB_USERNAME=$GITHUB_USERNAME
                             export GITHUB_TOKEN=$GITHUB_TOKEN
                             chmod +x gradlew
-                            ./gradlew clean build -x test
+                            ./gradlew clean build
                         '''
                     }
                 }
@@ -108,7 +108,7 @@ pipeline {
                 echo '🚀 Ansible 플레이북 실행 중...'
                 withCredentials([
                     string(credentialsId: 'key-store.secret', variable: 'KEY_SECRET'),
-                    string(credentialsId: 'key-store.password', variable: 'KEY_PASSWORD')  // ➡️ 추가
+                    string(credentialsId: 'key-store.password', variable: 'KEY_PASSWORD')
                 ]) {
                     sshagent (credentials: ["${SSH_CREDENTIALS_ID}"]) {
                         sh """
