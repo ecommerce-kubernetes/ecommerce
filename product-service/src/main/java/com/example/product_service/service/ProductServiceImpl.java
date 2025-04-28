@@ -2,9 +2,7 @@ package com.example.product_service.service;
 
 import com.example.product_service.dto.KafkaDeletedProduct;
 import com.example.product_service.dto.KafkaOrderItemDto;
-import com.example.product_service.dto.request.ProductRequestDto;
-import com.example.product_service.dto.request.ProductRequestIdsDto;
-import com.example.product_service.dto.request.StockQuantityRequestDto;
+import com.example.product_service.dto.request.*;
 import com.example.product_service.dto.response.CompactProductResponseDto;
 import com.example.product_service.dto.response.PageDto;
 import com.example.product_service.dto.response.ProductResponseDto;
@@ -48,7 +46,7 @@ public class ProductServiceImpl implements ProductService{
         Categories category = categoriesRepository.findById(categoryId)
                 .orElseThrow(() -> new NotFoundException("Not Found Category"));
 
-        List<String> imageUrls = productRequestDto.getImageUrls();
+        List<String> imageUrls = productRequestDto.getProductImageRequestDto().getImageUrls();
         Products products = new Products(
                 productRequestDto.getName(),
                 productRequestDto.getDescription(),
@@ -141,5 +139,19 @@ public class ProductServiceImpl implements ProductService{
 
             products.decrementQuantity(orderedItem.getQuantity());
         }
+    }
+
+    @Override
+    public ProductResponseDto addImage(Long productId, ProductImageRequestDto productImageRequestDto) {
+        return null;
+    }
+
+    @Override
+    public ProductResponseDto imgReOrder(Long productId, ImageOrderRequestDto imageOrderRequestDto) {
+        return null;
+    }
+
+    @Override
+    public void deleteImage(Long productId, Long imageId) {
     }
 }

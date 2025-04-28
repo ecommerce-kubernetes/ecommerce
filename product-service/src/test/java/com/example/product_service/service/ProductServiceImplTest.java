@@ -1,5 +1,6 @@
 package com.example.product_service.service;
 
+import com.example.product_service.dto.request.ProductImageRequestDto;
 import com.example.product_service.dto.request.ProductRequestDto;
 import com.example.product_service.dto.request.ProductRequestIdsDto;
 import com.example.product_service.dto.request.StockQuantityRequestDto;
@@ -71,7 +72,7 @@ class ProductServiceImplTest {
     @Transactional
     @DisplayName("상품 저장 테스트")
     void saveProductTest(){
-        ProductRequestDto productRequestDto = new ProductRequestDto("사과", "청송 사과 3EA",5000, 50, food.getId(), List.of("http://test/image.jpg"));
+        ProductRequestDto productRequestDto = new ProductRequestDto("사과", "청송 사과 3EA",5000, 50, food.getId(), new ProductImageRequestDto(List.of("http://test/image.jpg")));
         ProductResponseDto productResponseDto = productService.saveProduct(productRequestDto);
 
         assertThat(productResponseDto.getName()).isEqualTo("사과");
@@ -86,7 +87,7 @@ class ProductServiceImplTest {
     @Transactional
     @DisplayName("상품 저장 테스트 - 카테고리를 찾을 수 없는 경우")
     void saveProductTest_NotFoundCategories(){
-        ProductRequestDto productRequestDto = new ProductRequestDto("사과", "청송 사과 3EA", 5000, 50, 999L,List.of());
+        ProductRequestDto productRequestDto = new ProductRequestDto("사과", "청송 사과 3EA", 5000, 50, 999L, new ProductImageRequestDto(List.of("http://test/image.jpg")));
         assertThatThrownBy(() ->  productService.saveProduct(productRequestDto))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage("Not Found Category");
