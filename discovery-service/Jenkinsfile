@@ -8,7 +8,7 @@ pipeline {
         BRANCH = 'develop'
         TARGET_DIR = 'discovery-service'
         SSH_CREDENTIALS_ID = 'ansible-key'
-        REMOTE_HOST = '172.18.0.11'
+        REMOTE_HOST = '172.18.4.1'
         REMOTE_USER = 'root'
         REMOTE_PATH = '/ansible/playbooks/discovery-playbook'
     }
