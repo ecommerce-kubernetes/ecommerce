@@ -15,10 +15,8 @@ import com.example.product_service.repository.CategoriesRepository;
 import com.example.product_service.repository.ProductImagesRepository;
 import com.example.product_service.repository.ProductsRepository;
 import com.example.product_service.service.kafka.KafkaProducer;
-import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.validator.constraints.URL;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -142,13 +140,38 @@ public class ProductServiceImpl implements ProductService{
     }
 
     @Override
+    @Transactional
     public ProductResponseDto addImage(Long productId, ProductImageRequestDto productImageRequestDto) {
-        return null;
+
+        List<String> imageUrls = productImageRequestDto.getImageUrls();
+        Products product = productsRepository.findByIdWithProductImages(productId)
+                .orElseThrow(() -> new NotFoundException("Not Found Product"));
+
+        int nextOrder = product.getImages().stream()
+                .map(ProductImages::getSortOrder)
+                .max(Integer::compareTo)
+                .orElse(-1) + 1;
+
+        for (String url : imageUrls) {
+            new ProductImages(product, url, nextOrder++);
+        }
+        productsRepository.save(product);
+        return new ProductResponseDto(product);
     }
 
     @Override
-    public ProductResponseDto imgReOrder(Long productId, ImageOrderRequestDto imageOrderRequestDto) {
-        return null;
+    @Transactional
+    public ProductResponseDto imgSwapOrder(Long productId, ImageOrderRequestDto imageOrderRequestDto) {
+        ProductImages target = productImagesRepository.findById(imageOrderRequestDto.getImageId())
+                .orElseThrow(() -> new NotFoundException("Not Found ProductImage"));
+
+        ProductImages conflict = productImagesRepository.findByProductIdAndSortOrder(productId, imageOrderRequestDto.getSortOrder())
+                .orElseThrow(() -> new NotFoundException("Not Found ProductImage"));
+        int oldOrder = target.getSortOrder();
+        target.setSortOrder(imageOrderRequestDto.getSortOrder());
+        conflict.setSortOrder(oldOrder);
+
+        return new ProductResponseDto(target.getProduct());
     }
 
     @Override

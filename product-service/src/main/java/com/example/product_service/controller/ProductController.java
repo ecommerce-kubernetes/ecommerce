@@ -49,7 +49,7 @@ public class ProductController {
     @PatchMapping("/{productId}/image/sort")
     public ResponseEntity<ProductResponseDto> changeImgOrder(@PathVariable("productId") Long productId,
                                                              @RequestBody @Validated ImageOrderRequestDto imageOrderRequestDto){
-        ProductResponseDto productResponseDto = productService.imgReOrder(productId, imageOrderRequestDto);
+        ProductResponseDto productResponseDto = productService.imgSwapOrder(productId, imageOrderRequestDto);
 
         return ResponseEntity.ok(productResponseDto);
     }

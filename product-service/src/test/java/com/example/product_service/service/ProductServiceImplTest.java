@@ -1,9 +1,6 @@
 package com.example.product_service.service;
 
-import com.example.product_service.dto.request.ProductImageRequestDto;
-import com.example.product_service.dto.request.ProductRequestDto;
-import com.example.product_service.dto.request.ProductRequestIdsDto;
-import com.example.product_service.dto.request.StockQuantityRequestDto;
+import com.example.product_service.dto.request.*;
 import com.example.product_service.dto.response.CompactProductResponseDto;
 import com.example.product_service.dto.response.PageDto;
 import com.example.product_service.dto.response.ProductResponseDto;
@@ -12,8 +9,10 @@ import com.example.product_service.entity.ProductImages;
 import com.example.product_service.entity.Products;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.repository.CategoriesRepository;
+import com.example.product_service.repository.ProductImagesRepository;
 import com.example.product_service.repository.ProductsRepository;
 import com.example.product_service.service.kafka.KafkaProducer;
+import jakarta.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,9 +28,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -53,6 +51,9 @@ class ProductServiceImplTest {
 
     @MockitoBean
     KafkaProducer kafkaProducer;
+
+    @Autowired
+    ProductImagesRepository productImagesRepository;
 
     private Categories food;
     private Categories electronicDevices;
@@ -261,6 +262,40 @@ class ProductServiceImplTest {
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage("Not Found product by id:" + notFoundId);
 
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("상품 이미지 추가 테스트")
+    void addImageTest(){
+        Products apple = productsRepository.save(new Products("사과", "사과 3개입", 5000, 50, food));
+        new ProductImages(apple, "http://apple.jpg", 0);
+
+        productsRepository.save(apple);
+
+        ProductResponseDto productResponseDto = productService.addImage(apple.getId(),
+                new ProductImageRequestDto(List.of("http://apple2.jpg", "http://apple3.jpg")));
+
+        Products product = productsRepository.findById(apple.getId())
+                .orElseThrow(() -> new NotFoundException("NotFound"));
+
+        assertThat(productResponseDto.getName()).isEqualTo(product.getName());
+        assertThat(productResponseDto.getDescription()).isEqualTo(product.getDescription());
+        assertThat(productResponseDto.getPrice()).isEqualTo(product.getPrice());
+        assertThat(productResponseDto.getStockQuantity()).isEqualTo(product.getStockQuantity());
+        assertThat(productResponseDto.getCategoryId()).isEqualTo(product.getCategory().getId());
+
+        assertThat(productResponseDto.getImages().size()).isEqualTo(product.getImages().size());
+
+    }
+
+    @Test
+    @DisplayName("상품 이미지 추가 테스트 - 상품을 찾을 수 없을때")
+    void addImageTest_NotFoundProduct(){
+        assertThatThrownBy(()-> productService.addImage(999L, new ProductImageRequestDto(
+                List.of("http://apple2.jpg", "http://apple3.jpg"))))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage("Not Found Product");
     }
 
 }

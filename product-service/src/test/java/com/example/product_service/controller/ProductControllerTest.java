@@ -431,7 +431,7 @@ class ProductControllerTest {
 
         String content = mapper.writeValueAsString(imageOrderRequestDto);
 
-        when(productService.imgReOrder(anyLong(), any(ImageOrderRequestDto.class)))
+        when(productService.imgSwapOrder(anyLong(), any(ImageOrderRequestDto.class)))
                 .thenReturn(productResponseDto);
 
         ResultActions perform = mockMvc.perform(patch("/products/1/image/sort")
@@ -469,7 +469,7 @@ class ProductControllerTest {
 
         String content = mapper.writeValueAsString(imageOrderRequestDto);
 
-        doThrow(new NotFoundException("Not Found Product")).when(productService).imgReOrder(anyLong(), any(ImageOrderRequestDto.class));
+        doThrow(new NotFoundException("Not Found Product")).when(productService).imgSwapOrder(anyLong(), any(ImageOrderRequestDto.class));
         ResultActions perform = mockMvc.perform(patch("/products/1/image/sort")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(content));
@@ -494,7 +494,7 @@ class ProductControllerTest {
 
         String content = mapper.writeValueAsString(imageOrderRequestDto);
 
-        doThrow(new NotFoundException("Not Found ProductImage")).when(productService).imgReOrder(anyLong(), any(ImageOrderRequestDto.class));
+        doThrow(new NotFoundException("Not Found ProductImage")).when(productService).imgSwapOrder(anyLong(), any(ImageOrderRequestDto.class));
         ResultActions perform = mockMvc.perform(patch("/products/1/image/sort")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(content));
