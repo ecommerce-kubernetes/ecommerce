@@ -1,6 +1,7 @@
 package com.example.image_service.controller;
 
 import com.example.image_service.dto.ImageURLDto;
+import com.example.image_service.dto.ImageUrlListDto;
 import com.example.image_service.exception.BadRequestException;
 import com.example.image_service.service.ImageService;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +39,13 @@ public class ImageController {
         imageService.deleteImage(imageUrl);
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/batch-delete")
+    public ResponseEntity<Void> imageBatchDelete(@RequestBody ImageUrlListDto imageUrlListDto){
+        imageService.deleteImageBatch(imageUrlListDto.getImageUrls());
+        return ResponseEntity.noContent().build();
+    }
+
     private boolean isValidImageExtension(String fileName, String[] allowedExtensions) {
         String extension = fileName.substring(fileName.lastIndexOf(".") + 1).toLowerCase();
         return Arrays.asList(allowedExtensions).contains(extension);
