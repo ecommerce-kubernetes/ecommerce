@@ -69,10 +69,8 @@ public class ProductServiceImpl implements ProductService{
         Products product = productsRepository.findById(productId)
                 .orElseThrow(() -> new NotFoundException("Not Found Product"));
 
-        List<ProductImages> images = product.getImages();
-        for (ProductImages image : images) {
-            imageClientService.deleteImage(image.getImageUrl());
-        }
+        List<String> imageUrls = product.getImages().stream().map(ProductImages::getImageUrl).toList();
+        imageClientService.deleteImages(imageUrls);
         KafkaDeletedProduct kafkaDeletedProduct = new KafkaDeletedProduct(product.getId());
         kafkaProducer.sendMessage("delete_product", kafkaDeletedProduct);
         productsRepository.delete(product);
