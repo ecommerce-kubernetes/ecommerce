@@ -528,9 +528,9 @@ class ProductControllerTest {
     @Test
     @DisplayName("상품 이미지 삭제 테스트")
     void deleteProductImageTest() throws Exception {
-        doNothing().when(productService).deleteImage(anyLong(), anyLong());
+        doNothing().when(productService).deleteImage(anyLong());
 
-        ResultActions perform = mockMvc.perform(delete("/products/1/image/1"));
+        ResultActions perform = mockMvc.perform(delete("/products/image/1"));
 
         perform
                 .andExpect(status().isNoContent());
@@ -539,14 +539,14 @@ class ProductControllerTest {
     @Test
     @DisplayName("상품 이미지 삭제 - 상품을 찾을 수 없을때")
     void deleteProductImageTest_NotFoundProduct() throws Exception {
-        doThrow(new NotFoundException("Not Found Product")).when(productService).deleteImage(anyLong(),anyLong());
-        ResultActions perform = mockMvc.perform(delete("/products/1/image/1"));
+        doThrow(new NotFoundException("Not Found Product")).when(productService).deleteImage(anyLong());
+        ResultActions perform = mockMvc.perform(delete("/products/image/1"));
 
         perform
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.error").value("NotFound"))
                 .andExpect(jsonPath("$.message").value("Not Found Product"))
-                .andExpect(jsonPath("$.path").value("/products/1/image/1"));
+                .andExpect(jsonPath("$.path").value("/products/image/1"));
 
     }
     private ProductRequestDto createDefaultProductRequestDto(){
@@ -556,7 +556,7 @@ class ProductControllerTest {
                     10000,
                     50,
                     1L,
-                new ProductImageRequestDto(List.of("http://test/image.jpg"))
+                    List.of("http://test/image.jpg")
                 );
     }
     private ProductResponseDto createDefaultProductResponseDto(){
@@ -576,55 +576,55 @@ class ProductControllerTest {
         return Stream.of(
                 Arguments.of(
                         //이름이 비어있는 경우
-                        new ProductRequestDto("", "테스트 상품 설명",10000, 50, 1L, new ProductImageRequestDto(List.of("http://test/image.jpg"))),
+                        new ProductRequestDto("", "테스트 상품 설명",10000, 50, 1L, List.of("http://test/image.jpg")),
                         "name", //오류 필드
                         "Product name is required" //오류 메시지
                 ),
                 Arguments.of(
                         //설명이 비어있는 경우
-                        new ProductRequestDto("테스트 상품", "", 10000, 50, 1L, new ProductImageRequestDto(List.of("http://test/image.jpg"))),
+                        new ProductRequestDto("테스트 상품", "", 10000, 50, 1L, List.of("http://test/image.jpg")),
                         "description",
                         "Product description is required"
                 ),
                 Arguments.of(
                         //상품 가격이 0원 미만일때
-                        new ProductRequestDto("테스트 상품", "테스트 상품 설명", -1, 50, 1L, new ProductImageRequestDto(List.of("http://test/image.jpg"))),
+                        new ProductRequestDto("테스트 상품", "테스트 상품 설명", -1, 50, 1L, List.of("http://test/image.jpg")),
                         "price",
                         "Product price must not be less than 0"
                 ),
                 Arguments.of(
                         //상품 가격이 10000000 이상일때
-                        new ProductRequestDto("테스트 상품", "테스트 상품 설명", 10000001, 50, 1L, new ProductImageRequestDto(List.of("http://test/image.jpg"))),
+                        new ProductRequestDto("테스트 상품", "테스트 상품 설명", 10000001, 50, 1L, List.of("http://test/image.jpg")),
                         "price",
                         "Product price must not be greater than 10,000,000"
                 ),
                 Arguments.of(
                         //상품 개수가 0개 이하일때
-                        new ProductRequestDto("테스트 상품", "테스트 상품 설명", 10000, -1, 1L, new ProductImageRequestDto(List.of("http://test/image.jpg"))),
+                        new ProductRequestDto("테스트 상품", "테스트 상품 설명", 10000, -1, 1L, List.of("http://test/image.jpg")),
                         "stockQuantity",
                         "Product stockQuantity must not be less than 0"
                 ),
                 Arguments.of(
                         //상품 개수가 100개 이상일때
-                        new ProductRequestDto("테스트 상품", "테스트 상품 설명", 10000, 101, 1L, new ProductImageRequestDto(List.of("http://test/image.jpg"))),
+                        new ProductRequestDto("테스트 상품", "테스트 상품 설명", 10000, 101, 1L, List.of("http://test/image.jpg")),
                         "stockQuantity",
                         "Product stockQuantity must not be greater than 100"
                 ),
                 Arguments.of(
                         //상품 카테고리가 없는 경우
-                        new ProductRequestDto("테스트 상품", "테스트 상품 설명", 10000, 50, null, new ProductImageRequestDto(List.of("http://test/image.jpg"))),
+                        new ProductRequestDto("테스트 상품", "테스트 상품 설명", 10000, 50, null, List.of("http://test/image.jpg")),
                         "categoryId",
                         "Product categoryId is required"
                 ),
                 Arguments.of(
                         //상품 이미지가 없는 경우
-                        new ProductRequestDto("테스트 상품", "테스트 상품 설명", 10000, 50, 1L, new ProductImageRequestDto()),
-                        "productImageRequestDto.imageUrls",
+                        new ProductRequestDto("테스트 상품", "테스트 상품 설명", 10000, 50, 1L, null),
+                        "imageUrls",
                         "At least one image URL is required"
                 ),
                 Arguments.of(
-                        new ProductRequestDto("테스트 상품", "테스트 상품 설명", 10000, 50, 1L, new ProductImageRequestDto(List.of("invalid image URL"))),
-                        "productImageRequestDto.imageUrls[0]",
+                        new ProductRequestDto("테스트 상품", "테스트 상품 설명", 10000, 50, 1L, List.of("invalidUrl")),
+                        "imageUrls[0]",
                         "Invalid image URL"
                 )
         );

@@ -14,6 +14,7 @@ import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.repository.CategoriesRepository;
 import com.example.product_service.repository.ProductImagesRepository;
 import com.example.product_service.repository.ProductsRepository;
+import com.example.product_service.service.client.ImageClientService;
 import com.example.product_service.service.kafka.KafkaProducer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -35,6 +37,7 @@ public class ProductServiceImpl implements ProductService{
     private final ProductsRepository productsRepository;
     private final CategoriesRepository categoriesRepository;
     private final ProductImagesRepository productImagesRepository;
+    private final ImageClientService imageClientService;
     private final KafkaProducer kafkaProducer;
 
     @Override
@@ -44,7 +47,7 @@ public class ProductServiceImpl implements ProductService{
         Categories category = categoriesRepository.findById(categoryId)
                 .orElseThrow(() -> new NotFoundException("Not Found Category"));
 
-        List<String> imageUrls = productRequestDto.getProductImageRequestDto().getImageUrls();
+        List<String> imageUrls = productRequestDto.getImageUrls();
         Products products = new Products(
                 productRequestDto.getName(),
                 productRequestDto.getDescription(),
@@ -65,6 +68,11 @@ public class ProductServiceImpl implements ProductService{
     public void deleteProduct(Long productId) {
         Products product = productsRepository.findById(productId)
                 .orElseThrow(() -> new NotFoundException("Not Found Product"));
+
+        List<ProductImages> images = product.getImages();
+        for (ProductImages image : images) {
+            imageClientService.deleteImage(image.getImageUrl());
+        }
         KafkaDeletedProduct kafkaDeletedProduct = new KafkaDeletedProduct(product.getId());
         kafkaProducer.sendMessage("delete_product", kafkaDeletedProduct);
         productsRepository.delete(product);
@@ -175,6 +183,14 @@ public class ProductServiceImpl implements ProductService{
     }
 
     @Override
-    public void deleteImage(Long productId, Long imageId) {
+    @Transactional
+    public void deleteImage(Long imageId) {
+        ProductImages productImage = productImagesRepository.findById(imageId)
+                .orElseThrow(() -> new NotFoundException("Not Found ProductImage"));
+
+        imageClientService.deleteImage(productImage.getImageUrl());
+
+        Products product = productImage.getProduct();
+        product.deleteImage(productImage);
     }
 }

@@ -19,5 +19,5 @@ public interface ProductService {
     void decrementStockQuantity(List<KafkaOrderItemDto> orderedItems);
     ProductResponseDto addImage(Long productId, ProductImageRequestDto productImageRequestDto);
     ProductResponseDto imgSwapOrder(Long productId, ImageOrderRequestDto imageOrderRequestDto);
-    void deleteImage(Long productId, Long imageId);
+    void deleteImage(Long imageId);
 }
