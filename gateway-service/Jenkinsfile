@@ -1,7 +1,6 @@
 def hasChanges = true // 전역 변수 선언
 
 pipeline {
-    agent any
 
     environment {
         GIT_REPO = 'https://github.com/ecommerce-kubernetes/ecommerce.git'
