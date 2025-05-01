@@ -46,7 +46,7 @@ class CartControllerTest {
         Long userId = 1L;
 
         CartItemRequestDto cartItemRequestDto = new CartItemRequestDto( 1L, 10);
-        CartItemResponseDto cartItemResponseDto = new CartItemResponseDto(1L, 1L, "사과", 3000, 10);
+        CartItemResponseDto cartItemResponseDto = new CartItemResponseDto(1L, 1L, "사과", 3000, 10,"http://apple.jpg");
         when(cartService.addItem(anyLong(), any(CartItemRequestDto.class))).thenReturn(cartItemResponseDto);
 
         String content = mapper.writeValueAsString(cartItemRequestDto);
@@ -62,7 +62,8 @@ class CartControllerTest {
                 .andExpect(jsonPath("$.productId").value(cartItemResponseDto.getProductId()))
                 .andExpect(jsonPath("$.productName").value(cartItemResponseDto.getProductName()))
                 .andExpect(jsonPath("$.price").value(cartItemResponseDto.getPrice()))
-                .andExpect(jsonPath("$.quantity").value(cartItemResponseDto.getQuantity()));
+                .andExpect(jsonPath("$.quantity").value(cartItemResponseDto.getQuantity()))
+                .andExpect(jsonPath("$.mainImgUrl").value(cartItemResponseDto.getMainImgUrl()));
     }
 
     @Test
@@ -89,8 +90,8 @@ class CartControllerTest {
     @Test
     @DisplayName("장바구니 조회")
     void getAllCartItemTest() throws Exception {
-        List<CartItemResponseDto> cartItems = List.of(new CartItemResponseDto(1L, 1L, "사과", 3000, 10),
-                new CartItemResponseDto(2L, 2L, "바나나", 5000, 5));
+        List<CartItemResponseDto> cartItems = List.of(new CartItemResponseDto(1L, 1L, "사과", 3000, 10, "http://apple.jpg"),
+                new CartItemResponseDto(2L, 2L, "바나나", 5000, 5, "http://banana.jpg"));
 
         int cartTotalPrice = 0;
         for (CartItemResponseDto cartItem : cartItems) {
@@ -114,7 +115,8 @@ class CartControllerTest {
                     .andExpect(jsonPath("$.cartItems[" + i + "].productId").value(cartItemResponseDtoList.get(i).getProductId()))
                     .andExpect(jsonPath("$.cartItems[" + i + "].productName").value(cartItemResponseDtoList.get(i).getProductName()))
                     .andExpect(jsonPath("$.cartItems[" + i + "].price").value(cartItemResponseDtoList.get(i).getPrice()))
-                    .andExpect(jsonPath("$.cartItems[" + i + "].quantity").value(cartItemResponseDtoList.get(i).getQuantity()));
+                    .andExpect(jsonPath("$.cartItems[" + i + "].quantity").value(cartItemResponseDtoList.get(i).getQuantity()))
+                    .andExpect(jsonPath("$.cartItems[" + i + "].mainImgUrl").value(cartItemResponseDtoList.get(i).getMainImgUrl()));
         }
     }
 

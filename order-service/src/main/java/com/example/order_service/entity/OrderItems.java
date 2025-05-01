@@ -23,13 +23,15 @@ public class OrderItems extends BaseEntity {
     private String productName;
     private int price;
     private int quantity;
+    private String mainImgUrl;
 
-    public OrderItems(Orders order, Long productId, String productName, int price, int quantity){
+    public OrderItems(Orders order, Long productId, String productName, int price, int quantity, String mainImgUrl){
         this.order = order;
         this.productId = productId;
         this.productName = productName;
         this.price = price;
         this.quantity = quantity;
+        this.mainImgUrl = mainImgUrl;
         order.getOrderItems().add(this);
     }
 }

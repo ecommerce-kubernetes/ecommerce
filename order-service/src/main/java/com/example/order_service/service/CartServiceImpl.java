@@ -71,7 +71,8 @@ public class CartServiceImpl implements CartService{
                 persistedCartItem.getProductId(),
                 productResponseDto.getName(),
                 productResponseDto.getPrice(),
-                persistedCartItem.getQuantity()
+                persistedCartItem.getQuantity(),
+                productResponseDto.getMainImgUrl()
         );
     }
 
@@ -106,7 +107,8 @@ public class CartServiceImpl implements CartService{
                         entry.getValue().getProductId(),
                         entry.getKey().getName(),
                         entry.getKey().getPrice(),
-                        entry.getValue().getQuantity())).toList();
+                        entry.getValue().getQuantity(),
+                        entry.getKey().getMainImgUrl())).toList();
 
         return new CartResponseDto(cart.getId(), cartItemResponseDtoList, cartTotalPrice);
     }

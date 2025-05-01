@@ -48,7 +48,7 @@ class CartServiceImplTest {
     void addItem(){
         CartItemRequestDto cartItemRequestDto = new CartItemRequestDto(1L, 10);
 
-        ProductResponseDto productResponseDto = new ProductResponseDto(1L, "사과", "청송 사과 3EA", 3000, 50, 1L);
+        ProductResponseDto productResponseDto = new ProductResponseDto(1L, "사과", "청송 사과 3EA", 3000, 50, 1L, "http://test.jpg");
 
         when(productClientService.fetchProduct(1L)).thenReturn(productResponseDto);
         CartItemResponseDto cartItemResponseDto = cartService.addItem(1L, cartItemRequestDto);
@@ -63,6 +63,7 @@ class CartServiceImplTest {
         assertThat(equalItemAddResponseDto.getProductName()).isEqualTo(productResponseDto.getName());
         assertThat(equalItemAddResponseDto.getPrice()).isEqualTo(productResponseDto.getPrice());
         assertThat(equalItemAddResponseDto.getQuantity()).isEqualTo(cartItemRequestDto.getQuantity() * 2);
+        assertThat(equalItemAddResponseDto.getMainImgUrl()).isEqualTo(productResponseDto.getMainImgUrl());
     }
 
     @Test
@@ -73,7 +74,7 @@ class CartServiceImplTest {
 
         Carts savedCart = cartsRepository.save(carts);
 
-        ProductResponseDto productResponseDto = new ProductResponseDto(1L, "사과", "청송 사과 3EA", 3000, 50, 1L);
+        ProductResponseDto productResponseDto = new ProductResponseDto(1L, "사과", "청송 사과 3EA", 3000, 50, 1L,"http://test.jpg");
         when(productClientService.fetchProductBatch(any(ProductRequestIdsDto.class))).thenReturn(List.of(productResponseDto));
         CartResponseDto cartItemList = cartService.getCartItemList(1L);
         assertThat(cartItemList.getId()).isEqualTo(savedCart.getId());
@@ -85,6 +86,7 @@ class CartServiceImplTest {
             assertThat(returnCartItem.getProductId()).isEqualTo(productResponseDto.getId());
             assertThat(returnCartItem.getPrice()).isEqualTo(productResponseDto.getPrice());
             assertThat(returnCartItem.getQuantity()).isEqualTo(cartItems.getQuantity());
+            assertThat(returnCartItem.getMainImgUrl()).isEqualTo(productResponseDto.getMainImgUrl());
         }
     }
 

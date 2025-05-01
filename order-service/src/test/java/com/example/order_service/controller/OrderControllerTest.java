@@ -61,9 +61,9 @@ class OrderControllerTest {
         String requestBody = mapper.writeValueAsString(orderRequestDto);
 
         List<OrderItemResponseDto> responseItems = new ArrayList<>();
-        responseItems.add(new OrderItemResponseDto(1L, "사과", 10, 2000));
-        responseItems.add(new OrderItemResponseDto(2L, "바나나", 20, 3000));
-        responseItems.add(new OrderItemResponseDto(5L, "포도", 40, 5000));
+        responseItems.add(new OrderItemResponseDto(1L, "사과", 10, 2000, "http://apple.jpg"));
+        responseItems.add(new OrderItemResponseDto(2L, "바나나", 20, 3000, "http://banana.jpg"));
+        responseItems.add(new OrderItemResponseDto(5L, "포도", 40, 5000, "http://grape.jpg"));
         int totalPrice = 0;
         for (OrderItemResponseDto responseItem : responseItems) {
             totalPrice = totalPrice + (responseItem.getPrice() * responseItem.getQuantity());
@@ -91,7 +91,8 @@ class OrderControllerTest {
             perform.andExpect(jsonPath("$.items[" + i + "].productId").value(expectedItem.getProductId()))
                     .andExpect(jsonPath("$.items[" + i + "].productName").value(expectedItem.getProductName()))
                     .andExpect(jsonPath("$.items[" + i + "].quantity").value(expectedItem.getQuantity()))
-                    .andExpect(jsonPath("$.items[" + i + "].price").value(expectedItem.getPrice()));
+                    .andExpect(jsonPath("$.items[" + i + "].price").value(expectedItem.getPrice()))
+                    .andExpect(jsonPath("$.items[" + i + "].mainImgUrl").value(expectedItem.getMainImgUrl()));
         }
     }
 
@@ -173,7 +174,8 @@ class OrderControllerTest {
                         .andExpect(jsonPath("$.content[" + i + "].items[" + j + "].productId").value(item.getProductId()))
                         .andExpect(jsonPath("$.content[" + i + "].items[" + j + "].productName").value(item.getProductName()))
                         .andExpect(jsonPath("$.content[" + i + "].items[" + j + "].price").value(item.getPrice()))
-                        .andExpect(jsonPath("$.content[" + i + "].items[" + j + "].quantity").value(item.getQuantity()));
+                        .andExpect(jsonPath("$.content[" + i + "].items[" + j + "].quantity").value(item.getQuantity()))
+                        .andExpect(jsonPath("$.content[" + i + "].items[" + j + "].mainImgUrl").value(item.getMainImgUrl()));
             }
         }
     }
@@ -243,7 +245,7 @@ class OrderControllerTest {
 
         //주문 1개 주문 아이템도 1개
         List<OrderItemResponseDto> orderItemResponseDtoListByOneOrderItem = new ArrayList<>();
-        orderItemResponseDtoListByOneOrderItem.add(new OrderItemResponseDto(1L, "사과", 10, 1000));
+        orderItemResponseDtoListByOneOrderItem.add(new OrderItemResponseDto(1L, "사과", 10, 1000, "http://apple.jpg"));
         List<OrderResponseDto> orderResponseDtoListByOneOrder = new ArrayList<>();
         orderResponseDtoListByOneOrder.add(new OrderResponseDto(1L, 1L, orderItemResponseDtoListByOneOrderItem,
                 "delivery Address", 10000, "PENDING", LocalDateTime.now()));
@@ -251,8 +253,8 @@ class OrderControllerTest {
         arguments.add(Arguments.of(case1PageDto));
 
         List<OrderItemResponseDto> orderItemResponseDtoListByManyOrderItem = new ArrayList<>();
-        orderItemResponseDtoListByManyOrderItem.add(new OrderItemResponseDto(2L, "바나나", 5, 200));
-        orderItemResponseDtoListByManyOrderItem.add(new OrderItemResponseDto(3L, "포도", 7, 150));
+        orderItemResponseDtoListByManyOrderItem.add(new OrderItemResponseDto(2L, "바나나", 5, 200, "http://banana.jpg"));
+        orderItemResponseDtoListByManyOrderItem.add(new OrderItemResponseDto(3L, "포도", 7, 150, "http://grape.jpg"));
         List<OrderResponseDto> orderResponseDtos = new ArrayList<>();
         orderResponseDtos.add(new OrderResponseDto(2L, 1L, orderItemResponseDtoListByManyOrderItem, "delivery Address", 5000, "DELIVERED", LocalDateTime.now()));
         PageDto<OrderResponseDto> case2PageDto = new PageDto<>(orderResponseDtos, 0, 1, 10, 1);

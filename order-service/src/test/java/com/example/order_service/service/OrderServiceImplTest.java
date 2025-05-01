@@ -74,7 +74,8 @@ class OrderServiceImplTest {
                                     "description" + productId,
                                     1000,
                                     10,
-                                    1L))
+                                    1L,
+                                    "http://" + productId + "/image.jpg"))
                             .toList();
                 });
         OrderResponseDto orderResponseDto = orderService.saveOrder(userId, orderRequestDto);
@@ -102,6 +103,7 @@ class OrderServiceImplTest {
             assertThat(dbItem.getProductName()).isEqualTo(dtoItem.getProductName());
             assertThat(dbItem.getPrice()).isEqualTo(dtoItem.getPrice());
             assertThat(dbItem.getQuantity()).isEqualTo(dtoItem.getQuantity());
+            assertThat(dbItem.getMainImgUrl()).isEqualTo(dtoItem.getMainImgUrl());
         }
 
         int totalPrice = orderItems.stream()
@@ -153,14 +155,14 @@ class OrderServiceImplTest {
 
         ordersRepository.saveAll(List.of(order1, order2, order3));
 
-        new OrderItems(order1, 1L, "사과", 1000, 10);
+        new OrderItems(order1, 1L, "사과", 1000, 10,"http://apple.jpg");
 
-        new OrderItems(order2, 1L, "사과", 1000, 5);
-        new OrderItems(order2, 2L, "바나나", 1000, 5);
+        new OrderItems(order2, 1L, "사과", 1000, 5,"http://apple.jpg");
+        new OrderItems(order2, 2L, "바나나", 1000, 5,"http://banana.jpg");
 
-        new OrderItems(order3, 1L, "사과", 1000, 5);
-        new OrderItems(order3, 2L, "바나나", 1000, 5);
-        new OrderItems(order3, 3L, "포도", 1000, 10);
+        new OrderItems(order3, 1L, "사과", 1000, 5,"http://apple.jpg");
+        new OrderItems(order3, 2L, "바나나", 1000, 5,"http://banana.jpg");
+        new OrderItems(order3, 3L, "포도", 1000, 10,"http://grape.jpg");
     }
 
     private static Stream<Arguments> orderTestParameters(){
