@@ -103,7 +103,7 @@ class ProductServiceImplTest {
         new ProductImages(product,"http://test/image.jpg",0);
 
         Products banana = productsRepository.save(product);
-        doNothing().when(imageClientService).deleteImage(anyString());
+        doNothing().when(imageClientService).deleteImages(anyList());
         productService.deleteProduct(banana.getId());
 
         Optional<Products> bananaOptional = productsRepository.findById(banana.getId());
