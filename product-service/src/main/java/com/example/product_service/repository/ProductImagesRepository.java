@@ -10,4 +10,7 @@ import java.util.Optional;
 public interface ProductImagesRepository extends JpaRepository<ProductImages, Long> {
     @Query("SELECT pi FROM ProductImages pi WHERE pi.product.id =:id AND pi.sortOrder = 0")
     Optional<ProductImages> findByMainImage(@Param("id") Long id);
+
+    @Query("SELECT pi FROM ProductImages pi WHERE pi.product.id =:productId AND pi.sortOrder =:sortOrder")
+    Optional<ProductImages> findByProductIdAndSortOrder(@Param("productId") Long productId, @Param("sortOrder") int sortOrder);
 }

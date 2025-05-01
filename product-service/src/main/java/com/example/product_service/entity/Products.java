@@ -38,6 +38,10 @@ public class Products extends BaseEntity {
         this.category = category;
     }
 
+    public void deleteImage(ProductImages productImages){
+        this.getImages().remove(productImages);
+    }
+
     public void decrementQuantity(int quantity){
         this.stockQuantity = this.stockQuantity - quantity;
     }

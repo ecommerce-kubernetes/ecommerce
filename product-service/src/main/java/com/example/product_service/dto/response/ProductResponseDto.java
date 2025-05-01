@@ -1,11 +1,13 @@
 package com.example.product_service.dto.response;
 
+import com.example.product_service.entity.ProductImages;
 import com.example.product_service.entity.Products;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.Comparator;
 import java.util.List;
 
 @Getter
@@ -28,6 +30,8 @@ public class ProductResponseDto {
         this.price = product.getPrice();
         this.stockQuantity = product.getStockQuantity();
         this.categoryId = product.getCategory().getId();
-        this.images = product.getImages().stream().map(ProductImageDto::new).toList();
+        this.images = product.getImages().stream()
+                .sorted(Comparator.comparing(ProductImages::getSortOrder))
+                .map(ProductImageDto::new).toList();
     }
 }

@@ -1,16 +1,13 @@
 package com.example.product_service.controller;
 
 import com.example.product_service.controller.util.SortFieldValidator;
-import com.example.product_service.dto.request.ProductRequestDto;
-import com.example.product_service.dto.request.ProductRequestIdsDto;
-import com.example.product_service.dto.request.StockQuantityRequestDto;
+import com.example.product_service.dto.request.*;
 import com.example.product_service.dto.response.CompactProductResponseDto;
 import com.example.product_service.dto.response.PageDto;
 import com.example.product_service.dto.response.ProductImageDto;
 import com.example.product_service.dto.response.ProductResponseDto;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.service.ProductService;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
@@ -75,6 +72,14 @@ class ProductControllerTest {
                 .andExpect(jsonPath("$.price").value(productResponseDto.getPrice()))
                 .andExpect(jsonPath("$.stockQuantity").value(productResponseDto.getStockQuantity()))
                 .andExpect(jsonPath("$.categoryId").value(productResponseDto.getCategoryId()));
+
+        for(int i=0; i<productResponseDto.getImages().size(); i++){
+            perform
+                    .andExpect(jsonPath("$.images[" + i + "].id").value(productResponseDto.getImages().get(i).getId()))
+                    .andExpect(jsonPath("$.images[" + i + "].imageUrl").value(productResponseDto.getImages().get(i).getImageUrl()))
+                    .andExpect(jsonPath("$.images[" + i + "].sortOrder").value(productResponseDto.getImages().get(i).getSortOrder()));
+        }
+
 
     }
 
@@ -340,6 +345,210 @@ class ProductControllerTest {
                 .andExpect(jsonPath("$.path").value("/products/lookup-by-ids"));
     }
 
+    @Test
+    @DisplayName("상품 이미지 추가")
+    void addProductImgTest() throws Exception {
+        ProductImageRequestDto productImageRequestDto = new ProductImageRequestDto(
+                List.of("http://test/image.jpg")
+        );
+
+        ProductResponseDto productResponseDto = createDefaultProductResponseDto();
+
+        String content = mapper.writeValueAsString(productImageRequestDto);
+
+        when(productService.addImage(anyLong(), any(ProductImageRequestDto.class)))
+                .thenReturn(productResponseDto);
+
+        ResultActions perform = mockMvc.perform(post("/products/1/image")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(content));
+
+        perform
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value(1L))
+                .andExpect(jsonPath("$.name").value("테스트 상품 이름"))
+                .andExpect(jsonPath("$.description").value("테스트 상품 설명"))
+                .andExpect(jsonPath("$.price").value(10000))
+                .andExpect(jsonPath("$.stockQuantity").value(50))
+                .andExpect(jsonPath("$.categoryId").value(1L));
+
+        for(int i=0; i<productResponseDto.getImages().size(); i++){
+            perform
+                    .andExpect(jsonPath("$.images[" + i + "].id").value(productResponseDto.getImages().get(i).getId()))
+                    .andExpect(jsonPath("$.images[" + i + "].imageUrl").value(productResponseDto.getImages().get(i).getImageUrl()))
+                    .andExpect(jsonPath("$.images[" + i + "].sortOrder").value(productResponseDto.getImages().get(i).getSortOrder()));
+        }
+    }
+
+    @Test
+    @DisplayName("상품 이미지 추가 - 상품을 찾을 수 없을때")
+    void addProductImgTest_NotFoundProducts() throws Exception {
+        ProductImageRequestDto productImageRequestDto = new ProductImageRequestDto(
+                List.of("http://test/image.jpg")
+        );
+        String content = mapper.writeValueAsString(productImageRequestDto);
+        doThrow(new NotFoundException("Not Found Product")).when(productService).addImage(any(), any(ProductImageRequestDto.class));
+
+        ResultActions perform = mockMvc.perform(post("/products/1/image")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(content));
+
+        perform
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("NotFound"))
+                .andExpect(jsonPath("$.message").value("Not Found Product"))
+                .andExpect(jsonPath("$.path").value("/products/1/image"));
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideInvalidProductImageRequests")
+    @DisplayName("상품 이미지 검증 실패 - 입력값 검증 테스트")
+    void addProductImgTest_invalidProductImageRequestDto(ProductImageRequestDto productImageRequestDto, String expectedField, String expectedMessage) throws Exception {
+        String content = mapper.writeValueAsString(productImageRequestDto);
+        ResultActions perform = mockMvc.perform(post("/products/1/image")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(content));
+
+        perform
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("BadRequest"))
+                .andExpect(jsonPath("$.message").value("Validation Error"))
+                .andExpect(jsonPath("$.errors[*].fieldName").value(hasItem(expectedField)))
+                .andExpect(jsonPath("$.errors[*].message").value(hasItem(expectedMessage)))
+                .andExpect(jsonPath("$.path").value("/products/1/image"));
+    }
+
+    @Test
+    @DisplayName("상품 이미지 순서 변경")
+    void changeImgOrderTest() throws Exception {
+        ImageOrderRequestDto imageOrderRequestDto = new ImageOrderRequestDto(1L, 1);
+        ProductResponseDto productResponseDto = createDefaultProductResponseDto();
+        productResponseDto.setImages(
+                List.of(
+                        new ProductImageDto(2L, "http://test/img1.jpg", 0),
+                        new ProductImageDto(1L, "http://test/img2.jpg",1))
+        );
+
+        String content = mapper.writeValueAsString(imageOrderRequestDto);
+
+        when(productService.imgSwapOrder(anyLong(), any(ImageOrderRequestDto.class)))
+                .thenReturn(productResponseDto);
+
+        ResultActions perform = mockMvc.perform(patch("/products/1/image/sort")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(content));
+
+
+        perform
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1L))
+                .andExpect(jsonPath("$.name").value("테스트 상품 이름"))
+                .andExpect(jsonPath("$.description").value("테스트 상품 설명"))
+                .andExpect(jsonPath("$.price").value(10000))
+                .andExpect(jsonPath("$.stockQuantity").value(50))
+                .andExpect(jsonPath("$.categoryId").value(1L));
+
+        for(int i=0; i<productResponseDto.getImages().size(); i++){
+            perform
+                    .andExpect(jsonPath("$.images[" + i + "].id").value(productResponseDto.getImages().get(i).getId()))
+                    .andExpect(jsonPath("$.images[" + i + "].imageUrl").value(productResponseDto.getImages().get(i).getImageUrl()))
+                    .andExpect(jsonPath("$.images[" + i + "].sortOrder").value(productResponseDto.getImages().get(i).getSortOrder()));
+        }
+    }
+
+    @Test
+    @DisplayName("상품 이미지 순서 변경 - 상품을 찾을 수 없을때")
+    void changeImgOrderTest_NotFoundProduct() throws Exception {
+        ImageOrderRequestDto imageOrderRequestDto = new ImageOrderRequestDto(1L, 1);
+        ProductResponseDto productResponseDto = createDefaultProductResponseDto();
+        productResponseDto.setImages(
+                List.of(
+                        new ProductImageDto(2L, "http://test/img1.jpg", 0),
+                        new ProductImageDto(1L, "http://test/img2.jpg",1))
+        );
+
+        String content = mapper.writeValueAsString(imageOrderRequestDto);
+
+        doThrow(new NotFoundException("Not Found Product")).when(productService).imgSwapOrder(anyLong(), any(ImageOrderRequestDto.class));
+        ResultActions perform = mockMvc.perform(patch("/products/1/image/sort")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(content));
+
+        perform
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("NotFound"))
+                .andExpect(jsonPath("$.message").value("Not Found Product"))
+                .andExpect(jsonPath("$.path").value("/products/1/image/sort"));
+    }
+
+    @Test
+    @DisplayName("상품 이미지 순서 변경 - 상품 이미지를 찾을 수 없을때")
+    void changeImgOrderTest_NotFoundProductImg() throws Exception {
+        ImageOrderRequestDto imageOrderRequestDto = new ImageOrderRequestDto(1L, 1);
+        ProductResponseDto productResponseDto = createDefaultProductResponseDto();
+        productResponseDto.setImages(
+                List.of(
+                        new ProductImageDto(2L, "http://test/img1.jpg", 0),
+                        new ProductImageDto(1L, "http://test/img2.jpg",1))
+        );
+
+        String content = mapper.writeValueAsString(imageOrderRequestDto);
+
+        doThrow(new NotFoundException("Not Found ProductImage")).when(productService).imgSwapOrder(anyLong(), any(ImageOrderRequestDto.class));
+        ResultActions perform = mockMvc.perform(patch("/products/1/image/sort")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(content));
+
+        perform
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("NotFound"))
+                .andExpect(jsonPath("$.message").value("Not Found ProductImage"))
+                .andExpect(jsonPath("$.path").value("/products/1/image/sort"));
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideInvalidImageOrderRequests")
+    @DisplayName("상품 이미지 순서변경 검증 테스트")
+    void changeImgOrderTest_InvalidImageOrderRequestDto(ImageOrderRequestDto imageOrderRequestDto, String expectedField, String expectedMessage) throws Exception {
+        String content = mapper.writeValueAsString(imageOrderRequestDto);
+
+        ResultActions perform = mockMvc.perform(patch("/products/1/image/sort")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(content));
+
+        perform
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("BadRequest"))
+                .andExpect(jsonPath("$.message").value("Validation Error"))
+                .andExpect(jsonPath("$.errors[*].fieldName").value(hasItem(expectedField)))
+                .andExpect(jsonPath("$.errors[*].message").value(hasItem(expectedMessage)))
+                .andExpect(jsonPath("$.path").value("/products/1/image/sort"));
+    }
+
+    @Test
+    @DisplayName("상품 이미지 삭제 테스트")
+    void deleteProductImageTest() throws Exception {
+        doNothing().when(productService).deleteImage(anyLong());
+
+        ResultActions perform = mockMvc.perform(delete("/products/image/1"));
+
+        perform
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @DisplayName("상품 이미지 삭제 - 상품을 찾을 수 없을때")
+    void deleteProductImageTest_NotFoundProduct() throws Exception {
+        doThrow(new NotFoundException("Not Found Product")).when(productService).deleteImage(anyLong());
+        ResultActions perform = mockMvc.perform(delete("/products/image/1"));
+
+        perform
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("NotFound"))
+                .andExpect(jsonPath("$.message").value("Not Found Product"))
+                .andExpect(jsonPath("$.path").value("/products/image/1"));
+
+    }
     private ProductRequestDto createDefaultProductRequestDto(){
         return new ProductRequestDto(
                     "테스트 상품 이름",
@@ -347,7 +556,7 @@ class ProductControllerTest {
                     10000,
                     50,
                     1L,
-                List.of("http://testimage.jpg")
+                    List.of("http://test/image.jpg")
                 );
     }
     private ProductResponseDto createDefaultProductResponseDto(){
@@ -367,53 +576,54 @@ class ProductControllerTest {
         return Stream.of(
                 Arguments.of(
                         //이름이 비어있는 경우
-                        new ProductRequestDto("", "테스트 상품 설명",10000, 50, 1L,     List.of("http://testimage.jpg")),
+                        new ProductRequestDto("", "테스트 상품 설명",10000, 50, 1L, List.of("http://test/image.jpg")),
                         "name", //오류 필드
                         "Product name is required" //오류 메시지
                 ),
                 Arguments.of(
                         //설명이 비어있는 경우
-                        new ProductRequestDto("테스트 상품", "", 10000, 50, 1L, List.of("http://testimage.jpg")),
+                        new ProductRequestDto("테스트 상품", "", 10000, 50, 1L, List.of("http://test/image.jpg")),
                         "description",
                         "Product description is required"
                 ),
                 Arguments.of(
                         //상품 가격이 0원 미만일때
-                        new ProductRequestDto("테스트 상품", "테스트 상품 설명", -1, 50, 1L, List.of("http://testimage.jpg")),
+                        new ProductRequestDto("테스트 상품", "테스트 상품 설명", -1, 50, 1L, List.of("http://test/image.jpg")),
                         "price",
                         "Product price must not be less than 0"
                 ),
                 Arguments.of(
                         //상품 가격이 10000000 이상일때
-                        new ProductRequestDto("테스트 상품", "테스트 상품 설명", 10000001, 50, 1L, List.of("http://testimage.jpg")),
+                        new ProductRequestDto("테스트 상품", "테스트 상품 설명", 10000001, 50, 1L, List.of("http://test/image.jpg")),
                         "price",
                         "Product price must not be greater than 10,000,000"
                 ),
                 Arguments.of(
                         //상품 개수가 0개 이하일때
-                        new ProductRequestDto("테스트 상품", "테스트 상품 설명", 10000, -1, 1L, List.of("http://testimage.jpg")),
+                        new ProductRequestDto("테스트 상품", "테스트 상품 설명", 10000, -1, 1L, List.of("http://test/image.jpg")),
                         "stockQuantity",
                         "Product stockQuantity must not be less than 0"
                 ),
                 Arguments.of(
                         //상품 개수가 100개 이상일때
-                        new ProductRequestDto("테스트 상품", "테스트 상품 설명", 10000, 101, 1L, List.of("http://testimage.jpg")),
+                        new ProductRequestDto("테스트 상품", "테스트 상품 설명", 10000, 101, 1L, List.of("http://test/image.jpg")),
                         "stockQuantity",
                         "Product stockQuantity must not be greater than 100"
                 ),
                 Arguments.of(
                         //상품 카테고리가 없는 경우
-                        new ProductRequestDto("테스트 상품", "테스트 상품 설명", 10000, 50, null, List.of("http://testimage.jpg")),
+                        new ProductRequestDto("테스트 상품", "테스트 상품 설명", 10000, 50, null, List.of("http://test/image.jpg")),
                         "categoryId",
                         "Product categoryId is required"
                 ),
                 Arguments.of(
-                        new ProductRequestDto("테스트 상품", "테스트 상품 설명", 10000, 50, 1L, List.of()),
+                        //상품 이미지가 없는 경우
+                        new ProductRequestDto("테스트 상품", "테스트 상품 설명", 10000, 50, 1L, null),
                         "imageUrls",
                         "At least one image URL is required"
                 ),
                 Arguments.of(
-                        new ProductRequestDto("테스트 상품", "테스트 상품 설명", 10000, 50, 1L, List.of("test/image.jpg")),
+                        new ProductRequestDto("테스트 상품", "테스트 상품 설명", 10000, 50, 1L, List.of("invalidUrl")),
                         "imageUrls[0]",
                         "Invalid image URL"
                 )
@@ -434,4 +644,40 @@ class ProductControllerTest {
         );
     }
 
+    private static Stream<Arguments> provideInvalidProductImageRequests(){
+        return Stream.of(
+                Arguments.of(
+                        new ProductImageRequestDto(),
+                        "imageUrls",
+                        "At least one image URL is required"
+                ),
+                Arguments.of(
+                        new ProductImageRequestDto(
+                                List.of("invalidUrls")
+                        ),
+                        "imageUrls[0]",
+                        "Invalid image URL"
+                )
+        );
+    }
+
+    private static Stream<Arguments> provideInvalidImageOrderRequests(){
+        return Stream.of(
+                Arguments.of(
+                        new ImageOrderRequestDto(),
+                        "imageId",
+                        "imageId is required"
+                ),
+                Arguments.of(
+                        new ImageOrderRequestDto(1L, null),
+                        "sortOrder",
+                        "sortOrder is required"
+                ),
+                Arguments.of(
+                        new ImageOrderRequestDto(null, 1),
+                        "imageId",
+                        "imageId is required"
+                )
+        );
+    }
 }

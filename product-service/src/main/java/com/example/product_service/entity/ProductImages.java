@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -18,6 +19,7 @@ public class ProductImages extends BaseEntity {
     @JoinColumn(name = "product_id")
     private Products product;
     private String imageUrl;
+    @Setter
     private Integer sortOrder;
 
     public ProductImages(Products product, String imageUrl, int sortOrder){
