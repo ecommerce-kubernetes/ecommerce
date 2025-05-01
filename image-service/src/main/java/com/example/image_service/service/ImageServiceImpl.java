@@ -14,6 +14,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.UUID;
 
 
@@ -67,6 +68,32 @@ public class ImageServiceImpl implements ImageService{
             throw new RuntimeException();
         }
         imageRepository.delete(image);
+    }
+
+    @Override
+    @Transactional
+    public void deleteImageBatch(List<String> imageUrls) {
+        List<Image> images = imageRepository.findAllByImageUrlIn(imageUrls);
+        if (images.isEmpty()) {
+            throw new NotFoundException("No images found for given URLs");
+        }
+
+        for (Image image : images) {
+            String imgUrl = image.getImageUrl();
+            String fileName = getFileName(imgUrl);
+            Path filePath = Paths.get(UPLOAD_DIR, fileName).normalize();
+            File file = filePath.toFile();
+
+            if (!file.exists()) {
+                // 하나라도 없으면 전체 롤백
+                throw new NotFoundException("File not found: " + fileName);
+            }
+            if (!file.delete()) {
+                throw new RuntimeException("Failed to delete file: " + fileName);
+            }
+        }
+
+        imageRepository.deleteAll(images);
     }
 
     private String createStoreFileName(String originFileName){
