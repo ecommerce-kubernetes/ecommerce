@@ -21,6 +21,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 
@@ -114,7 +115,7 @@ class UserControllerTest {
                 .id(userId)
                 .name("User")
                 .email("user1@email.com")
-                .createAt(LocalDate.now())
+                .createAt(LocalDateTime.now())
                 .addresses(null)
                 .build();
 
