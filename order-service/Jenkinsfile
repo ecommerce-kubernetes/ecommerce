@@ -6,17 +6,17 @@ pipeline {
     environment {
         GIT_REPO = 'https://github.com/ecommerce-kubernetes/ecommerce.git'
         BRANCH = 'develop'
-        TARGET_DIR = 'user-service'
+        TARGET_DIR = 'order-service'
         SSH_CREDENTIALS_ID = 'ansible-key'
         REMOTE_HOST = '172.18.4.1'
         REMOTE_USER = 'root'
-        REMOTE_PATH = '/ansible/playbooks/user-playbook'
+        REMOTE_PATH = '/ansible/playbooks/order-playbook'
     }
 
     stages {
         stage('SCM Checkout (with Sparse Path)') {
             steps {
-                echo '📥 user-service 디렉토리만 sparse checkout 중...'
+                echo '📥 order-service 디렉토리만 sparse checkout 중...'
 
                 checkout([$class: 'GitSCM',
                     branches: [[name: "*/${BRANCH}"]],
@@ -83,7 +83,7 @@ pipeline {
                                 'rm -f ${REMOTE_PATH}/*.jar'
                             """
                             sh """
-                                scp -o StrictHostKeyChecking=no ${targetJar.path} ${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_PATH}/user-service.jar
+                                scp -o StrictHostKeyChecking=no ${targetJar.path} ${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_PATH}/order-service.jar
                             """
                         }
                     } else {
@@ -101,7 +101,7 @@ pipeline {
                 echo '🚀 Ansible 플레이북 실행 중...'
                 sh """
                     ssh -o StrictHostKeyChecking=no ${REMOTE_USER}@${REMOTE_HOST} \\
-                    'ansible-playbook -i /ansible/inventory/hosts ${REMOTE_PATH}/user-playbook.yml'
+                    'ansible-playbook -i /ansible/inventory/hosts ${REMOTE_PATH}/order-playbook.yml'
                 """
             }
         }

@@ -3,7 +3,7 @@ package com.example.userservice.dto;
 import lombok.Builder;
 import lombok.Getter;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
@@ -14,6 +14,6 @@ public class UserDto {
     private String email;
     private String pwd;
     private String name;
-    private LocalDate createAt;
+    private LocalDateTime createAt;
     private List<String> addresses;
 }

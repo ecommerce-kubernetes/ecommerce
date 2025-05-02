@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 
@@ -15,10 +16,10 @@ public class ResponseUser {
     private Long userId;
     private String email;
     private String name;
-    private LocalDate createAt;
+    private LocalDateTime createAt;
     private List<String> addresses;
 
-    public ResponseUser(Long userId, String email, String name, LocalDate createAt) {
+    public ResponseUser(Long userId, String email, String name, LocalDateTime createAt) {
         this.userId = userId;
         this.email = email;
         this.name = name;
