@@ -1,7 +1,7 @@
 package com.example.order_service.service;
 
 import com.example.order_service.dto.client.ProductRequestIdsDto;
-import com.example.order_service.dto.client.ProductResponseDto;
+import com.example.order_service.dto.client.CompactProductResponseDto;
 import com.example.order_service.dto.request.OrderItemRequestDto;
 import com.example.order_service.dto.request.OrderRequestDto;
 import com.example.order_service.dto.response.OrderItemResponseDto;
@@ -24,7 +24,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -68,7 +67,7 @@ class OrderServiceImplTest {
                     ProductRequestIdsDto dto = invocation.getArgument(0);
                     // dto.getIds()에 담긴 각 productId에 대해 ProductResponseDto 생성.
                     return dto.getIds().stream()
-                            .map(productId -> new ProductResponseDto(
+                            .map(productId -> new CompactProductResponseDto(
                                     productId,
                                     "name" + productId,
                                     "description" + productId,

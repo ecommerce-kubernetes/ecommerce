@@ -5,18 +5,16 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.List;
-
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class ProductResponseDto {
+public class CompactProductResponseDto {
     private Long id;
     private String name;
     private String description;
     private int price;
     private int stockQuantity;
     private Long categoryId;
-    private List<ProductImageDto> images;
+    private String mainImgUrl;
 }
