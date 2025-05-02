@@ -8,7 +8,13 @@ spring:
   cloud:
     config:
       enabled: false
+    openfeign:
+      loadbalancer:
+        enabled: false
 
 product:
   service:
     url: http://localhost:8080
+
+kafka:
+  bootstrap_servers: localhost:9092
