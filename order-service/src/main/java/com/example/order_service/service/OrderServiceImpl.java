@@ -3,7 +3,7 @@ package com.example.order_service.service;
 import com.example.order_service.dto.KafkaOrderDto;
 import com.example.order_service.dto.KafkaOrderItemDto;
 import com.example.order_service.dto.client.ProductRequestIdsDto;
-import com.example.order_service.dto.client.ProductResponseDto;
+import com.example.order_service.dto.client.CompactProductResponseDto;
 import com.example.order_service.dto.request.OrderItemRequestDto;
 import com.example.order_service.dto.request.OrderRequestDto;
 import com.example.order_service.dto.response.OrderItemResponseDto;
@@ -48,12 +48,12 @@ public class OrderServiceImpl implements OrderService{
         ).toList();
         ProductRequestIdsDto productRequestIdsDto = new ProductRequestIdsDto(ids);
 
-        List<ProductResponseDto> products = productClientService.fetchProductBatch(productRequestIdsDto);
+        List<CompactProductResponseDto> products = productClientService.fetchProductBatch(productRequestIdsDto);
 
-        Map<Long, ProductResponseDto> productMap = products.stream()
-                .collect(Collectors.toMap(ProductResponseDto::getId, Function.identity()));
+        Map<Long, CompactProductResponseDto> productMap = products.stream()
+                .collect(Collectors.toMap(CompactProductResponseDto::getId, Function.identity()));
 
-        List<AbstractMap.SimpleEntry<ProductResponseDto, OrderItemRequestDto>> orderItemRequestMap =
+        List<AbstractMap.SimpleEntry<CompactProductResponseDto, OrderItemRequestDto>> orderItemRequestMap =
                 orderItemRequest.stream()
                         .map(item -> new AbstractMap.SimpleEntry<>(
                                 productMap.get(item.getProductId()),
@@ -67,7 +67,6 @@ public class OrderServiceImpl implements OrderService{
         Orders order = new Orders(userId, totalPrice, "PENDING", orderRequestDto.getDeliveryAddress());
         Orders savedOrder = ordersRepository.save(order);
 
-        log.info("test:{}", orderItemRequestMap.get(0).getKey().getMainImgUrl());
 
         orderItemRequestMap.forEach(entry -> new OrderItems(
                 savedOrder,

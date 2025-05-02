@@ -1,9 +1,9 @@
 package com.example.order_service.service;
 
 import com.example.order_service.dto.client.ProductRequestIdsDto;
+import com.example.order_service.dto.client.CompactProductResponseDto;
 import com.example.order_service.dto.client.ProductResponseDto;
 import com.example.order_service.dto.request.CartItemRequestDto;
-import com.example.order_service.dto.request.OrderItemRequestDto;
 import com.example.order_service.dto.response.CartItemResponseDto;
 import com.example.order_service.dto.response.CartResponseDto;
 import com.example.order_service.entity.CartItems;
@@ -72,7 +72,7 @@ public class CartServiceImpl implements CartService{
                 productResponseDto.getName(),
                 productResponseDto.getPrice(),
                 persistedCartItem.getQuantity(),
-                productResponseDto.getMainImgUrl()
+                productResponseDto.getImages().get(0).getImageUrl()
         );
     }
 
@@ -86,12 +86,12 @@ public class CartServiceImpl implements CartService{
         List<Long> ids = cartItems.stream().map(
                 CartItems::getProductId
         ).toList();
-        List<ProductResponseDto> products =
+        List<CompactProductResponseDto> products =
                 productClientService.fetchProductBatch(new ProductRequestIdsDto(ids));
-        Map<Long, ProductResponseDto> productMap = products.stream()
-                .collect(Collectors.toMap(ProductResponseDto::getId, Function.identity()));
+        Map<Long, CompactProductResponseDto> productMap = products.stream()
+                .collect(Collectors.toMap(CompactProductResponseDto::getId, Function.identity()));
 
-        List<AbstractMap.SimpleEntry<ProductResponseDto, CartItems>> cartItemsList =
+        List<AbstractMap.SimpleEntry<CompactProductResponseDto, CartItems>> cartItemsList =
                 cartItems.stream()
                         .map(item -> new AbstractMap.SimpleEntry<>(
                                 productMap.get(item.getProductId()),

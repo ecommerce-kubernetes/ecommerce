@@ -2,6 +2,7 @@ package com.example.order_service.service.client;
 
 import com.example.order_service.client.ProductClient;
 import com.example.order_service.dto.client.ProductRequestIdsDto;
+import com.example.order_service.dto.client.CompactProductResponseDto;
 import com.example.order_service.dto.client.ProductResponseDto;
 import com.example.order_service.exception.NotFoundException;
 import feign.FeignException;
@@ -28,11 +29,11 @@ public class ProductClientService {
     }
 
     @CircuitBreaker(name = "productService", fallbackMethod = "getProductListFallback")
-    public List<ProductResponseDto> fetchProductBatch(ProductRequestIdsDto productRequestIdsDto){
+    public List<CompactProductResponseDto> fetchProductBatch(ProductRequestIdsDto productRequestIdsDto){
         return productClient.getProductsByIdBatch(productRequestIdsDto);
     }
 
-    public ProductResponseDto getProductFallback(Long productId, Throwable throwable){
+    public CompactProductResponseDto getProductFallback(Long productId, Throwable throwable){
         if(throwable instanceof CallNotPermittedException){
             throw new ResponseStatusException(
                     HttpStatus.SERVICE_UNAVAILABLE,
@@ -50,7 +51,7 @@ public class ProductClientService {
         );
     }
 
-    public List<ProductResponseDto> getProductListFallback(ProductRequestIdsDto requestDto, Throwable throwable){
+    public List<CompactProductResponseDto> getProductListFallback(ProductRequestIdsDto requestDto, Throwable throwable){
         if(throwable instanceof CallNotPermittedException){
             throw new ResponseStatusException(
                     HttpStatus.SERVICE_UNAVAILABLE,

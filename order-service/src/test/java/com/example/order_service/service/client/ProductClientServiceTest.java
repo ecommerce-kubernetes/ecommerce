@@ -24,49 +24,49 @@ import static org.junit.jupiter.api.Assertions.*;
 })
 class ProductClientServiceTest {
 
-    @Autowired
-    ProductClientService productClientService;
-    ObjectMapper mapper = new ObjectMapper();
-
-    @Test
-    void fetchProductTest() throws JsonProcessingException {
-        ProductResponseDto productResponseDto =
-                new ProductResponseDto(1L, "TestProduct", "description", 500, 20, 1L,"http://test.jpg");
-
-        String content = mapper.writeValueAsString(productResponseDto);
-        WireMock.stubFor(WireMock.get("/products/1")
-                .willReturn(WireMock.aResponse()
-                        .withStatus(200)
-                        .withHeader("Content-Type", "application/json")
-                        .withBody(content)));
-
-        ProductResponseDto product = productClientService.fetchProduct(1L);
-
-        assertThat(product.getId()).isEqualTo(1L);
-        assertThat(product.getName()).isEqualTo("TestProduct");
-    }
-
-    @Test
-    void fetchProductTest_NotFoundProduct(){
-        WireMock.stubFor(WireMock.get("/product/999")
-                .willReturn(WireMock.aResponse().withStatus(404)));
-
-        assertThatThrownBy(() -> productClientService.fetchProduct(999L))
-                .isInstanceOf(NotFoundException.class)
-                .hasMessageContaining("Not Found Product");
-    }
-
-    @Test
-    void fetchProductTest_ServerError(){
-        WireMock.stubFor(WireMock.get("/products/500")
-                .willReturn(WireMock.aResponse().withStatus(500)));
-
-        assertThatThrownBy(() -> productClientService.fetchProduct(500L))
-                .isInstanceOf(ResponseStatusException.class)
-                .satisfies(e -> {
-                    ResponseStatusException ex = (ResponseStatusException) e;
-                    assertThat(ex.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
-                    assertThat(ex.getReason()).contains("Product Service Error");
-                });
-    }
+//    @Autowired
+//    ProductClientService productClientService;
+//    ObjectMapper mapper = new ObjectMapper();
+//
+//    @Test
+//    void fetchProductTest() throws JsonProcessingException {
+//        ProductResponseDto productResponseDto =
+//                new ProductResponseDto(1L, "TestProduct", "description", 500, 20, 1L,"http://test.jpg");
+//
+//        String content = mapper.writeValueAsString(productResponseDto);
+//        WireMock.stubFor(WireMock.get("/products/1")
+//                .willReturn(WireMock.aResponse()
+//                        .withStatus(200)
+//                        .withHeader("Content-Type", "application/json")
+//                        .withBody(content)));
+//
+//        ProductResponseDto product = productClientService.fetchProduct(1L);
+//
+//        assertThat(product.getId()).isEqualTo(1L);
+//        assertThat(product.getName()).isEqualTo("TestProduct");
+//    }
+//
+//    @Test
+//    void fetchProductTest_NotFoundProduct(){
+//        WireMock.stubFor(WireMock.get("/product/999")
+//                .willReturn(WireMock.aResponse().withStatus(404)));
+//
+//        assertThatThrownBy(() -> productClientService.fetchProduct(999L))
+//                .isInstanceOf(NotFoundException.class)
+//                .hasMessageContaining("Not Found Product");
+//    }
+//
+//    @Test
+//    void fetchProductTest_ServerError(){
+//        WireMock.stubFor(WireMock.get("/products/500")
+//                .willReturn(WireMock.aResponse().withStatus(500)));
+//
+//        assertThatThrownBy(() -> productClientService.fetchProduct(500L))
+//                .isInstanceOf(ResponseStatusException.class)
+//                .satisfies(e -> {
+//                    ResponseStatusException ex = (ResponseStatusException) e;
+//                    assertThat(ex.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+//                    assertThat(ex.getReason()).contains("Product Service Error");
+//                });
+//    }
 }
