@@ -2,14 +2,12 @@ package com.example.userservice.controller;
 
 import com.example.userservice.dto.UserDto;
 import com.example.userservice.jpa.UserEntity;
-import com.example.userservice.security.TestSecurityConfig;
+import com.example.userservice.config.TestSecurityConfig;
 import com.example.userservice.service.UserService;
 import com.example.userservice.vo.RequestUser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
@@ -20,11 +18,9 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
-
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -34,7 +30,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(UserController.class)
 @Import(TestSecurityConfig.class)
-@ExtendWith(MockitoExtension.class)
 class UserControllerTest {
 
     @Autowired
@@ -129,3 +124,4 @@ class UserControllerTest {
     }
 
 }
+
