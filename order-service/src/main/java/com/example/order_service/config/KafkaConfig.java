@@ -20,6 +20,7 @@ public class KafkaConfig {
 
     @Value("${kafka.bootstrap-servers}")
     private String BOOTSTRAP_SERVERS;
+
     private static final String GROUP_ID = "orders";
 
     @Bean
