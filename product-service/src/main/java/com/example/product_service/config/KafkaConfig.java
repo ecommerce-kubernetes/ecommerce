@@ -14,36 +14,36 @@ import org.springframework.kafka.support.serializer.JsonSerializer;
 import java.util.HashMap;
 import java.util.Map;
 
-@Configuration
-public class KafkaConfig {
-
-    @Value("${kafka.bootstrap_servers}")
-    private String BOOTSTRAP_SERVERS;
-
-    private static final String GROUP_ID = "products";
-
-    @Bean
-    public ProducerFactory<String, Object> producerFactory(){
-        Map<String, Object> config = new HashMap<>();
-        config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
-        config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
-        config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
-        return new DefaultKafkaProducerFactory<>(config);
-    }
-
-    @Bean
-    public KafkaTemplate<String, Object> kafkaTemplate(){
-        return new KafkaTemplate<>(producerFactory());
-    }
-
-    @Bean
-    public ConsumerFactory<String, Object> consumerFactory(){
-        Map<String, Object> config = new HashMap<>();
-        config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
-        config.put(ConsumerConfig.GROUP_ID_CONFIG, GROUP_ID);
-        config.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-        config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
-
-        return new DefaultKafkaConsumerFactory<>(config);
-    }
-}
+//@Configuration
+//public class KafkaConfig {
+//
+//    @Value("${kafka.bootstrap_servers}")
+//    private String BOOTSTRAP_SERVERS;
+//
+//    private static final String GROUP_ID = "products";
+//
+//    @Bean
+//    public ProducerFactory<String, Object> producerFactory(){
+//        Map<String, Object> config = new HashMap<>();
+//        config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
+//        config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+//        config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
+//        return new DefaultKafkaProducerFactory<>(config);
+//    }
+//
+//    @Bean
+//    public KafkaTemplate<String, Object> kafkaTemplate(){
+//        return new KafkaTemplate<>(producerFactory());
+//    }
+//
+//    @Bean
+//    public ConsumerFactory<String, Object> consumerFactory(){
+//        Map<String, Object> config = new HashMap<>();
+//        config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
+//        config.put(ConsumerConfig.GROUP_ID_CONFIG, GROUP_ID);
+//        config.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+//        config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
+//
+//        return new DefaultKafkaConsumerFactory<>(config);
+//    }
+//}
