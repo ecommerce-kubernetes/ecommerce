@@ -17,7 +17,7 @@ import java.util.Map;
 @Configuration
 public class KafkaConfig {
 
-    @Value("${kafka.bootstrap_servers}")
+    @Value("${kafka.bootstrap-servers}")
     private String BOOTSTRAP_SERVERS;
 
     private static final String GROUP_ID = "products";
