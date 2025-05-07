@@ -23,8 +23,8 @@ import java.util.UUID;
 @Slf4j
 public class ImageServiceImpl implements ImageService{
     private final ImageRepository imageRepository;
-    @Value("${upload-dir}")
-    private String UPLOAD_DIR;
+    @Value("${upload-root}")
+    private String UPLOAD_ROOT;
 
     @Value("${gateway.domain}")
     private String DOMAIN;
@@ -36,18 +36,19 @@ public class ImageServiceImpl implements ImageService{
     private String APPLICATION_NAME;
     @Override
     @Transactional
-    public String saveImage(MultipartFile file) {
-        String storeFileName = createStoreFileName(file.getOriginalFilename());
+    public String saveImage(MultipartFile file, String directory) {
+        String storeFileName = createStoreFileName(directory, file.getOriginalFilename());
         String imageUrl = createImageUrl(storeFileName);
         try{
-            File uploadPath = new File(UPLOAD_DIR+storeFileName);
+            File uploadPath = new File(UPLOAD_ROOT +storeFileName);
             file.transferTo(uploadPath);
         }catch (IOException e){
             throw new RuntimeException(e);
         }
-        Image image = new Image(UPLOAD_DIR + storeFileName, imageUrl);
+        Image image = new Image(UPLOAD_ROOT + storeFileName, imageUrl);
         imageRepository.save(image);
         return imageUrl;
+
     }
 
     @Override
@@ -56,7 +57,7 @@ public class ImageServiceImpl implements ImageService{
         String fileName = getFileName(imgUrl);
         Image image = imageRepository.findByImageUrl(imgUrl).orElseThrow(()-> new NotFoundException("Not Found"));
         try{
-            Path filePath = Paths.get(UPLOAD_DIR, fileName).normalize();
+            Path filePath = Paths.get(UPLOAD_ROOT, fileName).normalize();
             File file = filePath.toFile();
             if(!file.exists()){
                 throw new NotFoundException("Not Found");
@@ -81,7 +82,7 @@ public class ImageServiceImpl implements ImageService{
         for (Image image : images) {
             String imgUrl = image.getImageUrl();
             String fileName = getFileName(imgUrl);
-            Path filePath = Paths.get(UPLOAD_DIR, fileName).normalize();
+            Path filePath = Paths.get(UPLOAD_ROOT, fileName).normalize();
             File file = filePath.toFile();
 
             if (!file.exists()) {
@@ -96,10 +97,10 @@ public class ImageServiceImpl implements ImageService{
         imageRepository.deleteAll(images);
     }
 
-    private String createStoreFileName(String originFileName){
+    private String createStoreFileName(String directory, String originFileName){
         String uuid = UUID.randomUUID().toString();
         String ext = extractExt(originFileName);
-        return uuid + "." + ext;
+        return directory + "/" +uuid + "." + ext;
     }
 
     private String extractExt(String originFileName){
