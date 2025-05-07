@@ -20,17 +20,22 @@ public class ImageController {
     private final ImageService imageService;
 
     @PostMapping("/upload")
-    public ResponseEntity<ImageURLDto> imageUpload(@RequestPart("image") MultipartFile file){
+    public ResponseEntity<ImageURLDto> imageUpload(@RequestPart("image") MultipartFile file,
+                                                   @RequestParam("directory") String directory){
         if(file.isEmpty()){
             throw new BadRequestException("BAD REQUEST");
         }
         String[] validateImage = {"jpg","jpeg","png"};
+        String[] validateDirectory = {"products", "reviews"};
         String fileName = file.getOriginalFilename();
 
         if (fileName == null || !isValidImageExtension(fileName, validateImage)) {
-            throw new BadRequestException("BAD REQUEST");
+            throw new BadRequestException("Invalid extension");
         }
-        String imageUrl = imageService.saveImage(file);
+        if (directory == null || !isValidateDirectory(directory, validateDirectory)){
+            throw new BadRequestException("Invalid directory");
+        }
+        String imageUrl = imageService.saveImage(file, directory);
         ImageURLDto imageURLDto = new ImageURLDto(imageUrl);
         return ResponseEntity.ok(imageURLDto);
     }
@@ -49,6 +54,10 @@ public class ImageController {
     private boolean isValidImageExtension(String fileName, String[] allowedExtensions) {
         String extension = fileName.substring(fileName.lastIndexOf(".") + 1).toLowerCase();
         return Arrays.asList(allowedExtensions).contains(extension);
+    }
+
+    private boolean isValidateDirectory(String directory, String[] allowedDirectories){
+        return Arrays.asList(allowedDirectories).contains(directory);
     }
 }
 
