@@ -100,7 +100,7 @@ public class ImageServiceImpl implements ImageService{
     private String createStoreFileName(String directory, String originFileName){
         String uuid = UUID.randomUUID().toString();
         String ext = extractExt(originFileName);
-        return directory + "/" +uuid + "." + ext;
+        return "/" + directory + "/" +uuid + "." + ext;
     }
 
     private String extractExt(String originFileName){
