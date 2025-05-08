@@ -1,0 +1,15 @@
+spring:
+  application:
+    name:
+
+upload-root:
+
+gateway:
+  domain:
+  port:
+
+eureka:
+  client:
+    enable: false
+    fetch-registry: false
+    register-with-eureka: false
