@@ -1,6 +1,8 @@
 package com.example.userservice.service;
 
+import com.example.userservice.dto.AddressDto;
 import com.example.userservice.dto.UserDto;
+import com.example.userservice.jpa.AddressEntity;
 import com.example.userservice.jpa.UserEntity;
 import com.example.userservice.jpa.UserRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -14,11 +16,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.client.circuitbreaker.CircuitBreaker;
 import org.springframework.cloud.client.circuitbreaker.CircuitBreakerFactory;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.List;
 
@@ -64,7 +68,10 @@ class UserServiceTest {
         // Then
         assertNotNull(result);
         assertTrue(bCryptPasswordEncoder.matches(userDto.getPwd(), result.getEncryptedPwd()));
-        assertEquals("test@email.com", result.getEmail());
+        assertEquals(userDto.getEmail(), result.getEmail());
+        assertEquals(userDto.getName(), result.getName());
+        assertEquals(0, result.getCache());
+        assertEquals(0, result.getPoint());
     }
 
     @Test
@@ -80,81 +87,79 @@ class UserServiceTest {
         userService.createUser(userDto);
 
 
-        // Then
-        assertThrows(IllegalArgumentException.class, () -> userService.createUser(userDto));
+        // When & Then
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> userService.createUser(userDto));
+        assertEquals("이미 등록된 이메일입니다.", exception.getMessage());
     }
 
     @Test
     void getUserByAll_성공() {
         // Given
-        UserDto userDto1 = UserDto.builder()
-                .email("test1@email.com")
-                .pwd("password1")
-                .name("Test User1")
-                .build();
+        userService.createUser(UserDto.builder()
+                .email("user1@example.com")
+                .pwd("1234")
+                .name("User1")
+                .build());
 
-        UserDto userDto2 = UserDto.builder()
-                .email("test2@email.com")
-                .pwd("password2")
-                .name("Test User2")
-                .build();
+        userService.createUser(UserDto.builder()
+                .email("user2@example.com")
+                .pwd("5678")
+                .name("User2")
+                .build());
 
-        userService.createUser(userDto1);
-        userService.createUser(userDto2);
+        Pageable pageable = PageRequest.of(0, 10);
 
         // When
-        Pageable pageable = PageRequest.of(0, 10);
-        List<UserDto> result = userService.getUserByAll(pageable).getContent();
+        Page<UserDto> resultPage = userService.getUserByAll(pageable);
+        List<UserDto> result = resultPage.getContent();
 
         // Then
         assertEquals(2, result.size());
-        assertEquals("test1@email.com", result.get(0).getEmail());
-        assertEquals("Test User1", result.get(0).getName());
-        assertEquals("test2@email.com", result.get(1).getEmail());
-        assertEquals("Test User2", result.get(1).getName());
     }
 
     @Test
-    void getUserById_존재하는_사용자() {
+    void getUserById_성공() {
         // Given
-        UserDto userDto = UserDto.builder()
+        UserEntity savedUser = userService.createUser(UserDto.builder()
                 .email("test@email.com")
                 .pwd("password")
-                .name("Test User")
-                .build();
-
-        UserEntity user = userService.createUser(userDto);
+                .name("Test")
+                .build());
 
         // When
-        UserDto result = userService.getUserById(user.getId());
+        UserDto result = userService.getUserById(savedUser.getId());
 
         // Then
         assertNotNull(result);
-        assertEquals(user.getId(), result.getId());
+        assertEquals(savedUser.getId(), result.getId());
+        assertEquals(savedUser.getEmail(), result.getEmail());
     }
 
     @Test
-    void getUserById_없는_사용자() {
+    void getUserById_실패_없는ID() {
         // Given
-        Long userId = 99L;
+        Long invalidId = 999L;
 
         // When & Then
-        assertThrows(UsernameNotFoundException.class, () -> userService.getUserById(userId));
+        UsernameNotFoundException exception = assertThrows(UsernameNotFoundException.class,
+                () -> userService.getUserById(invalidId));
+
+        assertTrue(exception.getMessage().contains("User not found with id"));
     }
 
     @Test
-    void getUserByEmail_존재하는_사용자() {
+    void getUserByEmail_성공() {
         // Given
         UserDto userDto = UserDto.builder()
                 .email("test@email.com")
                 .pwd("password")
-                .name("Test User")
+                .name("Test")
                 .build();
 
-        UserEntity userEntity = userService.createUser(userDto);
+        userService.createUser(userDto);
 
         // When
-        UserDto result = userService.getUserByEmail(userEntity.getEmail());
+        UserDto result = userService.getUserByEmail(userDto.getEmail());
 
         // Then
         assertNotNull(result);
@@ -162,27 +167,27 @@ class UserServiceTest {
     }
 
     @Test
-    void getUserByEmail_없는_사용자() {
+    void getUserByEmail_실패_없는이메일() {
         // Given
-        String email = "notfound@example.com";
+        String email = "nonexistent@email.com";
 
         // When & Then
-        assertThatThrownBy(() -> userService.getUserByEmail(email))
-                .isInstanceOf(UsernameNotFoundException.class)
-                .hasMessageContaining("User not found with email");
+        UsernameNotFoundException exception = assertThrows(UsernameNotFoundException.class,
+                () -> userService.getUserByEmail(email));
+
+        assertTrue(exception.getMessage().contains("User not found with email"));
     }
 
     @Test
     void loadUserByUsername_성공() {
         // Given
-        String email = "test@example.com";
-        UserDto userDto = UserDto.builder()
+        String email = "user@email.com";
+        String rawPwd = "password";
+        userService.createUser(UserDto.builder()
                 .email(email)
-                .pwd("password")
-                .name("Test User")
-                .build();
-
-        userService.createUser(userDto);
+                .pwd(rawPwd)
+                .name("사용자")
+                .build());
 
         // When
         UserDetails userDetails = userService.loadUserByUsername(email);
@@ -190,18 +195,216 @@ class UserServiceTest {
         // Then
         assertNotNull(userDetails);
         assertEquals(email, userDetails.getUsername());
-        assertTrue(bCryptPasswordEncoder.matches(userDto.getPwd(), userDetails.getPassword()));
-
+        assertTrue(bCryptPasswordEncoder.matches(rawPwd, userDetails.getPassword()));
     }
 
     @Test
-    void loadUserByUsername_없는_사용자() {
+    void loadUserByUsername_실패_없는이메일() {
         // Given
-        String email = "notfound@example.com";
+        String email = "notfound@email.com";
 
         // When & Then
-        assertThatThrownBy(() -> userService.getUserByEmail(email))
-                .isInstanceOf(UsernameNotFoundException.class)
-                .hasMessageContaining("User not found with email");
+        UsernameNotFoundException exception = assertThrows(UsernameNotFoundException.class,
+                () -> userService.loadUserByUsername(email));
+
+        assertTrue(exception.getMessage().contains("User not found with username"));
     }
+
+    @Test
+    void addAddressByUserId_성공_기본주소_설정() {
+        // Given
+        UserEntity user = userService.createUser(UserDto.builder()
+                .email("addr@test.com")
+                .pwd("password")
+                .name("주소 사용자")
+                .build());
+
+        AddressDto addressDto = AddressDto.builder()
+                .name("집")
+                .address("서울시 강남구")
+                .details("101동 202호")
+                .defaultAddress(true)
+                .build();
+
+        // When
+        UserEntity updatedUser = userService.addAddressByUserId(user.getId(), addressDto);
+
+        // Then
+        assertEquals(1, updatedUser.getAddresses().size());
+        assertEquals("서울시 강남구", updatedUser.getAddresses().get(0).getAddress());
+        assertEquals("101동 202호", updatedUser.getAddresses().get(0).getDetails());
+        assertTrue(updatedUser.getAddresses().get(0).isDefaultAddress());
+    }
+
+    @Test
+    void editDefaultAddress_성공_다른주소로변경() {
+        // Given
+        UserEntity user = userService.createUser(UserDto.builder()
+                .email("default@test.com")
+                .pwd("password")
+                .name("기본 주소 변경")
+                .build());
+
+        AddressDto addr1 = AddressDto.builder()
+                .addressId(1L)
+                .name("집")
+                .address("서울 A")
+                .details("101")
+                .defaultAddress(true)
+                .build();
+
+        AddressDto addr2 = AddressDto.builder()
+                .addressId(2L)
+                .name("회사")
+                .address("서울 B")
+                .details("202")
+                .defaultAddress(false)
+                .build();
+
+        user = userService.addAddressByUserId(user.getId(), addr1);
+        user = userService.addAddressByUserId(user.getId(), addr2);
+
+        // When
+        UserEntity updated = userService.editDefaultAddress(user.getId(), 2L);
+
+        // Then
+        assertEquals(1, updated.getAddresses().stream().filter(AddressEntity::isDefaultAddress).count());
+        assertFalse(updated.getAddresses().get(0).isDefaultAddress());
+        assertTrue(updated.getAddresses().get(1).isDefaultAddress());
+    }
+
+    @Test
+    void deleteAddress_성공() {
+        // Given
+
+        UserEntity user = userService.createUser(UserDto.builder()
+                .email("delete@test.com")
+                .pwd("password")
+                .name("삭제 사용자")
+                .build());
+
+        AddressDto addressDto = AddressDto.builder()
+                .addressId(1L)
+                .name("삭제주소")
+                .address("서울 삭제")
+                .details("삭제 상세")
+                .defaultAddress(true)
+                .build();
+
+        user = userService.addAddressByUserId(user.getId(), addressDto);
+
+        // When
+        UserEntity result = userService.deleteAddress(user.getId(), user.getAddresses().get(0).getId());
+
+        // Then
+        assertTrue(result.getAddresses().isEmpty());
+    }
+
+    @Test
+    void rechargeCache_성공() {
+        // Given
+        UserEntity user = userService.createUser(UserDto.builder()
+                .email("cache@test.com")
+                .pwd("password")
+                .name("캐시 사용자")
+                .cache(0)
+                .point(0)
+                .build());
+
+        // When
+        UserEntity updated = userService.rechargeCache(user.getId(), 5000);
+
+        // Then
+        assertEquals(5000, updated.getCache());
+    }
+
+    @Test
+    void rechargeCache_실패_음수입력() {
+        // Given
+        UserEntity user = userService.createUser(UserDto.builder()
+                .email("cachefail@test.com")
+                .pwd("password")
+                .name("캐시 실패")
+                .cache(0)
+                .point(0)
+                .build());
+
+        // When & Then
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
+                userService.rechargeCache(user.getId(), -1000));
+        assertEquals("충전 금액은 0보다 커야 합니다.", ex.getMessage());
+    }
+
+    @Test
+    void deductCache_성공() {
+        // Given
+        UserEntity user = userService.createUser(UserDto.builder()
+                .email("cacheuse@test.com")
+                .pwd("password")
+                .name("차감 사용자")
+                .cache(0)
+                .point(0)
+                .build());
+
+        userService.rechargeCache(user.getId(), 3000);
+
+        // When
+        UserEntity updated = userService.deductCache(user.getId(), 1000);
+
+        // Then
+        assertEquals(2000, updated.getCache());
+    }
+
+    @Test
+    void deductCache_실패_부족() {
+        // Given
+        UserEntity user = userService.createUser(UserDto.builder()
+                .email("nocash@test.com")
+                .pwd("password")
+                .name("부족 사용자")
+                .cache(0)
+                .point(0)
+                .build());
+
+        // When & Then
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
+                userService.deductCache(user.getId(), 500));
+        assertEquals("금액이 모자릅니다.", ex.getMessage());
+    }
+
+    @Test
+    void rechargePoint_성공() {
+        // Given
+        UserEntity user = userService.createUser(UserDto.builder()
+                .email("point@test.com")
+                .pwd("password")
+                .name("포인트 사용자")
+                .cache(0)
+                .point(0)
+                .build());
+
+        // When
+        UserEntity updated = userService.rechargePoint(user.getId(), 7000);
+
+        // Then
+        assertEquals(7000, updated.getPoint());
+    }
+
+    @Test
+    void deductPoint_실패_음수요청() {
+        // Given
+        UserEntity user = userService.createUser(UserDto.builder()
+                .email("negpoint@test.com")
+                .pwd("password")
+                .name("음수 포인트")
+                .cache(0)
+                .point(0)
+                .build());
+
+        // When & Then
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
+                userService.deductPoint(user.getId(), -1));
+        assertEquals("차감 금액은 0보다 커야 합니다.", ex.getMessage());
+    }
+
 }

@@ -1,8 +1,11 @@
 package com.example.userservice.service;
 
+import com.example.userservice.dto.AddressDto;
 import com.example.userservice.dto.UserDto;
+import com.example.userservice.jpa.AddressEntity;
 import com.example.userservice.jpa.UserEntity;
 import com.example.userservice.jpa.UserRepository;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.client.circuitbreaker.CircuitBreakerFactory;
@@ -41,6 +44,8 @@ public class UserServiceImpl implements UserService{
                 .email(userDto.getEmail())
                 .encryptedPwd(bCryptPasswordEncoder.encode(userDto.getPwd()))
                 .name(userDto.getName())
+                .cache(0)
+                .point(0)
                 .build();
 
         try {
@@ -58,7 +63,7 @@ public class UserServiceImpl implements UserService{
                 .id(v.getId())
                 .email(v.getEmail())
                 .name(v.getName())
-                .createAt(v.getCreateAt())
+                .createdAt(v.getCreatedAt())
                 .build());
     }
 
@@ -68,9 +73,14 @@ public class UserServiceImpl implements UserService{
         UserEntity userEntity = userRepository.findById(userId)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with id: " + userId));
 
-        // Address 객체를 List<String> 형태로 변환
-        List<String> userAddresses = userEntity.getAddresses().stream()
-                .map(addr -> addr.getAddress().getAddressAll())
+        List<AddressDto> addressDtoList = userEntity.getAddresses().stream()
+                .map(address -> AddressDto.builder()
+                        .addressId(address.getId())
+                        .name(address.getName())
+                        .address(address.getAddress())
+                        .details(address.getDetails())
+                        .defaultAddress(address.isDefaultAddress())
+                        .build())
                 .collect(Collectors.toList());
 
         return UserDto.builder()
@@ -78,23 +88,151 @@ public class UserServiceImpl implements UserService{
                 .email(userEntity.getEmail())
                 .pwd(userEntity.getEncryptedPwd())
                 .name(userEntity.getName())
-                .createAt(userEntity.getCreateAt())
-                .addresses(userAddresses)
+                .createdAt(userEntity.getCreatedAt())
+                .addresses(addressDtoList)
+                .cache(userEntity.getCache())
+                .point(userEntity.getPoint())
                 .build();
 
     }
 
     @Override
     public UserDto getUserByEmail(String email) {
-        Optional<UserEntity> userEntity = userRepository.findByEmail(email);
-        if (userEntity.isEmpty()) {
-            throw new UsernameNotFoundException("User not found with email");
-        }
+        UserEntity userEntity = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email"));
 
         return UserDto.builder()
-                .id(userEntity.get().getId())
-                .email(userEntity.get().getEmail())
+                .id(userEntity.getId())
+                .email(userEntity.getEmail())
                 .build();
+    }
+
+    @Override
+    public UserEntity addAddressByUserId(Long userId, AddressDto addressDto) {
+
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+
+        // 1. 기본 주소 설정 요청 시 기존 기본 주소 false로 초기화
+        if (addressDto.isDefaultAddress()) {
+            user.getAddresses().stream()
+                    .filter(AddressEntity::isDefaultAddress)
+                    .forEach(address -> address.changeDefaultAddress(false));
+        }
+
+        // 2. 새 주소 생성
+        AddressEntity newAddress = AddressEntity.builder()
+                .user(user)
+                .name(addressDto.getName())
+                .address(addressDto.getAddress())
+                .details(addressDto.getDetails())
+                .defaultAddress(addressDto.isDefaultAddress())
+                .build();
+
+        // 3. 유저에 추가
+        user.getAddresses().add(newAddress);
+
+        // 4. 저장 (Cascade로 address 자동 저장)
+        return userRepository.save(user);
+    }
+
+    @Override
+    public UserEntity editDefaultAddress(Long userId, Long addressId) {
+
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+
+        user.getAddresses().forEach(address -> {
+            if (address.getId().equals(addressId)) {
+                address.changeDefaultAddress(true);
+            } else {
+                address.changeDefaultAddress(false);
+            }
+        });
+
+        return userRepository.save(user);
+    }
+
+    @Override
+    public UserEntity deleteAddress(Long userId, Long addressId) {
+
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+
+        AddressEntity targetAddress = user.getAddresses().stream()
+                .filter(address -> address.getId().equals(addressId))
+                .findFirst()
+                .orElseThrow(() -> new EntityNotFoundException("Address not found"));
+
+        user.getAddresses().remove(targetAddress);
+
+        return userRepository.save(user);
+    }
+
+    @Override
+    public UserEntity rechargeCache(Long userId, int amount) {
+
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+
+        if (amount <= 0) {
+            throw new IllegalArgumentException("충전 금액은 0보다 커야 합니다.");
+        }
+
+        user.rechargeCache(amount);
+
+        return userRepository.save(user);
+    }
+
+    @Override
+    public UserEntity deductCache(Long userId, int amount) {
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+
+        if (amount <= 0) {
+            throw new IllegalArgumentException("차감 금액은 0보다 커야 합니다.");
+        }
+
+        if (user.getCache() - amount < 0) {
+            throw new IllegalArgumentException("금액이 모자릅니다.");
+        }
+
+        user.deductCache(amount);
+
+        return userRepository.save(user);
+    }
+
+    @Override
+    public UserEntity rechargePoint(Long userId, int amount) {
+
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+
+        if (amount <= 0) {
+            throw new IllegalArgumentException("충전 금액은 0보다 커야 합니다.");
+        }
+
+        user.rechargePoint(amount);
+
+        return userRepository.save(user);
+    }
+
+    @Override
+    public UserEntity deductPoint(Long userId, int amount) {
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+
+        if (amount <= 0) {
+            throw new IllegalArgumentException("차감 금액은 0보다 커야 합니다.");
+        }
+
+        if (user.getPoint() - amount < 0) {
+            throw new IllegalArgumentException("금액이 모자릅니다.");
+        }
+
+        user.deductPoint(amount);
+
+        return userRepository.save(user);
     }
 
     @Override

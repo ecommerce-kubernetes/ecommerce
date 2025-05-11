@@ -14,6 +14,8 @@ public class UserDto {
     private String email;
     private String pwd;
     private String name;
-    private LocalDateTime createAt;
-    private List<String> addresses;
+    private int cache;
+    private int point;
+    private LocalDateTime createdAt;
+    private List<AddressDto> addresses;
 }
