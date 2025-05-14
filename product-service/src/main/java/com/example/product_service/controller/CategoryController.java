@@ -38,7 +38,7 @@ public class CategoryController {
     }
 
     @PatchMapping("/{categoryId}")
-    public ResponseEntity<CategoryResponseDto> updateCategoryName(@PathVariable("categoryId") Long categoryId,
+    public ResponseEntity<CategoryResponseDto> updateCategory(@PathVariable("categoryId") Long categoryId,
                                                                   @RequestBody @Validated CategoryRequestDto categoryRequestDto){
 
         if(Objects.equals(categoryId, categoryRequestDto.getParentId())){
@@ -67,5 +67,11 @@ public class CategoryController {
         sortFieldValidator.validateSortFields(pageable.getSort(), Categories.class);
         PageDto<CategoryResponseDto> pageDto = categoryService.getRootCategories(pageable);
         return ResponseEntity.ok(pageDto);
+    }
+
+    @GetMapping("/{categoryId}/child")
+    public ResponseEntity<List<CategoryResponseDto>> getChildByCategoryId(@PathVariable("categoryId") Long categoryId){
+        List<CategoryResponseDto> childCategories = categoryService.getChildCategories(categoryId);
+        return ResponseEntity.ok(childCategories);
     }
 }
