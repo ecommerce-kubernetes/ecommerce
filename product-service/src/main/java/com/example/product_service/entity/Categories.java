@@ -1,14 +1,14 @@
 package com.example.product_service.entity;
 
 import com.example.product_service.entity.base.BaseEntity;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -22,7 +22,25 @@ public class Categories extends BaseEntity {
     @Setter
     private String name;
 
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_id")
+    private Categories parent;
+
+    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Categories> children = new ArrayList<>();
+
     public Categories(String name){
         this.name = name;
+    }
+
+    public void addChild(Categories child){
+        children.add(child);
+        child.parent = this;
+    }
+
+    public void removeChild(Categories child){
+        children.remove(child);
+        child.parent = null;
     }
 }
