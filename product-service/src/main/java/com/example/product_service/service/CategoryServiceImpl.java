@@ -65,6 +65,9 @@ public class CategoryServiceImpl implements CategoryService{
         Categories category = categoriesRepository.findById(categoryId)
                 .orElseThrow(() -> new NotFoundException("Not Found Category"));
 
+        if(category.getParent() != null){
+            category.getParent().removeChild(category);
+        }
         categoriesRepository.delete(category);
     }
 

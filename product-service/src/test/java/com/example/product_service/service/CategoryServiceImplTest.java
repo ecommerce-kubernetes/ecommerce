@@ -119,25 +119,31 @@ class CategoryServiceImplTest {
                 .hasMessage("Not Found Parent Category");
     }
 
-//    @Test
-//    @DisplayName("카테고리 삭제 테스트")
-//    void deleteCategoryTest(){
-//        Categories food = categoriesRepository.save(new Categories("식품"));
-//
-//        categoryService.deleteCategory(food.getId());
-//
-//        Optional<Categories> category = categoriesRepository.findById(food.getId());
-//
-//        assertThat(category).isEmpty();
-//    }
+    @Test
+    @DisplayName("카테고리 삭제 테스트")
+    @Transactional
+    void deleteCategoryTest(){
+        Categories food = categoriesRepository.save(new Categories("식품"));
+        Categories deleteCategory = categoriesRepository.save(new Categories("반찬류"));
 
-//    @Test
-//    @DisplayName("카테고리 삭제 테스트 - 없는 카테고리 삭제시")
-//    void deleteCategoryTest_NotFoundCategory(){
-//        assertThatThrownBy(() -> categoryService.deleteCategory(999L))
-//                .isInstanceOf(NotFoundException.class)
-//                .hasMessage("Not Found Category");
-//    }
+        food.addChild(deleteCategory);
+
+        categoryService.deleteCategory(deleteCategory.getId());
+
+        Optional<Categories> category = categoriesRepository.findById(deleteCategory.getId());
+
+        assertThat(category).isEmpty();
+
+        assertThat(food.getChildren()).doesNotContain(deleteCategory);
+    }
+
+    @Test
+    @DisplayName("카테고리 삭제 테스트 - 없는 카테고리 삭제시")
+    void deleteCategoryTest_NotFoundCategory(){
+        assertThatThrownBy(() -> categoryService.deleteCategory(999L))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage("Not Found Category");
+    }
 
 //    @Test
 //    @DisplayName("카테고리 정보 조회")
