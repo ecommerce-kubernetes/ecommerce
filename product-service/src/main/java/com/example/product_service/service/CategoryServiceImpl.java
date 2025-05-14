@@ -25,9 +25,16 @@ public class CategoryServiceImpl implements CategoryService{
     @Override
     @Transactional
     public CategoryResponseDto saveCategory(CategoryRequestDto categoryRequestDto) {
-        Categories categories = new Categories(categoryRequestDto.getName());
-        Categories save = categoriesRepository.save(categories);
+        Categories category = new Categories(categoryRequestDto.getName());
+        Long parentId = categoryRequestDto.getParentId();
+        if(parentId != null){
+            Categories parentCategory = categoriesRepository.findById(parentId)
+                    .orElseThrow(() -> new NotFoundException("Not Found Parent Category"));
 
+            parentCategory.addChild(category);
+        }
+
+        Categories save = categoriesRepository.save(category);
         return new CategoryResponseDto(save);
     }
 
