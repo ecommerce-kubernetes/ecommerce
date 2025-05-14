@@ -80,8 +80,8 @@ public class CategoryServiceImpl implements CategoryService{
     }
 
     @Override
-    public PageDto<CategoryResponseDto> getCategoryList(Pageable pageable) {
-        Page<Categories> result = categoriesRepository.findAllCategories(pageable);
+    public PageDto<CategoryResponseDto> getRootCategories(Pageable pageable) {
+        Page<Categories> result = categoriesRepository.findByParentIsNull(pageable);
         List<Categories> content = result.getContent();
         List<CategoryResponseDto> categoryResponseList = content.stream().map(CategoryResponseDto::new).toList();
         return new PageDto<>(
@@ -91,5 +91,11 @@ public class CategoryServiceImpl implements CategoryService{
                 pageable.getPageSize(),
                 result.getTotalElements()
         );
+    }
+
+    @Override
+    public List<CategoryResponseDto> getChildCategories(Long categoryId) {
+        List<Categories> childList = categoriesRepository.findChildById(categoryId);
+        return childList.stream().map(CategoryResponseDto::new).toList();
     }
 }

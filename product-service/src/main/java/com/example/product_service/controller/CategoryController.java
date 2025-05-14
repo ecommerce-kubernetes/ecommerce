@@ -61,11 +61,11 @@ public class CategoryController {
     }
 
     @GetMapping
-    public ResponseEntity<PageDto<CategoryResponseDto>> getCategories(
+    public ResponseEntity<PageDto<CategoryResponseDto>> getMainCategoryList(
             @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.ASC) Pageable pageable){
 
         sortFieldValidator.validateSortFields(pageable.getSort(), Categories.class);
-        PageDto<CategoryResponseDto> pageDto = categoryService.getCategoryList(pageable);
+        PageDto<CategoryResponseDto> pageDto = categoryService.getRootCategories(pageable);
         return ResponseEntity.ok(pageDto);
     }
 }

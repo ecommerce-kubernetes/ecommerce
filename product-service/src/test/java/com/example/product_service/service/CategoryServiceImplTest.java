@@ -50,7 +50,7 @@ class CategoryServiceImplTest {
         CategoryResponseDto categoryResponseDto = categoryService.saveCategory(categoryRequestDto);
 
         assertThat(categoryResponseDto.getName()).isEqualTo(categoryRequestDto.getName());
-        assertThat(categoryResponseDto.getChildren()).isEmpty();
+        assertThat(categoryRequestDto.getParentId()).isEqualTo(null);
     }
 
     @Test
@@ -65,8 +65,7 @@ class CategoryServiceImplTest {
         CategoryResponseDto sideDishResponse = categoryService.saveCategory(sideDishRequest);
 
         assertThat(sideDishResponse.getName()).isEqualTo(sideDishRequest.getName());
-        assertThat(sideDishResponse.getChildren()).isEmpty();
-
+        assertThat(sideDishResponse.getParentId()).isEqualTo(parent.getId());
         assertThat(parent.getChildren().size()).isEqualTo(1);
 
         Categories subCategory = categoriesRepository.findById(sideDishResponse.getId()).orElseThrow();
@@ -96,6 +95,7 @@ class CategoryServiceImplTest {
                 categoryService.modifyCategory(modifyCategory.getId(), new CategoryRequestDto("노트북", electronicDevice.getId()));
 
         assertThat(categoryResponseDto.getName()).isEqualTo("노트북");
+        assertThat(categoryResponseDto.getParentId()).isEqualTo(electronicDevice.getId());
         assertThat(food.getChildren().size()).isEqualTo(0);
         assertThat(food.getChildren()).doesNotContain(modifyCategory);
         assertThat(electronicDevice.getChildren().size()).isEqualTo(1);
@@ -145,49 +145,77 @@ class CategoryServiceImplTest {
                 .hasMessage("Not Found Category");
     }
 
-//    @Test
-//    @DisplayName("카테고리 정보 조회")
-//    void getCategoryDetailsTest(){
-//        Categories save = categoriesRepository.save(new Categories("식품"));
-//
-//        CategoryResponseDto categoryDetails = categoryService.getCategoryDetails(save.getId());
-//
-//        assertThat(categoryDetails.getId()).isEqualTo(save.getId());
-//        assertThat(categoryDetails.getName()).isEqualTo(save.getName());
-//    }
+    @Test
+    @DisplayName("카테고리 정보 조회")
+    @Transactional
+    void getCategoryDetailsTest(){
+        Categories parent = categoriesRepository.save(new Categories("식품"));
+        Categories sub1 = categoriesRepository.save(new Categories("반찬류"));
+        Categories sub2 = categoriesRepository.save(new Categories("냉장"));
 
-//    @Test
-//    @DisplayName("카테고리 정보 조회 - 없는 카테고리 일때")
-//    void getCategoryDetailsTest_NotFoundCategory(){
-//        assertThatThrownBy(() -> categoryService.getCategoryDetails(999L))
-//                .isInstanceOf(NotFoundException.class)
-//                .hasMessage("Not Found Category");
-//    }
+        parent.addChild(sub1);
+        parent.addChild(sub2);
+
+        CategoryResponseDto categoryDetails = categoryService.getCategoryDetails(sub1.getId());
+
+        assertThat(categoryDetails.getId()).isEqualTo(sub1.getId());
+        assertThat(categoryDetails.getName()).isEqualTo(sub1.getName());
+        assertThat(categoryDetails.getParentId()).isEqualTo(parent.getId());
+
+
+    }
+
+    @Test
+    @DisplayName("카테고리 정보 조회 - 없는 카테고리 일때")
+    void getCategoryDetailsTest_NotFoundCategory(){
+        assertThatThrownBy(() -> categoryService.getCategoryDetails(999L))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage("Not Found Category");
+    }
 //
-//    @Test
-//    @DisplayName("카테고리 리스트 조회")
-//    void getCategoryListTest(){
-//        List<Categories> categories = new ArrayList<>();
-//        categories.add(new Categories("식품"));
-//        categories.add(new Categories("전자기기"));
-//        categories.add(new Categories("의류"));
-//        categories.add(new Categories("가구"));
-//
-//        categoriesRepository.saveAll(categories);
-//
-//        Pageable pageable = PageRequest.of(0, 10, Sort.Direction.ASC, "id");
-//
-//        PageDto<CategoryResponseDto> result = categoryService.getCategoryList(pageable);
-//
-//        assertThat(result.getCurrentPage()).isEqualTo(0);
-//        assertThat(result.getPageSize()).isEqualTo(10);
-//        assertThat(result.getTotalPage()).isEqualTo(1);
-//        assertThat(result.getTotalElement()).isEqualTo(4);
-//
-//        List<CategoryResponseDto> content = result.getContent();
-//        for (int i = 0; i < content.size(); i++) {
-//            assertThat(content.get(i).getName()).isEqualTo(categories.get(i).getName());
-//        }
-//    }
+    @Test
+    @DisplayName("대표 카테고리 리스트 조회")
+    void getCategoryListTest(){
+        List<Categories> categories = new ArrayList<>();
+        categories.add(new Categories("식품"));
+        categories.add(new Categories("전자기기"));
+        categories.add(new Categories("의류"));
+        categories.add(new Categories("가구"));
+
+        categoriesRepository.saveAll(categories);
+
+        Pageable pageable = PageRequest.of(0, 10, Sort.Direction.ASC, "id");
+
+        PageDto<CategoryResponseDto> result = categoryService.getRootCategories(pageable);
+
+        assertThat(result.getCurrentPage()).isEqualTo(0);
+        assertThat(result.getPageSize()).isEqualTo(10);
+        assertThat(result.getTotalPage()).isEqualTo(1);
+        assertThat(result.getTotalElement()).isEqualTo(4);
+
+        List<CategoryResponseDto> content = result.getContent();
+        for (int i = 0; i < content.size(); i++) {
+            assertThat(content.get(i).getName()).isEqualTo(categories.get(i).getName());
+            assertThat(content.get(i).getParentId()).isEqualTo(null);
+        }
+    }
+
+    @Test
+    @DisplayName("자식 카테고리 리스트 조회")
+    @Transactional
+    void getChildCategoriesTest(){
+        Categories parent = categoriesRepository.save(new Categories("식품"));
+        Categories sub1 = categoriesRepository.save(new Categories("반찬류"));
+        Categories sub2 = categoriesRepository.save(new Categories("냉동"));
+        Categories sub3 = categoriesRepository.save(new Categories("냉장"));
+
+        parent.addChild(sub1);
+        parent.addChild(sub2);
+        parent.addChild(sub3);
+
+        List<CategoryResponseDto> childCategories = categoryService.getChildCategories(parent.getId());
+
+        assertThat(childCategories.size()).isEqualTo(3);
+    }
 
 }
