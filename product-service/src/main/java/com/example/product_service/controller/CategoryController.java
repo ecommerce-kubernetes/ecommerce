@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 @RestController
 @RequiredArgsConstructor
@@ -39,6 +40,10 @@ public class CategoryController {
     @PatchMapping("/{categoryId}")
     public ResponseEntity<CategoryResponseDto> updateCategoryName(@PathVariable("categoryId") Long categoryId,
                                                                   @RequestBody @Validated CategoryRequestDto categoryRequestDto){
+
+        if(Objects.equals(categoryId, categoryRequestDto.getParentId())){
+            throw new BadRequestException("An item cannot be set as its own parent");
+        }
         CategoryResponseDto category = categoryService.modifyCategory(categoryId, categoryRequestDto);
         return ResponseEntity.ok(category);
     }

@@ -6,6 +6,7 @@ import com.example.product_service.dto.response.PageDto;
 import com.example.product_service.entity.Categories;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.repository.CategoriesRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -26,6 +27,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest
+@Slf4j
 class CategoryServiceImplTest {
 
     @Autowired
@@ -43,6 +45,7 @@ class CategoryServiceImplTest {
     @DisplayName("대표 카테고리 생성 테스트")
     @Transactional
     void saveCategoryTest_Main(){
+        //대표 카테고리 생성 - parentId == null
         CategoryRequestDto categoryRequestDto = new CategoryRequestDto("식품", null);
         CategoryResponseDto categoryResponseDto = categoryService.saveCategory(categoryRequestDto);
 
@@ -54,8 +57,10 @@ class CategoryServiceImplTest {
     @DisplayName("서브 카테고리 생성 테스트")
     @Transactional
     void saveCategoryTest_Sub(){
+        //부모 카테고리
         Categories parent = categoriesRepository.save(new Categories("식품"));
 
+        //자식 카테고리 생성 - parentId == 부모 카테고리 ID
         CategoryRequestDto sideDishRequest = new CategoryRequestDto("반찬류", parent.getId());
         CategoryResponseDto sideDishResponse = categoryService.saveCategory(sideDishRequest);
 
@@ -68,27 +73,51 @@ class CategoryServiceImplTest {
         assertThat(parent.getChildren()).contains(subCategory);
     }
 
-//    @Test
-//    @DisplayName("카테고리 수정 테스트")
-//    @Transactional
-//    void modifyCategoryTest(){
-//        Categories food = categoriesRepository.save(new Categories("식품"));
-//
-//        CategoryResponseDto categoryResponseDto =
-//                categoryService.modifyCategory(food.getId(), new CategoryRequestDto("전자기기"));
-//
-//        assertThat(categoryResponseDto.getName()).isEqualTo("전자기기");
-//        Categories categories = categoriesRepository.findById(food.getId()).orElseThrow();
-//        assertThat(categories.getName()).isEqualTo("전자기기");
-//    }
+    @Test
+    @DisplayName("서브 카테고리 생성 테스트_부모 카테고리를 찾을 수 없음")
+    @Transactional
+    void saveCategoryTest_Sub_NotFoundParentCategory(){
+        CategoryRequestDto sideDishRequest = new CategoryRequestDto("반찬류", 999L);
+        assertThatThrownBy(()-> categoryService.saveCategory(sideDishRequest))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage("Not Found Parent Category");
+    }
 
-//    @Test
-//    @DisplayName("카테고리 수정 테스트 - 카테고리를 찾을 수 없을때")
-//    void modifyCategoryTest_NotFoundCategory(){
-//        assertThatThrownBy(() -> categoryService.modifyCategory(999L, new CategoryRequestDto("전자기기")))
-//                .isInstanceOf(NotFoundException.class)
-//                .hasMessage("Not Found Category");
-//    }
+    @Test
+    @DisplayName("카테고리 수정 테스트")
+    @Transactional
+    void modifyCategoryTest_EditName(){
+        Categories food = categoriesRepository.save(new Categories("식품"));
+        Categories electronicDevice = categoriesRepository.save(new Categories("전자기기"));
+        Categories modifyCategory = categoriesRepository.save(new Categories("반찬류"));
+        food.addChild(modifyCategory);
+
+        CategoryResponseDto categoryResponseDto =
+                categoryService.modifyCategory(modifyCategory.getId(), new CategoryRequestDto("노트북", electronicDevice.getId()));
+
+        assertThat(categoryResponseDto.getName()).isEqualTo("노트북");
+        assertThat(food.getChildren().size()).isEqualTo(0);
+        assertThat(food.getChildren()).doesNotContain(modifyCategory);
+        assertThat(electronicDevice.getChildren().size()).isEqualTo(1);
+        assertThat(electronicDevice.getChildren()).contains(modifyCategory);
+    }
+
+    @Test
+    @DisplayName("카테고리 수정 테스트 - 카테고리를 찾을 수 없을때")
+    void modifyCategoryTest_NotFoundCategory(){
+        assertThatThrownBy(() -> categoryService.modifyCategory(999L, new CategoryRequestDto("전자기기", null)))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage("Not Found Category");
+    }
+
+    @Test
+    @DisplayName("카테고리 수정 테스트 - 부모 카테고리를 찾을 수 없을때")
+    void modifyCategoryTest_NotFoundParentCategory(){
+        Categories modifyCategory = categoriesRepository.save(new Categories("반찬류"));
+        assertThatThrownBy(()-> categoryService.modifyCategory(modifyCategory.getId(), new CategoryRequestDto("노트북", 999L)))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage("Not Found Parent Category");
+    }
 
 //    @Test
 //    @DisplayName("카테고리 삭제 테스트")

@@ -43,4 +43,18 @@ public class Categories extends BaseEntity {
         children.remove(child);
         child.parent = null;
     }
+
+    public void modifyParent(Categories newParent){
+        if(newParent != null && newParent.equals(this)) {
+            throw new IllegalArgumentException("An item cannot be set as its own parent");
+        }
+        if (this.parent != null){
+            this.parent.getChildren().remove(this);
+        }
+        this.parent = newParent;
+
+        if(newParent != null){
+            newParent.getChildren().add(this);
+        }
+    }
 }
