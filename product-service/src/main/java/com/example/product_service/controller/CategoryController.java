@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 @RestController
 @RequiredArgsConstructor
@@ -37,8 +38,12 @@ public class CategoryController {
     }
 
     @PatchMapping("/{categoryId}")
-    public ResponseEntity<CategoryResponseDto> updateCategoryName(@PathVariable("categoryId") Long categoryId,
+    public ResponseEntity<CategoryResponseDto> updateCategory(@PathVariable("categoryId") Long categoryId,
                                                                   @RequestBody @Validated CategoryRequestDto categoryRequestDto){
+
+        if(Objects.equals(categoryId, categoryRequestDto.getParentId())){
+            throw new BadRequestException("An item cannot be set as its own parent");
+        }
         CategoryResponseDto category = categoryService.modifyCategory(categoryId, categoryRequestDto);
         return ResponseEntity.ok(category);
     }
@@ -56,11 +61,17 @@ public class CategoryController {
     }
 
     @GetMapping
-    public ResponseEntity<PageDto<CategoryResponseDto>> getCategories(
+    public ResponseEntity<PageDto<CategoryResponseDto>> getMainCategoryList(
             @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.ASC) Pageable pageable){
 
         sortFieldValidator.validateSortFields(pageable.getSort(), Categories.class);
-        PageDto<CategoryResponseDto> pageDto = categoryService.getCategoryList(pageable);
+        PageDto<CategoryResponseDto> pageDto = categoryService.getRootCategories(pageable);
         return ResponseEntity.ok(pageDto);
+    }
+
+    @GetMapping("/{categoryId}/child")
+    public ResponseEntity<List<CategoryResponseDto>> getChildByCategoryId(@PathVariable("categoryId") Long categoryId){
+        List<CategoryResponseDto> childCategories = categoryService.getChildCategories(categoryId);
+        return ResponseEntity.ok(childCategories);
     }
 }
