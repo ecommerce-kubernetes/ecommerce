@@ -29,6 +29,8 @@ public class QCategories extends EntityPathBase<Categories> {
     //inherited
     public final DateTimePath<java.time.LocalDateTime> createAt = _super.createAt;
 
+    public final StringPath iconUrl = createString("iconUrl");
+
     public final NumberPath<Long> id = createNumber("id", Long.class);
 
     public final StringPath name = createString("name");

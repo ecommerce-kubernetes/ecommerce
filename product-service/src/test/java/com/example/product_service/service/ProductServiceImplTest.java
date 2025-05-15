@@ -61,8 +61,8 @@ class ProductServiceImplTest {
 
     @BeforeEach
     void initDB(){
-        food = categoriesRepository.save(new Categories("식품"));
-        electronicDevices = categoriesRepository.save(new Categories("전자기기"));
+        food = categoriesRepository.save(new Categories("식품", "http://test.jpg"));
+        electronicDevices = categoriesRepository.save(new Categories("전자기기", "http://test2.jpg"));
     }
 
     @AfterEach

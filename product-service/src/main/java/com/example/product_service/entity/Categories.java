@@ -21,7 +21,8 @@ public class Categories extends BaseEntity {
 
     @Setter
     private String name;
-
+    @Setter
+    private String iconUrl;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id")
@@ -30,8 +31,9 @@ public class Categories extends BaseEntity {
     @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Categories> children = new ArrayList<>();
 
-    public Categories(String name){
+    public Categories(String name, String iconUrl){
         this.name = name;
+        this.iconUrl = iconUrl;
     }
 
     public void addChild(Categories child){

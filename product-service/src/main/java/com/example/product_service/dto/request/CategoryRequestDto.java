@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.validator.constraints.URL;
 
 @Getter
 @Setter
@@ -14,4 +15,7 @@ public class CategoryRequestDto {
     @NotBlank(message = "Category name is required")
     private String name;
     private Long parentId;
+
+    @URL(message = "Invalid ImgUrl")
+    private String iconUrl;
 }

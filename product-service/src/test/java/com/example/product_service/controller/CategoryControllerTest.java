@@ -9,12 +9,13 @@ import com.example.product_service.service.CategoryService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -22,6 +23,7 @@ import org.springframework.test.web.servlet.ResultActions;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -44,8 +46,8 @@ class CategoryControllerTest {
     @Test
     @DisplayName("Category 생성 테스트")
     void createCategoryTest() throws Exception {
-        CategoryRequestDto categoryRequestDto = new CategoryRequestDto("식품",null);
-        CategoryResponseDto categoryResponseDto = new CategoryResponseDto(1L, "식품" ,null);
+        CategoryRequestDto categoryRequestDto = new CategoryRequestDto("식품",null, "http://test.jpg");
+        CategoryResponseDto categoryResponseDto = new CategoryResponseDto(1L, "식품", null, "http://test.jpg");
 
         when(categoryService.saveCategory(any(CategoryRequestDto.class))).thenReturn(categoryResponseDto);
 
@@ -61,12 +63,15 @@ class CategoryControllerTest {
                 .andExpect(jsonPath("$.parentId").value(categoryRequestDto.getParentId()));
     }
 
-    @Test
+    @ParameterizedTest
+    @MethodSource("provideInvalidCategoryRequests")
     @DisplayName("Category 생성 테스트 - 입력값 검증 테스트")
-    void createCategoryTest_InvalidCategoryRequestDto() throws Exception {
-        CategoryRequestDto categoryRequestDto = new CategoryRequestDto();
+    void createCategoryTest_InvalidCategoryRequestDto(CategoryRequestDto requestDto,
+                                                      String expectedMessage,
+                                                      String expectedFieldName,
+                                                      String expectedErrorMessage) throws Exception {
 
-        String requestBody = mapper.writeValueAsString(categoryRequestDto);
+        String requestBody = mapper.writeValueAsString(requestDto);
         ResultActions perform = mockMvc.perform(post("/categories")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody));
@@ -74,17 +79,17 @@ class CategoryControllerTest {
         perform
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("BadRequest"))
-                .andExpect(jsonPath("$.message").value("Validation Error"))
-                .andExpect(jsonPath("$.errors[*].fieldName").value("name"))
-                .andExpect(jsonPath("$.errors[*].message").value("Category name is required"))
+                .andExpect(jsonPath("$.message").value(expectedMessage))
+                .andExpect(jsonPath("$.errors[*].fieldName").value(expectedFieldName))
+                .andExpect(jsonPath("$.errors[*].message").value(expectedErrorMessage))
                 .andExpect(jsonPath("$.path").value("/categories"));
     }
 
     @Test
     @DisplayName("Category 변경 테스트")
     void updateCategoryTest() throws Exception {
-        CategoryRequestDto categoryRequestDto = new CategoryRequestDto("노트북", 2L);
-        CategoryResponseDto categoryResponseDto = new CategoryResponseDto(1L, "노트북", 2L);
+        CategoryRequestDto categoryRequestDto = new CategoryRequestDto("노트북", 2L, "http://test.jpg");
+        CategoryResponseDto categoryResponseDto = new CategoryResponseDto(1L, "노트북", 2L, "http://test.jpg");
         String requestBody = mapper.writeValueAsString(categoryRequestDto);
 
         when(categoryService.modifyCategory(any(Long.class), any(CategoryRequestDto.class))).thenReturn(categoryResponseDto);
@@ -97,13 +102,18 @@ class CategoryControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(categoryResponseDto.getId()))
                 .andExpect(jsonPath("$.name").value(categoryRequestDto.getName()))
-                .andExpect(jsonPath("$.parentId").value(categoryRequestDto.getParentId()));
+                .andExpect(jsonPath("$.parentId").value(categoryRequestDto.getParentId()))
+                .andExpect(jsonPath("$.iconUrl").value(categoryRequestDto.getIconUrl()));
     }
 
-    @Test
+    @ParameterizedTest
+    @MethodSource("provideInvalidCategoryRequests")
     @DisplayName("Category 변경 테스트 - 입력값 검증 테스트")
-    void updateCategoryTest_InvalidCategoryRequestDto() throws Exception {
-        CategoryRequestDto categoryRequestDto = new CategoryRequestDto();
+    void updateCategoryTest_InvalidCategoryRequestDto(CategoryRequestDto categoryRequestDto,
+                                                      String expectedMessage,
+                                                      String expectedFieldName,
+                                                      String expectedErrorMessage) throws Exception {
+
         String requestBody = mapper.writeValueAsString(categoryRequestDto);
 
         ResultActions perform = mockMvc.perform(patch("/categories/1")
@@ -113,16 +123,16 @@ class CategoryControllerTest {
         perform
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("BadRequest"))
-                .andExpect(jsonPath("$.message").value("Validation Error"))
-                .andExpect(jsonPath("$.errors[*].fieldName").value("name"))
-                .andExpect(jsonPath("$.errors[*].message").value("Category name is required"))
+                .andExpect(jsonPath("$.message").value(expectedMessage))
+                .andExpect(jsonPath("$.errors[*].fieldName").value(expectedFieldName))
+                .andExpect(jsonPath("$.errors[*].message").value(expectedErrorMessage))
                 .andExpect(jsonPath("$.path").value("/categories/1"));
     }
 
     @Test
     @DisplayName("Category 변경 테스트 - parentId 와 변경 하는 CategoryId 가 같은경우")
     void updateCategoryTest_categoryIdEqualToParentId() throws Exception {
-        CategoryRequestDto categoryRequestDto = new CategoryRequestDto("노트북", 1L);
+        CategoryRequestDto categoryRequestDto = new CategoryRequestDto("노트북", 1L, "http://test.jpg");
         String requestBody = mapper.writeValueAsString(categoryRequestDto);
 
         ResultActions perform = mockMvc.perform(patch("/categories/1")
@@ -139,7 +149,7 @@ class CategoryControllerTest {
     @Test
     @DisplayName("Category 수정 테스트 - 카테고리를 찾을 수 없는 경우")
     void updateCategoryNameTest_NotFoundCategory() throws Exception {
-        CategoryRequestDto categoryRequestDto = new CategoryRequestDto("전자기기", null);
+        CategoryRequestDto categoryRequestDto = new CategoryRequestDto("전자기기", null, "http://test.jpg");
         String requestBody = mapper.writeValueAsString(categoryRequestDto);
 
         doThrow(new NotFoundException("Not Found Category"))
@@ -186,7 +196,7 @@ class CategoryControllerTest {
     @Test
     @DisplayName("카테고리 단일 조회 테스트")
     void getCategoryByIdTest() throws Exception {
-        CategoryResponseDto categoryResponseDto = new CategoryResponseDto(1L, "식품", 2L);
+        CategoryResponseDto categoryResponseDto = new CategoryResponseDto(1L, "식품", 2L, null);
 
         when(categoryService.getCategoryDetails(anyLong())).thenReturn(categoryResponseDto);
 
@@ -196,7 +206,8 @@ class CategoryControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(categoryResponseDto.getId()))
                 .andExpect(jsonPath("$.name").value(categoryResponseDto.getName()))
-                .andExpect(jsonPath("$.parentId").value(categoryResponseDto.getParentId()));
+                .andExpect(jsonPath("$.parentId").value(categoryResponseDto.getParentId()))
+                .andExpect(jsonPath("$.iconUrl").value(categoryResponseDto.getIconUrl()));
     }
 
     @Test
@@ -214,13 +225,13 @@ class CategoryControllerTest {
     }
 
     @Test
-    @DisplayName("카테고리 리스트 조회 테스트")
+    @DisplayName("대표 카테고리 리스트 조회 테스트")
     void getMainCategoryListTest() throws Exception {
         List<CategoryResponseDto> content = new ArrayList<>();
-        content.add(new CategoryResponseDto(1L, "식품", null));
-        content.add(new CategoryResponseDto(2L, "전자기기", null));
-        content.add(new CategoryResponseDto(3L, "의류", null));
-        content.add(new CategoryResponseDto(4L, "가구", null));
+        content.add(new CategoryResponseDto(1L, "식품", null, "http://test1.jpg"));
+        content.add(new CategoryResponseDto(2L, "전자기기", null,"http://test2.jpg"));
+        content.add(new CategoryResponseDto(3L, "의류", null,"http://test3.jpg"));
+        content.add(new CategoryResponseDto(4L, "가구", null,"http://test4.jpg"));
 
         PageDto<CategoryResponseDto> pageDto = new PageDto<>(
                 content,
@@ -248,9 +259,9 @@ class CategoryControllerTest {
     @DisplayName("자식 카테고리 리스트 조회")
     void getChildByCategoryIdTest() throws Exception {
         List<CategoryResponseDto> responseList = new ArrayList<>();
-        responseList.add(new CategoryResponseDto(5L, "반찬류", 1L));
-        responseList.add(new CategoryResponseDto(6L, "냉장", 2L));
-        responseList.add(new CategoryResponseDto(6L, "냉동", 3L));
+        responseList.add(new CategoryResponseDto(5L, "반찬류", 1L, "http://test1.jpg"));
+        responseList.add(new CategoryResponseDto(6L, "냉장", 2L, "http://test2.jpg"));
+        responseList.add(new CategoryResponseDto(6L, "냉동", 3L, "http://test3.jpg"));
 
         when(categoryService.getChildCategories(anyLong())).thenReturn(responseList);
 
@@ -258,5 +269,22 @@ class CategoryControllerTest {
 
         perform
                 .andExpect(status().isOk());
+    }
+
+    private static Stream<Arguments> provideInvalidCategoryRequests(){
+        return Stream.of(
+                Arguments.of(
+                        new CategoryRequestDto(),
+                        "Validation Error",
+                        "name",
+                        "Category name is required"
+                ),
+                Arguments.of(
+                        new CategoryRequestDto("Category", null, "test.jpg"),
+                        "Validation Error",
+                        "iconUrl",
+                        "Invalid ImgUrl"
+                )
+        );
     }
 }

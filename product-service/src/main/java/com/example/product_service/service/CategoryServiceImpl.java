@@ -25,7 +25,7 @@ public class CategoryServiceImpl implements CategoryService{
     @Override
     @Transactional
     public CategoryResponseDto saveCategory(CategoryRequestDto categoryRequestDto) {
-        Categories category = new Categories(categoryRequestDto.getName());
+        Categories category = new Categories(categoryRequestDto.getName(), categoryRequestDto.getIconUrl());
         Long parentId = categoryRequestDto.getParentId();
 
         // parentId null 이 아닐시 부모카테고리 child 에 추가
@@ -47,6 +47,12 @@ public class CategoryServiceImpl implements CategoryService{
                 .orElseThrow(() -> new NotFoundException("Not Found Category"));
 
         category.setName(categoryRequestDto.getName());
+
+        // iconUrl 이 null 이 아닌경우 변경
+        if(categoryRequestDto.getIconUrl() != null){
+            category.setIconUrl(categoryRequestDto.getIconUrl());
+        }
+
         Long parentId = categoryRequestDto.getParentId();
         // parentId null 이 아닐시 부모카테고리 변경
         if(parentId != null){
