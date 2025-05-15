@@ -13,6 +13,5 @@ import lombok.Setter;
 public class CategoryRequestDto {
     @NotBlank(message = "Category name is required")
     private String name;
-
     private Long parentId;
 }
