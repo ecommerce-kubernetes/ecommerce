@@ -26,14 +26,12 @@ public class ImageController {
             throw new BadRequestException("BAD REQUEST");
         }
         String[] validateImage = {"jpg","jpeg","png"};
-        String[] validateDirectory = {"products", "reviews"};
         String fileName = file.getOriginalFilename();
-
+        if (directory == null || !isValidateDirectory(directory)){
+            throw new BadRequestException("Invalid directory");
+        }
         if (fileName == null || !isValidImageExtension(fileName, validateImage)) {
             throw new BadRequestException("Invalid extension");
-        }
-        if (directory == null || !isValidateDirectory(directory, validateDirectory)){
-            throw new BadRequestException("Invalid directory");
         }
         String imageUrl = imageService.saveImage(file, directory);
         ImageURLDto imageURLDto = new ImageURLDto(imageUrl);
@@ -56,8 +54,8 @@ public class ImageController {
         return Arrays.asList(allowedExtensions).contains(extension);
     }
 
-    private boolean isValidateDirectory(String directory, String[] allowedDirectories){
-        return Arrays.asList(allowedDirectories).contains(directory);
+    private boolean isValidateDirectory(String directory){
+        return directory.matches("^[A-Za-z]+$");
     }
 }
 
