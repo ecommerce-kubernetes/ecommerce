@@ -270,6 +270,37 @@ class CategoryControllerTest {
                 .andExpect(status().isOk());
     }
 
+    @Test
+    @DisplayName("특정 카테고리의 루트 조회")
+    void getRootByCategoryIdTest() throws Exception {
+        CategoryResponseDto categoryResponseDto = new CategoryResponseDto(1L, "식품", null, "http://test.jpg");
+
+        when(categoryService.getRootCategoryDetailsOf(anyLong())).thenReturn(categoryResponseDto);
+
+        ResultActions perform = mockMvc.perform(get("/categories/6/root"));
+
+        perform
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(categoryResponseDto.getId()))
+                .andExpect(jsonPath("$.name").value(categoryResponseDto.getName()))
+                .andExpect(jsonPath("$.parentId").value(categoryResponseDto.getParentId()))
+                .andExpect(jsonPath("$.iconUrl").value(categoryResponseDto.getIconUrl()));
+    }
+
+    @Test
+    @DisplayName("특정 카테고리 루트 조회 _ 카테고리 NotFound")
+    void getRootByCategoryIdTest_NotFound() throws Exception {
+        doThrow(new NotFoundException("Not Found Category")).when(categoryService).getRootCategoryDetailsOf(anyLong());
+
+        ResultActions perform = mockMvc.perform(get("/categories/999/root"));
+
+        perform
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("NotFound"))
+                .andExpect(jsonPath("$.message").value("Not Found Category"))
+                .andExpect(jsonPath("$.path").value("/categories/999/root"));
+    }
+
     private static Stream<Arguments> provideInvalidCategoryRequests(){
         return Stream.of(
                 Arguments.of(

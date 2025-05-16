@@ -108,4 +108,16 @@ public class CategoryServiceImpl implements CategoryService{
         List<Categories> childList = categoriesRepository.findChildById(categoryId);
         return childList.stream().map(CategoryResponseDto::new).toList();
     }
+
+    @Override
+    public CategoryResponseDto getRootCategoryDetailsOf(Long categoryId) {
+        Categories category = categoriesRepository.findByIdWithParent(categoryId)
+                .orElseThrow(() -> new NotFoundException("Not Found Category"));
+
+        while (category.getParent() != null) {
+            category = category.getParent();
+        }
+
+        return new CategoryResponseDto(category);
+    }
 }

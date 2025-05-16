@@ -75,4 +75,10 @@ public class CategoryController {
         List<CategoryResponseDto> childCategories = categoryService.getChildCategories(categoryId);
         return ResponseEntity.ok(childCategories);
     }
+
+    @GetMapping("/{categoryId}/root")
+    public ResponseEntity<CategoryResponseDto> getRootByCategoryId(@PathVariable("categoryId") Long categoryId) {
+        CategoryResponseDto rootCategoryDetailsOf = categoryService.getRootCategoryDetailsOf(categoryId);
+        return ResponseEntity.ok(rootCategoryDetailsOf);
+    }
 }

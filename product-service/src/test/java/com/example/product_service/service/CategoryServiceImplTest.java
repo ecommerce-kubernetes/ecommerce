@@ -224,4 +224,35 @@ class CategoryServiceImplTest {
         assertThat(childCategories.size()).isEqualTo(3);
     }
 
+    @Test
+    @DisplayName("특정 카테고리의 루트 카테고리 조회")
+    @Transactional
+    void getRootCategoryDetailsOfTest(){
+        Categories parent = categoriesRepository.save(new Categories("식품", null));
+        Categories sub1 = categoriesRepository.save(new Categories("반찬류", null));
+        Categories sub2 = categoriesRepository.save(new Categories("냉동", null));
+        parent.addChild(sub1);
+        parent.addChild(sub2);
+
+
+        Categories sub1_sub1 = categoriesRepository.save(new Categories("김", null));
+
+        sub1.addChild(sub1_sub1);
+
+        CategoryResponseDto rootCategoryResponse = categoryService.getRootCategoryDetailsOf(sub1_sub1.getId());
+
+        assertThat(rootCategoryResponse.getId()).isEqualTo(parent.getId());
+        assertThat(rootCategoryResponse.getName()).isEqualTo(parent.getName());
+        assertThat(rootCategoryResponse.getParentId()).isEqualTo(null);
+        assertThat(rootCategoryResponse.getIconUrl()).isEqualTo(parent.getIconUrl());
+    }
+
+    @Test
+    @DisplayName("특정 카테고리의 루트 카테고리 조회_카테고리를 찾을 수 없을경우")
+    @Transactional
+    void getRootCategoryDetailsOfTest_NotFoundCategory(){
+        assertThatThrownBy(() -> categoryService.getRootCategoryDetailsOf(999L))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage("Not Found Category");
+    }
 }

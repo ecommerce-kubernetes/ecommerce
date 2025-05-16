@@ -16,4 +16,5 @@ public interface CategoryService {
     CategoryResponseDto getCategoryDetails(Long categoryId);
     PageDto<CategoryResponseDto> getRootCategories(Pageable pageable);
     List<CategoryResponseDto> getChildCategories(Long categoryId);
+    CategoryResponseDto getRootCategoryDetailsOf(Long categoryId);
 }
