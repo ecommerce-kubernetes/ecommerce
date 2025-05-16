@@ -6,6 +6,9 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
@@ -21,4 +24,19 @@ public class Reviews extends BaseEntity {
     private Long userId;
     private int rating;
     private String content;
+
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "review", cascade = CascadeType.ALL, orphanRemoval = true)
+    List<ReviewImages> images = new ArrayList<>();
+
+    public Reviews(Products product, Long userId, int rating, String content){
+        this.product = product;
+        this.userId = userId;
+        this.rating = rating;
+        this.content = content;
+    }
+
+    public void addImage(ReviewImages image){
+        this.images.add(image);
+        image.setReview(this);
+    }
 }

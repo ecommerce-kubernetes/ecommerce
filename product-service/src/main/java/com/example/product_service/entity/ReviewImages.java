@@ -19,4 +19,12 @@ public class ReviewImages extends BaseEntity {
     private Reviews review;
 
     private String imageUrl;
+
+    public ReviewImages(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
+    void setReview(Reviews review) {
+        this.review = review;
+    }
 }
