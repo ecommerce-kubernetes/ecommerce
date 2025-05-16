@@ -2,6 +2,7 @@ package com.example.product_service.controller;
 
 import com.example.product_service.controller.util.SortFieldValidator;
 import com.example.product_service.dto.request.CategoryRequestDto;
+import com.example.product_service.dto.request.ModifyCategoryRequestDto;
 import com.example.product_service.dto.response.CategoryResponseDto;
 import com.example.product_service.dto.response.PageDto;
 import com.example.product_service.entity.Categories;
@@ -39,12 +40,12 @@ public class CategoryController {
 
     @PatchMapping("/{categoryId}")
     public ResponseEntity<CategoryResponseDto> updateCategory(@PathVariable("categoryId") Long categoryId,
-                                                                  @RequestBody @Validated CategoryRequestDto categoryRequestDto){
+                                                                  @RequestBody @Validated ModifyCategoryRequestDto modifyCategoryRequestDto){
 
-        if(Objects.equals(categoryId, categoryRequestDto.getParentId())){
+        if(Objects.equals(categoryId, modifyCategoryRequestDto.getParentId())){
             throw new BadRequestException("An item cannot be set as its own parent");
         }
-        CategoryResponseDto category = categoryService.modifyCategory(categoryId, categoryRequestDto);
+        CategoryResponseDto category = categoryService.modifyCategory(categoryId, modifyCategoryRequestDto);
         return ResponseEntity.ok(category);
     }
 

@@ -1,0 +1,18 @@
+package com.example.product_service.dto.request;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.hibernate.validator.constraints.URL;
+
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+public class ModifyCategoryRequestDto {
+    private String name;
+    private Long parentId;
+    @URL(message = "Invalid ImgUrl")
+    private String iconUrl;
+}

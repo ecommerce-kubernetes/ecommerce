@@ -2,6 +2,7 @@ package com.example.product_service.controller;
 
 import com.example.product_service.controller.util.SortFieldValidator;
 import com.example.product_service.dto.request.CategoryRequestDto;
+import com.example.product_service.dto.request.ModifyCategoryRequestDto;
 import com.example.product_service.dto.response.CategoryResponseDto;
 import com.example.product_service.dto.response.PageDto;
 import com.example.product_service.exception.NotFoundException;
@@ -88,11 +89,11 @@ class CategoryControllerTest {
     @Test
     @DisplayName("Category 변경 테스트")
     void updateCategoryTest() throws Exception {
-        CategoryRequestDto categoryRequestDto = new CategoryRequestDto("노트북", 2L, "http://test.jpg");
+        ModifyCategoryRequestDto categoryRequestDto = new ModifyCategoryRequestDto("노트북", 2L, "http://test.jpg");
         CategoryResponseDto categoryResponseDto = new CategoryResponseDto(1L, "노트북", 2L, "http://test.jpg");
         String requestBody = mapper.writeValueAsString(categoryRequestDto);
 
-        when(categoryService.modifyCategory(any(Long.class), any(CategoryRequestDto.class))).thenReturn(categoryResponseDto);
+        when(categoryService.modifyCategory(any(Long.class), any(ModifyCategoryRequestDto.class))).thenReturn(categoryResponseDto);
 
         ResultActions perform = mockMvc.perform(patch("/categories/1")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -106,15 +107,13 @@ class CategoryControllerTest {
                 .andExpect(jsonPath("$.iconUrl").value(categoryRequestDto.getIconUrl()));
     }
 
-    @ParameterizedTest
-    @MethodSource("provideInvalidCategoryRequests")
+    @Test
     @DisplayName("Category 변경 테스트 - 입력값 검증 테스트")
-    void updateCategoryTest_InvalidCategoryRequestDto(CategoryRequestDto categoryRequestDto,
-                                                      String expectedMessage,
-                                                      String expectedFieldName,
-                                                      String expectedErrorMessage) throws Exception {
+    void updateCategoryTest_InvalidCategoryRequestDto() throws Exception {
 
-        String requestBody = mapper.writeValueAsString(categoryRequestDto);
+        ModifyCategoryRequestDto modifyCategoryRequestDto = new ModifyCategoryRequestDto(null, null, "text1");
+
+        String requestBody = mapper.writeValueAsString(modifyCategoryRequestDto);
 
         ResultActions perform = mockMvc.perform(patch("/categories/1")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -123,9 +122,9 @@ class CategoryControllerTest {
         perform
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("BadRequest"))
-                .andExpect(jsonPath("$.message").value(expectedMessage))
-                .andExpect(jsonPath("$.errors[*].fieldName").value(expectedFieldName))
-                .andExpect(jsonPath("$.errors[*].message").value(expectedErrorMessage))
+                .andExpect(jsonPath("$.message").value("Validation Error"))
+                .andExpect(jsonPath("$.errors[*].fieldName").value("iconUrl"))
+                .andExpect(jsonPath("$.errors[*].message").value("Invalid ImgUrl"))
                 .andExpect(jsonPath("$.path").value("/categories/1"));
     }
 
@@ -149,11 +148,11 @@ class CategoryControllerTest {
     @Test
     @DisplayName("Category 수정 테스트 - 카테고리를 찾을 수 없는 경우")
     void updateCategoryNameTest_NotFoundCategory() throws Exception {
-        CategoryRequestDto categoryRequestDto = new CategoryRequestDto("전자기기", null, "http://test.jpg");
+        ModifyCategoryRequestDto categoryRequestDto = new ModifyCategoryRequestDto("전자기기", null, "http://test.jpg");
         String requestBody = mapper.writeValueAsString(categoryRequestDto);
 
         doThrow(new NotFoundException("Not Found Category"))
-                .when(categoryService).modifyCategory(any(Long.class), any(CategoryRequestDto.class));
+                .when(categoryService).modifyCategory(any(Long.class), any(ModifyCategoryRequestDto.class));
 
         ResultActions perform = mockMvc.perform(patch("/categories/1")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -287,4 +286,5 @@ class CategoryControllerTest {
                 )
         );
     }
+
 }

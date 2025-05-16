@@ -1,6 +1,7 @@
 package com.example.product_service.service;
 
 import com.example.product_service.dto.request.CategoryRequestDto;
+import com.example.product_service.dto.request.ModifyCategoryRequestDto;
 import com.example.product_service.dto.response.CategoryResponseDto;
 import com.example.product_service.dto.response.PageDto;
 import com.example.product_service.entity.Categories;
@@ -42,18 +43,22 @@ public class CategoryServiceImpl implements CategoryService{
 
     @Override
     @Transactional
-    public CategoryResponseDto modifyCategory(Long categoryId, CategoryRequestDto categoryRequestDto) {
+    public CategoryResponseDto modifyCategory(Long categoryId, ModifyCategoryRequestDto requestDto) {
         Categories category = categoriesRepository.findById(categoryId)
                 .orElseThrow(() -> new NotFoundException("Not Found Category"));
 
-        category.setName(categoryRequestDto.getName());
 
-        // iconUrl 이 null 이 아닌경우 변경
-        if(categoryRequestDto.getIconUrl() != null){
-            category.setIconUrl(categoryRequestDto.getIconUrl());
+        // name 이 null 이 아닌 경우 변경
+        if(requestDto.getName() != null){
+            category.setName(requestDto.getName());
         }
 
-        Long parentId = categoryRequestDto.getParentId();
+        // iconUrl 이 null 이 아닌경우 변경
+        if(requestDto.getIconUrl() != null){
+            category.setIconUrl(requestDto.getIconUrl());
+        }
+
+        Long parentId = requestDto.getParentId();
         // parentId null 이 아닐시 부모카테고리 변경
         if(parentId != null){
             Categories newParent = categoriesRepository.findById(parentId).orElseThrow(
