@@ -3,6 +3,7 @@ package com.example.product_service.service;
 import com.example.product_service.dto.request.ReviewRequestDto;
 import com.example.product_service.dto.response.ReviewResponseDto;
 import com.example.product_service.entity.Products;
+import com.example.product_service.entity.Reviews;
 import com.example.product_service.repository.ProductsRepository;
 import com.example.product_service.repository.ReviewsRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -45,6 +46,7 @@ public class ReviewServiceImplTest {
 
         ReviewRequestDto reviewRequestDto =
                 new ReviewRequestDto(
+                        1L,
                         4,
                         "맛있습니다",
                         List.of("http://reviewImg1.jpg", "http://reviewImg2.jpg")

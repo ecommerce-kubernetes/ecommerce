@@ -16,6 +16,8 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ReviewRequestDto {
+    @NotNull(message = "orderId is required")
+    private Long orderId;
     @NotNull(message = "rating is required")
     private int rating;
     @NotBlank(message = "content is Not Blank")
