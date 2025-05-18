@@ -22,7 +22,7 @@ public class AddressEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private UserEntity user;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String name;
 
     @Column(nullable = false)
@@ -33,6 +33,18 @@ public class AddressEntity {
 
     @Column(nullable = false)
     private boolean defaultAddress;
+
+    public void changeName(String name) {
+        this.name = name;
+    }
+
+    public void changeAddress(String address) {
+        this.address = address;
+    }
+
+    public void changeDetails(String details) {
+        this.details = details;
+    }
 
     public void changeDefaultAddress(boolean isDefault) {
         this.defaultAddress = isDefault;

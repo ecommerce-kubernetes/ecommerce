@@ -1,17 +1,12 @@
 package com.example.userservice.vo;
 
-
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class RequestUser {
-
-    @NotBlank(message = "이메일은 필수 입력값입니다.")
-    @Email(message = "올바른 이메일 형식을 입력해주세요.")
-    private String email;
+public class RequestEditUser {
 
     @NotBlank(message = "비밀번호는 필수 입력값입니다.")
     @Pattern(
@@ -20,7 +15,18 @@ public class RequestUser {
     )
     private String pwd;
 
-    @NotBlank(message = "이메일은 필수 입력값입니다.")
+    @NotBlank(message = "닉네임은 필수 입력값입니다.")
     @Size(min = 2, max = 12, message = "닉네임은 2글자~12글자 사이여야 합니다.")
     private String name;
+
+    @NotNull(message = "생년월일은 필수 입력값입니다.")
+    @Pattern(regexp = "\\d{4}-\\d{2}-\\d{2}", message = "생년월일 형식은 yyyy-MM-dd이어야 합니다.")
+    private String birthDate;
+
+    @NotNull(message = "성별은 필수 입력값입니다.")
+    @Pattern(regexp = "MALE|FEMALE", message = "성별은 MALE 또는 FEMALE이어야 합니다.")
+    private String gender;
+
+    @NotBlank(message = "전화번호는 필수 입력값입니다.")
+    private String phoneNumber;
 }

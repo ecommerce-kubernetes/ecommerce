@@ -2,7 +2,6 @@ package com.example.userservice.vo;
 
 import lombok.Builder;
 import lombok.Data;
-import lombok.Getter;
 
 @Data
 @Builder

@@ -15,7 +15,7 @@ public class RequestAddress {
     @NotBlank(message = "주소는 필수입니다.")
     private String address;
 
-    private String details;  // 상세 주소 (optional)
+    private String details;
 
     @NotNull(message = "기본 배송지 여부는 필수입니다.")
     private boolean defaultAddress;
