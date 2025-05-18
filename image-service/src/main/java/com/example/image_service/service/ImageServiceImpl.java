@@ -39,8 +39,12 @@ public class ImageServiceImpl implements ImageService{
     public String saveImage(MultipartFile file, String directory) {
         String storeFileName = createStoreFileName(directory, file.getOriginalFilename());
         String imageUrl = createImageUrl(storeFileName);
+        File uploadPath = new File(UPLOAD_ROOT + storeFileName);
+        File parentDir = uploadPath.getParentFile();
+        if(!parentDir.exists()){
+            parentDir.mkdirs();
+        }
         try{
-            File uploadPath = new File(UPLOAD_ROOT +storeFileName);
             file.transferTo(uploadPath);
         }catch (IOException e){
             throw new RuntimeException(e);
@@ -100,7 +104,7 @@ public class ImageServiceImpl implements ImageService{
     private String createStoreFileName(String directory, String originFileName){
         String uuid = UUID.randomUUID().toString();
         String ext = extractExt(originFileName);
-        return "/" + directory + "/" +uuid + "." + ext;
+        return directory + "/" +uuid + "." + ext;
     }
 
     private String extractExt(String originFileName){

@@ -7,6 +7,7 @@ import com.querydsl.core.types.dsl.*;
 import com.querydsl.core.types.PathMetadata;
 import javax.annotation.processing.Generated;
 import com.querydsl.core.types.Path;
+import com.querydsl.core.types.dsl.PathInits;
 
 
 /**
@@ -17,9 +18,13 @@ public class QCategories extends EntityPathBase<Categories> {
 
     private static final long serialVersionUID = 2016575277L;
 
+    private static final PathInits INITS = PathInits.DIRECT2;
+
     public static final QCategories categories = new QCategories("categories");
 
     public final com.example.product_service.entity.base.QBaseEntity _super = new com.example.product_service.entity.base.QBaseEntity(this);
+
+    public final ListPath<Categories, QCategories> children = this.<Categories, QCategories>createList("children", Categories.class, QCategories.class, PathInits.DIRECT2);
 
     //inherited
     public final DateTimePath<java.time.LocalDateTime> createAt = _super.createAt;
@@ -28,19 +33,30 @@ public class QCategories extends EntityPathBase<Categories> {
 
     public final StringPath name = createString("name");
 
+    public final QCategories parent;
+
     //inherited
     public final DateTimePath<java.time.LocalDateTime> updateAt = _super.updateAt;
 
     public QCategories(String variable) {
-        super(Categories.class, forVariable(variable));
+        this(Categories.class, forVariable(variable), INITS);
     }
 
     public QCategories(Path<? extends Categories> path) {
-        super(path.getType(), path.getMetadata());
+        this(path.getType(), path.getMetadata(), PathInits.getFor(path.getMetadata(), INITS));
     }
 
     public QCategories(PathMetadata metadata) {
-        super(Categories.class, metadata);
+        this(metadata, PathInits.getFor(metadata, INITS));
+    }
+
+    public QCategories(PathMetadata metadata, PathInits inits) {
+        this(Categories.class, metadata, inits);
+    }
+
+    public QCategories(Class<? extends Categories> type, PathMetadata metadata, PathInits inits) {
+        super(type, metadata, inits);
+        this.parent = inits.isInitialized("parent") ? new QCategories(forProperty("parent"), inits.get("parent")) : null;
     }
 
 }

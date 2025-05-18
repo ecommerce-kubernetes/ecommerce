@@ -1,10 +1,10 @@
 package com.example.product_service.dto.response;
 
 import com.example.product_service.entity.Categories;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -13,9 +13,11 @@ import lombok.Setter;
 public class CategoryResponseDto {
     private Long id;
     private String name;
+    private Long parentId;
 
     public CategoryResponseDto(Categories category){
         this.id = category.getId();
         this.name = category.getName();
+        this.parentId = category.getParent() == null ? null : category.getParent().getId();
     }
 }
