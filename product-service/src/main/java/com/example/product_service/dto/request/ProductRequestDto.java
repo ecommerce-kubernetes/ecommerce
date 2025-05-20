@@ -28,7 +28,5 @@ public class ProductRequestDto {
 
     @NotEmpty(message = "At least one image URL is required")
     private List<@NotBlank @URL(message = "Invalid image URL") String> imageUrls;
-//    @Valid
-//    @NotNull(message = "Product image are required")
-//    private ProductImageRequestDto productImageRequestDto;
+
 }

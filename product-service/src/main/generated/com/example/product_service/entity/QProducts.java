@@ -39,6 +39,8 @@ public class QProducts extends EntityPathBase<Products> {
 
     public final NumberPath<Integer> price = createNumber("price", Integer.class);
 
+    public final ListPath<Reviews, QReviews> reviews = this.<Reviews, QReviews>createList("reviews", Reviews.class, QReviews.class, PathInits.DIRECT2);
+
     public final NumberPath<Integer> stockQuantity = createNumber("stockQuantity", Integer.class);
 
     //inherited
@@ -62,7 +64,7 @@ public class QProducts extends EntityPathBase<Products> {
 
     public QProducts(Class<? extends Products> type, PathMetadata metadata, PathInits inits) {
         super(type, metadata, inits);
-        this.category = inits.isInitialized("category") ? new QCategories(forProperty("category")) : null;
+        this.category = inits.isInitialized("category") ? new QCategories(forProperty("category"), inits.get("category")) : null;
     }
 
 }
