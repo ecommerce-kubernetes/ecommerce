@@ -23,8 +23,6 @@ public class CompactProductResponseDto {
         this.id = product.getId();
         this.name = product.getName();
         this.description = product.getDescription();
-        this.price = product.getPrice();
-        this.stockQuantity = product.getStockQuantity();
         this.categoryId = product.getCategory().getId();
         this.mainImgUrl = mainImgUrl;
     }

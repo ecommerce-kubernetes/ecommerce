@@ -27,8 +27,6 @@ public class ProductResponseDto {
         this.id = product.getId();
         this.name = product.getName();
         this.description = product.getDescription();
-        this.price = product.getPrice();
-        this.stockQuantity = product.getStockQuantity();
         this.categoryId = product.getCategory().getId();
         this.images = product.getImages().stream()
                 .sorted(Comparator.comparing(ProductImages::getSortOrder))

@@ -4,6 +4,7 @@ import com.example.product_service.common.advice.dto.DetailError;
 import com.example.product_service.common.advice.dto.ErrorResponse;
 import com.example.product_service.common.advice.dto.ValidationErrorResponse;
 import com.example.product_service.exception.BadRequestException;
+import com.example.product_service.exception.DuplicateResourceException;
 import com.example.product_service.exception.NotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
@@ -62,5 +63,17 @@ public class ControllerAdvice {
                 request.getRequestURI()
         );
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
+
+    @ExceptionHandler(DuplicateResourceException.class)
+    public ResponseEntity<ErrorResponse> conflictExceptionHandler(HttpServletRequest request, DuplicateResourceException e){
+        String timestamp = LocalDateTime.now().toString();
+        ErrorResponse errorResponse = new ErrorResponse(
+                "Conflict",
+                e.getMessage(),
+                timestamp,
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
     }
 }

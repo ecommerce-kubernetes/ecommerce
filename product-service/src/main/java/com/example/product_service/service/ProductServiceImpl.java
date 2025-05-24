@@ -3,6 +3,7 @@ package com.example.product_service.service;
 import com.example.product_service.dto.KafkaDeletedProduct;
 import com.example.product_service.dto.KafkaOrderItemDto;
 import com.example.product_service.dto.request.*;
+import com.example.product_service.dto.request.product.ProductRequestDto;
 import com.example.product_service.dto.response.CompactProductResponseDto;
 import com.example.product_service.dto.response.PageDto;
 import com.example.product_service.dto.response.ProductResponseDto;
@@ -51,8 +52,6 @@ public class ProductServiceImpl implements ProductService{
         Products products = new Products(
                 productRequestDto.getName(),
                 productRequestDto.getDescription(),
-                productRequestDto.getPrice(),
-                productRequestDto.getStockQuantity(),
                 category
         );
 
@@ -82,7 +81,6 @@ public class ProductServiceImpl implements ProductService{
         Products product = productsRepository.findById(productId)
                 .orElseThrow(() -> new NotFoundException("Not Found Product"));
         int updateStockQuantity = stockQuantityRequestDto.getUpdateStockQuantity();
-        product.setStockQuantity(updateStockQuantity);
 
         return new ProductResponseDto(product);
     }
@@ -135,13 +133,6 @@ public class ProductServiceImpl implements ProductService{
             Products products = productsRepository.findById(orderedItem.getProductId())
                     .orElseThrow(() -> new NotFoundException("Not Found Product"));
 
-            int currentStock = products.getStockQuantity();
-            int orderQuantity = orderedItem.getQuantity();
-            if(currentStock < orderQuantity) {
-                throw new InsufficientStockException("Not Enough  stock for product with id: " + products.getId());
-            }
-
-            products.decrementQuantity(orderedItem.getQuantity());
         }
     }
 

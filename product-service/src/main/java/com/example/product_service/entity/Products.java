@@ -20,9 +20,6 @@ public class Products extends BaseEntity {
     private Long id;
     private String name;
     private String description;
-    private int price;
-    @Setter
-    private int stockQuantity;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
     private Categories category;
@@ -30,11 +27,9 @@ public class Products extends BaseEntity {
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProductImages> images = new ArrayList<>();
 
-    public Products(String name, String description, int price, int stockQuantity, Categories category){
+    public Products(String name, String description, Categories category){
         this.name = name;
         this.description = description;
-        this.price = price;
-        this.stockQuantity = stockQuantity;
         this.category = category;
     }
 
@@ -42,7 +37,4 @@ public class Products extends BaseEntity {
         this.getImages().remove(productImages);
     }
 
-    public void decrementQuantity(int quantity){
-        this.stockQuantity = this.stockQuantity - quantity;
-    }
 }

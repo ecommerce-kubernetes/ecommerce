@@ -1,7 +1,9 @@
-package com.example.product_service.dto.request;
+package com.example.product_service.dto.request.product;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,14 +21,13 @@ public class ProductRequestDto {
     private String name;
     @NotBlank(message = "Product description is required")
     private String description;
-    @Min(value = 0, message = "Product price must not be less than 0") @Max(value = 10000000, message = "Product price must not be greater than 10,000,000")
-    private int price;
-    @Min(value = 0, message = "Product stockQuantity must not be less than 0") @Max(value = 100, message = "Product stockQuantity must not be greater than 100")
-    private int stockQuantity;
     @NotNull(message = "Product categoryId is required")
     private Long categoryId;
-
     @NotEmpty(message = "At least one image URL is required")
     private List<@NotBlank @URL(message = "Invalid image URL") String> imageUrls;
 
+    private List<Long> optionTypeIds;
+
+    @NotEmpty(message = "Variants is not empty") @Valid
+    private List<VariantsRequestDto> variants;
 }

@@ -32,10 +32,10 @@ public class ReviewServiceImplTest {
 
     private Products apple;
 
-    @BeforeEach
-    void initProductData(){
-        apple = productsRepository.save(new Products("청송사과", "청송사과 3EA", 3000, 10, null));
-    }
+//    @BeforeEach
+//    void initProductData(){
+//        apple = productsRepository.save(new Products("청송사과", "청송사과 3EA", 3000, 10, null));
+//    }
 
     @Test
     @Transactional
