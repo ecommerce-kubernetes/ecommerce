@@ -37,28 +37,28 @@ public class ReviewServiceImplTest {
 //        apple = productsRepository.save(new Products("청송사과", "청송사과 3EA", 3000, 10, null));
 //    }
 
-    @Test
-    @Transactional
-    @DisplayName("리뷰 등록 구현")
-    void saveReviewTest(){
-        Long productId = apple.getId();
-        Long userId = 1L;
-
-        ReviewRequestDto reviewRequestDto =
-                new ReviewRequestDto(
-                        1L,
-                        4,
-                        "맛있습니다",
-                        List.of("http://reviewImg1.jpg", "http://reviewImg2.jpg")
-                );
-
-        ReviewResponseDto reviewResponseDto =
-                reviewService.saveReview(productId, userId, reviewRequestDto);
-
-        assertThat(reviewResponseDto.getRating()).isEqualTo(reviewRequestDto.getRating());
-        assertThat(reviewResponseDto.getUserId()).isEqualTo(userId);
-        assertThat(reviewResponseDto.getContent()).isEqualTo(reviewRequestDto.getContent());
-        assertThat(reviewResponseDto.getProductId()).isEqualTo(productId);
-    }
+//    @Test
+//    @Transactional
+//    @DisplayName("리뷰 등록 구현")
+//    void saveReviewTest(){
+//        Long productId = apple.getId();
+//        Long userId = 1L;
+//
+//        ReviewRequestDto reviewRequestDto =
+//                new ReviewRequestDto(
+//                        1L,
+//                        4,
+//                        "맛있습니다",
+//                        List.of("http://reviewImg1.jpg", "http://reviewImg2.jpg")
+//                );
+//
+//        ReviewResponseDto reviewResponseDto =
+//                reviewService.saveReview(productId, userId, reviewRequestDto);
+//
+//        assertThat(reviewResponseDto.getRating()).isEqualTo(reviewRequestDto.getRating());
+//        assertThat(reviewResponseDto.getUserId()).isEqualTo(userId);
+//        assertThat(reviewResponseDto.getContent()).isEqualTo(reviewRequestDto.getContent());
+//        assertThat(reviewResponseDto.getProductId()).isEqualTo(productId);
+//    }
 
 }

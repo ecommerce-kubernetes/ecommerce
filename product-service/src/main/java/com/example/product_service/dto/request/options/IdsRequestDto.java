@@ -12,7 +12,7 @@ import java.util.List;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class OptionTypeRequestIdsDto {
+public class IdsRequestDto {
 
     @NotEmpty(message = "ids must not be empty")
     private List<Long> ids;

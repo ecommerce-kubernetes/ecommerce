@@ -1,11 +1,12 @@
 package com.example.product_service.service;
 
-import com.example.product_service.dto.request.options.OptionTypeRequestIdsDto;
+import com.example.product_service.dto.request.options.IdsRequestDto;
 import com.example.product_service.dto.request.options.OptionTypesRequestDto;
-import com.example.product_service.dto.request.options.OptionTypesResponseDto;
+import com.example.product_service.dto.response.options.OptionTypesResponseDto;
 import com.example.product_service.dto.response.PageDto;
+import com.example.product_service.dto.response.options.OptionValuesResponseDto;
 import com.example.product_service.entity.OptionTypes;
-import com.example.product_service.exception.BadRequestException;
+import com.example.product_service.entity.OptionValues;
 import com.example.product_service.exception.DuplicateResourceException;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.repository.OptionTypesRepository;
@@ -82,7 +83,7 @@ public class OptionTypeServiceImpl implements OptionTypeService {
 
     @Override
     @Transactional
-    public void batchDeleteOptionTypes(OptionTypeRequestIdsDto requestDto) {
+    public void batchDeleteOptionTypes(IdsRequestDto requestDto) {
         List<Long> ids = new ArrayList<>(requestDto.getIds());
         List<OptionTypes> optionTypes = optionTypesRepository.findByIdIn(ids);
 
@@ -95,4 +96,14 @@ public class OptionTypeServiceImpl implements OptionTypeService {
         optionTypesRepository.deleteAll(optionTypes);
     }
 
+    @Override
+    public List<OptionValuesResponseDto> getOptionValuesByTypeId(Long optionTypeId) {
+        OptionTypes optionTypes = optionTypesRepository.findByIdWithOptionValues(optionTypeId)
+                .orElseThrow(() -> new NotFoundException("Not Found OptionTypes"));
+
+        List<OptionValues> optionValues = optionTypes.getOptionValues();
+
+        return optionValues.stream().map(OptionValuesResponseDto::new)
+                .toList();
+    }
 }

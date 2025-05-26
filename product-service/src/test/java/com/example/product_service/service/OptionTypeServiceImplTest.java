@@ -1,14 +1,17 @@
 package com.example.product_service.service;
 
-import com.example.product_service.dto.request.options.OptionTypeRequestIdsDto;
+import com.example.product_service.dto.request.options.IdsRequestDto;
 import com.example.product_service.dto.request.options.OptionTypesRequestDto;
-import com.example.product_service.dto.request.options.OptionTypesResponseDto;
+import com.example.product_service.dto.response.options.OptionTypesResponseDto;
 import com.example.product_service.dto.response.PageDto;
+import com.example.product_service.dto.response.options.OptionValuesResponseDto;
 import com.example.product_service.entity.OptionTypes;
+import com.example.product_service.entity.OptionValues;
 import com.example.product_service.exception.DuplicateResourceException;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.repository.OptionTypesRepository;
-import org.assertj.core.api.Assertions;
+import com.example.product_service.repository.OptionValuesRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -28,12 +31,15 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.*;
 
 @SpringBootTest
+@Slf4j
 class OptionTypeServiceImplTest {
 
     @Autowired
     OptionTypeService optionTypeService;
     @Autowired
     OptionTypesRepository optionTypesRepository;
+    @Autowired
+    OptionValuesRepository optionValuesRepository;
 
     @Test
     @DisplayName("OptionTypes 저장 테스트")
@@ -145,15 +151,19 @@ class OptionTypeServiceImplTest {
     void deleteOptionTypesTest(){
 
         //초기 데이터
-        OptionTypes saved = optionTypesRepository.save(new OptionTypes("사이즈"));
+        OptionTypes type = new OptionTypes("사이즈");
+        OptionValues value = new OptionValues("XL", type);
+        type.addOptionValue(value);
+        OptionTypes merged = optionTypesRepository.save(type);
+        Long typeId = merged.getId();
+        Long valueId = merged.getOptionValues().get(0).getId();
 
-        // Test
-        optionTypeService.deleteOptionTypes(saved.getId());
+        //Test
+        optionTypeService.deleteOptionTypes(typeId);
 
-        // 검증
-        Optional<OptionTypes> deletedOptionTypes = optionTypesRepository.findById(saved.getId());
-
-        assertThat(deletedOptionTypes).isEmpty();
+        //검증
+        assertThat(optionTypesRepository.findById(typeId)).isEmpty();
+        assertThat(optionValuesRepository.findById(valueId)).isEmpty();
     }
 
     @Test
@@ -178,8 +188,8 @@ class OptionTypeServiceImplTest {
         OptionTypes saved3 = optionTypesRepository.save(new OptionTypes("테스트 옵션3"));
 
         // 요청 request
-        OptionTypeRequestIdsDto requestDto =
-                new OptionTypeRequestIdsDto(List.of(saved1.getId(), saved2.getId()));
+        IdsRequestDto requestDto =
+                new IdsRequestDto(List.of(saved1.getId(), saved2.getId()));
 
 
         //Test
@@ -205,13 +215,47 @@ class OptionTypeServiceImplTest {
         OptionTypes saved2 = optionTypesRepository.save(new OptionTypes("테스트 옵션2"));
 
         // request 없는 id 포함
-        OptionTypeRequestIdsDto requestDto =
-                new OptionTypeRequestIdsDto(List.of(saved1.getId(), saved2.getId(), 999L));
+        IdsRequestDto requestDto =
+                new IdsRequestDto(List.of(saved1.getId(), saved2.getId(), 999L));
 
         // 검증
         assertThatThrownBy(() -> optionTypeService.batchDeleteOptionTypes(requestDto))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage("Not Found OptionType ids : [999]");
+    }
+
+    @Test
+    @DisplayName("OptionValues 조회")
+    @Transactional
+    void getOptionValuesByTypeId(){
+        //초기데이터
+        OptionTypes optionTypes = new OptionTypes("사이즈");
+        OptionValues optionValues1 = new OptionValues("XL", optionTypes);
+        OptionValues optionValues2 = new OptionValues("L", optionTypes);
+        optionTypes.addOptionValue(optionValues1);
+        optionTypes.addOptionValue(optionValues2);
+
+        OptionTypes saved = optionTypesRepository.save(optionTypes);
+
+        List<OptionValuesResponseDto> result = optionTypeService.getOptionValuesByTypeId(saved.getId());
+
+        assertThat(result).hasSize(2);
+
+        assertThat(result)
+                .extracting(OptionValuesResponseDto::getOptionValue)
+                .containsExactlyInAnyOrder("XL", "L");
+
+        assertThat(result)
+                .allSatisfy(dto -> assertThat(dto.getOptionTypeId()).isEqualTo(saved.getId()));
+    }
+
+    @Test
+    @DisplayName("OptionValues 조회_OptionType 을 찾을 수 없음")
+    @Transactional
+    void getOptionValuesByTypeId_NotFoundOptionTypes(){
+        assertThatThrownBy(() -> optionTypeService.getOptionValuesByTypeId(999L))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage("Not Found OptionTypes");
     }
 
     private static Stream<Arguments> provideGetOptionTypeRequest(){

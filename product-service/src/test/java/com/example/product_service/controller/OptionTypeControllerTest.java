@@ -1,10 +1,12 @@
 package com.example.product_service.controller;
 
 import com.example.product_service.common.advice.dto.DetailError;
-import com.example.product_service.dto.request.options.OptionTypeRequestIdsDto;
+import com.example.product_service.controller.util.ControllerResponseValidator;
+import com.example.product_service.dto.request.options.IdsRequestDto;
 import com.example.product_service.dto.request.options.OptionTypesRequestDto;
-import com.example.product_service.dto.request.options.OptionTypesResponseDto;
+import com.example.product_service.dto.response.options.OptionTypesResponseDto;
 import com.example.product_service.dto.response.PageDto;
+import com.example.product_service.dto.response.options.OptionValuesResponseDto;
 import com.example.product_service.exception.DuplicateResourceException;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.service.OptionTypeService;
@@ -15,16 +17,14 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
-import java.lang.reflect.Field;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -34,12 +34,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(OptionTypeController.class)
+@Import(ControllerResponseValidator.class)
 @Slf4j
 class OptionTypeControllerTest {
     @Autowired
     MockMvc mockMvc;
     @MockitoBean
     OptionTypeService optionTypeService;
+    @Autowired
+    ControllerResponseValidator validator;
 
     ObjectMapper mapper = new ObjectMapper();
 
@@ -79,7 +82,8 @@ class OptionTypeControllerTest {
             - id 필드
             - name 필드
          */
-        validResponse(perform,OptionTypesResponseDto.class, responseDto);
+        validator.validResponse(perform,OptionTypesResponseDto.class, responseDto);
+
     }
 
     @Test
@@ -109,7 +113,7 @@ class OptionTypeControllerTest {
             - 에러 필드
             - 요청 URL
          */
-        validInvalidFields(perform, HttpStatus.SC_BAD_REQUEST, BAD_REQUEST, BAD_REQUEST_MESSAGE, List.of(detailError), requestUrl);
+        validator.validInvalidFields(perform, HttpStatus.SC_BAD_REQUEST, BAD_REQUEST, BAD_REQUEST_MESSAGE, List.of(detailError), requestUrl);
 
     }
 
@@ -136,7 +140,7 @@ class OptionTypeControllerTest {
                         .content(content));
 
         //2. 검증
-        verifyErrorResponse(perform, HttpStatus.SC_CONFLICT, CONFLICT, expectedMessage, requestUrl);
+        validator.verifyErrorResponse(perform, HttpStatus.SC_CONFLICT, CONFLICT, expectedMessage, requestUrl);
     }
 
     @Test
@@ -191,7 +195,7 @@ class OptionTypeControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(content));
         //검증
-        validResponse(perform, OptionTypesResponseDto.class, responseDto);
+        validator.validResponse(perform, OptionTypesResponseDto.class, responseDto);
     }
 
     @Test
@@ -209,7 +213,7 @@ class OptionTypeControllerTest {
     }
 
     @Test
-    @DisplayName("OptionTypes 단일 삭제 테스트 _ optionType을 찾을 수 없을때")
+    @DisplayName("OptionTypes 단일 삭제 테스트 _ optionType 을 찾을 수 없을때")
     void deleteOptionTypeTest_NotFoundOptionTypes() throws Exception {
         Long targetId = 999L;
         String requestUrl = "/option-types/" + targetId;
@@ -219,7 +223,7 @@ class OptionTypeControllerTest {
 
         ResultActions perform = mockMvc.perform(delete(requestUrl));
 
-        verifyErrorResponse(perform, HttpStatus.SC_NOT_FOUND, "NotFound",
+        validator.verifyErrorResponse(perform, HttpStatus.SC_NOT_FOUND, "NotFound",
                 "Not Found OptionTypes", requestUrl);
     }
 
@@ -227,12 +231,12 @@ class OptionTypeControllerTest {
     @DisplayName("OptionTypes 배치 삭제 테스트")
     void optionTypeBatchDeleteTest() throws Exception {
         String requestUrl = "/option-types/batch-delete";
-        OptionTypeRequestIdsDto requestIdsDto = new OptionTypeRequestIdsDto(List.of(1L, 2L));
+        IdsRequestDto requestIdsDto = new IdsRequestDto(List.of(1L, 2L));
 
         String content = mapper.writeValueAsString(requestIdsDto);
 
         //optionTypeService 모킹
-        doNothing().when(optionTypeService).batchDeleteOptionTypes(any(OptionTypeRequestIdsDto.class));
+        doNothing().when(optionTypeService).batchDeleteOptionTypes(any(IdsRequestDto.class));
 
         ResultActions perform = mockMvc.perform(post(requestUrl)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -246,62 +250,37 @@ class OptionTypeControllerTest {
     @DisplayName("OptionTypes 배치 삭제 테스트 _ 존재하지 않는 id 포함시")
     void optionTypesBatchDeleteTest_NotFoundIds() throws Exception {
         String requestUrl = "/option-types/batch-delete";
-        OptionTypeRequestIdsDto requestIdsDto = new OptionTypeRequestIdsDto(List.of(1L, 2L));
+        IdsRequestDto requestIdsDto = new IdsRequestDto(List.of(1L, 2L));
 
         String content = mapper.writeValueAsString(requestIdsDto);
 
         //optionTypeService 모킹
         doThrow(new NotFoundException("Not Found OptionType ids : [1]"))
-                .when(optionTypeService).batchDeleteOptionTypes(any(OptionTypeRequestIdsDto.class));
+                .when(optionTypeService).batchDeleteOptionTypes(any(IdsRequestDto.class));
 
         ResultActions perform =
                 mockMvc.perform(post(requestUrl).contentType(MediaType.APPLICATION_JSON).content(content));
 
-        verifyErrorResponse(perform, HttpStatus.SC_NOT_FOUND,
+        validator.verifyErrorResponse(perform, HttpStatus.SC_NOT_FOUND,
                 "NotFound",
                 "Not Found OptionType ids : [1]",
                 requestUrl);
     }
 
-    private void verifyErrorResponse(ResultActions perform,
-                                     int expectedStatus,
-                                     String expectedError,
-                                     String expectedMessage,
-                                     String requestUrl) throws Exception {
-        perform
-                .andExpect(status().is(expectedStatus))
-                .andExpect(jsonPath("$.error").value(expectedError))
-                .andExpect(jsonPath("$.message").value(expectedMessage))
-                .andExpect(jsonPath("$.path").value(requestUrl));
+    @Test
+    @DisplayName("OptionValues 조회")
+    void getValuesByTypeTest() throws Exception {
+        Long optionTypeId = 1L;
+        String requestUrl = "/option-types/"+optionTypeId+"/option-values";
 
-    }
-    private void validInvalidFields(ResultActions perform,
-                                    int expectedStatus,
-                                    String expectedError,
-                                    String expectedMessage,
-                                    List<DetailError> expectedDetail,
-                                    String requestUrl) throws Exception {
-        perform
-                .andExpect(status().is(expectedStatus))
-                .andExpect(jsonPath("$.error").value(expectedError))
-                .andExpect(jsonPath("$.message").value(expectedMessage))
-                .andExpect(jsonPath("$.path").value(requestUrl));
+        List<OptionValuesResponseDto> responseDto = List.of(new OptionValuesResponseDto(1L, "XL", optionTypeId),
+                new OptionValuesResponseDto(2L, "L", optionTypeId));
 
-        for (DetailError detailError : expectedDetail) {
-            perform
-                    .andExpect(jsonPath("$.errors[*].fieldName").value(detailError.getFieldName()))
-                    .andExpect(jsonPath("$.errors[*].message").value(detailError.getMessage()));
-        }
+        when(optionTypeService.getOptionValuesByTypeId(anyLong())).thenReturn(responseDto);
+
+        ResultActions perform = mockMvc.perform(get(requestUrl));
+
+        validator.validResponse(perform, OptionValuesResponseDto.class, responseDto);
     }
 
-    private void validResponse(ResultActions perform ,Class<?> responseClass, Object verifyResponse) throws Exception {
-        Field[] declaredFields = responseClass.getDeclaredFields();
-
-        for (Field field : declaredFields) {
-            field.setAccessible(true);
-            String fieldName = field.getName();
-            Object expectedValue = field.get(verifyResponse);
-            perform.andExpect(jsonPath("$." + fieldName).value(expectedValue));
-        }
-    }
 }

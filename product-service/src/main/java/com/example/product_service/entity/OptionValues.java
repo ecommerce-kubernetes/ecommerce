@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -17,5 +18,15 @@ public class OptionValues {
     @JoinColumn(name = "option_type_id")
     private OptionTypes optionType;
 
-    private String value;
+    @Setter
+    private String optionValue;
+
+    protected void setOptionType(OptionTypes optionType){
+        this.optionType = optionType;
+    }
+
+    public OptionValues(String optionValue, OptionTypes optionType){
+        this.optionValue = optionValue;
+        this.optionType = optionType;
+    }
 }

@@ -1,4 +1,4 @@
-package com.example.product_service.dto.request.options;
+package com.example.product_service.dto.response.options;
 
 import com.example.product_service.entity.OptionTypes;
 import lombok.AllArgsConstructor;

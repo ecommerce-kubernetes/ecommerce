@@ -7,6 +7,7 @@ import com.querydsl.core.types.dsl.*;
 import com.querydsl.core.types.PathMetadata;
 import javax.annotation.processing.Generated;
 import com.querydsl.core.types.Path;
+import com.querydsl.core.types.dsl.PathInits;
 
 
 /**
@@ -22,6 +23,8 @@ public class QOptionTypes extends EntityPathBase<OptionTypes> {
     public final NumberPath<Long> id = createNumber("id", Long.class);
 
     public final StringPath name = createString("name");
+
+    public final ListPath<OptionValues, QOptionValues> optionValues = this.<OptionValues, QOptionValues>createList("optionValues", OptionValues.class, QOptionValues.class, PathInits.DIRECT2);
 
     public QOptionTypes(String variable) {
         super(OptionTypes.class, forVariable(variable));

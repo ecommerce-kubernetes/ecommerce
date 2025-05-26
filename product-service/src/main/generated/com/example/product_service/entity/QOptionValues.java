@@ -26,7 +26,7 @@ public class QOptionValues extends EntityPathBase<OptionValues> {
 
     public final QOptionTypes optionType;
 
-    public final StringPath value = createString("value");
+    public final StringPath optionValue = createString("optionValue");
 
     public QOptionValues(String variable) {
         this(OptionValues.class, forVariable(variable), INITS);
