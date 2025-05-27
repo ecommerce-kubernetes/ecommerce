@@ -59,4 +59,8 @@ public class Categories extends BaseEntity {
             newParent.getChildren().add(this);
         }
     }
+
+    public boolean isLeaf(){
+        return this.children.isEmpty();
+    }
 }

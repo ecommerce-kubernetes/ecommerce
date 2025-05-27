@@ -1,4 +1,4 @@
-package com.example.product_service.dto.response;
+package com.example.product_service.dto.response.product;
 
 import com.example.product_service.entity.ProductImages;
 import lombok.AllArgsConstructor;

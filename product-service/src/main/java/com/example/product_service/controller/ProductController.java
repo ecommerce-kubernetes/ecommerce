@@ -5,7 +5,7 @@ import com.example.product_service.dto.request.*;
 import com.example.product_service.dto.request.product.ProductRequestDto;
 import com.example.product_service.dto.response.CompactProductResponseDto;
 import com.example.product_service.dto.response.PageDto;
-import com.example.product_service.dto.response.ProductResponseDto;
+import com.example.product_service.dto.response.product.ProductResponseDto;
 import com.example.product_service.entity.Products;
 import com.example.product_service.service.ProductService;
 import lombok.RequiredArgsConstructor;

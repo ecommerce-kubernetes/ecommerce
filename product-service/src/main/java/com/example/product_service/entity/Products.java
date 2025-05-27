@@ -27,14 +27,43 @@ public class Products extends BaseEntity {
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProductImages> images = new ArrayList<>();
 
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ProductOptionTypes> productOptionTypes = new ArrayList<>();
+
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ProductVariants> productVariants = new ArrayList<>();
+
     public Products(String name, String description, Categories category){
         this.name = name;
         this.description = description;
         this.category = category;
     }
 
-    public void deleteImage(ProductImages productImages){
-        this.getImages().remove(productImages);
+    public void addImage(String imageUrl, int sortOrder){
+        ProductImages image = new ProductImages(this, imageUrl, sortOrder);
+        images.add(image);
+    }
+
+    public void removeImage(ProductImages image) {
+        images.remove(image);
+        image.setProduct(null);
+    }
+
+    public void addProductOptionTypes(OptionTypes optionTypes, int priority, boolean active){
+        ProductOptionTypes productOptionType =
+                new ProductOptionTypes(this, optionTypes, priority, active);
+
+        this.productOptionTypes.add(productOptionType);
+    }
+
+    public void addProductVariants(String sku, int price, int stockQuantity, int discountValue,
+                                   List<OptionValues> optionValues){
+        ProductVariants productVariant = new ProductVariants(this, sku, price, stockQuantity, discountValue);
+
+        for (OptionValues optionValue : optionValues) {
+            productVariant.addProductVariantOption(optionValue);
+        }
+        this.productVariants.add(productVariant);
     }
 
 }

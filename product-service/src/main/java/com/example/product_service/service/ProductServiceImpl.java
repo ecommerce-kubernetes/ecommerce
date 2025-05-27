@@ -4,17 +4,14 @@ import com.example.product_service.dto.KafkaDeletedProduct;
 import com.example.product_service.dto.KafkaOrderItemDto;
 import com.example.product_service.dto.request.*;
 import com.example.product_service.dto.request.product.ProductRequestDto;
+import com.example.product_service.dto.request.product.VariantsRequestDto;
 import com.example.product_service.dto.response.CompactProductResponseDto;
 import com.example.product_service.dto.response.PageDto;
-import com.example.product_service.dto.response.ProductResponseDto;
-import com.example.product_service.entity.Categories;
-import com.example.product_service.entity.ProductImages;
-import com.example.product_service.entity.Products;
-import com.example.product_service.exception.InsufficientStockException;
+import com.example.product_service.dto.response.product.ProductResponseDto;
+import com.example.product_service.entity.*;
+import com.example.product_service.exception.BadRequestException;
 import com.example.product_service.exception.NotFoundException;
-import com.example.product_service.repository.CategoriesRepository;
-import com.example.product_service.repository.ProductImagesRepository;
-import com.example.product_service.repository.ProductsRepository;
+import com.example.product_service.repository.*;
 import com.example.product_service.service.client.ImageClientService;
 import com.example.product_service.service.kafka.KafkaProducer;
 import lombok.RequiredArgsConstructor;
@@ -24,8 +21,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -38,27 +35,88 @@ public class ProductServiceImpl implements ProductService{
     private final ProductsRepository productsRepository;
     private final CategoriesRepository categoriesRepository;
     private final ProductImagesRepository productImagesRepository;
+    private final OptionTypesRepository optionTypesRepository;
+    private final OptionValuesRepository optionValuesRepository;
     private final ImageClientService imageClientService;
     private final KafkaProducer kafkaProducer;
 
     @Override
     @Transactional
-    public ProductResponseDto saveProduct(ProductRequestDto productRequestDto) {
-        Long categoryId = productRequestDto.getCategoryId();
+    public ProductResponseDto saveProduct(ProductRequestDto requestDto) {
+        Long categoryId = requestDto.getCategoryId();
+        List<Long> requestedTypeIds = requestDto.getOptionTypeIds();
+        List<VariantsRequestDto> variants = requestDto.getVariants();
+        //Category 조회
         Categories category = categoriesRepository.findById(categoryId)
                 .orElseThrow(() -> new NotFoundException("Not Found Category"));
+        if(!category.isLeaf()){
+            throw new BadRequestException("category must be lowest level");
+        }
 
-        List<String> imageUrls = productRequestDto.getImageUrls();
-        Products products = new Products(
-                productRequestDto.getName(),
-                productRequestDto.getDescription(),
+        /*
+        * 상품 엔티티 생성
+        * - 이름,
+        * - 설명
+        * - 카테고리
+        * */
+        Products product = new Products(
+                requestDto.getName(),
+                requestDto.getDescription(),
                 category
         );
-
+        /*
+        * 상품 이미지 추가
+        * */
+        List<String> imageUrls = requestDto.getImageUrls();
         for(int i=0; i<imageUrls.size(); i++){
-            new ProductImages(products,imageUrls.get(i), i);
+            product.addImage(imageUrls.get(i), i);
         }
-        Products save = productsRepository.save(products);
+        /*
+            상품 옵션 추가
+            상품이 가질 수 있는 옵션
+            예) 의류 ( 색상, 사이즈 )
+         */
+        if(!requestedTypeIds.isEmpty()){
+            // 요청 OptionTypeId 존재 검증
+            List<OptionTypes> types = optionTypesRepository.findAllById(requestedTypeIds);
+            Set<Long> foundTypeIds = types.stream().map(OptionTypes::getId).collect(Collectors.toSet());
+            HashSet<Long> missingTypeIds = new HashSet<>(requestedTypeIds);
+            missingTypeIds.removeAll(foundTypeIds);
+            if(!missingTypeIds.isEmpty()){
+                throw new NotFoundException("Invalid OptionType Ids : " + missingTypeIds);
+            }
+            // OptionTypes 추가
+            for (int i = 0; i < types.size(); i++){
+                product.addProductOptionTypes(types.get(i), i, true);
+            }
+        }
+
+        /*
+        * 상품 Variants 추가
+        * 상품 세부 요소 정보
+        * 예) 의류
+        * sku(variant 키) : 상품 - 옵션1 - 옵션2 => 티셔츠-M 사이즈-파란색 (TS-M-BLUE)
+        * price(가격) : 해당 Variant 의 가격 => 3000원
+        * stockQuantity : 해당 Variant 의 수량 => 40개
+        * discountValue : 해당 Variant 의 할인율 => 10% 할인
+        * optionValue : 해당 Variant 옵션 값 (파란색, M 사이즈)
+        * */
+        for (VariantsRequestDto variant : variants) {
+            List<Long> requestedOptionValueIds = variant.getOptionValueIds();
+            List<OptionValues> optionValues = optionValuesRepository.findAllById(requestedOptionValueIds);
+            Set<Long> foundValueIds = optionValues.stream()
+                    .map(OptionValues::getId).collect(Collectors.toSet());
+
+            HashSet<Long> missingValueIds = new HashSet<>(requestedOptionValueIds);
+            missingValueIds.removeAll(foundValueIds);
+            if(!missingValueIds.isEmpty()){
+                throw new NotFoundException("Invalid OptionValue Ids : " +missingValueIds);
+            }
+            product.addProductVariants(variant.getSku(), variant.getPrice(), variant.getStockQuantity(),
+                    variant.getDiscountValue(), optionValues);
+        }
+
+        Products save = productsRepository.save(product);
         return new ProductResponseDto(save);
     }
 
@@ -150,7 +208,7 @@ public class ProductServiceImpl implements ProductService{
                 .orElse(-1) + 1;
 
         for (String url : imageUrls) {
-            new ProductImages(product, url, nextOrder++);
+//            new ProductImages(product, url, nextOrder++);
         }
         productsRepository.save(product);
         return new ProductResponseDto(product);
@@ -180,6 +238,6 @@ public class ProductServiceImpl implements ProductService{
         imageClientService.deleteImage(productImage.getImageUrl());
 
         Products product = productImage.getProduct();
-        product.deleteImage(productImage);
+//        product.deleteImage(productImage);
     }
 }

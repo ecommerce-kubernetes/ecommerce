@@ -26,6 +26,10 @@ public class ProductImages extends BaseEntity {
         this.product = product;
         this.imageUrl = imageUrl;
         this.sortOrder = sortOrder;
-        product.getImages().add(this);
     }
+
+    protected void setProduct(Products product){
+        this.product = product;
+    }
+
 }

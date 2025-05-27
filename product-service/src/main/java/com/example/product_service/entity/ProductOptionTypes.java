@@ -25,4 +25,15 @@ public class ProductOptionTypes extends BaseEntity {
     private int priority;
 
     private boolean active;
+
+    public ProductOptionTypes(Products product,OptionTypes optionType, int priority, boolean active){
+        this.product = product;
+        this.optionType = optionType;
+        this.priority = priority;
+        this.active = active;
+    }
+
+    protected void setProduct(Products product){
+        this.product = product;
+    }
 }

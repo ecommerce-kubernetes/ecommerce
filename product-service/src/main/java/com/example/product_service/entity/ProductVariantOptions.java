@@ -21,4 +21,9 @@ public class ProductVariantOptions extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "option_value_id")
     private OptionValues optionValue;
+
+    public ProductVariantOptions(ProductVariants productVariant, OptionValues optionValue){
+        this.productVariant = productVariant;
+        this.optionValue = optionValue;
+    }
 }
