@@ -30,6 +30,8 @@ public class QProductVariants extends EntityPathBase<ProductVariants> {
 
     public final QProducts product;
 
+    public final ListPath<ProductVariantOptions, QProductVariantOptions> productVariantOptions = this.<ProductVariantOptions, QProductVariantOptions>createList("productVariantOptions", ProductVariantOptions.class, QProductVariantOptions.class, PathInits.DIRECT2);
+
     public final StringPath sku = createString("sku");
 
     public final NumberPath<Integer> stockQuantity = createNumber("stockQuantity", Integer.class);

@@ -23,7 +23,7 @@ public class ProductVariants {
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "productVariant", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProductVariantOptions> productVariantOptions = new ArrayList<>();
 
-    private String sku;
+    private String sku; //TS-M-BLUE
     private int price;
     private int stockQuantity;
     private int discountValue;

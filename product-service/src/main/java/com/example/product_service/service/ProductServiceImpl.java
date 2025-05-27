@@ -46,11 +46,12 @@ public class ProductServiceImpl implements ProductService{
         Long categoryId = requestDto.getCategoryId();
         List<Long> requestedTypeIds = requestDto.getOptionTypeIds();
         List<VariantsRequestDto> variants = requestDto.getVariants();
-        //Category 조회
+        //카테고리 조회
         Categories category = categoriesRepository.findById(categoryId)
                 .orElseThrow(() -> new NotFoundException("Not Found Category"));
+        //상품에 설정하는 카테고리는 가장 하위여야함
         if(!category.isLeaf()){
-            throw new BadRequestException("category must be lowest level");
+            throw new BadRequestException("Category must be lowest level");
         }
 
         /*
