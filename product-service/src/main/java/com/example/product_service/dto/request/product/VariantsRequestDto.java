@@ -18,9 +18,13 @@ import java.util.List;
 public class VariantsRequestDto {
     @NotBlank(message = "sku is required")
     private String sku;
-    @NotNull(message = "price is required") @Min(0) @Max(50000000)
+    @NotNull(message = "price is required")
+    @Min(value = 1, message = "price must be greater than 0")
+    @Max(value = 50000000, message = "price must be less than 50000000")
     private int price;
-    @NotNull(message = "stockQuantity is required") @Min(0) @Max(1000)
+    @NotNull(message = "stockQuantity is required")
+    @Min(value = 1, message = "stockQuantity must be greater than 0")
+    @Max(value = 1000, message = "stockQuantity must be less than 1000")
     private int stockQuantity;
     private int discountValue;
 

@@ -32,13 +32,10 @@ class OptionValueControllerTest {
 
     @Autowired
     MockMvc mockMvc;
-
     @Autowired
     ControllerResponseValidator validator;
-
     @MockitoBean
     OptionValueService optionValueService;
-
     ObjectMapper mapper = new ObjectMapper();
 
     @Test

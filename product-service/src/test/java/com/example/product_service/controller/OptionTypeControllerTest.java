@@ -82,6 +82,7 @@ class OptionTypeControllerTest {
             - id 필드
             - name 필드
          */
+        perform.andExpect(status().isCreated());
         validator.validResponse(perform,OptionTypesResponseDto.class, responseDto);
 
     }
@@ -194,7 +195,9 @@ class OptionTypeControllerTest {
         ResultActions perform = mockMvc.perform(patch(requestUrl)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(content));
-        //검증
+
+        //Verifying
+        perform.andExpect(status().isOk());
         validator.validResponse(perform, OptionTypesResponseDto.class, responseDto);
     }
 
@@ -280,6 +283,7 @@ class OptionTypeControllerTest {
 
         ResultActions perform = mockMvc.perform(get(requestUrl));
 
+        perform.andExpect(status().isOk());
         validator.validResponse(perform, OptionValuesResponseDto.class, responseDto);
     }
 

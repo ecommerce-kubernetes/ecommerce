@@ -27,11 +27,10 @@ public class ProductController {
     private final ProductService productService;
     private final SortFieldValidator sortFieldValidator;
 
-    // TODO 가장 하위의 카테고리에 속하도록 변경
     @PostMapping
     public ResponseEntity<ProductResponseDto> createProduct(@RequestBody @Validated ProductRequestDto productRequestDto){
-        ProductResponseDto product = productService.saveProduct(productRequestDto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(product);
+        ProductResponseDto response = productService.saveProduct(productRequestDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @DeleteMapping("/{productId}")

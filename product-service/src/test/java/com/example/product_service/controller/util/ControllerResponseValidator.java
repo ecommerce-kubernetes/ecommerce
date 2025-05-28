@@ -8,7 +8,9 @@ import org.springframework.test.web.servlet.ResultActions;
 
 import java.lang.reflect.Field;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -49,28 +51,88 @@ public class ControllerResponseValidator {
     }
 
     public void validResponse(ResultActions perform,
-                               Class<?> responseClass,
-                               Object verifyResponse) throws Exception {
+                              Class<?> responseClass,
+                              Object verifyResponse) throws Exception {
+        // 루트가 컬렉션인 경우 각 요소를 인덱스별로 검증
         if (verifyResponse instanceof Collection) {
             Collection<?> list = (Collection<?>) verifyResponse;
             int idx = 0;
             for (Object item : list) {
-                validResponseObject(perform, item.getClass(), item, "$[" + (idx++) + "]");
+                validResponseObject(perform,
+                        item == null ? responseClass : item.getClass(),
+                        item,
+                        "$[" + (idx++) + "]",
+                        new HashSet<>());
             }
         } else {
-            validResponseObject(perform, responseClass, verifyResponse, "$" );
+            validResponseObject(perform,
+                    responseClass,
+                    verifyResponse,
+                    "$",
+                    new HashSet<>());
         }
     }
 
     private void validResponseObject(ResultActions perform,
                                      Class<?> responseClass,
                                      Object verifyResponse,
-                                     String jsonPathPrefix) throws Exception {
+                                     String jsonPathPrefix,
+                                     Set<Object> visited) throws Exception {
+        if (verifyResponse == null || visited.contains(verifyResponse)) {
+            return;
+        }
+        visited.add(verifyResponse);
+
         for (Field field : responseClass.getDeclaredFields()) {
             field.setAccessible(true);
-            String fieldName = field.getName();
             Object expectedValue = field.get(verifyResponse);
-            perform.andExpect(jsonPath(jsonPathPrefix + "." + fieldName).value(expectedValue));
+            String fieldName = field.getName();
+            String currentPath = jsonPathPrefix + "." + fieldName;
+
+            if (expectedValue == null) {
+                perform.andExpect(jsonPath(currentPath).doesNotExist());
+                continue;
+            }
+
+            if (expectedValue instanceof Collection) {
+                Collection<?> collection = (Collection<?>) expectedValue;
+                int idx = 0;
+                for (Object elem : collection) {
+                    String elementPath = currentPath + "[" + idx + "]";
+                    if (elem == null) {
+                        perform.andExpect(jsonPath(elementPath).doesNotExist());
+                    } else if (isPrimitiveOrWrapper(elem.getClass()) || elem instanceof String) {
+                        perform.andExpect(jsonPath(elementPath).value(elem));
+                    } else {
+                        validResponseObject(perform,
+                                elem.getClass(),
+                                elem,
+                                elementPath,
+                                visited);
+                    }
+                    idx++;
+                }
+            } else if (isPrimitiveOrWrapper(expectedValue.getClass()) || expectedValue instanceof String) {
+                perform.andExpect(jsonPath(currentPath).value(expectedValue));
+            } else {
+                validResponseObject(perform,
+                        expectedValue.getClass(),
+                        expectedValue,
+                        currentPath,
+                        visited);
+            }
         }
+    }
+
+    private boolean isPrimitiveOrWrapper(Class<?> clazz) {
+        return clazz.isPrimitive()
+                || clazz == Boolean.class
+                || clazz == Byte.class
+                || clazz == Character.class
+                || clazz == Short.class
+                || clazz == Integer.class
+                || clazz == Long.class
+                || clazz == Double.class
+                || clazz == Float.class;
     }
 }
