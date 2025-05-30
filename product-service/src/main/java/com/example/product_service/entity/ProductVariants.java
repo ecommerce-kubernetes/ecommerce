@@ -40,4 +40,9 @@ public class ProductVariants {
         ProductVariantOptions productVariantOption = new ProductVariantOptions(this, optionValue);
         this.productVariantOptions.add(productVariantOption);
     }
+
+    public int getDiscountPrice(){
+        int originPrice = this.price;
+        return Math.round(originPrice * (100 - discountValue)/ 100f);
+    }
 }

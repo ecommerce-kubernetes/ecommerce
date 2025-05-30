@@ -12,7 +12,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.List;
 
 
@@ -120,4 +119,16 @@ public class CategoryServiceImpl implements CategoryService{
 
         return new CategoryResponseDto(category);
     }
+
+    @Override
+    public Categories getByIdOrThrow(Long categoryId) {
+        return categoriesRepository.findById(categoryId)
+                .orElseThrow(()-> new NotFoundException("Not Found Category"));
+    }
+
+    @Override
+    public List<Long> getCategoryAndDescendantIds(Long categoryId) {
+        return categoriesRepository.findAllCategoryTreeIds(categoryId);
+    }
+
 }

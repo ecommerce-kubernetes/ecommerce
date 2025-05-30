@@ -8,6 +8,7 @@ import com.example.product_service.dto.request.product.VariantsRequestDto;
 import com.example.product_service.dto.response.CompactProductResponseDto;
 import com.example.product_service.dto.response.PageDto;
 import com.example.product_service.dto.response.product.ProductResponseDto;
+import com.example.product_service.dto.response.product.ProductSummaryDto;
 import com.example.product_service.entity.*;
 import com.example.product_service.exception.BadRequestException;
 import com.example.product_service.exception.NotFoundException;
@@ -21,9 +22,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -34,6 +33,7 @@ public class ProductServiceImpl implements ProductService{
 
     private final ProductsRepository productsRepository;
     private final CategoriesRepository categoriesRepository;
+    private final CategoryService categoryService;
     private final ProductImagesRepository productImagesRepository;
     private final OptionTypesRepository optionTypesRepository;
     private final OptionValuesRepository optionValuesRepository;
@@ -47,8 +47,7 @@ public class ProductServiceImpl implements ProductService{
         List<Long> requestedTypeIds = requestDto.getOptionTypeIds();
         List<VariantsRequestDto> variants = requestDto.getVariants();
         //카테고리 조회
-        Categories category = categoriesRepository.findById(categoryId)
-                .orElseThrow(() -> new NotFoundException("Not Found Category"));
+        Categories category = categoryService.getByIdOrThrow(categoryId);
         //상품에 설정하는 카테고리는 가장 하위여야함
         if(!category.isLeaf()){
             throw new BadRequestException("Category must be lowest level");
@@ -91,7 +90,7 @@ public class ProductServiceImpl implements ProductService{
                 product.addProductOptionTypes(types.get(i), i, true);
             }
         }
-
+        productsRepository.save(product);
         /*
         * 상품 Variants 추가
         * 상품 세부 요소 정보
@@ -102,6 +101,14 @@ public class ProductServiceImpl implements ProductService{
         * discountValue : 해당 Variant 의 할인율 => 10% 할인
         * optionValue : 해당 Variant 옵션 값 (파란색, M 사이즈)
         * */
+
+        // SKU 를 일정하게 생성하기 위해 <OptionTypeId, 우선순위 시퀀스> 로 Map을 생성
+        Map<Long, Integer> typeOrder = product.getProductOptionTypes().stream()
+                .collect(Collectors.toMap(
+                        pot -> pot.getOptionType().getId(),
+                        ProductOptionTypes::getPriority
+                ));
+
         for (VariantsRequestDto variant : variants) {
             List<Long> requestedOptionValueIds = variant.getOptionValueIds();
             List<OptionValues> optionValues = optionValuesRepository.findAllById(requestedOptionValueIds);
@@ -113,12 +120,32 @@ public class ProductServiceImpl implements ProductService{
             if(!missingValueIds.isEmpty()){
                 throw new NotFoundException("Invalid OptionValue Ids : " +missingValueIds);
             }
-            product.addProductVariants(variant.getSku(), variant.getPrice(), variant.getStockQuantity(),
+            //OptionValue 를 OptionType 우선순위에 맞게 정렬한 리스트
+            List<OptionValues> sortedValues = optionValues.stream()
+                    .sorted(Comparator.comparingInt(
+                            ov -> typeOrder.get(ov.getOptionType().getId())
+                    ))
+                    .toList();
+            //SKU 생성
+            String sku = buildSku(product.getId(), sortedValues);
+            product.addProductVariants(sku, variant.getPrice(), variant.getStockQuantity(),
                     variant.getDiscountValue(), optionValues);
         }
 
-        Products save = productsRepository.save(product);
-        return new ProductResponseDto(save);
+        return new ProductResponseDto(product);
+    }
+
+    @Override
+    public PageDto<ProductSummaryDto> getProductList(Pageable pageable, Long categoryId, String name) {
+        List<Long> categoryTreeIds = categoryService.getCategoryAndDescendantIds(categoryId);
+        Page<ProductSummaryDto> result = productsRepository.findAllByProductSummaryProjection(name, categoryTreeIds, pageable);
+        List<ProductSummaryDto> content = result.getContent();
+        return new PageDto<>(
+                content,
+                pageable.getPageNumber(),
+                result.getTotalPages(),
+                pageable.getPageSize(),
+                result.getTotalElements());
     }
 
     @Override
@@ -150,20 +177,6 @@ public class ProductServiceImpl implements ProductService{
                 .orElseThrow(() -> new NotFoundException("Not Found Product"));
 
         return new ProductResponseDto(product);
-    }
-
-    @Override
-    public PageDto<ProductResponseDto> getProductList(Pageable pageable, Long categoryId, String name) {
-        Page<Products> productsPage = productsRepository.findAllByParameter(name, categoryId, pageable);
-        List<ProductResponseDto> content = productsPage.getContent().stream().map(ProductResponseDto::new).toList();
-
-        return new PageDto<>(
-                content,
-                pageable.getPageNumber(),
-                productsPage.getTotalPages(),
-                pageable.getPageSize(),
-                productsPage.getTotalElements()
-        );
     }
 
     @Override
@@ -240,5 +253,15 @@ public class ProductServiceImpl implements ProductService{
 
         Products product = productImage.getProduct();
 //        product.deleteImage(productImage);
+    }
+
+    private String buildSku(Long productId, List<OptionValues> sortedValues){
+        if(sortedValues == null || sortedValues.isEmpty()){
+            return "PRD" + productId;
+        }
+        String joined = sortedValues.stream()
+                .map(OptionValues::getOptionValue)
+                .collect(Collectors.joining("-"));
+        return String.format("PRD%d-%s",productId, joined);
     }
 }

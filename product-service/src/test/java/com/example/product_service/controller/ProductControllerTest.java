@@ -134,7 +134,6 @@ class ProductControllerTest {
 
     private VariantsRequestDto buildVariantRequest(Long... optionValueIds){
         return new VariantsRequestDto(
-                "TS-XL-BLUE",
                 29000,
                 30,
                 10,
@@ -196,7 +195,7 @@ class ProductControllerTest {
                 Arguments.of(
                         new ProductRequestDto("", description, clothes, imageUrls, List.of(color, size),
                                 List.of(
-                                        new VariantsRequestDto("TS-M-BLUE",
+                                        new VariantsRequestDto(
                                                 29000,
                                                 30,
                                                 10,
@@ -213,7 +212,7 @@ class ProductControllerTest {
                 Arguments.of(
                         new ProductRequestDto(name, "", clothes, imageUrls, List.of(color, size),
                                 List.of(
-                                        new VariantsRequestDto("TS-M-BLUE",
+                                        new VariantsRequestDto(
                                                 29000,
                                                 30,
                                                 10,
@@ -230,7 +229,7 @@ class ProductControllerTest {
                 Arguments.of(
                         new ProductRequestDto(name, description, null, imageUrls, List.of(color, size),
                                 List.of(
-                                        new VariantsRequestDto("TS-M-BLUE",
+                                        new VariantsRequestDto(
                                                 29000,
                                                 30,
                                                 10,
@@ -247,7 +246,7 @@ class ProductControllerTest {
                 Arguments.of(
                         new ProductRequestDto(name, description, clothes, null, List.of(color, size),
                                 List.of(
-                                        new VariantsRequestDto("TS-M-BLUE",
+                                        new VariantsRequestDto(
                                                 29000,
                                                 30,
                                                 10,
@@ -263,7 +262,7 @@ class ProductControllerTest {
                 Arguments.of(
                         new ProductRequestDto(name, description, clothes, List.of("asdf"), List.of(color, size),
                                 List.of(
-                                        new VariantsRequestDto("TS-M-BLUE",
+                                        new VariantsRequestDto(
                                                 29000,
                                                 30,
                                                 10,
@@ -291,23 +290,7 @@ class ProductControllerTest {
                 Arguments.of(
                         new ProductRequestDto(name, description, clothes, imageUrls, List.of(color, size),
                                 List.of(
-                                        new VariantsRequestDto("",
-                                                29000,
-                                                30,
-                                                10,
-                                                List.of(blue, m))
-                                )
-                        ),
-                        HttpStatus.SC_BAD_REQUEST,
-                        expectedError,
-                        expectedMessage,
-                        "variants[0].sku",
-                        "sku is required"
-                ),
-                Arguments.of(
-                        new ProductRequestDto(name, description, clothes, imageUrls, List.of(color, size),
-                                List.of(
-                                        new VariantsRequestDto("TS-M-BLUE",
+                                        new VariantsRequestDto(
                                                 0,
                                                 30,
                                                 10,
@@ -323,7 +306,7 @@ class ProductControllerTest {
                 Arguments.of(
                         new ProductRequestDto(name, description, clothes, imageUrls, List.of(color, size),
                                 List.of(
-                                        new VariantsRequestDto("TS-M-BLUE",
+                                        new VariantsRequestDto(
                                                 1000000000,
                                                 30,
                                                 10,
@@ -339,7 +322,7 @@ class ProductControllerTest {
                 Arguments.of(
                         new ProductRequestDto(name, description, clothes, imageUrls, List.of(color, size),
                                 List.of(
-                                        new VariantsRequestDto("TS-M-BLUE",
+                                        new VariantsRequestDto(
                                                 29000,
                                                 0,
                                                 10,
@@ -355,7 +338,7 @@ class ProductControllerTest {
                 Arguments.of(
                         new ProductRequestDto(name, description, clothes, imageUrls, List.of(color, size),
                                 List.of(
-                                        new VariantsRequestDto("TS-M-BLUE",
+                                        new VariantsRequestDto(
                                                 29000,
                                                 20000,
                                                 10,

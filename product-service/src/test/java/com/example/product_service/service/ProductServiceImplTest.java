@@ -2,29 +2,24 @@ package com.example.product_service.service;
 
 import com.example.product_service.dto.request.product.ProductRequestDto;
 import com.example.product_service.dto.request.product.VariantsRequestDto;
+import com.example.product_service.dto.response.PageDto;
 import com.example.product_service.dto.response.product.ProductImageDto;
 import com.example.product_service.dto.response.product.ProductResponseDto;
+import com.example.product_service.dto.response.product.ProductSummaryDto;
 import com.example.product_service.dto.response.product.VariantsResponseDto;
-import com.example.product_service.entity.Categories;
-import com.example.product_service.entity.OptionTypes;
-import com.example.product_service.entity.OptionValues;
-import com.example.product_service.entity.Products;
+import com.example.product_service.entity.*;
 import com.example.product_service.exception.BadRequestException;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.repository.CategoriesRepository;
 import com.example.product_service.repository.OptionTypesRepository;
-import com.example.product_service.repository.ProductImagesRepository;
 import com.example.product_service.repository.ProductsRepository;
-import com.example.product_service.service.client.ImageClientService;
-import com.example.product_service.service.kafka.KafkaProducer;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.*;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -32,8 +27,8 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
-import static org.junit.jupiter.params.provider.Arguments.of;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.doReturn;
 
 @SpringBootTest
 @Slf4j
@@ -48,6 +43,8 @@ class ProductServiceImplTest {
     @Autowired
     OptionTypesRepository optionTypesRepository;
 
+    @MockitoSpyBean
+    private CategoryService categoryService;
 
     Categories clothes;
     Categories T_shirt;
@@ -57,7 +54,9 @@ class ProductServiceImplTest {
 
     OptionValues xl;
     OptionValues blue;
-
+    OptionValues l;
+    OptionValues red;
+    
     @BeforeEach
     void initData(){
         clothes = new Categories("의류", null);
@@ -68,10 +67,14 @@ class ProductServiceImplTest {
         color = new OptionTypes("색상");
 
         xl = new OptionValues("XL", size);
-        blue = new OptionValues("BLUE", color);
+        l = new OptionValues("l", size);
 
+        blue = new OptionValues("BLUE", color);
+        red = new OptionValues("RED", color);
         size.addOptionValue(xl);
+        size.addOptionValue(l);
         color.addOptionValue(blue);
+        color.addOptionValue(red);
 
         categoriesRepository.save(clothes);
         optionTypesRepository.saveAll(List.of(size, color));
@@ -85,16 +88,6 @@ class ProductServiceImplTest {
     }
 
     @Test
-    void test(){
-        log.info("clothes = {}", clothes.getId());
-        log.info("T_shirt = {}", T_shirt.getId());
-
-        log.info("XL = {}", xl.getId());
-        log.info("BLUE = {}", blue.getId());
-    }
-
-
-    @Test
     @Order(1)
     @DisplayName("상품 저장 테스트_성공")
     @Transactional
@@ -106,7 +99,6 @@ class ProductServiceImplTest {
                 buildProductRequest(T_shirt.getId(), List.of(size.getId(), color.getId()), List.of(variants));
         //when
         ProductResponseDto responseDto = productService.saveProduct(requestDto);
-
         /* 상품 기본 정보 검증
         * 상품 id,
         * 상품 Name,
@@ -137,13 +129,12 @@ class ProductServiceImplTest {
         assertThat(responseDto.getVariants()).hasSize(1);
         assertThat(responseDto.getVariants())
                 .extracting(
-                        VariantsResponseDto::getSku,
                         VariantsResponseDto::getPrice,
                         VariantsResponseDto::getStockQuantity,
                         VariantsResponseDto::getDiscountValue
                 )
                 .containsExactlyInAnyOrder(
-                        tuple("TS-M-BLUE", 29000, 30, 10)
+                        tuple( 29000, 30, 10)
                 );
 
         /* DB 검증
@@ -215,9 +206,53 @@ class ProductServiceImplTest {
         );
     }
 
+    @Test
+    @DisplayName("상품 목록 조회 테스트")
+    void getProductListTest(){
+        Products over = new Products("오버핏 반팔티", "오버핏 반팔티 아이콘 NSW 퓨추라 스우시 반팔 티셔츠", T_shirt);
+        over.addProductOptionTypes(size, 0 , true);
+        over.addProductOptionTypes(color, 1, true);
+        over.addProductVariants("TS-XL-BLUE",10000, 10, 10, List.of(xl,blue));
+        over.addProductVariants("TS-L-RED", 10000, 10, 20, List.of(l,red));
+        over.addImage("http://over_thumbnail.jpg", 0);
+
+        Products nike = new Products("나이키 티셔츠", "나이키 티셔츠 빅로고 나이키 기능성 반팔 티셔츠", T_shirt);
+        nike.addProductOptionTypes(size , 0 , true);
+        nike.addProductOptionTypes(color, 1, true);
+        nike.addProductVariants("NIKE-XL-BLUE", 20000, 10, 10, List.of(xl,blue));
+        nike.addProductVariants("NIKE-L-RED", 20000, 10, 20, List.of(l,red));
+        nike.addImage("http://nike_thumbnail.jpg",0);
+        productsRepository.saveAll(List.of(over,nike));
+
+        doReturn(List.of()).when(categoryService).getCategoryAndDescendantIds(nullable(Long.class));
+        log.info("서비스 시작");
+        PageDto<ProductSummaryDto> result = productService.getProductList(PageRequest.of(0, 10, Sort.Direction.ASC, "id"), null, null);
+        log.info("서비스 종료");
+
+        assertThat(result.getContent().size()).isEqualTo(2);
+        assertThat(result.getCurrentPage()).isEqualTo(0);
+        assertThat(result.getPageSize()).isEqualTo(10);
+        assertThat(result.getTotalElement()).isEqualTo(2);
+
+        assertThat(result.getContent())
+                .extracting(
+                        ProductSummaryDto::getId,
+                        ProductSummaryDto::getName,
+                        ProductSummaryDto::getDescription,
+                        ProductSummaryDto::getThumbnailUrl,
+                        ProductSummaryDto::getOriginPrice,
+                        ProductSummaryDto::getDiscountPrice,
+                        ProductSummaryDto::getDiscountValue
+                )
+                .containsExactlyInAnyOrder(
+                    tuple(over.getId(), over.getName(), over.getDescription(), "http://over_thumbnail.jpg", 10000, 8000, 20),
+                    tuple(nike.getId(), nike.getName(), nike.getDescription(), "http://nike_thumbnail.jpg", 20000, 16000, 20)
+                );
+    }
+
     private VariantsRequestDto buildVariant(Long... optionValueIds){
         return new VariantsRequestDto(
-                "TS-M-BLUE",
+
                 29000,
                 30,
                 10,

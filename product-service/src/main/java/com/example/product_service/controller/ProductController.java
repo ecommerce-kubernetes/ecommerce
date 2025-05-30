@@ -6,6 +6,7 @@ import com.example.product_service.dto.request.product.ProductRequestDto;
 import com.example.product_service.dto.response.CompactProductResponseDto;
 import com.example.product_service.dto.response.PageDto;
 import com.example.product_service.dto.response.product.ProductResponseDto;
+import com.example.product_service.dto.response.product.ProductSummaryDto;
 import com.example.product_service.entity.Products;
 import com.example.product_service.service.ProductService;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +32,16 @@ public class ProductController {
     public ResponseEntity<ProductResponseDto> createProduct(@RequestBody @Validated ProductRequestDto productRequestDto){
         ProductResponseDto response = productService.saveProduct(productRequestDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @GetMapping
+    public ResponseEntity<PageDto<ProductSummaryDto>> getAllProducts(
+            @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.ASC) Pageable pageable,
+            @RequestParam(value = "categoryId", required = false) Long categoryId,
+            @RequestParam(value = "name", required = false) String name){
+        sortFieldValidator.validateSortFields(pageable.getSort(), Products.class);
+        PageDto<ProductSummaryDto> productList = productService.getProductList(pageable, categoryId, name);
+        return ResponseEntity.ok(productList);
     }
 
     @DeleteMapping("/{productId}")
@@ -74,16 +85,6 @@ public class ProductController {
     public ResponseEntity<ProductResponseDto> getProductById(@PathVariable("productId") Long productId){
         ProductResponseDto productDetails = productService.getProductDetails(productId);
         return ResponseEntity.ok(productDetails);
-    }
-
-    @GetMapping
-    public ResponseEntity<PageDto<ProductResponseDto>> getAllProducts(
-            @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.ASC) Pageable pageable,
-            @RequestParam(value = "categoryId", required = false) Long categoryId,
-            @RequestParam(value = "name", required = false) String name){
-        sortFieldValidator.validateSortFields(pageable.getSort(), Products.class);
-        PageDto<ProductResponseDto> productList = productService.getProductList(pageable, categoryId, name);
-        return ResponseEntity.ok(productList);
     }
 
     @PostMapping("/lookup-by-ids")

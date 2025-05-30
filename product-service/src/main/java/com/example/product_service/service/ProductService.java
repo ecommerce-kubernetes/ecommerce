@@ -6,16 +6,19 @@ import com.example.product_service.dto.request.product.ProductRequestDto;
 import com.example.product_service.dto.response.CompactProductResponseDto;
 import com.example.product_service.dto.response.PageDto;
 import com.example.product_service.dto.response.product.ProductResponseDto;
+import com.example.product_service.dto.response.product.ProductSummaryDto;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
 public interface ProductService {
     ProductResponseDto saveProduct(ProductRequestDto requestDto);
+    PageDto<ProductSummaryDto> getProductList(Pageable pageable, Long categoryId, String name);
+
+    //TODO 변경해야할 로직들
     void deleteProduct(Long productId);
     ProductResponseDto modifyStockQuantity(Long productId, StockQuantityRequestDto stockQuantityRequestDto);
     ProductResponseDto getProductDetails(Long productId);
-    PageDto<ProductResponseDto> getProductList(Pageable pageable, Long categoryId, String name);
     List<CompactProductResponseDto> getProductListByIds(ProductRequestIdsDto productRequestIdsDto);
     void decrementStockQuantity(List<KafkaOrderItemDto> orderedItems);
     ProductResponseDto addImage(Long productId, ProductImageRequestDto productImageRequestDto);
