@@ -44,6 +44,12 @@ public class ProductController {
         return ResponseEntity.ok(productList);
     }
 
+    @GetMapping("/{productId}")
+    public ResponseEntity<ProductResponseDto> getProductById(@PathVariable("productId") Long productId){
+        ProductResponseDto productDetails = productService.getProductDetails(productId);
+        return ResponseEntity.ok(productDetails);
+    }
+
     @DeleteMapping("/{productId}")
     public ResponseEntity<Void> removeProduct(@PathVariable("productId") Long productId){
         productService.deleteProduct(productId);
@@ -79,12 +85,6 @@ public class ProductController {
         ProductResponseDto productResponseDto =
                 productService.modifyStockQuantity(productId, stockQuantityRequestDto);
         return ResponseEntity.ok(productResponseDto);
-    }
-
-    @GetMapping("/{productId}")
-    public ResponseEntity<ProductResponseDto> getProductById(@PathVariable("productId") Long productId){
-        ProductResponseDto productDetails = productService.getProductDetails(productId);
-        return ResponseEntity.ok(productDetails);
     }
 
     @PostMapping("/lookup-by-ids")

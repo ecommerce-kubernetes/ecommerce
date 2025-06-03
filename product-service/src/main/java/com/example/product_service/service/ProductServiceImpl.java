@@ -3,6 +3,7 @@ package com.example.product_service.service;
 import com.example.product_service.dto.KafkaDeletedProduct;
 import com.example.product_service.dto.KafkaOrderItemDto;
 import com.example.product_service.dto.request.*;
+import com.example.product_service.dto.request.product.ProductBasicRequestDto;
 import com.example.product_service.dto.request.product.ProductRequestDto;
 import com.example.product_service.dto.request.product.VariantsRequestDto;
 import com.example.product_service.dto.response.CompactProductResponseDto;
@@ -32,7 +33,6 @@ import java.util.stream.Collectors;
 public class ProductServiceImpl implements ProductService{
 
     private final ProductsRepository productsRepository;
-    private final CategoriesRepository categoriesRepository;
     private final CategoryService categoryService;
     private final ProductImagesRepository productImagesRepository;
     private final OptionTypesRepository optionTypesRepository;
@@ -149,6 +149,23 @@ public class ProductServiceImpl implements ProductService{
     }
 
     @Override
+    public ProductResponseDto getProductDetails(Long productId) {
+        Products product = productsRepository.findByIdWithAllRelatedObject(productId)
+                .orElseThrow(() -> new NotFoundException("Not Found Product"));
+        return new ProductResponseDto(product);
+    }
+
+    @Override
+    @Transactional
+    public ProductResponseDto modifyProductBasic(Long productId, ProductBasicRequestDto requestDto) {
+        Products product = productsRepository
+                .findById(productId).orElseThrow(() -> new NotFoundException("Not Found Product"));
+        Categories category = categoryService.getByIdOrThrow(requestDto.getCategoryId());
+        product.modifyBasicInfo(requestDto.getName(), category);
+        return new ProductResponseDto(product);
+    }
+
+    @Override
     @Transactional
     public void deleteProduct(Long productId) {
         Products product = productsRepository.findById(productId)
@@ -167,14 +184,6 @@ public class ProductServiceImpl implements ProductService{
         Products product = productsRepository.findById(productId)
                 .orElseThrow(() -> new NotFoundException("Not Found Product"));
         int updateStockQuantity = stockQuantityRequestDto.getUpdateStockQuantity();
-
-        return new ProductResponseDto(product);
-    }
-
-    @Override
-    public ProductResponseDto getProductDetails(Long productId) {
-        Products product = productsRepository.findByIdWithProductImages(productId)
-                .orElseThrow(() -> new NotFoundException("Not Found Product"));
 
         return new ProductResponseDto(product);
     }

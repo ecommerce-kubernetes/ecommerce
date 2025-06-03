@@ -35,8 +35,7 @@ public class Reviews extends BaseEntity {
         this.content = content;
     }
 
-    public void addImage(ReviewImages image){
-        this.images.add(image);
-        image.setReview(this);
+    public void addImage(String url){
+
     }
 }

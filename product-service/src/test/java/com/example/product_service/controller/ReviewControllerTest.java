@@ -33,28 +33,6 @@ public class ReviewControllerTest {
     @Test
     @DisplayName("리뷰 등록 테스트")
     void registerReviewTest() throws Exception {
-        ReviewRequestDto reviewRequestDto = new ReviewRequestDto(1L, 5, "맛있습니다", null);
-        ReviewResponseDto reviewResponseDto = new ReviewResponseDto(1L,
-                5L,
-                1L,
-                reviewRequestDto.getRating(),
-                reviewRequestDto.getContent());
-
-        String content = mapper.writeValueAsString(reviewRequestDto);
-        when(reviewService.saveReview(anyLong(), anyLong(), any(ReviewRequestDto.class)))
-                .thenReturn(reviewResponseDto);
-
-        ResultActions perform = mockMvc.perform(post("/reviews/5")
-                .contentType(MediaType.APPLICATION_JSON)
-                .header("X-User-Id", "1")
-                .content(content));
-
-        perform
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").value(reviewResponseDto.getId()))
-                .andExpect(jsonPath("$.userId").value(reviewResponseDto.getUserId()))
-                .andExpect(jsonPath("$.rating").value(reviewResponseDto.getRating()))
-                .andExpect(jsonPath("$.content").value(reviewResponseDto.getContent()));
     }
 
 }

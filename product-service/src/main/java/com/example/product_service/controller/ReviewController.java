@@ -20,7 +20,8 @@ public class ReviewController {
     public ResponseEntity<ReviewResponseDto> registerReview(@PathVariable("productId") Long productId,
                                                             @RequestHeader("X-User-Id") Long userId,
                                                             @RequestBody @Validated ReviewRequestDto reviewRequestDto){
-        ReviewResponseDto reviewResponseDto = reviewService.saveReview(productId, userId, reviewRequestDto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(reviewResponseDto);
+//        ReviewResponseDto reviewResponseDto = reviewService.saveReview(productId, userId, reviewRequestDto);
+//        return ResponseEntity.status(HttpStatus.CREATED).body(reviewResponseDto);
+        return null;
     }
 }

@@ -27,6 +27,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -158,8 +159,12 @@ class ProductControllerTest {
                 "나이키 티셔츠",
                 "나이키 반팔티 아이콘 NSW 퓨추라 스우시 반팔 티셔츠",
                 categoryId,
+                LocalDateTime.of(2025,5,25,13,20),
+                LocalDateTime.of(2025,5,25,13,20),
                 List.of(new ProductImageDto(1L, "http://test1.jpg", 0),
                         new ProductImageDto(2L, "http://test2.jpg", 1)),
+                0,
+                0,
                 optionTypeIds,
                 variants
         );

@@ -2,10 +2,7 @@ package com.example.product_service.repository.query;
 
 import com.example.product_service.dto.response.product.ProductSummaryDto;
 import com.example.product_service.dto.response.product.QProductSummaryDto;
-import com.example.product_service.entity.Products;
-import com.example.product_service.entity.QProductImages;
-import com.example.product_service.entity.QProductVariants;
-import com.example.product_service.entity.QProducts;
+import com.example.product_service.entity.*;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.*;
@@ -29,6 +26,8 @@ public class ProductQueryRepositoryImpl implements ProductQueryRepository {
     QProducts products = QProducts.products;
     QProductImages productImages = QProductImages.productImages;
     QProductVariants productVariants = QProductVariants.productVariants;
+    QReviews reviews = QReviews.reviews;
+    QCategories categories = QCategories.categories;
     public ProductQueryRepositoryImpl(EntityManager em) {
         this.queryFactory = new JPAQueryFactory(em);
     }
@@ -41,6 +40,7 @@ public class ProductQueryRepositoryImpl implements ProductQueryRepository {
         예상 쿼리
         SELECT p.id, p.name, p.description, img.imageUrl, pv.price, (pv.price * (100 - pv.discount_value) / 100), pv.discount_value
         FROM products p
+        LEFT JOIN categories c p.category_id = c.id
         LEFT JOIN products_images img ON img.product_id = p.id AND img.sort_order = 0
         LEFT JOIN products_variants pv ON pv.product_id = p.id
             AND ( pv.price * (100 - pv.discount_value) / 100 ) =
@@ -66,16 +66,27 @@ public class ProductQueryRepositoryImpl implements ProductQueryRepository {
         NumberExpression<Integer> discountPriceExpr =
                 productVariants.price.multiply(hundred.subtract(productVariants.discountValue)).divide(hundred);
 
+        NumberTemplate<Double> avgRatingExpr = Expressions.numberTemplate(Double.class, "( SELECT AVG(r.rating) " +
+                "FROM Reviews r " +
+                "WHERE r.product.id = {0} )", products.id);
+        NumberTemplate<Integer> reviewCountExpr = Expressions.numberTemplate(Integer.class, "( SELECT COUNT(*) " +
+                "FROM Reviews r " +
+                "WHERE r.product.id = {0} )", products.id);
+
         List<ProductSummaryDto> content = queryFactory.select(
                         new QProductSummaryDto(
                                 products.id,
                                 products.name,
                                 products.description,
                                 productImages.imageUrl,
+                                categories.name,
+                                avgRatingExpr,
+                                reviewCountExpr,
                                 productVariants.price,
                                 discountPriceExpr,
                                 productVariants.discountValue))
                 .from(products)
+                .leftJoin(products.category, categories)
                 .leftJoin(products.images, productImages).on(productImages.sortOrder.eq(0))
                 .leftJoin(products.productVariants, productVariants)
                         .on(discountPriceExpr.eq(JPAExpressions.select(discountPriceExpr.min()).from(productVariants)

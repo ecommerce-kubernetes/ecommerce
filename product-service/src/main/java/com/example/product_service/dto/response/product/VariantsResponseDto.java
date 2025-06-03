@@ -2,6 +2,7 @@ package com.example.product_service.dto.response.product;
 
 import com.example.product_service.entity.ProductVariantOptions;
 import com.example.product_service.entity.ProductVariants;
+import com.querydsl.core.annotations.QueryProjection;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -28,6 +29,6 @@ public class VariantsResponseDto {
         this.stockQuantity = productVariant.getStockQuantity();
         this.discountValue = productVariant.getDiscountValue();
         this.optionValueId = productVariant.getProductVariantOptions().stream()
-                .map(ProductVariantOptions::getId).toList();
+                .map((pvo) -> pvo.getOptionValue().getId()).toList();
     }
 }

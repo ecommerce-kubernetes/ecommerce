@@ -13,12 +13,8 @@ public class QProductSummaryDto extends ConstructorExpression<ProductSummaryDto>
 
     private static final long serialVersionUID = -649336827L;
 
-    public QProductSummaryDto(com.querydsl.core.types.Expression<Long> id, com.querydsl.core.types.Expression<String> name, com.querydsl.core.types.Expression<String> description, com.querydsl.core.types.Expression<String> thumbnailUrl, com.querydsl.core.types.Expression<Integer> originPrice, com.querydsl.core.types.Expression<Integer> discountPrice, com.querydsl.core.types.Expression<Integer> discountValue) {
-        super(ProductSummaryDto.class, new Class<?>[]{long.class, String.class, String.class, String.class, int.class, int.class, int.class}, id, name, description, thumbnailUrl, originPrice, discountPrice, discountValue);
-    }
-
-    public QProductSummaryDto(com.querydsl.core.types.Expression<Long> id, com.querydsl.core.types.Expression<String> name, com.querydsl.core.types.Expression<String> description, com.querydsl.core.types.Expression<String> thumbnailUrl, com.querydsl.core.types.Expression<Integer> originPrice) {
-        super(ProductSummaryDto.class, new Class<?>[]{long.class, String.class, String.class, String.class, int.class}, id, name, description, thumbnailUrl, originPrice);
+    public QProductSummaryDto(com.querydsl.core.types.Expression<Long> id, com.querydsl.core.types.Expression<String> name, com.querydsl.core.types.Expression<String> description, com.querydsl.core.types.Expression<String> thumbnailUrl, com.querydsl.core.types.Expression<String> categoryName, com.querydsl.core.types.Expression<Double> ratingAvg, com.querydsl.core.types.Expression<Integer> totalReviewCount, com.querydsl.core.types.Expression<Integer> originPrice, com.querydsl.core.types.Expression<Integer> discountPrice, com.querydsl.core.types.Expression<Integer> discountValue) {
+        super(ProductSummaryDto.class, new Class<?>[]{long.class, String.class, String.class, String.class, String.class, double.class, int.class, int.class, int.class, int.class}, id, name, description, thumbnailUrl, categoryName, ratingAvg, totalReviewCount, originPrice, discountPrice, discountValue);
     }
 
 }

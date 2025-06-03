@@ -20,11 +20,9 @@ public class ReviewImages extends BaseEntity {
 
     private String imageUrl;
 
-    public ReviewImages(String imageUrl) {
+    public ReviewImages(Reviews review, String imageUrl) {
+        this.review = review;
         this.imageUrl = imageUrl;
     }
 
-    void setReview(Reviews review) {
-        this.review = review;
-    }
 }

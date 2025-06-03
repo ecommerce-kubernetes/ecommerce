@@ -41,6 +41,8 @@ public class QProducts extends EntityPathBase<Products> {
 
     public final ListPath<ProductVariants, QProductVariants> productVariants = this.<ProductVariants, QProductVariants>createList("productVariants", ProductVariants.class, QProductVariants.class, PathInits.DIRECT2);
 
+    public final ListPath<Reviews, QReviews> reviews = this.<Reviews, QReviews>createList("reviews", Reviews.class, QReviews.class, PathInits.DIRECT2);
+
     //inherited
     public final DateTimePath<java.time.LocalDateTime> updateAt = _super.updateAt;
 

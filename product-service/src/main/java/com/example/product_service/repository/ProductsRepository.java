@@ -18,6 +18,17 @@ public interface ProductsRepository extends JpaRepository<Products, Long>, Produ
     @Query("SELECT p FROM Products p JOIN FETCH p.images WHERE p.id =:id")
     Optional<Products> findByIdWithProductImages(@Param("id") Long id);
 
+    @Query("""
+            SELECT DISTINCT p 
+            FROM Products p 
+                JOIN FETCH p.images 
+                LEFT JOIN FETCH p.category
+                LEFT JOIN p.productOptionTypes 
+                LEFT JOIN p.productVariants
+                LEFT JOIN p.reviews
+            WHERE p.id = :id
+            """)
+    Optional<Products> findByIdWithAllRelatedObject(@Param("id") Long id);
 
     @Query("""
             SELECT new com.example.product_service.dto.response.CompactProductResponseDto(

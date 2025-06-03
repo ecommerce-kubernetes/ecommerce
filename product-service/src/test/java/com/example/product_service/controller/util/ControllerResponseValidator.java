@@ -7,6 +7,8 @@ import org.springframework.boot.test.context.TestComponent;
 import org.springframework.test.web.servlet.ResultActions;
 
 import java.lang.reflect.Field;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -94,6 +96,17 @@ public class ControllerResponseValidator {
                 continue;
             }
 
+            Class<?> fieldType = field.getType();
+            if (LocalDateTime.class.isAssignableFrom(fieldType)) {
+                String formatted = DateTimeFormatter.ISO_LOCAL_DATE_TIME.format((LocalDateTime) expectedValue);
+                perform.andExpect(jsonPath(currentPath).value(formatted));  // "2025-05-25T13:20:00"
+                continue;
+            }
+            if (isPrimitiveOrWrapper(fieldType) || String.class.isAssignableFrom(fieldType)) {
+                perform.andExpect(jsonPath(currentPath).value(expectedValue));
+                continue;
+            }
+            // 컬렉션인 경우
             if (expectedValue instanceof Collection) {
                 Collection<?> collection = (Collection<?>) expectedValue;
                 int idx = 0;
@@ -103,7 +116,10 @@ public class ControllerResponseValidator {
                         perform.andExpect(jsonPath(elementPath).doesNotExist());
                     } else if (isPrimitiveOrWrapper(elem.getClass()) || elem instanceof String) {
                         perform.andExpect(jsonPath(elementPath).value(elem));
+                    } else if (LocalDateTime.class.isAssignableFrom(elem.getClass())) {
+                        perform.andExpect(jsonPath(elementPath).value(elem.toString()));
                     } else {
+                        // 재귀 호출
                         validResponseObject(perform,
                                 elem.getClass(),
                                 elem,
@@ -112,17 +128,17 @@ public class ControllerResponseValidator {
                     }
                     idx++;
                 }
-            } else if (isPrimitiveOrWrapper(expectedValue.getClass()) || expectedValue instanceof String) {
-                perform.andExpect(jsonPath(currentPath).value(expectedValue));
-            } else {
-                validResponseObject(perform,
-                        expectedValue.getClass(),
-                        expectedValue,
-                        currentPath,
-                        visited);
+                continue;
             }
+            // 나머지 (커스텀 DTO 등)
+            validResponseObject(perform,
+                    expectedValue.getClass(),
+                    expectedValue,
+                    currentPath,
+                    visited);
         }
     }
+
 
     private boolean isPrimitiveOrWrapper(Class<?> clazz) {
         return clazz.isPrimitive()

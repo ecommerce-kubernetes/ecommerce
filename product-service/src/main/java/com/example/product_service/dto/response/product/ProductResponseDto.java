@@ -3,11 +3,14 @@ package com.example.product_service.dto.response.product;
 import com.example.product_service.entity.ProductOptionTypes;
 import com.example.product_service.entity.ProductVariants;
 import com.example.product_service.entity.Products;
+import com.example.product_service.entity.Reviews;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+import java.util.IntSummaryStatistics;
 import java.util.List;
 
 @Getter
@@ -19,8 +22,11 @@ public class ProductResponseDto {
     private String name;
     private String description;
     private Long categoryId;
+    private LocalDateTime createAt;
+    private LocalDateTime updateAt;
     private List<ProductImageDto> images;
-
+    private double ratingAvg;
+    private int totalReviewCount;
     private List<Long> optionTypes;
     private List<VariantsResponseDto> variants;
 
@@ -29,8 +35,18 @@ public class ProductResponseDto {
         this.name = product.getName();
         this.description = product.getDescription();
         this.categoryId = product.getCategory().getId();
+        this.createAt = product.getCreateAt();
+        this.updateAt = product.getUpdateAt();
         this.images = product.getImages().stream().map(ProductImageDto::new).toList();
-        this.optionTypes = product.getProductOptionTypes().stream().map(ProductOptionTypes::getId).toList();
+        IntSummaryStatistics stats = product.getReviews().stream()
+                .mapToInt(Reviews::getRating)
+                .summaryStatistics();
+        this.totalReviewCount = (int) stats.getCount();
+        this.ratingAvg = stats.getCount() == 0
+                ? 0.0
+                : stats.getAverage();
+        this.optionTypes = product.getProductOptionTypes().stream().map((optionTypes) -> optionTypes.getOptionType().getId())
+                .toList();
         this.variants = product.getProductVariants().stream().map((VariantsResponseDto::new)).toList();
     }
 }
