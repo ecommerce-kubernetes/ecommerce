@@ -10,6 +10,7 @@ import com.example.product_service.dto.response.product.ProductResponseDto;
 import com.example.product_service.dto.response.product.VariantsResponseDto;
 import com.example.product_service.exception.BadRequestException;
 import com.example.product_service.exception.NotFoundException;
+import com.example.product_service.service.ProductImageService;
 import com.example.product_service.service.ProductService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -50,6 +51,8 @@ class ProductControllerTest {
     ControllerResponseValidator validator;
     @MockitoBean
     ProductService productService;
+    @MockitoBean
+    ProductImageService productImageService;
     ObjectMapper mapper = new ObjectMapper();
 
     @Test
@@ -163,7 +166,7 @@ class ProductControllerTest {
                 LocalDateTime.of(2025,5,25,13,20),
                 List.of(new ProductImageDto(1L, "http://test1.jpg", 0),
                         new ProductImageDto(2L, "http://test2.jpg", 1)),
-                0,
+                0.0,
                 0,
                 optionTypeIds,
                 variants

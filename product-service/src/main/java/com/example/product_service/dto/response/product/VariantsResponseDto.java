@@ -1,6 +1,5 @@
 package com.example.product_service.dto.response.product;
 
-import com.example.product_service.entity.ProductVariantOptions;
 import com.example.product_service.entity.ProductVariants;
 import com.querydsl.core.annotations.QueryProjection;
 import lombok.AllArgsConstructor;

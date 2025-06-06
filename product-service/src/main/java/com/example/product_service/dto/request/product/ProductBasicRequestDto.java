@@ -11,5 +11,6 @@ import lombok.Setter;
 @Setter
 public class ProductBasicRequestDto {
     private String name;
+    private String description;
     private Long categoryId;
 }

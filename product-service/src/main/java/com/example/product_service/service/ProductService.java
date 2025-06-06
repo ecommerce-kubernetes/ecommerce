@@ -17,12 +17,10 @@ public interface ProductService {
     PageDto<ProductSummaryDto> getProductList(Pageable pageable, Long categoryId, String name);
     ProductResponseDto getProductDetails(Long productId);
     ProductResponseDto modifyProductBasic(Long productId, ProductBasicRequestDto requestDto);
+    ProductResponseDto addImage(Long productId, ProductImageRequestDto productImageRequestDto);
     //TODO 변경해야할 로직들
     void deleteProduct(Long productId);
     ProductResponseDto modifyStockQuantity(Long productId, StockQuantityRequestDto stockQuantityRequestDto);
     List<CompactProductResponseDto> getProductListByIds(ProductRequestIdsDto productRequestIdsDto);
     void decrementStockQuantity(List<KafkaOrderItemDto> orderedItems);
-    ProductResponseDto addImage(Long productId, ProductImageRequestDto productImageRequestDto);
-    ProductResponseDto imgSwapOrder(Long productId, ImageOrderRequestDto imageOrderRequestDto);
-    void deleteImage(Long imageId);
 }

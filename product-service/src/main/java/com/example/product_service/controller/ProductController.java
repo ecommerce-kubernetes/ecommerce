@@ -2,12 +2,15 @@ package com.example.product_service.controller;
 
 import com.example.product_service.controller.util.SortFieldValidator;
 import com.example.product_service.dto.request.*;
+import com.example.product_service.dto.request.product.ProductBasicRequestDto;
 import com.example.product_service.dto.request.product.ProductRequestDto;
 import com.example.product_service.dto.response.CompactProductResponseDto;
 import com.example.product_service.dto.response.PageDto;
 import com.example.product_service.dto.response.product.ProductResponseDto;
 import com.example.product_service.dto.response.product.ProductSummaryDto;
 import com.example.product_service.entity.Products;
+import com.example.product_service.service.ProductImageService;
+import com.example.product_service.service.ProductImageServiceImpl;
 import com.example.product_service.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -26,6 +29,7 @@ import java.util.List;
 public class ProductController {
 
     private final ProductService productService;
+    private final ProductImageService productImageService;
     private final SortFieldValidator sortFieldValidator;
 
     @PostMapping
@@ -50,32 +54,36 @@ public class ProductController {
         return ResponseEntity.ok(productDetails);
     }
 
-    @DeleteMapping("/{productId}")
-    public ResponseEntity<Void> removeProduct(@PathVariable("productId") Long productId){
-        productService.deleteProduct(productId);
-        return ResponseEntity.noContent().build();
+    @PatchMapping("/{productId}/basic")
+    public ResponseEntity<ProductResponseDto> updateBasicInfo(@PathVariable("productId") Long productId,
+                                                              @RequestBody ProductBasicRequestDto requestDto){
+        ProductResponseDto responseDto = productService.modifyProductBasic(productId, requestDto);
+        return ResponseEntity.ok(responseDto);
     }
 
     @PostMapping("/{productId}/image")
     public ResponseEntity<ProductResponseDto> addProductImg(@PathVariable("productId") Long productId,
-                                           @RequestBody @Validated ProductImageRequestDto productImageRequestDto){
+                                                            @RequestBody @Validated ProductImageRequestDto productImageRequestDto){
         ProductResponseDto productResponseDto = productService.addImage(productId, productImageRequestDto);
-
         return ResponseEntity.status(HttpStatus.CREATED).body(productResponseDto);
-    }
-
-    @PatchMapping("/{productId}/image/sort")
-    public ResponseEntity<ProductResponseDto> changeImgOrder(@PathVariable("productId") Long productId,
-                                                             @RequestBody @Validated ImageOrderRequestDto imageOrderRequestDto){
-        ProductResponseDto productResponseDto = productService.imgSwapOrder(productId, imageOrderRequestDto);
-
-        return ResponseEntity.ok(productResponseDto);
     }
 
     @DeleteMapping("/image/{imageId}")
     public ResponseEntity<Void> deleteProductImage(@PathVariable("imageId") Long imageId){
-        productService.deleteImage(imageId);
+        productImageService.deleteImage(imageId);
+        return ResponseEntity.noContent().build();
+    }
 
+    @PatchMapping("/image/{imageId}/sort")
+    public ResponseEntity<ProductResponseDto> changeImgOrder(@PathVariable("imageId") Long imageId,
+                                                             @RequestBody @Validated ImageOrderRequestDto requestDto){
+        ProductResponseDto responseDto = productImageService.imgSwapOrder(imageId, requestDto);
+        return ResponseEntity.ok(responseDto);
+    }
+
+    @DeleteMapping("/{productId}")
+    public ResponseEntity<Void> removeProduct(@PathVariable("productId") Long productId){
+        productService.deleteProduct(productId);
         return ResponseEntity.noContent().build();
     }
 

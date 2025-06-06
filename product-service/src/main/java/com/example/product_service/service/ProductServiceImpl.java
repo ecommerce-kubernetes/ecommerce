@@ -131,7 +131,7 @@ public class ProductServiceImpl implements ProductService{
             product.addProductVariants(sku, variant.getPrice(), variant.getStockQuantity(),
                     variant.getDiscountValue(), optionValues);
         }
-
+        product = productsRepository.save(product);
         return new ProductResponseDto(product);
     }
 
@@ -150,7 +150,7 @@ public class ProductServiceImpl implements ProductService{
 
     @Override
     public ProductResponseDto getProductDetails(Long productId) {
-        Products product = productsRepository.findByIdWithAllRelatedObject(productId)
+        Products product = productsRepository.findByIdWithImageAndCategory(productId)
                 .orElseThrow(() -> new NotFoundException("Not Found Product"));
         return new ProductResponseDto(product);
     }
@@ -160,8 +160,14 @@ public class ProductServiceImpl implements ProductService{
     public ProductResponseDto modifyProductBasic(Long productId, ProductBasicRequestDto requestDto) {
         Products product = productsRepository
                 .findById(productId).orElseThrow(() -> new NotFoundException("Not Found Product"));
-        Categories category = categoryService.getByIdOrThrow(requestDto.getCategoryId());
-        product.modifyBasicInfo(requestDto.getName(), category);
+        Categories category = null;
+        if(requestDto.getCategoryId() != null){
+            category = categoryService.getByIdOrThrow(requestDto.getCategoryId());
+            if(!category.isLeaf()){
+                throw new BadRequestException("Category must be lowest level");
+            }
+        }
+        product.modifyBasicInfo(requestDto.getName(), requestDto.getDescription(), category);
         return new ProductResponseDto(product);
     }
 
@@ -220,7 +226,6 @@ public class ProductServiceImpl implements ProductService{
     @Override
     @Transactional
     public ProductResponseDto addImage(Long productId, ProductImageRequestDto productImageRequestDto) {
-
         List<String> imageUrls = productImageRequestDto.getImageUrls();
         Products product = productsRepository.findByIdWithProductImages(productId)
                 .orElseThrow(() -> new NotFoundException("Not Found Product"));
@@ -230,39 +235,13 @@ public class ProductServiceImpl implements ProductService{
                 .max(Integer::compareTo)
                 .orElse(-1) + 1;
 
-        for (String url : imageUrls) {
-//            new ProductImages(product, url, nextOrder++);
+        for (String imageUrl : imageUrls) {
+            product.addImage(imageUrl, nextOrder++);
         }
-        productsRepository.save(product);
         return new ProductResponseDto(product);
     }
 
-    @Override
-    @Transactional
-    public ProductResponseDto imgSwapOrder(Long productId, ImageOrderRequestDto imageOrderRequestDto) {
-        ProductImages target = productImagesRepository.findById(imageOrderRequestDto.getImageId())
-                .orElseThrow(() -> new NotFoundException("Not Found ProductImage"));
 
-        ProductImages conflict = productImagesRepository.findByProductIdAndSortOrder(productId, imageOrderRequestDto.getSortOrder())
-                .orElseThrow(() -> new NotFoundException("Not Found ProductImage"));
-        int oldOrder = target.getSortOrder();
-        target.setSortOrder(imageOrderRequestDto.getSortOrder());
-        conflict.setSortOrder(oldOrder);
-
-        return new ProductResponseDto(target.getProduct());
-    }
-
-    @Override
-    @Transactional
-    public void deleteImage(Long imageId) {
-        ProductImages productImage = productImagesRepository.findById(imageId)
-                .orElseThrow(() -> new NotFoundException("Not Found ProductImage"));
-
-        imageClientService.deleteImage(productImage.getImageUrl());
-
-        Products product = productImage.getProduct();
-//        product.deleteImage(productImage);
-    }
 
     private String buildSku(Long productId, List<OptionValues> sortedValues){
         if(sortedValues == null || sortedValues.isEmpty()){

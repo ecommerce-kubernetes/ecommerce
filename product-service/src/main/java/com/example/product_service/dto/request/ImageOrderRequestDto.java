@@ -11,8 +11,6 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ImageOrderRequestDto {
-    @NotNull(message = "imageId is required")
-    private Long imageId;
     @NotNull(message = "sortOrder is required")
     private Integer sortOrder;
 }

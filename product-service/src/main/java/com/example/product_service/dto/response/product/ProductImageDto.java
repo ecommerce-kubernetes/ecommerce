@@ -1,15 +1,14 @@
 package com.example.product_service.dto.response.product;
 
 import com.example.product_service.entity.ProductImages;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import com.querydsl.core.annotations.QueryProjection;
+import lombok.*;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString
 public class ProductImageDto {
     private Long id;
     private String imageUrl;
@@ -20,4 +19,5 @@ public class ProductImageDto {
         this.imageUrl = prImg.getImageUrl();
         this.sortOrder = prImg.getSortOrder();
     }
+
 }

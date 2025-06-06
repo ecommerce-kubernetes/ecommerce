@@ -1,15 +1,11 @@
 package com.example.product_service.dto.response.product;
 
-import com.example.product_service.entity.ProductOptionTypes;
-import com.example.product_service.entity.ProductVariants;
-import com.example.product_service.entity.Products;
-import com.example.product_service.entity.Reviews;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import com.example.product_service.entity.*;
+import com.querydsl.core.annotations.QueryProjection;
+import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.IntSummaryStatistics;
 import java.util.List;
 
@@ -17,6 +13,7 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@ToString
 public class ProductResponseDto {
     private Long id;
     private String name;
@@ -37,7 +34,8 @@ public class ProductResponseDto {
         this.categoryId = product.getCategory().getId();
         this.createAt = product.getCreateAt();
         this.updateAt = product.getUpdateAt();
-        this.images = product.getImages().stream().map(ProductImageDto::new).toList();
+        this.images = product.getImages().stream().sorted(Comparator.comparing(ProductImages::getSortOrder))
+                .map(ProductImageDto::new).toList();
         IntSummaryStatistics stats = product.getReviews().stream()
                 .mapToInt(Reviews::getRating)
                 .summaryStatistics();

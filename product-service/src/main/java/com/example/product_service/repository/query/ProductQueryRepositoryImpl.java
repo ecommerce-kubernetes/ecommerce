@@ -1,8 +1,8 @@
 package com.example.product_service.repository.query;
 
-import com.example.product_service.dto.response.product.ProductSummaryDto;
-import com.example.product_service.dto.response.product.QProductSummaryDto;
+import com.example.product_service.dto.response.product.*;
 import com.example.product_service.entity.*;
+import com.querydsl.core.group.GroupBy;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.*;
@@ -15,7 +15,8 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
-
+import org.springframework.transaction.annotation.Transactional;
+import static com.querydsl.core.group.GroupBy.*;
 import java.util.List;
 
 @Repository
@@ -33,6 +34,7 @@ public class ProductQueryRepositoryImpl implements ProductQueryRepository {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<ProductSummaryDto> findAllByProductSummaryProjection(String name, List<Long> categoryIds, Pageable pageable) {
         /*
         상품 조회 로직 => 상품 기본 정보와 상품의 Variants 중 할인된 가격이 가장 작은 variant 의 가격, 할인가격, 할인율을 조회

@@ -6,6 +6,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.BatchSize;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -79,9 +80,21 @@ public class Products extends BaseEntity {
         this.reviews.add(reviews);
     }
 
-    public void modifyBasicInfo(String name, Categories category){
-        this.name = name;
-        this.category = category;
+    public void deleteImage(ProductImages productImage){
+        images.remove(productImage);
+        productImage.setProduct(null);
+    }
+
+    public void modifyBasicInfo(String name, String description, Categories category){
+        if(name != null){
+            this.name = name;
+        }
+        if(description != null){
+            this.description = description;
+        }
+        if(category != null){
+            this.category = category;
+        }
     }
 
 }

@@ -1,5 +1,7 @@
 package com.example.product_service.service;
 
+import com.example.product_service.dto.request.ProductImageRequestDto;
+import com.example.product_service.dto.request.product.ProductBasicRequestDto;
 import com.example.product_service.dto.request.product.ProductRequestDto;
 import com.example.product_service.dto.request.product.VariantsRequestDto;
 import com.example.product_service.dto.response.PageDto;
@@ -328,7 +330,44 @@ class ProductServiceImplTest {
     @DisplayName("상품 기본정보 변경")
     @Transactional
     void modifyProductBasicTest(){
-        productsRepository.save(new Products("상품1", "상품 설명1", T_shirt));
+        Products save = productsRepository.save(new Products("상품1", "상품 설명1", T_shirt));
+        ProductBasicRequestDto requestDto = new ProductBasicRequestDto("변경상품1", "변경 상품 설명", sweatShirt.getId());
+
+        ProductResponseDto responseDto = productService.modifyProductBasic(save.getId(), requestDto);
+
+        assertThat(responseDto.getName()).isEqualTo(requestDto.getName());
+        assertThat(responseDto.getDescription()).isEqualTo(requestDto.getDescription());
+        assertThat(responseDto.getCategoryId()).isEqualTo(requestDto.getCategoryId());
+
+        Products products = productsRepository.findById(save.getId()).orElseThrow();
+
+        assertThat(products.getName()).isEqualTo(requestDto.getName());
+        assertThat(products.getDescription()).isEqualTo(requestDto.getDescription());
+        assertThat(products.getCategory()).isEqualTo(sweatShirt);
+    }
+
+    @Test
+    @DisplayName("상품 이미지 추가")
+    @Transactional
+    void addImageTest(){
+        Products over = new Products("오버핏 반팔티", "오버핏 반팔티 아이콘 NSW 퓨추라 스우시 반팔 티셔츠", T_shirt);
+        over.addImage("http://test1.jpg", 0);
+        productsRepository.save(over);
+
+        ProductResponseDto responseDto =
+                productService.addImage(over.getId(), new ProductImageRequestDto(List.of("http://test2.jpg")));
+
+        assertThat(responseDto.getImages().size()).isEqualTo(2);
+
+        assertThat(responseDto.getImages())
+                .extracting(
+                        ProductImageDto::getImageUrl,
+                        ProductImageDto::getSortOrder
+                )
+                .containsExactlyInAnyOrder(
+                        tuple("http://test1.jpg", 0),
+                        tuple("http://test2.jpg",1)
+                );
     }
 
     private VariantsRequestDto buildVariant(Long... optionValueIds){
@@ -351,6 +390,4 @@ class ProductServiceImplTest {
                 variants
         );
     }
-
-
 }
