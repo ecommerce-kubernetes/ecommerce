@@ -45,4 +45,8 @@ public class ProductVariants {
         int originPrice = this.price;
         return Math.round(originPrice * (100 - discountValue)/ 100f);
     }
+
+    protected void setProduct(Products product){
+        this.product = product;
+    }
 }

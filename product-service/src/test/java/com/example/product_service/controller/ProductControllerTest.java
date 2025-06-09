@@ -12,6 +12,7 @@ import com.example.product_service.exception.BadRequestException;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.service.ProductImageService;
 import com.example.product_service.service.ProductService;
+import com.example.product_service.service.ProductVariantService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
@@ -53,6 +54,8 @@ class ProductControllerTest {
     ProductService productService;
     @MockitoBean
     ProductImageService productImageService;
+    @MockitoBean
+    ProductVariantService productVariantService;
     ObjectMapper mapper = new ObjectMapper();
 
     @Test
@@ -74,7 +77,20 @@ class ProductControllerTest {
         //ResponseDto
         VariantsResponseDto variantResponse = buildVariantResponse(xlId, blueId);
         ProductResponseDto productResponse =
-                buildProductResponse(clothesId, List.of(colorId, sizeId), List.of(variantResponse));
+                buildProductResponse(clothesId, List.of(
+                        new ProductResponseDto.OptionDto(
+                                colorId, "색상",
+                                List.of(
+                                        new ProductResponseDto.OptionValueDto(blueId, "BLUE")
+                                )
+                        ),
+                        new ProductResponseDto.OptionDto(
+                                sizeId, "사이즈",
+                                List.of(
+                                        new ProductResponseDto.OptionValueDto(xlId, "XL")
+                                )
+                        )
+                ), List.of(variantResponse));
 
         //ProductsService Mocking
         when(productService.saveProduct(any(ProductRequestDto.class))).thenReturn(productResponse);
@@ -156,7 +172,7 @@ class ProductControllerTest {
         );
     }
 
-    private ProductResponseDto buildProductResponse(Long categoryId, List<Long> optionTypeIds, List<VariantsResponseDto> variants){
+    private ProductResponseDto buildProductResponse(Long categoryId, List<ProductResponseDto.OptionDto> options, List<VariantsResponseDto> variants){
         return new ProductResponseDto(
                 1L,
                 "나이키 티셔츠",
@@ -168,7 +184,7 @@ class ProductControllerTest {
                         new ProductImageDto(2L, "http://test2.jpg", 1)),
                 0.0,
                 0,
-                optionTypeIds,
+                options,
                 variants
         );
     }
@@ -179,6 +195,7 @@ class ProductControllerTest {
                 "TS-XL-BLUE",
                 29000,
                 30,
+                29000,
                 10,
                 List.of(optionValueIds)
         );

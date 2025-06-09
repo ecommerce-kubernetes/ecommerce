@@ -1,6 +1,7 @@
 package com.example.product_service.service;
 
 import com.example.product_service.dto.request.ProductImageRequestDto;
+import com.example.product_service.dto.request.product.CreateVariantsRequestDto;
 import com.example.product_service.dto.request.product.ProductBasicRequestDto;
 import com.example.product_service.dto.request.product.ProductRequestDto;
 import com.example.product_service.dto.request.product.VariantsRequestDto;
@@ -240,7 +241,7 @@ class ProductServiceImplTest {
         productsRepository.saveAll(List.of(over,nike));
 
         doReturn(List.of()).when(categoryService).getCategoryAndDescendantIds(nullable(Long.class));
-        PageDto<ProductSummaryDto> result = productService.getProductList(PageRequest.of(0, 10, Sort.Direction.ASC, "id"), null, null);
+        PageDto<ProductSummaryDto> result = productService.getProductList(PageRequest.of(0, 10, Sort.Direction.ASC, "id"), null, null, null);
         assertThat(result.getContent().size()).isEqualTo(2);
         assertThat(result.getCurrentPage()).isEqualTo(0);
         assertThat(result.getPageSize()).isEqualTo(10);
@@ -280,9 +281,8 @@ class ProductServiceImplTest {
         over.addReviews(1L, 4, "테스트 리뷰1", null);
         over.addReviews(2L, 5, "테스트 리뷰2", null);
         productsRepository.save(over);
-        log.info("테스트 시작");
+
         ProductResponseDto response = productService.getProductDetails(over.getId());
-        log.info("테스트 종료");
 
 
         //상품 기본 정보 검증
@@ -306,9 +306,8 @@ class ProductServiceImplTest {
                         tuple("http://over_thumbnail.jpg", 0)
                 );
 
-        //optionType 검증
-        assertThat(response.getOptionTypes().size()).isEqualTo(2);
-        assertThat(response.getOptionTypes()).contains(size.getId(), color.getId());
+        //options 검증
+        assertThat(response.getOptions().size()).isEqualTo(2);
 
         //Variants 검증
         assertThat(response.getVariants().size()).isEqualTo(2);
@@ -344,30 +343,6 @@ class ProductServiceImplTest {
         assertThat(products.getName()).isEqualTo(requestDto.getName());
         assertThat(products.getDescription()).isEqualTo(requestDto.getDescription());
         assertThat(products.getCategory()).isEqualTo(sweatShirt);
-    }
-
-    @Test
-    @DisplayName("상품 이미지 추가")
-    @Transactional
-    void addImageTest(){
-        Products over = new Products("오버핏 반팔티", "오버핏 반팔티 아이콘 NSW 퓨추라 스우시 반팔 티셔츠", T_shirt);
-        over.addImage("http://test1.jpg", 0);
-        productsRepository.save(over);
-
-        ProductResponseDto responseDto =
-                productService.addImage(over.getId(), new ProductImageRequestDto(List.of("http://test2.jpg")));
-
-        assertThat(responseDto.getImages().size()).isEqualTo(2);
-
-        assertThat(responseDto.getImages())
-                .extracting(
-                        ProductImageDto::getImageUrl,
-                        ProductImageDto::getSortOrder
-                )
-                .containsExactlyInAnyOrder(
-                        tuple("http://test1.jpg", 0),
-                        tuple("http://test2.jpg",1)
-                );
     }
 
     private VariantsRequestDto buildVariant(Long... optionValueIds){

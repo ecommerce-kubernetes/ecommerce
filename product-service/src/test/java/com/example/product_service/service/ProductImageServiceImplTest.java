@@ -1,6 +1,7 @@
 package com.example.product_service.service;
 
 import com.example.product_service.dto.request.ImageOrderRequestDto;
+import com.example.product_service.dto.request.ProductImageRequestDto;
 import com.example.product_service.dto.response.product.ProductImageDto;
 import com.example.product_service.dto.response.product.ProductResponseDto;
 import com.example.product_service.entity.Categories;
@@ -10,6 +11,9 @@ import com.example.product_service.repository.CategoriesRepository;
 import com.example.product_service.repository.ProductsRepository;
 import com.example.product_service.service.client.ImageClientService;
 import lombok.extern.slf4j.Slf4j;
+
+import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.Mockito.*;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,10 +24,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Objects;
 
-import static org.assertj.core.api.Assertions.anyOf;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 
@@ -56,6 +59,30 @@ class ProductImageServiceImplTest {
     void clearData(){
         productsRepository.deleteAll();
         categoriesRepository.deleteAll();
+    }
+
+    @Test
+    @DisplayName("상품 이미지 추가")
+    @Transactional
+    void addImageTest(){
+        Products over = new Products("오버핏 반팔티", "오버핏 반팔티 아이콘 NSW 퓨추라 스우시 반팔 티셔츠", T_shirt);
+        over.addImage("http://test1.jpg", 0);
+        productsRepository.save(over);
+
+        ProductResponseDto responseDto =
+                productImageService.addImage(over.getId(), new ProductImageRequestDto(List.of("http://test2.jpg")));
+
+        assertThat(responseDto.getImages().size()).isEqualTo(2);
+
+        assertThat(responseDto.getImages())
+                .extracting(
+                        ProductImageDto::getImageUrl,
+                        ProductImageDto::getSortOrder
+                )
+                .containsExactlyInAnyOrder(
+                        tuple("http://test1.jpg", 0),
+                        tuple("http://test2.jpg",1)
+                );
     }
 
     @Test

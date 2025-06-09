@@ -3,6 +3,8 @@ package com.example.product_service.service;
 import com.example.product_service.dto.KafkaDeletedProduct;
 import com.example.product_service.dto.KafkaOrderItemDto;
 import com.example.product_service.dto.request.*;
+import com.example.product_service.dto.request.options.IdsRequestDto;
+import com.example.product_service.dto.request.product.CreateVariantsRequestDto;
 import com.example.product_service.dto.request.product.ProductBasicRequestDto;
 import com.example.product_service.dto.request.product.ProductRequestDto;
 import com.example.product_service.dto.request.product.VariantsRequestDto;
@@ -34,12 +36,12 @@ public class ProductServiceImpl implements ProductService{
 
     private final ProductsRepository productsRepository;
     private final CategoryService categoryService;
-    private final ProductImagesRepository productImagesRepository;
     private final OptionTypesRepository optionTypesRepository;
     private final OptionValuesRepository optionValuesRepository;
-    private final ImageClientService imageClientService;
-    private final KafkaProducer kafkaProducer;
 
+    private final ImageClientService imageClientService;
+
+    private final KafkaProducer kafkaProducer;
     @Override
     @Transactional
     public ProductResponseDto saveProduct(ProductRequestDto requestDto) {
@@ -120,6 +122,19 @@ public class ProductServiceImpl implements ProductService{
             if(!missingValueIds.isEmpty()){
                 throw new NotFoundException("Invalid OptionValue Ids : " +missingValueIds);
             }
+
+            Set<Long> allowedTypeIds = typeOrder.keySet();
+            Set<Long> invalidTypeValueIds = new HashSet<>();
+            for(OptionValues ov : optionValues){
+                Long typeId = ov.getOptionType().getId();
+                if(!allowedTypeIds.contains(typeId)){
+                    invalidTypeValueIds.add(ov.getId());
+                }
+            }
+            if(!invalidTypeValueIds.isEmpty()){
+                throw new BadRequestException("OptionValues not match product's OptionTypes: " + invalidTypeValueIds);
+            }
+
             //OptionValue 를 OptionType 우선순위에 맞게 정렬한 리스트
             List<OptionValues> sortedValues = optionValues.stream()
                     .sorted(Comparator.comparingInt(
@@ -136,9 +151,9 @@ public class ProductServiceImpl implements ProductService{
     }
 
     @Override
-    public PageDto<ProductSummaryDto> getProductList(Pageable pageable, Long categoryId, String name) {
+    public PageDto<ProductSummaryDto> getProductList(Pageable pageable, Long categoryId, String name, Integer rating) {
         List<Long> categoryTreeIds = categoryService.getCategoryAndDescendantIds(categoryId);
-        Page<ProductSummaryDto> result = productsRepository.findAllByProductSummaryProjection(name, categoryTreeIds, pageable);
+        Page<ProductSummaryDto> result = productsRepository.findAllByProductSummaryProjection(name, categoryTreeIds, rating, pageable);
         List<ProductSummaryDto> content = result.getContent();
         return new PageDto<>(
                 content,
@@ -186,6 +201,27 @@ public class ProductServiceImpl implements ProductService{
 
     @Override
     @Transactional
+    public void batchDeleteProducts(IdsRequestDto requestDto) {
+        List<Long> ids = new ArrayList<>(requestDto.getIds());
+        List<Products> products = productsRepository.findAllByIdInWithImages(ids);
+        List<Long> existIds = products.stream().map(Products::getId).toList();
+
+        ids.removeAll(existIds);
+        if(!ids.isEmpty()){
+            throw new NotFoundException("Not Found Products ids : " + ids);
+        }
+
+        for (Products product : products) {
+            List<String> imageUrls = product.getImages().stream().map(ProductImages::getImageUrl).toList();
+            imageClientService.deleteImages(imageUrls);
+            KafkaDeletedProduct deletedProductMessage = new KafkaDeletedProduct(product.getId());
+            kafkaProducer.sendMessage("delete_product", deletedProductMessage);
+        }
+        productsRepository.deleteAll(products);
+    }
+
+    @Override
+    @Transactional
     public ProductResponseDto modifyStockQuantity(Long productId, StockQuantityRequestDto stockQuantityRequestDto) {
         Products product = productsRepository.findById(productId)
                 .orElseThrow(() -> new NotFoundException("Not Found Product"));
@@ -222,26 +258,6 @@ public class ProductServiceImpl implements ProductService{
 
         }
     }
-
-    @Override
-    @Transactional
-    public ProductResponseDto addImage(Long productId, ProductImageRequestDto productImageRequestDto) {
-        List<String> imageUrls = productImageRequestDto.getImageUrls();
-        Products product = productsRepository.findByIdWithProductImages(productId)
-                .orElseThrow(() -> new NotFoundException("Not Found Product"));
-
-        int nextOrder = product.getImages().stream()
-                .map(ProductImages::getSortOrder)
-                .max(Integer::compareTo)
-                .orElse(-1) + 1;
-
-        for (String imageUrl : imageUrls) {
-            product.addImage(imageUrl, nextOrder++);
-        }
-        return new ProductResponseDto(product);
-    }
-
-
 
     private String buildSku(Long productId, List<OptionValues> sortedValues){
         if(sortedValues == null || sortedValues.isEmpty()){

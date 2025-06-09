@@ -1,6 +1,7 @@
 package com.example.product_service.service;
 
 import com.example.product_service.dto.request.ImageOrderRequestDto;
+import com.example.product_service.dto.request.ProductImageRequestDto;
 import com.example.product_service.dto.response.product.ProductResponseDto;
 import com.example.product_service.entity.ProductImages;
 import com.example.product_service.entity.Products;
@@ -13,6 +14,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class ProductImageServiceImpl implements ProductImageService{
@@ -20,6 +23,23 @@ public class ProductImageServiceImpl implements ProductImageService{
     private final ProductImagesRepository productImagesRepository;
     private final ProductsRepository productsRepository;
     private final ImageClientService imageClientService;
+
+    @Override
+    public ProductResponseDto addImage(Long productId, ProductImageRequestDto requestDto) {
+        List<String> imageUrls = requestDto.getImageUrls();
+        Products product = productsRepository.findByIdWithProductImages(productId)
+                .orElseThrow(() -> new NotFoundException("Not Found Product"));
+
+        int nextOrder = product.getImages().stream()
+                .map(ProductImages::getSortOrder)
+                .max(Integer::compareTo)
+                .orElse(-1) + 1;
+
+        for (String imageUrl : imageUrls) {
+            product.addImage(imageUrl, nextOrder++);
+        }
+        return new ProductResponseDto(product);
+    }
 
     @Override
     @Transactional
@@ -31,7 +51,7 @@ public class ProductImageServiceImpl implements ProductImageService{
         Integer deletedSortOrder = productImage.getSortOrder();
         imageClientService.deleteImage(productImage.getImageUrl());
         Products product = productImage.getProduct();
-        product.deleteImage(productImage);
+        product.removeImage(productImage);
         for(ProductImages img : product.getImages()){
             if(img.getSortOrder() > deletedSortOrder){
                 img.setSortOrder(img.getSortOrder() -1);

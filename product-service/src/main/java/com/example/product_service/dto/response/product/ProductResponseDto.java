@@ -8,6 +8,8 @@ import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.IntSummaryStatistics;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -24,7 +26,7 @@ public class ProductResponseDto {
     private List<ProductImageDto> images;
     private double ratingAvg;
     private int totalReviewCount;
-    private List<Long> optionTypes;
+    private List<OptionDto> options;
     private List<VariantsResponseDto> variants;
 
     public ProductResponseDto(Products product){
@@ -43,8 +45,36 @@ public class ProductResponseDto {
         this.ratingAvg = stats.getCount() == 0
                 ? 0.0
                 : stats.getAverage();
-        this.optionTypes = product.getProductOptionTypes().stream().map((optionTypes) -> optionTypes.getOptionType().getId())
-                .toList();
+        Set<Long> usedValueIds = product.getProductVariants().stream()
+                .flatMap(v -> v.getProductVariantOptions().stream())
+                .map(pvo -> pvo.getOptionValue().getId())
+                .collect(Collectors.toSet());
+
+        // 2) options 매핑 및 필터링
+        this.options = product.getProductOptionTypes().stream()
+                .map(pot -> {
+                    OptionTypes ot = pot.getOptionType();
+                    List<OptionValueDto> vals = ot.getOptionValues().stream()
+                            .filter(ov -> usedValueIds.contains(ov.getId()))
+                            .map(ov -> new OptionValueDto(ov.getId(), ov.getOptionValue()))
+                            .collect(Collectors.toList());
+                    return new OptionDto(ot.getId(), ot.getName(), vals);
+                })
+                .collect(Collectors.toList());
         this.variants = product.getProductVariants().stream().map((VariantsResponseDto::new)).toList();
+    }
+    @Getter
+    @AllArgsConstructor
+    public static class OptionDto {
+        private Long id;
+        private String name;
+        private List<OptionValueDto> values;
+    }
+
+    @Getter
+    @AllArgsConstructor
+    public static class OptionValueDto {
+        private Long id;
+        private String optionValue;
     }
 }

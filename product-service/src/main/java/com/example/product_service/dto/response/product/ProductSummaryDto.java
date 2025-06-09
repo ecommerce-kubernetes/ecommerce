@@ -3,6 +3,8 @@ package com.example.product_service.dto.response.product;
 import com.querydsl.core.annotations.QueryProjection;
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Getter
 @ToString
 @Setter
@@ -13,6 +15,7 @@ public class ProductSummaryDto {
     private String description;
     private String thumbnailUrl;
     private String categoryName;
+    private LocalDateTime createAt;
     private double ratingAvg;
     private int totalReviewCount;
     private int originPrice;
@@ -22,12 +25,16 @@ public class ProductSummaryDto {
     @QueryProjection
     public ProductSummaryDto(Long id, String name, String description,
                              String thumbnailUrl, String categoryName,
-                             double ratingAvg, int totalReviewCount, int originPrice, int discountPrice, int discountValue){
+                             LocalDateTime createAt,
+                             double ratingAvg, int totalReviewCount,
+                             int originPrice, int discountPrice, int discountValue
+                             ){
         this.id = id;
         this.name = name;
         this.description = description;
         this.thumbnailUrl = thumbnailUrl;
         this.categoryName = categoryName;
+        this.createAt = createAt;
         this.ratingAvg = ratingAvg;
         this.totalReviewCount = totalReviewCount;
         this.originPrice = originPrice;

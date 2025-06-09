@@ -70,6 +70,11 @@ public class Products extends BaseEntity {
         this.productVariants.add(productVariant);
     }
 
+    public void removeProductVariants(ProductVariants productVariant){
+        productVariants.remove(productVariant);
+        productVariant.setProduct(null);
+    }
+
     public void addReviews(Long userId, int rating, String content, List<String> imageUrls){
         Reviews reviews = new Reviews(this, userId, rating, content);
         if(imageUrls != null && !imageUrls.isEmpty()) {
@@ -78,11 +83,6 @@ public class Products extends BaseEntity {
             }
         }
         this.reviews.add(reviews);
-    }
-
-    public void deleteImage(ProductImages productImage){
-        images.remove(productImage);
-        productImage.setProduct(null);
     }
 
     public void modifyBasicInfo(String name, String description, Categories category){

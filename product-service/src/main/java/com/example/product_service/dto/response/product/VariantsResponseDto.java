@@ -19,6 +19,7 @@ public class VariantsResponseDto {
     private int price;
     private int stockQuantity;
     private int discountValue;
+    private int discountPrice;
     private List<Long> optionValueId;
 
     public VariantsResponseDto(ProductVariants productVariant){
@@ -27,6 +28,7 @@ public class VariantsResponseDto {
         this.price = productVariant.getPrice();
         this.stockQuantity = productVariant.getStockQuantity();
         this.discountValue = productVariant.getDiscountValue();
+        this.discountPrice = productVariant.getDiscountPrice();
         this.optionValueId = productVariant.getProductVariantOptions().stream()
                 .map((pvo) -> pvo.getOptionValue().getId()).toList();
     }

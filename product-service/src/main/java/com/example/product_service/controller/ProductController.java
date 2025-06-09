@@ -2,6 +2,8 @@ package com.example.product_service.controller;
 
 import com.example.product_service.controller.util.SortFieldValidator;
 import com.example.product_service.dto.request.*;
+import com.example.product_service.dto.request.options.IdsRequestDto;
+import com.example.product_service.dto.request.product.CreateVariantsRequestDto;
 import com.example.product_service.dto.request.product.ProductBasicRequestDto;
 import com.example.product_service.dto.request.product.ProductRequestDto;
 import com.example.product_service.dto.response.CompactProductResponseDto;
@@ -10,8 +12,8 @@ import com.example.product_service.dto.response.product.ProductResponseDto;
 import com.example.product_service.dto.response.product.ProductSummaryDto;
 import com.example.product_service.entity.Products;
 import com.example.product_service.service.ProductImageService;
-import com.example.product_service.service.ProductImageServiceImpl;
 import com.example.product_service.service.ProductService;
+import com.example.product_service.service.ProductVariantService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -30,6 +32,7 @@ public class ProductController {
 
     private final ProductService productService;
     private final ProductImageService productImageService;
+    private final ProductVariantService productVariantService;
     private final SortFieldValidator sortFieldValidator;
 
     @PostMapping
@@ -42,9 +45,10 @@ public class ProductController {
     public ResponseEntity<PageDto<ProductSummaryDto>> getAllProducts(
             @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.ASC) Pageable pageable,
             @RequestParam(value = "categoryId", required = false) Long categoryId,
-            @RequestParam(value = "name", required = false) String name){
+            @RequestParam(value = "name", required = false) String name,
+            @RequestParam(value = "rating", required = false) Integer rating){
         sortFieldValidator.validateSortFields(pageable.getSort(), Products.class);
-        PageDto<ProductSummaryDto> productList = productService.getProductList(pageable, categoryId, name);
+        PageDto<ProductSummaryDto> productList = productService.getProductList(pageable, categoryId, name, rating);
         return ResponseEntity.ok(productList);
     }
 
@@ -64,7 +68,7 @@ public class ProductController {
     @PostMapping("/{productId}/image")
     public ResponseEntity<ProductResponseDto> addProductImg(@PathVariable("productId") Long productId,
                                                             @RequestBody @Validated ProductImageRequestDto productImageRequestDto){
-        ProductResponseDto productResponseDto = productService.addImage(productId, productImageRequestDto);
+        ProductResponseDto productResponseDto = productImageService.addImage(productId, productImageRequestDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(productResponseDto);
     }
 
@@ -87,6 +91,28 @@ public class ProductController {
         return ResponseEntity.noContent().build();
     }
 
+    @PostMapping("/batch-delete")
+    public ResponseEntity<Void> productBatchDelete(@Validated @RequestBody IdsRequestDto requestDto){
+        productService.batchDeleteProducts(requestDto);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{productId}/variants")
+    public ResponseEntity<ProductResponseDto> addVariants(@PathVariable("productId") Long productId,
+                                                          @RequestBody CreateVariantsRequestDto requestDto){
+        ProductResponseDto responseDto = productVariantService.addVariants(productId, requestDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
+    }
+
+    @DeleteMapping("/variants/{variantId}")
+    public ResponseEntity<ProductResponseDto> deleteVariants(@PathVariable("variantId") Long variantId){
+        productVariantService.deleteVariant(variantId);
+        return ResponseEntity.noContent().build();
+    }
+
+
+    //TODO
+    // 변경해야하는 API
     @PatchMapping("/{productId}/stock")
     public ResponseEntity<ProductResponseDto> updateProductStockQuantity(@PathVariable("productId") Long productId,
                                                                          @RequestBody @Validated StockQuantityRequestDto stockQuantityRequestDto){

@@ -12,5 +12,5 @@ import java.util.Optional;
 
 public interface ProductQueryRepository {
 
-    Page<ProductSummaryDto> findAllByProductSummaryProjection(String name, List<Long> categoryIds, Pageable pageable);
+    Page<ProductSummaryDto> findAllByProductSummaryProjection(String name, List<Long> categoryIds, Integer rating, Pageable pageable);
 }

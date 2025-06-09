@@ -25,6 +25,15 @@ public interface ProductsRepository extends JpaRepository<Products, Long>, Produ
             """)
     Optional<Products> findByIdWithImageAndCategory(@Param("id") Long id);
 
+
+    @Query("""
+            SELECT DISTINCT p
+            FROM Products p
+                JOIN FETCH p.images
+            WHERE p.id IN :ids
+            """)
+    List<Products> findAllByIdInWithImages(@Param("ids") List<Long> ids);
+
     @Query("""
             SELECT new com.example.product_service.dto.response.CompactProductResponseDto(
                 p,
