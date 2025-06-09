@@ -18,8 +18,8 @@ public class Reviews extends BaseEntity {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "product_id")
-    private Products product;
+    @JoinColumn(name = "product_variant_id")
+    private ProductVariants productVariant;
 
     private Long userId;
     private int rating;
@@ -28,8 +28,8 @@ public class Reviews extends BaseEntity {
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "review", cascade = CascadeType.ALL, orphanRemoval = true)
     List<ReviewImages> images = new ArrayList<>();
 
-    public Reviews(Products product, Long userId, int rating, String content){
-        this.product = product;
+    public Reviews(ProductVariants productVariant, Long userId, int rating, String content){
+        this.productVariant = productVariant;
         this.userId = userId;
         this.rating = rating;
         this.content = content;

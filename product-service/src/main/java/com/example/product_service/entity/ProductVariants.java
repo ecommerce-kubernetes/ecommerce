@@ -23,6 +23,9 @@ public class ProductVariants {
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "productVariant", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProductVariantOptions> productVariantOptions = new ArrayList<>();
 
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "productVariant", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Reviews> reviews = new ArrayList<>();
+
     private String sku; //TS-M-BLUE
     private int price;
     private int stockQuantity;
@@ -48,5 +51,13 @@ public class ProductVariants {
 
     protected void setProduct(Products product){
         this.product = product;
+    }
+
+    public void addReview(Long userId, int rating, String content, List<String> imageUrls){
+        Reviews review = new Reviews(this, userId, rating, content);
+        reviews.add(review);
+        for (String imageUrl : imageUrls) {
+            review.addImage(imageUrl);
+        }
     }
 }

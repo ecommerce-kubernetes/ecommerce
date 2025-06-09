@@ -34,9 +34,6 @@ public class Products extends BaseEntity {
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProductVariants> productVariants = new ArrayList<>();
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Reviews> reviews = new ArrayList<>();
-
     public Products(String name, String description, Categories category){
         this.name = name;
         this.description = description;
@@ -75,15 +72,6 @@ public class Products extends BaseEntity {
         productVariant.setProduct(null);
     }
 
-    public void addReviews(Long userId, int rating, String content, List<String> imageUrls){
-        Reviews reviews = new Reviews(this, userId, rating, content);
-        if(imageUrls != null && !imageUrls.isEmpty()) {
-            for (String imageUrl : imageUrls) {
-                reviews.addImage(imageUrl);
-            }
-        }
-        this.reviews.add(reviews);
-    }
 
     public void modifyBasicInfo(String name, String description, Categories category){
         if(name != null){

@@ -38,7 +38,8 @@ public class ProductResponseDto {
         this.updateAt = product.getUpdateAt();
         this.images = product.getImages().stream().sorted(Comparator.comparing(ProductImages::getSortOrder))
                 .map(ProductImageDto::new).toList();
-        IntSummaryStatistics stats = product.getReviews().stream()
+        IntSummaryStatistics stats = product.getProductVariants().stream()
+                .flatMap(variant -> variant.getReviews().stream())
                 .mapToInt(Reviews::getRating)
                 .summaryStatistics();
         this.totalReviewCount = (int) stats.getCount();

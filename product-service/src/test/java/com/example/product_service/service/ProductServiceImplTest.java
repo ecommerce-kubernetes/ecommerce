@@ -27,6 +27,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.*;
@@ -228,7 +229,8 @@ class ProductServiceImplTest {
         over.addProductVariants("TS-XL-BLUE",10000, 10, 10, List.of(xl,blue));
         over.addProductVariants("TS-L-RED", 10000, 10, 20, List.of(l,red));
         over.addImage("http://over_thumbnail.jpg", 0);
-        over.addReviews(1L, 4, "리뷰테스트", null);
+        ProductVariants variants = over.getProductVariants().stream().filter(variant -> Objects.equals(variant.getSku(), "TS-XL-BLUE")).findFirst().get();
+        variants.addReview(1L, 4, "리뷰테스트",List.of());
 
         Products nike = new Products("나이키 티셔츠", "나이키 티셔츠 빅로고 나이키 기능성 반팔 티셔츠", T_shirt);
         nike.addProductOptionTypes(size , 0 , true);
@@ -236,8 +238,10 @@ class ProductServiceImplTest {
         nike.addProductVariants("NIKE-XL-BLUE", 20000, 10, 10, List.of(xl,blue));
         nike.addProductVariants("NIKE-L-RED", 20000, 10, 20, List.of(l,red));
         nike.addImage("http://nike_thumbnail.jpg",0);
-        nike.addReviews(1L, 5, "리뷰테스트", null);
-        nike.addReviews(1L, 4, "리뷰테스트", null);
+        ProductVariants variants1 = nike.getProductVariants().stream().filter(variant -> variant.getSku() == "NIKE-XL-BLUE").findFirst().get();
+        variants1.addReview(1L, 5, "리뷰테스트", List.of());
+        ProductVariants variants2 = nike.getProductVariants().stream().filter(variant -> variant.getSku() == "NIKE-L-RED").findFirst().get();
+        variants2.addReview(1L, 4, "리뷰테스트", List.of());
         productsRepository.saveAll(List.of(over,nike));
 
         doReturn(List.of()).when(categoryService).getCategoryAndDescendantIds(nullable(Long.class));
@@ -278,9 +282,10 @@ class ProductServiceImplTest {
         over.addProductVariants("TS-XL-BLUE",10000, 10, 10, List.of(xl,blue));
         over.addProductVariants("TS-L-RED", 10000, 10, 20, List.of(l,red));
         over.addImage("http://over_thumbnail.jpg", 0);
-        over.addReviews(1L, 4, "테스트 리뷰1", null);
-        over.addReviews(2L, 5, "테스트 리뷰2", null);
-        productsRepository.save(over);
+        ProductVariants variants = over.getProductVariants().stream().filter(variant -> variant.getSku() == "TS-XL-BLUE").findFirst().get();
+        variants.addReview(1L, 4, "테스트리뷰", List.of());
+        variants.addReview(2L, 5, "테스트리뷰", List.of());
+        over = productsRepository.save(over);
 
         ProductResponseDto response = productService.getProductDetails(over.getId());
 

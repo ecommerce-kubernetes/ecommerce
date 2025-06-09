@@ -69,10 +69,10 @@ public class ProductQueryRepositoryImpl implements ProductQueryRepository {
 
         NumberTemplate<Double> avgRatingExpr = Expressions.numberTemplate(Double.class, "( SELECT AVG(r.rating) " +
                 "FROM Reviews r " +
-                "WHERE r.product.id = {0} )", products.id);
+                "WHERE r.productVariant.product.id = {0} )", products.id);
         NumberTemplate<Integer> reviewCountExpr = Expressions.numberTemplate(Integer.class, "( SELECT COUNT(*) " +
                 "FROM Reviews r " +
-                "WHERE r.product.id = {0} )", products.id);
+                "WHERE r.productVariant.product.id = {0} )", products.id);
 
         BooleanExpression ratingPredicate =
                 (rating != null && rating > 0) ? avgRatingExpr.goe(rating.doubleValue()) : null;

@@ -33,7 +33,7 @@ public class QReviews extends EntityPathBase<Reviews> {
 
     public final ListPath<ReviewImages, QReviewImages> images = this.<ReviewImages, QReviewImages>createList("images", ReviewImages.class, QReviewImages.class, PathInits.DIRECT2);
 
-    public final QProducts product;
+    public final QProductVariants productVariant;
 
     public final NumberPath<Integer> rating = createNumber("rating", Integer.class);
 
@@ -60,7 +60,7 @@ public class QReviews extends EntityPathBase<Reviews> {
 
     public QReviews(Class<? extends Reviews> type, PathMetadata metadata, PathInits inits) {
         super(type, metadata, inits);
-        this.product = inits.isInitialized("product") ? new QProducts(forProperty("product"), inits.get("product")) : null;
+        this.productVariant = inits.isInitialized("productVariant") ? new QProductVariants(forProperty("productVariant"), inits.get("productVariant")) : null;
     }
 
 }
