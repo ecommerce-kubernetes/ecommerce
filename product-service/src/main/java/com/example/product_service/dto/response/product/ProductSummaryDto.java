@@ -35,7 +35,7 @@ public class ProductSummaryDto {
         this.thumbnailUrl = thumbnailUrl;
         this.categoryName = categoryName;
         this.createAt = createAt;
-        this.ratingAvg = ratingAvg;
+        this.ratingAvg = Math.floor(ratingAvg * 10) / 10.0;
         this.totalReviewCount = totalReviewCount;
         this.originPrice = originPrice;
         this.discountPrice = discountPrice;

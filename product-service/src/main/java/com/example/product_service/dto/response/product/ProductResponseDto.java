@@ -45,7 +45,7 @@ public class ProductResponseDto {
         this.totalReviewCount = (int) stats.getCount();
         this.ratingAvg = stats.getCount() == 0
                 ? 0.0
-                : stats.getAverage();
+                : Math.floor(stats.getAverage()*10)/10.0;
         Set<Long> usedValueIds = product.getProductVariants().stream()
                 .flatMap(v -> v.getProductVariantOptions().stream())
                 .map(pvo -> pvo.getOptionValue().getId())

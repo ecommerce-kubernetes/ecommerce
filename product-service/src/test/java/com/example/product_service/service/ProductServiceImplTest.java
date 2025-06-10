@@ -230,7 +230,7 @@ class ProductServiceImplTest {
         over.addProductVariants("TS-L-RED", 10000, 10, 20, List.of(l,red));
         over.addImage("http://over_thumbnail.jpg", 0);
         ProductVariants variants = over.getProductVariants().stream().filter(variant -> Objects.equals(variant.getSku(), "TS-XL-BLUE")).findFirst().get();
-        variants.addReview(1L, 4, "리뷰테스트",List.of());
+        variants.addReview(1L, "user1", 4, "리뷰테스트",List.of());
 
         Products nike = new Products("나이키 티셔츠", "나이키 티셔츠 빅로고 나이키 기능성 반팔 티셔츠", T_shirt);
         nike.addProductOptionTypes(size , 0 , true);
@@ -239,9 +239,9 @@ class ProductServiceImplTest {
         nike.addProductVariants("NIKE-L-RED", 20000, 10, 20, List.of(l,red));
         nike.addImage("http://nike_thumbnail.jpg",0);
         ProductVariants variants1 = nike.getProductVariants().stream().filter(variant -> variant.getSku() == "NIKE-XL-BLUE").findFirst().get();
-        variants1.addReview(1L, 5, "리뷰테스트", List.of());
+        variants1.addReview(1L, "user1", 5, "리뷰테스트", List.of());
         ProductVariants variants2 = nike.getProductVariants().stream().filter(variant -> variant.getSku() == "NIKE-L-RED").findFirst().get();
-        variants2.addReview(1L, 4, "리뷰테스트", List.of());
+        variants2.addReview(1L, "user2", 4, "리뷰테스트", List.of());
         productsRepository.saveAll(List.of(over,nike));
 
         doReturn(List.of()).when(categoryService).getCategoryAndDescendantIds(nullable(Long.class));
@@ -283,8 +283,8 @@ class ProductServiceImplTest {
         over.addProductVariants("TS-L-RED", 10000, 10, 20, List.of(l,red));
         over.addImage("http://over_thumbnail.jpg", 0);
         ProductVariants variants = over.getProductVariants().stream().filter(variant -> variant.getSku() == "TS-XL-BLUE").findFirst().get();
-        variants.addReview(1L, 4, "테스트리뷰", List.of());
-        variants.addReview(2L, 5, "테스트리뷰", List.of());
+        variants.addReview(1L, "user1", 4, "테스트리뷰", List.of());
+        variants.addReview(2L, "user2", 5, "테스트리뷰", List.of());
         over = productsRepository.save(over);
 
         ProductResponseDto response = productService.getProductDetails(over.getId());

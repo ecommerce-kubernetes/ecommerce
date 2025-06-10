@@ -53,8 +53,8 @@ public class ProductVariants {
         this.product = product;
     }
 
-    public void addReview(Long userId, int rating, String content, List<String> imageUrls){
-        Reviews review = new Reviews(this, userId, rating, content);
+    public void addReview(Long userId, String userName,  int rating, String content, List<String> imageUrls){
+        Reviews review = new Reviews(this, userId, userName ,rating, content);
         reviews.add(review);
         for (String imageUrl : imageUrls) {
             review.addImage(imageUrl);

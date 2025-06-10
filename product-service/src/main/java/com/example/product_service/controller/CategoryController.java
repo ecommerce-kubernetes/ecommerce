@@ -65,7 +65,7 @@ public class CategoryController {
     public ResponseEntity<PageDto<CategoryResponseDto>> getMainCategoryList(
             @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.ASC) Pageable pageable){
 
-        sortFieldValidator.validateSortFields(pageable.getSort(), Categories.class);
+        sortFieldValidator.validateSortFields(pageable.getSort(), Categories.class, null);
         PageDto<CategoryResponseDto> pageDto = categoryService.getRootCategories(pageable);
         return ResponseEntity.ok(pageDto);
     }

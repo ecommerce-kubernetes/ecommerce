@@ -11,7 +11,7 @@ import java.util.List;
 
 @Component
 public class SortFieldValidator {
-    public void validateSortFields(Sort sort, Class<?> entityClass){
+    public void validateSortFields(Sort sort, Class<?> entityClass, List<String> additionalAllowedFields){
 
         List<String> validFields = new ArrayList<>();
         Class<?> current = entityClass;
@@ -21,6 +21,10 @@ public class SortFieldValidator {
                 validFields.add(field.getName());
             }
             current = current.getSuperclass();
+        }
+
+        if(additionalAllowedFields != null){
+            validFields.addAll(additionalAllowedFields);
         }
 
         for(Sort.Order order : sort) {

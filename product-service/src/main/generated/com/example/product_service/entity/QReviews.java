@@ -42,6 +42,8 @@ public class QReviews extends EntityPathBase<Reviews> {
 
     public final NumberPath<Long> userId = createNumber("userId", Long.class);
 
+    public final StringPath userName = createString("userName");
+
     public QReviews(String variable) {
         this(Reviews.class, forVariable(variable), INITS);
     }

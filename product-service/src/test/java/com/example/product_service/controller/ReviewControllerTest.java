@@ -30,9 +30,4 @@ public class ReviewControllerTest {
 
     ObjectMapper mapper = new ObjectMapper();
 
-    @Test
-    @DisplayName("리뷰 등록 테스트")
-    void registerReviewTest() throws Exception {
-    }
-
 }

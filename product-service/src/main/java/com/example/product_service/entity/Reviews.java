@@ -22,15 +22,17 @@ public class Reviews extends BaseEntity {
     private ProductVariants productVariant;
 
     private Long userId;
+    private String userName;
     private int rating;
     private String content;
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "review", cascade = CascadeType.ALL, orphanRemoval = true)
     List<ReviewImages> images = new ArrayList<>();
 
-    public Reviews(ProductVariants productVariant, Long userId, int rating, String content){
+    public Reviews(ProductVariants productVariant, Long userId, String userName, int rating, String content){
         this.productVariant = productVariant;
         this.userId = userId;
+        this.userName = userName;
         this.rating = rating;
         this.content = content;
     }

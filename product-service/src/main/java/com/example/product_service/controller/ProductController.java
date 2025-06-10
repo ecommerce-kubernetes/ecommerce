@@ -47,7 +47,7 @@ public class ProductController {
             @RequestParam(value = "categoryId", required = false) Long categoryId,
             @RequestParam(value = "name", required = false) String name,
             @RequestParam(value = "rating", required = false) Integer rating){
-        sortFieldValidator.validateSortFields(pageable.getSort(), Products.class);
+        sortFieldValidator.validateSortFields(pageable.getSort(), Products.class, null);
         PageDto<ProductSummaryDto> productList = productService.getProductList(pageable, categoryId, name, rating);
         return ResponseEntity.ok(productList);
     }
