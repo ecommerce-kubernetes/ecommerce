@@ -1,7 +1,7 @@
 package com.example.userservice.service;
 
 import com.example.userservice.advice.exceptions.InvalidTokenException;
-import com.example.userservice.jpa.UserEntity;
+import com.example.userservice.jpa.entity.UserEntity;
 import com.example.userservice.jpa.UserRepository;
 import com.example.userservice.vo.TokenPair;
 import io.jsonwebtoken.Claims;
@@ -9,12 +9,9 @@ import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import jakarta.persistence.EntityNotFoundException;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;

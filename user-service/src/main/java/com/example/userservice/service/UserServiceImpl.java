@@ -3,9 +3,14 @@ package com.example.userservice.service;
 import com.example.userservice.advice.exceptions.InvalidAmountException;
 import com.example.userservice.advice.exceptions.InvalidPasswordException;
 import com.example.userservice.advice.exceptions.UserNotFoundException;
+import com.example.userservice.client.CouponServiceClient;
 import com.example.userservice.dto.AddressDto;
 import com.example.userservice.dto.UserDto;
 import com.example.userservice.jpa.*;
+import com.example.userservice.jpa.entity.AddressEntity;
+import com.example.userservice.jpa.entity.Gender;
+import com.example.userservice.jpa.entity.Role;
+import com.example.userservice.jpa.entity.UserEntity;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +28,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -31,14 +37,16 @@ import java.util.stream.Collectors;
 @Transactional
 public class UserServiceImpl implements UserService{
 
-    UserRepository userRepository;
-    BCryptPasswordEncoder bCryptPasswordEncoder;
-    CircuitBreakerFactory circuitBreakerFactory;
+    private final UserRepository userRepository;
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final CircuitBreakerFactory circuitBreakerFactory;
+    private final CouponServiceClient couponServiceClient;
 
-    public UserServiceImpl(UserRepository userRepository, BCryptPasswordEncoder bCryptPasswordEncoder, CircuitBreakerFactory circuitBreakerFactory) {
-        this.userRepository = userRepository;
-        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
+    public UserServiceImpl(CouponServiceClient couponServiceClient, CircuitBreakerFactory circuitBreakerFactory, BCryptPasswordEncoder bCryptPasswordEncoder, UserRepository userRepository) {
+        this.couponServiceClient = couponServiceClient;
         this.circuitBreakerFactory = circuitBreakerFactory;
+        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -55,6 +63,7 @@ public class UserServiceImpl implements UserService{
                 .gender(Gender.valueOf(userDto.getGender()))
                 .birthDate(LocalDate.parse(userDto.getBirthDate()))
                 .phoneNumber(userDto.getPhoneNumber())
+                .isPhoneVerified(userDto.isPhoneVerified())
                 .cache(0)
                 .point(0)
                 .role(Role.ROLE_USER)
@@ -101,10 +110,14 @@ public class UserServiceImpl implements UserService{
                 .email(userEntity.getEmail())
                 .pwd(userEntity.getEncryptedPwd())
                 .name(userEntity.getName())
-                .createdAt(userEntity.getCreatedAt())
-                .addresses(addressDtoList)
+                .phoneNumber(userEntity.getPhoneNumber())
+                .isPhoneVerified(userEntity.isPhoneVerified())
+                .gender(String.valueOf(userEntity.getGender()))
+                .birthDate(String.valueOf(userEntity.getBirthDate()))
                 .cache(userEntity.getCache())
                 .point(userEntity.getPoint())
+                .createdAt(userEntity.getCreatedAt())
+                .addresses(addressDtoList)
                 .build();
 
     }
@@ -136,6 +149,9 @@ public class UserServiceImpl implements UserService{
 
         if (userDto.getPhoneNumber() != null && !userDto.getPhoneNumber().isEmpty()) {
             userEntity.changePhoneNumber(userDto.getPhoneNumber());
+            userEntity.changeIsPhoneVerified(true);
+            //쿠폰 필드 업데이트
+            couponServiceClient.changePhoneNumber(userEntity.getId(), userDto.getPhoneNumber());
         }
 
         if (userDto.getGender() != null && !userDto.getGender().isEmpty()) {
@@ -147,6 +163,15 @@ public class UserServiceImpl implements UserService{
         }
 
         return userRepository.save(userEntity);
+    }
+
+    @Override
+    public void verifyPhoneNumber(Long userId) {
+
+        UserEntity userEntity = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("해당 ID의 사용자를 찾을 수 없습니다: " + userId));
+
+        userEntity.changeIsPhoneVerified(true);
     }
 
     @Override

@@ -6,11 +6,14 @@ import com.example.userservice.advice.exceptions.RefreshTokenNotFoundException;
 import com.example.userservice.advice.exceptions.UserNotFoundException;
 import com.example.userservice.vo.ResponseError;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authorization.AuthorizationDeniedException;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -86,6 +89,38 @@ public class GlobalExceptionHandler {
         log.warn("Invalid amount: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(ResponseError.of(HttpStatus.BAD_REQUEST, ex.getMessage()));
+    }
+
+    /**
+     * @RequestParam, @PathVariable, @Validated 유효성 검사 실패 시 발생
+     */
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ResponseError> handleConstraintViolationException(ConstraintViolationException ex) {
+        log.warn("Constraint violation: {}", ex.getMessage());
+
+        String errorMessage = ex.getConstraintViolations().stream()
+                .findFirst()
+                .map(ConstraintViolation::getMessage)
+                .orElse("요청값이 유효하지 않습니다.");
+
+        return ResponseEntity.badRequest()
+                .body(ResponseError.of(HttpStatus.BAD_REQUEST, errorMessage));
+    }
+
+    /**
+     * RequestBody 유효성 검사 실패 시 발생
+     */
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ResponseError> handleValidationExceptions(MethodArgumentNotValidException ex) {
+        log.warn("Validation failed: {}", ex.getMessage());
+
+        String errorMessage = ex.getBindingResult().getFieldErrors().stream()
+                .findFirst()
+                .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                .orElse("유효성 검사에 실패했습니다.");
+
+        return ResponseEntity.badRequest()
+                .body(ResponseError.of(HttpStatus.BAD_REQUEST, errorMessage));
     }
 
     /**

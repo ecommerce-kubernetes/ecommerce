@@ -32,6 +32,9 @@ public class RequestCreateUser {
     @Pattern(regexp = "MALE|FEMALE", message = "성별은 MALE 또는 FEMALE이어야 합니다.")
     private String gender;
 
-    @NotBlank(message = "전화번호는 필수 입력값입니다.")
+    @NotBlank(message = "핸드폰 번호는 필수 입력값입니다.")
     private String phoneNumber;
+
+    @NotNull(message = "핸드폰 번호 인증여부는 필수입니다.")
+    private boolean isPhoneVerified;
 }

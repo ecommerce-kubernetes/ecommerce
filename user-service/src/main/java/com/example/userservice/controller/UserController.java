@@ -3,14 +3,15 @@ package com.example.userservice.controller;
 import com.example.userservice.advice.exceptions.RefreshTokenNotFoundException;
 import com.example.userservice.dto.AddressDto;
 import com.example.userservice.dto.UserDto;
-import com.example.userservice.jpa.AddressEntity;
-import com.example.userservice.jpa.UserEntity;
+import com.example.userservice.jpa.entity.AddressEntity;
+import com.example.userservice.jpa.entity.UserEntity;
 import com.example.userservice.service.TokenService;
 import com.example.userservice.service.UserService;
 import com.example.userservice.vo.*;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
@@ -24,8 +25,8 @@ import java.util.List;
 @Slf4j
 public class UserController {
 
-    private UserService userService;
-    private TokenService tokenService;
+    private final UserService userService;
+    private final TokenService tokenService;
 
     public UserController(UserService userService, TokenService tokenService) {
         this.userService = userService;
@@ -34,7 +35,7 @@ public class UserController {
 
     //회원가입
     @PostMapping
-    public ResponseEntity<ResponseUser> createUser(@RequestBody RequestCreateUser user) {
+    public ResponseEntity<ResponseUser> createUser(@Valid @RequestBody RequestCreateUser user) {
 
         UserDto userDto = UserDto.builder()
                 .email(user.getEmail())
@@ -43,6 +44,7 @@ public class UserController {
                 .gender(user.getGender())
                 .birthDate(user.getBirthDate())
                 .phoneNumber(user.getPhoneNumber())
+                .isPhoneVerified(user.isPhoneVerified())
                 .build();
 
         UserEntity createUser = userService.createUser(userDto);
@@ -54,25 +56,30 @@ public class UserController {
                         .birthDate(String.valueOf(createUser.getBirthDate()))
                         .gender(String.valueOf(createUser.getGender()))
                         .phoneNumber(createUser.getPhoneNumber())
+                        .isPhoneVerified(createUser.isPhoneVerified())
                         .role(String.valueOf(createUser.getRole()))
                         .build()
         );
     }
 
+    //아이디 찾기
+
+    //비밀번호 찾기
+
     //비밀번호 확인
     @PostMapping("/confirm-password")
-    public ResponseEntity<?> confirmPassword(@RequestBody RequestLoginUser user) {
+    public ResponseEntity<?> confirmPassword(@Valid @RequestBody RequestLoginUser user) {
         userService.checkUser(user.getEmail(), user.getPassword());
 
         return ResponseEntity.ok().build();
     }
 
     //유저 정보 수정
-    @PatchMapping
-    public ResponseEntity<?> updateUser(@RequestHeader("X-User-Id") String userId, @RequestBody RequestEditUser user) {
+    @PatchMapping("/update")
+    public ResponseEntity<?> updateUser(@RequestHeader("X-User-Id") Long userId, @Valid @RequestBody RequestEditUser user) {
 
         UserDto editUserData = UserDto.builder()
-                .id(Long.valueOf(userId))
+                .id(userId)
                 .name(user.getName())
                 .pwd(user.getPwd())
                 .phoneNumber(user.getPhoneNumber())
@@ -85,13 +92,44 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
+    //전화번호 인증 완료
+    @PatchMapping("/update/verify-phoneNumber")
+    public ResponseEntity<?> verifyPhoneNumberSuccess(@RequestHeader("X-User-Id") Long userId) {
+
+        userService.verifyPhoneNumber(userId);
+
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    //사용자 조회
+    @GetMapping
+    public ResponseEntity<ResponseUser> getMyUserData(@RequestHeader("X-User-Id") Long userId) {
+
+        UserDto userDto = userService.getUserById(userId);
+
+        return ResponseEntity.status(HttpStatus.OK).body(
+                ResponseUser.builder()
+                        .userId(userDto.getId())
+                        .email(userDto.getEmail())
+                        .name(userDto.getName())
+                        .gender(userDto.getGender())
+                        .birthDate(userDto.getBirthDate())
+                        .phoneNumber(userDto.getPhoneNumber())
+                        .isPhoneVerified(userDto.isPhoneVerified())
+                        .createdAt(userDto.getCreatedAt())
+                        .cache(userDto.getCache())
+                        .point(userDto.getPoint())
+                        .build()
+        );
+    }
+
     //마이페이지 조회  { 이름(String),  잔액(Int), 적립금(Int), 주문(Int) - 주문서비스, 장바구니 금액(Int) - 주문서비스, 쿠폰개수(Int) - 쿠폰서비스}
 
     //배송지 조회
     @GetMapping("/address")
-    public ResponseEntity<ResponseUser> createAddress(@RequestHeader("X-User-Id") String userId) {
+    public ResponseEntity<ResponseUser> getAddress(@RequestHeader("X-User-Id") Long userId) {
 
-        List<AddressEntity> addresses = userService.getAddressesByUserId(Long.valueOf(userId));
+        List<AddressEntity> addresses = userService.getAddressesByUserId(userId);
 
         List<ResponseAddress> responseAddressList = addresses.stream()
                 .map(v -> ResponseAddress.builder()
@@ -113,7 +151,7 @@ public class UserController {
 
     //배송지 추가
     @PostMapping("/address")
-    public ResponseEntity<ResponseUser> createAddress(@RequestHeader("X-User-Id") String userId, @RequestBody RequestAddress address) {
+    public ResponseEntity<ResponseUser> createAddress(@RequestHeader("X-User-Id") Long userId, @Valid @RequestBody RequestAddress address) {
 
         AddressDto addressDto = AddressDto.builder()
                 .name(address.getName())
@@ -122,7 +160,7 @@ public class UserController {
                 .defaultAddress(address.isDefaultAddress())
                 .build();
 
-        UserEntity userEntity = userService.addAddressByUserId(Long.valueOf(userId), addressDto);
+        UserEntity userEntity = userService.addAddressByUserId(userId, addressDto);
 
         List<ResponseAddress> responseAddressList = userEntity.getAddresses().stream()
                 .map(v -> ResponseAddress.builder()
@@ -144,7 +182,7 @@ public class UserController {
 
     //배송지 정보 수정
     @PatchMapping("/address")
-    public ResponseEntity<ResponseUser> updateAddress(@RequestHeader("X-User-Id") String userId, @RequestBody RequestAddress address) {
+    public ResponseEntity<ResponseUser> updateAddress(@RequestHeader("X-User-Id") Long userId, @Valid @RequestBody RequestAddress address) {
 
         AddressDto addressDto = AddressDto.builder()
                 .name(address.getName())
@@ -153,7 +191,7 @@ public class UserController {
                 .defaultAddress(address.isDefaultAddress())
                 .build();
 
-        UserEntity userEntity = userService.updateAddress(Long.valueOf(userId), addressDto);
+        UserEntity userEntity = userService.updateAddress(userId, addressDto);
 
         List<ResponseAddress> responseAddressList = userEntity.getAddresses().stream()
                 .map(v -> ResponseAddress.builder()
@@ -175,9 +213,9 @@ public class UserController {
 
     //배송지 삭제
     @DeleteMapping("/address/{addressName}")
-    public ResponseEntity<ResponseUser> deleteAddress(@RequestHeader("X-User-Id") String userId, @PathVariable("addressName") String addressName) {
+    public ResponseEntity<ResponseUser> deleteAddress(@RequestHeader("X-User-Id") Long userId, @PathVariable("addressName") String addressName) {
 
-        UserEntity userEntity = userService.deleteAddress(Long.valueOf(userId), addressName);
+        UserEntity userEntity = userService.deleteAddress(userId, addressName);
 
         List<ResponseAddress> responseAddressList = userEntity.getAddresses().stream()
                 .map(v -> ResponseAddress.builder()
@@ -199,9 +237,9 @@ public class UserController {
 
     //캐시 충전
     @PatchMapping("/cache/recharge/{amount}")
-    public ResponseEntity<ResponseUser> rechargeCache(@RequestHeader("X-User-Id") String userId, @PathVariable("amount") int amount) {
+    public ResponseEntity<ResponseUser> rechargeCache(@RequestHeader("X-User-Id") Long userId, @PathVariable("amount") int amount) {
 
-        UserEntity userEntity = userService.rechargeCache(Long.valueOf(userId), amount);
+        UserEntity userEntity = userService.rechargeCache(userId, amount);
 
         return ResponseEntity.status(HttpStatus.OK).body(
                 ResponseUser.builder()
@@ -213,9 +251,9 @@ public class UserController {
 
     //캐시 차감
     @PatchMapping("/cache/deduct/{amount}")
-    public ResponseEntity<ResponseUser> deductCache(@RequestHeader("X-User-Id") String userId, @PathVariable("amount") int amount) {
+    public ResponseEntity<ResponseUser> deductCache(@RequestHeader("X-User-Id") Long userId, @PathVariable("amount") int amount) {
 
-        UserEntity userEntity = userService.deductCache(Long.valueOf(userId), amount);
+        UserEntity userEntity = userService.deductCache(userId, amount);
 
         return ResponseEntity.status(HttpStatus.OK).body(
                 ResponseUser.builder()
@@ -227,9 +265,9 @@ public class UserController {
 
     //포인트 충전
     @PatchMapping("/point/recharge/{amount}")
-    public ResponseEntity<ResponseUser> rechargePoint(@RequestHeader("X-User-Id") String userId, @PathVariable("amount") int amount) {
+    public ResponseEntity<ResponseUser> rechargePoint(@RequestHeader("X-User-Id") Long userId, @PathVariable("amount") int amount) {
 
-        UserEntity userEntity = userService.rechargePoint(Long.valueOf(userId), amount);
+        UserEntity userEntity = userService.rechargePoint(userId, amount);
 
         return ResponseEntity.status(HttpStatus.OK).body(
                 ResponseUser.builder()
@@ -241,9 +279,9 @@ public class UserController {
 
     //포인트 차감
     @PatchMapping("/point/deduct/{amount}")
-    public ResponseEntity<ResponseUser> deductPoint(@RequestHeader("X-User-Id") String userId, @PathVariable("amount") int amount) {
+    public ResponseEntity<ResponseUser> deductPoint(@RequestHeader("X-User-Id") Long userId, @PathVariable("amount") int amount) {
 
-        UserEntity userEntity = userService.deductPoint(Long.valueOf(userId), amount);
+        UserEntity userEntity = userService.deductPoint(userId, amount);
 
         return ResponseEntity.status(HttpStatus.OK).body(
                 ResponseUser.builder()
@@ -280,8 +318,8 @@ public class UserController {
 
     //로그아웃
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(@RequestHeader("X-User-Id") String userId, HttpServletResponse response) {
-        tokenService.deleteRefreshToken(Long.valueOf(userId));
+    public ResponseEntity<?> logout(@RequestHeader("X-User-Id") Long userId, HttpServletResponse response) {
+        tokenService.deleteRefreshToken(userId);
 
         // 쿠키 삭제
         ResponseCookie deleteCookie = ResponseCookie.from("refresh_token", "")
@@ -298,9 +336,9 @@ public class UserController {
 
     //회원탈퇴
     @DeleteMapping
-    public ResponseEntity<?> deleteUser(@RequestHeader("X-User-Id") String userId) {
+    public ResponseEntity<?> deleteUser(@RequestHeader("X-User-Id") Long userId) {
 
-        userService.deleteUser(Long.valueOf(userId));
+        userService.deleteUser(userId);
 
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
