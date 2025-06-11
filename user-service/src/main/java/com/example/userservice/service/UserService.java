@@ -2,8 +2,8 @@ package com.example.userservice.service;
 
 import com.example.userservice.dto.AddressDto;
 import com.example.userservice.dto.UserDto;
-import com.example.userservice.jpa.AddressEntity;
-import com.example.userservice.jpa.UserEntity;
+import com.example.userservice.jpa.entity.AddressEntity;
+import com.example.userservice.jpa.entity.UserEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -20,6 +20,8 @@ public interface UserService extends UserDetailsService {
     UserDto getUserByEmail(String email);
 
     UserEntity updateUser(UserDto userDto);
+
+    void verifyPhoneNumber(Long userId);
 
     void checkUser(String email, String password);
 
@@ -40,4 +42,6 @@ public interface UserService extends UserDetailsService {
     UserEntity deductPoint(Long userId, int amount);
 
     void deleteUser(Long userId);
+
+
 }

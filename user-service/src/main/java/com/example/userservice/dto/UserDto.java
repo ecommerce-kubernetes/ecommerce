@@ -17,6 +17,7 @@ public class UserDto {
     private String pwd;
     private String name;
     private String phoneNumber;
+    private boolean phoneVerified;
     private String gender;
     private String birthDate;
     private int cache;

@@ -17,6 +17,7 @@ public class ResponseUser {
     private String birthDate;
     private String gender;
     private String phoneNumber;
+    private boolean phoneVerified;
     private LocalDateTime createdAt;
     private List<ResponseAddress> addresses;
     private Integer cache;
@@ -24,13 +25,14 @@ public class ResponseUser {
     private String role;
 
     @Builder
-    public ResponseUser(Long userId, String email, String name, String birthDate, String gender, String phoneNumber, LocalDateTime createdAt, List<ResponseAddress> addresses, Integer cache, Integer point, String role) {
+    public ResponseUser(Long userId, String email, String name, String birthDate, String gender, String phoneNumber, boolean phoneVerified, LocalDateTime createdAt, List<ResponseAddress> addresses, Integer cache, Integer point, String role) {
         this.userId = userId;
         this.email = email;
         this.name = name;
         this.birthDate = birthDate;
         this.gender = gender;
         this.phoneNumber = phoneNumber;
+        this.phoneVerified = phoneVerified;
         this.createdAt = createdAt;
         this.addresses = addresses;
         this.cache = cache;
