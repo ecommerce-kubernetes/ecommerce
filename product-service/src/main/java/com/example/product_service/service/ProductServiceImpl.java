@@ -221,6 +221,37 @@ public class ProductServiceImpl implements ProductService{
     }
 
     @Override
+    public PageDto<ProductSummaryDto> getPopularProductList(Pageable pageable, Long categoryId) {
+        List<Long> categoryIds = categoryService.getCategoryAndDescendantIds(categoryId);
+        double allRatingAvg = productsRepository.allProductRatingAvg(categoryIds);
+        Page<ProductSummaryDto> result = productsRepository.findPopularProductByCategory(categoryIds, allRatingAvg, 10, pageable);
+
+        List<ProductSummaryDto> content = result.getContent();
+        return new PageDto<>(
+                content,
+                pageable.getPageNumber(),
+                result.getTotalPages(),
+                pageable.getPageSize(),
+                result.getTotalElements()
+        );
+    }
+
+    @Override
+    public PageDto<ProductSummaryDto> getSpecialSale(Pageable pageable, Long categoryId) {
+        List<Long> categoryIds = categoryService.getCategoryAndDescendantIds(categoryId);
+        Page<ProductSummaryDto> result = productsRepository.findAllByCategorySortDiscount(categoryIds, pageable);
+
+        List<ProductSummaryDto> content = result.getContent();
+        return new PageDto<>(
+                content,
+                pageable.getPageNumber(),
+                result.getTotalPages(),
+                pageable.getPageSize(),
+                result.getTotalElements()
+        );
+    }
+
+    @Override
     @Transactional
     public ProductResponseDto modifyStockQuantity(Long productId, StockQuantityRequestDto stockQuantityRequestDto) {
         Products product = productsRepository.findById(productId)

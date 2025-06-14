@@ -15,6 +15,7 @@ import com.example.product_service.service.ProductImageService;
 import com.example.product_service.service.ProductService;
 import com.example.product_service.service.ProductVariantService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -110,6 +111,23 @@ public class ProductController {
         return ResponseEntity.noContent().build();
     }
 
+    @GetMapping("/popular")
+    public ResponseEntity<PageDto<ProductSummaryDto>> popularProducts(@RequestParam(name = "page", defaultValue = "0") int page,
+                                                                      @RequestParam(name = "size", defaultValue = "10") int size,
+                                                                      @RequestParam(name = "categoryId", required = false) Long categoryId){
+        Pageable pageable = PageRequest.of(page, size);
+        PageDto<ProductSummaryDto> result = productService.getPopularProductList(pageable, categoryId);
+        return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/special-sale")
+    public ResponseEntity<PageDto<ProductSummaryDto>> specialSaleProducts(@RequestParam(name = "page", defaultValue = "0") int page,
+                                                                          @RequestParam(name = "size", defaultValue = "10") int size,
+                                                                          @RequestParam(name = "categoryId", required = false) Long categoryId){
+        Pageable pageable = PageRequest.of(page, size);
+        PageDto<ProductSummaryDto> result = productService.getSpecialSale(pageable, categoryId);
+        return ResponseEntity.ok(result);
+    }
 
     //TODO
     // 변경해야하는 API

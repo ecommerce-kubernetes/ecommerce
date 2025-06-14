@@ -21,6 +21,8 @@ public interface ProductService {
     ProductResponseDto modifyProductBasic(Long productId, ProductBasicRequestDto requestDto);
     void deleteProduct(Long productId);
     void batchDeleteProducts(IdsRequestDto requestDto);
+    PageDto<ProductSummaryDto> getPopularProductList(Pageable pageable, Long categoryId);
+    PageDto<ProductSummaryDto> getSpecialSale(Pageable pageable, Long categoryId);
     //TODO 변경해야할 로직들
     ProductResponseDto modifyStockQuantity(Long productId, StockQuantityRequestDto stockQuantityRequestDto);
     List<CompactProductResponseDto> getProductListByIds(ProductRequestIdsDto productRequestIdsDto);

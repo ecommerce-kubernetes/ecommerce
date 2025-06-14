@@ -45,4 +45,5 @@ public interface ProductsRepository extends JpaRepository<Products, Long>, Produ
             WHERE p.id IN :ids
             """)
     List<CompactProductResponseDto> findAllWithRepresentativeImageByIds(@Param("ids") List<Long> ids);
+
 }

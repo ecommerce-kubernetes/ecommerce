@@ -350,6 +350,56 @@ class ProductServiceImplTest {
         assertThat(products.getCategory()).isEqualTo(sweatShirt);
     }
 
+    @Test
+    @DisplayName("인기 상품 조회")
+    @Transactional
+    void getPopularProductListTest(){
+        Products save1 = new Products("상품1", "상품 설명1", T_shirt);
+        save1.addProductVariants("TS-XL-BLUE", 3000, 30, 10, List.of(xl, blue));
+        save1 = productsRepository.save(save1);
+        ProductVariants save1Variant1 = save1.getProductVariants().stream()
+                .filter(var -> Objects.equals(var.getSku(), "TS-XL-BLUE")).findFirst().orElseThrow();
+
+        for (long i = 0; i < 5; i++) {
+            save1Variant1.addReview(i, "테스터" + i, 4, "리뷰", List.of());
+        }
+
+        Products save2 = new Products("상품2", "상품 설명 2", sweatShirt);
+        save2.addProductVariants("SS-XL-BLUE", 3000, 30, 10, List.of(xl, blue));
+        save2 = productsRepository.save(save2);
+        ProductVariants save2Variant1 = save2.getProductVariants().stream().filter(var -> Objects.equals(var.getSku(), "SS-XL-BLUE"))
+                .findFirst().orElseThrow();
+
+        for(long i = 0; i < 3; i++){
+            save2Variant1.addReview(i, "테스터" + i, 2, "리뷰" , List.of());
+        }
+
+        Products save3 = new Products("상품3", "상품 설명 3", sweatShirt);
+        save3.addProductVariants("SS-L-BLUE", 3000, 30, 10, List.of(l, blue));
+
+        productsRepository.saveAll(List.of(save1, save2, save3));
+        doReturn(null).when(categoryService).getCategoryAndDescendantIds(nullable(Long.class));
+        PageDto<ProductSummaryDto> result = productService.getPopularProductList(PageRequest.of(0, 10), null);
+
+        assertThat(result.getContent().size()).isEqualTo(2);
+        assertThat(result.getTotalElement()).isEqualTo(2);
+        assertThat(result.getTotalPage()).isEqualTo(1);
+        assertThat(result.getContent())
+                .extracting(
+                        ProductSummaryDto::getName,
+                        ProductSummaryDto::getDescription,
+                        ProductSummaryDto::getCategoryName,
+                        ProductSummaryDto::getRatingAvg,
+                        ProductSummaryDto::getTotalReviewCount,
+                        ProductSummaryDto::getOriginPrice,
+                        ProductSummaryDto::getDiscountPrice,
+                        ProductSummaryDto::getDiscountValue)
+                .containsExactly(
+                        tuple("상품1", "상품 설명1", T_shirt.getName(), 4.0, 5, 3000, 2700, 10),
+                        tuple("상품2", "상품 설명 2", sweatShirt.getName(), 2.0, 3, 3000, 2700, 10)
+                );
+    }
+
     private VariantsRequestDto buildVariant(Long... optionValueIds){
         return new VariantsRequestDto(
 
