@@ -1,10 +1,10 @@
 package com.example.userservice.controller;
 
 import com.example.userservice.dto.UserDto;
-import com.example.userservice.jpa.AddressEntity;
-import com.example.userservice.jpa.Gender;
-import com.example.userservice.jpa.Role;
-import com.example.userservice.jpa.UserEntity;
+import com.example.userservice.jpa.entity.AddressEntity;
+import com.example.userservice.jpa.entity.Gender;
+import com.example.userservice.jpa.entity.Role;
+import com.example.userservice.jpa.entity.UserEntity;
 import com.example.userservice.config.TestSecurityConfig;
 import com.example.userservice.service.TokenService;
 import com.example.userservice.service.UserService;
@@ -57,8 +57,8 @@ class UserControllerTest {
     public void testCreateUser() throws Exception {
         // Given
         RequestCreateUser request = new RequestCreateUser(
-                "test@example.com", "password", "Test User",
-                "MALE", "1999-04-13", "01012345678"
+                "test@example.com", "Password1!", "Test User",
+                "1999-04-13","MALE", "01012345678", false
         );
 
         UserEntity userEntity = UserEntity.builder()
@@ -66,6 +66,7 @@ class UserControllerTest {
                 .name("Test User")
                 .encryptedPwd("encryptedPassword")
                 .phoneNumber("01012345678")
+                .phoneVerified(false)
                 .gender(Gender.MALE)
                 .birthDate(LocalDate.parse("1999-04-13"))
                 .cache(0)
@@ -88,6 +89,7 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.birthDate").value("1999-04-13"))
                 .andExpect(jsonPath("$.gender").value("MALE"))
                 .andExpect(jsonPath("$.phoneNumber").value("01012345678"))
+                .andExpect(jsonPath("$.phoneVerified").value(false))
                 .andExpect(jsonPath("$.role").value("ROLE_USER"));
     }
 
@@ -95,10 +97,10 @@ class UserControllerTest {
     @DisplayName("POST /users/confirm-password - 비밀번호 확인")
     public void testConfirmPassword() throws Exception {
         // Given
-        RequestLoginUser request = new RequestLoginUser("test@example.com", "password");
+        RequestLoginUser request = new RequestLoginUser("test@example.com", "Password1!");
 
         // userService.checkUser(...)은 void 메서드이므로 doNothing() 사용
-        doNothing().when(userService).checkUser(eq("test@example.com"), eq("password"));
+        doNothing().when(userService).checkUser(eq("test@example.com"), eq("Password1!"));
 
         // When & Then
         mockMvc.perform(post("/users/confirm-password")
@@ -108,11 +110,11 @@ class UserControllerTest {
     }
 
     @Test
-    @DisplayName("PATCH /users - 유저 정보 수정")
+    @DisplayName("PATCH /users/update - 유저 정보 수정")
     public void testUpdateUser() throws Exception {
         // Given
         Long userId = 1L;
-        RequestEditUser request = new RequestEditUser("password", "Test User", "1999-04-13",
+        RequestEditUser request = new RequestEditUser("Password1!", "Test User", "1999-04-13",
                 "MALE", "01012345678");
 
         // updateUser 엔드포인트는 ResponseBody 없이 상태 코드만 반환
@@ -133,7 +135,7 @@ class UserControllerTest {
         when(userService.updateUser(any(UserDto.class))).thenReturn(userEntity);
 
         // When & Then
-        mockMvc.perform(patch("/users")
+        mockMvc.perform(patch("/users/update")
                         .header("X-User-Id", userId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))

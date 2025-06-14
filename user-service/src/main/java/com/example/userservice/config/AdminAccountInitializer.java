@@ -1,8 +1,8 @@
 package com.example.userservice.config;
 
-import com.example.userservice.jpa.Gender;
-import com.example.userservice.jpa.Role;
-import com.example.userservice.jpa.UserEntity;
+import com.example.userservice.jpa.entity.Gender;
+import com.example.userservice.jpa.entity.Role;
+import com.example.userservice.jpa.entity.UserEntity;
 import com.example.userservice.jpa.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.ApplicationArguments;
@@ -29,6 +29,7 @@ public class AdminAccountInitializer implements ApplicationRunner {
                     .name("admin")
                     .encryptedPwd(passwordEncoder.encode("Admin1234!"))
                     .phoneNumber("01000000000")
+                    .isPhoneVerified(true)
                     .gender(Gender.MALE)
                     .birthDate(LocalDate.of(1999, 4, 13))
                     .cache(0)

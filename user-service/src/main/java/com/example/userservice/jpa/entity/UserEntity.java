@@ -1,4 +1,4 @@
-package com.example.userservice.jpa;
+package com.example.userservice.jpa.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -33,6 +33,9 @@ public class UserEntity {
     @Column(nullable = false, length = 20)
     private String phoneNumber;
 
+    @Column(nullable = false)
+    private boolean phoneVerified;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Gender gender;
@@ -59,12 +62,13 @@ public class UserEntity {
 
     @Builder
     public UserEntity(String email, String name, String encryptedPwd,
-                      String phoneNumber, Gender gender, LocalDate birthDate,
+                      String phoneNumber, boolean phoneVerified, Gender gender, LocalDate birthDate,
                       int cache, int point, List<AddressEntity> addresses, Role role) {
         this.email = email;
         this.name = name;
         this.encryptedPwd = encryptedPwd;
         this.phoneNumber = phoneNumber;
+        this.phoneVerified = phoneVerified;
         this.gender = gender;
         this.birthDate = birthDate;
         this.cache = cache;
@@ -83,6 +87,10 @@ public class UserEntity {
 
     public void changePhoneNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
+    }
+
+    public void changeIsPhoneVerified(boolean phoneVerified) {
+        this.phoneVerified = phoneVerified;
     }
 
     public void changeGender(String gender) {

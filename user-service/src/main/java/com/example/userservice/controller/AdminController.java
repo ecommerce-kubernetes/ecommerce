@@ -2,13 +2,13 @@ package com.example.userservice.controller;
 
 import com.example.userservice.dto.AddressDto;
 import com.example.userservice.dto.UserDto;
-import com.example.userservice.jpa.UserEntity;
-import com.example.userservice.service.TokenService;
+import com.example.userservice.jpa.entity.UserEntity;
 import com.example.userservice.service.UserService;
 import com.example.userservice.vo.RequestAddress;
 import com.example.userservice.vo.RequestEditUser;
 import com.example.userservice.vo.ResponseAddress;
 import com.example.userservice.vo.ResponseUser;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -19,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -26,17 +27,16 @@ import java.util.List;
 @Slf4j
 @PreAuthorize("hasRole('ROLE_ADMIN')")
 public class AdminController {
-    private UserService userService;
-    private TokenService tokenService;
+    private final UserService userService;
 
-    public AdminController(UserService userService, TokenService tokenService) {
+    public AdminController(UserService userService) {
         this.userService = userService;
-        this.tokenService = tokenService;
     }
 
     //전체 유저 조회
     @GetMapping
     public ResponseEntity<Page<ResponseUser>> getUsers(@PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.ASC) Pageable pageable) {
+
         Page<UserDto> userPage = userService.getUserByAll(pageable);
 
         Page<ResponseUser> result = userPage.map(v -> ResponseUser.builder()
@@ -68,8 +68,12 @@ public class AdminController {
         return ResponseEntity.status(HttpStatus.OK).body(
                 ResponseUser.builder()
                         .userId(userDto.getId())
-                        .name(userDto.getName())
                         .email(userDto.getEmail())
+                        .name(userDto.getName())
+                        .gender(userDto.getGender())
+                        .birthDate(userDto.getBirthDate())
+                        .phoneNumber(userDto.getPhoneNumber())
+                        .phoneVerified(userDto.isPhoneVerified())
                         .createdAt(userDto.getCreatedAt())
                         .addresses(requestAddressList)
                         .cache(userDto.getCache())
@@ -80,7 +84,7 @@ public class AdminController {
 
     //유저 정보 수정
     @PatchMapping("/{userId}")
-    public ResponseEntity<?> updateUser(@PathVariable("userId") Long userId, @RequestBody RequestEditUser user) {
+    public ResponseEntity<?> updateUser(@PathVariable("userId") Long userId, @Valid @RequestBody RequestEditUser user) {
 
         UserDto editUserData = UserDto.builder()
                 .id(userId)
@@ -107,7 +111,7 @@ public class AdminController {
 
     //배송지 추가
     @PostMapping("/{userId}/address")
-    public ResponseEntity<ResponseUser> createAddress(@PathVariable("userId") Long userId, @RequestBody RequestAddress address) {
+    public ResponseEntity<ResponseUser> createAddress(@PathVariable("userId") Long userId, @Valid @RequestBody RequestAddress address) {
 
         AddressDto addressDto = AddressDto.builder()
                 .name(address.getName())
@@ -138,7 +142,7 @@ public class AdminController {
 
     //배송지 정보 수정
     @PatchMapping("/{userId}/address")
-    public ResponseEntity<ResponseUser> updateAddress(@PathVariable("userId") Long userId, @RequestBody RequestAddress address) {
+    public ResponseEntity<ResponseUser> updateAddress(@PathVariable("userId") Long userId, @Valid @RequestBody RequestAddress address) {
 
         AddressDto addressDto = AddressDto.builder()
                 .name(address.getName())

@@ -1,7 +1,7 @@
 package com.example.userservice.service;
 
-import com.example.userservice.jpa.Role;
-import com.example.userservice.jpa.UserEntity;
+import com.example.userservice.jpa.entity.Role;
+import com.example.userservice.jpa.entity.UserEntity;
 import com.example.userservice.jpa.UserRepository;
 import com.example.userservice.vo.TokenPair;
 import io.jsonwebtoken.Claims;
