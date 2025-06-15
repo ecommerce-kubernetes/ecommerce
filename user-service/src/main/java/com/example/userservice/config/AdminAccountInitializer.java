@@ -29,7 +29,7 @@ public class AdminAccountInitializer implements ApplicationRunner {
                     .name("admin")
                     .encryptedPwd(passwordEncoder.encode("Admin1234!"))
                     .phoneNumber("01000000000")
-                    .isPhoneVerified(true)
+                    .phoneVerified(true)
                     .gender(Gender.MALE)
                     .birthDate(LocalDate.of(1999, 4, 13))
                     .cache(0)

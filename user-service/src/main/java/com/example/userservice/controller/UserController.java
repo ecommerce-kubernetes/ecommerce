@@ -44,7 +44,7 @@ public class UserController {
                 .gender(user.getGender())
                 .birthDate(user.getBirthDate())
                 .phoneNumber(user.getPhoneNumber())
-                .isPhoneVerified(user.isPhoneVerified())
+                .phoneVerified(user.isPhoneVerified())
                 .build();
 
         UserEntity createUser = userService.createUser(userDto);
@@ -56,7 +56,7 @@ public class UserController {
                         .birthDate(String.valueOf(createUser.getBirthDate()))
                         .gender(String.valueOf(createUser.getGender()))
                         .phoneNumber(createUser.getPhoneNumber())
-                        .isPhoneVerified(createUser.isPhoneVerified())
+                        .phoneVerified(createUser.isPhoneVerified())
                         .role(String.valueOf(createUser.getRole()))
                         .build()
         );
@@ -115,7 +115,7 @@ public class UserController {
                         .gender(userDto.getGender())
                         .birthDate(userDto.getBirthDate())
                         .phoneNumber(userDto.getPhoneNumber())
-                        .isPhoneVerified(userDto.isPhoneVerified())
+                        .phoneVerified(userDto.isPhoneVerified())
                         .createdAt(userDto.getCreatedAt())
                         .cache(userDto.getCache())
                         .point(userDto.getPoint())
