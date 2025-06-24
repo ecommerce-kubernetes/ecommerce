@@ -178,7 +178,7 @@ class UserControllerTest {
     public void testCreateAddress() throws Exception {
         // Given
         Long userId = 1L;
-        RequestAddress request = new RequestAddress("회사", "수원시 장안구", "201호", false);
+        RequestAddress request = new RequestAddress(1L, "회사", "수원시 장안구", "201호", false);
 
         UserEntity userEntity = UserEntity.builder()
                 .email("test@example.com")
@@ -221,7 +221,7 @@ class UserControllerTest {
     public void testUpdateAddress() throws Exception {
         // Given
         Long userId = 1L;
-        RequestAddress request = new RequestAddress("새주소", "부산시 해운대구", "301호", true);
+        RequestAddress request = new RequestAddress(1L,"새주소", "부산시 해운대구", "301호", true);
 
         UserEntity userEntity = UserEntity.builder()
                 .email("test@example.com")
@@ -266,7 +266,7 @@ class UserControllerTest {
     public void testDeleteAddress() throws Exception {
         // Given
         Long userId = 1L;
-        String addressName = "집";
+        Long addressId = 1L;
 
         UserEntity userEntity = UserEntity.builder()
                 .email("test@example.com")
@@ -282,10 +282,10 @@ class UserControllerTest {
                 .build();
         ReflectionTestUtils.setField(userEntity, "id", userId);
 
-        when(userService.deleteAddress(userId, addressName)).thenReturn(userEntity);
+        when(userService.deleteAddress(userId, addressId)).thenReturn(userEntity);
 
         // When & Then
-        mockMvc.perform(delete("/users/address/{addressName}", addressName)
+        mockMvc.perform(delete("/users/address/{addressId}", addressId)
                         .header("X-User-Id", userId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.userId").value(userId))
