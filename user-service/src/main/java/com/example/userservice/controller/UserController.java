@@ -185,6 +185,7 @@ public class UserController {
     public ResponseEntity<ResponseUser> updateAddress(@RequestHeader("X-User-Id") Long userId, @Valid @RequestBody RequestAddress address) {
 
         AddressDto addressDto = AddressDto.builder()
+                .addressId(address.getAddressId())
                 .name(address.getName())
                 .address(address.getAddress())
                 .details(address.getDetails())

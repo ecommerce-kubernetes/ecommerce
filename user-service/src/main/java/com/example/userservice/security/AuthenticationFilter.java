@@ -72,6 +72,5 @@ public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
         response.setHeader("Set-Cookie", cookie.toString());
         response.addHeader("token", tokenPair.getAccessToken());
-        response.addHeader("userEmail", userDetails.getEmail());
     }
 }
