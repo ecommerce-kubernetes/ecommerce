@@ -36,5 +36,5 @@ public class RequestCreateUser {
     private String phoneNumber;
 
     @NotNull(message = "핸드폰 번호 인증여부는 필수입니다.")
-    private boolean isPhoneVerified;
+    private boolean phoneVerified;
 }
