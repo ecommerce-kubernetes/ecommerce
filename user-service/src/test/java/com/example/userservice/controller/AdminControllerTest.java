@@ -139,7 +139,7 @@ class AdminControllerTest {
     @Test
     @DisplayName("POST /users/{userId}/address - 배송지 추가 성공")
     void createAddress_success() throws Exception {
-        RequestAddress request = new RequestAddress("집", "서울시 강남구", "101동 202호", true);
+        RequestAddress request = new RequestAddress(1L, "집", "서울시 강남구", "101동 202호", true);
 
         AddressEntity addressEntity = AddressEntity.builder()
                 .name("집")
@@ -164,7 +164,7 @@ class AdminControllerTest {
     @Test
     @DisplayName("PATCH /users/{userId}/address - 배송지 수정 성공")
     void updateAddress_success() throws Exception {
-        RequestAddress request = new RequestAddress("회사", "서울시 서초구", "3층", false);
+        RequestAddress request = new RequestAddress(1L, "회사", "서울시 서초구", "3층", false);
 
         AddressEntity updatedAddress = AddressEntity.builder()
                 .name("회사")
@@ -187,7 +187,7 @@ class AdminControllerTest {
     }
 
     @Test
-    @DisplayName("DELETE /admin/users/{userId}/address/{addressName} - 배송지 삭제 성공")
+    @DisplayName("DELETE /admin/users/{userId}/address/{addressId} - 배송지 삭제 성공")
     void deleteAddress_success() throws Exception {
         AddressEntity updatedAddress = AddressEntity.builder()
                 .name("회사")
@@ -199,9 +199,9 @@ class AdminControllerTest {
 
         userEntity.getAddresses().add(updatedAddress);
 
-        when(userService.deleteAddress(eq(1L), eq("회사"))).thenReturn(userEntity);
+        when(userService.deleteAddress(eq(1L), eq(1L))).thenReturn(userEntity);
 
-        mockMvc.perform(delete("/admin/users/1/address/회사")) // ✅ 올바른 URL
+        mockMvc.perform(delete("/admin/users/1/address/1")) // ✅ 올바른 URL
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.userId").value(1L));
     }

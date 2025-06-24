@@ -31,7 +31,7 @@ public interface UserService extends UserDetailsService {
 
     UserEntity updateAddress(Long userId, AddressDto addressDto);
 
-    UserEntity deleteAddress(Long userId, String addressName);
+    UserEntity deleteAddress(Long userId, Long addressName);
 
     UserEntity rechargeCache(Long userId, int amount);
 

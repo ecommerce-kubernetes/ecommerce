@@ -172,10 +172,10 @@ public class AdminController {
     }
 
     //배송지 삭제
-    @DeleteMapping("/{userId}/address/{addressName}")
-    public ResponseEntity<ResponseUser> deleteAddress(@PathVariable("userId") Long userId, @PathVariable("addressName") String addressName) {
+    @DeleteMapping("/{userId}/address/{addressId}")
+    public ResponseEntity<ResponseUser> deleteAddress(@PathVariable("userId") Long userId, @PathVariable("addressId") Long addressId) {
 
-        UserEntity userEntity = userService.deleteAddress(userId, addressName);
+        UserEntity userEntity = userService.deleteAddress(userId, addressId);
 
         List<ResponseAddress> responseAddressList = userEntity.getAddresses().stream()
                 .map(v -> ResponseAddress.builder()
