@@ -4,9 +4,11 @@ package com.example.userservice.vo;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class RequestCreateUser {
 
     @NotBlank(message = "이메일은 필수 입력값입니다.")
