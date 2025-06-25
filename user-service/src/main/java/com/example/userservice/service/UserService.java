@@ -43,5 +43,6 @@ public interface UserService extends UserDetailsService {
 
     void deleteUser(Long userId);
 
+    void getMypage(Long userId);
 
 }

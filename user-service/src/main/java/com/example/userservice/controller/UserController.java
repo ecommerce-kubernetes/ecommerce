@@ -124,6 +124,31 @@ public class UserController {
     }
 
     //마이페이지 조회  { 이름(String),  잔액(Int), 적립금(Int), 주문(Int) - 주문서비스, 장바구니 금액(Int) - 주문서비스, 쿠폰개수(Int) - 쿠폰서비스}
+    @GetMapping("/mypage")
+    public ResponseEntity<ResponseUser> getMypage(@RequestHeader("X-User-Id") Long userId) {
+
+        userService.getMypage(userId);
+
+        List<AddressEntity> addresses = userService.getAddressesByUserId(userId);
+
+        List<ResponseAddress> responseAddressList = addresses.stream()
+                .map(v -> ResponseAddress.builder()
+                        .addressId(v.getId())
+                        .name(v.getName())
+                        .address(v.getAddress())
+                        .details(v.getDetails())
+                        .defaultAddress(v.isDefaultAddress())
+                        .build())
+                .toList();
+
+        return ResponseEntity.status(HttpStatus.OK).body(
+                ResponseUser.builder()
+                        .userId(Long.valueOf(userId))
+                        .addresses(responseAddressList)
+                        .build()
+        );
+    }
+
 
     //배송지 조회
     @GetMapping("/address")
@@ -151,7 +176,7 @@ public class UserController {
 
     //배송지 추가
     @PostMapping("/address")
-    public ResponseEntity<ResponseUser> createAddress(@RequestHeader("X-User-Id") Long userId, @Valid @RequestBody RequestAddress address) {
+    public ResponseEntity<ResponseUser> createAddress(@RequestHeader("X-User-Id") Long userId, @Valid @RequestBody RequestCreateAddress address) {
 
         AddressDto addressDto = AddressDto.builder()
                 .name(address.getName())
@@ -182,7 +207,7 @@ public class UserController {
 
     //배송지 정보 수정
     @PatchMapping("/address")
-    public ResponseEntity<ResponseUser> updateAddress(@RequestHeader("X-User-Id") Long userId, @Valid @RequestBody RequestAddress address) {
+    public ResponseEntity<ResponseUser> updateAddress(@RequestHeader("X-User-Id") Long userId, @Valid @RequestBody RequestEditAddress address) {
 
         AddressDto addressDto = AddressDto.builder()
                 .addressId(address.getAddressId())
