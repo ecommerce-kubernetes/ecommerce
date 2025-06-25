@@ -330,6 +330,11 @@ public class UserServiceImpl implements UserService{
     }
 
     @Override
+    public void getMypage(Long userId) {
+
+    }
+
+    @Override
     public UserDetails loadUserByUsername(String username) throws BadCredentialsException {
         UserEntity userEntity = userRepository.findByEmail(username)
                 .orElseThrow(() -> new BadCredentialsException("아이디 또는 비밀번호가 잘못되었습니다."));

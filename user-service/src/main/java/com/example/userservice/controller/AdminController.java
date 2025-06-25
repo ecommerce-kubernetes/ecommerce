@@ -4,7 +4,7 @@ import com.example.userservice.dto.AddressDto;
 import com.example.userservice.dto.UserDto;
 import com.example.userservice.jpa.entity.UserEntity;
 import com.example.userservice.service.UserService;
-import com.example.userservice.vo.RequestAddress;
+import com.example.userservice.vo.RequestCreateAddress;
 import com.example.userservice.vo.RequestEditUser;
 import com.example.userservice.vo.ResponseAddress;
 import com.example.userservice.vo.ResponseUser;
@@ -19,7 +19,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -111,7 +110,7 @@ public class AdminController {
 
     //배송지 추가
     @PostMapping("/{userId}/address")
-    public ResponseEntity<ResponseUser> createAddress(@PathVariable("userId") Long userId, @Valid @RequestBody RequestAddress address) {
+    public ResponseEntity<ResponseUser> createAddress(@PathVariable("userId") Long userId, @Valid @RequestBody RequestCreateAddress address) {
 
         AddressDto addressDto = AddressDto.builder()
                 .name(address.getName())
@@ -142,7 +141,7 @@ public class AdminController {
 
     //배송지 정보 수정
     @PatchMapping("/{userId}/address")
-    public ResponseEntity<ResponseUser> updateAddress(@PathVariable("userId") Long userId, @Valid @RequestBody RequestAddress address) {
+    public ResponseEntity<ResponseUser> updateAddress(@PathVariable("userId") Long userId, @Valid @RequestBody RequestCreateAddress address) {
 
         AddressDto addressDto = AddressDto.builder()
                 .name(address.getName())
