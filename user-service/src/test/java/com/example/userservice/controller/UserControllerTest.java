@@ -8,10 +8,7 @@ import com.example.userservice.jpa.entity.UserEntity;
 import com.example.userservice.config.TestSecurityConfig;
 import com.example.userservice.service.TokenService;
 import com.example.userservice.service.UserService;
-import com.example.userservice.vo.RequestAddress;
-import com.example.userservice.vo.RequestCreateUser;
-import com.example.userservice.vo.RequestEditUser;
-import com.example.userservice.vo.RequestLoginUser;
+import com.example.userservice.vo.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.DisplayName;
@@ -178,7 +175,7 @@ class UserControllerTest {
     public void testCreateAddress() throws Exception {
         // Given
         Long userId = 1L;
-        RequestAddress request = new RequestAddress(1L, "회사", "수원시 장안구", "201호", false);
+        RequestCreateAddress request = new RequestCreateAddress("회사", "수원시 장안구", "201호", false);
 
         UserEntity userEntity = UserEntity.builder()
                 .email("test@example.com")
@@ -221,7 +218,7 @@ class UserControllerTest {
     public void testUpdateAddress() throws Exception {
         // Given
         Long userId = 1L;
-        RequestAddress request = new RequestAddress(1L,"새주소", "부산시 해운대구", "301호", true);
+        RequestEditAddress request = new RequestEditAddress(1L,"새주소", "부산시 해운대구", "301호", true);
 
         UserEntity userEntity = UserEntity.builder()
                 .email("test@example.com")

@@ -7,7 +7,7 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class RequestAddress {
+public class RequestEditAddress {
 
     @NotNull(message = "배송지ID는 필수입니다.")
     private Long addressId;

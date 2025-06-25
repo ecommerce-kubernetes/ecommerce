@@ -7,7 +7,8 @@ import com.example.userservice.jpa.entity.AddressEntity;
 import com.example.userservice.jpa.entity.UserEntity;
 import com.example.userservice.service.TokenService;
 import com.example.userservice.service.UserService;
-import com.example.userservice.vo.RequestAddress;
+import com.example.userservice.vo.RequestCreateAddress;
+import com.example.userservice.vo.RequestEditAddress;
 import com.example.userservice.vo.RequestEditUser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -139,7 +140,7 @@ class AdminControllerTest {
     @Test
     @DisplayName("POST /users/{userId}/address - 배송지 추가 성공")
     void createAddress_success() throws Exception {
-        RequestAddress request = new RequestAddress(1L, "집", "서울시 강남구", "101동 202호", true);
+        RequestCreateAddress request = new RequestCreateAddress("집", "서울시 강남구", "101동 202호", true);
 
         AddressEntity addressEntity = AddressEntity.builder()
                 .name("집")
@@ -164,7 +165,7 @@ class AdminControllerTest {
     @Test
     @DisplayName("PATCH /users/{userId}/address - 배송지 수정 성공")
     void updateAddress_success() throws Exception {
-        RequestAddress request = new RequestAddress(1L, "회사", "서울시 서초구", "3층", false);
+        RequestEditAddress request = new RequestEditAddress(1L, "회사", "서울시 서초구", "3층", false);
 
         AddressEntity updatedAddress = AddressEntity.builder()
                 .name("회사")
