@@ -227,7 +227,7 @@ public class UserServiceImpl implements UserService{
                 .orElseThrow(() -> new EntityNotFoundException("해당 ID의 사용자를 찾을 수 없습니다: " + userId));
 
         for (AddressEntity address : user.getAddresses()) {
-            boolean isTarget = address.getName().equals(addressDto.getName());
+            boolean isTarget = address.getId().equals(addressDto.getAddressId());
 
             if (isTarget) {
                 updateAddressFields(address, addressDto);
@@ -245,6 +245,9 @@ public class UserServiceImpl implements UserService{
     }
 
     private void updateAddressFields(AddressEntity address, AddressDto dto) {
+        if (dto.getName() != null && !dto.getName().isEmpty()) {
+            address.changeName(dto.getName());
+        }
         if (dto.getAddress() != null && !dto.getAddress().isEmpty()) {
             address.changeAddress(dto.getAddress());
         }
@@ -254,15 +257,15 @@ public class UserServiceImpl implements UserService{
     }
 
     @Override
-    public UserEntity deleteAddress(Long userId, String addressName) {
+    public UserEntity deleteAddress(Long userId, Long addressId) {
 
         UserEntity user = userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("해당 ID의 사용자를 찾을 수 없습니다: " + userId));
 
         AddressEntity targetAddress = user.getAddresses().stream()
-                .filter(address -> address.getName().equals(addressName))
+                .filter(address -> address.getId().equals(addressId))
                 .findFirst()
-                .orElseThrow(() -> new EntityNotFoundException("해당 주소를 찾을 수 없습니다: " + addressName));
+                .orElseThrow(() -> new EntityNotFoundException("해당 주소를 찾을 수 없습니다: " + addressId));
 
         user.getAddresses().remove(targetAddress);
 

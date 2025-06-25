@@ -11,6 +11,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class RequestAddress {
 
+    @NotNull(message = "배송지ID는 필수입니다.")
+    private Long addressId;
+
     @NotBlank(message = "이름은 필수입니다.")
     private String name;
 

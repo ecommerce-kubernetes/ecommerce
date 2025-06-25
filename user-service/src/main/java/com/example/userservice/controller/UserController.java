@@ -185,6 +185,7 @@ public class UserController {
     public ResponseEntity<ResponseUser> updateAddress(@RequestHeader("X-User-Id") Long userId, @Valid @RequestBody RequestAddress address) {
 
         AddressDto addressDto = AddressDto.builder()
+                .addressId(address.getAddressId())
                 .name(address.getName())
                 .address(address.getAddress())
                 .details(address.getDetails())
@@ -212,10 +213,10 @@ public class UserController {
     }
 
     //배송지 삭제
-    @DeleteMapping("/address/{addressName}")
-    public ResponseEntity<ResponseUser> deleteAddress(@RequestHeader("X-User-Id") Long userId, @PathVariable("addressName") String addressName) {
+    @DeleteMapping("/address/{addressId}")
+    public ResponseEntity<ResponseUser> deleteAddress(@RequestHeader("X-User-Id") Long userId, @PathVariable("addressId") Long addressId) {
 
-        UserEntity userEntity = userService.deleteAddress(userId, addressName);
+        UserEntity userEntity = userService.deleteAddress(userId, addressId);
 
         List<ResponseAddress> responseAddressList = userEntity.getAddresses().stream()
                 .map(v -> ResponseAddress.builder()
