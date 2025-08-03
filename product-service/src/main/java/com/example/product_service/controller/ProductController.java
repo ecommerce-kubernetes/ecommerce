@@ -13,9 +13,7 @@ import com.example.product_service.dto.request.product.ProductRequest;
 import com.example.product_service.dto.request.product.ProductRequestDto;
 import com.example.product_service.dto.response.CompactProductResponseDto;
 import com.example.product_service.dto.response.PageDto;
-import com.example.product_service.dto.response.product.ProductResponse;
-import com.example.product_service.dto.response.product.ProductResponseDto;
-import com.example.product_service.dto.response.product.ProductSummaryDto;
+import com.example.product_service.dto.response.product.*;
 import com.example.product_service.entity.Products;
 import com.example.product_service.service.ProductImageService;
 import com.example.product_service.service.ProductService;
@@ -56,75 +54,42 @@ public class ProductController {
         return ResponseEntity.status(HttpStatus.CREATED).body(new ProductResponse());
     }
 
+    @Operation(summary = "상품 조회")
+    @ApiResponse(responseCode = "200", description = "조회 성공")
+    @BadRequestApiResponse @NotFoundApiResponse
     @GetMapping
-    public ResponseEntity<PageDto<ProductSummaryDto>> getAllProducts(
+    public ResponseEntity<PageDto<ProductSummaryResponse>> getProducts(
             @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.ASC) Pageable pageable,
             @RequestParam(value = "categoryId", required = false) Long categoryId,
             @RequestParam(value = "name", required = false) String name,
             @RequestParam(value = "rating", required = false) Integer rating){
-        sortFieldValidator.validateSortFields(pageable.getSort(), Products.class, null);
-        PageDto<ProductSummaryDto> productList = productService.getProductList(pageable, categoryId, name, rating);
-        return ResponseEntity.ok(productList);
+//        sortFieldValidator.validateSortFields(pageable.getSort(), Products.class, null);
+//        PageDto<ProductSummaryDto> productList = productService.getProductList(pageable, categoryId, name, rating);
+        return ResponseEntity.ok(new PageDto<>(List.of(new ProductSummaryResponse()), 0, 5, 10, 50));
     }
 
+    @Operation(summary = "상품 상세 조회")
+    @ApiResponse(responseCode = "200", description = "조회 성공")
+    @NotFoundApiResponse
     @GetMapping("/{productId}")
-    public ResponseEntity<ProductResponseDto> getProductById(@PathVariable("productId") Long productId){
-        ProductResponseDto productDetails = productService.getProductDetails(productId);
-        return ResponseEntity.ok(productDetails);
+    public ResponseEntity<ProductResponse> getProductById(@PathVariable("productId") Long productId){
+//        ProductResponseDto productDetails = productService.getProductDetails(productId);
+        return ResponseEntity.ok(new ProductResponse());
     }
 
-    @PatchMapping("/{productId}/basic")
-    public ResponseEntity<ProductResponseDto> updateBasicInfo(@PathVariable("productId") Long productId,
-                                                              @RequestBody ProductBasicRequestDto requestDto){
-        ProductResponseDto responseDto = productService.modifyProductBasic(productId, requestDto);
-        return ResponseEntity.ok(responseDto);
+    @Operation(summary = "특가 상품 조회")
+    @ApiResponse(responseCode = "200", description = "조회 성공")
+    @GetMapping("/special-sale")
+    public ResponseEntity<PageDto<ProductSummaryResponse>> specialSaleProducts(@RequestParam(name = "page", defaultValue = "0") int page,
+                                                                          @RequestParam(name = "size", defaultValue = "10") int size,
+                                                                          @RequestParam(name = "categoryId", required = false) Long categoryId){
+        Pageable pageable = PageRequest.of(page, size);
+        PageDto<ProductSummaryDto> result = productService.getSpecialSale(pageable, categoryId);
+        return ResponseEntity.ok(new PageDto<>(List.of(new ProductSummaryResponse()), 0, 5, 10, 50));
     }
 
-    @PostMapping("/{productId}/image")
-    public ResponseEntity<ProductResponseDto> addProductImg(@PathVariable("productId") Long productId,
-                                                            @RequestBody @Validated ProductImageRequestDto productImageRequestDto){
-        ProductResponseDto productResponseDto = productImageService.addImage(productId, productImageRequestDto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(productResponseDto);
-    }
-
-    @DeleteMapping("/image/{imageId}")
-    public ResponseEntity<Void> deleteProductImage(@PathVariable("imageId") Long imageId){
-        productImageService.deleteImage(imageId);
-        return ResponseEntity.noContent().build();
-    }
-
-    @PatchMapping("/image/{imageId}/sort")
-    public ResponseEntity<ProductResponseDto> changeImgOrder(@PathVariable("imageId") Long imageId,
-                                                             @RequestBody @Validated ImageOrderRequestDto requestDto){
-        ProductResponseDto responseDto = productImageService.imgSwapOrder(imageId, requestDto);
-        return ResponseEntity.ok(responseDto);
-    }
-
-    @DeleteMapping("/{productId}")
-    public ResponseEntity<Void> removeProduct(@PathVariable("productId") Long productId){
-        productService.deleteProduct(productId);
-        return ResponseEntity.noContent().build();
-    }
-
-    @PostMapping("/batch-delete")
-    public ResponseEntity<Void> productBatchDelete(@Validated @RequestBody IdsRequestDto requestDto){
-        productService.batchDeleteProducts(requestDto);
-        return ResponseEntity.noContent().build();
-    }
-
-    @PostMapping("/{productId}/variants")
-    public ResponseEntity<ProductResponseDto> addVariants(@PathVariable("productId") Long productId,
-                                                          @RequestBody CreateVariantsRequestDto requestDto){
-        ProductResponseDto responseDto = productVariantService.addVariants(productId, requestDto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
-    }
-
-    @DeleteMapping("/variants/{variantId}")
-    public ResponseEntity<ProductResponseDto> deleteVariants(@PathVariable("variantId") Long variantId){
-        productVariantService.deleteVariant(variantId);
-        return ResponseEntity.noContent().build();
-    }
-
+    @Operation(summary = "인기 상품 조회")
+    @ApiResponse(responseCode = "200", description = "조회 성공")
     @GetMapping("/popular")
     public ResponseEntity<PageDto<ProductSummaryDto>> popularProducts(@RequestParam(name = "page", defaultValue = "0") int page,
                                                                       @RequestParam(name = "size", defaultValue = "10") int size,
@@ -134,13 +99,71 @@ public class ProductController {
         return ResponseEntity.ok(result);
     }
 
-    @GetMapping("/special-sale")
-    public ResponseEntity<PageDto<ProductSummaryDto>> specialSaleProducts(@RequestParam(name = "page", defaultValue = "0") int page,
-                                                                          @RequestParam(name = "size", defaultValue = "10") int size,
-                                                                          @RequestParam(name = "categoryId", required = false) Long categoryId){
-        Pageable pageable = PageRequest.of(page, size);
-        PageDto<ProductSummaryDto> result = productService.getSpecialSale(pageable, categoryId);
-        return ResponseEntity.ok(result);
+    @AdminApi
+    @Operation(summary = "상품 기본 정보 수정")
+    @ApiResponse(responseCode = "200", description = "수정 성공")
+    @BadRequestApiResponse @ForbiddenApiResponse @NotFoundApiResponse
+    @PatchMapping("/{productId}")
+    public ResponseEntity<ProductUpdateResponse> updateBasicInfo(@PathVariable("productId") Long productId,
+                                                                 @RequestBody ProductBasicRequestDto requestDto){
+//        ProductResponseDto responseDto = productService.modifyProductBasic(productId, requestDto);
+        return ResponseEntity.ok(new ProductUpdateResponse());
+    }
+
+    @AdminApi
+    @Operation(summary = "상품 삭제")
+    @ApiResponse(responseCode = "204", description = "삭제 성공")
+    @NotFoundApiResponse
+    @DeleteMapping("/{productId}")
+    public ResponseEntity<Void> removeProduct(@PathVariable("productId") Long productId){
+        productService.deleteProduct(productId);
+        return ResponseEntity.noContent().build();
+    }
+
+
+    //TODO 삭제 예정
+    @PostMapping("/{productId}/image")
+    public ResponseEntity<ProductResponseDto> addProductImg(@PathVariable("productId") Long productId,
+                                                            @RequestBody @Validated ProductImageRequestDto productImageRequestDto){
+        ProductResponseDto productResponseDto = productImageService.addImage(productId, productImageRequestDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(productResponseDto);
+    }
+
+    //TODO 삭제 예정
+    @DeleteMapping("/image/{imageId}")
+    public ResponseEntity<Void> deleteProductImage(@PathVariable("imageId") Long imageId){
+        productImageService.deleteImage(imageId);
+        return ResponseEntity.noContent().build();
+    }
+
+    //TODO 삭제 예정
+    @PatchMapping("/image/{imageId}/sort")
+    public ResponseEntity<ProductResponseDto> changeImgOrder(@PathVariable("imageId") Long imageId,
+                                                             @RequestBody @Validated ImageOrderRequestDto requestDto){
+        ProductResponseDto responseDto = productImageService.imgSwapOrder(imageId, requestDto);
+        return ResponseEntity.ok(responseDto);
+    }
+
+    //TODO 삭제 예정
+    @PostMapping("/batch-delete")
+    public ResponseEntity<Void> productBatchDelete(@Validated @RequestBody IdsRequestDto requestDto){
+        productService.batchDeleteProducts(requestDto);
+        return ResponseEntity.noContent().build();
+    }
+
+    //TODO 삭제 예정
+    @PostMapping("/{productId}/variants")
+    public ResponseEntity<ProductResponseDto> addVariants(@PathVariable("productId") Long productId,
+                                                          @RequestBody CreateVariantsRequestDto requestDto){
+        ProductResponseDto responseDto = productVariantService.addVariants(productId, requestDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
+    }
+
+    //TODO 삭제 예정
+    @DeleteMapping("/variants/{variantId}")
+    public ResponseEntity<ProductResponseDto> deleteVariants(@PathVariable("variantId") Long variantId){
+        productVariantService.deleteVariant(variantId);
+        return ResponseEntity.noContent().build();
     }
 
     //TODO
@@ -153,6 +176,7 @@ public class ProductController {
         return ResponseEntity.ok(productResponseDto);
     }
 
+    //TODO 삭제 예정
     @PostMapping("/lookup-by-ids")
     public ResponseEntity<List<CompactProductResponseDto>> getProductsByIdBatch(@RequestBody ProductRequestIdsDto productRequestIdsDto){
         List<CompactProductResponseDto> productListByIds = productService.getProductListByIds(productRequestIdsDto);
