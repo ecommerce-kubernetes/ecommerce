@@ -1,10 +1,7 @@
-package com.example.product_service.dto.response;
+package com.example.product_service.dto.response.category;
 
 import com.example.product_service.entity.Categories;
 import lombok.*;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Getter
 @Setter

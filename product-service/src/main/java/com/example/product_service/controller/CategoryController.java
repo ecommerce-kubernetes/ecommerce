@@ -1,11 +1,11 @@
 package com.example.product_service.controller;
 
-import com.example.product_service.common.advice.dto.ErrorResponse;
 import com.example.product_service.controller.util.SortFieldValidator;
 import com.example.product_service.controller.util.specification.annotation.*;
 import com.example.product_service.dto.request.CategoryRequestDto;
 import com.example.product_service.dto.request.ModifyCategoryRequestDto;
-import com.example.product_service.dto.response.CategoryResponseDto;
+import com.example.product_service.dto.response.category.CategoryHierarchyResponse;
+import com.example.product_service.dto.response.category.CategoryResponseDto;
 import com.example.product_service.dto.response.PageDto;
 import com.example.product_service.entity.Categories;
 import com.example.product_service.exception.BadRequestException;
@@ -64,6 +64,14 @@ public class CategoryController {
     public ResponseEntity<List<CategoryResponseDto>> getChildByCategoryId(@PathVariable("categoryId") Long categoryId){
         List<CategoryResponseDto> childCategories = categoryService.getChildCategories(categoryId);
         return ResponseEntity.ok(childCategories);
+    }
+
+    @Operation(summary = "카테고리 계층 구조 조회")
+    @ApiResponse(responseCode = "200", description = "조회 성공")
+    @NotFoundApiResponse
+    @GetMapping("/{categoryId}/hierarchy")
+    public ResponseEntity<CategoryHierarchyResponse> getHierarchyByCategoryId(@PathVariable("categoryId") Long categoryId){
+        return ResponseEntity.ok(new CategoryHierarchyResponse());
     }
 
     @PatchMapping("/{categoryId}")

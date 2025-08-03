@@ -3,7 +3,7 @@ package com.example.product_service.controller;
 import com.example.product_service.controller.util.SortFieldValidator;
 import com.example.product_service.dto.request.CategoryRequestDto;
 import com.example.product_service.dto.request.ModifyCategoryRequestDto;
-import com.example.product_service.dto.response.CategoryResponseDto;
+import com.example.product_service.dto.response.category.CategoryResponseDto;
 import com.example.product_service.dto.response.PageDto;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.service.CategoryService;
