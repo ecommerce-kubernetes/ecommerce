@@ -1,5 +1,6 @@
 package com.example.product_service.dto.request;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -11,11 +12,17 @@ import org.hibernate.validator.constraints.URL;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@Schema(description = "카테고리 생성 요청 Request")
 public class CategoryRequestDto {
+
+    @Schema(description = "카테고리 이름", example = "의류")
     @NotBlank(message = "Category name is required")
     private String name;
+
+    @Schema(description = "부모 카테고리 ID", example = "3")
     private Long parentId;
 
+    @Schema(description = "아이콘 URL", example = "http://image.jpg")
     @URL(message = "Invalid ImgUrl")
     private String iconUrl;
 }
