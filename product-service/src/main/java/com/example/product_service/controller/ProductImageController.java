@@ -4,6 +4,8 @@ import com.example.product_service.controller.util.specification.annotation.Admi
 import com.example.product_service.controller.util.specification.annotation.BadRequestApiResponse;
 import com.example.product_service.controller.util.specification.annotation.ForbiddenApiResponse;
 import com.example.product_service.controller.util.specification.annotation.NotFoundApiResponse;
+import com.example.product_service.dto.request.image.AddImageRequest;
+import com.example.product_service.dto.request.image.ImageRequest;
 import com.example.product_service.dto.response.image.ImageResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -24,7 +26,8 @@ public class ProductImageController {
     @ApiResponse(responseCode = "201", description = "추가 성공")
     @BadRequestApiResponse @ForbiddenApiResponse @NotFoundApiResponse
     @PostMapping
-    public ResponseEntity<List<ImageResponse>> addImage(@PathVariable("productId") Long productId){
+    public ResponseEntity<List<ImageResponse>> addImage(@PathVariable("productId") Long productId,
+                                                        @RequestBody AddImageRequest request){
         return ResponseEntity.status(HttpStatus.CREATED).body(List.of(new ImageResponse()));
     }
 
@@ -34,7 +37,8 @@ public class ProductImageController {
     @BadRequestApiResponse @ForbiddenApiResponse @NotFoundApiResponse
     @PatchMapping("/{imageId}")
     public ResponseEntity<ImageResponse> updateImage(@PathVariable("productId") Long productId,
-                                                     @PathVariable("imageId") Long imageId){
+                                                     @PathVariable("imageId") Long imageId,
+                                                     @RequestBody ImageRequest request){
         return ResponseEntity.ok(new ImageResponse());
     }
 
