@@ -1,4 +1,4 @@
-package com.example.product_service.dto.request.product;
+package com.example.product_service.dto.request.variant;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

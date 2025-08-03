@@ -4,17 +4,14 @@ import com.example.product_service.controller.util.specification.annotation.Admi
 import com.example.product_service.controller.util.specification.annotation.BadRequestApiResponse;
 import com.example.product_service.controller.util.specification.annotation.ForbiddenApiResponse;
 import com.example.product_service.controller.util.specification.annotation.NotFoundApiResponse;
-import com.example.product_service.dto.response.variant.AddVariantResponse;
+import com.example.product_service.dto.request.variant.ProductVariantRequest;
 import com.example.product_service.dto.response.variant.ProductVariantResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/products/{productId}/variants")
@@ -26,7 +23,29 @@ public class ProductVariantController {
     @ApiResponse(responseCode = "201", description = "추가 성공")
     @BadRequestApiResponse @ForbiddenApiResponse @NotFoundApiResponse
     @PostMapping
-    public ResponseEntity<AddVariantResponse> addVariant(@PathVariable("productId") Long productId){
-        return ResponseEntity.status(HttpStatus.CREATED).body(new AddVariantResponse());
+    public ResponseEntity<ProductVariantResponse> addVariant(@PathVariable("productId") Long productId,
+                                                             @RequestBody ProductVariantRequest request){
+        return ResponseEntity.status(HttpStatus.CREATED).body(new ProductVariantResponse());
+    }
+
+    @AdminApi
+    @Operation(summary = "상품 변형 수정")
+    @ApiResponse(responseCode = "200", description = "수정 성공")
+    @BadRequestApiResponse @ForbiddenApiResponse @NotFoundApiResponse
+    @PatchMapping("/{variantId}")
+    public ResponseEntity<ProductVariantResponse> updateProductVariant(@PathVariable("productId") Long productId,
+                                                                       @PathVariable("variantId") Long variantId,
+                                                                       @RequestBody ProductVariantRequest request){
+        return ResponseEntity.ok(new ProductVariantResponse());
+    }
+
+    @AdminApi
+    @Operation(summary = "상품 변형 삭제")
+    @ApiResponse(responseCode = "204", description = "삭제 성공")
+    @BadRequestApiResponse @ForbiddenApiResponse @NotFoundApiResponse
+    @DeleteMapping("/{variantId}")
+    public ResponseEntity<Void> deleteProductVariant(@PathVariable("productId") Long productId,
+                                                     @PathVariable("variantId") Long variantId){
+        return ResponseEntity.noContent().build();
     }
 }
