@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/option-values")
-@Tag(name = "OptionType", description = "옵션 타입 관련 API")
+@Tag(name = "OptionValue", description = "옵션 값 관련 API")
 @RequiredArgsConstructor
 public class OptionValueController {
     private final OptionValueService optionValueService;
@@ -36,6 +36,7 @@ public class OptionValueController {
         return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
     }
 
+    //TODO 삭제 예정
     @PostMapping("/batch-delete")
     public ResponseEntity<Void> optionValueBatchDelete(@Validated @RequestBody IdsRequestDto requestDto){
         optionValueService.batchDeleteOptionValues(requestDto);

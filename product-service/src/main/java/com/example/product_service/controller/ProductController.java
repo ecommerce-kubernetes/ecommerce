@@ -1,19 +1,28 @@
 package com.example.product_service.controller;
 
 import com.example.product_service.controller.util.SortFieldValidator;
+import com.example.product_service.controller.util.specification.annotation.AdminApi;
+import com.example.product_service.controller.util.specification.annotation.BadRequestApiResponse;
+import com.example.product_service.controller.util.specification.annotation.ForbiddenApiResponse;
+import com.example.product_service.controller.util.specification.annotation.NotFoundApiResponse;
 import com.example.product_service.dto.request.*;
 import com.example.product_service.dto.request.options.IdsRequestDto;
 import com.example.product_service.dto.request.product.CreateVariantsRequestDto;
 import com.example.product_service.dto.request.product.ProductBasicRequestDto;
+import com.example.product_service.dto.request.product.ProductRequest;
 import com.example.product_service.dto.request.product.ProductRequestDto;
 import com.example.product_service.dto.response.CompactProductResponseDto;
 import com.example.product_service.dto.response.PageDto;
+import com.example.product_service.dto.response.product.ProductResponse;
 import com.example.product_service.dto.response.product.ProductResponseDto;
 import com.example.product_service.dto.response.product.ProductSummaryDto;
 import com.example.product_service.entity.Products;
 import com.example.product_service.service.ProductImageService;
 import com.example.product_service.service.ProductService;
 import com.example.product_service.service.ProductVariantService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -28,6 +37,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/products")
+@Tag(name = "Product" , description = "상품 관련 API")
 @RequiredArgsConstructor
 public class ProductController {
 
@@ -36,10 +46,14 @@ public class ProductController {
     private final ProductVariantService productVariantService;
     private final SortFieldValidator sortFieldValidator;
 
+    @AdminApi
+    @Operation(summary = "상품 저장")
+    @ApiResponse(responseCode = "201", description = "생성 성공")
+    @BadRequestApiResponse @ForbiddenApiResponse @NotFoundApiResponse
     @PostMapping
-    public ResponseEntity<ProductResponseDto> createProduct(@RequestBody @Validated ProductRequestDto productRequestDto){
-        ProductResponseDto response = productService.saveProduct(productRequestDto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    public ResponseEntity<ProductResponse> createProduct(@RequestBody @Validated ProductRequest request){
+//        ProductResponseDto response = productService.saveProduct(productRequestDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(new ProductResponse());
     }
 
     @GetMapping
