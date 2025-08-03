@@ -1,0 +1,50 @@
+package com.example.product_service.controller;
+
+import com.example.product_service.controller.util.specification.annotation.AdminApi;
+import com.example.product_service.controller.util.specification.annotation.BadRequestApiResponse;
+import com.example.product_service.controller.util.specification.annotation.ForbiddenApiResponse;
+import com.example.product_service.controller.util.specification.annotation.NotFoundApiResponse;
+import com.example.product_service.dto.response.image.ImageResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/products/{productId}/images")
+@Tag(name = "ProductImage" , description = "상품 이미지 관련 API")
+public class ProductImageController {
+
+    @AdminApi
+    @Operation(summary = "상품 이미지 추가")
+    @ApiResponse(responseCode = "201", description = "추가 성공")
+    @BadRequestApiResponse @ForbiddenApiResponse @NotFoundApiResponse
+    @PostMapping
+    public ResponseEntity<List<ImageResponse>> addImage(@PathVariable("productId") Long productId){
+        return ResponseEntity.status(HttpStatus.CREATED).body(List.of(new ImageResponse()));
+    }
+
+    @AdminApi
+    @Operation(summary = "상품 이미지 수정")
+    @ApiResponse(responseCode = "200", description = "수정 완료")
+    @BadRequestApiResponse @ForbiddenApiResponse @NotFoundApiResponse
+    @PatchMapping("/{imageId}")
+    public ResponseEntity<ImageResponse> updateImage(@PathVariable("productId") Long productId,
+                                                     @PathVariable("imageId") Long imageId){
+        return ResponseEntity.ok(new ImageResponse());
+    }
+
+    @AdminApi
+    @Operation(summary = "상품 이미지 삭제")
+    @ApiResponse(responseCode = "204", description = "상품 이미지 삭제")
+    @ForbiddenApiResponse @NotFoundApiResponse
+    @DeleteMapping("/{imageId}")
+    public ResponseEntity<Void> deleteImage(@PathVariable("productId") Long productId,
+                                            @PathVariable("imageId") Long imageId){
+        return ResponseEntity.noContent().build();
+    }
+}
