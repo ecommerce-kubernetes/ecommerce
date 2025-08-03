@@ -68,7 +68,7 @@ public class OptionTypeController {
     @Operation(summary = "옵션 타입 값 조회")
     @ApiResponse(responseCode = "200", description = "조회 성공")
     @NotFoundApiResponse
-    @GetMapping("/{optionTypeId}/option-values")
+    @GetMapping("/{optionTypeId}/values")
     public ResponseEntity<List<OptionValuesResponseDto>> getValuesByType(@PathVariable("optionTypeId") Long optionTypeId){
         List<OptionValuesResponseDto> response = optionTypeService.getOptionValuesByTypeId(optionTypeId);
         return ResponseEntity.ok(response);

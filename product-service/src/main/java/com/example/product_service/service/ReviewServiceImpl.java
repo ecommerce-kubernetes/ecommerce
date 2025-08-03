@@ -24,16 +24,17 @@ public class ReviewServiceImpl implements ReviewService{
 
     @Override
     public PageDto<ReviewResponseDto> getReviewList(Long productId, Pageable pageable) {
-        Page<Reviews> result = reviewsRepository.findAllByProductId(productId, pageable);
-
-        List<ReviewResponseDto> content = result.getContent().stream().map(ReviewResponseDto::new).toList();
-        return new PageDto<>(
-                content,
-                pageable.getPageNumber(),
-                result.getTotalPages(),
-                pageable.getPageSize(),
-                result.getTotalElements()
-
-        );
+//        Page<Reviews> result = reviewsRepository.findAllByProductId(productId, pageable);
+//
+//        List<ReviewResponseDto> content = result.getContent().stream().map(ReviewResponseDto::new).toList();
+//        return new PageDto<>(
+//                content,
+//                pageable.getPageNumber(),
+//                result.getTotalPages(),
+//                pageable.getPageSize(),
+//                result.getTotalElements()
+//
+//        );
+        return null;
     }
 }

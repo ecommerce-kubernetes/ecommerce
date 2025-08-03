@@ -122,7 +122,7 @@ public class ProductController {
 
 
     //TODO 삭제 예정
-    @PostMapping("/{productId}/image")
+//    @PostMapping("/{productId}/image")
     public ResponseEntity<ProductResponseDto> addProductImg(@PathVariable("productId") Long productId,
                                                             @RequestBody @Validated ProductImageRequestDto productImageRequestDto){
         ProductResponseDto productResponseDto = productImageService.addImage(productId, productImageRequestDto);
@@ -130,14 +130,14 @@ public class ProductController {
     }
 
     //TODO 삭제 예정
-    @DeleteMapping("/image/{imageId}")
+//    @DeleteMapping("/image/{imageId}")
     public ResponseEntity<Void> deleteProductImage(@PathVariable("imageId") Long imageId){
         productImageService.deleteImage(imageId);
         return ResponseEntity.noContent().build();
     }
 
     //TODO 삭제 예정
-    @PatchMapping("/image/{imageId}/sort")
+//    @PatchMapping("/image/{imageId}/sort")
     public ResponseEntity<ProductResponseDto> changeImgOrder(@PathVariable("imageId") Long imageId,
                                                              @RequestBody @Validated ImageOrderRequestDto requestDto){
         ProductResponseDto responseDto = productImageService.imgSwapOrder(imageId, requestDto);
@@ -145,14 +145,14 @@ public class ProductController {
     }
 
     //TODO 삭제 예정
-    @PostMapping("/batch-delete")
+//    @PostMapping("/batch-delete")
     public ResponseEntity<Void> productBatchDelete(@Validated @RequestBody IdsRequestDto requestDto){
         productService.batchDeleteProducts(requestDto);
         return ResponseEntity.noContent().build();
     }
 
     //TODO 삭제 예정
-    @PostMapping("/{productId}/variants")
+//    @PostMapping("/{productId}/variants")
     public ResponseEntity<ProductResponseDto> addVariants(@PathVariable("productId") Long productId,
                                                           @RequestBody CreateVariantsRequestDto requestDto){
         ProductResponseDto responseDto = productVariantService.addVariants(productId, requestDto);
@@ -160,7 +160,7 @@ public class ProductController {
     }
 
     //TODO 삭제 예정
-    @DeleteMapping("/variants/{variantId}")
+//    @DeleteMapping("/variants/{variantId}")
     public ResponseEntity<ProductResponseDto> deleteVariants(@PathVariable("variantId") Long variantId){
         productVariantService.deleteVariant(variantId);
         return ResponseEntity.noContent().build();
