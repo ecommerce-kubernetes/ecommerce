@@ -39,8 +39,7 @@ public class CategoryController {
 
     @AdminApi
     @Operation(summary = "카테고리 생성")
-    @ApiResponse(responseCode = "201", description = "생성 성공",
-            content = @Content(schema = @Schema(implementation = CategoryResponseDto.class)))
+    @ApiResponse(responseCode = "201", description = "생성 성공")
     @BadRequestApiResponse @ForbiddenApiResponse @ConflictApiResponse
     @PostMapping
     public ResponseEntity<CategoryResponseDto> createCategory(@RequestBody @Validated CategoryRequestDto categoryRequestDto){
@@ -49,16 +48,14 @@ public class CategoryController {
     }
 
     @Operation(summary = "루트 카테고리 리스트 조회")
-    @ApiResponse(responseCode = "200", description = "조회 성공",
-            content = @Content(array = @ArraySchema(schema = @Schema(implementation = CategoryResponseDto.class))))
+    @ApiResponse(responseCode = "200", description = "조회 성공")
     @GetMapping("/root")
     public ResponseEntity<List<CategoryResponseDto>> getRootCategories(){
         return ResponseEntity.ok(List.of(new CategoryResponseDto(1L, "의류", 2L, "http://localhost:9000.jpg")));
     }
 
     @Operation(summary = "자식 카테고리 조회")
-    @ApiResponse(responseCode = "200", description = "조회 성공",
-            content = @Content(array = @ArraySchema(schema = @Schema(implementation = CategoryResponseDto.class))))
+    @ApiResponse(responseCode = "200", description = "조회 성공")
     @NotFoundApiResponse
     @GetMapping("/{categoryId}/children")
     public ResponseEntity<List<CategoryResponseDto>> getChildByCategoryId(@PathVariable("categoryId") Long categoryId){
@@ -74,6 +71,10 @@ public class CategoryController {
         return ResponseEntity.ok(new CategoryHierarchyResponse());
     }
 
+    @AdminApi
+    @Operation(summary = "카테고리 수정")
+    @ApiResponse(responseCode = "200", description = "카테고리 수정")
+    @BadRequestApiResponse @ForbiddenApiResponse @NotFoundApiResponse
     @PatchMapping("/{categoryId}")
     public ResponseEntity<CategoryResponseDto> updateCategory(@PathVariable("categoryId") Long categoryId,
                                                                   @RequestBody @Validated ModifyCategoryRequestDto modifyCategoryRequestDto){
@@ -85,18 +86,25 @@ public class CategoryController {
         return ResponseEntity.ok(category);
     }
 
+    @AdminApi
+    @Operation(summary = "카테고리 삭제")
+    @ApiResponse(responseCode = "204", description = "카테고리 삭제")
+    @ForbiddenApiResponse @NotFoundApiResponse
     @DeleteMapping("/{categoryId}")
     public ResponseEntity<Void> removeCategory(@PathVariable("categoryId") Long categoryId){
         categoryService.deleteCategory(categoryId);
         return ResponseEntity.noContent().build();
     }
 
+
+    //TODO 삭제 예정
     @GetMapping("/{categoryId}")
     public ResponseEntity<CategoryResponseDto> getCategoryById(@PathVariable("categoryId") Long categoryId){
         CategoryResponseDto categoryDetails = categoryService.getCategoryDetails(categoryId);
         return ResponseEntity.ok(categoryDetails);
     }
 
+    //TODO 삭제 예정
     @GetMapping
     public ResponseEntity<PageDto<CategoryResponseDto>> getMainCategoryList(
             @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.ASC) Pageable pageable){
@@ -106,6 +114,7 @@ public class CategoryController {
         return ResponseEntity.ok(pageDto);
     }
 
+    //TODO 삭제 예정
     @GetMapping("/{categoryId}/root")
     public ResponseEntity<CategoryResponseDto> getRootByCategoryId(@PathVariable("categoryId") Long categoryId) {
         CategoryResponseDto rootCategoryDetailsOf = categoryService.getRootCategoryDetailsOf(categoryId);
