@@ -88,7 +88,8 @@ public class CategoryController {
     @ApiResponse(responseCode = "204", description = "카테고리 삭제")
     @ForbiddenApiResponse @NotFoundApiResponse
     @DeleteMapping("/{categoryId}")
-    public ResponseEntity<Void> removeCategory(@PathVariable("categoryId") Long categoryId){
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public ResponseEntity<Void> deleteCategory(@PathVariable("categoryId") Long categoryId){
         categoryService.deleteCategory(categoryId);
         return ResponseEntity.noContent().build();
     }

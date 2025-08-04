@@ -21,8 +21,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 
@@ -114,6 +113,21 @@ class CategoryControllerSecurityTest {
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.error").value("Forbidden"))
                 .andExpect(jsonPath("$.message").value("Access Denied"))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value(BASE_PATH + "/1"));
+    }
+
+    @Test
+    @DisplayName("카테고리 삭제 테스트-인증 에러")
+    void deleteCategoryTest_UnAuthorized() throws Exception {
+        ResultActions perform = mockMvc.perform(
+                delete(BASE_PATH + "/1")
+                        .contentType(MediaType.APPLICATION_JSON));
+
+        perform
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error").value("UnAuthorized"))
+                .andExpect(jsonPath("$.message").value("Invalid Header"))
                 .andExpect(jsonPath("$.timestamp").exists())
                 .andExpect(jsonPath("$.path").value(BASE_PATH + "/1"));
     }
