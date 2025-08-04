@@ -21,11 +21,15 @@ class CustomAuthenticationEntryPointTest {
     MockHttpServletRequest request;
     MockHttpServletResponse response;
 
+    private static final String PATH = "/path";
+    private static final String ERROR = "UnAuthorized";
+    private static final String MESSAGE = "Invalid Header";
+
     @BeforeEach
     void setUp(){
         entryPoint = new CustomAuthenticationEntryPoint();
         request = new MockHttpServletRequest();
-        request.setRequestURI("/path");
+        request.setRequestURI(PATH);
         response = new MockHttpServletResponse();
     }
 
@@ -41,9 +45,9 @@ class CustomAuthenticationEntryPointTest {
                 .registerModule(new JavaTimeModule())
                 .readValue(response.getContentAsString(), ErrorResponse.class);
 
-        assertThat(err.getError()).isEqualTo("UnAuthorized");
-        assertThat(err.getPath()).isEqualTo("/path");
-        assertThat(err.getMessage()).isEqualTo("Invalid Header");
+        assertThat(err.getError()).isEqualTo(ERROR);
+        assertThat(err.getPath()).isEqualTo(PATH);
+        assertThat(err.getMessage()).isEqualTo(MESSAGE);
         assertThat(err.getTimestamp()).isNotNull();
     }
 }
