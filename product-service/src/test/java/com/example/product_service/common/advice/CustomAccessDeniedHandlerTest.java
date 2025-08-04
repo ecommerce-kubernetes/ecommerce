@@ -21,13 +21,17 @@ class CustomAccessDeniedHandlerTest {
     MockHttpServletRequest request;
     MockHttpServletResponse response;
 
+    private static final String PATH = "/path";
+    private static final String ERROR = "Forbidden";
+    private static final String MESSAGE = "Access Denied";
+
     @BeforeEach
     void setUp(){
         handler = new CustomAccessDeniedHandler();
         request = new MockHttpServletRequest();
         request.addHeader("X-User-Id", 1);
         request.addHeader("X-User-Role", "ROLE_USER");
-        request.setRequestURI("/path");
+        request.setRequestURI(PATH);
         response = new MockHttpServletResponse();
     }
 
@@ -44,9 +48,9 @@ class CustomAccessDeniedHandlerTest {
                 .registerModule(new JavaTimeModule())
                 .readValue(response.getContentAsString(), ErrorResponse.class);
 
-        assertThat(err.getError()).isEqualTo("Forbidden");
-        assertThat(err.getPath()).isEqualTo("/path");
-        assertThat(err.getMessage()).isEqualTo("Access Denied");
+        assertThat(err.getError()).isEqualTo(ERROR);
+        assertThat(err.getPath()).isEqualTo(PATH);
+        assertThat(err.getMessage()).isEqualTo(MESSAGE);
         assertThat(err.getTimestamp()).isNotNull();
     }
 }
