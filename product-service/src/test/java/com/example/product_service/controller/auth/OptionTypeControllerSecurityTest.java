@@ -4,8 +4,10 @@ import com.example.product_service.common.advice.CustomAccessDeniedHandler;
 import com.example.product_service.common.advice.CustomAuthenticationEntryPoint;
 import com.example.product_service.config.WebSecurity;
 import com.example.product_service.controller.OptionTypeController;
+import com.example.product_service.dto.request.ModifyCategoryRequest;
 import com.example.product_service.dto.request.options.OptionTypeRequest;
 import com.example.product_service.service.OptionTypeService;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -38,8 +40,7 @@ public class OptionTypeControllerSecurityTest {
     @Test
     @DisplayName("옵션 타입 테스트-인증 에러")
     void createOptionTypeTest_UnAuthorized() throws Exception {
-        OptionTypeRequest name = new OptionTypeRequest("name");
-        String jsonBody = mapper.writeValueAsString(name);
+        String jsonBody = createModifyCategoryRequestJsonBody();
 
         ResultActions perform = mockMvc.perform(post("/option-types")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -52,4 +53,14 @@ public class OptionTypeControllerSecurityTest {
                 .andExpect(jsonPath("$.timestamp").exists())
                 .andExpect(jsonPath("$.path").value("/option-types"));
     }
+
+    private String createModifyCategoryRequestJsonBody() throws JsonProcessingException {
+        OptionTypeRequest request = new OptionTypeRequest("name");
+        return createJsonBody(request);
+    }
+
+    private String createJsonBody(Object o) throws JsonProcessingException {
+        return mapper.writeValueAsString(o);
+    }
+
 }
