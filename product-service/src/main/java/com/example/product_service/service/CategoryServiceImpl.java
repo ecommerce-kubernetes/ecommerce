@@ -1,7 +1,7 @@
 package com.example.product_service.service;
 
 import com.example.product_service.dto.request.CategoryRequest;
-import com.example.product_service.dto.request.ModifyCategoryRequestDto;
+import com.example.product_service.dto.request.ModifyCategoryRequest;
 import com.example.product_service.dto.response.category.CategoryResponseDto;
 import com.example.product_service.dto.response.PageDto;
 import com.example.product_service.entity.Categories;
@@ -42,7 +42,7 @@ public class CategoryServiceImpl implements CategoryService{
 
     @Override
     @Transactional
-    public CategoryResponseDto modifyCategory(Long categoryId, ModifyCategoryRequestDto requestDto) {
+    public CategoryResponseDto modifyCategory(Long categoryId, ModifyCategoryRequest requestDto) {
         Categories category = categoriesRepository.findById(categoryId)
                 .orElseThrow(() -> new NotFoundException("Not Found Category"));
 

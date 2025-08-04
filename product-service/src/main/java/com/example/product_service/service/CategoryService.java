@@ -1,7 +1,7 @@
 package com.example.product_service.service;
 
 import com.example.product_service.dto.request.CategoryRequest;
-import com.example.product_service.dto.request.ModifyCategoryRequestDto;
+import com.example.product_service.dto.request.ModifyCategoryRequest;
 import com.example.product_service.dto.response.category.CategoryResponseDto;
 import com.example.product_service.dto.response.PageDto;
 import com.example.product_service.entity.Categories;
@@ -12,7 +12,7 @@ import java.util.List;
 
 public interface CategoryService {
     CategoryResponseDto saveCategory(CategoryRequest categoryRequestDto);
-    CategoryResponseDto modifyCategory(Long categoryId, ModifyCategoryRequestDto requestDto);
+    CategoryResponseDto modifyCategory(Long categoryId, ModifyCategoryRequest requestDto);
     void deleteCategory(Long categoryId);
     CategoryResponseDto getCategoryDetails(Long categoryId);
     PageDto<CategoryResponseDto> getRootCategories(Pageable pageable);

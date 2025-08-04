@@ -2,7 +2,7 @@ package com.example.product_service.controller;
 
 import com.example.product_service.controller.util.specification.annotation.*;
 import com.example.product_service.dto.request.CategoryRequest;
-import com.example.product_service.dto.request.ModifyCategoryRequestDto;
+import com.example.product_service.dto.request.ModifyCategoryRequest;
 import com.example.product_service.dto.response.category.CategoryHierarchyResponse;
 import com.example.product_service.dto.response.category.CategoryResponseDto;
 import com.example.product_service.dto.response.PageDto;
@@ -72,13 +72,14 @@ public class CategoryController {
     @ApiResponse(responseCode = "200", description = "카테고리 수정")
     @BadRequestApiResponse @ForbiddenApiResponse @NotFoundApiResponse
     @PatchMapping("/{categoryId}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<CategoryResponseDto> updateCategory(@PathVariable("categoryId") Long categoryId,
-                                                                  @RequestBody @Validated ModifyCategoryRequestDto modifyCategoryRequestDto){
+                                                                  @RequestBody @Validated ModifyCategoryRequest request){
 
-        if(Objects.equals(categoryId, modifyCategoryRequestDto.getParentId())){
+        if(Objects.equals(categoryId, request.getParentId())){
             throw new BadRequestException("An item cannot be set as its own parent");
         }
-        CategoryResponseDto category = categoryService.modifyCategory(categoryId, modifyCategoryRequestDto);
+        CategoryResponseDto category = categoryService.modifyCategory(categoryId, request);
         return ResponseEntity.ok(category);
     }
 

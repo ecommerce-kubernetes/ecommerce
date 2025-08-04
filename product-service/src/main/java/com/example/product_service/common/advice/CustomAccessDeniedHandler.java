@@ -28,7 +28,7 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
                        AccessDeniedException accessDeniedException) throws IOException {
         String timestamp = LocalDateTime.now().toString();
         ErrorResponse error =
-                new ErrorResponse("UnAuthorized","권한이 부족합니다",timestamp ,request.getRequestURI());
+                new ErrorResponse("Forbidden","Access Denied", timestamp, request.getRequestURI());
 
         response.setStatus(HttpStatus.FORBIDDEN.value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
