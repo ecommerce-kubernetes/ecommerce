@@ -30,8 +30,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 class CategoryControllerSecurityTest {
 
-    private static String BASE_PATH = "/categories";
-    private static String CATEGORY_ID_PATH = "/categories/1";
+    private static final String BASE_PATH = "/categories";
+    private static final String CATEGORY_ID_PATH = "/categories/1";
     @Autowired
     MockMvc mockMvc;
     @MockitoBean
