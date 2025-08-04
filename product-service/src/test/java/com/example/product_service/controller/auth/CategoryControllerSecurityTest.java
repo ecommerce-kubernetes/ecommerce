@@ -20,7 +20,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -41,8 +40,7 @@ class CategoryControllerSecurityTest {
     @Test
     @DisplayName("카테고리 생성 테스트-인증 에러")
     void createCategoryTest_UnAuthorized() throws Exception {
-        CategoryRequest request = new CategoryRequest("name", 1L, "http://test.jpg");
-        String jsonBody = mapper.writeValueAsString(request);
+        String jsonBody = createCategoryRequestJsonBody();
         ResultActions perform =
                 mockMvc.perform(
                         post(BASE_PATH)
@@ -60,8 +58,7 @@ class CategoryControllerSecurityTest {
     @Test
     @DisplayName("카테고리 생성 테스트-권한 부족")
     void createCategoryTest_NoPermission() throws Exception {
-        CategoryRequest request = new CategoryRequest("name", 1L, "http://test.jpg");
-        String jsonBody = mapper.writeValueAsString(request);
+        String jsonBody = createCategoryRequestJsonBody();
         ResultActions perform = mockMvc.perform(
                 post(BASE_PATH)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -80,8 +77,7 @@ class CategoryControllerSecurityTest {
     @Test
     @DisplayName("카테고리 수정 테스트-인증 에러")
     void updateCategoryTest_UnAuthorized() throws Exception {
-        ModifyCategoryRequest request = new ModifyCategoryRequest("name", 1L, "http://test.jpg");
-        String jsonBody = mapper.writeValueAsString(request);
+        String jsonBody = createModifyCategoryRequestJsonBody();
 
         ResultActions perform = mockMvc.perform(
                 patch(BASE_PATH + "/1")
@@ -99,8 +95,7 @@ class CategoryControllerSecurityTest {
     @Test
     @DisplayName("카테고리 수정 테스트-권한 부족")
     void updateCategoryTest_NoPermission() throws Exception {
-        ModifyCategoryRequest request = new ModifyCategoryRequest("name", 1L, "http://test.jpg");
-        String jsonBody = mapper.writeValueAsString(request);
+        String jsonBody = createModifyCategoryRequestJsonBody();
 
         ResultActions perform = mockMvc.perform(
                 patch(BASE_PATH + "/1")
@@ -147,6 +142,20 @@ class CategoryControllerSecurityTest {
                 .andExpect(jsonPath("$.message").value("Access Denied"))
                 .andExpect(jsonPath("$.timestamp").exists())
                 .andExpect(jsonPath("$.path").value(BASE_PATH + "/1"));
+    }
+
+    private String createModifyCategoryRequestJsonBody() throws JsonProcessingException {
+        ModifyCategoryRequest request = new ModifyCategoryRequest("name", 1L, "http://test.jpg");
+        return createJsonBody(request);
+    }
+
+    private String createCategoryRequestJsonBody() throws JsonProcessingException {
+        CategoryRequest request = new CategoryRequest("name", 1L, "http://test.jpg");
+        return createJsonBody(request);
+    }
+
+    private String createJsonBody(Object o) throws JsonProcessingException {
+        return mapper.writeValueAsString(o);
     }
 
 }
