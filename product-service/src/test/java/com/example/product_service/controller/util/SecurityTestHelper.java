@@ -12,6 +12,11 @@ public final class SecurityTestHelper {
 
     private static final ObjectMapper mapper = new ObjectMapper();
 
+    public static final String USER_ID_HEADER = "X-User-Id";
+    public static final String USER_ROLE_HEADER = "X-User-Role";
+    public static final String USER_ROLE = UserRole.ROLE_USER.name();
+    public static final String ADMIN_ROLE = UserRole.ROLE_ADMIN.name();
+
     private SecurityTestHelper(){
     }
 
