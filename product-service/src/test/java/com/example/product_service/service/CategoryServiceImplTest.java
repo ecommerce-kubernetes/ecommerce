@@ -1,6 +1,6 @@
 package com.example.product_service.service;
 
-import com.example.product_service.dto.request.CategoryRequestDto;
+import com.example.product_service.dto.request.CategoryRequest;
 import com.example.product_service.dto.request.ModifyCategoryRequestDto;
 import com.example.product_service.dto.response.category.CategoryResponseDto;
 import com.example.product_service.dto.response.PageDto;
@@ -45,7 +45,7 @@ class CategoryServiceImplTest {
     @Transactional
     void saveCategoryTest_Main(){
         //대표 카테고리 생성 - parentId == null
-        CategoryRequestDto categoryRequestDto = new CategoryRequestDto("식품", null, "http://test.jpg");
+        CategoryRequest categoryRequestDto = new CategoryRequest("식품", null, "http://test.jpg");
         CategoryResponseDto categoryResponseDto = categoryService.saveCategory(categoryRequestDto);
 
         assertThat(categoryResponseDto.getName()).isEqualTo(categoryRequestDto.getName());
@@ -61,7 +61,7 @@ class CategoryServiceImplTest {
         Categories parent = categoriesRepository.save(new Categories("식품","http://test.jpg"));
 
         //자식 카테고리 생성 - parentId == 부모 카테고리 ID
-        CategoryRequestDto sideDishRequest = new CategoryRequestDto("반찬류", parent.getId(), null);
+        CategoryRequest sideDishRequest = new CategoryRequest("반찬류", parent.getId(), null);
         CategoryResponseDto sideDishResponse = categoryService.saveCategory(sideDishRequest);
 
         assertThat(sideDishResponse.getName()).isEqualTo(sideDishRequest.getName());
@@ -77,7 +77,7 @@ class CategoryServiceImplTest {
     @DisplayName("서브 카테고리 생성 테스트_부모 카테고리를 찾을 수 없음")
     @Transactional
     void saveCategoryTest_Sub_NotFoundParentCategory(){
-        CategoryRequestDto sideDishRequest = new CategoryRequestDto("반찬류", 999L , null);
+        CategoryRequest sideDishRequest = new CategoryRequest("반찬류", 999L , null);
         assertThatThrownBy(()-> categoryService.saveCategory(sideDishRequest))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage("Not Found Parent Category");

@@ -13,7 +13,7 @@ import org.hibernate.validator.constraints.URL;
 @AllArgsConstructor
 @NoArgsConstructor
 @Schema(description = "카테고리 생성 요청 Request")
-public class CategoryRequestDto {
+public class CategoryRequest {
 
     @Schema(description = "카테고리 이름", example = "의류")
     @NotBlank(message = "Category name is required")

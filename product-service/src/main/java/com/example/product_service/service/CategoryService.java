@@ -1,6 +1,6 @@
 package com.example.product_service.service;
 
-import com.example.product_service.dto.request.CategoryRequestDto;
+import com.example.product_service.dto.request.CategoryRequest;
 import com.example.product_service.dto.request.ModifyCategoryRequestDto;
 import com.example.product_service.dto.response.category.CategoryResponseDto;
 import com.example.product_service.dto.response.PageDto;
@@ -11,7 +11,7 @@ import java.util.List;
 
 
 public interface CategoryService {
-    CategoryResponseDto saveCategory(CategoryRequestDto categoryRequestDto);
+    CategoryResponseDto saveCategory(CategoryRequest categoryRequestDto);
     CategoryResponseDto modifyCategory(Long categoryId, ModifyCategoryRequestDto requestDto);
     void deleteCategory(Long categoryId);
     CategoryResponseDto getCategoryDetails(Long categoryId);

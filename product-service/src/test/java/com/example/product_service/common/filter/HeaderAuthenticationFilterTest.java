@@ -80,7 +80,7 @@ class HeaderAuthenticationFilterTest {
     }
 
     private void setRole(MockHttpServletRequest request){
-        request.addHeader("X-User-Role", "ADMIN_ROLE");
+        request.addHeader("X-User-Role", "ROLE_ADMIN");
     }
 
     private void setId(MockHttpServletRequest request){

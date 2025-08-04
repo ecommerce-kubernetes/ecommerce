@@ -1,6 +1,6 @@
 package com.example.product_service.service;
 
-import com.example.product_service.dto.request.CategoryRequestDto;
+import com.example.product_service.dto.request.CategoryRequest;
 import com.example.product_service.dto.request.ModifyCategoryRequestDto;
 import com.example.product_service.dto.response.category.CategoryResponseDto;
 import com.example.product_service.dto.response.PageDto;
@@ -24,7 +24,7 @@ public class CategoryServiceImpl implements CategoryService{
 
     @Override
     @Transactional
-    public CategoryResponseDto saveCategory(CategoryRequestDto categoryRequestDto) {
+    public CategoryResponseDto saveCategory(CategoryRequest categoryRequestDto) {
         Categories category = new Categories(categoryRequestDto.getName(), categoryRequestDto.getIconUrl());
         Long parentId = categoryRequestDto.getParentId();
 

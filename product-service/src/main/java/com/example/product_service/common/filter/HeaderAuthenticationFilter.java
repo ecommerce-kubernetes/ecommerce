@@ -26,7 +26,7 @@ public class HeaderAuthenticationFilter extends OncePerRequestFilter {
 
         String userIdHeader = request.getHeader("X-User-Id");
         String roleHeader = request.getHeader("X-User-Role");
-        // 헤더가 없으면 인증 없이 통과
+
         if (userIdHeader == null || roleHeader == null) {
             filterChain.doFilter(request, response);
             return;
@@ -38,7 +38,6 @@ public class HeaderAuthenticationFilter extends OncePerRequestFilter {
 
             List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(role));
 
-            // userId를 principal로 사용
             UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(userId, null, authorities);
 

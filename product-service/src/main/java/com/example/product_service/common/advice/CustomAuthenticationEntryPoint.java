@@ -28,7 +28,7 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
                          AuthenticationException authException) throws IOException {
         String timestamp = LocalDateTime.now().toString();
         ErrorResponse error =
-                new ErrorResponse("UnAuthorized","아이디 또는 비밀번호가 잘못되었습니다",timestamp ,request.getRequestURI());
+                new ErrorResponse("UnAuthorized","Invalid Header",timestamp ,request.getRequestURI());
 
         response.setStatus(HttpStatus.UNAUTHORIZED.value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
