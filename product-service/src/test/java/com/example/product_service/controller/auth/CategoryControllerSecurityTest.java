@@ -21,6 +21,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.ResultMatcher;
 
+import static com.example.product_service.controller.util.SecurityTestHelper.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -41,13 +42,12 @@ class CategoryControllerSecurityTest {
     @Test
     @DisplayName("카테고리 생성 테스트-인증 에러")
     void createCategoryTest_UnAuthorized() throws Exception {
-        String jsonBody = createCategoryRequestJsonBody();
+        String jsonBody = toJson(new CategoryRequest("name", 1L, "http://test.jpg"));
         ResultActions perform =
                 mockMvc.perform(
                         post(BASE_PATH)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(jsonBody));
-
 
         verifyUnauthorizedResponse(perform, BASE_PATH);
     }
