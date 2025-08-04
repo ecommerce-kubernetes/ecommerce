@@ -68,7 +68,7 @@ class CategoryControllerSecurityTest {
     @Test
     @DisplayName("카테고리 수정 테스트-인증 에러")
     void updateCategoryTest_UnAuthorized() throws Exception {
-        String jsonBody = createModifyCategoryRequestJsonBody();
+        String jsonBody = toJson(new ModifyCategoryRequest("name", 1L, "http://test.jpg"));
         ResultActions perform = mockMvc.perform(
                 patch(CATEGORY_ID_PATH)
                         .contentType(MediaType.APPLICATION_JSON)
