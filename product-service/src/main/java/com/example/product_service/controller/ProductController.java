@@ -106,7 +106,8 @@ public class ProductController {
     @ApiResponse(responseCode = "204", description = "삭제 성공")
     @NotFoundApiResponse
     @DeleteMapping("/{productId}")
-    public ResponseEntity<Void> removeProduct(@PathVariable("productId") Long productId){
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public ResponseEntity<Void> deleteProduct(@PathVariable("productId") Long productId){
         productService.deleteProduct(productId);
         return ResponseEntity.noContent().build();
     }

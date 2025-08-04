@@ -26,8 +26,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import java.util.List;
 
 import static com.example.product_service.controller.util.SecurityTestHelper.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 
 @WebMvcTest(ProductController.class)
 @Import({WebSecurity.class, CustomAccessDeniedHandler.class, CustomAuthenticationEntryPoint.class})
@@ -89,6 +88,24 @@ public class ProductControllerSecurityTest {
                         .header(USER_ROLE_HEADER, USER_ROLE)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonBody));
+
+        verifyNoPermissionResponse(perform, PRODUCT_ID_PATH);
+    }
+
+    @Test
+    @DisplayName("상품 삭제 테스트-인증 에러")
+    void deleteProductTest_UnAuthorized() throws Exception {
+        ResultActions perform = mockMvc.perform(delete(PRODUCT_ID_PATH));
+
+        verifyUnauthorizedResponse(perform, PRODUCT_ID_PATH);
+    }
+
+    @Test
+    @DisplayName("상품 삭제 테스트-권한 부족")
+    void deleteProductTest_NoPermission() throws Exception {
+        ResultActions perform = mockMvc.perform(delete(PRODUCT_ID_PATH)
+                .header(USER_ID_HEADER, 1L)
+                .header(USER_ROLE_HEADER, USER_ROLE));
 
         verifyNoPermissionResponse(perform, PRODUCT_ID_PATH);
     }
