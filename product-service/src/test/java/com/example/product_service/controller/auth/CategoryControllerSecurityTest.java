@@ -37,7 +37,7 @@ class CategoryControllerSecurityTest {
     @Test
     @DisplayName("카테고리 생성 테스트-인증 에러")
     void createCategoryTest_UnAuthorized() throws Exception {
-        String jsonBody = toJson(new CategoryRequest("name", 1L, "http://test.jpg"));
+        String jsonBody = toJson(createCategoryRequest());
         ResultActions perform =
                 mockMvc.perform(
                         post(BASE_PATH)
@@ -46,10 +46,11 @@ class CategoryControllerSecurityTest {
 
         verifyUnauthorizedResponse(perform, BASE_PATH);
     }
+
     @Test
     @DisplayName("카테고리 생성 테스트-권한 부족")
     void createCategoryTest_NoPermission() throws Exception {
-        String jsonBody = toJson(new CategoryRequest("name", 1L, "http://test.jpg"));
+        String jsonBody = toJson(createCategoryRequest());
         ResultActions perform = mockMvc.perform(
                 post(BASE_PATH)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -63,7 +64,7 @@ class CategoryControllerSecurityTest {
     @Test
     @DisplayName("카테고리 수정 테스트-인증 에러")
     void updateCategoryTest_UnAuthorized() throws Exception {
-        String jsonBody = toJson(new ModifyCategoryRequest("name", 1L, "http://test.jpg"));
+        String jsonBody = toJson(createModifyCategoryRequest());
         ResultActions perform = mockMvc.perform(
                 patch(CATEGORY_ID_PATH)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -75,7 +76,7 @@ class CategoryControllerSecurityTest {
     @Test
     @DisplayName("카테고리 수정 테스트-권한 부족")
     void updateCategoryTest_NoPermission() throws Exception {
-        String jsonBody = toJson(new ModifyCategoryRequest("name", 1L, "http://test.jpg"));
+        String jsonBody = toJson(createModifyCategoryRequest());
 
         ResultActions perform = mockMvc.perform(
                 patch(CATEGORY_ID_PATH)
@@ -105,5 +106,13 @@ class CategoryControllerSecurityTest {
                         .header(USER_ROLE_HEADER, USER_ROLE));
 
         verifyNoPermissionResponse(perform, CATEGORY_ID_PATH);
+    }
+
+    private static CategoryRequest createCategoryRequest() {
+        return new CategoryRequest("name", 1L, "http://test.jpg");
+    }
+
+    private static ModifyCategoryRequest createModifyCategoryRequest() {
+        return new ModifyCategoryRequest("name", 1L, "http://test.jpg");
     }
 }

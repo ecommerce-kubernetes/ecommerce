@@ -37,7 +37,7 @@ public class OptionTypeControllerSecurityTest {
     @Test
     @DisplayName("옵션 타입 저장 테스트-인증 에러")
     void createOptionTypeTest_UnAuthorized() throws Exception {
-        String jsonBody = toJson(new OptionTypeRequest("name"));
+        String jsonBody = toJson(createOptionTypeRequest());
 
         ResultActions perform = mockMvc.perform(post(BASE_PATH)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -49,7 +49,7 @@ public class OptionTypeControllerSecurityTest {
     @Test
     @DisplayName("옵션 타입 저장 테스트-권한 부족")
     void createOptionTypeTest_NoPermission() throws Exception {
-        String jsonBody = toJson(new OptionTypeRequest("name"));
+        String jsonBody = toJson(createOptionTypeRequest());
 
         ResultActions perform = mockMvc.perform(post(BASE_PATH)
                         .header(USER_ID_HEADER, 1L)
@@ -63,7 +63,7 @@ public class OptionTypeControllerSecurityTest {
     @Test
     @DisplayName("옵션 타입 수정 테스트-인증 에러")
     void updateOptionTypeTest_UnAuthorized() throws Exception {
-        String jsonBody = toJson(new OptionTypeRequest("name"));
+        String jsonBody = toJson(createOptionTypeRequest());
 
         ResultActions perform = mockMvc.perform(patch(OPTION_TYPE_ID_PATH)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -75,7 +75,7 @@ public class OptionTypeControllerSecurityTest {
     @Test
     @DisplayName("옵션 타입 수정 테스트-권한 부족")
     void updateOptionTypeTest_NoPermission() throws Exception {
-        String jsonBody = toJson(new OptionTypeRequest("name"));
+        String jsonBody = toJson(createOptionTypeRequest());
 
         ResultActions perform = mockMvc.perform(patch(OPTION_TYPE_ID_PATH)
                 .header(USER_ID_HEADER, 1L)
@@ -105,4 +105,7 @@ public class OptionTypeControllerSecurityTest {
         verifyNoPermissionResponse(perform, OPTION_TYPE_ID_PATH);
     }
 
+    private static OptionTypeRequest createOptionTypeRequest() {
+        return new OptionTypeRequest("name");
+    }
 }

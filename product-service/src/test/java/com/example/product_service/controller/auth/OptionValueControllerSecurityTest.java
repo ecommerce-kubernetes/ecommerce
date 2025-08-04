@@ -36,7 +36,7 @@ public class OptionValueControllerSecurityTest {
     @Test
     @DisplayName("옵션 값 저장 테스트-인증 에러")
     void createOptionValueTest_UnAuthorized() throws Exception {
-        String jsonBody = toJson(new OptionValueRequest(1L, "value"));
+        String jsonBody = toJson(createOptionValueRequest());
 
         ResultActions perform = mockMvc.perform(post(BASE_PATH)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -48,7 +48,7 @@ public class OptionValueControllerSecurityTest {
     @Test
     @DisplayName("옵션 값 저장 테스트-권한 부족")
     void createOptionValueTest_NoPermission() throws Exception {
-        String jsonBody = toJson(new OptionValueRequest(1L, "value"));
+        String jsonBody = toJson(createOptionValueRequest());
 
         ResultActions perform = mockMvc.perform(post(BASE_PATH)
                 .header(USER_ID_HEADER, 1L)
@@ -62,7 +62,7 @@ public class OptionValueControllerSecurityTest {
     @Test
     @DisplayName("옵션 값 수정 테스트-인증 에러")
     void updateOptionValueTest_UnAuthorized() throws Exception {
-        String jsonBody = toJson(new UpdateOptionValueRequest(1L, "value"));
+        String jsonBody = toJson(createUpdateOptionValueRequest());
 
         ResultActions perform = mockMvc.perform(patch(OPTION_VALUE_ID_PATH)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -74,7 +74,7 @@ public class OptionValueControllerSecurityTest {
     @Test
     @DisplayName("옵션 값 수정 테스트-권한 부족")
     void updateOptionValueTest_NoPermission() throws Exception {
-        String jsonBody = toJson(new UpdateOptionValueRequest(1L, "value"));
+        String jsonBody = toJson(createUpdateOptionValueRequest());
 
         ResultActions perform = mockMvc.perform(patch(OPTION_VALUE_ID_PATH)
                         .header(USER_ID_HEADER, 1L)
@@ -83,5 +83,13 @@ public class OptionValueControllerSecurityTest {
                         .content(jsonBody));
 
         verifyNoPermissionResponse(perform, OPTION_VALUE_ID_PATH);
+    }
+
+    private static OptionValueRequest createOptionValueRequest() {
+        return new OptionValueRequest(1L, "value");
+    }
+
+    private static UpdateOptionValueRequest createUpdateOptionValueRequest() {
+        return new UpdateOptionValueRequest(1L, "value");
     }
 }
