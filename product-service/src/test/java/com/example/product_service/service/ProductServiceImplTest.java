@@ -1,8 +1,6 @@
 package com.example.product_service.service;
 
-import com.example.product_service.dto.request.ProductImageRequestDto;
-import com.example.product_service.dto.request.product.CreateVariantsRequestDto;
-import com.example.product_service.dto.request.product.ProductBasicRequestDto;
+import com.example.product_service.dto.request.product.UpdateProductBasicRequest;
 import com.example.product_service.dto.request.product.ProductRequestDto;
 import com.example.product_service.dto.request.product.VariantsRequestDto;
 import com.example.product_service.dto.response.PageDto;
@@ -34,7 +32,6 @@ import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.when;
 
 @SpringBootTest
 @Slf4j
@@ -335,7 +332,7 @@ class ProductServiceImplTest {
     @Transactional
     void modifyProductBasicTest(){
         Products save = productsRepository.save(new Products("상품1", "상품 설명1", T_shirt));
-        ProductBasicRequestDto requestDto = new ProductBasicRequestDto("변경상품1", "변경 상품 설명", sweatShirt.getId());
+        UpdateProductBasicRequest requestDto = new UpdateProductBasicRequest("변경상품1", "변경 상품 설명", sweatShirt.getId());
 
         ProductResponseDto responseDto = productService.modifyProductBasic(save.getId(), requestDto);
 

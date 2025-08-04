@@ -3,8 +3,7 @@ package com.example.product_service.service;
 import com.example.product_service.dto.KafkaOrderItemDto;
 import com.example.product_service.dto.request.*;
 import com.example.product_service.dto.request.options.IdsRequestDto;
-import com.example.product_service.dto.request.product.CreateVariantsRequestDto;
-import com.example.product_service.dto.request.product.ProductBasicRequestDto;
+import com.example.product_service.dto.request.product.UpdateProductBasicRequest;
 import com.example.product_service.dto.request.product.ProductRequestDto;
 import com.example.product_service.dto.response.CompactProductResponseDto;
 import com.example.product_service.dto.response.PageDto;
@@ -18,7 +17,7 @@ public interface ProductService {
     ProductResponseDto saveProduct(ProductRequestDto requestDto);
     PageDto<ProductSummaryDto> getProductList(Pageable pageable, Long categoryId, String name, Integer rating);
     ProductResponseDto getProductDetails(Long productId);
-    ProductResponseDto modifyProductBasic(Long productId, ProductBasicRequestDto requestDto);
+    ProductResponseDto modifyProductBasic(Long productId, UpdateProductBasicRequest requestDto);
     void deleteProduct(Long productId);
     void batchDeleteProducts(IdsRequestDto requestDto);
     PageDto<ProductSummaryDto> getPopularProductList(Pageable pageable, Long categoryId);

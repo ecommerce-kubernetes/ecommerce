@@ -4,8 +4,7 @@ import com.example.product_service.dto.KafkaDeletedProduct;
 import com.example.product_service.dto.KafkaOrderItemDto;
 import com.example.product_service.dto.request.*;
 import com.example.product_service.dto.request.options.IdsRequestDto;
-import com.example.product_service.dto.request.product.CreateVariantsRequestDto;
-import com.example.product_service.dto.request.product.ProductBasicRequestDto;
+import com.example.product_service.dto.request.product.UpdateProductBasicRequest;
 import com.example.product_service.dto.request.product.ProductRequestDto;
 import com.example.product_service.dto.request.product.VariantsRequestDto;
 import com.example.product_service.dto.response.CompactProductResponseDto;
@@ -172,7 +171,7 @@ public class ProductServiceImpl implements ProductService{
 
     @Override
     @Transactional
-    public ProductResponseDto modifyProductBasic(Long productId, ProductBasicRequestDto requestDto) {
+    public ProductResponseDto modifyProductBasic(Long productId, UpdateProductBasicRequest requestDto) {
         Products product = productsRepository
                 .findById(productId).orElseThrow(() -> new NotFoundException("Not Found Product"));
         Categories category = null;

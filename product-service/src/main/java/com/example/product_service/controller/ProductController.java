@@ -1,23 +1,14 @@
 package com.example.product_service.controller;
 
-import com.example.product_service.controller.util.SortFieldValidator;
 import com.example.product_service.controller.util.specification.annotation.AdminApi;
 import com.example.product_service.controller.util.specification.annotation.BadRequestApiResponse;
 import com.example.product_service.controller.util.specification.annotation.ForbiddenApiResponse;
 import com.example.product_service.controller.util.specification.annotation.NotFoundApiResponse;
-import com.example.product_service.dto.request.*;
-import com.example.product_service.dto.request.options.IdsRequestDto;
-import com.example.product_service.dto.request.product.CreateVariantsRequestDto;
-import com.example.product_service.dto.request.product.ProductBasicRequestDto;
+import com.example.product_service.dto.request.product.UpdateProductBasicRequest;
 import com.example.product_service.dto.request.product.ProductRequest;
-import com.example.product_service.dto.request.product.ProductRequestDto;
-import com.example.product_service.dto.response.CompactProductResponseDto;
 import com.example.product_service.dto.response.PageDto;
 import com.example.product_service.dto.response.product.*;
-import com.example.product_service.entity.Products;
-import com.example.product_service.service.ProductImageService;
 import com.example.product_service.service.ProductService;
-import com.example.product_service.service.ProductVariantService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -103,8 +94,9 @@ public class ProductController {
     @ApiResponse(responseCode = "200", description = "수정 성공")
     @BadRequestApiResponse @ForbiddenApiResponse @NotFoundApiResponse
     @PatchMapping("/{productId}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<ProductUpdateResponse> updateBasicInfo(@PathVariable("productId") Long productId,
-                                                                 @RequestBody ProductBasicRequestDto requestDto){
+                                                                 @RequestBody UpdateProductBasicRequest requestDto){
 //        ProductResponseDto responseDto = productService.modifyProductBasic(productId, requestDto);
         return ResponseEntity.ok(new ProductUpdateResponse());
     }
