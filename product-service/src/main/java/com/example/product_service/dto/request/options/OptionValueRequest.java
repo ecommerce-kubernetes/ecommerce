@@ -11,7 +11,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class OptionValuesRequestDto {
+public class OptionValueRequest {
     @NotNull(message = "optionTypeId is required")
     private Long optionTypeId;
     @NotBlank(message = "optionValue is required")

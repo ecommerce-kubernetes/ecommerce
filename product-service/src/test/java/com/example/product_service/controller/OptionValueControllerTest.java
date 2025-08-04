@@ -2,7 +2,7 @@ package com.example.product_service.controller;
 
 import com.example.product_service.controller.util.ControllerResponseValidator;
 import com.example.product_service.dto.request.options.IdsRequestDto;
-import com.example.product_service.dto.request.options.OptionValuesRequestDto;
+import com.example.product_service.dto.request.options.OptionValueRequest;
 import com.example.product_service.dto.request.options.OptionValuesUpdateRequestDto;
 import com.example.product_service.dto.response.options.OptionValuesResponseDto;
 import com.example.product_service.exception.NotFoundException;
@@ -44,14 +44,14 @@ class OptionValueControllerTest {
         String requestUrl = "/option-values";
         //옵션 Value request, response 생성
         String optionValue = "XL";
-        OptionValuesRequestDto requestDto = new OptionValuesRequestDto(1L, optionValue);
+        OptionValueRequest requestDto = new OptionValueRequest(1L, optionValue);
         OptionValuesResponseDto responseDto = new OptionValuesResponseDto(1L , optionValue, 1L);
 
         //request body 변환
         String content = mapper.writeValueAsString(requestDto);
 
         //optionValueService Mocking
-        when(optionValueService.saveOptionValues(any(OptionValuesRequestDto.class)))
+        when(optionValueService.saveOptionValues(any(OptionValueRequest.class)))
                 .thenReturn(responseDto);
 
         //Test

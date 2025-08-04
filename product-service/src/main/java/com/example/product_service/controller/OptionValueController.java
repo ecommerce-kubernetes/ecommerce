@@ -5,7 +5,7 @@ import com.example.product_service.controller.util.specification.annotation.BadR
 import com.example.product_service.controller.util.specification.annotation.ForbiddenApiResponse;
 import com.example.product_service.controller.util.specification.annotation.NotFoundApiResponse;
 import com.example.product_service.dto.request.options.IdsRequestDto;
-import com.example.product_service.dto.request.options.OptionValuesRequestDto;
+import com.example.product_service.dto.request.options.OptionValueRequest;
 import com.example.product_service.dto.request.options.OptionValuesUpdateRequestDto;
 import com.example.product_service.dto.response.options.OptionValuesResponseDto;
 import com.example.product_service.service.OptionValueService;
@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,8 +31,9 @@ public class OptionValueController {
     @ApiResponse(responseCode = "201", description = "생성 성공")
     @BadRequestApiResponse @ForbiddenApiResponse @NotFoundApiResponse
     @PostMapping
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<OptionValuesResponseDto> createOptionValue(@Validated @RequestBody
-                                                                           OptionValuesRequestDto requestDto){
+                                                                     OptionValueRequest requestDto){
         OptionValuesResponseDto responseDto = optionValueService.saveOptionValues(requestDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
     }

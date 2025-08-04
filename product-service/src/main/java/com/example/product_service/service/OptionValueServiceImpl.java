@@ -1,7 +1,7 @@
 package com.example.product_service.service;
 
 import com.example.product_service.dto.request.options.IdsRequestDto;
-import com.example.product_service.dto.request.options.OptionValuesRequestDto;
+import com.example.product_service.dto.request.options.OptionValueRequest;
 import com.example.product_service.dto.request.options.OptionValuesUpdateRequestDto;
 import com.example.product_service.dto.response.options.OptionValuesResponseDto;
 import com.example.product_service.entity.OptionTypes;
@@ -25,7 +25,7 @@ public class OptionValueServiceImpl implements OptionValueService{
 
     @Override
     @Transactional
-    public OptionValuesResponseDto saveOptionValues(OptionValuesRequestDto requestDto) {
+    public OptionValuesResponseDto saveOptionValues(OptionValueRequest requestDto) {
         Long optionTypeId = requestDto.getOptionTypeId();
 
         OptionTypes optionType = optionTypesRepository.findById(optionTypeId)

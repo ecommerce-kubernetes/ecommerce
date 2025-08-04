@@ -1,7 +1,7 @@
 package com.example.product_service.service;
 
 import com.example.product_service.dto.request.options.IdsRequestDto;
-import com.example.product_service.dto.request.options.OptionValuesRequestDto;
+import com.example.product_service.dto.request.options.OptionValueRequest;
 import com.example.product_service.dto.request.options.OptionValuesUpdateRequestDto;
 import com.example.product_service.dto.response.options.OptionValuesResponseDto;
 import com.example.product_service.entity.OptionTypes;
@@ -50,7 +50,7 @@ class OptionValueServiceImplTest {
     void saveOptionValuesTest(){
         String value = "XL";
         //request
-        OptionValuesRequestDto requestDto = new OptionValuesRequestDto(optionTypes.getId(), value);
+        OptionValueRequest requestDto = new OptionValueRequest(optionTypes.getId(), value);
 
         //Test
         OptionValuesResponseDto responseDto = optionValueService.saveOptionValues(requestDto);
