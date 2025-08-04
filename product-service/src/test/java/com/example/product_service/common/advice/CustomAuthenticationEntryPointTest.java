@@ -4,6 +4,7 @@ import com.example.product_service.common.advice.dto.ErrorResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -14,7 +15,6 @@ import org.springframework.security.authentication.BadCredentialsException;
 import java.io.IOException;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 
 class CustomAuthenticationEntryPointTest {
     CustomAuthenticationEntryPoint entryPoint;
@@ -30,6 +30,7 @@ class CustomAuthenticationEntryPointTest {
     }
 
     @Test
+    @DisplayName("인증 엔트리 포인트 응답 검증")
     void commence_writeExpected401Json() throws IOException {
         entryPoint.commence(request, response, new BadCredentialsException("bad credential"));
 
