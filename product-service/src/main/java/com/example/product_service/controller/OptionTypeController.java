@@ -80,6 +80,7 @@ public class OptionTypeController {
     @ApiResponse(responseCode = "204", description = "삭제 성공")
     @ForbiddenApiResponse @NotFoundApiResponse
     @DeleteMapping("/{optionTypeId}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<Void> deleteOptionType(@PathVariable("optionTypeId") Long optionTypeId){
         optionTypeService.deleteOptionTypes(optionTypeId);
 

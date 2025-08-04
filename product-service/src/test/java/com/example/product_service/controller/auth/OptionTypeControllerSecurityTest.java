@@ -6,7 +6,6 @@ import com.example.product_service.config.WebSecurity;
 import com.example.product_service.controller.OptionTypeController;
 import com.example.product_service.dto.request.options.OptionTypeRequest;
 import com.example.product_service.service.OptionTypeService;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,8 +18,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
 import static com.example.product_service.controller.util.SecurityTestHelper.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 
 @WebMvcTest(OptionTypeController.class)
 @Import({WebSecurity.class, CustomAccessDeniedHandler.class, CustomAuthenticationEntryPoint.class})
@@ -84,6 +82,25 @@ public class OptionTypeControllerSecurityTest {
                 .header(USER_ROLE_HEADER, USER_ROLE)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(jsonBody));
+
+        verifyNoPermissionResponse(perform, OPTION_TYPE_ID_PATH);
+    }
+
+    @Test
+    @DisplayName("옵션 타입 삭제 테스트-인증 에러")
+    void deleteOptionTypeTest_UnAuthorized() throws Exception {
+
+        ResultActions perform = mockMvc.perform(delete(OPTION_TYPE_ID_PATH));
+
+        verifyUnauthorizedResponse(perform, OPTION_TYPE_ID_PATH);
+    }
+
+    @Test
+    @DisplayName("옵션 타입 삭제 테스트-권한 부족")
+    void deleteOptionTypeTest_NoPermission() throws Exception {
+        ResultActions perform = mockMvc.perform(delete(OPTION_TYPE_ID_PATH)
+                .header(USER_ID_HEADER, 1)
+                .header(USER_ROLE_HEADER, USER_ROLE));
 
         verifyNoPermissionResponse(perform, OPTION_TYPE_ID_PATH);
     }

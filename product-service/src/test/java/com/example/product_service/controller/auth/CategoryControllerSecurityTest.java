@@ -91,8 +91,7 @@ class CategoryControllerSecurityTest {
     @DisplayName("카테고리 삭제 테스트-인증 에러")
     void deleteCategoryTest_UnAuthorized() throws Exception {
         ResultActions perform = mockMvc.perform(
-                delete(CATEGORY_ID_PATH)
-                        .contentType(MediaType.APPLICATION_JSON));
+                delete(CATEGORY_ID_PATH));
 
         verifyUnauthorizedResponse(perform, CATEGORY_ID_PATH);
     }
@@ -103,8 +102,7 @@ class CategoryControllerSecurityTest {
         ResultActions perform = mockMvc.perform(
                 delete(CATEGORY_ID_PATH)
                         .header(USER_ID_HEADER, 1)
-                        .header(USER_ROLE_HEADER, USER_ROLE)
-                        .contentType(MediaType.APPLICATION_JSON));
+                        .header(USER_ROLE_HEADER, USER_ROLE));
 
         verifyNoPermissionResponse(perform, CATEGORY_ID_PATH);
     }
