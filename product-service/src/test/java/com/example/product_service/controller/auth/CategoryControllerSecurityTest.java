@@ -31,6 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class CategoryControllerSecurityTest {
 
     private static String BASE_PATH = "/categories";
+    private static String CATEGORY_ID_PATH = "/categories/1";
     @Autowired
     MockMvc mockMvc;
     @MockitoBean
@@ -69,13 +70,12 @@ class CategoryControllerSecurityTest {
     @DisplayName("카테고리 수정 테스트-인증 에러")
     void updateCategoryTest_UnAuthorized() throws Exception {
         String jsonBody = createModifyCategoryRequestJsonBody();
-
         ResultActions perform = mockMvc.perform(
-                patch(BASE_PATH + "/1")
+                patch(CATEGORY_ID_PATH)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonBody));
 
-        verifyUnauthorizedResponse(perform, BASE_PATH + "/1");
+        verifyUnauthorizedResponse(perform, CATEGORY_ID_PATH);
     }
 
     @Test
@@ -84,35 +84,35 @@ class CategoryControllerSecurityTest {
         String jsonBody = createModifyCategoryRequestJsonBody();
 
         ResultActions perform = mockMvc.perform(
-                patch(BASE_PATH + "/1")
+                patch(CATEGORY_ID_PATH)
                         .header("X-User-Id", 1)
                         .header("X-User-Role", "ROLE_USER")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonBody));
 
-        verifyNoPermissionResponse(perform, BASE_PATH + "/1");
+        verifyNoPermissionResponse(perform, CATEGORY_ID_PATH);
     }
 
     @Test
     @DisplayName("카테고리 삭제 테스트-인증 에러")
     void deleteCategoryTest_UnAuthorized() throws Exception {
         ResultActions perform = mockMvc.perform(
-                delete(BASE_PATH + "/1")
+                delete(CATEGORY_ID_PATH)
                         .contentType(MediaType.APPLICATION_JSON));
 
-        verifyUnauthorizedResponse(perform, BASE_PATH + "/1");
+        verifyUnauthorizedResponse(perform, CATEGORY_ID_PATH);
     }
 
     @Test
     @DisplayName("카테고리 삭제 테스트-권한 부족")
     void deleteCategoryTest_NoPermission() throws Exception {
         ResultActions perform = mockMvc.perform(
-                delete(BASE_PATH + "/1")
+                delete(CATEGORY_ID_PATH)
                         .header("X-User-Id", 1)
                         .header("X-User-Role", "ROLE_USER")
                         .contentType(MediaType.APPLICATION_JSON));
 
-        verifyNoPermissionResponse(perform, BASE_PATH + "/1");
+        verifyNoPermissionResponse(perform, CATEGORY_ID_PATH);
     }
 
     private void verifyNoPermissionResponse(ResultActions perform, String path) throws Exception {
