@@ -39,10 +39,24 @@ public class OptionTypeControllerSecurityTest {
         String jsonBody = toJson(new OptionTypeRequest("name"));
 
         ResultActions perform = mockMvc.perform(post(BASE_PATH)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(jsonBody));
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonBody));
 
         verifyUnauthorizedResponse(perform, BASE_PATH);
+    }
+
+    @Test
+    @DisplayName("옵션 타입 테스트-권한 부족")
+    void createOptionTypeTest_NoPermission() throws Exception {
+        String jsonBody = toJson(new OptionTypeRequest("name"));
+
+        ResultActions perform = mockMvc.perform(post(BASE_PATH)
+                        .header("X-User-Id", 1L)
+                        .header("X-User-Role", "ROLE_USER")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonBody));
+
+        verifyNoPermissionResponse(perform, BASE_PATH);
     }
 
 }
