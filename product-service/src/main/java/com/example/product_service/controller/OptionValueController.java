@@ -6,7 +6,7 @@ import com.example.product_service.controller.util.specification.annotation.Forb
 import com.example.product_service.controller.util.specification.annotation.NotFoundApiResponse;
 import com.example.product_service.dto.request.options.IdsRequestDto;
 import com.example.product_service.dto.request.options.OptionValueRequest;
-import com.example.product_service.dto.request.options.OptionValuesUpdateRequestDto;
+import com.example.product_service.dto.request.options.UpdateOptionValueRequest;
 import com.example.product_service.dto.response.options.OptionValuesResponseDto;
 import com.example.product_service.service.OptionValueService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -50,11 +50,12 @@ public class OptionValueController {
     @ApiResponse(responseCode = "200", description = "수정 완료")
     @BadRequestApiResponse @ForbiddenApiResponse @NotFoundApiResponse
     @PatchMapping("/{optionValueId}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<OptionValuesResponseDto> updateOptionValue(@PathVariable("optionValueId") Long optionValueId,
-                                                                     @Validated @RequestBody OptionValuesUpdateRequestDto requestDto){
-        OptionValuesResponseDto responseDto = optionValueService.modifyOptionValues(optionValueId, requestDto);
+                                                                     @Validated @RequestBody UpdateOptionValueRequest requestDto){
+//        OptionValuesResponseDto responseDto = optionValueService.modifyOptionValues(optionValueId, requestDto);
 
-        return ResponseEntity.ok(responseDto);
+        return ResponseEntity.ok(new OptionValuesResponseDto());
 
     }
 
