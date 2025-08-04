@@ -59,6 +59,7 @@ public class OptionTypeController {
     @ApiResponse(responseCode = "200", description = "수정 성공")
     @BadRequestApiResponse @ForbiddenApiResponse @NotFoundApiResponse
     @PatchMapping("/{optionTypeId}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<OptionTypesResponseDto> updateOptionType(@PathVariable("optionTypeId") Long optionTypeId,
                                                                    @Validated @RequestBody OptionTypeRequest requestDto){
         OptionTypesResponseDto responseDto = optionTypeService.modifyOptionTypes(optionTypeId, requestDto);

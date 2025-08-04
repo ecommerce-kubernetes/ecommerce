@@ -6,6 +6,7 @@ import com.example.product_service.config.WebSecurity;
 import com.example.product_service.controller.OptionTypeController;
 import com.example.product_service.dto.request.options.OptionTypeRequest;
 import com.example.product_service.service.OptionTypeService;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +19,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
 import static com.example.product_service.controller.util.SecurityTestHelper.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
 @WebMvcTest(OptionTypeController.class)
@@ -26,6 +28,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 public class OptionTypeControllerSecurityTest {
 
     private static final String BASE_PATH = "/option-types";
+    private static final String OPTION_TYPE_ID_PATH = "/option-types/1";
 
     @Autowired
     MockMvc mockMvc;
@@ -34,7 +37,7 @@ public class OptionTypeControllerSecurityTest {
     OptionTypeService optionTypeService;
 
     @Test
-    @DisplayName("옵션 타입 테스트-인증 에러")
+    @DisplayName("옵션 타입 저장 테스트-인증 에러")
     void createOptionTypeTest_UnAuthorized() throws Exception {
         String jsonBody = toJson(new OptionTypeRequest("name"));
 
@@ -46,7 +49,7 @@ public class OptionTypeControllerSecurityTest {
     }
 
     @Test
-    @DisplayName("옵션 타입 테스트-권한 부족")
+    @DisplayName("옵션 타입 저장 테스트-권한 부족")
     void createOptionTypeTest_NoPermission() throws Exception {
         String jsonBody = toJson(new OptionTypeRequest("name"));
 
@@ -57,6 +60,32 @@ public class OptionTypeControllerSecurityTest {
                         .content(jsonBody));
 
         verifyNoPermissionResponse(perform, BASE_PATH);
+    }
+
+    @Test
+    @DisplayName("옵션 타입 수정 테스트-인증 에러")
+    void updateOptionTypeTest_UnAuthorized() throws Exception {
+        String jsonBody = toJson(new OptionTypeRequest("name"));
+
+        ResultActions perform = mockMvc.perform(patch(OPTION_TYPE_ID_PATH)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonBody));
+
+        verifyUnauthorizedResponse(perform, OPTION_TYPE_ID_PATH);
+    }
+
+    @Test
+    @DisplayName("옵션 타입 수정 테스트-권한 부족")
+    void updateOptionTypeTest_NoPermission() throws Exception {
+        String jsonBody = toJson(new OptionTypeRequest("name"));
+
+        ResultActions perform = mockMvc.perform(patch(OPTION_TYPE_ID_PATH)
+                .header(USER_ID_HEADER, 1L)
+                .header(USER_ROLE_HEADER, USER_ROLE)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonBody));
+
+        verifyNoPermissionResponse(perform, OPTION_TYPE_ID_PATH);
     }
 
 }
