@@ -33,7 +33,7 @@ class CategoryControllerSecurityTest {
     private static final String USER_ROLE_HEADER = "X-User-Role";
 
     private static final String USER_ROLE = "ROLE_USER";
-    private static final String ADMIN_ROLE = "ADMIN_ROLE";
+    private static final String ADMIN_ROLE = "ROLE_ADMIN";
     @Autowired
     MockMvc mockMvc;
     @MockitoBean
