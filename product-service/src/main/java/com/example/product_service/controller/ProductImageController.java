@@ -7,9 +7,11 @@ import com.example.product_service.controller.util.specification.annotation.NotF
 import com.example.product_service.dto.request.image.AddImageRequest;
 import com.example.product_service.dto.request.image.ImageRequest;
 import com.example.product_service.dto.response.image.ImageResponse;
+import com.example.product_service.service.ProductImageService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,7 +21,10 @@ import java.util.List;
 @RestController
 @RequestMapping("/products/{productId}/images")
 @Tag(name = "ProductImage" , description = "상품 이미지 관련 API")
+@RequiredArgsConstructor
 public class ProductImageController {
+
+    private final ProductImageService productImageService;
 
     @AdminApi
     @Operation(summary = "상품 이미지 추가")
