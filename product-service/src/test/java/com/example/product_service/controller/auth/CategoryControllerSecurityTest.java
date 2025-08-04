@@ -7,8 +7,6 @@ import com.example.product_service.controller.CategoryController;
 import com.example.product_service.dto.request.CategoryRequest;
 import com.example.product_service.dto.request.ModifyCategoryRequest;
 import com.example.product_service.service.CategoryService;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,11 +17,9 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
-import org.springframework.test.web.servlet.ResultMatcher;
 
 import static com.example.product_service.controller.util.SecurityTestHelper.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(CategoryController.class)
 @Import({WebSecurity.class, CustomAccessDeniedHandler.class, CustomAuthenticationEntryPoint.class})
@@ -36,8 +32,6 @@ class CategoryControllerSecurityTest {
     MockMvc mockMvc;
     @MockitoBean
     CategoryService categoryService;
-
-    ObjectMapper mapper = new ObjectMapper();
 
     @Test
     @DisplayName("카테고리 생성 테스트-인증 에러")
@@ -80,7 +74,7 @@ class CategoryControllerSecurityTest {
     @Test
     @DisplayName("카테고리 수정 테스트-권한 부족")
     void updateCategoryTest_NoPermission() throws Exception {
-        String jsonBody = createModifyCategoryRequestJsonBody();
+        String jsonBody = toJson(new ModifyCategoryRequest("name", 1L, "http://test.jpg"));
 
         ResultActions perform = mockMvc.perform(
                 patch(CATEGORY_ID_PATH)
@@ -113,28 +107,4 @@ class CategoryControllerSecurityTest {
 
         verifyNoPermissionResponse(perform, CATEGORY_ID_PATH);
     }
-
-    private void verityErrorResponse(ResultActions perform, ResultMatcher status, String error, String message, String path) throws Exception {
-        perform
-                .andExpect(status)
-                .andExpect(jsonPath("$.error").value(error))
-                .andExpect(jsonPath("$.message").value(message))
-                .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.path").value(path));
-    }
-
-    private String createModifyCategoryRequestJsonBody() throws JsonProcessingException {
-        ModifyCategoryRequest request = new ModifyCategoryRequest("name", 1L, "http://test.jpg");
-        return createJsonBody(request);
-    }
-
-    private String createCategoryRequestJsonBody() throws JsonProcessingException {
-        CategoryRequest request = new CategoryRequest("name", 1L, "http://test.jpg");
-        return createJsonBody(request);
-    }
-
-    private String createJsonBody(Object o) throws JsonProcessingException {
-        return mapper.writeValueAsString(o);
-    }
-
 }
