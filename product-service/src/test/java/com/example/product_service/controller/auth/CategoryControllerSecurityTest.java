@@ -97,4 +97,25 @@ class CategoryControllerSecurityTest {
                 .andExpect(jsonPath("$.path").value(BASE_PATH + "/1"));
     }
 
+    @Test
+    @DisplayName("카테고리 수정 테스트-권한 부족")
+    void updateCategoryTest_NoPermission() throws Exception {
+        ModifyCategoryRequest request = new ModifyCategoryRequest("name", 1L, "http://test.jpg");
+        String jsonBody = mapper.writeValueAsString(request);
+
+        ResultActions perform = mockMvc.perform(
+                patch(BASE_PATH + "/1")
+                        .header("X-User-Id", 1)
+                        .header("X-User-Role", "ROLE_USER")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonBody));
+
+        perform
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.error").value("Forbidden"))
+                .andExpect(jsonPath("$.message").value("Access Denied"))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value(BASE_PATH + "/1"));
+    }
+
 }
