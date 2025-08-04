@@ -19,6 +19,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.ResultMatcher;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -46,12 +47,7 @@ public class OptionTypeControllerSecurityTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(jsonBody));
 
-        perform
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.error").value("UnAuthorized"))
-                .andExpect(jsonPath("$.message").value("Invalid Header"))
-                .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.path").value("/option-types"));
+        verifyUnauthorizedResponse(perform, "/option-types");
     }
 
     private String createModifyCategoryRequestJsonBody() throws JsonProcessingException {
@@ -61,6 +57,22 @@ public class OptionTypeControllerSecurityTest {
 
     private String createJsonBody(Object o) throws JsonProcessingException {
         return mapper.writeValueAsString(o);
+    }
+
+    private void verifyNoPermissionResponse(ResultActions perform, String path) throws Exception {
+        verityErrorResponse(perform, status().isForbidden(), "Forbidden", "Access Denied", path);
+    }
+    private void verifyUnauthorizedResponse(ResultActions perform, String path) throws Exception {
+        verityErrorResponse(perform, status().isUnauthorized(), "UnAuthorized", "Invalid Header", path);
+    }
+
+    private void verityErrorResponse(ResultActions perform, ResultMatcher status, String error, String message, String path) throws Exception {
+        perform
+                .andExpect(status)
+                .andExpect(jsonPath("$.error").value(error))
+                .andExpect(jsonPath("$.message").value(message))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value(path));
     }
 
 }
