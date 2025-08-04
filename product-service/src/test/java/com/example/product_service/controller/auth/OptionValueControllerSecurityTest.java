@@ -25,10 +25,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 @Import({WebSecurity.class, CustomAccessDeniedHandler.class, CustomAuthenticationEntryPoint.class})
 @AutoConfigureMockMvc
 public class OptionValueControllerSecurityTest {
-    @Autowired
-    MockMvc mockMvc;
     private static final String BASE_PATH = "/option-values";
     private static final String OPTION_VALUE_ID_PATH = "/option-values/1";
+
+    @Autowired
+    MockMvc mockMvc;
     @MockitoBean
     OptionValueService optionValueService;
 
