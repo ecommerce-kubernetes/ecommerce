@@ -37,13 +37,8 @@ class CategoryControllerSecurityTest {
     @Test
     @DisplayName("카테고리 생성 테스트-인증 에러")
     void createCategoryTest_UnAuthorized() throws Exception {
-        String jsonBody = toJson(createCategoryRequest());
         ResultActions perform =
-                mockMvc.perform(
-                        post(BASE_PATH)
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(jsonBody));
-
+                performWithAuthAndBody(mockMvc, post(BASE_PATH), createCategoryRequest(), false);
         verifyUnauthorizedResponse(perform, BASE_PATH);
     }
 
