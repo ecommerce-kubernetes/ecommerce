@@ -9,7 +9,6 @@ import com.example.product_service.dto.request.ModifyCategoryRequest;
 import com.example.product_service.service.CategoryService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +20,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.ResultMatcher;
-import org.springframework.test.web.servlet.result.StatusResultMatchers;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -64,12 +62,7 @@ class CategoryControllerSecurityTest {
                         .header("X-User-Role", "ROLE_USER")
                         .content(jsonBody));
 
-        perform
-                .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.error").value("Forbidden"))
-                .andExpect(jsonPath("$.message").value("Access Denied"))
-                .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.path").value(BASE_PATH));
+        verifyNoPermissionResponse(perform, BASE_PATH);
     }
 
     @Test
@@ -82,12 +75,7 @@ class CategoryControllerSecurityTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonBody));
 
-        perform
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.error").value("UnAuthorized"))
-                .andExpect(jsonPath("$.message").value("Invalid Header"))
-                .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.path").value(BASE_PATH + "/1"));
+        verifyUnauthorizedResponse(perform, BASE_PATH + "/1");
     }
 
     @Test
@@ -102,12 +90,7 @@ class CategoryControllerSecurityTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonBody));
 
-        perform
-                .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.error").value("Forbidden"))
-                .andExpect(jsonPath("$.message").value("Access Denied"))
-                .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.path").value(BASE_PATH + "/1"));
+        verifyNoPermissionResponse(perform, BASE_PATH + "/1");
     }
 
     @Test
@@ -117,12 +100,7 @@ class CategoryControllerSecurityTest {
                 delete(BASE_PATH + "/1")
                         .contentType(MediaType.APPLICATION_JSON));
 
-        perform
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.error").value("UnAuthorized"))
-                .andExpect(jsonPath("$.message").value("Invalid Header"))
-                .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.path").value(BASE_PATH + "/1"));
+        verifyUnauthorizedResponse(perform, BASE_PATH + "/1");
     }
 
     @Test
@@ -134,14 +112,12 @@ class CategoryControllerSecurityTest {
                         .header("X-User-Role", "ROLE_USER")
                         .contentType(MediaType.APPLICATION_JSON));
 
-        perform
-                .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.error").value("Forbidden"))
-                .andExpect(jsonPath("$.message").value("Access Denied"))
-                .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.path").value(BASE_PATH + "/1"));
+        verifyNoPermissionResponse(perform, BASE_PATH + "/1");
     }
 
+    private void verifyNoPermissionResponse(ResultActions perform, String path) throws Exception {
+        verityErrorResponse(perform, status().isForbidden(), "Forbidden", "Access Denied", path);
+    }
     private void verifyUnauthorizedResponse(ResultActions perform, String path) throws Exception {
         verityErrorResponse(perform, status().isUnauthorized(), "UnAuthorized", "Invalid Header", path);
     }
