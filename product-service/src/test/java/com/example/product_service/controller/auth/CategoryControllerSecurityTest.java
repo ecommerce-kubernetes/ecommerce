@@ -28,6 +28,12 @@ class CategoryControllerSecurityTest {
 
     private static final String BASE_PATH = "/categories";
     private static final String CATEGORY_ID_PATH = "/categories/1";
+
+    private static final String USER_ID_HEADER = "X-User-Id";
+    private static final String USER_ROLE_HEADER = "X-User-Role";
+
+    private static final String USER_ROLE = "ROLE_USER";
+    private static final String ADMIN_ROLE = "ADMIN_ROLE";
     @Autowired
     MockMvc mockMvc;
     @MockitoBean
@@ -52,8 +58,8 @@ class CategoryControllerSecurityTest {
         ResultActions perform = mockMvc.perform(
                 post(BASE_PATH)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .header("X-User-Id", 1)
-                        .header("X-User-Role", "ROLE_USER")
+                        .header(USER_ID_HEADER, 1)
+                        .header(USER_ROLE_HEADER, USER_ROLE)
                         .content(jsonBody));
 
         verifyNoPermissionResponse(perform, BASE_PATH);
@@ -78,8 +84,8 @@ class CategoryControllerSecurityTest {
 
         ResultActions perform = mockMvc.perform(
                 patch(CATEGORY_ID_PATH)
-                        .header("X-User-Id", 1)
-                        .header("X-User-Role", "ROLE_USER")
+                        .header(USER_ID_HEADER, 1)
+                        .header(USER_ROLE_HEADER, USER_ROLE)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonBody));
 
@@ -101,8 +107,8 @@ class CategoryControllerSecurityTest {
     void deleteCategoryTest_NoPermission() throws Exception {
         ResultActions perform = mockMvc.perform(
                 delete(CATEGORY_ID_PATH)
-                        .header("X-User-Id", 1)
-                        .header("X-User-Role", "ROLE_USER")
+                        .header(USER_ID_HEADER, 1)
+                        .header(USER_ROLE_HEADER, USER_ROLE)
                         .contentType(MediaType.APPLICATION_JSON));
 
         verifyNoPermissionResponse(perform, CATEGORY_ID_PATH);
