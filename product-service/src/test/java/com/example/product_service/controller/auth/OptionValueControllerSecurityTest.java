@@ -19,8 +19,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
 import static com.example.product_service.controller.util.SecurityTestHelper.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 
 @WebMvcTest(OptionValueController.class)
 @Import({WebSecurity.class, CustomAccessDeniedHandler.class, CustomAuthenticationEntryPoint.class})
@@ -81,6 +80,24 @@ public class OptionValueControllerSecurityTest {
                         .header(USER_ROLE_HEADER, USER_ROLE)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonBody));
+
+        verifyNoPermissionResponse(perform, OPTION_VALUE_ID_PATH);
+    }
+
+    @Test
+    @DisplayName("옵션 값 삭제 테스트-인증 에러")
+    void deleteOptionValueTest_UnAuthorized() throws Exception {
+        ResultActions perform = mockMvc.perform(delete(OPTION_VALUE_ID_PATH));
+
+        verifyUnauthorizedResponse(perform, OPTION_VALUE_ID_PATH);
+    }
+
+    @Test
+    @DisplayName("옵션 값 삭제 테스트-권한 부족")
+    void deleteOptionValueTest_NoPermission() throws Exception {
+        ResultActions perform = mockMvc.perform(delete(OPTION_VALUE_ID_PATH)
+                .header(USER_ID_HEADER, 1L)
+                .header(USER_ROLE_HEADER, USER_ROLE));
 
         verifyNoPermissionResponse(perform, OPTION_VALUE_ID_PATH);
     }

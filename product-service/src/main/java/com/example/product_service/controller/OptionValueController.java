@@ -64,6 +64,7 @@ public class OptionValueController {
     @ApiResponse(responseCode = "204", description = "삭제 완료")
     @ForbiddenApiResponse @NotFoundApiResponse
     @DeleteMapping("/{optionValueId}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<Void> deleteOptionValue(@PathVariable("optionValueId") Long optionValueId){
         return ResponseEntity.noContent().build();
     }
