@@ -28,6 +28,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -40,15 +41,13 @@ import java.util.List;
 public class ProductController {
 
     private final ProductService productService;
-    private final ProductImageService productImageService;
-    private final ProductVariantService productVariantService;
-    private final SortFieldValidator sortFieldValidator;
 
     @AdminApi
     @Operation(summary = "상품 저장")
     @ApiResponse(responseCode = "201", description = "생성 성공")
     @BadRequestApiResponse @ForbiddenApiResponse @NotFoundApiResponse
     @PostMapping
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<ProductResponse> createProduct(@RequestBody @Validated ProductRequest request){
 //        ProductResponseDto response = productService.saveProduct(productRequestDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(new ProductResponse());
@@ -121,66 +120,66 @@ public class ProductController {
     }
 
 
-    //TODO 삭제 예정
-//    @PostMapping("/{productId}/image")
-    public ResponseEntity<ProductResponseDto> addProductImg(@PathVariable("productId") Long productId,
-                                                            @RequestBody @Validated ProductImageRequestDto productImageRequestDto){
-        ProductResponseDto productResponseDto = productImageService.addImage(productId, productImageRequestDto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(productResponseDto);
-    }
-
-    //TODO 삭제 예정
-//    @DeleteMapping("/image/{imageId}")
-    public ResponseEntity<Void> deleteProductImage(@PathVariable("imageId") Long imageId){
-        productImageService.deleteImage(imageId);
-        return ResponseEntity.noContent().build();
-    }
-
-    //TODO 삭제 예정
-//    @PatchMapping("/image/{imageId}/sort")
-    public ResponseEntity<ProductResponseDto> changeImgOrder(@PathVariable("imageId") Long imageId,
-                                                             @RequestBody @Validated ImageOrderRequestDto requestDto){
-        ProductResponseDto responseDto = productImageService.imgSwapOrder(imageId, requestDto);
-        return ResponseEntity.ok(responseDto);
-    }
-
-    //TODO 삭제 예정
-//    @PostMapping("/batch-delete")
-    public ResponseEntity<Void> productBatchDelete(@Validated @RequestBody IdsRequestDto requestDto){
-        productService.batchDeleteProducts(requestDto);
-        return ResponseEntity.noContent().build();
-    }
-
-    //TODO 삭제 예정
-//    @PostMapping("/{productId}/variants")
-    public ResponseEntity<ProductResponseDto> addVariants(@PathVariable("productId") Long productId,
-                                                          @RequestBody CreateVariantsRequestDto requestDto){
-        ProductResponseDto responseDto = productVariantService.addVariants(productId, requestDto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
-    }
-
-    //TODO 삭제 예정
-//    @DeleteMapping("/variants/{variantId}")
-    public ResponseEntity<ProductResponseDto> deleteVariants(@PathVariable("variantId") Long variantId){
-        productVariantService.deleteVariant(variantId);
-        return ResponseEntity.noContent().build();
-    }
-
-    //TODO
-    // 변경해야하는 API
-    @PatchMapping("/{productId}/stock")
-    public ResponseEntity<ProductResponseDto> updateProductStockQuantity(@PathVariable("productId") Long productId,
-                                                                         @RequestBody @Validated StockQuantityRequestDto stockQuantityRequestDto){
-        ProductResponseDto productResponseDto =
-                productService.modifyStockQuantity(productId, stockQuantityRequestDto);
-        return ResponseEntity.ok(productResponseDto);
-    }
-
-    //TODO 삭제 예정
-    @PostMapping("/lookup-by-ids")
-    public ResponseEntity<List<CompactProductResponseDto>> getProductsByIdBatch(@RequestBody ProductRequestIdsDto productRequestIdsDto){
-        List<CompactProductResponseDto> productListByIds = productService.getProductListByIds(productRequestIdsDto);
-        return ResponseEntity.ok(productListByIds);
-    }
+//    //TODO 삭제 예정
+////    @PostMapping("/{productId}/image")
+//    public ResponseEntity<ProductResponseDto> addProductImg(@PathVariable("productId") Long productId,
+//                                                            @RequestBody @Validated ProductImageRequestDto productImageRequestDto){
+//        ProductResponseDto productResponseDto = productImageService.addImage(productId, productImageRequestDto);
+//        return ResponseEntity.status(HttpStatus.CREATED).body(productResponseDto);
+//    }
+//
+//    //TODO 삭제 예정
+////    @DeleteMapping("/image/{imageId}")
+//    public ResponseEntity<Void> deleteProductImage(@PathVariable("imageId") Long imageId){
+//        productImageService.deleteImage(imageId);
+//        return ResponseEntity.noContent().build();
+//    }
+//
+//    //TODO 삭제 예정
+////    @PatchMapping("/image/{imageId}/sort")
+//    public ResponseEntity<ProductResponseDto> changeImgOrder(@PathVariable("imageId") Long imageId,
+//                                                             @RequestBody @Validated ImageOrderRequestDto requestDto){
+//        ProductResponseDto responseDto = productImageService.imgSwapOrder(imageId, requestDto);
+//        return ResponseEntity.ok(responseDto);
+//    }
+//
+//    //TODO 삭제 예정
+////    @PostMapping("/batch-delete")
+//    public ResponseEntity<Void> productBatchDelete(@Validated @RequestBody IdsRequestDto requestDto){
+//        productService.batchDeleteProducts(requestDto);
+//        return ResponseEntity.noContent().build();
+//    }
+//
+//    //TODO 삭제 예정
+////    @PostMapping("/{productId}/variants")
+//    public ResponseEntity<ProductResponseDto> addVariants(@PathVariable("productId") Long productId,
+//                                                          @RequestBody CreateVariantsRequestDto requestDto){
+//        ProductResponseDto responseDto = productVariantService.addVariants(productId, requestDto);
+//        return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
+//    }
+//
+//    //TODO 삭제 예정
+////    @DeleteMapping("/variants/{variantId}")
+//    public ResponseEntity<ProductResponseDto> deleteVariants(@PathVariable("variantId") Long variantId){
+//        productVariantService.deleteVariant(variantId);
+//        return ResponseEntity.noContent().build();
+//    }
+//
+//    //TODO
+//    // 변경해야하는 API
+//    @PatchMapping("/{productId}/stock")
+//    public ResponseEntity<ProductResponseDto> updateProductStockQuantity(@PathVariable("productId") Long productId,
+//                                                                         @RequestBody @Validated StockQuantityRequestDto stockQuantityRequestDto){
+//        ProductResponseDto productResponseDto =
+//                productService.modifyStockQuantity(productId, stockQuantityRequestDto);
+//        return ResponseEntity.ok(productResponseDto);
+//    }
+//
+//    //TODO 삭제 예정
+//    @PostMapping("/lookup-by-ids")
+//    public ResponseEntity<List<CompactProductResponseDto>> getProductsByIdBatch(@RequestBody ProductRequestIdsDto productRequestIdsDto){
+//        List<CompactProductResponseDto> productListByIds = productService.getProductListByIds(productRequestIdsDto);
+//        return ResponseEntity.ok(productListByIds);
+//    }
 
 }
