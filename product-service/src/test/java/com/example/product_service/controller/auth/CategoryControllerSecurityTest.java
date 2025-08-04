@@ -54,7 +54,7 @@ class CategoryControllerSecurityTest {
     @Test
     @DisplayName("카테고리 생성 테스트-권한 부족")
     void createCategoryTest_NoPermission() throws Exception {
-        String jsonBody = createCategoryRequestJsonBody();
+        String jsonBody = toJson(new CategoryRequest("name", 1L, "http://test.jpg"));
         ResultActions perform = mockMvc.perform(
                 post(BASE_PATH)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -112,13 +112,6 @@ class CategoryControllerSecurityTest {
                         .contentType(MediaType.APPLICATION_JSON));
 
         verifyNoPermissionResponse(perform, CATEGORY_ID_PATH);
-    }
-
-    private void verifyNoPermissionResponse(ResultActions perform, String path) throws Exception {
-        verityErrorResponse(perform, status().isForbidden(), "Forbidden", "Access Denied", path);
-    }
-    private void verifyUnauthorizedResponse(ResultActions perform, String path) throws Exception {
-        verityErrorResponse(perform, status().isUnauthorized(), "UnAuthorized", "Invalid Header", path);
     }
 
     private void verityErrorResponse(ResultActions perform, ResultMatcher status, String error, String message, String path) throws Exception {
