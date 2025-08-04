@@ -12,6 +12,9 @@ public final class SecurityTestHelper {
 
     private static final ObjectMapper mapper = new ObjectMapper();
 
+    private SecurityTestHelper(){
+    }
+
     public static String toJson(Object o) throws JsonProcessingException {
         return mapper.writeValueAsString(o);
     }
