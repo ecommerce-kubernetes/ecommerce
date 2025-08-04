@@ -132,4 +132,21 @@ class CategoryControllerSecurityTest {
                 .andExpect(jsonPath("$.path").value(BASE_PATH + "/1"));
     }
 
+    @Test
+    @DisplayName("카테고리 삭제 테스트-권한 부족")
+    void deleteCategoryTest_NoPermission() throws Exception {
+        ResultActions perform = mockMvc.perform(
+                delete(BASE_PATH + "/1")
+                        .header("X-User-Id", 1)
+                        .header("X-User-Role", "ROLE_USER")
+                        .contentType(MediaType.APPLICATION_JSON));
+
+        perform
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.error").value("Forbidden"))
+                .andExpect(jsonPath("$.message").value("Access Denied"))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value(BASE_PATH + "/1"));
+    }
+
 }
