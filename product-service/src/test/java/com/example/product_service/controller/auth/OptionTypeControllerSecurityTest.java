@@ -27,6 +27,12 @@ public class OptionTypeControllerSecurityTest {
 
     private static final String BASE_PATH = "/option-types";
 
+    private static final String USER_ID_HEADER = "X-User-Id";
+    private static final String USER_ROLE_HEADER = "X-User-Role";
+
+    private static final String USER_ROLE = "ROLE_USER";
+    private static final String ADMIN_ROLE = "ADMIN_ROLE";
+
     @Autowired
     MockMvc mockMvc;
 
@@ -51,8 +57,8 @@ public class OptionTypeControllerSecurityTest {
         String jsonBody = toJson(new OptionTypeRequest("name"));
 
         ResultActions perform = mockMvc.perform(post(BASE_PATH)
-                        .header("X-User-Id", 1L)
-                        .header("X-User-Role", "ROLE_USER")
+                        .header(USER_ID_HEADER, 1L)
+                        .header(USER_ROLE_HEADER, USER_ROLE)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonBody));
 
