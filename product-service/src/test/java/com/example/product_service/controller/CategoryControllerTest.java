@@ -22,8 +22,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 
 @WebMvcTest(CategoryController.class)
@@ -56,6 +55,22 @@ class CategoryControllerTest {
                 .andExpect(jsonPath("$.message").value("Invalid Header"))
                 .andExpect(jsonPath("$.timestamp").exists())
                 .andExpect(jsonPath("$.path").value(BASE_PATH));
+    }
+
+    @Test
+    @DisplayName("카테고리 생성 테스트-권한 부족")
+    void createCategoryTest_NoPermission() throws Exception {
+        CategoryRequest request = new CategoryRequest("name", 1L, "http://test.jpg");
+        String jsonBody = mapper.writeValueAsString(request);
+        ResultActions perform = mockMvc.perform(
+                post(BASE_PATH)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("X-User-Id", 1)
+                        .header("X-User-Role", "ROLE_USER")
+                        .content(jsonBody));
+
+        perform
+                .andExpect(status().isForbidden());
     }
 
 }
