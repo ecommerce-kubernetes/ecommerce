@@ -27,12 +27,6 @@ public class OptionTypeControllerSecurityTest {
 
     private static final String BASE_PATH = "/option-types";
 
-    private static final String USER_ID_HEADER = "X-User-Id";
-    private static final String USER_ROLE_HEADER = "X-User-Role";
-
-    private static final String USER_ROLE = "ROLE_USER";
-    private static final String ADMIN_ROLE = "ADMIN_ROLE";
-
     @Autowired
     MockMvc mockMvc;
 
