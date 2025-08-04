@@ -78,4 +78,23 @@ class CategoryControllerSecurityTest {
                 .andExpect(jsonPath("$.path").value(BASE_PATH));
     }
 
+    @Test
+    @DisplayName("카테고리 수정 테스트-인증 에러")
+    void updateCategoryTest_UnAuthorized() throws Exception {
+        ModifyCategoryRequest request = new ModifyCategoryRequest("name", 1L, "http://test.jpg");
+        String jsonBody = mapper.writeValueAsString(request);
+
+        ResultActions perform = mockMvc.perform(
+                patch(BASE_PATH + "/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonBody));
+
+        perform
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error").value("UnAuthorized"))
+                .andExpect(jsonPath("$.message").value("Invalid Header"))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value(BASE_PATH + "/1"));
+    }
+
 }
