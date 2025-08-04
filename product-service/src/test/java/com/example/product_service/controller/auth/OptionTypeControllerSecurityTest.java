@@ -25,6 +25,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 @AutoConfigureMockMvc
 public class OptionTypeControllerSecurityTest {
 
+    private static final String BASE_PATH = "/option-types";
+
     @Autowired
     MockMvc mockMvc;
 
@@ -36,11 +38,11 @@ public class OptionTypeControllerSecurityTest {
     void createOptionTypeTest_UnAuthorized() throws Exception {
         String jsonBody = toJson(new OptionTypeRequest("name"));
 
-        ResultActions perform = mockMvc.perform(post("/option-types")
+        ResultActions perform = mockMvc.perform(post(BASE_PATH)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(jsonBody));
 
-        verifyUnauthorizedResponse(perform, "/option-types");
+        verifyUnauthorizedResponse(perform, BASE_PATH);
     }
 
 }
