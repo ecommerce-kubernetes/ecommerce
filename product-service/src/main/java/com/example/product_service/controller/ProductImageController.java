@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -31,6 +32,7 @@ public class ProductImageController {
     @ApiResponse(responseCode = "201", description = "추가 성공")
     @BadRequestApiResponse @ForbiddenApiResponse @NotFoundApiResponse
     @PostMapping
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<List<ImageResponse>> addImage(@PathVariable("productId") Long productId,
                                                         @RequestBody AddImageRequest request){
         return ResponseEntity.status(HttpStatus.CREATED).body(List.of(new ImageResponse()));
