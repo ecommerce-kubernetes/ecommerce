@@ -10,7 +10,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class OptionTypesRequestDto {
+public class OptionTypeRequest {
     @NotBlank(message = "name is required")
     private String name;
 }

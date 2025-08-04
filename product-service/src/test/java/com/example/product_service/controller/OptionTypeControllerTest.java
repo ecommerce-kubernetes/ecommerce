@@ -3,7 +3,7 @@ package com.example.product_service.controller;
 import com.example.product_service.common.advice.dto.DetailError;
 import com.example.product_service.controller.util.ControllerResponseValidator;
 import com.example.product_service.dto.request.options.IdsRequestDto;
-import com.example.product_service.dto.request.options.OptionTypesRequestDto;
+import com.example.product_service.dto.request.options.OptionTypeRequest;
 import com.example.product_service.dto.response.options.OptionTypesResponseDto;
 import com.example.product_service.dto.response.PageDto;
 import com.example.product_service.dto.response.options.OptionValuesResponseDto;
@@ -59,14 +59,14 @@ class OptionTypeControllerTest {
     @DisplayName("OptionTypes 등록 테스트")
     void optionTypeRegisterTest() throws Exception {
         //옵션 타입 Request, Response 생성
-        OptionTypesRequestDto requestDto = new OptionTypesRequestDto("사이즈");
+        OptionTypeRequest requestDto = new OptionTypeRequest("사이즈");
         OptionTypesResponseDto responseDto = new OptionTypesResponseDto(1L, requestDto.getName());
 
         //요청 Body 변환
         String content = mapper.writeValueAsString(requestDto);
 
         //optionTypeService Mocking
-        when(optionTypeService.saveOptionTypes(any(OptionTypesRequestDto.class))).thenReturn(responseDto);
+        when(optionTypeService.saveOptionTypes(any(OptionTypeRequest.class))).thenReturn(responseDto);
 
         //Test
 
@@ -93,7 +93,7 @@ class OptionTypeControllerTest {
         String requestUrl = "/option-types";
 
         // 옵션 타입 - name = null;
-        OptionTypesRequestDto requestDto = new OptionTypesRequestDto();
+        OptionTypeRequest requestDto = new OptionTypeRequest();
         // 옵션 Body 변환
         String content = mapper.writeValueAsString(requestDto);
 
@@ -125,12 +125,12 @@ class OptionTypeControllerTest {
         String expectedMessage = "OptionTypes name Conflict";
 
         // 옵션 타입 - name = 중복값;
-        OptionTypesRequestDto requestDto = new OptionTypesRequestDto("중복 이름");
+        OptionTypeRequest requestDto = new OptionTypeRequest("중복 이름");
         // 옵션 Body 변환
         String content = mapper.writeValueAsString(requestDto);
 
         //optionTypeService 모킹
-        when(optionTypeService.saveOptionTypes(any(OptionTypesRequestDto.class)))
+        when(optionTypeService.saveOptionTypes(any(OptionTypeRequest.class)))
                 .thenThrow(new DuplicateResourceException("OptionTypes name Conflict"));
 
         //Test
@@ -182,14 +182,14 @@ class OptionTypeControllerTest {
         Long targetId = 1L;
         String requestUrl = "/option-types/" + targetId;
         //변경 request
-        OptionTypesRequestDto requestDto = new OptionTypesRequestDto("색상");
+        OptionTypeRequest requestDto = new OptionTypeRequest("색상");
         //response
         OptionTypesResponseDto responseDto = new OptionTypesResponseDto(targetId,"색상");
         //request 변환
         String content = mapper.writeValueAsString(requestDto);
 
         //optionTypeService 모킹
-        when(optionTypeService.modifyOptionTypes(anyLong(), any(OptionTypesRequestDto.class)))
+        when(optionTypeService.modifyOptionTypes(anyLong(), any(OptionTypeRequest.class)))
                 .thenReturn(responseDto);
 
         ResultActions perform = mockMvc.perform(patch(requestUrl)

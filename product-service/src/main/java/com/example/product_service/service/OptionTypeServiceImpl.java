@@ -1,7 +1,7 @@
 package com.example.product_service.service;
 
 import com.example.product_service.dto.request.options.IdsRequestDto;
-import com.example.product_service.dto.request.options.OptionTypesRequestDto;
+import com.example.product_service.dto.request.options.OptionTypeRequest;
 import com.example.product_service.dto.response.options.OptionTypesResponseDto;
 import com.example.product_service.dto.response.PageDto;
 import com.example.product_service.dto.response.options.OptionValuesResponseDto;
@@ -30,7 +30,7 @@ public class OptionTypeServiceImpl implements OptionTypeService {
     private final OptionTypesRepository optionTypesRepository;
     @Override
     @Transactional
-    public OptionTypesResponseDto saveOptionTypes(OptionTypesRequestDto requestDto) {
+    public OptionTypesResponseDto saveOptionTypes(OptionTypeRequest requestDto) {
         String name = requestDto.getName();
         OptionTypes optionType = new OptionTypes(name);
         try{
@@ -59,7 +59,7 @@ public class OptionTypeServiceImpl implements OptionTypeService {
 
     @Override
     @Transactional
-    public OptionTypesResponseDto modifyOptionTypes(Long optionTypeId, OptionTypesRequestDto requestDto) {
+    public OptionTypesResponseDto modifyOptionTypes(Long optionTypeId, OptionTypeRequest requestDto) {
         OptionTypes target = optionTypesRepository.findById(optionTypeId)
                 .orElseThrow(() -> new NotFoundException("Not Found OptionType"));
 

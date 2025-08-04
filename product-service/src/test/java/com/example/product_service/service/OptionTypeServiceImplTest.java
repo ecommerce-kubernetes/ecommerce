@@ -1,7 +1,7 @@
 package com.example.product_service.service;
 
 import com.example.product_service.dto.request.options.IdsRequestDto;
-import com.example.product_service.dto.request.options.OptionTypesRequestDto;
+import com.example.product_service.dto.request.options.OptionTypeRequest;
 import com.example.product_service.dto.response.options.OptionTypesResponseDto;
 import com.example.product_service.dto.response.PageDto;
 import com.example.product_service.dto.response.options.OptionValuesResponseDto;
@@ -46,7 +46,7 @@ class OptionTypeServiceImplTest {
     @Transactional
     void OptionTypesSaveTest(){
         // OptionTypes request
-        OptionTypesRequestDto optionTypeRequest = new OptionTypesRequestDto("사이즈");
+        OptionTypeRequest optionTypeRequest = new OptionTypeRequest("사이즈");
 
         // optionTypeService
         OptionTypesResponseDto responseDto = optionTypeService.saveOptionTypes(optionTypeRequest);
@@ -69,7 +69,7 @@ class OptionTypeServiceImplTest {
         //중복 이름 저장
         optionTypesRepository.save(new OptionTypes(duplicateName));
 
-        OptionTypesRequestDto requestDto = new OptionTypesRequestDto(duplicateName);
+        OptionTypeRequest requestDto = new OptionTypeRequest(duplicateName);
         assertThatThrownBy(() -> optionTypeService.saveOptionTypes(requestDto))
                 .isInstanceOf(DuplicateResourceException.class)
                 .hasMessage("OptionTypes name Conflict");
@@ -102,7 +102,7 @@ class OptionTypeServiceImplTest {
         // target 저장
         OptionTypes saved = optionTypesRepository.save(new OptionTypes("사이즈"));
         // 변경 Request
-        OptionTypesRequestDto requestDto = new OptionTypesRequestDto("용량");
+        OptionTypeRequest requestDto = new OptionTypeRequest("용량");
 
         //Test
         OptionTypesResponseDto responseDto = optionTypeService.modifyOptionTypes(saved.getId(), requestDto);
@@ -126,7 +126,7 @@ class OptionTypeServiceImplTest {
         //변경할 타깃 옵션
         OptionTypes saved = optionTypesRepository.save(new OptionTypes("타깃"));
         //변경 request
-        OptionTypesRequestDto requestDto = new OptionTypesRequestDto("중복 이름");
+        OptionTypeRequest requestDto = new OptionTypeRequest("중복 이름");
 
         //검증
         assertThatThrownBy(()-> optionTypeService.modifyOptionTypes(saved.getId(), requestDto))
@@ -138,7 +138,7 @@ class OptionTypeServiceImplTest {
     @DisplayName("OptionTypes 변경 테스트_OptionTypes 찾을 수 없음")
     @Transactional
     void modifyOptionTypesTest_NotFound(){
-        OptionTypesRequestDto requestDto = new OptionTypesRequestDto("사이즈");
+        OptionTypeRequest requestDto = new OptionTypeRequest("사이즈");
         // 없는 Id를 변경
         assertThatThrownBy(() -> optionTypeService.modifyOptionTypes(999L, requestDto))
                 .isInstanceOf(NotFoundException.class)

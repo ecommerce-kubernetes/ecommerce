@@ -5,21 +5,20 @@ import com.example.product_service.controller.util.specification.annotation.BadR
 import com.example.product_service.controller.util.specification.annotation.ForbiddenApiResponse;
 import com.example.product_service.controller.util.specification.annotation.NotFoundApiResponse;
 import com.example.product_service.dto.request.options.IdsRequestDto;
-import com.example.product_service.dto.request.options.OptionTypesRequestDto;
+import com.example.product_service.dto.request.options.OptionTypeRequest;
 import com.example.product_service.dto.response.options.OptionTypesResponseDto;
-import com.example.product_service.dto.response.PageDto;
 import com.example.product_service.dto.response.options.OptionValuesResponseDto;
 import com.example.product_service.service.OptionTypeService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -38,9 +37,10 @@ public class OptionTypeController {
     @ApiResponse(responseCode = "201", description = "저장 성공")
     @BadRequestApiResponse @ForbiddenApiResponse
     @PostMapping
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<OptionTypesResponseDto> createOptionType(@Validated @RequestBody
-                                                                         OptionTypesRequestDto requestDto){
-        OptionTypesResponseDto responseDto = optionTypeService.saveOptionTypes(requestDto);
+                                                                   OptionTypeRequest request){
+        OptionTypesResponseDto responseDto = optionTypeService.saveOptionTypes(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
     }
 
@@ -60,7 +60,7 @@ public class OptionTypeController {
     @BadRequestApiResponse @ForbiddenApiResponse @NotFoundApiResponse
     @PatchMapping("/{optionTypeId}")
     public ResponseEntity<OptionTypesResponseDto> updateOptionType(@PathVariable("optionTypeId") Long optionTypeId,
-                                                                   @Validated @RequestBody OptionTypesRequestDto requestDto){
+                                                                   @Validated @RequestBody OptionTypeRequest requestDto){
         OptionTypesResponseDto responseDto = optionTypeService.modifyOptionTypes(optionTypeId, requestDto);
         return ResponseEntity.ok(responseDto);
     }
