@@ -29,11 +29,6 @@ class CategoryControllerSecurityTest {
     private static final String BASE_PATH = "/categories";
     private static final String CATEGORY_ID_PATH = "/categories/1";
 
-    private static final String USER_ID_HEADER = "X-User-Id";
-    private static final String USER_ROLE_HEADER = "X-User-Role";
-
-    private static final String USER_ROLE = "ROLE_USER";
-    private static final String ADMIN_ROLE = "ROLE_ADMIN";
     @Autowired
     MockMvc mockMvc;
     @MockitoBean
