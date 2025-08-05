@@ -55,6 +55,22 @@ public class CategoryControllerRequestValidateTest {
                 .containsExactlyInAnyOrder("name", "iconUrl");
     }
 
+    @Test
+    @DisplayName("Category Request 오류 없음")
+    void categoryRequestValidation_thenOk(){
+        CategoryRequest categoryRequest = new CategoryRequest("name", 1L, VALID_URL);
+        Set<ConstraintViolation<CategoryRequest>> violations = validateField(categoryRequest);
+        assertThat(violations).isEmpty();
+    }
+
+    @Test
+    @DisplayName("UpdateCategoryRequest 오류 없음")
+    void updateCategoryRequestValidation_thenOk(){
+        UpdateCategoryRequest request = new UpdateCategoryRequest("name", 1L, VALID_URL);
+        Set<ConstraintViolation<UpdateCategoryRequest>> violations = validateField(request);
+        assertThat(violations).isEmpty();
+    }
+
     static Stream<Arguments> invalidCategoryRequestFieldProvider(){
         return Stream.of(
                 Arguments.of("name", "", "Category name is required"),

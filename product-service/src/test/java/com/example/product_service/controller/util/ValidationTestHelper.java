@@ -43,5 +43,4 @@ public final class ValidationTestHelper {
         Set<ConstraintViolation<T>> violations = validateField(target);
         assertViolation(violations, fieldName, expectedMessage);
     }
-
 }
