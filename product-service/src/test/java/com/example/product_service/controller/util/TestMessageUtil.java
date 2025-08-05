@@ -9,7 +9,7 @@ public final class TestMessageUtil {
     private static final MessageSource messageSource;
     static {
         ReloadableResourceBundleMessageSource ms = new ReloadableResourceBundleMessageSource();
-        ms.setBasename("classpath:ValidationMessages"); // 메시지 파일 경로
+        ms.setBasename("classpath:ValidationMessages");
         ms.setDefaultEncoding("UTF-8");
         messageSource = ms;
     }
