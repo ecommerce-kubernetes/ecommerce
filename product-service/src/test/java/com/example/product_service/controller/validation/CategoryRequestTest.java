@@ -6,6 +6,8 @@ import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -13,7 +15,9 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.*;
@@ -44,6 +48,23 @@ public class CategoryRequestTest {
 
         assertThat(violations)
                 .anyMatch(v -> v.getPropertyPath().toString().equals(fieldName));
+    }
+
+    @Test
+    @DisplayName("Category Request 필드 동시 오류 발생시 전체 개수 및 필드 확인")
+    void multipleFieldValidation(){
+        CategoryRequest request = new CategoryRequest("", 1L, INVALID_URL);
+
+        Set<ConstraintViolation<CategoryRequest>> violations = validator.validate(request);
+
+        assertThat(violations).hasSize(2);
+
+        List<String> fields = violations.stream()
+                .map(v -> v.getPropertyPath().toString())
+                .toList();
+
+        assertThat(fields)
+                .containsExactlyInAnyOrder("name", "iconUrl");
     }
 
     static Stream<Arguments> invalidFieldProvider(){
