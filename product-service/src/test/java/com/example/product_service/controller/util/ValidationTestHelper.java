@@ -1,16 +1,29 @@
 package com.example.product_service.controller.util;
 
 import jakarta.validation.ConstraintViolation;
-import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import org.springframework.beans.BeanWrapperImpl;
+import org.springframework.context.support.ReloadableResourceBundleMessageSource;
+import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public final class ValidationTestHelper {
-    private static final Validator VALIDATOR = Validation.buildDefaultValidatorFactory().getValidator();
+    private static final Validator VALIDATOR;
+
+    static{
+        ReloadableResourceBundleMessageSource ms = new ReloadableResourceBundleMessageSource();
+        ms.setBasename("classpath:messages");
+        ms.setDefaultEncoding("UTF-8");
+
+        LocalValidatorFactoryBean factory = new LocalValidatorFactoryBean();
+        factory.setValidationMessageSource(ms);
+        factory.afterPropertiesSet();
+        VALIDATOR = factory.getValidator();
+    }
+
     private ValidationTestHelper(){
     }
 
