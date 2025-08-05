@@ -5,6 +5,7 @@ import com.example.product_service.controller.util.specification.annotation.BadR
 import com.example.product_service.controller.util.specification.annotation.ForbiddenApiResponse;
 import com.example.product_service.controller.util.specification.annotation.NotFoundApiResponse;
 import com.example.product_service.dto.request.variant.ProductVariantRequest;
+import com.example.product_service.dto.request.variant.UpdateProductVariantRequest;
 import com.example.product_service.dto.response.variant.ProductVariantResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -35,9 +36,10 @@ public class ProductVariantController {
     @ApiResponse(responseCode = "200", description = "수정 성공")
     @BadRequestApiResponse @ForbiddenApiResponse @NotFoundApiResponse
     @PatchMapping("/{variantId}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<ProductVariantResponse> updateProductVariant(@PathVariable("productId") Long productId,
                                                                        @PathVariable("variantId") Long variantId,
-                                                                       @RequestBody ProductVariantRequest request){
+                                                                       @RequestBody UpdateProductVariantRequest request){
         return ResponseEntity.ok(new ProductVariantResponse());
     }
 
@@ -46,6 +48,7 @@ public class ProductVariantController {
     @ApiResponse(responseCode = "204", description = "삭제 성공")
     @BadRequestApiResponse @ForbiddenApiResponse @NotFoundApiResponse
     @DeleteMapping("/{variantId}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<Void> deleteProductVariant(@PathVariable("productId") Long productId,
                                                      @PathVariable("variantId") Long variantId){
         return ResponseEntity.noContent().build();
