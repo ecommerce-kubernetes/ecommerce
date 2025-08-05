@@ -1,6 +1,7 @@
 package com.example.product_service.controller.validation;
 
 import com.example.product_service.dto.request.category.CategoryRequest;
+import com.example.product_service.dto.request.category.UpdateCategoryRequest;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
@@ -39,14 +40,29 @@ public class CategoryControllerRequestValidateTest {
     void categoryRequestValidation_field(String fieldName, Object invalidValue, String expectedMessage){
         CategoryRequest request =
                 new CategoryRequest("노트북", 1L, VALID_URL);
-        BeanWrapperImpl requestWrapper = new BeanWrapperImpl(request);
-        requestWrapper.setPropertyValue(fieldName, invalidValue);
+        BeanWrapperImpl beanWrapper = new BeanWrapperImpl(request);
+        beanWrapper.setPropertyValue(fieldName, invalidValue);
 
         Set<ConstraintViolation<CategoryRequest>> violations = validator.validate(request);
 
         assertThat(violations)
                 .anyMatch(v -> v.getPropertyPath().toString().equals(fieldName)
                         && v.getMessage().equals(expectedMessage));
+    }
+
+    @ParameterizedTest(name = "[{index}] {0} 필드 invalid")
+    @MethodSource("invalidUpdateCategoryRequestFiledProvider")
+    void updateCategoryRequestValidation_field(String fieldName, Object invalidValue, String expectedMessage){
+        UpdateCategoryRequest request = new UpdateCategoryRequest("노트북", 1L, VALID_URL);
+        BeanWrapperImpl beanWrapper = new BeanWrapperImpl(request);
+        beanWrapper.setPropertyValue(fieldName, invalidValue);
+
+        Set<ConstraintViolation<UpdateCategoryRequest>> violations = validator.validate(request);
+
+        assertThat(violations)
+                .anyMatch(v -> v.getPropertyPath().toString().equals(fieldName)
+                && v.getMessage().equals(expectedMessage));
+
     }
 
     @Test
@@ -69,6 +85,12 @@ public class CategoryControllerRequestValidateTest {
     static Stream<Arguments> invalidCategoryRequestFieldProvider(){
         return Stream.of(
                 Arguments.of("name", "", "Category name is required"),
+                Arguments.of("iconUrl", INVALID_URL, "Invalid ImgUrl")
+        );
+    }
+
+    static Stream<Arguments> invalidUpdateCategoryRequestFiledProvider(){
+        return Stream.of(
                 Arguments.of("iconUrl", INVALID_URL, "Invalid ImgUrl")
         );
     }
