@@ -43,6 +43,7 @@ public class ProductImageController {
     @ApiResponse(responseCode = "200", description = "수정 완료")
     @BadRequestApiResponse @ForbiddenApiResponse @NotFoundApiResponse
     @PatchMapping("/{imageId}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<ImageResponse> updateImage(@PathVariable("productId") Long productId,
                                                      @PathVariable("imageId") Long imageId,
                                                      @RequestBody ImageRequest request){

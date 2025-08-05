@@ -6,6 +6,7 @@ import com.example.product_service.config.WebSecurity;
 import com.example.product_service.controller.ProductImageController;
 import com.example.product_service.controller.util.UserRole;
 import com.example.product_service.dto.request.image.AddImageRequest;
+import com.example.product_service.dto.request.image.ImageRequest;
 import com.example.product_service.service.ProductImageService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -20,6 +21,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import java.util.List;
 
 import static com.example.product_service.controller.util.SecurityTestHelper.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
 @WebMvcTest(ProductImageController.class)
@@ -27,6 +29,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 @AutoConfigureMockMvc
 public class ProductImageControllerSecurityTest {
     private static final String BASE_PATH = "/products/1/images";
+    private static final String PRODUCT_IMAGE_ID_PATH = BASE_PATH + "/1";
 
     @Autowired
     MockMvc mockMvc;
@@ -49,7 +52,27 @@ public class ProductImageControllerSecurityTest {
         verifyNoPermissionResponse(perform, BASE_PATH);
     }
 
+    @Test
+    @DisplayName("상품 이미지 수정 테스트-인증 에러")
+    void updateImageTest_UnAuthorized() throws Exception {
+        ResultActions perform =
+                performWithAuthAndBody(mockMvc, patch(PRODUCT_IMAGE_ID_PATH), createImageRequest(), null);
+        verifyUnauthorizedResponse(perform, PRODUCT_IMAGE_ID_PATH);
+    }
+
+    @Test
+    @DisplayName("상품 이미지 수정 테스트-권한 부족")
+    void updateImageTest_NoPermission() throws Exception {
+        ResultActions perform =
+                performWithAuthAndBody(mockMvc, patch(PRODUCT_IMAGE_ID_PATH), createImageRequest(), UserRole.ROLE_USER);
+        verifyNoPermissionResponse(perform, PRODUCT_IMAGE_ID_PATH);
+    }
+
     private AddImageRequest createAddImageRequest(){
         return new AddImageRequest(List.of("http://test1.jpg", "http://test2.jpg"));
+    }
+
+    private ImageRequest createImageRequest(){
+        return new ImageRequest("http://test.jpg", 1);
     }
 }
