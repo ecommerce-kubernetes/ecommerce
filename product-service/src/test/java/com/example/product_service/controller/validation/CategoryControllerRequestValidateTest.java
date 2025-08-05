@@ -1,5 +1,6 @@
 package com.example.product_service.controller.validation;
 
+import com.example.product_service.controller.util.ValidationTestHelper;
 import com.example.product_service.dto.request.category.CategoryRequest;
 import com.example.product_service.dto.request.category.UpdateCategoryRequest;
 import jakarta.validation.ConstraintViolation;
@@ -20,6 +21,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import static com.example.product_service.controller.util.ValidationTestHelper.*;
 import static org.assertj.core.api.Assertions.*;
 
 @ExtendWith(SpringExtension.class)
@@ -27,42 +29,19 @@ public class CategoryControllerRequestValidateTest {
     private static final String INVALID_URL = "invalidUrl";
     private static final String VALID_URL = "http://test.jpg";
 
-    private Validator validator;
-
-    @BeforeEach
-    void setUp(){
-        ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
-        validator = factory.getValidator();
-    }
-
     @ParameterizedTest(name = "[{index}] {0} 필드 invalid")
     @MethodSource("invalidCategoryRequestFieldProvider")
     void categoryRequestValidation_field(String fieldName, Object invalidValue, String expectedMessage){
         CategoryRequest request =
                 new CategoryRequest("노트북", 1L, VALID_URL);
-        BeanWrapperImpl beanWrapper = new BeanWrapperImpl(request);
-        beanWrapper.setPropertyValue(fieldName, invalidValue);
-
-        Set<ConstraintViolation<CategoryRequest>> violations = validator.validate(request);
-
-        assertThat(violations)
-                .anyMatch(v -> v.getPropertyPath().toString().equals(fieldName)
-                        && v.getMessage().equals(expectedMessage));
+        assertFieldViolation(request, fieldName, invalidValue, expectedMessage);
     }
 
     @ParameterizedTest(name = "[{index}] {0} 필드 invalid")
     @MethodSource("invalidUpdateCategoryRequestFiledProvider")
     void updateCategoryRequestValidation_field(String fieldName, Object invalidValue, String expectedMessage){
         UpdateCategoryRequest request = new UpdateCategoryRequest("노트북", 1L, VALID_URL);
-        BeanWrapperImpl beanWrapper = new BeanWrapperImpl(request);
-        beanWrapper.setPropertyValue(fieldName, invalidValue);
-
-        Set<ConstraintViolation<UpdateCategoryRequest>> violations = validator.validate(request);
-
-        assertThat(violations)
-                .anyMatch(v -> v.getPropertyPath().toString().equals(fieldName)
-                && v.getMessage().equals(expectedMessage));
-
+        assertFieldViolation(request, fieldName, invalidValue, expectedMessage);
     }
 
     @Test
@@ -70,7 +49,7 @@ public class CategoryControllerRequestValidateTest {
     void categoryRequestValidation_multiple(){
         CategoryRequest request = new CategoryRequest("", 1L, INVALID_URL);
 
-        Set<ConstraintViolation<CategoryRequest>> violations = validator.validate(request);
+        Set<ConstraintViolation<CategoryRequest>> violations = validateField(request);
 
         assertThat(violations).hasSize(2);
 
