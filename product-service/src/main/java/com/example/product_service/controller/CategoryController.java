@@ -2,7 +2,7 @@ package com.example.product_service.controller;
 
 import com.example.product_service.controller.util.specification.annotation.*;
 import com.example.product_service.dto.request.category.CategoryRequest;
-import com.example.product_service.dto.request.category.ModifyCategoryRequest;
+import com.example.product_service.dto.request.category.UpdateCategoryRequest;
 import com.example.product_service.dto.response.category.CategoryHierarchyResponse;
 import com.example.product_service.dto.response.category.CategoryResponseDto;
 import com.example.product_service.exception.BadRequestException;
@@ -69,7 +69,7 @@ public class CategoryController {
     @PatchMapping("/{categoryId}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<CategoryResponseDto> updateCategory(@PathVariable("categoryId") Long categoryId,
-                                                                  @RequestBody @Validated ModifyCategoryRequest request){
+                                                                  @RequestBody @Validated UpdateCategoryRequest request){
 
         if(Objects.equals(categoryId, request.getParentId())){
             throw new BadRequestException("An item cannot be set as its own parent");

@@ -10,7 +10,7 @@ import org.hibernate.validator.constraints.URL;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class ModifyCategoryRequest {
+public class UpdateCategoryRequest {
     private String name;
     private Long parentId;
     @URL(message = "Invalid ImgUrl")

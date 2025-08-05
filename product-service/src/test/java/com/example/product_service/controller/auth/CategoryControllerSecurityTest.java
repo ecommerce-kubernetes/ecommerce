@@ -6,7 +6,7 @@ import com.example.product_service.config.WebSecurity;
 import com.example.product_service.controller.CategoryController;
 import com.example.product_service.controller.util.UserRole;
 import com.example.product_service.dto.request.category.CategoryRequest;
-import com.example.product_service.dto.request.category.ModifyCategoryRequest;
+import com.example.product_service.dto.request.category.UpdateCategoryRequest;
 import com.example.product_service.service.CategoryService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -86,7 +86,7 @@ class CategoryControllerSecurityTest {
         return new CategoryRequest("name", 1L, "http://test.jpg");
     }
 
-    private ModifyCategoryRequest createModifyCategoryRequest() {
-        return new ModifyCategoryRequest("name", 1L, "http://test.jpg");
+    private UpdateCategoryRequest createModifyCategoryRequest() {
+        return new UpdateCategoryRequest("name", 1L, "http://test.jpg");
     }
 }

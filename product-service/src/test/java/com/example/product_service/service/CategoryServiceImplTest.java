@@ -1,7 +1,7 @@
 package com.example.product_service.service;
 
 import com.example.product_service.dto.request.category.CategoryRequest;
-import com.example.product_service.dto.request.category.ModifyCategoryRequest;
+import com.example.product_service.dto.request.category.UpdateCategoryRequest;
 import com.example.product_service.dto.response.category.CategoryResponseDto;
 import com.example.product_service.dto.response.PageDto;
 import com.example.product_service.entity.Categories;
@@ -92,7 +92,7 @@ class CategoryServiceImplTest {
         Categories modifyCategory = categoriesRepository.save(new Categories("반찬류", null));
         food.addChild(modifyCategory);
 
-        ModifyCategoryRequest modifyRequestDto = new ModifyCategoryRequest("노트북", electronicDevice.getId(), "http://test2.jpg");
+        UpdateCategoryRequest modifyRequestDto = new UpdateCategoryRequest("노트북", electronicDevice.getId(), "http://test2.jpg");
 
         CategoryResponseDto categoryResponseDto =
                 categoryService.modifyCategory(modifyCategory.getId(), modifyRequestDto);
@@ -109,7 +109,7 @@ class CategoryServiceImplTest {
     @Test
     @DisplayName("카테고리 수정 테스트 - 카테고리를 찾을 수 없을때")
     void modifyCategoryTest_NotFoundCategory(){
-        assertThatThrownBy(() -> categoryService.modifyCategory(999L, new ModifyCategoryRequest("전자기기", null, null)))
+        assertThatThrownBy(() -> categoryService.modifyCategory(999L, new UpdateCategoryRequest("전자기기", null, null)))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage("Not Found Category");
     }
@@ -118,7 +118,7 @@ class CategoryServiceImplTest {
     @DisplayName("카테고리 수정 테스트 - 부모 카테고리를 찾을 수 없을때")
     void modifyCategoryTest_NotFoundParentCategory(){
         Categories modifyCategory = categoriesRepository.save(new Categories("반찬류", null));
-        assertThatThrownBy(()-> categoryService.modifyCategory(modifyCategory.getId(), new ModifyCategoryRequest("노트북", 999L, null)))
+        assertThatThrownBy(()-> categoryService.modifyCategory(modifyCategory.getId(), new UpdateCategoryRequest("노트북", 999L, null)))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage("Not Found Parent Category");
     }
