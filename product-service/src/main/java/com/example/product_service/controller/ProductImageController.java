@@ -55,6 +55,7 @@ public class ProductImageController {
     @ApiResponse(responseCode = "204", description = "상품 이미지 삭제")
     @ForbiddenApiResponse @NotFoundApiResponse
     @DeleteMapping("/{imageId}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<Void> deleteImage(@PathVariable("productId") Long productId,
                                             @PathVariable("imageId") Long imageId){
         return ResponseEntity.noContent().build();

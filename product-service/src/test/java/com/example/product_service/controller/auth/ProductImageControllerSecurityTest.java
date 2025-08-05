@@ -21,8 +21,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import java.util.List;
 
 import static com.example.product_service.controller.util.SecurityTestHelper.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 
 @WebMvcTest(ProductImageController.class)
 @Import({WebSecurity.class, CustomAccessDeniedHandler.class, CustomAuthenticationEntryPoint.class})
@@ -65,6 +64,20 @@ public class ProductImageControllerSecurityTest {
     void updateImageTest_NoPermission() throws Exception {
         ResultActions perform =
                 performWithAuthAndBody(mockMvc, patch(PRODUCT_IMAGE_ID_PATH), createImageRequest(), UserRole.ROLE_USER);
+        verifyNoPermissionResponse(perform, PRODUCT_IMAGE_ID_PATH);
+    }
+
+    @Test
+    @DisplayName("상품 이미지 삭제 테스트-인증 에러")
+    void deleteImageTest_UnAuthorized() throws Exception {
+        ResultActions perform = performWithAuthAndBody(mockMvc, delete(PRODUCT_IMAGE_ID_PATH), null, null);
+        verifyUnauthorizedResponse(perform, PRODUCT_IMAGE_ID_PATH);
+    }
+
+    @Test
+    @DisplayName("상품 이미지 삭제 테스트-권한 부족")
+    void deleteImageTest_NoPermission() throws Exception {
+        ResultActions perform = performWithAuthAndBody(mockMvc, delete(PRODUCT_IMAGE_ID_PATH), null, UserRole.ROLE_USER);
         verifyNoPermissionResponse(perform, PRODUCT_IMAGE_ID_PATH);
     }
 
