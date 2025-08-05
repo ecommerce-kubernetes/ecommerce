@@ -12,6 +12,6 @@ import lombok.Setter;
 @NoArgsConstructor
 public class UpdateOptionValueRequest {
     private Long optionTypeId;
-    @NotBlank(message = "value is required")
-    private String optionValue;
+    @NotBlank(message = "{optionValue.value.notBlank}")
+    private String value;
 }

@@ -1,6 +1,7 @@
 package com.example.product_service.controller.validation;
 
 import com.example.product_service.dto.request.options.OptionValueRequest;
+import com.example.product_service.dto.request.options.UpdateOptionValueRequest;
 import jakarta.validation.ConstraintViolation;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -23,6 +24,7 @@ public class OptionValueControllerRequestValidateTest {
 
     private static final String OPTION_TYPE_ID_FIELD_ERROR_MESSAGE_PATH = "optionValue.optionTypeId.notNull";
     private static final String VALUE_FIELD_ERROR_MESSAGE_PATH = "optionValue.value.notBlank";
+
     @ParameterizedTest(name = "[{index}] {0} 필드 invalid")
     @MethodSource("invalidOptionValueRequestFieldProvider")
     void optionValueRequestValidation_field(String fieldName, Object invalidValue, String expectedMessage){
@@ -45,6 +47,21 @@ public class OptionValueControllerRequestValidateTest {
 
         assertThat(fields)
                 .containsExactlyInAnyOrder("optionTypeId", "value");
+    }
+
+    @Test
+    @DisplayName("UpdateOptionValueRequest 필드 검증")
+    void updateOptionValueRequestValidation_field(){
+        UpdateOptionValueRequest request = new UpdateOptionValueRequest(1L, "value");
+        assertFieldViolation(request, "value", "", getMessage(VALUE_FIELD_ERROR_MESSAGE_PATH));
+    }
+
+    @Test
+    @DisplayName("OptionValueRequest 오류 없음")
+    void optionValueRequestValidation_thenOk(){
+        OptionValueRequest request = new OptionValueRequest(1L, "value");
+        Set<ConstraintViolation<OptionValueRequest>> violations = validateField(request);
+        assertThat(violations).isEmpty();
     }
 
     static Stream<Arguments> invalidOptionValueRequestFieldProvider(){

@@ -48,7 +48,7 @@ public class OptionValueServiceImpl implements OptionValueService{
         OptionValues optionValue = optionValuesRepository
                 .findById(optionValueId).orElseThrow(() -> new NotFoundException("Not Found OptionValue"));
 
-        optionValue.setOptionValue(requestDto.getOptionValue());
+//        optionValue.setOptionValue(requestDto.getOptionValue());
 
         return new OptionValuesResponseDto(optionValue);
     }
