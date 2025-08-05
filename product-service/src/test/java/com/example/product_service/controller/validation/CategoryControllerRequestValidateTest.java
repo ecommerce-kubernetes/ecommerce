@@ -23,6 +23,9 @@ public class CategoryControllerRequestValidateTest {
     private static final String INVALID_URL = "invalidUrl";
     private static final String VALID_URL = "http://test.jpg";
 
+    private static final String NAME_FIELD_ERROR_MESSAGE = "Category name is required";
+    private static final String IMAGE_URL_FIELD_ERROR_MESSAGE = "Invalid ImgUrl";
+
     @ParameterizedTest(name = "[{index}] {0} 필드 invalid")
     @MethodSource("invalidCategoryRequestFieldProvider")
     void categoryRequestValidation_field(String fieldName, Object invalidValue, String expectedMessage){
@@ -73,14 +76,14 @@ public class CategoryControllerRequestValidateTest {
 
     static Stream<Arguments> invalidCategoryRequestFieldProvider(){
         return Stream.of(
-                Arguments.of("name", "", "Category name is required"),
-                Arguments.of("iconUrl", INVALID_URL, "Invalid ImgUrl")
+                Arguments.of("name", "", NAME_FIELD_ERROR_MESSAGE),
+                Arguments.of("iconUrl", INVALID_URL, IMAGE_URL_FIELD_ERROR_MESSAGE)
         );
     }
 
     static Stream<Arguments> invalidUpdateCategoryRequestFiledProvider(){
         return Stream.of(
-                Arguments.of("iconUrl", INVALID_URL, "Invalid ImgUrl")
+                Arguments.of("iconUrl", INVALID_URL, IMAGE_URL_FIELD_ERROR_MESSAGE)
         );
     }
 }
