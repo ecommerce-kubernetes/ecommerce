@@ -1,7 +1,5 @@
 package com.example.product_service.controller;
 
-import com.example.product_service.controller.util.ControllerResponseValidator;
-import com.example.product_service.controller.util.SortFieldValidator;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
@@ -13,7 +11,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 
 @WebMvcTest(ProductController.class)
-@Import({SortFieldValidator.class, ControllerResponseValidator.class})
 @Slf4j
 class ProductControllerTest {
 }

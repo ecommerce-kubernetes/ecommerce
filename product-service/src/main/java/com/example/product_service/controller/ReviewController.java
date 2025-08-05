@@ -1,13 +1,11 @@
 package com.example.product_service.controller;
 
-import com.example.product_service.controller.util.SortFieldValidator;
 import com.example.product_service.controller.util.specification.annotation.BadRequestApiResponse;
 import com.example.product_service.controller.util.specification.annotation.ForbiddenApiResponse;
 import com.example.product_service.controller.util.specification.annotation.NotFoundApiResponse;
 import com.example.product_service.dto.request.review.ReviewRequest;
 import com.example.product_service.dto.response.PageDto;
 import com.example.product_service.dto.response.ReviewResponseDto;
-import com.example.product_service.entity.Reviews;
 import com.example.product_service.service.ReviewService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -27,7 +25,6 @@ import org.springframework.web.bind.annotation.*;
 public class ReviewController {
 
     private final ReviewService reviewService;
-    private final SortFieldValidator sortFieldValidator;
 
     @Operation(summary = "리뷰 등록")
     @ApiResponse(responseCode = "201", description = "등록 성공")
@@ -46,7 +43,6 @@ public class ReviewController {
     @GetMapping("/products/{productId}/reviews")
     public ResponseEntity<PageDto<ReviewResponseDto>> getReviewsByProductId(@PathVariable("productId") Long productId,
                                                                             @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.ASC) Pageable pageable){
-        sortFieldValidator.validateSortFields(pageable.getSort(), Reviews.class, null);
         PageDto<ReviewResponseDto> result = reviewService.getReviewList(productId, pageable);
         return ResponseEntity.ok(result);
     }
