@@ -14,7 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -46,69 +45,48 @@ class CategoryControllerSecurityTest {
     @Test
     @DisplayName("카테고리 생성 테스트-권한 부족")
     void createCategoryTest_NoPermission() throws Exception {
-        String jsonBody = toJson(createCategoryRequest());
-        ResultActions perform = mockMvc.perform(
-                post(BASE_PATH)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .header(USER_ID_HEADER, 1)
-                        .header(USER_ROLE_HEADER, USER_ROLE)
-                        .content(jsonBody));
-
+        ResultActions perform =
+                performWithAuthAndBody(mockMvc, post(BASE_PATH), createCategoryRequest(), UserRole.ROLE_USER);
         verifyNoPermissionResponse(perform, BASE_PATH);
     }
 
     @Test
     @DisplayName("카테고리 수정 테스트-인증 에러")
     void updateCategoryTest_UnAuthorized() throws Exception {
-        String jsonBody = toJson(createModifyCategoryRequest());
-        ResultActions perform = mockMvc.perform(
-                patch(CATEGORY_ID_PATH)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonBody));
-
+        ResultActions perform =
+                performWithAuthAndBody(mockMvc, patch(CATEGORY_ID_PATH), createModifyCategoryRequest(), null);
         verifyUnauthorizedResponse(perform, CATEGORY_ID_PATH);
     }
 
     @Test
     @DisplayName("카테고리 수정 테스트-권한 부족")
     void updateCategoryTest_NoPermission() throws Exception {
-        String jsonBody = toJson(createModifyCategoryRequest());
-
-        ResultActions perform = mockMvc.perform(
-                patch(CATEGORY_ID_PATH)
-                        .header(USER_ID_HEADER, 1)
-                        .header(USER_ROLE_HEADER, USER_ROLE)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonBody));
-
+        ResultActions perform =
+                performWithAuthAndBody(mockMvc, patch(CATEGORY_ID_PATH), createModifyCategoryRequest(), UserRole.ROLE_USER);
         verifyNoPermissionResponse(perform, CATEGORY_ID_PATH);
     }
 
     @Test
     @DisplayName("카테고리 삭제 테스트-인증 에러")
     void deleteCategoryTest_UnAuthorized() throws Exception {
-        ResultActions perform = mockMvc.perform(
-                delete(CATEGORY_ID_PATH));
-
+        ResultActions perform =
+                performWithAuthAndBody(mockMvc, delete(CATEGORY_ID_PATH), null, null);
         verifyUnauthorizedResponse(perform, CATEGORY_ID_PATH);
     }
 
     @Test
     @DisplayName("카테고리 삭제 테스트-권한 부족")
     void deleteCategoryTest_NoPermission() throws Exception {
-        ResultActions perform = mockMvc.perform(
-                delete(CATEGORY_ID_PATH)
-                        .header(USER_ID_HEADER, 1)
-                        .header(USER_ROLE_HEADER, USER_ROLE));
-
+        ResultActions perform =
+                performWithAuthAndBody(mockMvc, delete(CATEGORY_ID_PATH), null, UserRole.ROLE_USER);
         verifyNoPermissionResponse(perform, CATEGORY_ID_PATH);
     }
 
-    private static CategoryRequest createCategoryRequest() {
+    private CategoryRequest createCategoryRequest() {
         return new CategoryRequest("name", 1L, "http://test.jpg");
     }
 
-    private static ModifyCategoryRequest createModifyCategoryRequest() {
+    private ModifyCategoryRequest createModifyCategoryRequest() {
         return new ModifyCategoryRequest("name", 1L, "http://test.jpg");
     }
 }

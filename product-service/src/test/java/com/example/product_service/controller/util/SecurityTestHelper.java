@@ -39,7 +39,7 @@ public final class SecurityTestHelper {
      * @param mockMvc 테스트용 MockMvc
      * @param builder post(), patch() 등 생성한 MockHttpServletRequestBuilder
      * @param bodyObject 요청 바디로 직렬화할 DTO (없으면 null)
-     * @param withAuth X-User-Id , X-User-Role 헤더를 붙힐지 여부 (헤더값은 id=1L, role=ROLE_USER)
+     * @param userRole X-User-Id , X-User-Role 헤더를 붙힐지 여부 (User ,Admin, null)
      * @return 생성된 검증 객체
      */
     public static ResultActions performWithAuthAndBody(MockMvc mockMvc, MockHttpServletRequestBuilder builder,
