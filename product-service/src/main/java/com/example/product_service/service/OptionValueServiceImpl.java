@@ -1,6 +1,5 @@
 package com.example.product_service.service;
 
-import com.example.product_service.dto.request.options.IdsRequestDto;
 import com.example.product_service.dto.request.options.OptionValueRequest;
 import com.example.product_service.dto.request.options.UpdateOptionValueRequest;
 import com.example.product_service.dto.response.options.OptionValuesResponseDto;
@@ -40,21 +39,6 @@ public class OptionValueServiceImpl implements OptionValueService{
                 saved.getOptionValue(),
                 optionTypeId
         );
-    }
-
-    @Override
-    @Transactional
-    public void batchDeleteOptionValues(IdsRequestDto requestDto) {
-        List<Long> ids = new ArrayList<>(requestDto.getIds());
-        List<OptionValues> optionValues = optionValuesRepository.findByIdIn(ids);
-
-        List<Long> existIds = optionValues.stream().map(OptionValues::getId).toList();
-        ids.removeAll(existIds);
-        if(!ids.isEmpty()){
-            throw new NotFoundException("Not Found OptionValue ids : " + ids);
-        }
-
-        optionValuesRepository.deleteAll(optionValues);
     }
 
     @Override

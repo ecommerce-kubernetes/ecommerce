@@ -4,7 +4,6 @@ import com.example.product_service.controller.util.specification.annotation.Admi
 import com.example.product_service.controller.util.specification.annotation.BadRequestApiResponse;
 import com.example.product_service.controller.util.specification.annotation.ForbiddenApiResponse;
 import com.example.product_service.controller.util.specification.annotation.NotFoundApiResponse;
-import com.example.product_service.dto.request.options.IdsRequestDto;
 import com.example.product_service.dto.request.options.OptionValueRequest;
 import com.example.product_service.dto.request.options.UpdateOptionValueRequest;
 import com.example.product_service.dto.response.options.OptionValuesResponseDto;
@@ -38,13 +37,6 @@ public class OptionValueController {
         return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
     }
 
-    //TODO 삭제 예정
-    @PostMapping("/batch-delete")
-    public ResponseEntity<Void> optionValueBatchDelete(@Validated @RequestBody IdsRequestDto requestDto){
-        optionValueService.batchDeleteOptionValues(requestDto);
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-    }
-
     @AdminApi
     @Operation(summary = "옵션 값 수정")
     @ApiResponse(responseCode = "200", description = "수정 완료")
@@ -53,10 +45,7 @@ public class OptionValueController {
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<OptionValuesResponseDto> updateOptionValue(@PathVariable("optionValueId") Long optionValueId,
                                                                      @Validated @RequestBody UpdateOptionValueRequest requestDto){
-//        OptionValuesResponseDto responseDto = optionValueService.modifyOptionValues(optionValueId, requestDto);
-
         return ResponseEntity.ok(new OptionValuesResponseDto());
-
     }
 
     @AdminApi

@@ -1,8 +1,8 @@
 package com.example.product_service.controller;
 
 import com.example.product_service.controller.util.specification.annotation.*;
-import com.example.product_service.dto.request.CategoryRequest;
-import com.example.product_service.dto.request.ModifyCategoryRequest;
+import com.example.product_service.dto.request.category.CategoryRequest;
+import com.example.product_service.dto.request.category.ModifyCategoryRequest;
 import com.example.product_service.dto.response.category.CategoryHierarchyResponse;
 import com.example.product_service.dto.response.category.CategoryResponseDto;
 import com.example.product_service.dto.response.PageDto;
@@ -39,7 +39,6 @@ public class CategoryController {
     @PostMapping
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<CategoryResponseDto> createCategory(@RequestBody @Validated CategoryRequest categoryRequestDto){
-//        CategoryResponseDto category = categoryService.saveCategory(categoryRequestDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(new CategoryResponseDto());
     }
 
@@ -92,30 +91,5 @@ public class CategoryController {
     public ResponseEntity<Void> deleteCategory(@PathVariable("categoryId") Long categoryId){
         categoryService.deleteCategory(categoryId);
         return ResponseEntity.noContent().build();
-    }
-
-
-    //TODO 삭제 예정
-    @GetMapping("/{categoryId}")
-    public ResponseEntity<CategoryResponseDto> getCategoryById(@PathVariable("categoryId") Long categoryId){
-        CategoryResponseDto categoryDetails = categoryService.getCategoryDetails(categoryId);
-        return ResponseEntity.ok(categoryDetails);
-    }
-
-    //TODO 삭제 예정
-    @GetMapping
-    public ResponseEntity<PageDto<CategoryResponseDto>> getMainCategoryList(
-            @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.ASC) Pageable pageable){
-
-//        sortFieldValidator.validateSortFields(pageable.getSort(), Categories.class, null);
-        PageDto<CategoryResponseDto> pageDto = categoryService.getRootCategories(pageable);
-        return ResponseEntity.ok(pageDto);
-    }
-
-    //TODO 삭제 예정
-    @GetMapping("/{categoryId}/root")
-    public ResponseEntity<CategoryResponseDto> getRootByCategoryId(@PathVariable("categoryId") Long categoryId) {
-        CategoryResponseDto rootCategoryDetailsOf = categoryService.getRootCategoryDetailsOf(categoryId);
-        return ResponseEntity.ok(rootCategoryDetailsOf);
     }
 }

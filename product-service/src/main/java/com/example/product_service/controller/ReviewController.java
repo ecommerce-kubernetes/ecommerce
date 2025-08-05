@@ -4,7 +4,7 @@ import com.example.product_service.controller.util.SortFieldValidator;
 import com.example.product_service.controller.util.specification.annotation.BadRequestApiResponse;
 import com.example.product_service.controller.util.specification.annotation.ForbiddenApiResponse;
 import com.example.product_service.controller.util.specification.annotation.NotFoundApiResponse;
-import com.example.product_service.dto.request.ReviewRequestDto;
+import com.example.product_service.dto.request.review.ReviewRequest;
 import com.example.product_service.dto.response.PageDto;
 import com.example.product_service.dto.response.ReviewResponseDto;
 import com.example.product_service.entity.Reviews;
@@ -21,8 +21,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
 @Tag(name = "Review", description = "리뷰 관련 API")
 @RequiredArgsConstructor
@@ -38,9 +36,7 @@ public class ReviewController {
     public ResponseEntity<ReviewResponseDto> createReview(@PathVariable("productId") Long productId,
                                                           @PathVariable("variantId") Long variantId,
                                                           @RequestHeader("X-User-Id") Long userId,
-                                                          @RequestBody @Validated ReviewRequestDto reviewRequestDto){
-//        ReviewResponseDto reviewResponseDto = reviewService.saveReview(productId, userId, reviewRequestDto);
-//        return ResponseEntity.status(HttpStatus.CREATED).body(reviewResponseDto);
+                                                          @RequestBody @Validated ReviewRequest reviewRequestDto){
         return ResponseEntity.status(HttpStatus.CREATED).body(new ReviewResponseDto());
     }
 

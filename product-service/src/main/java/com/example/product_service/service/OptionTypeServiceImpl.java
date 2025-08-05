@@ -1,6 +1,5 @@
 package com.example.product_service.service;
 
-import com.example.product_service.dto.request.options.IdsRequestDto;
 import com.example.product_service.dto.request.options.OptionTypeRequest;
 import com.example.product_service.dto.response.options.OptionTypesResponseDto;
 import com.example.product_service.dto.response.PageDto;
@@ -79,21 +78,6 @@ public class OptionTypeServiceImpl implements OptionTypeService {
                 .orElseThrow(() -> new NotFoundException("Not Found OptionType"));
 
         optionTypesRepository.delete(target);
-    }
-
-    @Override
-    @Transactional
-    public void batchDeleteOptionTypes(IdsRequestDto requestDto) {
-        List<Long> ids = new ArrayList<>(requestDto.getIds());
-        List<OptionTypes> optionTypes = optionTypesRepository.findByIdIn(ids);
-
-        List<Long> existIds = optionTypes.stream().map(OptionTypes::getId).toList();
-        ids.removeAll(existIds);
-        if(!ids.isEmpty()){
-            throw new NotFoundException("Not Found OptionType ids : " + ids);
-        }
-
-        optionTypesRepository.deleteAll(optionTypes);
     }
 
     @Override

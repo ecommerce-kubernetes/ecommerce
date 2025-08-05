@@ -1,6 +1,5 @@
 package com.example.product_service.service;
 
-import com.example.product_service.dto.request.options.IdsRequestDto;
 import com.example.product_service.dto.request.options.OptionTypeRequest;
 import com.example.product_service.dto.response.options.OptionTypesResponseDto;
 import com.example.product_service.dto.response.PageDto;
@@ -15,6 +14,5 @@ public interface OptionTypeService {
     PageDto<OptionTypesResponseDto> getOptionTypes(String query, Pageable pageable);
     OptionTypesResponseDto modifyOptionTypes(Long optionTypeId, OptionTypeRequest requestDto);
     void deleteOptionTypes(Long optionTypeId);
-    void batchDeleteOptionTypes(IdsRequestDto requestDto);
     List<OptionValuesResponseDto> getOptionValuesByTypeId(Long optionTypeId);
 }

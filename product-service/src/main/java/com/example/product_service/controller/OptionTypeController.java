@@ -4,7 +4,6 @@ import com.example.product_service.controller.util.specification.annotation.Admi
 import com.example.product_service.controller.util.specification.annotation.BadRequestApiResponse;
 import com.example.product_service.controller.util.specification.annotation.ForbiddenApiResponse;
 import com.example.product_service.controller.util.specification.annotation.NotFoundApiResponse;
-import com.example.product_service.dto.request.options.IdsRequestDto;
 import com.example.product_service.dto.request.options.OptionTypeRequest;
 import com.example.product_service.dto.response.options.OptionTypesResponseDto;
 import com.example.product_service.dto.response.options.OptionValuesResponseDto;
@@ -50,7 +49,6 @@ public class OptionTypeController {
     public ResponseEntity<List<OptionTypesResponseDto>> optionTypes(
             @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.ASC) Pageable pageable,
             @RequestParam(value = "query" ,required = false) String query){
-//        PageDto<OptionTypesResponseDto> optionTypes = optionTypeService.getOptionTypes(query, pageable);
         return ResponseEntity.ok(List.of(new OptionTypesResponseDto()));
     }
 
@@ -86,13 +84,4 @@ public class OptionTypeController {
 
         return ResponseEntity.noContent().build();
     }
-
-    //TODO 삭제 예정
-    @PostMapping("/batch-delete")
-    public ResponseEntity<Void> optionTypeBatchDelete(@Validated @RequestBody IdsRequestDto requestDto){
-        optionTypeService.batchDeleteOptionTypes(requestDto);
-
-        return ResponseEntity.noContent().build();
-    }
-
 }

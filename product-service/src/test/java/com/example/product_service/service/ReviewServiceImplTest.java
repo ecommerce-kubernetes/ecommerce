@@ -1,21 +1,11 @@
 package com.example.product_service.service;
 
-import com.example.product_service.dto.request.ReviewRequestDto;
-import com.example.product_service.dto.response.ReviewResponseDto;
 import com.example.product_service.entity.Products;
-import com.example.product_service.entity.Reviews;
 import com.example.product_service.repository.ProductsRepository;
 import com.example.product_service.repository.ReviewsRepository;
 import lombok.extern.slf4j.Slf4j;
-import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

@@ -1,4 +1,4 @@
-package com.example.product_service.dto.request;
+package com.example.product_service.dto.request.category;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

@@ -1,7 +1,7 @@
 package com.example.product_service.service;
 
-import com.example.product_service.dto.request.CategoryRequest;
-import com.example.product_service.dto.request.ModifyCategoryRequest;
+import com.example.product_service.dto.request.category.CategoryRequest;
+import com.example.product_service.dto.request.category.ModifyCategoryRequest;
 import com.example.product_service.dto.response.category.CategoryResponseDto;
 import com.example.product_service.dto.response.PageDto;
 import com.example.product_service.entity.Categories;

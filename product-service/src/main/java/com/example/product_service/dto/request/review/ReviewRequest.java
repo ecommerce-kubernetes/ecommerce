@@ -1,4 +1,4 @@
-package com.example.product_service.dto.request;
+package com.example.product_service.dto.request.review;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -15,7 +15,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ReviewRequestDto {
+public class ReviewRequest {
     @NotNull(message = "orderId is required")
     private Long orderId;
     @NotNull(message = "rating is required")

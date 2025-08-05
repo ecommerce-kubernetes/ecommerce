@@ -37,7 +37,7 @@ public class KafkaConsumer {
         List<KafkaOrderItemDto> orderItemDtoList = kafkaOrderDto.getOrderItemDtoList();
         KafkaOrderChangeDto kafkaOrderChangeDto;
         try{
-            productService.decrementStockQuantity(orderItemDtoList);
+//            productService.decrementStockQuantity(orderItemDtoList);
             kafkaOrderChangeDto = new KafkaOrderChangeDto(kafkaOrderDto.getId(), "SUCCESS", "DECREMENT SUCCESS");
         } catch (InsufficientStockException ex){
             kafkaOrderChangeDto = new KafkaOrderChangeDto(kafkaOrderDto.getId(), "FAIL", ex.getMessage());
