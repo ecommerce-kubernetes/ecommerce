@@ -4,6 +4,7 @@ import com.example.product_service.common.advice.CustomAccessDeniedHandler;
 import com.example.product_service.common.advice.CustomAuthenticationEntryPoint;
 import com.example.product_service.config.WebSecurity;
 import com.example.product_service.controller.ProductController;
+import com.example.product_service.controller.util.UserRole;
 import com.example.product_service.dto.request.image.ImageRequest;
 import com.example.product_service.dto.request.options.ProductOptionTypeRequest;
 import com.example.product_service.dto.request.product.ProductRequest;
@@ -16,7 +17,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -41,70 +41,47 @@ public class ProductControllerSecurityTest {
     @Test
     @DisplayName("상품 저장 테스트-인증 에러")
     void createProductTest_UnAuthorized() throws Exception {
-        String jsonBody = toJson(createProductRequest());
-
-        ResultActions perform = mockMvc.perform(post(BASE_PATH)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(jsonBody));
-
+        ResultActions perform = performWithAuthAndBody(mockMvc, post(BASE_PATH), createProductRequest(), null);
         verifyUnauthorizedResponse(perform, BASE_PATH);
     }
 
     @Test
     @DisplayName("상품 저장 테스트-권한 부족")
     void createProductTest_NoPermission() throws Exception {
-        String jsonBody = toJson(createProductRequest());
-
-        ResultActions perform = mockMvc.perform(post(BASE_PATH)
-                .header(USER_ID_HEADER, 1L)
-                .header(USER_ROLE_HEADER, USER_ROLE)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(jsonBody));
-
+        ResultActions perform =
+                performWithAuthAndBody(mockMvc, post(BASE_PATH), createProductRequest(), UserRole.ROLE_USER);
         verifyNoPermissionResponse(perform, BASE_PATH);
     }
 
     @Test
     @DisplayName("상품 기본 정보 수정 테스트-인증 에러")
     void updateBasicInfoTest_UnAuthorized() throws Exception {
-        String jsonBody = toJson(createUpdateProductBasicRequest());
-
-        ResultActions perform = mockMvc.perform(patch(PRODUCT_ID_PATH)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(jsonBody));
-
+        ResultActions perform =
+                performWithAuthAndBody(mockMvc, patch(PRODUCT_ID_PATH), createUpdateProductBasicRequest(), null);
         verifyUnauthorizedResponse(perform, PRODUCT_ID_PATH);
     }
 
     @Test
     @DisplayName("상품 기본 정보 수정 테스트-권한 부족")
     void updateBasicInfoTest_NoPermission() throws Exception {
-        String jsonBody = toJson(createUpdateProductBasicRequest());
-
-        ResultActions perform = mockMvc.perform(patch(PRODUCT_ID_PATH)
-                        .header(USER_ID_HEADER, 1)
-                        .header(USER_ROLE_HEADER, USER_ROLE)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonBody));
-
+        ResultActions perform =
+                performWithAuthAndBody(mockMvc, patch(PRODUCT_ID_PATH), createUpdateProductBasicRequest(), UserRole.ROLE_USER);
         verifyNoPermissionResponse(perform, PRODUCT_ID_PATH);
     }
 
     @Test
     @DisplayName("상품 삭제 테스트-인증 에러")
     void deleteProductTest_UnAuthorized() throws Exception {
-        ResultActions perform = mockMvc.perform(delete(PRODUCT_ID_PATH));
-
+        ResultActions perform =
+                performWithAuthAndBody(mockMvc, delete(PRODUCT_ID_PATH), createUpdateProductBasicRequest(), null);
         verifyUnauthorizedResponse(perform, PRODUCT_ID_PATH);
     }
 
     @Test
     @DisplayName("상품 삭제 테스트-권한 부족")
     void deleteProductTest_NoPermission() throws Exception {
-        ResultActions perform = mockMvc.perform(delete(PRODUCT_ID_PATH)
-                .header(USER_ID_HEADER, 1L)
-                .header(USER_ROLE_HEADER, USER_ROLE));
-
+        ResultActions perform =
+                performWithAuthAndBody(mockMvc, delete(PRODUCT_ID_PATH), createUpdateProductBasicRequest(), UserRole.ROLE_USER);
         verifyNoPermissionResponse(perform, PRODUCT_ID_PATH);
     }
 
