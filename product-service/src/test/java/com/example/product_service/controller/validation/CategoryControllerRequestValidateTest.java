@@ -23,8 +23,8 @@ public class CategoryControllerRequestValidateTest {
     private static final String INVALID_URL = "invalidUrl";
     private static final String VALID_URL = "http://test.jpg";
 
-    private static final String NAME_FIELD_PATH = "category.name.notBlank";
-    private static final String IMAGE_URL_FIELD_PATH = "category.iconUrl.invalid";
+    private static final String NAME_FIELD_ERROR_MESSAGE_PATH = "category.name.notBlank";
+    private static final String IMAGE_URL_FIELD_ERROR_MESSAGE_PATH = "category.iconUrl.invalid";
 
     @ParameterizedTest(name = "[{index}] {0} 필드 invalid")
     @MethodSource("invalidCategoryRequestFieldProvider")
@@ -76,14 +76,14 @@ public class CategoryControllerRequestValidateTest {
 
     static Stream<Arguments> invalidCategoryRequestFieldProvider(){
         return Stream.of(
-                Arguments.of("name", "", getMessage(NAME_FIELD_PATH)),
-                Arguments.of("iconUrl", INVALID_URL, getMessage(IMAGE_URL_FIELD_PATH))
+                Arguments.of("name", "", getMessage(NAME_FIELD_ERROR_MESSAGE_PATH)),
+                Arguments.of("iconUrl", INVALID_URL, getMessage(IMAGE_URL_FIELD_ERROR_MESSAGE_PATH))
         );
     }
 
     static Stream<Arguments> invalidUpdateCategoryRequestFiledProvider(){
         return Stream.of(
-                Arguments.of("iconUrl", INVALID_URL, getMessage(IMAGE_URL_FIELD_PATH))
+                Arguments.of("iconUrl", INVALID_URL, getMessage(IMAGE_URL_FIELD_ERROR_MESSAGE_PATH))
         );
     }
 }

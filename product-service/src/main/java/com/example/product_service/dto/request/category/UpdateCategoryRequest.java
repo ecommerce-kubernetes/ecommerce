@@ -13,6 +13,6 @@ import org.hibernate.validator.constraints.URL;
 public class UpdateCategoryRequest {
     private String name;
     private Long parentId;
-    @URL(message = "Invalid ImgUrl")
+    @URL(message = "{category.iconUrl.invalid}")
     private String iconUrl;
 }
