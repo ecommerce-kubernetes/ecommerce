@@ -4,6 +4,7 @@ import com.example.product_service.common.advice.CustomAccessDeniedHandler;
 import com.example.product_service.common.advice.CustomAuthenticationEntryPoint;
 import com.example.product_service.config.WebSecurity;
 import com.example.product_service.controller.CategoryController;
+import com.example.product_service.controller.util.UserRole;
 import com.example.product_service.dto.request.CategoryRequest;
 import com.example.product_service.dto.request.ModifyCategoryRequest;
 import com.example.product_service.service.CategoryService;
@@ -38,7 +39,7 @@ class CategoryControllerSecurityTest {
     @DisplayName("카테고리 생성 테스트-인증 에러")
     void createCategoryTest_UnAuthorized() throws Exception {
         ResultActions perform =
-                performWithAuthAndBody(mockMvc, post(BASE_PATH), createCategoryRequest(), false);
+                performWithAuthAndBody(mockMvc, post(BASE_PATH), createCategoryRequest(), null);
         verifyUnauthorizedResponse(perform, BASE_PATH);
     }
 

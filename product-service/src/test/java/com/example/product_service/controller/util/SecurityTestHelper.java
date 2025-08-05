@@ -34,19 +34,31 @@ public final class SecurityTestHelper {
         verityErrorResponse(perform, status().isUnauthorized(), "UnAuthorized", "Invalid Header", path);
     }
 
+    /**
+     * 검증객체 생성 편의 메서드
+     * @param mockMvc 테스트용 MockMvc
+     * @param builder post(), patch() 등 생성한 MockHttpServletRequestBuilder
+     * @param bodyObject 요청 바디로 직렬화할 DTO (없으면 null)
+     * @param withAuth X-User-Id , X-User-Role 헤더를 붙힐지 여부 (헤더값은 id=1L, role=ROLE_USER)
+     * @return 생성된 검증 객체
+     */
     public static ResultActions performWithAuthAndBody(MockMvc mockMvc, MockHttpServletRequestBuilder builder,
                                                        Object bodyObject,
-                                                       boolean withAuth) throws Exception {
+                                                       UserRole userRole) throws Exception {
         if (bodyObject != null){
             String jsonBody = toJson(bodyObject);
             builder.contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody);
         }
 
-        if (withAuth){
+        if (userRole == UserRole.ROLE_USER){
             builder
                     .header(USER_ID_HEADER, 1)
                     .header(USER_ROLE_HEADER, USER_ROLE);
+        } else if (userRole == UserRole.ROLE_ADMIN){
+            builder
+                    .header(USER_ID_HEADER, 1)
+                    .header(USER_ROLE_HEADER, ADMIN_ROLE);
         }
 
         return mockMvc.perform(builder);
