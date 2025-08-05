@@ -1,20 +1,14 @@
 package com.example.product_service.controller.validation;
 
-import com.example.product_service.controller.util.ValidationTestHelper;
 import com.example.product_service.dto.request.category.CategoryRequest;
 import com.example.product_service.dto.request.category.UpdateCategoryRequest;
 import jakarta.validation.ConstraintViolation;
-import jakarta.validation.Validation;
-import jakarta.validation.Validator;
-import jakarta.validation.ValidatorFactory;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.List;

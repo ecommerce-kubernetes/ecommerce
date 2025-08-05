@@ -30,6 +30,14 @@ public final class ValidationTestHelper {
                         && v.getMessage().equals(expectedMessage));
     }
 
+    /**
+     * Request 객체의 fieldName 의 필드에 injectValue 값(오류값) 을 주입하고 해당 필드가 검증이 수행되는지 확인(메시지까지 확인)
+     * @param target Request 객체
+     * @param fieldName 검증할 필드
+     * @param injectValue 주입할 값
+     * @param expectedMessage 예상 에러 메시지
+     * @param <T> Request 타입
+     */
     public static <T> void assertFieldViolation(T target, String fieldName, Object injectValue, String expectedMessage){
         injectFieldValue(fieldName, injectValue, target);
         Set<ConstraintViolation<T>> violations = validateField(target);
