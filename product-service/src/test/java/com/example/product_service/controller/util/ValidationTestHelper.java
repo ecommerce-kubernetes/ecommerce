@@ -5,12 +5,27 @@ import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import org.springframework.beans.BeanWrapperImpl;
+import org.springframework.context.MessageSource;
+import org.springframework.context.support.ReloadableResourceBundleMessageSource;
+import org.springframework.context.support.ResourceBundleMessageSource;
 
+import java.util.Locale;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public final class ValidationTestHelper {
+    private static final MessageSource messageSource;
+    static {
+        ReloadableResourceBundleMessageSource ms = new ReloadableResourceBundleMessageSource();
+        ms.setBasename("classpath:ValidationMessages"); // 메시지 파일 경로
+        ms.setDefaultEncoding("UTF-8");
+        messageSource = ms;
+    }
+
+    public static String getMessage(String code) {
+        return messageSource.getMessage(code, null, Locale.getDefault());
+    }
     private static final Validator VALIDATOR = Validation.buildDefaultValidatorFactory().getValidator();
     private ValidationTestHelper(){
     }
