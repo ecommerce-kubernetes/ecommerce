@@ -4,6 +4,7 @@ import com.example.product_service.common.advice.CustomAccessDeniedHandler;
 import com.example.product_service.common.advice.CustomAuthenticationEntryPoint;
 import com.example.product_service.config.WebSecurity;
 import com.example.product_service.controller.OptionTypeController;
+import com.example.product_service.controller.util.UserRole;
 import com.example.product_service.dto.request.options.OptionTypeRequest;
 import com.example.product_service.service.OptionTypeService;
 import org.junit.jupiter.api.DisplayName;
@@ -12,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -37,75 +37,51 @@ public class OptionTypeControllerSecurityTest {
     @Test
     @DisplayName("옵션 타입 저장 테스트-인증 에러")
     void createOptionTypeTest_UnAuthorized() throws Exception {
-        String jsonBody = toJson(createOptionTypeRequest());
-
-        ResultActions perform = mockMvc.perform(post(BASE_PATH)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonBody));
-
+        ResultActions perform =
+                performWithAuthAndBody(mockMvc, post(BASE_PATH), createOptionTypeRequest(), null);
         verifyUnauthorizedResponse(perform, BASE_PATH);
     }
 
     @Test
     @DisplayName("옵션 타입 저장 테스트-권한 부족")
     void createOptionTypeTest_NoPermission() throws Exception {
-        String jsonBody = toJson(createOptionTypeRequest());
-
-        ResultActions perform = mockMvc.perform(post(BASE_PATH)
-                        .header(USER_ID_HEADER, 1L)
-                        .header(USER_ROLE_HEADER, USER_ROLE)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonBody));
-
+        ResultActions perform =
+                performWithAuthAndBody(mockMvc, post(BASE_PATH), createOptionTypeRequest(), UserRole.ROLE_USER);
         verifyNoPermissionResponse(perform, BASE_PATH);
     }
 
     @Test
     @DisplayName("옵션 타입 수정 테스트-인증 에러")
     void updateOptionTypeTest_UnAuthorized() throws Exception {
-        String jsonBody = toJson(createOptionTypeRequest());
-
-        ResultActions perform = mockMvc.perform(patch(OPTION_TYPE_ID_PATH)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(jsonBody));
-
+        ResultActions perform =
+                performWithAuthAndBody(mockMvc, patch(OPTION_TYPE_ID_PATH), createOptionTypeRequest(), null);
         verifyUnauthorizedResponse(perform, OPTION_TYPE_ID_PATH);
     }
 
     @Test
     @DisplayName("옵션 타입 수정 테스트-권한 부족")
     void updateOptionTypeTest_NoPermission() throws Exception {
-        String jsonBody = toJson(createOptionTypeRequest());
-
-        ResultActions perform = mockMvc.perform(patch(OPTION_TYPE_ID_PATH)
-                .header(USER_ID_HEADER, 1L)
-                .header(USER_ROLE_HEADER, USER_ROLE)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(jsonBody));
-
+        ResultActions perform =
+                performWithAuthAndBody(mockMvc, patch(OPTION_TYPE_ID_PATH), createOptionTypeRequest(), UserRole.ROLE_USER);
         verifyNoPermissionResponse(perform, OPTION_TYPE_ID_PATH);
     }
 
     @Test
     @DisplayName("옵션 타입 삭제 테스트-인증 에러")
     void deleteOptionTypeTest_UnAuthorized() throws Exception {
-
-        ResultActions perform = mockMvc.perform(delete(OPTION_TYPE_ID_PATH));
-
+        ResultActions perform = performWithAuthAndBody(mockMvc, delete(OPTION_TYPE_ID_PATH), null, null);
         verifyUnauthorizedResponse(perform, OPTION_TYPE_ID_PATH);
     }
 
     @Test
     @DisplayName("옵션 타입 삭제 테스트-권한 부족")
     void deleteOptionTypeTest_NoPermission() throws Exception {
-        ResultActions perform = mockMvc.perform(delete(OPTION_TYPE_ID_PATH)
-                .header(USER_ID_HEADER, 1)
-                .header(USER_ROLE_HEADER, USER_ROLE));
-
+        ResultActions perform =
+                performWithAuthAndBody(mockMvc, delete(OPTION_TYPE_ID_PATH), null, UserRole.ROLE_USER);
         verifyNoPermissionResponse(perform, OPTION_TYPE_ID_PATH);
     }
 
-    private static OptionTypeRequest createOptionTypeRequest() {
+    private OptionTypeRequest createOptionTypeRequest() {
         return new OptionTypeRequest("name");
     }
 }
