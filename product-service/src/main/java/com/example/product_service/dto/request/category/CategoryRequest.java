@@ -16,7 +16,7 @@ import org.hibernate.validator.constraints.URL;
 public class CategoryRequest {
 
     @Schema(description = "카테고리 이름", example = "의류")
-    @NotBlank(message = "Category name is required")
+    @NotBlank(message = "{category.name.notBlank}")
     private String name;
 
     @Schema(description = "부모 카테고리 ID", example = "3")
