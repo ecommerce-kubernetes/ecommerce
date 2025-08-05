@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -23,6 +24,7 @@ public class ProductVariantController {
     @ApiResponse(responseCode = "201", description = "추가 성공")
     @BadRequestApiResponse @ForbiddenApiResponse @NotFoundApiResponse
     @PostMapping
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<ProductVariantResponse> addVariant(@PathVariable("productId") Long productId,
                                                              @RequestBody ProductVariantRequest request){
         return ResponseEntity.status(HttpStatus.CREATED).body(new ProductVariantResponse());
