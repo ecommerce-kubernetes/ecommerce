@@ -23,6 +23,6 @@ public class CategoryRequest {
     private Long parentId;
 
     @Schema(description = "아이콘 URL", example = "http://image.jpg")
-    @URL(message = "{category.iconUrl.invalid}")
+    @URL(message = "{invalid.url}")
     private String iconUrl;
 }

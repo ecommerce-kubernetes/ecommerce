@@ -1,7 +1,4 @@
 package com.example.product_service.controller.validation;
-
-import com.example.product_service.controller.util.TestMessageUtil;
-import com.example.product_service.controller.util.ValidationTestHelper;
 import com.example.product_service.dto.request.image.ImageRequest;
 import com.example.product_service.dto.request.options.ProductOptionTypeRequest;
 import com.example.product_service.dto.request.product.ProductRequest;
@@ -52,6 +49,12 @@ public class ProductControllerRequestValidationTest {
         assertThat(violations).isEmpty();
     }
 
+    @ParameterizedTest(name = "[{index}] {0} 필드 invalid")
+    @MethodSource("invalidImageRequestFieldProvider")
+    void imageRequestValidation_field(String fieldName, Object invalidValue, String expectedMessage ){
+        ImageRequest request = new ImageRequest("http://test.jpg", 0);
+        assertFieldViolation(request, fieldName, invalidValue, expectedMessage);
+    }
 
     static Stream<Arguments> invalidProductRequestFieldProvider(){
         return Stream.of(
@@ -60,6 +63,16 @@ public class ProductControllerRequestValidationTest {
                 Arguments.of("images", List.of(), getMessage("product.images.notEmpty")),
                 Arguments.of("images", null, getMessage("product.images.notEmpty")),
                 Arguments.of("productVariants", List.of(), getMessage("product.productVariants.notEmpty"))
+        );
+    }
+
+    static Stream<Arguments> invalidImageRequestFieldProvider(){
+        return Stream.of(
+                Arguments.of("url", "", getMessage("image.url.notBlank")),
+                Arguments.of("url", "invalidUrl", getMessage("invalid.url")),
+                Arguments.of("sortOrder", null, getMessage("image.sortOrder.notNull")),
+                Arguments.of("sortOrder", "", getMessage("image.sortOrder.notNull")),
+                Arguments.of("sortOrder", -1, getMessage("image.sortOrder.min"))
         );
     }
 
