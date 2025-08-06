@@ -1,9 +1,6 @@
 package com.example.product_service.controller;
 
-import com.example.product_service.controller.util.specification.annotation.AdminApi;
-import com.example.product_service.controller.util.specification.annotation.BadRequestApiResponse;
-import com.example.product_service.controller.util.specification.annotation.ForbiddenApiResponse;
-import com.example.product_service.controller.util.specification.annotation.NotFoundApiResponse;
+import com.example.product_service.controller.util.specification.annotation.*;
 import com.example.product_service.dto.request.options.OptionTypeRequest;
 import com.example.product_service.dto.response.options.OptionTypesResponseDto;
 import com.example.product_service.dto.response.options.OptionValuesResponseDto;
@@ -34,7 +31,7 @@ public class OptionTypeController {
     @AdminApi
     @Operation(summary = "옵션 타입 저장")
     @ApiResponse(responseCode = "201", description = "저장 성공")
-    @BadRequestApiResponse @ForbiddenApiResponse
+    @BadRequestApiResponse @ForbiddenApiResponse @ConflictApiResponse
     @PostMapping
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<OptionTypesResponseDto> createOptionType(@Validated @RequestBody

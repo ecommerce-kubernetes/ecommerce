@@ -17,7 +17,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
-import static com.example.product_service.controller.util.SecurityTestHelper.*;
+import static com.example.product_service.controller.util.ControllerTestHelper.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 
 @WebMvcTest(OptionTypeController.class)
@@ -38,7 +38,7 @@ public class OptionTypeControllerSecurityTest {
     @DisplayName("옵션 타입 저장 테스트-인증 에러")
     void createOptionTypeTest_UnAuthorized() throws Exception {
         ResultActions perform =
-                performWithAuthAndBody(mockMvc, post(BASE_PATH), createOptionTypeRequest(), null);
+                performWithBody(mockMvc, post(BASE_PATH), createOptionTypeRequest());
         verifyUnauthorizedResponse(perform, BASE_PATH);
     }
 
@@ -54,7 +54,7 @@ public class OptionTypeControllerSecurityTest {
     @DisplayName("옵션 타입 수정 테스트-인증 에러")
     void updateOptionTypeTest_UnAuthorized() throws Exception {
         ResultActions perform =
-                performWithAuthAndBody(mockMvc, patch(OPTION_TYPE_ID_PATH), createOptionTypeRequest(), null);
+                performWithBody(mockMvc, patch(OPTION_TYPE_ID_PATH), createOptionTypeRequest());
         verifyUnauthorizedResponse(perform, OPTION_TYPE_ID_PATH);
     }
 
@@ -69,7 +69,7 @@ public class OptionTypeControllerSecurityTest {
     @Test
     @DisplayName("옵션 타입 삭제 테스트-인증 에러")
     void deleteOptionTypeTest_UnAuthorized() throws Exception {
-        ResultActions perform = performWithAuthAndBody(mockMvc, delete(OPTION_TYPE_ID_PATH), null, null);
+        ResultActions perform = performWithBody(mockMvc, delete(OPTION_TYPE_ID_PATH), null);
         verifyUnauthorizedResponse(perform, OPTION_TYPE_ID_PATH);
     }
 

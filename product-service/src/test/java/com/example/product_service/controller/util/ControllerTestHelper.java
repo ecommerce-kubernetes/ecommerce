@@ -11,7 +11,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-public final class SecurityTestHelper {
+public final class ControllerTestHelper {
 
     private static final ObjectMapper mapper = new ObjectMapper();
 
@@ -20,7 +20,7 @@ public final class SecurityTestHelper {
     public static final String USER_ROLE = UserRole.ROLE_USER.name();
     public static final String ADMIN_ROLE = UserRole.ROLE_ADMIN.name();
 
-    private SecurityTestHelper(){
+    private ControllerTestHelper(){
     }
 
     public static String toJson(Object o) throws JsonProcessingException {
@@ -39,17 +39,13 @@ public final class SecurityTestHelper {
      * @param mockMvc 테스트용 MockMvc
      * @param builder post(), patch() 등 생성한 MockHttpServletRequestBuilder
      * @param bodyObject 요청 바디로 직렬화할 DTO (없으면 null)
-     * @param userRole X-User-Id , X-User-Role 헤더를 붙힐지 여부 (User ,Admin, null)
+     * @param userRole X-User-Id , X-User-Role 헤더 생성 (User ,Admin)
      * @return 생성된 검증 객체
      */
     public static ResultActions performWithAuthAndBody(MockMvc mockMvc, MockHttpServletRequestBuilder builder,
                                                        Object bodyObject,
                                                        UserRole userRole) throws Exception {
-        if (bodyObject != null){
-            String jsonBody = toJson(bodyObject);
-            builder.contentType(MediaType.APPLICATION_JSON)
-                    .content(jsonBody);
-        }
+        jsonBodyMapping(builder, bodyObject);
 
         if (userRole == UserRole.ROLE_USER){
             builder
@@ -64,6 +60,12 @@ public final class SecurityTestHelper {
         return mockMvc.perform(builder);
     }
 
+    public static ResultActions performWithBody(MockMvc mockMvc, MockHttpServletRequestBuilder builder,
+                                                Object bodyObject) throws Exception {
+        jsonBodyMapping(builder, bodyObject);
+        return mockMvc.perform(builder);
+    }
+
     private static void verityErrorResponse(ResultActions perform, ResultMatcher status, String error, String message, String path) throws Exception {
         perform
                 .andExpect(status)
@@ -71,5 +73,13 @@ public final class SecurityTestHelper {
                 .andExpect(jsonPath("$.message").value(message))
                 .andExpect(jsonPath("$.timestamp").exists())
                 .andExpect(jsonPath("$.path").value(path));
+    }
+
+    private static void jsonBodyMapping(MockHttpServletRequestBuilder builder, Object bodyObject) throws JsonProcessingException {
+        if (bodyObject != null){
+            String jsonBody = toJson(bodyObject);
+            builder.contentType(MediaType.APPLICATION_JSON)
+                    .content(jsonBody);
+        }
     }
 }

@@ -18,7 +18,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
-import static com.example.product_service.controller.util.SecurityTestHelper.*;
+import static com.example.product_service.controller.util.ControllerTestHelper.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 
 @WebMvcTest(OptionValueController.class)
@@ -37,7 +37,7 @@ public class OptionValueControllerSecurityTest {
     @DisplayName("옵션 값 저장 테스트-인증 에러")
     void createOptionValueTest_UnAuthorized() throws Exception {
         ResultActions perform =
-                performWithAuthAndBody(mockMvc, post(BASE_PATH), createOptionValueRequest(), null);
+                performWithBody(mockMvc, post(BASE_PATH), createOptionValueRequest());
         verifyUnauthorizedResponse(perform, BASE_PATH);
     }
 
@@ -53,7 +53,7 @@ public class OptionValueControllerSecurityTest {
     @DisplayName("옵션 값 수정 테스트-인증 에러")
     void updateOptionValueTest_UnAuthorized() throws Exception {
         ResultActions perform =
-                performWithAuthAndBody(mockMvc, patch(OPTION_VALUE_ID_PATH), createUpdateOptionValueRequest(), null);
+                performWithBody(mockMvc, patch(OPTION_VALUE_ID_PATH), createUpdateOptionValueRequest());
         verifyUnauthorizedResponse(perform, OPTION_VALUE_ID_PATH);
     }
 
@@ -69,7 +69,7 @@ public class OptionValueControllerSecurityTest {
     @DisplayName("옵션 값 삭제 테스트-인증 에러")
     void deleteOptionValueTest_UnAuthorized() throws Exception {
         ResultActions perform =
-                performWithAuthAndBody(mockMvc, delete(OPTION_VALUE_ID_PATH), null, null);
+                performWithBody(mockMvc, delete(OPTION_VALUE_ID_PATH), null);
         verifyUnauthorizedResponse(perform, OPTION_VALUE_ID_PATH);
     }
 

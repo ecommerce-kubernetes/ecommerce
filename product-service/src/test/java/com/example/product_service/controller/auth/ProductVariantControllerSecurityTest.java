@@ -20,7 +20,7 @@ import org.springframework.test.web.servlet.ResultActions;
 
 import java.util.List;
 
-import static com.example.product_service.controller.util.SecurityTestHelper.*;
+import static com.example.product_service.controller.util.ControllerTestHelper.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 
 @WebMvcTest(ProductVariantController.class)
@@ -37,7 +37,7 @@ public class ProductVariantControllerSecurityTest {
     @Test
     @DisplayName("상품 변형 추가 테스트-인증 에러")
     void addVariantTest_UnAuthorized() throws Exception {
-        ResultActions perform = performWithAuthAndBody(mockMvc, post(BASE_PATH), createProductVariantRequest(), null);
+        ResultActions perform = performWithBody(mockMvc, post(BASE_PATH), createProductVariantRequest());
         verifyUnauthorizedResponse(perform, BASE_PATH);
     }
 
@@ -53,7 +53,7 @@ public class ProductVariantControllerSecurityTest {
     @DisplayName("상품 변형 수정 테스트-인증 에러")
     void updateProductVariantTest_UnAuthorized() throws Exception {
         ResultActions perform =
-                performWithAuthAndBody(mockMvc, patch(PRODUCT_VARIANT_ID_PATH), createUpdateProductVariantRequest(), null);
+                performWithBody(mockMvc, patch(PRODUCT_VARIANT_ID_PATH), createUpdateProductVariantRequest());
         verifyUnauthorizedResponse(perform, PRODUCT_VARIANT_ID_PATH);
     }
 
@@ -68,7 +68,7 @@ public class ProductVariantControllerSecurityTest {
     @Test
     @DisplayName("상품 변형 삭제 테스트-인증 에러")
     void deleteProductVariantTest_UnAuthorized() throws Exception {
-        ResultActions perform = performWithAuthAndBody(mockMvc, delete(PRODUCT_VARIANT_ID_PATH), null, null);
+        ResultActions perform = performWithBody(mockMvc, delete(PRODUCT_VARIANT_ID_PATH), null);
         verifyUnauthorizedResponse(perform, PRODUCT_VARIANT_ID_PATH);
     }
 

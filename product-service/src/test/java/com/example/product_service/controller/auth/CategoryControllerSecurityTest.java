@@ -18,7 +18,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
-import static com.example.product_service.controller.util.SecurityTestHelper.*;
+import static com.example.product_service.controller.util.ControllerTestHelper.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 
 @WebMvcTest(CategoryController.class)
@@ -38,7 +38,7 @@ class CategoryControllerSecurityTest {
     @DisplayName("카테고리 생성 테스트-인증 에러")
     void createCategoryTest_UnAuthorized() throws Exception {
         ResultActions perform =
-                performWithAuthAndBody(mockMvc, post(BASE_PATH), createCategoryRequest(), null);
+                performWithBody(mockMvc, post(BASE_PATH), createCategoryRequest());
         verifyUnauthorizedResponse(perform, BASE_PATH);
     }
 
@@ -54,7 +54,7 @@ class CategoryControllerSecurityTest {
     @DisplayName("카테고리 수정 테스트-인증 에러")
     void updateCategoryTest_UnAuthorized() throws Exception {
         ResultActions perform =
-                performWithAuthAndBody(mockMvc, patch(CATEGORY_ID_PATH), createModifyCategoryRequest(), null);
+                performWithBody(mockMvc, patch(CATEGORY_ID_PATH), createModifyCategoryRequest());
         verifyUnauthorizedResponse(perform, CATEGORY_ID_PATH);
     }
 
@@ -70,7 +70,7 @@ class CategoryControllerSecurityTest {
     @DisplayName("카테고리 삭제 테스트-인증 에러")
     void deleteCategoryTest_UnAuthorized() throws Exception {
         ResultActions perform =
-                performWithAuthAndBody(mockMvc, delete(CATEGORY_ID_PATH), null, null);
+                performWithBody(mockMvc, delete(CATEGORY_ID_PATH), null);
         verifyUnauthorizedResponse(perform, CATEGORY_ID_PATH);
     }
 
