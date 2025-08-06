@@ -1,11 +1,13 @@
 package com.example.product_service.controller;
 
+import com.example.product_service.common.MessageSourceUtil;
 import com.example.product_service.controller.util.TestMessageUtil;
 import com.example.product_service.dto.request.options.OptionTypeRequest;
 import com.example.product_service.dto.response.options.OptionTypeResponse;
 import com.example.product_service.exception.DuplicateResourceException;
 import com.example.product_service.service.OptionTypeService;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,9 +33,17 @@ class OptionTypeControllerTest {
 
     @Autowired
     MockMvc mockMvc;
-
+    @MockitoBean
+    MessageSourceUtil ms;
     @MockitoBean
     OptionTypeService service;
+
+    @BeforeEach
+    void setUpMessages() {
+        when(ms.getMessage("badRequest")).thenReturn("BadRequest");
+        when(ms.getMessage("badRequest.validation")).thenReturn("Validation Error");
+        when(ms.getMessage("conflict")).thenReturn("Conflict");
+    }
 
     @Test
     @DisplayName("옵션 타입 생성 테스트-성공")
@@ -54,7 +64,7 @@ class OptionTypeControllerTest {
         OptionTypeRequest request = new OptionTypeRequest();
         ResultActions perform = performWithBody(mockMvc, post(BASE_PATH), request);
         verifyErrorResponse(perform, status().isBadRequest(),
-                getMessage("badRequest"), getMessage("validation"), BASE_PATH);
+                getMessage("badRequest"), getMessage("badRequest.validation"), BASE_PATH);
 
         perform.andExpect(jsonPath("$.errors").isNotEmpty());
     }

@@ -1,5 +1,6 @@
 package com.example.product_service.common.advice;
 
+import com.example.product_service.common.MessageSourceUtil;
 import com.example.product_service.common.advice.dto.DetailError;
 import com.example.product_service.common.advice.dto.ErrorResponse;
 import com.example.product_service.common.advice.dto.ValidationErrorResponse;
@@ -7,6 +8,7 @@ import com.example.product_service.exception.BadRequestException;
 import com.example.product_service.exception.DuplicateResourceException;
 import com.example.product_service.exception.NotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -18,7 +20,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @RestControllerAdvice
+@RequiredArgsConstructor
 public class ControllerAdvice {
+    private final MessageSourceUtil ms;
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ValidationErrorResponse> validationExceptionHandler(HttpServletRequest request,
@@ -32,8 +36,8 @@ public class ControllerAdvice {
 
         String timestamp = LocalDateTime.now().toString();
         ValidationErrorResponse validationErrorResponse = new ValidationErrorResponse(
-                "BadRequest",
-                "Validation Error",
+                ms.getMessage("badRequest"),
+                ms.getMessage("badRequest.validation"),
                 detailErrors,
                 timestamp,
                 request.getRequestURI()
@@ -57,7 +61,7 @@ public class ControllerAdvice {
     public ResponseEntity<ErrorResponse> badRequestExceptionHandler(HttpServletRequest request, BadRequestException e){
         String timestamp = LocalDateTime.now().toString();
         ErrorResponse errorResponse = new ErrorResponse(
-                "BadRequest",
+                ms.getMessage("badRequest"),
                 e.getMessage(),
                 timestamp,
                 request.getRequestURI()
@@ -69,7 +73,7 @@ public class ControllerAdvice {
     public ResponseEntity<ErrorResponse> conflictExceptionHandler(HttpServletRequest request, DuplicateResourceException e){
         String timestamp = LocalDateTime.now().toString();
         ErrorResponse errorResponse = new ErrorResponse(
-                "Conflict",
+                ms.getMessage("conflict"),
                 e.getMessage(),
                 timestamp,
                 request.getRequestURI()
