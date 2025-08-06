@@ -22,8 +22,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ExtendWith(SpringExtension.class)
 public class OptionValueControllerRequestValidateTest {
 
-    private static final String OPTION_TYPE_ID_FIELD_ERROR_MESSAGE_PATH = "optionValue.optionTypeId.notNull";
-    private static final String VALUE_FIELD_ERROR_MESSAGE_PATH = "optionValue.value.notBlank";
+    private static final String OPTION_TYPE_ID_FIELD_ERROR_MESSAGE_PATH = "NotNull";
+    private static final String VALUE_FIELD_ERROR_MESSAGE_PATH = "NotBlank";
 
     @ParameterizedTest(name = "[{index}] {0} 필드 invalid")
     @MethodSource("invalidOptionValueRequestFieldProvider")

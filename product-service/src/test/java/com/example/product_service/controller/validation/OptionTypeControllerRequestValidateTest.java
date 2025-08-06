@@ -16,7 +16,7 @@ import static org.assertj.core.api.Assertions.*;
 @ExtendWith(SpringExtension.class)
 public class OptionTypeControllerRequestValidateTest {
 
-    private static final String NAME_FIELD_ERROR_MESSAGE_PATH = "optionType.name.notBlank";
+    private static final String NAME_FIELD_ERROR_MESSAGE_PATH = "NotBlank";
 
     @Test
     @DisplayName("OptionTypeRequest 필드 검증")

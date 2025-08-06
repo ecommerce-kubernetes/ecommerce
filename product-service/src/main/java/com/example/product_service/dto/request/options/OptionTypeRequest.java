@@ -11,6 +11,6 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class OptionTypeRequest {
-    @NotBlank(message = "{optionType.name.notBlank}")
+    @NotBlank(message = "{NotBlank}")
     private String name;
 }
