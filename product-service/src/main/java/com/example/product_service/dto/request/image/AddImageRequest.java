@@ -1,9 +1,12 @@
 package com.example.product_service.dto.request.image;
 
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.validator.constraints.URL;
 
 import java.util.List;
 
@@ -12,5 +15,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AddImageRequest {
-    private List<String> imageUrls;
+    @NotNull(message = "{NotNull}")
+    @NotEmpty(message = "{NotEmpty}")
+    private List<@URL(message = "{InvalidUrl}") String> imageUrls;
 }

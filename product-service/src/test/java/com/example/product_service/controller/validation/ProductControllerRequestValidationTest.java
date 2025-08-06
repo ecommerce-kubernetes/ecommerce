@@ -113,6 +113,18 @@ public class ProductControllerRequestValidationTest {
         assertFieldViolation(request, fieldName, invalidValue, expectedMessage);
     }
 
+    @Test
+    @DisplayName("ProductVariantRequest 필드 동시 오류 발생시 전체 개수 및 필드 확인")
+    void productVariantRequestValidation_multiple(){
+        ProductVariantRequest request = new ProductVariantRequest();
+        Set<ConstraintViolation<ProductVariantRequest>> violations = validateField(request);
+        List<String> field = violations.stream().map(v -> v.getPropertyPath().toString()).toList();
+
+        assertThat(violations).hasSize(3);
+
+        assertThat(field).containsExactlyInAnyOrder("sku", "price", "stockQuantity");
+    }
+
     static Stream<Arguments> invalidProductRequestFieldProvider(){
         return Stream.of(
                 Arguments.of("name", "", getMessage(NOT_BLANK_MESSAGE_PATH)),
