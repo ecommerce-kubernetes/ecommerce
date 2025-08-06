@@ -16,13 +16,13 @@ import org.hibernate.validator.constraints.URL;
 public class CategoryRequest {
 
     @Schema(description = "카테고리 이름", example = "의류")
-    @NotBlank(message = "{category.name.notBlank}")
+    @NotBlank(message = "{NotBlank}")
     private String name;
 
     @Schema(description = "부모 카테고리 ID", example = "3")
     private Long parentId;
 
     @Schema(description = "아이콘 URL", example = "http://image.jpg")
-    @URL(message = "{invalid.url}")
+    @URL(message = "{InvalidUrl}")
     private String iconUrl;
 }

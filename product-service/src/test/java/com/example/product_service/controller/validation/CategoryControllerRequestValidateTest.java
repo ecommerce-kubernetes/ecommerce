@@ -24,8 +24,8 @@ public class CategoryControllerRequestValidateTest {
     private static final String INVALID_URL = "invalidUrl";
     private static final String VALID_URL = "http://test.jpg";
 
-    private static final String NAME_FIELD_ERROR_MESSAGE_PATH = "category.name.notBlank";
-    private static final String URL_FIELD_ERROR_MESSAGE_PATH = "invalid.url";
+    private static final String NAME_FIELD_ERROR_MESSAGE_PATH = "NotBlank";
+    private static final String URL_FIELD_ERROR_MESSAGE_PATH = "InvalidUrl";
 
     @ParameterizedTest(name = "[{index}] {0} 필드 invalid")
     @MethodSource("invalidCategoryRequestFieldProvider")
