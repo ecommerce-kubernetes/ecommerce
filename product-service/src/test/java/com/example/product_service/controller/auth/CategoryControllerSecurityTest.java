@@ -1,5 +1,6 @@
 package com.example.product_service.controller.auth;
 
+import com.example.product_service.common.MessageSourceUtil;
 import com.example.product_service.common.advice.CustomAccessDeniedHandler;
 import com.example.product_service.common.advice.CustomAuthenticationEntryPoint;
 import com.example.product_service.config.WebSecurity;
@@ -22,7 +23,7 @@ import static com.example.product_service.controller.util.ControllerTestHelper.*
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 
 @WebMvcTest(CategoryController.class)
-@Import({WebSecurity.class, CustomAccessDeniedHandler.class, CustomAuthenticationEntryPoint.class})
+@Import({WebSecurity.class, CustomAccessDeniedHandler.class, CustomAuthenticationEntryPoint.class, MessageSourceUtil.class})
 @AutoConfigureMockMvc
 class CategoryControllerSecurityTest {
 
