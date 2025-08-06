@@ -1,12 +1,16 @@
 package com.example.product_service.controller.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.ResultMatcher;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+
+import java.util.Iterator;
+import java.util.Map;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -28,10 +32,10 @@ public final class ControllerTestHelper {
     }
 
     public static void verifyNoPermissionResponse(ResultActions perform, String path) throws Exception {
-        verityErrorResponse(perform, status().isForbidden(), "Forbidden", "Access Denied", path);
+        verifyErrorResponse(perform, status().isForbidden(), "Forbidden", "Access Denied", path);
     }
     public static void verifyUnauthorizedResponse(ResultActions perform, String path) throws Exception {
-        verityErrorResponse(perform, status().isUnauthorized(), "UnAuthorized", "Invalid Header", path);
+        verifyErrorResponse(perform, status().isUnauthorized(), "UnAuthorized", "Invalid Header", path);
     }
 
     /**
@@ -66,13 +70,46 @@ public final class ControllerTestHelper {
         return mockMvc.perform(builder);
     }
 
-    private static void verityErrorResponse(ResultActions perform, ResultMatcher status, String error, String message, String path) throws Exception {
+    public static void verifyErrorResponse(ResultActions perform, ResultMatcher status, String error, String message, String path) throws Exception {
         perform
                 .andExpect(status)
                 .andExpect(jsonPath("$.error").value(error))
                 .andExpect(jsonPath("$.message").value(message))
                 .andExpect(jsonPath("$.timestamp").exists())
                 .andExpect(jsonPath("$.path").value(path));
+    }
+
+    public static void verifySuccessResponse(ResultActions perform, ResultMatcher status, Object response) throws Exception {
+
+        perform.andExpect(status);
+
+        JsonNode expected = mapper.valueToTree(response);
+
+        Iterator<Map.Entry<String, JsonNode>> fields = expected.fields();
+        assertJsonNode(perform, "$", expected);
+    }
+    private static void assertJsonNode(ResultActions perform, String jsonPath, JsonNode node) throws Exception {
+        if(node.isNull()){
+            perform.andExpect(jsonPath(jsonPath).doesNotExist());
+        } else if (node.isNumber()){
+            perform.andExpect(jsonPath(jsonPath).value(node.numberValue()));
+        } else if (node.isBoolean()){
+            perform.andExpect(jsonPath(jsonPath).value(node.booleanValue()));
+        } else if (node.isObject()){
+            Iterator<Map.Entry<String, JsonNode>> fields = node.fields();
+            while(fields.hasNext()){
+                Map.Entry<String, JsonNode> entry = fields.next();
+                String childPath = String.format("%s.%s", jsonPath, entry.getKey());
+                assertJsonNode(perform, childPath, entry.getValue());
+            }
+        } else if (node.isArray()) {
+            for (int i = 0; i < node.size(); i++) {
+                String elementPath = String.format("%s[%d]", jsonPath, i);
+                assertJsonNode(perform, elementPath, node.get(i));
+            }
+        } else {
+            perform.andExpect(jsonPath(jsonPath).value(node.asText()));
+        }
     }
 
     private static void jsonBodyMapping(MockHttpServletRequestBuilder builder, Object bodyObject) throws JsonProcessingException {

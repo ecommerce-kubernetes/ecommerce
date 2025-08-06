@@ -1,7 +1,7 @@
 package com.example.product_service.service;
 
 import com.example.product_service.dto.request.options.OptionTypeRequest;
-import com.example.product_service.dto.response.options.OptionTypesResponseDto;
+import com.example.product_service.dto.response.options.OptionTypeResponse;
 import com.example.product_service.dto.response.PageDto;
 import com.example.product_service.dto.response.options.OptionValuesResponseDto;
 import com.example.product_service.entity.OptionTypes;
@@ -17,7 +17,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -29,24 +28,24 @@ public class OptionTypeServiceImpl implements OptionTypeService {
     private final OptionTypesRepository optionTypesRepository;
     @Override
     @Transactional
-    public OptionTypesResponseDto saveOptionTypes(OptionTypeRequest requestDto) {
+    public OptionTypeResponse saveOptionTypes(OptionTypeRequest requestDto) {
         String name = requestDto.getName();
         OptionTypes optionType = new OptionTypes(name);
         try{
             OptionTypes save = optionTypesRepository.save(optionType);
-            return new OptionTypesResponseDto(save);
+            return new OptionTypeResponse(save);
         } catch (DataIntegrityViolationException ex){
             throw new DuplicateResourceException("OptionTypes name Conflict");
         }
     }
 
     @Override
-    public PageDto<OptionTypesResponseDto> getOptionTypes(String query, Pageable pageable) {
+    public PageDto<OptionTypeResponse> getOptionTypes(String query, Pageable pageable) {
         Page<OptionTypes> optionTypesPage = optionTypesRepository.findByNameOrAll(query, pageable);
 
         List<OptionTypes> content = optionTypesPage.getContent();
 
-        List<OptionTypesResponseDto> list = content.stream().map(OptionTypesResponseDto::new).toList();
+        List<OptionTypeResponse> list = content.stream().map(OptionTypeResponse::new).toList();
         return new PageDto<>(
                 list,
                 pageable.getPageNumber(),
@@ -58,7 +57,7 @@ public class OptionTypeServiceImpl implements OptionTypeService {
 
     @Override
     @Transactional
-    public OptionTypesResponseDto modifyOptionTypes(Long optionTypeId, OptionTypeRequest requestDto) {
+    public OptionTypeResponse modifyOptionTypes(Long optionTypeId, OptionTypeRequest requestDto) {
         OptionTypes target = optionTypesRepository.findById(optionTypeId)
                 .orElseThrow(() -> new NotFoundException("Not Found OptionType"));
 
@@ -68,7 +67,7 @@ public class OptionTypeServiceImpl implements OptionTypeService {
         } catch (DataIntegrityViolationException ex){
             throw new DuplicateResourceException("OptionTypes name Conflict");
         }
-        return new OptionTypesResponseDto(target);
+        return new OptionTypeResponse(target);
     }
 
     @Override
