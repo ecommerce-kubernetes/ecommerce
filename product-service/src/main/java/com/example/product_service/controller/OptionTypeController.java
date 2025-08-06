@@ -36,8 +36,8 @@ public class OptionTypeController {
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<OptionTypeResponse> createOptionType(@Validated @RequestBody
                                                                    OptionTypeRequest request){
-//        OptionTypeResponse responseDto = optionTypeService.saveOptionTypes(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(new OptionTypeResponse(1L, request.getName()));
+        OptionTypeResponse responseDto = optionTypeService.saveOptionTypes(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
     }
 
     @Operation(summary = "옵션 타입 조회")
