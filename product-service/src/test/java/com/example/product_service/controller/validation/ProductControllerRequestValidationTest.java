@@ -75,7 +75,32 @@ public class ProductControllerRequestValidationTest {
         assertThat(violations).isEmpty();
     }
 
+    @ParameterizedTest(name = "[{index}] {0} 필드 invalid")
+    @MethodSource("invalidProductOptionTypeRequestFieldProvider")
+    void productOptionTypeRequestValidation_field(String fieldName, Object invalidValue, String expectedMessage){
+        ProductOptionTypeRequest request = new ProductOptionTypeRequest(1L, 0);
+        assertFieldViolation(request, fieldName, invalidValue, expectedMessage);
+    }
 
+    @Test
+    @DisplayName("ProductOptionTypeRequest 필드 동시 오류 발생시 전체 개수 및 필드 확인")
+    void productOptionTypeRequestValidation_multiple(){
+        ProductOptionTypeRequest request = new ProductOptionTypeRequest();
+        Set<ConstraintViolation<ProductOptionTypeRequest>> violations = validateField(request);
+        List<String> fields = violations.stream().map(v -> v.getPropertyPath().toString()).toList();
+
+        assertThat(violations).hasSize(2);
+        assertThat(fields).containsExactlyInAnyOrder("optionTypeId", "priority");
+    }
+
+
+    @Test
+    @DisplayName("ProductOptionTypeRequest 오류 없음")
+    void productOptionTypeRequestValidation_thenOk(){
+        ProductOptionTypeRequest request = new ProductOptionTypeRequest(1L, 0);
+        Set<ConstraintViolation<ProductOptionTypeRequest>> violations = validateField(request);
+        assertThat(violations).isEmpty();
+    }
 
     static Stream<Arguments> invalidProductRequestFieldProvider(){
         return Stream.of(
@@ -97,6 +122,15 @@ public class ProductControllerRequestValidationTest {
         );
     }
 
+    static Stream<Arguments> invalidProductOptionTypeRequestFieldProvider(){
+        return Stream.of(
+                Arguments.of("optionTypeId", null, getMessage("productOptionType.optionTypeId.notNull")),
+                Arguments.of("optionTypeId", "", getMessage("productOptionType.optionTypeId.notNull")),
+                Arguments.of("priority", null, getMessage("productOptionType.priority.notNull")),
+                Arguments.of("priority", -1, getMessage("productOptionType.priority.min"))
+        );
+
+    }
     private ProductRequest createProductRequest() {
         return new ProductRequest("name",
                 "description",
