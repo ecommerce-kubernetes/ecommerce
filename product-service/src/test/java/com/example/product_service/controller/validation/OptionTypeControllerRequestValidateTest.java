@@ -16,13 +16,13 @@ import static org.assertj.core.api.Assertions.*;
 @ExtendWith(SpringExtension.class)
 public class OptionTypeControllerRequestValidateTest {
 
-    private static final String NAME_FIELD_ERROR_MESSAGE_PATH = "NotBlank";
+    private static final String NOT_BLANK_MESSAGE_PATH = "NotBlank";
 
     @Test
     @DisplayName("OptionTypeRequest 필드 검증")
     void optionTypeRequestValidation_field(){
         OptionTypeRequest request = new OptionTypeRequest("optionType");
-        assertFieldViolation(request, "name", "", getMessage(NAME_FIELD_ERROR_MESSAGE_PATH));
+        assertFieldViolation(request, "name", "", getMessage(NOT_BLANK_MESSAGE_PATH));
     }
 
     @Test

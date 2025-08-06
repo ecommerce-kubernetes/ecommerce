@@ -22,8 +22,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ExtendWith(SpringExtension.class)
 public class OptionValueControllerRequestValidateTest {
 
-    private static final String OPTION_TYPE_ID_FIELD_ERROR_MESSAGE_PATH = "NotNull";
-    private static final String VALUE_FIELD_ERROR_MESSAGE_PATH = "NotBlank";
+    private static final String NOTNULL_ERROR_MESSAGE_PATH = "NotNull";
+    private static final String NOT_BLANK_ERROR_MESSAGE_PATH = "NotBlank";
 
     @ParameterizedTest(name = "[{index}] {0} 필드 invalid")
     @MethodSource("invalidOptionValueRequestFieldProvider")
@@ -53,7 +53,7 @@ public class OptionValueControllerRequestValidateTest {
     @DisplayName("UpdateOptionValueRequest 필드 검증")
     void updateOptionValueRequestValidation_field(){
         UpdateOptionValueRequest request = new UpdateOptionValueRequest(1L, "value");
-        assertFieldViolation(request, "value", "", getMessage(VALUE_FIELD_ERROR_MESSAGE_PATH));
+        assertFieldViolation(request, "value", "", getMessage(NOT_BLANK_ERROR_MESSAGE_PATH));
     }
 
     @Test
@@ -66,9 +66,9 @@ public class OptionValueControllerRequestValidateTest {
 
     static Stream<Arguments> invalidOptionValueRequestFieldProvider(){
         return Stream.of(
-                Arguments.of("optionTypeId", null, getMessage(OPTION_TYPE_ID_FIELD_ERROR_MESSAGE_PATH)),
-                Arguments.of("optionTypeId", "", getMessage(OPTION_TYPE_ID_FIELD_ERROR_MESSAGE_PATH)),
-                Arguments.of("value", "", getMessage(VALUE_FIELD_ERROR_MESSAGE_PATH))
+                Arguments.of("optionTypeId", null, getMessage(NOTNULL_ERROR_MESSAGE_PATH)),
+                Arguments.of("optionTypeId", "", getMessage(NOTNULL_ERROR_MESSAGE_PATH)),
+                Arguments.of("value", "", getMessage(NOT_BLANK_ERROR_MESSAGE_PATH))
         );
     }
 }

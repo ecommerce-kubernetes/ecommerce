@@ -14,10 +14,10 @@ import org.hibernate.validator.constraints.URL;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ImageRequest {
-    @NotBlank(message = "{image.url.notBlank}")
-    @URL(message = "{invalid.url}")
+    @NotBlank(message = "{NotBlank}")
+    @URL(message = "{InvalidUrl}")
     private String url;
-    @NotNull(message = "{image.sortOrder.notNull}")
-    @Min(value = 0, message = "{image.sortOrder.min}")
+    @NotNull(message = "{NotNull}")
+    @Min(value = 0, message = "{Min}")
     private Integer sortOrder;
 }

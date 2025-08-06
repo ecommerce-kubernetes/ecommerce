@@ -12,9 +12,9 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProductOptionTypeRequest {
-    @NotNull(message = "{productOptionType.optionTypeId.notNull}")
+    @NotNull(message = "{NotNull}")
     private Long optionTypeId;
-    @NotNull(message = "{productOptionType.priority.notNull}")
-    @Min(value = 0, message = "{productOptionType.priority.min}")
+    @NotNull(message = "{NotNull}")
+    @Min(value = 0, message = "{Min}")
     private Integer priority;
 }

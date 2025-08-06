@@ -23,6 +23,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ExtendWith(SpringExtension.class)
 public class ProductControllerRequestValidationTest {
 
+    private static final String NOT_BLANK_MESSAGE_PATH = "NotBlank";
+    private static final String NOT_EMPTY_MESSAGE_PATH = "NotEmpty";
+    private static final String NOTNULL_MESSAGE_PATH = "NotNull";
+    private static final String INVALID_URL_MESSAGE_PATH = "InvalidUrl";
+
     @ParameterizedTest(name = "[{index}] {0} 필드 invalid")
     @MethodSource("invalidProductRequestFieldProvider")
     void productRequestValidation_field(String fieldName, Object invalidValue, String expectedMessage){
@@ -110,41 +115,41 @@ public class ProductControllerRequestValidationTest {
 
     static Stream<Arguments> invalidProductRequestFieldProvider(){
         return Stream.of(
-                Arguments.of("name", "", getMessage("product.name.notBlank")),
-                Arguments.of("categoryId", null, getMessage("product.categoryId.notNull")),
-                Arguments.of("images", List.of(), getMessage("product.images.notEmpty")),
-                Arguments.of("images", null, getMessage("product.images.notEmpty")),
-                Arguments.of("productVariants", List.of(), getMessage("product.productVariants.notEmpty"))
+                Arguments.of("name", "", getMessage(NOT_BLANK_MESSAGE_PATH)),
+                Arguments.of("categoryId", null, getMessage(NOTNULL_MESSAGE_PATH)),
+                Arguments.of("images", List.of(), getMessage(NOT_EMPTY_MESSAGE_PATH)),
+                Arguments.of("images", null, getMessage(NOT_EMPTY_MESSAGE_PATH)),
+                Arguments.of("productVariants", List.of(), getMessage(NOT_EMPTY_MESSAGE_PATH))
         );
     }
 
     static Stream<Arguments> invalidImageRequestFieldProvider(){
         return Stream.of(
-                Arguments.of("url", "", getMessage("image.url.notBlank")),
-                Arguments.of("url", "invalidUrl", getMessage("invalid.url")),
-                Arguments.of("sortOrder", null, getMessage("image.sortOrder.notNull")),
-                Arguments.of("sortOrder", "", getMessage("image.sortOrder.notNull")),
-                Arguments.of("sortOrder", -1, getMessage("image.sortOrder.min"))
+                Arguments.of("url", "", getMessage(NOT_BLANK_MESSAGE_PATH)),
+                Arguments.of("url", "invalidUrl", getMessage(INVALID_URL_MESSAGE_PATH)),
+                Arguments.of("sortOrder", null, getMessage(NOTNULL_MESSAGE_PATH)),
+                Arguments.of("sortOrder", "", getMessage(NOTNULL_MESSAGE_PATH)),
+                Arguments.of("sortOrder", -1, "must be at least 0")
         );
     }
 
     static Stream<Arguments> invalidProductOptionTypeRequestFieldProvider(){
         return Stream.of(
-                Arguments.of("optionTypeId", null, getMessage("productOptionType.optionTypeId.notNull")),
-                Arguments.of("optionTypeId", "", getMessage("productOptionType.optionTypeId.notNull")),
-                Arguments.of("priority", null, getMessage("productOptionType.priority.notNull")),
-                Arguments.of("priority", -1, getMessage("productOptionType.priority.min"))
+                Arguments.of("optionTypeId", null, getMessage(NOTNULL_MESSAGE_PATH)),
+                Arguments.of("optionTypeId", "", getMessage(NOTNULL_MESSAGE_PATH)),
+                Arguments.of("priority", null, getMessage(NOTNULL_MESSAGE_PATH)),
+                Arguments.of("priority", -1, "must be at least 0")
         );
 
     }
 
     static Stream<Arguments> invalidProductVariantRequestFieldProvider(){
         return Stream.of(
-                Arguments.of("sku", null, getMessage("productVariant.sku.notBlank")),
-                Arguments.of("sku", "", getMessage("productVariant.sku.notBlank")),
-                Arguments.of("price", null, getMessage("productVariant.price.notNull")),
-                Arguments.of("price", "", getMessage("productVariant.price.notNull")),
-                Arguments.of("price", -1, getMessage("productVariant.price.min"))
+                Arguments.of("sku", null, getMessage(NOT_BLANK_MESSAGE_PATH)),
+                Arguments.of("sku", "", getMessage(NOT_BLANK_MESSAGE_PATH)),
+                Arguments.of("price", null, getMessage(NOTNULL_MESSAGE_PATH)),
+                Arguments.of("price", "", getMessage(NOTNULL_MESSAGE_PATH)),
+                Arguments.of("price", -1, "must be at least 0")
         );
     }
     private ProductRequest createProductRequest() {

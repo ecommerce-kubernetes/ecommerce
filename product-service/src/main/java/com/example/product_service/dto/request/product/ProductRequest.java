@@ -18,14 +18,14 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProductRequest {
-    @NotBlank(message = "{product.name.notBlank}")
+    @NotBlank(message = "{NotBlank}")
     private String name;
     private String description;
-    @NotNull(message = "{product.categoryId.notNull}")
+    @NotNull(message = "{NotNull}")
     private Long categoryId;
-    @NotEmpty(message = "{product.images.notEmpty}")
+    @NotEmpty(message = "{NotEmpty}")
     private List<ImageRequest> images;
     private List<ProductOptionTypeRequest> productOptionTypes;
-    @NotEmpty(message = "{product.productVariants.notEmpty}")
+    @NotEmpty(message = "{NotEmpty}")
     private List<ProductVariantRequest> productVariants;
 }

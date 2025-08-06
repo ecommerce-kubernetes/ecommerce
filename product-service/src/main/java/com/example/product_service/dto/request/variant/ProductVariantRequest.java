@@ -16,10 +16,10 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProductVariantRequest {
-    @NotBlank(message = "{productVariant.sku.notBlank}")
+    @NotBlank(message = "{NotBlank}")
     private String sku;
-    @NotNull(message = "{productVariant.price.notNull}")
-    @Min(value = 0, message = "{productVariant.price.min}")
+    @NotNull(message = "{NotNull}")
+    @Min(value = 0, message = "{Min}")
     private Integer price;
     private int stockQuantity;
     private int discountRate;
