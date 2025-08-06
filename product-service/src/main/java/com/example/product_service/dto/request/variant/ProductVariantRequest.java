@@ -20,8 +20,12 @@ public class ProductVariantRequest {
     private String sku;
     @NotNull(message = "{NotNull}")
     @Min(value = 0, message = "{Min}")
+    @Max(value = 100000000, message = "{Max}")
     private Integer price;
-    private int stockQuantity;
-    private int discountRate;
+    @NotNull(message = "{NotNull}")
+    @Min(value = 1, message = "{Min}")
+    private Integer stockQuantity;
+    @Max(value = 100, message = "{Max}")
+    private Integer discountRate;
     private List<Long> optionValueIds;
 }
