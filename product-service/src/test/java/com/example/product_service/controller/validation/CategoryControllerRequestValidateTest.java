@@ -36,7 +36,7 @@ public class CategoryControllerRequestValidateTest {
     }
 
     @ParameterizedTest(name = "[{index}] {0} 필드 invalid")
-    @MethodSource("invalidUpdateCategoryRequestFiledProvider")
+    @MethodSource("invalidUpdateCategoryRequestFieldProvider")
     void updateCategoryRequestValidation_field(String fieldName, Object invalidValue, String expectedMessage){
         UpdateCategoryRequest request = new UpdateCategoryRequest("노트북", 1L, VALID_URL);
         assertFieldViolation(request, fieldName, invalidValue, expectedMessage);
@@ -82,7 +82,7 @@ public class CategoryControllerRequestValidateTest {
         );
     }
 
-    static Stream<Arguments> invalidUpdateCategoryRequestFiledProvider(){
+    static Stream<Arguments> invalidUpdateCategoryRequestFieldProvider(){
         return Stream.of(
                 Arguments.of("iconUrl", INVALID_URL, getMessage(IMAGE_URL_FIELD_ERROR_MESSAGE_PATH))
         );

@@ -3,6 +3,7 @@ package com.example.product_service.dto.request.product;
 import com.example.product_service.dto.request.image.ImageRequest;
 import com.example.product_service.dto.request.options.ProductOptionTypeRequest;
 import com.example.product_service.dto.request.variant.ProductVariantRequest;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -15,6 +16,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProductRequest {
+    @NotBlank(message = "{product.name.notBlank}")
     private String name;
     private String description;
     private Long categoryId;
