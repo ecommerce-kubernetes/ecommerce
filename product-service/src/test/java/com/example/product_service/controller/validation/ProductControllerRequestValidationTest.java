@@ -165,6 +165,7 @@ public class ProductControllerRequestValidationTest {
                 Arguments.of("price", 100000001, "must not be greater than 100000000"),
                 Arguments.of("stockQuantity", null, getMessage(NOTNULL_MESSAGE_PATH)),
                 Arguments.of("stockQuantity", 0, "must be at least 1"),
+                Arguments.of("discountRate", -1, "must be at least 0"),
                 Arguments.of("discountRate", 101, "must not be greater than 100")
         );
     }

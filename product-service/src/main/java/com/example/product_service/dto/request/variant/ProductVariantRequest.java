@@ -25,6 +25,7 @@ public class ProductVariantRequest {
     @NotNull(message = "{NotNull}")
     @Min(value = 1, message = "{Min}")
     private Integer stockQuantity;
+    @Min(value = 0, message = "{Min}")
     @Max(value = 100, message = "{Max}")
     private Integer discountRate;
     private List<Long> optionValueIds;
