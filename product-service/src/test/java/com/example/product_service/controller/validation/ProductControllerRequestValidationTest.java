@@ -56,6 +56,27 @@ public class ProductControllerRequestValidationTest {
         assertFieldViolation(request, fieldName, invalidValue, expectedMessage);
     }
 
+    @Test
+    @DisplayName("ImageRequest 필드 동시 오류 발생시 전체 개수 및 필드 확인")
+    void imageRequestValidation_multiple(){
+        ImageRequest request = new ImageRequest();
+        Set<ConstraintViolation<ImageRequest>> violations = validateField(request);
+        List<String> fields = violations.stream().map(v -> v.getPropertyPath().toString()).toList();
+
+        assertThat(violations).hasSize(2);
+        assertThat(fields).containsExactlyInAnyOrder("url", "sortOrder");
+    }
+
+    @Test
+    @DisplayName("ImageRequest 오류 없음")
+    void imageRequestValidation_thenOk(){
+        ImageRequest request = new ImageRequest("http://test.jpg", 0);
+        Set<ConstraintViolation<ImageRequest>> violations = validateField(request);
+        assertThat(violations).isEmpty();
+    }
+
+
+
     static Stream<Arguments> invalidProductRequestFieldProvider(){
         return Stream.of(
                 Arguments.of("name", "", getMessage("product.name.notBlank")),
