@@ -80,36 +80,57 @@ public final class ControllerTestHelper {
     }
 
     public static void verifySuccessResponse(ResultActions perform, ResultMatcher status, Object response) throws Exception {
-
         perform.andExpect(status);
-
         JsonNode expected = mapper.valueToTree(response);
-
-        Iterator<Map.Entry<String, JsonNode>> fields = expected.fields();
         assertJsonNode(perform, "$", expected);
     }
+
     private static void assertJsonNode(ResultActions perform, String jsonPath, JsonNode node) throws Exception {
         if(node.isNull()){
-            perform.andExpect(jsonPath(jsonPath).doesNotExist());
+            verifyJsonNodeNotExist(perform, jsonPath);
         } else if (node.isNumber()){
-            perform.andExpect(jsonPath(jsonPath).value(node.numberValue()));
+            verifyJsonNodeNumberValue(perform, jsonPath, node);
         } else if (node.isBoolean()){
-            perform.andExpect(jsonPath(jsonPath).value(node.booleanValue()));
+            verifyJsonNodeBooleanValue(perform, jsonPath, node);
         } else if (node.isObject()){
-            Iterator<Map.Entry<String, JsonNode>> fields = node.fields();
-            while(fields.hasNext()){
-                Map.Entry<String, JsonNode> entry = fields.next();
-                String childPath = String.format("%s.%s", jsonPath, entry.getKey());
-                assertJsonNode(perform, childPath, entry.getValue());
-            }
+            processingObjectNode(perform, jsonPath, node);
         } else if (node.isArray()) {
-            for (int i = 0; i < node.size(); i++) {
-                String elementPath = String.format("%s[%d]", jsonPath, i);
-                assertJsonNode(perform, elementPath, node.get(i));
-            }
+            processingArrayNode(perform, jsonPath, node);
         } else {
-            perform.andExpect(jsonPath(jsonPath).value(node.asText()));
+            verifyJsonNodeEtcValue(perform, jsonPath, node);
         }
+    }
+
+    private static void processingObjectNode(ResultActions perform, String jsonPath, JsonNode node) throws Exception {
+        Iterator<Map.Entry<String, JsonNode>> fields = node.fields();
+        while(fields.hasNext()){
+            Map.Entry<String, JsonNode> entry = fields.next();
+            String childPath = String.format("%s.%s", jsonPath, entry.getKey());
+            assertJsonNode(perform, childPath, entry.getValue());
+        }
+    }
+
+    private static void processingArrayNode(ResultActions perform, String jsonPath, JsonNode node) throws Exception {
+        for (int i = 0; i < node.size(); i++) {
+            String elementPath = String.format("%s[%d]", jsonPath, i);
+            assertJsonNode(perform, elementPath, node.get(i));
+        }
+    }
+
+    private static void verifyJsonNodeEtcValue(ResultActions perform, String jsonPath, JsonNode node) throws Exception {
+        perform.andExpect(jsonPath(jsonPath).value(node.asText()));
+    }
+
+    private static void verifyJsonNodeBooleanValue(ResultActions perform, String jsonPath, JsonNode node) throws Exception {
+        perform.andExpect(jsonPath(jsonPath).value(node.booleanValue()));
+    }
+
+    private static void verifyJsonNodeNumberValue(ResultActions perform, String jsonPath, JsonNode node) throws Exception {
+        perform.andExpect(jsonPath(jsonPath).value(node.numberValue()));
+    }
+
+    private static void verifyJsonNodeNotExist(ResultActions perform, String jsonPath) throws Exception {
+        perform.andExpect(jsonPath(jsonPath).doesNotExist());
     }
 
     private static void jsonBodyMapping(MockHttpServletRequestBuilder builder, Object bodyObject) throws JsonProcessingException {
