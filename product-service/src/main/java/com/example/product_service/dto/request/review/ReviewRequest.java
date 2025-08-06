@@ -1,5 +1,8 @@
 package com.example.product_service.dto.request.review;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -16,11 +19,14 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ReviewRequest {
-    @NotNull(message = "orderId is required")
+    @NotNull(message = "{NotNull}")
     private Long orderId;
-    @NotNull(message = "rating is required")
-    private int rating;
-    @NotBlank(message = "content is Not Blank")
+    @NotNull(message = "{NotNull}")
+    @Min(value = 1, message = "{Min}")
+    @Max(value = 5, message = "{Max}")
+    private Integer rating;
+    @NotBlank(message = "{NotBlank}")
     private String content;
-    private List<@NotBlank @URL(message = "Invalid ImgUrl") String> imgUrls = new ArrayList<>();
+    @Valid
+    private List<@NotBlank(message = "{NotBlank}") @URL(message = "{InvalidUrl}") String> imageUrls = new ArrayList<>();
 }
