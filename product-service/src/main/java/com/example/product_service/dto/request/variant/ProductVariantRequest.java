@@ -1,5 +1,9 @@
 package com.example.product_service.dto.request.variant;
 
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,8 +16,11 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProductVariantRequest {
+    @NotBlank(message = "{productVariant.sku.notBlank}")
     private String sku;
-    private int price;
+    @NotNull(message = "{productVariant.price.notNull}")
+    @Min(value = 0, message = "{productVariant.price.min}")
+    private Integer price;
     private int stockQuantity;
     private int discountRate;
     private List<Long> optionValueIds;

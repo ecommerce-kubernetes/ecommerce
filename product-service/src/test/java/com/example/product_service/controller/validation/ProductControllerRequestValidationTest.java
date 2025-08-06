@@ -93,13 +93,19 @@ public class ProductControllerRequestValidationTest {
         assertThat(fields).containsExactlyInAnyOrder("optionTypeId", "priority");
     }
 
-
     @Test
     @DisplayName("ProductOptionTypeRequest 오류 없음")
     void productOptionTypeRequestValidation_thenOk(){
         ProductOptionTypeRequest request = new ProductOptionTypeRequest(1L, 0);
         Set<ConstraintViolation<ProductOptionTypeRequest>> violations = validateField(request);
         assertThat(violations).isEmpty();
+    }
+
+    @ParameterizedTest(name = "[{index}] {0} 필드 invalid")
+    @MethodSource("invalidProductVariantRequestFieldProvider")
+    void productVariantRequestValidation_field(String fieldName, Object invalidValue, String expectedMessage){
+        ProductVariantRequest request = createProductVariantRequest();
+        assertFieldViolation(request, fieldName, invalidValue, expectedMessage);
     }
 
     static Stream<Arguments> invalidProductRequestFieldProvider(){
@@ -131,15 +137,32 @@ public class ProductControllerRequestValidationTest {
         );
 
     }
+
+    static Stream<Arguments> invalidProductVariantRequestFieldProvider(){
+        return Stream.of(
+                Arguments.of("sku", null, getMessage("productVariant.sku.notBlank")),
+                Arguments.of("sku", "", getMessage("productVariant.sku.notBlank")),
+                Arguments.of("price", null, getMessage("productVariant.price.notNull")),
+                Arguments.of("price", "", getMessage("productVariant.price.notNull")),
+                Arguments.of("price", -1, getMessage("productVariant.price.min"))
+        );
+    }
     private ProductRequest createProductRequest() {
         return new ProductRequest("name",
                 "description",
                 1L,
                 List.of(new ImageRequest("http://test.jpg", 0)),
                 List.of(new ProductOptionTypeRequest(1L, 0)),
-                List.of(new ProductVariantRequest(
-                        "sku", 100, 100, 10,
-                        List.of(1L, 2L)
-                )));
+                createProductVariantRequestList());
+    }
+    private List<ProductVariantRequest> createProductVariantRequestList(){
+        return List.of(createProductVariantRequest());
+    }
+
+    private ProductVariantRequest createProductVariantRequest(){
+        return new ProductVariantRequest(
+                "sku", 100, 100, 10,
+                List.of(1L, 2L)
+        );
     }
 }
