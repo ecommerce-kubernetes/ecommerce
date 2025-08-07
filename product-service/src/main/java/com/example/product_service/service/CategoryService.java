@@ -12,7 +12,7 @@ import java.util.List;
 public interface CategoryService {
     CategoryResponse saveCategory(CategoryRequest categoryRequestDto);
     CategoryResponse updateCategoryById(Long categoryId, UpdateCategoryRequest requestDto);
-    void deleteCategory(Long categoryId);
+    void deleteCategoryById(Long categoryId);
     CategoryResponse getCategoryDetails(Long categoryId);
     List<CategoryResponse> getRootCategories();
     CategoryHierarchyResponse getHierarchyByCategoryId(Long categoryId);

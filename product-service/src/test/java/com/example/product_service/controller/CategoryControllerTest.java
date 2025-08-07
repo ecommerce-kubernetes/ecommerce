@@ -1,12 +1,11 @@
 package com.example.product_service.controller;
 
 import com.example.product_service.common.MessageSourceUtil;
-import com.example.product_service.controller.util.ControllerTestHelper;
-import com.example.product_service.controller.util.TestMessageUtil;
 import com.example.product_service.dto.request.category.CategoryRequest;
 import com.example.product_service.dto.request.category.UpdateCategoryRequest;
 import com.example.product_service.dto.response.category.CategoryHierarchyResponse;
 import com.example.product_service.dto.response.category.CategoryResponse;
+import com.example.product_service.exception.BadRequestException;
 import com.example.product_service.exception.DuplicateResourceException;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.service.CategoryService;
@@ -27,7 +26,7 @@ import static com.example.product_service.controller.util.ControllerTestHelper.*
 import static com.example.product_service.controller.util.TestMessageUtil.getMessage;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -42,6 +41,7 @@ class CategoryControllerTest {
     private static final String CHILDREN_CATEGORY_PATH = BASE_PATH + "/1/children";
     private static final String HIERARCHY_CATEGORY_PATH = BASE_PATH + "/5/hierarchy";
     private static final String UPDATE_CATEGORY_PATH = BASE_PATH + "/2";
+    private static final String DELETE_CATEGORY_PATH = BASE_PATH + "/1";
 
     @Autowired
     MockMvc mockMvc;
@@ -160,6 +160,81 @@ class CategoryControllerTest {
         ResultActions perform = performWithBody(mockMvc, get(HIERARCHY_CATEGORY_PATH), null);
         verifyErrorResponse(perform, status().isNotFound(), getMessage("notFound"),
                 getMessage("category.notFound"), HIERARCHY_CATEGORY_PATH);
+    }
+
+    @Test
+    @DisplayName("카테고리 수정 테스트-성공")
+    void updateCategoryTest_success() throws Exception {
+        UpdateCategoryRequest request = new UpdateCategoryRequest("updated", 1L, ICON_URL);
+        CategoryResponse response = new CategoryResponse(2L, "updated", 1L, ICON_URL);
+        when(service.updateCategoryById(anyLong(), any(UpdateCategoryRequest.class)))
+                .thenReturn(response);
+
+        ResultActions perform = performWithBody(mockMvc, patch(UPDATE_CATEGORY_PATH), request);
+        verifySuccessResponse(perform, status().isOk(), response);
+    }
+
+    @Test
+    @DisplayName("카테고리 수정 테스트-실패(검증)")
+    void updateCategoryTest_validation() throws Exception {
+        UpdateCategoryRequest request = new UpdateCategoryRequest("", 1L, ICON_URL);
+
+        ResultActions perform = performWithBody(mockMvc, patch(UPDATE_CATEGORY_PATH), request);
+        verifyErrorResponse(perform, status().isBadRequest(), getMessage("badRequest"),
+                getMessage("badRequest.validation"), UPDATE_CATEGORY_PATH);
+    }
+
+    @Test
+    @DisplayName("카테고리 수정 테스트-실패(없음)")
+    void updateCategoryTest_notFound() throws Exception {
+        UpdateCategoryRequest request = new UpdateCategoryRequest("updated", 1L, ICON_URL);
+        when(service.updateCategoryById(anyLong(), any(UpdateCategoryRequest.class)))
+                .thenThrow(new NotFoundException(getMessage("category.notFound")));
+
+        ResultActions perform = performWithBody(mockMvc, patch(UPDATE_CATEGORY_PATH), request);
+        verifyErrorResponse(perform, status().isNotFound(), getMessage("notFound"),
+                getMessage("category.notFound"), UPDATE_CATEGORY_PATH);
+    }
+
+    @Test
+    @DisplayName("카테고리 수정 테스트-실패(중복)")
+    void updateCategoryTest_conflict() throws Exception {
+        UpdateCategoryRequest request = new UpdateCategoryRequest("duplicate", 1L, ICON_URL);
+        when(service.updateCategoryById(anyLong(), any(UpdateCategoryRequest.class)))
+                .thenThrow(new DuplicateResourceException(getMessage("category.conflict")));
+
+        ResultActions perform = performWithBody(mockMvc, patch(UPDATE_CATEGORY_PATH), request);
+        verifyErrorResponse(perform, status().isConflict(), getMessage("conflict"),
+                getMessage("category.conflict"), UPDATE_CATEGORY_PATH);
+    }
+
+    @Test
+    @DisplayName("카테고리 수정 테스트-실패(부모 카테고리 ID를 자신으로 할당)")
+    void updateCategoryTest_badRequest() throws Exception {
+        UpdateCategoryRequest request = new UpdateCategoryRequest("updated", 2L, ICON_URL);
+        when(service.updateCategoryById(anyLong(), any(UpdateCategoryRequest.class)))
+                .thenThrow(new BadRequestException(getMessage("category.badRequest")));
+        ResultActions perform = performWithBody(mockMvc, patch(UPDATE_CATEGORY_PATH), request);
+        verifyErrorResponse(perform, status().isBadRequest(), getMessage("badRequest"),
+                getMessage("category.badRequest"), UPDATE_CATEGORY_PATH);
+    }
+
+    @Test
+    @DisplayName("카테고리 삭제 테스트-성공")
+    void deleteCategoryTest_success() throws Exception {
+        doNothing().when(service).deleteCategoryById(anyLong());
+        ResultActions perform = performWithBody(mockMvc, delete(DELETE_CATEGORY_PATH), null);
+        verifySuccessResponse(perform, status().isNoContent(), null);
+    }
+
+    @Test
+    @DisplayName("카테고리 삭제 테스트-실패(없음)")
+    void deleteCategoryTest_notFound() throws Exception {
+        doThrow(new NotFoundException(getMessage("category.notFound")))
+                .when(service).deleteCategoryById(anyLong());
+        ResultActions perform = performWithBody(mockMvc, delete(DELETE_CATEGORY_PATH), null);
+        verifyErrorResponse(perform, status().isNotFound(), getMessage("notFound"),
+                getMessage("category.notFound"),DELETE_CATEGORY_PATH);
     }
 
     private List<CategoryResponse> createAncestors(){

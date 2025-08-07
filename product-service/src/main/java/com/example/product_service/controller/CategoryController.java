@@ -66,7 +66,7 @@ public class CategoryController {
     @AdminApi
     @Operation(summary = "카테고리 수정")
     @ApiResponse(responseCode = "200", description = "카테고리 수정")
-    @BadRequestApiResponse @ForbiddenApiResponse @NotFoundApiResponse
+    @BadRequestApiResponse @ForbiddenApiResponse @NotFoundApiResponse @ConflictApiResponse
     @PatchMapping("/{categoryId}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<CategoryResponse> updateCategory(@PathVariable("categoryId") Long categoryId,
@@ -82,7 +82,7 @@ public class CategoryController {
     @DeleteMapping("/{categoryId}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<Void> deleteCategory(@PathVariable("categoryId") Long categoryId){
-        categoryService.deleteCategory(categoryId);
+        categoryService.deleteCategoryById(categoryId);
         return ResponseEntity.noContent().build();
     }
 }

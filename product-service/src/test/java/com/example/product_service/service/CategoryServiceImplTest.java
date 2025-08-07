@@ -125,13 +125,13 @@ class CategoryServiceImplTest {
     @Test
     @DisplayName("카테고리 삭제 테스트")
     @Transactional
-    void deleteCategoryTest(){
+    void deleteCategoryByIdTest(){
         Categories food = categoriesRepository.save(new Categories("식품", "http://localhost.jpg"));
         Categories deleteCategory = categoriesRepository.save(new Categories("반찬류", null));
 
         food.addChild(deleteCategory);
 
-        categoryService.deleteCategory(deleteCategory.getId());
+        categoryService.deleteCategoryById(deleteCategory.getId());
 
         Optional<Categories> category = categoriesRepository.findById(deleteCategory.getId());
 
@@ -142,8 +142,8 @@ class CategoryServiceImplTest {
 
     @Test
     @DisplayName("카테고리 삭제 테스트 - 없는 카테고리 삭제시")
-    void deleteCategoryTest_NotFoundCategory(){
-        assertThatThrownBy(() -> categoryService.deleteCategory(999L))
+    void deleteCategoryTest_NotFoundCategoryById(){
+        assertThatThrownBy(() -> categoryService.deleteCategoryById(999L))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage("Not Found Category");
     }
