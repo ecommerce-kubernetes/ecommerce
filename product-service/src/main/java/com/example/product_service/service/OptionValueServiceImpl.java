@@ -15,6 +15,10 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class OptionValueServiceImpl implements OptionValueService{
+    @Override
+    public OptionValueResponse getOptionValueById(Long optionValueId) {
+        return null;
+    }
 
     private final OptionTypesRepository optionTypesRepository;
     private final OptionValuesRepository optionValuesRepository;

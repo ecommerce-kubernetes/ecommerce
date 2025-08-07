@@ -31,8 +31,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class OptionTypeControllerTest {
 
     private static final String BASE_PATH = "/option-types";
-    private static final String GET_VALUES_PATH = "/1/values";
-    private static final String ID_PATH = "/1";
+    private static final String GET_VALUES_PATH = BASE_PATH + "/1/values";
+    private static final String ID_PATH = BASE_PATH + "/1";
 
     @Autowired
     MockMvc mockMvc;
@@ -106,7 +106,7 @@ class OptionTypeControllerTest {
 
         when(service.getOptionValuesByTypeId(anyLong())).thenReturn(response);
 
-        ResultActions perform = performWithBody(mockMvc, get(BASE_PATH + GET_VALUES_PATH), null);
+        ResultActions perform = performWithBody(mockMvc, get(GET_VALUES_PATH), null);
         verifySuccessResponse(perform, status().isOk(), response);
     }
 
@@ -114,11 +114,11 @@ class OptionTypeControllerTest {
     @DisplayName("옵션 타입 값 조회 테스트-실패(없음)")
     void getValuesByTypeTest_notFound() throws Exception {
         when(service.getOptionValuesByTypeId(anyLong()))
-                .thenThrow(new NotFoundException(getMessage("notFound.message")));
+                .thenThrow(new NotFoundException(getMessage("option-type.notFound")));
 
-        ResultActions perform = performWithBody(mockMvc, get(BASE_PATH + GET_VALUES_PATH), null);
+        ResultActions perform = performWithBody(mockMvc, get(GET_VALUES_PATH), null);
         verifyErrorResponse(perform, status().isNotFound(),
-                getMessage("notFound"), getMessage("notFound.message"), BASE_PATH + GET_VALUES_PATH);
+                getMessage("notFound"), getMessage("option-type.notFound"), GET_VALUES_PATH);
     }
 
 
@@ -132,7 +132,7 @@ class OptionTypeControllerTest {
 
         when(service.updateOptionTypeById(anyLong(), any(OptionTypeRequest.class))).thenReturn(response);
 
-        ResultActions perform = performWithBody(mockMvc, patch(BASE_PATH + ID_PATH), request);
+        ResultActions perform = performWithBody(mockMvc, patch(ID_PATH), request);
         verifySuccessResponse(perform, status().isOk(), response);
     }
 
@@ -141,9 +141,9 @@ class OptionTypeControllerTest {
     void updateOptionTypeTest_validation() throws Exception {
         OptionTypeRequest request = new OptionTypeRequest("");
 
-        ResultActions perform = performWithBody(mockMvc, patch(BASE_PATH + ID_PATH), request);
+        ResultActions perform = performWithBody(mockMvc, patch(ID_PATH), request);
         verifyErrorResponse(perform, status().isBadRequest(), getMessage("badRequest"),
-                getMessage("badRequest.validation"), BASE_PATH + ID_PATH);
+                getMessage("badRequest.validation"), ID_PATH);
 
         perform.andExpect(jsonPath("$.errors").isNotEmpty());
     }
@@ -154,11 +154,11 @@ class OptionTypeControllerTest {
         OptionTypeRequest request = new OptionTypeRequest("updatedOptionType");
 
         when(service.updateOptionTypeById(anyLong(), any(OptionTypeRequest.class)))
-                .thenThrow(new NotFoundException(getMessage("notFound.message")));
+                .thenThrow(new NotFoundException(getMessage("option-type.notFound")));
 
-        ResultActions perform = performWithBody(mockMvc, patch(BASE_PATH + ID_PATH), request);
+        ResultActions perform = performWithBody(mockMvc, patch(ID_PATH), request);
         verifyErrorResponse(perform, status().isNotFound(), getMessage("notFound"),
-                getMessage("notFound.message"), BASE_PATH + ID_PATH);
+                getMessage("option-type.notFound"), ID_PATH);
     }
 
     @Test
@@ -167,18 +167,18 @@ class OptionTypeControllerTest {
 
         doNothing().when(service).deleteOptionTypeById(anyLong());
 
-        ResultActions perform = performWithBody(mockMvc, delete(BASE_PATH + ID_PATH), null);
+        ResultActions perform = performWithBody(mockMvc, delete(ID_PATH), null);
         verifySuccessResponse(perform, status().isNoContent(), null);
     }
 
     @Test
     @DisplayName("옵션 타입 삭제 테스트-실패(없음)")
     void deleteOptionTypeTest_notFound() throws Exception {
-        doThrow(new NotFoundException(getMessage("notFound.message")))
+        doThrow(new NotFoundException(getMessage("option-type.notFound")))
                 .when(service).deleteOptionTypeById(anyLong());
 
-        ResultActions perform = performWithBody(mockMvc, delete(BASE_PATH + ID_PATH), null);
+        ResultActions perform = performWithBody(mockMvc, delete(ID_PATH), null);
         verifyErrorResponse(perform, status().isNotFound(), getMessage("notFound"),
-                getMessage("notFound.message"), BASE_PATH + ID_PATH);
+                getMessage("option-type.notFound"), ID_PATH);
     }
 }

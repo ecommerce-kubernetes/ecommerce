@@ -1,9 +1,6 @@
 package com.example.product_service.controller;
 
-import com.example.product_service.controller.util.specification.annotation.AdminApi;
-import com.example.product_service.controller.util.specification.annotation.BadRequestApiResponse;
-import com.example.product_service.controller.util.specification.annotation.ForbiddenApiResponse;
-import com.example.product_service.controller.util.specification.annotation.NotFoundApiResponse;
+import com.example.product_service.controller.util.specification.annotation.*;
 import com.example.product_service.dto.request.options.OptionValueRequest;
 import com.example.product_service.dto.request.options.UpdateOptionValueRequest;
 import com.example.product_service.dto.response.options.OptionValueResponse;
@@ -19,7 +16,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/option-types/{optionTypeId}/option-values")
 @Tag(name = "OptionValue", description = "옵션 값 관련 API")
 @RequiredArgsConstructor
 public class OptionValueController {
@@ -28,8 +24,8 @@ public class OptionValueController {
     @AdminApi
     @Operation(summary = "옵션 값 저장")
     @ApiResponse(responseCode = "201", description = "생성 성공")
-    @BadRequestApiResponse @ForbiddenApiResponse @NotFoundApiResponse
-    @PostMapping
+    @BadRequestApiResponse @ForbiddenApiResponse @NotFoundApiResponse @ConflictApiResponse
+    @PostMapping("/option-types/{optionTypeId}/option-values")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<OptionValueResponse> createOptionValue(@PathVariable("optionTypeId") Long optionTypeId,
                                                                  @Validated @RequestBody OptionValueRequest request){
@@ -37,11 +33,21 @@ public class OptionValueController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    @Operation(summary = "옵션 값 조회")
+    @ApiResponse(responseCode = "200", description = "조회 성공")
+    @NotFoundApiResponse
+    @GetMapping("/option-values/{optionValueId}")
+    public ResponseEntity<OptionValueResponse> getOptionValue(@PathVariable("optionValueId") Long optionValueId){
+
+        OptionValueResponse response = optionValueService.getOptionValueById(optionValueId);
+        return ResponseEntity.ok(response);
+    }
+
     @AdminApi
     @Operation(summary = "옵션 값 수정")
     @ApiResponse(responseCode = "200", description = "수정 완료")
     @BadRequestApiResponse @ForbiddenApiResponse @NotFoundApiResponse
-    @PatchMapping("/{optionValueId}")
+    @PatchMapping("/option-values/{optionValueId}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<OptionValueResponse> updateOptionValue(@PathVariable("optionValueId") Long optionValueId,
                                                                   @Validated @RequestBody UpdateOptionValueRequest requestDto){
@@ -52,7 +58,7 @@ public class OptionValueController {
     @Operation(summary = "옵션 값 삭제")
     @ApiResponse(responseCode = "204", description = "삭제 완료")
     @ForbiddenApiResponse @NotFoundApiResponse
-    @DeleteMapping("/{optionValueId}")
+    @DeleteMapping("/option-values/{optionValueId}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<Void> deleteOptionValue(@PathVariable("optionValueId") Long optionValueId){
         return ResponseEntity.noContent().build();

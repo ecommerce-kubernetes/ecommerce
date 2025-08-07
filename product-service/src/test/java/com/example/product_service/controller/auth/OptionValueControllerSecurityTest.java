@@ -26,8 +26,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 @Import({WebSecurity.class, CustomAccessDeniedHandler.class, CustomAuthenticationEntryPoint.class, MessageSourceUtil.class})
 @AutoConfigureMockMvc
 public class OptionValueControllerSecurityTest {
+    private static final String CREATE_OPTION_VALUE_PATH = "/option-types/1/option-values";
     private static final String BASE_PATH = "/option-values";
-    private static final String OPTION_VALUE_ID_PATH = "/option-values/1";
+    private static final String OPTION_VALUE_ID_PATH = BASE_PATH + "/1";
 
     @Autowired
     MockMvc mockMvc;
@@ -38,16 +39,16 @@ public class OptionValueControllerSecurityTest {
     @DisplayName("옵션 값 저장 테스트-인증 에러")
     void createOptionValueTest_UnAuthorized() throws Exception {
         ResultActions perform =
-                performWithBody(mockMvc, post(BASE_PATH), createOptionValueRequest());
-        verifyUnauthorizedResponse(perform, BASE_PATH);
+                performWithBody(mockMvc, post(CREATE_OPTION_VALUE_PATH), createOptionValueRequest());
+        verifyUnauthorizedResponse(perform, CREATE_OPTION_VALUE_PATH);
     }
 
     @Test
     @DisplayName("옵션 값 저장 테스트-권한 부족")
     void createOptionValueTest_NoPermission() throws Exception {
         ResultActions perform =
-                performWithAuthAndBody(mockMvc, post(BASE_PATH), createOptionValueRequest(), UserRole.ROLE_USER);
-        verifyNoPermissionResponse(perform, BASE_PATH);
+                performWithAuthAndBody(mockMvc, post(CREATE_OPTION_VALUE_PATH), createOptionValueRequest(), UserRole.ROLE_USER);
+        verifyNoPermissionResponse(perform, CREATE_OPTION_VALUE_PATH);
     }
 
     @Test
