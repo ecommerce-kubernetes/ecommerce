@@ -45,12 +45,13 @@ public class OptionValueController {
     @AdminApi
     @Operation(summary = "옵션 값 수정")
     @ApiResponse(responseCode = "200", description = "수정 완료")
-    @BadRequestApiResponse @ForbiddenApiResponse @NotFoundApiResponse
+    @BadRequestApiResponse @ForbiddenApiResponse @NotFoundApiResponse @ConflictApiResponse
     @PatchMapping("/option-values/{optionValueId}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<OptionValueResponse> updateOptionValue(@PathVariable("optionValueId") Long optionValueId,
                                                                   @Validated @RequestBody OptionValueRequest request){
-        return ResponseEntity.ok(new OptionValueResponse());
+        OptionValueResponse response = optionValueService.updateOptionValue(optionValueId, request);
+        return ResponseEntity.ok(response);
     }
 
     @AdminApi
@@ -60,6 +61,7 @@ public class OptionValueController {
     @DeleteMapping("/option-values/{optionValueId}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<Void> deleteOptionValue(@PathVariable("optionValueId") Long optionValueId){
+        optionValueService.deleteOptionValueById(optionValueId);
         return ResponseEntity.noContent().build();
     }
 }

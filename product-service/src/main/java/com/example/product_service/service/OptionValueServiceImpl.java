@@ -13,14 +13,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class OptionValueServiceImpl implements OptionValueService{
-    @Override
-    public OptionValueResponse getOptionValueById(Long optionValueId) {
-        return null;
-    }
-
     private final OptionTypesRepository optionTypesRepository;
-    private final OptionValuesRepository optionValuesRepository;
 
+    private final OptionValuesRepository optionValuesRepository;
     @Override
     @Transactional
     public OptionValueResponse saveOptionValue(Long optionTypeId, OptionValueRequest request) {
@@ -29,7 +24,7 @@ public class OptionValueServiceImpl implements OptionValueService{
 
     @Override
     @Transactional
-    public OptionValueResponse modifyOptionValues(Long optionValueId, OptionValueRequest requestDto) {
+    public OptionValueResponse updateOptionValue(Long optionValueId, OptionValueRequest requestDto) {
 
         OptionValues optionValue = optionValuesRepository
                 .findById(optionValueId).orElseThrow(() -> new NotFoundException("Not Found OptionValue"));
@@ -37,5 +32,15 @@ public class OptionValueServiceImpl implements OptionValueService{
 //        optionValue.setOptionValue(requestDto.getOptionValue());
 
         return new OptionValueResponse();
+    }
+
+    @Override
+    public OptionValueResponse getOptionValueById(Long optionValueId) {
+        return null;
+    }
+
+    @Override
+    public void deleteOptionValueById(Long optionValueId) {
+
     }
 }

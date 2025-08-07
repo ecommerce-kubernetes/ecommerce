@@ -20,9 +20,8 @@ import static com.example.product_service.controller.util.ControllerTestHelper.*
 import static com.example.product_service.controller.util.TestMessageUtil.getMessage;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -112,6 +111,67 @@ class OptionValueControllerTest {
         when(service.getOptionValueById(anyLong()))
                 .thenThrow(new NotFoundException(getMessage("option-value.notFound")));
         ResultActions perform = performWithBody(mockMvc, get(ID_PATH), null);
+        verifyErrorResponse(perform, status().isNotFound(), getMessage("notFound"),
+                getMessage("option-value.notFound"), ID_PATH);
+    }
+
+    @Test
+    @DisplayName("옵션 값 수정 테스트-성공")
+    void updateOptionValueTest_success() throws Exception {
+        OptionValueRequest request = new OptionValueRequest("updatedValue");
+        OptionValueResponse response = new OptionValueResponse(1L, 1L, "updatedValue");
+        when(service.updateOptionValue(anyLong(), any(OptionValueRequest.class))).thenReturn(response);
+
+        ResultActions perform = performWithBody(mockMvc, patch(ID_PATH), request);
+        verifySuccessResponse(perform, status().isOk(), response);
+    }
+
+    @Test
+    @DisplayName("옵션 값 수정 테스트-실패(검증)")
+    void updateOptionValueTest_validation() throws Exception {
+        OptionValueRequest request = new OptionValueRequest("");
+        ResultActions perform = performWithBody(mockMvc, patch(ID_PATH), request);
+        verifyErrorResponse(perform, status().isBadRequest(), getMessage("badRequest"), getMessage("badRequest.validation"), ID_PATH);
+    }
+
+    @Test
+    @DisplayName("옵션 값 수정 테스트-실패(없음)")
+    void updateOptionValueTest_notFound() throws Exception {
+        OptionValueRequest request = new OptionValueRequest("updatedOptionValue");
+        when(service.updateOptionValue(anyLong(), any(OptionValueRequest.class)))
+                .thenThrow(new NotFoundException(getMessage("option-value.notFound")));
+
+        ResultActions perform = performWithBody(mockMvc, patch(ID_PATH), request);
+        verifyErrorResponse(perform, status().isNotFound(), getMessage("notFound"), getMessage("option-value.notFound"), ID_PATH);
+    }
+
+    @Test
+    @DisplayName("옵션 값 수정 테스트-실패(중복)")
+    void updateOptionValueTest_conflict() throws Exception {
+        OptionValueRequest request = new OptionValueRequest("duplicatedName");
+        when(service.updateOptionValue(anyLong(), any(OptionValueRequest.class)))
+                .thenThrow(new DuplicateResourceException(getMessage("option-value.conflict")));
+
+        ResultActions perform = performWithBody(mockMvc, patch(ID_PATH), request);
+        verifyErrorResponse(perform, status().isConflict(), getMessage("conflict"), getMessage("option-value.conflict"), ID_PATH);
+    }
+
+    @Test
+    @DisplayName("옵션 값 삭제 테스트-성공")
+    void deleteOptionValueTest_success() throws Exception {
+        doNothing().when(service).deleteOptionValueById(anyLong());
+
+        ResultActions perform = performWithBody(mockMvc, delete(ID_PATH), null);
+        verifySuccessResponse(perform, status().isNoContent(), null);
+    }
+
+    @Test
+    @DisplayName("옵션 값 삭제 테스트-실패(없음)")
+    void deleteOptionValueTest_notFound() throws Exception {
+        doThrow(new NotFoundException(getMessage("option-value.notFound")))
+                .when(service).deleteOptionValueById(any());
+
+        ResultActions perform = performWithBody(mockMvc, delete(ID_PATH), null);
         verifyErrorResponse(perform, status().isNotFound(), getMessage("notFound"),
                 getMessage("option-value.notFound"), ID_PATH);
     }

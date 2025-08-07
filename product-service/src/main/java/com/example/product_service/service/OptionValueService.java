@@ -5,6 +5,7 @@ import com.example.product_service.dto.response.options.OptionValueResponse;
 
 public interface OptionValueService {
     OptionValueResponse saveOptionValue(Long optionTypeId, OptionValueRequest requestDto);
-    OptionValueResponse modifyOptionValues(Long optionValueId, OptionValueRequest requestDto);
+    OptionValueResponse updateOptionValue(Long optionValueId, OptionValueRequest requestDto);
     OptionValueResponse getOptionValueById(Long optionValueId);
+    void deleteOptionValueById(Long optionValueId);
 }
