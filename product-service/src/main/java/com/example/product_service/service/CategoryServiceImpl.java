@@ -2,6 +2,7 @@ package com.example.product_service.service;
 
 import com.example.product_service.dto.request.category.CategoryRequest;
 import com.example.product_service.dto.request.category.UpdateCategoryRequest;
+import com.example.product_service.dto.response.category.CategoryHierarchyResponse;
 import com.example.product_service.dto.response.category.CategoryResponse;
 import com.example.product_service.dto.response.PageDto;
 import com.example.product_service.entity.Categories;
@@ -42,7 +43,7 @@ public class CategoryServiceImpl implements CategoryService{
 
     @Override
     @Transactional
-    public CategoryResponse modifyCategory(Long categoryId, UpdateCategoryRequest requestDto) {
+    public CategoryResponse updateCategoryById(Long categoryId, UpdateCategoryRequest requestDto) {
         Categories category = categoriesRepository.findById(categoryId)
                 .orElseThrow(() -> new NotFoundException("Not Found Category"));
 
@@ -89,21 +90,17 @@ public class CategoryServiceImpl implements CategoryService{
     }
 
     @Override
-    public PageDto<CategoryResponse> getRootCategories(Pageable pageable) {
-        Page<Categories> result = categoriesRepository.findByParentIsNull(pageable);
-        List<Categories> content = result.getContent();
-        List<CategoryResponse> categoryResponseList = content.stream().map(CategoryResponse::new).toList();
-        return new PageDto<>(
-                categoryResponseList,
-                pageable.getPageNumber(),
-                result.getTotalPages(),
-                pageable.getPageSize(),
-                result.getTotalElements()
-        );
+    public CategoryHierarchyResponse getHierarchyByCategoryId(Long categoryId) {
+        return null;
     }
 
     @Override
-    public List<CategoryResponse> getChildCategories(Long categoryId) {
+    public List<CategoryResponse> getRootCategories() {
+        return null;
+    }
+
+    @Override
+    public List<CategoryResponse> getChildrenCategoriesById(Long categoryId) {
         List<Categories> childList = categoriesRepository.findChildById(categoryId);
         return childList.stream().map(CategoryResponse::new).toList();
     }

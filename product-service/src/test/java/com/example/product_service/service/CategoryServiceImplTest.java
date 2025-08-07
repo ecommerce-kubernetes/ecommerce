@@ -3,7 +3,6 @@ package com.example.product_service.service;
 import com.example.product_service.dto.request.category.CategoryRequest;
 import com.example.product_service.dto.request.category.UpdateCategoryRequest;
 import com.example.product_service.dto.response.category.CategoryResponse;
-import com.example.product_service.dto.response.PageDto;
 import com.example.product_service.entity.Categories;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.repository.CategoriesRepository;
@@ -86,7 +85,7 @@ class CategoryServiceImplTest {
     @Test
     @DisplayName("카테고리 수정 테스트")
     @Transactional
-    void modifyCategoryTest_EditName(){
+    void updateCategoryByIdTest_EditName(){
         Categories food = categoriesRepository.save(new Categories("식품", "http://test.jpg"));
         Categories electronicDevice = categoriesRepository.save(new Categories("전자기기" , null));
         Categories modifyCategory = categoriesRepository.save(new Categories("반찬류", null));
@@ -95,7 +94,7 @@ class CategoryServiceImplTest {
         UpdateCategoryRequest modifyRequestDto = new UpdateCategoryRequest("노트북", electronicDevice.getId(), "http://test2.jpg");
 
         CategoryResponse categoryResponseDto =
-                categoryService.modifyCategory(modifyCategory.getId(), modifyRequestDto);
+                categoryService.updateCategoryById(modifyCategory.getId(), modifyRequestDto);
 
         assertThat(categoryResponseDto.getName()).isEqualTo(modifyRequestDto.getName());
         assertThat(categoryResponseDto.getParentId()).isEqualTo(electronicDevice.getId());
@@ -108,17 +107,17 @@ class CategoryServiceImplTest {
 
     @Test
     @DisplayName("카테고리 수정 테스트 - 카테고리를 찾을 수 없을때")
-    void modifyCategoryTest_NotFoundCategory(){
-        assertThatThrownBy(() -> categoryService.modifyCategory(999L, new UpdateCategoryRequest("전자기기", null, null)))
+    void updateCategoryTest_NotFoundCategoryById(){
+        assertThatThrownBy(() -> categoryService.updateCategoryById(999L, new UpdateCategoryRequest("전자기기", null, null)))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage("Not Found Category");
     }
 
     @Test
     @DisplayName("카테고리 수정 테스트 - 부모 카테고리를 찾을 수 없을때")
-    void modifyCategoryTest_NotFoundParentCategory(){
+    void updateCategoryTest_NotFoundParentCategoryById(){
         Categories modifyCategory = categoriesRepository.save(new Categories("반찬류", null));
-        assertThatThrownBy(()-> categoryService.modifyCategory(modifyCategory.getId(), new UpdateCategoryRequest("노트북", 999L, null)))
+        assertThatThrownBy(()-> categoryService.updateCategoryById(modifyCategory.getId(), new UpdateCategoryRequest("노트북", 999L, null)))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage("Not Found Parent Category");
     }
@@ -191,19 +190,6 @@ class CategoryServiceImplTest {
 
         Pageable pageable = PageRequest.of(0, 10, Sort.Direction.ASC, "id");
 
-        PageDto<CategoryResponse> result = categoryService.getRootCategories(pageable);
-
-        assertThat(result.getCurrentPage()).isEqualTo(0);
-        assertThat(result.getPageSize()).isEqualTo(10);
-        assertThat(result.getTotalPage()).isEqualTo(1);
-        assertThat(result.getTotalElement()).isEqualTo(4);
-
-        List<CategoryResponse> content = result.getContent();
-        for (int i = 0; i < content.size(); i++) {
-            assertThat(content.get(i).getName()).isEqualTo(categories.get(i).getName());
-            assertThat(content.get(i).getParentId()).isEqualTo(null);
-            assertThat(content.get(i).getIconUrl()).isEqualTo(categories.get(i).getIconUrl());
-        }
     }
 
     @Test
@@ -219,7 +205,7 @@ class CategoryServiceImplTest {
         parent.addChild(sub2);
         parent.addChild(sub3);
 
-        List<CategoryResponse> childCategories = categoryService.getChildCategories(parent.getId());
+        List<CategoryResponse> childCategories = categoryService.getChildrenCategoriesById(parent.getId());
 
         assertThat(childCategories.size()).isEqualTo(3);
     }

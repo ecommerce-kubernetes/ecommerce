@@ -5,7 +5,6 @@ import com.example.product_service.dto.request.category.CategoryRequest;
 import com.example.product_service.dto.request.category.UpdateCategoryRequest;
 import com.example.product_service.dto.response.category.CategoryHierarchyResponse;
 import com.example.product_service.dto.response.category.CategoryResponse;
-import com.example.product_service.exception.BadRequestException;
 import com.example.product_service.service.CategoryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -17,7 +16,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
-import java.util.Objects;
 
 
 @RestController
@@ -43,15 +41,16 @@ public class CategoryController {
     @ApiResponse(responseCode = "200", description = "조회 성공")
     @GetMapping("/root")
     public ResponseEntity<List<CategoryResponse>> getRootCategories(){
-        return ResponseEntity.ok(List.of(new CategoryResponse(1L, "의류", 2L, "http://localhost:9000.jpg")));
+        List<CategoryResponse> response = categoryService.getRootCategories();
+        return ResponseEntity.ok(response);
     }
 
     @Operation(summary = "자식 카테고리 조회")
     @ApiResponse(responseCode = "200", description = "조회 성공")
     @NotFoundApiResponse
     @GetMapping("/{categoryId}/children")
-    public ResponseEntity<List<CategoryResponse>> getChildByCategoryId(@PathVariable("categoryId") Long categoryId){
-        List<CategoryResponse> childCategories = categoryService.getChildCategories(categoryId);
+    public ResponseEntity<List<CategoryResponse>> getChildrenCategories(@PathVariable("categoryId") Long categoryId){
+        List<CategoryResponse> childCategories = categoryService.getChildrenCategoriesById(categoryId);
         return ResponseEntity.ok(childCategories);
     }
 
@@ -59,8 +58,9 @@ public class CategoryController {
     @ApiResponse(responseCode = "200", description = "조회 성공")
     @NotFoundApiResponse
     @GetMapping("/{categoryId}/hierarchy")
-    public ResponseEntity<CategoryHierarchyResponse> getHierarchyByCategoryId(@PathVariable("categoryId") Long categoryId){
-        return ResponseEntity.ok(new CategoryHierarchyResponse());
+    public ResponseEntity<CategoryHierarchyResponse> getHierarchy(@PathVariable("categoryId") Long categoryId){
+        CategoryHierarchyResponse response = categoryService.getHierarchyByCategoryId(categoryId);
+        return ResponseEntity.ok(response);
     }
 
     @AdminApi
@@ -71,11 +71,7 @@ public class CategoryController {
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<CategoryResponse> updateCategory(@PathVariable("categoryId") Long categoryId,
                                                            @RequestBody @Validated UpdateCategoryRequest request){
-
-        if(Objects.equals(categoryId, request.getParentId())){
-            throw new BadRequestException("An item cannot be set as its own parent");
-        }
-        CategoryResponse category = categoryService.modifyCategory(categoryId, request);
+        CategoryResponse category = categoryService.updateCategoryById(categoryId, request);
         return ResponseEntity.ok(category);
     }
 
