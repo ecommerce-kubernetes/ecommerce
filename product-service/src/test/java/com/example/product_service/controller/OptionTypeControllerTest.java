@@ -144,6 +144,8 @@ class OptionTypeControllerTest {
         ResultActions perform = performWithBody(mockMvc, patch(BASE_PATH + ID_PATH), request);
         verifyErrorResponse(perform, status().isBadRequest(), getMessage("badRequest"),
                 getMessage("badRequest.validation"), BASE_PATH + ID_PATH);
+
+        perform.andExpect(jsonPath("$.errors").isNotEmpty());
     }
 
     @Test

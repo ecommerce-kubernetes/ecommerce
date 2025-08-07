@@ -14,16 +14,19 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
-import static com.example.product_service.controller.util.ControllerTestHelper.performWithBody;
-import static com.example.product_service.controller.util.ControllerTestHelper.verifySuccessResponse;
+import static com.example.product_service.controller.util.ControllerTestHelper.*;
+import static com.example.product_service.controller.util.TestMessageUtil.getMessage;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(OptionValueController.class)
 @AutoConfigureMockMvc(addFilters = false)
 class OptionValueControllerTest {
+
+    private static final String BASE_PATH = "/option-values";
 
     @Autowired
     MockMvc mockMvc;
@@ -46,7 +49,19 @@ class OptionValueControllerTest {
         OptionValueResponse response = new OptionValueResponse(1L, 1L, "value");
         when(service.saveOptionValue(any(OptionValueRequest.class))).thenReturn(response);
 
-        ResultActions perform = performWithBody(mockMvc, post("/option-values"), request);
+        ResultActions perform = performWithBody(mockMvc, post(BASE_PATH), request);
         verifySuccessResponse(perform, status().isCreated(), response);
+    }
+
+    @Test
+    @DisplayName("옵션 값 저장 테스트-실패(검증)")
+    void createOptionValue_validation() throws Exception {
+        OptionValueRequest request = new OptionValueRequest(null, "");
+
+        ResultActions perform = performWithBody(mockMvc, post(BASE_PATH), request);
+        verifyErrorResponse(perform, status().isBadRequest(), getMessage("badRequest"),
+                getMessage("badRequest.validation"), BASE_PATH );
+
+        perform.andExpect(jsonPath("$.errors").isNotEmpty());
     }
 }
