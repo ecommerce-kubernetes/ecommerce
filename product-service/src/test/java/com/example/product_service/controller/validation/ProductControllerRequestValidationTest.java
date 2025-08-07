@@ -2,6 +2,7 @@ package com.example.product_service.controller.validation;
 import com.example.product_service.dto.request.image.ImageRequest;
 import com.example.product_service.dto.request.options.ProductOptionTypeRequest;
 import com.example.product_service.dto.request.product.ProductRequest;
+import com.example.product_service.dto.request.product.UpdateProductBasicRequest;
 import com.example.product_service.dto.request.variant.ProductVariantRequest;
 import jakarta.validation.ConstraintViolation;
 import org.junit.jupiter.api.DisplayName;
@@ -125,6 +126,19 @@ public class ProductControllerRequestValidationTest {
         assertThat(field).containsExactlyInAnyOrder("sku", "price", "stockQuantity");
     }
 
+    @ParameterizedTest(name = "[{index}] {0} 필드 invalid")
+    @MethodSource("invalidUpdateProductBasicRequestFieldProvider")
+    void updateProductBasicRequestValidation_field(String fieldNane, Object invalidValue, String expectedMessage){
+        UpdateProductBasicRequest request = createUpdateProductBasicRequest();
+        assertFieldViolation(request, fieldNane, invalidValue, expectedMessage);
+    }
+
+    static Stream<Arguments> invalidUpdateProductBasicRequestFieldProvider(){
+        return Stream.of(
+                Arguments.of("name", "", getMessage(NOT_BLANK_MESSAGE_PATH))
+        );
+    }
+
     static Stream<Arguments> invalidProductRequestFieldProvider(){
         return Stream.of(
                 Arguments.of("name", "", getMessage(NOT_BLANK_MESSAGE_PATH)),
@@ -186,5 +200,9 @@ public class ProductControllerRequestValidationTest {
                 "sku", 100, 100, 10,
                 List.of(1L, 2L)
         );
+    }
+
+    private UpdateProductBasicRequest createUpdateProductBasicRequest(){
+        return new UpdateProductBasicRequest("updated", "description", 1L);
     }
 }
