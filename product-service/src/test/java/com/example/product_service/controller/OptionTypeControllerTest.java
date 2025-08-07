@@ -3,11 +3,10 @@ package com.example.product_service.controller;
 import com.example.product_service.common.MessageSourceUtil;
 import com.example.product_service.dto.request.options.OptionTypeRequest;
 import com.example.product_service.dto.response.options.OptionTypeResponse;
-import com.example.product_service.dto.response.options.OptionValuesResponse;
+import com.example.product_service.dto.response.options.OptionValueResponse;
 import com.example.product_service.exception.DuplicateResourceException;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.service.OptionTypeService;
-import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -28,7 +27,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(OptionTypeController.class)
-@Slf4j
 @AutoConfigureMockMvc(addFilters = false)
 class OptionTypeControllerTest {
 
@@ -57,7 +55,7 @@ class OptionTypeControllerTest {
         OptionTypeRequest request = new OptionTypeRequest(optionTypeName);
         OptionTypeResponse response = new OptionTypeResponse(1L, optionTypeName);
 
-        when(service.saveOptionTypes(any(OptionTypeRequest.class))).thenReturn(response);
+        when(service.saveOptionType(any(OptionTypeRequest.class))).thenReturn(response);
 
         ResultActions perform = performWithBody(mockMvc, post(BASE_PATH), request);
         verifySuccessResponse(perform, status().isCreated(), response);
@@ -79,7 +77,7 @@ class OptionTypeControllerTest {
     void createOptionTypeTest_conflict() throws Exception {
         String duplicateName = "duplicateName";
         OptionTypeRequest request = new OptionTypeRequest(duplicateName);
-        when(service.saveOptionTypes(any(OptionTypeRequest.class)))
+        when(service.saveOptionType(any(OptionTypeRequest.class)))
                 .thenThrow(new DuplicateResourceException(getMessage("option-type.conflict")));
 
         ResultActions perform = performWithBody(mockMvc, post(BASE_PATH), request);
@@ -103,8 +101,8 @@ class OptionTypeControllerTest {
     @Test
     @DisplayName("옵션 타입 값 조회 테스트-성공")
     void getValuesByTypeTest_success() throws Exception {
-        List<OptionValuesResponse> response = List.of(new OptionValuesResponse(1L, "value1", 1L),
-                new OptionValuesResponse(2L, "value2", 1L));
+        List<OptionValueResponse> response = List.of(new OptionValueResponse(1L, 1L, "value1"),
+                new OptionValueResponse(2L, 1L, "value2"));
 
         when(service.getOptionValuesByTypeId(anyLong())).thenReturn(response);
 

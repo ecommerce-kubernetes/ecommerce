@@ -2,7 +2,7 @@ package com.example.product_service.service;
 
 import com.example.product_service.dto.request.options.OptionTypeRequest;
 import com.example.product_service.dto.response.options.OptionTypeResponse;
-import com.example.product_service.dto.response.options.OptionValuesResponse;
+import com.example.product_service.dto.response.options.OptionValueResponse;
 import com.example.product_service.entity.OptionTypes;
 import com.example.product_service.entity.OptionValues;
 import com.example.product_service.exception.DuplicateResourceException;
@@ -25,7 +25,7 @@ public class OptionTypeServiceImpl implements OptionTypeService {
     private final OptionTypesRepository optionTypesRepository;
     @Override
     @Transactional
-    public OptionTypeResponse saveOptionTypes(OptionTypeRequest requestDto) {
+    public OptionTypeResponse saveOptionType(OptionTypeRequest requestDto) {
         String name = requestDto.getName();
         OptionTypes optionType = new OptionTypes(name);
         try{
@@ -66,13 +66,12 @@ public class OptionTypeServiceImpl implements OptionTypeService {
     }
 
     @Override
-    public List<OptionValuesResponse> getOptionValuesByTypeId(Long optionTypeId) {
+    public List<OptionValueResponse> getOptionValuesByTypeId(Long optionTypeId) {
         OptionTypes optionTypes = optionTypesRepository.findByIdWithOptionValues(optionTypeId)
                 .orElseThrow(() -> new NotFoundException("Not Found OptionTypes"));
 
         List<OptionValues> optionValues = optionTypes.getOptionValues();
 
-        return optionValues.stream().map(OptionValuesResponse::new)
-                .toList();
+        return null;
     }
 }

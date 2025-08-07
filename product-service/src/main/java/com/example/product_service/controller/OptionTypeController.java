@@ -3,7 +3,7 @@ package com.example.product_service.controller;
 import com.example.product_service.controller.util.specification.annotation.*;
 import com.example.product_service.dto.request.options.OptionTypeRequest;
 import com.example.product_service.dto.response.options.OptionTypeResponse;
-import com.example.product_service.dto.response.options.OptionValuesResponse;
+import com.example.product_service.dto.response.options.OptionValueResponse;
 import com.example.product_service.service.OptionTypeService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -33,7 +33,7 @@ public class OptionTypeController {
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<OptionTypeResponse> createOptionType(@Validated @RequestBody
                                                                    OptionTypeRequest request){
-        OptionTypeResponse response = optionTypeService.saveOptionTypes(request);
+        OptionTypeResponse response = optionTypeService.saveOptionType(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -61,8 +61,8 @@ public class OptionTypeController {
     @ApiResponse(responseCode = "200", description = "조회 성공")
     @NotFoundApiResponse
     @GetMapping("/{optionTypeId}/values")
-    public ResponseEntity<List<OptionValuesResponse>> getValuesByType(@PathVariable("optionTypeId") Long optionTypeId){
-        List<OptionValuesResponse> response = optionTypeService.getOptionValuesByTypeId(optionTypeId);
+    public ResponseEntity<List<OptionValueResponse>> getValuesByType(@PathVariable("optionTypeId") Long optionTypeId){
+        List<OptionValueResponse> response = optionTypeService.getOptionValuesByTypeId(optionTypeId);
         return ResponseEntity.ok(response);
     }
 

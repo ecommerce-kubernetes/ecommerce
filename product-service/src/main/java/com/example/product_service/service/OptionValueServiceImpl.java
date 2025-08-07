@@ -2,7 +2,7 @@ package com.example.product_service.service;
 
 import com.example.product_service.dto.request.options.OptionValueRequest;
 import com.example.product_service.dto.request.options.UpdateOptionValueRequest;
-import com.example.product_service.dto.response.options.OptionValuesResponse;
+import com.example.product_service.dto.response.options.OptionValueResponse;
 import com.example.product_service.entity.OptionTypes;
 import com.example.product_service.entity.OptionValues;
 import com.example.product_service.exception.NotFoundException;
@@ -21,7 +21,7 @@ public class OptionValueServiceImpl implements OptionValueService{
 
     @Override
     @Transactional
-    public OptionValuesResponse saveOptionValues(OptionValueRequest requestDto) {
+    public OptionValueResponse saveOptionValue(OptionValueRequest requestDto) {
         Long optionTypeId = requestDto.getOptionTypeId();
 
         OptionTypes optionType = optionTypesRepository.findById(optionTypeId)
@@ -31,22 +31,19 @@ public class OptionValueServiceImpl implements OptionValueService{
         optionType.addOptionValue(optionValues);
 
         OptionValues saved = optionValuesRepository.save(optionValues);
-        return new OptionValuesResponse(
-                saved.getId(),
-                saved.getOptionValue(),
-                optionTypeId
+        return new OptionValueResponse(
         );
     }
 
     @Override
     @Transactional
-    public OptionValuesResponse modifyOptionValues(Long optionValueId, UpdateOptionValueRequest requestDto) {
+    public OptionValueResponse modifyOptionValues(Long optionValueId, UpdateOptionValueRequest requestDto) {
 
         OptionValues optionValue = optionValuesRepository
                 .findById(optionValueId).orElseThrow(() -> new NotFoundException("Not Found OptionValue"));
 
 //        optionValue.setOptionValue(requestDto.getOptionValue());
 
-        return new OptionValuesResponse(optionValue);
+        return new OptionValueResponse();
     }
 }
