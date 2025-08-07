@@ -22,15 +22,6 @@ public class OptionValueServiceImpl implements OptionValueService{
     @Override
     @Transactional
     public OptionValueResponse saveOptionValue(OptionValueRequest requestDto) {
-        Long optionTypeId = requestDto.getOptionTypeId();
-
-        OptionTypes optionType = optionTypesRepository.findById(optionTypeId)
-                .orElseThrow(() -> new NotFoundException("Not Found OptionTypes"));
-
-        OptionValues optionValues = new OptionValues(requestDto.getValue(),optionType);
-        optionType.addOptionValue(optionValues);
-
-        OptionValues saved = optionValuesRepository.save(optionValues);
         return new OptionValueResponse(
         );
     }

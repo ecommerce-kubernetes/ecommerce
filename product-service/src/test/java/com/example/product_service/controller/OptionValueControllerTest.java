@@ -45,7 +45,7 @@ class OptionValueControllerTest {
     @Test
     @DisplayName("옵션 값 저장 테스트-성공")
     void createOptionValue_success() throws Exception {
-        OptionValueRequest request = new OptionValueRequest(1L, "value");
+        OptionValueRequest request = new OptionValueRequest("value");
         OptionValueResponse response = new OptionValueResponse(1L, 1L, "value");
         when(service.saveOptionValue(any(OptionValueRequest.class))).thenReturn(response);
 
@@ -56,7 +56,7 @@ class OptionValueControllerTest {
     @Test
     @DisplayName("옵션 값 저장 테스트-실패(검증)")
     void createOptionValue_validation() throws Exception {
-        OptionValueRequest request = new OptionValueRequest(null, "");
+        OptionValueRequest request = new OptionValueRequest("");
 
         ResultActions perform = performWithBody(mockMvc, post(BASE_PATH), request);
         verifyErrorResponse(perform, status().isBadRequest(), getMessage("badRequest"),

@@ -83,7 +83,7 @@ public class OptionValueControllerSecurityTest {
     }
 
     private OptionValueRequest createOptionValueRequest() {
-        return new OptionValueRequest(1L, "value");
+        return new OptionValueRequest("value");
     }
 
     private UpdateOptionValueRequest createUpdateOptionValueRequest() {
