@@ -10,7 +10,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 public class CategoryHierarchyResponse {
-    private List<CategoryResponseDto> ancestors;
+    private List<CategoryResponse> ancestors;
     private List<LevelItem> siblingsByLevel;
 
     @Getter
@@ -18,6 +18,6 @@ public class CategoryHierarchyResponse {
     @NoArgsConstructor
     public static class LevelItem {
         private int level;
-        private List<CategoryResponseDto> items;
+        private List<CategoryResponse> items;
     }
 }

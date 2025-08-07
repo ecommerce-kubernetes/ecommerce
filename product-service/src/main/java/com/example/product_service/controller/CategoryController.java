@@ -4,7 +4,7 @@ import com.example.product_service.controller.util.specification.annotation.*;
 import com.example.product_service.dto.request.category.CategoryRequest;
 import com.example.product_service.dto.request.category.UpdateCategoryRequest;
 import com.example.product_service.dto.response.category.CategoryHierarchyResponse;
-import com.example.product_service.dto.response.category.CategoryResponseDto;
+import com.example.product_service.dto.response.category.CategoryResponse;
 import com.example.product_service.exception.BadRequestException;
 import com.example.product_service.service.CategoryService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -31,26 +31,27 @@ public class CategoryController {
     @AdminApi
     @Operation(summary = "카테고리 생성")
     @ApiResponse(responseCode = "201", description = "생성 성공")
-    @BadRequestApiResponse @ForbiddenApiResponse @ConflictApiResponse
+    @BadRequestApiResponse @ForbiddenApiResponse @ConflictApiResponse @NotFoundApiResponse
     @PostMapping
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<CategoryResponseDto> createCategory(@RequestBody @Validated CategoryRequest categoryRequestDto){
-        return ResponseEntity.status(HttpStatus.CREATED).body(new CategoryResponseDto());
+    public ResponseEntity<CategoryResponse> createCategory(@RequestBody @Validated CategoryRequest request){
+        CategoryResponse response = categoryService.saveCategory(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @Operation(summary = "루트 카테고리 리스트 조회")
     @ApiResponse(responseCode = "200", description = "조회 성공")
     @GetMapping("/root")
-    public ResponseEntity<List<CategoryResponseDto>> getRootCategories(){
-        return ResponseEntity.ok(List.of(new CategoryResponseDto(1L, "의류", 2L, "http://localhost:9000.jpg")));
+    public ResponseEntity<List<CategoryResponse>> getRootCategories(){
+        return ResponseEntity.ok(List.of(new CategoryResponse(1L, "의류", 2L, "http://localhost:9000.jpg")));
     }
 
     @Operation(summary = "자식 카테고리 조회")
     @ApiResponse(responseCode = "200", description = "조회 성공")
     @NotFoundApiResponse
     @GetMapping("/{categoryId}/children")
-    public ResponseEntity<List<CategoryResponseDto>> getChildByCategoryId(@PathVariable("categoryId") Long categoryId){
-        List<CategoryResponseDto> childCategories = categoryService.getChildCategories(categoryId);
+    public ResponseEntity<List<CategoryResponse>> getChildByCategoryId(@PathVariable("categoryId") Long categoryId){
+        List<CategoryResponse> childCategories = categoryService.getChildCategories(categoryId);
         return ResponseEntity.ok(childCategories);
     }
 
@@ -68,13 +69,13 @@ public class CategoryController {
     @BadRequestApiResponse @ForbiddenApiResponse @NotFoundApiResponse
     @PatchMapping("/{categoryId}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<CategoryResponseDto> updateCategory(@PathVariable("categoryId") Long categoryId,
-                                                                  @RequestBody @Validated UpdateCategoryRequest request){
+    public ResponseEntity<CategoryResponse> updateCategory(@PathVariable("categoryId") Long categoryId,
+                                                           @RequestBody @Validated UpdateCategoryRequest request){
 
         if(Objects.equals(categoryId, request.getParentId())){
             throw new BadRequestException("An item cannot be set as its own parent");
         }
-        CategoryResponseDto category = categoryService.modifyCategory(categoryId, request);
+        CategoryResponse category = categoryService.modifyCategory(categoryId, request);
         return ResponseEntity.ok(category);
     }
 

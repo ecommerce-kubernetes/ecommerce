@@ -2,7 +2,7 @@ package com.example.product_service.service;
 
 import com.example.product_service.dto.request.category.CategoryRequest;
 import com.example.product_service.dto.request.category.UpdateCategoryRequest;
-import com.example.product_service.dto.response.category.CategoryResponseDto;
+import com.example.product_service.dto.response.category.CategoryResponse;
 import com.example.product_service.dto.response.PageDto;
 import com.example.product_service.entity.Categories;
 import com.example.product_service.exception.NotFoundException;
@@ -46,7 +46,7 @@ class CategoryServiceImplTest {
     void saveCategoryTest_Main(){
         //대표 카테고리 생성 - parentId == null
         CategoryRequest categoryRequestDto = new CategoryRequest("식품", null, "http://test.jpg");
-        CategoryResponseDto categoryResponseDto = categoryService.saveCategory(categoryRequestDto);
+        CategoryResponse categoryResponseDto = categoryService.saveCategory(categoryRequestDto);
 
         assertThat(categoryResponseDto.getName()).isEqualTo(categoryRequestDto.getName());
         assertThat(categoryResponseDto.getParentId()).isEqualTo(null);
@@ -62,7 +62,7 @@ class CategoryServiceImplTest {
 
         //자식 카테고리 생성 - parentId == 부모 카테고리 ID
         CategoryRequest sideDishRequest = new CategoryRequest("반찬류", parent.getId(), null);
-        CategoryResponseDto sideDishResponse = categoryService.saveCategory(sideDishRequest);
+        CategoryResponse sideDishResponse = categoryService.saveCategory(sideDishRequest);
 
         assertThat(sideDishResponse.getName()).isEqualTo(sideDishRequest.getName());
         assertThat(sideDishResponse.getParentId()).isEqualTo(parent.getId());
@@ -94,7 +94,7 @@ class CategoryServiceImplTest {
 
         UpdateCategoryRequest modifyRequestDto = new UpdateCategoryRequest("노트북", electronicDevice.getId(), "http://test2.jpg");
 
-        CategoryResponseDto categoryResponseDto =
+        CategoryResponse categoryResponseDto =
                 categoryService.modifyCategory(modifyCategory.getId(), modifyRequestDto);
 
         assertThat(categoryResponseDto.getName()).isEqualTo(modifyRequestDto.getName());
@@ -160,7 +160,7 @@ class CategoryServiceImplTest {
         parent.addChild(sub1);
         parent.addChild(sub2);
 
-        CategoryResponseDto categoryDetails = categoryService.getCategoryDetails(sub1.getId());
+        CategoryResponse categoryDetails = categoryService.getCategoryDetails(sub1.getId());
 
         assertThat(categoryDetails.getId()).isEqualTo(sub1.getId());
         assertThat(categoryDetails.getName()).isEqualTo(sub1.getName());
@@ -191,14 +191,14 @@ class CategoryServiceImplTest {
 
         Pageable pageable = PageRequest.of(0, 10, Sort.Direction.ASC, "id");
 
-        PageDto<CategoryResponseDto> result = categoryService.getRootCategories(pageable);
+        PageDto<CategoryResponse> result = categoryService.getRootCategories(pageable);
 
         assertThat(result.getCurrentPage()).isEqualTo(0);
         assertThat(result.getPageSize()).isEqualTo(10);
         assertThat(result.getTotalPage()).isEqualTo(1);
         assertThat(result.getTotalElement()).isEqualTo(4);
 
-        List<CategoryResponseDto> content = result.getContent();
+        List<CategoryResponse> content = result.getContent();
         for (int i = 0; i < content.size(); i++) {
             assertThat(content.get(i).getName()).isEqualTo(categories.get(i).getName());
             assertThat(content.get(i).getParentId()).isEqualTo(null);
@@ -219,7 +219,7 @@ class CategoryServiceImplTest {
         parent.addChild(sub2);
         parent.addChild(sub3);
 
-        List<CategoryResponseDto> childCategories = categoryService.getChildCategories(parent.getId());
+        List<CategoryResponse> childCategories = categoryService.getChildCategories(parent.getId());
 
         assertThat(childCategories.size()).isEqualTo(3);
     }
@@ -239,7 +239,7 @@ class CategoryServiceImplTest {
 
         sub1.addChild(sub1_sub1);
 
-        CategoryResponseDto rootCategoryResponse = categoryService.getRootCategoryDetailsOf(sub1_sub1.getId());
+        CategoryResponse rootCategoryResponse = categoryService.getRootCategoryDetailsOf(sub1_sub1.getId());
 
         assertThat(rootCategoryResponse.getId()).isEqualTo(parent.getId());
         assertThat(rootCategoryResponse.getName()).isEqualTo(parent.getName());

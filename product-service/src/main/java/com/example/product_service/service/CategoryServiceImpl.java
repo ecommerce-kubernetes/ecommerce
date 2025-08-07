@@ -2,7 +2,7 @@ package com.example.product_service.service;
 
 import com.example.product_service.dto.request.category.CategoryRequest;
 import com.example.product_service.dto.request.category.UpdateCategoryRequest;
-import com.example.product_service.dto.response.category.CategoryResponseDto;
+import com.example.product_service.dto.response.category.CategoryResponse;
 import com.example.product_service.dto.response.PageDto;
 import com.example.product_service.entity.Categories;
 import com.example.product_service.exception.NotFoundException;
@@ -24,7 +24,7 @@ public class CategoryServiceImpl implements CategoryService{
 
     @Override
     @Transactional
-    public CategoryResponseDto saveCategory(CategoryRequest categoryRequestDto) {
+    public CategoryResponse saveCategory(CategoryRequest categoryRequestDto) {
         Categories category = new Categories(categoryRequestDto.getName(), categoryRequestDto.getIconUrl());
         Long parentId = categoryRequestDto.getParentId();
 
@@ -37,12 +37,12 @@ public class CategoryServiceImpl implements CategoryService{
         }
 
         Categories save = categoriesRepository.save(category);
-        return new CategoryResponseDto(save);
+        return new CategoryResponse(save);
     }
 
     @Override
     @Transactional
-    public CategoryResponseDto modifyCategory(Long categoryId, UpdateCategoryRequest requestDto) {
+    public CategoryResponse modifyCategory(Long categoryId, UpdateCategoryRequest requestDto) {
         Categories category = categoriesRepository.findById(categoryId)
                 .orElseThrow(() -> new NotFoundException("Not Found Category"));
 
@@ -65,7 +65,7 @@ public class CategoryServiceImpl implements CategoryService{
             category.modifyParent(newParent);
         }
 
-        return new CategoryResponseDto(category);
+        return new CategoryResponse(category);
     }
 
     @Override
@@ -81,18 +81,18 @@ public class CategoryServiceImpl implements CategoryService{
     }
 
     @Override
-    public CategoryResponseDto getCategoryDetails(Long categoryId) {
+    public CategoryResponse getCategoryDetails(Long categoryId) {
         Categories category = categoriesRepository.findById(categoryId)
                 .orElseThrow(() -> new NotFoundException("Not Found Category"));
 
-        return new CategoryResponseDto(category);
+        return new CategoryResponse(category);
     }
 
     @Override
-    public PageDto<CategoryResponseDto> getRootCategories(Pageable pageable) {
+    public PageDto<CategoryResponse> getRootCategories(Pageable pageable) {
         Page<Categories> result = categoriesRepository.findByParentIsNull(pageable);
         List<Categories> content = result.getContent();
-        List<CategoryResponseDto> categoryResponseList = content.stream().map(CategoryResponseDto::new).toList();
+        List<CategoryResponse> categoryResponseList = content.stream().map(CategoryResponse::new).toList();
         return new PageDto<>(
                 categoryResponseList,
                 pageable.getPageNumber(),
@@ -103,13 +103,13 @@ public class CategoryServiceImpl implements CategoryService{
     }
 
     @Override
-    public List<CategoryResponseDto> getChildCategories(Long categoryId) {
+    public List<CategoryResponse> getChildCategories(Long categoryId) {
         List<Categories> childList = categoriesRepository.findChildById(categoryId);
-        return childList.stream().map(CategoryResponseDto::new).toList();
+        return childList.stream().map(CategoryResponse::new).toList();
     }
 
     @Override
-    public CategoryResponseDto getRootCategoryDetailsOf(Long categoryId) {
+    public CategoryResponse getRootCategoryDetailsOf(Long categoryId) {
         Categories category = categoriesRepository.findByIdWithParent(categoryId)
                 .orElseThrow(() -> new NotFoundException("Not Found Category"));
 
@@ -117,7 +117,7 @@ public class CategoryServiceImpl implements CategoryService{
             category = category.getParent();
         }
 
-        return new CategoryResponseDto(category);
+        return new CategoryResponse(category);
     }
 
     @Override

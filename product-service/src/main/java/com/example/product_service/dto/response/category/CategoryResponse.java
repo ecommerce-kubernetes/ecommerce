@@ -7,13 +7,13 @@ import lombok.*;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class CategoryResponseDto {
+public class CategoryResponse {
     private Long id;
     private String name;
     private Long parentId;
     private String iconUrl;
 
-    public CategoryResponseDto(Categories category){
+    public CategoryResponse(Categories category){
         this.id = category.getId();
         this.name = category.getName();
         this.parentId = category.getParent() == null ? null : category.getParent().getId();
