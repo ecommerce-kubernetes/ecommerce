@@ -19,7 +19,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/option-values")
+@RequestMapping("/option-types/{optionTypeId}/option-values")
 @Tag(name = "OptionValue", description = "옵션 값 관련 API")
 @RequiredArgsConstructor
 public class OptionValueController {
@@ -31,9 +31,9 @@ public class OptionValueController {
     @BadRequestApiResponse @ForbiddenApiResponse @NotFoundApiResponse
     @PostMapping
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<OptionValueResponse> createOptionValue(@Validated @RequestBody
-                                                                     OptionValueRequest requestDto){
-        OptionValueResponse response = optionValueService.saveOptionValue(requestDto);
+    public ResponseEntity<OptionValueResponse> createOptionValue(@PathVariable("optionTypeId") Long optionTypeId,
+                                                                 @Validated @RequestBody OptionValueRequest request){
+        OptionValueResponse response = optionValueService.saveOptionValue(optionTypeId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 

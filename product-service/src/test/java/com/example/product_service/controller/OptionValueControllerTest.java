@@ -17,6 +17,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import static com.example.product_service.controller.util.ControllerTestHelper.*;
 import static com.example.product_service.controller.util.TestMessageUtil.getMessage;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -26,7 +27,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc(addFilters = false)
 class OptionValueControllerTest {
 
-    private static final String BASE_PATH = "/option-values";
+    private static final String BASE_PATH = "/option-types/1/option-values";
 
     @Autowired
     MockMvc mockMvc;
@@ -47,7 +48,7 @@ class OptionValueControllerTest {
     void createOptionValue_success() throws Exception {
         OptionValueRequest request = new OptionValueRequest("value");
         OptionValueResponse response = new OptionValueResponse(1L, 1L, "value");
-        when(service.saveOptionValue(any(OptionValueRequest.class))).thenReturn(response);
+        when(service.saveOptionValue(anyLong(), any(OptionValueRequest.class))).thenReturn(response);
 
         ResultActions perform = performWithBody(mockMvc, post(BASE_PATH), request);
         verifySuccessResponse(perform, status().isCreated(), response);

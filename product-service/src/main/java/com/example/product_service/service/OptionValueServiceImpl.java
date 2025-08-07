@@ -21,9 +21,8 @@ public class OptionValueServiceImpl implements OptionValueService{
 
     @Override
     @Transactional
-    public OptionValueResponse saveOptionValue(OptionValueRequest requestDto) {
-        return new OptionValueResponse(
-        );
+    public OptionValueResponse saveOptionValue(Long optionTypeId, OptionValueRequest request) {
+        return new OptionValueResponse();
     }
 
     @Override
