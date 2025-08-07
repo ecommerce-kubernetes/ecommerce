@@ -1,7 +1,6 @@
 package com.example.product_service.controller.validation;
 
 import com.example.product_service.dto.request.options.OptionValueRequest;
-import com.example.product_service.dto.request.options.UpdateOptionValueRequest;
 import jakarta.validation.ConstraintViolation;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -28,13 +27,6 @@ public class OptionValueControllerRequestValidateTest {
     void optionValueRequestValidation_field(String fieldName, Object invalidValue, String expectedMessage){
         OptionValueRequest request = new OptionValueRequest("value");
         assertFieldViolation(request, fieldName, invalidValue, expectedMessage);
-    }
-
-    @Test
-    @DisplayName("UpdateOptionValueRequest 필드 검증")
-    void updateOptionValueRequestValidation_field(){
-        UpdateOptionValueRequest request = new UpdateOptionValueRequest(1L, "value");
-        assertFieldViolation(request, "value", "", getMessage(NOT_BLANK_ERROR_MESSAGE_PATH));
     }
 
     @Test

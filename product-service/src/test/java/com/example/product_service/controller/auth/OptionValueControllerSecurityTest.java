@@ -7,7 +7,6 @@ import com.example.product_service.config.WebSecurity;
 import com.example.product_service.controller.OptionValueController;
 import com.example.product_service.controller.util.UserRole;
 import com.example.product_service.dto.request.options.OptionValueRequest;
-import com.example.product_service.dto.request.options.UpdateOptionValueRequest;
 import com.example.product_service.service.OptionValueService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -55,7 +54,7 @@ public class OptionValueControllerSecurityTest {
     @DisplayName("옵션 값 수정 테스트-인증 에러")
     void updateOptionValueTest_UnAuthorized() throws Exception {
         ResultActions perform =
-                performWithBody(mockMvc, patch(OPTION_VALUE_ID_PATH), createUpdateOptionValueRequest());
+                performWithBody(mockMvc, patch(OPTION_VALUE_ID_PATH), createOptionValueRequest());
         verifyUnauthorizedResponse(perform, OPTION_VALUE_ID_PATH);
     }
 
@@ -63,7 +62,7 @@ public class OptionValueControllerSecurityTest {
     @DisplayName("옵션 값 수정 테스트-권한 부족")
     void updateOptionValueTest_NoPermission() throws Exception {
         ResultActions perform =
-                performWithAuthAndBody(mockMvc, patch(OPTION_VALUE_ID_PATH), createUpdateOptionValueRequest(), UserRole.ROLE_USER);
+                performWithAuthAndBody(mockMvc, patch(OPTION_VALUE_ID_PATH), createOptionValueRequest(), UserRole.ROLE_USER);
         verifyNoPermissionResponse(perform, OPTION_VALUE_ID_PATH);
     }
 
@@ -87,7 +86,4 @@ public class OptionValueControllerSecurityTest {
         return new OptionValueRequest("value");
     }
 
-    private UpdateOptionValueRequest createUpdateOptionValueRequest() {
-        return new UpdateOptionValueRequest(1L, "value");
-    }
 }

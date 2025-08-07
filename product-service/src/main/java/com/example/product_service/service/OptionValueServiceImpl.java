@@ -1,9 +1,7 @@
 package com.example.product_service.service;
 
 import com.example.product_service.dto.request.options.OptionValueRequest;
-import com.example.product_service.dto.request.options.UpdateOptionValueRequest;
 import com.example.product_service.dto.response.options.OptionValueResponse;
-import com.example.product_service.entity.OptionTypes;
 import com.example.product_service.entity.OptionValues;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.repository.OptionTypesRepository;
@@ -31,7 +29,7 @@ public class OptionValueServiceImpl implements OptionValueService{
 
     @Override
     @Transactional
-    public OptionValueResponse modifyOptionValues(Long optionValueId, UpdateOptionValueRequest requestDto) {
+    public OptionValueResponse modifyOptionValues(Long optionValueId, OptionValueRequest requestDto) {
 
         OptionValues optionValue = optionValuesRepository
                 .findById(optionValueId).orElseThrow(() -> new NotFoundException("Not Found OptionValue"));

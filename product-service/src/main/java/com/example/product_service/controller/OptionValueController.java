@@ -2,7 +2,6 @@ package com.example.product_service.controller;
 
 import com.example.product_service.controller.util.specification.annotation.*;
 import com.example.product_service.dto.request.options.OptionValueRequest;
-import com.example.product_service.dto.request.options.UpdateOptionValueRequest;
 import com.example.product_service.dto.response.options.OptionValueResponse;
 import com.example.product_service.service.OptionValueService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -50,7 +49,7 @@ public class OptionValueController {
     @PatchMapping("/option-values/{optionValueId}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<OptionValueResponse> updateOptionValue(@PathVariable("optionValueId") Long optionValueId,
-                                                                  @Validated @RequestBody UpdateOptionValueRequest requestDto){
+                                                                  @Validated @RequestBody OptionValueRequest request){
         return ResponseEntity.ok(new OptionValueResponse());
     }
 
