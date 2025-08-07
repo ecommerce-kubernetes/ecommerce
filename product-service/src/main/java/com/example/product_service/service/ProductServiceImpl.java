@@ -14,6 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class ProductServiceImpl implements ProductService{
     @Override
     public ProductResponse saveProduct(ProductRequest request) {
-        return null;
+        return new ProductResponse();
     }
 }
