@@ -10,12 +10,12 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class OptionValuesResponseDto {
+public class OptionValuesResponse {
     private Long id;
     private String optionValue;
     private Long optionTypeId;
 
-    public OptionValuesResponseDto(OptionValues optionValue) {
+    public OptionValuesResponse(OptionValues optionValue) {
         this.id = optionValue.getId();
         this.optionValue = optionValue.getOptionValue();
         this.optionTypeId = optionValue.getOptionType().getId();

@@ -2,8 +2,7 @@ package com.example.product_service.service;
 
 import com.example.product_service.dto.request.options.OptionTypeRequest;
 import com.example.product_service.dto.response.options.OptionTypeResponse;
-import com.example.product_service.dto.response.PageDto;
-import com.example.product_service.dto.response.options.OptionValuesResponseDto;
+import com.example.product_service.dto.response.options.OptionValuesResponse;
 import com.example.product_service.entity.OptionTypes;
 import com.example.product_service.entity.OptionValues;
 import com.example.product_service.exception.DuplicateResourceException;
@@ -12,8 +11,6 @@ import com.example.product_service.repository.OptionTypesRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,24 +37,13 @@ public class OptionTypeServiceImpl implements OptionTypeService {
     }
 
     @Override
-    public PageDto<OptionTypeResponse> getOptionTypes(String query, Pageable pageable) {
-        Page<OptionTypes> optionTypesPage = optionTypesRepository.findByNameOrAll(query, pageable);
-
-        List<OptionTypes> content = optionTypesPage.getContent();
-
-        List<OptionTypeResponse> list = content.stream().map(OptionTypeResponse::new).toList();
-        return new PageDto<>(
-                list,
-                pageable.getPageNumber(),
-                optionTypesPage.getTotalPages(),
-                pageable.getPageSize(),
-                optionTypesPage.getTotalElements()
-        );
+    public List<OptionTypeResponse> getOptionTypes() {
+        return null;
     }
 
     @Override
     @Transactional
-    public OptionTypeResponse modifyOptionTypes(Long optionTypeId, OptionTypeRequest requestDto) {
+    public OptionTypeResponse updateOptionTypeById(Long optionTypeId, OptionTypeRequest requestDto) {
         OptionTypes target = optionTypesRepository.findById(optionTypeId)
                 .orElseThrow(() -> new NotFoundException("Not Found OptionType"));
 
@@ -72,7 +58,7 @@ public class OptionTypeServiceImpl implements OptionTypeService {
 
     @Override
     @Transactional
-    public void deleteOptionTypes(Long optionTypeId) {
+    public void deleteOptionTypeById(Long optionTypeId) {
         OptionTypes target = optionTypesRepository.findById(optionTypeId)
                 .orElseThrow(() -> new NotFoundException("Not Found OptionType"));
 
@@ -80,13 +66,13 @@ public class OptionTypeServiceImpl implements OptionTypeService {
     }
 
     @Override
-    public List<OptionValuesResponseDto> getOptionValuesByTypeId(Long optionTypeId) {
+    public List<OptionValuesResponse> getOptionValuesByTypeId(Long optionTypeId) {
         OptionTypes optionTypes = optionTypesRepository.findByIdWithOptionValues(optionTypeId)
                 .orElseThrow(() -> new NotFoundException("Not Found OptionTypes"));
 
         List<OptionValues> optionValues = optionTypes.getOptionValues();
 
-        return optionValues.stream().map(OptionValuesResponseDto::new)
+        return optionValues.stream().map(OptionValuesResponse::new)
                 .toList();
     }
 }

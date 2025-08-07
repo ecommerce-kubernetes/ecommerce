@@ -1,10 +1,11 @@
 package com.example.product_service.controller;
 
 import com.example.product_service.common.MessageSourceUtil;
-import com.example.product_service.controller.util.TestMessageUtil;
 import com.example.product_service.dto.request.options.OptionTypeRequest;
 import com.example.product_service.dto.response.options.OptionTypeResponse;
+import com.example.product_service.dto.response.options.OptionValuesResponse;
 import com.example.product_service.exception.DuplicateResourceException;
+import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.service.OptionTypeService;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,10 +18,12 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
+import java.util.List;
+
 import static com.example.product_service.controller.util.ControllerTestHelper.*;
 import static com.example.product_service.controller.util.TestMessageUtil.getMessage;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -59,7 +62,7 @@ class OptionTypeControllerTest {
     }
 
     @Test
-    @DisplayName("옵션 타입 생성 테스트-실패(검증 예외)")
+    @DisplayName("옵션 타입 생성 테스트-실패(검증)")
     void createOptionTypeTest_validation() throws Exception {
         OptionTypeRequest request = new OptionTypeRequest();
         ResultActions perform = performWithBody(mockMvc, post(BASE_PATH), request);
@@ -70,7 +73,7 @@ class OptionTypeControllerTest {
     }
 
     @Test
-    @DisplayName("옵션타입 생성 테스트-실패(동일 이름 존재시)")
+    @DisplayName("옵션타입 생성 테스트-실패(중복)")
     void createOptionTypeTest_conflict() throws Exception {
         String duplicateName = "duplicateName";
         OptionTypeRequest request = new OptionTypeRequest(duplicateName);
@@ -81,5 +84,99 @@ class OptionTypeControllerTest {
         verifyErrorResponse(perform, status().isConflict(), getMessage("conflict")
                 ,getMessage("option-type.conflict"),BASE_PATH);
 
+    }
+
+    @Test
+    @DisplayName("옵션 타입 조회 테스트-성공")
+    void getOptionTypesTest_success() throws Exception {
+        List<OptionTypeResponse> optionTypes = List.of(new OptionTypeResponse(1L, "optionTypes"));
+
+        when(service.getOptionTypes()).thenReturn(optionTypes);
+
+        ResultActions perform = performWithBody(mockMvc, get(BASE_PATH), null);
+        verifySuccessResponse(perform, status().isOk(), optionTypes);
+    }
+
+
+    @Test
+    @DisplayName("옵션 타입 값 조회 테스트-성공")
+    void getValuesByTypeTest_success() throws Exception {
+        List<OptionValuesResponse> response = List.of(new OptionValuesResponse(1L, "value1", 1L),
+                new OptionValuesResponse(2L, "value2", 1L));
+
+        when(service.getOptionValuesByTypeId(anyLong())).thenReturn(response);
+
+        ResultActions perform = performWithBody(mockMvc, get(BASE_PATH + "/1/values"), null);
+        verifySuccessResponse(perform, status().isOk(), response);
+    }
+
+    @Test
+    @DisplayName("옵션 타입 값 조회 테스트-실패(없음)")
+    void getValuesByTypeTest_notFound() throws Exception {
+        when(service.getOptionValuesByTypeId(anyLong()))
+                .thenThrow(new NotFoundException(getMessage("notFound.message")));
+
+        ResultActions perform = performWithBody(mockMvc, get(BASE_PATH + "/1/values"), null);
+        verifyErrorResponse(perform, status().isNotFound(),
+                getMessage("notFound"), getMessage("notFound.message"), BASE_PATH + "/1/values");
+    }
+
+
+    @Test
+    @DisplayName("옵션 타입 수정 테스트-성공")
+    void updateOptionTypeTest_success() throws Exception {
+        String updateName = "updatedOptionType";
+
+        OptionTypeRequest request = new OptionTypeRequest(updateName);
+        OptionTypeResponse response = new OptionTypeResponse(1L, updateName);
+
+        when(service.updateOptionTypeById(anyLong(), any(OptionTypeRequest.class))).thenReturn(response);
+
+        ResultActions perform = performWithBody(mockMvc, patch(BASE_PATH + "/1"), request);
+        verifySuccessResponse(perform, status().isOk(), response);
+    }
+
+    @Test
+    @DisplayName("옵션 타입 수정 테스트-실패(검증)")
+    void updateOptionTypeTest_validation() throws Exception {
+        OptionTypeRequest request = new OptionTypeRequest("");
+
+        ResultActions perform = performWithBody(mockMvc, patch(BASE_PATH + "/1"), request);
+        verifyErrorResponse(perform, status().isBadRequest(), getMessage("badRequest"),
+                getMessage("badRequest.validation"), BASE_PATH + "/1");
+    }
+
+    @Test
+    @DisplayName("옵션 타입 수정 테스트-실패(없음)")
+    void updateOptionTypeTest_notFound() throws Exception {
+        OptionTypeRequest request = new OptionTypeRequest("updatedOptionType");
+
+        when(service.updateOptionTypeById(anyLong(), any(OptionTypeRequest.class)))
+                .thenThrow(new NotFoundException(getMessage("notFound.message")));
+
+        ResultActions perform = performWithBody(mockMvc, patch(BASE_PATH + "/1"), request);
+        verifyErrorResponse(perform, status().isNotFound(), getMessage("notFound"),
+                getMessage("notFound.message"), BASE_PATH + "/1");
+    }
+
+    @Test
+    @DisplayName("옵션 타입 삭제 테스트-성공")
+    void deleteOptionTypeTest_success() throws Exception {
+
+        doNothing().when(service).deleteOptionTypeById(anyLong());
+
+        ResultActions perform = performWithBody(mockMvc, delete(BASE_PATH + "/1"), null);
+        verifySuccessResponse(perform, status().isNoContent(), null);
+    }
+
+    @Test
+    @DisplayName("옵션 타입 삭제 테스트-실패(없음)")
+    void deleteOptionTypeTest_notFound() throws Exception {
+        doThrow(new NotFoundException(getMessage("notFound.message")))
+                .when(service).deleteOptionTypeById(anyLong());
+
+        ResultActions perform = performWithBody(mockMvc, delete(BASE_PATH + "/1"), null);
+        verifyErrorResponse(perform, status().isNotFound(), getMessage("notFound"),
+                getMessage("notFound.message"), BASE_PATH + "/1");
     }
 }

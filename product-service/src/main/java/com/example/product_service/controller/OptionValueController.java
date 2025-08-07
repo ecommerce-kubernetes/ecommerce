@@ -6,7 +6,7 @@ import com.example.product_service.controller.util.specification.annotation.Forb
 import com.example.product_service.controller.util.specification.annotation.NotFoundApiResponse;
 import com.example.product_service.dto.request.options.OptionValueRequest;
 import com.example.product_service.dto.request.options.UpdateOptionValueRequest;
-import com.example.product_service.dto.response.options.OptionValuesResponseDto;
+import com.example.product_service.dto.response.options.OptionValuesResponse;
 import com.example.product_service.service.OptionValueService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -31,9 +31,9 @@ public class OptionValueController {
     @BadRequestApiResponse @ForbiddenApiResponse @NotFoundApiResponse
     @PostMapping
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<OptionValuesResponseDto> createOptionValue(@Validated @RequestBody
+    public ResponseEntity<OptionValuesResponse> createOptionValue(@Validated @RequestBody
                                                                      OptionValueRequest requestDto){
-        OptionValuesResponseDto responseDto = optionValueService.saveOptionValues(requestDto);
+        OptionValuesResponse responseDto = optionValueService.saveOptionValues(requestDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
     }
 
@@ -43,9 +43,9 @@ public class OptionValueController {
     @BadRequestApiResponse @ForbiddenApiResponse @NotFoundApiResponse
     @PatchMapping("/{optionValueId}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<OptionValuesResponseDto> updateOptionValue(@PathVariable("optionValueId") Long optionValueId,
-                                                                     @Validated @RequestBody UpdateOptionValueRequest requestDto){
-        return ResponseEntity.ok(new OptionValuesResponseDto());
+    public ResponseEntity<OptionValuesResponse> updateOptionValue(@PathVariable("optionValueId") Long optionValueId,
+                                                                  @Validated @RequestBody UpdateOptionValueRequest requestDto){
+        return ResponseEntity.ok(new OptionValuesResponse());
     }
 
     @AdminApi

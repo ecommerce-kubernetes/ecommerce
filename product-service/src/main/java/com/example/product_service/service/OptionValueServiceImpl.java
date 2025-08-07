@@ -2,7 +2,7 @@ package com.example.product_service.service;
 
 import com.example.product_service.dto.request.options.OptionValueRequest;
 import com.example.product_service.dto.request.options.UpdateOptionValueRequest;
-import com.example.product_service.dto.response.options.OptionValuesResponseDto;
+import com.example.product_service.dto.response.options.OptionValuesResponse;
 import com.example.product_service.entity.OptionTypes;
 import com.example.product_service.entity.OptionValues;
 import com.example.product_service.exception.NotFoundException;
@@ -11,9 +11,6 @@ import com.example.product_service.repository.OptionValuesRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -24,7 +21,7 @@ public class OptionValueServiceImpl implements OptionValueService{
 
     @Override
     @Transactional
-    public OptionValuesResponseDto saveOptionValues(OptionValueRequest requestDto) {
+    public OptionValuesResponse saveOptionValues(OptionValueRequest requestDto) {
         Long optionTypeId = requestDto.getOptionTypeId();
 
         OptionTypes optionType = optionTypesRepository.findById(optionTypeId)
@@ -34,7 +31,7 @@ public class OptionValueServiceImpl implements OptionValueService{
         optionType.addOptionValue(optionValues);
 
         OptionValues saved = optionValuesRepository.save(optionValues);
-        return new OptionValuesResponseDto(
+        return new OptionValuesResponse(
                 saved.getId(),
                 saved.getOptionValue(),
                 optionTypeId
@@ -43,13 +40,13 @@ public class OptionValueServiceImpl implements OptionValueService{
 
     @Override
     @Transactional
-    public OptionValuesResponseDto modifyOptionValues(Long optionValueId, UpdateOptionValueRequest requestDto) {
+    public OptionValuesResponse modifyOptionValues(Long optionValueId, UpdateOptionValueRequest requestDto) {
 
         OptionValues optionValue = optionValuesRepository
                 .findById(optionValueId).orElseThrow(() -> new NotFoundException("Not Found OptionValue"));
 
 //        optionValue.setOptionValue(requestDto.getOptionValue());
 
-        return new OptionValuesResponseDto(optionValue);
+        return new OptionValuesResponse(optionValue);
     }
 }
