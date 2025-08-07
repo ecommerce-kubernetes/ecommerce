@@ -33,6 +33,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class OptionTypeControllerTest {
 
     private static final String BASE_PATH = "/option-types";
+    private static final String GET_VALUES_PATH = "/1/values";
+    private static final String ID_PATH = "/1";
 
     @Autowired
     MockMvc mockMvc;
@@ -106,7 +108,7 @@ class OptionTypeControllerTest {
 
         when(service.getOptionValuesByTypeId(anyLong())).thenReturn(response);
 
-        ResultActions perform = performWithBody(mockMvc, get(BASE_PATH + "/1/values"), null);
+        ResultActions perform = performWithBody(mockMvc, get(BASE_PATH + GET_VALUES_PATH), null);
         verifySuccessResponse(perform, status().isOk(), response);
     }
 
@@ -116,9 +118,9 @@ class OptionTypeControllerTest {
         when(service.getOptionValuesByTypeId(anyLong()))
                 .thenThrow(new NotFoundException(getMessage("notFound.message")));
 
-        ResultActions perform = performWithBody(mockMvc, get(BASE_PATH + "/1/values"), null);
+        ResultActions perform = performWithBody(mockMvc, get(BASE_PATH + GET_VALUES_PATH), null);
         verifyErrorResponse(perform, status().isNotFound(),
-                getMessage("notFound"), getMessage("notFound.message"), BASE_PATH + "/1/values");
+                getMessage("notFound"), getMessage("notFound.message"), BASE_PATH + GET_VALUES_PATH);
     }
 
 
@@ -132,7 +134,7 @@ class OptionTypeControllerTest {
 
         when(service.updateOptionTypeById(anyLong(), any(OptionTypeRequest.class))).thenReturn(response);
 
-        ResultActions perform = performWithBody(mockMvc, patch(BASE_PATH + "/1"), request);
+        ResultActions perform = performWithBody(mockMvc, patch(BASE_PATH + ID_PATH), request);
         verifySuccessResponse(perform, status().isOk(), response);
     }
 
@@ -141,9 +143,9 @@ class OptionTypeControllerTest {
     void updateOptionTypeTest_validation() throws Exception {
         OptionTypeRequest request = new OptionTypeRequest("");
 
-        ResultActions perform = performWithBody(mockMvc, patch(BASE_PATH + "/1"), request);
+        ResultActions perform = performWithBody(mockMvc, patch(BASE_PATH + ID_PATH), request);
         verifyErrorResponse(perform, status().isBadRequest(), getMessage("badRequest"),
-                getMessage("badRequest.validation"), BASE_PATH + "/1");
+                getMessage("badRequest.validation"), BASE_PATH + ID_PATH);
     }
 
     @Test
@@ -154,9 +156,9 @@ class OptionTypeControllerTest {
         when(service.updateOptionTypeById(anyLong(), any(OptionTypeRequest.class)))
                 .thenThrow(new NotFoundException(getMessage("notFound.message")));
 
-        ResultActions perform = performWithBody(mockMvc, patch(BASE_PATH + "/1"), request);
+        ResultActions perform = performWithBody(mockMvc, patch(BASE_PATH + ID_PATH), request);
         verifyErrorResponse(perform, status().isNotFound(), getMessage("notFound"),
-                getMessage("notFound.message"), BASE_PATH + "/1");
+                getMessage("notFound.message"), BASE_PATH + ID_PATH);
     }
 
     @Test
@@ -165,7 +167,7 @@ class OptionTypeControllerTest {
 
         doNothing().when(service).deleteOptionTypeById(anyLong());
 
-        ResultActions perform = performWithBody(mockMvc, delete(BASE_PATH + "/1"), null);
+        ResultActions perform = performWithBody(mockMvc, delete(BASE_PATH + ID_PATH), null);
         verifySuccessResponse(perform, status().isNoContent(), null);
     }
 
@@ -175,8 +177,8 @@ class OptionTypeControllerTest {
         doThrow(new NotFoundException(getMessage("notFound.message")))
                 .when(service).deleteOptionTypeById(anyLong());
 
-        ResultActions perform = performWithBody(mockMvc, delete(BASE_PATH + "/1"), null);
+        ResultActions perform = performWithBody(mockMvc, delete(BASE_PATH + ID_PATH), null);
         verifyErrorResponse(perform, status().isNotFound(), getMessage("notFound"),
-                getMessage("notFound.message"), BASE_PATH + "/1");
+                getMessage("notFound.message"), BASE_PATH + ID_PATH);
     }
 }
