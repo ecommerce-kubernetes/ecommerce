@@ -40,7 +40,8 @@ public class ProductController {
     @PostMapping
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<ProductResponse> createProduct(@RequestBody @Validated ProductRequest request){
-        return ResponseEntity.status(HttpStatus.CREATED).body(new ProductResponse());
+        ProductResponse response = productService.saveProduct(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @Operation(summary = "상품 조회")

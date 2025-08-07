@@ -1,9 +1,91 @@
 package com.example.product_service.controller;
 
-import lombok.extern.slf4j.Slf4j;
+import com.example.product_service.common.MessageSourceUtil;
+import com.example.product_service.controller.util.ControllerTestHelper;
+import com.example.product_service.dto.request.image.ImageRequest;
+import com.example.product_service.dto.request.options.ProductOptionTypeRequest;
+import com.example.product_service.dto.request.product.ProductRequest;
+import com.example.product_service.dto.request.variant.ProductVariantRequest;
+import com.example.product_service.dto.response.image.ImageResponse;
+import com.example.product_service.dto.response.options.OptionValueResponse;
+import com.example.product_service.dto.response.options.ProductOptionTypeResponse;
+import com.example.product_service.dto.response.product.ProductResponse;
+import com.example.product_service.dto.response.variant.ProductVariantResponse;
+import com.example.product_service.service.CategoryService;
+import com.example.product_service.service.ProductService;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+import static com.example.product_service.controller.util.ControllerTestHelper.performWithBody;
+import static com.example.product_service.controller.util.ControllerTestHelper.verifySuccessResponse;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(ProductController.class)
-@Slf4j
+@AutoConfigureMockMvc(addFilters = false)
 class ProductControllerTest {
+
+    private static final String BASE_PATH = "/products";
+    private static final String IMAGE_URL = "http://test.jpg";
+    @Autowired
+    MockMvc mockMvc;
+    @MockitoBean
+    MessageSourceUtil ms;
+    @MockitoBean
+    ProductService service;
+
+    @BeforeEach
+    void setUpMessages() {
+        when(ms.getMessage("badRequest")).thenReturn("BadRequest");
+        when(ms.getMessage("badRequest.validation")).thenReturn("Validation Error");
+        when(ms.getMessage("conflict")).thenReturn("Conflict");
+    }
+
+    @Test
+    @DisplayName("상품 저장 테스트-성공")
+    void createProductTest_success() throws Exception {
+        ProductRequest request = createProductRequest();
+        ProductResponse response = new ProductResponse(1L, "product", "description", 1L, LocalDateTime.now(), LocalDateTime.now(),
+                List.of(new ImageResponse(1L, IMAGE_URL, 0)),
+                List.of(new ProductOptionTypeResponse(1L, "optionType1")),
+                List.of(new ProductVariantResponse(1L, "sku", 100, 10, 10,
+                        List.of(new OptionValueResponse(1L, 1L, "value")))));
+
+        when(service.saveProduct(any(ProductRequest.class)))
+                .thenReturn(response);
+
+        ResultActions perform = performWithBody(mockMvc, post(BASE_PATH), request);
+        verifySuccessResponse(perform, status().isCreated(), response);
+    }
+
+    private ProductRequest createProductRequest(){
+        return new ProductRequest("product", "description", 1L,
+                createImageRequest(),
+                createProductOptionTypeRequest(),
+                createProductVariantRequest());
+    }
+
+    private List<ImageRequest> createImageRequest(){
+        return List.of(new ImageRequest(IMAGE_URL, 0));
+    }
+
+    private List<ProductOptionTypeRequest> createProductOptionTypeRequest(){
+        return List.of(new ProductOptionTypeRequest(1L, 0));
+    }
+
+    private List<ProductVariantRequest> createProductVariantRequest(){
+        return List.of(new ProductVariantRequest("sku", 100, 10, 10, List.of(1L)));
+    }
 }
