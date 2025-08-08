@@ -24,6 +24,11 @@ public class ProductServiceImpl implements ProductService{
     }
 
     @Override
+    public void deleteProduct(Long productId) {
+
+    }
+
+    @Override
     public PageDto<ProductSummaryResponse> getProducts(Pageable pageable, ProductSearch search) {
         return null;
     }

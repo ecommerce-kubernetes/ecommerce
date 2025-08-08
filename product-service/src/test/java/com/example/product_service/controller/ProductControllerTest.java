@@ -38,7 +38,7 @@ import static com.example.product_service.controller.util.ControllerTestHelper.*
 import static com.example.product_service.controller.util.TestMessageUtil.getMessage;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -266,6 +266,24 @@ class ProductControllerTest {
         ResultActions perform = performWithBody(mockMvc, patch(ID_PATH), request);
         verifyErrorResponse(perform, status().isNotFound(), getMessage("notFound"),
                 getMessage("category.notFound"), ID_PATH);
+    }
+
+    @Test
+    @DisplayName("상품 삭제 테스트-성공")
+    void deleteProductTest_success() throws Exception {
+        doNothing().when(service).deleteProduct(anyLong());
+        ResultActions perform = performWithBody(mockMvc, delete(ID_PATH), null);
+        verifySuccessResponse(perform, status().isNoContent(), null);
+    }
+
+    @Test
+    @DisplayName("상품 삭제 테스트-실패(상품 없음)")
+    void deleteProductTest_notFound() throws Exception {
+        doThrow(new NotFoundException(getMessage("product.notFound")))
+                .when(service).deleteProduct(anyLong());
+        ResultActions perform = performWithBody(mockMvc, delete(ID_PATH), null);
+        verifyErrorResponse(perform, status().isNotFound(), getMessage("notFound"),
+                getMessage("product.notFound"), ID_PATH);
     }
 
     private ProductResponse createProductResponse() {

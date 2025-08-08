@@ -15,4 +15,5 @@ public interface ProductService {
     ProductResponse getProductById(Long productId);
     PageDto<ProductSummaryResponse> getPopularProducts(int page, int size, Long categoryId);
     ProductUpdateResponse updateBasicInfo(Long productId, UpdateProductBasicRequest request);
+    void deleteProduct(Long productId);
 }
