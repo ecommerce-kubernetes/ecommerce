@@ -164,7 +164,8 @@ public class ProductControllerRequestValidationTest {
 
     static Stream<Arguments> invalidUpdateProductBasicRequestFieldProvider(){
         return Stream.of(
-                Arguments.of("name", "", getMessage(NOT_BLANK_MESSAGE_PATH))
+                Arguments.of("name", "", getMessage(NOT_BLANK_MESSAGE_PATH)),
+                Arguments.of("name", " ", getMessage(NOT_BLANK_MESSAGE_PATH))
         );
     }
 

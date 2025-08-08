@@ -31,7 +31,6 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.util.LinkedMultiValueMap;
 
 import java.time.LocalDateTime;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -236,6 +235,37 @@ class ProductControllerTest {
 
         ResultActions perform = performWithBody(mockMvc, patch(ID_PATH), request);
         verifySuccessResponse(perform, status().isOk(), response);
+    }
+
+    @Test
+    @DisplayName("상품 기본 정보 수정 테스트-실패(검증)")
+    void updateBasicInfoTest_validation() throws Exception {
+        UpdateProductBasicRequest request = new UpdateProductBasicRequest(" ", "description", 1L);
+        ResultActions perform = performWithBody(mockMvc, patch(ID_PATH), request);
+        verifyErrorResponse(perform, status().isBadRequest(), getMessage("badRequest"),
+                getMessage("badRequest.validation"), ID_PATH);
+    }
+
+    @Test
+    @DisplayName("상품 기본 정보 수정 테스트-실패(상품 없음)")
+    void updateBasicInfoTest_product_notFound() throws Exception {
+        UpdateProductBasicRequest request = new UpdateProductBasicRequest("updatedName", "description", 1L);
+        when(service.updateBasicInfo(anyLong(), any(UpdateProductBasicRequest.class)))
+                .thenThrow(new NotFoundException(getMessage("product.notFound")));
+        ResultActions perform = performWithBody(mockMvc, patch(ID_PATH), request);
+        verifyErrorResponse(perform, status().isNotFound(), getMessage("notFound"),
+                getMessage("product.notFound"),ID_PATH);
+    }
+
+    @Test
+    @DisplayName("상품 기본 정보 수정 테스트-실패(카테고리 없음)")
+    void updateBasicInfoTest_category_notFound() throws Exception {
+        UpdateProductBasicRequest request = new UpdateProductBasicRequest("updatedName", "description", 1L);
+        when(service.updateBasicInfo(anyLong(), any(UpdateProductBasicRequest.class)))
+                .thenThrow(new NotFoundException(getMessage("category.notFound")));
+        ResultActions perform = performWithBody(mockMvc, patch(ID_PATH), request);
+        verifyErrorResponse(perform, status().isNotFound(), getMessage("notFound"),
+                getMessage("category.notFound"), ID_PATH);
     }
 
     private ProductResponse createProductResponse() {

@@ -93,7 +93,7 @@ public class ProductController {
     @PatchMapping("/{productId}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<ProductUpdateResponse> updateBasicInfo(@PathVariable("productId") Long productId,
-                                                                 @RequestBody UpdateProductBasicRequest request){
+                                                                 @Validated @RequestBody UpdateProductBasicRequest request){
         ProductUpdateResponse response = productService.updateBasicInfo(productId, request);
         return ResponseEntity.ok(response);
     }

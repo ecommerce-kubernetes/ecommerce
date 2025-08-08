@@ -78,6 +78,7 @@ public class CategoryControllerRequestValidateTest {
     static Stream<Arguments> invalidCategoryRequestFieldProvider(){
         return Stream.of(
                 Arguments.of("name", "", getMessage(NOT_BLANK_ERROR_MESSAGE_PATH)),
+                Arguments.of("name", " ", getMessage(NOT_BLANK_ERROR_MESSAGE_PATH)),
                 Arguments.of("iconUrl", INVALID_URL, getMessage(INVALID_ERROR_MESSAGE_PATH))
         );
     }
