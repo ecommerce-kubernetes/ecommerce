@@ -5,6 +5,7 @@ import com.example.product_service.dto.ProductSearch;
 import com.example.product_service.dto.request.image.ImageRequest;
 import com.example.product_service.dto.request.options.ProductOptionTypeRequest;
 import com.example.product_service.dto.request.product.ProductRequest;
+import com.example.product_service.dto.request.product.UpdateProductBasicRequest;
 import com.example.product_service.dto.request.variant.ProductVariantRequest;
 import com.example.product_service.dto.response.PageDto;
 import com.example.product_service.dto.response.image.ImageResponse;
@@ -12,6 +13,7 @@ import com.example.product_service.dto.response.options.OptionValueResponse;
 import com.example.product_service.dto.response.options.ProductOptionTypeResponse;
 import com.example.product_service.dto.response.product.ProductResponse;
 import com.example.product_service.dto.response.product.ProductSummaryResponse;
+import com.example.product_service.dto.response.product.ProductUpdateResponse;
 import com.example.product_service.dto.response.variant.ProductVariantResponse;
 import com.example.product_service.exception.BadRequestException;
 import com.example.product_service.exception.NotFoundException;
@@ -26,18 +28,19 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.util.LinkedMultiValueMap;
 
 import java.time.LocalDateTime;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 import static com.example.product_service.controller.util.ControllerTestHelper.*;
 import static com.example.product_service.controller.util.TestMessageUtil.getMessage;
 import static org.hamcrest.Matchers.hasSize;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -46,6 +49,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class ProductControllerTest {
 
     private static final String BASE_PATH = "/products";
+    private static final String ID_PATH = BASE_PATH + "/1";
+    private static final String POPULAR_PATH = BASE_PATH + "/popular";
     private static final String IMAGE_URL = "http://test.jpg";
     @Autowired
     MockMvc mockMvc;
@@ -65,14 +70,7 @@ class ProductControllerTest {
     @DisplayName("상품 저장 테스트-성공")
     void createProductTest_success() throws Exception {
         ProductRequest request = createProductRequest();
-
-        ProductResponse response = new ProductResponse(1L, "product", "description", 1L,
-                LocalDateTime.now(), LocalDateTime.now(),
-                List.of(new ImageResponse(1L, IMAGE_URL, 0)),
-                List.of(new ProductOptionTypeResponse(1L, "optionType1")),
-                List.of(new ProductVariantResponse(1L, "sku", 100, 10, 10,
-                        List.of(new OptionValueResponse(1L, 1L, "value")))));
-
+        ProductResponse response = createProductResponse();
         when(service.saveProduct(any(ProductRequest.class)))
                 .thenReturn(response);
 
@@ -190,6 +188,63 @@ class ProductControllerTest {
                 performWithPageRequest(mockMvc, get(BASE_PATH), 0, 10, List.of("invalidSort,asc"), null);
         verifyErrorResponse(perform, status().isBadRequest(),
                 getMessage("badRequest"), getMessage("badRequest.sort"), BASE_PATH);
+    }
+
+    @Test
+    @DisplayName("상품 상세 조회 테스트-성공")
+    void getProductTest_success() throws Exception {
+        ProductResponse response = createProductResponse();
+        when(service.getProductById(anyLong()))
+                .thenReturn(response);
+        ResultActions perform = performWithBody(mockMvc, get(ID_PATH), null);
+        verifySuccessResponse(perform, status().isOk(), response);
+    }
+
+    @Test
+    @DisplayName("상품 상세 조회 테스트-실패(없음)")
+    void getProductTest_notFound() throws Exception {
+        when(service.getProductById(anyLong()))
+                .thenThrow(new NotFoundException(getMessage("product.notFound")));
+        ResultActions perform = performWithBody(mockMvc, get(ID_PATH), null);
+        verifyErrorResponse(perform, status().isNotFound(),
+                getMessage("notFound"), getMessage("product.notFound"),ID_PATH);
+    }
+
+    @Test
+    @DisplayName("인기 상품 조회 테스트-성공")
+    void getPopularProductsTest_success() throws Exception {
+        PageDto<ProductSummaryResponse> response =
+                new PageDto<>(createProductSummaryResponse(), 0, 10, 10, 100);
+        when(service.getPopularProducts(anyInt(), anyInt(), anyLong()))
+                .thenReturn(response);
+        ResultActions perform = performWithParams(mockMvc, get(POPULAR_PATH), new LinkedMultiValueMap<>() {{
+            add("page", "0");
+            add("size", "10");
+            add("categoryId", "1");
+        }});
+        verifySuccessResponse(perform, status().isOk(), response);
+    }
+
+    @Test
+    @DisplayName("상품 기본 정보 수정 테스트-성공")
+    void updateBasicInfoTest_success() throws Exception {
+        UpdateProductBasicRequest request =
+                new UpdateProductBasicRequest("updateName", "description", 1L);
+        ProductUpdateResponse response = new ProductUpdateResponse(1L, "name", "description", 1L);
+        when(service.updateBasicInfo(anyLong(), any(UpdateProductBasicRequest.class)))
+                .thenReturn(response);
+
+        ResultActions perform = performWithBody(mockMvc, patch(ID_PATH), request);
+        verifySuccessResponse(perform, status().isOk(), response);
+    }
+
+    private ProductResponse createProductResponse() {
+        return new ProductResponse(1L, "product", "description", 1L,
+                LocalDateTime.now(), LocalDateTime.now(),
+                List.of(new ImageResponse(1L, IMAGE_URL, 0)),
+                List.of(new ProductOptionTypeResponse(1L, "optionType1")),
+                List.of(new ProductVariantResponse(1L, "sku", 100, 10, 10,
+                        List.of(new OptionValueResponse(1L, 1L, "value")))));
     }
 
     private ProductRequest createProductRequest() {

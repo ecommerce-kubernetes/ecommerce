@@ -61,10 +61,12 @@ public class ProductController {
     @ApiResponse(responseCode = "200", description = "조회 성공")
     @NotFoundApiResponse
     @GetMapping("/{productId}")
-    public ResponseEntity<ProductResponse> getProductById(@PathVariable("productId") Long productId){
-        return ResponseEntity.ok(new ProductResponse());
+    public ResponseEntity<ProductResponse> getProduct(@PathVariable("productId") Long productId){
+        ProductResponse response = productService.getProductById(productId);
+        return ResponseEntity.ok(response);
     }
 
+    //TODO 상품 조회와 통합되어 삭제 예상
     @Operation(summary = "특가 상품 조회")
     @ApiResponse(responseCode = "200", description = "조회 성공")
     @GetMapping("/special-sale")
@@ -77,11 +79,11 @@ public class ProductController {
     @Operation(summary = "인기 상품 조회")
     @ApiResponse(responseCode = "200", description = "조회 성공")
     @GetMapping("/popular")
-    public ResponseEntity<PageDto<ProductSummaryResponse>> popularProducts(@RequestParam(name = "page", defaultValue = "0") int page,
+    public ResponseEntity<PageDto<ProductSummaryResponse>> getPopularProducts(@RequestParam(name = "page", defaultValue = "0") int page,
                                                                       @RequestParam(name = "size", defaultValue = "10") int size,
                                                                       @RequestParam(name = "categoryId", required = false) Long categoryId){
-
-        return ResponseEntity.ok(new PageDto<>(List.of(new ProductSummaryResponse()), 0, 5, 10, 50));
+        PageDto<ProductSummaryResponse> response = productService.getPopularProducts(page, size, categoryId);
+        return ResponseEntity.ok(response);
     }
 
     @AdminApi
@@ -91,8 +93,9 @@ public class ProductController {
     @PatchMapping("/{productId}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<ProductUpdateResponse> updateBasicInfo(@PathVariable("productId") Long productId,
-                                                                 @RequestBody UpdateProductBasicRequest requestDto){
-        return ResponseEntity.ok(new ProductUpdateResponse());
+                                                                 @RequestBody UpdateProductBasicRequest request){
+        ProductUpdateResponse response = productService.updateBasicInfo(productId, request);
+        return ResponseEntity.ok(response);
     }
 
     @AdminApi
