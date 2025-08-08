@@ -1,5 +1,6 @@
 package com.example.product_service.dto.request.variant;
 
+import com.example.product_service.dto.validation.AtLeastOneFieldNotNull;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.AllArgsConstructor;

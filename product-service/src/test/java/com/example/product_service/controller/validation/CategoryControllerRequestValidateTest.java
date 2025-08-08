@@ -75,6 +75,18 @@ public class CategoryControllerRequestValidateTest {
         assertThat(violations).isEmpty();
     }
 
+    @Test
+    @DisplayName("UpdateCategoryRequest 필드가 모두 null 일때")
+    void updateCategoryRequestValidation_allFieldNull(){
+        UpdateCategoryRequest request = new UpdateCategoryRequest();
+        Set<ConstraintViolation<UpdateCategoryRequest>> violations = validateField(request);
+        assertThat(violations).isNotEmpty();
+        List<String> messages = violations.stream()
+                .map(ConstraintViolation::getMessage).toList();
+
+        assertThat(messages).containsExactlyInAnyOrder(getMessage("EmptyRequest"));
+    }
+
     static Stream<Arguments> invalidCategoryRequestFieldProvider(){
         return Stream.of(
                 Arguments.of("name", "", getMessage(NOT_BLANK_ERROR_MESSAGE_PATH)),

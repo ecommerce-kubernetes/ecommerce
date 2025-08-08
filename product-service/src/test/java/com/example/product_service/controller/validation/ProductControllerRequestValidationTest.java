@@ -66,7 +66,7 @@ public class ProductControllerRequestValidationTest {
     @Test
     @DisplayName("ImageRequest 필드 동시 오류 발생시 전체 개수 및 필드 확인")
     void imageRequestValidation_multiple(){
-        ImageRequest request = new ImageRequest();
+        ImageRequest request = new ImageRequest("", -1);
         Set<ConstraintViolation<ImageRequest>> violations = validateField(request);
         List<String> fields = violations.stream().map(v -> v.getPropertyPath().toString()).toList();
 
@@ -153,6 +153,16 @@ public class ProductControllerRequestValidationTest {
         assertThat(field).containsExactlyInAnyOrder("categoryId", "name", "rating");
     }
 
+    @Test
+    @DisplayName("UpdateProductBasicRequest 모든 필드가 null일때")
+    void updateProductValidation_allFieldNull(){
+        UpdateProductBasicRequest request = new UpdateProductBasicRequest();
+        Set<ConstraintViolation<UpdateProductBasicRequest>> violations = validateField(request);
+        List<String> messages = violations.stream().map(ConstraintViolation::getMessage).toList();
+        assertThat(violations).isNotEmpty();
+        assertThat(messages).containsExactlyInAnyOrder(getMessage("EmptyRequest"));
+    }
+
     static Stream<Arguments> invalidProductSearchFieldProvider(){
         return Stream.of(
                 Arguments.of("categoryId", 0, "must be at least 1"),
@@ -183,8 +193,6 @@ public class ProductControllerRequestValidationTest {
         return Stream.of(
                 Arguments.of("url", "", getMessage(NOT_BLANK_MESSAGE_PATH)),
                 Arguments.of("url", "invalidUrl", getMessage(INVALID_URL_MESSAGE_PATH)),
-                Arguments.of("sortOrder", null, getMessage(NOTNULL_MESSAGE_PATH)),
-                Arguments.of("sortOrder", "", getMessage(NOTNULL_MESSAGE_PATH)),
                 Arguments.of("sortOrder", -1, "must be at least 0")
         );
     }
