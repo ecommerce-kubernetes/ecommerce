@@ -1,9 +1,12 @@
 package com.example.product_service.service;
 
 import com.example.product_service.dto.ProductSearch;
+import com.example.product_service.dto.request.image.AddImageRequest;
+import com.example.product_service.dto.request.image.ImageRequest;
 import com.example.product_service.dto.request.product.ProductRequest;
 import com.example.product_service.dto.request.product.UpdateProductBasicRequest;
 import com.example.product_service.dto.response.PageDto;
+import com.example.product_service.dto.response.image.ImageResponse;
 import com.example.product_service.dto.response.product.ProductResponse;
 import com.example.product_service.dto.response.product.ProductSummaryResponse;
 import com.example.product_service.dto.response.product.ProductUpdateResponse;
@@ -12,6 +15,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @Transactional(readOnly = true)
@@ -46,5 +51,10 @@ public class ProductServiceImpl implements ProductService{
     @Override
     public ProductResponse saveProduct(ProductRequest request) {
         return new ProductResponse();
+    }
+
+    @Override
+    public List<ImageResponse> addImages(Long productId, AddImageRequest request) {
+        return List.of();
     }
 }

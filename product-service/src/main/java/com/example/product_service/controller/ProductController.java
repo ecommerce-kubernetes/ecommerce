@@ -5,9 +5,11 @@ import com.example.product_service.controller.util.specification.annotation.BadR
 import com.example.product_service.controller.util.specification.annotation.ForbiddenApiResponse;
 import com.example.product_service.controller.util.specification.annotation.NotFoundApiResponse;
 import com.example.product_service.dto.ProductSearch;
+import com.example.product_service.dto.request.image.AddImageRequest;
 import com.example.product_service.dto.request.product.UpdateProductBasicRequest;
 import com.example.product_service.dto.request.product.ProductRequest;
 import com.example.product_service.dto.response.PageDto;
+import com.example.product_service.dto.response.image.ImageResponse;
 import com.example.product_service.dto.response.product.*;
 import com.example.product_service.service.ProductService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -41,6 +43,18 @@ public class ProductController {
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<ProductResponse> createProduct(@RequestBody @Validated ProductRequest request){
         ProductResponse response = productService.saveProduct(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @AdminApi
+    @Operation(summary = "상품 이미지 추가")
+    @ApiResponse(responseCode = "201", description = "추가 성공")
+    @BadRequestApiResponse @ForbiddenApiResponse @NotFoundApiResponse
+    @PostMapping("/{productId}/images")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public ResponseEntity<List<ImageResponse>> addImages(@PathVariable("productId") Long productId,
+                                                         @Validated  @RequestBody AddImageRequest request){
+        List<ImageResponse> response = productService.addImages(productId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 

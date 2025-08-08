@@ -30,8 +30,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(ProductImageController.class)
 @AutoConfigureMockMvc(addFilters = false)
 class ProductImageControllerTest {
-
-    private static final String CREATE_PATH = "/products/1/images";
     private static final String BASE_PATH = "/product-images";
     private static final String ID_PATH = BASE_PATH + "/1";
     @Autowired
@@ -46,38 +44,6 @@ class ProductImageControllerTest {
         when(ms.getMessage(BAD_REQUEST)).thenReturn("BadRequest");
         when(ms.getMessage(BAD_REQUEST_VALIDATION)).thenReturn("Validation Error");
         when(ms.getMessage("conflict")).thenReturn("Conflict");
-    }
-
-    @Test
-    @DisplayName("상품 이미지 추가 테스트-성공")
-    void addImagesTest_success() throws Exception {
-        AddImageRequest request = new AddImageRequest(List.of("http://test1.jpg", "http://test2.jpg"));
-        List<ImageResponse> response = List.of(new ImageResponse(1L, "http://test1.jpg", 2),
-                new ImageResponse(1L, "http://test2.jpg", 3));
-        when(service.addImages(anyLong(), any(AddImageRequest.class)))
-                .thenReturn(response);
-        ResultActions perform = performWithBody(mockMvc, post(CREATE_PATH), request);
-        verifySuccessResponse(perform, status().isCreated(), response);
-    }
-
-    @Test
-    @DisplayName("상품 이미지 추가 테스트-실패(검증)")
-    void addImagesTest_validation() throws Exception {
-        AddImageRequest request = new AddImageRequest(List.of());
-        ResultActions perform = performWithBody(mockMvc, post(CREATE_PATH), request);
-        verifyErrorResponse(perform, status().isBadRequest(), getMessage(BAD_REQUEST),
-                getMessage(BAD_REQUEST_VALIDATION), CREATE_PATH);
-    }
-
-    @Test
-    @DisplayName("상품 이미지 추가 테스트-실패(상품 없음)")
-    void addImagesTest_notFound() throws Exception {
-        AddImageRequest request = new AddImageRequest(List.of("http://test1.jpg", "http://test2.jpg"));
-        when(service.addImages(anyLong(),any(AddImageRequest.class)))
-                .thenThrow(new NotFoundException(getMessage(PRODUCT_NOT_FOUND)));
-        ResultActions perform = performWithBody(mockMvc, post(CREATE_PATH), request);
-        verifyErrorResponse(perform, status().isNotFound(), getMessage(NOT_FOUND),
-                getMessage(PRODUCT_NOT_FOUND), CREATE_PATH);
     }
 
     @Test

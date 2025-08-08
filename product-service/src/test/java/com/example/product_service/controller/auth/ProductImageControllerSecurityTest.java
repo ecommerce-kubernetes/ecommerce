@@ -38,22 +38,6 @@ public class ProductImageControllerSecurityTest {
     ProductImageService productImageService;
 
     @Test
-    @DisplayName("상품 이미지 추가 테스트-인증 에러")
-    void addImageTest_UnAuthorized() throws Exception {
-        ResultActions perform =
-                performWithBody(mockMvc, post(CREATE_PATH), createAddImageRequest());
-        verifyUnauthorizedResponse(perform, CREATE_PATH);
-    }
-
-    @Test
-    @DisplayName("상품 이미지 추가 테스트-권한 부족")
-    void addImageTest_NoPermission() throws Exception {
-        ResultActions perform =
-                performWithAuthAndBody(mockMvc, post(CREATE_PATH), createAddImageRequest(), UserRole.ROLE_USER);
-        verifyNoPermissionResponse(perform, CREATE_PATH);
-    }
-
-    @Test
     @DisplayName("상품 이미지 수정 테스트-인증 에러")
     void updateImageTest_UnAuthorized() throws Exception {
         ResultActions perform =
@@ -81,10 +65,6 @@ public class ProductImageControllerSecurityTest {
     void deleteImageTest_NoPermission() throws Exception {
         ResultActions perform = performWithAuthAndBody(mockMvc, delete(PRODUCT_IMAGE_ID_PATH), null, UserRole.ROLE_USER);
         verifyNoPermissionResponse(perform, PRODUCT_IMAGE_ID_PATH);
-    }
-
-    private AddImageRequest createAddImageRequest(){
-        return new AddImageRequest(List.of("http://test1.jpg", "http://test2.jpg"));
     }
 
     private ImageRequest createImageRequest(){

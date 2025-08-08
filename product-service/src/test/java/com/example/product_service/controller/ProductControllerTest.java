@@ -2,6 +2,7 @@ package com.example.product_service.controller;
 
 import com.example.product_service.common.MessageSourceUtil;
 import com.example.product_service.dto.ProductSearch;
+import com.example.product_service.dto.request.image.AddImageRequest;
 import com.example.product_service.dto.request.image.ImageRequest;
 import com.example.product_service.dto.request.options.ProductOptionTypeRequest;
 import com.example.product_service.dto.request.product.ProductRequest;
@@ -51,6 +52,7 @@ class ProductControllerTest {
     private static final String BASE_PATH = "/products";
     private static final String ID_PATH = BASE_PATH + "/1";
     private static final String POPULAR_PATH = BASE_PATH + "/popular";
+    private static final String PRODUCT_IMAGE_PATH = BASE_PATH + "/1/images";
     private static final String IMAGE_URL = "http://test.jpg";
     @Autowired
     MockMvc mockMvc;
@@ -151,6 +153,38 @@ class ProductControllerTest {
         ResultActions perform = performWithBody(mockMvc, post(BASE_PATH), request);
         verifyErrorResponse(perform, status().isBadRequest(), getMessage(BAD_REQUEST),
                 getMessage(PRODUCT_OPTION_VALUE_CARDINALITY_VIOLATION), BASE_PATH);
+    }
+
+    @Test
+    @DisplayName("상품 이미지 추가 테스트-성공")
+    void addImagesTest_success() throws Exception {
+        AddImageRequest request = new AddImageRequest(List.of("http://test1.jpg", "http://test2.jpg"));
+        List<ImageResponse> response = List.of(new ImageResponse(1L, "http://test1.jpg", 2),
+                new ImageResponse(1L, "http://test2.jpg", 3));
+        when(service.addImages(anyLong(), any(AddImageRequest.class)))
+                .thenReturn(response);
+        ResultActions perform = performWithBody(mockMvc, post(PRODUCT_IMAGE_PATH), request);
+        verifySuccessResponse(perform, status().isCreated(), response);
+    }
+
+    @Test
+    @DisplayName("상품 이미지 추가 테스트-실패(검증)")
+    void addImagesTest_validation() throws Exception {
+        AddImageRequest request = new AddImageRequest(List.of());
+        ResultActions perform = performWithBody(mockMvc, post(PRODUCT_IMAGE_PATH), request);
+        verifyErrorResponse(perform, status().isBadRequest(), getMessage(BAD_REQUEST),
+                getMessage(BAD_REQUEST_VALIDATION), PRODUCT_IMAGE_PATH);
+    }
+
+    @Test
+    @DisplayName("상품 이미지 추가 테스트-실패(상품 없음)")
+    void addImagesTest_notFound() throws Exception {
+        AddImageRequest request = new AddImageRequest(List.of("http://test1.jpg", "http://test2.jpg"));
+        when(service.addImages(anyLong(),any(AddImageRequest.class)))
+                .thenThrow(new NotFoundException(getMessage(PRODUCT_NOT_FOUND)));
+        ResultActions perform = performWithBody(mockMvc, post(PRODUCT_IMAGE_PATH), request);
+        verifyErrorResponse(perform, status().isNotFound(), getMessage(NOT_FOUND),
+                getMessage(PRODUCT_NOT_FOUND), PRODUCT_IMAGE_PATH);
     }
 
     @Test

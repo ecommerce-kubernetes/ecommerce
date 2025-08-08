@@ -6,6 +6,7 @@ import com.example.product_service.common.advice.CustomAuthenticationEntryPoint;
 import com.example.product_service.config.WebSecurity;
 import com.example.product_service.controller.ProductController;
 import com.example.product_service.controller.util.UserRole;
+import com.example.product_service.dto.request.image.AddImageRequest;
 import com.example.product_service.dto.request.image.ImageRequest;
 import com.example.product_service.dto.request.options.ProductOptionTypeRequest;
 import com.example.product_service.dto.request.product.ProductRequest;
@@ -33,7 +34,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 public class ProductControllerSecurityTest {
 
     private static final String BASE_PATH = "/products";
-    private static final String PRODUCT_ID_PATH = "/products/1";
+    private static final String PRODUCT_ID_PATH = BASE_PATH + "/1";
+    private static final String PRODUCT_IMAGE_PATH = BASE_PATH + "/1/images";
     @Autowired
     MockMvc mockMvc;
     @MockitoBean
@@ -52,6 +54,22 @@ public class ProductControllerSecurityTest {
         ResultActions perform =
                 performWithAuthAndBody(mockMvc, post(BASE_PATH), createProductRequest(), UserRole.ROLE_USER);
         verifyNoPermissionResponse(perform, BASE_PATH);
+    }
+
+    @Test
+    @DisplayName("상품 이미지 추가 테스트-인증 에러")
+    void addImageTest_UnAuthorized() throws Exception {
+        ResultActions perform =
+                performWithBody(mockMvc, post(PRODUCT_IMAGE_PATH), createAddImageRequest());
+        verifyUnauthorizedResponse(perform, PRODUCT_IMAGE_PATH);
+    }
+
+    @Test
+    @DisplayName("상품 이미지 추가 테스트-권한 부족")
+    void addImageTest_NoPermission() throws Exception {
+        ResultActions perform =
+                performWithAuthAndBody(mockMvc, post(PRODUCT_IMAGE_PATH), createAddImageRequest(), UserRole.ROLE_USER);
+        verifyNoPermissionResponse(perform, PRODUCT_IMAGE_PATH);
     }
 
     @Test
@@ -123,5 +141,7 @@ public class ProductControllerSecurityTest {
     private List<Long> createProductOptionValueIdsRequest(){
         return List.of(1L);
     }
-
+    private AddImageRequest createAddImageRequest(){
+        return new AddImageRequest(List.of("http://test1.jpg", "http://test2.jpg"));
+    }
 }

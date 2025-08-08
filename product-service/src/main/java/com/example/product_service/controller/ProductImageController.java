@@ -28,18 +28,6 @@ public class ProductImageController {
     private final ProductImageService productImageService;
 
     @AdminApi
-    @Operation(summary = "상품 이미지 추가")
-    @ApiResponse(responseCode = "201", description = "추가 성공")
-    @BadRequestApiResponse @ForbiddenApiResponse @NotFoundApiResponse
-    @PostMapping("/products/{productId}/images")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<List<ImageResponse>> addImages(@PathVariable("productId") Long productId,
-                                                        @Validated  @RequestBody AddImageRequest request){
-        List<ImageResponse> response = productImageService.addImages(productId, request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
-    }
-
-    @AdminApi
     @Operation(summary = "상품 이미지 수정")
     @ApiResponse(responseCode = "200", description = "수정 완료")
     @BadRequestApiResponse @ForbiddenApiResponse @NotFoundApiResponse
