@@ -230,7 +230,7 @@ class ProductControllerTest {
         UpdateProductBasicRequest request =
                 new UpdateProductBasicRequest("updateName", "description", 1L);
         ProductUpdateResponse response = new ProductUpdateResponse(1L, "name", "description", 1L);
-        when(service.updateBasicInfo(anyLong(), any(UpdateProductBasicRequest.class)))
+        when(service.updateBasicInfoById(anyLong(), any(UpdateProductBasicRequest.class)))
                 .thenReturn(response);
 
         ResultActions perform = performWithBody(mockMvc, patch(ID_PATH), request);
@@ -250,7 +250,7 @@ class ProductControllerTest {
     @DisplayName("상품 기본 정보 수정 테스트-실패(상품 없음)")
     void updateBasicInfoTest_product_notFound() throws Exception {
         UpdateProductBasicRequest request = new UpdateProductBasicRequest("updatedName", "description", 1L);
-        when(service.updateBasicInfo(anyLong(), any(UpdateProductBasicRequest.class)))
+        when(service.updateBasicInfoById(anyLong(), any(UpdateProductBasicRequest.class)))
                 .thenThrow(new NotFoundException(getMessage("product.notFound")));
         ResultActions perform = performWithBody(mockMvc, patch(ID_PATH), request);
         verifyErrorResponse(perform, status().isNotFound(), getMessage("notFound"),
@@ -261,7 +261,7 @@ class ProductControllerTest {
     @DisplayName("상품 기본 정보 수정 테스트-실패(카테고리 없음)")
     void updateBasicInfoTest_category_notFound() throws Exception {
         UpdateProductBasicRequest request = new UpdateProductBasicRequest("updatedName", "description", 1L);
-        when(service.updateBasicInfo(anyLong(), any(UpdateProductBasicRequest.class)))
+        when(service.updateBasicInfoById(anyLong(), any(UpdateProductBasicRequest.class)))
                 .thenThrow(new NotFoundException(getMessage("category.notFound")));
         ResultActions perform = performWithBody(mockMvc, patch(ID_PATH), request);
         verifyErrorResponse(perform, status().isNotFound(), getMessage("notFound"),
@@ -271,7 +271,7 @@ class ProductControllerTest {
     @Test
     @DisplayName("상품 삭제 테스트-성공")
     void deleteProductTest_success() throws Exception {
-        doNothing().when(service).deleteProduct(anyLong());
+        doNothing().when(service).deleteProductById(anyLong());
         ResultActions perform = performWithBody(mockMvc, delete(ID_PATH), null);
         verifySuccessResponse(perform, status().isNoContent(), null);
     }
@@ -280,7 +280,7 @@ class ProductControllerTest {
     @DisplayName("상품 삭제 테스트-실패(상품 없음)")
     void deleteProductTest_notFound() throws Exception {
         doThrow(new NotFoundException(getMessage("product.notFound")))
-                .when(service).deleteProduct(anyLong());
+                .when(service).deleteProductById(anyLong());
         ResultActions perform = performWithBody(mockMvc, delete(ID_PATH), null);
         verifyErrorResponse(perform, status().isNotFound(), getMessage("notFound"),
                 getMessage("product.notFound"), ID_PATH);

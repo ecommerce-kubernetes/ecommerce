@@ -24,7 +24,7 @@ public class OptionValueServiceImpl implements OptionValueService{
 
     @Override
     @Transactional
-    public OptionValueResponse updateOptionValue(Long optionValueId, OptionValueRequest requestDto) {
+    public OptionValueResponse updateOptionValueById(Long optionValueId, OptionValueRequest requestDto) {
 
         OptionValues optionValue = optionValuesRepository
                 .findById(optionValueId).orElseThrow(() -> new NotFoundException("Not Found OptionValue"));

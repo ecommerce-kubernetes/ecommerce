@@ -18,6 +18,8 @@ public interface CategoryService {
     CategoryHierarchyResponse getHierarchyByCategoryId(Long categoryId);
     List<CategoryResponse> getChildrenCategoriesById(Long categoryId);
     CategoryResponse getRootCategoryDetailsOf(Long categoryId);
+
+    //TODO 삭제 예정
     Categories getByIdOrThrow(Long categoryId);
     List<Long> getCategoryAndDescendantIds(Long categoryId);
 }

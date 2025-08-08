@@ -19,12 +19,12 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class ProductServiceImpl implements ProductService{
     @Override
-    public ProductUpdateResponse updateBasicInfo(Long productId, UpdateProductBasicRequest request) {
+    public ProductUpdateResponse updateBasicInfoById(Long productId, UpdateProductBasicRequest request) {
         return null;
     }
 
     @Override
-    public void deleteProduct(Long productId) {
+    public void deleteProductById(Long productId) {
 
     }
 

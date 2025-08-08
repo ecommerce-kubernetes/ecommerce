@@ -14,7 +14,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -94,7 +93,7 @@ public class ProductController {
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<ProductUpdateResponse> updateBasicInfo(@PathVariable("productId") Long productId,
                                                                  @Validated @RequestBody UpdateProductBasicRequest request){
-        ProductUpdateResponse response = productService.updateBasicInfo(productId, request);
+        ProductUpdateResponse response = productService.updateBasicInfoById(productId, request);
         return ResponseEntity.ok(response);
     }
 
@@ -105,7 +104,7 @@ public class ProductController {
     @DeleteMapping("/{productId}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<Void> deleteProduct(@PathVariable("productId") Long productId){
-        productService.deleteProduct(productId);
+        productService.deleteProductById(productId);
         return ResponseEntity.noContent().build();
     }
 }

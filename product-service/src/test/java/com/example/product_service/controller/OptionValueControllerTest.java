@@ -120,7 +120,7 @@ class OptionValueControllerTest {
     void updateOptionValueTest_success() throws Exception {
         OptionValueRequest request = new OptionValueRequest("updatedValue");
         OptionValueResponse response = new OptionValueResponse(1L, 1L, "updatedValue");
-        when(service.updateOptionValue(anyLong(), any(OptionValueRequest.class))).thenReturn(response);
+        when(service.updateOptionValueById(anyLong(), any(OptionValueRequest.class))).thenReturn(response);
 
         ResultActions perform = performWithBody(mockMvc, patch(ID_PATH), request);
         verifySuccessResponse(perform, status().isOk(), response);
@@ -138,7 +138,7 @@ class OptionValueControllerTest {
     @DisplayName("옵션 값 수정 테스트-실패(없음)")
     void updateOptionValueTest_notFound() throws Exception {
         OptionValueRequest request = new OptionValueRequest("updatedOptionValue");
-        when(service.updateOptionValue(anyLong(), any(OptionValueRequest.class)))
+        when(service.updateOptionValueById(anyLong(), any(OptionValueRequest.class)))
                 .thenThrow(new NotFoundException(getMessage("option-value.notFound")));
 
         ResultActions perform = performWithBody(mockMvc, patch(ID_PATH), request);
@@ -149,7 +149,7 @@ class OptionValueControllerTest {
     @DisplayName("옵션 값 수정 테스트-실패(중복)")
     void updateOptionValueTest_conflict() throws Exception {
         OptionValueRequest request = new OptionValueRequest("duplicatedName");
-        when(service.updateOptionValue(anyLong(), any(OptionValueRequest.class)))
+        when(service.updateOptionValueById(anyLong(), any(OptionValueRequest.class)))
                 .thenThrow(new DuplicateResourceException(getMessage("option-value.conflict")));
 
         ResultActions perform = performWithBody(mockMvc, patch(ID_PATH), request);

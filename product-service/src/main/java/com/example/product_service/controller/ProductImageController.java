@@ -46,8 +46,10 @@ public class ProductImageController {
     @PatchMapping("/product-images/{imageId}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<ImageResponse> updateImage(@PathVariable("imageId") Long imageId,
-                                                     @RequestBody ImageRequest request){
-        return ResponseEntity.ok(new ImageResponse());
+                                                     @Validated @RequestBody ImageRequest request){
+
+        ImageResponse response = productImageService.updateImageById(imageId, request);
+        return ResponseEntity.ok(response);
     }
 
     @AdminApi
@@ -57,6 +59,7 @@ public class ProductImageController {
     @DeleteMapping("/product-images/{imageId}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<Void> deleteImage(@PathVariable("imageId") Long imageId){
+        productImageService.deleteImageById(imageId);
         return ResponseEntity.noContent().build();
     }
 }

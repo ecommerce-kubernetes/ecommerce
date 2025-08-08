@@ -50,7 +50,7 @@ public class OptionValueController {
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<OptionValueResponse> updateOptionValue(@PathVariable("optionValueId") Long optionValueId,
                                                                   @Validated @RequestBody OptionValueRequest request){
-        OptionValueResponse response = optionValueService.updateOptionValue(optionValueId, request);
+        OptionValueResponse response = optionValueService.updateOptionValueById(optionValueId, request);
         return ResponseEntity.ok(response);
     }
 
