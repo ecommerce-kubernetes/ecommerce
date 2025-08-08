@@ -3,6 +3,7 @@ package com.example.product_service.controller.validation;
 import com.example.product_service.controller.util.TestMessageUtil;
 import com.example.product_service.controller.util.ValidationTestHelper;
 import com.example.product_service.dto.request.image.AddImageRequest;
+import com.example.product_service.dto.request.image.ImageRequest;
 import jakarta.validation.ConstraintViolation;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -24,11 +25,19 @@ public class ProductImageControllerRequestValidationTest {
 
     private static final String NOTNULL_MESSAGE_PATH = "NotNull";
     private static final String NOT_EMPTY_MESSAGE_PATH = "NotEmpty";
+    private static final String NOT_BLANK_MESSAGE_PATH = "NotBlank";
 
     @ParameterizedTest(name = "[{index}] {0} 필드 invalid")
     @MethodSource("invalidAddImageRequestFieldProvider")
     void addImageRequestValidation_field(String fieldName, Object invalidValue, String expectedMessage){
         AddImageRequest request = new AddImageRequest();
+        assertFieldViolation(request, fieldName, invalidValue, expectedMessage);
+    }
+
+    @ParameterizedTest(name = "[{index}] {0} 필드 invalid")
+    @MethodSource("invalidImageRequestFieldProvider")
+    void ImageRequestValidation_field(String fieldName, Object invalidValue, String expectedMessage){
+        ImageRequest request = new ImageRequest("http:test.jpg", 0);
         assertFieldViolation(request, fieldName, invalidValue, expectedMessage);
     }
 
@@ -45,6 +54,14 @@ public class ProductImageControllerRequestValidationTest {
         return Stream.of(
                 Arguments.of("imageUrls", null, getMessage(NOTNULL_MESSAGE_PATH)),
                 Arguments.of("imageUrls", List.of(), getMessage(NOT_EMPTY_MESSAGE_PATH))
+        );
+    }
+
+    static Stream<Arguments> invalidImageRequestFieldProvider(){
+        return Stream.of(
+                Arguments.of("url", "", getMessage(NOT_BLANK_MESSAGE_PATH)),
+                Arguments.of("url", " ", getMessage(NOT_BLANK_MESSAGE_PATH)),
+                Arguments.of("sortOrder" , -1 , "must be at least 0")
         );
     }
 }
