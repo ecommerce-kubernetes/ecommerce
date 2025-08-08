@@ -1,7 +1,5 @@
 package com.example.product_service.controller.validation;
 
-import com.example.product_service.controller.util.TestMessageUtil;
-import com.example.product_service.controller.util.ValidationTestHelper;
 import com.example.product_service.dto.request.review.ReviewRequest;
 import jakarta.validation.ConstraintViolation;
 import org.junit.jupiter.api.DisplayName;
@@ -16,14 +14,14 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import static com.example.product_service.controller.util.MessagePath.NOT_BLANK;
+import static com.example.product_service.controller.util.MessagePath.NOT_NULL;
 import static com.example.product_service.controller.util.TestMessageUtil.getMessage;
 import static com.example.product_service.controller.util.ValidationTestHelper.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SpringExtension.class)
 public class ReviewControllerRequestValidationTest {
-    private static final String NOTNULL_MESSAGE_PATH = "NotNull";
-    private static final String NOT_BLANK_MESSAGE_PATH = "NotBlank";
 
     @ParameterizedTest(name = "[{index}] {0} 필드 invalid")
     @MethodSource("invalidReviewRequestProvider")
@@ -52,13 +50,13 @@ public class ReviewControllerRequestValidationTest {
 
     static Stream<Arguments> invalidReviewRequestProvider(){
         return Stream.of(
-                Arguments.of("orderId", null, getMessage(NOTNULL_MESSAGE_PATH)),
-                Arguments.of("orderId", "", getMessage(NOTNULL_MESSAGE_PATH)),
-                Arguments.of("rating", null , getMessage(NOTNULL_MESSAGE_PATH)),
-                Arguments.of("rating", "", getMessage(NOTNULL_MESSAGE_PATH)),
+                Arguments.of("orderId", null, getMessage(NOT_NULL)),
+                Arguments.of("orderId", "", getMessage(NOT_NULL)),
+                Arguments.of("rating", null , getMessage(NOT_NULL)),
+                Arguments.of("rating", "", getMessage(NOT_NULL)),
                 Arguments.of("rating", 0, "must be at least 1"),
                 Arguments.of("rating", 6, "must not be greater than 5"),
-                Arguments.of("content", "", getMessage(NOT_BLANK_MESSAGE_PATH))
+                Arguments.of("content", "", getMessage(NOT_BLANK))
         );
     }
 }

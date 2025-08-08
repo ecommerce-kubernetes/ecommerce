@@ -1,6 +1,7 @@
 package com.example.product_service.controller;
 
 import com.example.product_service.common.MessageSourceUtil;
+import com.example.product_service.controller.util.MessagePath;
 import com.example.product_service.dto.request.category.CategoryRequest;
 import com.example.product_service.dto.request.category.UpdateCategoryRequest;
 import com.example.product_service.dto.response.category.CategoryHierarchyResponse;
@@ -23,6 +24,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import java.util.List;
 
 import static com.example.product_service.controller.util.ControllerTestHelper.*;
+import static com.example.product_service.controller.util.MessagePath.*;
 import static com.example.product_service.controller.util.TestMessageUtil.getMessage;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -52,9 +54,9 @@ class CategoryControllerTest {
 
     @BeforeEach
     void setUpMessages() {
-        when(ms.getMessage("badRequest")).thenReturn("BadRequest");
-        when(ms.getMessage("badRequest.validation")).thenReturn("Validation Error");
-        when(ms.getMessage("conflict")).thenReturn("Conflict");
+        when(ms.getMessage(BAD_REQUEST)).thenReturn("BadRequest");
+        when(ms.getMessage(MessagePath.BAD_REQUEST_VALIDATION)).thenReturn("Validation Error");
+        when(ms.getMessage(MessagePath.CONFLICT)).thenReturn("Conflict");
     }
 
     @Test
@@ -75,7 +77,7 @@ class CategoryControllerTest {
         CategoryRequest request = new CategoryRequest("", null, "invalid");
         ResultActions perform = performWithBody(mockMvc, post(BASE_PATH), request);
         verifyErrorResponse(perform, status().isBadRequest(),
-                getMessage("badRequest"), getMessage("badRequest.validation"), BASE_PATH);
+                getMessage(BAD_REQUEST), getMessage(BAD_REQUEST_VALIDATION), BASE_PATH);
 
         perform
                 .andExpect(jsonPath("$.errors").isNotEmpty());
@@ -86,10 +88,10 @@ class CategoryControllerTest {
     void createCategoryTest_notFound() throws Exception {
         CategoryRequest request = new CategoryRequest("childCategory", 1L, ICON_URL);
         when(service.saveCategory(any(CategoryRequest.class)))
-                .thenThrow(new NotFoundException(getMessage("category.notFound")));
+                .thenThrow(new NotFoundException(getMessage(CATEGORY_NOT_FOUND)));
         ResultActions perform = performWithBody(mockMvc, post(BASE_PATH), request);
-        verifyErrorResponse(perform, status().isNotFound(), getMessage("notFound"),
-                getMessage("category.notFound"), BASE_PATH);
+        verifyErrorResponse(perform, status().isNotFound(), getMessage(NOT_FOUND),
+                getMessage(CATEGORY_NOT_FOUND), BASE_PATH);
 
     }
 
@@ -99,10 +101,10 @@ class CategoryControllerTest {
         CategoryRequest request = new CategoryRequest("duplicated", 1L, ICON_URL);
 
         when(service.saveCategory(any(CategoryRequest.class)))
-                .thenThrow(new DuplicateResourceException(getMessage("category.conflict")));
+                .thenThrow(new DuplicateResourceException(getMessage(CATEGORY_CONFLICT)));
         ResultActions perform = performWithBody(mockMvc, post(BASE_PATH), request);
-        verifyErrorResponse(perform, status().isConflict(), getMessage("conflict"),
-                getMessage("category.conflict"), BASE_PATH);
+        verifyErrorResponse(perform, status().isConflict(), getMessage(CONFLICT),
+                getMessage(CATEGORY_CONFLICT), BASE_PATH);
     }
 
     @Test
@@ -132,11 +134,11 @@ class CategoryControllerTest {
     @DisplayName("카테고리 자식 조회 테스트-실패(부모 카테고리 없음)")
     void getChildrenCategoriesTest_notFound() throws Exception {
         when(service.getChildrenCategoriesById(any()))
-                .thenThrow(new NotFoundException(getMessage("category.notFound")));
+                .thenThrow(new NotFoundException(getMessage(CATEGORY_NOT_FOUND)));
 
         ResultActions perform = performWithBody(mockMvc, get(CHILDREN_CATEGORY_PATH), null);
-        verifyErrorResponse(perform, status().isNotFound(), getMessage("notFound"),
-                getMessage("category.notFound"), CHILDREN_CATEGORY_PATH);
+        verifyErrorResponse(perform, status().isNotFound(), getMessage(NOT_FOUND),
+                getMessage(CATEGORY_NOT_FOUND), CHILDREN_CATEGORY_PATH);
     }
 
     @Test
@@ -155,11 +157,11 @@ class CategoryControllerTest {
     @DisplayName("카테고리 계층 구조 조회 테스트-실패(없음)")
     void getHierarchyTest_notFound() throws Exception {
         when(service.getHierarchyByCategoryId(anyLong()))
-                .thenThrow(new NotFoundException(getMessage("category.notFound")));
+                .thenThrow(new NotFoundException(getMessage(CATEGORY_NOT_FOUND)));
 
         ResultActions perform = performWithBody(mockMvc, get(HIERARCHY_CATEGORY_PATH), null);
-        verifyErrorResponse(perform, status().isNotFound(), getMessage("notFound"),
-                getMessage("category.notFound"), HIERARCHY_CATEGORY_PATH);
+        verifyErrorResponse(perform, status().isNotFound(), getMessage(NOT_FOUND),
+                getMessage(CATEGORY_NOT_FOUND), HIERARCHY_CATEGORY_PATH);
     }
 
     @Test
@@ -180,8 +182,8 @@ class CategoryControllerTest {
         UpdateCategoryRequest request = new UpdateCategoryRequest("", 1L, ICON_URL);
 
         ResultActions perform = performWithBody(mockMvc, patch(UPDATE_CATEGORY_PATH), request);
-        verifyErrorResponse(perform, status().isBadRequest(), getMessage("badRequest"),
-                getMessage("badRequest.validation"), UPDATE_CATEGORY_PATH);
+        verifyErrorResponse(perform, status().isBadRequest(), getMessage(BAD_REQUEST),
+                getMessage(BAD_REQUEST_VALIDATION), UPDATE_CATEGORY_PATH);
     }
 
     @Test
@@ -189,11 +191,11 @@ class CategoryControllerTest {
     void updateCategoryTest_notFound() throws Exception {
         UpdateCategoryRequest request = new UpdateCategoryRequest("updated", 1L, ICON_URL);
         when(service.updateCategoryById(anyLong(), any(UpdateCategoryRequest.class)))
-                .thenThrow(new NotFoundException(getMessage("category.notFound")));
+                .thenThrow(new NotFoundException(getMessage(CATEGORY_NOT_FOUND)));
 
         ResultActions perform = performWithBody(mockMvc, patch(UPDATE_CATEGORY_PATH), request);
-        verifyErrorResponse(perform, status().isNotFound(), getMessage("notFound"),
-                getMessage("category.notFound"), UPDATE_CATEGORY_PATH);
+        verifyErrorResponse(perform, status().isNotFound(), getMessage(NOT_FOUND),
+                getMessage(CATEGORY_NOT_FOUND), UPDATE_CATEGORY_PATH);
     }
 
     @Test
@@ -201,11 +203,11 @@ class CategoryControllerTest {
     void updateCategoryTest_conflict() throws Exception {
         UpdateCategoryRequest request = new UpdateCategoryRequest("duplicate", 1L, ICON_URL);
         when(service.updateCategoryById(anyLong(), any(UpdateCategoryRequest.class)))
-                .thenThrow(new DuplicateResourceException(getMessage("category.conflict")));
+                .thenThrow(new DuplicateResourceException(getMessage(CATEGORY_CONFLICT)));
 
         ResultActions perform = performWithBody(mockMvc, patch(UPDATE_CATEGORY_PATH), request);
-        verifyErrorResponse(perform, status().isConflict(), getMessage("conflict"),
-                getMessage("category.conflict"), UPDATE_CATEGORY_PATH);
+        verifyErrorResponse(perform, status().isConflict(), getMessage(CONFLICT),
+                getMessage(CATEGORY_CONFLICT), UPDATE_CATEGORY_PATH);
     }
 
     @Test
@@ -213,10 +215,10 @@ class CategoryControllerTest {
     void updateCategoryTest_badRequest() throws Exception {
         UpdateCategoryRequest request = new UpdateCategoryRequest("updated", 2L, ICON_URL);
         when(service.updateCategoryById(anyLong(), any(UpdateCategoryRequest.class)))
-                .thenThrow(new BadRequestException(getMessage("category.badRequest")));
+                .thenThrow(new BadRequestException(getMessage(CATEGORY_BAD_REQUEST)));
         ResultActions perform = performWithBody(mockMvc, patch(UPDATE_CATEGORY_PATH), request);
-        verifyErrorResponse(perform, status().isBadRequest(), getMessage("badRequest"),
-                getMessage("category.badRequest"), UPDATE_CATEGORY_PATH);
+        verifyErrorResponse(perform, status().isBadRequest(), getMessage(BAD_REQUEST),
+                getMessage(CATEGORY_BAD_REQUEST), UPDATE_CATEGORY_PATH);
     }
 
     @Test
@@ -230,11 +232,11 @@ class CategoryControllerTest {
     @Test
     @DisplayName("카테고리 삭제 테스트-실패(없음)")
     void deleteCategoryTest_notFound() throws Exception {
-        doThrow(new NotFoundException(getMessage("category.notFound")))
+        doThrow(new NotFoundException(getMessage(CATEGORY_NOT_FOUND)))
                 .when(service).deleteCategoryById(anyLong());
         ResultActions perform = performWithBody(mockMvc, delete(DELETE_CATEGORY_PATH), null);
-        verifyErrorResponse(perform, status().isNotFound(), getMessage("notFound"),
-                getMessage("category.notFound"),DELETE_CATEGORY_PATH);
+        verifyErrorResponse(perform, status().isNotFound(), getMessage(NOT_FOUND),
+                getMessage(CATEGORY_NOT_FOUND),DELETE_CATEGORY_PATH);
     }
 
     private List<CategoryResponse> createAncestors(){

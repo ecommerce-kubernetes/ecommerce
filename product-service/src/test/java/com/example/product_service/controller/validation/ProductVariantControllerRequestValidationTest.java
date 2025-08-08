@@ -1,7 +1,5 @@
 package com.example.product_service.controller.validation;
 
-import com.example.product_service.controller.util.TestMessageUtil;
-import com.example.product_service.controller.util.ValidationTestHelper;
 import com.example.product_service.dto.request.variant.UpdateProductVariantRequest;
 import jakarta.validation.ConstraintViolation;
 import org.junit.jupiter.api.DisplayName;

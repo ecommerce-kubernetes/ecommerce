@@ -1,5 +1,6 @@
 package com.example.product_service.controller.validation;
 
+import com.example.product_service.controller.util.MessagePath;
 import com.example.product_service.dto.request.options.OptionValueRequest;
 import jakarta.validation.ConstraintViolation;
 import org.junit.jupiter.api.DisplayName;
@@ -13,6 +14,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import static com.example.product_service.controller.util.MessagePath.NOT_BLANK;
 import static com.example.product_service.controller.util.TestMessageUtil.*;
 import static com.example.product_service.controller.util.ValidationTestHelper.*;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -20,7 +22,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ExtendWith(SpringExtension.class)
 public class OptionValueControllerRequestValidateTest {
 
-    private static final String NOT_BLANK_ERROR_MESSAGE_PATH = "NotBlank";
 
     @ParameterizedTest(name = "[{index}] {0} 필드 invalid")
     @MethodSource("invalidOptionValueRequestFieldProvider")
@@ -39,7 +40,7 @@ public class OptionValueControllerRequestValidateTest {
 
     static Stream<Arguments> invalidOptionValueRequestFieldProvider(){
         return Stream.of(
-                Arguments.of("value", "", getMessage(NOT_BLANK_ERROR_MESSAGE_PATH))
+                Arguments.of("value", "", getMessage(NOT_BLANK))
         );
     }
 }

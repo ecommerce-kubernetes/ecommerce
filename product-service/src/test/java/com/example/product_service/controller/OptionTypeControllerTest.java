@@ -20,6 +20,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import java.util.List;
 
 import static com.example.product_service.controller.util.ControllerTestHelper.*;
+import static com.example.product_service.controller.util.MessagePath.*;
 import static com.example.product_service.controller.util.TestMessageUtil.getMessage;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -43,9 +44,9 @@ class OptionTypeControllerTest {
 
     @BeforeEach
     void setUpMessages() {
-        when(ms.getMessage("badRequest")).thenReturn("BadRequest");
-        when(ms.getMessage("badRequest.validation")).thenReturn("Validation Error");
-        when(ms.getMessage("conflict")).thenReturn("Conflict");
+        when(ms.getMessage(BAD_REQUEST)).thenReturn("BadRequest");
+        when(ms.getMessage(BAD_REQUEST_VALIDATION)).thenReturn("Validation Error");
+        when(ms.getMessage(CONFLICT)).thenReturn("Conflict");
     }
 
     @Test
@@ -67,7 +68,7 @@ class OptionTypeControllerTest {
         OptionTypeRequest request = new OptionTypeRequest();
         ResultActions perform = performWithBody(mockMvc, post(BASE_PATH), request);
         verifyErrorResponse(perform, status().isBadRequest(),
-                getMessage("badRequest"), getMessage("badRequest.validation"), BASE_PATH);
+                getMessage(BAD_REQUEST), getMessage(BAD_REQUEST_VALIDATION), BASE_PATH);
 
         perform.andExpect(jsonPath("$.errors").isNotEmpty());
     }
@@ -78,11 +79,11 @@ class OptionTypeControllerTest {
         String duplicateName = "duplicateName";
         OptionTypeRequest request = new OptionTypeRequest(duplicateName);
         when(service.saveOptionType(any(OptionTypeRequest.class)))
-                .thenThrow(new DuplicateResourceException(getMessage("option-type.conflict")));
+                .thenThrow(new DuplicateResourceException(getMessage(OPTION_TYPE_CONFLICT)));
 
         ResultActions perform = performWithBody(mockMvc, post(BASE_PATH), request);
-        verifyErrorResponse(perform, status().isConflict(), getMessage("conflict")
-                ,getMessage("option-type.conflict"),BASE_PATH);
+        verifyErrorResponse(perform, status().isConflict(), getMessage(CONFLICT)
+                ,getMessage(OPTION_TYPE_CONFLICT),BASE_PATH);
 
     }
 
@@ -114,11 +115,11 @@ class OptionTypeControllerTest {
     @DisplayName("옵션 타입 값 조회 테스트-실패(없음)")
     void getValuesByTypeTest_notFound() throws Exception {
         when(service.getOptionValuesByTypeId(anyLong()))
-                .thenThrow(new NotFoundException(getMessage("option-type.notFound")));
+                .thenThrow(new NotFoundException(getMessage(OPTION_TYPE_NOT_FOUND)));
 
         ResultActions perform = performWithBody(mockMvc, get(GET_VALUES_PATH), null);
         verifyErrorResponse(perform, status().isNotFound(),
-                getMessage("notFound"), getMessage("option-type.notFound"), GET_VALUES_PATH);
+                getMessage(NOT_FOUND), getMessage(OPTION_TYPE_NOT_FOUND), GET_VALUES_PATH);
     }
 
 
@@ -142,8 +143,8 @@ class OptionTypeControllerTest {
         OptionTypeRequest request = new OptionTypeRequest("");
 
         ResultActions perform = performWithBody(mockMvc, patch(ID_PATH), request);
-        verifyErrorResponse(perform, status().isBadRequest(), getMessage("badRequest"),
-                getMessage("badRequest.validation"), ID_PATH);
+        verifyErrorResponse(perform, status().isBadRequest(), getMessage(BAD_REQUEST),
+                getMessage(BAD_REQUEST_VALIDATION), ID_PATH);
 
         perform.andExpect(jsonPath("$.errors").isNotEmpty());
     }
@@ -154,11 +155,11 @@ class OptionTypeControllerTest {
         OptionTypeRequest request = new OptionTypeRequest("updatedOptionType");
 
         when(service.updateOptionTypeById(anyLong(), any(OptionTypeRequest.class)))
-                .thenThrow(new NotFoundException(getMessage("option-type.notFound")));
+                .thenThrow(new NotFoundException(getMessage(OPTION_TYPE_NOT_FOUND)));
 
         ResultActions perform = performWithBody(mockMvc, patch(ID_PATH), request);
-        verifyErrorResponse(perform, status().isNotFound(), getMessage("notFound"),
-                getMessage("option-type.notFound"), ID_PATH);
+        verifyErrorResponse(perform, status().isNotFound(), getMessage(NOT_FOUND),
+                getMessage(OPTION_TYPE_NOT_FOUND), ID_PATH);
     }
 
     @Test
@@ -174,11 +175,11 @@ class OptionTypeControllerTest {
     @Test
     @DisplayName("옵션 타입 삭제 테스트-실패(없음)")
     void deleteOptionTypeTest_notFound() throws Exception {
-        doThrow(new NotFoundException(getMessage("option-type.notFound")))
+        doThrow(new NotFoundException(getMessage(OPTION_TYPE_NOT_FOUND)))
                 .when(service).deleteOptionTypeById(anyLong());
 
         ResultActions perform = performWithBody(mockMvc, delete(ID_PATH), null);
-        verifyErrorResponse(perform, status().isNotFound(), getMessage("notFound"),
-                getMessage("option-type.notFound"), ID_PATH);
+        verifyErrorResponse(perform, status().isNotFound(), getMessage(NOT_FOUND),
+                getMessage(OPTION_TYPE_NOT_FOUND), ID_PATH);
     }
 }

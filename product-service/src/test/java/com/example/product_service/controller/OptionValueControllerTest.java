@@ -17,6 +17,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
 import static com.example.product_service.controller.util.ControllerTestHelper.*;
+import static com.example.product_service.controller.util.MessagePath.*;
 import static com.example.product_service.controller.util.TestMessageUtil.getMessage;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -42,9 +43,9 @@ class OptionValueControllerTest {
 
     @BeforeEach
     void setUpMessages() {
-        when(ms.getMessage("badRequest")).thenReturn("BadRequest");
-        when(ms.getMessage("badRequest.validation")).thenReturn("Validation Error");
-        when(ms.getMessage("conflict")).thenReturn("Conflict");
+        when(ms.getMessage(BAD_REQUEST)).thenReturn("BadRequest");
+        when(ms.getMessage(BAD_REQUEST_VALIDATION)).thenReturn("Validation Error");
+        when(ms.getMessage(CONFLICT)).thenReturn("Conflict");
     }
 
     @Test
@@ -64,8 +65,8 @@ class OptionValueControllerTest {
         OptionValueRequest request = new OptionValueRequest("");
 
         ResultActions perform = performWithBody(mockMvc, post(CREATE_OPTION_VALUE_PATH), request);
-        verifyErrorResponse(perform, status().isBadRequest(), getMessage("badRequest"),
-                getMessage("badRequest.validation"), CREATE_OPTION_VALUE_PATH );
+        verifyErrorResponse(perform, status().isBadRequest(), getMessage(BAD_REQUEST),
+                getMessage(BAD_REQUEST_VALIDATION), CREATE_OPTION_VALUE_PATH );
 
         perform.andExpect(jsonPath("$.errors").isNotEmpty());
     }
@@ -75,11 +76,11 @@ class OptionValueControllerTest {
     void createOptionValueTest_conflict() throws Exception {
         OptionValueRequest request = new OptionValueRequest("duplicated");
         when(service.saveOptionValue(anyLong(), any(OptionValueRequest.class)))
-                .thenThrow(new DuplicateResourceException(getMessage("option-value.conflict")));
+                .thenThrow(new DuplicateResourceException(getMessage(OPTION_VALUE_CONFLICT)));
 
         ResultActions perform = performWithBody(mockMvc, post(CREATE_OPTION_VALUE_PATH), request);
-        verifyErrorResponse(perform, status().isConflict(), getMessage("conflict"),
-                getMessage("option-value.conflict"), CREATE_OPTION_VALUE_PATH);
+        verifyErrorResponse(perform, status().isConflict(), getMessage(CONFLICT),
+                getMessage(OPTION_VALUE_CONFLICT), CREATE_OPTION_VALUE_PATH);
     }
 
     @Test
@@ -88,11 +89,11 @@ class OptionValueControllerTest {
         OptionValueRequest request = new OptionValueRequest("values");
 
         when(service.saveOptionValue(anyLong(), any(OptionValueRequest.class)))
-                .thenThrow(new NotFoundException(getMessage("option-type.notFound")));
+                .thenThrow(new NotFoundException(getMessage(OPTION_TYPE_NOT_FOUND)));
         ResultActions perform = performWithBody(mockMvc, post(CREATE_OPTION_VALUE_PATH), request);
 
-        verifyErrorResponse(perform, status().isNotFound(), getMessage("notFound"),
-                getMessage("option-type.notFound"), CREATE_OPTION_VALUE_PATH);
+        verifyErrorResponse(perform, status().isNotFound(), getMessage(NOT_FOUND),
+                getMessage(OPTION_TYPE_NOT_FOUND), CREATE_OPTION_VALUE_PATH);
     }
 
     @Test
@@ -109,10 +110,10 @@ class OptionValueControllerTest {
     @DisplayName("옵션 값 조회 테스트-실패(없음)")
     void getOptionValueTest_notFound() throws Exception {
         when(service.getOptionValueById(anyLong()))
-                .thenThrow(new NotFoundException(getMessage("option-value.notFound")));
+                .thenThrow(new NotFoundException(getMessage(OPTION_VALUE_NOT_FOUND)));
         ResultActions perform = performWithBody(mockMvc, get(ID_PATH), null);
-        verifyErrorResponse(perform, status().isNotFound(), getMessage("notFound"),
-                getMessage("option-value.notFound"), ID_PATH);
+        verifyErrorResponse(perform, status().isNotFound(), getMessage(NOT_FOUND),
+                getMessage(OPTION_VALUE_NOT_FOUND), ID_PATH);
     }
 
     @Test
@@ -131,7 +132,7 @@ class OptionValueControllerTest {
     void updateOptionValueTest_validation() throws Exception {
         OptionValueRequest request = new OptionValueRequest("");
         ResultActions perform = performWithBody(mockMvc, patch(ID_PATH), request);
-        verifyErrorResponse(perform, status().isBadRequest(), getMessage("badRequest"), getMessage("badRequest.validation"), ID_PATH);
+        verifyErrorResponse(perform, status().isBadRequest(), getMessage(BAD_REQUEST), getMessage(BAD_REQUEST_VALIDATION), ID_PATH);
     }
 
     @Test
@@ -139,10 +140,10 @@ class OptionValueControllerTest {
     void updateOptionValueTest_notFound() throws Exception {
         OptionValueRequest request = new OptionValueRequest("updatedOptionValue");
         when(service.updateOptionValueById(anyLong(), any(OptionValueRequest.class)))
-                .thenThrow(new NotFoundException(getMessage("option-value.notFound")));
+                .thenThrow(new NotFoundException(getMessage(OPTION_VALUE_NOT_FOUND)));
 
         ResultActions perform = performWithBody(mockMvc, patch(ID_PATH), request);
-        verifyErrorResponse(perform, status().isNotFound(), getMessage("notFound"), getMessage("option-value.notFound"), ID_PATH);
+        verifyErrorResponse(perform, status().isNotFound(), getMessage(NOT_FOUND), getMessage(OPTION_VALUE_NOT_FOUND), ID_PATH);
     }
 
     @Test
@@ -150,10 +151,10 @@ class OptionValueControllerTest {
     void updateOptionValueTest_conflict() throws Exception {
         OptionValueRequest request = new OptionValueRequest("duplicatedName");
         when(service.updateOptionValueById(anyLong(), any(OptionValueRequest.class)))
-                .thenThrow(new DuplicateResourceException(getMessage("option-value.conflict")));
+                .thenThrow(new DuplicateResourceException(getMessage(OPTION_VALUE_CONFLICT)));
 
         ResultActions perform = performWithBody(mockMvc, patch(ID_PATH), request);
-        verifyErrorResponse(perform, status().isConflict(), getMessage("conflict"), getMessage("option-value.conflict"), ID_PATH);
+        verifyErrorResponse(perform, status().isConflict(), getMessage(CONFLICT), getMessage(OPTION_VALUE_CONFLICT), ID_PATH);
     }
 
     @Test
@@ -168,11 +169,11 @@ class OptionValueControllerTest {
     @Test
     @DisplayName("옵션 값 삭제 테스트-실패(없음)")
     void deleteOptionValueTest_notFound() throws Exception {
-        doThrow(new NotFoundException(getMessage("option-value.notFound")))
+        doThrow(new NotFoundException(getMessage(OPTION_VALUE_NOT_FOUND)))
                 .when(service).deleteOptionValueById(any());
 
         ResultActions perform = performWithBody(mockMvc, delete(ID_PATH), null);
-        verifyErrorResponse(perform, status().isNotFound(), getMessage("notFound"),
-                getMessage("option-value.notFound"), ID_PATH);
+        verifyErrorResponse(perform, status().isNotFound(), getMessage(NOT_FOUND),
+                getMessage(OPTION_VALUE_NOT_FOUND), ID_PATH);
     }
 }

@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.example.product_service.controller.util.ControllerTestHelper.*;
+import static com.example.product_service.controller.util.MessagePath.*;
 import static com.example.product_service.controller.util.TestMessageUtil.getMessage;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.*;
@@ -60,9 +61,9 @@ class ProductControllerTest {
 
     @BeforeEach
     void setUpMessages() {
-        when(ms.getMessage("badRequest")).thenReturn("BadRequest");
-        when(ms.getMessage("badRequest.validation")).thenReturn("Validation Error");
-        when(ms.getMessage("conflict")).thenReturn("Conflict");
+        when(ms.getMessage(BAD_REQUEST)).thenReturn("BadRequest");
+        when(ms.getMessage(BAD_REQUEST_VALIDATION)).thenReturn("Validation Error");
+        when(ms.getMessage(CONFLICT)).thenReturn("Conflict");
     }
 
     @Test
@@ -86,8 +87,8 @@ class ProductControllerTest {
                 List.of(new ProductVariantRequest("", -1, 0, 101, List.of())));
 
         ResultActions perform = performWithBody(mockMvc, post(BASE_PATH), request);
-        verifyErrorResponse(perform, status().isBadRequest(), getMessage("badRequest"),
-                getMessage("badRequest.validation"), BASE_PATH);
+        verifyErrorResponse(perform, status().isBadRequest(), getMessage(BAD_REQUEST),
+                getMessage(BAD_REQUEST_VALIDATION), BASE_PATH);
 
         perform.andExpect(jsonPath("$.errors").isNotEmpty());
     }
@@ -97,11 +98,11 @@ class ProductControllerTest {
     void createProductTest_notFound_category() throws Exception {
         ProductRequest request = createProductRequest();
         when(service.saveProduct(any(ProductRequest.class)))
-                .thenThrow(new NotFoundException(getMessage("category.notFound")));
+                .thenThrow(new NotFoundException(getMessage(CATEGORY_NOT_FOUND)));
 
         ResultActions perform = performWithBody(mockMvc, post(BASE_PATH), request);
-        verifyErrorResponse(perform, status().isNotFound(), getMessage("notFound"),
-                getMessage("category.notFound"), BASE_PATH);
+        verifyErrorResponse(perform, status().isNotFound(), getMessage(NOT_FOUND),
+                getMessage(CATEGORY_NOT_FOUND), BASE_PATH);
     }
 
     @Test
@@ -109,11 +110,11 @@ class ProductControllerTest {
     void createProductTest_notFound_optionType() throws Exception {
         ProductRequest request = createProductRequest();
         when(service.saveProduct(any(ProductRequest.class)))
-                .thenThrow(new NotFoundException(getMessage("option-type.notFound")));
+                .thenThrow(new NotFoundException(getMessage(OPTION_TYPE_NOT_FOUND)));
 
         ResultActions perform = performWithBody(mockMvc, post(BASE_PATH), request);
-        verifyErrorResponse(perform, status().isNotFound(), getMessage("notFound"),
-                getMessage("option-type.notFound"), BASE_PATH);
+        verifyErrorResponse(perform, status().isNotFound(), getMessage(NOT_FOUND),
+                getMessage(OPTION_TYPE_NOT_FOUND), BASE_PATH);
     }
 
     @Test
@@ -121,11 +122,11 @@ class ProductControllerTest {
     void createProductTest_notFound_optionValue() throws Exception {
         ProductRequest request = createProductRequest();
         when(service.saveProduct(any(ProductRequest.class)))
-                .thenThrow(new NotFoundException(getMessage("option-value.notFound")));
+                .thenThrow(new NotFoundException(getMessage(OPTION_VALUE_NOT_FOUND)));
 
         ResultActions perform = performWithBody(mockMvc, post(BASE_PATH), request);
-        verifyErrorResponse(perform, status().isNotFound(), getMessage("notFound"),
-                getMessage("option-value.notFound"), BASE_PATH);
+        verifyErrorResponse(perform, status().isNotFound(), getMessage(NOT_FOUND),
+                getMessage(OPTION_VALUE_NOT_FOUND), BASE_PATH);
     }
 
     @Test
@@ -133,11 +134,11 @@ class ProductControllerTest {
     void createProductTest_badRequest_invalidOptionValue() throws Exception {
         ProductRequest request = createProductRequest();
         when(service.saveProduct(any(ProductRequest.class)))
-                .thenThrow(new BadRequestException(getMessage("product.option-value.notMatchType")));
+                .thenThrow(new BadRequestException(getMessage(PRODUCT_OPTION_VALUE_NOT_MATCH_TYPE)));
 
         ResultActions perform = performWithBody(mockMvc, post(BASE_PATH), request);
-        verifyErrorResponse(perform, status().isBadRequest(), getMessage("badRequest"),
-                getMessage("product.option-value.notMatchType"), BASE_PATH);
+        verifyErrorResponse(perform, status().isBadRequest(), getMessage(BAD_REQUEST),
+                getMessage(PRODUCT_OPTION_VALUE_NOT_MATCH_TYPE), BASE_PATH);
     }
 
     @Test
@@ -145,11 +146,11 @@ class ProductControllerTest {
     void createProductTest_badRequest_singleOptionValuePerOptionType() throws Exception {
         ProductRequest request = createProductRequest();
         when(service.saveProduct(any(ProductRequest.class)))
-                .thenThrow(new BadRequestException(getMessage("product.option-value.cardinality.violation")));
+                .thenThrow(new BadRequestException(getMessage(PRODUCT_OPTION_VALUE_CARDINALITY_VIOLATION)));
 
         ResultActions perform = performWithBody(mockMvc, post(BASE_PATH), request);
-        verifyErrorResponse(perform, status().isBadRequest(), getMessage("badRequest"),
-                getMessage("product.option-value.cardinality.violation"), BASE_PATH);
+        verifyErrorResponse(perform, status().isBadRequest(), getMessage(BAD_REQUEST),
+                getMessage(PRODUCT_OPTION_VALUE_CARDINALITY_VIOLATION), BASE_PATH);
     }
 
     @Test
@@ -172,7 +173,7 @@ class ProductControllerTest {
         ResultActions perform = performWithPageRequest(mockMvc, get(BASE_PATH), 0, 10, List.of("id,asc"),
                 Map.of("categoryId", "-1", "rating", ""));
         verifyErrorResponse(perform, status().isBadRequest(),
-                getMessage("badRequest"), getMessage("badRequest.validation"), BASE_PATH);
+                getMessage(BAD_REQUEST), getMessage(BAD_REQUEST_VALIDATION), BASE_PATH);
 
         perform.andExpect(jsonPath("$.errors").isNotEmpty())
                 .andExpect(jsonPath("$.errors", hasSize(1)));
@@ -182,11 +183,11 @@ class ProductControllerTest {
     @DisplayName("상품 조회 테스트-실패(허용되지 않은 sort 옵션)")
     void getProductTest_invalidSort() throws Exception {
         when(service.getProducts(any(Pageable.class), any(ProductSearch.class)))
-                .thenThrow(new BadRequestException(getMessage("badRequest.sort")));
+                .thenThrow(new BadRequestException(getMessage(BAD_REQUEST_SORT)));
         ResultActions perform =
                 performWithPageRequest(mockMvc, get(BASE_PATH), 0, 10, List.of("invalidSort,asc"), null);
         verifyErrorResponse(perform, status().isBadRequest(),
-                getMessage("badRequest"), getMessage("badRequest.sort"), BASE_PATH);
+                getMessage(BAD_REQUEST), getMessage(BAD_REQUEST_SORT), BASE_PATH);
     }
 
     @Test
@@ -203,10 +204,10 @@ class ProductControllerTest {
     @DisplayName("상품 상세 조회 테스트-실패(없음)")
     void getProductTest_notFound() throws Exception {
         when(service.getProductById(anyLong()))
-                .thenThrow(new NotFoundException(getMessage("product.notFound")));
+                .thenThrow(new NotFoundException(getMessage(PRODUCT_NOT_FOUND)));
         ResultActions perform = performWithBody(mockMvc, get(ID_PATH), null);
         verifyErrorResponse(perform, status().isNotFound(),
-                getMessage("notFound"), getMessage("product.notFound"),ID_PATH);
+                getMessage(NOT_FOUND), getMessage(PRODUCT_NOT_FOUND),ID_PATH);
     }
 
     @Test
@@ -242,8 +243,8 @@ class ProductControllerTest {
     void updateBasicInfoTest_validation() throws Exception {
         UpdateProductBasicRequest request = new UpdateProductBasicRequest(" ", "description", 1L);
         ResultActions perform = performWithBody(mockMvc, patch(ID_PATH), request);
-        verifyErrorResponse(perform, status().isBadRequest(), getMessage("badRequest"),
-                getMessage("badRequest.validation"), ID_PATH);
+        verifyErrorResponse(perform, status().isBadRequest(), getMessage(BAD_REQUEST),
+                getMessage(BAD_REQUEST_VALIDATION), ID_PATH);
     }
 
     @Test
@@ -251,10 +252,10 @@ class ProductControllerTest {
     void updateBasicInfoTest_product_notFound() throws Exception {
         UpdateProductBasicRequest request = new UpdateProductBasicRequest("updatedName", "description", 1L);
         when(service.updateBasicInfoById(anyLong(), any(UpdateProductBasicRequest.class)))
-                .thenThrow(new NotFoundException(getMessage("product.notFound")));
+                .thenThrow(new NotFoundException(getMessage(NOT_FOUND)));
         ResultActions perform = performWithBody(mockMvc, patch(ID_PATH), request);
-        verifyErrorResponse(perform, status().isNotFound(), getMessage("notFound"),
-                getMessage("product.notFound"),ID_PATH);
+        verifyErrorResponse(perform, status().isNotFound(), getMessage(NOT_FOUND),
+                getMessage(NOT_FOUND),ID_PATH);
     }
 
     @Test
@@ -262,10 +263,10 @@ class ProductControllerTest {
     void updateBasicInfoTest_category_notFound() throws Exception {
         UpdateProductBasicRequest request = new UpdateProductBasicRequest("updatedName", "description", 1L);
         when(service.updateBasicInfoById(anyLong(), any(UpdateProductBasicRequest.class)))
-                .thenThrow(new NotFoundException(getMessage("category.notFound")));
+                .thenThrow(new NotFoundException(getMessage(CATEGORY_NOT_FOUND)));
         ResultActions perform = performWithBody(mockMvc, patch(ID_PATH), request);
-        verifyErrorResponse(perform, status().isNotFound(), getMessage("notFound"),
-                getMessage("category.notFound"), ID_PATH);
+        verifyErrorResponse(perform, status().isNotFound(), getMessage(NOT_FOUND),
+                getMessage(CATEGORY_NOT_FOUND), ID_PATH);
     }
 
     @Test
@@ -279,11 +280,11 @@ class ProductControllerTest {
     @Test
     @DisplayName("상품 삭제 테스트-실패(상품 없음)")
     void deleteProductTest_notFound() throws Exception {
-        doThrow(new NotFoundException(getMessage("product.notFound")))
+        doThrow(new NotFoundException(getMessage(PRODUCT_NOT_FOUND)))
                 .when(service).deleteProductById(anyLong());
         ResultActions perform = performWithBody(mockMvc, delete(ID_PATH), null);
-        verifyErrorResponse(perform, status().isNotFound(), getMessage("notFound"),
-                getMessage("product.notFound"), ID_PATH);
+        verifyErrorResponse(perform, status().isNotFound(), getMessage(NOT_FOUND),
+                getMessage(PRODUCT_NOT_FOUND), ID_PATH);
     }
 
     private ProductResponse createProductResponse() {

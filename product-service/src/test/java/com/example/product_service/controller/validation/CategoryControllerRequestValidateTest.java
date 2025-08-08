@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import static com.example.product_service.controller.util.MessagePath.*;
 import static com.example.product_service.controller.util.TestMessageUtil.*;
 import static com.example.product_service.controller.util.ValidationTestHelper.*;
 import static org.assertj.core.api.Assertions.*;
@@ -23,9 +24,6 @@ import static org.assertj.core.api.Assertions.*;
 public class CategoryControllerRequestValidateTest {
     private static final String INVALID_URL = "invalidUrl";
     private static final String VALID_URL = "http://test.jpg";
-
-    private static final String NOT_BLANK_ERROR_MESSAGE_PATH = "NotBlank";
-    private static final String INVALID_ERROR_MESSAGE_PATH = "InvalidUrl";
 
     @ParameterizedTest(name = "[{index}] {0} 필드 invalid")
     @MethodSource("invalidCategoryRequestFieldProvider")
@@ -84,21 +82,21 @@ public class CategoryControllerRequestValidateTest {
         List<String> messages = violations.stream()
                 .map(ConstraintViolation::getMessage).toList();
 
-        assertThat(messages).containsExactlyInAnyOrder(getMessage("EmptyRequest"));
+        assertThat(messages).containsExactlyInAnyOrder(getMessage(EMPTY_REQUEST));
     }
 
     static Stream<Arguments> invalidCategoryRequestFieldProvider(){
         return Stream.of(
-                Arguments.of("name", "", getMessage(NOT_BLANK_ERROR_MESSAGE_PATH)),
-                Arguments.of("name", " ", getMessage(NOT_BLANK_ERROR_MESSAGE_PATH)),
-                Arguments.of("iconUrl", INVALID_URL, getMessage(INVALID_ERROR_MESSAGE_PATH))
+                Arguments.of("name", "", getMessage(NOT_BLANK)),
+                Arguments.of("name", " ", getMessage(NOT_BLANK)),
+                Arguments.of("iconUrl", INVALID_URL, getMessage(INVALID_URL_MESSAGE))
         );
     }
 
     static Stream<Arguments> invalidUpdateCategoryRequestFieldProvider(){
         return Stream.of(
-                Arguments.of("name", "", getMessage(NOT_BLANK_ERROR_MESSAGE_PATH)),
-                Arguments.of("iconUrl", INVALID_URL, getMessage(INVALID_ERROR_MESSAGE_PATH))
+                Arguments.of("name", "", getMessage(NOT_BLANK)),
+                Arguments.of("iconUrl", INVALID_URL, getMessage(INVALID_URL_MESSAGE))
         );
     }
 }

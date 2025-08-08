@@ -19,6 +19,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import java.util.List;
 
 import static com.example.product_service.controller.util.ControllerTestHelper.*;
+import static com.example.product_service.controller.util.MessagePath.*;
 import static com.example.product_service.controller.util.TestMessageUtil.getMessage;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -42,8 +43,8 @@ class ProductImageControllerTest {
 
     @BeforeEach
     void setUpMessages() {
-        when(ms.getMessage("badRequest")).thenReturn("BadRequest");
-        when(ms.getMessage("badRequest.validation")).thenReturn("Validation Error");
+        when(ms.getMessage(BAD_REQUEST)).thenReturn("BadRequest");
+        when(ms.getMessage(BAD_REQUEST_VALIDATION)).thenReturn("Validation Error");
         when(ms.getMessage("conflict")).thenReturn("Conflict");
     }
 
@@ -64,8 +65,8 @@ class ProductImageControllerTest {
     void addImagesTest_validation() throws Exception {
         AddImageRequest request = new AddImageRequest(List.of());
         ResultActions perform = performWithBody(mockMvc, post(CREATE_PATH), request);
-        verifyErrorResponse(perform, status().isBadRequest(), getMessage("badRequest"),
-                getMessage("badRequest.validation"), CREATE_PATH);
+        verifyErrorResponse(perform, status().isBadRequest(), getMessage(BAD_REQUEST),
+                getMessage(BAD_REQUEST_VALIDATION), CREATE_PATH);
     }
 
     @Test
@@ -73,10 +74,10 @@ class ProductImageControllerTest {
     void addImagesTest_notFound() throws Exception {
         AddImageRequest request = new AddImageRequest(List.of("http://test1.jpg", "http://test2.jpg"));
         when(service.addImages(anyLong(),any(AddImageRequest.class)))
-                .thenThrow(new NotFoundException(getMessage("product.notFound")));
+                .thenThrow(new NotFoundException(getMessage(PRODUCT_NOT_FOUND)));
         ResultActions perform = performWithBody(mockMvc, post(CREATE_PATH), request);
-        verifyErrorResponse(perform, status().isNotFound(), getMessage("notFound"),
-                getMessage("product.notFound"), CREATE_PATH);
+        verifyErrorResponse(perform, status().isNotFound(), getMessage(NOT_FOUND),
+                getMessage(PRODUCT_NOT_FOUND), CREATE_PATH);
     }
 
     @Test
@@ -95,8 +96,8 @@ class ProductImageControllerTest {
     void updateImageTest_validation() throws Exception {
         ImageRequest request = new ImageRequest();
         ResultActions perform = performWithBody(mockMvc, patch(ID_PATH), request);
-        verifyErrorResponse(perform, status().isBadRequest(), getMessage("badRequest"),
-                getMessage("badRequest.validation"), ID_PATH);
+        verifyErrorResponse(perform, status().isBadRequest(), getMessage(BAD_REQUEST),
+                getMessage(BAD_REQUEST_VALIDATION), ID_PATH);
     }
 
     @Test
@@ -104,11 +105,11 @@ class ProductImageControllerTest {
     void updateImageTest_notFound() throws Exception {
         ImageRequest request = new ImageRequest("http://test.jpg", 0);
         when(service.updateImageById(anyLong(), any(ImageRequest.class)))
-                .thenThrow(new NotFoundException(getMessage("product-image.notFound")));
+                .thenThrow(new NotFoundException(getMessage(PRODUCT_IMAGE_NOT_FOUND)));
 
         ResultActions perform = performWithBody(mockMvc, patch(ID_PATH), request);
-        verifyErrorResponse(perform, status().isNotFound(), getMessage("notFound"),
-                getMessage("product-image.notFound"), ID_PATH);
+        verifyErrorResponse(perform, status().isNotFound(), getMessage(NOT_FOUND),
+                getMessage(PRODUCT_IMAGE_NOT_FOUND), ID_PATH);
     }
 
     @Test
@@ -122,11 +123,11 @@ class ProductImageControllerTest {
     @Test
     @DisplayName("상품 이미지 삭제 테스트-실패(없음)")
     void deleteImageTest_notFound() throws Exception {
-        doThrow(new NotFoundException(getMessage("product-image.notFound")))
+        doThrow(new NotFoundException(getMessage(PRODUCT_IMAGE_NOT_FOUND)))
                 .when(service).deleteImageById(anyLong());
         ResultActions perform = performWithBody(mockMvc, delete(ID_PATH), null);
-        verifyErrorResponse(perform, status().isNotFound(), getMessage("notFound"),
-                getMessage("product-image.notFound"), ID_PATH);
+        verifyErrorResponse(perform, status().isNotFound(), getMessage(NOT_FOUND),
+                getMessage(PRODUCT_IMAGE_NOT_FOUND), ID_PATH);
     }
 
 }
