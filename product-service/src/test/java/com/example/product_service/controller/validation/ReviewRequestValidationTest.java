@@ -21,7 +21,7 @@ import static com.example.product_service.controller.util.ValidationTestHelper.*
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SpringExtension.class)
-public class ReviewControllerRequestValidationTest {
+public class ReviewRequestValidationTest {
 
     @ParameterizedTest(name = "[{index}] {0} 필드 invalid")
     @MethodSource("invalidReviewRequestProvider")
@@ -46,7 +46,6 @@ public class ReviewControllerRequestValidationTest {
         assertViolation(violations, "imageUrls[0].<list element>", getMessage("InvalidUrl"));
 
     }
-
 
     static Stream<Arguments> invalidReviewRequestProvider(){
         return Stream.of(
