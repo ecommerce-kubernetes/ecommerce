@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/products/{productId}/images")
 @Tag(name = "ProductImage" , description = "상품 이미지 관련 API")
 @RequiredArgsConstructor
 public class ProductImageController {
@@ -31,7 +30,7 @@ public class ProductImageController {
     @Operation(summary = "상품 이미지 추가")
     @ApiResponse(responseCode = "201", description = "추가 성공")
     @BadRequestApiResponse @ForbiddenApiResponse @NotFoundApiResponse
-    @PostMapping
+    @PostMapping("/products/{productId}/images")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<List<ImageResponse>> addImage(@PathVariable("productId") Long productId,
                                                         @RequestBody AddImageRequest request){
@@ -42,10 +41,9 @@ public class ProductImageController {
     @Operation(summary = "상품 이미지 수정")
     @ApiResponse(responseCode = "200", description = "수정 완료")
     @BadRequestApiResponse @ForbiddenApiResponse @NotFoundApiResponse
-    @PatchMapping("/{imageId}")
+    @PatchMapping("/product-images/{imageId}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<ImageResponse> updateImage(@PathVariable("productId") Long productId,
-                                                     @PathVariable("imageId") Long imageId,
+    public ResponseEntity<ImageResponse> updateImage(@PathVariable("imageId") Long imageId,
                                                      @RequestBody ImageRequest request){
         return ResponseEntity.ok(new ImageResponse());
     }
@@ -54,10 +52,9 @@ public class ProductImageController {
     @Operation(summary = "상품 이미지 삭제")
     @ApiResponse(responseCode = "204", description = "상품 이미지 삭제")
     @ForbiddenApiResponse @NotFoundApiResponse
-    @DeleteMapping("/{imageId}")
+    @DeleteMapping("/product-images/{imageId}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<Void> deleteImage(@PathVariable("productId") Long productId,
-                                            @PathVariable("imageId") Long imageId){
+    public ResponseEntity<Void> deleteImage(@PathVariable("imageId") Long imageId){
         return ResponseEntity.noContent().build();
     }
 }

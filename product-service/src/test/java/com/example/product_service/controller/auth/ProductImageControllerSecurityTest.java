@@ -28,7 +28,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 @Import({WebSecurity.class, CustomAccessDeniedHandler.class, CustomAuthenticationEntryPoint.class, MessageSourceUtil.class})
 @AutoConfigureMockMvc
 public class ProductImageControllerSecurityTest {
-    private static final String BASE_PATH = "/products/1/images";
+    private static final String BASE_PATH = "/product-images";
+    private static final String CREATE_PATH = "/products/1/images";
     private static final String PRODUCT_IMAGE_ID_PATH = BASE_PATH + "/1";
 
     @Autowired
@@ -40,16 +41,16 @@ public class ProductImageControllerSecurityTest {
     @DisplayName("상품 이미지 추가 테스트-인증 에러")
     void addImageTest_UnAuthorized() throws Exception {
         ResultActions perform =
-                performWithBody(mockMvc, post(BASE_PATH), createAddImageRequest());
-        verifyUnauthorizedResponse(perform, BASE_PATH);
+                performWithBody(mockMvc, post(CREATE_PATH), createAddImageRequest());
+        verifyUnauthorizedResponse(perform, CREATE_PATH);
     }
 
     @Test
     @DisplayName("상품 이미지 추가 테스트-권한 부족")
     void addImageTest_NoPermission() throws Exception {
         ResultActions perform =
-                performWithAuthAndBody(mockMvc, post(BASE_PATH), createAddImageRequest(), UserRole.ROLE_USER);
-        verifyNoPermissionResponse(perform, BASE_PATH);
+                performWithAuthAndBody(mockMvc, post(CREATE_PATH), createAddImageRequest(), UserRole.ROLE_USER);
+        verifyNoPermissionResponse(perform, CREATE_PATH);
     }
 
     @Test
