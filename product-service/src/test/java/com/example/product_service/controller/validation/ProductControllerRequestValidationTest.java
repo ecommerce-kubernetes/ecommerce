@@ -129,9 +129,9 @@ public class ProductControllerRequestValidationTest {
 
     @ParameterizedTest(name = "[{index}] {0} 필드 invalid")
     @MethodSource("invalidUpdateProductBasicRequestFieldProvider")
-    void updateProductBasicRequestValidation_field(String fieldNane, Object invalidValue, String expectedMessage){
+    void updateProductBasicRequestValidation_field(String fieldName, Object invalidValue, String expectedMessage){
         UpdateProductBasicRequest request = createUpdateProductBasicRequest();
-        assertFieldViolation(request, fieldNane, invalidValue, expectedMessage);
+        assertFieldViolation(request, fieldName, invalidValue, expectedMessage);
     }
 
     @ParameterizedTest(name = "[{index}] {0} 필드 invalid")

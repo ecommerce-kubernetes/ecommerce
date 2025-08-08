@@ -4,6 +4,7 @@ import com.example.product_service.controller.util.specification.annotation.Admi
 import com.example.product_service.controller.util.specification.annotation.BadRequestApiResponse;
 import com.example.product_service.controller.util.specification.annotation.ForbiddenApiResponse;
 import com.example.product_service.controller.util.specification.annotation.NotFoundApiResponse;
+import com.example.product_service.dto.ProductSearch;
 import com.example.product_service.dto.request.product.UpdateProductBasicRequest;
 import com.example.product_service.dto.request.product.ProductRequest;
 import com.example.product_service.dto.response.PageDto;
@@ -46,16 +47,14 @@ public class ProductController {
 
     @Operation(summary = "상품 조회")
     @ApiResponse(responseCode = "200", description = "조회 성공")
-    @BadRequestApiResponse @NotFoundApiResponse
+    @BadRequestApiResponse
     @GetMapping
     public ResponseEntity<PageDto<ProductSummaryResponse>> getProducts(
             @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.ASC) Pageable pageable,
-            @RequestParam(value = "categoryId", required = false) Long categoryId,
-            @RequestParam(value = "name", required = false) String name,
-            @RequestParam(value = "rating", required = false) Integer rating){
+            @Validated @ModelAttribute ProductSearch search){
 
-        productService.getProducts(pageable);
-        return ResponseEntity.ok(new PageDto<>(List.of(new ProductSummaryResponse()), 0, 5, 10, 50));
+        PageDto<ProductSummaryResponse> response = productService.getProducts(pageable, search);
+        return ResponseEntity.ok(response);
     }
 
     @Operation(summary = "상품 상세 조회")

@@ -1,14 +1,17 @@
 package com.example.product_service.controller;
 
 import com.example.product_service.common.MessageSourceUtil;
+import com.example.product_service.dto.ProductSearch;
 import com.example.product_service.dto.request.image.ImageRequest;
 import com.example.product_service.dto.request.options.ProductOptionTypeRequest;
 import com.example.product_service.dto.request.product.ProductRequest;
 import com.example.product_service.dto.request.variant.ProductVariantRequest;
+import com.example.product_service.dto.response.PageDto;
 import com.example.product_service.dto.response.image.ImageResponse;
 import com.example.product_service.dto.response.options.OptionValueResponse;
 import com.example.product_service.dto.response.options.ProductOptionTypeResponse;
 import com.example.product_service.dto.response.product.ProductResponse;
+import com.example.product_service.dto.response.product.ProductSummaryResponse;
 import com.example.product_service.dto.response.variant.ProductVariantResponse;
 import com.example.product_service.exception.BadRequestException;
 import com.example.product_service.exception.NotFoundException;
@@ -19,17 +22,18 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 import static com.example.product_service.controller.util.ControllerTestHelper.*;
 import static com.example.product_service.controller.util.TestMessageUtil.getMessage;
+import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -154,16 +158,38 @@ class ProductControllerTest {
     @Test
     @DisplayName("상품 조회 테스트-성공")
     void getProductsTest_success() throws Exception {
-        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-        params.add("page", "0");
-        params.add("size", "10");
-        params.add("sort", "id,desc");
-        params.add("categoryId", "1");
-        params.add("name", "name");
-        params.add("rating", "4");
-        ResultActions perform = performWithParams(mockMvc, get(BASE_PATH), params);
+        PageDto<ProductSummaryResponse> response = new PageDto<>(
+                createProductSummaryResponse(),
+                0, 10, 10, 100);
+        when(service.getProducts(any(Pageable.class), any(ProductSearch.class)))
+                .thenReturn(response);
+        ResultActions perform = performWithPageRequest(mockMvc, get(BASE_PATH), 0,
+                10, List.of("id,asc"), Map.of("categoryId", "3", "rating", "5"));
+        verifySuccessResponse(perform, status().isOk(), response);
 
+    }
 
+    @Test
+    @DisplayName("상품 조회 테스트-실패(검증)")
+    void getProductTest_validation() throws Exception {
+        ResultActions perform = performWithPageRequest(mockMvc, get(BASE_PATH), 0, 10, List.of("id,asc"),
+                Map.of("categoryId", "-1", "rating", ""));
+        verifyErrorResponse(perform, status().isBadRequest(),
+                getMessage("badRequest"), getMessage("badRequest.validation"), BASE_PATH);
+
+        perform.andExpect(jsonPath("$.errors").isNotEmpty())
+                .andExpect(jsonPath("$.errors", hasSize(1)));
+    }
+
+    @Test
+    @DisplayName("상품 조회 테스트-실패(허용되지 않은 sort 옵션)")
+    void getProductTest_invalidSort() throws Exception {
+        when(service.getProducts(any(Pageable.class), any(ProductSearch.class)))
+                .thenThrow(new BadRequestException(getMessage("badRequest.sort")));
+        ResultActions perform =
+                performWithPageRequest(mockMvc, get(BASE_PATH), 0, 10, List.of("invalidSort,asc"), null);
+        verifyErrorResponse(perform, status().isBadRequest(),
+                getMessage("badRequest"), getMessage("badRequest.sort"), BASE_PATH);
     }
 
     private ProductRequest createProductRequest() {
@@ -171,5 +197,14 @@ class ProductControllerTest {
                 List.of(new ImageRequest(IMAGE_URL, 0)),
                 List.of(new ProductOptionTypeRequest(1L, 0)),
                 List.of(new ProductVariantRequest("sku", 100, 10, 10, List.of(1L))));
+    }
+
+    private List<ProductSummaryResponse> createProductSummaryResponse(){
+        return List.of(
+                new ProductSummaryResponse(1L, "product1", "description", IMAGE_URL, 1L,
+                        LocalDateTime.now(), 3.5, 100, 10000, 9000, 10),
+                new ProductSummaryResponse(2L, "product2", "description", IMAGE_URL, 1L,
+                        LocalDateTime.now(), 3.7, 100, 10000, 9000, 10)
+        );
     }
 }

@@ -1,5 +1,6 @@
 package com.example.product_service.service;
 
+import com.example.product_service.dto.ProductSearch;
 import com.example.product_service.dto.request.product.ProductRequest;
 import com.example.product_service.dto.response.PageDto;
 import com.example.product_service.dto.response.product.ProductResponse;
@@ -16,7 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class ProductServiceImpl implements ProductService{
     @Override
-    public PageDto<ProductSummaryResponse> getProducts(Pageable pageable) {
+    public PageDto<ProductSummaryResponse> getProducts(Pageable pageable, ProductSearch search) {
         return null;
     }
 

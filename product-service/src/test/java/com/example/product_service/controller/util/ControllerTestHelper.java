@@ -10,9 +10,11 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.ResultMatcher;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -67,6 +69,15 @@ public final class ControllerTestHelper {
         }
 
         return mockMvc.perform(builder);
+    }
+    public static ResultActions performWithPageRequest(MockMvc mockMvc, MockHttpServletRequestBuilder builder,
+                                                       Integer page, Integer size, List<String> sort, Map<String, String> extras) throws Exception {
+        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+        if(page != null) params.add("page", page.toString());
+        if(size != null) params.add("size", size.toString());
+        if(sort != null) sort.forEach(s -> params.add("sort", s));
+        if(extras != null) extras.forEach(params::add);
+        return performWithParams(mockMvc, builder, params);
     }
 
     public static ResultActions performWithParams(MockMvc mockMvc, MockHttpServletRequestBuilder builder,
