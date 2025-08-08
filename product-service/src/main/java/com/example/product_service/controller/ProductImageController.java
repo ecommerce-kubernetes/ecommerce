@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -32,9 +33,10 @@ public class ProductImageController {
     @BadRequestApiResponse @ForbiddenApiResponse @NotFoundApiResponse
     @PostMapping("/products/{productId}/images")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<List<ImageResponse>> addImage(@PathVariable("productId") Long productId,
-                                                        @RequestBody AddImageRequest request){
-        return ResponseEntity.status(HttpStatus.CREATED).body(List.of(new ImageResponse()));
+    public ResponseEntity<List<ImageResponse>> addImages(@PathVariable("productId") Long productId,
+                                                        @Validated  @RequestBody AddImageRequest request){
+        List<ImageResponse> response = productImageService.addImages(productId, request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @AdminApi

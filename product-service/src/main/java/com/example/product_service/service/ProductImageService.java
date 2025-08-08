@@ -1,8 +1,10 @@
 package com.example.product_service.service;
 
+import com.example.product_service.dto.request.image.AddImageRequest;
+import com.example.product_service.dto.response.image.ImageResponse;
+
+import java.util.List;
+
 public interface ProductImageService {
-    //TODO 수정 예정
-//    ProductResponseDto addImage(Long productId, ProductImageRequestDto requestDto);
-//    void deleteImage(Long imageId);
-//    ProductResponseDto imgSwapOrder(Long imageId, ImageOrderRequestDto requestDto);
+    List<ImageResponse> addImages(Long productId, AddImageRequest request);
 }
