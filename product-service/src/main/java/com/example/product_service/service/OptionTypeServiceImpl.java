@@ -1,6 +1,7 @@
 package com.example.product_service.service;
 
 import com.example.product_service.dto.request.options.OptionTypeRequest;
+import com.example.product_service.dto.request.options.OptionValueRequest;
 import com.example.product_service.dto.response.options.OptionTypeResponse;
 import com.example.product_service.dto.response.options.OptionValueResponse;
 import com.example.product_service.entity.OptionTypes;
@@ -34,6 +35,11 @@ public class OptionTypeServiceImpl implements OptionTypeService {
         } catch (DataIntegrityViolationException ex){
             throw new DuplicateResourceException("OptionTypes name Conflict");
         }
+    }
+
+    @Override
+    public OptionValueResponse saveOptionValue(Long optionTypeId, OptionValueRequest request) {
+        return null;
     }
 
     @Override

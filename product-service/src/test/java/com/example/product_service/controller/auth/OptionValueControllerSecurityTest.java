@@ -35,22 +35,6 @@ public class OptionValueControllerSecurityTest {
     OptionValueService optionValueService;
 
     @Test
-    @DisplayName("옵션 값 저장 테스트-인증 에러")
-    void createOptionValueTest_UnAuthorized() throws Exception {
-        ResultActions perform =
-                performWithBody(mockMvc, post(CREATE_OPTION_VALUE_PATH), createOptionValueRequest());
-        verifyUnauthorizedResponse(perform, CREATE_OPTION_VALUE_PATH);
-    }
-
-    @Test
-    @DisplayName("옵션 값 저장 테스트-권한 부족")
-    void createOptionValueTest_NoPermission() throws Exception {
-        ResultActions perform =
-                performWithAuthAndBody(mockMvc, post(CREATE_OPTION_VALUE_PATH), createOptionValueRequest(), UserRole.ROLE_USER);
-        verifyNoPermissionResponse(perform, CREATE_OPTION_VALUE_PATH);
-    }
-
-    @Test
     @DisplayName("옵션 값 수정 테스트-인증 에러")
     void updateOptionValueTest_UnAuthorized() throws Exception {
         ResultActions perform =

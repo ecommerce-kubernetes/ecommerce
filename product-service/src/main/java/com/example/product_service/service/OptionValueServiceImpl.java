@@ -16,11 +16,6 @@ public class OptionValueServiceImpl implements OptionValueService{
     private final OptionTypesRepository optionTypesRepository;
 
     private final OptionValuesRepository optionValuesRepository;
-    @Override
-    @Transactional
-    public OptionValueResponse saveOptionValue(Long optionTypeId, OptionValueRequest request) {
-        return new OptionValueResponse();
-    }
 
     @Override
     @Transactional

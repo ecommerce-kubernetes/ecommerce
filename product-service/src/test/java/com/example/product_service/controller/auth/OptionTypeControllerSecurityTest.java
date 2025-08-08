@@ -7,6 +7,7 @@ import com.example.product_service.config.WebSecurity;
 import com.example.product_service.controller.OptionTypeController;
 import com.example.product_service.controller.util.UserRole;
 import com.example.product_service.dto.request.options.OptionTypeRequest;
+import com.example.product_service.dto.request.options.OptionValueRequest;
 import com.example.product_service.service.OptionTypeService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -28,6 +29,8 @@ public class OptionTypeControllerSecurityTest {
 
     private static final String BASE_PATH = "/option-types";
     private static final String OPTION_TYPE_ID_PATH = "/option-types/1";
+    private static final String CREATE_OPTION_VALUE_PATH = BASE_PATH + "/1/option-values";
+
 
     @Autowired
     MockMvc mockMvc;
@@ -50,6 +53,23 @@ public class OptionTypeControllerSecurityTest {
                 performWithAuthAndBody(mockMvc, post(BASE_PATH), createOptionTypeRequest(), UserRole.ROLE_USER);
         verifyNoPermissionResponse(perform, BASE_PATH);
     }
+
+    @Test
+    @DisplayName("옵션 값 저장 테스트-인증 에러")
+    void createOptionValueTest_UnAuthorized() throws Exception {
+        ResultActions perform =
+                performWithBody(mockMvc, post(CREATE_OPTION_VALUE_PATH), createOptionValueRequest());
+        verifyUnauthorizedResponse(perform, CREATE_OPTION_VALUE_PATH);
+    }
+
+    @Test
+    @DisplayName("옵션 값 저장 테스트-권한 부족")
+    void createOptionValueTest_NoPermission() throws Exception {
+        ResultActions perform =
+                performWithAuthAndBody(mockMvc, post(CREATE_OPTION_VALUE_PATH), createOptionValueRequest(), UserRole.ROLE_USER);
+        verifyNoPermissionResponse(perform, CREATE_OPTION_VALUE_PATH);
+    }
+
 
     @Test
     @DisplayName("옵션 타입 수정 테스트-인증 에러")
@@ -84,5 +104,9 @@ public class OptionTypeControllerSecurityTest {
 
     private OptionTypeRequest createOptionTypeRequest() {
         return new OptionTypeRequest("name");
+    }
+
+    private OptionValueRequest createOptionValueRequest() {
+        return new OptionValueRequest("value");
     }
 }

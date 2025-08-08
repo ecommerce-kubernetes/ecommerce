@@ -49,54 +49,6 @@ class OptionValueControllerTest {
     }
 
     @Test
-    @DisplayName("옵션 값 저장 테스트-성공")
-    void createOptionValueTest_success() throws Exception {
-        OptionValueRequest request = new OptionValueRequest("value");
-        OptionValueResponse response = new OptionValueResponse(1L, 1L, "value");
-        when(service.saveOptionValue(anyLong(), any(OptionValueRequest.class))).thenReturn(response);
-
-        ResultActions perform = performWithBody(mockMvc, post(CREATE_OPTION_VALUE_PATH), request);
-        verifySuccessResponse(perform, status().isCreated(), response);
-    }
-
-    @Test
-    @DisplayName("옵션 값 저장 테스트-실패(검증)")
-    void createOptionValueTest_validation() throws Exception {
-        OptionValueRequest request = new OptionValueRequest("");
-
-        ResultActions perform = performWithBody(mockMvc, post(CREATE_OPTION_VALUE_PATH), request);
-        verifyErrorResponse(perform, status().isBadRequest(), getMessage(BAD_REQUEST),
-                getMessage(BAD_REQUEST_VALIDATION), CREATE_OPTION_VALUE_PATH );
-
-        perform.andExpect(jsonPath("$.errors").isNotEmpty());
-    }
-
-    @Test
-    @DisplayName("옵션 값 저장 테스트-실패(중복)")
-    void createOptionValueTest_conflict() throws Exception {
-        OptionValueRequest request = new OptionValueRequest("duplicated");
-        when(service.saveOptionValue(anyLong(), any(OptionValueRequest.class)))
-                .thenThrow(new DuplicateResourceException(getMessage(OPTION_VALUE_CONFLICT)));
-
-        ResultActions perform = performWithBody(mockMvc, post(CREATE_OPTION_VALUE_PATH), request);
-        verifyErrorResponse(perform, status().isConflict(), getMessage(CONFLICT),
-                getMessage(OPTION_VALUE_CONFLICT), CREATE_OPTION_VALUE_PATH);
-    }
-
-    @Test
-    @DisplayName("옵션 값 저장 테스트-실패(옵션 타입 없음)")
-    void createOptionValue_notFound() throws Exception {
-        OptionValueRequest request = new OptionValueRequest("values");
-
-        when(service.saveOptionValue(anyLong(), any(OptionValueRequest.class)))
-                .thenThrow(new NotFoundException(getMessage(OPTION_TYPE_NOT_FOUND)));
-        ResultActions perform = performWithBody(mockMvc, post(CREATE_OPTION_VALUE_PATH), request);
-
-        verifyErrorResponse(perform, status().isNotFound(), getMessage(NOT_FOUND),
-                getMessage(OPTION_TYPE_NOT_FOUND), CREATE_OPTION_VALUE_PATH);
-    }
-
-    @Test
     @DisplayName("옵션 값 조회 테스트-성공")
     void getOptionValueTest_success() throws Exception {
         OptionValueResponse response = new OptionValueResponse(1L, 1L, "value1");

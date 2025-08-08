@@ -1,6 +1,5 @@
 package com.example.product_service.controller.validation;
 
-import com.example.product_service.controller.util.MessagePath;
 import com.example.product_service.dto.request.options.OptionTypeRequest;
 import jakarta.validation.ConstraintViolation;
 import org.junit.jupiter.api.DisplayName;
@@ -16,8 +15,7 @@ import static com.example.product_service.controller.util.ValidationTestHelper.*
 import static org.assertj.core.api.Assertions.*;
 
 @ExtendWith(SpringExtension.class)
-public class OptionTypeControllerRequestValidateTest {
-
+public class OptionTypeRequestValidateTest {
 
     @Test
     @DisplayName("OptionTypeRequest 필드 검증")

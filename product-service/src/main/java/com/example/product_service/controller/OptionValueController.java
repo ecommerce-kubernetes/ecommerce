@@ -20,18 +20,6 @@ import org.springframework.web.bind.annotation.*;
 public class OptionValueController {
     private final OptionValueService optionValueService;
 
-    @AdminApi
-    @Operation(summary = "옵션 값 저장")
-    @ApiResponse(responseCode = "201", description = "생성 성공")
-    @BadRequestApiResponse @ForbiddenApiResponse @NotFoundApiResponse @ConflictApiResponse
-    @PostMapping("/option-types/{optionTypeId}/option-values")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<OptionValueResponse> createOptionValue(@PathVariable("optionTypeId") Long optionTypeId,
-                                                                 @Validated @RequestBody OptionValueRequest request){
-        OptionValueResponse response = optionValueService.saveOptionValue(optionTypeId, request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
-    }
-
     @Operation(summary = "옵션 값 조회")
     @ApiResponse(responseCode = "200", description = "조회 성공")
     @NotFoundApiResponse

@@ -2,6 +2,7 @@ package com.example.product_service.controller;
 
 import com.example.product_service.controller.util.specification.annotation.*;
 import com.example.product_service.dto.request.options.OptionTypeRequest;
+import com.example.product_service.dto.request.options.OptionValueRequest;
 import com.example.product_service.dto.response.options.OptionTypeResponse;
 import com.example.product_service.dto.response.options.OptionValueResponse;
 import com.example.product_service.service.OptionTypeService;
@@ -37,6 +38,19 @@ public class OptionTypeController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    @AdminApi
+    @Operation(summary = "옵션 값 저장")
+    @ApiResponse(responseCode = "201", description = "생성 성공")
+    @BadRequestApiResponse @ForbiddenApiResponse @NotFoundApiResponse @ConflictApiResponse
+    @PostMapping("/{optionTypeId}/option-values")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public ResponseEntity<OptionValueResponse> createOptionValue(@PathVariable("optionTypeId") Long optionTypeId,
+                                                                 @Validated @RequestBody OptionValueRequest request){
+        OptionValueResponse response = optionTypeService.saveOptionValue(optionTypeId, request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+
     @Operation(summary = "옵션 타입 조회")
     @ApiResponse(responseCode = "200", description = "조회 성공")
     @GetMapping
@@ -60,7 +74,7 @@ public class OptionTypeController {
     @Operation(summary = "옵션 타입 값 조회")
     @ApiResponse(responseCode = "200", description = "조회 성공")
     @NotFoundApiResponse
-    @GetMapping("/{optionTypeId}/values")
+    @GetMapping("/{optionTypeId}/option-values")
     public ResponseEntity<List<OptionValueResponse>> getValuesByType(@PathVariable("optionTypeId") Long optionTypeId){
         List<OptionValueResponse> response = optionTypeService.getOptionValuesByTypeId(optionTypeId);
         return ResponseEntity.ok(response);
