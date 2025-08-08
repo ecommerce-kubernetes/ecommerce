@@ -14,10 +14,6 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class ProductImageServiceImpl implements ProductImageService{
-    @Override
-    public List<ImageResponse> addImages(Long productId, AddImageRequest request) {
-        return List.of();
-    }
 
     @Override
     public ImageResponse updateImageById(Long imageId, ImageRequest request) {

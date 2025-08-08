@@ -50,12 +50,20 @@ public class OptionTypeController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-
     @Operation(summary = "옵션 타입 조회")
     @ApiResponse(responseCode = "200", description = "조회 성공")
     @GetMapping
     public ResponseEntity<List<OptionTypeResponse>> getOptionTypes(){
         List<OptionTypeResponse> response = optionTypeService.getOptionTypes();
+        return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "옵션 타입 값 조회")
+    @ApiResponse(responseCode = "200", description = "조회 성공")
+    @NotFoundApiResponse
+    @GetMapping("/{optionTypeId}/option-values")
+    public ResponseEntity<List<OptionValueResponse>> getValuesByType(@PathVariable("optionTypeId") Long optionTypeId){
+        List<OptionValueResponse> response = optionTypeService.getOptionValuesByTypeId(optionTypeId);
         return ResponseEntity.ok(response);
     }
 
@@ -68,15 +76,6 @@ public class OptionTypeController {
     public ResponseEntity<OptionTypeResponse> updateOptionType(@PathVariable("optionTypeId") Long optionTypeId,
                                                                @Validated @RequestBody OptionTypeRequest request){
         OptionTypeResponse response = optionTypeService.updateOptionTypeById(optionTypeId, request);
-        return ResponseEntity.ok(response);
-    }
-
-    @Operation(summary = "옵션 타입 값 조회")
-    @ApiResponse(responseCode = "200", description = "조회 성공")
-    @NotFoundApiResponse
-    @GetMapping("/{optionTypeId}/option-values")
-    public ResponseEntity<List<OptionValueResponse>> getValuesByType(@PathVariable("optionTypeId") Long optionTypeId){
-        List<OptionValueResponse> response = optionTypeService.getOptionValuesByTypeId(optionTypeId);
         return ResponseEntity.ok(response);
     }
 

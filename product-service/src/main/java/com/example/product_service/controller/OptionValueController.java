@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @Tag(name = "OptionValue", description = "옵션 값 관련 API")
+@RequestMapping("/option-values")
 @RequiredArgsConstructor
 public class OptionValueController {
     private final OptionValueService optionValueService;
@@ -23,7 +24,7 @@ public class OptionValueController {
     @Operation(summary = "옵션 값 조회")
     @ApiResponse(responseCode = "200", description = "조회 성공")
     @NotFoundApiResponse
-    @GetMapping("/option-values/{optionValueId}")
+    @GetMapping("/{optionValueId}")
     public ResponseEntity<OptionValueResponse> getOptionValue(@PathVariable("optionValueId") Long optionValueId){
 
         OptionValueResponse response = optionValueService.getOptionValueById(optionValueId);
@@ -34,7 +35,7 @@ public class OptionValueController {
     @Operation(summary = "옵션 값 수정")
     @ApiResponse(responseCode = "200", description = "수정 완료")
     @BadRequestApiResponse @ForbiddenApiResponse @NotFoundApiResponse @ConflictApiResponse
-    @PatchMapping("/option-values/{optionValueId}")
+    @PatchMapping("/{optionValueId}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<OptionValueResponse> updateOptionValue(@PathVariable("optionValueId") Long optionValueId,
                                                                   @Validated @RequestBody OptionValueRequest request){
@@ -46,7 +47,7 @@ public class OptionValueController {
     @Operation(summary = "옵션 값 삭제")
     @ApiResponse(responseCode = "204", description = "삭제 완료")
     @ForbiddenApiResponse @NotFoundApiResponse
-    @DeleteMapping("/option-values/{optionValueId}")
+    @DeleteMapping("/{optionValueId}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<Void> deleteOptionValue(@PathVariable("optionValueId") Long optionValueId){
         optionValueService.deleteOptionValueById(optionValueId);
