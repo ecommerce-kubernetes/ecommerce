@@ -10,6 +10,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.ResultMatcher;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import org.springframework.util.MultiValueMap;
 
 import java.util.Iterator;
 import java.util.Map;
@@ -65,6 +66,12 @@ public final class ControllerTestHelper {
                     .header(USER_ROLE_HEADER, ADMIN_ROLE);
         }
 
+        return mockMvc.perform(builder);
+    }
+
+    public static ResultActions performWithParams(MockMvc mockMvc, MockHttpServletRequestBuilder builder,
+                                                 MultiValueMap<String, String> paramsMap) throws Exception {
+        setParams(builder, paramsMap);
         return mockMvc.perform(builder);
     }
 
@@ -142,6 +149,12 @@ public final class ControllerTestHelper {
             String jsonBody = toJson(bodyObject);
             builder.contentType(MediaType.APPLICATION_JSON)
                     .content(jsonBody);
+        }
+    }
+
+    private static void setParams(MockHttpServletRequestBuilder builder, MultiValueMap<String, String> paramsMap){
+        if(paramsMap != null){
+            builder.params(paramsMap);
         }
     }
 }

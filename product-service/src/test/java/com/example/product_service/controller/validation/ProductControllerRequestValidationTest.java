@@ -1,4 +1,5 @@
 package com.example.product_service.controller.validation;
+import com.example.product_service.dto.ProductSearch;
 import com.example.product_service.dto.request.image.ImageRequest;
 import com.example.product_service.dto.request.options.ProductOptionTypeRequest;
 import com.example.product_service.dto.request.product.ProductRequest;
@@ -131,6 +132,34 @@ public class ProductControllerRequestValidationTest {
     void updateProductBasicRequestValidation_field(String fieldNane, Object invalidValue, String expectedMessage){
         UpdateProductBasicRequest request = createUpdateProductBasicRequest();
         assertFieldViolation(request, fieldNane, invalidValue, expectedMessage);
+    }
+
+    @ParameterizedTest(name = "[{index}] {0} 필드 invalid")
+    @MethodSource("invalidProductSearchFieldProvider")
+    void productSearchValidation_field(String fieldName, Object invalidValue, String expectedMessage){
+        ProductSearch search = new ProductSearch(1L, "search", 3);
+        assertFieldViolation(search, fieldName, invalidValue, expectedMessage);
+    }
+
+    @Test
+    @DisplayName("ProductSearch 필드 동시 오류 검증")
+    void productSearchValidation_multiple(){
+        ProductSearch search = new ProductSearch(-1L, "", -1);
+        Set<ConstraintViolation<ProductSearch>> violations = validateField(search);
+        List<String> field =
+                violations.stream().map(v -> v.getPropertyPath().toString()).toList();
+        assertThat(violations).hasSize(3);
+
+        assertThat(field).containsExactlyInAnyOrder("categoryId", "name", "rating");
+    }
+
+    static Stream<Arguments> invalidProductSearchFieldProvider(){
+        return Stream.of(
+                Arguments.of("categoryId", 0, "must be at least 1"),
+                Arguments.of("name", "", getMessage(NOT_BLANK_MESSAGE_PATH)),
+                Arguments.of("rating", -1, "must be at least 0"),
+                Arguments.of("rating", 6, "must not be greater than 5")
+        );
     }
 
     static Stream<Arguments> invalidUpdateProductBasicRequestFieldProvider(){

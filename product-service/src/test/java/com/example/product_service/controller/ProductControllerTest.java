@@ -22,6 +22,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -30,6 +32,7 @@ import static com.example.product_service.controller.util.ControllerTestHelper.*
 import static com.example.product_service.controller.util.TestMessageUtil.getMessage;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -146,6 +149,21 @@ class ProductControllerTest {
         ResultActions perform = performWithBody(mockMvc, post(BASE_PATH), request);
         verifyErrorResponse(perform, status().isBadRequest(), getMessage("badRequest"),
                 getMessage("product.option-value.cardinality.violation"), BASE_PATH);
+    }
+
+    @Test
+    @DisplayName("상품 조회 테스트-성공")
+    void getProductsTest_success() throws Exception {
+        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+        params.add("page", "0");
+        params.add("size", "10");
+        params.add("sort", "id,desc");
+        params.add("categoryId", "1");
+        params.add("name", "name");
+        params.add("rating", "4");
+        ResultActions perform = performWithParams(mockMvc, get(BASE_PATH), params);
+
+
     }
 
     private ProductRequest createProductRequest() {

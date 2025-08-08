@@ -53,6 +53,8 @@ public class ProductController {
             @RequestParam(value = "categoryId", required = false) Long categoryId,
             @RequestParam(value = "name", required = false) String name,
             @RequestParam(value = "rating", required = false) Integer rating){
+
+        productService.getProducts(pageable);
         return ResponseEntity.ok(new PageDto<>(List.of(new ProductSummaryResponse()), 0, 5, 10, 50));
     }
 
