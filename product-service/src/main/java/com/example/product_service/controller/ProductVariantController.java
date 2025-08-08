@@ -21,17 +21,6 @@ import org.springframework.web.bind.annotation.*;
 public class ProductVariantController {
 
     @AdminApi
-    @Operation(summary = "상품 변형 추가")
-    @ApiResponse(responseCode = "201", description = "추가 성공")
-    @BadRequestApiResponse @ForbiddenApiResponse @NotFoundApiResponse
-    @PostMapping
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<ProductVariantResponse> addVariant(@PathVariable("productId") Long productId,
-                                                             @RequestBody ProductVariantRequest request){
-        return ResponseEntity.status(HttpStatus.CREATED).body(new ProductVariantResponse());
-    }
-
-    @AdminApi
     @Operation(summary = "상품 변형 수정")
     @ApiResponse(responseCode = "200", description = "수정 성공")
     @BadRequestApiResponse @ForbiddenApiResponse @NotFoundApiResponse

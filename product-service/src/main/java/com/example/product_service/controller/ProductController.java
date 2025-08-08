@@ -8,9 +8,11 @@ import com.example.product_service.dto.ProductSearch;
 import com.example.product_service.dto.request.image.AddImageRequest;
 import com.example.product_service.dto.request.product.UpdateProductBasicRequest;
 import com.example.product_service.dto.request.product.ProductRequest;
+import com.example.product_service.dto.request.variant.ProductVariantRequest;
 import com.example.product_service.dto.response.PageDto;
 import com.example.product_service.dto.response.image.ImageResponse;
 import com.example.product_service.dto.response.product.*;
+import com.example.product_service.dto.response.variant.ProductVariantResponse;
 import com.example.product_service.service.ProductService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -56,6 +58,17 @@ public class ProductController {
                                                          @Validated  @RequestBody AddImageRequest request){
         List<ImageResponse> response = productService.addImages(productId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @AdminApi
+    @Operation(summary = "상품 변형 추가")
+    @ApiResponse(responseCode = "201", description = "추가 성공")
+    @BadRequestApiResponse @ForbiddenApiResponse @NotFoundApiResponse
+    @PostMapping("/{productId}/variants")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public ResponseEntity<ProductVariantResponse> addVariant(@PathVariable("productId") Long productId,
+                                                             @RequestBody ProductVariantRequest request){
+        return ResponseEntity.status(HttpStatus.CREATED).body(new ProductVariantResponse());
     }
 
     @Operation(summary = "상품 조회")

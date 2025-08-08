@@ -28,8 +28,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 @Import({WebSecurity.class, CustomAccessDeniedHandler.class, CustomAuthenticationEntryPoint.class, MessageSourceUtil.class})
 @AutoConfigureMockMvc
 public class ProductImageControllerSecurityTest {
-    private static final String BASE_PATH = "/product-images";
-    private static final String CREATE_PATH = "/products/1/images";
+    private static final String BASE_PATH = "/images";
     private static final String PRODUCT_IMAGE_ID_PATH = BASE_PATH + "/1";
 
     @Autowired

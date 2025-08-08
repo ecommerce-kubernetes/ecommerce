@@ -187,6 +187,8 @@ class ProductControllerTest {
                 getMessage(PRODUCT_NOT_FOUND), PRODUCT_IMAGE_PATH);
     }
 
+    //TODO 상품 변형 저장 테스트도 추가
+
     @Test
     @DisplayName("상품 조회 테스트-성공")
     void getProductsTest_success() throws Exception {

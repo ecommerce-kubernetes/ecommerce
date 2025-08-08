@@ -30,7 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(ProductImageController.class)
 @AutoConfigureMockMvc(addFilters = false)
 class ProductImageControllerTest {
-    private static final String BASE_PATH = "/product-images";
+    private static final String BASE_PATH = "/images";
     private static final String ID_PATH = BASE_PATH + "/1";
     @Autowired
     MockMvc mockMvc;
@@ -43,7 +43,7 @@ class ProductImageControllerTest {
     void setUpMessages() {
         when(ms.getMessage(BAD_REQUEST)).thenReturn("BadRequest");
         when(ms.getMessage(BAD_REQUEST_VALIDATION)).thenReturn("Validation Error");
-        when(ms.getMessage("conflict")).thenReturn("Conflict");
+        when(ms.getMessage(CONFLICT)).thenReturn("Conflict");
     }
 
     @Test
@@ -95,5 +95,4 @@ class ProductImageControllerTest {
         verifyErrorResponse(perform, status().isNotFound(), getMessage(NOT_FOUND),
                 getMessage(PRODUCT_IMAGE_NOT_FOUND), ID_PATH);
     }
-
 }

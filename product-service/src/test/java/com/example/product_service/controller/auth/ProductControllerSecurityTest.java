@@ -36,6 +36,7 @@ public class ProductControllerSecurityTest {
     private static final String BASE_PATH = "/products";
     private static final String PRODUCT_ID_PATH = BASE_PATH + "/1";
     private static final String PRODUCT_IMAGE_PATH = BASE_PATH + "/1/images";
+    private static final String PRODUCT_VARIANT_PATH = BASE_PATH + "/1/variants";
     @Autowired
     MockMvc mockMvc;
     @MockitoBean
@@ -70,6 +71,21 @@ public class ProductControllerSecurityTest {
         ResultActions perform =
                 performWithAuthAndBody(mockMvc, post(PRODUCT_IMAGE_PATH), createAddImageRequest(), UserRole.ROLE_USER);
         verifyNoPermissionResponse(perform, PRODUCT_IMAGE_PATH);
+    }
+
+    @Test
+    @DisplayName("상품 변형 추가 테스트-인증 에러")
+    void addVariantTest_UnAuthorized() throws Exception {
+        ResultActions perform = performWithBody(mockMvc, post(PRODUCT_VARIANT_PATH), createProductVariantRequest());
+        verifyUnauthorizedResponse(perform, PRODUCT_VARIANT_PATH);
+    }
+
+    @Test
+    @DisplayName("상품 변형 추가 테스트-권한 부족")
+    void addVariantTest_NoPermission() throws Exception {
+        ResultActions perform =
+                performWithAuthAndBody(mockMvc, post(PRODUCT_VARIANT_PATH), createProductVariantRequest(), UserRole.ROLE_USER);
+        verifyNoPermissionResponse(perform, PRODUCT_VARIANT_PATH);
     }
 
     @Test
@@ -143,5 +159,8 @@ public class ProductControllerSecurityTest {
     }
     private AddImageRequest createAddImageRequest(){
         return new AddImageRequest(List.of("http://test1.jpg", "http://test2.jpg"));
+    }
+    private ProductVariantRequest createProductVariantRequest(){
+        return new ProductVariantRequest("sku", 100, 100, 10, List.of(1L,2L));
     }
 }

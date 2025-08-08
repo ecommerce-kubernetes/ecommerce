@@ -22,6 +22,7 @@ import java.util.List;
 
 @RestController
 @Tag(name = "ProductImage" , description = "상품 이미지 관련 API")
+@RequestMapping("/images")
 @RequiredArgsConstructor
 public class ProductImageController {
 
@@ -31,7 +32,7 @@ public class ProductImageController {
     @Operation(summary = "상품 이미지 수정")
     @ApiResponse(responseCode = "200", description = "수정 완료")
     @BadRequestApiResponse @ForbiddenApiResponse @NotFoundApiResponse
-    @PatchMapping("/product-images/{imageId}")
+    @PatchMapping("/{imageId}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<ImageResponse> updateImage(@PathVariable("imageId") Long imageId,
                                                      @Validated @RequestBody ImageRequest request){
@@ -44,7 +45,7 @@ public class ProductImageController {
     @Operation(summary = "상품 이미지 삭제")
     @ApiResponse(responseCode = "204", description = "상품 이미지 삭제")
     @ForbiddenApiResponse @NotFoundApiResponse
-    @DeleteMapping("/product-images/{imageId}")
+    @DeleteMapping("/{imageId}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<Void> deleteImage(@PathVariable("imageId") Long imageId){
         productImageService.deleteImageById(imageId);

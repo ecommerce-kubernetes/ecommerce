@@ -36,21 +36,6 @@ public class ProductVariantControllerSecurityTest {
     ProductImageService productImageService;
 
     @Test
-    @DisplayName("상품 변형 추가 테스트-인증 에러")
-    void addVariantTest_UnAuthorized() throws Exception {
-        ResultActions perform = performWithBody(mockMvc, post(BASE_PATH), createProductVariantRequest());
-        verifyUnauthorizedResponse(perform, BASE_PATH);
-    }
-
-    @Test
-    @DisplayName("상품 변형 추가 테스트-권한 부족")
-    void addVariantTest_NoPermission() throws Exception {
-        ResultActions perform =
-                performWithAuthAndBody(mockMvc, post(BASE_PATH), createProductVariantRequest(), UserRole.ROLE_USER);
-        verifyNoPermissionResponse(perform, BASE_PATH);
-    }
-
-    @Test
     @DisplayName("상품 변형 수정 테스트-인증 에러")
     void updateProductVariantTest_UnAuthorized() throws Exception {
         ResultActions perform =
@@ -78,10 +63,6 @@ public class ProductVariantControllerSecurityTest {
     void deleteProductVariantTest_NoPermission() throws Exception {
         ResultActions perform = performWithAuthAndBody(mockMvc, delete(PRODUCT_VARIANT_ID_PATH), null, UserRole.ROLE_USER);
         verifyNoPermissionResponse(perform, PRODUCT_VARIANT_ID_PATH);
-    }
-
-    private ProductVariantRequest createProductVariantRequest(){
-        return new ProductVariantRequest("sku", 100, 100, 10, List.of(1L,2L));
     }
 
     private UpdateProductVariantRequest createUpdateProductVariantRequest(){
