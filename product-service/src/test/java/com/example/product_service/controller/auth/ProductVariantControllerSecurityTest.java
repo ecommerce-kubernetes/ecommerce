@@ -28,7 +28,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 @Import({WebSecurity.class, CustomAccessDeniedHandler.class, CustomAuthenticationEntryPoint.class, MessageSourceUtil.class})
 @AutoConfigureMockMvc
 public class ProductVariantControllerSecurityTest {
-    private static final String BASE_PATH = "/products/1/variants";
+    private static final String BASE_PATH = "/variants";
     private static final String PRODUCT_VARIANT_ID_PATH = BASE_PATH + "/1";
     @Autowired
     MockMvc mockMvc;

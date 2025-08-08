@@ -4,19 +4,17 @@ import com.example.product_service.controller.util.specification.annotation.Admi
 import com.example.product_service.controller.util.specification.annotation.BadRequestApiResponse;
 import com.example.product_service.controller.util.specification.annotation.ForbiddenApiResponse;
 import com.example.product_service.controller.util.specification.annotation.NotFoundApiResponse;
-import com.example.product_service.dto.request.variant.ProductVariantRequest;
 import com.example.product_service.dto.request.variant.UpdateProductVariantRequest;
 import com.example.product_service.dto.response.variant.ProductVariantResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/products/{productId}/variants")
+@RequestMapping("/variants")
 @Tag(name = "ProductVariants" , description = "상품 변형 관련 API")
 public class ProductVariantController {
 
@@ -26,8 +24,7 @@ public class ProductVariantController {
     @BadRequestApiResponse @ForbiddenApiResponse @NotFoundApiResponse
     @PatchMapping("/{variantId}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<ProductVariantResponse> updateProductVariant(@PathVariable("productId") Long productId,
-                                                                       @PathVariable("variantId") Long variantId,
+    public ResponseEntity<ProductVariantResponse> updateProductVariant(@PathVariable("variantId") Long variantId,
                                                                        @RequestBody UpdateProductVariantRequest request){
         return ResponseEntity.ok(new ProductVariantResponse());
     }
@@ -38,8 +35,7 @@ public class ProductVariantController {
     @BadRequestApiResponse @ForbiddenApiResponse @NotFoundApiResponse
     @DeleteMapping("/{variantId}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<Void> deleteProductVariant(@PathVariable("productId") Long productId,
-                                                     @PathVariable("variantId") Long variantId){
+    public ResponseEntity<Void> deleteProductVariant(@PathVariable("variantId") Long variantId){
         return ResponseEntity.noContent().build();
     }
 }
