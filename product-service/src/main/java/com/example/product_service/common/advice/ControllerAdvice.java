@@ -49,61 +49,42 @@ public class ControllerAdvice {
 
     @ExceptionHandler(NotFoundException.class)
     public ResponseEntity<ErrorResponse> notFoundExceptionHandler(HttpServletRequest request, NotFoundException e){
-        String timestamp = LocalDateTime.now().toString();
-        ErrorResponse errorResponse = new ErrorResponse(
-                "NotFound",
-                e.getMessage(),
-                timestamp,
-                request.getRequestURI()
-        );
+        ErrorResponse errorResponse = createErrorResponse("notFound", e.getMessage(), request);
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
     }
 
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<ErrorResponse> badRequestExceptionHandler(HttpServletRequest request, BadRequestException e){
-        String timestamp = LocalDateTime.now().toString();
-        ErrorResponse errorResponse = new ErrorResponse(
-                ms.getMessage("badRequest"),
-                e.getMessage(),
-                timestamp,
-                request.getRequestURI()
-        );
+        ErrorResponse errorResponse = createErrorResponse("badRequest", e.getMessage(), request);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
 
     @ExceptionHandler(DuplicateResourceException.class)
     public ResponseEntity<ErrorResponse> conflictExceptionHandler(HttpServletRequest request, DuplicateResourceException e){
-        String timestamp = LocalDateTime.now().toString();
-        ErrorResponse errorResponse = new ErrorResponse(
-                ms.getMessage("conflict"),
-                e.getMessage(),
-                timestamp,
-                request.getRequestURI()
-        );
+        ErrorResponse errorResponse = createErrorResponse("conflict", e.getMessage(), request);
         return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
     }
 
     @ExceptionHandler(MissingRequestHeaderException.class)
     public ResponseEntity<ErrorResponse> missingHeaderExceptionHandler(HttpServletRequest request, MissingRequestHeaderException e){
-        String timestamp = LocalDateTime.now().toString();
-        ErrorResponse errorResponse = new ErrorResponse(
-                ms.getMessage("badRequest"),
-                e.getHeaderName() + ms.getMessage("Header-Missing"),
-                timestamp,
-                request.getRequestURI()
-        );
+        ErrorResponse errorResponse = createErrorResponse("badRequest", e.getHeaderName() + ms.getMessage("Header-Missing"),
+                request);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
 
     @ExceptionHandler(NoPermissionException.class)
     public ResponseEntity<ErrorResponse> noPermissionExceptionHandler(HttpServletRequest request, NoPermissionException e){
+        ErrorResponse errorResponse = createErrorResponse("forbidden", e.getMessage(), request);
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
+    }
+
+    private ErrorResponse createErrorResponse(String errorCode, String detailMessage, HttpServletRequest request){
         String timestamp = LocalDateTime.now().toString();
-        ErrorResponse errorResponse = new ErrorResponse(
-                ms.getMessage("forbidden"),
-                e.getMessage(),
+        return new ErrorResponse(
+                ms.getMessage(errorCode),
+                detailMessage,
                 timestamp,
                 request.getRequestURI()
         );
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
     }
 }

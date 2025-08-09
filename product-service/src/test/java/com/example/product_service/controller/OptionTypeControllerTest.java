@@ -45,6 +45,7 @@ class OptionTypeControllerTest {
 
     @BeforeEach
     void setUpMessages() {
+        when(ms.getMessage(NOT_FOUND)).thenReturn("NotFound");
         when(ms.getMessage(BAD_REQUEST)).thenReturn("BadRequest");
         when(ms.getMessage(BAD_REQUEST_VALIDATION)).thenReturn("Validation Error");
         when(ms.getMessage(CONFLICT)).thenReturn("Conflict");

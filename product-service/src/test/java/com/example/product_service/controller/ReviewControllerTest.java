@@ -10,8 +10,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static com.example.product_service.controller.util.MessagePath.BAD_REQUEST;
-import static com.example.product_service.controller.util.MessagePath.BAD_REQUEST_VALIDATION;
+import static com.example.product_service.controller.util.MessagePath.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -30,6 +29,7 @@ public class ReviewControllerTest {
 
     @BeforeEach
     void setUpMessages() {
+        when(ms.getMessage(NOT_FOUND)).thenReturn("NotFound");
         when(ms.getMessage(BAD_REQUEST)).thenReturn("BadRequest");
         when(ms.getMessage(BAD_REQUEST_VALIDATION)).thenReturn("Validation Error");
         when(ms.getMessage("conflict")).thenReturn("Conflict");

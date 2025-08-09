@@ -54,6 +54,7 @@ class CategoryControllerTest {
 
     @BeforeEach
     void setUpMessages() {
+        when(ms.getMessage(NOT_FOUND)).thenReturn("NotFound");
         when(ms.getMessage(BAD_REQUEST)).thenReturn("BadRequest");
         when(ms.getMessage(MessagePath.BAD_REQUEST_VALIDATION)).thenReturn("Validation Error");
         when(ms.getMessage(MessagePath.CONFLICT)).thenReturn("Conflict");
