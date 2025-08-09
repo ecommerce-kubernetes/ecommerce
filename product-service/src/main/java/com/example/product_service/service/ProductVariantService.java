@@ -5,4 +5,5 @@ import com.example.product_service.dto.response.variant.ProductVariantResponse;
 
 public interface ProductVariantService {
     ProductVariantResponse updateVariantById(Long variantId, UpdateProductVariantRequest request);
+    void deleteVariantById(Long variantId);
 }

@@ -39,10 +39,11 @@ public class ProductVariantController {
     @AdminApi
     @Operation(summary = "상품 변형 삭제")
     @ApiResponse(responseCode = "204", description = "삭제 성공")
-    @BadRequestApiResponse @ForbiddenApiResponse @NotFoundApiResponse
+    @ForbiddenApiResponse @NotFoundApiResponse
     @DeleteMapping("/{variantId}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<Void> deleteProductVariant(@PathVariable("variantId") Long variantId){
+        productVariantService.deleteVariantById(variantId);
         return ResponseEntity.noContent().build();
     }
 }

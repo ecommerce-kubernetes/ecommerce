@@ -24,7 +24,8 @@ import static com.example.product_service.controller.util.MessagePath.*;
 import static com.example.product_service.controller.util.TestMessageUtil.getMessage;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -108,6 +109,26 @@ public class ProductVariantControllerTest {
         ResultActions perform = performWithBody(mockMvc, patch(ID_PATH), request);
         verifyErrorResponse(perform, status().isBadRequest(), getMessage(BAD_REQUEST),
                 getMessage(PRODUCT_OPTION_VALUE_CARDINALITY_VIOLATION), ID_PATH);
+    }
+
+    @Test
+    @DisplayName("상품 변형 삭제 테스트-성공")
+    void deleteProductVariantTest_success() throws Exception {
+        doNothing().when(service).deleteVariantById(anyLong());
+
+        ResultActions perform = performWithBody(mockMvc, delete(ID_PATH), null);
+        verifySuccessResponse(perform, status().isNoContent(), null);
+    }
+
+    @Test
+    @DisplayName("상품 변형 삭제 테스트-실패(없음)")
+    void deleteProductVariantTest_notFound() throws Exception {
+        doThrow(new NotFoundException(getMessage(PRODUCT_VARIANT_NOT_FOUND)))
+                .when(service).deleteVariantById(anyLong());
+
+        ResultActions perform = performWithBody(mockMvc, delete(ID_PATH), null);
+        verifyErrorResponse(perform, status().isNotFound(), getMessage(NOT_FOUND),
+                getMessage(PRODUCT_VARIANT_NOT_FOUND), ID_PATH);
     }
 
     private UpdateProductVariantRequest createUpdateProductVariantRequest(){
