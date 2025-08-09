@@ -5,11 +5,13 @@ import com.example.product_service.dto.request.image.AddImageRequest;
 import com.example.product_service.dto.request.image.ImageRequest;
 import com.example.product_service.dto.request.product.ProductRequest;
 import com.example.product_service.dto.request.product.UpdateProductBasicRequest;
+import com.example.product_service.dto.request.variant.ProductVariantRequest;
 import com.example.product_service.dto.response.PageDto;
 import com.example.product_service.dto.response.image.ImageResponse;
 import com.example.product_service.dto.response.product.ProductResponse;
 import com.example.product_service.dto.response.product.ProductSummaryResponse;
 import com.example.product_service.dto.response.product.ProductUpdateResponse;
+import com.example.product_service.dto.response.variant.ProductVariantResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
@@ -56,5 +58,10 @@ public class ProductServiceImpl implements ProductService{
     @Override
     public List<ImageResponse> addImages(Long productId, AddImageRequest request) {
         return List.of();
+    }
+
+    @Override
+    public ProductVariantResponse addVariant(Long productId, ProductVariantRequest request) {
+        return null;
     }
 }

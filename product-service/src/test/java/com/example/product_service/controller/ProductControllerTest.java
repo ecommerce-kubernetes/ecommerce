@@ -54,6 +54,7 @@ class ProductControllerTest {
     private static final String POPULAR_PATH = BASE_PATH + "/popular";
     private static final String PRODUCT_IMAGE_PATH = BASE_PATH + "/1/images";
     private static final String PRODUCT_IMAGE_BULK_PATH = PRODUCT_IMAGE_PATH + "/bulk";
+    private static final String PRODUCT_VARIANT_PATH = BASE_PATH + "/1/variants";
     private static final String IMAGE_URL = "http://test.jpg";
     @Autowired
     MockMvc mockMvc;
@@ -134,7 +135,7 @@ class ProductControllerTest {
 
     @Test
     @DisplayName("상품 저장 테스트-실패(옵션 값이 상품 옵션 타입의 옵션 값에 속하지 않는경우)")
-    void createProductTest_badRequest_invalidOptionValue() throws Exception {
+    void createProductTest_notMatchType() throws Exception {
         ProductRequest request = createProductRequest();
         when(service.saveProduct(any(ProductRequest.class)))
                 .thenThrow(new BadRequestException(getMessage(PRODUCT_OPTION_VALUE_NOT_MATCH_TYPE)));
@@ -146,7 +147,7 @@ class ProductControllerTest {
 
     @Test
     @DisplayName("상품 저장 테스트-실패(하나의 옵션타입당 하나의 옵션 값만 설정 가능)")
-    void createProductTest_badRequest_singleOptionValuePerOptionType() throws Exception {
+    void createProductTest_cardinality_violation() throws Exception {
         ProductRequest request = createProductRequest();
         when(service.saveProduct(any(ProductRequest.class)))
                 .thenThrow(new BadRequestException(getMessage(PRODUCT_OPTION_VALUE_CARDINALITY_VIOLATION)));
@@ -188,7 +189,61 @@ class ProductControllerTest {
                 getMessage(PRODUCT_NOT_FOUND), PRODUCT_IMAGE_BULK_PATH);
     }
 
-    //TODO 상품 변형 저장 테스트도 추가
+    @Test
+    @DisplayName("상품 변형 추가 테스트-성공")
+    void addVariantTest_success() throws Exception {
+        ProductVariantRequest request =createProductVariantRequest();
+        ProductVariantResponse response = new ProductVariantResponse(1L, "sku", 1000, 10, 10,
+                List.of(new OptionValueResponse(1L, 1L, "value1"),
+                        new OptionValueResponse(2L, 1L, "value2")));
+        when(service.addVariant(anyLong(), any(ProductVariantRequest.class)))
+                .thenReturn(response);
+
+        ResultActions perform = performWithBody(mockMvc, post(PRODUCT_VARIANT_PATH), request);
+        verifySuccessResponse(perform, status().isCreated(), response);
+    }
+
+    @Test
+    @DisplayName("상품 변형 추가 테스트-실패(검증)")
+    void addVariantTest_validation() throws Exception {
+        ProductVariantRequest request = new ProductVariantRequest();
+        ResultActions perform = performWithBody(mockMvc, post(PRODUCT_VARIANT_PATH), request);
+        verifyErrorResponse(perform, status().isBadRequest(), getMessage(BAD_REQUEST),
+                getMessage(BAD_REQUEST_VALIDATION), PRODUCT_VARIANT_PATH);
+    }
+
+    @Test
+    @DisplayName("상품 변형 추가 테스트-실패(상품 없음)")
+    void addVariantTest_notFound() throws Exception {
+        ProductVariantRequest request = createProductVariantRequest();
+        when(service.addVariant(anyLong(), any(ProductVariantRequest.class)))
+                .thenThrow(new NotFoundException(getMessage(PRODUCT_VARIANT_NOT_FOUND)));
+        ResultActions perform = performWithBody(mockMvc, post(PRODUCT_VARIANT_PATH), request);
+        verifyErrorResponse(perform, status().isNotFound(), getMessage(NOT_FOUND),
+                getMessage(PRODUCT_VARIANT_NOT_FOUND), PRODUCT_VARIANT_PATH);
+    }
+
+    @Test
+    @DisplayName("상품 변형 추가 테스트-실패(옵션 값이 상품 옵션 타입의 옵션 값에 속하지 않는경우)")
+    void addVariantTest_notMatchType() throws Exception {
+        ProductVariantRequest request = createProductVariantRequest();
+        when(service.addVariant(anyLong(), any(ProductVariantRequest.class)))
+                .thenThrow(new BadRequestException(getMessage(PRODUCT_OPTION_VALUE_NOT_MATCH_TYPE)));
+        ResultActions perform = performWithBody(mockMvc, post(PRODUCT_VARIANT_PATH), request);
+        verifyErrorResponse(perform, status().isBadRequest(), getMessage(BAD_REQUEST),
+                getMessage(PRODUCT_OPTION_VALUE_NOT_MATCH_TYPE), PRODUCT_VARIANT_PATH);
+    }
+
+    @Test
+    @DisplayName("상품 변형 추가 테스트-실패(하나의 옵션타입당 하나의 옵션 값만 설정 가능)")
+    void addVariantTest_cardinality_violation() throws Exception {
+        ProductVariantRequest request = createProductVariantRequest();
+        when(service.addVariant(anyLong(), any(ProductVariantRequest.class)))
+                .thenThrow(new BadRequestException(getMessage(PRODUCT_OPTION_VALUE_CARDINALITY_VIOLATION)));
+        ResultActions perform = performWithBody(mockMvc, post(PRODUCT_VARIANT_PATH), request);
+        verifyErrorResponse(perform, status().isBadRequest(), getMessage(BAD_REQUEST),
+                getMessage(PRODUCT_OPTION_VALUE_CARDINALITY_VIOLATION), PRODUCT_VARIANT_PATH);
+    }
 
     @Test
     @DisplayName("상품 조회 테스트-성공")
@@ -347,5 +402,9 @@ class ProductControllerTest {
                 new ProductSummaryResponse(2L, "product2", "description", IMAGE_URL, 1L,
                         LocalDateTime.now(), 3.7, 100, 10000, 9000, 10)
         );
+    }
+
+    private ProductVariantRequest createProductVariantRequest(){
+        return new ProductVariantRequest("sku", 1000, 10, 10, List.of(1L, 2L));
     }
 }

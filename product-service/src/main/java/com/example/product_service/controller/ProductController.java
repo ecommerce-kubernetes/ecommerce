@@ -67,8 +67,9 @@ public class ProductController {
     @PostMapping("/{productId}/variants")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<ProductVariantResponse> addVariant(@PathVariable("productId") Long productId,
-                                                             @RequestBody ProductVariantRequest request){
-        return ResponseEntity.status(HttpStatus.CREATED).body(new ProductVariantResponse());
+                                                             @Validated @RequestBody ProductVariantRequest request){
+        ProductVariantResponse response = productService.addVariant(productId, request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @Operation(summary = "상품 조회")
