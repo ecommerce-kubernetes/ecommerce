@@ -1,7 +1,6 @@
 package com.example.product_service.controller;
 
 import com.example.product_service.common.MessageSourceUtil;
-import com.example.product_service.dto.request.image.AddImageRequest;
 import com.example.product_service.dto.request.image.ImageRequest;
 import com.example.product_service.dto.response.image.ImageResponse;
 import com.example.product_service.exception.NotFoundException;
@@ -15,8 +14,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
-
-import java.util.List;
 
 import static com.example.product_service.controller.util.ControllerTestHelper.*;
 import static com.example.product_service.controller.util.MessagePath.*;

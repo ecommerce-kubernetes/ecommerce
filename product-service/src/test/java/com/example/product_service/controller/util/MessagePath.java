@@ -28,4 +28,6 @@ public final class MessagePath {
 
     public static final String PRODUCT_IMAGE_NOT_FOUND = "product-image.notFound";
 
+    public static final String PRODUCT_VARIANT_NOT_FOUND = "product-variant.notFound";
+
 }
