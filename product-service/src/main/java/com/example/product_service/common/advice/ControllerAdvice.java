@@ -6,6 +6,7 @@ import com.example.product_service.common.advice.dto.ErrorResponse;
 import com.example.product_service.common.advice.dto.ValidationErrorResponse;
 import com.example.product_service.exception.BadRequestException;
 import com.example.product_service.exception.DuplicateResourceException;
+import com.example.product_service.exception.NoPermissionException;
 import com.example.product_service.exception.NotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -79,5 +81,29 @@ public class ControllerAdvice {
                 request.getRequestURI()
         );
         return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
+    }
+
+    @ExceptionHandler(MissingRequestHeaderException.class)
+    public ResponseEntity<ErrorResponse> missingHeaderExceptionHandler(HttpServletRequest request, MissingRequestHeaderException e){
+        String timestamp = LocalDateTime.now().toString();
+        ErrorResponse errorResponse = new ErrorResponse(
+                ms.getMessage("badRequest"),
+                e.getHeaderName() + ms.getMessage("Header-Missing"),
+                timestamp,
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
+
+    @ExceptionHandler(NoPermissionException.class)
+    public ResponseEntity<ErrorResponse> noPermissionExceptionHandler(HttpServletRequest request, NoPermissionException e){
+        String timestamp = LocalDateTime.now().toString();
+        ErrorResponse errorResponse = new ErrorResponse(
+                ms.getMessage("forbidden"),
+                e.getMessage(),
+                timestamp,
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
     }
 }

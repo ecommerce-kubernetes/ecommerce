@@ -1,6 +1,8 @@
 package com.example.product_service.service;
 
+import com.example.product_service.dto.request.review.ReviewRequest;
 import com.example.product_service.dto.request.variant.UpdateProductVariantRequest;
+import com.example.product_service.dto.response.ReviewResponse;
 import com.example.product_service.dto.response.variant.ProductVariantResponse;
 import com.example.product_service.repository.OptionValuesRepository;
 import com.example.product_service.repository.ProductVariantsRepository;
@@ -13,6 +15,11 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class ProductVariantServiceImpl implements ProductVariantService{
+    @Override
+    public ReviewResponse addReview(Long variantId, Long userId, ReviewRequest request) {
+        return null;
+    }
+
     private final ProductsRepository productsRepository;
     private final OptionValuesRepository optionValuesRepository;
     private final ProductVariantsRepository productVariantsRepository;

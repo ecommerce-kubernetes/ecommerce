@@ -11,6 +11,7 @@ public final class MessagePath {
     public static final String BAD_REQUEST_VALIDATION = "badRequest.validation";
     public static final String CONFLICT = "conflict";
     public static final String BAD_REQUEST_SORT = "badRequest.sort";
+    public static final String FORBIDDEN = "forbidden";
 
     public static final String CATEGORY_NOT_FOUND = "category.notFound";
     public static final String CATEGORY_CONFLICT = "category.conflict";
@@ -29,5 +30,7 @@ public final class MessagePath {
     public static final String PRODUCT_IMAGE_NOT_FOUND = "product-image.notFound";
 
     public static final String PRODUCT_VARIANT_NOT_FOUND = "product-variant.notFound";
+    public static final String HEADER_MISSING = "Header-Missing";
+    public static final String REVIEW_FORBIDDEN = "review.forbidden";
 
 }

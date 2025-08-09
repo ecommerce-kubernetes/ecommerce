@@ -4,13 +4,16 @@ import com.example.product_service.controller.util.specification.annotation.Admi
 import com.example.product_service.controller.util.specification.annotation.BadRequestApiResponse;
 import com.example.product_service.controller.util.specification.annotation.ForbiddenApiResponse;
 import com.example.product_service.controller.util.specification.annotation.NotFoundApiResponse;
+import com.example.product_service.dto.request.review.ReviewRequest;
 import com.example.product_service.dto.request.variant.UpdateProductVariantRequest;
+import com.example.product_service.dto.response.ReviewResponse;
 import com.example.product_service.dto.response.variant.ProductVariantResponse;
 import com.example.product_service.service.ProductVariantService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
@@ -23,6 +26,17 @@ import org.springframework.web.bind.annotation.*;
 public class ProductVariantController {
 
     private final ProductVariantService productVariantService;
+
+    @Operation(summary = "리뷰 등록")
+    @ApiResponse(responseCode = "201", description = "등록 성공")
+    @BadRequestApiResponse @ForbiddenApiResponse @NotFoundApiResponse
+    @PostMapping("/{variantId}/reviews")
+    public ResponseEntity<ReviewResponse> createReview(@PathVariable("variantId") Long variantId,
+                                                       @RequestHeader("X-User-Id") Long userId,
+                                                       @RequestBody @Validated ReviewRequest request){
+        ReviewResponse response = productVariantService.addReview(variantId, userId, request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
 
     @AdminApi
     @Operation(summary = "상품 변형 수정")
