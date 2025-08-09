@@ -36,6 +36,7 @@ public class ProductControllerSecurityTest {
     private static final String BASE_PATH = "/products";
     private static final String PRODUCT_ID_PATH = BASE_PATH + "/1";
     private static final String PRODUCT_IMAGE_PATH = BASE_PATH + "/1/images";
+    private static final String PRODUCT_IMAGE_BULK_PATH = PRODUCT_IMAGE_PATH + "/bulk";
     private static final String PRODUCT_VARIANT_PATH = BASE_PATH + "/1/variants";
     @Autowired
     MockMvc mockMvc;
@@ -61,16 +62,16 @@ public class ProductControllerSecurityTest {
     @DisplayName("상품 이미지 추가 테스트-인증 에러")
     void addImageTest_UnAuthorized() throws Exception {
         ResultActions perform =
-                performWithBody(mockMvc, post(PRODUCT_IMAGE_PATH), createAddImageRequest());
-        verifyUnauthorizedResponse(perform, PRODUCT_IMAGE_PATH);
+                performWithBody(mockMvc, post(PRODUCT_IMAGE_BULK_PATH), createAddImageRequest());
+        verifyUnauthorizedResponse(perform, PRODUCT_IMAGE_BULK_PATH);
     }
 
     @Test
     @DisplayName("상품 이미지 추가 테스트-권한 부족")
     void addImageTest_NoPermission() throws Exception {
         ResultActions perform =
-                performWithAuthAndBody(mockMvc, post(PRODUCT_IMAGE_PATH), createAddImageRequest(), UserRole.ROLE_USER);
-        verifyNoPermissionResponse(perform, PRODUCT_IMAGE_PATH);
+                performWithAuthAndBody(mockMvc, post(PRODUCT_IMAGE_BULK_PATH), createAddImageRequest(), UserRole.ROLE_USER);
+        verifyNoPermissionResponse(perform, PRODUCT_IMAGE_BULK_PATH);
     }
 
     @Test

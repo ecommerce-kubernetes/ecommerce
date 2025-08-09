@@ -6,9 +6,8 @@ import com.example.product_service.common.advice.CustomAuthenticationEntryPoint;
 import com.example.product_service.config.WebSecurity;
 import com.example.product_service.controller.ProductVariantController;
 import com.example.product_service.controller.util.UserRole;
-import com.example.product_service.dto.request.variant.ProductVariantRequest;
 import com.example.product_service.dto.request.variant.UpdateProductVariantRequest;
-import com.example.product_service.service.ProductImageService;
+import com.example.product_service.service.ProductVariantService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +32,7 @@ public class ProductVariantControllerSecurityTest {
     @Autowired
     MockMvc mockMvc;
     @MockitoBean
-    ProductImageService productImageService;
+    ProductVariantService productVariantService;
 
     @Test
     @DisplayName("상품 변형 수정 테스트-인증 에러")

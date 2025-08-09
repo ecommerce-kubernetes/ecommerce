@@ -53,6 +53,7 @@ class ProductControllerTest {
     private static final String ID_PATH = BASE_PATH + "/1";
     private static final String POPULAR_PATH = BASE_PATH + "/popular";
     private static final String PRODUCT_IMAGE_PATH = BASE_PATH + "/1/images";
+    private static final String PRODUCT_IMAGE_BULK_PATH = PRODUCT_IMAGE_PATH + "/bulk";
     private static final String IMAGE_URL = "http://test.jpg";
     @Autowired
     MockMvc mockMvc;
@@ -163,7 +164,7 @@ class ProductControllerTest {
                 new ImageResponse(1L, "http://test2.jpg", 3));
         when(service.addImages(anyLong(), any(AddImageRequest.class)))
                 .thenReturn(response);
-        ResultActions perform = performWithBody(mockMvc, post(PRODUCT_IMAGE_PATH), request);
+        ResultActions perform = performWithBody(mockMvc, post(PRODUCT_IMAGE_BULK_PATH), request);
         verifySuccessResponse(perform, status().isCreated(), response);
     }
 
@@ -171,9 +172,9 @@ class ProductControllerTest {
     @DisplayName("상품 이미지 추가 테스트-실패(검증)")
     void addImagesTest_validation() throws Exception {
         AddImageRequest request = new AddImageRequest(List.of());
-        ResultActions perform = performWithBody(mockMvc, post(PRODUCT_IMAGE_PATH), request);
+        ResultActions perform = performWithBody(mockMvc, post(PRODUCT_IMAGE_BULK_PATH), request);
         verifyErrorResponse(perform, status().isBadRequest(), getMessage(BAD_REQUEST),
-                getMessage(BAD_REQUEST_VALIDATION), PRODUCT_IMAGE_PATH);
+                getMessage(BAD_REQUEST_VALIDATION), PRODUCT_IMAGE_BULK_PATH);
     }
 
     @Test
@@ -182,9 +183,9 @@ class ProductControllerTest {
         AddImageRequest request = new AddImageRequest(List.of("http://test1.jpg", "http://test2.jpg"));
         when(service.addImages(anyLong(),any(AddImageRequest.class)))
                 .thenThrow(new NotFoundException(getMessage(PRODUCT_NOT_FOUND)));
-        ResultActions perform = performWithBody(mockMvc, post(PRODUCT_IMAGE_PATH), request);
+        ResultActions perform = performWithBody(mockMvc, post(PRODUCT_IMAGE_BULK_PATH), request);
         verifyErrorResponse(perform, status().isNotFound(), getMessage(NOT_FOUND),
-                getMessage(PRODUCT_NOT_FOUND), PRODUCT_IMAGE_PATH);
+                getMessage(PRODUCT_NOT_FOUND), PRODUCT_IMAGE_BULK_PATH);
     }
 
     //TODO 상품 변형 저장 테스트도 추가

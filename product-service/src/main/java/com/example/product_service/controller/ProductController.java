@@ -52,7 +52,7 @@ public class ProductController {
     @Operation(summary = "상품 이미지 추가")
     @ApiResponse(responseCode = "201", description = "추가 성공")
     @BadRequestApiResponse @ForbiddenApiResponse @NotFoundApiResponse
-    @PostMapping("/{productId}/images")
+    @PostMapping("/{productId}/images/bulk")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<List<ImageResponse>> addImages(@PathVariable("productId") Long productId,
                                                          @Validated  @RequestBody AddImageRequest request){
