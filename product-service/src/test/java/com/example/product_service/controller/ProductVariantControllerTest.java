@@ -81,7 +81,8 @@ public class ProductVariantControllerTest {
     void createReviewTest_no_X_User_Id_header() throws Exception {
         ResultActions perform = performWithBody(mockMvc, post(REVIEW_PATH), createReviewRequest());
         verifyErrorResponse(perform, status().isBadRequest(), getMessage(BAD_REQUEST),
-                "X-User-Id" + getMessage(HEADER_MISSING), REVIEW_PATH);
+                "Required request header 'X-User-Id' for method parameter type Long is not present",
+                REVIEW_PATH);
     }
 
     @Test
