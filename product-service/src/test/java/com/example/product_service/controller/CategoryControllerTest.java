@@ -28,6 +28,8 @@ import java.util.List;
 import static com.example.product_service.controller.util.ControllerTestHelper.*;
 import static com.example.product_service.controller.util.MessagePath.*;
 import static com.example.product_service.controller.util.TestMessageUtil.getMessage;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
@@ -84,7 +86,12 @@ class CategoryControllerTest {
                 getMessage(BAD_REQUEST), getMessage(BAD_REQUEST_VALIDATION), BASE_PATH);
 
         perform
-                .andExpect(jsonPath("$.errors").isNotEmpty());
+                .andExpect(jsonPath("$.errors", hasSize(2)));
+
+        perform
+                .andExpect(jsonPath("$.errors[*].fieldName", containsInAnyOrder("name", "iconUrl")))
+                .andExpect(jsonPath("$.errors[*].message",
+                        containsInAnyOrder(getMessage(NOT_BLANK), getMessage(INVALID_URL_MESSAGE))));
     }
 
     @Test
