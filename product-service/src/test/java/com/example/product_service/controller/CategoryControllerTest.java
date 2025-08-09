@@ -1,6 +1,7 @@
 package com.example.product_service.controller;
 
 import com.example.product_service.common.MessageSourceUtil;
+import com.example.product_service.common.advice.ErrorResponseEntityFactory;
 import com.example.product_service.controller.util.MessagePath;
 import com.example.product_service.dto.request.category.CategoryRequest;
 import com.example.product_service.dto.request.category.UpdateCategoryRequest;
@@ -16,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -35,6 +37,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(CategoryController.class)
 @AutoConfigureMockMvc(addFilters = false)
+@Import(ErrorResponseEntityFactory.class)
 class CategoryControllerTest {
 
     private static final String ICON_URL = "http://test.jpg";

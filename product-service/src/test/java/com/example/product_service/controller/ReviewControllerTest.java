@@ -1,12 +1,14 @@
 package com.example.product_service.controller;
 
 import com.example.product_service.common.MessageSourceUtil;
+import com.example.product_service.common.advice.ErrorResponseEntityFactory;
 import com.example.product_service.service.ReviewService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -18,6 +20,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(ReviewController.class)
 @AutoConfigureMockMvc(addFilters = false)
+@Import(ErrorResponseEntityFactory.class)
 public class ReviewControllerTest {
 
     @Autowired

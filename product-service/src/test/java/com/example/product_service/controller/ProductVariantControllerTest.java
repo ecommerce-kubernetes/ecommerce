@@ -1,6 +1,7 @@
 package com.example.product_service.controller;
 
 import com.example.product_service.common.MessageSourceUtil;
+import com.example.product_service.common.advice.ErrorResponseEntityFactory;
 import com.example.product_service.dto.request.review.ReviewRequest;
 import com.example.product_service.dto.request.variant.UpdateProductVariantRequest;
 import com.example.product_service.dto.response.ReviewResponse;
@@ -16,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -34,6 +36,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(ProductVariantController.class)
 @AutoConfigureMockMvc(addFilters = false)
+@Import(ErrorResponseEntityFactory.class)
 public class ProductVariantControllerTest {
 
     private static final String BASE_PATH = "/variants";

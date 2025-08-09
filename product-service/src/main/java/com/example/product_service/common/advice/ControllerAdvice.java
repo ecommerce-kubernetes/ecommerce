@@ -25,6 +25,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ControllerAdvice {
     private final MessageSourceUtil ms;
+    private final ErrorResponseEntityFactory factory;
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ValidationErrorResponse> validationExceptionHandler(HttpServletRequest request,
@@ -49,20 +50,17 @@ public class ControllerAdvice {
 
     @ExceptionHandler(NotFoundException.class)
     public ResponseEntity<ErrorResponse> notFoundExceptionHandler(HttpServletRequest request, NotFoundException e){
-        ErrorResponse errorResponse = createErrorResponse("notFound", e.getMessage(), request);
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+        return factory.toResponseEntity(HttpStatus.NOT_FOUND, e.getMessage(), request);
     }
 
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<ErrorResponse> badRequestExceptionHandler(HttpServletRequest request, BadRequestException e){
-        ErrorResponse errorResponse = createErrorResponse("badRequest", e.getMessage(), request);
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        return factory.toResponseEntity(HttpStatus.BAD_REQUEST, e.getMessage(), request);
     }
 
     @ExceptionHandler(DuplicateResourceException.class)
     public ResponseEntity<ErrorResponse> conflictExceptionHandler(HttpServletRequest request, DuplicateResourceException e){
-        ErrorResponse errorResponse = createErrorResponse("conflict", e.getMessage(), request);
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
+        return factory.toResponseEntity(HttpStatus.CONFLICT, e.getMessage(), request);
     }
 
     @ExceptionHandler(MissingRequestHeaderException.class)
@@ -74,8 +72,7 @@ public class ControllerAdvice {
 
     @ExceptionHandler(NoPermissionException.class)
     public ResponseEntity<ErrorResponse> noPermissionExceptionHandler(HttpServletRequest request, NoPermissionException e){
-        ErrorResponse errorResponse = createErrorResponse("forbidden", e.getMessage(), request);
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
+        return factory.toResponseEntity(HttpStatus.FORBIDDEN, e.getMessage(), request);
     }
 
     private ErrorResponse createErrorResponse(String errorCode, String detailMessage, HttpServletRequest request){
