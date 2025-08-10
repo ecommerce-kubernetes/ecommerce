@@ -1,6 +1,5 @@
 package com.example.product_service.service.unit;
 
-import com.example.product_service.entity.Categories;
 import com.example.product_service.repository.CategoryRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
