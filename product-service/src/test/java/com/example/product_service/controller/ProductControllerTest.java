@@ -10,6 +10,7 @@ import com.example.product_service.dto.request.product.ProductRequest;
 import com.example.product_service.dto.request.product.UpdateProductBasicRequest;
 import com.example.product_service.dto.request.variant.ProductVariantRequest;
 import com.example.product_service.dto.response.PageDto;
+import com.example.product_service.dto.response.ReviewResponse;
 import com.example.product_service.dto.response.image.ImageResponse;
 import com.example.product_service.dto.response.options.OptionValueResponse;
 import com.example.product_service.dto.response.options.ProductOptionTypeResponse;
@@ -58,6 +59,7 @@ class ProductControllerTest {
     private static final String PRODUCT_IMAGE_PATH = BASE_PATH + "/1/images";
     private static final String PRODUCT_IMAGE_BULK_PATH = PRODUCT_IMAGE_PATH + "/bulk";
     private static final String PRODUCT_VARIANT_PATH = BASE_PATH + "/1/variants";
+    private static final String REVIEW_PATH = BASE_PATH + "/1/reviews";
     private static final String IMAGE_URL = "http://test.jpg";
     @Autowired
     MockMvc mockMvc;
@@ -255,7 +257,7 @@ class ProductControllerTest {
         PageDto<ProductSummaryResponse> response = new PageDto<>(
                 createProductSummaryResponse(),
                 0, 10, 10, 100);
-        when(service.getProducts(any(Pageable.class), any(ProductSearch.class)))
+        when(service.getProducts(any(ProductSearch.class), any(Pageable.class)))
                 .thenReturn(response);
         ResultActions perform = performWithPageRequest(mockMvc, get(BASE_PATH), 0,
                 10, List.of("id,asc"), Map.of("categoryId", "3", "rating", "5"));
@@ -278,7 +280,7 @@ class ProductControllerTest {
     @Test
     @DisplayName("상품 조회 테스트-실패(허용되지 않은 sort 옵션)")
     void getProductTest_invalidSort() throws Exception {
-        when(service.getProducts(any(Pageable.class), any(ProductSearch.class)))
+        when(service.getProducts(any(ProductSearch.class), any(Pageable.class)))
                 .thenThrow(new BadRequestException(getMessage(BAD_REQUEST_SORT)));
         ResultActions perform =
                 performWithPageRequest(mockMvc, get(BASE_PATH), 0, 10, List.of("invalidSort,asc"), null);
@@ -319,6 +321,28 @@ class ProductControllerTest {
             add("categoryId", "1");
         }});
         verifySuccessResponse(perform, status().isOk(), response);
+    }
+
+    @Test
+    @DisplayName("상품 리뷰 조회 테스트-성공")
+    void getReviewsByProductIdTest_success() throws Exception {
+        PageDto<ReviewResponse> response = new PageDto<>(createReviewResponse(), 0, 10, 10, 100);
+        when(service.getReviewsByProductId(anyLong(), any(Pageable.class)))
+                .thenReturn(response);
+
+        ResultActions perform = performWithBody(mockMvc, get(REVIEW_PATH), null);
+        verifySuccessResponse(perform, status().isOk(), response);
+    }
+
+    @Test
+    @DisplayName("상품 리뷰 조회 테스트-실패(상품 없음)")
+    void getReviewsByProductIdTest_notFound() throws Exception {
+        when(service.getReviewsByProductId(anyLong(), any(Pageable.class)))
+                .thenThrow(new NotFoundException(getMessage(PRODUCT_NOT_FOUND)));
+
+        ResultActions perform = performWithBody(mockMvc, get(REVIEW_PATH), null);
+        verifyErrorResponse(perform, status().isNotFound(), getMessage(NOT_FOUND),
+                getMessage(PRODUCT_NOT_FOUND), REVIEW_PATH);
     }
 
     @Test
@@ -405,6 +429,14 @@ class ProductControllerTest {
                         LocalDateTime.now(), 3.5, 100, 10000, 9000, 10),
                 new ProductSummaryResponse(2L, "product2", "description", IMAGE_URL, 1L,
                         LocalDateTime.now(), 3.7, 100, 10000, 9000, 10)
+        );
+    }
+
+    private List<ReviewResponse> createReviewResponse(){
+        return List.of(
+                new ReviewResponse(1L, "productName", 1L, "username", 4, "content",
+                        List.of(new OptionValueResponse(1L, 1L, "value1"),
+                                new OptionValueResponse(2L, 2L, "value2")), LocalDateTime.now())
         );
     }
 

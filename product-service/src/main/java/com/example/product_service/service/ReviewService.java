@@ -5,5 +5,5 @@ import com.example.product_service.dto.response.ReviewResponse;
 import org.springframework.data.domain.Pageable;
 
 public interface ReviewService {
-    PageDto<ReviewResponse> getReviewList(Long productId, Pageable pageable);
+    void deleteReviewById(Long reviewId, Long userId);
 }

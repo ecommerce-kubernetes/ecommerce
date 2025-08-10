@@ -10,6 +10,7 @@ import com.example.product_service.dto.request.product.UpdateProductBasicRequest
 import com.example.product_service.dto.request.product.ProductRequest;
 import com.example.product_service.dto.request.variant.ProductVariantRequest;
 import com.example.product_service.dto.response.PageDto;
+import com.example.product_service.dto.response.ReviewResponse;
 import com.example.product_service.dto.response.image.ImageResponse;
 import com.example.product_service.dto.response.product.*;
 import com.example.product_service.dto.response.variant.ProductVariantResponse;
@@ -80,7 +81,7 @@ public class ProductController {
             @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.ASC) Pageable pageable,
             @Validated @ModelAttribute ProductSearch search){
 
-        PageDto<ProductSummaryResponse> response = productService.getProducts(pageable, search);
+        PageDto<ProductSummaryResponse> response = productService.getProducts(search, pageable);
         return ResponseEntity.ok(response);
     }
 
@@ -111,6 +112,16 @@ public class ProductController {
                                                                       @RequestParam(name = "categoryId", required = false) Long categoryId){
         PageDto<ProductSummaryResponse> response = productService.getPopularProducts(page, size, categoryId);
         return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "상품 리뷰 조회")
+    @ApiResponse(responseCode = "200", description = "조회 성공")
+    @NotFoundApiResponse
+    @GetMapping("/{productId}/reviews")
+    public ResponseEntity<PageDto<ReviewResponse>> getReviewsByProductId(@PathVariable("productId") Long productId,
+                                                                         @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.ASC) Pageable pageable){
+        PageDto<ReviewResponse> result = productService.getReviewsByProductId(productId, pageable);
+        return ResponseEntity.ok(result);
     }
 
     @AdminApi

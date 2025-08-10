@@ -2,11 +2,11 @@ package com.example.product_service.service;
 
 import com.example.product_service.dto.ProductSearch;
 import com.example.product_service.dto.request.image.AddImageRequest;
-import com.example.product_service.dto.request.image.ImageRequest;
 import com.example.product_service.dto.request.product.ProductRequest;
 import com.example.product_service.dto.request.product.UpdateProductBasicRequest;
 import com.example.product_service.dto.request.variant.ProductVariantRequest;
 import com.example.product_service.dto.response.PageDto;
+import com.example.product_service.dto.response.ReviewResponse;
 import com.example.product_service.dto.response.image.ImageResponse;
 import com.example.product_service.dto.response.product.ProductResponse;
 import com.example.product_service.dto.response.product.ProductSummaryResponse;
@@ -36,12 +36,17 @@ public class ProductServiceImpl implements ProductService{
     }
 
     @Override
-    public PageDto<ProductSummaryResponse> getProducts(Pageable pageable, ProductSearch search) {
+    public PageDto<ProductSummaryResponse> getProducts(ProductSearch search, Pageable pageable) {
         return null;
     }
 
     @Override
     public ProductResponse getProductById(Long productId) {
+        return null;
+    }
+
+    @Override
+    public PageDto<ReviewResponse> getReviewsByProductId(Long productId, Pageable pageable) {
         return null;
     }
 

@@ -18,19 +18,9 @@ public class ReviewServiceImpl implements ReviewService{
 
     private final ReviewsRepository reviewsRepository;
 
+
     @Override
-    public PageDto<ReviewResponse> getReviewList(Long productId, Pageable pageable) {
-//        Page<Reviews> result = reviewsRepository.findAllByProductId(productId, pageable);
-//
-//        List<ReviewResponseDto> content = result.getContent().stream().map(ReviewResponseDto::new).toList();
-//        return new PageDto<>(
-//                content,
-//                pageable.getPageNumber(),
-//                result.getTotalPages(),
-//                pageable.getPageSize(),
-//                result.getTotalElements()
-//
-//        );
-        return null;
+    public void deleteReviewById(Long reviewId, Long userId) {
+
     }
 }
