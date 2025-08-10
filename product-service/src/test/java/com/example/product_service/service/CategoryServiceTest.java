@@ -26,7 +26,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest
 @Slf4j
-class CategoryServiceImplTest {
+class CategoryServiceTest {
 
     @Autowired
     CategoryService categoryService;

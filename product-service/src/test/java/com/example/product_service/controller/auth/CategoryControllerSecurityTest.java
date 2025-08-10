@@ -1,7 +1,6 @@
 package com.example.product_service.controller.auth;
 
 import com.example.product_service.common.MessageSourceUtil;
-import com.example.product_service.common.advice.ControllerAdvice;
 import com.example.product_service.common.advice.CustomAccessDeniedHandler;
 import com.example.product_service.common.advice.CustomAuthenticationEntryPoint;
 import com.example.product_service.config.WebSecurity;
@@ -18,7 +17,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Import;
-import org.springframework.stereotype.Component;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
