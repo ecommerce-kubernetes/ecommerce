@@ -1,9 +1,5 @@
 package com.example.product_service.service;
 
-import com.example.product_service.dto.response.PageDto;
-import com.example.product_service.dto.response.ReviewResponse;
-import org.springframework.data.domain.Pageable;
-
 public interface ReviewService {
     void deleteReviewById(Long reviewId, Long userId);
 }

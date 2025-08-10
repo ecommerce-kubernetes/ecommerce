@@ -2,12 +2,9 @@ package com.example.product_service.controller;
 
 import com.example.product_service.common.MessageSourceUtil;
 import com.example.product_service.common.advice.ErrorResponseEntityFactory;
-import com.example.product_service.controller.util.ControllerTestHelper;
-import com.example.product_service.controller.util.TestMessageUtil;
 import com.example.product_service.exception.NoPermissionException;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.service.ReviewService;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -22,12 +19,9 @@ import org.springframework.test.web.servlet.ResultActions;
 import static com.example.product_service.controller.util.ControllerTestHelper.*;
 import static com.example.product_service.controller.util.MessagePath.*;
 import static com.example.product_service.controller.util.TestMessageUtil.getMessage;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(ReviewController.class)
