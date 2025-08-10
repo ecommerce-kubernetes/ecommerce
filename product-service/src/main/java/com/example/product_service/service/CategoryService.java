@@ -13,7 +13,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
-import java.util.Optional;
 
 
 @Service
@@ -29,8 +28,7 @@ public class CategoryService {
         checkConflictName(request.getName());
         Categories categories = new Categories(request.getName(), request.getIconUrl());
         if(request.getParentId() != null){
-            Categories parent = categoryRepository.findById(request.getParentId())
-                    .orElseThrow(() -> new NotFoundException(ms.getMessage("category.notFound")));
+            Categories parent = findByIdOrThrow(request.getParentId());
             parent.addChild(categories);
         }
         Categories saved = categoryRepository.save(categories);
@@ -110,5 +108,10 @@ public class CategoryService {
         if(categoryRepository.findByName(name).isPresent()){
             throw new DuplicateResourceException(ms.getMessage("category.conflict"));
         }
+    }
+
+    private Categories findByIdOrThrow(Long categoryId){
+        return categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new NotFoundException(ms.getMessage("category.notFound")));
     }
 }
