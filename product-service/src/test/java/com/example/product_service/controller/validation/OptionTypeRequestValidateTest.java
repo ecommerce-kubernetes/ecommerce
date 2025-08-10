@@ -5,6 +5,7 @@ import jakarta.validation.ConstraintViolation;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.Set;
@@ -14,7 +15,7 @@ import static com.example.product_service.controller.util.TestMessageUtil.*;
 import static com.example.product_service.controller.util.ValidationTestHelper.*;
 import static org.assertj.core.api.Assertions.*;
 
-@ExtendWith(SpringExtension.class)
+@ExtendWith(MockitoExtension.class)
 public class OptionTypeRequestValidateTest {
 
     @Test

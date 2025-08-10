@@ -11,7 +11,7 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 import java.util.Optional;
 
-public interface CategoriesRepository extends JpaRepository<Categories, Long> {
+public interface CategoryRepository extends JpaRepository<Categories, Long> {
 
     @Query("SELECT c FROM Categories c WHERE c.parent.id = :parentId")
     List<Categories> findChildById(@Param("parentId") Long parentId);

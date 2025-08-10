@@ -10,6 +10,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.List;
@@ -21,7 +22,7 @@ import static com.example.product_service.controller.util.TestMessageUtil.*;
 import static com.example.product_service.controller.util.ValidationTestHelper.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@ExtendWith(SpringExtension.class)
+@ExtendWith(MockitoExtension.class)
 public class ProductRequestValidationTest {
 
     @ParameterizedTest(name = "[{index}] {0} 필드 invalid")

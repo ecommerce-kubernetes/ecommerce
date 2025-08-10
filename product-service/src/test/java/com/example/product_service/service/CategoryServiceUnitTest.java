@@ -5,7 +5,7 @@ import com.example.product_service.dto.request.category.UpdateCategoryRequest;
 import com.example.product_service.dto.response.category.CategoryResponse;
 import com.example.product_service.entity.Categories;
 import com.example.product_service.exception.NotFoundException;
-import com.example.product_service.repository.CategoriesRepository;
+import com.example.product_service.repository.CategoryRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
@@ -26,17 +26,17 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest
 @Slf4j
-class CategoryServiceTest {
+class CategoryServiceUnitTest {
 
     @Autowired
     CategoryService categoryService;
 
     @Autowired
-    CategoriesRepository categoriesRepository;
+    CategoryRepository categoryRepository;
 
     @AfterEach
     void clearDB(){
-        categoriesRepository.deleteAll();
+        categoryRepository.deleteAll();
     }
 
     @Test
@@ -57,7 +57,7 @@ class CategoryServiceTest {
     @Transactional
     void saveCategoryTest_Sub(){
         //부모 카테고리
-        Categories parent = categoriesRepository.save(new Categories("식품","http://test.jpg"));
+        Categories parent = categoryRepository.save(new Categories("식품","http://test.jpg"));
 
         //자식 카테고리 생성 - parentId == 부모 카테고리 ID
         CategoryRequest sideDishRequest = new CategoryRequest("반찬류", parent.getId(), null);
@@ -68,7 +68,7 @@ class CategoryServiceTest {
         assertThat(sideDishResponse.getIconUrl()).isEqualTo(sideDishRequest.getIconUrl());
         assertThat(parent.getChildren().size()).isEqualTo(1);
 
-        Categories subCategory = categoriesRepository.findById(sideDishResponse.getId()).orElseThrow();
+        Categories subCategory = categoryRepository.findById(sideDishResponse.getId()).orElseThrow();
         assertThat(parent.getChildren()).contains(subCategory);
     }
 
@@ -86,9 +86,9 @@ class CategoryServiceTest {
     @DisplayName("카테고리 수정 테스트")
     @Transactional
     void updateCategoryByIdTest_EditName(){
-        Categories food = categoriesRepository.save(new Categories("식품", "http://test.jpg"));
-        Categories electronicDevice = categoriesRepository.save(new Categories("전자기기" , null));
-        Categories modifyCategory = categoriesRepository.save(new Categories("반찬류", null));
+        Categories food = categoryRepository.save(new Categories("식품", "http://test.jpg"));
+        Categories electronicDevice = categoryRepository.save(new Categories("전자기기" , null));
+        Categories modifyCategory = categoryRepository.save(new Categories("반찬류", null));
         food.addChild(modifyCategory);
 
         UpdateCategoryRequest modifyRequestDto = new UpdateCategoryRequest("노트북", electronicDevice.getId(), "http://test2.jpg");
@@ -116,7 +116,7 @@ class CategoryServiceTest {
     @Test
     @DisplayName("카테고리 수정 테스트 - 부모 카테고리를 찾을 수 없을때")
     void updateCategoryTest_NotFoundParentCategoryById(){
-        Categories modifyCategory = categoriesRepository.save(new Categories("반찬류", null));
+        Categories modifyCategory = categoryRepository.save(new Categories("반찬류", null));
         assertThatThrownBy(()-> categoryService.updateCategoryById(modifyCategory.getId(), new UpdateCategoryRequest("노트북", 999L, null)))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage("Not Found Parent Category");
@@ -126,14 +126,14 @@ class CategoryServiceTest {
     @DisplayName("카테고리 삭제 테스트")
     @Transactional
     void deleteCategoryByIdTest(){
-        Categories food = categoriesRepository.save(new Categories("식품", "http://localhost.jpg"));
-        Categories deleteCategory = categoriesRepository.save(new Categories("반찬류", null));
+        Categories food = categoryRepository.save(new Categories("식품", "http://localhost.jpg"));
+        Categories deleteCategory = categoryRepository.save(new Categories("반찬류", null));
 
         food.addChild(deleteCategory);
 
         categoryService.deleteCategoryById(deleteCategory.getId());
 
-        Optional<Categories> category = categoriesRepository.findById(deleteCategory.getId());
+        Optional<Categories> category = categoryRepository.findById(deleteCategory.getId());
 
         assertThat(category).isEmpty();
 
@@ -152,9 +152,9 @@ class CategoryServiceTest {
     @DisplayName("단일 카테고리 정보 조회")
     @Transactional
     void getCategoryDetailsTest(){
-        Categories parent = categoriesRepository.save(new Categories("식품", "http://test.jpg"));
-        Categories sub1 = categoriesRepository.save(new Categories("반찬류", null));
-        Categories sub2 = categoriesRepository.save(new Categories("냉장", null));
+        Categories parent = categoryRepository.save(new Categories("식품", "http://test.jpg"));
+        Categories sub1 = categoryRepository.save(new Categories("반찬류", null));
+        Categories sub2 = categoryRepository.save(new Categories("냉장", null));
 
         parent.addChild(sub1);
         parent.addChild(sub2);
@@ -186,7 +186,7 @@ class CategoryServiceTest {
         categories.add(new Categories("의류", null));
         categories.add(new Categories("가구", null));
 
-        categoriesRepository.saveAll(categories);
+        categoryRepository.saveAll(categories);
 
         Pageable pageable = PageRequest.of(0, 10, Sort.Direction.ASC, "id");
 
@@ -196,10 +196,10 @@ class CategoryServiceTest {
     @DisplayName("자식 카테고리 리스트 조회")
     @Transactional
     void getChildCategoriesTest(){
-        Categories parent = categoriesRepository.save(new Categories("식품", null));
-        Categories sub1 = categoriesRepository.save(new Categories("반찬류", null));
-        Categories sub2 = categoriesRepository.save(new Categories("냉동", null));
-        Categories sub3 = categoriesRepository.save(new Categories("냉장", null));
+        Categories parent = categoryRepository.save(new Categories("식품", null));
+        Categories sub1 = categoryRepository.save(new Categories("반찬류", null));
+        Categories sub2 = categoryRepository.save(new Categories("냉동", null));
+        Categories sub3 = categoryRepository.save(new Categories("냉장", null));
 
         parent.addChild(sub1);
         parent.addChild(sub2);
@@ -214,14 +214,14 @@ class CategoryServiceTest {
     @DisplayName("특정 카테고리의 루트 카테고리 조회")
     @Transactional
     void getRootCategoryDetailsOfTest(){
-        Categories parent = categoriesRepository.save(new Categories("식품", null));
-        Categories sub1 = categoriesRepository.save(new Categories("반찬류", null));
-        Categories sub2 = categoriesRepository.save(new Categories("냉동", null));
+        Categories parent = categoryRepository.save(new Categories("식품", null));
+        Categories sub1 = categoryRepository.save(new Categories("반찬류", null));
+        Categories sub2 = categoryRepository.save(new Categories("냉동", null));
         parent.addChild(sub1);
         parent.addChild(sub2);
 
 
-        Categories sub1_sub1 = categoriesRepository.save(new Categories("김", null));
+        Categories sub1_sub1 = categoryRepository.save(new Categories("김", null));
 
         sub1.addChild(sub1_sub1);
 
