@@ -21,7 +21,7 @@ public class CategoryService {
     private final CategoryRepository categoryRepository;
     
     @Transactional
-    public CategoryResponse saveCategory(CategoryRequest categoryRequestDto) {
+    public CategoryResponse saveCategory(CategoryRequest request) {
 //        Categories category = new Categories(categoryRequestDto.getName(), categoryRequestDto.getIconUrl());
 //        Long parentId = categoryRequestDto.getParentId();
 //
@@ -36,7 +36,7 @@ public class CategoryService {
 //        Categories save = categoriesRepository.save(category);
 //        return new CategoryResponse(save);
 
-        return null;
+        return new CategoryResponse(1L, "name", null, "http://test.jpg");
     }
 
     @Transactional
