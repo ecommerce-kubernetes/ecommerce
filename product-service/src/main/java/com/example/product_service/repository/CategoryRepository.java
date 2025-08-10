@@ -17,6 +17,8 @@ public interface CategoryRepository extends JpaRepository<Categories, Long> {
     List<Categories> findChildById(@Param("parentId") Long parentId);
     Page<Categories> findByParentIsNull(Pageable pageable);
 
+    Optional<Categories> findByName(String name);
+
     @EntityGraph(attributePaths = "parent")
     @Query("SELECT c FROM Categories c WHERE c.id = :id")
     Optional<Categories> findByIdWithParent(@Param("id") Long id);

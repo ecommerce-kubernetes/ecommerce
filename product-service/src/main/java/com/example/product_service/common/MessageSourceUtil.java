@@ -10,7 +10,6 @@ import java.util.Locale;
 @RequiredArgsConstructor
 public class MessageSourceUtil {
     private final MessageSource messageSource;
-
     public String getMessage(String code){
         return messageSource.getMessage(code, null, Locale.getDefault());
     }

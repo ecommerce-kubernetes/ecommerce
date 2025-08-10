@@ -1,16 +1,19 @@
 package com.example.product_service.service;
 
+import com.example.product_service.common.MessageSourceUtil;
 import com.example.product_service.dto.request.category.CategoryRequest;
 import com.example.product_service.dto.request.category.UpdateCategoryRequest;
 import com.example.product_service.dto.response.category.CategoryHierarchyResponse;
 import com.example.product_service.dto.response.category.CategoryResponse;
 import com.example.product_service.entity.Categories;
+import com.example.product_service.exception.DuplicateResourceException;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.repository.CategoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
+import java.util.Optional;
 
 
 @Service
@@ -19,24 +22,19 @@ import java.util.List;
 public class CategoryService {
 
     private final CategoryRepository categoryRepository;
+    private final MessageSourceUtil ms;
     
     @Transactional
     public CategoryResponse saveCategory(CategoryRequest request) {
-//        Categories category = new Categories(categoryRequestDto.getName(), categoryRequestDto.getIconUrl());
-//        Long parentId = categoryRequestDto.getParentId();
-//
-//        // parentId null 이 아닐시 부모카테고리 child 에 추가
-//        if(parentId != null){
-//            Categories parentCategory = categoriesRepository.findById(parentId)
-//                    .orElseThrow(() -> new NotFoundException("Not Found Parent Category"));
-//
-//            parentCategory.addChild(category);
-//        }
-//
-//        Categories save = categoriesRepository.save(category);
-//        return new CategoryResponse(save);
-
-        return new CategoryResponse(1L, "name", null, "http://test.jpg");
+        checkConflictName(request.getName());
+        Categories categories = new Categories(request.getName(), request.getIconUrl());
+        if(request.getParentId() != null){
+            Categories parent = categoryRepository.findById(request.getParentId())
+                    .orElseThrow(() -> new NotFoundException(ms.getMessage("category.notFound")));
+            parent.addChild(categories);
+        }
+        Categories saved = categoryRepository.save(categories);
+        return new CategoryResponse(saved);
     }
 
     @Transactional
@@ -64,7 +62,7 @@ public class CategoryService {
 
         return new CategoryResponse(category);
     }
-    
+
     @Transactional
     public void deleteCategoryById(Long categoryId) {
         Categories category = categoryRepository.findById(categoryId)
@@ -75,14 +73,14 @@ public class CategoryService {
         }
         categoryRepository.delete(category);
     }
-    
+
     public CategoryResponse getCategoryDetails(Long categoryId) {
         Categories category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new NotFoundException("Not Found Category"));
 
         return new CategoryResponse(category);
     }
-    
+
     public CategoryHierarchyResponse getHierarchyByCategoryId(Long categoryId) {
         return null;
     }
@@ -91,12 +89,12 @@ public class CategoryService {
         return null;
     }
 
-    
+
     public List<CategoryResponse> getChildrenCategoriesById(Long categoryId) {
         List<Categories> childList = categoryRepository.findChildById(categoryId);
         return childList.stream().map(CategoryResponse::new).toList();
     }
-    
+
     public CategoryResponse getRootCategoryDetailsOf(Long categoryId) {
         Categories category = categoryRepository.findByIdWithParent(categoryId)
                 .orElseThrow(() -> new NotFoundException("Not Found Category"));
@@ -106,5 +104,11 @@ public class CategoryService {
         }
 
         return new CategoryResponse(category);
+    }
+
+    private void checkConflictName(String name) {
+        if(categoryRepository.findByName(name).isPresent()){
+            throw new DuplicateResourceException(ms.getMessage("category.conflict"));
+        }
     }
 }

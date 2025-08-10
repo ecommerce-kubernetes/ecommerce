@@ -4,10 +4,11 @@ import com.example.product_service.dto.request.category.CategoryRequest;
 import com.example.product_service.dto.request.category.UpdateCategoryRequest;
 import com.example.product_service.dto.response.category.CategoryResponse;
 import com.example.product_service.entity.Categories;
+import com.example.product_service.exception.DuplicateResourceException;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.repository.CategoryRepository;
-import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,12 +22,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import static com.example.product_service.controller.util.MessagePath.CATEGORY_CONFLICT;
+import static com.example.product_service.controller.util.MessagePath.CATEGORY_NOT_FOUND;
+import static com.example.product_service.controller.util.TestMessageUtil.getMessage;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest
-@Slf4j
-class CategoryServiceUnitTest {
+class CategoryServiceTest {
 
     @Autowired
     CategoryService categoryService;
@@ -34,52 +37,62 @@ class CategoryServiceUnitTest {
     @Autowired
     CategoryRepository categoryRepository;
 
+    private Categories parent;
+
+    @BeforeEach
+    void saveFixture(){
+        categoryRepository.save(new Categories("duplicate", "http://test.jpg"));
+        parent = categoryRepository.save(new Categories("parent", "http://test.jpg"));
+    }
+
     @AfterEach
     void clearDB(){
         categoryRepository.deleteAll();
     }
 
     @Test
-    @DisplayName("대표 카테고리 생성 테스트")
+    @DisplayName("카테고리 생성 테스트-성공(상위 카테고리 생성시)")
     @Transactional
-    void saveCategoryTest_Main(){
-        //대표 카테고리 생성 - parentId == null
-        CategoryRequest categoryRequestDto = new CategoryRequest("식품", null, "http://test.jpg");
-        CategoryResponse categoryResponseDto = categoryService.saveCategory(categoryRequestDto);
+    void saveCategoryTest_integration_success_root(){
+        CategoryRequest request = new CategoryRequest("name", null, "http://test.jpg");
+        CategoryResponse response = categoryService.saveCategory(request);
 
-        assertThat(categoryResponseDto.getName()).isEqualTo(categoryRequestDto.getName());
-        assertThat(categoryResponseDto.getParentId()).isEqualTo(null);
-        assertThat(categoryResponseDto.getIconUrl()).isEqualTo(categoryRequestDto.getIconUrl());
+        assertThat(response.getId()).isNotNull();
+        assertThat(response.getName()).isEqualTo("name");
+        assertThat(response.getParentId()).isNull();
+        assertThat(response.getIconUrl()).isEqualTo("http://test.jpg");
     }
 
     @Test
-    @DisplayName("서브 카테고리 생성 테스트")
+    @DisplayName("카테고리 생성 테스트-성공(하위 카테고리 생성시)")
     @Transactional
-    void saveCategoryTest_Sub(){
-        //부모 카테고리
-        Categories parent = categoryRepository.save(new Categories("식품","http://test.jpg"));
+    void saveCategoryTest_integration_success_leaf(){
+        CategoryRequest request = new CategoryRequest("child", parent.getId(), null);
+        CategoryResponse response = categoryService.saveCategory(request);
 
-        //자식 카테고리 생성 - parentId == 부모 카테고리 ID
-        CategoryRequest sideDishRequest = new CategoryRequest("반찬류", parent.getId(), null);
-        CategoryResponse sideDishResponse = categoryService.saveCategory(sideDishRequest);
-
-        assertThat(sideDishResponse.getName()).isEqualTo(sideDishRequest.getName());
-        assertThat(sideDishResponse.getParentId()).isEqualTo(parent.getId());
-        assertThat(sideDishResponse.getIconUrl()).isEqualTo(sideDishRequest.getIconUrl());
-        assertThat(parent.getChildren().size()).isEqualTo(1);
-
-        Categories subCategory = categoryRepository.findById(sideDishResponse.getId()).orElseThrow();
-        assertThat(parent.getChildren()).contains(subCategory);
+        assertThat(response.getName()).isEqualTo("child");
+        assertThat(response.getParentId()).isEqualTo(parent.getId());
+        assertThat(response.getIconUrl()).isEqualTo(null);
     }
 
     @Test
-    @DisplayName("서브 카테고리 생성 테스트_부모 카테고리를 찾을 수 없음")
+    @DisplayName("카테고리 생성 테스트-실패(부모 카테고리를 찾을 수 없음)")
     @Transactional
-    void saveCategoryTest_Sub_NotFoundParentCategory(){
-        CategoryRequest sideDishRequest = new CategoryRequest("반찬류", 999L , null);
-        assertThatThrownBy(()-> categoryService.saveCategory(sideDishRequest))
+    void saveCategoryTest_integration_notFound(){
+        CategoryRequest request = new CategoryRequest("name", 999L , null);
+        assertThatThrownBy(()-> categoryService.saveCategory(request))
                 .isInstanceOf(NotFoundException.class)
-                .hasMessage("Not Found Parent Category");
+                .hasMessage(getMessage(CATEGORY_NOT_FOUND));
+    }
+
+    @Test
+    @DisplayName("카테고리 생성 테스트-실패(카테고리 이름이 중복)")
+    @Transactional
+    void saveCategoryTest_integration_duplicate(){
+        CategoryRequest request = new CategoryRequest("duplicate", null, null);
+        assertThatThrownBy(() -> categoryService.saveCategory(request))
+                .isInstanceOf(DuplicateResourceException.class)
+                .hasMessage(getMessage(CATEGORY_CONFLICT));
     }
 
     @Test
