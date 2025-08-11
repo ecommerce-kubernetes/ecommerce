@@ -40,7 +40,6 @@ public class CategoryService {
     @Transactional
     public CategoryResponse updateCategoryById(Long categoryId, UpdateCategoryRequest request) {
         Categories target = findByIdOrThrow(categoryId);
-
         if (request.getName() != null){
             checkConflictName(request.getName());
             target.setName(request.getName());
@@ -49,7 +48,7 @@ public class CategoryService {
             target.setIconUrl(request.getIconUrl());
         }
         if (request.getParentId() != null){
-            checkMySelfForParent(categoryId, request.getParentId());
+            checkMySelfForParent(target.getId(), request.getParentId());
             Categories parent = findByIdOrThrow(request.getParentId());
             target.modifyParent(parent);
         }

@@ -9,6 +9,7 @@ import com.example.product_service.exception.DuplicateResourceException;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.repository.CategoryRepository;
 import com.example.product_service.service.CategoryService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -133,7 +134,22 @@ public class CategoryServiceUnitTest {
 
         verify(categoryRepository).findById(1L);
         verify(categoryRepository).findById(2L);
+
+        verify(target).setName("updated");
         verify(target).modifyParent(parent);
+        verify(target, never()).setIconUrl(any());
+    }
+
+    @Test
+    @DisplayName("카테고리 수정 테스트-실패(변경할 카테고리를 찾을 수 없음)")
+    void updateCategoryTest_unit_notFound_target(){
+        UpdateCategoryRequest request = new UpdateCategoryRequest("updated", 1L, null);
+        mockFindById(2L, null);
+        when(ms.getMessage(CATEGORY_NOT_FOUND)).thenReturn("Category not found");
+
+        assertThatThrownBy(() -> categoryService.updateCategoryById(2L, request))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage(getMessage(CATEGORY_NOT_FOUND));
     }
 
     private Categories createCategoriesWithSetId(Long id, String name, String url){
