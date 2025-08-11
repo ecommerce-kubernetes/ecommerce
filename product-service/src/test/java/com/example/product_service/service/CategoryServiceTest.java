@@ -4,6 +4,7 @@ import com.example.product_service.dto.request.category.CategoryRequest;
 import com.example.product_service.dto.request.category.UpdateCategoryRequest;
 import com.example.product_service.dto.response.category.CategoryResponse;
 import com.example.product_service.entity.Categories;
+import com.example.product_service.exception.BadRequestException;
 import com.example.product_service.exception.DuplicateResourceException;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.repository.CategoryRepository;
@@ -22,11 +23,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static com.example.product_service.controller.util.MessagePath.CATEGORY_CONFLICT;
-import static com.example.product_service.controller.util.MessagePath.CATEGORY_NOT_FOUND;
+import static com.example.product_service.controller.util.MessagePath.*;
 import static com.example.product_service.controller.util.TestMessageUtil.getMessage;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.verify;
 
 @SpringBootTest
 class CategoryServiceTest {
@@ -38,10 +39,12 @@ class CategoryServiceTest {
     CategoryRepository categoryRepository;
 
     private Categories parent;
+    private Categories updateTarget;
 
     @BeforeEach
     void saveFixture(){
         categoryRepository.save(new Categories("duplicate", "http://test.jpg"));
+        updateTarget = categoryRepository.save(new Categories("target", "http://target.jpg"));
         parent = categoryRepository.save(new Categories("parent", "http://test.jpg"));
     }
 
@@ -96,43 +99,57 @@ class CategoryServiceTest {
     }
 
     @Test
-    @DisplayName("카테고리 수정 테스트")
+    @DisplayName("카테고리 수정 테스트-성공")
     @Transactional
-    void updateCategoryByIdTest_EditName(){
-        Categories food = categoryRepository.save(new Categories("식품", "http://test.jpg"));
-        Categories electronicDevice = categoryRepository.save(new Categories("전자기기" , null));
-        Categories modifyCategory = categoryRepository.save(new Categories("반찬류", null));
-        food.addChild(modifyCategory);
+    void updateCategoryByIdTest_integration_success(){
+        UpdateCategoryRequest request = new UpdateCategoryRequest("updated", parent.getId(), "http://updated.jpg");
 
-        UpdateCategoryRequest modifyRequestDto = new UpdateCategoryRequest("노트북", electronicDevice.getId(), "http://test2.jpg");
+        CategoryResponse response = categoryService.updateCategoryById(updateTarget.getId(), request);
 
-        CategoryResponse categoryResponseDto =
-                categoryService.updateCategoryById(modifyCategory.getId(), modifyRequestDto);
+        assertThat(response.getId()).isEqualTo(updateTarget.getId());
+        assertThat(response.getName()).isEqualTo("updated");
+        assertThat(response.getParentId()).isEqualTo(parent.getId());
+        assertThat(response.getIconUrl()).isEqualTo("http://updated.jpg");
 
-        assertThat(categoryResponseDto.getName()).isEqualTo(modifyRequestDto.getName());
-        assertThat(categoryResponseDto.getParentId()).isEqualTo(electronicDevice.getId());
-        assertThat(categoryResponseDto.getIconUrl()).isEqualTo(modifyRequestDto.getIconUrl());
-        assertThat(food.getChildren().size()).isEqualTo(0);
-        assertThat(food.getChildren()).doesNotContain(modifyCategory);
-        assertThat(electronicDevice.getChildren().size()).isEqualTo(1);
-        assertThat(electronicDevice.getChildren()).contains(modifyCategory);
+        assertThat(updateTarget.getName()).isEqualTo("updated");
+        assertThat(updateTarget.getParent().getId()).isEqualTo(parent.getId());
+        assertThat(updateTarget.getIconUrl()).isEqualTo("http://updated.jpg");
     }
 
     @Test
-    @DisplayName("카테고리 수정 테스트 - 카테고리를 찾을 수 없을때")
-    void updateCategoryTest_NotFoundCategoryById(){
-        assertThatThrownBy(() -> categoryService.updateCategoryById(999L, new UpdateCategoryRequest("전자기기", null, null)))
+    @DisplayName("카테고리 수정 테스트-실패(타깃 카테고리를 찾을 수 없음)")
+    void updateCategoryTest_integration_notFound_target(){
+        assertThatThrownBy(() -> categoryService.updateCategoryById(999L,
+                new UpdateCategoryRequest("updated", null, null)))
                 .isInstanceOf(NotFoundException.class)
-                .hasMessage("Not Found Category");
+                .hasMessage(getMessage(CATEGORY_NOT_FOUND));
     }
 
     @Test
-    @DisplayName("카테고리 수정 테스트 - 부모 카테고리를 찾을 수 없을때")
-    void updateCategoryTest_NotFoundParentCategoryById(){
-        Categories modifyCategory = categoryRepository.save(new Categories("반찬류", null));
-        assertThatThrownBy(()-> categoryService.updateCategoryById(modifyCategory.getId(), new UpdateCategoryRequest("노트북", 999L, null)))
+    @DisplayName("카테고리 수정 테스트-실패(부모 카테고리를 찾을 수 없을)")
+    void updateCategoryTest_integration_notFound_parent(){
+        assertThatThrownBy(()-> categoryService.updateCategoryById(updateTarget.getId(),
+                new UpdateCategoryRequest("updated", 999L, null)))
                 .isInstanceOf(NotFoundException.class)
-                .hasMessage("Not Found Parent Category");
+                .hasMessage(getMessage(CATEGORY_NOT_FOUND));
+    }
+
+    @Test
+    @DisplayName("카테고리 수정 테스트-실패(중복 이름)")
+    void updateCategoryTest_integration_conflict_name(){
+        assertThatThrownBy(() -> categoryService.updateCategoryById(updateTarget.getId(),
+                new UpdateCategoryRequest("duplicate", parent.getId(), "http://updated.jpg")))
+                .isInstanceOf(DuplicateResourceException.class)
+                .hasMessage(getMessage(CATEGORY_CONFLICT));
+    }
+
+    @Test
+    @DisplayName("카테고리 수정 테스트-실패(부모 카테고리 Id가 타깃의 Id 인경우")
+    void updateCategoryTest_integration_badRequest_parentId(){
+        assertThatThrownBy(() -> categoryService.updateCategoryById(updateTarget.getId(),
+                new UpdateCategoryRequest("updated", updateTarget.getId(), "http://test.jpg")))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage(getMessage(CATEGORY_BAD_REQUEST));
     }
 
     @Test

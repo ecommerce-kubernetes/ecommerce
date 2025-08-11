@@ -21,8 +21,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.OngoingStubbing;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import javax.swing.text.html.Option;
-import java.util.Objects;
 import java.util.Optional;
 
 import static com.example.product_service.controller.util.MessagePath.*;
@@ -163,7 +161,7 @@ public class CategoryServiceUnitTest {
     }
 
     @Test
-    @DisplayName("카테고리 수정 테스트-실패(변경할 카테고리를 찾을 수 없음)")
+    @DisplayName("카테고리 수정 테스트-실패(타깃 카테고리를 찾을 수 없음)")
     void updateCategoryTest_unit_notFound_target(){
         UpdateCategoryRequest request = new UpdateCategoryRequest("updated", 1L, null);
         mockFindById(2L, null);
