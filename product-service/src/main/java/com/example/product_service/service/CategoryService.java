@@ -48,7 +48,7 @@ public class CategoryService {
             target.setIconUrl(request.getIconUrl());
         }
         if (request.getParentId() != null){
-            checkMySelfForParent(target.getId(), request.getParentId());
+            checkParentIsNotSelf(target.getId(), request.getParentId());
             Categories parent = findByIdOrThrow(request.getParentId());
             target.modifyParent(parent);
         }
@@ -109,9 +109,9 @@ public class CategoryService {
                 .orElseThrow(() -> new NotFoundException(ms.getMessage("category.notFound")));
     }
 
-    private void checkMySelfForParent(Long targetId, Long parentId){
+    private void checkParentIsNotSelf(Long targetId, Long parentId){
         if(Objects.equals(targetId, parentId)){
-            throw new BadRequestException("category.badRequest");
+            throw new BadRequestException(ms.getMessage("category.badRequest"));
         }
     }
 }

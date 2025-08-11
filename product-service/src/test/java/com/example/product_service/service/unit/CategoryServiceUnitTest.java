@@ -5,11 +5,11 @@ import com.example.product_service.dto.request.category.CategoryRequest;
 import com.example.product_service.dto.request.category.UpdateCategoryRequest;
 import com.example.product_service.dto.response.category.CategoryResponse;
 import com.example.product_service.entity.Categories;
+import com.example.product_service.exception.BadRequestException;
 import com.example.product_service.exception.DuplicateResourceException;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.repository.CategoryRepository;
 import com.example.product_service.service.CategoryService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,8 +25,7 @@ import javax.swing.text.html.Option;
 import java.util.Objects;
 import java.util.Optional;
 
-import static com.example.product_service.controller.util.MessagePath.CATEGORY_CONFLICT;
-import static com.example.product_service.controller.util.MessagePath.CATEGORY_NOT_FOUND;
+import static com.example.product_service.controller.util.MessagePath.*;
 import static com.example.product_service.controller.util.TestMessageUtil.getMessage;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -117,8 +116,8 @@ public class CategoryServiceUnitTest {
     }
 
     @Test
-    @DisplayName("카테고리 수정 테스트-성공")
-    void updateCategoryTest_unit_success(){
+    @DisplayName("카테고리 수정 테스트-성공(부모 변경)")
+    void updateCategoryTest_unit_success_parent_notnull(){
         UpdateCategoryRequest request = new UpdateCategoryRequest("updated", 1L, null);
         Categories parent = spy(createCategoriesWithSetId(1L, "parent", "http://test.jpg"));
         Categories target = spy(new Categories("name", "http://before.jpg"));
@@ -141,6 +140,29 @@ public class CategoryServiceUnitTest {
     }
 
     @Test
+    @DisplayName("카테고리 수정 테스트-성공(부모 변경 x)")
+    void updateCategoryTest_unit_success_parent_null(){
+        UpdateCategoryRequest request = new UpdateCategoryRequest("updated", null, null);
+        Categories parent = spy(createCategoriesWithSetId(1L, "parent", "http://test.jpg"));
+        Categories target = spy(new Categories("name", "http://before.jpg"));
+        parent.addChild(target);
+
+        mockFindById(2L, target);
+
+        CategoryResponse response = categoryService.updateCategoryById(2L, request);
+
+        assertThat(response.getName()).isEqualTo("updated");
+        assertThat(response.getIconUrl()).isEqualTo("http://before.jpg");
+        assertThat(response.getParentId()).isEqualTo(1L);
+
+        verify(categoryRepository).findById(2L);
+
+        verify(target).setName("updated");
+        verify(target, never()).modifyParent(parent);
+        verify(target, never()).setIconUrl(any());
+    }
+
+    @Test
     @DisplayName("카테고리 수정 테스트-실패(변경할 카테고리를 찾을 수 없음)")
     void updateCategoryTest_unit_notFound_target(){
         UpdateCategoryRequest request = new UpdateCategoryRequest("updated", 1L, null);
@@ -151,6 +173,49 @@ public class CategoryServiceUnitTest {
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage(getMessage(CATEGORY_NOT_FOUND));
     }
+
+    @Test
+    @DisplayName("카테고리 수정 테스트-실패(부모 카테고리 찾을 수 없음)")
+    void updateCategoryTest_unit_notFound_parent(){
+        UpdateCategoryRequest request = new UpdateCategoryRequest("update", 1L, null);
+        Categories target = new Categories("name", "http://test.jpg");
+        mockFindById(1L, null);
+        mockFindById(2L, target);
+        when(ms.getMessage(CATEGORY_NOT_FOUND)).thenReturn("Category not found");
+
+        assertThatThrownBy(() -> categoryService.updateCategoryById(2L, request))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage(getMessage(CATEGORY_NOT_FOUND));
+    }
+
+    @Test
+    @DisplayName("카테고리 수정 테스트-실패(중복 이름)")
+    void updateCategoryTest_unit_conflict_name(){
+        UpdateCategoryRequest request = new UpdateCategoryRequest("duplicate", null, null);
+        Categories target = new Categories("name", "http://test.jpg");
+        mockFindById(2L, target);
+        mockExistsName("duplicate", true);
+        when(ms.getMessage(CATEGORY_CONFLICT)).thenReturn("Category already exists");
+
+        assertThatThrownBy(() -> categoryService.updateCategoryById(2L, request))
+                .isInstanceOf(DuplicateResourceException.class)
+                .hasMessage(getMessage(CATEGORY_CONFLICT));
+    }
+
+    @Test
+    @DisplayName("카테고리 수정 테스트-실패(부모 카테고리 Id가 target의 Id인경우")
+    void updateCategoryTest_unit_badRequest_parentId(){
+        UpdateCategoryRequest request = new UpdateCategoryRequest("updated", 2L, null);
+        Categories target = createCategoriesWithSetId(2L, "name", "http://test.jpg");
+        mockFindById(2L, target);
+        mockExistsName("updated", false);
+        when(ms.getMessage(CATEGORY_BAD_REQUEST)).thenReturn("Cannot assign an Category to itself as a parent.");
+
+        assertThatThrownBy(() -> categoryService.updateCategoryById(2L, request))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage(getMessage(CATEGORY_BAD_REQUEST));
+    }
+
 
     private Categories createCategoriesWithSetId(Long id, String name, String url){
         Categories categories = new Categories(name, url);
