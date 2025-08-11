@@ -6,6 +6,7 @@ import com.example.product_service.dto.request.category.UpdateCategoryRequest;
 import com.example.product_service.dto.response.category.CategoryHierarchyResponse;
 import com.example.product_service.dto.response.category.CategoryResponse;
 import com.example.product_service.entity.Categories;
+import com.example.product_service.exception.BadRequestException;
 import com.example.product_service.exception.DuplicateResourceException;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.repository.CategoryRepository;
@@ -36,29 +37,18 @@ public class CategoryService {
     }
 
     @Transactional
-    public CategoryResponse updateCategoryById(Long categoryId, UpdateCategoryRequest requestDto) {
-        Categories category = categoryRepository.findById(categoryId)
-                .orElseThrow(() -> new NotFoundException("Not Found Category"));
+    public CategoryResponse updateCategoryById(Long categoryId, UpdateCategoryRequest request) {
+        checkMySelfForParent(categoryId, request.getParentId());
+        checkConflictName(request.getName());
 
-        // name 이 null 이 아닌 경우 변경
-        if(requestDto.getName() != null){
-            category.setName(requestDto.getName());
-        }
+        Categories target = findByIdOrThrow(categoryId);
+        target.setName(request.getName());
+        target.setIconUrl(request.getIconUrl());
 
-        // iconUrl 이 null 이 아닌경우 변경
-        if(requestDto.getIconUrl() != null){
-            category.setIconUrl(requestDto.getIconUrl());
-        }
+        Categories parent = findByIdOrThrow(request.getParentId());
+        target.modifyParent(parent);
 
-        Long parentId = requestDto.getParentId();
-        // parentId null 이 아닐시 부모카테고리 변경
-        if(parentId != null){
-            Categories newParent = categoryRepository.findById(parentId).orElseThrow(
-                            () -> new NotFoundException("Not Found Parent Category"));
-            category.modifyParent(newParent);
-        }
-
-        return new CategoryResponse(category);
+        return new CategoryResponse(target);
     }
 
     @Transactional
@@ -113,5 +103,11 @@ public class CategoryService {
     private Categories findByIdOrThrow(Long categoryId){
         return categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new NotFoundException(ms.getMessage("category.notFound")));
+    }
+
+    private void checkMySelfForParent(Long targetId, Long parentId){
+        if(targetId == parentId){
+            throw new BadRequestException("category.badRequest");
+        }
     }
 }

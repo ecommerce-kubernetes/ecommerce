@@ -2,6 +2,7 @@ package com.example.product_service.service.unit;
 
 import com.example.product_service.common.MessageSourceUtil;
 import com.example.product_service.dto.request.category.CategoryRequest;
+import com.example.product_service.dto.request.category.UpdateCategoryRequest;
 import com.example.product_service.dto.response.category.CategoryResponse;
 import com.example.product_service.entity.Categories;
 import com.example.product_service.exception.DuplicateResourceException;
@@ -112,6 +113,19 @@ public class CategoryServiceUnitTest {
         assertThatThrownBy(() -> categoryService.saveCategory(request))
                 .isInstanceOf(DuplicateResourceException.class)
                 .hasMessage(getMessage(CATEGORY_CONFLICT));
+    }
+
+    @Test
+    @DisplayName("카테고리 수정 테스트")
+    void updateCategoryTest_unit_success(){
+        UpdateCategoryRequest request = new UpdateCategoryRequest("updated", 1L, "http://test.jpg");
+
+        CategoryResponse response = categoryService.updateCategoryById(2L, request);
+        assertThat(response.getName()).isEqualTo("updated");
+        assertThat(response.getIconUrl()).isEqualTo("http://test.jpg");
+        assertThat(response.getParentId()).isEqualTo(1L);
+
+        assertThat(response).isNotNull();
     }
 
     private Categories createCategoriesWithSetId(Long id, String name, String url){
