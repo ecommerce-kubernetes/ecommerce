@@ -118,6 +118,36 @@ class CategoryServiceTest {
     }
 
     @Test
+    @DisplayName("자식 카테고리 조회 테스트-성공")
+    @Transactional
+    void getChildrenCategoriesByIdTest_integration_success(){
+
+        Categories child1 = categoryRepository.save(new Categories("child1", "http://child1.jpg"));
+        Categories child2 = categoryRepository.save(new Categories("child2", "http://child2.jpg"));
+
+        parent.addChild(child1);
+        parent.addChild(child2);
+        em.flush(); em.clear();
+
+        List<CategoryResponse> response = categoryService.getChildrenCategoriesById(parent.getId());
+
+        assertThat(response)
+                .extracting("id", "name", "parentId", "iconUrl")
+                .containsExactlyInAnyOrder(
+                        tuple(child1.getId(), child1.getName(), child1.getParent().getId(), child1.getIconUrl()),
+                        tuple(child2.getId(), child2.getName(), child2.getParent().getId(), child2.getIconUrl())
+                );
+    }
+
+    @Test
+    @DisplayName("자식 카테고리 조회 테스트-실패(카테고리를 찾을 수 없음)")
+    void getChildrenCategoriesByIdTest_integration_notFound(){
+        assertThatThrownBy(() -> categoryService.getChildrenCategoriesById(999L))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage(getMessage(CATEGORY_NOT_FOUND));
+    }
+
+    @Test
     @DisplayName("카테고리 수정 테스트-성공")
     @Transactional
     void updateCategoryByIdTest_integration_success(){

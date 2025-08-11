@@ -16,9 +16,6 @@ public interface CategoryRepository extends JpaRepository<Categories, Long> {
     boolean existsByName(String name);
     List<Categories> findByParentIsNull();
 
-    @Query("SELECT c FROM Categories c WHERE c.parent.id = :parentId")
-    List<Categories> findChildById(@Param("parentId") Long parentId);
-
     @EntityGraph(attributePaths = "parent")
     @Query("SELECT c FROM Categories c WHERE c.id = :id")
     Optional<Categories> findByIdWithParent(@Param("id") Long id);

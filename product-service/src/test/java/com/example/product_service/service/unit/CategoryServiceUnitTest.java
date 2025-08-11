@@ -127,8 +127,38 @@ public class CategoryServiceUnitTest {
         assertThat(response)
                 .extracting("id", "name", "parentId" ,"iconUrl")
                 .containsExactlyInAnyOrder(
-                tuple(1L, "root1", null,"http://root1.jpg"), tuple(2L, "root2", null, "http://root2.jpg")
+                        tuple(1L, "root1", null,"http://root1.jpg"),
+                        tuple(2L, "root2", null, "http://root2.jpg")
         );
+    }
+
+    @Test
+    @DisplayName("자식 카테고리 조회 테스트-성공")
+    void getChildrenCategoriesByIdTest_unit_success(){
+        Categories parent = createCategoriesWithSetId(1L, "parent", "http://parent.jpg");
+        parent.addChild(new Categories("child1", "http://child1.jpg"));
+        parent.addChild(new Categories("child2", "http://child2.jpg"));
+        mockFindById(1L, parent);
+
+        List<CategoryResponse> response = categoryService.getChildrenCategoriesById(1L);
+
+        assertThat(response)
+                .extracting( "name", "parentId", "iconUrl")
+                .containsExactlyInAnyOrder(
+                        tuple("child1", 1L, "http://child1.jpg"),
+                        tuple("child2", 1L, "http://child2.jpg")
+                );
+    }
+
+    @Test
+    @DisplayName("자식 카테고리 조회 테스트-실패(카테고리를 찾을 수 없는 경우)")
+    void getChildrenCategoriesByIdTest_unit_notFound(){
+        mockFindById(1L, null);
+        when(ms.getMessage(CATEGORY_NOT_FOUND)).thenReturn("Category not found");
+
+        assertThatThrownBy(() -> categoryService.getChildrenCategoriesById(1L))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage(getMessage(CATEGORY_NOT_FOUND));
     }
 
     @Test

@@ -43,8 +43,8 @@ public class CategoryService {
     }
 
     public List<CategoryResponse> getChildrenCategoriesById(Long categoryId) {
-        List<Categories> childList = categoryRepository.findChildById(categoryId);
-        return childList.stream().map(CategoryResponse::new).toList();
+        Categories target = findByIdOrThrow(categoryId);
+        return target.getChildren().stream().map(CategoryResponse::new).toList();
     }
 
     public CategoryHierarchyResponse getHierarchyByCategoryId(Long categoryId) {
