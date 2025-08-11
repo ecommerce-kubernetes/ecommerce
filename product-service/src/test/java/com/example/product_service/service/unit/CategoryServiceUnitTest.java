@@ -21,6 +21,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.OngoingStubbing;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.util.List;
 import java.util.Optional;
 
 import static com.example.product_service.controller.util.MessagePath.*;
@@ -111,6 +112,23 @@ public class CategoryServiceUnitTest {
         assertThatThrownBy(() -> categoryService.saveCategory(request))
                 .isInstanceOf(DuplicateResourceException.class)
                 .hasMessage(getMessage(CATEGORY_CONFLICT));
+    }
+
+    @Test
+    @DisplayName("루트 카테고리 조회 테스트-성공")
+    void getRootCategoriesTest_unit_success(){
+        List<Categories> roots = List.of(createCategoriesWithSetId(1L, "root1", "http://root1.jpg"),
+                createCategoriesWithSetId(2L, "root2", "http://root2.jpg"));
+        when(categoryRepository.findByParentIsNull()).thenReturn(roots);
+
+        List<CategoryResponse> response = categoryService.getRootCategories();
+
+        assertThat(response).hasSize(2);
+        assertThat(response)
+                .extracting("id", "name", "parentId" ,"iconUrl")
+                .containsExactlyInAnyOrder(
+                tuple(1L, "root1", null,"http://root1.jpg"), tuple(2L, "root2", null, "http://root2.jpg")
+        );
     }
 
     @Test
@@ -235,7 +253,6 @@ public class CategoryServiceUnitTest {
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage(getMessage(CATEGORY_NOT_FOUND));
     }
-
 
     private Categories createCategoriesWithSetId(Long id, String name, String url){
         Categories categories = new Categories(name, url);

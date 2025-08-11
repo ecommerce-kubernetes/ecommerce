@@ -37,18 +37,18 @@ public class CategoryService {
         return new CategoryResponse(saved);
     }
 
-
-    public CategoryHierarchyResponse getHierarchyByCategoryId(Long categoryId) {
-        return null;
-    }
-
     public List<CategoryResponse> getRootCategories() {
-        return null;
+        List<Categories> roots = categoryRepository.findByParentIsNull();
+        return roots.stream().map(CategoryResponse::new).toList();
     }
 
     public List<CategoryResponse> getChildrenCategoriesById(Long categoryId) {
         List<Categories> childList = categoryRepository.findChildById(categoryId);
         return childList.stream().map(CategoryResponse::new).toList();
+    }
+
+    public CategoryHierarchyResponse getHierarchyByCategoryId(Long categoryId) {
+        return null;
     }
 
     @Transactional

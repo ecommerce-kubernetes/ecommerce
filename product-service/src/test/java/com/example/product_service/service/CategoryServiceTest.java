@@ -26,8 +26,7 @@ import java.util.Optional;
 
 import static com.example.product_service.controller.util.MessagePath.*;
 import static com.example.product_service.controller.util.TestMessageUtil.getMessage;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.verify;
 
 @SpringBootTest
@@ -44,10 +43,11 @@ class CategoryServiceTest {
 
     private Categories parent;
     private Categories target;
+    private Categories duplicate;
 
     @BeforeEach
     void saveFixture(){
-        categoryRepository.save(new Categories("duplicate", "http://test.jpg"));
+        duplicate = categoryRepository.save(new Categories("duplicate", "http://test.jpg"));
         target = categoryRepository.save(new Categories("target", "http://target.jpg"));
         parent = categoryRepository.save(new Categories("parent", "http://test.jpg"));
     }
@@ -100,6 +100,21 @@ class CategoryServiceTest {
         assertThatThrownBy(() -> categoryService.saveCategory(request))
                 .isInstanceOf(DuplicateResourceException.class)
                 .hasMessage(getMessage(CATEGORY_CONFLICT));
+    }
+
+    @Test
+    @DisplayName("루트 카테고리 조회 테스트-성공")
+    @Transactional
+    void getRootCategoriesTest_integration_success(){
+        List<CategoryResponse> response = categoryService.getRootCategories();
+
+        assertThat(response)
+                .extracting("id", "name", "parentId" ,"iconUrl")
+                .containsExactlyInAnyOrder(
+                        tuple(duplicate.getId(), duplicate.getName(), duplicate.getParent(), duplicate.getIconUrl()),
+                        tuple(target.getId(), target.getName(), target.getParent(), target.getIconUrl()),
+                        tuple(parent.getId(), parent.getName(), parent.getParent(), parent.getIconUrl())
+                );
     }
 
     @Test
@@ -159,7 +174,7 @@ class CategoryServiceTest {
     @Test
     @DisplayName("카테고리 삭제 테스트-성공")
     @Transactional
-    void deleteCategoryByIdTest(){
+    void deleteCategoryByIdTest_integration_success(){
         categoryService.deleteCategoryById(target.getId());
         em.flush(); em.clear();
 
@@ -169,7 +184,7 @@ class CategoryServiceTest {
 
     @Test
     @DisplayName("카테고리 삭제 테스트-실패(타깃 카테고리가 없음)")
-    void deleteCategoryTest_NotFoundCategoryById(){
+    void deleteCategoryTest_integration_notFound_target(){
         assertThatThrownBy(() -> categoryService.deleteCategoryById(999L))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage(getMessage(CATEGORY_NOT_FOUND));

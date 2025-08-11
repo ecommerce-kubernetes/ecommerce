@@ -13,16 +13,17 @@ import java.util.Optional;
 
 public interface CategoryRepository extends JpaRepository<Categories, Long> {
 
+    boolean existsByName(String name);
+    List<Categories> findByParentIsNull();
+
     @Query("SELECT c FROM Categories c WHERE c.parent.id = :parentId")
     List<Categories> findChildById(@Param("parentId") Long parentId);
-    Page<Categories> findByParentIsNull(Pageable pageable);
-
-    Optional<Categories> findByName(String name);
-    boolean existsByName(String name);
 
     @EntityGraph(attributePaths = "parent")
     @Query("SELECT c FROM Categories c WHERE c.id = :id")
     Optional<Categories> findByIdWithParent(@Param("id") Long id);
+
+
 
     /*
     * MySQL CTE(Common Table Expression) 을 사용해 Categories 와 그 자손 Categories 의 Id를 모두 추출
