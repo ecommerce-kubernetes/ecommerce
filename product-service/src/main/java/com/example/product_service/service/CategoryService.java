@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
+import java.util.Objects;
 
 
 @Service
@@ -38,16 +39,20 @@ public class CategoryService {
 
     @Transactional
     public CategoryResponse updateCategoryById(Long categoryId, UpdateCategoryRequest request) {
-        checkMySelfForParent(categoryId, request.getParentId());
-        checkConflictName(request.getName());
-
         Categories target = findByIdOrThrow(categoryId);
-        target.setName(request.getName());
-        target.setIconUrl(request.getIconUrl());
 
-        Categories parent = findByIdOrThrow(request.getParentId());
-        target.modifyParent(parent);
-
+        if (request.getName() != null){
+            checkConflictName(request.getName());
+            target.setName(request.getName());
+        }
+        if (request.getIconUrl() != null){
+            target.setIconUrl(request.getIconUrl());
+        }
+        if (request.getParentId() != null){
+            checkMySelfForParent(categoryId, request.getParentId());
+            Categories parent = findByIdOrThrow(request.getParentId());
+            target.modifyParent(parent);
+        }
         return new CategoryResponse(target);
     }
 
@@ -95,7 +100,7 @@ public class CategoryService {
     }
 
     private void checkConflictName(String name) {
-        if(categoryRepository.findByName(name).isPresent()){
+        if(categoryRepository.existsByName(name)){
             throw new DuplicateResourceException(ms.getMessage("category.conflict"));
         }
     }
@@ -106,7 +111,7 @@ public class CategoryService {
     }
 
     private void checkMySelfForParent(Long targetId, Long parentId){
-        if(targetId == parentId){
+        if(Objects.equals(targetId, parentId)){
             throw new BadRequestException("category.badRequest");
         }
     }

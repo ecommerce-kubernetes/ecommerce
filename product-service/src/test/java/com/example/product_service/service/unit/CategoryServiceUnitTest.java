@@ -20,6 +20,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.OngoingStubbing;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import javax.swing.text.html.Option;
+import java.util.Objects;
 import java.util.Optional;
 
 import static com.example.product_service.controller.util.MessagePath.CATEGORY_CONFLICT;
@@ -46,7 +48,7 @@ public class CategoryServiceUnitTest {
     @DisplayName("카테고리 등록 테스트-성공(상위 카테고리 생성시)")
     void saveCategoryTest_unit_success_root(){
         CategoryRequest request = new CategoryRequest("name", null, "http://test.jpg");
-        mockFindByName("name", null);
+        mockExistsName("name", false);
         when(categoryRepository.save(any(Categories.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -68,9 +70,9 @@ public class CategoryServiceUnitTest {
     void saveCategoryTest_unit_success_leaf(){
         CategoryRequest request = new CategoryRequest("name", 1L, "http://test.jpg");
         Categories parent = createCategoriesWithSetId(1L, "parent", "http://test.jpg");
-        mockFindByName("name", null);
-        when(categoryRepository.findById(1L))
-                .thenReturn(Optional.of(parent));
+
+        mockExistsName("name", false);
+        mockFindById(1L, parent);
         when(categoryRepository.save(any(Categories.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -92,10 +94,9 @@ public class CategoryServiceUnitTest {
     @DisplayName("카테고리 등록 테스트-실패(부모 카테고리를 찾을 수 없는 경우)")
     void saveCategoryTest_unit_notFound(){
         CategoryRequest request = new CategoryRequest("name", 1L, "http://test.jpg");
-        mockFindByName("name", null);
+        mockExistsName("name", false);
         when(ms.getMessage(CATEGORY_NOT_FOUND)).thenReturn("Category not found");
-        when(categoryRepository.findById(1L))
-                .thenReturn(Optional.empty());
+        mockFindById(1L, null);
 
         assertThatThrownBy(() -> categoryService.saveCategory(request))
                 .isInstanceOf(NotFoundException.class)
@@ -106,8 +107,7 @@ public class CategoryServiceUnitTest {
     @DisplayName("카테고리 등록 테스트-실패(중복 이름)")
     void saveCategoryTest_unit_Duplicate(){
         CategoryRequest request = new CategoryRequest("duplicate", 1L, "http://test.jpg");
-        Categories duplicate = new Categories("duplicate", "http://test.jpg");
-        mockFindByName("duplicate", duplicate);
+        mockExistsName("duplicate", true);
         when(ms.getMessage(CATEGORY_CONFLICT)).thenReturn("Category already exists");
 
         assertThatThrownBy(() -> categoryService.saveCategory(request))
@@ -116,16 +116,24 @@ public class CategoryServiceUnitTest {
     }
 
     @Test
-    @DisplayName("카테고리 수정 테스트")
+    @DisplayName("카테고리 수정 테스트-성공")
     void updateCategoryTest_unit_success(){
-        UpdateCategoryRequest request = new UpdateCategoryRequest("updated", 1L, "http://test.jpg");
+        UpdateCategoryRequest request = new UpdateCategoryRequest("updated", 1L, null);
+        Categories parent = spy(createCategoriesWithSetId(1L, "parent", "http://test.jpg"));
+        Categories target = spy(new Categories("name", "http://before.jpg"));
+
+        mockFindById(1L, parent);
+        mockFindById(2L, target);
 
         CategoryResponse response = categoryService.updateCategoryById(2L, request);
+
         assertThat(response.getName()).isEqualTo("updated");
-        assertThat(response.getIconUrl()).isEqualTo("http://test.jpg");
+        assertThat(response.getIconUrl()).isEqualTo("http://before.jpg");
         assertThat(response.getParentId()).isEqualTo(1L);
 
-        assertThat(response).isNotNull();
+        verify(categoryRepository).findById(1L);
+        verify(categoryRepository).findById(2L);
+        verify(target).modifyParent(parent);
     }
 
     private Categories createCategoriesWithSetId(Long id, String name, String url){
@@ -134,12 +142,21 @@ public class CategoryServiceUnitTest {
         return categories;
     }
 
-    private void mockFindByName(String name, Categories category){
-        OngoingStubbing<Optional<Categories>> when = when(categoryRepository.findByName(name));
-        if(category == null){
+    private void mockExistsName(String name, boolean isExists){
+        OngoingStubbing<Boolean> when = when(categoryRepository.existsByName(name));
+        if(isExists){
+            when.thenReturn(true);
+        } else {
+            when.thenReturn(false);
+        }
+    }
+
+    private void mockFindById(Long id, Categories o){
+        OngoingStubbing<Optional<Categories>> when = when(categoryRepository.findById(id));
+        if(o == null){
             when.thenReturn(Optional.empty());
         } else {
-            when.thenReturn(Optional.of(category));
+            when .thenReturn(Optional.of(o));
         }
     }
 }
