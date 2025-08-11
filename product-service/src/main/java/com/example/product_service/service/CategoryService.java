@@ -37,6 +37,20 @@ public class CategoryService {
         return new CategoryResponse(saved);
     }
 
+
+    public CategoryHierarchyResponse getHierarchyByCategoryId(Long categoryId) {
+        return null;
+    }
+
+    public List<CategoryResponse> getRootCategories() {
+        return null;
+    }
+
+    public List<CategoryResponse> getChildrenCategoriesById(Long categoryId) {
+        List<Categories> childList = categoryRepository.findChildById(categoryId);
+        return childList.stream().map(CategoryResponse::new).toList();
+    }
+
     @Transactional
     public CategoryResponse updateCategoryById(Long categoryId, UpdateCategoryRequest request) {
         Categories target = findByIdOrThrow(categoryId);
@@ -57,13 +71,8 @@ public class CategoryService {
 
     @Transactional
     public void deleteCategoryById(Long categoryId) {
-        Categories category = categoryRepository.findById(categoryId)
-                .orElseThrow(() -> new NotFoundException("Not Found Category"));
-
-        if(category.getParent() != null){
-            category.getParent().removeChild(category);
-        }
-        categoryRepository.delete(category);
+        Categories target = findByIdOrThrow(categoryId);
+        categoryRepository.delete(target);
     }
 
     public CategoryResponse getCategoryDetails(Long categoryId) {
@@ -71,20 +80,6 @@ public class CategoryService {
                 .orElseThrow(() -> new NotFoundException("Not Found Category"));
 
         return new CategoryResponse(category);
-    }
-
-    public CategoryHierarchyResponse getHierarchyByCategoryId(Long categoryId) {
-        return null;
-    }
-
-    public List<CategoryResponse> getRootCategories() {
-        return null;
-    }
-
-
-    public List<CategoryResponse> getChildrenCategoriesById(Long categoryId) {
-        List<Categories> childList = categoryRepository.findChildById(categoryId);
-        return childList.stream().map(CategoryResponse::new).toList();
     }
 
     public CategoryResponse getRootCategoryDetailsOf(Long categoryId) {

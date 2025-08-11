@@ -214,6 +214,28 @@ public class CategoryServiceUnitTest {
                 .hasMessage(getMessage(CATEGORY_BAD_REQUEST));
     }
 
+    @Test
+    @DisplayName("카테고리 삭제 테스트-성공")
+    void deleteCategoryTest_unit_success(){
+        Categories target = createCategoriesWithSetId(1L, "target", "http://test.jpg");
+        mockFindById(1L, target);
+        categoryService.deleteCategoryById(1L);
+        verify(categoryRepository).delete(captor.capture());
+
+        Categories value = captor.getValue();
+        assertThat(value.getId()).isEqualTo(1L);
+    }
+
+    @Test
+    @DisplayName("카테고리 삭제 테스트-실패(타깃 카테고리가 없음)")
+    void deleteCategoryTest_unit_notFound_target(){
+        mockFindById(1L, null);
+        when(ms.getMessage(CATEGORY_NOT_FOUND)).thenReturn("Category not found");
+        assertThatThrownBy(()-> categoryService.deleteCategoryById(1L))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage(getMessage(CATEGORY_NOT_FOUND));
+    }
+
 
     private Categories createCategoriesWithSetId(Long id, String name, String url){
         Categories categories = new Categories(name, url);

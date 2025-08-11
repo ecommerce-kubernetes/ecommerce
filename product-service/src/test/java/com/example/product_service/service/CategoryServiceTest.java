@@ -8,6 +8,7 @@ import com.example.product_service.exception.BadRequestException;
 import com.example.product_service.exception.DuplicateResourceException;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.repository.CategoryRepository;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -38,13 +39,16 @@ class CategoryServiceTest {
     @Autowired
     CategoryRepository categoryRepository;
 
+    @Autowired
+    EntityManager em;
+
     private Categories parent;
-    private Categories updateTarget;
+    private Categories target;
 
     @BeforeEach
     void saveFixture(){
         categoryRepository.save(new Categories("duplicate", "http://test.jpg"));
-        updateTarget = categoryRepository.save(new Categories("target", "http://target.jpg"));
+        target = categoryRepository.save(new Categories("target", "http://target.jpg"));
         parent = categoryRepository.save(new Categories("parent", "http://test.jpg"));
     }
 
@@ -104,16 +108,16 @@ class CategoryServiceTest {
     void updateCategoryByIdTest_integration_success(){
         UpdateCategoryRequest request = new UpdateCategoryRequest("updated", parent.getId(), "http://updated.jpg");
 
-        CategoryResponse response = categoryService.updateCategoryById(updateTarget.getId(), request);
+        CategoryResponse response = categoryService.updateCategoryById(target.getId(), request);
 
-        assertThat(response.getId()).isEqualTo(updateTarget.getId());
+        assertThat(response.getId()).isEqualTo(target.getId());
         assertThat(response.getName()).isEqualTo("updated");
         assertThat(response.getParentId()).isEqualTo(parent.getId());
         assertThat(response.getIconUrl()).isEqualTo("http://updated.jpg");
 
-        assertThat(updateTarget.getName()).isEqualTo("updated");
-        assertThat(updateTarget.getParent().getId()).isEqualTo(parent.getId());
-        assertThat(updateTarget.getIconUrl()).isEqualTo("http://updated.jpg");
+        assertThat(target.getName()).isEqualTo("updated");
+        assertThat(target.getParent().getId()).isEqualTo(parent.getId());
+        assertThat(target.getIconUrl()).isEqualTo("http://updated.jpg");
     }
 
     @Test
@@ -128,7 +132,7 @@ class CategoryServiceTest {
     @Test
     @DisplayName("카테고리 수정 테스트-실패(부모 카테고리를 찾을 수 없을)")
     void updateCategoryTest_integration_notFound_parent(){
-        assertThatThrownBy(()-> categoryService.updateCategoryById(updateTarget.getId(),
+        assertThatThrownBy(()-> categoryService.updateCategoryById(target.getId(),
                 new UpdateCategoryRequest("updated", 999L, null)))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage(getMessage(CATEGORY_NOT_FOUND));
@@ -137,7 +141,7 @@ class CategoryServiceTest {
     @Test
     @DisplayName("카테고리 수정 테스트-실패(중복 이름)")
     void updateCategoryTest_integration_conflict_name(){
-        assertThatThrownBy(() -> categoryService.updateCategoryById(updateTarget.getId(),
+        assertThatThrownBy(() -> categoryService.updateCategoryById(target.getId(),
                 new UpdateCategoryRequest("duplicate", parent.getId(), "http://updated.jpg")))
                 .isInstanceOf(DuplicateResourceException.class)
                 .hasMessage(getMessage(CATEGORY_CONFLICT));
@@ -146,36 +150,29 @@ class CategoryServiceTest {
     @Test
     @DisplayName("카테고리 수정 테스트-실패(부모 카테고리 Id가 타깃의 Id 인경우")
     void updateCategoryTest_integration_badRequest_parentId(){
-        assertThatThrownBy(() -> categoryService.updateCategoryById(updateTarget.getId(),
-                new UpdateCategoryRequest("updated", updateTarget.getId(), "http://test.jpg")))
+        assertThatThrownBy(() -> categoryService.updateCategoryById(target.getId(),
+                new UpdateCategoryRequest("updated", target.getId(), "http://test.jpg")))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessage(getMessage(CATEGORY_BAD_REQUEST));
     }
 
     @Test
-    @DisplayName("카테고리 삭제 테스트")
+    @DisplayName("카테고리 삭제 테스트-성공")
     @Transactional
     void deleteCategoryByIdTest(){
-        Categories food = categoryRepository.save(new Categories("식품", "http://localhost.jpg"));
-        Categories deleteCategory = categoryRepository.save(new Categories("반찬류", null));
+        categoryService.deleteCategoryById(target.getId());
+        em.flush(); em.clear();
 
-        food.addChild(deleteCategory);
-
-        categoryService.deleteCategoryById(deleteCategory.getId());
-
-        Optional<Categories> category = categoryRepository.findById(deleteCategory.getId());
-
-        assertThat(category).isEmpty();
-
-        assertThat(food.getChildren()).doesNotContain(deleteCategory);
+        Optional<Categories> then = categoryRepository.findById(target.getId());
+        assertThat(then).isEmpty();
     }
 
     @Test
-    @DisplayName("카테고리 삭제 테스트 - 없는 카테고리 삭제시")
+    @DisplayName("카테고리 삭제 테스트-실패(타깃 카테고리가 없음)")
     void deleteCategoryTest_NotFoundCategoryById(){
         assertThatThrownBy(() -> categoryService.deleteCategoryById(999L))
                 .isInstanceOf(NotFoundException.class)
-                .hasMessage("Not Found Category");
+                .hasMessage(getMessage(CATEGORY_NOT_FOUND));
     }
 
     @Test
