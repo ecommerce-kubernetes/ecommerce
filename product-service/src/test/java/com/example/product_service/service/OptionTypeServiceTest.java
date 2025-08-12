@@ -12,6 +12,7 @@ import com.example.product_service.entity.OptionValues;
 import com.example.product_service.exception.DuplicateResourceException;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.repository.OptionTypeRepository;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -20,10 +21,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 import static com.example.product_service.controller.util.MessagePath.*;
 import static com.example.product_service.controller.util.TestMessageUtil.*;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.*;
 
 @SpringBootTest
 class OptionTypeServiceTest {
@@ -35,6 +37,9 @@ class OptionTypeServiceTest {
 
     @Autowired
     MessageSourceUtil ms;
+
+    @Autowired
+    EntityManager em;
 
     OptionTypes existType;
 
@@ -103,5 +108,28 @@ class OptionTypeServiceTest {
         assertThatThrownBy(() -> optionTypeService.saveOptionValue(existType.getId(), request))
                 .isInstanceOf(DuplicateResourceException.class)
                 .hasMessage(getMessage(OPTION_VALUE_CONFLICT));
+    }
+
+    @Test
+    @DisplayName("옵션 타입 조회 테스트-성공")
+    @Transactional
+    void getOptionTypesTest_integration_success() {
+        OptionTypes type1 = optionTypeRepository.save(new OptionTypes("type1"));
+        OptionTypes type2 = optionTypeRepository.save(new OptionTypes("type2"));
+        OptionTypes type3 = optionTypeRepository.save(new OptionTypes("type3"));
+
+        List<OptionTypeResponse> response = optionTypeService.getOptionTypes();
+
+        em.flush(); em.clear();
+
+        assertThat(response).hasSize(4);
+        assertThat(response)
+                .extracting("id", "name")
+                .containsExactlyInAnyOrder(
+                        tuple(type1.getId(), type1.getName()),
+                        tuple(type2.getId(), type2.getName()),
+                        tuple(type3.getId(), type3.getName()),
+                        tuple(existType.getId(), existType.getName())
+                );
     }
 }

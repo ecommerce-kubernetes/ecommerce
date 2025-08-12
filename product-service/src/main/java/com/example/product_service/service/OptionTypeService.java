@@ -50,7 +50,8 @@ public class OptionTypeService {
     }
 
     public List<OptionTypeResponse> getOptionTypes() {
-        return null;
+        List<OptionTypes> typesList = optionTypeRepository.findAll();
+        return typesList.stream().map(OptionTypeResponse::new).toList();
     }
 
 

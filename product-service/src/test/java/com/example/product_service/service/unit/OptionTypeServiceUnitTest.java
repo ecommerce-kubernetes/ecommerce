@@ -23,12 +23,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.OngoingStubbing;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.util.List;
 import java.util.Optional;
 
 import static com.example.product_service.controller.util.MessagePath.*;
 import static com.example.product_service.controller.util.TestMessageUtil.getMessage;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -127,6 +127,27 @@ public class OptionTypeServiceUnitTest {
         verify(optionType, never()).addOptionValue(any(OptionValues.class));
     }
 
+    @Test
+    @DisplayName("옵션 타입 조회 테스트-성공")
+    void getOptionTypesTest_unit_success(){
+        OptionTypes type1 = createOptionTypeWithSetId(1L, "type1");
+        OptionTypes type2 = createOptionTypeWithSetId(2L, "type2");
+        OptionTypes type3 = createOptionTypeWithSetId(3L, "type3");
+        List<OptionTypes> typeList = List.of(type1, type2, type3);
+        mockFindAll(typeList);
+
+        List<OptionTypeResponse> response = optionTypeService.getOptionTypes();
+        assertThat(response.size()).isEqualTo(3);
+
+        assertThat(response)
+                .extracting("id", "name")
+                .containsExactlyInAnyOrder(
+                        tuple(type1.getId(), type1.getName()),
+                        tuple(type2.getId(), type2.getName()),
+                        tuple(type3.getId(), type3.getName())
+                );
+    }
+
     private void mockExistsName(String name, boolean isExists){
         OngoingStubbing<Boolean> when = when(optionTypeRepository.existsByName(name));
         if(isExists){
@@ -142,6 +163,15 @@ public class OptionTypeServiceUnitTest {
             when.thenReturn(Optional.empty());
         } else {
             when.thenReturn(Optional.of(o));
+        }
+    }
+
+    private void mockFindAll(List<OptionTypes> returnList){
+        OngoingStubbing<List<OptionTypes>> when = when(optionTypeRepository.findAll());
+        if(returnList == null || returnList.isEmpty()){
+            when.thenReturn(List.of());
+        } else {
+            when.thenReturn(returnList);
         }
     }
 
