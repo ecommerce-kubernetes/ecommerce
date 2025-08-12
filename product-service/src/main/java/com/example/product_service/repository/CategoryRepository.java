@@ -1,9 +1,6 @@
 package com.example.product_service.repository;
 
 import com.example.product_service.entity.Categories;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -16,9 +13,8 @@ public interface CategoryRepository extends JpaRepository<Categories, Long> {
     boolean existsByName(String name);
     List<Categories> findByParentIsNull();
 
-    @EntityGraph(attributePaths = "parent")
-    @Query("SELECT c FROM Categories c WHERE c.id = :id")
-    Optional<Categories> findByIdWithParent(@Param("id") Long id);
+    @Query("SELECT c FROM Categories c LEFT JOIN FETCH c.parent WHERE c.id = :id")
+    Optional<Categories> findWithParentById(@Param("id") Long id);
 
 
 

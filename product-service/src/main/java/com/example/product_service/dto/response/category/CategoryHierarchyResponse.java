@@ -1,10 +1,8 @@
 package com.example.product_service.dto.response.category;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -12,8 +10,8 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CategoryHierarchyResponse {
-    private List<CategoryResponse> ancestors;
-    private List<LevelItem> siblingsByLevel;
+    private List<CategoryResponse> ancestors = new ArrayList<>();
+    private List<LevelItem> siblingsByLevel = new ArrayList<>();
 
     @Getter
     @Setter

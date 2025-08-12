@@ -13,8 +13,8 @@ import com.example.product_service.repository.CategoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.util.List;
-import java.util.Objects;
+
+import java.util.*;
 
 
 @Service
@@ -48,7 +48,31 @@ public class CategoryService {
     }
 
     public CategoryHierarchyResponse getHierarchyByCategoryId(Long categoryId) {
-        return null;
+        Categories target = findByIdWithParentOrThrow(categoryId);
+
+        List<Categories> chain = new ArrayList<>();
+        while(target.getParent() != null){
+            chain.add(target);
+            target = target.getParent();
+        }
+        chain.add(target);
+        Collections.reverse(chain);
+        CategoryHierarchyResponse response = new CategoryHierarchyResponse();
+
+        response.getSiblingsByLevel().add(new CategoryHierarchyResponse.LevelItem(
+                1, categoryRepository.findByParentIsNull().stream().map(CategoryResponse::new).toList()
+        ));
+        for(int i=0; i<chain.size(); i++){
+            Categories category = chain.get(i);
+            response.getAncestors().add(new CategoryResponse(category));
+            response.getSiblingsByLevel().add(
+                    new CategoryHierarchyResponse.LevelItem(
+                            i+2,
+                            category.getChildren().stream().map(CategoryResponse::new).toList()
+                    )
+            );
+        }
+        return response;
     }
 
     @Transactional
@@ -83,7 +107,7 @@ public class CategoryService {
     }
 
     public CategoryResponse getRootCategoryDetailsOf(Long categoryId) {
-        Categories category = categoryRepository.findByIdWithParent(categoryId)
+        Categories category = categoryRepository.findWithParentById(categoryId)
                 .orElseThrow(() -> new NotFoundException("Not Found Category"));
 
         while (category.getParent() != null) {
@@ -101,6 +125,11 @@ public class CategoryService {
 
     private Categories findByIdOrThrow(Long categoryId){
         return categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new NotFoundException(ms.getMessage("category.notFound")));
+    }
+
+    private Categories findByIdWithParentOrThrow(Long categoryId){
+        return categoryRepository.findWithParentById(categoryId)
                 .orElseThrow(() -> new NotFoundException(ms.getMessage("category.notFound")));
     }
 
