@@ -5,6 +5,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
-public interface OptionValuesRepository extends JpaRepository<OptionValues, Long> {
+public interface OptionValueRepository extends JpaRepository<OptionValues, Long> {
     List<OptionValues> findByIdIn(List<Long> ids);
 }

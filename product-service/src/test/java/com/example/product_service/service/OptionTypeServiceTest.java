@@ -5,5 +5,5 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
 @Slf4j
-class OptionTypeServiceImplTest {
+class OptionTypeServiceTest {
 }

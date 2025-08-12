@@ -5,7 +5,7 @@ import com.example.product_service.dto.response.options.OptionValueResponse;
 import com.example.product_service.entity.OptionValues;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.repository.OptionTypeRepository;
-import com.example.product_service.repository.OptionValuesRepository;
+import com.example.product_service.repository.OptionValueRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class OptionValueServiceImpl implements OptionValueService{
     private final OptionTypeRepository optionTypeRepository;
 
-    private final OptionValuesRepository optionValuesRepository;
+    private final OptionValueRepository optionValuesRepository;
 
     @Override
     @Transactional

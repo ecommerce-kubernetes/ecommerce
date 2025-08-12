@@ -4,7 +4,7 @@ import com.example.product_service.dto.request.review.ReviewRequest;
 import com.example.product_service.dto.request.variant.UpdateProductVariantRequest;
 import com.example.product_service.dto.response.ReviewResponse;
 import com.example.product_service.dto.response.variant.ProductVariantResponse;
-import com.example.product_service.repository.OptionValuesRepository;
+import com.example.product_service.repository.OptionValueRepository;
 import com.example.product_service.repository.ProductVariantsRepository;
 import com.example.product_service.repository.ProductsRepository;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +21,7 @@ public class ProductVariantServiceImpl implements ProductVariantService{
     }
 
     private final ProductsRepository productsRepository;
-    private final OptionValuesRepository optionValuesRepository;
+    private final OptionValueRepository optionValuesRepository;
     private final ProductVariantsRepository productVariantsRepository;
 
     @Override
