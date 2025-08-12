@@ -1,5 +1,6 @@
 package com.example.product_service.service;
 
+import com.example.product_service.common.MessagePath;
 import com.example.product_service.common.MessageSourceUtil;
 import com.example.product_service.dto.request.category.CategoryRequest;
 import com.example.product_service.dto.request.category.UpdateCategoryRequest;
@@ -15,6 +16,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+
+import static com.example.product_service.common.MessagePath.*;
 
 
 @Service
@@ -105,25 +108,26 @@ public class CategoryService {
         }
         return new CategoryResponse(category);
     }
+
     private void checkConflictName(String name) {
         if(categoryRepository.existsByName(name)){
-            throw new DuplicateResourceException(ms.getMessage("category.conflict"));
+            throw new DuplicateResourceException(ms.getMessage(CATEGORY_CONFLICT));
         }
     }
 
     private Categories findByIdOrThrow(Long categoryId){
         return categoryRepository.findById(categoryId)
-                .orElseThrow(() -> new NotFoundException(ms.getMessage("category.notFound")));
+                .orElseThrow(() -> new NotFoundException(ms.getMessage(CATEGORY_NOT_FOUND)));
     }
 
     private Categories findWithParentByIdOrThrow(Long categoryId){
         return categoryRepository.findWithParentById(categoryId)
-                .orElseThrow(() -> new NotFoundException(ms.getMessage("category.notFound")));
+                .orElseThrow(() -> new NotFoundException(ms.getMessage(CATEGORY_NOT_FOUND)));
     }
 
     private void checkParentIsNotSelf(Long targetId, Long parentId){
         if(Objects.equals(targetId, parentId)){
-            throw new BadRequestException(ms.getMessage("category.badRequest"));
+            throw new BadRequestException(ms.getMessage(CATEGORY_BAD_REQUEST));
         }
     }
 
