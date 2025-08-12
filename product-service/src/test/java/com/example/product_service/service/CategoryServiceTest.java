@@ -198,6 +198,13 @@ class CategoryServiceTest {
     }
 
     @Test
+    @DisplayName("카테고리 계층 구조 조회 테스트-실패(타깃 카테고리가 없는경우)")
+    void getHierarchyByCategoryIdTest_integration_notFound(){
+        assertThatThrownBy(() -> categoryService.getHierarchyByCategoryId(999L))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage(getMessage(CATEGORY_NOT_FOUND));
+    }
+    @Test
     @DisplayName("카테고리 수정 테스트-성공")
     @Transactional
     void updateCategoryByIdTest_integration_success(){
