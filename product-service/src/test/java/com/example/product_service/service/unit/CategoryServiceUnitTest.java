@@ -214,6 +214,7 @@ public class CategoryServiceUnitTest {
     @Test
     @DisplayName("카테고리 계층 구조 조회 테스트-실패(카테고리를 찾을 수 없음)")
     void getHierarchyByCategoryIdTest_unit_notFound(){
+        mockFindWithParentById(1L, null);
         when(ms.getMessage(CATEGORY_NOT_FOUND)).thenReturn("Category not found");
         assertThatThrownBy(() -> categoryService.getHierarchyByCategoryId(1L))
                 .isInstanceOf(NotFoundException.class)

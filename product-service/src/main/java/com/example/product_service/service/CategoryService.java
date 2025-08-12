@@ -125,15 +125,13 @@ public class CategoryService {
         }
     }
 
-    private List<Categories> buildAncestorPath(Categories target) {
-        List<Categories> chain = new ArrayList<>();
-        while(target.getParent() != null){
-            chain.add(target);
-            target = target.getParent();
+    private List<Categories> buildAncestorPath(Categories category) {
+        if (category == null) {
+            return new ArrayList<>();
         }
-        chain.add(target);
-        Collections.reverse(chain);
-        return chain;
+        List<Categories> ancestors = buildAncestorPath(category.getParent());
+        ancestors.add(category);
+        return ancestors;
     }
 
     private void setSiblingsByLevel(int level, CategoryHierarchyResponse response, List<Categories> categories){
