@@ -11,7 +11,10 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 import java.util.Optional;
 
-public interface OptionTypesRepository extends JpaRepository<OptionTypes, Long>, OptionTypesQueryRepository {
+public interface OptionTypeRepository extends JpaRepository<OptionTypes, Long>, OptionTypesQueryRepository {
+
+    boolean existsByName(String name);
+
     Page<OptionTypes> findAll(Pageable pageable);
     List<OptionTypes> findByIdIn(List<Long> ids);
 
