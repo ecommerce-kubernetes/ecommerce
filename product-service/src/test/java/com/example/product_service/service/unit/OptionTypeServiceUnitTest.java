@@ -1,13 +1,10 @@
 package com.example.product_service.service.unit;
 
 import com.example.product_service.common.MessageSourceUtil;
-import com.example.product_service.controller.util.MessagePath;
-import com.example.product_service.controller.util.TestMessageUtil;
 import com.example.product_service.dto.request.options.OptionTypeRequest;
 import com.example.product_service.dto.request.options.OptionValueRequest;
 import com.example.product_service.dto.response.options.OptionTypeResponse;
 import com.example.product_service.dto.response.options.OptionValueResponse;
-import com.example.product_service.entity.Categories;
 import com.example.product_service.entity.OptionTypes;
 import com.example.product_service.entity.OptionValues;
 import com.example.product_service.exception.DuplicateResourceException;
@@ -82,7 +79,7 @@ public class OptionTypeServiceUnitTest {
         mockFindById(1L, optionType);
         OptionValueResponse response = optionTypeService.saveOptionValue(1L, request);
         assertThat(response.getTypeId()).isEqualTo(1L);
-        assertThat(response.getValue()).isEqualTo("name");
+        assertThat(response.getValueName()).isEqualTo("name");
 
         verify(optionType).addOptionValue(any(OptionValues.class));
     }

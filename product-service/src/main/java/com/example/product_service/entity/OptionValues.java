@@ -19,13 +19,13 @@ public class OptionValues {
     private OptionTypes optionType;
 
     @Setter
-    private String value;
+    private String valueName;
 
     protected void setOptionType(OptionTypes optionType){
         this.optionType = optionType;
     }
 
-    public OptionValues(String value){
-        this.value = value;
+    public OptionValues(String valueName){
+        this.valueName = valueName;
     }
 }

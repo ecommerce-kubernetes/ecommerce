@@ -1,6 +1,5 @@
 package com.example.product_service.service;
 
-import com.example.product_service.common.MessagePath;
 import com.example.product_service.common.MessageSourceUtil;
 import com.example.product_service.dto.request.options.OptionTypeRequest;
 import com.example.product_service.dto.request.options.OptionValueRequest;
@@ -12,6 +11,7 @@ import com.example.product_service.exception.DuplicateResourceException;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.repository.OptionTypeRepository;
 import com.example.product_service.repository.OptionValueRepository;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -19,8 +19,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
 
 import static com.example.product_service.common.MessagePath.*;
 
@@ -31,6 +29,7 @@ import static com.example.product_service.common.MessagePath.*;
 public class OptionTypeService {
 
     private final OptionTypeRepository optionTypeRepository;
+    private final OptionValueRepository optionValueRepository;
     private final MessageSourceUtil ms;
 
     @Transactional
@@ -46,7 +45,8 @@ public class OptionTypeService {
         checkConflictValueName(optionType, request.getValue());
         OptionValues optionValue = new OptionValues(request.getValue());
         optionType.addOptionValue(optionValue);
-        return new OptionValueResponse(optionValue);
+        OptionValues saved = optionValueRepository.save(optionValue);
+        return new OptionValueResponse(saved);
     }
 
     public List<OptionTypeResponse> getOptionTypes() {
@@ -95,7 +95,7 @@ public class OptionTypeService {
 
     private void checkConflictValueName(OptionTypes optionType, String name){
         boolean isConflict = optionType.getOptionValues().stream()
-                .anyMatch(v -> v.getValue().equals(name));
+                .anyMatch(v -> v.getValueName().equals(name));
         if(isConflict){
             throw new DuplicateResourceException(ms.getMessage(OPTION_VALUE_CONFLICT));
         }

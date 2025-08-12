@@ -13,11 +13,11 @@ import lombok.Setter;
 public class OptionValueResponse {
     private Long valueId;
     private Long typeId;
-    private String value;
+    private String valueName;
 
     public OptionValueResponse(OptionValues optionValue){
         this.valueId = optionValue.getId();
         this.typeId = optionValue.getOptionType().getId();
-        this.value = optionValue.getValue();
+        this.valueName = optionValue.getValueName();
     }
 }
