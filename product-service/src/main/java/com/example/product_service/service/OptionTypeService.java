@@ -54,6 +54,10 @@ public class OptionTypeService {
         return typesList.stream().map(OptionTypeResponse::new).toList();
     }
 
+    public List<OptionValueResponse> getOptionValuesByTypeId(Long optionTypeId) {
+        OptionTypes type = findByIdOrThrow(optionTypeId);
+        return type.getOptionValues().stream().map(OptionValueResponse::new).toList();
+    }
 
     @Transactional
     public OptionTypeResponse updateOptionTypeById(Long optionTypeId, OptionTypeRequest requestDto) {
@@ -78,15 +82,6 @@ public class OptionTypeService {
         optionTypeRepository.delete(target);
     }
 
-
-    public List<OptionValueResponse> getOptionValuesByTypeId(Long optionTypeId) {
-        OptionTypes optionTypes = optionTypeRepository.findByIdWithOptionValues(optionTypeId)
-                .orElseThrow(() -> new NotFoundException("Not Found OptionTypes"));
-
-        List<OptionValues> optionValues = optionTypes.getOptionValues();
-
-        return null;
-    }
 
     private void checkConflictTypeName(String name) {
         if(optionTypeRepository.existsByName(name)){

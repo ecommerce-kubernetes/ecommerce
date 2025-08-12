@@ -137,8 +137,7 @@ public class CategoryServiceUnitTest {
     @DisplayName("자식 카테고리 조회 테스트-성공")
     void getChildrenCategoriesByIdTest_unit_success(){
         Categories parent = createCategoriesWithSetId(1L, "parent", "http://parent.jpg");
-        parent.addChild(new Categories("child1", "http://child1.jpg"));
-        parent.addChild(new Categories("child2", "http://child2.jpg"));
+        addChildren(parent, new Categories("child1", "http://child1.jpg"), new Categories("child2", "http://child2.jpg"));
         mockFindById(1L, parent);
 
         List<CategoryResponse> response = categoryService.getChildrenCategoriesById(1L);
@@ -174,11 +173,8 @@ public class CategoryServiceUnitTest {
         Categories level3_1 = createCategoriesWithSetId(5L, "level3-1", "http://level3-1.jpg");
         Categories level3_2 = createCategoriesWithSetId(6L, "level3-2", "http://level3-2.jpg");
 
-        level1_1.addChild(level2_1);
-        level1_1.addChild(level2_2);
-
-        level2_1.addChild(level3_1);
-        level2_1.addChild(level3_2);
+        addChildren(level1_1, level2_1, level2_2);
+        addChildren(level2_1, level3_1, level3_2);
 
         //categoryId == level3_2.id
         mockFindWithParentById(6L, level3_2);
@@ -379,6 +375,12 @@ public class CategoryServiceUnitTest {
 
     private void mockMessageUtil(String code, String returnMessage){
         when(ms.getMessage(code)).thenReturn(returnMessage);
+    }
+
+    private void addChildren(Categories parent, Categories... child){
+        for (Categories categories : child) {
+            parent.addChild(categories);
+        }
     }
 
     private List<CategoryResponse> itemsByLevel(List<CategoryHierarchyResponse.LevelItem> siblings, int level){

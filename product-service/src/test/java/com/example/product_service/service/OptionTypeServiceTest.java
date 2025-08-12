@@ -1,8 +1,6 @@
 package com.example.product_service.service;
 
 import com.example.product_service.common.MessageSourceUtil;
-import com.example.product_service.controller.util.MessagePath;
-import com.example.product_service.controller.util.TestMessageUtil;
 import com.example.product_service.dto.request.options.OptionTypeRequest;
 import com.example.product_service.dto.request.options.OptionValueRequest;
 import com.example.product_service.dto.response.options.OptionTypeResponse;
@@ -42,11 +40,13 @@ class OptionTypeServiceTest {
     EntityManager em;
 
     OptionTypes existType;
+    OptionValues existValue;
 
     @BeforeEach
     void saveFixture(){
         existType = new OptionTypes("exist");
-        existType.addOptionValue(new OptionValues("duplicate"));
+        existValue = new OptionValues("existValueName");
+        existType.addOptionValue(existValue);
         optionTypeRepository.save(existType);
     }
 
@@ -104,7 +104,7 @@ class OptionTypeServiceTest {
     @DisplayName("옵션 값 저장 테스트-실패(옵션 값 이름 중복)")
     @Transactional
     void saveOptionValueTest_integration_conflict(){
-        OptionValueRequest request = new OptionValueRequest("duplicate");
+        OptionValueRequest request = new OptionValueRequest("existValueName");
         assertThatThrownBy(() -> optionTypeService.saveOptionValue(existType.getId(), request))
                 .isInstanceOf(DuplicateResourceException.class)
                 .hasMessage(getMessage(OPTION_VALUE_CONFLICT));
@@ -131,5 +131,43 @@ class OptionTypeServiceTest {
                         tuple(type3.getId(), type3.getName()),
                         tuple(existType.getId(), existType.getName())
                 );
+    }
+
+    @Test
+    @DisplayName("옵션 값 조회 테스트-성공")
+    @Transactional
+    void getOptionValuesByTypeIdTest_integration_success() {
+        OptionValues value1 = new OptionValues("value1");
+        OptionValues value2 = new OptionValues("value2");
+        OptionValues value3 = new OptionValues("value3");
+        addOptionValues(existType, value1, value2, value3);
+
+        em.flush();
+        em.clear();
+
+        List<OptionValueResponse> response = optionTypeService.getOptionValuesByTypeId(existType.getId());
+        assertThat(response).hasSize(4);
+        assertThat(response)
+                .extracting("valueId", "typeId", "valueName")
+                .containsExactlyInAnyOrder(
+                        tuple(value1.getId(), value1.getOptionType().getId(), value1.getValueName()),
+                        tuple(value2.getId(), value2.getOptionType().getId(), value2.getValueName()),
+                        tuple(value3.getId(), value3.getOptionType().getId(), value3.getValueName()),
+                        tuple(existValue.getId(), existValue.getOptionType().getId(), existValue.getValueName())
+                );
+    }
+
+    @Test
+    @DisplayName("옵션 값 조회 테스트-실패(옵션 타입을 찾을 수 없음)")
+    void getOptionValuesByTypeIdTest_integration_notFound(){
+        assertThatThrownBy(() -> optionTypeService.getOptionValuesByTypeId(999L))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage(getMessage(OPTION_TYPE_NOT_FOUND));
+    }
+
+    private void addOptionValues(OptionTypes type, OptionValues... optionValues){
+        for (OptionValues optionValue : optionValues) {
+            type.addOptionValue(optionValue);
+        }
     }
 }

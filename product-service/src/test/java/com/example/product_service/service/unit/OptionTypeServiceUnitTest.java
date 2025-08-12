@@ -148,6 +148,37 @@ public class OptionTypeServiceUnitTest {
                 );
     }
 
+    @Test
+    @DisplayName("옵션 값 조회 테스트-성공")
+    void getOptionValuesByTypeIdTest_unit_success(){
+        OptionTypes type = createOptionTypeWithSetId(1L, "type");
+        OptionValues value1 = createOptionValueWithSetId(1L,"value1");
+        OptionValues value2 = createOptionValueWithSetId(2L,"value2");
+        OptionValues value3 = createOptionValueWithSetId(3L,"value3");
+        addOptionValues(type, value1, value2, value3);
+        mockFindById(1L, type);
+        List<OptionValueResponse> response = optionTypeService.getOptionValuesByTypeId(1L);
+
+        assertThat(response).hasSize(3);
+        assertThat(response)
+                .extracting("valueId", "typeId", "valueName")
+                .containsExactlyInAnyOrder(
+                        tuple(value1.getId(), value1.getOptionType().getId(), value1.getValueName()),
+                        tuple(value2.getId(), value2.getOptionType().getId(), value2.getValueName()),
+                        tuple(value3.getId(), value3.getOptionType().getId(), value3.getValueName())
+                );
+    }
+
+    @Test
+    @DisplayName("옵션 값 조회 테스트-실패(옵션 타입이 없음)")
+    void getOptionValuesByTypeIdTest_unit_notFound(){
+        mockFindById(1L, null);
+        mockMessageUtil(OPTION_TYPE_NOT_FOUND, "OptionType not found");
+        assertThatThrownBy(() -> optionTypeService.getOptionValuesByTypeId(1L))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage(getMessage(OPTION_TYPE_NOT_FOUND));
+    }
+
     private void mockExistsName(String name, boolean isExists){
         OngoingStubbing<Boolean> when = when(optionTypeRepository.existsByName(name));
         if(isExists){
@@ -183,5 +214,17 @@ public class OptionTypeServiceUnitTest {
         OptionTypes optionTypes = new OptionTypes(name);
         ReflectionTestUtils.setField(optionTypes, "id", id);
         return optionTypes;
+    }
+
+    private OptionValues createOptionValueWithSetId(Long id, String name){
+        OptionValues optionValues = new OptionValues(name);
+        ReflectionTestUtils.setField(optionValues, "id", id);
+        return optionValues;
+    }
+
+    private void addOptionValues(OptionTypes optionType, OptionValues... optionValues){
+        for (OptionValues optionValue : optionValues) {
+            optionType.addOptionValue(optionValue);
+        }
     }
 }
