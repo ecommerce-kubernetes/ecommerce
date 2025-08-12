@@ -48,29 +48,17 @@ public class CategoryService {
     }
 
     public CategoryHierarchyResponse getHierarchyByCategoryId(Long categoryId) {
-        Categories target = findByIdWithParentOrThrow(categoryId);
-
-        List<Categories> chain = new ArrayList<>();
-        while(target.getParent() != null){
-            chain.add(target);
-            target = target.getParent();
-        }
-        chain.add(target);
-        Collections.reverse(chain);
+        Categories target = findWithParentByIdOrThrow(categoryId);
         CategoryHierarchyResponse response = new CategoryHierarchyResponse();
 
-        response.getSiblingsByLevel().add(new CategoryHierarchyResponse.LevelItem(
-                1, categoryRepository.findByParentIsNull().stream().map(CategoryResponse::new).toList()
-        ));
-        for(int i=0; i<chain.size(); i++){
-            Categories category = chain.get(i);
-            response.getAncestors().add(new CategoryResponse(category));
-            response.getSiblingsByLevel().add(
-                    new CategoryHierarchyResponse.LevelItem(
-                            i+2,
-                            category.getChildren().stream().map(CategoryResponse::new).toList()
-                    )
-            );
+        List<Categories> ancestorChain = buildAncestorPath(target);
+        setAncestors(response, ancestorChain);
+
+        setSiblingsByLevel(1, response, categoryRepository.findByParentIsNull());
+
+        for(int i=0; i<ancestorChain.size(); i++){
+            Categories category = ancestorChain.get(i);
+            setSiblingsByLevel(i+2, response, category.getChildren());
         }
         return response;
     }
@@ -99,24 +87,22 @@ public class CategoryService {
         categoryRepository.delete(target);
     }
 
+    //TODO 삭제 예정
     public CategoryResponse getCategoryDetails(Long categoryId) {
         Categories category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new NotFoundException("Not Found Category"));
-
         return new CategoryResponse(category);
     }
 
+    //TODO 삭제 예정
     public CategoryResponse getRootCategoryDetailsOf(Long categoryId) {
         Categories category = categoryRepository.findWithParentById(categoryId)
                 .orElseThrow(() -> new NotFoundException("Not Found Category"));
-
         while (category.getParent() != null) {
             category = category.getParent();
         }
-
         return new CategoryResponse(category);
     }
-
     private void checkConflictName(String name) {
         if(categoryRepository.existsByName(name)){
             throw new DuplicateResourceException(ms.getMessage("category.conflict"));
@@ -128,7 +114,7 @@ public class CategoryService {
                 .orElseThrow(() -> new NotFoundException(ms.getMessage("category.notFound")));
     }
 
-    private Categories findByIdWithParentOrThrow(Long categoryId){
+    private Categories findWithParentByIdOrThrow(Long categoryId){
         return categoryRepository.findWithParentById(categoryId)
                 .orElseThrow(() -> new NotFoundException(ms.getMessage("category.notFound")));
     }
@@ -137,5 +123,25 @@ public class CategoryService {
         if(Objects.equals(targetId, parentId)){
             throw new BadRequestException(ms.getMessage("category.badRequest"));
         }
+    }
+
+    private List<Categories> buildAncestorPath(Categories target) {
+        List<Categories> chain = new ArrayList<>();
+        while(target.getParent() != null){
+            chain.add(target);
+            target = target.getParent();
+        }
+        chain.add(target);
+        Collections.reverse(chain);
+        return chain;
+    }
+
+    private void setSiblingsByLevel(int level, CategoryHierarchyResponse response, List<Categories> categories){
+        response.getSiblingsByLevel().add(new CategoryHierarchyResponse.LevelItem(level, categories.stream().map(CategoryResponse::new).toList()));
+    }
+
+    private void setAncestors(CategoryHierarchyResponse response, List<Categories> ancestors){
+        response.setAncestors(ancestors.stream()
+                .map(CategoryResponse::new).toList());
     }
 }
