@@ -58,7 +58,9 @@ public class CategoryService {
 
         for(int i=0; i<ancestorChain.size(); i++){
             Categories category = ancestorChain.get(i);
-            setSiblingsByLevel(i+2, response, category.getChildren());
+            if(!category.getChildren().isEmpty()){
+                setSiblingsByLevel(i+2, response, category.getChildren());
+            }
         }
         return response;
     }

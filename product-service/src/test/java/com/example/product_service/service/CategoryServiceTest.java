@@ -2,6 +2,7 @@ package com.example.product_service.service;
 
 import com.example.product_service.dto.request.category.CategoryRequest;
 import com.example.product_service.dto.request.category.UpdateCategoryRequest;
+import com.example.product_service.dto.response.category.CategoryHierarchyResponse;
 import com.example.product_service.dto.response.category.CategoryResponse;
 import com.example.product_service.entity.Categories;
 import com.example.product_service.exception.BadRequestException;
@@ -145,6 +146,55 @@ class CategoryServiceTest {
         assertThatThrownBy(() -> categoryService.getChildrenCategoriesById(999L))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage(getMessage(CATEGORY_NOT_FOUND));
+    }
+
+    @Test
+    @DisplayName("카테고리 계층 구조 조회 테스트-성공")
+    @Transactional
+    void getHierarchyByCategoryIdTest_integration_success(){
+        Categories level1_1 = new Categories("level1_1", "http://level1-1.jpg");
+        Categories level2_1 = new Categories("level2-1", "http://level2-1.jpg");
+        Categories level2_2 = new Categories("level2_2", "http://level2_2.jpg");
+        Categories level3_1 = new Categories("level3_1", "http://level3_1.jpg");
+        Categories level3_2 = new Categories("level3_2", "http://level3_2.jpg");
+
+        level1_1.addChild(level2_1);
+        level1_1.addChild(level2_2);
+        level2_1.addChild(level3_1);
+        level2_1.addChild(level3_2);
+        List<Categories> categories = List.of(level1_1, level2_1, level2_2, level3_1, level3_2);
+        categoryRepository.saveAll(categories);
+        em.flush(); em.clear();
+
+        CategoryHierarchyResponse response = categoryService.getHierarchyByCategoryId(level3_1.getId());
+
+        assertThat(response.getAncestors())
+                .extracting("name", "parentId", "iconUrl")
+                .containsExactlyInAnyOrder(
+                        tuple(level1_1.getName(), null, level1_1.getIconUrl()),
+                        tuple(level2_1.getName(), level1_1.getId(), level2_1.getIconUrl()),
+                        tuple(level3_1.getName(), level2_1.getId(), level3_1.getIconUrl()));
+
+        assertThat(itemsByLevel(response.getSiblingsByLevel(), 1))
+                .extracting(CategoryResponse::getId, CategoryResponse::getName, CategoryResponse::getParentId, CategoryResponse::getIconUrl)
+                .containsExactlyInAnyOrder(
+                        tuple(level1_1.getId(), level1_1.getName(), level1_1.getParent(), level1_1.getIconUrl()),
+                        tuple(parent.getId(), parent.getName(), parent.getParent(), parent.getIconUrl()),
+                        tuple(target.getId(), target.getName(), target.getParent(), target.getIconUrl()),
+                        tuple(duplicate.getId(), duplicate.getName(), duplicate.getParent(), duplicate.getIconUrl()));
+
+        assertThat(itemsByLevel(response.getSiblingsByLevel(), 2))
+                .extracting(CategoryResponse::getId, CategoryResponse::getName, CategoryResponse::getParentId, CategoryResponse::getIconUrl)
+                .containsExactlyInAnyOrder(
+                        tuple(level2_1.getId(), level2_1.getName(), level2_1.getParent().getId(), level2_1.getIconUrl()),
+                        tuple(level2_2.getId(), level2_2.getName(), level2_2.getParent().getId(), level2_2.getIconUrl()));
+
+        assertThat(itemsByLevel(response.getSiblingsByLevel(), 3))
+                .extracting(CategoryResponse::getId, CategoryResponse::getName, CategoryResponse::getParentId, CategoryResponse::getIconUrl)
+                .containsExactlyInAnyOrder(
+                        tuple(level3_1.getId(), level3_1.getName(), level3_1.getParent().getId(), level3_1.getIconUrl()),
+                        tuple(level3_2.getId(), level3_2.getName(), level3_2.getParent().getId(), level3_2.getIconUrl()));
+
     }
 
     @Test
@@ -312,5 +362,13 @@ class CategoryServiceTest {
         assertThatThrownBy(() -> categoryService.getRootCategoryDetailsOf(999L))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage("Not Found Category");
+    }
+
+    private List<CategoryResponse> itemsByLevel(List<CategoryHierarchyResponse.LevelItem> siblings, int level){
+        return siblings.stream()
+                .filter(s -> s.getLevel() == level)
+                .findFirst()
+                .map(CategoryHierarchyResponse.LevelItem::getItems)
+                .orElseThrow(() -> new AssertionError("level " + level + "not Found"));
     }
 }
