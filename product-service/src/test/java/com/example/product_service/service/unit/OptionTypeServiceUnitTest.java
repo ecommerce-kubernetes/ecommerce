@@ -10,6 +10,7 @@ import com.example.product_service.entity.OptionValues;
 import com.example.product_service.exception.DuplicateResourceException;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.repository.OptionTypeRepository;
+import com.example.product_service.repository.OptionValueRepository;
 import com.example.product_service.service.OptionTypeService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -36,9 +37,13 @@ public class OptionTypeServiceUnitTest {
     @Mock
     OptionTypeRepository optionTypeRepository;
     @Mock
+    OptionValueRepository optionValueRepository;
+    @Mock
     MessageSourceUtil ms;
     @Captor
-    private ArgumentCaptor<OptionTypes> captor;
+    private ArgumentCaptor<OptionTypes> typesArgumentCaptor;
+    @Captor
+    private ArgumentCaptor<OptionValues> valuesArgumentCaptor;
     @InjectMocks
     OptionTypeService optionTypeService;
 
@@ -52,9 +57,9 @@ public class OptionTypeServiceUnitTest {
 
         OptionTypeResponse response = optionTypeService.saveOptionType(request);
 
-        verify(optionTypeRepository).save(captor.capture());
+        verify(optionTypeRepository).save(typesArgumentCaptor.capture());
 
-        OptionTypes value = captor.getValue();
+        OptionTypes value = typesArgumentCaptor.getValue();
         assertThat(value.getName()).isEqualTo("name");
 
         assertThat(response.getName()).isEqualTo("name");
@@ -77,7 +82,15 @@ public class OptionTypeServiceUnitTest {
         OptionValueRequest request = new OptionValueRequest("name");
         OptionTypes optionType = spy(createOptionTypeWithSetId(1L, "optionType"));
         mockFindById(1L, optionType);
+        when(optionValueRepository.save(any(OptionValues.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
         OptionValueResponse response = optionTypeService.saveOptionValue(1L, request);
+
+        verify(optionValueRepository).save(valuesArgumentCaptor.capture());
+
+        OptionValues value = valuesArgumentCaptor.getValue();
+        assertThat(value.getValueName()).isEqualTo("name");
+
         assertThat(response.getTypeId()).isEqualTo(1L);
         assertThat(response.getValueName()).isEqualTo("name");
 
