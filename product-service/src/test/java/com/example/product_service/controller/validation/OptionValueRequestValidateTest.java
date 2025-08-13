@@ -39,7 +39,7 @@ public class OptionValueRequestValidateTest {
 
     static Stream<Arguments> invalidOptionValueRequestFieldProvider(){
         return Stream.of(
-                Arguments.of("value", "", getMessage(NOT_BLANK))
+                Arguments.of("valueName", "", getMessage(NOT_BLANK))
         );
     }
 }

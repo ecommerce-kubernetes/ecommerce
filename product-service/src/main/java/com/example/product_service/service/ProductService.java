@@ -12,18 +12,60 @@ import com.example.product_service.dto.response.product.ProductResponse;
 import com.example.product_service.dto.response.product.ProductSummaryResponse;
 import com.example.product_service.dto.response.product.ProductUpdateResponse;
 import com.example.product_service.dto.response.variant.ProductVariantResponse;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-public interface ProductService {
-    ProductResponse saveProduct(ProductRequest request);
-    List<ImageResponse> addImages(Long productId, AddImageRequest request);
-    ProductVariantResponse addVariant(Long productId, ProductVariantRequest request);
-    PageDto<ProductSummaryResponse> getProducts(ProductSearch search, Pageable pageable);
-    ProductResponse getProductById(Long productId);
-    PageDto<ReviewResponse> getReviewsByProductId(Long productId, Pageable pageable);
-    PageDto<ProductSummaryResponse> getPopularProducts(int page, int size, Long categoryId);
-    ProductUpdateResponse updateBasicInfoById(Long productId, UpdateProductBasicRequest request);
-    void deleteProductById(Long productId);
+@Service
+@Transactional(readOnly = true)
+@RequiredArgsConstructor
+@Slf4j
+public class ProductService {
+    
+    public ProductUpdateResponse updateBasicInfoById(Long productId, UpdateProductBasicRequest request) {
+        return null;
+    }
+    
+    public void deleteProductById(Long productId) {
+
+    }
+
+    
+    public PageDto<ProductSummaryResponse> getProducts(ProductSearch search, Pageable pageable) {
+        return null;
+    }
+
+    
+    public ProductResponse getProductById(Long productId) {
+        return null;
+    }
+
+    
+    public PageDto<ReviewResponse> getReviewsByProductId(Long productId, Pageable pageable) {
+        return null;
+    }
+
+    
+    public PageDto<ProductSummaryResponse> getPopularProducts(int page, int size, Long categoryId) {
+        return null;
+    }
+
+    
+    public ProductResponse saveProduct(ProductRequest request) {
+        return new ProductResponse();
+    }
+
+    
+    public List<ImageResponse> addImages(Long productId, AddImageRequest request) {
+        return List.of();
+    }
+
+    
+    public ProductVariantResponse addVariant(Long productId, ProductVariantRequest request) {
+        return null;
+    }
 }
