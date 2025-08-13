@@ -70,9 +70,7 @@ public class OptionTypeService {
 
     @Transactional
     public void deleteOptionTypeById(Long optionTypeId) {
-        OptionTypes target = optionTypeRepository.findById(optionTypeId)
-                .orElseThrow(() -> new NotFoundException("Not Found OptionType"));
-
+        OptionTypes target = findByIdOrThrow(optionTypeId);
         optionTypeRepository.delete(target);
     }
 

@@ -20,6 +20,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 import static com.example.product_service.controller.util.MessagePath.*;
 import static com.example.product_service.controller.util.TestMessageUtil.*;
@@ -201,6 +202,26 @@ class OptionTypeServiceTest {
         assertThatThrownBy(() -> optionTypeService.updateOptionTypeById(target.getId(), request))
                 .isInstanceOf(DuplicateResourceException.class)
                 .hasMessage(getMessage(OPTION_TYPE_CONFLICT));
+    }
+
+    @Test
+    @DisplayName("옵션 타입 삭제 테스트-성공")
+    @Transactional
+    void deleteOptionTypeTest_integration_success(){
+        optionTypeService.deleteOptionTypeById(existType.getId());
+        em.flush(); em.clear();
+
+        Optional<OptionTypes> result = optionTypeRepository.findById(existType.getId());
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    @DisplayName("옵션 타입 삭제 테스트-실패(옵션 타입을 찾을 수 없음)")
+    @Transactional
+    void deleteOptionTypeTest_integration_notFound(){
+        assertThatThrownBy(() -> optionTypeService.deleteOptionTypeById(999L))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage(getMessage(OPTION_TYPE_NOT_FOUND));
     }
 
     private void addOptionValues(OptionTypes type, OptionValues... optionValues){

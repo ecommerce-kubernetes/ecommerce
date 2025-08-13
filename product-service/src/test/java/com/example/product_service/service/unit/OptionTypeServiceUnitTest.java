@@ -222,6 +222,31 @@ public class OptionTypeServiceUnitTest {
         verify(type, never()).setName(any());
     }
 
+    @Test
+    @DisplayName("옵션 타입 삭제 테스트-성공")
+    void deleteOptionTypeTest_unit_success(){
+        OptionTypes target = spy(createOptionTypeWithSetId(1L, "target"));
+        mockFindById(1L, target);
+
+        optionTypeService.deleteOptionTypeById(1L);
+
+        verify(optionTypeRepository).delete(typesArgumentCaptor.capture());
+        OptionTypes value = typesArgumentCaptor.getValue();
+
+        assertThat(value.getId()).isEqualTo(1L);
+        assertThat(value.getName()).isEqualTo("target");
+    }
+
+    @Test
+    @DisplayName("옵션 타입 삭제 테스트-실패(옵션 타입을 찾을 수 없음)")
+    void deleteOptionTypeTest_unit_notFound(){
+        mockFindById(1L, null);
+        mockMessageUtil(OPTION_TYPE_NOT_FOUND, "OptionType not found");
+        assertThatThrownBy(() -> optionTypeService.deleteOptionTypeById(1L))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage(getMessage(OPTION_TYPE_NOT_FOUND));
+    }
+
     private void mockExistsName(String name, boolean isExists){
         OngoingStubbing<Boolean> when = when(optionTypeRepository.existsByName(name));
         if(isExists){
