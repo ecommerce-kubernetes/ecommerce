@@ -179,6 +179,49 @@ public class OptionTypeServiceUnitTest {
                 .hasMessage(getMessage(OPTION_TYPE_NOT_FOUND));
     }
 
+    @Test
+    @DisplayName("옵션 타입 수정 테스트-성공")
+    void updateOptionTypeTest_unit_success(){
+        OptionTypeRequest request = new OptionTypeRequest("updated");
+        OptionTypes exist = spy(createOptionTypeWithSetId(1L, "name"));
+        mockFindById(1L, exist);
+        mockExistsName("updated", false);
+
+        OptionTypeResponse response = optionTypeService.updateOptionTypeById(1L, request);
+        verify(exist).setName(request.getName());
+
+        assertThat(response.getName()).isEqualTo("updated");
+    }
+
+    @Test
+    @DisplayName("옵션 타입 수정 테스트-실패(없음)")
+    void updateOptionTypeTest_unit_notFound(){
+        OptionTypeRequest request = new OptionTypeRequest("updated");
+        mockMessageUtil(OPTION_TYPE_NOT_FOUND, "OptionType not found");
+        mockFindById(1L, null);
+
+        assertThatThrownBy(() -> optionTypeService.updateOptionTypeById(1L, request))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage(getMessage(OPTION_TYPE_NOT_FOUND));
+    }
+
+    @Test
+    @DisplayName("옵션 타입 수정 테스트-실패(중복 이름)")
+    void updateOptionTypeTest_unit_conflict(){
+        OptionTypeRequest request = new OptionTypeRequest("duplicate");
+        mockMessageUtil(OPTION_TYPE_CONFLICT, "OptionType already exists");
+
+        OptionTypes type = spy(createOptionTypeWithSetId(1L, "duplicate"));
+        mockFindById(1L, type);
+        mockExistsName("duplicate", true);
+
+        assertThatThrownBy(() -> optionTypeService.updateOptionTypeById(1L, request))
+                .isInstanceOf(DuplicateResourceException.class)
+                .hasMessage(getMessage(OPTION_TYPE_CONFLICT));
+
+        verify(type, never()).setName(any());
+    }
+
     private void mockExistsName(String name, boolean isExists){
         OngoingStubbing<Boolean> when = when(optionTypeRepository.existsByName(name));
         if(isExists){

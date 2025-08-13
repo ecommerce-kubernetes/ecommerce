@@ -159,10 +159,48 @@ class OptionTypeServiceTest {
 
     @Test
     @DisplayName("옵션 값 조회 테스트-실패(옵션 타입을 찾을 수 없음)")
+    @Transactional
     void getOptionValuesByTypeIdTest_integration_notFound(){
         assertThatThrownBy(() -> optionTypeService.getOptionValuesByTypeId(999L))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage(getMessage(OPTION_TYPE_NOT_FOUND));
+    }
+
+    @Test
+    @DisplayName("옵션 타입 수정 테스트-성공")
+    @Transactional
+    void updateOptionTypeTest_integration_success(){
+        OptionTypeRequest request = new OptionTypeRequest("updated");
+
+        OptionTypeResponse response = optionTypeService.updateOptionTypeById(existType.getId(), request);
+
+        assertThat(response.getId()).isEqualTo(existType.getId());
+        assertThat(response.getName()).isEqualTo("updated");
+    }
+
+    @Test
+    @DisplayName("옵션 타입 수정 테스트-실패(옵션 타입을 찾을 수 없음")
+    @Transactional
+    void updateOptionTypeTest_integration_notFound(){
+        OptionTypeRequest request = new OptionTypeRequest("updated");
+
+        assertThatThrownBy(() -> optionTypeService.updateOptionTypeById(999L, request))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage(getMessage(OPTION_TYPE_NOT_FOUND));
+    }
+
+    @Test
+    @DisplayName("옵션 타입 수정 테스트-실패(옵션 타입 이름 중복)")
+    @Transactional
+    void updateOptionTypeTest_integration_conflict(){
+        OptionTypes target = optionTypeRepository.save(new OptionTypes("target"));
+        OptionTypeRequest request = new OptionTypeRequest("exist");
+
+        em.flush(); em.clear();
+
+        assertThatThrownBy(() -> optionTypeService.updateOptionTypeById(target.getId(), request))
+                .isInstanceOf(DuplicateResourceException.class)
+                .hasMessage(getMessage(OPTION_TYPE_CONFLICT));
     }
 
     private void addOptionValues(OptionTypes type, OptionValues... optionValues){

@@ -60,16 +60,10 @@ public class OptionTypeService {
     }
 
     @Transactional
-    public OptionTypeResponse updateOptionTypeById(Long optionTypeId, OptionTypeRequest requestDto) {
-        OptionTypes target = optionTypeRepository.findById(optionTypeId)
-                .orElseThrow(() -> new NotFoundException("Not Found OptionType"));
-
-        target.setName(requestDto.getName());
-        try{
-            optionTypeRepository.flush();
-        } catch (DataIntegrityViolationException ex){
-            throw new DuplicateResourceException("OptionTypes name Conflict");
-        }
+    public OptionTypeResponse updateOptionTypeById(Long optionTypeId, OptionTypeRequest request) {
+        OptionTypes target = findByIdOrThrow(optionTypeId);
+        checkConflictTypeName(request.getName());
+        target.setName(request.getName());
         return new OptionTypeResponse(target);
     }
 

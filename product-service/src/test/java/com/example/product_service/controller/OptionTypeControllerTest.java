@@ -216,6 +216,18 @@ class OptionTypeControllerTest {
     }
 
     @Test
+    @DisplayName("옵션 타입 수정 테스트-실패(이름 중복)")
+    void updateOptionTypeTest_conflict() throws Exception {
+        OptionTypeRequest request = new OptionTypeRequest("duplicate");
+        when(service.updateOptionTypeById(anyLong(), any(OptionTypeRequest.class)))
+                .thenThrow(new DuplicateResourceException(getMessage(OPTION_TYPE_CONFLICT)));
+
+        ResultActions perform = performWithBody(mockMvc, patch(ID_PATH), request);
+        verifyErrorResponse(perform, status().isConflict(), getMessage(CONFLICT),
+                getMessage(OPTION_TYPE_CONFLICT), ID_PATH);
+    }
+
+    @Test
     @DisplayName("옵션 타입 삭제 테스트-성공")
     void deleteOptionTypeTest_success() throws Exception {
 
