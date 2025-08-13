@@ -3,6 +3,7 @@ import com.example.product_service.dto.request.image.ImageRequest;
 import com.example.product_service.dto.request.options.ProductOptionTypeRequest;
 import com.example.product_service.dto.request.product.ProductRequest;
 import com.example.product_service.dto.request.variant.ProductVariantRequest;
+import com.example.product_service.dto.request.variant.VariantOptionValueRequest;
 import jakarta.validation.ConstraintViolation;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -74,7 +75,8 @@ public class ProductRequestValidationTest {
     private ProductVariantRequest createProductVariantRequest(){
         return new ProductVariantRequest(
                 "sku", 100, 100, 10,
-                List.of(1L, 2L)
+                List.of(new VariantOptionValueRequest(1L, 1L),
+                        new VariantOptionValueRequest(2L, 5L))
         );
     }
 }

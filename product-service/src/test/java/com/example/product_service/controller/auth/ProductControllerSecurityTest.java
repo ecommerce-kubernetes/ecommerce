@@ -12,6 +12,7 @@ import com.example.product_service.dto.request.options.ProductOptionTypeRequest;
 import com.example.product_service.dto.request.product.ProductRequest;
 import com.example.product_service.dto.request.product.UpdateProductBasicRequest;
 import com.example.product_service.dto.request.variant.ProductVariantRequest;
+import com.example.product_service.dto.request.variant.VariantOptionValueRequest;
 import com.example.product_service.service.ProductService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -158,16 +159,19 @@ public class ProductControllerSecurityTest {
     private List<ProductVariantRequest> createProductVariantRequestList(){
         return List.of(new ProductVariantRequest("sku",
                 1, 1, 0,
-                createProductOptionValueIdsRequest()));
+                createVariantOptionRequest()));
     }
 
-    private List<Long> createProductOptionValueIdsRequest(){
-        return List.of(1L);
+    private List<VariantOptionValueRequest> createVariantOptionRequest(){
+        return List.of(new VariantOptionValueRequest(1L, 1L));
     }
     private AddImageRequest createAddImageRequest(){
         return new AddImageRequest(List.of("http://test1.jpg", "http://test2.jpg"));
     }
     private ProductVariantRequest createProductVariantRequest(){
-        return new ProductVariantRequest("sku", 100, 100, 10, List.of(1L,2L));
+        return new ProductVariantRequest("sku", 100, 100, 10, List.of(
+                new VariantOptionValueRequest(1L, 1L),
+                new VariantOptionValueRequest(2L,5L)
+        ));
     }
 }

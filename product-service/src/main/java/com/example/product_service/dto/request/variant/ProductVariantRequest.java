@@ -28,5 +28,5 @@ public class ProductVariantRequest {
     @Min(value = 0, message = "{Min}")
     @Max(value = 100, message = "{Max}")
     private Integer discountRate;
-    private List<Long> optionValueIds;
+    private List<VariantOptionValueRequest> variantOption;
 }

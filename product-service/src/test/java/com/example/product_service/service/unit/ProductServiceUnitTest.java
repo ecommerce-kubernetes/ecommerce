@@ -7,6 +7,7 @@ import com.example.product_service.dto.request.image.ImageRequest;
 import com.example.product_service.dto.request.options.ProductOptionTypeRequest;
 import com.example.product_service.dto.request.product.ProductRequest;
 import com.example.product_service.dto.request.variant.ProductVariantRequest;
+import com.example.product_service.dto.request.variant.VariantOptionValueRequest;
 import com.example.product_service.dto.response.product.ProductResponse;
 import com.example.product_service.entity.Categories;
 import com.example.product_service.entity.OptionTypes;
@@ -58,7 +59,9 @@ public class ProductServiceUnitTest {
                 1L,
                 List.of(new ImageRequest("http://test.jpg", 0)),
                 List.of(new ProductOptionTypeRequest(1L, 1)),
-                List.of(new ProductVariantRequest("sku", 3000, 100, 10, List.of(1L)))
+                List.of(new ProductVariantRequest("sku", 3000, 100, 10, List.of(
+                        new VariantOptionValueRequest(1L, 1L)
+                )))
         );
 
         ProductResponse response = productService.saveProduct(request);
@@ -88,7 +91,9 @@ public class ProductServiceUnitTest {
                 1L,
                 List.of(new ImageRequest("http://test.jpg", 0)),
                 List.of(new ProductOptionTypeRequest(1L, 1)),
-                List.of(new ProductVariantRequest("sku", 3000, 100, 10, List.of(1L)))
+                List.of(new ProductVariantRequest("sku", 3000, 100, 10, List.of(
+                        new VariantOptionValueRequest(1L, 1L)
+                )))
         );
         mockFindCategoryById(1L, null);
         mockMessageUtil(CATEGORY_NOT_FOUND, "Category not found");
@@ -106,7 +111,9 @@ public class ProductServiceUnitTest {
                 1L,
                 List.of(new ImageRequest("http://test.jpg", 0)),
                 List.of(new ProductOptionTypeRequest(1L, 1)),
-                List.of(new ProductVariantRequest("sku", 3000, 100, 10, List.of(1L)))
+                List.of(new ProductVariantRequest("sku", 3000, 100, 10, List.of(
+                        new VariantOptionValueRequest(1L, 1L)
+                )))
         );
         Categories category = createCategoriesWithSetId(1L, "category", "http://category.jpg");
         mockFindCategoryById(1L, category);

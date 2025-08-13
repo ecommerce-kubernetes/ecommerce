@@ -9,6 +9,7 @@ import com.example.product_service.dto.request.options.ProductOptionTypeRequest;
 import com.example.product_service.dto.request.product.ProductRequest;
 import com.example.product_service.dto.request.product.UpdateProductBasicRequest;
 import com.example.product_service.dto.request.variant.ProductVariantRequest;
+import com.example.product_service.dto.request.variant.VariantOptionValueRequest;
 import com.example.product_service.dto.response.PageDto;
 import com.example.product_service.dto.response.ReviewResponse;
 import com.example.product_service.dto.response.image.ImageResponse;
@@ -420,7 +421,7 @@ class ProductControllerTest {
         return new ProductRequest("product", "description", 1L,
                 List.of(new ImageRequest(IMAGE_URL, 0)),
                 List.of(new ProductOptionTypeRequest(1L, 0)),
-                List.of(new ProductVariantRequest("sku", 100, 10, 10, List.of(1L))));
+                List.of(new ProductVariantRequest("sku", 100, 10, 10, List.of(new VariantOptionValueRequest(1L, 1L)))));
     }
 
     private List<ProductSummaryResponse> createProductSummaryResponse(){
@@ -441,6 +442,7 @@ class ProductControllerTest {
     }
 
     private ProductVariantRequest createProductVariantRequest(){
-        return new ProductVariantRequest("sku", 1000, 10, 10, List.of(1L, 2L));
+        return new ProductVariantRequest("sku", 1000, 10, 10, List.of(new VariantOptionValueRequest(1L, 2L),
+                new VariantOptionValueRequest(2L, 5L)));
     }
 }

@@ -28,6 +28,6 @@ public class ProductRequest {
     private List<ImageRequest> images;
     @Valid
     private List<ProductOptionTypeRequest> productOptionTypes;
-    @NotEmpty(message = "{NotEmpty}")    @Valid
+    @NotEmpty(message = "{NotEmpty}") @Valid
     private List<ProductVariantRequest> productVariants;
 }
