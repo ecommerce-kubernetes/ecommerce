@@ -11,10 +11,8 @@ import com.example.product_service.exception.DuplicateResourceException;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.repository.OptionTypeRepository;
 import com.example.product_service.repository.OptionValueRepository;
-import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,8 +40,8 @@ public class OptionTypeService {
     @Transactional
     public OptionValueResponse saveOptionValue(Long optionTypeId, OptionValueRequest request) {
         OptionTypes optionType = findByIdOrThrow(optionTypeId);
-        checkConflictValueName(optionType, request.getValue());
-        OptionValues optionValue = new OptionValues(request.getValue());
+        checkConflictValueName(optionType, request.getValueName());
+        OptionValues optionValue = new OptionValues(request.getValueName());
         optionType.addOptionValue(optionValue);
         OptionValues saved = optionValueRepository.save(optionValue);
         return new OptionValueResponse(saved);
