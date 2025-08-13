@@ -18,6 +18,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 import static com.example.product_service.controller.util.MessagePath.OPTION_VALUE_CONFLICT;
 import static com.example.product_service.controller.util.MessagePath.OPTION_VALUE_NOT_FOUND;
 import static com.example.product_service.controller.util.TestMessageUtil.getMessage;
@@ -109,5 +111,24 @@ class OptionValueServiceTest {
         assertThatThrownBy(() -> optionValueService.updateOptionValueById(target.getId(), request))
                 .isInstanceOf(DuplicateResourceException.class)
                 .hasMessage(getMessage(OPTION_VALUE_CONFLICT));
+    }
+
+    @Test
+    @DisplayName("옵션 값 삭제 테스트-성공")
+    void deleteOptionValueByIdTest_integration_success(){
+        optionValueService.deleteOptionValueById(target.getId());
+        em.flush(); em.clear();
+
+        Optional<OptionValues> result = optionValueRepository.findById(target.getId());
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    @DisplayName("옵션 값 삭제 테스트-실패(옵션 값 찾을 수 없음)")
+    void deleteOptionValueByIdTest_integration_notFound(){
+        assertThatThrownBy(() -> optionValueService.deleteOptionValueById(999L))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage(getMessage(OPTION_VALUE_NOT_FOUND));
     }
 }

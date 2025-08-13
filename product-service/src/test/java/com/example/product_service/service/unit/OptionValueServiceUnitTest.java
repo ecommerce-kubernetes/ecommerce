@@ -27,7 +27,7 @@ import static com.example.product_service.controller.util.MessagePath.OPTION_VAL
 import static com.example.product_service.controller.util.TestMessageUtil.getMessage;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class OptionValueServiceUnitTest {
@@ -106,6 +106,30 @@ public class OptionValueServiceUnitTest {
         assertThatThrownBy(() -> optionValueService.updateOptionValueById(1L, request))
                 .isInstanceOf(DuplicateResourceException.class)
                 .hasMessage(getMessage(OPTION_VALUE_CONFLICT));
+    }
+
+    @Test
+    @DisplayName("옵션 값 삭제 테스트-성공")
+    void deleteOptionValueByIdTest_unit_success(){
+        OptionTypes type = spy(createOptionTypeWithSetId(1L, "type"));
+        OptionValues value = spy(createOptionValueWithSetId(1L, "value"));
+        type.addOptionValue(value);
+        mockFindById(1L, value);
+
+        optionValueService.deleteOptionValueById(1L);
+
+        verify(type).removeOptionValue(value);
+    }
+
+    @Test
+    @DisplayName("옵션 값 삭제 테스트-실패(옵션 값 찾을 수 없음)")
+    void deleteOptionValueByIdTest_unit_notFound(){
+        mockFindById(1L, null);
+        mockMessageUtil(OPTION_VALUE_NOT_FOUND, "OptionValue not found");
+
+        assertThatThrownBy(() -> optionValueService.deleteOptionValueById(1L))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage(getMessage(OPTION_VALUE_NOT_FOUND));
     }
 
     private void mockFindById(Long id, OptionValues o){

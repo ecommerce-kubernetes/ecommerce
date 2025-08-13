@@ -32,4 +32,9 @@ public class OptionTypes {
         this.optionValues.add(optionValue);
         optionValue.setOptionType(this);
     }
+
+    public void removeOptionValue(OptionValues optionValue){
+        this.optionValues.remove(optionValue);
+        optionValue.setValueName(null);
+    }
 }

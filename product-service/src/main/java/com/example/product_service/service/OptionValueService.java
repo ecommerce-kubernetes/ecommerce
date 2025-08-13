@@ -36,8 +36,12 @@ public class OptionValueService {
         return new OptionValueResponse(target);
     }
 
+    @Transactional
     public void deleteOptionValueById(Long optionValueId) {
+        OptionValues target = findByIdOrThrow(optionValueId);
+        OptionTypes optionType = target.getOptionType();
 
+        optionType.removeOptionValue(target);
     }
 
     private OptionValues findByIdOrThrow(Long optionValueId) {
