@@ -22,8 +22,11 @@ public class ProductVariantOptions extends BaseEntity {
     @JoinColumn(name = "option_value_id")
     private OptionValues optionValue;
 
-    public ProductVariantOptions(ProductVariants productVariant, OptionValues optionValue){
-        this.productVariant = productVariant;
+    public ProductVariantOptions(OptionValues optionValue){
         this.optionValue = optionValue;
+    }
+
+    protected void setProductVariant(ProductVariants productVariant){
+        this.productVariant = productVariant;
     }
 }

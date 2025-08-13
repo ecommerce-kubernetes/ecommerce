@@ -40,49 +40,14 @@ public class Products extends BaseEntity {
         this.category = category;
     }
 
-    public void addImage(String imageUrl, int sortOrder){
-        ProductImages image = new ProductImages(this, imageUrl, sortOrder);
-        images.add(image);
+    public void addImage(ProductImages image){
+        this.images.add(image);
+        image.setProduct(this);
     }
 
-    public void removeImage(ProductImages image) {
-        images.remove(image);
-        image.setProduct(null);
-    }
-
-    public void addProductOptionTypes(OptionTypes optionTypes, int priority, boolean active){
-        ProductOptionTypes productOptionType =
-                new ProductOptionTypes(this, optionTypes, priority, active);
-
+    public void addOptionType(ProductOptionTypes productOptionType){
         this.productOptionTypes.add(productOptionType);
-    }
-
-    public void addProductVariants(String sku, int price, int stockQuantity, int discountValue,
-                                   List<OptionValues> optionValues){
-        ProductVariants productVariant = new ProductVariants(this, sku, price, stockQuantity, discountValue);
-
-        for (OptionValues optionValue : optionValues) {
-            productVariant.addProductVariantOption(optionValue);
-        }
-        this.productVariants.add(productVariant);
-    }
-
-    public void removeProductVariants(ProductVariants productVariant){
-        productVariants.remove(productVariant);
-        productVariant.setProduct(null);
-    }
-
-
-    public void modifyBasicInfo(String name, String description, Categories category){
-        if(name != null){
-            this.name = name;
-        }
-        if(description != null){
-            this.description = description;
-        }
-        if(category != null){
-            this.category = category;
-        }
+        productOptionType.setProduct(this);
     }
 
 }

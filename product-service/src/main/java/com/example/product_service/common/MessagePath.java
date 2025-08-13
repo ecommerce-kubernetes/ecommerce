@@ -30,6 +30,7 @@ public final class MessagePath {
     public static final String PRODUCT_IMAGE_NOT_FOUND = "product-image.notFound";
 
     public static final String PRODUCT_VARIANT_NOT_FOUND = "product-variant.notFound";
+    public static final String PRODUCT_VARIANT_CONFLICT = "product-variant.conflict";
     public static final String HEADER_MISSING = "Header-Missing";
     public static final String REVIEW_FORBIDDEN = "review.forbidden.create";
     public static final String REVIEW_NOT_FOUND = "review.notFound";

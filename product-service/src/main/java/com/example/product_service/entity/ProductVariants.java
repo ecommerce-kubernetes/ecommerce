@@ -31,17 +31,16 @@ public class ProductVariants {
     private int stockQuantity;
     private int discountValue;
 
-    public ProductVariants(Products product, String sku, int price, int stockQuantity, int discountValue){
-        this.product = product;
+    public ProductVariants(String sku, int price, int stockQuantity, int discountValue){
         this.sku = sku;
         this.price = price;
         this.stockQuantity = stockQuantity;
         this.discountValue = discountValue;
     }
 
-    public void addProductVariantOption(OptionValues optionValue){
-        ProductVariantOptions productVariantOption = new ProductVariantOptions(this, optionValue);
+    public void addProductVariantOption(ProductVariantOptions productVariantOption){
         this.productVariantOptions.add(productVariantOption);
+        productVariantOption.setProductVariant(this);
     }
 
     public int getDiscountPrice(){

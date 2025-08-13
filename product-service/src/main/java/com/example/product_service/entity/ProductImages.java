@@ -22,8 +22,7 @@ public class ProductImages extends BaseEntity {
     @Setter
     private Integer sortOrder;
 
-    public ProductImages(Products product, String imageUrl, int sortOrder){
-        this.product = product;
+    public ProductImages(String imageUrl, int sortOrder){
         this.imageUrl = imageUrl;
         this.sortOrder = sortOrder;
     }
