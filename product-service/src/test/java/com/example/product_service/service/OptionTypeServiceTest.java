@@ -27,6 +27,7 @@ import static com.example.product_service.controller.util.TestMessageUtil.*;
 import static org.assertj.core.api.Assertions.*;
 
 @SpringBootTest
+@Transactional
 class OptionTypeServiceTest {
 
     @Autowired
@@ -58,7 +59,6 @@ class OptionTypeServiceTest {
 
     @Test
     @DisplayName("옵션 타입 저장 테스트-성공")
-    @Transactional
     void saveOptionTypeTest_integration_success(){
         OptionTypeRequest request = new OptionTypeRequest("name");
 
@@ -70,7 +70,6 @@ class OptionTypeServiceTest {
 
     @Test
     @DisplayName("옵션 타입 저장 테스트-실패(옵션 타입 이름 중복)")
-    @Transactional
     void saveOptionTypeTest_integration_conflict(){
         OptionTypeRequest request = new OptionTypeRequest("exist");
 
@@ -81,7 +80,6 @@ class OptionTypeServiceTest {
 
     @Test
     @DisplayName("옵션 값 저장 테스트-성공")
-    @Transactional
     void saveOptionValueTest_integration_success(){
         OptionValueRequest request = new OptionValueRequest("value");
         OptionValueResponse response = optionTypeService.saveOptionValue(existType.getId(), request);
@@ -92,7 +90,6 @@ class OptionTypeServiceTest {
 
     @Test
     @DisplayName("옵션 값 저장 테스트-실패(옵션 타입 없음)")
-    @Transactional
     void saveOptionValueTest_integration_notFound(){
         OptionValueRequest request = new OptionValueRequest("valueName");
 
@@ -103,7 +100,6 @@ class OptionTypeServiceTest {
     
     @Test
     @DisplayName("옵션 값 저장 테스트-실패(옵션 값 이름 중복)")
-    @Transactional
     void saveOptionValueTest_integration_conflict(){
         OptionValueRequest request = new OptionValueRequest("existValueName");
         assertThatThrownBy(() -> optionTypeService.saveOptionValue(existType.getId(), request))
@@ -113,7 +109,6 @@ class OptionTypeServiceTest {
 
     @Test
     @DisplayName("옵션 타입 조회 테스트-성공")
-    @Transactional
     void getOptionTypesTest_integration_success() {
         OptionTypes type1 = optionTypeRepository.save(new OptionTypes("type1"));
         OptionTypes type2 = optionTypeRepository.save(new OptionTypes("type2"));
@@ -136,7 +131,6 @@ class OptionTypeServiceTest {
 
     @Test
     @DisplayName("옵션 값 조회 테스트-성공")
-    @Transactional
     void getOptionValuesByTypeIdTest_integration_success() {
         OptionValues value1 = new OptionValues("value1");
         OptionValues value2 = new OptionValues("value2");
@@ -160,7 +154,6 @@ class OptionTypeServiceTest {
 
     @Test
     @DisplayName("옵션 값 조회 테스트-실패(옵션 타입을 찾을 수 없음)")
-    @Transactional
     void getOptionValuesByTypeIdTest_integration_notFound(){
         assertThatThrownBy(() -> optionTypeService.getOptionValuesByTypeId(999L))
                 .isInstanceOf(NotFoundException.class)
@@ -169,7 +162,6 @@ class OptionTypeServiceTest {
 
     @Test
     @DisplayName("옵션 타입 수정 테스트-성공")
-    @Transactional
     void updateOptionTypeTest_integration_success(){
         OptionTypeRequest request = new OptionTypeRequest("updated");
 
@@ -181,7 +173,6 @@ class OptionTypeServiceTest {
 
     @Test
     @DisplayName("옵션 타입 수정 테스트-실패(옵션 타입을 찾을 수 없음")
-    @Transactional
     void updateOptionTypeTest_integration_notFound(){
         OptionTypeRequest request = new OptionTypeRequest("updated");
 
@@ -192,7 +183,6 @@ class OptionTypeServiceTest {
 
     @Test
     @DisplayName("옵션 타입 수정 테스트-실패(옵션 타입 이름 중복)")
-    @Transactional
     void updateOptionTypeTest_integration_conflict(){
         OptionTypes target = optionTypeRepository.save(new OptionTypes("target"));
         OptionTypeRequest request = new OptionTypeRequest("exist");
@@ -206,7 +196,6 @@ class OptionTypeServiceTest {
 
     @Test
     @DisplayName("옵션 타입 삭제 테스트-성공")
-    @Transactional
     void deleteOptionTypeTest_integration_success(){
         optionTypeService.deleteOptionTypeById(existType.getId());
         em.flush(); em.clear();
@@ -217,7 +206,6 @@ class OptionTypeServiceTest {
 
     @Test
     @DisplayName("옵션 타입 삭제 테스트-실패(옵션 타입을 찾을 수 없음)")
-    @Transactional
     void deleteOptionTypeTest_integration_notFound(){
         assertThatThrownBy(() -> optionTypeService.deleteOptionTypeById(999L))
                 .isInstanceOf(NotFoundException.class)
