@@ -1,8 +1,6 @@
 package com.example.product_service.service.unit;
 
 import com.example.product_service.common.MessageSourceUtil;
-import com.example.product_service.controller.util.MessagePath;
-import com.example.product_service.controller.util.TestMessageUtil;
 import com.example.product_service.dto.request.image.ImageRequest;
 import com.example.product_service.dto.request.options.ProductOptionTypeRequest;
 import com.example.product_service.dto.request.product.ProductRequest;
@@ -18,7 +16,6 @@ import com.example.product_service.exception.DuplicateResourceException;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.repository.*;
 import com.example.product_service.service.ProductService;
-import org.assertj.core.api.Assertions;
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -74,7 +71,7 @@ public class ProductServiceUnitTest {
         OptionValues optionValue = createOptionValuesWithSetId(5L, "optionValue");
         optionType.addOptionValue(optionValue);
         mockFindCategoryById(1L, category);
-        mockFindOptionTypeById(1L, optionType);
+        mockFindOptionTypeByIdIn(List.of(1L), List.of(optionType));
         mockFindOptionValueById(5L, optionValue);
         mockExistsSku("sku", false);
         when(productsRepository.save(any(Products.class)))
@@ -144,7 +141,7 @@ public class ProductServiceUnitTest {
         );
         Categories category = createCategoriesWithSetId(1L, "category", "http://category.jpg");
         mockFindCategoryById(1L, category);
-        mockFindOptionTypeById(1L, null);
+        mockFindOptionTypeByIdIn(List.of(1L), List.of());
         mockMessageUtil(OPTION_TYPE_NOT_FOUND, "OptionType not found");
         assertThatThrownBy(() -> productService.saveProduct(request))
                 .isInstanceOf(NotFoundException.class)
@@ -167,7 +164,7 @@ public class ProductServiceUnitTest {
         Categories category = createCategoriesWithSetId(1L, "category", "http://category.jpg");
         OptionTypes optionType = createOptionTypesWithSetId(1L, "optionType");
         mockFindCategoryById(1L, category);
-        mockFindOptionTypeById(1L, optionType);
+        mockFindOptionTypeByIdIn(List.of(1L), List.of(optionType));
         mockMessageUtil(PRODUCT_OPTION_VALUE_CARDINALITY_VIOLATION, "Each product variant must have exactly one option value per option type");
 
         assertThatThrownBy(() -> productService.saveProduct(request))
@@ -192,7 +189,7 @@ public class ProductServiceUnitTest {
         Categories category = createCategoriesWithSetId(1L, "category", "http://category.jpg");
         OptionTypes optionType = createOptionTypesWithSetId(1L, "optionType");
         mockFindCategoryById(1L, category);
-        mockFindOptionTypeById(1L, optionType);
+        mockFindOptionTypeByIdIn(List.of(1L), List.of(optionType));
         mockMessageUtil(PRODUCT_OPTION_VALUE_CARDINALITY_VIOLATION, "Each product variant must have exactly one option value per option type");
 
         assertThatThrownBy(() -> productService.saveProduct(request))
@@ -217,8 +214,7 @@ public class ProductServiceUnitTest {
         OptionTypes optionType1 = createOptionTypesWithSetId(1L, "optionType1");
         OptionTypes optionType2 = createOptionTypesWithSetId(2L, "optionType2");
         mockFindCategoryById(1L, category);
-        mockFindOptionTypeById(1L, optionType1);
-        mockFindOptionTypeById(2L, optionType2);
+        mockFindOptionTypeByIdIn(List.of(1L, 2L), List.of(optionType1, optionType2));
         mockMessageUtil(PRODUCT_OPTION_VALUE_CARDINALITY_VIOLATION, "Each product variant must have exactly one option value per option type");
 
         assertThatThrownBy(() -> productService.saveProduct(request))
@@ -244,8 +240,8 @@ public class ProductServiceUnitTest {
         OptionTypes optionType1 = createOptionTypesWithSetId(1L, "optionType1");
         OptionTypes optionType2 = createOptionTypesWithSetId(2L, "optionType2");
         mockFindCategoryById(1L, category);
-        mockFindOptionTypeById(1L, optionType1);
-        mockFindOptionTypeById(2L, optionType2);
+
+        mockFindOptionTypeByIdIn(List.of(1L,2L), List.of(optionType1, optionType2));
         mockMessageUtil(PRODUCT_OPTION_VALUE_CARDINALITY_VIOLATION, "Each product variant must have exactly one option value per option type");
 
         assertThatThrownBy(() -> productService.saveProduct(request))
@@ -269,7 +265,7 @@ public class ProductServiceUnitTest {
         Categories category = createCategoriesWithSetId(1L, "category", "http://category.jpg");
         OptionTypes optionType = createOptionTypesWithSetId(1L, "optionType");
         mockFindCategoryById(1L, category);
-        mockFindOptionTypeById(1L, optionType);
+        mockFindOptionTypeByIdIn(List.of(1L), List.of(optionType));
         mockMessageUtil(PRODUCT_OPTION_VALUE_NOT_MATCH_TYPE, "OptionValue must belong to the OptionType");
 
         assertThatThrownBy(() -> productService.saveProduct(request))
@@ -294,7 +290,7 @@ public class ProductServiceUnitTest {
         OptionValues optionValue = createOptionValuesWithSetId(5L, "optionValue");
         optionType.addOptionValue(optionValue);
         mockFindCategoryById(1L, category);
-        mockFindOptionTypeById(1L, optionType);
+        mockFindOptionTypeByIdIn(List.of(1L), List.of(optionType));
         mockExistsSku("sku", true);
         mockMessageUtil(PRODUCT_VARIANT_CONFLICT, "Product Variant SKU already exists");
         assertThatThrownBy(() -> productService.saveProduct(request))
@@ -340,6 +336,10 @@ public class ProductServiceUnitTest {
         } else {
             when.thenReturn(Optional.of(o));
         }
+    }
+
+    private void mockFindOptionTypeByIdIn(List<Long> ids, List<OptionTypes> returnList) {
+        when(optionTypeRepository.findByIdIn(ids)).thenReturn(returnList);
     }
 
     private Categories createCategoriesWithSetId(Long id, String name, String url){

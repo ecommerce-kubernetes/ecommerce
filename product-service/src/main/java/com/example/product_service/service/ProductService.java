@@ -32,6 +32,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.example.product_service.common.MessagePath.*;
@@ -51,15 +52,13 @@ public class ProductService {
     @Transactional
     public ProductResponse saveProduct(ProductRequest request) {
         Categories category = findCategoryByIdOrThrow(request.getCategoryId());
-        Map<OptionTypes, Integer> productOptionTypeMap = getProductOptionTypeMap(request.getProductOptionTypes());
+        Map<Long, OptionTypes> productOptionTypeMap = getProductOptionTypeMap(request.getProductOptionTypes());
         List<ProductVariantRequest> productVariants = request.getProductVariants();
 
-        Set<Long> requiredOptionTypeIds = productOptionTypeMap.keySet().stream()
-                .map(OptionTypes::getId)
-                .collect(Collectors.toSet());
+        Set<Long> requiredOptionTypeIds = new HashSet<>(productOptionTypeMap.keySet());
         for (ProductVariantRequest productVariant : productVariants) {
             validateVariantOptionTypeSetExact(requiredOptionTypeIds, productVariant.getVariantOption());
-            validateVariantOptionValueExistAndBelong(productOptionTypeMap.keySet().stream().toList(), productVariant.getVariantOption());
+            validateVariantOptionValueExistAndBelong(productOptionTypeMap.values().stream().toList(), productVariant.getVariantOption());
             validateConflictSku(productVariant.getSku());
         }
 
@@ -68,8 +67,12 @@ public class ProductService {
             ProductImages productImages = new ProductImages(imageRequest.getUrl(), imageRequest.getSortOrder());
             product.addImage(productImages);
         }
-        for (Map.Entry<OptionTypes, Integer> entry : productOptionTypeMap.entrySet()) {
-            ProductOptionTypes productOptionTypes = new ProductOptionTypes(entry.getKey(), entry.getValue(), true);
+        for (Map.Entry<Long, OptionTypes> entry : productOptionTypeMap.entrySet()) {
+            ProductOptionTypeRequest productOptionTypeRequest = request.getProductOptionTypes().stream()
+                    .filter(otr -> Objects.equals(entry.getKey(), otr.getOptionTypeId()))
+                    .findFirst()
+                    .orElseThrow(() -> new NotFoundException(ms.getMessage(OPTION_TYPE_NOT_FOUND)));
+            ProductOptionTypes productOptionTypes = new ProductOptionTypes(entry.getValue(), productOptionTypeRequest.getPriority(), true);
             product.addOptionType(productOptionTypes);
         }
         for(ProductVariantRequest variant : productVariants){
@@ -88,10 +91,16 @@ public class ProductService {
         return new ProductResponse(save);
     }
 
-    private Map<OptionTypes, Integer> getProductOptionTypeMap(List<ProductOptionTypeRequest> requestOptionTypes){
-        return requestOptionTypes.stream()
-                .collect(Collectors.toMap(ot -> findOptionTypeByIdOrThrow(ot.getOptionTypeId()),
-                        ProductOptionTypeRequest::getPriority));
+    private Map<Long, OptionTypes> getProductOptionTypeMap(List<ProductOptionTypeRequest> requestOptionTypes){
+        List<Long> reqTypeIds = requestOptionTypes.stream().map(ProductOptionTypeRequest::getOptionTypeId).toList();
+        List<OptionTypes> findTypes = optionTypeRepository.findByIdIn(reqTypeIds);
+
+        if(reqTypeIds.size() != findTypes.size()){
+            throw new NotFoundException(ms.getMessage(OPTION_TYPE_NOT_FOUND));
+        }
+
+        return findTypes.stream()
+                .collect(Collectors.toMap(OptionTypes::getId, Function.identity()));
     }
 
     private void validateConflictSku(String sku){
