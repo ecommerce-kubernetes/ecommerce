@@ -51,12 +51,7 @@ public class ProductService {
         Map<Long, OptionTypes> productOptionTypeMap = getProductOptionTypeMap(request.getProductOptionTypes());
         List<ProductVariantRequest> productVariants = request.getProductVariants();
 
-        Set<Long> requiredOptionTypeIds = new HashSet<>(productOptionTypeMap.keySet());
-        for (ProductVariantRequest productVariant : productVariants) {
-            validateVariantOptionTypeSetExact(requiredOptionTypeIds, productVariant.getVariantOption());
-            validateVariantOptionValueExistAndBelong(productOptionTypeMap.values().stream().toList(), productVariant.getVariantOption());
-            validateConflictSku(productVariant.getSku());
-        }
+        validateProductRequestStructure(productOptionTypeMap, request);
 
         Products product = new Products(request.getName(), request.getDescription(), category);
         for(ImageRequest imageRequest : request.getImages()){
@@ -85,6 +80,16 @@ public class ProductService {
 
         Products save = productsRepository.save(product);
         return new ProductResponse(save);
+    }
+
+    private void validateProductRequestStructure(Map<Long, OptionTypes> productOptionTypeMap, ProductRequest request){
+        List<ProductVariantRequest> productVariants = request.getProductVariants();
+        Set<Long> requiredOptionTypeIds = new HashSet<>(productOptionTypeMap.keySet());
+        for (ProductVariantRequest productVariant : productVariants) {
+            validateVariantOptionTypeSetExact(requiredOptionTypeIds, productVariant.getVariantOption());
+            validateVariantOptionValueExistAndBelong(productOptionTypeMap.values().stream().toList(), productVariant.getVariantOption());
+            validateConflictSku(productVariant.getSku());
+        }
     }
 
     private Map<Long, OptionTypes> getProductOptionTypeMap(List<ProductOptionTypeRequest> requestOptionTypes){
