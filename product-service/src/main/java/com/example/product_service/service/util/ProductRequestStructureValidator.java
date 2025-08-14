@@ -7,23 +7,25 @@ import com.example.product_service.dto.request.variant.ProductVariantRequest;
 import com.example.product_service.dto.request.variant.VariantOptionValueRequest;
 import com.example.product_service.exception.BadRequestException;
 import com.example.product_service.service.dto.ProductValidateResult;
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.example.product_service.common.MessagePath.*;
 
 @Component
 @RequiredArgsConstructor
-public class ProductRequestValidator {
+public class ProductRequestStructureValidator {
     private final MessageSourceUtil ms;
 
     public ProductValidateResult validateProductRequest(ProductRequest request){
         Map<Long, Integer> productOptionTypeMap = validateProductOptionTypeRequest(request.getProductOptionTypes());
-        validateProductVariantRequest(productOptionTypeMap.keySet(), request.getProductVariants());
-        return null;
+        Map<String, ProductVariantRequest> productVariantMap = validateProductVariantRequest(productOptionTypeMap.keySet(), request.getProductVariants());
+        return new ProductValidateResult(productOptionTypeMap, productVariantMap);
     }
 
     private Map<Long, Integer> validateProductOptionTypeRequest(List<ProductOptionTypeRequest> optionTypes){
@@ -43,12 +45,13 @@ public class ProductRequestValidator {
                         ProductOptionTypeRequest::getPriority));
     }
 
-    private void validateProductVariantRequest(Set<Long> requiredOptionTypeIds, List<ProductVariantRequest> variantRequests){
+    private Map<String, ProductVariantRequest> validateProductVariantRequest(Set<Long> requiredOptionTypeIds, List<ProductVariantRequest> variantRequests){
         validateDuplicatedSku(variantRequests);
         for(ProductVariantRequest variantRequest : variantRequests){
             validateVariantOptionValueCardinality(requiredOptionTypeIds, variantRequest);
         }
         validateDuplicateVariantCombination(variantRequests);
+        return variantRequests.stream().collect(Collectors.toMap(ProductVariantRequest::getSku, Function.identity()));
     }
 
     private void validateVariantOptionValueCardinality(Set<Long> requiredOptionTypeIds, ProductVariantRequest variantRequest) {

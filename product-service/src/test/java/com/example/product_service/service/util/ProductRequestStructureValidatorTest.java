@@ -7,7 +7,7 @@ import com.example.product_service.dto.request.product.ProductRequest;
 import com.example.product_service.dto.request.variant.ProductVariantRequest;
 import com.example.product_service.dto.request.variant.VariantOptionValueRequest;
 import com.example.product_service.exception.BadRequestException;
-import com.example.product_service.repository.ProductVariantsRepository;
+import com.example.product_service.service.dto.ProductValidateResult;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,17 +19,42 @@ import java.util.List;
 
 import static com.example.product_service.common.MessagePath.*;
 import static com.example.product_service.util.TestMessageUtil.getMessage;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static java.util.Map.entry;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class ProductRequestValidatorTest {
+class ProductRequestStructureValidatorTest {
     @Mock
     MessageSourceUtil ms;
 
     @InjectMocks
-    ProductRequestValidator validator;
+    ProductRequestStructureValidator validator;
+
+    @Test
+    @DisplayName("productRequest 검증 테스트-성공")
+    void validateProductRequestStructureTest_success(){
+        ProductRequest request = createProductRequest();
+        ProductValidateResult validateResult = validator.validateProductRequest(request);
+
+        assertThat(validateResult.getProductOptionData()).hasSize(1);
+        assertThat(validateResult.getProductOptionData())
+                .containsOnly(entry(1L, 1));
+
+        assertThat(validateResult.getProductVariants()).hasSize(1);
+        assertThat(validateResult.getProductVariants()).containsOnlyKeys("sku");
+
+        assertThat(validateResult.getProductVariants().get("sku"))
+                .extracting("price", "stockQuantity", "discountRate")
+                .containsExactlyInAnyOrder(1000,100,10);
+
+        assertThat(validateResult.getProductVariants().get("sku").getVariantOption())
+                .hasSize(1)
+                .extracting("optionTypeId", "optionValueId")
+                .containsExactlyInAnyOrder(
+                        tuple(1L, 1L)
+                );
+    }
 
     @Test
     @DisplayName("ProductRequest 검증 테스트-실패(상품 옵션 타입 리스트에 같은 옵션 타입 아이디가 존재하는 경우)")

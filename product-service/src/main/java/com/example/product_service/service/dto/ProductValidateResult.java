@@ -1,20 +1,19 @@
 package com.example.product_service.service.dto;
 
+import com.example.product_service.dto.request.variant.ProductVariantRequest;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class ProductValidateResult {
-    private Set<Long> requestedOptionTypeIds;
     private Map<Long, Integer> productOptionData;
-    private Set<Long> allRequestedOptionValueIds;
-    private Set<String> skusInRequest;
+    private Map<String, ProductVariantRequest> productVariants;
 }

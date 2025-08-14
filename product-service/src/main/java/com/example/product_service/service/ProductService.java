@@ -21,7 +21,7 @@ import com.example.product_service.exception.BadRequestException;
 import com.example.product_service.exception.DuplicateResourceException;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.repository.*;
-import com.example.product_service.service.util.ProductRequestValidator;
+import com.example.product_service.service.util.ProductRequestStructureValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
@@ -44,6 +44,7 @@ public class ProductService {
     private final OptionTypeRepository optionTypeRepository;
     private final OptionValueRepository optionValueRepository;
     private final ProductVariantsRepository productVariantsRepository;
+    private final ProductRequestStructureValidator validator;
     private final MessageSourceUtil ms;
 
     @Transactional
@@ -51,7 +52,7 @@ public class ProductService {
         Categories category = findCategoryByIdOrThrow(request.getCategoryId());
         Map<Long, OptionTypes> productOptionTypeMap = getProductOptionTypeMap(request.getProductOptionTypes());
 
-        validateProductRequestStructure(productOptionTypeMap, request);
+        validator.validateProductRequest(request);
 
         Products product = buildProductEntity(request, category, productOptionTypeMap, request.getProductVariants());
         Products save = productsRepository.save(product);
