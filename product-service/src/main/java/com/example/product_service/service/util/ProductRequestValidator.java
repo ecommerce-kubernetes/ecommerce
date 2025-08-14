@@ -1,6 +1,5 @@
 package com.example.product_service.service.util;
 
-import com.example.product_service.common.MessagePath;
 import com.example.product_service.common.MessageSourceUtil;
 import com.example.product_service.dto.request.options.ProductOptionTypeRequest;
 import com.example.product_service.dto.request.product.ProductRequest;
@@ -26,11 +25,12 @@ public class ProductRequestValidator {
     private final MessageSourceUtil ms;
 
     public ProductValidateResult validateProductRequest(ProductRequest request){
-        Map<Long, Integer> productOptionTypeMap = productOptionTypesIds(request.getProductOptionTypes());
+        Map<Long, Integer> productOptionTypeMap = validateProductOptionTypeRequest(request.getProductOptionTypes());
+        validateProductVariantRequest(request.getProductVariants());
         return null;
     }
 
-    private Map<Long, Integer> productOptionTypesIds(List<ProductOptionTypeRequest> optionTypes){
+    private Map<Long, Integer> validateProductOptionTypeRequest(List<ProductOptionTypeRequest> optionTypes){
         Set<Long> uniqueOptionTypeIds = new HashSet<>();
         Set<Integer> uniquePriorities = new HashSet<>();
 
@@ -45,6 +45,19 @@ public class ProductRequestValidator {
         return optionTypes.stream()
                 .collect(Collectors.toMap(ProductOptionTypeRequest::getOptionTypeId,
                         ProductOptionTypeRequest::getPriority));
+    }
+
+    private void validateProductVariantRequest(List<ProductVariantRequest> variantRequests){
+        validateDuplicatedSku(variantRequests);
+    }
+
+    private void validateDuplicatedSku(List<ProductVariantRequest> variantRequests){
+        Set<String> uniqueSku = new HashSet<>();
+        for(ProductVariantRequest variantRequest : variantRequests){
+            if(!uniqueSku.add(variantRequest.getSku())){
+                throw new BadRequestException(ms.getMessage(PRODUCT_VARIANT_CONFLICT));
+            }
+        }
     }
 
     private void validateVariantOptionTypeSetExact(Set<Long> requiredOptionTypeIds, List<VariantOptionValueRequest> opts){
