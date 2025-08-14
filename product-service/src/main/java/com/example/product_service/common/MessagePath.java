@@ -28,7 +28,8 @@ public final class MessagePath {
     public static final String PRODUCT_OPTION_VALUE_CARDINALITY_VIOLATION = "product.option-value.cardinality.violation";
 
     public static final String PRODUCT_IMAGE_NOT_FOUND = "product-image.notFound";
-
+    public static final String PRODUCT_OPTION_TYPE_TYPE_BAD_REQUEST = "product.option-type.type.badRequest";
+    public static final String PRODUCT_OPTION_TYPE_PRIORITY_BAD_REQUEST = "product.option-type.priority.badRequest";
     public static final String PRODUCT_VARIANT_NOT_FOUND = "product-variant.notFound";
     public static final String PRODUCT_VARIANT_CONFLICT = "product-variant.conflict";
     public static final String HEADER_MISSING = "Header-Missing";

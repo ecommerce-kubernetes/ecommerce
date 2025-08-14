@@ -1,4 +1,4 @@
-package com.example.product_service.controller.util;
+package com.example.product_service.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;

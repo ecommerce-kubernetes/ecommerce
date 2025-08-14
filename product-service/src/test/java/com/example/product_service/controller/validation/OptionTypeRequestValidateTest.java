@@ -9,9 +9,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Set;
 
-import static com.example.product_service.controller.util.MessagePath.*;
-import static com.example.product_service.controller.util.TestMessageUtil.*;
-import static com.example.product_service.controller.util.ValidationTestHelper.*;
+import static com.example.product_service.common.MessagePath.NOT_BLANK;
+import static com.example.product_service.util.TestMessageUtil.*;
+import static com.example.product_service.util.ValidationTestHelper.*;
 import static org.assertj.core.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)

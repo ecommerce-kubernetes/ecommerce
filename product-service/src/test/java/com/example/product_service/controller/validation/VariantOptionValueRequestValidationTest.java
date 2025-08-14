@@ -1,8 +1,5 @@
 package com.example.product_service.controller.validation;
 
-import com.example.product_service.controller.util.MessagePath;
-import com.example.product_service.controller.util.TestMessageUtil;
-import com.example.product_service.dto.request.variant.UpdateProductVariantRequest;
 import com.example.product_service.dto.request.variant.VariantOptionValueRequest;
 import jakarta.validation.ConstraintViolation;
 import org.junit.jupiter.api.DisplayName;
@@ -17,10 +14,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import static com.example.product_service.controller.util.MessagePath.*;
-import static com.example.product_service.controller.util.TestMessageUtil.getMessage;
-import static com.example.product_service.controller.util.ValidationTestHelper.assertFieldViolation;
-import static com.example.product_service.controller.util.ValidationTestHelper.validateField;
+import static com.example.product_service.common.MessagePath.NOT_NULL;
+import static com.example.product_service.util.TestMessageUtil.getMessage;
+import static com.example.product_service.util.ValidationTestHelper.assertFieldViolation;
+import static com.example.product_service.util.ValidationTestHelper.validateField;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(MockitoExtension.class)

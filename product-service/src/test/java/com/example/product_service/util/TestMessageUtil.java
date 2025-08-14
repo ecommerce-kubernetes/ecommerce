@@ -1,4 +1,4 @@
-package com.example.product_service.controller.util;
+package com.example.product_service.util;
 
 import org.springframework.context.MessageSource;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;

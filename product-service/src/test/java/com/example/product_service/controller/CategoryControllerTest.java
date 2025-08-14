@@ -2,7 +2,6 @@ package com.example.product_service.controller;
 
 import com.example.product_service.common.MessageSourceUtil;
 import com.example.product_service.common.advice.ErrorResponseEntityFactory;
-import com.example.product_service.controller.util.MessagePath;
 import com.example.product_service.dto.request.category.CategoryRequest;
 import com.example.product_service.dto.request.category.UpdateCategoryRequest;
 import com.example.product_service.dto.response.category.CategoryHierarchyResponse;
@@ -25,9 +24,10 @@ import org.springframework.test.web.servlet.ResultActions;
 
 import java.util.List;
 
-import static com.example.product_service.controller.util.ControllerTestHelper.*;
-import static com.example.product_service.controller.util.MessagePath.*;
-import static com.example.product_service.controller.util.TestMessageUtil.getMessage;
+import static com.example.product_service.common.MessagePath.*;
+import static com.example.product_service.common.MessagePath.CONFLICT;
+import static com.example.product_service.util.ControllerTestHelper.*;
+import static com.example.product_service.util.TestMessageUtil.getMessage;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
@@ -61,8 +61,8 @@ class CategoryControllerTest {
     void setUpMessages() {
         when(ms.getMessage(NOT_FOUND)).thenReturn("NotFound");
         when(ms.getMessage(BAD_REQUEST)).thenReturn("BadRequest");
-        when(ms.getMessage(MessagePath.BAD_REQUEST_VALIDATION)).thenReturn("Validation Error");
-        when(ms.getMessage(MessagePath.CONFLICT)).thenReturn("Conflict");
+        when(ms.getMessage(BAD_REQUEST_VALIDATION)).thenReturn("Validation Error");
+        when(ms.getMessage(CONFLICT)).thenReturn("Conflict");
     }
 
     @Test

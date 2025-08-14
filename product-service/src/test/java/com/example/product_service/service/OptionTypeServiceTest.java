@@ -22,8 +22,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 
-import static com.example.product_service.controller.util.MessagePath.*;
-import static com.example.product_service.controller.util.TestMessageUtil.*;
+import static com.example.product_service.common.MessagePath.*;
+import static com.example.product_service.util.TestMessageUtil.*;
 import static org.assertj.core.api.Assertions.*;
 
 @SpringBootTest

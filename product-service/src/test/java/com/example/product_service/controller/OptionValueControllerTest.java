@@ -18,14 +18,13 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
-import static com.example.product_service.controller.util.ControllerTestHelper.*;
-import static com.example.product_service.controller.util.MessagePath.*;
-import static com.example.product_service.controller.util.TestMessageUtil.getMessage;
+import static com.example.product_service.common.MessagePath.*;
+import static com.example.product_service.util.ControllerTestHelper.*;
+import static com.example.product_service.util.TestMessageUtil.getMessage;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(OptionValueController.class)

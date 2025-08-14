@@ -1,14 +1,16 @@
 package com.example.product_service.service.util;
 
+import com.example.product_service.common.MessagePath;
 import com.example.product_service.common.MessageSourceUtil;
+import com.example.product_service.dto.request.options.ProductOptionTypeRequest;
 import com.example.product_service.dto.request.product.ProductRequest;
 import com.example.product_service.dto.request.variant.ProductVariantRequest;
 import com.example.product_service.dto.request.variant.VariantOptionValueRequest;
 import com.example.product_service.entity.OptionTypes;
 import com.example.product_service.exception.BadRequestException;
 import com.example.product_service.exception.DuplicateResourceException;
-import com.example.product_service.repository.OptionTypeRepository;
 import com.example.product_service.repository.ProductVariantsRepository;
+import com.example.product_service.service.dto.ProductValidateResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -23,14 +25,26 @@ public class ProductRequestValidator {
     private final ProductVariantsRepository productVariantsRepository;
     private final MessageSourceUtil ms;
 
-    public void validateProductRequestStructure(Map<Long, OptionTypes> productOptionTypeMap, ProductRequest request){
-        List<ProductVariantRequest> productVariants = request.getProductVariants();
-        Set<Long> requiredOptionTypeIds = new HashSet<>(productOptionTypeMap.keySet());
-        for (ProductVariantRequest productVariant : productVariants) {
-            validateVariantOptionTypeSetExact(requiredOptionTypeIds, productVariant.getVariantOption());
-            validateVariantOptionValueExistAndBelong(productOptionTypeMap, productVariant.getVariantOption());
-            validateConflictSku(productVariant.getSku());
+    public ProductValidateResult validateProductRequest(ProductRequest request){
+        Map<Long, Integer> productOptionTypeMap = productOptionTypesIds(request.getProductOptionTypes());
+        return null;
+    }
+
+    private Map<Long, Integer> productOptionTypesIds(List<ProductOptionTypeRequest> optionTypes){
+        Set<Long> uniqueOptionTypeIds = new HashSet<>();
+        Set<Integer> uniquePriorities = new HashSet<>();
+
+        for(ProductOptionTypeRequest request : optionTypes){
+            if(!uniqueOptionTypeIds.add(request.getOptionTypeId())){
+                throw new BadRequestException(ms.getMessage(PRODUCT_OPTION_TYPE_TYPE_BAD_REQUEST));
+            }
+            if(!uniquePriorities.add(request.getPriority())){
+                throw new BadRequestException(ms.getMessage(PRODUCT_OPTION_TYPE_PRIORITY_BAD_REQUEST));
+            }
         }
+        return optionTypes.stream()
+                .collect(Collectors.toMap(ProductOptionTypeRequest::getOptionTypeId,
+                        ProductOptionTypeRequest::getPriority));
     }
 
     private void validateVariantOptionTypeSetExact(Set<Long> requiredOptionTypeIds, List<VariantOptionValueRequest> opts){

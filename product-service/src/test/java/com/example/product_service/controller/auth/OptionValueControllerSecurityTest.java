@@ -5,7 +5,7 @@ import com.example.product_service.common.advice.CustomAccessDeniedHandler;
 import com.example.product_service.common.advice.CustomAuthenticationEntryPoint;
 import com.example.product_service.config.WebSecurity;
 import com.example.product_service.controller.OptionValueController;
-import com.example.product_service.controller.util.UserRole;
+import com.example.product_service.util.UserRole;
 import com.example.product_service.dto.request.options.OptionValueRequest;
 import com.example.product_service.service.OptionValueService;
 import org.junit.jupiter.api.DisplayName;
@@ -21,7 +21,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import static com.example.product_service.controller.util.ControllerTestHelper.*;
+import static com.example.product_service.util.ControllerTestHelper.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 
 @WebMvcTest(value = OptionValueController.class, excludeFilters = @ComponentScan.Filter(

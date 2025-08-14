@@ -14,10 +14,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import static com.example.product_service.controller.util.MessagePath.NOT_BLANK;
-import static com.example.product_service.controller.util.MessagePath.NOT_NULL;
-import static com.example.product_service.controller.util.TestMessageUtil.getMessage;
-import static com.example.product_service.controller.util.ValidationTestHelper.*;
+import static com.example.product_service.common.MessagePath.NOT_BLANK;
+import static com.example.product_service.common.MessagePath.NOT_NULL;
+import static com.example.product_service.util.TestMessageUtil.getMessage;
+import static com.example.product_service.util.ValidationTestHelper.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(MockitoExtension.class)

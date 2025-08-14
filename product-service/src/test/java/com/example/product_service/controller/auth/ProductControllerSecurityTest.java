@@ -5,7 +5,7 @@ import com.example.product_service.common.advice.CustomAccessDeniedHandler;
 import com.example.product_service.common.advice.CustomAuthenticationEntryPoint;
 import com.example.product_service.config.WebSecurity;
 import com.example.product_service.controller.ProductController;
-import com.example.product_service.controller.util.UserRole;
+import com.example.product_service.util.UserRole;
 import com.example.product_service.dto.request.image.AddImageRequest;
 import com.example.product_service.dto.request.image.ImageRequest;
 import com.example.product_service.dto.request.options.ProductOptionTypeRequest;
@@ -29,7 +29,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.List;
 
-import static com.example.product_service.controller.util.ControllerTestHelper.*;
+import static com.example.product_service.util.ControllerTestHelper.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 
 @WebMvcTest(value = ProductController.class, excludeFilters = @ComponentScan.Filter(

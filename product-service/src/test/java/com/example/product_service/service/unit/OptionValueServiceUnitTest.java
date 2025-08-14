@@ -22,9 +22,9 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Optional;
 
-import static com.example.product_service.controller.util.MessagePath.OPTION_VALUE_CONFLICT;
-import static com.example.product_service.controller.util.MessagePath.OPTION_VALUE_NOT_FOUND;
-import static com.example.product_service.controller.util.TestMessageUtil.getMessage;
+import static com.example.product_service.common.MessagePath.OPTION_VALUE_CONFLICT;
+import static com.example.product_service.common.MessagePath.OPTION_VALUE_NOT_FOUND;
+import static com.example.product_service.util.TestMessageUtil.getMessage;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;

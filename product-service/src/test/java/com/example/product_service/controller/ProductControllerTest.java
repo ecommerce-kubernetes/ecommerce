@@ -39,9 +39,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
-import static com.example.product_service.controller.util.ControllerTestHelper.*;
-import static com.example.product_service.controller.util.MessagePath.*;
-import static com.example.product_service.controller.util.TestMessageUtil.getMessage;
+import static com.example.product_service.common.MessagePath.*;
+import static com.example.product_service.util.ControllerTestHelper.*;
+import static com.example.product_service.util.TestMessageUtil.getMessage;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;

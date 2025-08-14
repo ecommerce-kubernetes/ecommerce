@@ -44,7 +44,6 @@ public class ProductService {
     private final OptionTypeRepository optionTypeRepository;
     private final OptionValueRepository optionValueRepository;
     private final ProductVariantsRepository productVariantsRepository;
-    private final ProductRequestValidator validator;
     private final MessageSourceUtil ms;
 
     @Transactional
