@@ -17,6 +17,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 
+import static com.example.product_service.common.MessagePath.PRODUCT_OPTION_TYPE_PRIORITY_BAD_REQUEST;
 import static com.example.product_service.common.MessagePath.PRODUCT_OPTION_TYPE_TYPE_BAD_REQUEST;
 import static com.example.product_service.util.TestMessageUtil.getMessage;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -36,7 +37,7 @@ class ProductRequestValidatorTest {
 
     @Test
     @DisplayName("ProductRequest 검증 테스트-실패(상품 옵션 타입 리스트에 같은 옵션 타입 아이디가 존재하는 경우)")
-    void validateProductRequestStructureTest_success(){
+    void validateProductRequestStructureTest_duplicate_ProductOptionType_id(){
         ProductRequest request = new ProductRequest(
                 "name",
                 "description",
@@ -53,6 +54,27 @@ class ProductRequestValidatorTest {
         assertThatThrownBy(() -> validator.validateProductRequest(request))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessage(getMessage(PRODUCT_OPTION_TYPE_TYPE_BAD_REQUEST));
+    }
+
+    @Test
+    @DisplayName("ProductRequest 검증 테스트-실패(상품 옵션 타입 리스트에 같은 우선순위가 존재할 경우)")
+    void validateProductRequestStructureTest_duplicateProductOptionType_priority(){
+        ProductRequest request = new ProductRequest(
+                "name",
+                "description",
+                1L,
+                List.of(new ImageRequest("http://test.jpg", 0)),
+                List.of(new ProductOptionTypeRequest(1L, 1),
+                        new ProductOptionTypeRequest(2L, 1)),
+                List.of(new ProductVariantRequest("sku", 3000, 100, 10, List.of(
+                        new VariantOptionValueRequest(1L, 5L),
+                        new VariantOptionValueRequest(2L, 7L)
+                )))
+        );
+        mockMessageUtil(PRODUCT_OPTION_TYPE_PRIORITY_BAD_REQUEST, "Same option type priority cannot be specified");
+        assertThatThrownBy(() -> validator.validateProductRequest(request))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage(getMessage(PRODUCT_OPTION_TYPE_PRIORITY_BAD_REQUEST));
     }
 
     private void mockMessageUtil(String code, String returnMessage){

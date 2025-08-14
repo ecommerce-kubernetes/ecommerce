@@ -165,6 +165,39 @@ class ProductControllerTest {
     }
 
     @Test
+    @DisplayName("상품 저장 테스트-실패(상품 옵션에 중복된 아이디가 있는 경우)")
+    void createProductTest_duplicate_productOptionType_id() throws Exception {
+        ProductRequest request = createProductRequest();
+        request.setProductOptionTypes(
+                List.of(new ProductOptionTypeRequest(1L, 1),
+                        new ProductOptionTypeRequest(1L,2)));
+
+        when(service.saveProduct(any(ProductRequest.class)))
+                .thenThrow(new BadRequestException(getMessage(PRODUCT_OPTION_TYPE_TYPE_BAD_REQUEST)));
+
+        ResultActions perform = performWithBody(mockMvc, post(BASE_PATH), request);
+        verifyErrorResponse(perform, status().isBadRequest(), getMessage(BAD_REQUEST),
+                getMessage(PRODUCT_OPTION_TYPE_TYPE_BAD_REQUEST), BASE_PATH);
+    }
+
+    @Test
+    @DisplayName("상품 저장 테스트-실패(상품 옵션에 중복된 priority 가 있는 경우")
+    void createProductTest_duplicate_productOptionType_priority() throws Exception {
+        ProductRequest request = createProductRequest();
+        request.setProductOptionTypes(
+                List.of(new ProductOptionTypeRequest(1L, 1),
+                        new ProductOptionTypeRequest(2L, 1))
+        );
+
+        when(service.saveProduct(any(ProductRequest.class)))
+                .thenThrow(new BadRequestException(getMessage(PRODUCT_OPTION_TYPE_PRIORITY_BAD_REQUEST)));
+
+        ResultActions perform = performWithBody(mockMvc, post(BASE_PATH), request);
+        verifyErrorResponse(perform, status().isBadRequest(), getMessage(BAD_REQUEST),
+                getMessage(PRODUCT_OPTION_TYPE_PRIORITY_BAD_REQUEST), BASE_PATH);
+    }
+
+    @Test
     @DisplayName("상품 이미지 추가 테스트-성공")
     void addImagesTest_success() throws Exception {
         AddImageRequest request = new AddImageRequest(List.of("http://test1.jpg", "http://test2.jpg"));
