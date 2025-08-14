@@ -49,23 +49,23 @@ public class ProductService {
     public ProductResponse saveProduct(ProductRequest request) {
         Categories category = findCategoryByIdOrThrow(request.getCategoryId());
         Map<Long, OptionTypes> productOptionTypeMap = getProductOptionTypeMap(request.getProductOptionTypes());
-        List<ProductVariantRequest> productVariants = request.getProductVariants();
 
         validateProductRequestStructure(productOptionTypeMap, request);
 
+        Products product = buildProductEntity(request, category, productOptionTypeMap, request.getProductVariants());
+        Products save = productsRepository.save(product);
+        return new ProductResponse(save);
+    }
+
+    private Products buildProductEntity(ProductRequest request, Categories category, Map<Long, OptionTypes> productOptionTypeMap, List<ProductVariantRequest> productVariants) {
         Products product = new Products(request.getName(), request.getDescription(), category);
-        for(ImageRequest imageRequest : request.getImages()){
-            ProductImages productImages = new ProductImages(imageRequest.getUrl(), imageRequest.getSortOrder());
-            product.addImage(productImages);
-        }
-        for (Map.Entry<Long, OptionTypes> entry : productOptionTypeMap.entrySet()) {
-            ProductOptionTypeRequest productOptionTypeRequest = request.getProductOptionTypes().stream()
-                    .filter(otr -> Objects.equals(entry.getKey(), otr.getOptionTypeId()))
-                    .findFirst()
-                    .orElseThrow(() -> new NotFoundException(ms.getMessage(OPTION_TYPE_NOT_FOUND)));
-            ProductOptionTypes productOptionTypes = new ProductOptionTypes(entry.getValue(), productOptionTypeRequest.getPriority(), true);
-            product.addOptionType(productOptionTypes);
-        }
+        addImagesToProduct(product, request.getImages());
+        addOptionTypesToProduct(request, productOptionTypeMap, product);
+        addVariantsToProduct(productVariants, product);
+        return product;
+    }
+
+    private void addVariantsToProduct(List<ProductVariantRequest> productVariants, Products product) {
         for(ProductVariantRequest variant : productVariants){
             ProductVariants productVariant = new ProductVariants(variant.getSku(), variant.getPrice(), variant.getStockQuantity(), variant.getDiscountRate());
 
@@ -77,9 +77,24 @@ public class ProductService {
 
             product.addVariant(productVariant);
         }
+    }
 
-        Products save = productsRepository.save(product);
-        return new ProductResponse(save);
+    private void addOptionTypesToProduct(ProductRequest request, Map<Long, OptionTypes> productOptionTypeMap, Products product) {
+        for (Map.Entry<Long, OptionTypes> entry : productOptionTypeMap.entrySet()) {
+            ProductOptionTypeRequest productOptionTypeRequest = request.getProductOptionTypes().stream()
+                    .filter(otr -> Objects.equals(entry.getKey(), otr.getOptionTypeId()))
+                    .findFirst()
+                    .orElseThrow(() -> new NotFoundException(ms.getMessage(OPTION_TYPE_NOT_FOUND)));
+            ProductOptionTypes productOptionTypes = new ProductOptionTypes(entry.getValue(), productOptionTypeRequest.getPriority(), true);
+            product.addOptionType(productOptionTypes);
+        }
+    }
+
+    private void addImagesToProduct(Products product, List<ImageRequest> images){
+        for(ImageRequest image : images){
+            ProductImages productImages = new ProductImages(image.getUrl(), image.getSortOrder());
+            product.addImage(productImages);
+        }
     }
 
     private void validateProductRequestStructure(Map<Long, OptionTypes> productOptionTypeMap, ProductRequest request){
