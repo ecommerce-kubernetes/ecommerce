@@ -94,7 +94,19 @@ public class ProductServiceUnitTest {
                 .containsExactlyInAnyOrder(
                         tuple(1L, "optionType")
                 );
-        //TODO productVariant
+
+        assertThat(response.getProductVariants())
+                .extracting( "sku", "price", "stockQuantity", "discountRate")
+                .containsExactlyInAnyOrder(
+                        tuple("sku", 3000, 100, 10)
+                );
+
+        assertThat(response.getProductVariants())
+                .flatExtracting("optionValues")
+                .extracting("valueId", "typeId", "valueName")
+                .containsExactlyInAnyOrder(
+                        tuple (5L, 1L, "optionValue")
+                );
     }
 
     @Test

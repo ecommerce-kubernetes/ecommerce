@@ -50,4 +50,9 @@ public class Products extends BaseEntity {
         productOptionType.setProduct(this);
     }
 
+    public void addVariant(ProductVariants productVariant){
+        this.productVariants.add(productVariant);
+        productVariant.setProduct(this);
+    }
+
 }

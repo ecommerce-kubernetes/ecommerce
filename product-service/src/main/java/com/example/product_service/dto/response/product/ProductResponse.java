@@ -40,5 +40,11 @@ public class ProductResponse {
                 .map(i -> new ImageResponse(i.getId(), i.getImageUrl(), i.getSortOrder())).toList();
         this.productOptionTypes = products.getProductOptionTypes().stream()
                 .map(pr -> new ProductOptionTypeResponse(pr.getOptionType().getId(), pr.getOptionType().getName())).toList();
+        this.productVariants =
+                products.getProductVariants().stream()
+                        .map(pv ->
+                                new ProductVariantResponse(pv.getId(), pv.getSku(), pv.getPrice(), pv.getStockQuantity(),
+                                        pv.getDiscountValue(), pv.getProductVariantOptions().stream()
+                                        .map(ot -> new OptionValueResponse(ot.getOptionValue())).toList())).toList();
     }
 }

@@ -81,6 +81,7 @@ public class ProductService {
                 productVariant.addProductVariantOption(productVariantOptions);
             }
 
+            product.addVariant(productVariant);
         }
 
         Products save = productsRepository.save(product);
@@ -120,6 +121,21 @@ public class ProductService {
         }
     }
 
+    private Categories findCategoryByIdOrThrow(Long categoryId){
+        return categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new NotFoundException(ms.getMessage(CATEGORY_NOT_FOUND)));
+    }
+
+    private OptionTypes findOptionTypeByIdOrThrow(Long optionTypeId){
+        return optionTypeRepository.findById(optionTypeId)
+                .orElseThrow(() -> new NotFoundException(ms.getMessage(OPTION_TYPE_NOT_FOUND)));
+    }
+
+    private OptionValues findOptionValueByIdOrThrow(Long optionValueId){
+        return optionValueRepository.findById(optionValueId)
+                .orElseThrow(() -> new NotFoundException(ms.getMessage(OPTION_VALUE_NOT_FOUND)));
+    }
+
     public ProductUpdateResponse updateBasicInfoById(Long productId, UpdateProductBasicRequest request) {
         return null;
     }
@@ -149,29 +165,14 @@ public class ProductService {
     }
 
 
-    
+
     public List<ImageResponse> addImages(Long productId, AddImageRequest request) {
         return List.of();
     }
 
-    
+
     public ProductVariantResponse addVariant(Long productId, ProductVariantRequest request) {
         return null;
     }
 
-
-    private Categories findCategoryByIdOrThrow(Long categoryId){
-        return categoryRepository.findById(categoryId)
-                .orElseThrow(() -> new NotFoundException(ms.getMessage(CATEGORY_NOT_FOUND)));
-    }
-
-    private OptionTypes findOptionTypeByIdOrThrow(Long optionTypeId){
-        return optionTypeRepository.findById(optionTypeId)
-                .orElseThrow(() -> new NotFoundException(ms.getMessage(OPTION_TYPE_NOT_FOUND)));
-    }
-
-    private OptionValues findOptionValueByIdOrThrow(Long optionValueId){
-        return optionValueRepository.findById(optionValueId)
-                .orElseThrow(() -> new NotFoundException(ms.getMessage(OPTION_VALUE_NOT_FOUND)));
-    }
 }
