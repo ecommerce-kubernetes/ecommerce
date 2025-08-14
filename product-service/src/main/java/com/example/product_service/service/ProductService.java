@@ -21,6 +21,7 @@ import com.example.product_service.exception.BadRequestException;
 import com.example.product_service.exception.DuplicateResourceException;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.repository.*;
+import com.example.product_service.service.dto.ProductValidateResult;
 import com.example.product_service.service.util.ProductRequestStructureValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,19 +45,29 @@ public class ProductService {
     private final OptionTypeRepository optionTypeRepository;
     private final OptionValueRepository optionValueRepository;
     private final ProductVariantsRepository productVariantsRepository;
-    private final ProductRequestStructureValidator validator;
+    private final ProductRequestStructureValidator structureValidator;
     private final MessageSourceUtil ms;
 
     @Transactional
     public ProductResponse saveProduct(ProductRequest request) {
+        //요청 바디 유효성 검사
+        structureValidator.validateProductRequest(request);
+
         Categories category = findCategoryByIdOrThrow(request.getCategoryId());
         Map<Long, OptionTypes> productOptionTypeMap = getProductOptionTypeMap(request.getProductOptionTypes());
-
-        validator.validateProductRequest(request);
 
         Products product = buildProductEntity(request, category, productOptionTypeMap, request.getProductVariants());
         Products save = productsRepository.save(product);
         return new ProductResponse(save);
+    }
+
+    private List<OptionTypes> findOptionTypeByIdInOrThrow(Set<Long> optionTypeIds){
+        ArrayList<Long> ids = new ArrayList<>(optionTypeIds);
+        List<OptionTypes> result = optionTypeRepository.findByIdIn(ids);
+        if(ids.size() != result.size()){
+            throw new NotFoundException(ms.getMessage(OPTION_TYPE_NOT_FOUND));
+        }
+        return result;
     }
 
     private Products buildProductEntity(ProductRequest request, Categories category, Map<Long, OptionTypes> productOptionTypeMap, List<ProductVariantRequest> productVariants) {
@@ -123,6 +134,13 @@ public class ProductService {
 
     private void validateConflictSku(String sku){
         boolean isConflict = productVariantsRepository.existsBySku(sku);
+        if(isConflict){
+            throw new DuplicateResourceException(ms.getMessage(PRODUCT_VARIANT_SKU_CONFLICT));
+        }
+    }
+
+    private void validateConflictSkus(Collection<String> skus){
+        boolean isConflict = productVariantsRepository.existsBySkuIn(skus);
         if(isConflict){
             throw new DuplicateResourceException(ms.getMessage(PRODUCT_VARIANT_SKU_CONFLICT));
         }

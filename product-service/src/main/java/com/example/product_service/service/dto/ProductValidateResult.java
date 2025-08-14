@@ -8,6 +8,7 @@ import lombok.Setter;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -16,4 +17,5 @@ import java.util.Map;
 public class ProductValidateResult {
     private Map<Long, Integer> productOptionData;
     private Map<String, ProductVariantRequest> productVariants;
+    private Map<Long, Set<Long>> optionTypeToOptionValueIds;
 }

@@ -6,13 +6,10 @@ import com.example.product_service.dto.request.product.ProductRequest;
 import com.example.product_service.dto.request.variant.ProductVariantRequest;
 import com.example.product_service.dto.request.variant.VariantOptionValueRequest;
 import com.example.product_service.exception.BadRequestException;
-import com.example.product_service.service.dto.ProductValidateResult;
-import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.example.product_service.common.MessagePath.*;
@@ -22,13 +19,12 @@ import static com.example.product_service.common.MessagePath.*;
 public class ProductRequestStructureValidator {
     private final MessageSourceUtil ms;
 
-    public ProductValidateResult validateProductRequest(ProductRequest request){
-        Map<Long, Integer> productOptionTypeMap = validateProductOptionTypeRequest(request.getProductOptionTypes());
-        Map<String, ProductVariantRequest> productVariantMap = validateProductVariantRequest(productOptionTypeMap.keySet(), request.getProductVariants());
-        return new ProductValidateResult(productOptionTypeMap, productVariantMap);
+    public void validateProductRequest(ProductRequest request){
+        validateProductOptionTypeRequest(request.getProductOptionTypes());
+        validateProductVariantRequest(getProductOptionTypeIds(request), request.getProductVariants());
     }
 
-    private Map<Long, Integer> validateProductOptionTypeRequest(List<ProductOptionTypeRequest> optionTypes){
+    private void validateProductOptionTypeRequest(List<ProductOptionTypeRequest> optionTypes){
         Set<Long> uniqueOptionTypeIds = new HashSet<>();
         Set<Integer> uniquePriorities = new HashSet<>();
 
@@ -40,18 +36,14 @@ public class ProductRequestStructureValidator {
                 throw new BadRequestException(ms.getMessage(PRODUCT_OPTION_TYPE_PRIORITY_BAD_REQUEST));
             }
         }
-        return optionTypes.stream()
-                .collect(Collectors.toMap(ProductOptionTypeRequest::getOptionTypeId,
-                        ProductOptionTypeRequest::getPriority));
     }
 
-    private Map<String, ProductVariantRequest> validateProductVariantRequest(Set<Long> requiredOptionTypeIds, List<ProductVariantRequest> variantRequests){
+    private void validateProductVariantRequest(Set<Long> requiredOptionTypeIds, List<ProductVariantRequest> variantRequests){
         validateDuplicatedSku(variantRequests);
         for(ProductVariantRequest variantRequest : variantRequests){
             validateVariantOptionValueCardinality(requiredOptionTypeIds, variantRequest);
         }
         validateDuplicateVariantCombination(variantRequests);
-        return variantRequests.stream().collect(Collectors.toMap(ProductVariantRequest::getSku, Function.identity()));
     }
 
     private void validateVariantOptionValueCardinality(Set<Long> requiredOptionTypeIds, ProductVariantRequest variantRequest) {
@@ -81,6 +73,10 @@ public class ProductRequestStructureValidator {
                 throw new BadRequestException(ms.getMessage(PRODUCT_VARIANT_SKU_CONFLICT));
             }
         }
+    }
+
+    private static Set<Long> getProductOptionTypeIds(ProductRequest request) {
+        return request.getProductOptionTypes().stream().map(ProductOptionTypeRequest::getOptionTypeId).collect(Collectors.toSet());
     }
 
     private void validateDuplicateVariantCombination(List<ProductVariantRequest> variantRequests){

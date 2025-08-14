@@ -35,25 +35,7 @@ class ProductRequestStructureValidatorTest {
     @DisplayName("productRequest 검증 테스트-성공")
     void validateProductRequestStructureTest_success(){
         ProductRequest request = createProductRequest();
-        ProductValidateResult validateResult = validator.validateProductRequest(request);
-
-        assertThat(validateResult.getProductOptionData()).hasSize(1);
-        assertThat(validateResult.getProductOptionData())
-                .containsOnly(entry(1L, 1));
-
-        assertThat(validateResult.getProductVariants()).hasSize(1);
-        assertThat(validateResult.getProductVariants()).containsOnlyKeys("sku");
-
-        assertThat(validateResult.getProductVariants().get("sku"))
-                .extracting("price", "stockQuantity", "discountRate")
-                .containsExactlyInAnyOrder(1000,100,10);
-
-        assertThat(validateResult.getProductVariants().get("sku").getVariantOption())
-                .hasSize(1)
-                .extracting("optionTypeId", "optionValueId")
-                .containsExactlyInAnyOrder(
-                        tuple(1L, 1L)
-                );
+        assertThatNoException().isThrownBy(() -> validator.validateProductRequest(request));
     }
 
     @Test

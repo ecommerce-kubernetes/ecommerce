@@ -16,7 +16,9 @@ public interface OptionTypeRepository extends JpaRepository<OptionTypes, Long>, 
     boolean existsByName(String name);
 
     Page<OptionTypes> findAll(Pageable pageable);
-    List<OptionTypes> findByIdIn(List<Long> ids);
+
+    @Query("SELECT DISTINCT ot FROM OptionTypes ot LEFT JOIN FETCH ot.optionValues ov WHERE ot.id IN :ids")
+    List<OptionTypes> findByIdIn(@Param("ids") List<Long> ids);
 
     @Query("SELECT o FROM OptionTypes o LEFT JOIN FETCH o.optionValues WHERE o.id = :optionTypeId")
     Optional<OptionTypes> findByIdWithOptionValues(@Param("optionTypeId") Long optionTypeId);
