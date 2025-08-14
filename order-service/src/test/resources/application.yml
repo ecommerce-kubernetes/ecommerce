@@ -1,0 +1,16 @@
+eureka:
+  client:
+    enable: false
+    fetch-registry: false
+    register-with-eureka: false
+
+spring:
+  cloud:
+    config:
+      enabled: false
+    openfeign:
+      loadbalancer:
+        enabled: false
+
+  kafka:
+    bootstrap_servers: localhost:9092
