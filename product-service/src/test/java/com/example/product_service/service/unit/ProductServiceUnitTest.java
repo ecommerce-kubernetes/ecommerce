@@ -292,10 +292,10 @@ public class ProductServiceUnitTest {
         mockFindCategoryById(1L, category);
         mockFindOptionTypeByIdIn(List.of(1L), List.of(optionType));
         mockExistsSku("sku", true);
-        mockMessageUtil(PRODUCT_VARIANT_CONFLICT, "Product Variant SKU already exists");
+        mockMessageUtil(PRODUCT_VARIANT_SKU_CONFLICT, "Product Variant SKU already exists");
         assertThatThrownBy(() -> productService.saveProduct(request))
                 .isInstanceOf(DuplicateResourceException.class)
-                .hasMessage(getMessage(PRODUCT_VARIANT_CONFLICT));
+                .hasMessage(getMessage(PRODUCT_VARIANT_SKU_CONFLICT));
     }
 
     private void mockMessageUtil(String code, String returnMessage){

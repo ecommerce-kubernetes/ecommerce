@@ -31,7 +31,8 @@ public final class MessagePath {
     public static final String PRODUCT_OPTION_TYPE_TYPE_BAD_REQUEST = "product.option-type.type.badRequest";
     public static final String PRODUCT_OPTION_TYPE_PRIORITY_BAD_REQUEST = "product.option-type.priority.badRequest";
     public static final String PRODUCT_VARIANT_NOT_FOUND = "product-variant.notFound";
-    public static final String PRODUCT_VARIANT_CONFLICT = "product-variant.conflict";
+    public static final String PRODUCT_VARIANT_SKU_CONFLICT = "product-variant.sku.conflict";
+    public static final String PRODUCT_VARIANT_OPTION_VALUE_CONFLICT = "product-variant.option-value.conflict";
     public static final String HEADER_MISSING = "Header-Missing";
     public static final String REVIEW_FORBIDDEN = "review.forbidden.create";
     public static final String REVIEW_NOT_FOUND = "review.notFound";

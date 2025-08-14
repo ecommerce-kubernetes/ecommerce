@@ -89,12 +89,116 @@ class ProductRequestValidatorTest {
                 )
         );
 
-        mockMessageUtil(PRODUCT_VARIANT_CONFLICT, "Product Variant SKU already exists");
+        mockMessageUtil(PRODUCT_VARIANT_SKU_CONFLICT, "Product Variant SKU already exists");
 
         assertThatThrownBy(() -> validator.validateProductRequest(request))
                 .isInstanceOf(BadRequestException.class)
-                .hasMessage(getMessage(PRODUCT_VARIANT_CONFLICT));
+                .hasMessage(getMessage(PRODUCT_VARIANT_SKU_CONFLICT));
     }
+
+    @Test
+    @DisplayName("ProductRequest 검증 테스트-실패(상품 옵션 타입과 일치하지 않은 상품 변형 옵션이 들어올 경우)")
+    void validateProductRequestStructureTest_cardinality_violation(){
+        mockMessageUtil(PRODUCT_OPTION_VALUE_CARDINALITY_VIOLATION,
+                "Each product variant must have exactly one option value per option type");
+        ProductRequest request = createProductRequest();
+        request.setProductOptionTypes(
+                List.of(new ProductOptionTypeRequest(1L, 1),
+                        new ProductOptionTypeRequest(2L, 2))
+        );
+        request.setProductVariants(
+                List.of(
+                        new ProductVariantRequest("sku",
+                                100,
+                                100,
+                                10,
+                                List.of(
+                                        new VariantOptionValueRequest(1L, 1L)
+                                )
+                        )
+                )
+        );
+        assertThatThrownBy(() -> validator.validateProductRequest(request))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage(getMessage(PRODUCT_OPTION_VALUE_CARDINALITY_VIOLATION));
+
+        request.setProductVariants(
+                List.of(
+                        new ProductVariantRequest("sku",
+                                100,
+                                100,
+                                10,
+                                List.of(
+                                        new VariantOptionValueRequest(1L, 1L),
+                                        new VariantOptionValueRequest(2L, 1L),
+                                        new VariantOptionValueRequest(3L, 1L)
+                                )
+                        )
+                )
+        );
+
+        assertThatThrownBy(() -> validator.validateProductRequest(request))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage(getMessage(PRODUCT_OPTION_VALUE_CARDINALITY_VIOLATION));
+
+        request.setProductVariants(
+                List.of(
+                        new ProductVariantRequest("sku",
+                                100,
+                                100,
+                                10,
+                                List.of(
+                                        new VariantOptionValueRequest(1L, 1L),
+                                        new VariantOptionValueRequest(3L, 1L)
+                                )
+                        )
+                )
+        );
+
+        assertThatThrownBy(() -> validator.validateProductRequest(request))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage(getMessage(PRODUCT_OPTION_VALUE_CARDINALITY_VIOLATION));
+    }
+
+    @Test
+    @DisplayName("ProductRequest 검증 테스트-실패(상품 변형의 옵션 값이 중복될 경우)")
+    void validateProductRequestStructureTest_duplicate_optionValue(){
+        mockMessageUtil(PRODUCT_VARIANT_OPTION_VALUE_CONFLICT,
+                "Cannot add product variants with the same OptionValue");
+        ProductRequest request = createProductRequest();
+
+        request.setProductOptionTypes(
+                List.of(new ProductOptionTypeRequest(1L, 1),
+                        new ProductOptionTypeRequest(2L, 2))
+        );
+        request.setProductVariants(
+                List.of(
+                        new ProductVariantRequest("sku1",
+                                100,
+                                100,
+                                10,
+                                List.of(
+                                        new VariantOptionValueRequest(1L, 1L),
+                                        new VariantOptionValueRequest(2L, 1L)
+                                )
+                        ),
+                        new ProductVariantRequest("sku2",
+                                100,
+                                100,
+                                10,
+                                List.of(
+                                        new VariantOptionValueRequest(1L,1L),
+                                        new VariantOptionValueRequest(2L,1L)
+                                )
+                        )
+                )
+        );
+
+        assertThatThrownBy(() -> validator.validateProductRequest(request))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage(getMessage(PRODUCT_VARIANT_OPTION_VALUE_CONFLICT));
+    }
+
 
     private void mockMessageUtil(String code, String returnMessage){
         when(ms.getMessage(code)).thenReturn(returnMessage);

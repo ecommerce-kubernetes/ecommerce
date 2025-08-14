@@ -10,6 +10,7 @@ import com.example.product_service.exception.BadRequestException;
 import com.example.product_service.exception.DuplicateResourceException;
 import com.example.product_service.repository.ProductVariantsRepository;
 import com.example.product_service.service.dto.ProductValidateResult;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -26,7 +27,7 @@ public class ProductRequestValidator {
 
     public ProductValidateResult validateProductRequest(ProductRequest request){
         Map<Long, Integer> productOptionTypeMap = validateProductOptionTypeRequest(request.getProductOptionTypes());
-        validateProductVariantRequest(request.getProductVariants());
+        validateProductVariantRequest(productOptionTypeMap.keySet(), request.getProductVariants());
         return null;
     }
 
@@ -47,15 +48,40 @@ public class ProductRequestValidator {
                         ProductOptionTypeRequest::getPriority));
     }
 
-    private void validateProductVariantRequest(List<ProductVariantRequest> variantRequests){
+    private void validateProductVariantRequest(Set<Long> requiredOptionTypeIds, List<ProductVariantRequest> variantRequests){
         validateDuplicatedSku(variantRequests);
+        for(ProductVariantRequest variantRequest : variantRequests){
+            validateVariantOptionValueCardinality(requiredOptionTypeIds, variantRequest);
+        }
+        validateDuplicateVariantCombination(variantRequests);
+    }
+
+    private void validateVariantOptionValueCardinality(Set<Long> requiredOptionTypeIds, ProductVariantRequest variantRequest) {
+        List<VariantOptionValueRequest> variantOption = variantRequest.getVariantOption();
+        Set<Long> variantOptionTypeIds = variantOption.stream().map(VariantOptionValueRequest::getOptionTypeId).collect(Collectors.toSet());
+        if(!variantOptionTypeIds.equals(requiredOptionTypeIds)){
+            throw new BadRequestException(ms.getMessage(PRODUCT_OPTION_VALUE_CARDINALITY_VIOLATION));
+        }
     }
 
     private void validateDuplicatedSku(List<ProductVariantRequest> variantRequests){
         Set<String> uniqueSku = new HashSet<>();
         for(ProductVariantRequest variantRequest : variantRequests){
             if(!uniqueSku.add(variantRequest.getSku())){
-                throw new BadRequestException(ms.getMessage(PRODUCT_VARIANT_CONFLICT));
+                throw new BadRequestException(ms.getMessage(PRODUCT_VARIANT_SKU_CONFLICT));
+            }
+        }
+    }
+
+    private void validateDuplicateVariantCombination(List<ProductVariantRequest> variantRequests){
+        Set<Set<Long>> seenCombinations = new HashSet<>();
+        for (ProductVariantRequest variant : variantRequests) {
+            Set<Long> combination = variant.getVariantOption().stream()
+                    .map(VariantOptionValueRequest::getOptionValueId)
+                    .collect(Collectors.toSet());
+
+            if (!seenCombinations.add(combination)) {
+                throw new BadRequestException(ms.getMessage(PRODUCT_VARIANT_OPTION_VALUE_CONFLICT));
             }
         }
     }
@@ -80,7 +106,7 @@ public class ProductRequestValidator {
     private void validateConflictSku(String sku){
         boolean isConflict = productVariantsRepository.existsBySku(sku);
         if(isConflict){
-            throw new DuplicateResourceException(ms.getMessage(PRODUCT_VARIANT_CONFLICT));
+            throw new DuplicateResourceException(ms.getMessage(PRODUCT_VARIANT_SKU_CONFLICT));
         }
     }
 }

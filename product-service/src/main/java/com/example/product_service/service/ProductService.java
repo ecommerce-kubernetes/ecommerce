@@ -123,7 +123,7 @@ public class ProductService {
     private void validateConflictSku(String sku){
         boolean isConflict = productVariantsRepository.existsBySku(sku);
         if(isConflict){
-            throw new DuplicateResourceException(ms.getMessage(PRODUCT_VARIANT_CONFLICT));
+            throw new DuplicateResourceException(ms.getMessage(PRODUCT_VARIANT_SKU_CONFLICT));
         }
     }
 
