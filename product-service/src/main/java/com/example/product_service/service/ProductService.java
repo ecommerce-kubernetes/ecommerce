@@ -21,7 +21,7 @@ import com.example.product_service.exception.BadRequestException;
 import com.example.product_service.exception.DuplicateResourceException;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.repository.*;
-import jakarta.validation.constraints.NotNull;
+import com.example.product_service.service.util.ProductRequestValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
@@ -44,6 +44,7 @@ public class ProductService {
     private final OptionTypeRepository optionTypeRepository;
     private final OptionValueRepository optionValueRepository;
     private final ProductVariantsRepository productVariantsRepository;
+    private final ProductRequestValidator validator;
     private final MessageSourceUtil ms;
 
     @Transactional
