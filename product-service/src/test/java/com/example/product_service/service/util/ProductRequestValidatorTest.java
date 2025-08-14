@@ -26,9 +26,6 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class ProductRequestValidatorTest {
     @Mock
-    ProductVariantsRepository productVariantsRepository;
-
-    @Mock
     MessageSourceUtil ms;
 
     @InjectMocks
@@ -130,8 +127,8 @@ class ProductRequestValidatorTest {
                                 10,
                                 List.of(
                                         new VariantOptionValueRequest(1L, 1L),
-                                        new VariantOptionValueRequest(2L, 1L),
-                                        new VariantOptionValueRequest(3L, 1L)
+                                        new VariantOptionValueRequest(2L, 6L),
+                                        new VariantOptionValueRequest(3L, 4L)
                                 )
                         )
                 )
@@ -149,7 +146,26 @@ class ProductRequestValidatorTest {
                                 10,
                                 List.of(
                                         new VariantOptionValueRequest(1L, 1L),
-                                        new VariantOptionValueRequest(3L, 1L)
+                                        new VariantOptionValueRequest(3L, 6L)
+                                )
+                        )
+                )
+        );
+
+        assertThatThrownBy(() -> validator.validateProductRequest(request))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage(getMessage(PRODUCT_OPTION_VALUE_CARDINALITY_VIOLATION));
+
+        request.setProductVariants(
+                List.of(
+                        new ProductVariantRequest("sku",
+                                100,
+                                100,
+                                10,
+                                List.of(
+                                        new VariantOptionValueRequest(1L, 1L),
+                                        new VariantOptionValueRequest(2L, 8L),
+                                        new VariantOptionValueRequest(1L, 2L)
                                 )
                         )
                 )
