@@ -21,7 +21,6 @@ import com.example.product_service.exception.BadRequestException;
 import com.example.product_service.exception.DuplicateResourceException;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.repository.*;
-import com.example.product_service.service.dto.ProductValidateResult;
 import com.example.product_service.service.util.ProductRequestStructureValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -52,131 +51,99 @@ public class ProductService {
     public ProductResponse saveProduct(ProductRequest request) {
         //요청 바디 유효성 검사
         structureValidator.validateProductRequest(request);
+        //SKU 중복 검사
+        validateDuplicateSkus(request);
 
         Categories category = findCategoryByIdOrThrow(request.getCategoryId());
-        Map<Long, OptionTypes> productOptionTypeMap = getProductOptionTypeMap(request.getProductOptionTypes());
+        //상품 옵션 타입 조회
+        List<OptionTypes> optionTypes = findOptionTypes(request);
+        Map<Long, OptionTypes> optionTypeById = optionTypes.stream()
+                .collect(Collectors.toMap(OptionTypes::getId, Function.identity()));
 
-        Products product = buildProductEntity(request, category, productOptionTypeMap, request.getProductVariants());
-        Products save = productsRepository.save(product);
-        return new ProductResponse(save);
+        Map<Long, Set<Long>> allowedValueIdsByType = optionTypes.stream()
+                .collect(Collectors.toMap(OptionTypes::getId, ot -> ot.getOptionValues().stream().map(OptionValues::getId).collect(Collectors.toSet())));
+        //상품 변형 옵션 값 옵션 타입의 연관 객체인지 검증
+        validateOptionValueCardinality(request, optionTypes);
+
+
+        Products products = new Products(request.getName(), request.getDescription(), category);
+        for(ImageRequest imageRequest : request.getImages()){
+            ProductImages productImage = new ProductImages(imageRequest.getUrl(), imageRequest.getSortOrder());
+            products.addImage(productImage);
+        }
+
+        for(ProductOptionTypeRequest productOptionTypeRequest : request.getProductOptionTypes()){
+            OptionTypes optionType = optionTypeById.get(productOptionTypeRequest.getOptionTypeId());
+            products.addOptionType(new ProductOptionTypes(optionType, productOptionTypeRequest.getPriority(), true));
+        }
+        for(ProductVariantRequest variantRequest :request.getProductVariants()){
+            ProductVariants productVariants =
+                    new ProductVariants(variantRequest.getSku(), variantRequest.getPrice(), variantRequest.getStockQuantity(), variantRequest.getDiscountRate());
+
+            for(VariantOptionValueRequest valueRequest : variantRequest.getVariantOption()){
+                OptionTypes optionType = optionTypeById.get(valueRequest.getOptionTypeId());
+                Set<Long> allowed = allowedValueIdsByType.get(valueRequest.getOptionValueId());
+                OptionValues ov = optionType.getOptionValues().stream()
+                        .filter(x -> Objects.equals(x.getId(), valueRequest.getOptionValueId()))
+                        .findFirst()
+                        .orElseThrow(() -> new NotFoundException(OPTION_VALUE_NOT_FOUND));
+                productVariants.addProductVariantOption(new ProductVariantOptions(ov));
+            }
+            products.addVariant(productVariants);
+        }
+
+        Products saved = productsRepository.save(products);
+        return new ProductResponse(saved);
     }
 
-    private List<OptionTypes> findOptionTypeByIdInOrThrow(Set<Long> optionTypeIds){
-        ArrayList<Long> ids = new ArrayList<>(optionTypeIds);
-        List<OptionTypes> result = optionTypeRepository.findByIdIn(ids);
-        if(ids.size() != result.size()){
+    private List<OptionTypes> findOptionTypes(ProductRequest request){
+        List<Long> optionTypeIds = request.getProductOptionTypes()
+                .stream().map(ProductOptionTypeRequest::getOptionTypeId).toList();
+        return findOptionTypeByIdInOrThrow(optionTypeIds);
+    }
+
+    private void validateOptionValueCardinality(ProductRequest request, List<OptionTypes> optionTypes){
+        Map<Long, Set<Long>> optionTypeToValueIds = optionTypes.stream()
+                .collect(Collectors.toMap(OptionTypes::getId, ot -> ot.getOptionValues().stream()
+                        .map(OptionValues::getId).collect(Collectors.toSet())));
+
+        for(ProductVariantRequest variantRequest : request.getProductVariants()){
+            List<VariantOptionValueRequest> variantOption = variantRequest.getVariantOption();
+            for(VariantOptionValueRequest v : variantOption){
+                Long optionTypeId = v.getOptionTypeId();
+                Long optionValueId = v.getOptionValueId();
+
+                Set<Long> allowedValueId = optionTypeToValueIds.get(optionTypeId);
+                if(!allowedValueId.contains(optionValueId)){
+                    throw new BadRequestException(ms.getMessage(PRODUCT_OPTION_VALUE_NOT_MATCH_TYPE));
+                }
+            }
+        }
+    }
+
+    private void validateDuplicateSkus(ProductRequest request){
+        List<String> skus = request.getProductVariants().stream().map(ProductVariantRequest::getSku).toList();
+        ensureSkusDoNotExist(skus);
+    }
+
+    private List<OptionTypes> findOptionTypeByIdInOrThrow(List<Long> optionTypeIds){
+        List<OptionTypes> result = optionTypeRepository.findByIdIn(optionTypeIds);
+        if(optionTypeIds.size() != result.size()){
             throw new NotFoundException(ms.getMessage(OPTION_TYPE_NOT_FOUND));
         }
         return result;
     }
 
-    private Products buildProductEntity(ProductRequest request, Categories category, Map<Long, OptionTypes> productOptionTypeMap, List<ProductVariantRequest> productVariants) {
-        Products product = new Products(request.getName(), request.getDescription(), category);
-        addImagesToProduct(product, request.getImages());
-        addOptionTypesToProduct(request, productOptionTypeMap, product);
-        addVariantsToProduct(productVariants, product);
-        return product;
-    }
-
-    private void addImagesToProduct(Products product, List<ImageRequest> images){
-        for(ImageRequest image : images){
-            ProductImages productImages = new ProductImages(image.getUrl(), image.getSortOrder());
-            product.addImage(productImages);
-        }
-    }
-
-    private void addOptionTypesToProduct(ProductRequest request, Map<Long, OptionTypes> productOptionTypeMap, Products product) {
-        List<ProductOptionTypeRequest> reqOptionTypes = request.getProductOptionTypes();
-        Map<Long, ProductOptionTypeRequest> reqById = reqOptionTypes.stream()
-                .collect(Collectors.toMap(ProductOptionTypeRequest::getOptionTypeId, Function.identity()));
-        for (Map.Entry<Long, OptionTypes> entry : productOptionTypeMap.entrySet()) {
-            ProductOptionTypeRequest productOptionTypeRequest = reqById.get(entry.getKey());
-            ProductOptionTypes productOptionTypes = new ProductOptionTypes(entry.getValue(), productOptionTypeRequest.getPriority(), true);
-            product.addOptionType(productOptionTypes);
-        }
-    }
-
-    private void addVariantsToProduct(List<ProductVariantRequest> productVariants, Products product) {
-        for(ProductVariantRequest variant : productVariants){
-            ProductVariants productVariant = new ProductVariants(variant.getSku(), variant.getPrice(), variant.getStockQuantity(), variant.getDiscountRate());
-
-            for(VariantOptionValueRequest variantRequest :variant.getVariantOption()){
-                OptionValues optionValue = findOptionValueByIdOrThrow(variantRequest.getOptionValueId());
-                ProductVariantOptions productVariantOptions = new ProductVariantOptions(optionValue);
-                productVariant.addProductVariantOption(productVariantOptions);
-            }
-
-            product.addVariant(productVariant);
-        }
-    }
-
-    private void validateProductRequestStructure(Map<Long, OptionTypes> productOptionTypeMap, ProductRequest request){
-        List<ProductVariantRequest> productVariants = request.getProductVariants();
-        Set<Long> requiredOptionTypeIds = new HashSet<>(productOptionTypeMap.keySet());
-        for (ProductVariantRequest productVariant : productVariants) {
-            validateVariantOptionTypeSetExact(requiredOptionTypeIds, productVariant.getVariantOption());
-            validateVariantOptionValueExistAndBelong(productOptionTypeMap, productVariant.getVariantOption());
-            validateConflictSku(productVariant.getSku());
-        }
-    }
-
-    private Map<Long, OptionTypes> getProductOptionTypeMap(List<ProductOptionTypeRequest> requestOptionTypes){
-        List<Long> reqTypeIds = requestOptionTypes.stream().map(ProductOptionTypeRequest::getOptionTypeId).toList();
-        List<OptionTypes> findTypes = optionTypeRepository.findByIdIn(reqTypeIds);
-
-        if(reqTypeIds.size() != findTypes.size()){
-            throw new NotFoundException(ms.getMessage(OPTION_TYPE_NOT_FOUND));
-        }
-
-        return findTypes.stream()
-                .collect(Collectors.toMap(OptionTypes::getId, Function.identity()));
-    }
-
-    private void validateConflictSku(String sku){
-        boolean isConflict = productVariantsRepository.existsBySku(sku);
-        if(isConflict){
-            throw new DuplicateResourceException(ms.getMessage(PRODUCT_VARIANT_SKU_CONFLICT));
-        }
-    }
-
-    private void validateConflictSkus(Collection<String> skus){
+    private void ensureSkusDoNotExist(Collection<String> skus){
         boolean isConflict = productVariantsRepository.existsBySkuIn(skus);
         if(isConflict){
             throw new DuplicateResourceException(ms.getMessage(PRODUCT_VARIANT_SKU_CONFLICT));
         }
     }
 
-    private void validateVariantOptionTypeSetExact(Set<Long> requiredOptionTypeIds, List<VariantOptionValueRequest> opts){
-        Set<Long> variantOptionTypeIds =
-                opts.stream().map(VariantOptionValueRequest::getOptionTypeId).collect(Collectors.toSet());
-        if(!variantOptionTypeIds.equals(requiredOptionTypeIds)){
-            throw new BadRequestException(ms.getMessage(PRODUCT_OPTION_VALUE_CARDINALITY_VIOLATION));
-        }
-    }
-
-    private void validateVariantOptionValueExistAndBelong(Map<Long, OptionTypes> optionTypesMap, List<VariantOptionValueRequest> opts){
-        for(VariantOptionValueRequest valueRequest : opts){
-            OptionTypes findOptionType = optionTypesMap.get(valueRequest.getOptionTypeId());
-            boolean isMatch = findOptionType.getOptionValues().stream().anyMatch(ov -> Objects.equals(ov.getId(), valueRequest.getOptionValueId()));
-            if(!isMatch){
-                throw new BadRequestException(ms.getMessage(PRODUCT_OPTION_VALUE_NOT_MATCH_TYPE));
-            }
-        }
-    }
-
     private Categories findCategoryByIdOrThrow(Long categoryId){
         return categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new NotFoundException(ms.getMessage(CATEGORY_NOT_FOUND)));
-    }
-
-    private OptionTypes findOptionTypeByIdOrThrow(Long optionTypeId){
-        return optionTypeRepository.findById(optionTypeId)
-                .orElseThrow(() -> new NotFoundException(ms.getMessage(OPTION_TYPE_NOT_FOUND)));
-    }
-
-    private OptionValues findOptionValueByIdOrThrow(Long optionValueId){
-        return optionValueRepository.findById(optionValueId)
-                .orElseThrow(() -> new NotFoundException(ms.getMessage(OPTION_VALUE_NOT_FOUND)));
     }
 
     public ProductUpdateResponse updateBasicInfoById(Long productId, UpdateProductBasicRequest request) {
