@@ -5,6 +5,7 @@ import com.example.product_service.dto.request.options.ProductOptionTypeRequest;
 import com.example.product_service.dto.request.product.ProductRequest;
 import com.example.product_service.dto.request.variant.ProductVariantRequest;
 import com.example.product_service.dto.request.variant.VariantOptionValueRequest;
+import com.example.product_service.dto.response.product.ProductResponse;
 import com.example.product_service.entity.*;
 import com.example.product_service.exception.BadRequestException;
 import com.example.product_service.exception.DuplicateResourceException;
@@ -15,6 +16,7 @@ import com.example.product_service.service.dto.ProductCreationData;
 import com.example.product_service.service.util.ProductFactory;
 import com.example.product_service.service.util.ProductReferentialValidator;
 import com.example.product_service.service.util.ProductRequestStructureValidator;
+import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -46,6 +48,48 @@ public class ProductServiceUnitTest {
 
     @InjectMocks
     ProductService productService;
+
+    @Test
+    @DisplayName("상품 저장 테스트-성공")
+    void saveProductTest_unit_success(){
+        ProductRequest request = createProductRequest();
+
+        doNothing().when(structureValidator).validateProductRequest(request);
+        ProductCreationData creationData = createProductCreationData();
+        when(referentialValidator.validAndFetch(request)).thenReturn(creationData);
+        Products built = createProducts();
+        when(factory.createProducts(request, creationData)).thenReturn(built);
+        when(productsRepository.save(any(Products.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        ProductResponse response = productService.saveProduct(request);
+
+        assertThat(response.getName()).isEqualTo("name");
+        assertThat(response.getDescription()).isEqualTo("description");
+        assertThat(response.getCategoryId()).isEqualTo(1L);
+        assertThat(response.getImages())
+                .extracting("url", "sortOrder")
+                .containsExactlyInAnyOrder(
+                        Tuple.tuple("http://test.jpg", 0)
+                );
+        assertThat(response.getProductOptionTypes())
+                .extracting("id", "name")
+                .containsExactlyInAnyOrder(
+                        tuple(1L, "optionType")
+                );
+
+        assertThat(response.getProductVariants())
+                .extracting( "sku", "price", "stockQuantity", "discountRate")
+                .containsExactlyInAnyOrder(
+                        tuple("sku", 3000, 100, 10)
+                );
+
+        assertThat(response.getProductVariants())
+                .flatExtracting("optionValues")
+                .extracting("valueId", "typeId", "valueName")
+                .containsExactlyInAnyOrder(
+                        tuple (5L, 1L, "optionValue")
+                );
+    }
 
     @Test
     @DisplayName("상품 저장 테스트-실패(요청 Body에 중복된 productOptionTypeId)")
@@ -231,8 +275,34 @@ public class ProductServiceUnitTest {
                 )))
         );
     }
+    private Products createProducts(){
+        Products product = new Products("name", "description", createCategory(1L));
+        product.addImages(List.of(new ProductImages("http://test.jpg", 0)));
+        OptionTypes optionType = createOptionTypesWithSetId(1L, "optionType");
+        ProductOptionTypes productOptionType = new ProductOptionTypes(optionType, 1, true);
+        product.addOptionTypes(List.of(productOptionType));
 
+        OptionValues optionValue = createOptionValuesWithSetId(5L, "optionValue");
 
+        optionType.addOptionValue(optionValue);
+        ProductVariants productVariant = new ProductVariants("sku", 3000, 100, 10);
+        ProductVariantOptions productVariantOption = new ProductVariantOptions(optionValue);
+        productVariant.addProductVariantOptions(List.of(productVariantOption));
+
+        product.addVariants(List.of(productVariant));
+        return product;
+    }
+    private OptionTypes createOptionTypesWithSetId(Long id, String name){
+        OptionTypes optionTypes = new OptionTypes(name);
+        ReflectionTestUtils.setField(optionTypes, "id", id);
+        return optionTypes;
+    }
+
+    private OptionValues createOptionValuesWithSetId(Long id, String name){
+        OptionValues optionValues = new OptionValues(name);
+        ReflectionTestUtils.setField(optionValues, "id", id);
+        return optionValues;
+    }
 
     private ProductCreationData createProductCreationData(){
         return new ProductCreationData(
