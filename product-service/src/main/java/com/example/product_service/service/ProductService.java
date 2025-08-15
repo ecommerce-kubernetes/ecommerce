@@ -2,12 +2,9 @@ package com.example.product_service.service;
 
 import com.example.product_service.dto.ProductSearch;
 import com.example.product_service.dto.request.image.AddImageRequest;
-import com.example.product_service.dto.request.image.ImageRequest;
-import com.example.product_service.dto.request.options.ProductOptionTypeRequest;
 import com.example.product_service.dto.request.product.ProductRequest;
 import com.example.product_service.dto.request.product.UpdateProductBasicRequest;
 import com.example.product_service.dto.request.variant.ProductVariantRequest;
-import com.example.product_service.dto.request.variant.VariantOptionValueRequest;
 import com.example.product_service.dto.response.PageDto;
 import com.example.product_service.dto.response.ReviewResponse;
 import com.example.product_service.dto.response.image.ImageResponse;
@@ -18,6 +15,7 @@ import com.example.product_service.dto.response.variant.ProductVariantResponse;
 import com.example.product_service.entity.*;
 import com.example.product_service.repository.*;
 import com.example.product_service.service.dto.ProductCreationData;
+import com.example.product_service.service.util.ProductFactory;
 import com.example.product_service.service.util.ProductReferentialValidator;
 import com.example.product_service.service.util.ProductRequestStructureValidator;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +34,7 @@ public class ProductService {
     private final ProductsRepository productsRepository;
     private final ProductRequestStructureValidator structureValidator;
     private final ProductReferentialValidator referentialValidator;
+    private final ProductFactory productFactory;
 
     @Transactional
     public ProductResponse saveProduct(ProductRequest request) {
@@ -43,28 +42,7 @@ public class ProductService {
         structureValidator.validateProductRequest(request);
         //상품 sku 중복, 옵션 타입 연관관계 체크
         ProductCreationData creationData = referentialValidator.validAndFetch(request);
-
-        Products products = new Products(request.getName(), request.getDescription(), creationData.getCategory());
-        for(ImageRequest imageRequest : request.getImages()){
-            ProductImages productImage = new ProductImages(imageRequest.getUrl(), imageRequest.getSortOrder());
-            products.addImage(productImage);
-        }
-
-        for(ProductOptionTypeRequest productOptionTypeRequest : request.getProductOptionTypes()){
-            OptionTypes optionType = creationData.getOptionTypeById().get(productOptionTypeRequest.getOptionTypeId());
-            products.addOptionType(new ProductOptionTypes(optionType, productOptionTypeRequest.getPriority(), true));
-        }
-
-        for(ProductVariantRequest variantRequest :request.getProductVariants()){
-            ProductVariants productVariants =
-                    new ProductVariants(variantRequest.getSku(), variantRequest.getPrice(), variantRequest.getStockQuantity(), variantRequest.getDiscountRate());
-
-            for(VariantOptionValueRequest valueRequest : variantRequest.getVariantOption()){
-                OptionValues optionValues = creationData.getOptionValueById().get(valueRequest.getOptionValueId());
-                productVariants.addProductVariantOption(new ProductVariantOptions(optionValues));
-            }
-            products.addVariant(productVariants);
-        }
+        Products products = productFactory.createProducts(request, creationData);
 
         Products saved = productsRepository.save(products);
         return new ProductResponse(saved);

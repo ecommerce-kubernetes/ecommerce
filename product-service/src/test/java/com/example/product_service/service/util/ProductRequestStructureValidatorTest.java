@@ -91,7 +91,7 @@ class ProductRequestStructureValidatorTest {
                 )
         );
 
-        mockMessageUtil(PRODUCT_VARIANT_SKU_CONFLICT, "Product Variant SKU already exists");
+        mockMessageUtil(PRODUCT_VARIANT_SKU_CONFLICT, "Product Variant SKU Conflict");
 
         assertThatThrownBy(() -> validator.validateProductRequest(request))
                 .isInstanceOf(BadRequestException.class)
@@ -99,7 +99,7 @@ class ProductRequestStructureValidatorTest {
     }
 
     @Test
-    @DisplayName("ProductRequest 검증 테스트-실패(상품 옵션 타입과 일치하지 않은 상품 변형 옵션이 들어올 경우)")
+    @DisplayName("ProductRequest 검증 테스트-실패(상품 옵션 타입과 일치하지 않은 상품 변형 옵션 타입이 들어올 경우)")
     void validateProductRequestStructureTest_cardinality_violation(){
         mockMessageUtil(PRODUCT_OPTION_VALUE_CARDINALITY_VIOLATION,
                 "Each product variant must have exactly one option value per option type");
