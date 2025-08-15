@@ -60,10 +60,10 @@ public class ProductService {
         Map<Long, OptionTypes> optionTypeById = optionTypes.stream()
                 .collect(Collectors.toMap(OptionTypes::getId, Function.identity()));
 
-        Map<Long, Set<Long>> allowedValueIdsByType = optionTypes.stream()
+        Map<Long, Set<Long>> optionTypeToValueIds = optionTypes.stream()
                 .collect(Collectors.toMap(OptionTypes::getId, ot -> ot.getOptionValues().stream().map(OptionValues::getId).collect(Collectors.toSet())));
         //상품 변형 옵션 값 옵션 타입의 연관 객체인지 검증
-        validateOptionValueCardinality(request, optionTypes);
+        validateOptionValueCardinality(request, optionTypeToValueIds);
 
 
         Products products = new Products(request.getName(), request.getDescription(), category);
@@ -76,18 +76,18 @@ public class ProductService {
             OptionTypes optionType = optionTypeById.get(productOptionTypeRequest.getOptionTypeId());
             products.addOptionType(new ProductOptionTypes(optionType, productOptionTypeRequest.getPriority(), true));
         }
+
+        Map<Long, OptionValues> optionValueById = optionTypes.stream()
+                .flatMap(ot -> ot.getOptionValues().stream())
+                .collect(Collectors.toMap(OptionValues::getId, Function.identity()));
+
         for(ProductVariantRequest variantRequest :request.getProductVariants()){
             ProductVariants productVariants =
                     new ProductVariants(variantRequest.getSku(), variantRequest.getPrice(), variantRequest.getStockQuantity(), variantRequest.getDiscountRate());
 
             for(VariantOptionValueRequest valueRequest : variantRequest.getVariantOption()){
-                OptionTypes optionType = optionTypeById.get(valueRequest.getOptionTypeId());
-                Set<Long> allowed = allowedValueIdsByType.get(valueRequest.getOptionValueId());
-                OptionValues ov = optionType.getOptionValues().stream()
-                        .filter(x -> Objects.equals(x.getId(), valueRequest.getOptionValueId()))
-                        .findFirst()
-                        .orElseThrow(() -> new NotFoundException(OPTION_VALUE_NOT_FOUND));
-                productVariants.addProductVariantOption(new ProductVariantOptions(ov));
+                OptionValues optionValues = optionValueById.get(valueRequest.getOptionValueId());
+                productVariants.addProductVariantOption(new ProductVariantOptions(optionValues));
             }
             products.addVariant(productVariants);
         }
@@ -102,19 +102,11 @@ public class ProductService {
         return findOptionTypeByIdInOrThrow(optionTypeIds);
     }
 
-    private void validateOptionValueCardinality(ProductRequest request, List<OptionTypes> optionTypes){
-        Map<Long, Set<Long>> optionTypeToValueIds = optionTypes.stream()
-                .collect(Collectors.toMap(OptionTypes::getId, ot -> ot.getOptionValues().stream()
-                        .map(OptionValues::getId).collect(Collectors.toSet())));
-
+    private void validateOptionValueCardinality(ProductRequest request, Map<Long, Set<Long>> optionTypeToValueIds){
         for(ProductVariantRequest variantRequest : request.getProductVariants()){
-            List<VariantOptionValueRequest> variantOption = variantRequest.getVariantOption();
-            for(VariantOptionValueRequest v : variantOption){
-                Long optionTypeId = v.getOptionTypeId();
-                Long optionValueId = v.getOptionValueId();
-
-                Set<Long> allowedValueId = optionTypeToValueIds.get(optionTypeId);
-                if(!allowedValueId.contains(optionValueId)){
+            for(VariantOptionValueRequest v : variantRequest.getVariantOption()){
+                Set<Long> allowedValueIds = optionTypeToValueIds.get(v.getOptionTypeId());
+                if(!allowedValueIds.contains(v.getOptionValueId())){
                     throw new BadRequestException(ms.getMessage(PRODUCT_OPTION_VALUE_NOT_MATCH_TYPE));
                 }
             }

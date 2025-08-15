@@ -7,7 +7,6 @@ import com.example.product_service.dto.request.product.ProductRequest;
 import com.example.product_service.dto.request.variant.ProductVariantRequest;
 import com.example.product_service.dto.request.variant.VariantOptionValueRequest;
 import com.example.product_service.exception.BadRequestException;
-import com.example.product_service.service.dto.ProductValidateResult;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,7 +18,6 @@ import java.util.List;
 
 import static com.example.product_service.common.MessagePath.*;
 import static com.example.product_service.util.TestMessageUtil.getMessage;
-import static java.util.Map.entry;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.when;
 

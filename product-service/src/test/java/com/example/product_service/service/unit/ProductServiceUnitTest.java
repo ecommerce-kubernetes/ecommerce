@@ -16,6 +16,7 @@ import com.example.product_service.exception.DuplicateResourceException;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.repository.*;
 import com.example.product_service.service.ProductService;
+import com.example.product_service.service.util.ProductRequestStructureValidator;
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -33,6 +34,7 @@ import static com.example.product_service.common.MessagePath.*;
 import static com.example.product_service.util.TestMessageUtil.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -47,6 +49,8 @@ public class ProductServiceUnitTest {
     ProductVariantsRepository productVariantsRepository;
     @Mock
     OptionValueRepository optionValueRepository;
+    @Mock
+    ProductRequestStructureValidator productRequestStructureValidator;
     @Mock
     MessageSourceUtil ms;
 
@@ -70,6 +74,7 @@ public class ProductServiceUnitTest {
         OptionTypes optionType = createOptionTypesWithSetId(1L, "optionType");
         OptionValues optionValue = createOptionValuesWithSetId(5L, "optionValue");
         optionType.addOptionValue(optionValue);
+        doNothing().when(productRequestStructureValidator).validateProductRequest(any());
         mockFindCategoryById(1L, category);
         mockFindOptionTypeByIdInOrThrow(List.of(1L), List.of(optionType));
         mockFindOptionValueById(5L, optionValue);
