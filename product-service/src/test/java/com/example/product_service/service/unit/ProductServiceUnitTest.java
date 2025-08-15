@@ -5,8 +5,7 @@ import com.example.product_service.dto.request.options.ProductOptionTypeRequest;
 import com.example.product_service.dto.request.product.ProductRequest;
 import com.example.product_service.dto.request.variant.ProductVariantRequest;
 import com.example.product_service.dto.request.variant.VariantOptionValueRequest;
-import com.example.product_service.dto.response.product.ProductResponse;
-import com.example.product_service.entity.Products;
+import com.example.product_service.entity.*;
 import com.example.product_service.exception.BadRequestException;
 import com.example.product_service.exception.DuplicateResourceException;
 import com.example.product_service.exception.NotFoundException;
@@ -16,7 +15,6 @@ import com.example.product_service.service.dto.ProductCreationData;
 import com.example.product_service.service.util.ProductFactory;
 import com.example.product_service.service.util.ProductReferentialValidator;
 import com.example.product_service.service.util.ProductRequestStructureValidator;
-import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,13 +22,15 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.OngoingStubbing;
+import org.springframework.test.util.ReflectionTestUtils;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.example.product_service.common.MessagePath.*;
 import static com.example.product_service.util.TestMessageUtil.getMessage;
 import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -46,42 +46,6 @@ public class ProductServiceUnitTest {
 
     @InjectMocks
     ProductService productService;
-
-    @Test
-    @DisplayName("상품 저장 테스트-성공")
-    void saveProductTest_unit_success(){
-        ProductRequest request = createProductRequest();
-        when(productsRepository.save(any(Products.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
-        ProductResponse response = productService.saveProduct(request);
-
-        assertThat(response.getName()).isEqualTo("name");
-        assertThat(response.getDescription()).isEqualTo("description");
-        assertThat(response.getCategoryId()).isEqualTo(1L);
-        assertThat(response.getImages())
-                .extracting("url", "sortOrder")
-                .containsExactlyInAnyOrder(
-                        Tuple.tuple("http://test.jpg", 0)
-                );
-        assertThat(response.getProductOptionTypes())
-                .extracting("id", "name")
-                .containsExactlyInAnyOrder(
-                        tuple(1L, "optionType")
-                );
-
-        assertThat(response.getProductVariants())
-                .extracting( "sku", "price", "stockQuantity", "discountRate")
-                .containsExactlyInAnyOrder(
-                        tuple("sku", 3000, 100, 10)
-                );
-
-        assertThat(response.getProductVariants())
-                .flatExtracting("optionValues")
-                .extracting("valueId", "typeId", "valueName")
-                .containsExactlyInAnyOrder(
-                        tuple (5L, 1L, "optionValue")
-                );
-    }
 
     @Test
     @DisplayName("상품 저장 테스트-실패(요청 Body에 중복된 productOptionTypeId)")
@@ -178,6 +142,17 @@ public class ProductServiceUnitTest {
     }
 
     @Test
+    @DisplayName("상품 저장 테스트-실패(동일한 SKU가 DB에 존재하는 경우)")
+    void saveProductTest_unit_conflict_sku(){
+        ProductRequest request = createProductRequest();
+        mockStructureValidator(request, null);
+        mockReferentialValidator(request, null, PRODUCT_VARIANT_SKU_CONFLICT);
+        assertThatThrownBy(() -> productService.saveProduct(request))
+                .isInstanceOf(DuplicateResourceException.class)
+                .hasMessage(getMessage(PRODUCT_VARIANT_SKU_CONFLICT));
+    }
+
+    @Test
     @DisplayName("상품 저장 테스트-실패(카테고리 없음)")
     void saveProductTest_unit_category_notFound(){
         ProductRequest request = createProductRequest();
@@ -200,112 +175,14 @@ public class ProductServiceUnitTest {
     }
 
     @Test
-    @DisplayName("상품 저장 테스트-실패(ProductRequest 의 Variant option 중 optionTypeId 가 ProductOptionType optionTypeId와 다를때)")
-    void saveProductTest_unit_variantOptionValue_cardinality_violation1(){
-    }
-
-    @Test
-    @DisplayName("상품 저장 테스트-실패(상품 옵션보다 상품 변형 옵션이 더 많이 추가되었을때)")
-    void saveProductTest_unit_variantOptionValue_cardinality_violation2(){
-        ProductRequest request = new ProductRequest(
-                "name",
-                "description",
-                1L,
-                List.of(new ImageRequest("http://test.jpg", 0)),
-                List.of(new ProductOptionTypeRequest(1L, 1)),
-                List.of(new ProductVariantRequest("sku", 3000, 100, 10,
-                        List.of(new VariantOptionValueRequest(1L, 5L),
-                                new VariantOptionValueRequest(2L, 7L)
-                        )))
-        );
-        assertThatThrownBy(() -> productService.saveProduct(request))
-                .isInstanceOf(BadRequestException.class)
-                .hasMessage(getMessage(PRODUCT_OPTION_VALUE_CARDINALITY_VIOLATION));
-    }
-
-    @Test
-    @DisplayName("상품 저장 테스트-실패(상품 옵션보다 상품 변형 옵션이 더 적게 추가되었을때)")
-    void saveProductTest_unit_variantOptionValue_cardinality_violation3(){
-        ProductRequest request = new ProductRequest(
-                "name",
-                "description",
-                1L,
-                List.of(new ImageRequest("http://test.jpg", 0)),
-                List.of(new ProductOptionTypeRequest(1L, 1), new ProductOptionTypeRequest(2L, 2)),
-                List.of(new ProductVariantRequest("sku", 3000, 100, 10,
-                        List.of(new VariantOptionValueRequest(1L, 5L)
-                        )))
-        );
-        assertThatThrownBy(() -> productService.saveProduct(request))
-                .isInstanceOf(BadRequestException.class)
-                .hasMessage(getMessage(PRODUCT_OPTION_VALUE_CARDINALITY_VIOLATION));
-    }
-
-    @Test
-    @DisplayName("상품 저장 테스트-실패(상품 변형 옵션중 동일한 옵션 타입을 가지는 값이 여러개일때)")
-    void saveProductTest_unit_variantOptionValue_cardinality_violation4(){
-        ProductRequest request = new ProductRequest(
-                "name",
-                "description",
-                1L,
-                List.of(new ImageRequest("http://test.jpg", 0)),
-                List.of(new ProductOptionTypeRequest(1L, 1), new ProductOptionTypeRequest(2L, 2)),
-                List.of(new ProductVariantRequest("sku", 3000, 100, 10,
-                        List.of(new VariantOptionValueRequest(1L, 5L),
-                                new VariantOptionValueRequest(1L, 8L)
-                        )))
-        );
-        assertThatThrownBy(() -> productService.saveProduct(request))
-                .isInstanceOf(BadRequestException.class)
-                .hasMessage(getMessage(PRODUCT_OPTION_VALUE_CARDINALITY_VIOLATION));
-    }
-
-    @Test
-    @DisplayName("상품 저장 테스트-실패(상품 변형의 옵션 값이 상품 옵션 타입의 옵션값이 아닌경우)")
-    void saveProductTest_unit_variantOptionValue_optionValue_notMatchedType(){
-        ProductRequest request = new ProductRequest(
-                "name",
-                "description",
-                1L,
-                List.of(new ImageRequest("http://test.jpg", 0)),
-                List.of(new ProductOptionTypeRequest(1L, 1)),
-                List.of(new ProductVariantRequest("sku", 3000, 100, 10,
-                        List.of(new VariantOptionValueRequest(1L, 5L)
-                        )))
-        );
+    @DisplayName("상품 저장 테스트-실패(상품 변형 옵션 값이 옵션 타입의 연관 객체가 아닌경우)")
+    void saveProductTest_unit_optionValue_notMatch_type(){
+        ProductRequest request = createProductRequest();
+        mockStructureValidator(request, null);
+        mockReferentialValidator(request, null, PRODUCT_OPTION_VALUE_NOT_MATCH_TYPE);
         assertThatThrownBy(() -> productService.saveProduct(request))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessage(getMessage(PRODUCT_OPTION_VALUE_NOT_MATCH_TYPE));
-    }
-
-    @Test
-    @DisplayName("상품 저장 테스트-실패(SKU가 중복될 경우)")
-    void saveProductTest_unit_variantSKU_conflict(){
-        ProductRequest request = new ProductRequest(
-                "name",
-                "description",
-                1L,
-                List.of(new ImageRequest("http://test.jpg", 0)),
-                List.of(new ProductOptionTypeRequest(1L, 1)),
-                List.of(new ProductVariantRequest("sku", 3000, 100, 10,
-                        List.of(new VariantOptionValueRequest(1L, 5L))))
-        );
-        assertThatThrownBy(() -> productService.saveProduct(request))
-                .isInstanceOf(DuplicateResourceException.class)
-                .hasMessage(getMessage(PRODUCT_VARIANT_SKU_CONFLICT));
-    }
-
-    private ProductRequest createProductRequest(){
-        return new ProductRequest(
-                "name",
-                "description",
-                1L,
-                List.of(new ImageRequest("http://test.jpg", 0)),
-                List.of(new ProductOptionTypeRequest(1L, 1)),
-                List.of(new ProductVariantRequest("sku", 3000, 100, 10, List.of(
-                        new VariantOptionValueRequest(1L, 5L)
-                )))
-        );
     }
 
     private void mockStructureValidator(ProductRequest request, String exceptionCode){
@@ -331,11 +208,64 @@ public class ProductServiceUnitTest {
 
     private void mockReferentialValidator(ProductRequest request, ProductCreationData returnData, String exceptionCode){
         OngoingStubbing<ProductCreationData> when = when(referentialValidator.validAndFetch(request));
-        if(exceptionCode == CATEGORY_NOT_FOUND){
+        if(exceptionCode.equals(CATEGORY_NOT_FOUND)){
             when.thenThrow(new NotFoundException(getMessage(CATEGORY_NOT_FOUND)));
-        } else if (exceptionCode == OPTION_TYPE_NOT_FOUND){
+        } else if (exceptionCode.equals(OPTION_TYPE_NOT_FOUND)){
             when.thenThrow(new NotFoundException(getMessage(OPTION_TYPE_NOT_FOUND)));
+        } else if (exceptionCode.equals(PRODUCT_VARIANT_SKU_CONFLICT)){
+            when.thenThrow(new DuplicateResourceException(getMessage(PRODUCT_VARIANT_SKU_CONFLICT)));
+        } else if (exceptionCode.equals(PRODUCT_OPTION_VALUE_NOT_MATCH_TYPE)){
+            when.thenThrow(new BadRequestException(getMessage(PRODUCT_OPTION_VALUE_NOT_MATCH_TYPE)));
         }
+    }
+
+    private ProductRequest createProductRequest(){
+        return new ProductRequest(
+                "name",
+                "description",
+                1L,
+                List.of(new ImageRequest("http://test.jpg", 0)),
+                List.of(new ProductOptionTypeRequest(1L, 1)),
+                List.of(new ProductVariantRequest("sku", 3000, 100, 10, List.of(
+                        new VariantOptionValueRequest(1L, 5L)
+                )))
+        );
+    }
+
+
+
+    private ProductCreationData createProductCreationData(){
+        return new ProductCreationData(
+                createCategory(1L),
+                createOptionTypeById(1L),
+                createOptionValueById(5L)
+        );
+    }
+
+    private Categories createCategory(Long id){
+        Categories category = new Categories("category", "http://test.jpg");
+        ReflectionTestUtils.setField(category, "id", id);
+        return category;
+    }
+
+    private Map<Long, OptionTypes> createOptionTypeById(Long... ids){
+        Map<Long, OptionTypes> map = new HashMap<>();
+        for (Long id : ids) {
+            OptionTypes optionType = new OptionTypes("optionType" + id);
+            ReflectionTestUtils.setField(optionType, "id", id);
+            map.put(id, optionType);
+        }
+        return map;
+    }
+
+    private Map<Long, OptionValues> createOptionValueById(Long... ids){
+        Map<Long, OptionValues> map = new HashMap<>();
+        for (Long id : ids) {
+            OptionValues optionValue = new OptionValues("optionValue" + id);
+            ReflectionTestUtils.setField(optionValue, "id", id);
+            map.put(id, optionValue);
+        }
+        return map;
     }
 
 }

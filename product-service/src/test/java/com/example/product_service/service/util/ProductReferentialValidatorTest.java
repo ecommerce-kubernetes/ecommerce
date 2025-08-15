@@ -111,7 +111,7 @@ class ProductReferentialValidatorTest {
 
     @Test
     @DisplayName("상품 변형 옵션 값이 옵션 타입의 연관 객체가 아닌경우")
-    void validAndFetch_violation_cardinality(){
+    void validAndFetch_optionValue_not_match_type(){
         Categories category = createCategoriesWithSetId(1L, "category", "http://test.jpg");
         mockExistsBySkuIn(false, "sku");
         mockFindByCategory(1L, category);
