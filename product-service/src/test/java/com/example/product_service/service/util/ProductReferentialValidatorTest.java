@@ -34,7 +34,6 @@ import static com.example.product_service.common.MessagePath.*;
 import static com.example.product_service.util.TestMessageUtil.getMessage;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.refEq;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)

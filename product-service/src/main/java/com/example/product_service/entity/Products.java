@@ -40,14 +40,32 @@ public class Products extends BaseEntity {
         this.category = category;
     }
 
+    public void addImages(List<ProductImages> images){
+        for(ProductImages image : images){
+            addImage(image);
+        }
+    }
+
     public void addImage(ProductImages image){
         this.images.add(image);
         image.setProduct(this);
     }
 
+    public void addOptionTypes(List<ProductOptionTypes> productOptionTypes){
+        for (ProductOptionTypes productOptionType : productOptionTypes) {
+            addOptionType(productOptionType);
+        }
+    }
+
     public void addOptionType(ProductOptionTypes productOptionType){
         this.productOptionTypes.add(productOptionType);
         productOptionType.setProduct(this);
+    }
+
+    public void addVariants(List<ProductVariants> productVariants){
+        for (ProductVariants productVariant : productVariants) {
+            addVariant(productVariant);
+        }
     }
 
     public void addVariant(ProductVariants productVariant){

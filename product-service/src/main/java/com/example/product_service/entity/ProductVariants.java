@@ -38,6 +38,12 @@ public class ProductVariants {
         this.discountValue = discountValue;
     }
 
+    public void addProductVariantOptions(List<ProductVariantOptions> productVariantOptions){
+        for (ProductVariantOptions productVariantOption : productVariantOptions) {
+            addProductVariantOption(productVariantOption);
+        }
+    }
+
     public void addProductVariantOption(ProductVariantOptions productVariantOption){
         this.productVariantOptions.add(productVariantOption);
         productVariantOption.setProductVariant(this);
