@@ -35,7 +35,7 @@ public class ProductReferentialValidator {
     private final ProductVariantsRepository productVariantsRepository;
     private final MessageSourceUtil ms;
 
-    public ProductCreationData validAndFind(ProductRequest request){
+    public ProductCreationData validAndFetch(ProductRequest request){
         validateDuplicateSkus(request);
         Categories categories = findByIdOrThrow(request.getCategoryId());
         List<OptionTypes> optionTypes = findOptionTypes(request);

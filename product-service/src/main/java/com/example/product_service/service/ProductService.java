@@ -1,6 +1,5 @@
 package com.example.product_service.service;
 
-import com.example.product_service.common.MessageSourceUtil;
 import com.example.product_service.dto.ProductSearch;
 import com.example.product_service.dto.request.image.AddImageRequest;
 import com.example.product_service.dto.request.image.ImageRequest;
@@ -29,8 +28,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
-import static com.example.product_service.common.MessagePath.*;
-
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
@@ -45,7 +42,7 @@ public class ProductService {
         //요청 바디 유효성 검사
         structureValidator.validateProductRequest(request);
         //상품 sku 중복, 옵션 타입 연관관계 체크
-        ProductCreationData creationData = referentialValidator.validAndFind(request);
+        ProductCreationData creationData = referentialValidator.validAndFetch(request);
 
         Products products = new Products(request.getName(), request.getDescription(), creationData.getCategory());
         for(ImageRequest imageRequest : request.getImages()){
