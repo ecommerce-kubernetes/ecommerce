@@ -12,7 +12,7 @@ import java.util.Map;
 @AllArgsConstructor
 @Getter
 public class ProductCreationData {
-    private Categories categories;
+    private Categories category;
     private Map<Long, OptionTypes> optionTypeById;
     private Map<Long, OptionValues> optionValueById;
 }
