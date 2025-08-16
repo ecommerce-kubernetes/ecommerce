@@ -7,15 +7,13 @@ import com.example.product_service.dto.request.variant.ProductVariantRequest;
 import com.example.product_service.dto.request.variant.VariantOptionValueRequest;
 import com.example.product_service.dto.response.product.ProductResponse;
 import com.example.product_service.dto.response.variant.ProductVariantResponse;
-import com.example.product_service.entity.Categories;
-import com.example.product_service.entity.OptionTypes;
-import com.example.product_service.entity.OptionValues;
+import com.example.product_service.entity.*;
+import com.example.product_service.exception.BadRequestException;
+import com.example.product_service.exception.DuplicateResourceException;
+import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.repository.CategoryRepository;
 import com.example.product_service.repository.OptionTypeRepository;
 import com.example.product_service.repository.ProductsRepository;
-import com.example.product_service.service.util.ProductFactory;
-import com.example.product_service.service.util.ProductReferentialValidator;
-import com.example.product_service.service.util.ProductRequestStructureValidator;
 import jakarta.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
@@ -28,8 +26,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
+import static com.example.product_service.common.MessagePath.*;
+import static com.example.product_service.util.TestMessageUtil.getMessage;
+import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 import static org.mockito.Mockito.doReturn;
 
@@ -49,16 +48,24 @@ class ProductServiceTest {
     EntityManager em;
 
     OptionTypes existType;
+    OptionTypes newOptionType;
+    OptionValues newOptionValue1;
+    OptionValues newOptionValue2;
     OptionValues existValue;
     Categories category;
 
     @BeforeEach
     void saveFixture(){
         existType = new OptionTypes("optionType");
+        newOptionType = new OptionTypes("newOptionType");
         existValue = new OptionValues("optionValue");
+        newOptionValue1 = new OptionValues("newOptionValue1");
+        newOptionValue2 = new OptionValues("newOptionValue2");
         category = new Categories("category", "http://test.jpg");
         existType.addOptionValue(existValue);
-        optionTypeRepository.save(existType);
+        newOptionType.addOptionValue(newOptionValue1);
+        newOptionType.addOptionValue(newOptionValue2);
+        optionTypeRepository.saveAll(List.of(existType, newOptionType));
         categoryRepository.save(category);
     }
 
@@ -73,12 +80,8 @@ class ProductServiceTest {
     @DisplayName("상품 저장 테스트-성공")
     @Transactional
     void saveProduct_integration_success(){
-        ProductRequest request = new ProductRequest("productName", "product description", category.getId(),
-                List.of(new ImageRequest("http://test.jpg", 0)),
-                List.of(new ProductOptionTypeRequest(existType.getId(), 0)),
-                List.of(new ProductVariantRequest("sku", 100, 10, 10,
-                        List.of(new VariantOptionValueRequest(existType.getId(), existValue.getId()))))
-        );
+        ProductRequest request = createProductRequest();
+
         ProductResponse response = productService.saveProduct(request);
 
         assertThat(response)
@@ -112,5 +115,187 @@ class ProductServiceTest {
         assertThat(variant.getOptionValues())
                 .extracting("valueId", "typeId", "valueName")
                 .containsExactly(tuple(existValue.getId(), existType.getId(), existValue.getValueName()));
+    }
+
+    @Test
+    @DisplayName("상품 저장 테스트-실패(요청 Body에 중복된 productOptionTypeId)")
+    void saveProductTest_integration_option_type_typeId_badRequest(){
+        ProductRequest request = createProductRequest();
+        request.setProductOptionTypes(List.of(new ProductOptionTypeRequest(existType.getId(), 0),
+                new ProductOptionTypeRequest(existType.getId(), 1)));
+
+        assertThatThrownBy(() -> productService.saveProduct(request))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage(getMessage(PRODUCT_OPTION_TYPE_TYPE_BAD_REQUEST));
+    }
+
+    @Test
+    @DisplayName("상품 저장 테스트-실패(요청 Body에 중복된 priority)")
+    void saveProductTest_integration_option_type_priority_badRequest(){
+        ProductRequest request = createProductRequest();
+        request.setProductOptionTypes(List.of(new ProductOptionTypeRequest(existType.getId(), 0),
+                new ProductOptionTypeRequest(newOptionType.getId(), 0)));
+
+        assertThatThrownBy(() -> productService.saveProduct(request))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage(getMessage(PRODUCT_OPTION_TYPE_PRIORITY_BAD_REQUEST));
+    }
+
+    @Test
+    @DisplayName("상품 저장 테스트-실패(요청 Body에 중복된 SKU)")
+    void saveProductTest_integration_request_sku_duplicate(){
+        ProductRequest request = createProductRequest();
+        request.setProductOptionTypes(
+                List.of(new ProductOptionTypeRequest(existType.getId(), 0),
+                        new ProductOptionTypeRequest(newOptionType.getId(), 1))
+        );
+        request.setProductVariants(
+                List.of(new ProductVariantRequest("duplicateSku", 10000, 100, 10,
+                                List.of(new VariantOptionValueRequest(existType.getId(), existValue.getId()),
+                                        new VariantOptionValueRequest(newOptionType.getId(), newOptionValue1.getId()))),
+                        new ProductVariantRequest("duplicateSku", 10000, 100, 10,
+                                List.of(new VariantOptionValueRequest(existType.getId(),existValue.getId()),
+                                        new VariantOptionValueRequest(newOptionType.getId(), newOptionValue2.getId()))))
+        );
+
+        assertThatThrownBy(() -> productService.saveProduct(request))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage(getMessage(PRODUCT_VARIANT_SKU_CONFLICT));
+    }
+
+    @Test
+    @DisplayName("상품 저장 테스트-실패(상품 옵션 타입과 다른 상품 변형 옵션 타입이 있는 경우)")
+    void saveProductTest_integration_optionValue_cardinality_violation(){
+        ProductRequest request = createProductRequest();
+        request.setProductOptionTypes(
+                List.of(new ProductOptionTypeRequest(existType.getId(), 0))
+        );
+        request.setProductVariants(
+                List.of(new ProductVariantRequest("sku", 10000, 100, 10,
+                                List.of(new VariantOptionValueRequest(existType.getId(), existValue.getId()),
+                                        new VariantOptionValueRequest(newOptionType.getId(), newOptionValue1.getId())))
+        ));
+
+        assertThatThrownBy(() -> productService.saveProduct(request))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage(getMessage(PRODUCT_OPTION_VALUE_CARDINALITY_VIOLATION));
+
+        request.setProductVariants(
+                List.of(new ProductVariantRequest("sku", 10000, 100, 10,
+                        List.of(new VariantOptionValueRequest(newOptionType.getId(), newOptionValue1.getId())))
+                ));
+
+        assertThatThrownBy(() -> productService.saveProduct(request))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage(getMessage(PRODUCT_OPTION_VALUE_CARDINALITY_VIOLATION));
+
+        request.setProductOptionTypes(
+                List.of(new ProductOptionTypeRequest(existType.getId(), 0),
+                        new ProductOptionTypeRequest(newOptionType.getId(), 1))
+        );
+        request.setProductVariants(
+                List.of(new ProductVariantRequest("sku", 10000, 100, 10,
+                        List.of(new VariantOptionValueRequest(existType.getId(), newOptionValue1.getId())))
+                ));
+
+        assertThatThrownBy(() -> productService.saveProduct(request))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage(getMessage(PRODUCT_OPTION_VALUE_CARDINALITY_VIOLATION));
+    }
+
+    @Test
+    @DisplayName("상품 저장 테스트-실패(상품 변형의 옵션 값이 중복될 경우)")
+    void saveProduct_integration_duplicate_variant_options(){
+        ProductRequest request = createProductRequest();
+
+        request.setProductVariants(
+                List.of(
+                        new ProductVariantRequest("sku1", 100, 100, 10,
+                                List.of(
+                                        new VariantOptionValueRequest(1L, 1L)
+                                )),
+                        new ProductVariantRequest("sku2", 100, 100, 10,
+                                List.of(
+                                        new VariantOptionValueRequest(1L,1L)
+                                ))
+                )
+        );
+
+        assertThatThrownBy(() -> productService.saveProduct(request))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage(getMessage(PRODUCT_VARIANT_OPTION_VALUE_CONFLICT));
+    }
+
+    @Test
+    @DisplayName("상품 저장 테스트-실패(DB에 동일한 SKU가 존재할 경우)")
+    @Transactional
+    void saveProduct_integration_conflict_sku(){
+        Products product = new Products("existProductName", "description", category);
+        ProductVariants productVariants = new ProductVariants("duplicateSku", 100, 10, 10);
+        product.addVariants(List.of(productVariants));
+        productsRepository.save(product);
+        em.flush(); em.clear();
+
+        ProductRequest request = createProductRequest();
+        request.setProductOptionTypes(List.of());
+        request.setProductVariants(List.of(new ProductVariantRequest("duplicateSku", 100, 10, 10, List.of())));
+
+        assertThatThrownBy(() -> productService.saveProduct(request))
+                .isInstanceOf(DuplicateResourceException.class)
+                .hasMessage(getMessage(PRODUCT_VARIANT_SKU_CONFLICT));
+    }
+
+    @Test
+    @DisplayName("상품 저장 테스트-실패(카테고리 없음)")
+    void saveProduct_integration_notFound_category(){
+        ProductRequest request = createProductRequest();
+        request.setCategoryId(999L);
+
+        assertThatThrownBy(() -> productService.saveProduct(request))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage(getMessage(CATEGORY_NOT_FOUND));
+    }
+
+    @Test
+    @DisplayName("상품 저장 테스트-실패(옵션 타입 없음)")
+    void saveProduct_integration_notFound_optionType(){
+        ProductRequest request = createProductRequest();
+        request.setProductOptionTypes(
+                List.of(new ProductOptionTypeRequest(999L, 0))
+        );
+
+        request.setProductVariants(
+                List.of(new ProductVariantRequest(
+                        "sku", 100, 10, 10,
+                        List.of(new VariantOptionValueRequest(999L, 10L))
+                ))
+        );
+
+        assertThatThrownBy(() -> productService.saveProduct(request))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage(getMessage(OPTION_TYPE_NOT_FOUND));
+    }
+
+    @Test
+    @DisplayName("상품 저장 테스트-실패(옵션 값이 옵션 타입의 연관 엔티티가 아닌경우)")
+    void saveProduct_integration_optionValue_notMatch_type(){
+        ProductRequest request = createProductRequest();
+        request.setProductVariants(
+                List.of(new ProductVariantRequest("sku", 100, 10, 10,
+                        List.of(new VariantOptionValueRequest(1L, 100L))))
+        );
+
+        assertThatThrownBy(() -> productService.saveProduct(request))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage(getMessage(PRODUCT_OPTION_VALUE_NOT_MATCH_TYPE));
+    }
+
+    private ProductRequest createProductRequest() {
+        return new ProductRequest("productName", "product description", category.getId(),
+                List.of(new ImageRequest("http://test.jpg", 0)),
+                List.of(new ProductOptionTypeRequest(existType.getId(), 0)),
+                List.of(new ProductVariantRequest("sku", 100, 10, 10,
+                        List.of(new VariantOptionValueRequest(existType.getId(), existValue.getId()))))
+        );
     }
 }
