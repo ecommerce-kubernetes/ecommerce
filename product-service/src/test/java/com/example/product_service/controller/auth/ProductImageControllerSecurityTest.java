@@ -70,6 +70,6 @@ public class ProductImageControllerSecurityTest {
     }
 
     private ImageRequest createImageRequest(){
-        return new ImageRequest("http://test.jpg", 1);
+        return new ImageRequest("http://test.jpg");
     }
 }

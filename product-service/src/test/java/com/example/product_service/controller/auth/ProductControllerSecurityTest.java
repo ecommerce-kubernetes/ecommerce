@@ -149,7 +149,7 @@ public class ProductControllerSecurityTest {
     }
 
     private List<ImageRequest> createImageRequestList(){
-        return List.of(new ImageRequest("http://test.jpg", 0));
+        return List.of(new ImageRequest("http://test.jpg"));
     }
 
     private List<ProductOptionTypeRequest> createProductOptionTypeRequestList(){

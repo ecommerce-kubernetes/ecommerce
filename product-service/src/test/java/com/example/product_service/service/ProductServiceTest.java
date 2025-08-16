@@ -293,7 +293,7 @@ class ProductServiceTest {
 
     private ProductRequest createProductRequest() {
         return new ProductRequest("productName", "product description", category.getId(),
-                List.of(new ImageRequest("http://test.jpg", 0)),
+                List.of(new ImageRequest("http://test.jpg")),
                 List.of(new ProductOptionTypeRequest(existType.getId(), 0)),
                 List.of(new ProductVariantRequest("sku", 100, 10, 10,
                         List.of(new VariantOptionValueRequest(existType.getId(), existValue.getId()))))

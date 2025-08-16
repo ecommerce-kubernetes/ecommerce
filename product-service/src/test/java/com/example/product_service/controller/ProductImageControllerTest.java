@@ -50,7 +50,7 @@ class ProductImageControllerTest {
     @Test
     @DisplayName("상품 이미지 수정 테스트-성공")
     void updateImageTest_success() throws Exception {
-        ImageRequest request = new ImageRequest("http://test.jpg", 0);
+        ImageRequest request = new ImageRequest("http://test.jpg");
         ImageResponse response = new ImageResponse(1L, "http://test1.jpg", 0);
         when(service.updateImageById(anyLong(), any(ImageRequest.class)))
                 .thenReturn(response);
@@ -70,7 +70,7 @@ class ProductImageControllerTest {
     @Test
     @DisplayName("상품 이미지 수정 테스트-실패(없음)")
     void updateImageTest_notFound() throws Exception {
-        ImageRequest request = new ImageRequest("http://test.jpg", 0);
+        ImageRequest request = new ImageRequest("http://test.jpg");
         when(service.updateImageById(anyLong(), any(ImageRequest.class)))
                 .thenThrow(new NotFoundException(getMessage(PRODUCT_IMAGE_NOT_FOUND)));
 

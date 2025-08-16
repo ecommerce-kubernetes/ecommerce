@@ -18,6 +18,4 @@ public class ImageRequest {
     @Pattern(regexp = "^(?!\\s*$).+", message = "{NotBlank}")
     @URL(message = "{InvalidUrl}")
     private String url;
-    @Min(value = 0, message = "{Min}")
-    private Integer sortOrder;
 }

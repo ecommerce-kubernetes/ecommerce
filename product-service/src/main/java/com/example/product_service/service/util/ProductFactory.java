@@ -44,8 +44,11 @@ public class ProductFactory {
     }
 
     private void mappingImages(ProductRequest request, Products product){
-        List<ProductImages> images = request.getImages().stream()
-                .map(img -> new ProductImages(img.getUrl(), img.getSortOrder())).toList();
+        int sortOrder = product.getImages().size();
+        List<ProductImages> images = new ArrayList<>();
+        for(ImageRequest imageRequest : request.getImages()){
+            images.add(new ProductImages(imageRequest.getUrl(), sortOrder++));
+        }
         product.addImages(images);
     }
 

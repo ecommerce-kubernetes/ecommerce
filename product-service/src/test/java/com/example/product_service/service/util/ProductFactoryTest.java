@@ -78,7 +78,7 @@ class ProductFactoryTest {
                 "name",
                 "description",
                 1L,
-                List.of(new ImageRequest("http://test.jpg", 0)),
+                List.of(new ImageRequest("http://test.jpg")),
                 List.of(new ProductOptionTypeRequest(1L, 1)),
                 List.of(new ProductVariantRequest("sku", 1000, 100, 10,
                         List.of(
