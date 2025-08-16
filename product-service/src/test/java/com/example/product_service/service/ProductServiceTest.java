@@ -33,7 +33,6 @@ import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 import static org.mockito.Mockito.doReturn;
 
 @SpringBootTest
-@Slf4j
 class ProductServiceTest {
     @Autowired
     ProductsRepository productsRepository;
@@ -205,6 +204,7 @@ class ProductServiceTest {
 
     @Test
     @DisplayName("상품 저장 테스트-실패(상품 변형의 옵션 값이 중복될 경우)")
+    @Transactional
     void saveProduct_integration_duplicate_variant_options(){
         ProductRequest request = createProductRequest();
 
@@ -212,11 +212,11 @@ class ProductServiceTest {
                 List.of(
                         new ProductVariantRequest("sku1", 100, 100, 10,
                                 List.of(
-                                        new VariantOptionValueRequest(1L, 1L)
+                                        new VariantOptionValueRequest(existType.getId(), existValue.getId())
                                 )),
                         new ProductVariantRequest("sku2", 100, 100, 10,
                                 List.of(
-                                        new VariantOptionValueRequest(1L,1L)
+                                        new VariantOptionValueRequest(existType.getId(),existValue.getId())
                                 ))
                 )
         );
@@ -224,6 +224,7 @@ class ProductServiceTest {
         assertThatThrownBy(() -> productService.saveProduct(request))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessage(getMessage(PRODUCT_VARIANT_OPTION_VALUE_CONFLICT));
+
     }
 
     @Test
@@ -282,7 +283,7 @@ class ProductServiceTest {
         ProductRequest request = createProductRequest();
         request.setProductVariants(
                 List.of(new ProductVariantRequest("sku", 100, 10, 10,
-                        List.of(new VariantOptionValueRequest(1L, 100L))))
+                        List.of(new VariantOptionValueRequest(existType.getId(), 100L))))
         );
 
         assertThatThrownBy(() -> productService.saveProduct(request))
