@@ -37,4 +37,6 @@ public final class MessagePath {
     public static final String REVIEW_FORBIDDEN = "review.forbidden.create";
     public static final String REVIEW_NOT_FOUND = "review.notFound";
     public static final String REVIEW_FORBIDDEN_DELETE = "review.forbidden.delete";
+
+    public static final String NOT_SUPPORTED_DOMAIN = "notSupport.domain";
 }

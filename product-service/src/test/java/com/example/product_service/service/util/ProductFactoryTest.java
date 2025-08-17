@@ -10,7 +10,7 @@ import com.example.product_service.entity.OptionTypes;
 import com.example.product_service.entity.OptionValues;
 import com.example.product_service.entity.Products;
 import com.example.product_service.service.dto.ProductCreationData;
-import org.assertj.core.api.Assertions;
+import com.example.product_service.service.util.factory.ProductFactory;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,7 +24,6 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.tuple;
-import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
 class ProductFactoryTest {

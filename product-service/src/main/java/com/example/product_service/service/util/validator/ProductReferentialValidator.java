@@ -1,4 +1,4 @@
-package com.example.product_service.service.util;
+package com.example.product_service.service.util.validator;
 
 import com.example.product_service.common.MessageSourceUtil;
 import com.example.product_service.dto.request.options.ProductOptionTypeRequest;

@@ -16,6 +16,7 @@ import com.example.product_service.repository.CategoryRepository;
 import com.example.product_service.repository.OptionTypeRepository;
 import com.example.product_service.repository.ProductVariantsRepository;
 import com.example.product_service.service.dto.ProductCreationData;
+import com.example.product_service.service.util.validator.ProductReferentialValidator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
