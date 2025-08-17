@@ -20,6 +20,7 @@ import com.example.product_service.service.util.ProductReferentialValidator;
 import com.example.product_service.service.util.ProductRequestStructureValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,10 +30,11 @@ import java.util.*;
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
-@Slf4j
 public class ProductService {
     private final ProductsRepository productsRepository;
     private final ProductRequestStructureValidator structureValidator;
+    private final CategoryRepository categoryRepository;
+    private final ProductSummaryRepository productSummaryRepository;
     private final ProductReferentialValidator referentialValidator;
     private final ProductFactory productFactory;
 
@@ -48,6 +50,23 @@ public class ProductService {
         return new ProductResponse(saved);
     }
 
+    public PageDto<ProductSummaryResponse> getProducts(ProductSearch search, Pageable pageable) {
+        List<Long> descendantIds = getDescendantIds(search.getCategoryId());
+        Page<ProductSummary> result = productSummaryRepository
+                .findAllProductSummary(search.getName(), descendantIds, search.getRating(), pageable);
+
+        List<ProductSummaryResponse> content =
+                result.getContent().stream().map(ProductSummaryResponse::new).toList();
+
+        return new PageDto<>(
+                content,
+                pageable.getPageNumber(),
+                result.getTotalPages(),
+                pageable.getPageSize(),
+                result.getTotalElements()
+        );
+    }
+
 
     public ProductUpdateResponse updateBasicInfoById(Long productId, UpdateProductBasicRequest request) {
         return null;
@@ -57,10 +76,6 @@ public class ProductService {
 
     }
 
-
-    public PageDto<ProductSummaryResponse> getProducts(ProductSearch search, Pageable pageable) {
-        return null;
-    }
 
 
     public ProductResponse getProductById(Long productId) {
@@ -86,6 +101,13 @@ public class ProductService {
 
     public ProductVariantResponse addVariant(Long productId, ProductVariantRequest request) {
         return null;
+    }
+
+    private List<Long> getDescendantIds(Long categoryId){
+        if(categoryId == null){
+            return List.of();
+        }
+        return categoryRepository.findDescendantIds(categoryId);
     }
 
 }

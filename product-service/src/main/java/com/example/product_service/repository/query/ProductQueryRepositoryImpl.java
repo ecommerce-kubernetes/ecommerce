@@ -50,9 +50,9 @@ public class ProductQueryRepositoryImpl implements ProductQueryRepository{
 //        예상 쿼리
 //        SELECT p.id, p.name, p.description, img.imageUrl, pv.price, (pv.price * (100 - pv.discount_value) / 100), pv.discount_value
 //        FROM products p
-//        LEFT JOIN categories c p.category_id = c.id
-//        LEFT JOIN products_images img ON img.product_id = p.id AND img.sort_order = 0
-//        LEFT JOIN products_variants pv ON pv.product_id = p.id
+//        LEFT JOIN categories c ON p.category_id = c.id
+//        LEFT JOIN product_images img ON img.product_id = p.id AND img.sort_order = 0
+//        LEFT JOIN product_variants pv ON pv.product_id = p.id
 //            AND ( pv.price * (100 - pv.discount_value) / 100 ) =
 //                                ( SELECT MIN( pv2.price * ( 100 - pv2.discount_value ) / 100 )
 //                                  FROM product_variants pv2

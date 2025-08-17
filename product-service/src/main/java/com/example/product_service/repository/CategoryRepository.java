@@ -43,5 +43,5 @@ public interface CategoryRepository extends JpaRepository<Categories, Long> {
             SELECT id FROM category_tree
             """,
     nativeQuery = true)
-    List<Long> findAllCategoryTreeIds(@Param("rootId") Long rootId);
+    List<Long> findDescendantIds(@Param("rootId") Long rootId);
 }

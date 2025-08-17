@@ -1,11 +1,14 @@
 package com.example.product_service.service.unit;
 
+import com.example.product_service.dto.ProductSearch;
 import com.example.product_service.dto.request.image.ImageRequest;
 import com.example.product_service.dto.request.options.ProductOptionTypeRequest;
 import com.example.product_service.dto.request.product.ProductRequest;
 import com.example.product_service.dto.request.variant.ProductVariantRequest;
 import com.example.product_service.dto.request.variant.VariantOptionValueRequest;
+import com.example.product_service.dto.response.PageDto;
 import com.example.product_service.dto.response.product.ProductResponse;
+import com.example.product_service.dto.response.product.ProductSummaryResponse;
 import com.example.product_service.entity.*;
 import com.example.product_service.exception.BadRequestException;
 import com.example.product_service.exception.DuplicateResourceException;
@@ -24,8 +27,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.OngoingStubbing;
+import org.springframework.data.domain.*;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,6 +50,10 @@ public class ProductServiceUnitTest {
     ProductReferentialValidator referentialValidator;
     @Mock
     ProductFactory factory;
+    @Mock
+    CategoryRepository categoryRepository;
+    @Mock
+    ProductSummaryRepository productSummaryRepository;
 
     @InjectMocks
     ProductService productService;
@@ -229,6 +238,29 @@ public class ProductServiceUnitTest {
                 .hasMessage(getMessage(PRODUCT_OPTION_VALUE_NOT_MATCH_TYPE));
     }
 
+    @Test
+    @DisplayName("상품 조회 테스트-성공")
+    void getProductsTest_unit_success(){
+        ProductSearch productSearch = new ProductSearch(2L, "", 2);
+        mockCategoryFindDescendantIds(2L, List.of(2L, 3L));
+        Pageable pageable = PageRequest.of(0, 10, Sort.Direction.ASC, "rating");
+        Page<ProductSummary> pageProductSummary = createPageProductSummary(pageable);
+        mockProductSummaryFindAll("", List.of(2L, 3L), 2, pageable, pageProductSummary);
+
+        PageDto<ProductSummaryResponse> products = productService.getProducts(productSearch, pageable);
+
+        assertThat(products.getPageSize()).isEqualTo(10);
+        assertThat(products.getCurrentPage()).isEqualTo(0);
+        List<ProductSummaryResponse> content = products.getContent();
+        assertThat(content)
+                .extracting("name", "description", "categoryId", "thumbnail", "ratingAvg", "reviewCount",
+                        "minimumPrice", "discountPrice", "discountRate")
+                .containsExactlyInAnyOrder(
+                        tuple("productName", "description", 2L, "http://test.jpg", 3.5, 10,
+                                1000, 900, 10)
+                );
+    }
+
     private void mockStructureValidator(ProductRequest request, String exceptionCode){
         if(exceptionCode == null){
             doNothing().when(structureValidator).validateProductRequest(request);
@@ -336,6 +368,24 @@ public class ProductServiceUnitTest {
             map.put(id, optionValue);
         }
         return map;
+    }
+
+    private void mockCategoryFindDescendantIds(Long categoryId, List<Long> returnResult){
+        when(categoryRepository.findDescendantIds(categoryId)).thenReturn(returnResult);
+    }
+
+    private void mockProductSummaryFindAll(String name, List<Long> categoryIds, Integer rating, Pageable pageable, Page<ProductSummary> returnResult){
+        when(productSummaryRepository.findAllProductSummary(name, categoryIds, rating, pageable))
+                .thenReturn(returnResult);
+    }
+
+    private Page<ProductSummary> createPageProductSummary(Pageable pageable){
+        List<ProductSummary> content = List.of(new ProductSummary(
+                1L, "productName", "description", 2L, "http://test.jpg", 3.5,
+                10, 1000, 900, 10, LocalDateTime.now()
+
+        ));
+        return new PageImpl<>(content, pageable, 1);
     }
 
 }

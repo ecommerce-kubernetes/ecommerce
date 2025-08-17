@@ -1,5 +1,6 @@
 package com.example.product_service.dto.response.product;
 
+import com.example.product_service.entity.ProductSummary;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,7 +21,21 @@ public class ProductSummaryResponse {
     private LocalDateTime createdAt;
     private double ratingAvg;
     private int reviewCount;
-    private int originPrice;
+    private int minimumPrice;
     private int discountPrice;
     private int discountRate;
+
+    public ProductSummaryResponse(ProductSummary productSummary){
+        this.id = productSummary.getId();
+        this.name = productSummary.getName();
+        this.description = productSummary.getDescription();
+        this.thumbnail = productSummary.getThumbnail();
+        this.categoryId = productSummary.getCategoryId();
+        this.createdAt = productSummary.getCreatedAt();
+        this.ratingAvg = productSummary.getAvgRating();
+        this.reviewCount = productSummary.getReviewCount();
+        this.minimumPrice = productSummary.getMinimumPrice();
+        this.discountPrice = productSummary.getDiscountPrice();
+        this.discountRate = productSummary.getDiscountRate();
+    }
 }
