@@ -55,9 +55,11 @@ public class ProductReaderUnitTest {
         assertThat(content)
                 .extracting("name", "description", "categoryId", "thumbnail", "ratingAvg", "reviewCount",
                         "minimumPrice", "discountPrice", "discountRate")
-                .containsExactlyInAnyOrder(
+                .containsExactly(
                         tuple("productName", "description", 2L, "http://test.jpg", 3.5, 10,
-                                1000, 900, 10)
+                                1000, 900, 10),
+                        tuple("productName2", "description", 2L, "http://test.jpg", 3.2, 10,
+                                10000, 10000, 0)
                 );
     }
 
@@ -73,9 +75,10 @@ public class ProductReaderUnitTest {
     private Page<ProductSummary> createPageProductSummary(Pageable pageable){
         List<ProductSummary> content = List.of(new ProductSummary(
                 1L, "productName", "description", 2L, "http://test.jpg", 3.5,
-                10, 1000, 900, 10, LocalDateTime.now()
-
-        ));
+                10, 1000, 900, 10, LocalDateTime.now()),
+                new ProductSummary(2L, "productName2", "description", 2L, "http://test.jpg",
+                        3.2, 10, 10000, 10000, 0, LocalDateTime.now())
+        );
         return new PageImpl<>(content, pageable, 1);
     }
 
