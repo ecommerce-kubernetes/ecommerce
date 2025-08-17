@@ -75,7 +75,7 @@ public class ProductRequestStructureValidator {
         }
     }
 
-    private static Set<Long> getProductOptionTypeIds(ProductRequest request) {
+    private Set<Long> getProductOptionTypeIds(ProductRequest request) {
         return request.getProductOptionTypes().stream().map(ProductOptionTypeRequest::getOptionTypeId).collect(Collectors.toSet());
     }
 

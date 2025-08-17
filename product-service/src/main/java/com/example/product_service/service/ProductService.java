@@ -14,12 +14,7 @@ import com.example.product_service.dto.response.product.ProductUpdateResponse;
 import com.example.product_service.dto.response.variant.ProductVariantResponse;
 import com.example.product_service.entity.*;
 import com.example.product_service.repository.*;
-import com.example.product_service.service.dto.ProductCreationData;
-import com.example.product_service.service.util.ProductFactory;
-import com.example.product_service.service.util.ProductReferentialValidator;
-import com.example.product_service.service.util.ProductRequestStructureValidator;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -28,26 +23,15 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
 
 @Service
-@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class ProductService {
-    private final ProductsRepository productsRepository;
-    private final ProductRequestStructureValidator structureValidator;
+    private final ProductSaver productSaver;
+    private final ProductReader productReader;
     private final CategoryRepository categoryRepository;
     private final ProductSummaryRepository productSummaryRepository;
-    private final ProductReferentialValidator referentialValidator;
-    private final ProductFactory productFactory;
 
-    @Transactional
     public ProductResponse saveProduct(ProductRequest request) {
-        //요청 바디 유효성 검사
-        structureValidator.validateProductRequest(request);
-        //상품 sku 중복, 옵션 타입 연관관계 체크
-        ProductCreationData creationData = referentialValidator.validAndFetch(request);
-        Products products = productFactory.createProducts(request, creationData);
-
-        Products saved = productsRepository.save(products);
-        return new ProductResponse(saved);
+        return productSaver.saveProduct(request);
     }
 
     public PageDto<ProductSummaryResponse> getProducts(ProductSearch search, Pageable pageable) {

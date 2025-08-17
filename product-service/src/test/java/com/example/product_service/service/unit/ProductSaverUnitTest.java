@@ -1,20 +1,17 @@
 package com.example.product_service.service.unit;
 
-import com.example.product_service.dto.ProductSearch;
 import com.example.product_service.dto.request.image.ImageRequest;
 import com.example.product_service.dto.request.options.ProductOptionTypeRequest;
 import com.example.product_service.dto.request.product.ProductRequest;
 import com.example.product_service.dto.request.variant.ProductVariantRequest;
 import com.example.product_service.dto.request.variant.VariantOptionValueRequest;
-import com.example.product_service.dto.response.PageDto;
 import com.example.product_service.dto.response.product.ProductResponse;
-import com.example.product_service.dto.response.product.ProductSummaryResponse;
 import com.example.product_service.entity.*;
 import com.example.product_service.exception.BadRequestException;
 import com.example.product_service.exception.DuplicateResourceException;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.repository.*;
-import com.example.product_service.service.ProductService;
+import com.example.product_service.service.ProductSaver;
 import com.example.product_service.service.dto.ProductCreationData;
 import com.example.product_service.service.util.ProductFactory;
 import com.example.product_service.service.util.ProductReferentialValidator;
@@ -27,10 +24,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.OngoingStubbing;
-import org.springframework.data.domain.*;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,7 +36,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class ProductServiceUnitTest {
+public class ProductSaverUnitTest {
     @Mock
     ProductsRepository productsRepository;
     @Mock
@@ -50,13 +45,9 @@ public class ProductServiceUnitTest {
     ProductReferentialValidator referentialValidator;
     @Mock
     ProductFactory factory;
-    @Mock
-    CategoryRepository categoryRepository;
-    @Mock
-    ProductSummaryRepository productSummaryRepository;
 
     @InjectMocks
-    ProductService productService;
+    ProductSaver productSaver;
 
     @Test
     @DisplayName("상품 저장 테스트-성공")
@@ -70,7 +61,7 @@ public class ProductServiceUnitTest {
         when(factory.createProducts(request, creationData)).thenReturn(built);
         when(productsRepository.save(any(Products.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        ProductResponse response = productService.saveProduct(request);
+        ProductResponse response = productSaver.saveProduct(request);
 
         assertThat(response.getName()).isEqualTo("name");
         assertThat(response.getDescription()).isEqualTo("description");
@@ -110,7 +101,7 @@ public class ProductServiceUnitTest {
         );
         mockStructureValidator(request, PRODUCT_OPTION_TYPE_TYPE_BAD_REQUEST);
 
-        assertThatThrownBy(() -> productService.saveProduct(request))
+        assertThatThrownBy(() -> productSaver.saveProduct(request))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessage(getMessage(PRODUCT_OPTION_TYPE_TYPE_BAD_REQUEST));
     }
@@ -125,7 +116,7 @@ public class ProductServiceUnitTest {
         );
         mockStructureValidator(request, PRODUCT_OPTION_TYPE_PRIORITY_BAD_REQUEST);
 
-        assertThatThrownBy(() -> productService.saveProduct(request))
+        assertThatThrownBy(() -> productSaver.saveProduct(request))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessage(getMessage(PRODUCT_OPTION_TYPE_PRIORITY_BAD_REQUEST));
     }
@@ -143,7 +134,7 @@ public class ProductServiceUnitTest {
         );
         mockStructureValidator(request, PRODUCT_VARIANT_SKU_CONFLICT);
 
-        assertThatThrownBy(() -> productService.saveProduct(request))
+        assertThatThrownBy(() -> productSaver.saveProduct(request))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessage(getMessage(PRODUCT_VARIANT_SKU_CONFLICT));
     }
@@ -160,7 +151,7 @@ public class ProductServiceUnitTest {
         );
 
         mockStructureValidator(request, PRODUCT_OPTION_VALUE_CARDINALITY_VIOLATION);
-        assertThatThrownBy(() -> productService.saveProduct(request))
+        assertThatThrownBy(() -> productSaver.saveProduct(request))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessage(getMessage(PRODUCT_OPTION_VALUE_CARDINALITY_VIOLATION));
     }
@@ -189,7 +180,7 @@ public class ProductServiceUnitTest {
                 )
         );
         mockStructureValidator(request, PRODUCT_VARIANT_OPTION_VALUE_CONFLICT);
-        assertThatThrownBy(() -> productService.saveProduct(request))
+        assertThatThrownBy(() -> productSaver.saveProduct(request))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessage(getMessage(PRODUCT_VARIANT_OPTION_VALUE_CONFLICT));
     }
@@ -200,7 +191,7 @@ public class ProductServiceUnitTest {
         ProductRequest request = createProductRequest();
         mockStructureValidator(request, null);
         mockReferentialValidator(request, null, PRODUCT_VARIANT_SKU_CONFLICT);
-        assertThatThrownBy(() -> productService.saveProduct(request))
+        assertThatThrownBy(() -> productSaver.saveProduct(request))
                 .isInstanceOf(DuplicateResourceException.class)
                 .hasMessage(getMessage(PRODUCT_VARIANT_SKU_CONFLICT));
     }
@@ -211,7 +202,7 @@ public class ProductServiceUnitTest {
         ProductRequest request = createProductRequest();
         mockStructureValidator(request, null);
         mockReferentialValidator(request, null, CATEGORY_NOT_FOUND);
-        assertThatThrownBy(() -> productService.saveProduct(request))
+        assertThatThrownBy(() -> productSaver.saveProduct(request))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage(getMessage(CATEGORY_NOT_FOUND));
     }
@@ -222,7 +213,7 @@ public class ProductServiceUnitTest {
         ProductRequest request = createProductRequest();
         mockStructureValidator(request, null);
         mockReferentialValidator(request, null, OPTION_TYPE_NOT_FOUND);
-        assertThatThrownBy(() -> productService.saveProduct(request))
+        assertThatThrownBy(() -> productSaver.saveProduct(request))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage(getMessage(OPTION_TYPE_NOT_FOUND));
     }
@@ -233,32 +224,9 @@ public class ProductServiceUnitTest {
         ProductRequest request = createProductRequest();
         mockStructureValidator(request, null);
         mockReferentialValidator(request, null, PRODUCT_OPTION_VALUE_NOT_MATCH_TYPE);
-        assertThatThrownBy(() -> productService.saveProduct(request))
+        assertThatThrownBy(() -> productSaver.saveProduct(request))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessage(getMessage(PRODUCT_OPTION_VALUE_NOT_MATCH_TYPE));
-    }
-
-    @Test
-    @DisplayName("상품 조회 테스트-성공")
-    void getProductsTest_unit_success(){
-        ProductSearch productSearch = new ProductSearch(2L, "", 2);
-        mockCategoryFindDescendantIds(2L, List.of(2L, 3L));
-        Pageable pageable = PageRequest.of(0, 10, Sort.Direction.ASC, "rating");
-        Page<ProductSummary> pageProductSummary = createPageProductSummary(pageable);
-        mockProductSummaryFindAll("", List.of(2L, 3L), 2, pageable, pageProductSummary);
-
-        PageDto<ProductSummaryResponse> products = productService.getProducts(productSearch, pageable);
-
-        assertThat(products.getPageSize()).isEqualTo(10);
-        assertThat(products.getCurrentPage()).isEqualTo(0);
-        List<ProductSummaryResponse> content = products.getContent();
-        assertThat(content)
-                .extracting("name", "description", "categoryId", "thumbnail", "ratingAvg", "reviewCount",
-                        "minimumPrice", "discountPrice", "discountRate")
-                .containsExactlyInAnyOrder(
-                        tuple("productName", "description", 2L, "http://test.jpg", 3.5, 10,
-                                1000, 900, 10)
-                );
     }
 
     private void mockStructureValidator(ProductRequest request, String exceptionCode){
@@ -369,23 +337,4 @@ public class ProductServiceUnitTest {
         }
         return map;
     }
-
-    private void mockCategoryFindDescendantIds(Long categoryId, List<Long> returnResult){
-        when(categoryRepository.findDescendantIds(categoryId)).thenReturn(returnResult);
-    }
-
-    private void mockProductSummaryFindAll(String name, List<Long> categoryIds, Integer rating, Pageable pageable, Page<ProductSummary> returnResult){
-        when(productSummaryRepository.findAllProductSummary(name, categoryIds, rating, pageable))
-                .thenReturn(returnResult);
-    }
-
-    private Page<ProductSummary> createPageProductSummary(Pageable pageable){
-        List<ProductSummary> content = List.of(new ProductSummary(
-                1L, "productName", "description", 2L, "http://test.jpg", 3.5,
-                10, 1000, 900, 10, LocalDateTime.now()
-
-        ));
-        return new PageImpl<>(content, pageable, 1);
-    }
-
 }
