@@ -3,10 +3,13 @@ package com.example.product_service.service.unit;
 import com.example.product_service.dto.ProductSearch;
 import com.example.product_service.dto.response.PageDto;
 import com.example.product_service.dto.response.product.ProductSummaryResponse;
+import com.example.product_service.entity.DomainType;
 import com.example.product_service.entity.ProductSummary;
 import com.example.product_service.repository.CategoryRepository;
 import com.example.product_service.repository.ProductSummaryRepository;
 import com.example.product_service.service.ProductReader;
+import com.example.product_service.service.util.validator.PageableValidatorFactory;
+import com.example.product_service.service.util.validator.ProductPageableValidator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,6 +32,8 @@ public class ProductReaderUnitTest {
     CategoryRepository categoryRepository;
     @Mock
     ProductSummaryRepository productSummaryRepository;
+    @Mock
+    PageableValidatorFactory pageableValidatorFactory;
 
     @InjectMocks
     ProductReader productReader;
@@ -41,7 +46,7 @@ public class ProductReaderUnitTest {
         Pageable pageable = PageRequest.of(0, 10, Sort.Direction.ASC, "rating");
         Page<ProductSummary> pageProductSummary = createPageProductSummary(pageable);
         mockProductSummaryFindAll("", List.of(2L, 3L), 2, pageable, pageProductSummary);
-
+        mockPageableValidatorFactory();
         PageDto<ProductSummaryResponse> products = productReader.getProducts(productSearch, pageable);
 
         assertThat(products.getPageSize()).isEqualTo(10);
@@ -74,4 +79,8 @@ public class ProductReaderUnitTest {
         return new PageImpl<>(content, pageable, 1);
     }
 
+    private void mockPageableValidatorFactory(){
+        when(pageableValidatorFactory.getValidator(DomainType.PRODUCT))
+                .thenReturn(new ProductPageableValidator());
+    }
 }

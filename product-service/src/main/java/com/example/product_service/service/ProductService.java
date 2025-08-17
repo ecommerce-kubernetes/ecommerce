@@ -25,8 +25,6 @@ import java.util.*;
 public class ProductService {
     private final ProductSaver productSaver;
     private final ProductReader productReader;
-    private final CategoryRepository categoryRepository;
-    private final ProductSummaryRepository productSummaryRepository;
 
     public ProductResponse saveProduct(ProductRequest request) {
         return productSaver.saveProduct(request);
