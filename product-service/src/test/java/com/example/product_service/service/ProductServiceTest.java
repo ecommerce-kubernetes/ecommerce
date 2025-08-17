@@ -1,11 +1,14 @@
 package com.example.product_service.service;
 
+import com.example.product_service.dto.ProductSearch;
 import com.example.product_service.dto.request.image.ImageRequest;
 import com.example.product_service.dto.request.options.ProductOptionTypeRequest;
 import com.example.product_service.dto.request.product.ProductRequest;
 import com.example.product_service.dto.request.variant.ProductVariantRequest;
 import com.example.product_service.dto.request.variant.VariantOptionValueRequest;
+import com.example.product_service.dto.response.PageDto;
 import com.example.product_service.dto.response.product.ProductResponse;
+import com.example.product_service.dto.response.product.ProductSummaryResponse;
 import com.example.product_service.dto.response.variant.ProductVariantResponse;
 import com.example.product_service.entity.*;
 import com.example.product_service.exception.BadRequestException;
@@ -22,6 +25,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -289,6 +294,16 @@ class ProductServiceTest {
         assertThatThrownBy(() -> productService.saveProduct(request))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessage(getMessage(PRODUCT_OPTION_VALUE_NOT_MATCH_TYPE));
+    }
+
+    @Test
+    @DisplayName("상품 목록 조회 테스트-성공")
+    void getProductsTest_integration_success(){
+        ProductSearch productSearch = new ProductSearch(category.getId(), "", null);
+        Pageable pageable = PageRequest.of(0, 10);
+        PageDto<ProductSummaryResponse> response = productService.getProducts(productSearch, pageable);
+
+        assertThat(response.getPageSize()).isEqualTo(10);
     }
 
     private ProductRequest createProductRequest() {

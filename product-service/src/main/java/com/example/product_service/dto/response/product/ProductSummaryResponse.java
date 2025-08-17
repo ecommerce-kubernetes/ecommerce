@@ -31,11 +31,11 @@ public class ProductSummaryResponse {
         this.description = productSummary.getDescription();
         this.thumbnail = productSummary.getThumbnail();
         this.categoryId = productSummary.getCategoryId();
-        this.createdAt = productSummary.getCreatedAt();
+        this.createdAt = productSummary.getCreateAt();
         this.ratingAvg = productSummary.getAvgRating();
         this.reviewCount = productSummary.getReviewCount();
         this.minimumPrice = productSummary.getMinimumPrice();
-        this.discountPrice = productSummary.getDiscountPrice();
+        this.discountPrice = productSummary.getDiscountedPrice();
         this.discountRate = productSummary.getDiscountRate();
     }
 }
