@@ -40,8 +40,6 @@ import java.util.List;
 import static com.example.product_service.common.MessagePath.*;
 import static com.example.product_service.util.TestMessageUtil.getMessage;
 import static org.assertj.core.api.Assertions.*;
-import static org.junit.jupiter.api.DynamicTest.dynamicTest;
-import static org.mockito.Mockito.doReturn;
 
 @SpringBootTest
 @ActiveProfiles("mysql")
@@ -66,7 +64,6 @@ class ProductServiceTest {
     OptionValues newOptionValue2;
     OptionValues existValue;
     Categories category;
-
     @BeforeEach
     void saveFixture(){
         existType = new OptionTypes("optionType");
@@ -321,12 +318,34 @@ class ProductServiceTest {
 
     @Test
     @DisplayName("상품 목록 조회 테스트-성공")
+    @Transactional
     void getProductsTest_integration_success(){
+        ProductImages productImage = createProductImages("http://test.jpg", 0);
+        ProductOptionTypes productOptionType = createProductOptionType(existType);
+        ProductVariants productVariant = createProductVariants("sku", 10000, 100, 10, existValue);
+
+        Products product = createProduct("productName", "description", category,
+                List.of(productImage), List.of(productOptionType), List.of(productVariant));
+
+        Products savedProduct = productsRepository.save(product);
+        em.flush(); em.clear();
+
         ProductSearch productSearch = new ProductSearch(category.getId(), "", null);
         Pageable pageable = PageRequest.of(0, 10);
         PageDto<ProductSummaryResponse> response = productService.getProducts(productSearch, pageable);
 
         assertThat(response.getPageSize()).isEqualTo(10);
+        assertThat(response.getCurrentPage()).isEqualTo(0);
+        assertThat(response.getTotalPage()).isEqualTo(1);
+        assertThat(response.getTotalElement()).isEqualTo(1);
+        assertThat(response.getContent()).extracting("id", "name", "description",
+                "thumbnail", "categoryId", "ratingAvg", "reviewCount", "minimumPrice", "discountPrice", "discountRate")
+                .containsExactlyInAnyOrder(
+                        tuple(
+                                savedProduct.getId(), savedProduct.getName(), savedProduct.getDescription(),
+                                "http://test.jpg", savedProduct.getCategory().getId(), 0.0, 0, 10000, 9000, 10
+                        )
+                );
     }
 
     private ProductRequest createProductRequest() {
@@ -336,5 +355,32 @@ class ProductServiceTest {
                 List.of(new ProductVariantRequest("sku", 100, 10, 10,
                         List.of(new VariantOptionValueRequest(existType.getId(), existValue.getId()))))
         );
+    }
+
+    private Products createProduct(String name, String description, Categories category,
+                                   List<ProductImages> productImages, List<ProductOptionTypes> productOptionTypes,
+                                   List<ProductVariants> productVariants){
+        Products product = new Products(name, description, category);
+        product.addImages(productImages);
+        product.addOptionTypes(productOptionTypes);
+        product.addVariants(productVariants);
+
+        return product;
+    }
+
+    private ProductImages createProductImages(String imageUrl, int sortOrder){
+        return new ProductImages(imageUrl, sortOrder);
+    }
+
+    private ProductOptionTypes createProductOptionType(OptionTypes optionTypes){
+        return new ProductOptionTypes(optionTypes, 0, true);
+    }
+
+    private ProductVariants createProductVariants(String sku, int price, int stockQuantity, int discountValue, OptionValues optionValues){
+        ProductVariantOptions productVariantOptions = new ProductVariantOptions(optionValues);
+
+        ProductVariants productVariants = new ProductVariants(sku, price, stockQuantity, discountValue);
+        productVariants.addProductVariantOption(productVariantOptions);
+        return productVariants;
     }
 }
