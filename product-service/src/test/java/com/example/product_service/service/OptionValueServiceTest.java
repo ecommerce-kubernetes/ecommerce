@@ -68,7 +68,7 @@ class OptionValueServiceTest {
 
         assertThat(response.getValueId()).isEqualTo(existValue.getId());
         assertThat(response.getTypeId()).isEqualTo(type.getId());
-        assertThat(response.getValueName()).isEqualTo(existValue.getValueName());
+        assertThat(response.getValueName()).isEqualTo(existValue.getOptionValue());
     }
 
     @Test
@@ -88,11 +88,11 @@ class OptionValueServiceTest {
 
         assertThat(response.getTypeId()).isEqualTo(type.getId());
         assertThat(response.getValueId()).isEqualTo(existValue.getId());
-        assertThat(response.getValueName()).isEqualTo(existValue.getValueName());
+        assertThat(response.getValueName()).isEqualTo(existValue.getOptionValue());
 
         OptionValues optionValues = optionValueRepository.findById(existValue.getId()).get();
 
-        assertThat(optionValues.getValueName()).isEqualTo("updated");
+        assertThat(optionValues.getOptionValue()).isEqualTo("updated");
     }
 
     @Test

@@ -8,7 +8,6 @@ spring:
   cloud:
     config:
       enabled: false
-
   kafka:
     bootstrap-servers: localhost:9092
 
@@ -19,4 +18,5 @@ spring:
         format_sql: true
       hibernate.default_batch_fetch_size: 1000
   flyway:
-    enabled: false
+    enabled: true
+    locations: classpath:db/migration,classpath:db/seed

@@ -32,7 +32,7 @@ public class OptionValueService {
     public OptionValueResponse updateOptionValueById(Long optionValueId, OptionValueRequest request) {
         OptionValues target = findByIdOrThrow(optionValueId);
         checkConflictValueName(target.getOptionType(), request.getValueName());
-        target.setValueName(request.getValueName());
+        target.setOptionValue(request.getValueName());
         return new OptionValueResponse(target);
     }
 
@@ -51,7 +51,7 @@ public class OptionValueService {
 
     private void checkConflictValueName(OptionTypes optionType, String name){
         boolean isConflict = optionType.getOptionValues().stream()
-                .anyMatch(v -> v.getValueName().equals(name));
+                .anyMatch(v -> v.getOptionValue().equals(name));
         if(isConflict){
             throw new DuplicateResourceException(ms.getMessage(OPTION_VALUE_CONFLICT));
         }

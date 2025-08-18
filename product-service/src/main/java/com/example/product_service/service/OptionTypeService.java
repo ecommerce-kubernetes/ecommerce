@@ -81,7 +81,7 @@ public class OptionTypeService {
 
     private void checkConflictValueName(OptionTypes optionType, String name){
         boolean isConflict = optionType.getOptionValues().stream()
-                .anyMatch(v -> v.getValueName().equals(name));
+                .anyMatch(v -> v.getOptionValue().equals(name));
         if(isConflict){
             throw new DuplicateResourceException(ms.getMessage(OPTION_VALUE_CONFLICT));
         }

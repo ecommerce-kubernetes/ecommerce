@@ -18,16 +18,22 @@ import com.example.product_service.repository.CategoryRepository;
 import com.example.product_service.repository.OptionTypeRepository;
 import com.example.product_service.repository.ProductsRepository;
 import jakarta.persistence.EntityManager;
-import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.transaction.annotation.Transactional;
+import org.testcontainers.containers.MySQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.List;
 
@@ -38,6 +44,9 @@ import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 import static org.mockito.Mockito.doReturn;
 
 @SpringBootTest
+@ActiveProfiles("mysql")
+@Testcontainers
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 class ProductServiceTest {
     @Autowired
     ProductsRepository productsRepository;
@@ -80,6 +89,20 @@ class ProductServiceTest {
         optionTypeRepository.deleteAll();
     }
 
+    @Container
+    static MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.0.33")
+            .withDatabaseName("test")
+            .withUsername("test")
+            .withPassword("test");
+
+    @DynamicPropertySource
+    static void properties(DynamicPropertyRegistry registry) {
+        registry.add("spring.datasource.url", mysql::getJdbcUrl);
+        registry.add("spring.datasource.username", mysql::getUsername);
+        registry.add("spring.datasource.password", mysql::getPassword);
+        registry.add("spring.jpa.hibernate.ddl-auto", () -> "none");
+    }
+
     @Test
     @DisplayName("상품 저장 테스트-성공")
     @Transactional
@@ -118,7 +141,7 @@ class ProductServiceTest {
         assertThat(variant.getOptionValues()).hasSize(1);
         assertThat(variant.getOptionValues())
                 .extracting("valueId", "typeId", "valueName")
-                .containsExactly(tuple(existValue.getId(), existType.getId(), existValue.getValueName()));
+                .containsExactly(tuple(existValue.getId(), existType.getId(), existValue.getOptionValue()));
     }
 
     @Test

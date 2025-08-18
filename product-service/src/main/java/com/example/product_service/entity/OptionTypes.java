@@ -35,6 +35,6 @@ public class OptionTypes {
 
     public void removeOptionValue(OptionValues optionValue){
         this.optionValues.remove(optionValue);
-        optionValue.setValueName(null);
+        optionValue.setOptionValue(null);
     }
 }

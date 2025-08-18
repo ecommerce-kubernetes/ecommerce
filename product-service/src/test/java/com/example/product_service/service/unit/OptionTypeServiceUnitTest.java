@@ -89,7 +89,7 @@ public class OptionTypeServiceUnitTest {
         verify(optionValueRepository).save(valuesArgumentCaptor.capture());
 
         OptionValues value = valuesArgumentCaptor.getValue();
-        assertThat(value.getValueName()).isEqualTo("name");
+        assertThat(value.getOptionValue()).isEqualTo("name");
 
         assertThat(response.getTypeId()).isEqualTo(1L);
         assertThat(response.getValueName()).isEqualTo("name");
@@ -163,9 +163,9 @@ public class OptionTypeServiceUnitTest {
         assertThat(response)
                 .extracting("valueId", "typeId", "valueName")
                 .containsExactlyInAnyOrder(
-                        tuple(value1.getId(), value1.getOptionType().getId(), value1.getValueName()),
-                        tuple(value2.getId(), value2.getOptionType().getId(), value2.getValueName()),
-                        tuple(value3.getId(), value3.getOptionType().getId(), value3.getValueName())
+                        tuple(value1.getId(), value1.getOptionType().getId(), value1.getOptionValue()),
+                        tuple(value2.getId(), value2.getOptionType().getId(), value2.getOptionValue()),
+                        tuple(value3.getId(), value3.getOptionType().getId(), value3.getOptionValue())
                 );
     }
 

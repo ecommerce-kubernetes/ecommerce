@@ -18,6 +18,6 @@ public class OptionValueResponse {
     public OptionValueResponse(OptionValues optionValue){
         this.valueId = optionValue.getId();
         this.typeId = optionValue.getOptionType().getId();
-        this.valueName = optionValue.getValueName();
+        this.valueName = optionValue.getOptionValue();
     }
 }

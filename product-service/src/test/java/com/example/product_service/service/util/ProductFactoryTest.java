@@ -68,7 +68,7 @@ class ProductFactoryTest {
 
         assertThat(product.getProductVariants().get(0).getProductVariantOptions().get(0).getOptionValue().getId())
                 .isEqualTo(1L);
-        assertThat(product.getProductVariants().get(0).getProductVariantOptions().get(0).getOptionValue().getValueName())
+        assertThat(product.getProductVariants().get(0).getProductVariantOptions().get(0).getOptionValue().getOptionValue())
                 .isEqualTo("optionValue1");
     }
 
