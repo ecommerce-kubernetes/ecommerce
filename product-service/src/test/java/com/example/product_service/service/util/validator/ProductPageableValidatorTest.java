@@ -41,7 +41,7 @@ class ProductPageableValidatorTest {
         assertThat(result.getPageSize()).isEqualTo(10);
 
         assertThat(result.getSort().stream())
-                .anyMatch(order -> order.getProperty().equals("price"));
+                .anyMatch(order -> order.getProperty().equals("minimumPrice"));
     }
 
     @Test
