@@ -7,8 +7,8 @@ import com.example.product_service.entity.DomainType;
 import com.example.product_service.entity.ProductSummary;
 import com.example.product_service.repository.CategoryRepository;
 import com.example.product_service.repository.ProductSummaryRepository;
-import com.example.product_service.service.util.validator.PageableValidator;
-import com.example.product_service.service.util.validator.PageableValidatorFactory;
+import com.example.product_service.controller.util.validator.PageableValidator;
+import com.example.product_service.controller.util.validator.PageableValidatorFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -23,14 +23,11 @@ import java.util.List;
 public class ProductReader {
     private final CategoryRepository categoryRepository;
     private final ProductSummaryRepository productSummaryRepository;
-    private final PageableValidatorFactory pageableValidatorFactory;
 
     public PageDto<ProductSummaryResponse> getProducts(ProductSearch search, Pageable pageable) {
-        PageableValidator validator = pageableValidatorFactory.getValidator(DomainType.PRODUCT);
-        Pageable verifiedPageable = validator.validate(pageable);
         List<Long> descendantIds = getDescendantIds(search.getCategoryId());
         Page<ProductSummary> result = productSummaryRepository
-                .findAllProductSummary(search.getName(), descendantIds, search.getRating(), verifiedPageable);
+                .findAllProductSummary(search.getName(), descendantIds, search.getRating(), pageable);
 
         List<ProductSummaryResponse> content =
                 result.getContent().stream().map(ProductSummaryResponse::new).toList();

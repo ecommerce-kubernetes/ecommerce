@@ -5,6 +5,7 @@ import com.example.product_service.common.advice.CustomAccessDeniedHandler;
 import com.example.product_service.common.advice.CustomAuthenticationEntryPoint;
 import com.example.product_service.config.WebSecurity;
 import com.example.product_service.controller.ProductController;
+import com.example.product_service.controller.util.validator.PageableValidatorFactory;
 import com.example.product_service.util.UserRole;
 import com.example.product_service.dto.request.image.AddImageRequest;
 import com.example.product_service.dto.request.image.ImageRequest;
@@ -36,7 +37,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
         type = FilterType.ANNOTATION,
         classes = RestControllerAdvice.class
 ))
-@Import({WebSecurity.class, CustomAccessDeniedHandler.class, CustomAuthenticationEntryPoint.class, MessageSourceUtil.class})
+@Import({WebSecurity.class, CustomAccessDeniedHandler.class, CustomAuthenticationEntryPoint.class, MessageSourceUtil.class, PageableValidatorFactory.class})
 @AutoConfigureMockMvc
 public class ProductControllerSecurityTest {
 

@@ -1,5 +1,6 @@
 package com.example.product_service.service.util.validator;
 
+import com.example.product_service.controller.util.validator.ProductPageableValidator;
 import com.example.product_service.entity.DomainType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

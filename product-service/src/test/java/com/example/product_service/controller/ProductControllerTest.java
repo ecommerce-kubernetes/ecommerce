@@ -2,6 +2,8 @@ package com.example.product_service.controller;
 
 import com.example.product_service.common.MessageSourceUtil;
 import com.example.product_service.common.advice.ErrorResponseEntityFactory;
+import com.example.product_service.controller.util.validator.PageableValidatorFactory;
+import com.example.product_service.controller.util.validator.ProductPageableValidator;
 import com.example.product_service.dto.ProductSearch;
 import com.example.product_service.dto.request.image.AddImageRequest;
 import com.example.product_service.dto.request.image.ImageRequest;
@@ -19,6 +21,7 @@ import com.example.product_service.dto.response.product.ProductResponse;
 import com.example.product_service.dto.response.product.ProductSummaryResponse;
 import com.example.product_service.dto.response.product.ProductUpdateResponse;
 import com.example.product_service.dto.response.variant.ProductVariantResponse;
+import com.example.product_service.entity.DomainType;
 import com.example.product_service.exception.BadRequestException;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.service.ProductService;
@@ -66,6 +69,8 @@ class ProductControllerTest {
     MockMvc mockMvc;
     @MockitoBean
     MessageSourceUtil ms;
+    @MockitoBean
+    PageableValidatorFactory pageableValidatorFactory;
     @MockitoBean
     ProductService service;
 
@@ -291,6 +296,7 @@ class ProductControllerTest {
         PageDto<ProductSummaryResponse> response = new PageDto<>(
                 createProductSummaryResponse(),
                 0, 10, 10, 100);
+        when(pageableValidatorFactory.getValidator(DomainType.PRODUCT)).thenReturn(new ProductPageableValidator());
         when(service.getProducts(any(ProductSearch.class), any(Pageable.class)))
                 .thenReturn(response);
         ResultActions perform = performWithPageRequest(mockMvc, get(BASE_PATH), 0,
@@ -309,17 +315,6 @@ class ProductControllerTest {
 
         perform.andExpect(jsonPath("$.errors").isNotEmpty())
                 .andExpect(jsonPath("$.errors", hasSize(1)));
-    }
-
-    @Test
-    @DisplayName("상품 조회 테스트-실패(허용되지 않은 sort 옵션)")
-    void getProductTest_invalidSort() throws Exception {
-        when(service.getProducts(any(ProductSearch.class), any(Pageable.class)))
-                .thenThrow(new BadRequestException(getMessage(BAD_REQUEST_SORT)));
-        ResultActions perform =
-                performWithPageRequest(mockMvc, get(BASE_PATH), 0, 10, List.of("invalidSort,asc"), null);
-        verifyErrorResponse(perform, status().isBadRequest(),
-                getMessage(BAD_REQUEST), getMessage(BAD_REQUEST_SORT), BASE_PATH);
     }
 
     @Test

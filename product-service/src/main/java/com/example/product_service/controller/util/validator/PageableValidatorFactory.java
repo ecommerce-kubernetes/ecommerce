@@ -1,4 +1,4 @@
-package com.example.product_service.service.util.validator;
+package com.example.product_service.controller.util.validator;
 
 import com.example.product_service.common.MessageSourceUtil;
 import com.example.product_service.entity.DomainType;

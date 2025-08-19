@@ -8,8 +8,8 @@ import com.example.product_service.entity.ProductSummary;
 import com.example.product_service.repository.CategoryRepository;
 import com.example.product_service.repository.ProductSummaryRepository;
 import com.example.product_service.service.ProductReader;
-import com.example.product_service.service.util.validator.PageableValidatorFactory;
-import com.example.product_service.service.util.validator.ProductPageableValidator;
+import com.example.product_service.controller.util.validator.PageableValidatorFactory;
+import com.example.product_service.controller.util.validator.ProductPageableValidator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -46,7 +46,6 @@ public class ProductReaderUnitTest {
         Pageable pageable = PageRequest.of(0, 10, Sort.Direction.ASC, "rating");
         Page<ProductSummary> pageProductSummary = createPageProductSummary(pageable);
         mockProductSummaryFindAll("", List.of(2L, 3L), 2, pageable, pageProductSummary);
-        mockPageableValidatorFactory();
         PageDto<ProductSummaryResponse> products = productReader.getProducts(productSearch, pageable);
 
         assertThat(products.getPageSize()).isEqualTo(10);
@@ -80,10 +79,5 @@ public class ProductReaderUnitTest {
                         3.2, 10, 10000, 10000, 0, LocalDateTime.now())
         );
         return new PageImpl<>(content, pageable, 1);
-    }
-
-    private void mockPageableValidatorFactory(){
-        when(pageableValidatorFactory.getValidator(DomainType.PRODUCT))
-                .thenReturn(new ProductPageableValidator());
     }
 }

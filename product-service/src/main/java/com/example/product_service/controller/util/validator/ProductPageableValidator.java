@@ -1,4 +1,4 @@
-package com.example.product_service.service.util.validator;
+package com.example.product_service.controller.util.validator;
 
 import com.example.product_service.entity.DomainType;
 import org.springframework.data.domain.PageRequest;

@@ -4,6 +4,8 @@ import com.example.product_service.controller.util.specification.annotation.Admi
 import com.example.product_service.controller.util.specification.annotation.BadRequestApiResponse;
 import com.example.product_service.controller.util.specification.annotation.ForbiddenApiResponse;
 import com.example.product_service.controller.util.specification.annotation.NotFoundApiResponse;
+import com.example.product_service.controller.util.validator.PageableValidator;
+import com.example.product_service.controller.util.validator.PageableValidatorFactory;
 import com.example.product_service.dto.ProductSearch;
 import com.example.product_service.dto.request.image.AddImageRequest;
 import com.example.product_service.dto.request.product.UpdateProductBasicRequest;
@@ -14,6 +16,7 @@ import com.example.product_service.dto.response.ReviewResponse;
 import com.example.product_service.dto.response.image.ImageResponse;
 import com.example.product_service.dto.response.product.*;
 import com.example.product_service.dto.response.variant.ProductVariantResponse;
+import com.example.product_service.entity.DomainType;
 import com.example.product_service.service.ProductService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -37,6 +40,7 @@ import java.util.List;
 public class ProductController {
 
     private final ProductService productService;
+    private final PageableValidatorFactory pageableValidatorFactory;
 
     @AdminApi
     @Operation(summary = "상품 저장")
@@ -81,7 +85,9 @@ public class ProductController {
             @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.ASC) Pageable pageable,
             @Validated @ModelAttribute ProductSearch search){
 
-        PageDto<ProductSummaryResponse> response = productService.getProducts(search, pageable);
+        PageableValidator validator = pageableValidatorFactory.getValidator(DomainType.PRODUCT);
+        Pageable validatedPageable = validator.validate(pageable);
+        PageDto<ProductSummaryResponse> response = productService.getProducts(search, validatedPageable);
         return ResponseEntity.ok(response);
     }
 

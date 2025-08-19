@@ -34,6 +34,17 @@ public class ProductService {
         return productReader.getProducts(search, pageable);
     }
 
+    public ProductResponse getProductById(Long productId) {
+        return null;
+    }
+
+    public PageDto<ReviewResponse> getReviewsByProductId(Long productId, Pageable pageable) {
+        return null;
+    }
+
+    public PageDto<ProductSummaryResponse> getPopularProducts(int page, int size, Long categoryId) {
+        return null;
+    }
 
     public ProductUpdateResponse updateBasicInfoById(Long productId, UpdateProductBasicRequest request) {
         return null;
@@ -42,25 +53,6 @@ public class ProductService {
     public void deleteProductById(Long productId) {
 
     }
-
-
-
-    public ProductResponse getProductById(Long productId) {
-        return null;
-    }
-
-
-    public PageDto<ReviewResponse> getReviewsByProductId(Long productId, Pageable pageable) {
-        return null;
-    }
-
-
-    public PageDto<ProductSummaryResponse> getPopularProducts(int page, int size, Long categoryId) {
-        return null;
-    }
-
-
-
     public List<ImageResponse> addImages(Long productId, AddImageRequest request) {
         return List.of();
     }
