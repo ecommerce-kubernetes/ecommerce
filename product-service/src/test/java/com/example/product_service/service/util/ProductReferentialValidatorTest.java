@@ -97,6 +97,21 @@ class ProductReferentialValidatorTest {
     }
 
     @Test
+    @DisplayName("카테고리가 최하위 카테고리가 아닌경우")
+    void validAndFetch_badRequest_category(){
+        mockExistsBySkuIn(false, "sku");
+        Categories root = createCategoriesWithSetId(1L, "root", "http://test.jpg");
+        Categories leaf = createCategoriesWithSetId(2L, "leaf", null);
+        root.addChild(leaf);
+        mockFindByCategory(1L, root);
+        mockMessageUtil(PRODUCT_CATEGORY_BAD_REQUEST, "category must be the lowest level");
+        ProductRequest request = createProductRequest();
+        assertThatThrownBy(() -> validator.validAndFetch(request))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage(getMessage(PRODUCT_CATEGORY_BAD_REQUEST));
+    }
+
+    @Test
     @DisplayName("옵션 타입 찾을 수 없음")
     void validAndFetch_notFound_optionType(){
         Categories category = createCategoriesWithSetId(1L, "category", "http://test.jpg");

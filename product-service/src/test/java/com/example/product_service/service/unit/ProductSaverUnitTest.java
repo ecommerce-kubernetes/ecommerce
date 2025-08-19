@@ -208,6 +208,18 @@ public class ProductSaverUnitTest {
     }
 
     @Test
+    @DisplayName("상품 저장 테스트-실패(최하위 카테고리가 이님)")
+    void saveProductTest_unit_category_notLeaf(){
+        ProductRequest request = createProductRequest();
+        mockStructureValidator(request, null);
+        mockReferentialValidator(request, null, PRODUCT_CATEGORY_BAD_REQUEST);
+
+        assertThatThrownBy(() -> productSaver.saveProduct(request))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage(getMessage(PRODUCT_CATEGORY_BAD_REQUEST));
+    }
+
+    @Test
     @DisplayName("상품 저장 테스트-실패(옵션 타입 없음)")
     void saveProductTest_unit_optionType_notFound(){
         ProductRequest request = createProductRequest();
@@ -260,6 +272,8 @@ public class ProductSaverUnitTest {
             when.thenThrow(new DuplicateResourceException(getMessage(PRODUCT_VARIANT_SKU_CONFLICT)));
         } else if (exceptionCode.equals(PRODUCT_OPTION_VALUE_NOT_MATCH_TYPE)){
             when.thenThrow(new BadRequestException(getMessage(PRODUCT_OPTION_VALUE_NOT_MATCH_TYPE)));
+        } else if (exceptionCode.equals(PRODUCT_CATEGORY_BAD_REQUEST)){
+            when.thenThrow(new BadRequestException(getMessage(PRODUCT_CATEGORY_BAD_REQUEST)));
         }
     }
 

@@ -283,6 +283,19 @@ class ProductServiceTest {
     }
 
     @Test
+    @DisplayName("상품 저장 테스트-실패(최하위 카테고리가 아님)")
+    @Transactional
+    void saveProduct_integration_notLeaf_category(){
+        Categories leaf = new Categories("leaf", null);
+        category.addChild(leaf);
+        em.flush(); em.clear();
+        ProductRequest request = createProductRequest();
+        assertThatThrownBy(() -> productService.saveProduct(request))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage(getMessage(PRODUCT_CATEGORY_BAD_REQUEST));
+    }
+
+    @Test
     @DisplayName("상품 저장 테스트-실패(옵션 타입 없음)")
     void saveProduct_integration_notFound_optionType(){
         ProductRequest request = createProductRequest();

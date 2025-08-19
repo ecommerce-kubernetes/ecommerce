@@ -65,8 +65,13 @@ public class ProductReferentialValidator {
     }
 
     private Categories findByIdOrThrow(Long categoryId){
-        return categoryRepository.findById(categoryId)
+        Categories categories = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new NotFoundException(ms.getMessage(CATEGORY_NOT_FOUND)));
+
+        if(!categories.isLeaf()){
+            throw new BadRequestException(ms.getMessage(PRODUCT_CATEGORY_BAD_REQUEST));
+        }
+        return categories;
     }
 
     private void validateDuplicateSkus(ProductRequest request){
