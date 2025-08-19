@@ -367,6 +367,8 @@ class ProductServiceTest {
         assertThat(response.getId()).isEqualTo(savedProduct.getId());
         assertThat(response.getName()).isEqualTo(savedProduct.getName());
         assertThat(response.getDescription()).isEqualTo(savedProduct.getDescription());
+        assertThat(response.getReviewCount()).isEqualTo(0);
+        assertThat(response.getAvgRating()).isEqualTo(0);
         assertThat(response.getImages()).extracting("id", "url", "sortOrder")
                 .containsExactlyInAnyOrder(
                         tuple(productImage.getId(), productImage.getImageUrl(), productImage.getSortOrder())

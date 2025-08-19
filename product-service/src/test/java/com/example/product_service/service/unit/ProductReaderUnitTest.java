@@ -10,6 +10,7 @@ import com.example.product_service.entity.*;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.repository.*;
 import com.example.product_service.service.ProductReader;
+import com.example.product_service.service.dto.ReviewStats;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -44,6 +45,8 @@ public class ProductReaderUnitTest {
     ProductOptionTypesRepository productOptionTypesRepository;
     @Mock
     ProductVariantsRepository productVariantsRepository;
+    @Mock
+    ReviewsRepository reviewsRepository;
     @Mock
     MessageSourceUtil ms;
     @InjectMocks
@@ -87,12 +90,15 @@ public class ProductReaderUnitTest {
         mockProductImageByProductId(1L);
         mockProductOptionTypes(1L, optionType);
         mockProductVariant(1L, List.of(productVariant));
+        mockReviewStats(1L, 30L, 2.6);
 
         ProductResponse response = productReader.getProductById(1L);
 
         assertThat(response.getId()).isEqualTo(1L);
         assertThat(response.getName()).isEqualTo("productName");
         assertThat(response.getDescription()).isEqualTo("description");
+        assertThat(response.getReviewCount()).isEqualTo(30);
+        assertThat(response.getAvgRating()).isEqualTo(2.6);
 
         assertThat(response.getImages())
                 .extracting("url", "sortOrder")
@@ -187,5 +193,10 @@ public class ProductReaderUnitTest {
 
     private void mockMessageUtil(String code, String returnMessage){
         when(ms.getMessage(code)).thenReturn(returnMessage);
+    }
+
+    private void mockReviewStats(Long productId, Long reviewCount, Double avgRating){
+        when(reviewsRepository.findReviewStatsByProductId(productId))
+                .thenReturn(new ReviewStats(reviewCount, avgRating));
     }
 }

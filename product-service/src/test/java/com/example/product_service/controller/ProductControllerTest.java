@@ -437,7 +437,7 @@ class ProductControllerTest {
     }
 
     private ProductResponse createProductResponse() {
-        return new ProductResponse(1L, "product", "description", 1L,
+        return new ProductResponse(1L, "product", "description", 1L, 0L, 0.0,
                 LocalDateTime.now(), LocalDateTime.now(),
                 List.of(new ImageResponse(1L, IMAGE_URL, 0)),
                 List.of(new ProductOptionTypeResponse(1L, "optionType1")),

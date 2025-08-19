@@ -8,6 +8,7 @@ import com.example.product_service.entity.ProductImages;
 import com.example.product_service.entity.ProductOptionTypes;
 import com.example.product_service.entity.ProductVariants;
 import com.example.product_service.entity.Products;
+import com.example.product_service.service.dto.ReviewStats;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -25,6 +26,8 @@ public class ProductResponse {
     private String name;
     private String description;
     private Long categoryId;
+    private Long reviewCount;
+    private Double avgRating;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private List<ImageResponse> images;
@@ -52,12 +55,16 @@ public class ProductResponse {
     }
 
     public ProductResponse(Products product, List<ProductImages> productImages,
-                           List<ProductOptionTypes> productOptionTypes, List<ProductVariants> productVariants){
+                           List<ProductOptionTypes> productOptionTypes, List<ProductVariants> productVariants,
+                           ReviewStats reviewStats){
 
         this.id = product.getId();
         this.name = product.getName();
         this.description = product.getDescription();
         this.categoryId = product.getCategory().getId();
+        this.reviewCount = reviewStats.getReviewCount();
+        this.avgRating = reviewStats.getAvgRating();
+
         this.createdAt = product.getCreateAt();
 
         this.images = productImages.stream().map(ImageResponse::new).toList();

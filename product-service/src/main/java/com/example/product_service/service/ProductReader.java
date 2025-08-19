@@ -8,6 +8,7 @@ import com.example.product_service.dto.response.product.ProductSummaryResponse;
 import com.example.product_service.entity.*;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.repository.*;
+import com.example.product_service.service.dto.ReviewStats;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -27,6 +28,7 @@ public class ProductReader {
     private final ProductOptionTypesRepository productOptionTypesRepository;
     private final ProductVariantsRepository productVariantsRepository;
     private final ProductImagesRepository productImagesRepository;
+    private final ReviewsRepository reviewsRepository;
     private final ProductsRepository productsRepository;
     private final MessageSourceUtil ms;
 
@@ -52,8 +54,8 @@ public class ProductReader {
         List<ProductImages> productImages = productImagesRepository.findByProductId(productId);
         List<ProductOptionTypes> productOptionTypes = productOptionTypesRepository.findWithOptionTypeByProductId(productId);
         List<ProductVariants> productVariants = productVariantsRepository.findWithVariantOptionByProductId(productId);
-
-        return new ProductResponse(product, productImages, productOptionTypes, productVariants);
+        ReviewStats reviewStats = reviewsRepository.findReviewStatsByProductId(productId);
+        return new ProductResponse(product, productImages, productOptionTypes, productVariants, reviewStats);
     }
 
     private List<Long> getDescendantIds(Long categoryId){
