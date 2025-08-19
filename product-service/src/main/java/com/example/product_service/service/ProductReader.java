@@ -1,14 +1,13 @@
 package com.example.product_service.service;
 
+import com.example.product_service.common.MessageSourceUtil;
 import com.example.product_service.dto.ProductSearch;
 import com.example.product_service.dto.response.PageDto;
+import com.example.product_service.dto.response.product.ProductResponse;
 import com.example.product_service.dto.response.product.ProductSummaryResponse;
-import com.example.product_service.entity.DomainType;
-import com.example.product_service.entity.ProductSummary;
-import com.example.product_service.repository.CategoryRepository;
-import com.example.product_service.repository.ProductSummaryRepository;
-import com.example.product_service.controller.util.validator.PageableValidator;
-import com.example.product_service.controller.util.validator.PageableValidatorFactory;
+import com.example.product_service.entity.*;
+import com.example.product_service.exception.NotFoundException;
+import com.example.product_service.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -17,12 +16,19 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+import static com.example.product_service.common.MessagePath.PRODUCT_NOT_FOUND;
+
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class ProductReader {
     private final CategoryRepository categoryRepository;
     private final ProductSummaryRepository productSummaryRepository;
+    private final ProductOptionTypesRepository productOptionTypesRepository;
+    private final ProductVariantsRepository productVariantsRepository;
+    private final ProductImagesRepository productImagesRepository;
+    private final ProductsRepository productsRepository;
+    private final MessageSourceUtil ms;
 
     public PageDto<ProductSummaryResponse> getProducts(ProductSearch search, Pageable pageable) {
         List<Long> descendantIds = getDescendantIds(search.getCategoryId());
@@ -41,10 +47,24 @@ public class ProductReader {
         );
     }
 
+    public ProductResponse getProductById(Long productId) {
+        Products product = findWithCategoryByIdOrThrow(productId);
+        List<ProductImages> productImages = productImagesRepository.findByProductId(productId);
+        List<ProductOptionTypes> productOptionTypes = productOptionTypesRepository.findWithOptionTypeByProductId(productId);
+        List<ProductVariants> productVariants = productVariantsRepository.findWithVariantOptionByProductId(productId);
+
+        return new ProductResponse(product, productImages, productOptionTypes, productVariants);
+    }
+
     private List<Long> getDescendantIds(Long categoryId){
         if(categoryId == null){
             return List.of();
         }
         return categoryRepository.findDescendantIds(categoryId);
+    }
+
+    private Products findWithCategoryByIdOrThrow(Long productId){
+        return productsRepository.findWithCategoryById(productId)
+                .orElseThrow(() -> new NotFoundException(ms.getMessage(PRODUCT_NOT_FOUND)));
     }
 }

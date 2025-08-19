@@ -4,6 +4,9 @@ import com.example.product_service.dto.response.image.ImageResponse;
 import com.example.product_service.dto.response.options.OptionValueResponse;
 import com.example.product_service.dto.response.options.ProductOptionTypeResponse;
 import com.example.product_service.dto.response.variant.ProductVariantResponse;
+import com.example.product_service.entity.ProductImages;
+import com.example.product_service.entity.ProductOptionTypes;
+import com.example.product_service.entity.ProductVariants;
 import com.example.product_service.entity.Products;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -46,5 +49,22 @@ public class ProductResponse {
                                 new ProductVariantResponse(pv.getId(), pv.getSku(), pv.getPrice(), pv.getStockQuantity(),
                                         pv.getDiscountValue(), pv.getProductVariantOptions().stream()
                                         .map(ot -> new OptionValueResponse(ot.getOptionValue())).toList())).toList();
+    }
+
+    public ProductResponse(Products product, List<ProductImages> productImages,
+                           List<ProductOptionTypes> productOptionTypes, List<ProductVariants> productVariants){
+
+        this.id = product.getId();
+        this.name = product.getName();
+        this.description = product.getDescription();
+        this.categoryId = product.getCategory().getId();
+        this.createdAt = product.getCreateAt();
+
+        this.images = productImages.stream().map(ImageResponse::new).toList();
+        this.productOptionTypes = productOptionTypes.stream()
+                .map(pot -> new ProductOptionTypeResponse(pot.getOptionType())).toList();
+
+        this.productVariants = productVariants.stream().map(ProductVariantResponse::new)
+                .toList();
     }
 }
