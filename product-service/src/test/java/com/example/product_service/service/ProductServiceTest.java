@@ -348,6 +348,59 @@ class ProductServiceTest {
                 );
     }
 
+    @Test
+    @DisplayName("상품 상세 정보 조회 테스트-성공")
+    @Transactional
+    void getProductByIdTest_integration_success(){
+        ProductImages productImage = createProductImages("http://test.jpg", 0);
+        ProductOptionTypes productOptionType = createProductOptionType(existType);
+        ProductVariants productVariant = createProductVariants("sku", 10000, 100, 10, existValue);
+
+        Products product = createProduct("productName", "description", category,
+                List.of(productImage), List.of(productOptionType), List.of(productVariant));
+
+        Products savedProduct = productsRepository.save(product);
+        em.flush(); em.clear();
+
+        ProductResponse response = productService.getProductById(savedProduct.getId());
+
+        assertThat(response.getId()).isEqualTo(savedProduct.getId());
+        assertThat(response.getName()).isEqualTo(savedProduct.getName());
+        assertThat(response.getDescription()).isEqualTo(savedProduct.getDescription());
+        assertThat(response.getImages()).extracting("id", "url", "sortOrder")
+                .containsExactlyInAnyOrder(
+                        tuple(productImage.getId(), productImage.getImageUrl(), productImage.getSortOrder())
+                );
+
+        assertThat(response.getProductOptionTypes())
+                .extracting("id", "name")
+                .containsExactlyInAnyOrder(
+                        tuple(existType.getId(), existType.getName())
+                );
+        assertThat(response.getProductVariants())
+                .extracting("sku", "price", "stockQuantity", "discountRate")
+                .containsExactlyInAnyOrder(
+                        tuple(productVariant.getSku(), productVariant.getPrice(), productVariant.getStockQuantity(),
+                                productVariant.getDiscountValue())
+                );
+
+        assertThat(response.getProductVariants())
+                .flatExtracting(ProductVariantResponse::getOptionValues)
+                .extracting("valueId", "typeId", "valueName")
+                .containsExactlyInAnyOrder(
+                        tuple(existValue.getId(), existType.getId(), existValue.getOptionValue())
+                );
+    }
+
+    @Test
+    @DisplayName("상품 상세 조회 테스트-실패(상품을 찾을 수 없음)")
+    void getProductByIdTest_integration_notFound(){
+        assertThatThrownBy(() -> productService.getProductById(999L))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage(getMessage(PRODUCT_NOT_FOUND));
+    }
+
+
     private ProductRequest createProductRequest() {
         return new ProductRequest("productName", "product description", category.getId(),
                 List.of(new ImageRequest("http://test.jpg")),

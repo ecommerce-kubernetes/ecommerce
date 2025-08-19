@@ -35,7 +35,7 @@ public class ProductService {
     }
 
     public ProductResponse getProductById(Long productId) {
-        return null;
+        return productReader.getProductById(productId);
     }
 
     public PageDto<ReviewResponse> getReviewsByProductId(Long productId, Pageable pageable) {
