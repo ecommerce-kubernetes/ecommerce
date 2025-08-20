@@ -133,6 +133,22 @@ public class ProductReaderUnitTest {
                 .hasMessage(getMessage(PRODUCT_NOT_FOUND));
     }
 
+    @Test
+    @DisplayName("인기 상품 조회 테스트-성공")
+    void getPopularProductsTest_unit_success(){
+        when(productSummaryRepository.findAvgRating())
+                .thenReturn(3.2);
+        mockCategoryFindDescendantIds(1L, List.of(1L, 2L));
+        Pageable pageable = PageRequest.of(0, 10);
+        when(productSummaryRepository.findPopularProductSummary(List.of(1L,2L), 3.2, 5, pageable))
+                .thenReturn(createPageProductSummary(pageable));
+
+        PageDto<ProductSummaryResponse> products = productReader.getPopularProducts(0, 10, 1L);
+
+        assertThat(products.getPageSize()).isEqualTo(10);
+        assertThat(products.getCurrentPage()).isEqualTo(0);
+    }
+
     private void mockProductFindById(Long productId, Products products){
         OngoingStubbing<Optional<Products>> when = when(productsRepository.findWithCategoryById(productId));
         if(products == null) {

@@ -11,7 +11,9 @@ import com.example.product_service.repository.*;
 import com.example.product_service.service.dto.ReviewStats;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +25,9 @@ import static com.example.product_service.common.MessagePath.PRODUCT_NOT_FOUND;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class ProductReader {
+
+    private static final int MINIMUM_REVIEW = 5;
+
     private final CategoryRepository categoryRepository;
     private final ProductSummaryRepository productSummaryRepository;
     private final ProductOptionTypesRepository productOptionTypesRepository;
@@ -37,16 +42,8 @@ public class ProductReader {
         Page<ProductSummary> result = productSummaryRepository
                 .findAllProductSummary(search.getName(), descendantIds, search.getRating(), pageable);
 
-        List<ProductSummaryResponse> content =
-                result.getContent().stream().map(ProductSummaryResponse::new).toList();
 
-        return new PageDto<>(
-                content,
-                pageable.getPageNumber(),
-                result.getTotalPages(),
-                pageable.getPageSize(),
-                result.getTotalElements()
-        );
+        return parseProductSummaryResponse(result, pageable);
     }
 
     public ProductResponse getProductById(Long productId) {
@@ -56,6 +53,28 @@ public class ProductReader {
         List<ProductVariants> productVariants = productVariantsRepository.findWithVariantOptionByProductId(productId);
         ReviewStats reviewStats = reviewsRepository.findReviewStatsByProductId(productId);
         return new ProductResponse(product, productImages, productOptionTypes, productVariants, reviewStats);
+    }
+
+    public PageDto<ProductSummaryResponse> getPopularProducts(int page, int size, Long categoryId){
+        Double C = productSummaryRepository.findAvgRating(); // 상품 전체 평균 평점
+        List<Long> categoryIds = getDescendantIds(categoryId);
+        Pageable pageable = PageRequest.of(page, size);
+        Page<ProductSummary> result =
+                productSummaryRepository.findPopularProductSummary(categoryIds, C, MINIMUM_REVIEW, pageable);
+
+        return parseProductSummaryResponse(result, pageable);
+    }
+
+    private PageDto<ProductSummaryResponse> parseProductSummaryResponse(Page<ProductSummary> result, Pageable pageable){
+        List<ProductSummaryResponse> content = result.getContent().stream().map(ProductSummaryResponse::new).toList();
+
+        return new PageDto<>(
+                content,
+                pageable.getPageNumber(),
+                result.getTotalPages(),
+                pageable.getPageSize(),
+                result.getTotalElements()
+        );
     }
 
     private List<Long> getDescendantIds(Long categoryId){

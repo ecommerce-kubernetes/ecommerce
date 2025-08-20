@@ -8,4 +8,5 @@ import java.util.List;
 
 public interface ProductSummaryQueryRepository {
     Page<ProductSummary> findAllProductSummary(String name, List<Long> categoryIds, Integer rating, Pageable pageable);
+    Page<ProductSummary> findPopularProductSummary(List<Long> categoryIds, double c, int m, Pageable pageable);
 }

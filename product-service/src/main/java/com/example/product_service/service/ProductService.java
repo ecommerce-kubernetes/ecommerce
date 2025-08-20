@@ -38,11 +38,11 @@ public class ProductService {
         return productReader.getProductById(productId);
     }
 
-    public PageDto<ReviewResponse> getReviewsByProductId(Long productId, Pageable pageable) {
-        return null;
+    public PageDto<ProductSummaryResponse> getPopularProducts(int page, int size, Long categoryId) {
+        return productReader.getPopularProducts(page, size, categoryId);
     }
 
-    public PageDto<ProductSummaryResponse> getPopularProducts(int page, int size, Long categoryId) {
+    public PageDto<ReviewResponse> getReviewsByProductId(Long productId, Pageable pageable) {
         return null;
     }
 

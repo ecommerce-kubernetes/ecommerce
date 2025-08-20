@@ -415,6 +415,46 @@ class ProductServiceTest {
                 .hasMessage(getMessage(PRODUCT_NOT_FOUND));
     }
 
+    @Test
+    @DisplayName("인기 상품 조회 테스트-성공")
+    @Transactional
+    void getPopularProductsTest_integration_success(){
+        ProductImages product1Image = createProductImages("http://test.jpg", 0);
+        ProductOptionTypes product1OptionType = createProductOptionType(existType);
+        ProductVariants product1Variant = createProductVariants("sku1", 10000, 100, 10, existValue);
+        for(long i=1; i<6; i++){
+            product1Variant.addReview(i, "user"+i, 4, "good", List.of());
+        }
+
+        ProductImages product2Image = createProductImages("http://test.jpg", 0);
+        ProductOptionTypes product2OptionType = createProductOptionType(existType);
+        ProductVariants product2Variant = createProductVariants("sku2", 10000, 100, 10, existValue);
+
+        Products product1 = createProduct("productName", "description", category,
+                List.of(product1Image), List.of(product1OptionType), List.of(product1Variant));
+        Products product2 = createProduct("productName", "description", category,
+                List.of(product2Image), List.of(product2OptionType), List.of(product2Variant));
+
+        productsRepository.saveAll(List.of(product1, product2));
+        em.flush(); em.clear();
+
+        PageDto<ProductSummaryResponse> response = productService.getPopularProducts(0, 10, null);
+
+        assertThat(response.getPageSize()).isEqualTo(10);
+        assertThat(response.getCurrentPage()).isEqualTo(0);
+        assertThat(response.getTotalPage()).isEqualTo(1);
+        assertThat(response.getTotalElement()).isEqualTo(1);
+        assertThat(response.getContent()).hasSize(1);
+        assertThat(response.getContent()).extracting("id", "name", "description",
+                        "thumbnail", "categoryId", "ratingAvg", "reviewCount", "minimumPrice", "discountPrice", "discountRate")
+                .containsExactlyInAnyOrder(
+                        tuple(
+                                product1.getId(), product1.getName(), product1.getDescription(),
+                                "http://test.jpg", product1.getCategory().getId(), 4.0, 5, 10000, 9000, 10
+                        )
+                );
+    }
+
 
     private ProductRequest createProductRequest() {
         return new ProductRequest("productName", "product description", category.getId(),
