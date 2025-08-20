@@ -2,11 +2,14 @@ package com.example.product_service.service;
 
 import com.example.product_service.common.MessagePath;
 import com.example.product_service.common.MessageSourceUtil;
+import com.example.product_service.dto.request.image.AddImageRequest;
 import com.example.product_service.dto.request.product.ProductRequest;
 import com.example.product_service.dto.request.product.UpdateProductBasicRequest;
+import com.example.product_service.dto.response.image.ImageResponse;
 import com.example.product_service.dto.response.product.ProductResponse;
 import com.example.product_service.dto.response.product.ProductUpdateResponse;
 import com.example.product_service.entity.Categories;
+import com.example.product_service.entity.ProductImages;
 import com.example.product_service.entity.Products;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.repository.CategoryRepository;
@@ -16,8 +19,12 @@ import com.example.product_service.service.util.factory.ProductFactory;
 import com.example.product_service.service.util.validator.ProductReferentialValidator;
 import com.example.product_service.service.util.validator.ProductRequestStructureValidator;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.validator.constraints.URL;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.example.product_service.common.MessagePath.CATEGORY_NOT_FOUND;
 import static com.example.product_service.common.MessagePath.PRODUCT_NOT_FOUND;
@@ -66,6 +73,20 @@ public class ProductSaver {
     public void deleteProductById(Long productId){
         Products product = findProductByIdOrThrow(productId);
         productsRepository.delete(product);
+    }
+
+    public List<ImageResponse> addImages(Long productId, AddImageRequest request){
+        Products product = findProductByIdOrThrow(productId);
+        List<ProductImages> addImages = new ArrayList<>();
+        int size = product.getImages().size();
+        for (String imageUrl : request.getImageUrls()) {
+            ProductImages productImages = new ProductImages(imageUrl, size++);
+            addImages.add(productImages);
+        }
+
+        product.addImages(addImages);
+
+        return product.getImages().stream().map(ImageResponse::new).toList();
     }
 
     private Products findProductByIdOrThrow(Long productId){

@@ -1,6 +1,7 @@
 package com.example.product_service.service;
 
 import com.example.product_service.dto.ProductSearch;
+import com.example.product_service.dto.request.image.AddImageRequest;
 import com.example.product_service.dto.request.image.ImageRequest;
 import com.example.product_service.dto.request.options.ProductOptionTypeRequest;
 import com.example.product_service.dto.request.product.ProductRequest;
@@ -9,6 +10,7 @@ import com.example.product_service.dto.request.variant.ProductVariantRequest;
 import com.example.product_service.dto.request.variant.VariantOptionValueRequest;
 import com.example.product_service.dto.response.PageDto;
 import com.example.product_service.dto.response.ReviewResponse;
+import com.example.product_service.dto.response.image.ImageResponse;
 import com.example.product_service.dto.response.product.ProductResponse;
 import com.example.product_service.dto.response.product.ProductSummaryResponse;
 import com.example.product_service.dto.response.product.ProductUpdateResponse;
@@ -606,6 +608,45 @@ class ProductServiceTest {
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage(getMessage(PRODUCT_NOT_FOUND));
     }
+
+    @Test
+    @DisplayName("상품 이미지 추가 테스트-성공")
+    @Transactional
+    void addImagesTest_integration_success(){
+        AddImageRequest request = new AddImageRequest(List.of("http://test2.jpg", "http://test3.jpg"));
+        ProductImages productImage = createProductImages("http://test.jpg", 0);
+        ProductOptionTypes productOptionType = createProductOptionType(existType);
+        ProductVariants product1Variant = createProductVariants("sku1", 10000, 100, 10, existValue);
+        for(long i=1; i<6; i++){
+            product1Variant.addReview(i, "user"+i, 4, "good", List.of());
+        }
+
+        Products product = createProduct("productName", "description", category,
+                List.of(productImage), List.of(productOptionType), List.of(product1Variant));
+
+        productsRepository.save(product);
+        em.flush(); em.clear();
+
+        List<ImageResponse> response = productService.addImages(product.getId(), request);
+
+        assertThat(response).hasSize(3);
+        assertThat(response).extracting("url", "sortOrder")
+                .containsExactlyInAnyOrder(
+                        tuple("http://test.jpg", 0),
+                        tuple("http://test2.jpg", 1),
+                        tuple("http://test3.jpg", 2)
+                );
+    }
+
+    @Test
+    @DisplayName("상품 이미지 추가 테스트-실패(상품을 찾을 수 없음)")
+    void addImagesTest_integration_notFoundProduct(){
+        AddImageRequest request = new AddImageRequest(List.of("http://test2.jpg", "http://test3.jpg"));
+        assertThatThrownBy(() -> productService.addImages(999L, request))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage(getMessage(PRODUCT_NOT_FOUND));
+    }
+
 
 
 

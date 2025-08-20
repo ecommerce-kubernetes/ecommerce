@@ -1,12 +1,14 @@
 package com.example.product_service.service.unit;
 
 import com.example.product_service.common.MessageSourceUtil;
+import com.example.product_service.dto.request.image.AddImageRequest;
 import com.example.product_service.dto.request.image.ImageRequest;
 import com.example.product_service.dto.request.options.ProductOptionTypeRequest;
 import com.example.product_service.dto.request.product.ProductRequest;
 import com.example.product_service.dto.request.product.UpdateProductBasicRequest;
 import com.example.product_service.dto.request.variant.ProductVariantRequest;
 import com.example.product_service.dto.request.variant.VariantOptionValueRequest;
+import com.example.product_service.dto.response.image.ImageResponse;
 import com.example.product_service.dto.response.product.ProductResponse;
 import com.example.product_service.dto.response.product.ProductUpdateResponse;
 import com.example.product_service.entity.*;
@@ -256,7 +258,7 @@ public class ProductSaverUnitTest {
 
     @Test
     @DisplayName("상품 기본 정보 수정 테스트-성공")
-    void updateBasicInfoByIdTest_success(){
+    void updateBasicInfoByIdTest_unit_success(){
         UpdateProductBasicRequest request = new UpdateProductBasicRequest("updateName", null, null);
         Products products = createProducts();
         when(productsRepository.findById(1L)).thenReturn(Optional.of(products));
@@ -270,7 +272,7 @@ public class ProductSaverUnitTest {
 
     @Test
     @DisplayName("상품 기본 정보 수정 테스트-실패(상품을 찾을 수 없음)")
-    void updateBasicInfoByIdTest_notFound_product(){
+    void updateBasicInfoByIdTest_unit_notFound_product(){
         UpdateProductBasicRequest request = new UpdateProductBasicRequest("updateName", null, null);
         when(productsRepository.findById(1L)).thenReturn(Optional.empty());
         when(ms.getMessage(PRODUCT_NOT_FOUND)).thenReturn("Product not found");
@@ -281,7 +283,7 @@ public class ProductSaverUnitTest {
 
     @Test
     @DisplayName("상품 기본 정보 수정 테스트-실패(카테고리를 찾을 수 없음)")
-    void updateBasicInfoByIdTest_notFound_category(){
+    void updateBasicInfoByIdTest_unit_notFound_category(){
         UpdateProductBasicRequest request = new UpdateProductBasicRequest("updateName", null, 2L);
         Products products = createProducts();
         when(productsRepository.findById(1L)).thenReturn(Optional.of(products));
@@ -294,7 +296,7 @@ public class ProductSaverUnitTest {
 
     @Test
     @DisplayName("상품 삭제 테스트-성공")
-    void deleteProductByIdTest_success(){
+    void deleteProductByIdTest_unit_success(){
         Products products = spy(createProducts());
         when(productsRepository.findById(1L)).thenReturn(Optional.of(products));
 
@@ -308,11 +310,40 @@ public class ProductSaverUnitTest {
 
     @Test
     @DisplayName("상품 삭제 테스트-실패(상품을 찾을 수 없음)")
-    void deleteProductByIdTest_notFoundProduct(){
+    void deleteProductByIdTest_unit_notFoundProduct(){
         when(productsRepository.findById(1L)).thenReturn(Optional.empty());
         when(ms.getMessage(PRODUCT_NOT_FOUND)).thenReturn("Product not found");
 
         assertThatThrownBy(() -> productSaver.deleteProductById(1L))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage(getMessage(PRODUCT_NOT_FOUND));
+    }
+
+    @Test
+    @DisplayName("상품 이미지 추가 테스트-성공")
+    void addImagesTest_unit_success(){
+        AddImageRequest request = new AddImageRequest(List.of("http://test2.jpg", "http://test3.jpg"));
+        Products products = createProducts();
+        when(productsRepository.findById(1L)).thenReturn(Optional.of(products));
+
+        List<ImageResponse> response = productSaver.addImages(1L, request);
+
+        assertThat(response.size()).isEqualTo(3);
+        assertThat(response).extracting("url", "sortOrder")
+                .containsExactlyInAnyOrder(
+                        tuple("http://test.jpg", 0),
+                        tuple("http://test2.jpg", 1),
+                        tuple("http://test3.jpg", 2)
+                );
+    }
+
+    @Test
+    @DisplayName("상품 이미지 추가 테스트-실패(상품을 찾을 수 없음)")
+    void addImageTest_unit_notFoundProduct(){
+        AddImageRequest request = new AddImageRequest(List.of("http://test2.jpg", "http://test3.jpg"));
+        when(productsRepository.findById(1L)).thenReturn(Optional.empty());
+        when(ms.getMessage(PRODUCT_NOT_FOUND)).thenReturn("Product not found");
+        assertThatThrownBy(() -> productSaver.addImages(1L, request))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage(getMessage(PRODUCT_NOT_FOUND));
     }
