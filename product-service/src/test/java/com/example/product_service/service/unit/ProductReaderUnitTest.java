@@ -3,6 +3,7 @@ package com.example.product_service.service.unit;
 import com.example.product_service.common.MessageSourceUtil;
 import com.example.product_service.dto.ProductSearch;
 import com.example.product_service.dto.response.PageDto;
+import com.example.product_service.dto.response.ReviewResponse;
 import com.example.product_service.dto.response.product.ProductResponse;
 import com.example.product_service.dto.response.product.ProductSummaryResponse;
 import com.example.product_service.dto.response.variant.ProductVariantResponse;
@@ -149,6 +150,42 @@ public class ProductReaderUnitTest {
         assertThat(products.getCurrentPage()).isEqualTo(0);
     }
 
+    @Test
+    @DisplayName("상품 리뷰 목록 조회 테스트-성공")
+    void getReviewByProductId_unit_success(){
+        Pageable pageable = PageRequest.of(0, 10, Sort.Direction.DESC, "createAt");
+        when(productsRepository.existsById(1L)).thenReturn(true);
+        when(reviewsRepository.findAllByProductId(1L, pageable))
+                .thenReturn(createPageReviews(pageable));
+
+        PageDto<ReviewResponse> response = productReader.getReviewsByProductId(1L, pageable);
+
+        assertThat(response.getCurrentPage()).isEqualTo(0);
+        assertThat(response.getPageSize()).isEqualTo(10);
+        assertThat(response.getTotalPage()).isEqualTo(1);
+        assertThat(response.getTotalElement()).isEqualTo(3);
+
+        assertThat(response.getContent())
+                .extracting( "productName", "userId", "userName", "rating", "content")
+                .containsExactlyInAnyOrder(
+                        tuple( "productName", 1L, "user1", 4, "very good"),
+                        tuple("productName", 2L, "user2", 3, "good"),
+                        tuple("productName", 3L, "user3", 5, "excellent")
+                );
+    }
+
+    @Test
+    @DisplayName("상품 리뷰 목록 조회 테스트-실패(상품 찾을 수 없음)")
+    void getReviewsByProductId_unit_notFound(){
+        Pageable pageable = PageRequest.of(0, 10, Sort.Direction.DESC, "createAt");
+        when(productsRepository.existsById(1L))
+                .thenReturn(false);
+        mockMessageUtil(PRODUCT_NOT_FOUND, "Product not found");
+        assertThatThrownBy(() -> productReader.getReviewsByProductId(1L, pageable))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage(getMessage(PRODUCT_NOT_FOUND));
+    }
+
     private void mockProductFindById(Long productId, Products products){
         OngoingStubbing<Optional<Products>> when = when(productsRepository.findWithCategoryById(productId));
         if(products == null) {
@@ -205,6 +242,16 @@ public class ProductReaderUnitTest {
                         3.2, 10, 10000, 10000, 0, LocalDateTime.now())
         );
         return new PageImpl<>(content, pageable, 1);
+    }
+
+    private Page<Reviews> createPageReviews(Pageable pageable){
+        Products product = new Products("productName", "description", new Categories("category", null));
+        ProductVariants productVariant = new ProductVariants("sku", 100, 10, 10);
+        List<Reviews> content = List.of(new Reviews(productVariant, 1L, "user1", 4, "very good"),
+                new Reviews(productVariant, 2L, "user2", 3, "good"),
+                new Reviews(productVariant, 3L, "user3", 5, "excellent"));
+        product.addVariants(List.of(productVariant));
+        return new PageImpl<>(content, pageable, 3);
     }
 
     private void mockMessageUtil(String code, String returnMessage){

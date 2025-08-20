@@ -22,6 +22,7 @@ public class ReviewsQueryRepositoryImpl implements ReviewsQueryRepository{
     private final JPAQueryFactory queryFactory;
     QReviews reviews = QReviews.reviews;
     QProductVariants productVariants = QProductVariants.productVariants;
+    QProductVariantOptions productVariantOptions = QProductVariantOptions.productVariantOptions;
     QProducts products = QProducts.products;
     public ReviewsQueryRepositoryImpl(EntityManager em){
         this.queryFactory = new JPAQueryFactory(em);
@@ -30,6 +31,7 @@ public class ReviewsQueryRepositoryImpl implements ReviewsQueryRepository{
     @Override
     public Page<Reviews> findAllByProductId(Long productId, Pageable pageable) {
         List<Reviews> content = queryFactory.selectFrom(reviews)
+                .distinct()
                 .join(reviews.productVariant, productVariants).fetchJoin()
                 .join(productVariants.product, products).fetchJoin()
                 .where(reviews.productVariant.product.id.eq(productId))

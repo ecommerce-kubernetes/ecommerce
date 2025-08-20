@@ -1,7 +1,9 @@
 package com.example.product_service.service;
 
 import com.example.product_service.dto.request.product.ProductRequest;
+import com.example.product_service.dto.request.product.UpdateProductBasicRequest;
 import com.example.product_service.dto.response.product.ProductResponse;
+import com.example.product_service.dto.response.product.ProductUpdateResponse;
 import com.example.product_service.entity.Products;
 import com.example.product_service.repository.ProductsRepository;
 import com.example.product_service.service.dto.ProductCreationData;
@@ -30,6 +32,10 @@ public class ProductSaver {
 
         Products saved = productsRepository.save(products);
         return new ProductResponse(saved);
+    }
+
+    public ProductUpdateResponse updateBasicInfoById(Long productId, UpdateProductBasicRequest request){
+        return new ProductUpdateResponse();
     }
 
 }

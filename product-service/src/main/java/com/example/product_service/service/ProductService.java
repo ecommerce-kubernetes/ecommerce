@@ -43,7 +43,7 @@ public class ProductService {
     }
 
     public PageDto<ReviewResponse> getReviewsByProductId(Long productId, Pageable pageable) {
-        return null;
+        return productReader.getReviewsByProductId(productId, pageable);
     }
 
     public ProductUpdateResponse updateBasicInfoById(Long productId, UpdateProductBasicRequest request) {

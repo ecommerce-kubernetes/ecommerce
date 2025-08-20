@@ -3,6 +3,7 @@ package com.example.product_service.service;
 import com.example.product_service.common.MessageSourceUtil;
 import com.example.product_service.dto.ProductSearch;
 import com.example.product_service.dto.response.PageDto;
+import com.example.product_service.dto.response.ReviewResponse;
 import com.example.product_service.dto.response.product.ProductResponse;
 import com.example.product_service.dto.response.product.ProductSummaryResponse;
 import com.example.product_service.entity.*;
@@ -65,8 +66,30 @@ public class ProductReader {
         return parseProductSummaryResponse(result, pageable);
     }
 
+    public PageDto<ReviewResponse> getReviewsByProductId(Long productId, Pageable pageable){
+        boolean isExists = productsRepository.existsById(productId);
+        if(!isExists){
+            throw new NotFoundException(ms.getMessage(PRODUCT_NOT_FOUND));
+        }
+
+        Page<Reviews> result = reviewsRepository.findAllByProductId(productId, pageable);
+        return parseReviewResponse(result, pageable);
+    }
+
     private PageDto<ProductSummaryResponse> parseProductSummaryResponse(Page<ProductSummary> result, Pageable pageable){
         List<ProductSummaryResponse> content = result.getContent().stream().map(ProductSummaryResponse::new).toList();
+
+        return new PageDto<>(
+                content,
+                pageable.getPageNumber(),
+                result.getTotalPages(),
+                pageable.getPageSize(),
+                result.getTotalElements()
+        );
+    }
+
+    private PageDto<ReviewResponse> parseReviewResponse(Page<Reviews> result, Pageable pageable){
+        List<ReviewResponse> content = result.getContent().stream().map(ReviewResponse::new).toList();
 
         return new PageDto<>(
                 content,

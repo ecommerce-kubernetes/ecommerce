@@ -7,6 +7,7 @@ import com.example.product_service.dto.request.product.ProductRequest;
 import com.example.product_service.dto.request.variant.ProductVariantRequest;
 import com.example.product_service.dto.request.variant.VariantOptionValueRequest;
 import com.example.product_service.dto.response.PageDto;
+import com.example.product_service.dto.response.ReviewResponse;
 import com.example.product_service.dto.response.product.ProductResponse;
 import com.example.product_service.dto.response.product.ProductSummaryResponse;
 import com.example.product_service.dto.response.variant.ProductVariantResponse;
@@ -27,6 +28,7 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -453,6 +455,61 @@ class ProductServiceTest {
                                 "http://test.jpg", product1.getCategory().getId(), 4.0, 5, 10000, 9000, 10
                         )
                 );
+    }
+
+    @Test
+    @DisplayName("상품 리뷰 목록 조회 테스트-성공")
+    @Transactional
+    void getReviewsByProductIdTest_integration_success(){
+        ProductImages productImage = createProductImages("http://test.jpg", 0);
+        ProductOptionTypes productOptionType = createProductOptionType(existType);
+        ProductVariants product1Variant = createProductVariants("sku1", 10000, 100, 10, existValue);
+        for(long i=1; i<6; i++){
+            product1Variant.addReview(i, "user"+i, 4, "good", List.of());
+        }
+
+        Products product = createProduct("productName", "description", category,
+                List.of(productImage), List.of(productOptionType), List.of(product1Variant));
+
+        productsRepository.save(product);
+        em.flush(); em.clear();
+
+        Pageable pageable = PageRequest.of(0, 10, Sort.Direction.DESC, "createAt");
+
+        PageDto<ReviewResponse> response = productService.getReviewsByProductId(product.getId(), pageable);
+
+        assertThat(response.getCurrentPage()).isEqualTo(0);
+        assertThat(response.getPageSize()).isEqualTo(10);
+        assertThat(response.getTotalPage()).isEqualTo(1);
+        assertThat(response.getTotalElement()).isEqualTo(5);
+
+        assertThat(response.getContent()).extracting("productName", "userId", "userName", "rating", "content")
+                .containsExactlyInAnyOrder(
+                        tuple("productName", 1L, "user1", 4, "good"),
+                        tuple("productName", 2L, "user2", 4, "good"),
+                        tuple("productName", 3L, "user3", 4, "good"),
+                        tuple("productName", 4L, "user4", 4, "good"),
+                        tuple("productName", 5L, "user5", 4, "good")
+                );
+
+        assertThat(response.getContent())
+                .flatExtracting(ReviewResponse::getOptionValues)
+                .extracting("valueId", "typeId", "valueName")
+                .containsExactlyInAnyOrder(
+                        tuple(existValue.getId(), existType.getId(), existValue.getOptionValue()),
+                        tuple(existValue.getId(), existType.getId(), existValue.getOptionValue()),
+                        tuple(existValue.getId(), existType.getId(), existValue.getOptionValue()),
+                        tuple(existValue.getId(), existType.getId(), existValue.getOptionValue()),
+                        tuple(existValue.getId(), existType.getId(), existValue.getOptionValue())
+                );
+    }
+
+    @Test
+    @DisplayName("상품 리뷰 목록 조회 테스트-실패(상품을 찾을 수 없음)")
+    void getReviewsByProductIdTest_integration_notFound(){
+        assertThatThrownBy(() -> productService.getReviewsByProductId(999L, PageRequest.of(0, 10)))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage(getMessage(PRODUCT_NOT_FOUND));
     }
 
 
