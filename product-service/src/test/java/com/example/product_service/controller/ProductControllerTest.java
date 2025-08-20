@@ -4,6 +4,7 @@ import com.example.product_service.common.MessageSourceUtil;
 import com.example.product_service.common.advice.ErrorResponseEntityFactory;
 import com.example.product_service.controller.util.validator.PageableValidatorFactory;
 import com.example.product_service.controller.util.validator.ProductPageableValidator;
+import com.example.product_service.controller.util.validator.ReviewPageableValidator;
 import com.example.product_service.dto.ProductSearch;
 import com.example.product_service.dto.request.image.AddImageRequest;
 import com.example.product_service.dto.request.image.ImageRequest;
@@ -358,6 +359,7 @@ class ProductControllerTest {
         PageDto<ReviewResponse> response = new PageDto<>(createReviewResponse(), 0, 10, 10, 100);
         when(service.getReviewsByProductId(anyLong(), any(Pageable.class)))
                 .thenReturn(response);
+        when(pageableValidatorFactory.getValidator(DomainType.REVIEW)).thenReturn(new ReviewPageableValidator());
 
         ResultActions perform = performWithBody(mockMvc, get(REVIEW_PATH), null);
         verifySuccessResponse(perform, status().isOk(), response);
@@ -368,6 +370,7 @@ class ProductControllerTest {
     void getReviewsByProductIdTest_notFound() throws Exception {
         when(service.getReviewsByProductId(anyLong(), any(Pageable.class)))
                 .thenThrow(new NotFoundException(getMessage(PRODUCT_NOT_FOUND)));
+        when(pageableValidatorFactory.getValidator(DomainType.REVIEW)).thenReturn(new ReviewPageableValidator());
 
         ResultActions perform = performWithBody(mockMvc, get(REVIEW_PATH), null);
         verifyErrorResponse(perform, status().isNotFound(), getMessage(NOT_FOUND),
