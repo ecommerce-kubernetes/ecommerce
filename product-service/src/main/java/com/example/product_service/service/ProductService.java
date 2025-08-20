@@ -47,7 +47,7 @@ public class ProductService {
     }
 
     public ProductUpdateResponse updateBasicInfoById(Long productId, UpdateProductBasicRequest request) {
-        return null;
+        return productSaver.updateBasicInfoById(productId, request);
     }
 
     public void deleteProductById(Long productId) {

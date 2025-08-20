@@ -4,12 +4,14 @@ import com.example.product_service.dto.ProductSearch;
 import com.example.product_service.dto.request.image.ImageRequest;
 import com.example.product_service.dto.request.options.ProductOptionTypeRequest;
 import com.example.product_service.dto.request.product.ProductRequest;
+import com.example.product_service.dto.request.product.UpdateProductBasicRequest;
 import com.example.product_service.dto.request.variant.ProductVariantRequest;
 import com.example.product_service.dto.request.variant.VariantOptionValueRequest;
 import com.example.product_service.dto.response.PageDto;
 import com.example.product_service.dto.response.ReviewResponse;
 import com.example.product_service.dto.response.product.ProductResponse;
 import com.example.product_service.dto.response.product.ProductSummaryResponse;
+import com.example.product_service.dto.response.product.ProductUpdateResponse;
 import com.example.product_service.dto.response.variant.ProductVariantResponse;
 import com.example.product_service.entity.*;
 import com.example.product_service.exception.BadRequestException;
@@ -511,6 +513,68 @@ class ProductServiceTest {
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage(getMessage(PRODUCT_NOT_FOUND));
     }
+
+    @Test
+    @DisplayName("상품 기본 정보 변경 테스트-성공")
+    @Transactional
+    void updateBasicInfoByIdTest_integration_success(){
+        ProductImages productImage = createProductImages("http://test.jpg", 0);
+        ProductOptionTypes productOptionType = createProductOptionType(existType);
+        ProductVariants product1Variant = createProductVariants("sku1", 10000, 100, 10, existValue);
+        for(long i=1; i<6; i++){
+            product1Variant.addReview(i, "user"+i, 4, "good", List.of());
+        }
+
+        Products product = createProduct("productName", "description", category,
+                List.of(productImage), List.of(productOptionType), List.of(product1Variant));
+
+        productsRepository.save(product);
+        em.flush(); em.clear();
+
+        UpdateProductBasicRequest request = new UpdateProductBasicRequest("updatedName", null, null);
+
+        ProductUpdateResponse response = productService.updateBasicInfoById(product.getId(), request);
+
+        assertThat(response.getName()).isEqualTo("updatedName");
+        assertThat(response.getDescription()).isEqualTo("description");
+        assertThat(response.getCategoryId()).isEqualTo(category.getId());
+    }
+
+    @Test
+    @DisplayName("상품 기본 정보 수정 테스트-실패(상품을 찾을 수 없음)")
+    @Transactional
+    void updateBasicInfoByIdTest_integration_notFound_product(){
+        UpdateProductBasicRequest request = new UpdateProductBasicRequest("updatedName", null, null);
+
+        assertThatThrownBy(() -> productService.updateBasicInfoById(999L, request))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage(getMessage(PRODUCT_NOT_FOUND));
+    }
+
+    @Test
+    @DisplayName("상품 기본 정보 수정 테스트-실패(상품을 찾을 수 없음)")
+    @Transactional
+    void updateBasicInfoByIdTest_integration_notFound_category(){
+        ProductImages productImage = createProductImages("http://test.jpg", 0);
+        ProductOptionTypes productOptionType = createProductOptionType(existType);
+        ProductVariants product1Variant = createProductVariants("sku1", 10000, 100, 10, existValue);
+        for(long i=1; i<6; i++){
+            product1Variant.addReview(i, "user"+i, 4, "good", List.of());
+        }
+
+        Products product = createProduct("productName", "description", category,
+                List.of(productImage), List.of(productOptionType), List.of(product1Variant));
+
+        productsRepository.save(product);
+        em.flush(); em.clear();
+
+        UpdateProductBasicRequest request = new UpdateProductBasicRequest("updatedName", null, 999L);
+
+        assertThatThrownBy(() -> productService.updateBasicInfoById(product.getId(), request))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage(getMessage(CATEGORY_NOT_FOUND));
+    }
+
 
 
     private ProductRequest createProductRequest() {

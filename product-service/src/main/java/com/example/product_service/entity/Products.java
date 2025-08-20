@@ -19,8 +19,11 @@ public class Products extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @Setter
     private String name;
+    @Setter
     private String description;
+    @Setter
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
     private Categories category;

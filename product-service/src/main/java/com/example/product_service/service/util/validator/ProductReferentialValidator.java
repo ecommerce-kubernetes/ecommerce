@@ -35,7 +35,6 @@ public class ProductReferentialValidator {
     private final ProductVariantsRepository productVariantsRepository;
     private final MessageSourceUtil ms;
 
-    //TODO Category가 최하위 카테고리인지 검증하는 로직 추가해야함
     public ProductCreationData validAndFetch(ProductRequest request){
         validateDuplicateSkus(request);
         Categories categories = findByIdOrThrow(request.getCategoryId());

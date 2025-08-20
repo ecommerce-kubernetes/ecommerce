@@ -1,11 +1,14 @@
 package com.example.product_service.service.unit;
 
+import com.example.product_service.common.MessageSourceUtil;
 import com.example.product_service.dto.request.image.ImageRequest;
 import com.example.product_service.dto.request.options.ProductOptionTypeRequest;
 import com.example.product_service.dto.request.product.ProductRequest;
+import com.example.product_service.dto.request.product.UpdateProductBasicRequest;
 import com.example.product_service.dto.request.variant.ProductVariantRequest;
 import com.example.product_service.dto.request.variant.VariantOptionValueRequest;
 import com.example.product_service.dto.response.product.ProductResponse;
+import com.example.product_service.dto.response.product.ProductUpdateResponse;
 import com.example.product_service.entity.*;
 import com.example.product_service.exception.BadRequestException;
 import com.example.product_service.exception.DuplicateResourceException;
@@ -29,6 +32,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static com.example.product_service.common.MessagePath.*;
 import static com.example.product_service.util.TestMessageUtil.getMessage;
@@ -45,6 +49,10 @@ public class ProductSaverUnitTest {
     ProductReferentialValidator referentialValidator;
     @Mock
     ProductFactory factory;
+    @Mock
+    CategoryRepository categoryRepository;
+    @Mock
+    MessageSourceUtil ms;
 
     @InjectMocks
     ProductSaver productSaver;
@@ -239,6 +247,44 @@ public class ProductSaverUnitTest {
         assertThatThrownBy(() -> productSaver.saveProduct(request))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessage(getMessage(PRODUCT_OPTION_VALUE_NOT_MATCH_TYPE));
+    }
+
+    @Test
+    @DisplayName("상품 기본 정보 수정 테스트-성공")
+    void updateBasicInfoByIdTest_success(){
+        UpdateProductBasicRequest request = new UpdateProductBasicRequest("updateName", null, null);
+        Products products = createProducts();
+        when(productsRepository.findById(1L)).thenReturn(Optional.of(products));
+        ProductUpdateResponse response = productSaver.updateBasicInfoById(1L, request);
+
+        assertThat(response.getName()).isEqualTo("updateName");
+        assertThat(response.getCategoryId()).isEqualTo(1L);
+        assertThat(response.getDescription()).isEqualTo("description");
+
+    }
+
+    @Test
+    @DisplayName("상품 기본 정보 수정 테스트-실패(상품을 찾을 수 없음)")
+    void updateBasicInfoByIdTest_notFound_product(){
+        UpdateProductBasicRequest request = new UpdateProductBasicRequest("updateName", null, null);
+        when(productsRepository.findById(1L)).thenReturn(Optional.empty());
+        when(ms.getMessage(PRODUCT_NOT_FOUND)).thenReturn("Product not found");
+        assertThatThrownBy(() -> productSaver.updateBasicInfoById(1L, request))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage(getMessage(PRODUCT_NOT_FOUND));
+    }
+
+    @Test
+    @DisplayName("상품 기본 정보 수정 테스트-실패(카테고리를 찾을 수 없음)")
+    void updateBasicInfoByIdTest_notFound_category(){
+        UpdateProductBasicRequest request = new UpdateProductBasicRequest("updateName", null, 2L);
+        Products products = createProducts();
+        when(productsRepository.findById(1L)).thenReturn(Optional.of(products));
+        when(categoryRepository.findById(2L)).thenReturn(Optional.empty());
+        when(ms.getMessage(CATEGORY_NOT_FOUND)).thenReturn("Category not found");
+        assertThatThrownBy(() -> productSaver.updateBasicInfoById(1L, request))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage(getMessage(CATEGORY_NOT_FOUND));
     }
 
     private void mockStructureValidator(ProductRequest request, String exceptionCode){
