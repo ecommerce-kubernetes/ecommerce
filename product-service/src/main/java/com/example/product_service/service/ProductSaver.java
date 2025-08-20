@@ -63,6 +63,11 @@ public class ProductSaver {
         return new ProductUpdateResponse(target);
     }
 
+    public void deleteProductById(Long productId){
+        Products product = findProductByIdOrThrow(productId);
+        productsRepository.delete(product);
+    }
+
     private Products findProductByIdOrThrow(Long productId){
         return productsRepository.findById(productId)
                 .orElseThrow(() -> new NotFoundException(ms.getMessage(PRODUCT_NOT_FOUND)));

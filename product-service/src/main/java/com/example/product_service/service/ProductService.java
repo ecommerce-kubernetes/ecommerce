@@ -51,7 +51,7 @@ public class ProductService {
     }
 
     public void deleteProductById(Long productId) {
-
+        productSaver.deleteProductById(productId);
     }
     public List<ImageResponse> addImages(Long productId, AddImageRequest request) {
         return List.of();

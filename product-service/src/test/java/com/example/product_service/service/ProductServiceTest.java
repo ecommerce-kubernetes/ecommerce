@@ -40,6 +40,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.List;
+import java.util.Optional;
 
 import static com.example.product_service.common.MessagePath.*;
 import static com.example.product_service.util.TestMessageUtil.getMessage;
@@ -573,6 +574,37 @@ class ProductServiceTest {
         assertThatThrownBy(() -> productService.updateBasicInfoById(product.getId(), request))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage(getMessage(CATEGORY_NOT_FOUND));
+    }
+
+    @Test
+    @DisplayName("상품 삭제 테스트-성공")
+    @Transactional
+    void deleteProductByIdTest_integration_success(){
+        ProductImages productImage = createProductImages("http://test.jpg", 0);
+        ProductOptionTypes productOptionType = createProductOptionType(existType);
+        ProductVariants product1Variant = createProductVariants("sku1", 10000, 100, 10, existValue);
+        for(long i=1; i<6; i++){
+            product1Variant.addReview(i, "user"+i, 4, "good", List.of());
+        }
+
+        Products product = createProduct("productName", "description", category,
+                List.of(productImage), List.of(productOptionType), List.of(product1Variant));
+
+        productsRepository.save(product);
+        productService.deleteProductById(product.getId());
+        em.flush(); em.clear();
+
+        Optional<Products> result = productsRepository.findById(product.getId());
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    @DisplayName("상품 삭제 테스트-실패(상품을 찾을 수 없음)")
+    void deleteProductByIdTest_integration_notFoundProduct(){
+        assertThatThrownBy(()-> productService.deleteProductById(999L))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage(getMessage(PRODUCT_NOT_FOUND));
     }
 
 

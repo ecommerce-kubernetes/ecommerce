@@ -23,6 +23,8 @@ import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -54,6 +56,9 @@ public class ProductSaverUnitTest {
     @Mock
     MessageSourceUtil ms;
 
+
+    @Captor
+    private ArgumentCaptor<Products> productArgumentCaptor;
     @InjectMocks
     ProductSaver productSaver;
 
@@ -285,6 +290,31 @@ public class ProductSaverUnitTest {
         assertThatThrownBy(() -> productSaver.updateBasicInfoById(1L, request))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage(getMessage(CATEGORY_NOT_FOUND));
+    }
+
+    @Test
+    @DisplayName("상품 삭제 테스트-성공")
+    void deleteProductByIdTest_success(){
+        Products products = spy(createProducts());
+        when(productsRepository.findById(1L)).thenReturn(Optional.of(products));
+
+        productSaver.deleteProductById(1L);
+
+        verify(productsRepository).delete(productArgumentCaptor.capture());
+        Products value = productArgumentCaptor.getValue();
+        assertThat(value.getName()).isEqualTo("name");
+
+    }
+
+    @Test
+    @DisplayName("상품 삭제 테스트-실패(상품을 찾을 수 없음)")
+    void deleteProductByIdTest_notFoundProduct(){
+        when(productsRepository.findById(1L)).thenReturn(Optional.empty());
+        when(ms.getMessage(PRODUCT_NOT_FOUND)).thenReturn("Product not found");
+
+        assertThatThrownBy(() -> productSaver.deleteProductById(1L))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage(getMessage(PRODUCT_NOT_FOUND));
     }
 
     private void mockStructureValidator(ProductRequest request, String exceptionCode){
