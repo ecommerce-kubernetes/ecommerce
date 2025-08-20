@@ -125,8 +125,10 @@ public class ProductController {
     @NotFoundApiResponse
     @GetMapping("/{productId}/reviews")
     public ResponseEntity<PageDto<ReviewResponse>> getReviewsByProductId(@PathVariable("productId") Long productId,
-                                                                         @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.ASC) Pageable pageable){
-        PageDto<ReviewResponse> result = productService.getReviewsByProductId(productId, pageable);
+                                                                         @PageableDefault(page = 0, size = 10, sort = "rating", direction = Sort.Direction.ASC) Pageable pageable){
+        PageableValidator validator = pageableValidatorFactory.getValidator(DomainType.REVIEW);
+        Pageable validatedPageable = validator.validate(pageable);
+        PageDto<ReviewResponse> result = productService.getReviewsByProductId(productId, validatedPageable);
         return ResponseEntity.ok(result);
     }
 
