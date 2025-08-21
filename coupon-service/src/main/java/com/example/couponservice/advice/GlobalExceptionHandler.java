@@ -33,7 +33,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(IsExistCouponException.class)
     public ResponseEntity<ResponseError> handleUsernameNotFound(IsExistCouponException ex) {
-        log.warn("Coupon not found: {}", ex.getMessage());
+        log.warn("{}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(ResponseError.of(HttpStatus.NOT_FOUND, ex.getMessage()));
     }

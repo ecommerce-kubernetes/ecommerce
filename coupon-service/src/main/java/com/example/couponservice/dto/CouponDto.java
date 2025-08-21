@@ -1,6 +1,6 @@
 package com.example.couponservice.dto;
 
-import com.example.couponservice.jpa.entity.DiscountType;
+import com.example.common.DiscountType;
 import lombok.Builder;
 import lombok.Getter;
 

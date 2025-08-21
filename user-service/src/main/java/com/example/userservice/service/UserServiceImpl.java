@@ -149,7 +149,7 @@ public class UserServiceImpl implements UserService{
 
         if (userDto.getPhoneNumber() != null && !userDto.getPhoneNumber().isEmpty()) {
             userEntity.changePhoneNumber(userDto.getPhoneNumber());
-            userEntity.changeIsPhoneVerified(true);
+            verifyPhoneNumber(userDto.getId());
             //쿠폰 필드 업데이트
             couponServiceClient.changePhoneNumber(userEntity.getId(), userDto.getPhoneNumber());
         }
