@@ -1,5 +1,6 @@
 package com.example.couponservice.jpa.entity;
 
+import com.example.common.DiscountType;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;

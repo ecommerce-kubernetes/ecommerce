@@ -1,13 +1,17 @@
 package com.example.couponservice.controller;
 
+import com.example.common.DiscountType;
 import com.example.couponservice.jpa.entity.CouponEntity;
+import com.example.couponservice.jpa.entity.UserCouponEntity;
 import com.example.couponservice.service.CouponService;
 import com.example.couponservice.vo.ResponseCoupon;
+import com.example.couponservice.vo.ResponseUserCoupon;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -43,25 +47,32 @@ public class UserCouponController {
 
     //유저 사용가능한 쿠폰(유효기간이 지나지 않은 것들 중 사용하지 않은 쿠폰) 조회
     @GetMapping("/available")
-    public ResponseEntity<List<ResponseCoupon>> getAllValidCoupon(@RequestHeader("X-User-Id") Long userId) {
+    public ResponseEntity<List<ResponseUserCoupon>> getAllValidCoupon(@RequestHeader("X-User-Id") Long userId) {
 
-        List<CouponEntity> couponList = couponService.getAllValidCouponByUser(userId);
+        List<UserCouponEntity> couponList = couponService.getAllValidCouponByUser(userId);
 
-        List<ResponseCoupon> responseList = couponList.stream()
-                .map(coupon -> ResponseCoupon.builder()
-                        .id(coupon.getId())
-                        .name(coupon.getName())
-                        .description(coupon.getDescription())
-                        .category(coupon.getCategory())
-                        .discountType(coupon.getDiscountType())
-                        .discountValue(coupon.getDiscountValue())
-                        .minPurchaseAmount(coupon.getMinPurchaseAmount())
-                        .maxDiscountAmount(coupon.getMaxDiscountAmount())
-                        .validFrom(coupon.getValidFrom())
-                        .validTo(coupon.getValidTo())
-                        .reusable(coupon.isReusable())
-                        .build()
-                )
+        List<ResponseUserCoupon> responseList = couponList.stream()
+                .map(userCoupon -> ResponseUserCoupon.builder()
+                        .id(userCoupon.getId())
+                        .responseCoupon(ResponseCoupon.builder()
+                                .id(userCoupon.getCoupon().getId())
+                                .name(userCoupon.getCoupon().getName())
+                                .description(userCoupon.getCoupon().getDescription())
+                                .code(userCoupon.getCoupon().getCode())
+                                .category(userCoupon.getCoupon().getCategory())
+                                .discountType(userCoupon.getCoupon().getDiscountType())
+                                .discountValue(userCoupon.getCoupon().getDiscountValue())
+                                .minPurchaseAmount(userCoupon.getCoupon().getMinPurchaseAmount())
+                                .maxDiscountAmount(userCoupon.getCoupon().getMaxDiscountAmount())
+                                .validFrom(userCoupon.getCoupon().getValidFrom())
+                                .validTo(userCoupon.getCoupon().getValidTo())
+                                .reusable(userCoupon.getCoupon().isReusable())
+                                .build())
+                        .used(userCoupon.isUsed())
+                        .issuedAt(userCoupon.getIssuedAt())
+                        .usedAt(userCoupon.getUsedAt())
+                        .expiresAt(userCoupon.getExpiresAt())
+                        .build())
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(responseList);
@@ -69,37 +80,46 @@ public class UserCouponController {
 
     //유저 사용가능하지 않은 쿠폰(유효기간이 지났거나 사용한 쿠폰) 조회
     @GetMapping("/expired-or-used")
-    public ResponseEntity<List<ResponseCoupon>> getAllExpiredOrUsedCoupon(@RequestHeader("X-User-Id") Long userId) {
+    public ResponseEntity<List<ResponseUserCoupon>> getAllExpiredOrUsedCoupon(@RequestHeader("X-User-Id") Long userId) {
 
-        List<CouponEntity> couponList = couponService.getAllExpiredOrUsedCouponByUser(userId);
+        List<UserCouponEntity> couponList = couponService.getAllExpiredOrUsedCouponByUser(userId);
 
-        List<ResponseCoupon> responseList = couponList.stream()
-                .map(coupon -> ResponseCoupon.builder()
-                        .id(coupon.getId())
-                        .name(coupon.getName())
-                        .description(coupon.getDescription())
-                        .category(coupon.getCategory())
-                        .discountType(coupon.getDiscountType())
-                        .discountValue(coupon.getDiscountValue())
-                        .minPurchaseAmount(coupon.getMinPurchaseAmount())
-                        .maxDiscountAmount(coupon.getMaxDiscountAmount())
-                        .validFrom(coupon.getValidFrom())
-                        .validTo(coupon.getValidTo())
-                        .reusable(coupon.isReusable())
-                        .build()
-                )
+        List<ResponseUserCoupon> responseList = couponList.stream()
+                .map(userCoupon -> ResponseUserCoupon.builder()
+                        .id(userCoupon.getId())
+                        .responseCoupon(ResponseCoupon.builder()
+                                .id(userCoupon.getCoupon().getId())
+                                .name(userCoupon.getCoupon().getName())
+                                .description(userCoupon.getCoupon().getDescription())
+                                .code(userCoupon.getCoupon().getCode())
+                                .category(userCoupon.getCoupon().getCategory())
+                                .discountType(userCoupon.getCoupon().getDiscountType())
+                                .discountValue(userCoupon.getCoupon().getDiscountValue())
+                                .minPurchaseAmount(userCoupon.getCoupon().getMinPurchaseAmount())
+                                .maxDiscountAmount(userCoupon.getCoupon().getMaxDiscountAmount())
+                                .validFrom(userCoupon.getCoupon().getValidFrom())
+                                .validTo(userCoupon.getCoupon().getValidTo())
+                                .reusable(userCoupon.getCoupon().isReusable())
+                                .build())
+                        .used(userCoupon.isUsed())
+                        .issuedAt(userCoupon.getIssuedAt())
+                        .usedAt(userCoupon.getUsedAt())
+                        .expiresAt(userCoupon.getExpiresAt())
+                        .build())
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(responseList);
     }
 
+    //유저 쿠폰 카테고리별 조회 & 최소금액
+
     //유저 쿠폰 사용
-    @PostMapping("/use/{couponId}")
-    public ResponseEntity<ResponseCoupon> useCoupon(@RequestHeader("X-User-Id") Long userId, @PathVariable("couponId") Long couponId) {
-
-        couponService.useCouponByUser(userId, couponId);
-
-        return ResponseEntity.status(HttpStatus.OK).build();
-    }
+//    @PostMapping("/use/{couponId}")
+//    public ResponseEntity<ResponseCoupon> useCoupon(@RequestHeader("X-User-Id") Long userId, @PathVariable("couponId") Long couponId) {
+//
+//        couponService.useCouponByUser(userId, couponId, String category);
+//
+//        return ResponseEntity.status(HttpStatus.OK).build();
+//    }
 
 }

@@ -2,6 +2,7 @@ package com.example.couponservice.service;
 
 import com.example.couponservice.dto.CouponDto;
 import com.example.couponservice.jpa.entity.CouponEntity;
+import com.example.couponservice.jpa.entity.UserCouponEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -19,11 +20,13 @@ public interface CouponService {
 
     void issuedCouponByUser(Long userId, String couponCode);
 
-    List<CouponEntity> getAllValidCouponByUser(Long userId);
+    List<UserCouponEntity> getAllValidCouponByUser(Long userId);
 
-    List<CouponEntity> getAllExpiredOrUsedCouponByUser(Long userId);
+    List<UserCouponEntity> getAllExpiredOrUsedCouponByUser(Long userId);
 
-    void useCouponByUser(Long userId, Long couponId);
+    CouponDto useCouponByUser(Long userCouponId);
+
+    void revertUserCoupon(Long userCouponId);
 
     void changePhoneNumber(Long userId, String phoneNumber);
 }

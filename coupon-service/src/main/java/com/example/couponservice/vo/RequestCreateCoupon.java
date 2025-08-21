@@ -1,8 +1,8 @@
 package com.example.couponservice.vo;
 
+import com.example.common.DiscountType;
 import com.example.couponservice.annotation.HasValidDateRange;
 import com.example.couponservice.annotation.ValidDateRange;
-import com.example.couponservice.jpa.entity.DiscountType;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

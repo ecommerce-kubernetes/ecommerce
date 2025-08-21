@@ -1,6 +1,6 @@
 package com.example.couponservice.vo;
 
-import com.example.couponservice.jpa.entity.DiscountType;
+import com.example.common.DiscountType;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
