@@ -5,6 +5,7 @@ import com.example.product_service.dto.request.options.ProductOptionTypeRequest;
 import com.example.product_service.dto.request.product.ProductRequest;
 import com.example.product_service.dto.request.variant.ProductVariantRequest;
 import com.example.product_service.dto.request.variant.VariantOptionValueRequest;
+import com.example.product_service.entity.Products;
 import com.example.product_service.exception.BadRequestException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -22,6 +23,12 @@ public class ProductRequestStructureValidator {
     public void validateProductRequest(ProductRequest request){
         validateProductOptionTypeRequest(request.getProductOptionTypes());
         validateProductVariantRequest(getProductOptionTypeIds(request), request.getProductVariants());
+    }
+
+    public void validateVariantRequest(ProductVariantRequest request, Products product){
+        Set<Long> requiredOptionTypeIds = product.getProductOptionTypes()
+                .stream().map(pot -> pot.getOptionType().getId()).collect(Collectors.toSet());
+        validateVariantOptionValueCardinality(requiredOptionTypeIds, request);
     }
 
     private void validateProductOptionTypeRequest(List<ProductOptionTypeRequest> optionTypes){

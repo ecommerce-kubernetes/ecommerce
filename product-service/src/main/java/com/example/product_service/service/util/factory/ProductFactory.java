@@ -7,6 +7,7 @@ import com.example.product_service.dto.request.variant.ProductVariantRequest;
 import com.example.product_service.dto.request.variant.VariantOptionValueRequest;
 import com.example.product_service.entity.*;
 import com.example.product_service.service.dto.ProductCreationData;
+import com.example.product_service.service.dto.ProductVariantCreationData;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -24,6 +25,12 @@ public class ProductFactory {
         mappingProductVariants(request, data, products);
 
         return products;
+    }
+
+    public ProductVariants createProductVariant(ProductVariantRequest request, ProductVariantCreationData data){
+        ProductVariants productVariant = new ProductVariants(request.getSku(), request.getPrice(), request.getStockQuantity(), request.getDiscountRate());
+        mappingVariantOption(request.getVariantOption(), data, productVariant);
+        return productVariant;
     }
 
     private Products createBasicInfoProduct(String name, String description, Categories category){
@@ -76,5 +83,19 @@ public class ProductFactory {
         }
 
         productVariants.addProductVariantOptions(saveProductVariantOptions);
+    }
+
+    private void mappingVariantOption(List<VariantOptionValueRequest> variantOptionValueRequests, ProductVariantCreationData data,
+                                      ProductVariants productVariant){
+        List<ProductVariantOptions> saveProductVariantOptions = new ArrayList<>();
+        for (VariantOptionValueRequest optionValueRequest : variantOptionValueRequests) {
+            Map<Long, OptionValues> optionValueById = data.getOptionValueById();
+            Long optionValueId = optionValueRequest.getOptionValueId();
+            OptionValues optionValue = optionValueById.get(optionValueId);
+            ProductVariantOptions productVariantOption = new ProductVariantOptions(optionValue);
+            saveProductVariantOptions.add(productVariantOption);
+        }
+
+        productVariant.addProductVariantOptions(saveProductVariantOptions);
     }
 }

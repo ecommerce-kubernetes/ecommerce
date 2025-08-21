@@ -647,6 +647,38 @@ class ProductServiceTest {
                 .hasMessage(getMessage(PRODUCT_NOT_FOUND));
     }
 
+    @Test
+    @DisplayName("상품 변형 추가 테스트-성공")
+    @Transactional
+    void addVariantTest_integration_success(){
+        ProductImages productImage = createProductImages("http://test.jpg", 0);
+        ProductOptionTypes productOptionType = createProductOptionType(existType);
+        ProductVariants productVariant = createProductVariants("sku", 10000, 100, 10, existValue);
+
+        Products product = createProduct("productName", "description", category,
+                List.of(productImage), List.of(productOptionType), List.of(productVariant));
+
+        productsRepository.save(product);
+
+        OptionValues optionValue = new OptionValues("optionValue2");
+        existType.addOptionValue(optionValue);
+        em.flush(); em.clear();
+
+        ProductVariantRequest request = new ProductVariantRequest("sku2", 30000, 1000, 10,
+                List.of(new VariantOptionValueRequest(existType.getId(), optionValue.getId())));
+
+        ProductVariantResponse response = productService.addVariant(product.getId(), request);
+
+        assertThat(response.getSku()).isEqualTo("sku2");
+        assertThat(response.getPrice()).isEqualTo(30000);
+        assertThat(response.getStockQuantity()).isEqualTo(1000);
+        assertThat(response.getDiscountRate()).isEqualTo(10);
+
+        assertThat(response.getOptionValues()).extracting("valueId", "typeId", "valueName")
+                .containsExactlyInAnyOrder(
+                        tuple(optionValue.getId(), existType.getId(), optionValue.getOptionValue())
+                );
+    }
 
 
 

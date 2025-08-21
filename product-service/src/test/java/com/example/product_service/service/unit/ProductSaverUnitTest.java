@@ -11,6 +11,7 @@ import com.example.product_service.dto.request.variant.VariantOptionValueRequest
 import com.example.product_service.dto.response.image.ImageResponse;
 import com.example.product_service.dto.response.product.ProductResponse;
 import com.example.product_service.dto.response.product.ProductUpdateResponse;
+import com.example.product_service.dto.response.variant.ProductVariantResponse;
 import com.example.product_service.entity.*;
 import com.example.product_service.exception.BadRequestException;
 import com.example.product_service.exception.DuplicateResourceException;
@@ -18,6 +19,7 @@ import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.repository.*;
 import com.example.product_service.service.ProductSaver;
 import com.example.product_service.service.dto.ProductCreationData;
+import com.example.product_service.service.dto.ProductVariantCreationData;
 import com.example.product_service.service.util.factory.ProductFactory;
 import com.example.product_service.service.util.validator.ProductReferentialValidator;
 import com.example.product_service.service.util.validator.ProductRequestStructureValidator;
@@ -346,6 +348,35 @@ public class ProductSaverUnitTest {
         assertThatThrownBy(() -> productSaver.addImages(1L, request))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage(getMessage(PRODUCT_NOT_FOUND));
+    }
+
+    @Test
+    @DisplayName("상품 변형 추가 테스트-성공")
+    void addVariantTest_unit_success(){
+        ProductVariantRequest request = new ProductVariantRequest("sku2", 3000, 100, 10, List.of(
+                new VariantOptionValueRequest(1L, 7L)
+        ));
+        Products products = createProducts();
+        when(productsRepository.findById(1L)).thenReturn(Optional.of(products));
+        doNothing().when(structureValidator).validateVariantRequest(request, products);
+        ProductVariantCreationData creationData = new ProductVariantCreationData(createOptionValueById(7L));
+        when(referentialValidator.validateProductVariant(request, products))
+                .thenReturn(creationData);
+        OptionTypes optionType = createOptionTypesWithSetId(1L, "optionType");
+        OptionValues optionValue = createOptionValuesWithSetId(7L, "optionValue7");
+        optionType.addOptionValue(optionValue);
+        ProductVariantOptions productVariantOptions = new ProductVariantOptions(optionValue);
+        ProductVariants productVariants = new ProductVariants("sku2", 3000, 100, 10);
+        productVariants.addProductVariantOption(productVariantOptions);
+        when(factory.createProductVariant(request, creationData))
+                .thenReturn(productVariants);
+
+        ProductVariantResponse response = productSaver.addVariant(1L, request);
+
+        assertThat(response.getSku()).isEqualTo("sku2");
+        assertThat(response.getPrice()).isEqualTo(3000);
+        assertThat(response.getStockQuantity()).isEqualTo(100);
+        assertThat(response.getDiscountRate()).isEqualTo(10);
     }
 
     private void mockStructureValidator(ProductRequest request, String exceptionCode){

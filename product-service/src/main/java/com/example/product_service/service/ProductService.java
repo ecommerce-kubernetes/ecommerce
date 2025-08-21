@@ -57,9 +57,8 @@ public class ProductService {
         return productSaver.addImages(productId, request);
     }
 
-
     public ProductVariantResponse addVariant(Long productId, ProductVariantRequest request) {
-        return null;
+        return productSaver.addVariant(productId, request);
     }
 
 }

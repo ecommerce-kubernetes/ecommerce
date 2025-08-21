@@ -5,16 +5,20 @@ import com.example.product_service.common.MessageSourceUtil;
 import com.example.product_service.dto.request.image.AddImageRequest;
 import com.example.product_service.dto.request.product.ProductRequest;
 import com.example.product_service.dto.request.product.UpdateProductBasicRequest;
+import com.example.product_service.dto.request.variant.ProductVariantRequest;
 import com.example.product_service.dto.response.image.ImageResponse;
 import com.example.product_service.dto.response.product.ProductResponse;
 import com.example.product_service.dto.response.product.ProductUpdateResponse;
+import com.example.product_service.dto.response.variant.ProductVariantResponse;
 import com.example.product_service.entity.Categories;
 import com.example.product_service.entity.ProductImages;
+import com.example.product_service.entity.ProductVariants;
 import com.example.product_service.entity.Products;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.repository.CategoryRepository;
 import com.example.product_service.repository.ProductsRepository;
 import com.example.product_service.service.dto.ProductCreationData;
+import com.example.product_service.service.dto.ProductVariantCreationData;
 import com.example.product_service.service.util.factory.ProductFactory;
 import com.example.product_service.service.util.validator.ProductReferentialValidator;
 import com.example.product_service.service.util.validator.ProductRequestStructureValidator;
@@ -87,6 +91,17 @@ public class ProductSaver {
         product.addImages(addImages);
 
         return product.getImages().stream().map(ImageResponse::new).toList();
+    }
+
+    public ProductVariantResponse addVariant(Long productId, ProductVariantRequest request){
+        Products product = findProductByIdOrThrow(productId);
+        structureValidator.validateVariantRequest(request, product);
+        ProductVariantCreationData productVariantCreationData =
+                referentialValidator.validateProductVariant(request, product);
+
+        ProductVariants productVariant = factory.createProductVariant(request, productVariantCreationData);
+        product.addVariant(productVariant);
+        return new ProductVariantResponse(productVariant);
     }
 
     private Products findProductByIdOrThrow(Long productId){
