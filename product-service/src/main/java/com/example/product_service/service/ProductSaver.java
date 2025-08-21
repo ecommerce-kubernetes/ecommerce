@@ -1,6 +1,5 @@
 package com.example.product_service.service;
 
-import com.example.product_service.common.MessagePath;
 import com.example.product_service.common.MessageSourceUtil;
 import com.example.product_service.dto.request.image.AddImageRequest;
 import com.example.product_service.dto.request.product.ProductRequest;
@@ -23,7 +22,6 @@ import com.example.product_service.service.util.factory.ProductFactory;
 import com.example.product_service.service.util.validator.ProductReferentialValidator;
 import com.example.product_service.service.util.validator.ProductRequestStructureValidator;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.validator.constraints.URL;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

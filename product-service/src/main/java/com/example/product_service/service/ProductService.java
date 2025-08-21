@@ -60,5 +60,4 @@ public class ProductService {
     public ProductVariantResponse addVariant(Long productId, ProductVariantRequest request) {
         return productSaver.addVariant(productId, request);
     }
-
 }

@@ -21,8 +21,11 @@ public class ProductRequestStructureValidator {
     private final MessageSourceUtil ms;
 
     public void validateProductRequest(ProductRequest request){
-        validateProductOptionTypeRequest(request.getProductOptionTypes());
-        validateProductVariantRequest(getProductOptionTypeIds(request), request.getProductVariants());
+        List<ProductOptionTypeRequest> productOptionTypes = request.getProductOptionTypes();
+        List<ProductVariantRequest> productVariants = request.getProductVariants();
+
+        Set<Long> optionTypeIdSet = validateProductOptionTypeRequest(productOptionTypes);
+        validateProductVariantRequest(optionTypeIdSet, productVariants);
     }
 
     public void validateVariantRequest(ProductVariantRequest request, Products product){
@@ -31,7 +34,7 @@ public class ProductRequestStructureValidator {
         validateVariantOptionValueCardinality(requiredOptionTypeIds, request);
     }
 
-    private void validateProductOptionTypeRequest(List<ProductOptionTypeRequest> optionTypes){
+    private Set<Long> validateProductOptionTypeRequest(List<ProductOptionTypeRequest> optionTypes){
         Set<Long> uniqueOptionTypeIds = new HashSet<>();
         Set<Integer> uniquePriorities = new HashSet<>();
 
@@ -43,6 +46,8 @@ public class ProductRequestStructureValidator {
                 throw new BadRequestException(ms.getMessage(PRODUCT_OPTION_TYPE_PRIORITY_BAD_REQUEST));
             }
         }
+
+        return Collections.unmodifiableSet(uniqueOptionTypeIds);
     }
 
     private void validateProductVariantRequest(Set<Long> requiredOptionTypeIds, List<ProductVariantRequest> variantRequests){
@@ -80,10 +85,6 @@ public class ProductRequestStructureValidator {
                 throw new BadRequestException(ms.getMessage(PRODUCT_VARIANT_SKU_CONFLICT));
             }
         }
-    }
-
-    private Set<Long> getProductOptionTypeIds(ProductRequest request) {
-        return request.getProductOptionTypes().stream().map(ProductOptionTypeRequest::getOptionTypeId).collect(Collectors.toSet());
     }
 
     private void validateDuplicateVariantCombination(List<ProductVariantRequest> variantRequests){

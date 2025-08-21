@@ -14,14 +14,10 @@ import com.example.product_service.repository.OptionTypeRepository;
 import com.example.product_service.repository.ProductVariantsRepository;
 import com.example.product_service.service.dto.ProductCreationData;
 import com.example.product_service.service.dto.ProductVariantCreationData;
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -45,7 +41,9 @@ public class ProductReferentialValidator {
         Map<Long, Set<Long>> optionTypeToValueIds = optionTypes.stream()
                 .collect(Collectors.toMap(OptionTypes::getId, ot -> ot.getOptionValues().stream()
                         .map(OptionValues::getId).collect(Collectors.toSet())));
-        validateOptionValueCardinality(request, optionTypeToValueIds);
+
+        validateOptionValueCardinality(request.getProductVariants(), optionTypeToValueIds);
+
         Map<Long, OptionValues> optionValueById = optionTypes.stream()
                 .flatMap(ot -> ot.getOptionValues().stream())
                 .collect(Collectors.toMap(OptionValues::getId, Function.identity()));
@@ -59,7 +57,7 @@ public class ProductReferentialValidator {
                 .collect(Collectors.toMap(OptionTypes::getId, ot->ot.getOptionValues().stream()
                         .map(OptionValues::getId).collect(Collectors.toSet())));
 
-        validateOptionValueCardinality(request, optionTypeToValueId);
+        validateOptionValueCardinality(Collections.singletonList(request), optionTypeToValueId);
         validateDuplicateVariantCombination(request, product);
 
         Map<Long, OptionValues> optionValueById = optionTypes.stream()
@@ -84,17 +82,9 @@ public class ProductReferentialValidator {
         }
     }
 
-    private void validateOptionValueCardinality(ProductVariantRequest request, Map<Long, Set<Long>> optionTypeToValueIds){
-        for(VariantOptionValueRequest v : request.getVariantOption()){
-            Set<Long> allowedValueIds = optionTypeToValueIds.get(v.getOptionTypeId());
-            if(!allowedValueIds.contains(v.getOptionValueId())){
-                throw new BadRequestException(ms.getMessage(PRODUCT_OPTION_VALUE_NOT_MATCH_TYPE));
-            }
-        }
-    }
-
-    private void validateOptionValueCardinality(ProductRequest request, Map<Long, Set<Long>> optionTypeToValueIds){
-        for(ProductVariantRequest variantRequest : request.getProductVariants()){
+    private void validateOptionValueCardinality(List<ProductVariantRequest> variantRequests,
+                                                Map<Long, Set<Long>> optionTypeToValueIds){
+        for(ProductVariantRequest variantRequest : variantRequests){
             for(VariantOptionValueRequest v : variantRequest.getVariantOption()){
                 Set<Long> allowedValueIds = optionTypeToValueIds.get(v.getOptionTypeId());
                 if(!allowedValueIds.contains(v.getOptionValueId())){
@@ -116,14 +106,14 @@ public class ProductReferentialValidator {
 
     private void validateDuplicateSkus(ProductRequest request){
         List<String> skus = request.getProductVariants().stream().map(ProductVariantRequest::getSku).toList();
-        ensureSkusDoNotExist(skus);
+        ensureSkusDoNotExists(skus);
     }
 
     private void validateDuplicateSku(String sku){
         ensureSkuDoNotExists(sku);
     }
 
-    private void ensureSkusDoNotExist(Collection<String> skus){
+    private void ensureSkusDoNotExists(Collection<String> skus){
         boolean isConflict = productVariantsRepository.existsBySkuIn(skus);
         if(isConflict){
             throw new DuplicateResourceException(ms.getMessage(PRODUCT_VARIANT_SKU_CONFLICT));

@@ -91,23 +91,6 @@ public class CategoryService {
         categoryRepository.delete(target);
     }
 
-    //TODO 삭제 예정
-    public CategoryResponse getCategoryDetails(Long categoryId) {
-        Categories category = categoryRepository.findById(categoryId)
-                .orElseThrow(() -> new NotFoundException("Not Found Category"));
-        return new CategoryResponse(category);
-    }
-
-    //TODO 삭제 예정
-    public CategoryResponse getRootCategoryDetailsOf(Long categoryId) {
-        Categories category = categoryRepository.findWithParentById(categoryId)
-                .orElseThrow(() -> new NotFoundException("Not Found Category"));
-        while (category.getParent() != null) {
-            category = category.getParent();
-        }
-        return new CategoryResponse(category);
-    }
-
     private void checkConflictName(String name) {
         if(categoryRepository.existsByName(name)){
             throw new DuplicateResourceException(ms.getMessage(CATEGORY_CONFLICT));

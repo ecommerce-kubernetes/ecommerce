@@ -18,7 +18,6 @@ import java.util.Map;
 public class ProductFactory {
 
     public Products createProducts(ProductRequest request, ProductCreationData data){
-
         Products products = createBasicInfoProduct(request.getName(), request.getDescription(), data.getCategory());
         mappingImages(request, products);
         mappingProductOptionTypes(request, data, products);
@@ -29,7 +28,8 @@ public class ProductFactory {
 
     public ProductVariants createProductVariant(ProductVariantRequest request, ProductVariantCreationData data){
         ProductVariants productVariant = new ProductVariants(request.getSku(), request.getPrice(), request.getStockQuantity(), request.getDiscountRate());
-        mappingVariantOption(request.getVariantOption(), data, productVariant);
+        List<ProductVariantOptions> opts = buildVariantOptions(request.getVariantOption(), data.getOptionValueById());
+        productVariant.addProductVariantOptions(opts);
         return productVariant;
     }
 
@@ -60,42 +60,33 @@ public class ProductFactory {
     }
 
     private void mappingProductVariants(ProductRequest request, ProductCreationData data, Products product){
-        List<ProductVariantRequest> productVariantRequests = request.getProductVariants();
         List<ProductVariants> saveProductVariantList = new ArrayList<>();
-        for (ProductVariantRequest variantRequest : productVariantRequests) {
-            ProductVariants productVariant = new ProductVariants(variantRequest.getSku(), variantRequest.getPrice(),
-                    variantRequest.getStockQuantity(), variantRequest.getDiscountRate());
-            mappingVariantOption(variantRequest.getVariantOption(), data, productVariant);
+        Map<Long, OptionValues> optionValueById = data.getOptionValueById();
+        for (ProductVariantRequest variantRequest : request.getProductVariants()) {
+            ProductVariants productVariant = new ProductVariants(
+                    variantRequest.getSku(),
+                    variantRequest.getPrice(),
+                    variantRequest.getStockQuantity(),
+                    variantRequest.getDiscountRate()
+            );
+            List<ProductVariantOptions> opts = buildVariantOptions(variantRequest.getVariantOption(), optionValueById);
+            productVariant.addProductVariantOptions(opts);
             saveProductVariantList.add(productVariant);
         }
         product.addVariants(saveProductVariantList);
     }
 
-    private void mappingVariantOption(List<VariantOptionValueRequest> variantOptionValueRequests, ProductCreationData data,
-                                      ProductVariants productVariants){
+    private List<ProductVariantOptions> buildVariantOptions(List<VariantOptionValueRequest> variantOptionValueRequests,
+                                                            Map<Long, OptionValues> optionValueById){
         List<ProductVariantOptions> saveProductVariantOptions = new ArrayList<>();
         for (VariantOptionValueRequest optionValueRequest : variantOptionValueRequests) {
-            Map<Long, OptionValues> optionValueById = data.getOptionValueById();
             Long optionValueId = optionValueRequest.getOptionValueId();
             OptionValues optionValue = optionValueById.get(optionValueId);
+
             ProductVariantOptions productVariantOption = new ProductVariantOptions(optionValue);
             saveProductVariantOptions.add(productVariantOption);
         }
 
-        productVariants.addProductVariantOptions(saveProductVariantOptions);
-    }
-
-    private void mappingVariantOption(List<VariantOptionValueRequest> variantOptionValueRequests, ProductVariantCreationData data,
-                                      ProductVariants productVariant){
-        List<ProductVariantOptions> saveProductVariantOptions = new ArrayList<>();
-        for (VariantOptionValueRequest optionValueRequest : variantOptionValueRequests) {
-            Map<Long, OptionValues> optionValueById = data.getOptionValueById();
-            Long optionValueId = optionValueRequest.getOptionValueId();
-            OptionValues optionValue = optionValueById.get(optionValueId);
-            ProductVariantOptions productVariantOption = new ProductVariantOptions(optionValue);
-            saveProductVariantOptions.add(productVariantOption);
-        }
-
-        productVariant.addProductVariantOptions(saveProductVariantOptions);
+        return saveProductVariantOptions;
     }
 }
