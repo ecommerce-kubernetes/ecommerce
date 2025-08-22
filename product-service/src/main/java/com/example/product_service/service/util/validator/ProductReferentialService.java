@@ -15,6 +15,7 @@ import com.example.product_service.repository.ProductVariantsRepository;
 import com.example.product_service.service.dto.ProductCreationData;
 import com.example.product_service.service.dto.ProductVariantCreationData;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -25,6 +26,7 @@ import static com.example.product_service.common.MessagePath.*;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class ProductReferentialService {
     private final CategoryRepository categoryRepository;
     private final OptionTypeRepository optionTypeRepository;
@@ -52,6 +54,21 @@ public class ProductReferentialService {
 
     public ProductVariantCreationData validateProductVariant(ProductVariantRequest request, Products product){
         validateDuplicateSku(request.getSku());
+
+
+        Set<Long> productOptionTypeIds = product.getProductOptionTypes().stream().map(ProductOptionTypes::getId).collect(Collectors.toSet());
+
+        List<Long> requestOptionTypeIds = request.getVariantOption().stream().map(VariantOptionValueRequest::getOptionTypeId).toList();
+
+        if(productOptionTypeIds.size() != requestOptionTypeIds.size()){
+            throw new BadRequestException(ms.getMessage(PRODUCT_OPTION_VALUE_CARDINALITY_VIOLATION));
+        }
+
+        Set<Long> requestIdSet = new HashSet<>(requestOptionTypeIds);
+        if(!productOptionTypeIds.equals(requestIdSet)){
+            throw new BadRequestException(ms.getMessage(PRODUCT_OPTION_VALUE_CARDINALITY_VIOLATION));
+        }
+
         List<OptionTypes> optionTypes = product.getProductOptionTypes().stream().map(ProductOptionTypes::getOptionType).toList();
         Map<Long, Set<Long>> optionTypeToValueId = optionTypes.stream()
                 .collect(Collectors.toMap(OptionTypes::getId, ot->ot.getOptionValues().stream()

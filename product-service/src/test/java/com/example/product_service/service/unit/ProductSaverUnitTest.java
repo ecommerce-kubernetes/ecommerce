@@ -358,7 +358,7 @@ public class ProductSaverUnitTest {
         ));
         Products products = createProducts();
         when(productsRepository.findById(1L)).thenReturn(Optional.of(products));
-        doNothing().when(structureValidator).validateVariantRequest(request, products);
+        doNothing().when(structureValidator).validateVariantRequest(request);
         ProductVariantCreationData creationData = new ProductVariantCreationData(createOptionValueById(7L));
         when(referentialValidator.validateProductVariant(request, products))
                 .thenReturn(creationData);

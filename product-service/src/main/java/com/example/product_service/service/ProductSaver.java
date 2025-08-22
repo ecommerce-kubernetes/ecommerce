@@ -93,7 +93,7 @@ public class ProductSaver {
 
     public ProductVariantResponse addVariant(Long productId, ProductVariantRequest request){
         Products product = findProductByIdOrThrow(productId);
-        structureValidator.validateVariantRequest(request, product);
+        structureValidator.validateVariantRequest(request);
         ProductVariantCreationData productVariantCreationData =
                 referentialValidator.validateProductVariant(request, product);
 

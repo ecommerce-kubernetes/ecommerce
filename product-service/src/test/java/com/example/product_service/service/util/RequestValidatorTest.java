@@ -6,6 +6,7 @@ import com.example.product_service.dto.request.options.ProductOptionTypeRequest;
 import com.example.product_service.dto.request.product.ProductRequest;
 import com.example.product_service.dto.request.variant.ProductVariantRequest;
 import com.example.product_service.dto.request.variant.VariantOptionValueRequest;
+import com.example.product_service.entity.*;
 import com.example.product_service.exception.BadRequestException;
 import com.example.product_service.service.util.validator.RequestValidator;
 import org.junit.jupiter.api.DisplayName;
@@ -14,6 +15,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.List;
 
@@ -221,6 +223,24 @@ class RequestValidatorTest {
                 .hasMessage(getMessage(PRODUCT_VARIANT_OPTION_VALUE_CONFLICT));
     }
 
+    @Test
+    @DisplayName("상품 변형 검증 테스트-성공")
+    void validateVariantRequestTest_success(){
+        ProductVariantRequest request = createProductVariantRequest();
+        assertThatNoException().isThrownBy(() -> validator.validateVariantRequest(request));
+    }
+
+    @Test
+    @DisplayName("상품 변형 검증 테스트-실패(같은 옵션 타입 Id가 중복요청시)")
+    void validateVariantRequestTest_duplicateOptionTypeId(){
+        ProductVariantRequest request = createProductVariantRequest();
+        request.setVariantOption(List.of(new VariantOptionValueRequest(1L,1L),
+                new VariantOptionValueRequest(1L, 3L)));
+        mockMessageUtil(PRODUCT_OPTION_VALUE_CARDINALITY_VIOLATION, "Each product variant must have exactly one option value per option type");
+        assertThatThrownBy(() -> validator.validateVariantRequest(request))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage(getMessage(PRODUCT_OPTION_VALUE_CARDINALITY_VIOLATION));
+    }
 
     private void mockMessageUtil(String code, String returnMessage){
         when(ms.getMessage(code)).thenReturn(returnMessage);
@@ -239,5 +259,15 @@ class RequestValidatorTest {
                         )))
 
                 );
+    }
+
+    private ProductVariantRequest createProductVariantRequest(){
+        return new ProductVariantRequest(
+                "sku",
+                10000,
+                100,
+                10,
+                List.of(new VariantOptionValueRequest(1L, 1L))
+        );
     }
 }

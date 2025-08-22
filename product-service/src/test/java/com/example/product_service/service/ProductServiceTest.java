@@ -70,16 +70,19 @@ class ProductServiceTest {
     OptionValues newOptionValue1;
     OptionValues newOptionValue2;
     OptionValues existValue;
+    OptionValues existValue2;
     Categories category;
     @BeforeEach
     void saveFixture(){
         existType = new OptionTypes("optionType");
         newOptionType = new OptionTypes("newOptionType");
         existValue = new OptionValues("optionValue");
+        existValue2 = new OptionValues("optionValue2");
         newOptionValue1 = new OptionValues("newOptionValue1");
         newOptionValue2 = new OptionValues("newOptionValue2");
         category = new Categories("category", "http://test.jpg");
         existType.addOptionValue(existValue);
+        existType.addOptionValue(existValue2);
         newOptionType.addOptionValue(newOptionValue1);
         newOptionType.addOptionValue(newOptionValue2);
         optionTypeRepository.saveAll(List.of(existType, newOptionType));
@@ -660,12 +663,10 @@ class ProductServiceTest {
 
         productsRepository.save(product);
 
-        OptionValues optionValue = new OptionValues("optionValue2");
-        existType.addOptionValue(optionValue);
         em.flush(); em.clear();
 
         ProductVariantRequest request = new ProductVariantRequest("sku2", 30000, 1000, 10,
-                List.of(new VariantOptionValueRequest(existType.getId(), optionValue.getId())));
+                List.of(new VariantOptionValueRequest(existType.getId(), existValue2.getId())));
 
         ProductVariantResponse response = productService.addVariant(product.getId(), request);
 
@@ -676,7 +677,7 @@ class ProductServiceTest {
 
         assertThat(response.getOptionValues()).extracting("valueId", "typeId", "valueName")
                 .containsExactlyInAnyOrder(
-                        tuple(optionValue.getId(), existType.getId(), optionValue.getOptionValue())
+                        tuple(existValue2.getId(), existType.getId(), existValue2.getOptionValue())
                 );
     }
 

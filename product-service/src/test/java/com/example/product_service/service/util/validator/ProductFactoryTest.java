@@ -1,4 +1,4 @@
-package com.example.product_service.controller.validator;
+package com.example.product_service.service.util.validator;
 
 import com.example.product_service.dto.request.image.ImageRequest;
 import com.example.product_service.dto.request.options.ProductOptionTypeRequest;
