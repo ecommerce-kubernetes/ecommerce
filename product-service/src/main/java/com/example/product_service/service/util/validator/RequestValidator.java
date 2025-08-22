@@ -17,7 +17,7 @@ import static com.example.product_service.common.MessagePath.*;
 
 @Component
 @RequiredArgsConstructor
-public class ProductRequestStructureValidator {
+public class RequestValidator {
     private final MessageSourceUtil ms;
 
     public void validateProductRequest(ProductRequest request){

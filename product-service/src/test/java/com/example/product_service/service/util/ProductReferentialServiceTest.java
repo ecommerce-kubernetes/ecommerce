@@ -16,7 +16,7 @@ import com.example.product_service.repository.CategoryRepository;
 import com.example.product_service.repository.OptionTypeRepository;
 import com.example.product_service.repository.ProductVariantsRepository;
 import com.example.product_service.service.dto.ProductCreationData;
-import com.example.product_service.service.util.validator.ProductReferentialValidator;
+import com.example.product_service.service.util.validator.ProductReferentialService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -38,7 +38,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class ProductReferentialValidatorTest {
+class ProductReferentialServiceTest {
     @Mock
     CategoryRepository categoryRepository;
     @Mock
@@ -49,7 +49,7 @@ class ProductReferentialValidatorTest {
     MessageSourceUtil ms;
 
     @InjectMocks
-    ProductReferentialValidator validator;
+    ProductReferentialService validator;
 
     @Test
     @DisplayName("성공")

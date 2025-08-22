@@ -21,8 +21,8 @@ import com.example.product_service.service.ProductSaver;
 import com.example.product_service.service.dto.ProductCreationData;
 import com.example.product_service.service.dto.ProductVariantCreationData;
 import com.example.product_service.service.util.factory.ProductFactory;
-import com.example.product_service.service.util.validator.ProductReferentialValidator;
-import com.example.product_service.service.util.validator.ProductRequestStructureValidator;
+import com.example.product_service.service.util.validator.ProductReferentialService;
+import com.example.product_service.service.util.validator.RequestValidator;
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -50,9 +50,9 @@ public class ProductSaverUnitTest {
     @Mock
     ProductsRepository productsRepository;
     @Mock
-    ProductRequestStructureValidator structureValidator;
+    RequestValidator structureValidator;
     @Mock
-    ProductReferentialValidator referentialValidator;
+    ProductReferentialService referentialValidator;
     @Mock
     ProductFactory factory;
     @Mock

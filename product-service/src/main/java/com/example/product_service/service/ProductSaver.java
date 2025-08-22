@@ -19,8 +19,8 @@ import com.example.product_service.repository.ProductsRepository;
 import com.example.product_service.service.dto.ProductCreationData;
 import com.example.product_service.service.dto.ProductVariantCreationData;
 import com.example.product_service.service.util.factory.ProductFactory;
-import com.example.product_service.service.util.validator.ProductReferentialValidator;
-import com.example.product_service.service.util.validator.ProductRequestStructureValidator;
+import com.example.product_service.service.util.validator.ProductReferentialService;
+import com.example.product_service.service.util.validator.RequestValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,8 +37,8 @@ import static com.example.product_service.common.MessagePath.PRODUCT_NOT_FOUND;
 public class ProductSaver {
     private final ProductsRepository productsRepository;
     private final CategoryRepository categoryRepository;
-    private final ProductRequestStructureValidator structureValidator;
-    private final ProductReferentialValidator referentialValidator;
+    private final RequestValidator structureValidator;
+    private final ProductReferentialService referentialValidator;
     private final ProductFactory factory;
     private final MessageSourceUtil ms;
 

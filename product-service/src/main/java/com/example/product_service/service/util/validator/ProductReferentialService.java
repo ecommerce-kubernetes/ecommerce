@@ -25,7 +25,7 @@ import static com.example.product_service.common.MessagePath.*;
 
 @Component
 @RequiredArgsConstructor
-public class ProductReferentialValidator {
+public class ProductReferentialService {
     private final CategoryRepository categoryRepository;
     private final OptionTypeRepository optionTypeRepository;
     private final ProductVariantsRepository productVariantsRepository;
