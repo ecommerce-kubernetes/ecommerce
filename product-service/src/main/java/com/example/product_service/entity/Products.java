@@ -1,6 +1,7 @@
 package com.example.product_service.entity;
 
 import com.example.product_service.entity.base.BaseEntity;
+import com.example.product_service.exception.BadRequestException;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -9,7 +10,10 @@ import lombok.Setter;
 import org.hibernate.annotations.BatchSize;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -72,6 +76,17 @@ public class Products extends BaseEntity {
     }
 
     public void addVariant(ProductVariants productVariant){
+        Set<Long> variantOptionTypeIds = productVariant.getProductVariantOptions()
+                .stream()
+                .map(pvo -> pvo.getOptionValue().getOptionType().getId())
+                .collect(Collectors.toSet());
+        Set<Long> allowedOptionTypeId =
+                this.productOptionTypes.stream().map(pot -> pot.getOptionType().getId()).collect(Collectors.toSet());
+
+        if(!variantOptionTypeIds.equals(allowedOptionTypeId)){
+            throw new BadRequestException("OptionValue must belong to the OptionType");
+        }
+
         this.productVariants.add(productVariant);
         productVariant.setProduct(this);
     }

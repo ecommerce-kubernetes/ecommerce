@@ -23,6 +23,7 @@ import com.example.product_service.repository.CategoryRepository;
 import com.example.product_service.repository.OptionTypeRepository;
 import com.example.product_service.repository.ProductsRepository;
 import jakarta.persistence.EntityManager;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -52,6 +53,7 @@ import static org.assertj.core.api.Assertions.*;
 @ActiveProfiles("mysql")
 @Testcontainers
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@Slf4j
 class ProductServiceTest {
     @Autowired
     ProductsRepository productsRepository;
@@ -327,13 +329,14 @@ class ProductServiceTest {
 
     @Test
     @DisplayName("상품 저장 테스트-실패(옵션 값이 옵션 타입의 연관 엔티티가 아닌경우)")
+    @Transactional
     void saveProduct_integration_optionValue_notMatch_type(){
         ProductRequest request = createProductRequest();
         request.setProductVariants(
                 List.of(new ProductVariantRequest("sku", 100, 10, 10,
-                        List.of(new VariantOptionValueRequest(existType.getId(), 100L))))
+                        List.of(new VariantOptionValueRequest(existType.getId(), newOptionValue1.getId()))))
         );
-
+        System.out.println("newOptionValue1 의 Id = " + newOptionValue1.getId());
         assertThatThrownBy(() -> productService.saveProduct(request))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessage(getMessage(PRODUCT_OPTION_VALUE_NOT_MATCH_TYPE));

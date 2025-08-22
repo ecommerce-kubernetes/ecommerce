@@ -8,6 +8,7 @@ import com.example.product_service.dto.request.variant.VariantOptionValueRequest
 import com.example.product_service.entity.*;
 import com.example.product_service.service.dto.ProductCreationData;
 import com.example.product_service.service.dto.ProductVariantCreationData;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -15,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 
 @Component
+@Slf4j
 public class ProductFactory {
 
     public Products createProducts(ProductRequest request, ProductCreationData data){
@@ -80,9 +82,13 @@ public class ProductFactory {
                                                             Map<Long, OptionValues> optionValueById){
         List<ProductVariantOptions> saveProductVariantOptions = new ArrayList<>();
         for (VariantOptionValueRequest optionValueRequest : variantOptionValueRequests) {
-            Long optionValueId = optionValueRequest.getOptionValueId();
-            OptionValues optionValue = optionValueById.get(optionValueId);
 
+            Long optionValueId = optionValueRequest.getOptionValueId();
+            log.info("요청 optionValueId {}", optionValueId);
+            OptionValues optionValue = optionValueById.get(optionValueId);
+            if(optionValue == null){
+                log.info("null 임");
+            }
             ProductVariantOptions productVariantOption = new ProductVariantOptions(optionValue);
             saveProductVariantOptions.add(productVariantOption);
         }

@@ -11,9 +11,11 @@ import com.example.product_service.exception.DuplicateResourceException;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.repository.CategoryRepository;
 import com.example.product_service.repository.OptionTypeRepository;
+import com.example.product_service.repository.OptionValueRepository;
 import com.example.product_service.repository.ProductVariantsRepository;
 import com.example.product_service.service.dto.ProductCreationData;
 import com.example.product_service.service.dto.ProductVariantCreationData;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -30,25 +32,26 @@ import static com.example.product_service.common.MessagePath.*;
 public class ProductReferentialService {
     private final CategoryRepository categoryRepository;
     private final OptionTypeRepository optionTypeRepository;
+    private final OptionValueRepository optionValueRepository;
     private final ProductVariantsRepository productVariantsRepository;
     private final MessageSourceUtil ms;
 
     public ProductCreationData validAndFetch(ProductRequest request){
+        //SKU 중복확인
         validateDuplicateSkus(request);
+        //카테고리 조회 -> 없으면 예외 던짐
         Categories categories = findByIdOrThrow(request.getCategoryId());
         List<OptionTypes> optionTypes = findOptionTypes(request);
+        List<List<VariantOptionValueRequest>> variantOptionValues = request.getProductVariants().stream().map(ProductVariantRequest::getVariantOption).toList();
+        Set<Long> optionValueIds = variantOptionValues.stream()
+                .flatMap(List::stream)
+                .map(VariantOptionValueRequest::getOptionValueId)
+                .collect(Collectors.toSet());
+        List<OptionValues> optionValues = findOptionValues(optionValueIds);
+        Map<Long, OptionValues> optionValueById = optionValues.stream().collect(Collectors.toMap(OptionValues::getId, Function.identity()));
         Map<Long, OptionTypes> optionTypeById = optionTypes.stream()
                 .collect(Collectors.toMap(OptionTypes::getId, Function.identity()));
 
-        Map<Long, Set<Long>> optionTypeToValueIds = optionTypes.stream()
-                .collect(Collectors.toMap(OptionTypes::getId, ot -> ot.getOptionValues().stream()
-                        .map(OptionValues::getId).collect(Collectors.toSet())));
-
-        validateOptionValueCardinality(request.getProductVariants(), optionTypeToValueIds);
-
-        Map<Long, OptionValues> optionValueById = optionTypes.stream()
-                .flatMap(ot -> ot.getOptionValues().stream())
-                .collect(Collectors.toMap(OptionValues::getId, Function.identity()));
         return new ProductCreationData(categories, optionTypeById, optionValueById);
     }
 
@@ -150,10 +153,22 @@ public class ProductReferentialService {
         return findOptionTypeByIdInOrThrow(optionTypeIds);
     }
 
+    private List<OptionValues> findOptionValues(Set<Long> optionValueIds){
+        return findOptionValueByIdInOrThrow(optionValueIds);
+    }
+
     private List<OptionTypes> findOptionTypeByIdInOrThrow(List<Long> optionTypeIds){
         List<OptionTypes> result = optionTypeRepository.findByIdIn(optionTypeIds);
         if(optionTypeIds.size() != result.size()){
             throw new NotFoundException(ms.getMessage(OPTION_TYPE_NOT_FOUND));
+        }
+        return result;
+    }
+
+    private List<OptionValues> findOptionValueByIdInOrThrow(Set<Long> optionValueIds){
+        List<OptionValues> result = optionValueRepository.findByIdIn(optionValueIds);
+        if(optionValueIds.size() != result.size()){
+            throw new NotFoundException(ms.getMessage(OPTION_VALUE_NOT_FOUND));
         }
         return result;
     }
