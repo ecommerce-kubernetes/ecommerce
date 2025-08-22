@@ -87,6 +87,7 @@ public class ProductReferentialService {
         return new ProductVariantCreationData(optionValueById);
     }
 
+    //TODO 도메인에서 검증되도록 로직 수정됨 삭제 예정
     private void validateDuplicateVariantCombination(ProductVariantRequest request, Products product){
         List<Set<Long>> productVariantOption = product.getProductVariants().stream().map(pv -> pv.getProductVariantOptions().stream()
                 .map(pvo -> pvo.getOptionValue().getId())
@@ -102,6 +103,7 @@ public class ProductReferentialService {
         }
     }
 
+    //TODO 도메인에서 검증되도록 로직 수정됨 삭제 예정
     private void validateOptionValueCardinality(List<ProductVariantRequest> variantRequests,
                                                 Map<Long, Set<Long>> optionTypeToValueIds){
         for(ProductVariantRequest variantRequest : variantRequests){
@@ -166,7 +168,7 @@ public class ProductReferentialService {
     }
 
     private List<OptionValues> findOptionValueByIdInOrThrow(Set<Long> optionValueIds){
-        List<OptionValues> result = optionValueRepository.findByIdIn(optionValueIds);
+        List<OptionValues> result = optionValueRepository.findByIdIn(new ArrayList<>(optionValueIds));
         if(optionValueIds.size() != result.size()){
             throw new NotFoundException(ms.getMessage(OPTION_VALUE_NOT_FOUND));
         }

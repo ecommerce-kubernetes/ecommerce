@@ -35,10 +35,19 @@ class ProductFactoryTest {
     @DisplayName("Factory 동작 테스트")
     void createProductsTest(){
         ProductRequest request = createProductRequest();
+        OptionTypes optionType = createOptionType(1L, "optionType");
+        OptionValues optionValue = createOptionValue(1L, "optionValue", optionType);
+
+        Map<Long, OptionTypes> optionTypeById = new HashMap<>();
+        optionTypeById.put(optionType.getId(), optionType);
+
+        Map<Long, OptionValues> optionValueById = new HashMap<>();
+        optionValueById.put(optionValue.getId(), optionValue);
+
         ProductCreationData data = new ProductCreationData(
                 createCategory(1L),
-                createOptionTypeById(1L),
-                createOptionValueById(1L)
+                optionTypeById,
+                optionValueById
         );
 
         Products product = factory.createProducts(request, data);
@@ -56,7 +65,7 @@ class ProductFactoryTest {
         assertThat(product.getProductOptionTypes()).hasSize(1);
 
         assertThat(product.getProductOptionTypes().get(0).getOptionType().getId()).isEqualTo(1L);
-        assertThat(product.getProductOptionTypes().get(0).getOptionType().getName()).isEqualTo("optionType1");
+        assertThat(product.getProductOptionTypes().get(0).getOptionType().getName()).isEqualTo("optionType");
 
         assertThat(product.getProductVariants())
                 .extracting("sku", "price", "stockQuantity", "discountValue")
@@ -69,7 +78,7 @@ class ProductFactoryTest {
         assertThat(product.getProductVariants().get(0).getProductVariantOptions().get(0).getOptionValue().getId())
                 .isEqualTo(1L);
         assertThat(product.getProductVariants().get(0).getProductVariantOptions().get(0).getOptionValue().getOptionValue())
-                .isEqualTo("optionValue1");
+                .isEqualTo("optionValue");
     }
 
     private ProductRequest createProductRequest(){
@@ -93,23 +102,16 @@ class ProductFactoryTest {
         return category;
     }
 
-    private Map<Long, OptionTypes> createOptionTypeById(Long... ids){
-        Map<Long, OptionTypes> map = new HashMap<>();
-        for (Long id : ids) {
-            OptionTypes optionType = new OptionTypes("optionType" + id);
-            ReflectionTestUtils.setField(optionType, "id", id);
-            map.put(id, optionType);
-        }
-        return map;
+    private OptionTypes createOptionType(Long id, String name){
+        OptionTypes optionTypes = new OptionTypes(name);
+        ReflectionTestUtils.setField(optionTypes, "id", id);
+        return optionTypes;
     }
 
-    private Map<Long, OptionValues> createOptionValueById(Long... ids){
-        Map<Long, OptionValues> map = new HashMap<>();
-        for (Long id : ids) {
-            OptionValues optionValue = new OptionValues("optionValue" + id);
-            ReflectionTestUtils.setField(optionValue, "id", id);
-            map.put(id, optionValue);
-        }
-        return map;
+    private OptionValues createOptionValue(Long id, String name, OptionTypes optionTypes){
+        OptionValues optionValues = new OptionValues(name);
+        ReflectionTestUtils.setField(optionValues, "id", id);
+        optionTypes.addOptionValue(optionValues);
+        return optionValues;
     }
 }

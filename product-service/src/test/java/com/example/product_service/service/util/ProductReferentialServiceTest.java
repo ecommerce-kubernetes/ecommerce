@@ -14,6 +14,7 @@ import com.example.product_service.exception.DuplicateResourceException;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.repository.CategoryRepository;
 import com.example.product_service.repository.OptionTypeRepository;
+import com.example.product_service.repository.OptionValueRepository;
 import com.example.product_service.repository.ProductVariantsRepository;
 import com.example.product_service.service.dto.ProductCreationData;
 import com.example.product_service.service.util.validator.ProductReferentialService;
@@ -46,6 +47,8 @@ class ProductReferentialServiceTest {
     @Mock
     ProductVariantsRepository productVariantsRepository;
     @Mock
+    OptionValueRepository optionValueRepository;
+    @Mock
     MessageSourceUtil ms;
 
     @InjectMocks
@@ -63,6 +66,7 @@ class ProductReferentialServiceTest {
         optionType.addOptionValue(optionValue);
 
         mockFindOptionTypeIn(List.of(1L), List.of(optionType));
+        mockFindOptionValueIn(List.of(1L), List.of(optionValue));
         ProductRequest request = createProductRequest();
 
         ProductCreationData result = validator.validAndFetch(request);
@@ -125,25 +129,6 @@ class ProductReferentialServiceTest {
                 .hasMessage(getMessage(OPTION_TYPE_NOT_FOUND));
     }
 
-    @Test
-    @DisplayName("상품 변형 옵션 값이 옵션 타입의 연관 객체가 아닌경우")
-    void validAndFetch_optionValue_not_match_type(){
-        Categories category = createCategoriesWithSetId(1L, "category", "http://test.jpg");
-        mockExistsBySkuIn(false, "sku");
-        mockFindByCategory(1L, category);
-
-        OptionTypes optionType = createOptionTypesWithSetId(1L, "optionType");
-        OptionValues optionValue = createOptionValuesWithSetId(2L, "optionValue");
-        optionType.addOptionValue(optionValue);
-
-        mockFindOptionTypeIn(List.of(1L), List.of(optionType));
-        mockMessageUtil(PRODUCT_OPTION_VALUE_NOT_MATCH_TYPE, "OptionValue must belong to the OptionType");
-
-        ProductRequest request = createProductRequest();
-        assertThatThrownBy(() -> validator.validAndFetch(request))
-                .isInstanceOf(BadRequestException.class)
-                .hasMessage(getMessage(PRODUCT_OPTION_VALUE_NOT_MATCH_TYPE));
-    }
 
     private void mockExistsBySkuIn(boolean isExists, String... skus){
         List<String> skuList = Arrays.asList(skus);
@@ -166,6 +151,10 @@ class ProductReferentialServiceTest {
 
     private void mockFindOptionTypeIn(List<Long> ids, List<OptionTypes> returnResult){
         when(optionTypeRepository.findByIdIn(ids)).thenReturn(returnResult);
+    }
+
+    private void mockFindOptionValueIn(List<Long> ids, List<OptionValues> returnResult){
+        when(optionValueRepository.findByIdIn(ids)).thenReturn(returnResult);
     }
 
     private void mockMessageUtil(String code, String returnString){

@@ -87,8 +87,18 @@ public class Products extends BaseEntity {
             throw new BadRequestException("OptionValue must belong to the OptionType");
         }
 
+        Set<Long> variantOptionValueIds = productVariant.getProductVariantOptions()
+                .stream().map(pvo -> pvo.getOptionValue().getId()).collect(Collectors.toSet());
+
+        boolean exists = productVariants.stream()
+                .map(pv -> pv.getProductVariantOptions().stream()
+                        .map(pvo -> pvo.getOptionValue().getId()).collect(Collectors.toSet()))
+                .anyMatch(existing -> existing.equals(variantOptionValueIds));
+
+        if(exists){
+            throw new BadRequestException("Cannot add product variants with the same OptionValue");
+        }
         this.productVariants.add(productVariant);
         productVariant.setProduct(this);
     }
-
 }
