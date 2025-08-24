@@ -19,11 +19,18 @@ public class ProductImages extends BaseEntity {
     @JoinColumn(name = "product_id")
     private Products product;
     private String imageUrl;
-    @Setter
     private Integer sortOrder;
 
     public ProductImages(String imageUrl, int sortOrder){
         this.imageUrl = imageUrl;
+        this.sortOrder = sortOrder;
+    }
+
+    public ProductImages(String imageUrl){
+        this.imageUrl = imageUrl;
+    }
+
+    protected void setSortOrder(int sortOrder){
         this.sortOrder = sortOrder;
     }
 

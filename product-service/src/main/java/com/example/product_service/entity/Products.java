@@ -54,6 +54,7 @@ public class Products extends BaseEntity {
     }
 
     public void addImage(ProductImages image){
+        image.setSortOrder(this.images.size());
         this.images.add(image);
         image.setProduct(this);
     }

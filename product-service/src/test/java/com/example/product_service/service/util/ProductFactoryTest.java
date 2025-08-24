@@ -1,4 +1,4 @@
-package com.example.product_service.service.util.validator;
+package com.example.product_service.service.util;
 
 import com.example.product_service.dto.request.image.ImageRequest;
 import com.example.product_service.dto.request.options.ProductOptionTypeRequest;
@@ -59,7 +59,8 @@ class ProductFactoryTest {
         assertThat(product.getImages())
                 .extracting("imageUrl", "sortOrder")
                 .containsExactlyInAnyOrder(
-                        tuple("http://test.jpg", 0)
+                        tuple("http://test.jpg", 0),
+                        tuple("http://test2.jpg", 1)
                 );
 
         assertThat(product.getProductOptionTypes()).hasSize(1);
@@ -86,7 +87,7 @@ class ProductFactoryTest {
                 "name",
                 "description",
                 1L,
-                List.of(new ImageRequest("http://test.jpg")),
+                List.of(new ImageRequest("http://test.jpg"), new ImageRequest("http://test2.jpg")),
                 List.of(new ProductOptionTypeRequest(1L, 1)),
                 List.of(new ProductVariantRequest("sku", 1000, 100, 10,
                         List.of(

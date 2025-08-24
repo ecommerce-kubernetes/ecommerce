@@ -8,7 +8,9 @@ import com.example.product_service.dto.request.variant.VariantOptionValueRequest
 import com.example.product_service.entity.*;
 import com.example.product_service.service.dto.ProductCreationData;
 import com.example.product_service.service.dto.ProductVariantCreationData;
+import jakarta.validation.constraints.Pattern;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.validator.constraints.URL;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -53,12 +55,9 @@ public class ProductFactory {
     }
 
     private void mappingImages(ProductRequest request, Products product){
-        int sortOrder = product.getImages().size();
-        List<ProductImages> images = new ArrayList<>();
-        for(ImageRequest imageRequest : request.getImages()){
-            images.add(new ProductImages(imageRequest.getUrl(), sortOrder++));
-        }
-        product.addImages(images);
+        List<String> urls = request.getImages().stream().map(ImageRequest::getUrl).toList();
+        List<ProductImages> productImages = urls.stream().map(ProductImages::new).toList();
+        product.addImages(productImages);
     }
 
     private void mappingProductVariants(ProductRequest request, ProductCreationData data, Products product){
