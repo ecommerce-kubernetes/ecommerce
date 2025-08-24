@@ -3,6 +3,7 @@ package com.example.product_service.service.util.validator;
 import com.example.product_service.common.MessageSourceUtil;
 import com.example.product_service.dto.request.options.ProductOptionTypeRequest;
 import com.example.product_service.dto.request.product.ProductRequest;
+import com.example.product_service.dto.request.product.UpdateProductBasicRequest;
 import com.example.product_service.dto.request.variant.ProductVariantRequest;
 import com.example.product_service.dto.request.variant.VariantOptionValueRequest;
 import com.example.product_service.entity.*;
@@ -14,6 +15,7 @@ import com.example.product_service.repository.OptionTypeRepository;
 import com.example.product_service.repository.OptionValueRepository;
 import com.example.product_service.repository.ProductVariantsRepository;
 import com.example.product_service.service.dto.ProductCreationData;
+import com.example.product_service.service.dto.ProductUpdateData;
 import com.example.product_service.service.dto.ProductVariantCreationData;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -39,7 +41,7 @@ public class ProductReferentialService {
         //SKU 중복확인
         validateDuplicateSkus(request);
         //카테고리 조회 -> 없으면 예외 던짐
-        Categories categories = findByIdOrThrow(request.getCategoryId());
+        Categories categories = findCategoryByIdOrThrow(request.getCategoryId());
         //OptionType 조회
         Map<Long, OptionTypes> optionTypeById = findOptionTypesMap(request);
         //OptionValue 조회
@@ -58,7 +60,12 @@ public class ProductReferentialService {
         return new ProductVariantCreationData(optionValueById);
     }
 
-    private Categories findByIdOrThrow(Long categoryId){
+    public ProductUpdateData validateUpdateProduct(UpdateProductBasicRequest request){
+        Categories category = findCategoryByIdOrThrow(request.getCategoryId());
+        return new ProductUpdateData(category);
+    }
+
+    private Categories findCategoryByIdOrThrow(Long categoryId){
         Categories categories = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new NotFoundException(ms.getMessage(CATEGORY_NOT_FOUND)));
 

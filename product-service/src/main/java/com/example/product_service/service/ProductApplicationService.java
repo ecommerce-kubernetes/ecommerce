@@ -10,24 +10,29 @@ import com.example.product_service.dto.response.product.ProductResponse;
 import com.example.product_service.dto.response.product.ProductUpdateResponse;
 import com.example.product_service.dto.response.variant.ProductVariantResponse;
 import com.example.product_service.entity.Products;
+import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.repository.CategoryRepository;
 import com.example.product_service.repository.ProductsRepository;
 import com.example.product_service.service.dto.ProductCreationData;
+import com.example.product_service.service.dto.ProductUpdateData;
 import com.example.product_service.service.util.factory.ProductFactory;
 import com.example.product_service.service.util.validator.ProductReferentialService;
 import com.example.product_service.service.util.validator.RequestValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+import static com.example.product_service.common.MessagePath.PRODUCT_NOT_FOUND;
+
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class ProductApplicationService {
     private final ProductSaver productSaver;
 
     private final ProductsRepository productsRepository;
-    private final CategoryRepository categoryRepository;
     private final RequestValidator requestValidator;
     private final ProductReferentialService productReferentialService;
     private final ProductFactory factory;
@@ -45,7 +50,22 @@ public class ProductApplicationService {
     }
 
     public ProductUpdateResponse updateBasicInfoById(Long productId, UpdateProductBasicRequest request){
-        return productSaver.updateBasicInfoById(productId, request);
+        Products target = findProductByIdOrThrow(productId);
+
+        if(request.getName() != null && !request.getName().isEmpty()){
+            target.setName(request.getName());
+        }
+
+        if(request.getDescription() != null && !request.getDescription().isEmpty()){
+            target.setDescription(request.getDescription());
+        }
+
+        if(request.getCategoryId() != null){
+            ProductUpdateData productUpdateData = productReferentialService.validateUpdateProduct(request);
+            target.setCategory(productUpdateData.getCategories());
+        }
+
+        return new ProductUpdateResponse(target);
     }
 
     public void deleteProductById(Long productId){
@@ -58,5 +78,10 @@ public class ProductApplicationService {
 
     public ProductVariantResponse addVariant(Long productId, ProductVariantRequest request){
         return productSaver.addVariant(productId, request);
+    }
+
+    private Products findProductByIdOrThrow(Long productId){
+        return productsRepository.findById(productId)
+                .orElseThrow(() -> new NotFoundException(ms.getMessage(PRODUCT_NOT_FOUND)));
     }
 }

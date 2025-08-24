@@ -5,9 +5,11 @@ import com.example.product_service.common.MessageSourceUtil;
 import com.example.product_service.dto.request.image.ImageRequest;
 import com.example.product_service.dto.request.options.ProductOptionTypeRequest;
 import com.example.product_service.dto.request.product.ProductRequest;
+import com.example.product_service.dto.request.product.UpdateProductBasicRequest;
 import com.example.product_service.dto.request.variant.ProductVariantRequest;
 import com.example.product_service.dto.request.variant.VariantOptionValueRequest;
 import com.example.product_service.dto.response.product.ProductResponse;
+import com.example.product_service.dto.response.product.ProductUpdateResponse;
 import com.example.product_service.entity.*;
 import com.example.product_service.exception.BadRequestException;
 import com.example.product_service.exception.DuplicateResourceException;
@@ -16,6 +18,7 @@ import com.example.product_service.repository.CategoryRepository;
 import com.example.product_service.repository.ProductsRepository;
 import com.example.product_service.service.ProductApplicationService;
 import com.example.product_service.service.dto.ProductCreationData;
+import com.example.product_service.service.dto.ProductUpdateData;
 import com.example.product_service.service.util.factory.ProductFactory;
 import com.example.product_service.service.util.validator.ProductReferentialService;
 import com.example.product_service.service.util.validator.RequestValidator;
@@ -31,10 +34,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.example.product_service.common.MessagePath.*;
 import static org.assertj.core.api.Assertions.*;
@@ -406,6 +406,92 @@ public class ProductApplicationServiceTest {
         assertThatThrownBy(() -> productApplicationService.saveProduct(request))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessage(TestMessageUtil.getMessage(PRODUCT_OPTION_VALUE_NOT_MATCH_TYPE));
+    }
+
+    @Test
+    @DisplayName("상품 기본 정보 수정 테스트-성공")
+    void updateBasicInfoByIdTest_unit_success(){
+        Categories phoneCategory = createCategory(1L, "핸드폰", "http://phone.jpg");
+        Categories electronicCategory = createCategory(2L, "전자기기", "http://electronic.jpg");
+        OptionTypes storage = createOptionType(1L, "용량");
+        OptionTypes color = createOptionType(2L, "색상");
+        OptionValues gb_128 = createOptionValue(1L, "128GB", storage);
+        OptionValues red = createOptionValue(2L, "빨강", color);
+
+        Map<Long, OptionTypes> optionTypeById = createOptionTypeMap(storage, color);
+        Map<Long, OptionValues> optionValueById = createOptionValueMap(gb_128, red);
+
+        ProductCreationData creationData = new ProductCreationData(phoneCategory, optionTypeById, optionValueById);
+        Products product = createProduct(createProductRequest(), phoneCategory, creationData);
+
+        UpdateProductBasicRequest request = new UpdateProductBasicRequest("변경 이름", "변경 설명", 2L);
+        when(productsRepository.findById(1L)).thenReturn(Optional.of(product));
+        when(productReferentialService.validateUpdateProduct(request))
+                .thenReturn(new ProductUpdateData(electronicCategory));
+        ProductUpdateResponse response = productApplicationService.updateBasicInfoById(1L, request);
+
+        assertThat(response.getName()).isEqualTo("변경 이름");
+        assertThat(response.getDescription()).isEqualTo("변경 설명");
+        assertThat(response.getCategoryId()).isEqualTo(2L);
+    }
+
+    @Test
+    @DisplayName("상품 기본 정보 수정 테스트-실패(상품을 찾을 수 없음)")
+    void updateBasicInfoByIdTest_unit_notFound_product(){
+        UpdateProductBasicRequest request = new UpdateProductBasicRequest("변경 이름", "변경 설명", 2L);
+        when(productsRepository.findById(1L)).thenReturn(Optional.empty());
+        when(ms.getMessage(PRODUCT_NOT_FOUND)).thenReturn("Product not found");
+        assertThatThrownBy(() -> productApplicationService.updateBasicInfoById(1L, request))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage(TestMessageUtil.getMessage(PRODUCT_NOT_FOUND));
+    }
+
+    @Test
+    @DisplayName("상품 기본 정보 수정 테스트-실패(카테고리를 찾을 수 없음)")
+    void updateBasicInfoByIdTest_unit_notFound_category(){
+        Categories phoneCategory = createCategory(1L, "핸드폰", "http://phone.jpg");
+        OptionTypes storage = createOptionType(1L, "용량");
+        OptionTypes color = createOptionType(2L, "색상");
+        OptionValues gb_128 = createOptionValue(1L, "128GB", storage);
+        OptionValues red = createOptionValue(2L, "빨강", color);
+
+        Map<Long, OptionTypes> optionTypeById = createOptionTypeMap(storage, color);
+        Map<Long, OptionValues> optionValueById = createOptionValueMap(gb_128, red);
+
+        ProductCreationData creationData = new ProductCreationData(phoneCategory, optionTypeById, optionValueById);
+        Products product = createProduct(createProductRequest(), phoneCategory, creationData);
+        UpdateProductBasicRequest request = new UpdateProductBasicRequest("변경 이름", "변경 설명", 2L);
+        when(productsRepository.findById(1L)).thenReturn(Optional.of(product));
+        doThrow(new NotFoundException(TestMessageUtil.getMessage(CATEGORY_NOT_FOUND)))
+                .when(productReferentialService).validateUpdateProduct(request);
+
+        assertThatThrownBy(() -> productApplicationService.updateBasicInfoById(1L, request))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage(TestMessageUtil.getMessage(CATEGORY_NOT_FOUND));
+    }
+
+    @Test
+    @DisplayName("상품 기본 정보 수정 테스트-실패(카테고리가 최하위 카테고리가 아님)")
+    void updateBasicInfoByIdTesT_unit_badRequest_category(){
+        Categories phoneCategory = createCategory(1L, "핸드폰", "http://phone.jpg");
+        OptionTypes storage = createOptionType(1L, "용량");
+        OptionTypes color = createOptionType(2L, "색상");
+        OptionValues gb_128 = createOptionValue(1L, "128GB", storage);
+        OptionValues red = createOptionValue(2L, "빨강", color);
+
+        Map<Long, OptionTypes> optionTypeById = createOptionTypeMap(storage, color);
+        Map<Long, OptionValues> optionValueById = createOptionValueMap(gb_128, red);
+
+        ProductCreationData creationData = new ProductCreationData(phoneCategory, optionTypeById, optionValueById);
+        Products product = createProduct(createProductRequest(), phoneCategory, creationData);
+        UpdateProductBasicRequest request = new UpdateProductBasicRequest("변경 이름", "변경 설명", 2L);
+        when(productsRepository.findById(1L)).thenReturn(Optional.of(product));
+        doThrow(new BadRequestException(TestMessageUtil.getMessage(PRODUCT_CATEGORY_BAD_REQUEST)))
+                .when(productReferentialService).validateUpdateProduct(request);
+
+        assertThatThrownBy(() -> productApplicationService.updateBasicInfoById(1L, request))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage(TestMessageUtil.getMessage(PRODUCT_CATEGORY_BAD_REQUEST));
     }
 
     private ProductRequest createProductRequest(){
