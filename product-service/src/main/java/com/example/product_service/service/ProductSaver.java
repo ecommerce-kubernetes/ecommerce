@@ -95,7 +95,7 @@ public class ProductSaver {
         Products product = findProductByIdOrThrow(productId);
         structureValidator.validateVariantRequest(request);
         ProductVariantCreationData productVariantCreationData =
-                referentialValidator.validateProductVariant(request, product);
+                referentialValidator.validateProductVariant(request);
 
         ProductVariants productVariant = factory.createProductVariant(request, productVariantCreationData);
         product.addVariant(productVariant);

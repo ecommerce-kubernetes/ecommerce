@@ -48,65 +48,14 @@ public class ProductReferentialService {
         return new ProductCreationData(categories, optionTypeById, optionValueById);
     }
 
-    public ProductVariantCreationData validateProductVariant(ProductVariantRequest request, Products product){
+    public ProductVariantCreationData validateProductVariant(ProductVariantRequest request){
+        //SKU 중복 확인
         validateDuplicateSku(request.getSku());
 
-
-        Set<Long> productOptionTypeIds = product.getProductOptionTypes().stream().map(ProductOptionTypes::getId).collect(Collectors.toSet());
-
-        List<Long> requestOptionTypeIds = request.getVariantOption().stream().map(VariantOptionValueRequest::getOptionTypeId).toList();
-
-        if(productOptionTypeIds.size() != requestOptionTypeIds.size()){
-            throw new BadRequestException(ms.getMessage(PRODUCT_OPTION_VALUE_CARDINALITY_VIOLATION));
-        }
-
-        Set<Long> requestIdSet = new HashSet<>(requestOptionTypeIds);
-        if(!productOptionTypeIds.equals(requestIdSet)){
-            throw new BadRequestException(ms.getMessage(PRODUCT_OPTION_VALUE_CARDINALITY_VIOLATION));
-        }
-
-        List<OptionTypes> optionTypes = product.getProductOptionTypes().stream().map(ProductOptionTypes::getOptionType).toList();
-        Map<Long, Set<Long>> optionTypeToValueId = optionTypes.stream()
-                .collect(Collectors.toMap(OptionTypes::getId, ot->ot.getOptionValues().stream()
-                        .map(OptionValues::getId).collect(Collectors.toSet())));
-
-        validateOptionValueCardinality(Collections.singletonList(request), optionTypeToValueId);
-        validateDuplicateVariantCombination(request, product);
-
-        Map<Long, OptionValues> optionValueById = optionTypes.stream()
-                .flatMap(ot -> ot.getOptionValues().stream())
-                .collect(Collectors.toMap(OptionValues::getId, Function.identity()));
+        //OptionValue 조회
+        Map<Long, OptionValues> optionValueById = findOptionValuesMap(request);
 
         return new ProductVariantCreationData(optionValueById);
-    }
-
-    //TODO 도메인에서 검증되도록 로직 수정됨 삭제 예정
-    private void validateDuplicateVariantCombination(ProductVariantRequest request, Products product){
-        List<Set<Long>> productVariantOption = product.getProductVariants().stream().map(pv -> pv.getProductVariantOptions().stream()
-                .map(pvo -> pvo.getOptionValue().getId())
-                .collect(Collectors.toSet())).toList();
-
-        Set<Long> optionValue = request.getVariantOption().stream()
-                .map(VariantOptionValueRequest::getOptionValueId).collect(Collectors.toSet());
-        boolean existsExact = productVariantOption.stream()
-                .anyMatch(existing -> existing.equals(optionValue));
-
-        if (existsExact) {
-            throw new BadRequestException(ms.getMessage(PRODUCT_VARIANT_OPTION_VALUE_CONFLICT));
-        }
-    }
-
-    //TODO 도메인에서 검증되도록 로직 수정됨 삭제 예정
-    private void validateOptionValueCardinality(List<ProductVariantRequest> variantRequests,
-                                                Map<Long, Set<Long>> optionTypeToValueIds){
-        for(ProductVariantRequest variantRequest : variantRequests){
-            for(VariantOptionValueRequest v : variantRequest.getVariantOption()){
-                Set<Long> allowedValueIds = optionTypeToValueIds.get(v.getOptionTypeId());
-                if(!allowedValueIds.contains(v.getOptionValueId())){
-                    throw new BadRequestException(ms.getMessage(PRODUCT_OPTION_VALUE_NOT_MATCH_TYPE));
-                }
-            }
-        }
     }
 
     private Categories findByIdOrThrow(Long categoryId){
@@ -125,18 +74,11 @@ public class ProductReferentialService {
     }
 
     private void validateDuplicateSku(String sku){
-        ensureSkuDoNotExists(sku);
+        ensureSkusDoNotExists(Collections.singletonList(sku));
     }
 
     private void ensureSkusDoNotExists(Collection<String> skus){
         boolean isConflict = productVariantsRepository.existsBySkuIn(skus);
-        if(isConflict){
-            throw new DuplicateResourceException(ms.getMessage(PRODUCT_VARIANT_SKU_CONFLICT));
-        }
-    }
-
-    private void ensureSkuDoNotExists(String sku){
-        boolean isConflict = productVariantsRepository.existsBySku(sku);
         if(isConflict){
             throw new DuplicateResourceException(ms.getMessage(PRODUCT_VARIANT_SKU_CONFLICT));
         }
@@ -157,6 +99,12 @@ public class ProductReferentialService {
                 .map(VariantOptionValueRequest::getOptionValueId)
                 .collect(Collectors.toSet());
 
+        List<OptionValues> optionValues = findOptionValueByIdInOrThrow(optionValueIds);
+        return optionValues.stream().collect(Collectors.toMap(OptionValues::getId, Function.identity()));
+    }
+
+    private Map<Long, OptionValues> findOptionValuesMap(ProductVariantRequest request){
+        Set<Long> optionValueIds = request.getVariantOption().stream().map(VariantOptionValueRequest::getOptionValueId).collect(Collectors.toSet());
         List<OptionValues> optionValues = findOptionValueByIdInOrThrow(optionValueIds);
         return optionValues.stream().collect(Collectors.toMap(OptionValues::getId, Function.identity()));
     }

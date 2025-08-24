@@ -360,7 +360,7 @@ public class ProductSaverUnitTest {
         when(productsRepository.findById(1L)).thenReturn(Optional.of(products));
         doNothing().when(structureValidator).validateVariantRequest(request);
         ProductVariantCreationData creationData = new ProductVariantCreationData(createOptionValueById(7L));
-        when(referentialValidator.validateProductVariant(request, products))
+        when(referentialValidator.validateProductVariant(request))
                 .thenReturn(creationData);
         OptionTypes optionType = createOptionTypesWithSetId(1L, "optionType");
         OptionValues optionValue = createOptionValuesWithSetId(7L, "optionValue7");

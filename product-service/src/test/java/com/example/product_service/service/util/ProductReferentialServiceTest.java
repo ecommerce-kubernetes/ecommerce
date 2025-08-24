@@ -9,6 +9,7 @@ import com.example.product_service.dto.request.variant.VariantOptionValueRequest
 import com.example.product_service.entity.Categories;
 import com.example.product_service.entity.OptionTypes;
 import com.example.product_service.entity.OptionValues;
+import com.example.product_service.entity.Products;
 import com.example.product_service.exception.BadRequestException;
 import com.example.product_service.exception.DuplicateResourceException;
 import com.example.product_service.exception.NotFoundException;
@@ -55,7 +56,7 @@ class ProductReferentialServiceTest {
     ProductReferentialService validator;
 
     @Test
-    @DisplayName("ProductRequest 검증및 필요 데이터 조회-성공")
+    @DisplayName("ProductRequest-성공")
     void validAndFetch_success(){
         Categories category = createCategoriesWithSetId(1L, "category", "http://test.jpg");
         mockExistsBySkuIn(false, "sku");
@@ -89,7 +90,7 @@ class ProductReferentialServiceTest {
     }
 
     @Test
-    @DisplayName("카테고리 찾을 수 없음")
+    @DisplayName("ProductRequest 카테고리 찾을 수 없음")
     void validAndFetch_notFound_category(){
         mockExistsBySkuIn(false, "sku");
         mockFindByCategory(1L, null);
@@ -101,7 +102,7 @@ class ProductReferentialServiceTest {
     }
 
     @Test
-    @DisplayName("카테고리가 최하위 카테고리가 아닌경우")
+    @DisplayName("ProductRequest 카테고리가 최하위 카테고리가 아닌경우")
     void validAndFetch_badRequest_category(){
         mockExistsBySkuIn(false, "sku");
         Categories root = createCategoriesWithSetId(1L, "root", "http://test.jpg");
@@ -116,7 +117,7 @@ class ProductReferentialServiceTest {
     }
 
     @Test
-    @DisplayName("옵션 타입 찾을 수 없음")
+    @DisplayName("ProductRequest 옵션 타입 찾을 수 없음")
     void validAndFetch_notFound_optionType(){
         Categories category = createCategoriesWithSetId(1L, "category", "http://test.jpg");
         mockExistsBySkuIn(false, "sku");
@@ -130,7 +131,7 @@ class ProductReferentialServiceTest {
     }
 
     @Test
-    @DisplayName("옵션 값을 찾을 수 없음")
+    @DisplayName("ProductRequest 옵션 값을 찾을 수 없음")
     void validAndFetch_notFound_optionValue(){
         Categories category = createCategoriesWithSetId(1L, "category", "http://test.jpg");
         OptionTypes optionType = createOptionTypesWithSetId(1L, "optionType");
@@ -141,6 +142,35 @@ class ProductReferentialServiceTest {
         mockMessageUtil(OPTION_VALUE_NOT_FOUND, "OptionValue not found");
         ProductRequest request = createProductRequest();
         assertThatThrownBy(() -> validator.validAndFetch(request))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage(getMessage(OPTION_VALUE_NOT_FOUND));
+    }
+
+    @Test
+    @DisplayName("ProductVariantRequest-성공")
+    void validateProductVariantTest_success(){
+        ProductVariantRequest request = createProductVariantRequest();
+    }
+
+    @Test
+    @DisplayName("ProductVariantRequest-sku 중복")
+    void validateProductVariantTest_duplicate_sku(){
+        mockExistsBySkuIn(true, "sku");
+        mockMessageUtil(PRODUCT_VARIANT_SKU_CONFLICT, "Product Variant SKU Conflict");
+        ProductVariantRequest request = createProductVariantRequest();
+        assertThatThrownBy(() -> validator.validateProductVariant(request))
+                .isInstanceOf(DuplicateResourceException.class)
+                .hasMessage(getMessage(PRODUCT_VARIANT_SKU_CONFLICT));
+    }
+
+    @Test
+    @DisplayName("ProductVariantRequest-옵션 값 찾을 수 없음")
+    void validateProductVariantTest_notFound_optionValue(){
+        mockExistsBySkuIn(false, "sku");
+        mockFindOptionValueIn(List.of(1L), List.of());
+        mockMessageUtil(OPTION_VALUE_NOT_FOUND, "OptionValue not found");
+        ProductVariantRequest request = createProductVariantRequest();
+        assertThatThrownBy(() -> validator.validateProductVariant(request))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage(getMessage(OPTION_VALUE_NOT_FOUND));
     }
@@ -206,6 +236,13 @@ class ProductReferentialServiceTest {
                                 new VariantOptionValueRequest(1L, 1L)
                         )))
 
+        );
+    }
+
+    private ProductVariantRequest createProductVariantRequest(){
+        return new ProductVariantRequest(
+                "sku", 10000, 100, 10,
+                List.of(new VariantOptionValueRequest(1L, 1L))
         );
     }
 }
