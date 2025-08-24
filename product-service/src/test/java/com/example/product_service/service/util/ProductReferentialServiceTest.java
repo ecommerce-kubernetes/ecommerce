@@ -55,7 +55,7 @@ class ProductReferentialServiceTest {
     ProductReferentialService validator;
 
     @Test
-    @DisplayName("성공")
+    @DisplayName("ProductRequest 검증및 필요 데이터 조회-성공")
     void validAndFetch_success(){
         Categories category = createCategoriesWithSetId(1L, "category", "http://test.jpg");
         mockExistsBySkuIn(false, "sku");
@@ -78,7 +78,7 @@ class ProductReferentialServiceTest {
     }
 
     @Test
-    @DisplayName("SKU 중복")
+    @DisplayName("ProductRequest SKU 중복")
     void validAndFetch_duplicate_sku(){
         mockExistsBySkuIn(true, "sku");
         mockMessageUtil(PRODUCT_VARIANT_SKU_CONFLICT, "Product Variant SKU Conflict");
@@ -127,6 +127,22 @@ class ProductReferentialServiceTest {
         assertThatThrownBy(() -> validator.validAndFetch(request))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage(getMessage(OPTION_TYPE_NOT_FOUND));
+    }
+
+    @Test
+    @DisplayName("옵션 값을 찾을 수 없음")
+    void validAndFetch_notFound_optionValue(){
+        Categories category = createCategoriesWithSetId(1L, "category", "http://test.jpg");
+        OptionTypes optionType = createOptionTypesWithSetId(1L, "optionType");
+        mockExistsBySkuIn(false, "sku");
+        mockFindByCategory(1L, category);
+        mockFindOptionTypeIn(List.of(1L), List.of(optionType));
+        mockFindOptionValueIn(List.of(1L), List.of());
+        mockMessageUtil(OPTION_VALUE_NOT_FOUND, "OptionValue not found");
+        ProductRequest request = createProductRequest();
+        assertThatThrownBy(() -> validator.validAndFetch(request))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage(getMessage(OPTION_VALUE_NOT_FOUND));
     }
 
 

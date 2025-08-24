@@ -15,7 +15,6 @@ import com.example.product_service.repository.OptionValueRepository;
 import com.example.product_service.repository.ProductVariantsRepository;
 import com.example.product_service.service.dto.ProductCreationData;
 import com.example.product_service.service.dto.ProductVariantCreationData;
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -41,16 +40,10 @@ public class ProductReferentialService {
         validateDuplicateSkus(request);
         //카테고리 조회 -> 없으면 예외 던짐
         Categories categories = findByIdOrThrow(request.getCategoryId());
-        List<OptionTypes> optionTypes = findOptionTypes(request);
-        List<List<VariantOptionValueRequest>> variantOptionValues = request.getProductVariants().stream().map(ProductVariantRequest::getVariantOption).toList();
-        Set<Long> optionValueIds = variantOptionValues.stream()
-                .flatMap(List::stream)
-                .map(VariantOptionValueRequest::getOptionValueId)
-                .collect(Collectors.toSet());
-        List<OptionValues> optionValues = findOptionValues(optionValueIds);
-        Map<Long, OptionValues> optionValueById = optionValues.stream().collect(Collectors.toMap(OptionValues::getId, Function.identity()));
-        Map<Long, OptionTypes> optionTypeById = optionTypes.stream()
-                .collect(Collectors.toMap(OptionTypes::getId, Function.identity()));
+        //OptionType 조회
+        Map<Long, OptionTypes> optionTypeById = findOptionTypesMap(request);
+        //OptionValue 조회
+        Map<Long, OptionValues> optionValueById = findOptionValuesMap(request);
 
         return new ProductCreationData(categories, optionTypeById, optionValueById);
     }
@@ -149,14 +142,23 @@ public class ProductReferentialService {
         }
     }
 
-    private List<OptionTypes> findOptionTypes(ProductRequest request){
+    private Map<Long, OptionTypes> findOptionTypesMap(ProductRequest request){
         List<Long> optionTypeIds = request.getProductOptionTypes()
                 .stream().map(ProductOptionTypeRequest::getOptionTypeId).toList();
-        return findOptionTypeByIdInOrThrow(optionTypeIds);
+        List<OptionTypes> optionTypes = findOptionTypeByIdInOrThrow(optionTypeIds);
+        return optionTypes.stream().collect(Collectors.toMap(OptionTypes::getId, Function.identity()));
     }
 
-    private List<OptionValues> findOptionValues(Set<Long> optionValueIds){
-        return findOptionValueByIdInOrThrow(optionValueIds);
+    private Map<Long, OptionValues> findOptionValuesMap(ProductRequest request){
+        List<List<VariantOptionValueRequest>> variantOptionValues = request.getProductVariants()
+                .stream().map(ProductVariantRequest::getVariantOption).toList();
+        Set<Long> optionValueIds = variantOptionValues.stream()
+                .flatMap(List::stream)
+                .map(VariantOptionValueRequest::getOptionValueId)
+                .collect(Collectors.toSet());
+
+        List<OptionValues> optionValues = findOptionValueByIdInOrThrow(optionValueIds);
+        return optionValues.stream().collect(Collectors.toMap(OptionValues::getId, Function.identity()));
     }
 
     private List<OptionTypes> findOptionTypeByIdInOrThrow(List<Long> optionTypeIds){

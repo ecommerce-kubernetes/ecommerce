@@ -20,11 +20,8 @@ public class RequestValidator {
     private final MessageSourceUtil ms;
 
     public void validateProductRequest(ProductRequest request){
-        List<ProductOptionTypeRequest> productOptionTypes = request.getProductOptionTypes();
-        List<ProductVariantRequest> productVariants = request.getProductVariants();
-
-        Set<Long> optionTypeIdSet = extractAndValidateOptionTypeIds(productOptionTypes);
-        validateProductVariantRequest(optionTypeIdSet, productVariants);
+        Set<Long> optionTypeIdSet = extractAndValidateOptionTypeIds(request.getProductOptionTypes());
+        validateProductVariantRequest(optionTypeIdSet, request.getProductVariants());
     }
 
     public void validateVariantRequest(ProductVariantRequest request){
