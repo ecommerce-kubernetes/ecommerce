@@ -117,6 +117,12 @@ public class ProductApplicationServiceTest {
                         tuple (1L, 1L, "128GB"),
                         Tuple.tuple(2L, 2L, "빨강")
                 );
+
+        verify(productsRepository).save(productArgumentCaptor.capture());
+        Products value = productArgumentCaptor.getValue();
+
+        assertThat(value.getName()).isEqualTo("아이폰 16 Pro");
+
     }
 
     @Test
