@@ -37,6 +37,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import java.util.*;
 
 import static com.example.product_service.common.MessagePath.*;
+import static com.example.product_service.util.TestMessageUtil.getMessage;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -492,6 +493,39 @@ public class ProductApplicationServiceTest {
         assertThatThrownBy(() -> productApplicationService.updateBasicInfoById(1L, request))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessage(TestMessageUtil.getMessage(PRODUCT_CATEGORY_BAD_REQUEST));
+    }
+
+    @Test
+    @DisplayName("상품 삭제 테스트-성공")
+    void deleteProductByIdTest_unit_success(){
+        Categories phoneCategory = createCategory(1L, "핸드폰", "http://phone.jpg");
+        OptionTypes storage = createOptionType(1L, "용량");
+        OptionTypes color = createOptionType(2L, "색상");
+        OptionValues gb_128 = createOptionValue(1L, "128GB", storage);
+        OptionValues red = createOptionValue(2L, "빨강", color);
+
+        Map<Long, OptionTypes> optionTypeById = createOptionTypeMap(storage, color);
+        Map<Long, OptionValues> optionValueById = createOptionValueMap(gb_128, red);
+
+        ProductCreationData creationData = new ProductCreationData(phoneCategory, optionTypeById, optionValueById);
+        Products product = createProduct(createProductRequest(), phoneCategory, creationData);
+        when(productsRepository.findById(1L)).thenReturn(Optional.of(product));
+
+        productApplicationService.deleteProductById(1L);
+        verify(productsRepository).delete(productArgumentCaptor.capture());
+        Products value = productArgumentCaptor.getValue();
+        assertThat(value.getName()).isEqualTo("아이폰 16 Pro");
+    }
+
+    @Test
+    @DisplayName("상품 삭제 테스트-실패(상품을 찾을 수 없음)")
+    void deleteProductByIdTest_unit_notFoundProduct(){
+        when(productsRepository.findById(1L)).thenReturn(Optional.empty());
+        when(ms.getMessage(PRODUCT_NOT_FOUND)).thenReturn("Product not found");
+
+        assertThatThrownBy(() -> productApplicationService.deleteProductById(1L))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage(getMessage(PRODUCT_NOT_FOUND));
     }
 
     private ProductRequest createProductRequest(){

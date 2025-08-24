@@ -69,7 +69,8 @@ public class ProductApplicationService {
     }
 
     public void deleteProductById(Long productId){
-        productSaver.deleteProductById(productId);
+        Products target = findProductByIdOrThrow(productId);
+        productsRepository.delete(target);
     }
 
     public List<ImageResponse> addImages(Long productId, AddImageRequest request){
