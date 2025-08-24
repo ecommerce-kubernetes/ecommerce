@@ -7,10 +7,8 @@ import com.example.product_service.dto.request.options.ProductOptionTypeRequest;
 import com.example.product_service.dto.request.product.ProductRequest;
 import com.example.product_service.dto.request.variant.ProductVariantRequest;
 import com.example.product_service.dto.request.variant.VariantOptionValueRequest;
-import com.example.product_service.entity.Categories;
-import com.example.product_service.entity.OptionTypes;
-import com.example.product_service.entity.OptionValues;
-import com.example.product_service.entity.Products;
+import com.example.product_service.dto.response.product.ProductResponse;
+import com.example.product_service.entity.*;
 import com.example.product_service.exception.BadRequestException;
 import com.example.product_service.exception.DuplicateResourceException;
 import com.example.product_service.exception.NotFoundException;
@@ -22,6 +20,7 @@ import com.example.product_service.service.util.factory.ProductFactory;
 import com.example.product_service.service.util.validator.ProductReferentialService;
 import com.example.product_service.service.util.validator.RequestValidator;
 import com.example.product_service.util.TestMessageUtil;
+import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,12 +31,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import static com.example.product_service.common.MessagePath.*;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -63,7 +63,60 @@ public class ProductApplicationServiceTest {
     @Test
     @DisplayName("상품 저장 테스트-성공")
     void saveProductTest_unit_success(){
+        Categories category = createCategory(1L, "핸드폰", "http://phone.jpg");
+        OptionTypes storage = createOptionType(1L, "용량");
+        OptionTypes color = createOptionType(2L, "색상");
+        OptionValues gb_128 = createOptionValue(1L, "128GB", storage);
+        OptionValues red = createOptionValue(2L, "빨강", color);
 
+        Map<Long, OptionTypes> optionTypeById = createOptionTypeMap(storage, color);
+        Map<Long, OptionValues> optionValueById = createOptionValueMap(gb_128, red);
+
+        ProductCreationData creationData = new ProductCreationData(category, optionTypeById, optionValueById);
+        ProductRequest request = createProductRequest();
+        Products product = createProduct(request, category, creationData);
+
+        doNothing().when(requestValidator).validateProductRequest(request);
+        when(productReferentialService.validAndFetch(request))
+                .thenReturn(creationData);
+        when(factory.createProducts(request, creationData))
+                .thenReturn(product);
+        when(productsRepository.save(any(Products.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        ProductResponse response = productApplicationService.saveProduct(request);
+
+
+        assertThat(response.getName()).isEqualTo("아이폰 16 Pro");
+        assertThat(response.getDescription()).isEqualTo("애플 IPhone 16 (Model-Pro)");
+        assertThat(response.getCategoryId()).isEqualTo(category.getId());
+        assertThat(response.getImages())
+                .extracting("url", "sortOrder")
+                .containsExactlyInAnyOrder(
+                        tuple("http://iphone16-1.jpg", 0),
+                        tuple("http://iphone16-2.jpg", 1)
+                );
+
+        assertThat(response.getProductOptionTypes())
+                .extracting("id", "name")
+                .containsExactlyInAnyOrder(
+                        tuple(1L, "용량"),
+                        tuple(2L, "색상")
+                );
+
+        assertThat(response.getProductVariants())
+                .extracting( "sku", "price", "stockQuantity", "discountRate")
+                .containsExactlyInAnyOrder(
+                        tuple("IPHONE16Pro-128GB-RED", 1200000, 100, 5)
+                );
+
+
+        assertThat(response.getProductVariants())
+                .flatExtracting("optionValues")
+                .extracting("valueId", "typeId", "valueName")
+                .containsExactlyInAnyOrder(
+                        tuple (1L, 1L, "128GB"),
+                        Tuple.tuple(2L, 2L, "빨강")
+                );
     }
 
     @Test
@@ -359,6 +412,41 @@ public class ProductApplicationServiceTest {
                                         new VariantOptionValueRequest(2L, 2L)))
                 )
         );
+    }
+
+    private Products createProduct(ProductRequest request, Categories categories, ProductCreationData data){
+        Products product = new Products("아이폰 16 Pro", "애플 IPhone 16 (Model-Pro)", categories);
+
+        List<ProductImages> productImages = new ArrayList<>();
+        List<ProductOptionTypes> productOptionTypes = new ArrayList<>();
+        List<ProductVariants> productVariants = new ArrayList<>();
+
+        for(ProductOptionTypeRequest otr : request.getProductOptionTypes()){
+            ProductOptionTypes productOptionType = new ProductOptionTypes(data.getOptionTypeById().get(otr.getOptionTypeId()), otr.getPriority(), true);
+            productOptionTypes.add(productOptionType);
+        }
+
+        for(ImageRequest imageRequest : request.getImages()){
+            ProductImages productImage = new ProductImages(imageRequest.getUrl());
+            productImages.add(productImage);
+        }
+
+        for(ProductVariantRequest pvr : request.getProductVariants()){
+            ProductVariants productVariant =
+                    new ProductVariants(pvr.getSku(), pvr.getPrice(), pvr.getStockQuantity(), pvr.getDiscountRate());
+
+            for(VariantOptionValueRequest ovr : pvr.getVariantOption()){
+                ProductVariantOptions productVariantOption =
+                        new ProductVariantOptions(data.getOptionValueById().get(ovr.getOptionValueId()));
+                productVariant.addProductVariantOption(productVariantOption);
+            }
+            productVariants.add(productVariant);
+        }
+
+        product.addImages(productImages);
+        product.addOptionTypes(productOptionTypes);
+        product.addVariants(productVariants);
+        return product;
     }
 
     private Map<Long, OptionTypes> createOptionTypeMap(OptionTypes... optionTypes){
