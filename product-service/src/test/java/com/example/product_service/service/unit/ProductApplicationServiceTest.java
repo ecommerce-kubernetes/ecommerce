@@ -2,14 +2,17 @@ package com.example.product_service.service.unit;
 
 import com.example.product_service.common.MessagePath;
 import com.example.product_service.common.MessageSourceUtil;
+import com.example.product_service.dto.request.image.AddImageRequest;
 import com.example.product_service.dto.request.image.ImageRequest;
 import com.example.product_service.dto.request.options.ProductOptionTypeRequest;
 import com.example.product_service.dto.request.product.ProductRequest;
 import com.example.product_service.dto.request.product.UpdateProductBasicRequest;
 import com.example.product_service.dto.request.variant.ProductVariantRequest;
 import com.example.product_service.dto.request.variant.VariantOptionValueRequest;
+import com.example.product_service.dto.response.image.ImageResponse;
 import com.example.product_service.dto.response.product.ProductResponse;
 import com.example.product_service.dto.response.product.ProductUpdateResponse;
+import com.example.product_service.dto.response.variant.ProductVariantResponse;
 import com.example.product_service.entity.*;
 import com.example.product_service.exception.BadRequestException;
 import com.example.product_service.exception.DuplicateResourceException;
@@ -19,6 +22,7 @@ import com.example.product_service.repository.ProductsRepository;
 import com.example.product_service.service.ProductApplicationService;
 import com.example.product_service.service.dto.ProductCreationData;
 import com.example.product_service.service.dto.ProductUpdateData;
+import com.example.product_service.service.dto.ProductVariantCreationData;
 import com.example.product_service.service.util.factory.ProductFactory;
 import com.example.product_service.service.util.validator.ProductReferentialService;
 import com.example.product_service.service.util.validator.RequestValidator;
@@ -526,6 +530,283 @@ public class ProductApplicationServiceTest {
         assertThatThrownBy(() -> productApplicationService.deleteProductById(1L))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage(getMessage(PRODUCT_NOT_FOUND));
+    }
+
+    @Test
+    @DisplayName("상품 이미지 추가 테스트-성공")
+    void addImagesTest_unit_success(){
+        Categories phoneCategory = createCategory(1L, "핸드폰", "http://phone.jpg");
+        OptionTypes storage = createOptionType(1L, "용량");
+        OptionTypes color = createOptionType(2L, "색상");
+        OptionValues gb_128 = createOptionValue(1L, "128GB", storage);
+        OptionValues red = createOptionValue(2L, "빨강", color);
+
+        Map<Long, OptionTypes> optionTypeById = createOptionTypeMap(storage, color);
+        Map<Long, OptionValues> optionValueById = createOptionValueMap(gb_128, red);
+
+        ProductCreationData creationData = new ProductCreationData(phoneCategory, optionTypeById, optionValueById);
+        Products product = createProduct(createProductRequest(), phoneCategory, creationData);
+
+        when(productsRepository.findById(1L)).thenReturn(Optional.of(product));
+        AddImageRequest request = new AddImageRequest(List.of("http://image1.jpg"));
+        List<ImageResponse> response = productApplicationService.addImages(1L, request);
+
+        assertThat(response.size()).isEqualTo(3);
+        assertThat(response)
+                .extracting("url", "sortOrder")
+                .containsExactlyInAnyOrder(
+                        tuple("http://iphone16-1.jpg", 0),
+                        tuple("http://iphone16-2.jpg", 1),
+                        tuple("http://image1.jpg", 2)
+                );
+    }
+
+    @Test
+    @DisplayName("상품 이미지 추가 테스트-실패(상품을 찾을 수 없음)")
+    void addImagesTest_unit_notFound_product(){
+        when(productsRepository.findById(1L)).thenReturn(Optional.empty());
+        when(ms.getMessage(PRODUCT_NOT_FOUND)).thenReturn("Product not found");
+        AddImageRequest request = new AddImageRequest(List.of("http://image1.jpg"));
+        assertThatThrownBy(() -> productApplicationService.addImages(1L, request))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage(getMessage(PRODUCT_NOT_FOUND));
+    }
+
+    @Test
+    @DisplayName("상품 변형 추가 테스트-성공")
+    void addVariantTest_unit_success(){
+        Categories phoneCategory = createCategory(1L, "핸드폰", "http://phone.jpg");
+        OptionTypes storage = createOptionType(1L, "용량");
+        OptionTypes color = createOptionType(2L, "색상");
+        OptionValues gb_128 = createOptionValue(1L, "128GB", storage);
+        OptionValues gb_256 = createOptionValue(3L, "256GB", storage);
+        OptionValues red = createOptionValue(2L, "빨강", color);
+
+        Map<Long, OptionTypes> optionTypeById = createOptionTypeMap(storage, color);
+        Map<Long, OptionValues> optionValueById = createOptionValueMap(gb_128, red);
+
+        ProductCreationData creationData = new ProductCreationData(phoneCategory, optionTypeById, optionValueById);
+        Products product = createProduct(createProductRequest(), phoneCategory, creationData);
+        ProductVariantCreationData variantCreationData = new ProductVariantCreationData(Map.of(3L, gb_256, 2L, red));
+        when(productsRepository.findById(1L)).thenReturn(Optional.of(product));
+
+        ProductVariantRequest request = new ProductVariantRequest("IPHONE16Pro-256GB-RED", 1200000, 100, 5,
+                List.of(new VariantOptionValueRequest(1L, 3L),
+                        new VariantOptionValueRequest(2L, 2L)));
+
+        ProductVariants productVariant = new ProductVariants(request.getSku(), request.getPrice(), request.getStockQuantity(), request.getDiscountRate());
+        List<ProductVariantOptions> productVariantOptions = request.getVariantOption().stream()
+                .map(ovr -> new ProductVariantOptions(variantCreationData.getOptionValueById().get(ovr.getOptionValueId())))
+                .toList();
+
+        productVariant.addProductVariantOptions(productVariantOptions);
+
+        doNothing().when(requestValidator).validateVariantRequest(request);
+        when(productReferentialService.validateProductVariant(request))
+                .thenReturn(variantCreationData);
+        when(factory.createProductVariant(request, variantCreationData)).thenReturn(productVariant);
+
+        ProductVariantResponse response = productApplicationService.addVariant(1L, request);
+
+        assertThat(response.getSku()).isEqualTo("IPHONE16Pro-256GB-RED");
+        assertThat(response.getPrice()).isEqualTo(1200000);
+        assertThat(response.getStockQuantity()).isEqualTo(100);
+        assertThat(response.getDiscountRate()).isEqualTo(5);
+
+        assertThat(response.getOptionValues())
+                .extracting("valueId", "typeId", "valueName")
+                .containsExactlyInAnyOrder(
+                        tuple(3L, 1L, "256GB"),
+                        tuple(2L, 2L, "빨강")
+                );
+    }
+
+    @Test
+    @DisplayName("상품 변형 추가 테스트-실패(상품을 찾을 수 없음)")
+    void addVariantTest_unit_notFound_product(){
+        when(productsRepository.findById(1L)).thenReturn(Optional.empty());
+        when(ms.getMessage(PRODUCT_NOT_FOUND)).thenReturn("Product not found");
+        ProductVariantRequest request = new ProductVariantRequest("IPHONE16Pro-256GB-RED", 1200000, 100, 5,
+                List.of(new VariantOptionValueRequest(1L, 3L),
+                        new VariantOptionValueRequest(2L, 2L)));
+
+        when(productsRepository.findById(1L)).thenReturn(Optional.empty());
+        when(ms.getMessage(PRODUCT_NOT_FOUND)).thenReturn("Product not found");
+        assertThatThrownBy(() -> productApplicationService.addVariant(1L, request))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage(getMessage(PRODUCT_NOT_FOUND));
+    }
+
+    @Test
+    @DisplayName("상품 변형 추가 테스트-실패(요청 바디에 동일한 옵션 타입 아이디가 존재하는 경우)")
+    void addVariantTest_unit_variant_option_option_type_duplicate(){
+        Categories phoneCategory = createCategory(1L, "핸드폰", "http://phone.jpg");
+        OptionTypes storage = createOptionType(1L, "용량");
+        OptionTypes color = createOptionType(2L, "색상");
+        OptionValues gb_128 = createOptionValue(1L, "128GB", storage);
+        OptionValues red = createOptionValue(2L, "빨강", color);
+
+        Map<Long, OptionTypes> optionTypeById = createOptionTypeMap(storage, color);
+        Map<Long, OptionValues> optionValueById = createOptionValueMap(gb_128, red);
+
+        ProductCreationData creationData = new ProductCreationData(phoneCategory, optionTypeById, optionValueById);
+        Products product = createProduct(createProductRequest(), phoneCategory, creationData);
+        when(productsRepository.findById(1L)).thenReturn(Optional.of(product));
+
+        //옵션 타입 Id가 중복됨
+        ProductVariantRequest request = new ProductVariantRequest("IPHONE16Pro-256GB-RED", 1200000, 100, 5,
+                List.of(new VariantOptionValueRequest(1L, 3L),
+                        new VariantOptionValueRequest(1L, 2L)));
+
+        // RequestValidator 가 예외를 던짐
+        doThrow(new BadRequestException(getMessage(PRODUCT_OPTION_VALUE_CARDINALITY_VIOLATION)))
+                .when(requestValidator).validateVariantRequest(request);
+
+
+        assertThatThrownBy(() -> productApplicationService.addVariant(1L, request))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage(getMessage(PRODUCT_OPTION_VALUE_CARDINALITY_VIOLATION));
+    }
+
+    @Test
+    @DisplayName("상품 변형 추가 테스트-실패(DB 에 동일한 SKU 존재)")
+    void addVariantTest_unit_sku_conflict(){
+        Categories phoneCategory = createCategory(1L, "핸드폰", "http://phone.jpg");
+        OptionTypes storage = createOptionType(1L, "용량");
+        OptionTypes color = createOptionType(2L, "색상");
+        OptionValues gb_128 = createOptionValue(1L, "128GB", storage);
+        OptionValues red = createOptionValue(2L, "빨강", color);
+
+        Map<Long, OptionTypes> optionTypeById = createOptionTypeMap(storage, color);
+        Map<Long, OptionValues> optionValueById = createOptionValueMap(gb_128, red);
+
+        ProductCreationData creationData = new ProductCreationData(phoneCategory, optionTypeById, optionValueById);
+        Products product = createProduct(createProductRequest(), phoneCategory, creationData);
+        when(productsRepository.findById(1L)).thenReturn(Optional.of(product));
+
+        ProductVariantRequest request = new ProductVariantRequest("conflict-sku", 1200000, 100, 5,
+                List.of(new VariantOptionValueRequest(1L, 3L),
+                        new VariantOptionValueRequest(2L, 2L)));
+
+        doNothing().when(requestValidator).validateVariantRequest(request);
+        doThrow(new DuplicateResourceException(getMessage(PRODUCT_VARIANT_SKU_CONFLICT)))
+                .when(productReferentialService).validateProductVariant(request);
+
+        assertThatThrownBy(() -> productApplicationService.addVariant(1L, request))
+                .isInstanceOf(DuplicateResourceException.class)
+                .hasMessage(getMessage(PRODUCT_VARIANT_SKU_CONFLICT));
+    }
+
+    @Test
+    @DisplayName("상품 변형 추가 테스트-실패(옵션 값을 찾을 수 없음)")
+    void addVariantTest_unit_notFound_optionValue(){
+        Categories phoneCategory = createCategory(1L, "핸드폰", "http://phone.jpg");
+        OptionTypes storage = createOptionType(1L, "용량");
+        OptionTypes color = createOptionType(2L, "색상");
+        OptionValues gb_128 = createOptionValue(1L, "128GB", storage);
+        OptionValues red = createOptionValue(2L, "빨강", color);
+
+        Map<Long, OptionTypes> optionTypeById = createOptionTypeMap(storage, color);
+        Map<Long, OptionValues> optionValueById = createOptionValueMap(gb_128, red);
+
+        ProductCreationData creationData = new ProductCreationData(phoneCategory, optionTypeById, optionValueById);
+        Products product = createProduct(createProductRequest(), phoneCategory, creationData);
+        when(productsRepository.findById(1L)).thenReturn(Optional.of(product));
+
+
+        // 없는 optionValue
+        ProductVariantRequest request = new ProductVariantRequest("IPHONE16Pro-256GB-RED", 1200000, 100, 5,
+                List.of(new VariantOptionValueRequest(1L, 99L),
+                        new VariantOptionValueRequest(2L, 2L)));
+
+        doNothing().when(requestValidator).validateVariantRequest(request);
+
+        doThrow(new NotFoundException(getMessage(OPTION_VALUE_NOT_FOUND)))
+                .when(productReferentialService).validateProductVariant(request);
+
+        assertThatThrownBy(() -> productApplicationService.addVariant(1L, request))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage(getMessage(OPTION_VALUE_NOT_FOUND));
+    }
+
+    @Test
+    @DisplayName("상품 변형 추가 테스트-실패(상품 Variant의 OptionValue가 상품 OptionType의 하위 객체가 아닌 경우)")
+    void addVariantTest_unit_optionValue_notMatch_optionType(){
+        Categories phoneCategory = createCategory(1L, "핸드폰", "http://phone.jpg");
+        OptionTypes storage = createOptionType(1L, "용량");
+        OptionTypes color = createOptionType(2L, "색상");
+        OptionTypes otherType = createOptionType(3L, "다른 타입");
+        OptionValues gb_128 = createOptionValue(1L, "128GB", storage);
+        OptionValues red = createOptionValue(2L, "빨강", color);
+        OptionValues otherValue = createOptionValue(3L, "다른 옵션 값", otherType);
+
+        Map<Long, OptionTypes> optionTypeById = createOptionTypeMap(storage, color);
+        Map<Long, OptionValues> optionValueById = createOptionValueMap(gb_128, red);
+
+        ProductCreationData creationData = new ProductCreationData(phoneCategory, optionTypeById, optionValueById);
+        Products product = createProduct(createProductRequest(), phoneCategory, creationData);
+        ProductVariantCreationData variantCreationData = new ProductVariantCreationData(Map.of(3L, otherValue, 2L, red));
+        when(productsRepository.findById(1L)).thenReturn(Optional.of(product));
+
+        // storage 옵션 타입의 연관 객체가 아닌 optionValue
+        ProductVariantRequest request = new ProductVariantRequest("IPHONE16Pro-256GB-RED", 1200000, 100, 5,
+                List.of(new VariantOptionValueRequest(1L, 3L),
+                        new VariantOptionValueRequest(2L, 2L)));
+
+        ProductVariants productVariant = new ProductVariants(request.getSku(), request.getPrice(), request.getStockQuantity(), request.getDiscountRate());
+        List<ProductVariantOptions> productVariantOptions = request.getVariantOption().stream()
+                .map(ovr -> new ProductVariantOptions(variantCreationData.getOptionValueById().get(ovr.getOptionValueId())))
+                .toList();
+
+        productVariant.addProductVariantOptions(productVariantOptions);
+
+        doNothing().when(requestValidator).validateVariantRequest(request);
+        when(productReferentialService.validateProductVariant(request))
+                .thenReturn(variantCreationData);
+        when(factory.createProductVariant(request, variantCreationData)).thenReturn(productVariant);
+
+        assertThatThrownBy(() -> productApplicationService.addVariant(1L, request))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage(getMessage(PRODUCT_OPTION_VALUE_NOT_MATCH_TYPE));
+    }
+
+    @Test
+    @DisplayName("상품 변형 추가 테스트-실패(ProductVariant Option 조합이 중복될 경우)")
+    void addVariantTest_unit_product_variant_option_combination_duplicate(){
+        Categories phoneCategory = createCategory(1L, "핸드폰", "http://phone.jpg");
+        OptionTypes storage = createOptionType(1L, "용량");
+        OptionTypes color = createOptionType(2L, "색상");
+        OptionValues gb_128 = createOptionValue(1L, "128GB", storage);
+        OptionValues red = createOptionValue(2L, "빨강", color);
+
+        Map<Long, OptionTypes> optionTypeById = createOptionTypeMap(storage, color);
+        Map<Long, OptionValues> optionValueById = createOptionValueMap(gb_128, red);
+
+        ProductCreationData creationData = new ProductCreationData(phoneCategory, optionTypeById, optionValueById);
+        Products product = createProduct(createProductRequest(), phoneCategory, creationData);
+        ProductVariantCreationData variantCreationData = new ProductVariantCreationData(Map.of(1L, gb_128, 2L, red));
+        when(productsRepository.findById(1L)).thenReturn(Optional.of(product));
+
+        // 이미 존재하는 조합의 variantOption
+        ProductVariantRequest request = new ProductVariantRequest("IPHONE16Pro-128GB-RED", 1200000, 100, 5,
+                List.of(new VariantOptionValueRequest(1L, 1L),
+                        new VariantOptionValueRequest(2L, 2L)));
+
+        ProductVariants productVariant = new ProductVariants(request.getSku(), request.getPrice(), request.getStockQuantity(), request.getDiscountRate());
+        List<ProductVariantOptions> productVariantOptions = request.getVariantOption().stream()
+                .map(ovr -> new ProductVariantOptions(variantCreationData.getOptionValueById().get(ovr.getOptionValueId())))
+                .toList();
+
+        productVariant.addProductVariantOptions(productVariantOptions);
+
+        doNothing().when(requestValidator).validateVariantRequest(request);
+        when(productReferentialService.validateProductVariant(request))
+                .thenReturn(variantCreationData);
+        when(factory.createProductVariant(request, variantCreationData)).thenReturn(productVariant);
+
+        assertThatThrownBy(() -> productApplicationService.addVariant(1L, request))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage(getMessage(PRODUCT_VARIANT_OPTION_VALUE_CONFLICT));
     }
 
     private ProductRequest createProductRequest(){

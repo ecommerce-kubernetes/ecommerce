@@ -18,7 +18,6 @@ import java.util.List;
 import java.util.Map;
 
 @Component
-@Slf4j
 public class ProductFactory {
 
     public Products createProducts(ProductRequest request, ProductCreationData data){
@@ -83,11 +82,7 @@ public class ProductFactory {
         for (VariantOptionValueRequest optionValueRequest : variantOptionValueRequests) {
 
             Long optionValueId = optionValueRequest.getOptionValueId();
-            log.info("요청 optionValueId {}", optionValueId);
             OptionValues optionValue = optionValueById.get(optionValueId);
-            if(optionValue == null){
-                log.info("null 임");
-            }
             ProductVariantOptions productVariantOption = new ProductVariantOptions(optionValue);
             saveProductVariantOptions.add(productVariantOption);
         }
