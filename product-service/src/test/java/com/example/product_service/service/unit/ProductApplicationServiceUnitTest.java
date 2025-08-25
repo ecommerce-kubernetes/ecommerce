@@ -15,13 +15,9 @@ import com.example.product_service.entity.*;
 import com.example.product_service.exception.BadRequestException;
 import com.example.product_service.exception.DuplicateResourceException;
 import com.example.product_service.exception.NotFoundException;
-import com.example.product_service.repository.CategoryRepository;
 import com.example.product_service.repository.ProductsRepository;
 import com.example.product_service.service.ProductApplicationService;
-import com.example.product_service.service.dto.ProductCreationCommand;
-import com.example.product_service.service.dto.ProductCreationData;
-import com.example.product_service.service.dto.ProductUpdateData;
-import com.example.product_service.service.dto.ProductVariantCreationData;
+import com.example.product_service.service.dto.*;
 import com.example.product_service.service.util.factory.ProductFactory;
 import com.example.product_service.service.util.validator.ProductReferenceService;
 import com.example.product_service.service.util.validator.RequestValidator;
@@ -605,7 +601,8 @@ public class ProductApplicationServiceUnitTest {
 
         productVariant.addProductVariantOptions(productVariantOptions);
 
-        doNothing().when(requestValidator).validateVariantRequest(request);
+        ProductVariantCommand productVariantCommand = new ProductVariantCommand(request);
+        when(requestValidator.validateVariantRequest(request)).thenReturn(productVariantCommand);
         when(productReferenceService.buildVariantCreationData(request))
                 .thenReturn(variantCreationData);
         when(factory.createProductVariant(request, variantCreationData)).thenReturn(productVariant);
@@ -692,7 +689,8 @@ public class ProductApplicationServiceUnitTest {
                 List.of(new VariantOptionValueRequest(1L, 3L),
                         new VariantOptionValueRequest(2L, 2L)));
 
-        doNothing().when(requestValidator).validateVariantRequest(request);
+        ProductVariantCommand productVariantCommand = new ProductVariantCommand(request);
+        when(requestValidator.validateVariantRequest(request)).thenReturn(productVariantCommand);
         doThrow(new DuplicateResourceException(getMessage(PRODUCT_VARIANT_SKU_CONFLICT)))
                 .when(productReferenceService).buildVariantCreationData(request);
 
@@ -723,7 +721,8 @@ public class ProductApplicationServiceUnitTest {
                 List.of(new VariantOptionValueRequest(1L, 99L),
                         new VariantOptionValueRequest(2L, 2L)));
 
-        doNothing().when(requestValidator).validateVariantRequest(request);
+        ProductVariantCommand productVariantCommand = new ProductVariantCommand(request);
+        when(requestValidator.validateVariantRequest(request)).thenReturn(productVariantCommand);
 
         doThrow(new NotFoundException(getMessage(OPTION_VALUE_NOT_FOUND)))
                 .when(productReferenceService).buildVariantCreationData(request);
@@ -764,7 +763,8 @@ public class ProductApplicationServiceUnitTest {
 
         productVariant.addProductVariantOptions(productVariantOptions);
 
-        doNothing().when(requestValidator).validateVariantRequest(request);
+        ProductVariantCommand productVariantCommand = new ProductVariantCommand(request);
+        when(requestValidator.validateVariantRequest(request)).thenReturn(productVariantCommand);
         when(productReferenceService.buildVariantCreationData(request))
                 .thenReturn(variantCreationData);
         when(factory.createProductVariant(request, variantCreationData)).thenReturn(productVariant);
@@ -803,7 +803,8 @@ public class ProductApplicationServiceUnitTest {
 
         productVariant.addProductVariantOptions(productVariantOptions);
 
-        doNothing().when(requestValidator).validateVariantRequest(request);
+        ProductVariantCommand productVariantCommand = new ProductVariantCommand(request);
+        when(requestValidator.validateVariantRequest(request)).thenReturn(productVariantCommand);
         when(productReferenceService.buildVariantCreationData(request))
                 .thenReturn(variantCreationData);
         when(factory.createProductVariant(request, variantCreationData)).thenReturn(productVariant);

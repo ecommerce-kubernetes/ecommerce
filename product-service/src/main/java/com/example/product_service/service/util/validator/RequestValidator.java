@@ -7,6 +7,7 @@ import com.example.product_service.dto.request.variant.ProductVariantRequest;
 import com.example.product_service.dto.request.variant.VariantOptionValueRequest;
 import com.example.product_service.exception.BadRequestException;
 import com.example.product_service.service.dto.ProductCreationCommand;
+import com.example.product_service.service.dto.ProductVariantCommand;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -27,9 +28,10 @@ public class RequestValidator {
         return buildProductCreationCommand(request);
     }
 
-    public void validateVariantRequest(ProductVariantRequest request){
+    public ProductVariantCommand validateVariantRequest(ProductVariantRequest request){
         List<Long> optionTypeId = request.getVariantOption().stream().map(VariantOptionValueRequest::getOptionTypeId).toList();
         ensureUniqueOptionTypeIds(optionTypeId, PRODUCT_OPTION_VALUE_CARDINALITY_VIOLATION);
+        return buildProductVariantCommand(request);
     }
 
     private Set<Long> extractAndValidateOptionTypeIds(List<ProductOptionTypeRequest> optionTypes){
@@ -122,5 +124,9 @@ public class RequestValidator {
 
     private ProductCreationCommand buildProductCreationCommand(ProductRequest request){
         return new ProductCreationCommand(request);
+    }
+
+    private ProductVariantCommand buildProductVariantCommand(ProductVariantRequest request){
+        return new ProductVariantCommand(request);
     }
 }

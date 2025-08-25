@@ -255,7 +255,18 @@ class RequestValidatorTest {
     @DisplayName("상품 변형 검증 테스트-성공")
     void validateVariantRequestTest_success(){
         ProductVariantRequest request = createProductVariantRequest();
-        assertThatNoException().isThrownBy(() -> validator.validateVariantRequest(request));
+        ProductVariantCommand productVariantCommand = validator.validateVariantRequest(request);
+
+        assertThat(productVariantCommand.getSku()).isEqualTo("sku");
+        assertThat(productVariantCommand.getPrice()).isEqualTo(10000);
+        assertThat(productVariantCommand.getStockQuantity()).isEqualTo(100);
+        assertThat(productVariantCommand.getDiscountRate()).isEqualTo(10);
+        assertThat(productVariantCommand.getVariantOptionValues())
+
+                .extracting(VariantOptionValueRef::getOptionTypeId, VariantOptionValueRef::getOptionValueId)
+                .containsExactlyInAnyOrder(
+                        tuple(1L, 1L)
+                );
     }
 
     @Test
