@@ -32,7 +32,6 @@ import static com.example.product_service.common.MessagePath.PRODUCT_NOT_FOUND;
 @RequiredArgsConstructor
 @Transactional
 public class ProductApplicationService {
-    private final ProductSaver productSaver;
 
     private final ProductsRepository productsRepository;
     private final RequestValidator requestValidator;

@@ -25,6 +25,7 @@ import com.example.product_service.dto.response.variant.ProductVariantResponse;
 import com.example.product_service.entity.DomainType;
 import com.example.product_service.exception.BadRequestException;
 import com.example.product_service.exception.NotFoundException;
+import com.example.product_service.service.ProductApplicationService;
 import com.example.product_service.service.ProductService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -74,6 +75,8 @@ class ProductControllerTest {
     PageableValidatorFactory pageableValidatorFactory;
     @MockitoBean
     ProductService service;
+    @MockitoBean
+    ProductApplicationService productApplicationService;
 
     @BeforeEach
     void setUpMessages() {
@@ -88,7 +91,7 @@ class ProductControllerTest {
     void createProductTest_success() throws Exception {
         ProductRequest request = createProductRequest();
         ProductResponse response = createProductResponse();
-        when(service.saveProduct(any(ProductRequest.class)))
+        when(productApplicationService.saveProduct(any(ProductRequest.class)))
                 .thenReturn(response);
 
         ResultActions perform = performWithBody(mockMvc, post(BASE_PATH), request);
@@ -114,7 +117,7 @@ class ProductControllerTest {
     @DisplayName("상품 저장 테스트-실패(카테고리 없음)")
     void createProductTest_notFound_category() throws Exception {
         ProductRequest request = createProductRequest();
-        when(service.saveProduct(any(ProductRequest.class)))
+        when(productApplicationService.saveProduct(any(ProductRequest.class)))
                 .thenThrow(new NotFoundException(getMessage(CATEGORY_NOT_FOUND)));
 
         ResultActions perform = performWithBody(mockMvc, post(BASE_PATH), request);
@@ -126,7 +129,7 @@ class ProductControllerTest {
     @DisplayName("상품 저장 테스트-실패(옵션 타입 없음)")
     void createProductTest_notFound_optionType() throws Exception {
         ProductRequest request = createProductRequest();
-        when(service.saveProduct(any(ProductRequest.class)))
+        when(productApplicationService.saveProduct(any(ProductRequest.class)))
                 .thenThrow(new NotFoundException(getMessage(OPTION_TYPE_NOT_FOUND)));
 
         ResultActions perform = performWithBody(mockMvc, post(BASE_PATH), request);
@@ -138,7 +141,7 @@ class ProductControllerTest {
     @DisplayName("상품 저장 테스트-실패(옵션 값 없음)")
     void createProductTest_notFound_optionValue() throws Exception {
         ProductRequest request = createProductRequest();
-        when(service.saveProduct(any(ProductRequest.class)))
+        when(productApplicationService.saveProduct(any(ProductRequest.class)))
                 .thenThrow(new NotFoundException(getMessage(OPTION_VALUE_NOT_FOUND)));
 
         ResultActions perform = performWithBody(mockMvc, post(BASE_PATH), request);
@@ -150,7 +153,7 @@ class ProductControllerTest {
     @DisplayName("상품 저장 테스트-실패(옵션 값이 상품 옵션 타입의 옵션 값에 속하지 않는경우)")
     void createProductTest_notMatchType() throws Exception {
         ProductRequest request = createProductRequest();
-        when(service.saveProduct(any(ProductRequest.class)))
+        when(productApplicationService.saveProduct(any(ProductRequest.class)))
                 .thenThrow(new BadRequestException(getMessage(PRODUCT_OPTION_VALUE_NOT_MATCH_TYPE)));
 
         ResultActions perform = performWithBody(mockMvc, post(BASE_PATH), request);
@@ -162,7 +165,7 @@ class ProductControllerTest {
     @DisplayName("상품 저장 테스트-실패(하나의 옵션타입당 하나의 옵션 값만 설정 가능)")
     void createProductTest_cardinality_violation() throws Exception {
         ProductRequest request = createProductRequest();
-        when(service.saveProduct(any(ProductRequest.class)))
+        when(productApplicationService.saveProduct(any(ProductRequest.class)))
                 .thenThrow(new BadRequestException(getMessage(PRODUCT_OPTION_VALUE_CARDINALITY_VIOLATION)));
 
         ResultActions perform = performWithBody(mockMvc, post(BASE_PATH), request);
@@ -178,7 +181,7 @@ class ProductControllerTest {
                 List.of(new ProductOptionTypeRequest(1L, 1),
                         new ProductOptionTypeRequest(1L,2)));
 
-        when(service.saveProduct(any(ProductRequest.class)))
+        when(productApplicationService.saveProduct(any(ProductRequest.class)))
                 .thenThrow(new BadRequestException(getMessage(PRODUCT_OPTION_TYPE_TYPE_BAD_REQUEST)));
 
         ResultActions perform = performWithBody(mockMvc, post(BASE_PATH), request);
@@ -195,7 +198,7 @@ class ProductControllerTest {
                         new ProductOptionTypeRequest(2L, 1))
         );
 
-        when(service.saveProduct(any(ProductRequest.class)))
+        when(productApplicationService.saveProduct(any(ProductRequest.class)))
                 .thenThrow(new BadRequestException(getMessage(PRODUCT_OPTION_TYPE_PRIORITY_BAD_REQUEST)));
 
         ResultActions perform = performWithBody(mockMvc, post(BASE_PATH), request);
@@ -209,7 +212,7 @@ class ProductControllerTest {
         AddImageRequest request = new AddImageRequest(List.of("http://test1.jpg", "http://test2.jpg"));
         List<ImageResponse> response = List.of(new ImageResponse(1L, "http://test1.jpg", 2),
                 new ImageResponse(1L, "http://test2.jpg", 3));
-        when(service.addImages(anyLong(), any(AddImageRequest.class)))
+        when(productApplicationService.addImages(anyLong(), any(AddImageRequest.class)))
                 .thenReturn(response);
         ResultActions perform = performWithBody(mockMvc, post(PRODUCT_IMAGE_BULK_PATH), request);
         verifySuccessResponse(perform, status().isCreated(), response);
@@ -228,7 +231,7 @@ class ProductControllerTest {
     @DisplayName("상품 이미지 추가 테스트-실패(상품 없음)")
     void addImagesTest_notFound() throws Exception {
         AddImageRequest request = new AddImageRequest(List.of("http://test1.jpg", "http://test2.jpg"));
-        when(service.addImages(anyLong(),any(AddImageRequest.class)))
+        when(productApplicationService.addImages(anyLong(),any(AddImageRequest.class)))
                 .thenThrow(new NotFoundException(getMessage(PRODUCT_NOT_FOUND)));
         ResultActions perform = performWithBody(mockMvc, post(PRODUCT_IMAGE_BULK_PATH), request);
         verifyErrorResponse(perform, status().isNotFound(), getMessage(NOT_FOUND),
@@ -242,7 +245,7 @@ class ProductControllerTest {
         ProductVariantResponse response = new ProductVariantResponse(1L, "sku", 1000, 10, 10,
                 List.of(new OptionValueResponse(1L, 1L, "value1"),
                         new OptionValueResponse(2L, 1L, "value2")));
-        when(service.addVariant(anyLong(), any(ProductVariantRequest.class)))
+        when(productApplicationService.addVariant(anyLong(), any(ProductVariantRequest.class)))
                 .thenReturn(response);
 
         ResultActions perform = performWithBody(mockMvc, post(PRODUCT_VARIANT_PATH), request);
@@ -262,7 +265,7 @@ class ProductControllerTest {
     @DisplayName("상품 변형 추가 테스트-실패(상품 없음)")
     void addVariantTest_notFound() throws Exception {
         ProductVariantRequest request = createProductVariantRequest();
-        when(service.addVariant(anyLong(), any(ProductVariantRequest.class)))
+        when(productApplicationService.addVariant(anyLong(), any(ProductVariantRequest.class)))
                 .thenThrow(new NotFoundException(getMessage(PRODUCT_VARIANT_NOT_FOUND)));
         ResultActions perform = performWithBody(mockMvc, post(PRODUCT_VARIANT_PATH), request);
         verifyErrorResponse(perform, status().isNotFound(), getMessage(NOT_FOUND),
@@ -273,7 +276,7 @@ class ProductControllerTest {
     @DisplayName("상품 변형 추가 테스트-실패(옵션 값이 상품 옵션 타입의 옵션 값에 속하지 않는경우)")
     void addVariantTest_notMatchType() throws Exception {
         ProductVariantRequest request = createProductVariantRequest();
-        when(service.addVariant(anyLong(), any(ProductVariantRequest.class)))
+        when(productApplicationService.addVariant(anyLong(), any(ProductVariantRequest.class)))
                 .thenThrow(new BadRequestException(getMessage(PRODUCT_OPTION_VALUE_NOT_MATCH_TYPE)));
         ResultActions perform = performWithBody(mockMvc, post(PRODUCT_VARIANT_PATH), request);
         verifyErrorResponse(perform, status().isBadRequest(), getMessage(BAD_REQUEST),
@@ -284,7 +287,7 @@ class ProductControllerTest {
     @DisplayName("상품 변형 추가 테스트-실패(하나의 옵션타입당 하나의 옵션 값만 설정 가능)")
     void addVariantTest_cardinality_violation() throws Exception {
         ProductVariantRequest request = createProductVariantRequest();
-        when(service.addVariant(anyLong(), any(ProductVariantRequest.class)))
+        when(productApplicationService.addVariant(anyLong(), any(ProductVariantRequest.class)))
                 .thenThrow(new BadRequestException(getMessage(PRODUCT_OPTION_VALUE_CARDINALITY_VIOLATION)));
         ResultActions perform = performWithBody(mockMvc, post(PRODUCT_VARIANT_PATH), request);
         verifyErrorResponse(perform, status().isBadRequest(), getMessage(BAD_REQUEST),
@@ -383,7 +386,7 @@ class ProductControllerTest {
         UpdateProductBasicRequest request =
                 new UpdateProductBasicRequest("updateName", "description", 1L);
         ProductUpdateResponse response = new ProductUpdateResponse(1L, "name", "description", 1L);
-        when(service.updateBasicInfoById(anyLong(), any(UpdateProductBasicRequest.class)))
+        when(productApplicationService.updateBasicInfoById(anyLong(), any(UpdateProductBasicRequest.class)))
                 .thenReturn(response);
 
         ResultActions perform = performWithBody(mockMvc, patch(ID_PATH), request);
@@ -403,7 +406,7 @@ class ProductControllerTest {
     @DisplayName("상품 기본 정보 수정 테스트-실패(상품 없음)")
     void updateBasicInfoTest_product_notFound() throws Exception {
         UpdateProductBasicRequest request = new UpdateProductBasicRequest("updatedName", "description", 1L);
-        when(service.updateBasicInfoById(anyLong(), any(UpdateProductBasicRequest.class)))
+        when(productApplicationService.updateBasicInfoById(anyLong(), any(UpdateProductBasicRequest.class)))
                 .thenThrow(new NotFoundException(getMessage(NOT_FOUND)));
         ResultActions perform = performWithBody(mockMvc, patch(ID_PATH), request);
         verifyErrorResponse(perform, status().isNotFound(), getMessage(NOT_FOUND),
@@ -414,7 +417,7 @@ class ProductControllerTest {
     @DisplayName("상품 기본 정보 수정 테스트-실패(카테고리 없음)")
     void updateBasicInfoTest_category_notFound() throws Exception {
         UpdateProductBasicRequest request = new UpdateProductBasicRequest("updatedName", "description", 1L);
-        when(service.updateBasicInfoById(anyLong(), any(UpdateProductBasicRequest.class)))
+        when(productApplicationService.updateBasicInfoById(anyLong(), any(UpdateProductBasicRequest.class)))
                 .thenThrow(new NotFoundException(getMessage(CATEGORY_NOT_FOUND)));
         ResultActions perform = performWithBody(mockMvc, patch(ID_PATH), request);
         verifyErrorResponse(perform, status().isNotFound(), getMessage(NOT_FOUND),
@@ -424,7 +427,7 @@ class ProductControllerTest {
     @Test
     @DisplayName("상품 삭제 테스트-성공")
     void deleteProductTest_success() throws Exception {
-        doNothing().when(service).deleteProductById(anyLong());
+        doNothing().when(productApplicationService).deleteProductById(anyLong());
         ResultActions perform = performWithBody(mockMvc, delete(ID_PATH), null);
         verifySuccessResponse(perform, status().isNoContent(), null);
     }
@@ -433,7 +436,7 @@ class ProductControllerTest {
     @DisplayName("상품 삭제 테스트-실패(상품 없음)")
     void deleteProductTest_notFound() throws Exception {
         doThrow(new NotFoundException(getMessage(PRODUCT_NOT_FOUND)))
-                .when(service).deleteProductById(anyLong());
+                .when(productApplicationService).deleteProductById(anyLong());
         ResultActions perform = performWithBody(mockMvc, delete(ID_PATH), null);
         verifyErrorResponse(perform, status().isNotFound(), getMessage(NOT_FOUND),
                 getMessage(PRODUCT_NOT_FOUND), ID_PATH);

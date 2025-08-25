@@ -17,6 +17,7 @@ import com.example.product_service.dto.response.image.ImageResponse;
 import com.example.product_service.dto.response.product.*;
 import com.example.product_service.dto.response.variant.ProductVariantResponse;
 import com.example.product_service.entity.DomainType;
+import com.example.product_service.service.ProductApplicationService;
 import com.example.product_service.service.ProductService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -40,6 +41,7 @@ import java.util.List;
 public class ProductController {
 
     private final ProductService productService;
+    private final ProductApplicationService productApplicationService;
     private final PageableValidatorFactory pageableValidatorFactory;
 
     @AdminApi
@@ -49,7 +51,7 @@ public class ProductController {
     @PostMapping
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<ProductResponse> createProduct(@RequestBody @Validated ProductRequest request){
-        ProductResponse response = productService.saveProduct(request);
+        ProductResponse response = productApplicationService.saveProduct(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -61,7 +63,7 @@ public class ProductController {
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<List<ImageResponse>> addImages(@PathVariable("productId") Long productId,
                                                          @Validated  @RequestBody AddImageRequest request){
-        List<ImageResponse> response = productService.addImages(productId, request);
+        List<ImageResponse> response = productApplicationService.addImages(productId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -73,7 +75,7 @@ public class ProductController {
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<ProductVariantResponse> addVariant(@PathVariable("productId") Long productId,
                                                              @Validated @RequestBody ProductVariantRequest request){
-        ProductVariantResponse response = productService.addVariant(productId, request);
+        ProductVariantResponse response = productApplicationService.addVariant(productId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -140,7 +142,7 @@ public class ProductController {
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<ProductUpdateResponse> updateBasicInfo(@PathVariable("productId") Long productId,
                                                                  @Validated @RequestBody UpdateProductBasicRequest request){
-        ProductUpdateResponse response = productService.updateBasicInfoById(productId, request);
+        ProductUpdateResponse response = productApplicationService.updateBasicInfoById(productId, request);
         return ResponseEntity.ok(response);
     }
 
@@ -151,7 +153,7 @@ public class ProductController {
     @DeleteMapping("/{productId}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<Void> deleteProduct(@PathVariable("productId") Long productId){
-        productService.deleteProductById(productId);
+        productApplicationService.deleteProductById(productId);
         return ResponseEntity.noContent().build();
     }
 }

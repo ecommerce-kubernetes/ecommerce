@@ -6,6 +6,7 @@ import com.example.product_service.common.advice.CustomAuthenticationEntryPoint;
 import com.example.product_service.config.WebSecurity;
 import com.example.product_service.controller.ProductController;
 import com.example.product_service.controller.util.validator.PageableValidatorFactory;
+import com.example.product_service.service.ProductApplicationService;
 import com.example.product_service.util.UserRole;
 import com.example.product_service.dto.request.image.AddImageRequest;
 import com.example.product_service.dto.request.image.ImageRequest;
@@ -50,6 +51,8 @@ public class ProductControllerSecurityTest {
     MockMvc mockMvc;
     @MockitoBean
     ProductService productService;
+    @MockitoBean
+    ProductApplicationService productApplicationService;
 
     @Test
     @DisplayName("상품 저장 테스트-인증 에러")
