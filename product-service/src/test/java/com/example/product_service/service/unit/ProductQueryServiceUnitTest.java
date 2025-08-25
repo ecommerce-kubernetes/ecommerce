@@ -10,7 +10,7 @@ import com.example.product_service.dto.response.variant.ProductVariantResponse;
 import com.example.product_service.entity.*;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.repository.*;
-import com.example.product_service.service.ProductReader;
+import com.example.product_service.service.ProductQueryService;
 import com.example.product_service.service.dto.ReviewStats;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -32,7 +32,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class ProductReaderUnitTest {
+public class ProductQueryServiceUnitTest {
 
     @Mock
     CategoryRepository categoryRepository;
@@ -51,7 +51,7 @@ public class ProductReaderUnitTest {
     @Mock
     MessageSourceUtil ms;
     @InjectMocks
-    ProductReader productReader;
+    ProductQueryService productQueryService;
 
     @Test
     @DisplayName("상품 조회 테스트-성공")
@@ -61,7 +61,7 @@ public class ProductReaderUnitTest {
         Pageable pageable = PageRequest.of(0, 10, Sort.Direction.ASC, "rating");
         Page<ProductSummary> pageProductSummary = createPageProductSummary(pageable);
         mockProductSummaryFindAll("", List.of(2L, 3L), 2, pageable, pageProductSummary);
-        PageDto<ProductSummaryResponse> products = productReader.getProducts(productSearch, pageable);
+        PageDto<ProductSummaryResponse> products = productQueryService.getProducts(productSearch, pageable);
 
         assertThat(products.getPageSize()).isEqualTo(10);
         assertThat(products.getCurrentPage()).isEqualTo(0);
@@ -93,7 +93,7 @@ public class ProductReaderUnitTest {
         mockProductVariant(1L, List.of(productVariant));
         mockReviewStats(1L, 30L, 2.6);
 
-        ProductResponse response = productReader.getProductById(1L);
+        ProductResponse response = productQueryService.getProductById(1L);
 
         assertThat(response.getId()).isEqualTo(1L);
         assertThat(response.getName()).isEqualTo("productName");
@@ -129,7 +129,7 @@ public class ProductReaderUnitTest {
     void getProductByIdTest_unit_notFound(){
         mockProductFindById(1L, null);
         mockMessageUtil(PRODUCT_NOT_FOUND, "Product not found");
-        assertThatThrownBy(() -> productReader.getProductById(1L))
+        assertThatThrownBy(() -> productQueryService.getProductById(1L))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage(getMessage(PRODUCT_NOT_FOUND));
     }
@@ -144,7 +144,7 @@ public class ProductReaderUnitTest {
         when(productSummaryRepository.findPopularProductSummary(List.of(1L,2L), 3.2, 5, pageable))
                 .thenReturn(createPageProductSummary(pageable));
 
-        PageDto<ProductSummaryResponse> products = productReader.getPopularProducts(0, 10, 1L);
+        PageDto<ProductSummaryResponse> products = productQueryService.getPopularProducts(0, 10, 1L);
 
         assertThat(products.getPageSize()).isEqualTo(10);
         assertThat(products.getCurrentPage()).isEqualTo(0);
@@ -158,7 +158,7 @@ public class ProductReaderUnitTest {
         when(reviewsRepository.findAllByProductId(1L, pageable))
                 .thenReturn(createPageReviews(pageable));
 
-        PageDto<ReviewResponse> response = productReader.getReviewsByProductId(1L, pageable);
+        PageDto<ReviewResponse> response = productQueryService.getReviewsByProductId(1L, pageable);
 
         assertThat(response.getCurrentPage()).isEqualTo(0);
         assertThat(response.getPageSize()).isEqualTo(10);
@@ -181,7 +181,7 @@ public class ProductReaderUnitTest {
         when(productsRepository.existsById(1L))
                 .thenReturn(false);
         mockMessageUtil(PRODUCT_NOT_FOUND, "Product not found");
-        assertThatThrownBy(() -> productReader.getReviewsByProductId(1L, pageable))
+        assertThatThrownBy(() -> productQueryService.getReviewsByProductId(1L, pageable))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage(getMessage(PRODUCT_NOT_FOUND));
     }

@@ -24,7 +24,7 @@ import static com.example.product_service.common.MessagePath.PRODUCT_NOT_FOUND;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class ProductReader {
+public class ProductQueryService {
 
     private static final int MINIMUM_REVIEW = 5;
 
