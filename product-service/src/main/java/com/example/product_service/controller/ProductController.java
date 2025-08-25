@@ -18,7 +18,7 @@ import com.example.product_service.dto.response.product.*;
 import com.example.product_service.dto.response.variant.ProductVariantResponse;
 import com.example.product_service.entity.DomainType;
 import com.example.product_service.service.ProductApplicationService;
-import com.example.product_service.service.ProductService;
+import com.example.product_service.service.ProductQueryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -40,8 +40,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ProductController {
 
-    private final ProductService productService;
     private final ProductApplicationService productApplicationService;
+    private final ProductQueryService productQueryService;
     private final PageableValidatorFactory pageableValidatorFactory;
 
     @AdminApi
@@ -89,7 +89,7 @@ public class ProductController {
 
         PageableValidator validator = pageableValidatorFactory.getValidator(DomainType.PRODUCT);
         Pageable validatedPageable = validator.validate(pageable);
-        PageDto<ProductSummaryResponse> response = productService.getProducts(search, validatedPageable);
+        PageDto<ProductSummaryResponse> response = productQueryService.getProducts(search, validatedPageable);
         return ResponseEntity.ok(response);
     }
 
@@ -98,7 +98,7 @@ public class ProductController {
     @NotFoundApiResponse
     @GetMapping("/{productId}")
     public ResponseEntity<ProductResponse> getProduct(@PathVariable("productId") Long productId){
-        ProductResponse response = productService.getProductById(productId);
+        ProductResponse response = productQueryService.getProductById(productId);
         return ResponseEntity.ok(response);
     }
 
@@ -118,7 +118,7 @@ public class ProductController {
     public ResponseEntity<PageDto<ProductSummaryResponse>> getPopularProducts(@RequestParam(name = "page", defaultValue = "0") int page,
                                                                       @RequestParam(name = "size", defaultValue = "10") int size,
                                                                       @RequestParam(name = "categoryId", required = false) Long categoryId){
-        PageDto<ProductSummaryResponse> response = productService.getPopularProducts(page, size, categoryId);
+        PageDto<ProductSummaryResponse> response = productQueryService.getPopularProducts(page, size, categoryId);
         return ResponseEntity.ok(response);
     }
 
@@ -130,7 +130,7 @@ public class ProductController {
                                                                          @PageableDefault(page = 0, size = 10, sort = "rating", direction = Sort.Direction.ASC) Pageable pageable){
         PageableValidator validator = pageableValidatorFactory.getValidator(DomainType.REVIEW);
         Pageable validatedPageable = validator.validate(pageable);
-        PageDto<ReviewResponse> result = productService.getReviewsByProductId(productId, validatedPageable);
+        PageDto<ReviewResponse> result = productQueryService.getReviewsByProductId(productId, validatedPageable);
         return ResponseEntity.ok(result);
     }
 

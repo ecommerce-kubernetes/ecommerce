@@ -26,7 +26,7 @@ import com.example.product_service.entity.DomainType;
 import com.example.product_service.exception.BadRequestException;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.service.ProductApplicationService;
-import com.example.product_service.service.ProductService;
+import com.example.product_service.service.ProductQueryService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -74,9 +74,9 @@ class ProductControllerTest {
     @MockitoBean
     PageableValidatorFactory pageableValidatorFactory;
     @MockitoBean
-    ProductService service;
-    @MockitoBean
     ProductApplicationService productApplicationService;
+    @MockitoBean
+    ProductQueryService productQueryService;
 
     @BeforeEach
     void setUpMessages() {
@@ -301,7 +301,7 @@ class ProductControllerTest {
                 createProductSummaryResponse(),
                 0, 10, 10, 100);
         when(pageableValidatorFactory.getValidator(DomainType.PRODUCT)).thenReturn(new ProductPageableValidator());
-        when(service.getProducts(any(ProductSearch.class), any(Pageable.class)))
+        when(productQueryService.getProducts(any(ProductSearch.class), any(Pageable.class)))
                 .thenReturn(response);
         ResultActions perform = performWithPageRequest(mockMvc, get(BASE_PATH), 0,
                 10, List.of("id,asc"), Map.of("categoryId", "3", "rating", "5"));
@@ -325,7 +325,7 @@ class ProductControllerTest {
     @DisplayName("상품 상세 조회 테스트-성공")
     void getProductTest_success() throws Exception {
         ProductResponse response = createProductResponse();
-        when(service.getProductById(anyLong()))
+        when(productQueryService.getProductById(anyLong()))
                 .thenReturn(response);
         ResultActions perform = performWithBody(mockMvc, get(ID_PATH), null);
         verifySuccessResponse(perform, status().isOk(), response);
@@ -334,7 +334,7 @@ class ProductControllerTest {
     @Test
     @DisplayName("상품 상세 조회 테스트-실패(없음)")
     void getProductTest_notFound() throws Exception {
-        when(service.getProductById(anyLong()))
+        when(productQueryService.getProductById(anyLong()))
                 .thenThrow(new NotFoundException(getMessage(PRODUCT_NOT_FOUND)));
         ResultActions perform = performWithBody(mockMvc, get(ID_PATH), null);
         verifyErrorResponse(perform, status().isNotFound(),
@@ -346,7 +346,7 @@ class ProductControllerTest {
     void getPopularProductsTest_success() throws Exception {
         PageDto<ProductSummaryResponse> response =
                 new PageDto<>(createProductSummaryResponse(), 0, 10, 10, 100);
-        when(service.getPopularProducts(anyInt(), anyInt(), anyLong()))
+        when(productQueryService.getPopularProducts(anyInt(), anyInt(), anyLong()))
                 .thenReturn(response);
         ResultActions perform = performWithParams(mockMvc, get(POPULAR_PATH), new LinkedMultiValueMap<>() {{
             add("page", "0");
@@ -360,7 +360,7 @@ class ProductControllerTest {
     @DisplayName("상품 리뷰 조회 테스트-성공")
     void getReviewsByProductIdTest_success() throws Exception {
         PageDto<ReviewResponse> response = new PageDto<>(createReviewResponse(), 0, 10, 10, 100);
-        when(service.getReviewsByProductId(anyLong(), any(Pageable.class)))
+        when(productQueryService.getReviewsByProductId(anyLong(), any(Pageable.class)))
                 .thenReturn(response);
         when(pageableValidatorFactory.getValidator(DomainType.REVIEW)).thenReturn(new ReviewPageableValidator());
 
@@ -371,7 +371,7 @@ class ProductControllerTest {
     @Test
     @DisplayName("상품 리뷰 조회 테스트-실패(상품 없음)")
     void getReviewsByProductIdTest_notFound() throws Exception {
-        when(service.getReviewsByProductId(anyLong(), any(Pageable.class)))
+        when(productQueryService.getReviewsByProductId(anyLong(), any(Pageable.class)))
                 .thenThrow(new NotFoundException(getMessage(PRODUCT_NOT_FOUND)));
         when(pageableValidatorFactory.getValidator(DomainType.REVIEW)).thenReturn(new ReviewPageableValidator());
 

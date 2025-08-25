@@ -7,6 +7,7 @@ import com.example.product_service.config.WebSecurity;
 import com.example.product_service.controller.ProductController;
 import com.example.product_service.controller.util.validator.PageableValidatorFactory;
 import com.example.product_service.service.ProductApplicationService;
+import com.example.product_service.service.ProductQueryService;
 import com.example.product_service.util.UserRole;
 import com.example.product_service.dto.request.image.AddImageRequest;
 import com.example.product_service.dto.request.image.ImageRequest;
@@ -15,7 +16,6 @@ import com.example.product_service.dto.request.product.ProductRequest;
 import com.example.product_service.dto.request.product.UpdateProductBasicRequest;
 import com.example.product_service.dto.request.variant.ProductVariantRequest;
 import com.example.product_service.dto.request.variant.VariantOptionValueRequest;
-import com.example.product_service.service.ProductService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,9 +50,9 @@ public class ProductControllerSecurityTest {
     @Autowired
     MockMvc mockMvc;
     @MockitoBean
-    ProductService productService;
-    @MockitoBean
     ProductApplicationService productApplicationService;
+    @MockitoBean
+    ProductQueryService productQueryService;
 
     @Test
     @DisplayName("상품 저장 테스트-인증 에러")

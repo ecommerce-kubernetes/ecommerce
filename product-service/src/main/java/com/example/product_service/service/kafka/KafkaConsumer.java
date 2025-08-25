@@ -4,7 +4,6 @@ import com.example.product_service.dto.KafkaOrderChangeDto;
 import com.example.product_service.dto.KafkaOrderDto;
 import com.example.product_service.dto.KafkaOrderItemDto;
 import com.example.product_service.exception.InsufficientStockException;
-import com.example.product_service.service.ProductService;
 import com.fasterxml.jackson.core.JacksonException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +20,6 @@ import java.util.List;
 public class KafkaConsumer {
 
     private ObjectMapper mapper = new ObjectMapper();
-    private final ProductService productService;
     private final KafkaProducer kafkaProducer;
 
     @KafkaListener(topics = "decrement_product", groupId = "products")
