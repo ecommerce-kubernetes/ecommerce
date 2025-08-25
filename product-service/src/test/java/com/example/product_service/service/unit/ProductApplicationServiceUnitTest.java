@@ -810,7 +810,7 @@ public class ProductApplicationServiceUnitTest {
 
     private ProductRequest createProductRequest(){
         return new ProductRequest("아이폰 16 Pro", "애플 IPhone 16 (Model-Pro)", 1L,
-                List.of(new ImageRequest("http://iphone16-1.jpg"), new ImageRequest("http://iphone16-2.jpg")),
+                List.of("http://iphone16-1.jpg", "http://iphone16-2.jpg"),
                 List.of(new ProductOptionTypeRequest(1L, 0), new ProductOptionTypeRequest(2L, 1)),
                 List.of(
                         new ProductVariantRequest("IPHONE16Pro-128GB-RED", 1200000, 100, 5,
@@ -832,8 +832,8 @@ public class ProductApplicationServiceUnitTest {
             productOptionTypes.add(productOptionType);
         }
 
-        for(ImageRequest imageRequest : request.getImages()){
-            ProductImages productImage = new ProductImages(imageRequest.getUrl());
+        for(String url : request.getImages()){
+            ProductImages productImage = new ProductImages(url);
             productImages.add(productImage);
         }
 

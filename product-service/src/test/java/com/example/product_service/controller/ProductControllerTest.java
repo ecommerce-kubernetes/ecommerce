@@ -102,7 +102,7 @@ class ProductControllerTest {
     @DisplayName("상품 저장 테스트-실패(검증)")
     void createProductTest_validation() throws Exception {
         ProductRequest request = new ProductRequest("", "", null,
-                List.of(new ImageRequest("invalid")),
+                List.of("invalid"),
                 List.of(new ProductOptionTypeRequest(null, -1)),
                 List.of(new ProductVariantRequest("", -1, 0, 101, List.of())));
 
@@ -453,7 +453,7 @@ class ProductControllerTest {
 
     private ProductRequest createProductRequest() {
         return new ProductRequest("product", "description", 1L,
-                List.of(new ImageRequest(IMAGE_URL)),
+                List.of(IMAGE_URL),
                 List.of(new ProductOptionTypeRequest(1L, 0)),
                 List.of(new ProductVariantRequest("sku", 100, 10, 10, List.of(new VariantOptionValueRequest(1L, 1L)))));
     }

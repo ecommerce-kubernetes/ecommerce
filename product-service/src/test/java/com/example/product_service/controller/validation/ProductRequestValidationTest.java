@@ -56,6 +56,7 @@ public class ProductRequestValidationTest {
                 Arguments.of("categoryId", null, getMessage(NOT_NULL)),
                 Arguments.of("images", List.of(), getMessage(NOT_EMPTY)),
                 Arguments.of("images", null, getMessage(NOT_EMPTY)),
+                Arguments.of("images", List.of("invalid"), getMessage(INVALID_URL_MESSAGE)),
                 Arguments.of("productVariants", List.of(), getMessage(NOT_EMPTY))
         );
     }
@@ -64,7 +65,7 @@ public class ProductRequestValidationTest {
         return new ProductRequest("name",
                 "description",
                 1L,
-                List.of(new ImageRequest("http://test.jpg")),
+                List.of("http://test.jpg"),
                 List.of(new ProductOptionTypeRequest(1L, 0)),
                 createProductVariantRequestList());
     }

@@ -1,6 +1,5 @@
 package com.example.product_service.dto.request.product;
 
-import com.example.product_service.dto.request.image.ImageRequest;
 import com.example.product_service.dto.request.options.ProductOptionTypeRequest;
 import com.example.product_service.dto.request.variant.ProductVariantRequest;
 import jakarta.validation.Valid;
@@ -11,6 +10,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.validator.constraints.URL;
 
 import java.util.List;
 
@@ -25,7 +25,7 @@ public class ProductRequest {
     @NotNull(message = "{NotNull}")
     private Long categoryId;
     @NotEmpty(message = "{NotEmpty}") @Valid
-    private List<ImageRequest> images;
+    private List<@URL(message = "{InvalidUrl}") String> images;
     @Valid
     private List<ProductOptionTypeRequest> productOptionTypes;
     @NotEmpty(message = "{NotEmpty}") @Valid

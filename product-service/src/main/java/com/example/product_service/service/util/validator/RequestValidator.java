@@ -6,6 +6,7 @@ import com.example.product_service.dto.request.product.ProductRequest;
 import com.example.product_service.dto.request.variant.ProductVariantRequest;
 import com.example.product_service.dto.request.variant.VariantOptionValueRequest;
 import com.example.product_service.exception.BadRequestException;
+import com.example.product_service.service.dto.ProductCreationCommand;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -115,5 +116,9 @@ public class RequestValidator {
             throw new BadRequestException(ms.getMessage(PRODUCT_OPTION_VALUE_CARDINALITY_VIOLATION));
 
         }
+    }
+
+    private ProductCreationCommand buildProductCreationCommand(ProductRequest request){
+        return null;
     }
 }

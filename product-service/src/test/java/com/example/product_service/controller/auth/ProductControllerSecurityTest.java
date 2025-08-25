@@ -138,7 +138,7 @@ public class ProductControllerSecurityTest {
                 "name",
                 "description",
                 1L,
-                createImageRequestList(),
+                List.of("http://test.jpg"),
                 createProductOptionTypeRequestList(),
                 createProductVariantRequestList()
         );

@@ -38,8 +38,14 @@ public final class ValidationTestHelper {
 
     public static <T> void assertViolation(Set<ConstraintViolation<T>> violations, String fieldName, String expectedMessage){
         assertThat(violations)
-                .anyMatch(v -> v.getPropertyPath().toString().equals(fieldName)
-                        && v.getMessage().equals(expectedMessage));
+                .anyMatch(v -> {
+                    String path = v.getPropertyPath().toString();
+                    boolean fieldMatches =
+                            path.equals(fieldName) ||
+                                    path.startsWith(fieldName + "[") ||
+                                    path.startsWith(fieldName + ".");
+                    return fieldMatches && v.getMessage().equals(expectedMessage);
+                });
     }
 
     /**

@@ -54,7 +54,7 @@ public class ProductFactory {
     }
 
     private void mappingImages(ProductRequest request, Products product){
-        List<String> urls = request.getImages().stream().map(ImageRequest::getUrl).toList();
+        List<String> urls = request.getImages();
         List<ProductImages> productImages = urls.stream().map(ProductImages::new).toList();
         product.addImages(productImages);
     }

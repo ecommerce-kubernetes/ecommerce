@@ -651,7 +651,7 @@ public class ProductApplicationServiceTest {
 
     private ProductRequest createProductRequest() {
         return new ProductRequest("IPhone 16", "IPhone 모델 16", electronic.getId(),
-                List.of(new ImageRequest("http://iphone16.jpg")),
+                List.of("http://iphone16.jpg"),
                 List.of(new ProductOptionTypeRequest(storage.getId(), 0)),
                 List.of(new ProductVariantRequest("IPHONE16-128GB", 100, 10, 10,
                         List.of(new VariantOptionValueRequest(storage.getId(), gb_128.getId()))))
