@@ -8,7 +8,11 @@ import com.example.product_service.dto.request.variant.ProductVariantRequest;
 import com.example.product_service.dto.request.variant.VariantOptionValueRequest;
 import com.example.product_service.entity.*;
 import com.example.product_service.exception.BadRequestException;
+import com.example.product_service.service.dto.ProductCreationCommand;
+import com.example.product_service.service.dto.ProductVariantCommand;
+import com.example.product_service.service.dto.VariantOptionValueRef;
 import com.example.product_service.service.util.validator.RequestValidator;
+import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,7 +40,31 @@ class RequestValidatorTest {
     @DisplayName("productRequest 검증 테스트-성공")
     void validateProductRequestStructureTest_success(){
         ProductRequest request = createProductRequest();
-        assertThatNoException().isThrownBy(() -> validator.validateProductRequest(request));
+        ProductCreationCommand productCreationCommand = validator.validateProductRequest(request);
+
+        assertThat(productCreationCommand.getName()).isEqualTo("name");
+        assertThat(productCreationCommand.getDescription()).isEqualTo("description");
+        assertThat(productCreationCommand.getImageUrls())
+                .containsExactlyInAnyOrder("http://test.jpg");
+
+        assertThat(productCreationCommand.getOptionTypeCommands())
+                .extracting("optionTypeId", "priority", "activate")
+                .containsExactlyInAnyOrder(
+                        tuple(1L, 1, true)
+                );
+
+        assertThat(productCreationCommand.getVariantCommands())
+                .extracting("sku", "price", "stockQuantity", "discountRate")
+                .containsExactlyInAnyOrder(
+                        tuple("sku", 1000, 100, 10)
+                );
+
+        assertThat(productCreationCommand.getVariantCommands())
+                .flatExtracting(ProductVariantCommand::getVariantOptionValues)
+                .extracting(VariantOptionValueRef::getOptionTypeId, VariantOptionValueRef::getOptionValueId)
+                .containsExactlyInAnyOrder(
+                        tuple(1L, 1L)
+                );
     }
 
     @Test

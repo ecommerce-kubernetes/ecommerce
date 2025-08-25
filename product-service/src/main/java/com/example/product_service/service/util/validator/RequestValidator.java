@@ -20,9 +20,11 @@ import static com.example.product_service.common.MessagePath.*;
 public class RequestValidator {
     private final MessageSourceUtil ms;
 
-    public void validateProductRequest(ProductRequest request){
+    public ProductCreationCommand validateProductRequest(ProductRequest request){
         Set<Long> optionTypeIdSet = extractAndValidateOptionTypeIds(request.getProductOptionTypes());
         validateProductVariantRequest(optionTypeIdSet, request.getProductVariants());
+
+        return buildProductCreationCommand(request);
     }
 
     public void validateVariantRequest(ProductVariantRequest request){
@@ -119,6 +121,6 @@ public class RequestValidator {
     }
 
     private ProductCreationCommand buildProductCreationCommand(ProductRequest request){
-        return null;
+        return new ProductCreationCommand(request);
     }
 }

@@ -2,7 +2,6 @@ package com.example.product_service.service.unit;
 
 import com.example.product_service.common.MessageSourceUtil;
 import com.example.product_service.dto.request.image.AddImageRequest;
-import com.example.product_service.dto.request.image.ImageRequest;
 import com.example.product_service.dto.request.options.ProductOptionTypeRequest;
 import com.example.product_service.dto.request.product.ProductRequest;
 import com.example.product_service.dto.request.product.UpdateProductBasicRequest;
@@ -19,6 +18,7 @@ import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.repository.CategoryRepository;
 import com.example.product_service.repository.ProductsRepository;
 import com.example.product_service.service.ProductApplicationService;
+import com.example.product_service.service.dto.ProductCreationCommand;
 import com.example.product_service.service.dto.ProductCreationData;
 import com.example.product_service.service.dto.ProductUpdateData;
 import com.example.product_service.service.dto.ProductVariantCreationData;
@@ -55,8 +55,6 @@ public class ProductApplicationServiceUnitTest {
     @Mock
     ProductFactory factory;
     @Mock
-    CategoryRepository categoryRepository;
-    @Mock
     MessageSourceUtil ms;
 
     @Captor
@@ -80,7 +78,8 @@ public class ProductApplicationServiceUnitTest {
         ProductRequest request = createProductRequest();
         Products product = createProduct(request, category, creationData);
 
-        doNothing().when(requestValidator).validateProductRequest(request);
+        ProductCreationCommand productCreationCommand = new ProductCreationCommand(request);
+        when(requestValidator.validateProductRequest(request)).thenReturn(productCreationCommand);
         when(productReferenceService.buildCreationData(request))
                 .thenReturn(creationData);
         when(factory.createProducts(request, creationData))
@@ -296,7 +295,8 @@ public class ProductApplicationServiceUnitTest {
         ProductRequest request = createProductRequest();
 
         //요청 Body 검증 통과
-        doNothing().when(requestValidator).validateProductRequest(request);
+        ProductCreationCommand productCreationCommand = new ProductCreationCommand(request);
+        when(requestValidator.validateProductRequest(request)).thenReturn(productCreationCommand);
 
         //DB 중복 예외를 던짐
         doThrow(new DuplicateResourceException(TestMessageUtil.getMessage(PRODUCT_VARIANT_SKU_CONFLICT)))
@@ -313,7 +313,8 @@ public class ProductApplicationServiceUnitTest {
         ProductRequest request = createProductRequest();
 
         //요청 Body 검증 통과
-        doNothing().when(requestValidator).validateProductRequest(request);
+        ProductCreationCommand productCreationCommand = new ProductCreationCommand(request);
+        when(requestValidator.validateProductRequest(request)).thenReturn(productCreationCommand);
 
         //카테고리 없음 예외를 던짐
         doThrow(new NotFoundException(TestMessageUtil.getMessage(CATEGORY_NOT_FOUND)))
@@ -330,7 +331,8 @@ public class ProductApplicationServiceUnitTest {
         ProductRequest request = createProductRequest();
 
         //요청 Body 검증 통과
-        doNothing().when(requestValidator).validateProductRequest(request);
+        ProductCreationCommand productCreationCommand = new ProductCreationCommand(request);
+        when(requestValidator.validateProductRequest(request)).thenReturn(productCreationCommand);
 
         //카테고리 검증 예외를 던짐
         doThrow(new BadRequestException(TestMessageUtil.getMessage(PRODUCT_CATEGORY_BAD_REQUEST)))
@@ -347,7 +349,8 @@ public class ProductApplicationServiceUnitTest {
         ProductRequest request = createProductRequest();
 
         //요청 Body 검증 통과
-        doNothing().when(requestValidator).validateProductRequest(request);
+        ProductCreationCommand productCreationCommand = new ProductCreationCommand(request);
+        when(requestValidator.validateProductRequest(request)).thenReturn(productCreationCommand);
 
         //옵션 타입 없음 예외를 던짐
         doThrow(new NotFoundException(TestMessageUtil.getMessage(OPTION_TYPE_NOT_FOUND)))
@@ -364,7 +367,8 @@ public class ProductApplicationServiceUnitTest {
         ProductRequest request = createProductRequest();
 
         //요청 Body 검증 통과
-        doNothing().when(requestValidator).validateProductRequest(request);
+        ProductCreationCommand productCreationCommand = new ProductCreationCommand(request);
+        when(requestValidator.validateProductRequest(request)).thenReturn(productCreationCommand);
 
         //옵션 값 없음 예외를 던짐
         doThrow(new NotFoundException(TestMessageUtil.getMessage(OPTION_VALUE_NOT_FOUND)))
@@ -397,7 +401,8 @@ public class ProductApplicationServiceUnitTest {
         );
 
         //요청 Body 검증 통과
-        doNothing().when(requestValidator).validateProductRequest(request);
+        ProductCreationCommand productCreationCommand = new ProductCreationCommand(request);
+        when(requestValidator.validateProductRequest(request)).thenReturn(productCreationCommand);
 
         //상품 생성 데이터 조회 성공
         when(productReferenceService.buildCreationData(request))
