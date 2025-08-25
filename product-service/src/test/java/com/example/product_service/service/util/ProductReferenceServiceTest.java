@@ -9,7 +9,6 @@ import com.example.product_service.dto.request.variant.VariantOptionValueRequest
 import com.example.product_service.entity.Categories;
 import com.example.product_service.entity.OptionTypes;
 import com.example.product_service.entity.OptionValues;
-import com.example.product_service.entity.Products;
 import com.example.product_service.exception.BadRequestException;
 import com.example.product_service.exception.DuplicateResourceException;
 import com.example.product_service.exception.NotFoundException;
@@ -18,7 +17,7 @@ import com.example.product_service.repository.OptionTypeRepository;
 import com.example.product_service.repository.OptionValueRepository;
 import com.example.product_service.repository.ProductVariantsRepository;
 import com.example.product_service.service.dto.ProductCreationData;
-import com.example.product_service.service.util.validator.ProductReferentialService;
+import com.example.product_service.service.util.validator.ProductReferenceService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -40,7 +39,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class ProductReferentialServiceTest {
+class ProductReferenceServiceTest {
     @Mock
     CategoryRepository categoryRepository;
     @Mock
@@ -53,11 +52,11 @@ class ProductReferentialServiceTest {
     MessageSourceUtil ms;
 
     @InjectMocks
-    ProductReferentialService validator;
+    ProductReferenceService validator;
 
     @Test
     @DisplayName("ProductRequest-성공")
-    void validAndFetch_success(){
+    void buildCreationData_success(){
         Categories category = createCategoriesWithSetId(1L, "category", "http://test.jpg");
         mockExistsBySkuIn(false, "sku");
         mockFindByCategory(1L, category);
@@ -70,7 +69,7 @@ class ProductReferentialServiceTest {
         mockFindOptionValueIn(List.of(1L), List.of(optionValue));
         ProductRequest request = createProductRequest();
 
-        ProductCreationData result = validator.validAndFetch(request);
+        ProductCreationData result = validator.buildCreationData(request);
 
         assertThat(result.getCategory()).isEqualTo(category);
         assertThat(result.getOptionTypeById()).hasSize(1);
@@ -80,30 +79,30 @@ class ProductReferentialServiceTest {
 
     @Test
     @DisplayName("ProductRequest SKU 중복")
-    void validAndFetch_duplicate_sku(){
+    void buildCreationData_duplicate_sku(){
         mockExistsBySkuIn(true, "sku");
         mockMessageUtil(PRODUCT_VARIANT_SKU_CONFLICT, "Product Variant SKU Conflict");
         ProductRequest request = createProductRequest();
-        assertThatThrownBy(() -> validator.validAndFetch(request))
+        assertThatThrownBy(() -> validator.buildCreationData(request))
                 .isInstanceOf(DuplicateResourceException.class)
                 .hasMessage(getMessage(PRODUCT_VARIANT_SKU_CONFLICT));
     }
 
     @Test
     @DisplayName("ProductRequest 카테고리 찾을 수 없음")
-    void validAndFetch_notFound_category(){
+    void buildCreationData_notFound_category(){
         mockExistsBySkuIn(false, "sku");
         mockFindByCategory(1L, null);
         mockMessageUtil(CATEGORY_NOT_FOUND, "Category not found");
         ProductRequest request = createProductRequest();
-        assertThatThrownBy(() -> validator.validAndFetch(request))
+        assertThatThrownBy(() -> validator.buildCreationData(request))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage(getMessage(CATEGORY_NOT_FOUND));
     }
 
     @Test
     @DisplayName("ProductRequest 카테고리가 최하위 카테고리가 아닌경우")
-    void validAndFetch_badRequest_category(){
+    void buildCreationData_badRequest_category(){
         mockExistsBySkuIn(false, "sku");
         Categories root = createCategoriesWithSetId(1L, "root", "http://test.jpg");
         Categories leaf = createCategoriesWithSetId(2L, "leaf", null);
@@ -111,28 +110,28 @@ class ProductReferentialServiceTest {
         mockFindByCategory(1L, root);
         mockMessageUtil(PRODUCT_CATEGORY_BAD_REQUEST, "category must be the lowest level");
         ProductRequest request = createProductRequest();
-        assertThatThrownBy(() -> validator.validAndFetch(request))
+        assertThatThrownBy(() -> validator.buildCreationData(request))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessage(getMessage(PRODUCT_CATEGORY_BAD_REQUEST));
     }
 
     @Test
     @DisplayName("ProductRequest 옵션 타입 찾을 수 없음")
-    void validAndFetch_notFound_optionType(){
+    void buildCreationData_notFound_optionType(){
         Categories category = createCategoriesWithSetId(1L, "category", "http://test.jpg");
         mockExistsBySkuIn(false, "sku");
         mockFindByCategory(1L, category);
         mockFindOptionTypeIn(List.of(1L), List.of());
         mockMessageUtil(OPTION_TYPE_NOT_FOUND, "OptionType not found");
         ProductRequest request = createProductRequest();
-        assertThatThrownBy(() -> validator.validAndFetch(request))
+        assertThatThrownBy(() -> validator.buildCreationData(request))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage(getMessage(OPTION_TYPE_NOT_FOUND));
     }
 
     @Test
     @DisplayName("ProductRequest 옵션 값을 찾을 수 없음")
-    void validAndFetch_notFound_optionValue(){
+    void buildCreationData_notFound_optionValue(){
         Categories category = createCategoriesWithSetId(1L, "category", "http://test.jpg");
         OptionTypes optionType = createOptionTypesWithSetId(1L, "optionType");
         mockExistsBySkuIn(false, "sku");
@@ -141,36 +140,36 @@ class ProductReferentialServiceTest {
         mockFindOptionValueIn(List.of(1L), List.of());
         mockMessageUtil(OPTION_VALUE_NOT_FOUND, "OptionValue not found");
         ProductRequest request = createProductRequest();
-        assertThatThrownBy(() -> validator.validAndFetch(request))
+        assertThatThrownBy(() -> validator.buildCreationData(request))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage(getMessage(OPTION_VALUE_NOT_FOUND));
     }
 
     @Test
     @DisplayName("ProductVariantRequest-성공")
-    void validateProductVariantTest_success(){
+    void buildVariantCreationDataTest_success(){
         ProductVariantRequest request = createProductVariantRequest();
     }
 
     @Test
     @DisplayName("ProductVariantRequest-sku 중복")
-    void validateProductVariantTest_duplicate_sku(){
+    void buildVariantCreationDataTest_duplicate_sku(){
         mockExistsBySkuIn(true, "sku");
         mockMessageUtil(PRODUCT_VARIANT_SKU_CONFLICT, "Product Variant SKU Conflict");
         ProductVariantRequest request = createProductVariantRequest();
-        assertThatThrownBy(() -> validator.validateProductVariant(request))
+        assertThatThrownBy(() -> validator.buildVariantCreationData(request))
                 .isInstanceOf(DuplicateResourceException.class)
                 .hasMessage(getMessage(PRODUCT_VARIANT_SKU_CONFLICT));
     }
 
     @Test
     @DisplayName("ProductVariantRequest-옵션 값 찾을 수 없음")
-    void validateProductVariantTest_notFound_optionValue(){
+    void buildVariantCreationDataTest_notFound_optionValue(){
         mockExistsBySkuIn(false, "sku");
         mockFindOptionValueIn(List.of(1L), List.of());
         mockMessageUtil(OPTION_VALUE_NOT_FOUND, "OptionValue not found");
         ProductVariantRequest request = createProductVariantRequest();
-        assertThatThrownBy(() -> validator.validateProductVariant(request))
+        assertThatThrownBy(() -> validator.buildVariantCreationData(request))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage(getMessage(OPTION_VALUE_NOT_FOUND));
     }

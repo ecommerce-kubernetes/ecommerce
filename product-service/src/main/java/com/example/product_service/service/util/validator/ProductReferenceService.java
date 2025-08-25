@@ -30,14 +30,14 @@ import static com.example.product_service.common.MessagePath.*;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class ProductReferentialService {
+public class ProductReferenceService {
     private final CategoryRepository categoryRepository;
     private final OptionTypeRepository optionTypeRepository;
     private final OptionValueRepository optionValueRepository;
     private final ProductVariantsRepository productVariantsRepository;
     private final MessageSourceUtil ms;
 
-    public ProductCreationData validAndFetch(ProductRequest request){
+    public ProductCreationData buildCreationData(ProductRequest request){
         //SKU 중복확인
         validateDuplicateSkus(request);
         //카테고리 조회 -> 없으면 예외 던짐
@@ -50,7 +50,7 @@ public class ProductReferentialService {
         return new ProductCreationData(categories, optionTypeById, optionValueById);
     }
 
-    public ProductVariantCreationData validateProductVariant(ProductVariantRequest request){
+    public ProductVariantCreationData buildVariantCreationData(ProductVariantRequest request){
         //SKU 중복 확인
         validateDuplicateSku(request.getSku());
 
@@ -60,7 +60,7 @@ public class ProductReferentialService {
         return new ProductVariantCreationData(optionValueById);
     }
 
-    public ProductUpdateData validateUpdateProduct(UpdateProductBasicRequest request){
+    public ProductUpdateData resolveUpdateData(UpdateProductBasicRequest request){
         Categories category = findCategoryByIdOrThrow(request.getCategoryId());
         return new ProductUpdateData(category);
     }

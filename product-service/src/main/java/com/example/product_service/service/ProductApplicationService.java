@@ -18,7 +18,7 @@ import com.example.product_service.service.dto.ProductCreationData;
 import com.example.product_service.service.dto.ProductUpdateData;
 import com.example.product_service.service.dto.ProductVariantCreationData;
 import com.example.product_service.service.util.factory.ProductFactory;
-import com.example.product_service.service.util.validator.ProductReferentialService;
+import com.example.product_service.service.util.validator.ProductReferenceService;
 import com.example.product_service.service.util.validator.RequestValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -35,7 +35,7 @@ public class ProductApplicationService {
 
     private final ProductsRepository productsRepository;
     private final RequestValidator requestValidator;
-    private final ProductReferentialService productReferentialService;
+    private final ProductReferenceService productReferenceService;
     private final ProductFactory factory;
     private final MessageSourceUtil ms;
 
@@ -43,7 +43,7 @@ public class ProductApplicationService {
         //요청 바디 유효성 검사
         requestValidator.validateProductRequest(request);
         //상품 sku 중복, 옵션 타입 연관관계 체크
-        ProductCreationData creationData = productReferentialService.validAndFetch(request);
+        ProductCreationData creationData = productReferenceService.buildCreationData(request);
         Products products = factory.createProducts(request, creationData);
 
         Products saved = productsRepository.save(products);
@@ -62,7 +62,7 @@ public class ProductApplicationService {
         }
 
         if(request.getCategoryId() != null){
-            ProductUpdateData productUpdateData = productReferentialService.validateUpdateProduct(request);
+            ProductUpdateData productUpdateData = productReferenceService.resolveUpdateData(request);
             target.setCategory(productUpdateData.getCategories());
         }
 
@@ -85,7 +85,7 @@ public class ProductApplicationService {
     public ProductVariantResponse addVariant(Long productId, ProductVariantRequest request){
         Products product = findProductByIdOrThrow(productId);
         requestValidator.validateVariantRequest(request);
-        ProductVariantCreationData creationData = productReferentialService.validateProductVariant(request);
+        ProductVariantCreationData creationData = productReferenceService.buildVariantCreationData(request);
         ProductVariants productVariant = factory.createProductVariant(request, creationData);
         product.addVariant(productVariant);
         return new ProductVariantResponse(productVariant);

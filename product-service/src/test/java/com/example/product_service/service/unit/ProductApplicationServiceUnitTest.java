@@ -23,7 +23,7 @@ import com.example.product_service.service.dto.ProductCreationData;
 import com.example.product_service.service.dto.ProductUpdateData;
 import com.example.product_service.service.dto.ProductVariantCreationData;
 import com.example.product_service.service.util.factory.ProductFactory;
-import com.example.product_service.service.util.validator.ProductReferentialService;
+import com.example.product_service.service.util.validator.ProductReferenceService;
 import com.example.product_service.service.util.validator.RequestValidator;
 import com.example.product_service.util.TestMessageUtil;
 import org.assertj.core.groups.Tuple;
@@ -51,7 +51,7 @@ public class ProductApplicationServiceUnitTest {
     @Mock
     RequestValidator requestValidator;
     @Mock
-    ProductReferentialService productReferentialService;
+    ProductReferenceService productReferenceService;
     @Mock
     ProductFactory factory;
     @Mock
@@ -81,7 +81,7 @@ public class ProductApplicationServiceUnitTest {
         Products product = createProduct(request, category, creationData);
 
         doNothing().when(requestValidator).validateProductRequest(request);
-        when(productReferentialService.validAndFetch(request))
+        when(productReferenceService.buildCreationData(request))
                 .thenReturn(creationData);
         when(factory.createProducts(request, creationData))
                 .thenReturn(product);
@@ -300,7 +300,7 @@ public class ProductApplicationServiceUnitTest {
 
         //DB 중복 예외를 던짐
         doThrow(new DuplicateResourceException(TestMessageUtil.getMessage(PRODUCT_VARIANT_SKU_CONFLICT)))
-                .when(productReferentialService).validAndFetch(request);
+                .when(productReferenceService).buildCreationData(request);
 
         assertThatThrownBy(() -> productApplicationService.saveProduct(request))
                 .isInstanceOf(DuplicateResourceException.class)
@@ -317,7 +317,7 @@ public class ProductApplicationServiceUnitTest {
 
         //카테고리 없음 예외를 던짐
         doThrow(new NotFoundException(TestMessageUtil.getMessage(CATEGORY_NOT_FOUND)))
-                .when(productReferentialService).validAndFetch(request);
+                .when(productReferenceService).buildCreationData(request);
 
         assertThatThrownBy(() -> productApplicationService.saveProduct(request))
                 .isInstanceOf(NotFoundException.class)
@@ -334,7 +334,7 @@ public class ProductApplicationServiceUnitTest {
 
         //카테고리 검증 예외를 던짐
         doThrow(new BadRequestException(TestMessageUtil.getMessage(PRODUCT_CATEGORY_BAD_REQUEST)))
-                .when(productReferentialService).validAndFetch(request);
+                .when(productReferenceService).buildCreationData(request);
 
         assertThatThrownBy(() -> productApplicationService.saveProduct(request))
                 .isInstanceOf(BadRequestException.class)
@@ -351,7 +351,7 @@ public class ProductApplicationServiceUnitTest {
 
         //옵션 타입 없음 예외를 던짐
         doThrow(new NotFoundException(TestMessageUtil.getMessage(OPTION_TYPE_NOT_FOUND)))
-                .when(productReferentialService).validAndFetch(request);
+                .when(productReferenceService).buildCreationData(request);
 
         assertThatThrownBy(() -> productApplicationService.saveProduct(request))
                 .isInstanceOf(NotFoundException.class)
@@ -368,7 +368,7 @@ public class ProductApplicationServiceUnitTest {
 
         //옵션 값 없음 예외를 던짐
         doThrow(new NotFoundException(TestMessageUtil.getMessage(OPTION_VALUE_NOT_FOUND)))
-                .when(productReferentialService).validAndFetch(request);
+                .when(productReferenceService).buildCreationData(request);
 
         assertThatThrownBy(() -> productApplicationService.saveProduct(request))
                 .isInstanceOf(NotFoundException.class)
@@ -400,7 +400,7 @@ public class ProductApplicationServiceUnitTest {
         doNothing().when(requestValidator).validateProductRequest(request);
 
         //상품 생성 데이터 조회 성공
-        when(productReferentialService.validAndFetch(request))
+        when(productReferenceService.buildCreationData(request))
                 .thenReturn(creationData);
 
         //옵션값이 optionType의 연관 엔티티가 아님 예외를 던짐
@@ -430,7 +430,7 @@ public class ProductApplicationServiceUnitTest {
 
         UpdateProductBasicRequest request = new UpdateProductBasicRequest("변경 이름", "변경 설명", 2L);
         when(productsRepository.findById(1L)).thenReturn(Optional.of(product));
-        when(productReferentialService.validateUpdateProduct(request))
+        when(productReferenceService.resolveUpdateData(request))
                 .thenReturn(new ProductUpdateData(electronicCategory));
         ProductUpdateResponse response = productApplicationService.updateBasicInfoById(1L, request);
 
@@ -467,7 +467,7 @@ public class ProductApplicationServiceUnitTest {
         UpdateProductBasicRequest request = new UpdateProductBasicRequest("변경 이름", "변경 설명", 2L);
         when(productsRepository.findById(1L)).thenReturn(Optional.of(product));
         doThrow(new NotFoundException(TestMessageUtil.getMessage(CATEGORY_NOT_FOUND)))
-                .when(productReferentialService).validateUpdateProduct(request);
+                .when(productReferenceService).resolveUpdateData(request);
 
         assertThatThrownBy(() -> productApplicationService.updateBasicInfoById(1L, request))
                 .isInstanceOf(NotFoundException.class)
@@ -491,7 +491,7 @@ public class ProductApplicationServiceUnitTest {
         UpdateProductBasicRequest request = new UpdateProductBasicRequest("변경 이름", "변경 설명", 2L);
         when(productsRepository.findById(1L)).thenReturn(Optional.of(product));
         doThrow(new BadRequestException(TestMessageUtil.getMessage(PRODUCT_CATEGORY_BAD_REQUEST)))
-                .when(productReferentialService).validateUpdateProduct(request);
+                .when(productReferenceService).resolveUpdateData(request);
 
         assertThatThrownBy(() -> productApplicationService.updateBasicInfoById(1L, request))
                 .isInstanceOf(BadRequestException.class)
@@ -601,7 +601,7 @@ public class ProductApplicationServiceUnitTest {
         productVariant.addProductVariantOptions(productVariantOptions);
 
         doNothing().when(requestValidator).validateVariantRequest(request);
-        when(productReferentialService.validateProductVariant(request))
+        when(productReferenceService.buildVariantCreationData(request))
                 .thenReturn(variantCreationData);
         when(factory.createProductVariant(request, variantCreationData)).thenReturn(productVariant);
 
@@ -689,7 +689,7 @@ public class ProductApplicationServiceUnitTest {
 
         doNothing().when(requestValidator).validateVariantRequest(request);
         doThrow(new DuplicateResourceException(getMessage(PRODUCT_VARIANT_SKU_CONFLICT)))
-                .when(productReferentialService).validateProductVariant(request);
+                .when(productReferenceService).buildVariantCreationData(request);
 
         assertThatThrownBy(() -> productApplicationService.addVariant(1L, request))
                 .isInstanceOf(DuplicateResourceException.class)
@@ -721,7 +721,7 @@ public class ProductApplicationServiceUnitTest {
         doNothing().when(requestValidator).validateVariantRequest(request);
 
         doThrow(new NotFoundException(getMessage(OPTION_VALUE_NOT_FOUND)))
-                .when(productReferentialService).validateProductVariant(request);
+                .when(productReferenceService).buildVariantCreationData(request);
 
         assertThatThrownBy(() -> productApplicationService.addVariant(1L, request))
                 .isInstanceOf(NotFoundException.class)
@@ -760,7 +760,7 @@ public class ProductApplicationServiceUnitTest {
         productVariant.addProductVariantOptions(productVariantOptions);
 
         doNothing().when(requestValidator).validateVariantRequest(request);
-        when(productReferentialService.validateProductVariant(request))
+        when(productReferenceService.buildVariantCreationData(request))
                 .thenReturn(variantCreationData);
         when(factory.createProductVariant(request, variantCreationData)).thenReturn(productVariant);
 
@@ -799,7 +799,7 @@ public class ProductApplicationServiceUnitTest {
         productVariant.addProductVariantOptions(productVariantOptions);
 
         doNothing().when(requestValidator).validateVariantRequest(request);
-        when(productReferentialService.validateProductVariant(request))
+        when(productReferenceService.buildVariantCreationData(request))
                 .thenReturn(variantCreationData);
         when(factory.createProductVariant(request, variantCreationData)).thenReturn(productVariant);
 
