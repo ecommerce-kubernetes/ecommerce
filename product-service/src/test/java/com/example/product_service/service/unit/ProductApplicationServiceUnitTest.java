@@ -1,6 +1,5 @@
 package com.example.product_service.service.unit;
 
-import com.example.product_service.common.MessagePath;
 import com.example.product_service.common.MessageSourceUtil;
 import com.example.product_service.dto.request.image.AddImageRequest;
 import com.example.product_service.dto.request.image.ImageRequest;
@@ -46,7 +45,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class ProductApplicationServiceTest {
+public class ProductApplicationServiceUnitTest {
     @Mock
     ProductsRepository productsRepository;
     @Mock
