@@ -19,14 +19,6 @@ import java.util.Map;
 @Component
 public class ProductFactory {
 
-    public Products createProducts(ProductRequest request, ProductCreationData data){
-        Products products = createBasicInfoProduct(request.getName(), request.getDescription(), data.getCategory());
-        mappingImages(request, products);
-        mappingProductOptionTypes(request, data, products);
-        mappingProductVariants(request, data, products);
-
-        return products;
-    }
 
     public Products createProducts(ProductCreationCommand command, ProductCreationData data){
         Products product = createBasicInfoProduct(command, data);
@@ -43,26 +35,11 @@ public class ProductFactory {
         return productVariant;
     }
 
-    private Products createBasicInfoProduct(String name, String description, Categories category){
-        return new Products(name, description, category);
-    }
 
     private Products createBasicInfoProduct(ProductCreationCommand command, ProductCreationData data){
         return new Products(command.getName(), command.getDescription(), data.getCategory());
     }
 
-    private void mappingProductOptionTypes(ProductRequest request, ProductCreationData data, Products product){
-        Map<Long, OptionTypes> optionTypeById = data.getOptionTypeById();
-        List<ProductOptionTypeRequest> productOptionTypes = request.getProductOptionTypes();
-        List<ProductOptionTypes> saveProductOptionTypeList = new ArrayList<>();
-        for (ProductOptionTypeRequest potRequest : productOptionTypes) {
-            OptionTypes optionType = optionTypeById.get(potRequest.getOptionTypeId());
-            ProductOptionTypes productOptionType = new ProductOptionTypes(optionType, potRequest.getPriority(), true);
-            saveProductOptionTypeList.add(productOptionType);
-        }
-
-        product.addOptionTypes(saveProductOptionTypeList);
-    }
 
     private void mappingProductOptionTypes(ProductCreationCommand command, ProductCreationData data, Products products){
         Map<Long, OptionTypes> optionTypeById = data.getOptionTypeById();
@@ -77,32 +54,9 @@ public class ProductFactory {
         products.addOptionTypes(saveProductOptionTypeList);
     }
 
-    private void mappingImages(ProductRequest request, Products product){
-        List<String> urls = request.getImages();
-        List<ProductImages> productImages = urls.stream().map(ProductImages::new).toList();
-        product.addImages(productImages);
-    }
-
     private void mappingImages(ProductCreationCommand command, Products product){
         List<ProductImages> productImages = command.getImageUrls().stream().map(ProductImages::new).toList();
         product.addImages(productImages);
-    }
-
-    private void mappingProductVariants(ProductRequest request, ProductCreationData data, Products product){
-        List<ProductVariants> saveProductVariantList = new ArrayList<>();
-        Map<Long, OptionValues> optionValueById = data.getOptionValueById();
-        for (ProductVariantRequest variantRequest : request.getProductVariants()) {
-            ProductVariants productVariant = new ProductVariants(
-                    variantRequest.getSku(),
-                    variantRequest.getPrice(),
-                    variantRequest.getStockQuantity(),
-                    variantRequest.getDiscountRate()
-            );
-            List<ProductVariantOptions> opts = buildVariantOptions(variantRequest.getVariantOption(), optionValueById);
-            productVariant.addProductVariantOptions(opts);
-            saveProductVariantList.add(productVariant);
-        }
-        product.addVariants(saveProductVariantList);
     }
 
     private void mappingProductVariants(ProductCreationCommand command, ProductCreationData data, Products product){

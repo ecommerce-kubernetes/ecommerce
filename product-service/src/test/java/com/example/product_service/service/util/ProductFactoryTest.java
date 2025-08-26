@@ -32,57 +32,6 @@ class ProductFactoryTest {
     @DisplayName("Factory 동작 테스트")
     void createProductsTest(){
         ProductRequest request = createProductRequest();
-        OptionTypes optionType = createOptionType(1L, "optionType");
-        OptionValues optionValue = createOptionValue(1L, "optionValue", optionType);
-
-        Map<Long, OptionTypes> optionTypeById = new HashMap<>();
-        optionTypeById.put(optionType.getId(), optionType);
-
-        Map<Long, OptionValues> optionValueById = new HashMap<>();
-        optionValueById.put(optionValue.getId(), optionValue);
-
-        ProductCreationData data = new ProductCreationData(
-                createCategory(1L),
-                optionTypeById,
-                optionValueById
-        );
-
-        Products product = factory.createProducts(request, data);
-
-        assertThat(product.getName()).isEqualTo("name");
-        assertThat(product.getDescription()).isEqualTo("description");
-        assertThat(product.getCategory().getId()).isEqualTo(1L);
-
-        assertThat(product.getImages())
-                .extracting("imageUrl", "sortOrder")
-                .containsExactlyInAnyOrder(
-                        tuple("http://test.jpg", 0),
-                        tuple("http://test2.jpg", 1)
-                );
-
-        assertThat(product.getProductOptionTypes()).hasSize(1);
-
-        assertThat(product.getProductOptionTypes().get(0).getOptionType().getId()).isEqualTo(1L);
-        assertThat(product.getProductOptionTypes().get(0).getOptionType().getName()).isEqualTo("optionType");
-
-        assertThat(product.getProductVariants())
-                .extracting("sku", "price", "stockQuantity", "discountValue")
-                .containsExactlyInAnyOrder(
-                        tuple("sku", 1000, 100, 10)
-                );
-
-        assertThat(product.getProductVariants().get(0).getProductVariantOptions()).hasSize(1);
-
-        assertThat(product.getProductVariants().get(0).getProductVariantOptions().get(0).getOptionValue().getId())
-                .isEqualTo(1L);
-        assertThat(product.getProductVariants().get(0).getProductVariantOptions().get(0).getOptionValue().getOptionValue())
-                .isEqualTo("optionValue");
-    }
-
-    @Test
-    @DisplayName("Factory 동작 테스트")
-    void createProductsTest_v2(){
-        ProductRequest request = createProductRequest();
         ProductCreationCommand command = new ProductCreationCommand(request);
         OptionTypes optionType = createOptionType(1L, "optionType");
         OptionValues optionValue = createOptionValue(1L, "optionValue", optionType);

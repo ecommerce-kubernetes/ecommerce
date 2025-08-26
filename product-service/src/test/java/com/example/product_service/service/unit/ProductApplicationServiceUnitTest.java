@@ -78,7 +78,7 @@ public class ProductApplicationServiceUnitTest {
         when(requestValidator.validateProductRequest(request)).thenReturn(productCreationCommand);
         when(productReferenceService.buildCreationData(request))
                 .thenReturn(creationData);
-        when(factory.createProducts(request, creationData))
+        when(factory.createProducts(productCreationCommand, creationData))
                 .thenReturn(product);
         when(productsRepository.save(any(Products.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -406,7 +406,7 @@ public class ProductApplicationServiceUnitTest {
 
         //옵션값이 optionType의 연관 엔티티가 아님 예외를 던짐
         doThrow(new BadRequestException(TestMessageUtil.getMessage(PRODUCT_OPTION_VALUE_NOT_MATCH_TYPE)))
-                .when(factory).createProducts(request, creationData);
+                .when(factory).createProducts(productCreationCommand, creationData);
 
         assertThatThrownBy(() -> productApplicationService.saveProduct(request))
                 .isInstanceOf(BadRequestException.class)

@@ -14,6 +14,7 @@ import com.example.product_service.entity.ProductVariants;
 import com.example.product_service.entity.Products;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.repository.ProductsRepository;
+import com.example.product_service.service.dto.ProductCreationCommand;
 import com.example.product_service.service.dto.ProductCreationData;
 import com.example.product_service.service.dto.ProductUpdateData;
 import com.example.product_service.service.dto.ProductVariantCreationData;
@@ -41,10 +42,10 @@ public class ProductApplicationService {
 
     public ProductResponse saveProduct(ProductRequest request){
         //요청 바디 유효성 검사
-        requestValidator.validateProductRequest(request);
+        ProductCreationCommand productCreationCommand = requestValidator.validateProductRequest(request);
         //상품 sku 중복, 옵션 타입 연관관계 체크
         ProductCreationData creationData = productReferenceService.buildCreationData(request);
-        Products products = factory.createProducts(request, creationData);
+        Products products = factory.createProducts(productCreationCommand, creationData);
 
         Products saved = productsRepository.save(products);
         return new ProductResponse(saved);
