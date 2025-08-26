@@ -2,10 +2,20 @@ package com.example.product_service.service;
 
 import com.example.product_service.dto.request.image.ImageRequest;
 import com.example.product_service.dto.response.image.ImageResponse;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
-import java.util.List;
 
-public interface ProductImageService {
-    ImageResponse updateImageById(Long imageId, ImageRequest request);
-    void deleteImageById(Long imageId);
+@Service
+@RequiredArgsConstructor
+public class ProductImageService {
+
+
+    public ImageResponse updateImageById(Long imageId, ImageRequest request) {
+        return null;
+    }
+
+    public void deleteImageById(Long imageId) {
+
+    }
 }

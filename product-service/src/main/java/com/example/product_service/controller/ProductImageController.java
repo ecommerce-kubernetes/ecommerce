@@ -4,7 +4,6 @@ import com.example.product_service.controller.util.specification.annotation.Admi
 import com.example.product_service.controller.util.specification.annotation.BadRequestApiResponse;
 import com.example.product_service.controller.util.specification.annotation.ForbiddenApiResponse;
 import com.example.product_service.controller.util.specification.annotation.NotFoundApiResponse;
-import com.example.product_service.dto.request.image.AddImageRequest;
 import com.example.product_service.dto.request.image.ImageRequest;
 import com.example.product_service.dto.response.image.ImageResponse;
 import com.example.product_service.service.ProductImageService;
@@ -12,13 +11,10 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @Tag(name = "ProductImage" , description = "상품 이미지 관련 API")
