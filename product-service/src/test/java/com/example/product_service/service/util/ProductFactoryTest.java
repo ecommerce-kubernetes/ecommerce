@@ -1,14 +1,11 @@
 package com.example.product_service.service.util;
 
-import com.example.product_service.dto.request.image.ImageRequest;
 import com.example.product_service.dto.request.options.ProductOptionTypeRequest;
 import com.example.product_service.dto.request.product.ProductRequest;
 import com.example.product_service.dto.request.variant.ProductVariantRequest;
 import com.example.product_service.dto.request.variant.VariantOptionValueRequest;
-import com.example.product_service.entity.Categories;
-import com.example.product_service.entity.OptionTypes;
-import com.example.product_service.entity.OptionValues;
-import com.example.product_service.entity.Products;
+import com.example.product_service.entity.*;
+import com.example.product_service.service.dto.ProductCreationCommand;
 import com.example.product_service.service.dto.ProductCreationData;
 import com.example.product_service.service.util.factory.ProductFactory;
 import org.junit.jupiter.api.DisplayName;
@@ -82,13 +79,70 @@ class ProductFactoryTest {
                 .isEqualTo("optionValue");
     }
 
+    @Test
+    @DisplayName("Factory 동작 테스트")
+    void createProductsTest_v2(){
+        ProductRequest request = createProductRequest();
+        ProductCreationCommand command = new ProductCreationCommand(request);
+        OptionTypes optionType = createOptionType(1L, "optionType");
+        OptionValues optionValue = createOptionValue(1L, "optionValue", optionType);
+
+        Map<Long, OptionTypes> optionTypeById = new HashMap<>();
+        optionTypeById.put(optionType.getId(), optionType);
+
+        Map<Long, OptionValues> optionValueById = new HashMap<>();
+        optionValueById.put(optionValue.getId(), optionValue);
+
+        ProductCreationData data = new ProductCreationData(
+                createCategory(1L),
+                optionTypeById,
+                optionValueById
+        );
+
+        Products product = factory.createProducts(command, data);
+
+        assertThat(product.getName()).isEqualTo("name");
+        assertThat(product.getDescription()).isEqualTo("description");
+        assertThat(product.getCategory().getId()).isEqualTo(1L);
+
+        assertThat(product.getImages())
+                .extracting("imageUrl", "sortOrder")
+                .containsExactlyInAnyOrder(
+                        tuple("http://test.jpg", 0),
+                        tuple("http://test2.jpg", 1)
+                );
+
+        assertThat(product.getProductOptionTypes())
+                .extracting(pot -> pot.getOptionType().getId(),
+                        pot -> pot.getOptionType().getName(),
+                        ProductOptionTypes::getPriority,
+                        ProductOptionTypes::isActive)
+                .containsExactlyInAnyOrder(
+                        tuple(1L, "optionType", 0, true)
+                );
+
+        assertThat(product.getProductVariants())
+                .extracting(ProductVariants::getSku,
+                        ProductVariants::getPrice,
+                        ProductVariants::getStockQuantity,
+                        ProductVariants::getDiscountValue)
+                .containsExactlyInAnyOrder(
+                        tuple("sku", 1000, 100, 10)
+                );
+
+        assertThat(product.getProductVariants())
+                .flatExtracting(ProductVariants::getProductVariantOptions)
+                .extracting(pvo -> pvo.getOptionValue().getOptionValue())
+                .containsExactlyInAnyOrder( "optionValue");
+    }
+
     private ProductRequest createProductRequest(){
         return new ProductRequest(
                 "name",
                 "description",
                 1L,
                 List.of("http://test.jpg", "http://test2.jpg"),
-                List.of(new ProductOptionTypeRequest(1L, 1)),
+                List.of(new ProductOptionTypeRequest(1L, 0)),
                 List.of(new ProductVariantRequest("sku", 1000, 100, 10,
                         List.of(
                                 new VariantOptionValueRequest(1L, 1L)
