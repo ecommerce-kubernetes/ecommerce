@@ -1,6 +1,5 @@
 package com.example.product_service.service.unit;
 
-import com.example.product_service.common.MessagePath;
 import com.example.product_service.common.MessageSourceUtil;
 import com.example.product_service.dto.request.image.UpdateImageRequest;
 import com.example.product_service.dto.response.image.ImageResponse;
@@ -11,7 +10,6 @@ import com.example.product_service.exception.BadRequestException;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.repository.ProductImagesRepository;
 import com.example.product_service.service.ProductImageService;
-import com.example.product_service.util.TestMessageUtil;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

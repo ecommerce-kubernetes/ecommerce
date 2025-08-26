@@ -122,4 +122,12 @@ public class Products extends BaseEntity {
         this.productVariants.add(productVariant);
         productVariant.setProduct(this);
     }
+
+    public void deleteVariant(ProductVariants productVariant){
+        if(this.productVariants.size() == 1){
+            throw new BadRequestException("must be at least one product variant per product");
+        }
+        this.productVariants.remove(productVariant);
+        productVariant.setProduct(null);
+    }
 }
