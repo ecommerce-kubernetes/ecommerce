@@ -1,9 +1,139 @@
 package com.example.product_service.service;
 
+import com.example.product_service.common.MessagePath;
+import com.example.product_service.entity.*;
+import com.example.product_service.exception.BadRequestException;
+import com.example.product_service.exception.NotFoundException;
+import com.example.product_service.repository.CategoryRepository;
+import com.example.product_service.repository.OptionTypeRepository;
+import com.example.product_service.repository.ProductsRepository;
+import com.example.product_service.util.TestMessageUtil;
+import jakarta.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.*;
 
 @SpringBootTest
-@Slf4j
+@Transactional
 class ProductVariantServiceImplTest {
+    @Autowired
+    ProductsRepository productsRepository;
+    @Autowired
+    OptionTypeRepository optionTypeRepository;
+    @Autowired
+    CategoryRepository categoryRepository;
+    @Autowired
+    ProductVariantService productVariantService;
+    @Autowired
+    EntityManager em;
+    OptionTypes storage;
+    Categories electronic;
+    OptionValues gb_128;
+    OptionValues gb_256;
+
+    @BeforeEach
+    void saveFixture(){
+        storage = new OptionTypes("용량");
+        electronic = new Categories("전자 기기", "http://electronic.jpg");
+        gb_128 = new OptionValues("128GB");
+        gb_256 = new OptionValues("256GB");
+        storage.addOptionValue(gb_128);
+        storage.addOptionValue(gb_256);
+        optionTypeRepository.save(storage);
+        categoryRepository.save(electronic);
+    }
+
+    @Test
+    @DisplayName("상품 변형 삭제 테스트-성공")
+    void deleteVariantByIdTest_integration_success(){
+        ProductImages productImage = createProductImages("http://iphone16-1.jpg", 0);
+        ProductOptionTypes productOptionType = createProductOptionType(storage);
+        ProductVariants productVariant1 = createProductVariants("IPHONE16-128GB", 10000, 100, 10, gb_128);
+        ProductVariants productVariant2 = createProductVariants("IPHONE16-256GB", 10000, 100, 10, gb_256);
+        Products product = createProduct("IPhone 16", "IPhone Model 16", electronic,
+                List.of(productImage), List.of(productOptionType), List.of(productVariant1, productVariant2));
+
+        productsRepository.save(product);
+        productVariantService.deleteVariantById(productVariant2.getId());
+        em.flush(); em.clear();
+
+        Products findProduct = productsRepository.findById(product.getId()).get();
+
+        assertThat(findProduct.getProductVariants().size()).isEqualTo(1);
+        assertThat(findProduct.getProductVariants())
+                .extracting(ProductVariants::getId, ProductVariants::getSku, ProductVariants::getPrice,
+                        ProductVariants::getStockQuantity, ProductVariants::getDiscountValue)
+                .containsExactlyInAnyOrder(
+                        tuple(productVariant1.getId(), productVariant1.getSku(), productVariant1.getPrice(),
+                                productVariant1.getStockQuantity(), productVariant1.getDiscountValue())
+                );
+
+        assertThat(product.getProductVariants())
+                .flatExtracting(ProductVariants::getProductVariantOptions)
+                .extracting(pvo -> pvo.getOptionValue().getOptionValue())
+                .containsExactlyInAnyOrder( "128GB");
+
+    }
+
+    @Test
+    @DisplayName("상품 변형 삭제 테스트-실패(상품 변형 찾을 수 없음)")
+    void deleteVariantByIdTest_integration_notFound_productVariant(){
+
+        assertThatThrownBy(() -> productVariantService.deleteVariantById(999L))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage(TestMessageUtil.getMessage(MessagePath.PRODUCT_VARIANT_NOT_FOUND));
+    }
+
+    @Test
+    @DisplayName("상품 변형 삭제 테스트-실패(상품에 존재하는 상품 변형의 개수가 1개일때)")
+    void deleteVariantByIdTest_integration_variant_minimum_number(){
+        ProductImages productImage = createProductImages("http://iphone16-1.jpg", 0);
+        ProductOptionTypes productOptionType = createProductOptionType(storage);
+        ProductVariants productVariant = createProductVariants("IPHONE16-128GB", 10000, 100, 10, gb_128);
+
+        Products product = createProduct("IPhone 16", "IPhone Model 16", electronic,
+                List.of(productImage), List.of(productOptionType), List.of(productVariant));
+
+        productsRepository.save(product);
+        em.flush(); em.clear();
+
+        assertThatThrownBy(() -> productVariantService.deleteVariantById(productVariant.getId()))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("must be at least one product variant per product");
+
+    }
+    private ProductImages createProductImages(String imageUrl, int sortOrder){
+        return new ProductImages(imageUrl, sortOrder);
+    }
+
+    private ProductOptionTypes createProductOptionType(OptionTypes optionTypes){
+        return new ProductOptionTypes(optionTypes, 0, true);
+    }
+
+    private ProductVariants createProductVariants(String sku, int price, int stockQuantity, int discountValue, OptionValues optionValues){
+        ProductVariantOptions productVariantOptions = new ProductVariantOptions(optionValues);
+
+        ProductVariants productVariants = new ProductVariants(sku, price, stockQuantity, discountValue);
+        productVariants.addProductVariantOption(productVariantOptions);
+        return productVariants;
+    }
+
+    private Products createProduct(String name, String description, Categories category,
+                                   List<ProductImages> productImages, List<ProductOptionTypes> productOptionTypes,
+                                   List<ProductVariants> productVariants){
+        Products product = new Products(name, description, category);
+        product.addImages(productImages);
+        product.addOptionTypes(productOptionTypes);
+        product.addVariants(productVariants);
+
+        return product;
+    }
 }
