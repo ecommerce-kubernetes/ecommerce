@@ -4,9 +4,30 @@ import com.example.product_service.dto.request.review.ReviewRequest;
 import com.example.product_service.dto.request.variant.UpdateProductVariantRequest;
 import com.example.product_service.dto.response.ReviewResponse;
 import com.example.product_service.dto.response.variant.ProductVariantResponse;
+import com.example.product_service.repository.OptionValueRepository;
+import com.example.product_service.repository.ProductVariantsRepository;
+import com.example.product_service.repository.ProductsRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-public interface ProductVariantService {
-    ProductVariantResponse updateVariantById(Long variantId, UpdateProductVariantRequest request);
-    void deleteVariantById(Long variantId);
-    ReviewResponse addReview(Long variantId, Long userId, ReviewRequest request);
+@Service
+@Transactional(readOnly = true)
+@RequiredArgsConstructor
+public class ProductVariantService{
+    private final ProductsRepository productsRepository;
+    private final OptionValueRepository optionValuesRepository;
+    private final ProductVariantsRepository productVariantsRepository;
+
+    public ReviewResponse addReview(Long variantId, Long userId, ReviewRequest request) {
+        return null;
+    }
+
+    public void deleteVariantById(Long variantId) {
+
+    }
+
+    public ProductVariantResponse updateVariantById(Long variantId, UpdateProductVariantRequest request) {
+        return null;
+    }
 }
