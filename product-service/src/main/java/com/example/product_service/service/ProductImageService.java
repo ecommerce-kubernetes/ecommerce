@@ -1,6 +1,5 @@
 package com.example.product_service.service;
 
-import com.example.product_service.common.MessagePath;
 import com.example.product_service.common.MessageSourceUtil;
 import com.example.product_service.dto.request.image.ImageRequest;
 import com.example.product_service.dto.response.image.ImageResponse;

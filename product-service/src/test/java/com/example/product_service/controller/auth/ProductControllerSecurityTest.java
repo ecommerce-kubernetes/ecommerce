@@ -10,7 +10,6 @@ import com.example.product_service.service.ProductApplicationService;
 import com.example.product_service.service.ProductQueryService;
 import com.example.product_service.util.UserRole;
 import com.example.product_service.dto.request.image.AddImageRequest;
-import com.example.product_service.dto.request.image.ImageRequest;
 import com.example.product_service.dto.request.options.ProductOptionTypeRequest;
 import com.example.product_service.dto.request.product.ProductRequest;
 import com.example.product_service.dto.request.product.UpdateProductBasicRequest;
@@ -150,10 +149,6 @@ public class ProductControllerSecurityTest {
                 "description",
                 1L
         );
-    }
-
-    private List<ImageRequest> createImageRequestList(){
-        return List.of(new ImageRequest("http://test.jpg"));
     }
 
     private List<ProductOptionTypeRequest> createProductOptionTypeRequestList(){
