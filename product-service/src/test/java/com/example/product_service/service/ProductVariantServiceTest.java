@@ -1,15 +1,17 @@
 package com.example.product_service.service;
 
 import com.example.product_service.common.MessagePath;
+import com.example.product_service.dto.request.variant.UpdateProductVariantRequest;
+import com.example.product_service.dto.response.variant.ProductVariantResponse;
 import com.example.product_service.entity.*;
 import com.example.product_service.exception.BadRequestException;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.repository.CategoryRepository;
 import com.example.product_service.repository.OptionTypeRepository;
+import com.example.product_service.repository.ProductVariantsRepository;
 import com.example.product_service.repository.ProductsRepository;
 import com.example.product_service.util.TestMessageUtil;
 import jakarta.persistence.EntityManager;
-import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -23,13 +25,15 @@ import static org.assertj.core.api.Assertions.*;
 
 @SpringBootTest
 @Transactional
-class ProductVariantServiceImplTest {
+class ProductVariantServiceTest {
     @Autowired
     ProductsRepository productsRepository;
     @Autowired
     OptionTypeRepository optionTypeRepository;
     @Autowired
     CategoryRepository categoryRepository;
+    @Autowired
+    ProductVariantsRepository productVariantsRepository;
     @Autowired
     ProductVariantService productVariantService;
     @Autowired
@@ -49,6 +53,46 @@ class ProductVariantServiceImplTest {
         storage.addOptionValue(gb_256);
         optionTypeRepository.save(storage);
         categoryRepository.save(electronic);
+    }
+
+    @Test
+    @DisplayName("상품 변형 수정 테스트-성공")
+    void updateVariantByIdTest_integration_success(){
+        ProductImages productImage = createProductImages("http://iphone16-1.jpg", 0);
+        ProductOptionTypes productOptionType = createProductOptionType(storage);
+        ProductVariants productVariant = createProductVariants("IPHONE16-128GB", 10000, 100, 10, gb_128);
+
+        Products product = createProduct("IPhone 16", "IPhone Model 16", electronic,
+                List.of(productImage), List.of(productOptionType), List.of(productVariant));
+
+        productsRepository.save(product);
+        em.flush(); em.clear();
+
+        UpdateProductVariantRequest request = new UpdateProductVariantRequest(50000, 100, 10);
+
+        ProductVariantResponse response = productVariantService.updateVariantById(productVariant.getId(), request);
+
+        assertThat(response.getId()).isEqualTo(productVariant.getId());
+        assertThat(response.getPrice()).isEqualTo(50000);
+        assertThat(response.getStockQuantity()).isEqualTo(100);
+        assertThat(response.getDiscountRate()).isEqualTo(10);
+
+        em.flush(); em.clear();
+
+        ProductVariants findProductVariant = productVariantsRepository.findById(productVariant.getId()).get();
+        assertThat(findProductVariant.getId()).isEqualTo(productVariant.getId());
+        assertThat(findProductVariant.getPrice()).isEqualTo(50000);
+        assertThat(findProductVariant.getStockQuantity()).isEqualTo(100);
+        assertThat(findProductVariant.getDiscountValue()).isEqualTo(10);
+    }
+
+    @Test
+    @DisplayName("상품 변형 수정 테스트-실패(상품 변형을 찾을 수 없음)")
+    void updateVariantByIdTest_integration_notFound_productVariant(){
+        UpdateProductVariantRequest request = new UpdateProductVariantRequest(50000, 100, 10);
+        assertThatThrownBy(() -> productVariantService.updateVariantById(999L, request))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage(TestMessageUtil.getMessage(MessagePath.PRODUCT_VARIANT_NOT_FOUND));
     }
 
     @Test

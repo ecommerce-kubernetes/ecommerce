@@ -24,14 +24,14 @@ public class UpdateProductVariantRequestValidationTest {
     @ParameterizedTest(name = "[{index}] {0} 필드 invalid")
     @MethodSource("invalidUpdateProductValiantRequestProvider")
     void updateProductVariantRequestValidation_field(String fieldName, Object invalidValue, String expectedMessage){
-        UpdateProductVariantRequest request = new UpdateProductVariantRequest(100, 100, 10, List.of(1L, 2L));
+        UpdateProductVariantRequest request = new UpdateProductVariantRequest(100, 100, 10);
         assertFieldViolation(request, fieldName, invalidValue, expectedMessage);
     }
 
     @Test
     @DisplayName("updateProductRequest 필드 동시 오류 발생시 전체 개수 및 필드 확인")
     void updateProductVariantRequestValidation_multiple(){
-        UpdateProductVariantRequest request = new UpdateProductVariantRequest(-1, 0, -1,List.of(1L, 2L));
+        UpdateProductVariantRequest request = new UpdateProductVariantRequest(-1, 0, -1);
         Set<ConstraintViolation<UpdateProductVariantRequest>> violations = validateField(request);
         List<String> fields = violations.stream().map(v -> v.getPropertyPath().toString()).toList();
 
@@ -42,7 +42,7 @@ public class UpdateProductVariantRequestValidationTest {
     @Test
     @DisplayName("UpdateProductRequest 오류 없음")
     void updateProductVariantRequestValidation_thenOk(){
-        UpdateProductVariantRequest request = new UpdateProductVariantRequest(100, 10, 5, List.of(1L, 2L));
+        UpdateProductVariantRequest request = new UpdateProductVariantRequest(100, 10, 5);
         Set<ConstraintViolation<UpdateProductVariantRequest>> violations = validateField(request);
         assertThat(violations).isEmpty();
     }

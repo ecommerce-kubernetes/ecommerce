@@ -134,7 +134,7 @@ public class ProductVariantControllerTest {
     @Test
     @DisplayName("상품 변형 수정 테스트-실패(검증)")
     void updateProductVariantTest_validation() throws Exception {
-        UpdateProductVariantRequest request = new UpdateProductVariantRequest(-199, -1, 120, List.of(1L, 2L));
+        UpdateProductVariantRequest request = new UpdateProductVariantRequest(-199, -1, 120);
         ResultActions perform = performWithBody(mockMvc, patch(ID_PATH), request);
         verifyErrorResponse(perform, status().isBadRequest(), ms.getMessage(BAD_REQUEST),
                 ms.getMessage(BAD_REQUEST_VALIDATION), ID_PATH);
@@ -199,7 +199,7 @@ public class ProductVariantControllerTest {
     }
 
     private UpdateProductVariantRequest createUpdateProductVariantRequest(){
-        return new UpdateProductVariantRequest(3000, 100, 10, List.of(1L, 2L));
+        return new UpdateProductVariantRequest(3000, 100, 10);
     }
 
     private ReviewRequest createReviewRequest(){

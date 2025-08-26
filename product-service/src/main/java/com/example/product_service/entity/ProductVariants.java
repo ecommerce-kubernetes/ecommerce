@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,8 +28,11 @@ public class ProductVariants {
     private List<Reviews> reviews = new ArrayList<>();
 
     private String sku; //TS-M-BLUE
+    @Setter
     private int price;
+    @Setter
     private int stockQuantity;
+    @Setter
     private int discountValue;
 
     public ProductVariants(String sku, int price, int stockQuantity, int discountValue){

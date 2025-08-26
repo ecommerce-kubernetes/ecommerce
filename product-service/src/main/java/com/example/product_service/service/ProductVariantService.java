@@ -15,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import static com.example.product_service.common.MessagePath.PRODUCT_VARIANT_NOT_FOUND;
 
 @Service
-@Transactional(readOnly = true)
+@Transactional
 @RequiredArgsConstructor
 public class ProductVariantService{
     private final ProductVariantsRepository productVariantsRepository;
@@ -25,13 +25,26 @@ public class ProductVariantService{
         return null;
     }
 
+    public ProductVariantResponse updateVariantById(Long variantId, UpdateProductVariantRequest request) {
+        ProductVariants productVariant = findWithProductById(variantId);
+        if(request.getPrice() != null){
+            productVariant.setPrice(request.getPrice());
+        }
+
+        if(request.getStockQuantity() != null){
+            productVariant.setStockQuantity(request.getStockQuantity());
+        }
+
+        if(request.getDiscountRate() != null){
+            productVariant.setDiscountValue(request.getDiscountRate());
+        }
+
+        return new ProductVariantResponse(productVariant);
+    }
+
     public void deleteVariantById(Long variantId) {
         ProductVariants productVariant = findWithProductById(variantId);
         productVariant.getProduct().deleteVariant(productVariant);
-    }
-
-    public ProductVariantResponse updateVariantById(Long variantId, UpdateProductVariantRequest request) {
-        return null;
     }
 
     private ProductVariants findWithProductById(Long variantId){

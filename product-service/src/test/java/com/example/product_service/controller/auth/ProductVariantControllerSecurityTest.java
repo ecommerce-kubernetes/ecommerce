@@ -71,6 +71,6 @@ public class ProductVariantControllerSecurityTest {
     }
 
     private UpdateProductVariantRequest createUpdateProductVariantRequest(){
-        return new UpdateProductVariantRequest(100, 10, 10, List.of(1L, 2L));
+        return new UpdateProductVariantRequest(100, 10, 10);
     }
 }

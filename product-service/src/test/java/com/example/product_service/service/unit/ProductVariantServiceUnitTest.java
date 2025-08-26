@@ -1,6 +1,8 @@
 package com.example.product_service.service.unit;
 
 import com.example.product_service.common.MessageSourceUtil;
+import com.example.product_service.dto.request.variant.UpdateProductVariantRequest;
+import com.example.product_service.dto.response.variant.ProductVariantResponse;
 import com.example.product_service.entity.*;
 import com.example.product_service.exception.BadRequestException;
 import com.example.product_service.exception.NotFoundException;
@@ -32,6 +34,49 @@ public class ProductVariantServiceUnitTest {
 
     @InjectMocks
     ProductVariantService productVariantService;
+
+    @Test
+    @DisplayName("상품 변형 수정 테스트-성공")
+    void updateVariantByIdTest_unit_success(){
+        OptionTypes optionTypes = new OptionTypes("optionType");
+        OptionValues optionValues = new OptionValues("optionValue");
+        optionTypes.addOptionValue(optionValues);
+
+        ProductOptionTypes productOptionTypes = createProductOptionTypes(optionTypes);
+        ProductVariantOptions productVariantOption = new ProductVariantOptions(optionValues);
+        ProductVariants productVariant = createProductVariant(1L,"sku", List.of(productVariantOption));
+
+        Products product = createProduct(
+                List.of(new ProductImages("http://test.jpg", 0)),
+                List.of(productOptionTypes),
+                List.of(productVariant));
+
+        when(productVariantsRepository.findWithProductById(1L))
+                .thenReturn(Optional.of(productVariant));
+
+        UpdateProductVariantRequest request = new UpdateProductVariantRequest(50000, 10, 20);
+        ProductVariantResponse response = productVariantService.updateVariantById(1L, request);
+
+        assertThat(response.getId()).isEqualTo(1L);
+        assertThat(response.getSku()).isEqualTo("sku");
+        assertThat(response.getPrice()).isEqualTo(50000);
+        assertThat(response.getStockQuantity()).isEqualTo(10);
+        assertThat(response.getDiscountRate()).isEqualTo(20);
+    }
+
+    @Test
+    @DisplayName("상품 변형 수정 테스트-실패(상품 변형을 찾을 수 없음)")
+    void updateVariantByIdTest_unit_notFound_productVariant(){
+        when(productVariantsRepository.findWithProductById(1L))
+                .thenReturn(Optional.empty());
+        when(ms.getMessage(PRODUCT_VARIANT_NOT_FOUND))
+                .thenReturn("Product Variant not found");
+
+        UpdateProductVariantRequest request = new UpdateProductVariantRequest(50000, 10, 20);
+        assertThatThrownBy(() -> productVariantService.updateVariantById(1L, request))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage(getMessage(PRODUCT_VARIANT_NOT_FOUND));
+    }
 
     @Test
     @DisplayName("상품 변형 삭제 테스트-성공")
