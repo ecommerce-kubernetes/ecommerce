@@ -7,10 +7,8 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.BatchSize;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -71,6 +69,14 @@ public class Products extends BaseEntity {
             ProductImages img = this.images.get(i);
             img.setSortOrder(i);
         }
+    }
+
+    public void swapImageSortOrder(ProductImages image, int sortOrder){
+        ProductImages productImage = this.images.stream().filter(pi -> pi.getSortOrder() == sortOrder).findFirst()
+                .orElseThrow(() -> new BadRequestException("sortOrder cannot be modified"));
+
+        productImage.setSortOrder(image.getSortOrder());
+        image.setSortOrder(sortOrder);
     }
 
     public void addOptionTypes(List<ProductOptionTypes> productOptionTypes){

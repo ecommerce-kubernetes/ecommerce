@@ -4,7 +4,7 @@ import com.example.product_service.controller.util.specification.annotation.Admi
 import com.example.product_service.controller.util.specification.annotation.BadRequestApiResponse;
 import com.example.product_service.controller.util.specification.annotation.ForbiddenApiResponse;
 import com.example.product_service.controller.util.specification.annotation.NotFoundApiResponse;
-import com.example.product_service.dto.request.image.ImageRequest;
+import com.example.product_service.dto.request.image.UpdateImageRequest;
 import com.example.product_service.dto.response.image.ImageResponse;
 import com.example.product_service.service.ProductImageService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -31,7 +31,7 @@ public class ProductImageController {
     @PatchMapping("/{imageId}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<ImageResponse> updateImage(@PathVariable("imageId") Long imageId,
-                                                     @Validated @RequestBody ImageRequest request){
+                                                     @Validated @RequestBody UpdateImageRequest request){
 
         ImageResponse response = productImageService.updateImageById(imageId, request);
         return ResponseEntity.ok(response);

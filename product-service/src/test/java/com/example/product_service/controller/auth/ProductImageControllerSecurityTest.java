@@ -7,7 +7,7 @@ import com.example.product_service.config.WebSecurity;
 import com.example.product_service.controller.ProductImageController;
 import com.example.product_service.service.ProductImageService;
 import com.example.product_service.util.UserRole;
-import com.example.product_service.dto.request.image.ImageRequest;
+import com.example.product_service.dto.request.image.UpdateImageRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,7 +43,7 @@ public class ProductImageControllerSecurityTest {
     @DisplayName("상품 이미지 수정 테스트-인증 에러")
     void updateImageTest_UnAuthorized() throws Exception {
         ResultActions perform =
-                performWithBody(mockMvc, patch(PRODUCT_IMAGE_ID_PATH), createImageRequest());
+                performWithBody(mockMvc, patch(PRODUCT_IMAGE_ID_PATH), createUpdateImageRequest());
         verifyUnauthorizedResponse(perform, PRODUCT_IMAGE_ID_PATH);
     }
 
@@ -51,7 +51,7 @@ public class ProductImageControllerSecurityTest {
     @DisplayName("상품 이미지 수정 테스트-권한 부족")
     void updateImageTest_NoPermission() throws Exception {
         ResultActions perform =
-                performWithAuthAndBody(mockMvc, patch(PRODUCT_IMAGE_ID_PATH), createImageRequest(), UserRole.ROLE_USER);
+                performWithAuthAndBody(mockMvc, patch(PRODUCT_IMAGE_ID_PATH), createUpdateImageRequest(), UserRole.ROLE_USER);
         verifyNoPermissionResponse(perform, PRODUCT_IMAGE_ID_PATH);
     }
 
@@ -69,7 +69,7 @@ public class ProductImageControllerSecurityTest {
         verifyNoPermissionResponse(perform, PRODUCT_IMAGE_ID_PATH);
     }
 
-    private ImageRequest createImageRequest(){
-        return new ImageRequest("http://test.jpg");
+    private UpdateImageRequest createUpdateImageRequest(){
+        return new UpdateImageRequest("http://test.jpg", 2);
     }
 }

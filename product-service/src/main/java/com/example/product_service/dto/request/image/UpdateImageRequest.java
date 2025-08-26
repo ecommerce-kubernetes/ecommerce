@@ -13,8 +13,9 @@ import org.hibernate.validator.constraints.URL;
 @AllArgsConstructor
 @NoArgsConstructor
 @AtLeastOneFieldNotNull
-public class ImageRequest {
+public class UpdateImageRequest {
     @Pattern(regexp = "^(?!\\s*$).+", message = "{NotBlank}")
     @URL(message = "{InvalidUrl}")
     private String url;
+    private Integer sortOrder;
 }

@@ -2,7 +2,7 @@ package com.example.product_service.controller;
 
 import com.example.product_service.common.MessageSourceUtil;
 import com.example.product_service.common.advice.ErrorResponseEntityFactory;
-import com.example.product_service.dto.request.image.ImageRequest;
+import com.example.product_service.dto.request.image.UpdateImageRequest;
 import com.example.product_service.dto.response.image.ImageResponse;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.service.ProductImageService;
@@ -50,9 +50,9 @@ class ProductImageControllerTest {
     @Test
     @DisplayName("상품 이미지 수정 테스트-성공")
     void updateImageTest_success() throws Exception {
-        ImageRequest request = new ImageRequest("http://test.jpg");
+        UpdateImageRequest request = new UpdateImageRequest("http://test1.jpg", null);
         ImageResponse response = new ImageResponse(1L, "http://test1.jpg", 0);
-        when(service.updateImageById(anyLong(), any(ImageRequest.class)))
+        when(service.updateImageById(anyLong(), any(UpdateImageRequest.class)))
                 .thenReturn(response);
         ResultActions perform = performWithBody(mockMvc, patch(ID_PATH), request);
         verifySuccessResponse(perform, status().isOk(), response);
@@ -61,7 +61,7 @@ class ProductImageControllerTest {
     @Test
     @DisplayName("상품 이미지 수정 테스트-실패(검증)")
     void updateImageTest_validation() throws Exception {
-        ImageRequest request = new ImageRequest();
+        UpdateImageRequest request = new UpdateImageRequest();
         ResultActions perform = performWithBody(mockMvc, patch(ID_PATH), request);
         verifyErrorResponse(perform, status().isBadRequest(), getMessage(BAD_REQUEST),
                 getMessage(BAD_REQUEST_VALIDATION), ID_PATH);
@@ -70,8 +70,8 @@ class ProductImageControllerTest {
     @Test
     @DisplayName("상품 이미지 수정 테스트-실패(없음)")
     void updateImageTest_notFound() throws Exception {
-        ImageRequest request = new ImageRequest("http://test.jpg");
-        when(service.updateImageById(anyLong(), any(ImageRequest.class)))
+        UpdateImageRequest request = new UpdateImageRequest("http://test.jpg", null);
+        when(service.updateImageById(anyLong(), any(UpdateImageRequest.class)))
                 .thenThrow(new NotFoundException(getMessage(PRODUCT_IMAGE_NOT_FOUND)));
 
         ResultActions perform = performWithBody(mockMvc, patch(ID_PATH), request);

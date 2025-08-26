@@ -18,6 +18,8 @@ public class ProductImages extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id")
     private Products product;
+
+    @Setter
     private String imageUrl;
     private Integer sortOrder;
 
