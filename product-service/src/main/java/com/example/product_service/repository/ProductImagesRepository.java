@@ -13,4 +13,7 @@ import java.util.Optional;
 public interface ProductImagesRepository extends JpaRepository<ProductImages, Long> {
     @Query("SELECT i FROM ProductImages i WHERE i.product.id = :productId")
     List<ProductImages> findByProductId(@Param("productId") Long productId);
+
+    @Query("SELECT i FROM ProductImages i JOIN FETCH i.product WHERE i.id = :imageId")
+    Optional<ProductImages> findWithProductById(@Param("imageId") Long imageId);
 }

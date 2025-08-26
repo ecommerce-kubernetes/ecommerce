@@ -59,6 +59,20 @@ public class Products extends BaseEntity {
         image.setProduct(this);
     }
 
+    public void deleteImage(ProductImages image){
+        boolean removed = this.images.remove(image);
+        if(!removed){
+            return;
+        }
+
+        image.setProduct(null);
+
+        for(int i=0; i<this.images.size(); i++){
+            ProductImages img = this.images.get(i);
+            img.setSortOrder(i);
+        }
+    }
+
     public void addOptionTypes(List<ProductOptionTypes> productOptionTypes){
         for (ProductOptionTypes productOptionType : productOptionTypes) {
             addOptionType(productOptionType);
