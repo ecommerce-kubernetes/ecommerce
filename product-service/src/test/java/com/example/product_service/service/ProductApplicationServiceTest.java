@@ -1,7 +1,6 @@
 package com.example.product_service.service;
 
 import com.example.product_service.dto.request.image.AddImageRequest;
-import com.example.product_service.dto.request.image.ImageRequest;
 import com.example.product_service.dto.request.options.ProductOptionTypeRequest;
 import com.example.product_service.dto.request.product.ProductRequest;
 import com.example.product_service.dto.request.product.UpdateProductBasicRequest;

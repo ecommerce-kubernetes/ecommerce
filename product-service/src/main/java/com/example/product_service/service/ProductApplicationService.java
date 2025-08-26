@@ -14,10 +14,7 @@ import com.example.product_service.entity.ProductVariants;
 import com.example.product_service.entity.Products;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.repository.ProductsRepository;
-import com.example.product_service.service.dto.ProductCreationCommand;
-import com.example.product_service.service.dto.ProductCreationData;
-import com.example.product_service.service.dto.ProductUpdateData;
-import com.example.product_service.service.dto.ProductVariantCreationData;
+import com.example.product_service.service.dto.*;
 import com.example.product_service.service.util.factory.ProductFactory;
 import com.example.product_service.service.util.validator.ProductReferenceService;
 import com.example.product_service.service.util.validator.RequestValidator;
@@ -85,9 +82,9 @@ public class ProductApplicationService {
 
     public ProductVariantResponse addVariant(Long productId, ProductVariantRequest request){
         Products product = findProductByIdOrThrow(productId);
-        requestValidator.validateVariantRequest(request);
+        ProductVariantCommand productVariantCommand = requestValidator.validateVariantRequest(request);
         ProductVariantCreationData creationData = productReferenceService.buildVariantCreationData(request);
-        ProductVariants productVariant = factory.createProductVariant(request, creationData);
+        ProductVariants productVariant = factory.createProductVariant(productVariantCommand, creationData);
         product.addVariant(productVariant);
         return new ProductVariantResponse(productVariant);
     }

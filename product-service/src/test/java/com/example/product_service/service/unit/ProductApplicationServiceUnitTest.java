@@ -605,7 +605,7 @@ public class ProductApplicationServiceUnitTest {
         when(requestValidator.validateVariantRequest(request)).thenReturn(productVariantCommand);
         when(productReferenceService.buildVariantCreationData(request))
                 .thenReturn(variantCreationData);
-        when(factory.createProductVariant(request, variantCreationData)).thenReturn(productVariant);
+        when(factory.createProductVariant(productVariantCommand, variantCreationData)).thenReturn(productVariant);
 
         ProductVariantResponse response = productApplicationService.addVariant(1L, request);
 
@@ -767,7 +767,7 @@ public class ProductApplicationServiceUnitTest {
         when(requestValidator.validateVariantRequest(request)).thenReturn(productVariantCommand);
         when(productReferenceService.buildVariantCreationData(request))
                 .thenReturn(variantCreationData);
-        when(factory.createProductVariant(request, variantCreationData)).thenReturn(productVariant);
+        when(factory.createProductVariant(productVariantCommand, variantCreationData)).thenReturn(productVariant);
 
         assertThatThrownBy(() -> productApplicationService.addVariant(1L, request))
                 .isInstanceOf(BadRequestException.class)
@@ -807,7 +807,7 @@ public class ProductApplicationServiceUnitTest {
         when(requestValidator.validateVariantRequest(request)).thenReturn(productVariantCommand);
         when(productReferenceService.buildVariantCreationData(request))
                 .thenReturn(variantCreationData);
-        when(factory.createProductVariant(request, variantCreationData)).thenReturn(productVariant);
+        when(factory.createProductVariant(productVariantCommand, variantCreationData)).thenReturn(productVariant);
 
         assertThatThrownBy(() -> productApplicationService.addVariant(1L, request))
                 .isInstanceOf(BadRequestException.class)

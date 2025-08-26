@@ -1,15 +1,7 @@
 package com.example.product_service.service.util.factory;
 
-import com.example.product_service.dto.request.image.ImageRequest;
-import com.example.product_service.dto.request.options.ProductOptionTypeRequest;
-import com.example.product_service.dto.request.product.ProductRequest;
-import com.example.product_service.dto.request.variant.ProductVariantRequest;
-import com.example.product_service.dto.request.variant.VariantOptionValueRequest;
 import com.example.product_service.entity.*;
 import com.example.product_service.service.dto.*;
-import jakarta.validation.constraints.Pattern;
-import lombok.extern.slf4j.Slf4j;
-import org.hibernate.validator.constraints.URL;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -28,10 +20,11 @@ public class ProductFactory {
         return product;
     }
 
-    public ProductVariants createProductVariant(ProductVariantRequest request, ProductVariantCreationData data){
-        ProductVariants productVariant = new ProductVariants(request.getSku(), request.getPrice(), request.getStockQuantity(), request.getDiscountRate());
-        List<ProductVariantOptions> opts = buildVariantOptions(request.getVariantOption(), data.getOptionValueById());
-        productVariant.addProductVariantOptions(opts);
+
+    public ProductVariants createProductVariant(ProductVariantCommand command, ProductVariantCreationData data){
+        ProductVariants productVariant = createBasicInfoProductVariant(command);
+        List<ProductVariantOptions> productVariantOptions = buildVariantOptions(command.getVariantOptionValues(), data.getOptionValueById());
+        productVariant.addProductVariantOptions(productVariantOptions);
         return productVariant;
     }
 
@@ -40,6 +33,9 @@ public class ProductFactory {
         return new Products(command.getName(), command.getDescription(), data.getCategory());
     }
 
+    private ProductVariants createBasicInfoProductVariant(ProductVariantCommand command){
+        return new ProductVariants(command.getSku(), command.getPrice(), command.getStockQuantity(), command.getDiscountRate());
+    }
 
     private void mappingProductOptionTypes(ProductCreationCommand command, ProductCreationData data, Products products){
         Map<Long, OptionTypes> optionTypeById = data.getOptionTypeById();
@@ -69,28 +65,14 @@ public class ProductFactory {
                     variantCommand.getStockQuantity(),
                     variantCommand.getDiscountRate()
             );
-            List<ProductVariantOptions> opts = buildVariantOptionsNew(variantCommand.getVariantOptionValues(), optionValueById);
+            List<ProductVariantOptions> opts = buildVariantOptions(variantCommand.getVariantOptionValues(), optionValueById);
             productVariant.addProductVariantOptions(opts);
             saveProductVariantList.add(productVariant);
         }
         product.addVariants(saveProductVariantList);
     }
 
-    private List<ProductVariantOptions> buildVariantOptions(List<VariantOptionValueRequest> variantOptionValueRequests,
-                                                            Map<Long, OptionValues> optionValueById){
-        List<ProductVariantOptions> saveProductVariantOptions = new ArrayList<>();
-        for (VariantOptionValueRequest optionValueRequest : variantOptionValueRequests) {
-
-            Long optionValueId = optionValueRequest.getOptionValueId();
-            OptionValues optionValue = optionValueById.get(optionValueId);
-            ProductVariantOptions productVariantOption = new ProductVariantOptions(optionValue);
-            saveProductVariantOptions.add(productVariantOption);
-        }
-
-        return saveProductVariantOptions;
-    }
-
-    private List<ProductVariantOptions> buildVariantOptionsNew(List<VariantOptionValueRef> ref,
+    private List<ProductVariantOptions> buildVariantOptions(List<VariantOptionValueRef> ref,
                                                             Map<Long, OptionValues> optionValueById){
         List<ProductVariantOptions> saveProductVariantOptions = new ArrayList<>();
         for(VariantOptionValueRef variantOptionValueRef : ref){

@@ -7,6 +7,8 @@ import com.example.product_service.dto.request.variant.VariantOptionValueRequest
 import com.example.product_service.entity.*;
 import com.example.product_service.service.dto.ProductCreationCommand;
 import com.example.product_service.service.dto.ProductCreationData;
+import com.example.product_service.service.dto.ProductVariantCommand;
+import com.example.product_service.service.dto.ProductVariantCreationData;
 import com.example.product_service.service.util.factory.ProductFactory;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -29,7 +31,7 @@ class ProductFactoryTest {
     ProductFactory factory;
 
     @Test
-    @DisplayName("Factory 동작 테스트")
+    @DisplayName("Product 생성 테스트")
     void createProductsTest(){
         ProductRequest request = createProductRequest();
         ProductCreationCommand command = new ProductCreationCommand(request);
@@ -85,6 +87,31 @@ class ProductFactoryTest {
                 .containsExactlyInAnyOrder( "optionValue");
     }
 
+    @Test
+    @DisplayName("ProductVariant 생성 테스트")
+    void createProductVariantTest(){
+        ProductVariantRequest request = createProductVariantRequest();
+        ProductVariantCommand command = new ProductVariantCommand(request);
+
+        OptionTypes optionType = createOptionType(1L, "optionType");
+        OptionValues optionValue = createOptionValue(1L, "optionValue", optionType);
+
+        Map<Long, OptionValues> optionValueById = new HashMap<>();
+        optionValueById.put(optionValue.getId(), optionValue);
+        ProductVariantCreationData creationData = new ProductVariantCreationData(optionValueById);
+
+        ProductVariants productVariant = factory.createProductVariant(command, creationData);
+
+        assertThat(productVariant.getSku()).isEqualTo("sku");
+        assertThat(productVariant.getPrice()).isEqualTo(10000);
+        assertThat(productVariant.getStockQuantity()).isEqualTo(1000);
+        assertThat(productVariant.getDiscountValue()).isEqualTo(10);
+        assertThat(productVariant.getProductVariantOptions())
+                .extracting(pvo -> pvo.getOptionValue().getOptionValue())
+                .containsExactlyInAnyOrder("optionValue");
+
+    }
+
     private ProductRequest createProductRequest(){
         return new ProductRequest(
                 "name",
@@ -97,6 +124,16 @@ class ProductFactoryTest {
                                 new VariantOptionValueRequest(1L, 1L)
                         )))
 
+        );
+    }
+
+    private ProductVariantRequest createProductVariantRequest(){
+        return new ProductVariantRequest(
+                "sku",
+                10000,
+                1000,
+                10,
+                List.of(new VariantOptionValueRequest(1L, 1L))
         );
     }
 
