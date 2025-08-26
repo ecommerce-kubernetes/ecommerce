@@ -1,7 +1,10 @@
 package com.example.product_service.service;
 
 import com.example.product_service.common.MessagePath;
+import com.example.product_service.dto.request.image.UpdateImageRequest;
+import com.example.product_service.dto.response.image.ImageResponse;
 import com.example.product_service.entity.*;
+import com.example.product_service.exception.BadRequestException;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.repository.CategoryRepository;
 import com.example.product_service.repository.OptionTypeRepository;
@@ -50,6 +53,69 @@ class ProductImageServiceTest {
         storage.addOptionValue(gb_128);
         optionTypeRepository.save(storage);
         categoryRepository.save(electronic);
+    }
+
+    @Test
+    @DisplayName("상품 이미지 수정 테스트-성공")
+    void updateImageById_integration_success(){
+        ProductImages productImage1 = createProductImages("http://iphone16-1.jpg", 0);
+        ProductImages productImage2 = createProductImages("http://iphone16-2.jpg", 1);
+        ProductImages productImage3 = createProductImages("http://iphone16-3.jpg", 2);
+        ProductOptionTypes productOptionType = createProductOptionType(storage);
+        ProductVariants productVariant = createProductVariants("IPHONE16-128GB", 10000, 100, 10, gb_128);
+
+        Products product = createProduct("IPhone 16", "IPhone Model 16", electronic,
+                List.of(productImage1, productImage2, productImage3), List.of(productOptionType), List.of(productVariant));
+
+        productsRepository.save(product);
+        em.flush(); em.clear();
+
+        ImageResponse response = productImageService.updateImageById(productImage2.getId(),
+                new UpdateImageRequest("http://update.jpg", 0));
+
+        assertThat(response.getId()).isEqualTo(productImage2.getId());
+        assertThat(response.getUrl()).isEqualTo("http://update.jpg");
+        assertThat(response.getSortOrder()).isEqualTo(0);
+
+        Products findProduct = productsRepository.findById(product.getId()).get();
+
+        assertThat(findProduct.getImages())
+                .extracting(ProductImages::getId, ProductImages::getImageUrl, ProductImages::getSortOrder)
+                .containsExactlyInAnyOrder(
+                        tuple(productImage1.getId(), productImage1.getImageUrl(), 1),
+                        tuple(productImage2.getId(), "http://update.jpg", 0),
+                        tuple(productImage3.getId(), productImage3.getImageUrl(), 2)
+                );
+    }
+
+    @Test
+    @DisplayName("상품 이미지 수정 테스트-실패(상품 이미지를 찾을 수 없음)")
+    void updateImageById_integration_notFound_productImage(){
+        assertThatThrownBy(() -> productImageService
+                .updateImageById(999L, new UpdateImageRequest("http://updateImage.jpg", 0)))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage(TestMessageUtil.getMessage(MessagePath.PRODUCT_IMAGE_NOT_FOUND));
+    }
+
+    @Test
+    @DisplayName("상품 이미지 수정 테스트-실패(잘못된 정렬 순서 요청)")
+    void updateImageById_integration_badRequest_sortOrder(){
+        ProductImages productImage1 = createProductImages("http://iphone16-1.jpg", 0);
+        ProductImages productImage2 = createProductImages("http://iphone16-2.jpg", 1);
+        ProductImages productImage3 = createProductImages("http://iphone16-3.jpg", 2);
+        ProductOptionTypes productOptionType = createProductOptionType(storage);
+        ProductVariants productVariant = createProductVariants("IPHONE16-128GB", 10000, 100, 10, gb_128);
+
+        Products product = createProduct("IPhone 16", "IPhone Model 16", electronic,
+                List.of(productImage1, productImage2, productImage3), List.of(productOptionType), List.of(productVariant));
+
+        productsRepository.save(product);
+        em.flush(); em.clear();
+
+        assertThatThrownBy(() -> productImageService.
+                updateImageById(productImage2.getId(), new UpdateImageRequest("http://updateImage.jpg", 5)))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("sortOrder cannot be modified");
     }
 
     @Test
