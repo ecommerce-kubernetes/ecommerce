@@ -58,6 +58,7 @@ dependencies {
     implementation 'com.github.ecommerce-kubernetes:common-dto:2.0.1'
 
     //Test
+    testImplementation 'org.springframework.kafka:spring-kafka-test'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.testcontainers:junit-jupiter'
     testImplementation 'org.testcontainers:mysql'
