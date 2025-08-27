@@ -3,8 +3,8 @@ package com.example.product_service.service.unit;
 import com.example.product_service.common.MessageSourceUtil;
 import com.example.product_service.dto.request.options.OptionValueRequest;
 import com.example.product_service.dto.response.options.OptionValueResponse;
-import com.example.product_service.entity.OptionTypes;
-import com.example.product_service.entity.OptionValues;
+import com.example.product_service.entity.OptionType;
+import com.example.product_service.entity.OptionValue;
 import com.example.product_service.exception.DuplicateResourceException;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.repository.OptionValueRepository;
@@ -36,7 +36,7 @@ public class OptionValueServiceUnitTest {
     @Mock
     MessageSourceUtil ms;
     @Captor
-    private ArgumentCaptor<OptionValues> valuesArgumentCaptor;
+    private ArgumentCaptor<OptionValue> valuesArgumentCaptor;
 
     @InjectMocks
     OptionValueService optionValueService;
@@ -44,8 +44,8 @@ public class OptionValueServiceUnitTest {
     @Test
     @DisplayName("옵션 값 조회 테스트-성공")
     void getOptionValueByIdTest_unit_success(){
-        OptionTypes type = createOptionTypeWithSetId(1L, "type");
-        OptionValues value = createOptionValueWithSetId(1L, "value");
+        OptionType type = createOptionTypeWithSetId(1L, "type");
+        OptionValue value = createOptionValueWithSetId(1L, "value");
         type.addOptionValue(value);
         mockFindById(1L, value);
         OptionValueResponse response = optionValueService.getOptionValueById(1L);
@@ -69,8 +69,8 @@ public class OptionValueServiceUnitTest {
     @Test
     @DisplayName("옵션 값 수정 테스트-성공")
     void updateOptionValueTest_unit_success(){
-        OptionTypes type = createOptionTypeWithSetId(1L, "type");
-        OptionValues value = createOptionValueWithSetId(1L, "duplicated");
+        OptionType type = createOptionTypeWithSetId(1L, "type");
+        OptionValue value = createOptionValueWithSetId(1L, "duplicated");
         type.addOptionValue(value);
         mockFindById(1L, value);
         OptionValueRequest request = new OptionValueRequest("updated");
@@ -96,8 +96,8 @@ public class OptionValueServiceUnitTest {
     @Test
     @DisplayName("옵션 값 수정 테스트-실패(옵션 값 이름 중복)")
     void updateOptionValueTest_unit_conflict(){
-        OptionTypes type = createOptionTypeWithSetId(1L, "type");
-        OptionValues value = createOptionValueWithSetId(1L, "duplicated");
+        OptionType type = createOptionTypeWithSetId(1L, "type");
+        OptionValue value = createOptionValueWithSetId(1L, "duplicated");
         type.addOptionValue(value);
         mockMessageUtil(OPTION_VALUE_CONFLICT, "OptionValue already exists");
         mockFindById(1L, value);
@@ -111,8 +111,8 @@ public class OptionValueServiceUnitTest {
     @Test
     @DisplayName("옵션 값 삭제 테스트-성공")
     void deleteOptionValueByIdTest_unit_success(){
-        OptionTypes type = spy(createOptionTypeWithSetId(1L, "type"));
-        OptionValues value = spy(createOptionValueWithSetId(1L, "value"));
+        OptionType type = spy(createOptionTypeWithSetId(1L, "type"));
+        OptionValue value = spy(createOptionValueWithSetId(1L, "value"));
         type.addOptionValue(value);
         mockFindById(1L, value);
 
@@ -132,8 +132,8 @@ public class OptionValueServiceUnitTest {
                 .hasMessage(getMessage(OPTION_VALUE_NOT_FOUND));
     }
 
-    private void mockFindById(Long id, OptionValues o){
-        OngoingStubbing<Optional<OptionValues>> when = when(optionValueRepository.findById(id));
+    private void mockFindById(Long id, OptionValue o){
+        OngoingStubbing<Optional<OptionValue>> when = when(optionValueRepository.findById(id));
         if(o == null){
             when.thenReturn(Optional.empty());
         } else {
@@ -141,16 +141,16 @@ public class OptionValueServiceUnitTest {
         }
     }
 
-    private OptionTypes createOptionTypeWithSetId(Long id, String name){
-        OptionTypes optionTypes = new OptionTypes(name);
-        ReflectionTestUtils.setField(optionTypes, "id", id);
-        return optionTypes;
+    private OptionType createOptionTypeWithSetId(Long id, String name){
+        OptionType optionType = new OptionType(name);
+        ReflectionTestUtils.setField(optionType, "id", id);
+        return optionType;
     }
 
-    private OptionValues createOptionValueWithSetId(Long id, String name){
-        OptionValues optionValues = new OptionValues(name);
-        ReflectionTestUtils.setField(optionValues, "id", id);
-        return optionValues;
+    private OptionValue createOptionValueWithSetId(Long id, String name){
+        OptionValue optionValue = new OptionValue(name);
+        ReflectionTestUtils.setField(optionValue, "id", id);
+        return optionValue;
     }
 
     private void mockMessageUtil(String code, String returnMessage){

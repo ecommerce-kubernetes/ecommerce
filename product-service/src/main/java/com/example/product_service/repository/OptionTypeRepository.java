@@ -16,9 +16,9 @@ public interface OptionTypeRepository extends JpaRepository<OptionType, Long>{
 
     Page<OptionType> findAll(Pageable pageable);
 
-    @Query("SELECT DISTINCT ot FROM OptionTypes ot LEFT JOIN FETCH ot.optionValues ov WHERE ot.id IN :ids")
+    @Query("SELECT DISTINCT ot FROM OptionType ot LEFT JOIN FETCH ot.optionValues ov WHERE ot.id IN :ids")
     List<OptionType> findByIdIn(@Param("ids") List<Long> ids);
 
-    @Query("SELECT o FROM OptionTypes o LEFT JOIN FETCH o.optionValues WHERE o.id = :optionTypeId")
+    @Query("SELECT o FROM OptionType o LEFT JOIN FETCH o.optionValues WHERE o.id = :optionTypeId")
     Optional<OptionType> findByIdWithOptionValues(@Param("optionTypeId") Long optionTypeId);
 }

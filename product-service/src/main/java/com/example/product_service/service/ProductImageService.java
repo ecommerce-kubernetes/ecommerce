@@ -3,7 +3,7 @@ package com.example.product_service.service;
 import com.example.product_service.common.MessageSourceUtil;
 import com.example.product_service.dto.request.image.UpdateImageRequest;
 import com.example.product_service.dto.response.image.ImageResponse;
-import com.example.product_service.entity.ProductImages;
+import com.example.product_service.entity.ProductImage;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.repository.ProductImagesRepository;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +21,7 @@ public class ProductImageService {
     private final MessageSourceUtil ms;
 
     public ImageResponse updateImageById(Long imageId, UpdateImageRequest request) {
-        ProductImages productImage = findWithProductByIdOrThrow(imageId);
+        ProductImage productImage = findWithProductByIdOrThrow(imageId);
 
         if(request.getUrl() != null && !request.getUrl().isEmpty()){
             productImage.setImageUrl(request.getUrl());
@@ -35,11 +35,11 @@ public class ProductImageService {
     }
 
     public void deleteImageById(Long imageId) {
-        ProductImages productImage = findWithProductByIdOrThrow(imageId);
+        ProductImage productImage = findWithProductByIdOrThrow(imageId);
         productImage.getProduct().deleteImage(productImage);
     }
 
-    private ProductImages findWithProductByIdOrThrow(Long imageId){
+    private ProductImage findWithProductByIdOrThrow(Long imageId){
         return productImagesRepository.findWithProductById(imageId)
                 .orElseThrow(() -> new NotFoundException(ms.getMessage(PRODUCT_IMAGE_NOT_FOUND)));
     }

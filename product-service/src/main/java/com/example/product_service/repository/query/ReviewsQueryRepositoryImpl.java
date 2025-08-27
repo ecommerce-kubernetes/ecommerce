@@ -20,17 +20,17 @@ import java.util.List;
 public class ReviewsQueryRepositoryImpl implements ReviewsQueryRepository{
 
     private final JPAQueryFactory queryFactory;
-    QReviews reviews = QReviews.reviews;
-    QProductVariants productVariants = QProductVariants.productVariants;
-    QProductVariantOptions productVariantOptions = QProductVariantOptions.productVariantOptions;
-    QProducts products = QProducts.products;
+    QReview reviews = QReview.review;
+    QProductVariant productVariants = QProductVariant.productVariant;
+    QProductVariantOption productVariantOptions = QProductVariantOption.productVariantOption;
+    QProduct products = QProduct.product;
     public ReviewsQueryRepositoryImpl(EntityManager em){
         this.queryFactory = new JPAQueryFactory(em);
     }
 
     @Override
-    public Page<Reviews> findAllByProductId(Long productId, Pageable pageable) {
-        List<Reviews> content = queryFactory.selectFrom(reviews)
+    public Page<Review> findAllByProductId(Long productId, Pageable pageable) {
+        List<Review> content = queryFactory.selectFrom(reviews)
                 .distinct()
                 .join(reviews.productVariant, productVariants).fetchJoin()
                 .join(productVariants.product, products).fetchJoin()
@@ -57,7 +57,7 @@ public class ReviewsQueryRepositoryImpl implements ReviewsQueryRepository{
         Sort.Order order = pageable.getSort().iterator().next();
         String sortProperty = order.getProperty();
 
-        PathBuilder<Reviews> pathBuilder = new PathBuilder<>(Reviews.class, reviews.getMetadata());
+        PathBuilder<Review> pathBuilder = new PathBuilder<>(Review.class, reviews.getMetadata());
         return new OrderSpecifier<>(
                 order.isAscending() ? Order.ASC : Order.DESC,
                 pathBuilder.getComparable(sortProperty, String.class)

@@ -3,8 +3,8 @@ package com.example.product_service.service;
 import com.example.product_service.common.MessageSourceUtil;
 import com.example.product_service.dto.request.options.OptionValueRequest;
 import com.example.product_service.dto.response.options.OptionValueResponse;
-import com.example.product_service.entity.OptionTypes;
-import com.example.product_service.entity.OptionValues;
+import com.example.product_service.entity.OptionType;
+import com.example.product_service.entity.OptionValue;
 import com.example.product_service.exception.DuplicateResourceException;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.repository.OptionTypeRepository;
@@ -42,15 +42,15 @@ class OptionValueServiceTest {
     @Autowired
     EntityManager em;
 
-    OptionTypes type;
-    OptionValues existValue;
-    OptionValues target;
+    OptionType type;
+    OptionValue existValue;
+    OptionValue target;
 
     @BeforeEach
     void setFixture(){
-        type = new OptionTypes("type");
-        existValue = new OptionValues("existValue");
-        target = new OptionValues("target");
+        type = new OptionType("type");
+        existValue = new OptionValue("existValue");
+        target = new OptionValue("target");
         type.addOptionValue(existValue);
         type.addOptionValue(target);
         optionTypeRepository.save(type);
@@ -90,9 +90,9 @@ class OptionValueServiceTest {
         assertThat(response.getValueId()).isEqualTo(existValue.getId());
         assertThat(response.getValueName()).isEqualTo(existValue.getOptionValue());
 
-        OptionValues optionValues = optionValueRepository.findById(existValue.getId()).get();
+        OptionValue optionValue = optionValueRepository.findById(existValue.getId()).get();
 
-        assertThat(optionValues.getOptionValue()).isEqualTo("updated");
+        assertThat(optionValue.getOptionValue()).isEqualTo("updated");
     }
 
     @Test
@@ -119,7 +119,7 @@ class OptionValueServiceTest {
         optionValueService.deleteOptionValueById(target.getId());
         em.flush(); em.clear();
 
-        Optional<OptionValues> result = optionValueRepository.findById(target.getId());
+        Optional<OptionValue> result = optionValueRepository.findById(target.getId());
 
         assertThat(result).isEmpty();
     }

@@ -5,8 +5,8 @@ import com.example.product_service.dto.request.options.OptionTypeRequest;
 import com.example.product_service.dto.request.options.OptionValueRequest;
 import com.example.product_service.dto.response.options.OptionTypeResponse;
 import com.example.product_service.dto.response.options.OptionValueResponse;
-import com.example.product_service.entity.OptionTypes;
-import com.example.product_service.entity.OptionValues;
+import com.example.product_service.entity.OptionType;
+import com.example.product_service.entity.OptionValue;
 import com.example.product_service.exception.DuplicateResourceException;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.repository.OptionTypeRepository;
@@ -33,33 +33,33 @@ public class OptionTypeService {
     @Transactional
     public OptionTypeResponse saveOptionType(OptionTypeRequest request) {
         checkConflictTypeName(request.getName());
-        OptionTypes save = optionTypeRepository.save(new OptionTypes(request.getName()));
+        OptionType save = optionTypeRepository.save(new OptionType(request.getName()));
         return new OptionTypeResponse(save);
     }
 
     @Transactional
     public OptionValueResponse saveOptionValue(Long optionTypeId, OptionValueRequest request) {
-        OptionTypes optionType = findByIdOrThrow(optionTypeId);
+        OptionType optionType = findByIdOrThrow(optionTypeId);
         checkConflictValueName(optionType, request.getValueName());
-        OptionValues optionValue = new OptionValues(request.getValueName());
+        OptionValue optionValue = new OptionValue(request.getValueName());
         optionType.addOptionValue(optionValue);
-        OptionValues saved = optionValueRepository.save(optionValue);
+        OptionValue saved = optionValueRepository.save(optionValue);
         return new OptionValueResponse(saved);
     }
 
     public List<OptionTypeResponse> getOptionTypes() {
-        List<OptionTypes> typesList = optionTypeRepository.findAll();
+        List<OptionType> typesList = optionTypeRepository.findAll();
         return typesList.stream().map(OptionTypeResponse::new).toList();
     }
 
     public List<OptionValueResponse> getOptionValuesByTypeId(Long optionTypeId) {
-        OptionTypes type = findByIdOrThrow(optionTypeId);
+        OptionType type = findByIdOrThrow(optionTypeId);
         return type.getOptionValues().stream().map(OptionValueResponse::new).toList();
     }
 
     @Transactional
     public OptionTypeResponse updateOptionTypeById(Long optionTypeId, OptionTypeRequest request) {
-        OptionTypes target = findByIdOrThrow(optionTypeId);
+        OptionType target = findByIdOrThrow(optionTypeId);
         checkConflictTypeName(request.getName());
         target.setName(request.getName());
         return new OptionTypeResponse(target);
@@ -68,7 +68,7 @@ public class OptionTypeService {
 
     @Transactional
     public void deleteOptionTypeById(Long optionTypeId) {
-        OptionTypes target = findByIdOrThrow(optionTypeId);
+        OptionType target = findByIdOrThrow(optionTypeId);
         optionTypeRepository.delete(target);
     }
 
@@ -79,7 +79,7 @@ public class OptionTypeService {
         }
     }
 
-    private void checkConflictValueName(OptionTypes optionType, String name){
+    private void checkConflictValueName(OptionType optionType, String name){
         boolean isConflict = optionType.getOptionValues().stream()
                 .anyMatch(v -> v.getOptionValue().equals(name));
         if(isConflict){
@@ -87,7 +87,7 @@ public class OptionTypeService {
         }
     }
 
-    private OptionTypes findByIdOrThrow(Long optionTypeId){
+    private OptionType findByIdOrThrow(Long optionTypeId){
         return optionTypeRepository.findById(optionTypeId)
                 .orElseThrow(() -> new NotFoundException(ms.getMessage(OPTION_TYPE_NOT_FOUND)));
     }

@@ -38,17 +38,17 @@ public class ProductVariantServiceUnitTest {
     @Test
     @DisplayName("상품 변형 수정 테스트-성공")
     void updateVariantByIdTest_unit_success(){
-        OptionTypes optionTypes = new OptionTypes("optionType");
-        OptionValues optionValues = new OptionValues("optionValue");
-        optionTypes.addOptionValue(optionValues);
+        OptionType optionType = new OptionType("optionType");
+        OptionValue optionValue = new OptionValue("optionValue");
+        optionType.addOptionValue(optionValue);
 
-        ProductOptionTypes productOptionTypes = createProductOptionTypes(optionTypes);
-        ProductVariantOptions productVariantOption = new ProductVariantOptions(optionValues);
-        ProductVariants productVariant = createProductVariant(1L,"sku", List.of(productVariantOption));
+        ProductOptionType productOptionType = createProductOptionTypes(optionType);
+        ProductVariantOption productVariantOption = new ProductVariantOption(optionValue);
+        ProductVariant productVariant = createProductVariant(1L,"sku", List.of(productVariantOption));
 
-        Products product = createProduct(
-                List.of(new ProductImages("http://test.jpg", 0)),
-                List.of(productOptionTypes),
+        Product product = createProduct(
+                List.of(new ProductImage("http://test.jpg", 0)),
+                List.of(productOptionType),
                 List.of(productVariant));
 
         when(productVariantsRepository.findWithProductById(1L))
@@ -81,19 +81,19 @@ public class ProductVariantServiceUnitTest {
     @Test
     @DisplayName("상품 변형 삭제 테스트-성공")
     void deleteVariantByIdTest_unit_success(){
-        OptionTypes optionTypes = new OptionTypes("optionType");
-        OptionValues optionValue1 = createOptionValue(1L, "optionValue1", optionTypes);
-        OptionValues optionValue2 = createOptionValue(2L, "optionValue2", optionTypes);
+        OptionType optionType = new OptionType("optionType");
+        OptionValue optionValue1 = createOptionValue(1L, "optionValue1", optionType);
+        OptionValue optionValue2 = createOptionValue(2L, "optionValue2", optionType);
 
-        ProductOptionTypes productOptionTypes = createProductOptionTypes(optionTypes);
-        ProductVariantOptions productVariantOption1 = new ProductVariantOptions(optionValue1);
-        ProductVariantOptions productVariantOption2 = new ProductVariantOptions(optionValue2);
-        ProductVariants productVariant1 = createProductVariant(1L, "sku1", List.of(productVariantOption1));
-        ProductVariants productVariant2 = createProductVariant(2L, "sku2", List.of(productVariantOption2));
+        ProductOptionType productOptionType = createProductOptionTypes(optionType);
+        ProductVariantOption productVariantOption1 = new ProductVariantOption(optionValue1);
+        ProductVariantOption productVariantOption2 = new ProductVariantOption(optionValue2);
+        ProductVariant productVariant1 = createProductVariant(1L, "sku1", List.of(productVariantOption1));
+        ProductVariant productVariant2 = createProductVariant(2L, "sku2", List.of(productVariantOption2));
 
-        Products product = createProduct(
-                List.of(new ProductImages("http://test.jpg", 0)),
-                List.of(productOptionTypes),
+        Product product = createProduct(
+                List.of(new ProductImage("http://test.jpg", 0)),
+                List.of(productOptionType),
                 List.of(productVariant1, productVariant2));
         when(productVariantsRepository.findWithProductById(1L))
                 .thenReturn(Optional.of(productVariant1));
@@ -102,14 +102,14 @@ public class ProductVariantServiceUnitTest {
 
         assertThat(product.getProductVariants().size()).isEqualTo(1);
         assertThat(product.getProductVariants())
-                .extracting(ProductVariants::getId, ProductVariants::getSku, ProductVariants::getPrice,
-                        ProductVariants::getStockQuantity, ProductVariants::getDiscountValue)
+                .extracting(ProductVariant::getId, ProductVariant::getSku, ProductVariant::getPrice,
+                        ProductVariant::getStockQuantity, ProductVariant::getDiscountValue)
                 .containsExactlyInAnyOrder(
                         tuple(2L, "sku2", 10000, 100, 10)
                 );
 
         assertThat(product.getProductVariants())
-                .flatExtracting(ProductVariants::getProductVariantOptions)
+                .flatExtracting(ProductVariant::getProductVariantOptions)
                 .extracting(pvo -> pvo.getOptionValue().getOptionValue())
                 .containsExactlyInAnyOrder( "optionValue2");
     }
@@ -129,17 +129,17 @@ public class ProductVariantServiceUnitTest {
     @Test
     @DisplayName("상품 변형 삭제 테스트-실패(상품에 존재하는 상품 변형이 1개일때)")
     void deleteVariantByIdTest_unit_variant_minimum_number(){
-        OptionTypes optionTypes = new OptionTypes("optionType");
-        OptionValues optionValues = new OptionValues("optionValue");
-        optionTypes.addOptionValue(optionValues);
+        OptionType optionType = new OptionType("optionType");
+        OptionValue optionValue = new OptionValue("optionValue");
+        optionType.addOptionValue(optionValue);
 
-        ProductOptionTypes productOptionTypes = createProductOptionTypes(optionTypes);
-        ProductVariantOptions productVariantOption = new ProductVariantOptions(optionValues);
-        ProductVariants productVariant = createProductVariant(1L,"sku", List.of(productVariantOption));
+        ProductOptionType productOptionType = createProductOptionTypes(optionType);
+        ProductVariantOption productVariantOption = new ProductVariantOption(optionValue);
+        ProductVariant productVariant = createProductVariant(1L,"sku", List.of(productVariantOption));
 
-        Products product = createProduct(
-                List.of(new ProductImages("http://test.jpg", 0)),
-                List.of(productOptionTypes),
+        Product product = createProduct(
+                List.of(new ProductImage("http://test.jpg", 0)),
+                List.of(productOptionType),
                 List.of(productVariant));
         when(productVariantsRepository.findWithProductById(1L))
                 .thenReturn(Optional.of(productVariant));
@@ -149,10 +149,10 @@ public class ProductVariantServiceUnitTest {
                 .hasMessage("must be at least one product variant per product");
     }
 
-    private Products createProduct(List<ProductImages> productImages, List<ProductOptionTypes> productOptionTypes,
-                                   List<ProductVariants> productVariants){
-        Products product = new Products("productName", "product description",
-                new Categories("category", "http://test.jpg"));
+    private Product createProduct(List<ProductImage> productImages, List<ProductOptionType> productOptionTypes,
+                                  List<ProductVariant> productVariants){
+        Product product = new Product("productName", "product description",
+                new Category("category", "http://test.jpg"));
 
         product.addImages(productImages);
         product.addOptionTypes(productOptionTypes);
@@ -160,21 +160,21 @@ public class ProductVariantServiceUnitTest {
         return product;
     }
 
-    private ProductOptionTypes createProductOptionTypes(OptionTypes optionTypes){
-        return new ProductOptionTypes(optionTypes, 0, true);
+    private ProductOptionType createProductOptionTypes(OptionType optionType){
+        return new ProductOptionType(optionType, 0, true);
     }
 
-    private ProductVariants createProductVariant(Long variantId, String sku, List<ProductVariantOptions> productVariantOptions){
-        ProductVariants productVariant = new ProductVariants(sku, 10000, 100, 10);
+    private ProductVariant createProductVariant(Long variantId, String sku, List<ProductVariantOption> productVariantOptions){
+        ProductVariant productVariant = new ProductVariant(sku, 10000, 100, 10);
         productVariant.addProductVariantOptions(productVariantOptions);
         ReflectionTestUtils.setField(productVariant, "id", variantId);
         return productVariant;
     }
 
-    private OptionValues createOptionValue(Long id, String name, OptionTypes optionTypes){
-        OptionValues optionValue = new OptionValues(name);
+    private OptionValue createOptionValue(Long id, String name, OptionType optionType){
+        OptionValue optionValue = new OptionValue(name);
         ReflectionTestUtils.setField(optionValue, "id", id);
-        optionTypes.addOptionValue(optionValue);
+        optionType.addOptionValue(optionValue);
         return optionValue;
     }
 }

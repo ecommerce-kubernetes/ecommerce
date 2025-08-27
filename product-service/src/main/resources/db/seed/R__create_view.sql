@@ -11,8 +11,8 @@ SELECT
   bv.discount_value as discount_rate,
   COALESCE(ra.avg_rating, 0.0)  AS avg_rating,
   COALESCE(ra.review_count, 0)  AS review_count
-FROM products p
-LEFT JOIN categories c
+FROM product p
+LEFT JOIN category c
   ON c.id = p.category_id
 LEFT JOIN (
   /* best variant per product : derived table using ROW_NUMBER() */
@@ -28,7 +28,7 @@ LEFT JOIN (
                       pv.price ASC,
                       pv.id ASC
            ) AS rn
-    FROM product_variants pv
+    FROM product_variant pv
   ) AS t
   WHERE t.rn = 1
 ) AS bv
@@ -40,18 +40,18 @@ LEFT JOIN (
     SELECT im.product_id, im.image_url,
            ROW_NUMBER() OVER (PARTITION BY im.product_id
                               ORDER BY im.sort_order ASC, im.id ASC) AS rn
-    FROM product_images im
+    FROM product_image im
   ) AS t2
   WHERE t2.rn = 1
 ) AS bi
   ON bi.product_id = p.id
 LEFT JOIN (
-  /* reviews aggregated per product (join via product_variants) */
+  /* review aggregated per product (join via product_variant) */
   SELECT pv.product_id,
          AVG(r.rating)    AS avg_rating,
          COUNT(*)         AS review_count
-  FROM reviews r
-  JOIN product_variants pv
+  FROM review r
+  JOIN product_variant pv
     ON r.product_variant_id = pv.id
   GROUP BY pv.product_id
 ) AS ra
