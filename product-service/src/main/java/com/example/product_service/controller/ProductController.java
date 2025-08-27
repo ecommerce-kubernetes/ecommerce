@@ -102,16 +102,6 @@ public class ProductController {
         return ResponseEntity.ok(response);
     }
 
-    //TODO 상품 조회와 통합되어 삭제 예상
-    @Operation(summary = "특가 상품 조회")
-    @ApiResponse(responseCode = "200", description = "조회 성공")
-    @GetMapping("/special-sale")
-    public ResponseEntity<PageDto<ProductSummaryResponse>> specialSaleProducts(@RequestParam(name = "page", defaultValue = "0") int page,
-                                                                          @RequestParam(name = "size", defaultValue = "10") int size,
-                                                                          @RequestParam(name = "categoryId", required = false) Long categoryId){
-        return ResponseEntity.ok(new PageDto<>(List.of(new ProductSummaryResponse()), 0, 5, 10, 50));
-    }
-
     @Operation(summary = "인기 상품 조회")
     @ApiResponse(responseCode = "200", description = "조회 성공")
     @GetMapping("/popular")

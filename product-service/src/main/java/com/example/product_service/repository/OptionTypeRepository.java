@@ -1,7 +1,6 @@
 package com.example.product_service.repository;
 
 import com.example.product_service.entity.OptionTypes;
-import com.example.product_service.repository.query.OptionTypesQueryRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -11,7 +10,7 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 import java.util.Optional;
 
-public interface OptionTypeRepository extends JpaRepository<OptionTypes, Long>, OptionTypesQueryRepository {
+public interface OptionTypeRepository extends JpaRepository<OptionTypes, Long>{
 
     boolean existsByName(String name);
 
