@@ -69,4 +69,14 @@ public class ProductVariants {
             review.addImage(imageUrl);
         }
     }
+
+    public void addReview(Reviews review){
+        reviews.add(review);
+        review.setProductVariant(this);
+    }
+
+    public void deleteReview(Reviews reviews){
+        this.reviews.remove(reviews);
+        reviews.setProductVariant(null);
+    }
 }

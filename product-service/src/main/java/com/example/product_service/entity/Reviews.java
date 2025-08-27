@@ -37,6 +37,17 @@ public class Reviews extends BaseEntity {
         this.content = content;
     }
 
+    public Reviews(Long userId, String userName, int rating, String content){
+        this.userId = userId;
+        this.userName = userName;
+        this.rating = rating;
+        this.content = content;
+    }
+
+    protected void setProductVariant(ProductVariants productVariant){
+        this.productVariant = productVariant;
+    }
+
     public void addImage(String url){
 
     }
