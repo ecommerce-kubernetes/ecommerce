@@ -1,7 +1,7 @@
 package com.example.product_service.dto.response;
 
 import com.example.product_service.dto.response.options.OptionValueResponse;
-import com.example.product_service.entity.Reviews;
+import com.example.product_service.entity.Review;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -24,7 +24,7 @@ public class ReviewResponse {
     private List<OptionValueResponse> optionValues;
     private LocalDateTime createdAt;
 
-    public ReviewResponse(Reviews review){
+    public ReviewResponse(Review review){
         this.id = review.getId();
         this.productName = review.getProductVariant().getProduct().getName();
         this.userId = review.getUserId();

@@ -53,14 +53,14 @@ public class ProductQueryServiceTest {
 
     @Autowired
     EntityManager em;
-    OptionTypes storage;
-    OptionValues gb_128;
-    Categories electronic;
+    OptionType storage;
+    OptionValue gb_128;
+    Category electronic;
     @BeforeEach
     void saveFixture() {
-        storage = new OptionTypes("용량");
-        gb_128 = new OptionValues("128GB");
-        electronic = new Categories("전자 기기", "http://electronic.jpg");
+        storage = new OptionType("용량");
+        gb_128 = new OptionValue("128GB");
+        electronic = new Category("전자 기기", "http://electronic.jpg");
         storage.addOptionValue(gb_128);
         optionTypeRepository.save(storage);
         categoryRepository.save(electronic);
@@ -91,14 +91,14 @@ public class ProductQueryServiceTest {
     @DisplayName("상품 목록 조회 테스트-성공")
     @Transactional
     void getProductsTest_integration_success(){
-        ProductImages productImage = createProductImages("http://test.jpg", 0);
-        ProductOptionTypes productOptionType = createProductOptionType(storage);
-        ProductVariants productVariant = createProductVariants("sku", 10000, 100, 10, gb_128);
+        ProductImage productImage = createProductImages("http://test.jpg", 0);
+        ProductOptionType productOptionType = createProductOptionType(storage);
+        ProductVariant productVariant = createProductVariants("sku", 10000, 100, 10, gb_128);
 
-        Products product = createProduct("productName", "description", electronic,
+        Product product = createProduct("productName", "description", electronic,
                 List.of(productImage), List.of(productOptionType), List.of(productVariant));
 
-        Products savedProduct = productsRepository.save(product);
+        Product savedProduct = productsRepository.save(product);
         em.flush(); em.clear();
 
         ProductSearch productSearch = new ProductSearch(electronic.getId(), "", null);
@@ -123,14 +123,14 @@ public class ProductQueryServiceTest {
     @DisplayName("상품 상세 정보 조회 테스트-성공")
     @Transactional
     void getProductByIdTest_integration_success(){
-        ProductImages productImage = createProductImages("http://test.jpg", 0);
-        ProductOptionTypes productOptionType = createProductOptionType(storage);
-        ProductVariants productVariant = createProductVariants("sku", 10000, 100, 10, gb_128);
+        ProductImage productImage = createProductImages("http://test.jpg", 0);
+        ProductOptionType productOptionType = createProductOptionType(storage);
+        ProductVariant productVariant = createProductVariants("sku", 10000, 100, 10, gb_128);
 
-        Products product = createProduct("productName", "description", electronic,
+        Product product = createProduct("productName", "description", electronic,
                 List.of(productImage), List.of(productOptionType), List.of(productVariant));
 
-        Products savedProduct = productsRepository.save(product);
+        Product savedProduct = productsRepository.save(product);
         em.flush(); em.clear();
 
         ProductResponse response = productQueryService.getProductById(savedProduct.getId());
@@ -177,20 +177,20 @@ public class ProductQueryServiceTest {
     @DisplayName("인기 상품 조회 테스트-성공")
     @Transactional
     void getPopularProductsTest_integration_success(){
-        ProductImages product1Image = createProductImages("http://test.jpg", 0);
-        ProductOptionTypes product1OptionType = createProductOptionType(storage);
-        ProductVariants product1Variant = createProductVariants("sku1", 10000, 100, 10, gb_128);
+        ProductImage product1Image = createProductImages("http://test.jpg", 0);
+        ProductOptionType product1OptionType = createProductOptionType(storage);
+        ProductVariant product1Variant = createProductVariants("sku1", 10000, 100, 10, gb_128);
         for(long i=1; i<6; i++){
             product1Variant.addReview(i, "user"+i, 4, "good", List.of());
         }
 
-        ProductImages product2Image = createProductImages("http://test.jpg", 0);
-        ProductOptionTypes product2OptionType = createProductOptionType(storage);
-        ProductVariants product2Variant = createProductVariants("sku2", 10000, 100, 10, gb_128);
+        ProductImage product2Image = createProductImages("http://test.jpg", 0);
+        ProductOptionType product2OptionType = createProductOptionType(storage);
+        ProductVariant product2Variant = createProductVariants("sku2", 10000, 100, 10, gb_128);
 
-        Products product1 = createProduct("productName", "description", electronic,
+        Product product1 = createProduct("productName", "description", electronic,
                 List.of(product1Image), List.of(product1OptionType), List.of(product1Variant));
-        Products product2 = createProduct("productName", "description", electronic,
+        Product product2 = createProduct("productName", "description", electronic,
                 List.of(product2Image), List.of(product2OptionType), List.of(product2Variant));
 
         productsRepository.saveAll(List.of(product1, product2));
@@ -217,14 +217,14 @@ public class ProductQueryServiceTest {
     @DisplayName("상품 리뷰 목록 조회 테스트-성공")
     @Transactional
     void getReviewsByProductIdTest_integration_success(){
-        ProductImages productImage = createProductImages("http://test.jpg", 0);
-        ProductOptionTypes productOptionType = createProductOptionType(storage);
-        ProductVariants product1Variant = createProductVariants("sku1", 10000, 100, 10, gb_128);
+        ProductImage productImage = createProductImages("http://test.jpg", 0);
+        ProductOptionType productOptionType = createProductOptionType(storage);
+        ProductVariant product1Variant = createProductVariants("sku1", 10000, 100, 10, gb_128);
         for(long i=1; i<6; i++){
             product1Variant.addReview(i, "user"+i, 4, "good", List.of());
         }
 
-        Products product = createProduct("productName", "description", electronic,
+        Product product = createProduct("productName", "description", electronic,
                 List.of(productImage), List.of(productOptionType), List.of(product1Variant));
 
         productsRepository.save(product);
@@ -268,26 +268,26 @@ public class ProductQueryServiceTest {
                 .hasMessage(getMessage(PRODUCT_NOT_FOUND));
     }
 
-    private ProductImages createProductImages(String imageUrl, int sortOrder){
-        return new ProductImages(imageUrl, sortOrder);
+    private ProductImage createProductImages(String imageUrl, int sortOrder){
+        return new ProductImage(imageUrl, sortOrder);
     }
 
-    private ProductOptionTypes createProductOptionType(OptionTypes optionTypes){
-        return new ProductOptionTypes(optionTypes, 0, true);
+    private ProductOptionType createProductOptionType(OptionType optionType){
+        return new ProductOptionType(optionType, 0, true);
     }
 
-    private ProductVariants createProductVariants(String sku, int price, int stockQuantity, int discountValue, OptionValues optionValues){
-        ProductVariantOptions productVariantOptions = new ProductVariantOptions(optionValues);
+    private ProductVariant createProductVariants(String sku, int price, int stockQuantity, int discountValue, OptionValue optionValue){
+        ProductVariantOption productVariantOption = new ProductVariantOption(optionValue);
 
-        ProductVariants productVariants = new ProductVariants(sku, price, stockQuantity, discountValue);
-        productVariants.addProductVariantOption(productVariantOptions);
-        return productVariants;
+        ProductVariant productVariant = new ProductVariant(sku, price, stockQuantity, discountValue);
+        productVariant.addProductVariantOption(productVariantOption);
+        return productVariant;
     }
 
-    private Products createProduct(String name, String description, Categories category,
-                                   List<ProductImages> productImages, List<ProductOptionTypes> productOptionTypes,
-                                   List<ProductVariants> productVariants){
-        Products product = new Products(name, description, category);
+    private Product createProduct(String name, String description, Category category,
+                                  List<ProductImage> productImages, List<ProductOptionType> productOptionTypes,
+                                  List<ProductVariant> productVariants){
+        Product product = new Product(name, description, category);
         product.addImages(productImages);
         product.addOptionTypes(productOptionTypes);
         product.addVariants(productVariants);

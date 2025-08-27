@@ -1,31 +1,28 @@
 package com.example.product_service.entity;
 
+import com.example.product_service.entity.base.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-public class OptionValues {
+public class ReviewImage extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "option_type_id")
-    private OptionTypes optionType;
+    @JoinColumn(name = "review_id")
+    private Review review;
 
-    @Setter
-    private String optionValue;
+    private String imageUrl;
 
-    protected void setOptionType(OptionTypes optionType){
-        this.optionType = optionType;
+    public ReviewImage(Review review, String imageUrl) {
+        this.review = review;
+        this.imageUrl = imageUrl;
     }
 
-    public OptionValues(String optionValue){
-        this.optionValue = optionValue;
-    }
 }

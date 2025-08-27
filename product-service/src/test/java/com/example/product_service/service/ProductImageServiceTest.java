@@ -41,15 +41,15 @@ class ProductImageServiceTest {
     @Autowired
     ProductImageService productImageService;
 
-    OptionTypes storage;
-    Categories electronic;
-    OptionValues gb_128;
+    OptionType storage;
+    Category electronic;
+    OptionValue gb_128;
 
     @BeforeEach
     void saveFixture(){
-        storage = new OptionTypes("용량");
-        electronic = new Categories("전자 기기", "http://electronic.jpg");
-        gb_128 = new OptionValues("128GB");
+        storage = new OptionType("용량");
+        electronic = new Category("전자 기기", "http://electronic.jpg");
+        gb_128 = new OptionValue("128GB");
         storage.addOptionValue(gb_128);
         optionTypeRepository.save(storage);
         categoryRepository.save(electronic);
@@ -58,13 +58,13 @@ class ProductImageServiceTest {
     @Test
     @DisplayName("상품 이미지 수정 테스트-성공")
     void updateImageById_integration_success(){
-        ProductImages productImage1 = createProductImages("http://iphone16-1.jpg", 0);
-        ProductImages productImage2 = createProductImages("http://iphone16-2.jpg", 1);
-        ProductImages productImage3 = createProductImages("http://iphone16-3.jpg", 2);
-        ProductOptionTypes productOptionType = createProductOptionType(storage);
-        ProductVariants productVariant = createProductVariants("IPHONE16-128GB", 10000, 100, 10, gb_128);
+        ProductImage productImage1 = createProductImages("http://iphone16-1.jpg", 0);
+        ProductImage productImage2 = createProductImages("http://iphone16-2.jpg", 1);
+        ProductImage productImage3 = createProductImages("http://iphone16-3.jpg", 2);
+        ProductOptionType productOptionType = createProductOptionType(storage);
+        ProductVariant productVariant = createProductVariants("IPHONE16-128GB", 10000, 100, 10, gb_128);
 
-        Products product = createProduct("IPhone 16", "IPhone Model 16", electronic,
+        Product product = createProduct("IPhone 16", "IPhone Model 16", electronic,
                 List.of(productImage1, productImage2, productImage3), List.of(productOptionType), List.of(productVariant));
 
         productsRepository.save(product);
@@ -77,10 +77,10 @@ class ProductImageServiceTest {
         assertThat(response.getUrl()).isEqualTo("http://update.jpg");
         assertThat(response.getSortOrder()).isEqualTo(0);
 
-        Products findProduct = productsRepository.findById(product.getId()).get();
+        Product findProduct = productsRepository.findById(product.getId()).get();
 
         assertThat(findProduct.getImages())
-                .extracting(ProductImages::getId, ProductImages::getImageUrl, ProductImages::getSortOrder)
+                .extracting(ProductImage::getId, ProductImage::getImageUrl, ProductImage::getSortOrder)
                 .containsExactlyInAnyOrder(
                         tuple(productImage1.getId(), productImage1.getImageUrl(), 1),
                         tuple(productImage2.getId(), "http://update.jpg", 0),
@@ -100,13 +100,13 @@ class ProductImageServiceTest {
     @Test
     @DisplayName("상품 이미지 수정 테스트-실패(잘못된 정렬 순서 요청)")
     void updateImageById_integration_badRequest_sortOrder(){
-        ProductImages productImage1 = createProductImages("http://iphone16-1.jpg", 0);
-        ProductImages productImage2 = createProductImages("http://iphone16-2.jpg", 1);
-        ProductImages productImage3 = createProductImages("http://iphone16-3.jpg", 2);
-        ProductOptionTypes productOptionType = createProductOptionType(storage);
-        ProductVariants productVariant = createProductVariants("IPHONE16-128GB", 10000, 100, 10, gb_128);
+        ProductImage productImage1 = createProductImages("http://iphone16-1.jpg", 0);
+        ProductImage productImage2 = createProductImages("http://iphone16-2.jpg", 1);
+        ProductImage productImage3 = createProductImages("http://iphone16-3.jpg", 2);
+        ProductOptionType productOptionType = createProductOptionType(storage);
+        ProductVariant productVariant = createProductVariants("IPHONE16-128GB", 10000, 100, 10, gb_128);
 
-        Products product = createProduct("IPhone 16", "IPhone Model 16", electronic,
+        Product product = createProduct("IPhone 16", "IPhone Model 16", electronic,
                 List.of(productImage1, productImage2, productImage3), List.of(productOptionType), List.of(productVariant));
 
         productsRepository.save(product);
@@ -121,13 +121,13 @@ class ProductImageServiceTest {
     @Test
     @DisplayName("상품 이미지 삭제 테스트-성공")
     void deleteImageById_integration_success(){
-        ProductImages productImage1 = createProductImages("http://iphone16-1.jpg", 0);
-        ProductImages productImage2 = createProductImages("http://iphone16-2.jpg", 1);
-        ProductImages productImage3 = createProductImages("http://iphone16-3.jpg", 2);
-        ProductOptionTypes productOptionType = createProductOptionType(storage);
-        ProductVariants productVariant = createProductVariants("IPHONE16-128GB", 10000, 100, 10, gb_128);
+        ProductImage productImage1 = createProductImages("http://iphone16-1.jpg", 0);
+        ProductImage productImage2 = createProductImages("http://iphone16-2.jpg", 1);
+        ProductImage productImage3 = createProductImages("http://iphone16-3.jpg", 2);
+        ProductOptionType productOptionType = createProductOptionType(storage);
+        ProductVariant productVariant = createProductVariants("IPHONE16-128GB", 10000, 100, 10, gb_128);
 
-        Products product = createProduct("IPhone 16", "IPhone Model 16", electronic,
+        Product product = createProduct("IPhone 16", "IPhone Model 16", electronic,
                 List.of(productImage1, productImage2, productImage3), List.of(productOptionType), List.of(productVariant));
 
         productsRepository.save(product);
@@ -135,11 +135,11 @@ class ProductImageServiceTest {
         productImageService.deleteImageById(productImage2.getId());
         em.flush(); em.clear();
 
-        Products findProduct = productsRepository.findById(product.getId()).get();
+        Product findProduct = productsRepository.findById(product.getId()).get();
 
         assertThat(findProduct.getImages().size()).isEqualTo(2);
         assertThat(findProduct.getImages())
-                .extracting(ProductImages::getId, ProductImages::getImageUrl, ProductImages::getSortOrder)
+                .extracting(ProductImage::getId, ProductImage::getImageUrl, ProductImage::getSortOrder)
                 .containsExactlyInAnyOrder(
                         tuple(productImage1.getId(), productImage1.getImageUrl(), 0),
                         tuple(productImage3.getId(), productImage3.getImageUrl(), 1)
@@ -154,26 +154,26 @@ class ProductImageServiceTest {
                 .hasMessage(TestMessageUtil.getMessage(MessagePath.PRODUCT_IMAGE_NOT_FOUND));
     }
 
-    private ProductImages createProductImages(String imageUrl, int sortOrder){
-        return new ProductImages(imageUrl, sortOrder);
+    private ProductImage createProductImages(String imageUrl, int sortOrder){
+        return new ProductImage(imageUrl, sortOrder);
     }
 
-    private ProductOptionTypes createProductOptionType(OptionTypes optionTypes){
-        return new ProductOptionTypes(optionTypes, 0, true);
+    private ProductOptionType createProductOptionType(OptionType optionType){
+        return new ProductOptionType(optionType, 0, true);
     }
 
-    private ProductVariants createProductVariants(String sku, int price, int stockQuantity, int discountValue, OptionValues optionValues){
-        ProductVariantOptions productVariantOptions = new ProductVariantOptions(optionValues);
+    private ProductVariant createProductVariants(String sku, int price, int stockQuantity, int discountValue, OptionValue optionValue){
+        ProductVariantOption productVariantOption = new ProductVariantOption(optionValue);
 
-        ProductVariants productVariants = new ProductVariants(sku, price, stockQuantity, discountValue);
-        productVariants.addProductVariantOption(productVariantOptions);
-        return productVariants;
+        ProductVariant productVariant = new ProductVariant(sku, price, stockQuantity, discountValue);
+        productVariant.addProductVariantOption(productVariantOption);
+        return productVariant;
     }
 
-    private Products createProduct(String name, String description, Categories category,
-                                   List<ProductImages> productImages, List<ProductOptionTypes> productOptionTypes,
-                                   List<ProductVariants> productVariants){
-        Products product = new Products(name, description, category);
+    private Product createProduct(String name, String description, Category category,
+                                  List<ProductImage> productImages, List<ProductOptionType> productOptionTypes,
+                                  List<ProductVariant> productVariants){
+        Product product = new Product(name, description, category);
         product.addImages(productImages);
         product.addOptionTypes(productOptionTypes);
         product.addVariants(productVariants);

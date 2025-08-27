@@ -1,6 +1,6 @@
 package com.example.product_service.dto.response.product;
 
-import com.example.product_service.entity.Products;
+import com.example.product_service.entity.Product;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -16,10 +16,10 @@ public class ProductUpdateResponse {
     private String description;
     private Long categoryId;
 
-    public ProductUpdateResponse(Products products){
-        this.id = products.getId();
-        this.name = products.getName();
-        this.description = products.getDescription();
-        this.categoryId = products.getCategory().getId();
+    public ProductUpdateResponse(Product product){
+        this.id = product.getId();
+        this.name = product.getName();
+        this.description = product.getDescription();
+        this.categoryId = product.getCategory().getId();
     }
 }

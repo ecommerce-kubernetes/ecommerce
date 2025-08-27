@@ -5,8 +5,8 @@ import com.example.product_service.dto.request.options.OptionTypeRequest;
 import com.example.product_service.dto.request.options.OptionValueRequest;
 import com.example.product_service.dto.response.options.OptionTypeResponse;
 import com.example.product_service.dto.response.options.OptionValueResponse;
-import com.example.product_service.entity.OptionTypes;
-import com.example.product_service.entity.OptionValues;
+import com.example.product_service.entity.OptionType;
+import com.example.product_service.entity.OptionValue;
 import com.example.product_service.exception.DuplicateResourceException;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.repository.OptionTypeRepository;
@@ -41,9 +41,9 @@ public class OptionTypeServiceUnitTest {
     @Mock
     MessageSourceUtil ms;
     @Captor
-    private ArgumentCaptor<OptionTypes> typesArgumentCaptor;
+    private ArgumentCaptor<OptionType> typesArgumentCaptor;
     @Captor
-    private ArgumentCaptor<OptionValues> valuesArgumentCaptor;
+    private ArgumentCaptor<OptionValue> valuesArgumentCaptor;
     @InjectMocks
     OptionTypeService optionTypeService;
 
@@ -52,14 +52,14 @@ public class OptionTypeServiceUnitTest {
     void saveOptionTypeTest_unit_success(){
         OptionTypeRequest request = new OptionTypeRequest("name");
         mockExistsName("name", false);
-        when(optionTypeRepository.save(any(OptionTypes.class)))
+        when(optionTypeRepository.save(any(OptionType.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         OptionTypeResponse response = optionTypeService.saveOptionType(request);
 
         verify(optionTypeRepository).save(typesArgumentCaptor.capture());
 
-        OptionTypes value = typesArgumentCaptor.getValue();
+        OptionType value = typesArgumentCaptor.getValue();
         assertThat(value.getName()).isEqualTo("name");
 
         assertThat(response.getName()).isEqualTo("name");
@@ -80,21 +80,21 @@ public class OptionTypeServiceUnitTest {
     @DisplayName("옵션 값 저장 테스트-성공")
     void saveOptionValueTest_unit_success(){
         OptionValueRequest request = new OptionValueRequest("name");
-        OptionTypes optionType = spy(createOptionTypeWithSetId(1L, "optionType"));
+        OptionType optionType = spy(createOptionTypeWithSetId(1L, "optionType"));
         mockFindById(1L, optionType);
-        when(optionValueRepository.save(any(OptionValues.class)))
+        when(optionValueRepository.save(any(OptionValue.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
         OptionValueResponse response = optionTypeService.saveOptionValue(1L, request);
 
         verify(optionValueRepository).save(valuesArgumentCaptor.capture());
 
-        OptionValues value = valuesArgumentCaptor.getValue();
+        OptionValue value = valuesArgumentCaptor.getValue();
         assertThat(value.getOptionValue()).isEqualTo("name");
 
         assertThat(response.getTypeId()).isEqualTo(1L);
         assertThat(response.getValueName()).isEqualTo("name");
 
-        verify(optionType).addOptionValue(any(OptionValues.class));
+        verify(optionType).addOptionValue(any(OptionValue.class));
     }
 
     @Test
@@ -113,27 +113,27 @@ public class OptionTypeServiceUnitTest {
     void saveOptionValueTest_unit_conflict(){
         OptionValueRequest request = new OptionValueRequest("duplicate");
         mockMessageUtil(OPTION_VALUE_CONFLICT, "OptionValue already exists");
-        OptionTypes real = createOptionTypeWithSetId(1L, "optionType");
-        OptionValues duplicate = new OptionValues("duplicate");
+        OptionType real = createOptionTypeWithSetId(1L, "optionType");
+        OptionValue duplicate = new OptionValue("duplicate");
         real.addOptionValue(duplicate);
 
-        OptionTypes optionType = spy(real);
+        OptionType optionType = spy(real);
         mockFindById(1L, optionType);
 
         assertThatThrownBy(() -> optionTypeService.saveOptionValue(1L, request))
                 .isInstanceOf(DuplicateResourceException.class)
                 .hasMessage(getMessage(OPTION_VALUE_CONFLICT));
 
-        verify(optionType, never()).addOptionValue(any(OptionValues.class));
+        verify(optionType, never()).addOptionValue(any(OptionValue.class));
     }
 
     @Test
     @DisplayName("옵션 타입 조회 테스트-성공")
     void getOptionTypesTest_unit_success(){
-        OptionTypes type1 = createOptionTypeWithSetId(1L, "type1");
-        OptionTypes type2 = createOptionTypeWithSetId(2L, "type2");
-        OptionTypes type3 = createOptionTypeWithSetId(3L, "type3");
-        List<OptionTypes> typeList = List.of(type1, type2, type3);
+        OptionType type1 = createOptionTypeWithSetId(1L, "type1");
+        OptionType type2 = createOptionTypeWithSetId(2L, "type2");
+        OptionType type3 = createOptionTypeWithSetId(3L, "type3");
+        List<OptionType> typeList = List.of(type1, type2, type3);
         mockFindAll(typeList);
 
         List<OptionTypeResponse> response = optionTypeService.getOptionTypes();
@@ -151,10 +151,10 @@ public class OptionTypeServiceUnitTest {
     @Test
     @DisplayName("옵션 값 조회 테스트-성공")
     void getOptionValuesByTypeIdTest_unit_success(){
-        OptionTypes type = createOptionTypeWithSetId(1L, "type");
-        OptionValues value1 = createOptionValueWithSetId(1L,"value1");
-        OptionValues value2 = createOptionValueWithSetId(2L,"value2");
-        OptionValues value3 = createOptionValueWithSetId(3L,"value3");
+        OptionType type = createOptionTypeWithSetId(1L, "type");
+        OptionValue value1 = createOptionValueWithSetId(1L,"value1");
+        OptionValue value2 = createOptionValueWithSetId(2L,"value2");
+        OptionValue value3 = createOptionValueWithSetId(3L,"value3");
         addOptionValues(type, value1, value2, value3);
         mockFindById(1L, type);
         List<OptionValueResponse> response = optionTypeService.getOptionValuesByTypeId(1L);
@@ -183,7 +183,7 @@ public class OptionTypeServiceUnitTest {
     @DisplayName("옵션 타입 수정 테스트-성공")
     void updateOptionTypeTest_unit_success(){
         OptionTypeRequest request = new OptionTypeRequest("updated");
-        OptionTypes exist = spy(createOptionTypeWithSetId(1L, "name"));
+        OptionType exist = spy(createOptionTypeWithSetId(1L, "name"));
         mockFindById(1L, exist);
         mockExistsName("updated", false);
 
@@ -211,7 +211,7 @@ public class OptionTypeServiceUnitTest {
         OptionTypeRequest request = new OptionTypeRequest("duplicate");
         mockMessageUtil(OPTION_TYPE_CONFLICT, "OptionType already exists");
 
-        OptionTypes type = spy(createOptionTypeWithSetId(1L, "duplicate"));
+        OptionType type = spy(createOptionTypeWithSetId(1L, "duplicate"));
         mockFindById(1L, type);
         mockExistsName("duplicate", true);
 
@@ -225,13 +225,13 @@ public class OptionTypeServiceUnitTest {
     @Test
     @DisplayName("옵션 타입 삭제 테스트-성공")
     void deleteOptionTypeTest_unit_success(){
-        OptionTypes target = spy(createOptionTypeWithSetId(1L, "target"));
+        OptionType target = spy(createOptionTypeWithSetId(1L, "target"));
         mockFindById(1L, target);
 
         optionTypeService.deleteOptionTypeById(1L);
 
         verify(optionTypeRepository).delete(typesArgumentCaptor.capture());
-        OptionTypes value = typesArgumentCaptor.getValue();
+        OptionType value = typesArgumentCaptor.getValue();
 
         assertThat(value.getId()).isEqualTo(1L);
         assertThat(value.getName()).isEqualTo("target");
@@ -256,8 +256,8 @@ public class OptionTypeServiceUnitTest {
         }
     }
 
-    private void mockFindById(Long id, OptionTypes o){
-        OngoingStubbing<Optional<OptionTypes>> when = when(optionTypeRepository.findById(id));
+    private void mockFindById(Long id, OptionType o){
+        OngoingStubbing<Optional<OptionType>> when = when(optionTypeRepository.findById(id));
         if(o == null){
             when.thenReturn(Optional.empty());
         } else {
@@ -265,8 +265,8 @@ public class OptionTypeServiceUnitTest {
         }
     }
 
-    private void mockFindAll(List<OptionTypes> returnList){
-        OngoingStubbing<List<OptionTypes>> when = when(optionTypeRepository.findAll());
+    private void mockFindAll(List<OptionType> returnList){
+        OngoingStubbing<List<OptionType>> when = when(optionTypeRepository.findAll());
         if(returnList == null || returnList.isEmpty()){
             when.thenReturn(List.of());
         } else {
@@ -278,20 +278,20 @@ public class OptionTypeServiceUnitTest {
         when(ms.getMessage(code)).thenReturn(returnMessage);
     }
 
-    private OptionTypes createOptionTypeWithSetId(Long id, String name){
-        OptionTypes optionTypes = new OptionTypes(name);
-        ReflectionTestUtils.setField(optionTypes, "id", id);
-        return optionTypes;
+    private OptionType createOptionTypeWithSetId(Long id, String name){
+        OptionType optionType = new OptionType(name);
+        ReflectionTestUtils.setField(optionType, "id", id);
+        return optionType;
     }
 
-    private OptionValues createOptionValueWithSetId(Long id, String name){
-        OptionValues optionValues = new OptionValues(name);
-        ReflectionTestUtils.setField(optionValues, "id", id);
-        return optionValues;
+    private OptionValue createOptionValueWithSetId(Long id, String name){
+        OptionValue optionValue = new OptionValue(name);
+        ReflectionTestUtils.setField(optionValue, "id", id);
+        return optionValue;
     }
 
-    private void addOptionValues(OptionTypes optionType, OptionValues... optionValues){
-        for (OptionValues optionValue : optionValues) {
+    private void addOptionValues(OptionType optionType, OptionValue... optionValues){
+        for (OptionValue optionValue : optionValues) {
             optionType.addOptionValue(optionValue);
         }
     }

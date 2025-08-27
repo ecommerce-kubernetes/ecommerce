@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/variants")
-@Tag(name = "ProductVariants" , description = "상품 변형 관련 API")
+@Tag(name = "ProductVariant" , description = "상품 변형 관련 API")
 @RequiredArgsConstructor
 public class ProductVariantController {
 

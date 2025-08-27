@@ -9,30 +9,30 @@ import lombok.NoArgsConstructor;
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-public class ProductOptionTypes extends BaseEntity {
+public class ProductOptionType extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id")
-    private Products product;
+    private Product product;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "option_type_id")
-    private OptionTypes optionType;
+    private OptionType optionType;
 
     private int priority;
 
     private boolean active;
 
-    public ProductOptionTypes(OptionTypes optionType, int priority, boolean active){
+    public ProductOptionType(OptionType optionType, int priority, boolean active){
         this.optionType = optionType;
         this.priority = priority;
         this.active = active;
     }
 
-    protected void setProduct(Products product){
+    protected void setProduct(Product product){
         this.product = product;
     }
 }

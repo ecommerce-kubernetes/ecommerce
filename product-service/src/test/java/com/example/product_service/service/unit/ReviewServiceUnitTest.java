@@ -36,17 +36,17 @@ public class ReviewServiceUnitTest {
     @Test
     @DisplayName("리뷰 삭제 테스트-성공")
     void deleteReviewByIdTest_unit_success(){
-        OptionTypes optionType = new OptionTypes("optionType");
-        OptionValues optionValue = createOptionValue(1L, "optionValue", optionType);
-        ProductOptionTypes productOptionType = createProductOptionTypes(optionType);
+        OptionType optionType = new OptionType("optionType");
+        OptionValue optionValue = createOptionValue(1L, "optionValue", optionType);
+        ProductOptionType productOptionType = createProductOptionTypes(optionType);
 
-        ProductVariants productVariant = createProductVariant(1L, "sku", List.of(new ProductVariantOptions(optionValue)));
-        Reviews review1 = new Reviews(1L, "user", 4, "content");
-        Reviews review2 = new Reviews(2L, "user", 3, "content");
+        ProductVariant productVariant = createProductVariant(1L, "sku", List.of(new ProductVariantOption(optionValue)));
+        Review review1 = new Review(1L, "user", 4, "content");
+        Review review2 = new Review(2L, "user", 3, "content");
         productVariant.addReview(review1);
         productVariant.addReview(review2);
 
-        createProduct(List.of(new ProductImages("http://test.jpg")), List.of(productOptionType),
+        createProduct(List.of(new ProductImage("http://test.jpg")), List.of(productOptionType),
                 List.of(productVariant));
 
         when(reviewsRepository.findWithVariantById(1L))
@@ -56,7 +56,7 @@ public class ReviewServiceUnitTest {
 
         assertThat(productVariant.getReviews().size()).isEqualTo(1);
         assertThat(productVariant.getReviews())
-                .extracting(Reviews::getUserId, Reviews::getUserName, Reviews::getRating, Reviews::getContent)
+                .extracting(Review::getUserId, Review::getUserName, Review::getRating, Review::getContent)
                 .containsExactlyInAnyOrder(
                         tuple(2L, "user", 3, "content")
                 );
@@ -77,17 +77,17 @@ public class ReviewServiceUnitTest {
     @Test
     @DisplayName("리뷰 삭제 테스트-실패(리뷰 작성자가 아닌 경우)")
     void deleteReviewByIdTest_unit_NoPermission(){
-        OptionTypes optionType = new OptionTypes("optionType");
-        OptionValues optionValue = createOptionValue(1L, "optionValue", optionType);
-        ProductOptionTypes productOptionType = createProductOptionTypes(optionType);
+        OptionType optionType = new OptionType("optionType");
+        OptionValue optionValue = createOptionValue(1L, "optionValue", optionType);
+        ProductOptionType productOptionType = createProductOptionTypes(optionType);
 
-        ProductVariants productVariant = createProductVariant(1L, "sku", List.of(new ProductVariantOptions(optionValue)));
-        Reviews review1 = new Reviews(1L, "user", 4, "content");
-        Reviews review2 = new Reviews(2L, "user", 3, "content");
+        ProductVariant productVariant = createProductVariant(1L, "sku", List.of(new ProductVariantOption(optionValue)));
+        Review review1 = new Review(1L, "user", 4, "content");
+        Review review2 = new Review(2L, "user", 3, "content");
         productVariant.addReview(review1);
         productVariant.addReview(review2);
 
-        createProduct(List.of(new ProductImages("http://test.jpg")), List.of(productOptionType),
+        createProduct(List.of(new ProductImage("http://test.jpg")), List.of(productOptionType),
                 List.of(productVariant));
 
         when(reviewsRepository.findWithVariantById(1L))
@@ -101,10 +101,10 @@ public class ReviewServiceUnitTest {
                 .hasMessage(TestMessageUtil.getMessage(MessagePath.REVIEW_FORBIDDEN_DELETE));
     }
 
-    private Products createProduct(List<ProductImages> productImages, List<ProductOptionTypes> productOptionTypes,
-                                   List<ProductVariants> productVariants){
-        Products product = new Products("productName", "product description",
-                new Categories("category", "http://test.jpg"));
+    private Product createProduct(List<ProductImage> productImages, List<ProductOptionType> productOptionTypes,
+                                  List<ProductVariant> productVariants){
+        Product product = new Product("productName", "product description",
+                new Category("category", "http://test.jpg"));
 
         product.addImages(productImages);
         product.addOptionTypes(productOptionTypes);
@@ -112,21 +112,21 @@ public class ReviewServiceUnitTest {
         return product;
     }
 
-    private ProductVariants createProductVariant(Long variantId, String sku, List<ProductVariantOptions> productVariantOptions){
-        ProductVariants productVariant = new ProductVariants(sku, 10000, 100, 10);
+    private ProductVariant createProductVariant(Long variantId, String sku, List<ProductVariantOption> productVariantOptions){
+        ProductVariant productVariant = new ProductVariant(sku, 10000, 100, 10);
         productVariant.addProductVariantOptions(productVariantOptions);
         ReflectionTestUtils.setField(productVariant, "id", variantId);
         return productVariant;
     }
 
-    private ProductOptionTypes createProductOptionTypes(OptionTypes optionTypes){
-        return new ProductOptionTypes(optionTypes, 0, true);
+    private ProductOptionType createProductOptionTypes(OptionType optionType){
+        return new ProductOptionType(optionType, 0, true);
     }
 
-    private OptionValues createOptionValue(Long id, String name, OptionTypes optionTypes){
-        OptionValues optionValue = new OptionValues(name);
+    private OptionValue createOptionValue(Long id, String name, OptionType optionType){
+        OptionValue optionValue = new OptionValue(name);
         ReflectionTestUtils.setField(optionValue, "id", id);
-        optionTypes.addOptionValue(optionValue);
+        optionType.addOptionValue(optionValue);
         return optionValue;
     }
 }

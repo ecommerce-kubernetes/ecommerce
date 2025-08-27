@@ -9,9 +9,9 @@ import com.example.product_service.dto.response.image.ImageResponse;
 import com.example.product_service.dto.response.product.ProductResponse;
 import com.example.product_service.dto.response.product.ProductUpdateResponse;
 import com.example.product_service.dto.response.variant.ProductVariantResponse;
-import com.example.product_service.entity.ProductImages;
-import com.example.product_service.entity.ProductVariants;
-import com.example.product_service.entity.Products;
+import com.example.product_service.entity.Product;
+import com.example.product_service.entity.ProductImage;
+import com.example.product_service.entity.ProductVariant;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.repository.ProductsRepository;
 import com.example.product_service.service.dto.*;
@@ -42,14 +42,14 @@ public class ProductApplicationService {
         ProductCreationCommand productCreationCommand = requestValidator.validateProductRequest(request);
         //상품 sku 중복, 옵션 타입 연관관계 체크
         ProductCreationData creationData = productReferenceService.buildCreationData(request);
-        Products products = factory.createProducts(productCreationCommand, creationData);
+        Product product = factory.createProducts(productCreationCommand, creationData);
 
-        Products saved = productsRepository.save(products);
+        Product saved = productsRepository.save(product);
         return new ProductResponse(saved);
     }
 
     public ProductUpdateResponse updateBasicInfoById(Long productId, UpdateProductBasicRequest request){
-        Products target = findProductByIdOrThrow(productId);
+        Product target = findProductByIdOrThrow(productId);
 
         if(request.getName() != null && !request.getName().isEmpty()){
             target.setName(request.getName());
@@ -61,35 +61,35 @@ public class ProductApplicationService {
 
         if(request.getCategoryId() != null){
             ProductUpdateData productUpdateData = productReferenceService.resolveUpdateData(request);
-            target.setCategory(productUpdateData.getCategories());
+            target.setCategory(productUpdateData.getCategory());
         }
 
         return new ProductUpdateResponse(target);
     }
 
     public void deleteProductById(Long productId){
-        Products target = findProductByIdOrThrow(productId);
+        Product target = findProductByIdOrThrow(productId);
         productsRepository.delete(target);
     }
 
     public List<ImageResponse> addImages(Long productId, AddImageRequest request){
-        Products product = findProductByIdOrThrow(productId);
-        List<ProductImages> productImages = request.getImageUrls().stream().map(ProductImages::new).toList();
+        Product product = findProductByIdOrThrow(productId);
+        List<ProductImage> productImages = request.getImageUrls().stream().map(ProductImage::new).toList();
         product.addImages(productImages);
 
         return product.getImages().stream().map(ImageResponse::new).toList();
     }
 
     public ProductVariantResponse addVariant(Long productId, ProductVariantRequest request){
-        Products product = findProductByIdOrThrow(productId);
+        Product product = findProductByIdOrThrow(productId);
         ProductVariantCommand productVariantCommand = requestValidator.validateVariantRequest(request);
         ProductVariantCreationData creationData = productReferenceService.buildVariantCreationData(request);
-        ProductVariants productVariant = factory.createProductVariant(productVariantCommand, creationData);
+        ProductVariant productVariant = factory.createProductVariant(productVariantCommand, creationData);
         product.addVariant(productVariant);
         return new ProductVariantResponse(productVariant);
     }
 
-    private Products findProductByIdOrThrow(Long productId){
+    private Product findProductByIdOrThrow(Long productId){
         return productsRepository.findById(productId)
                 .orElseThrow(() -> new NotFoundException(ms.getMessage(PRODUCT_NOT_FOUND)));
     }

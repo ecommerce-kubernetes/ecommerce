@@ -4,7 +4,7 @@ import com.example.product_service.dto.request.category.CategoryRequest;
 import com.example.product_service.dto.request.category.UpdateCategoryRequest;
 import com.example.product_service.dto.response.category.CategoryHierarchyResponse;
 import com.example.product_service.dto.response.category.CategoryResponse;
-import com.example.product_service.entity.Categories;
+import com.example.product_service.entity.Category;
 import com.example.product_service.exception.BadRequestException;
 import com.example.product_service.exception.DuplicateResourceException;
 import com.example.product_service.exception.NotFoundException;
@@ -37,15 +37,15 @@ class CategoryServiceTest {
     @Autowired
     EntityManager em;
 
-    private Categories parent;
-    private Categories target;
-    private Categories duplicate;
+    private Category parent;
+    private Category target;
+    private Category duplicate;
 
     @BeforeEach
     void saveFixture(){
-        duplicate = categoryRepository.save(new Categories("duplicate", "http://test.jpg"));
-        target = categoryRepository.save(new Categories("target", "http://target.jpg"));
-        parent = categoryRepository.save(new Categories("parent", "http://test.jpg"));
+        duplicate = categoryRepository.save(new Category("duplicate", "http://test.jpg"));
+        target = categoryRepository.save(new Category("target", "http://target.jpg"));
+        parent = categoryRepository.save(new Category("parent", "http://test.jpg"));
     }
 
     @AfterEach
@@ -118,8 +118,8 @@ class CategoryServiceTest {
     @Transactional
     void getChildrenCategoriesByIdTest_integration_success(){
 
-        Categories child1 = categoryRepository.save(new Categories("child1", "http://child1.jpg"));
-        Categories child2 = categoryRepository.save(new Categories("child2", "http://child2.jpg"));
+        Category child1 = categoryRepository.save(new Category("child1", "http://child1.jpg"));
+        Category child2 = categoryRepository.save(new Category("child2", "http://child2.jpg"));
 
         parent.addChild(child1);
         parent.addChild(child2);
@@ -147,17 +147,17 @@ class CategoryServiceTest {
     @DisplayName("카테고리 계층 구조 조회 테스트-성공")
     @Transactional
     void getHierarchyByCategoryIdTest_integration_success(){
-        Categories level1_1 = new Categories("level1_1", "http://level1-1.jpg");
-        Categories level2_1 = new Categories("level2-1", "http://level2-1.jpg");
-        Categories level2_2 = new Categories("level2_2", "http://level2_2.jpg");
-        Categories level3_1 = new Categories("level3_1", "http://level3_1.jpg");
-        Categories level3_2 = new Categories("level3_2", "http://level3_2.jpg");
+        Category level1_1 = new Category("level1_1", "http://level1-1.jpg");
+        Category level2_1 = new Category("level2-1", "http://level2-1.jpg");
+        Category level2_2 = new Category("level2_2", "http://level2_2.jpg");
+        Category level3_1 = new Category("level3_1", "http://level3_1.jpg");
+        Category level3_2 = new Category("level3_2", "http://level3_2.jpg");
 
         level1_1.addChild(level2_1);
         level1_1.addChild(level2_2);
         level2_1.addChild(level3_1);
         level2_1.addChild(level3_2);
-        List<Categories> categories = List.of(level1_1, level2_1, level2_2, level3_1, level3_2);
+        List<Category> categories = List.of(level1_1, level2_1, level2_2, level3_1, level3_2);
         categoryRepository.saveAll(categories);
         em.flush(); em.clear();
 
@@ -260,7 +260,7 @@ class CategoryServiceTest {
         categoryService.deleteCategoryById(target.getId());
         em.flush(); em.clear();
 
-        Optional<Categories> then = categoryRepository.findById(target.getId());
+        Optional<Category> then = categoryRepository.findById(target.getId());
         assertThat(then).isEmpty();
     }
 

@@ -36,19 +36,19 @@ public class ReviewServiceTest {
     @Autowired
     ReviewService reviewService;
 
-    private Products apple;
+    private Product apple;
 
-    OptionTypes storage;
-    Categories electronic;
-    OptionValues gb_128;
-    OptionValues gb_256;
+    OptionType storage;
+    Category electronic;
+    OptionValue gb_128;
+    OptionValue gb_256;
 
     @BeforeEach
     void saveFixture(){
-        storage = new OptionTypes("용량");
-        electronic = new Categories("전자 기기", "http://electronic.jpg");
-        gb_128 = new OptionValues("128GB");
-        gb_256 = new OptionValues("256GB");
+        storage = new OptionType("용량");
+        electronic = new Category("전자 기기", "http://electronic.jpg");
+        gb_128 = new OptionValue("128GB");
+        gb_256 = new OptionValue("256GB");
         storage.addOptionValue(gb_128);
         storage.addOptionValue(gb_256);
         optionTypeRepository.save(storage);
@@ -59,27 +59,27 @@ public class ReviewServiceTest {
     @Test
     @DisplayName("상품 리뷰 삭제 테스트-성공")
     void deleteReviewByIdTest_integration_success(){
-        ProductImages productImage = createProductImages("http://iphone16-1.jpg", 0);
-        ProductOptionTypes productOptionType = createProductOptionType(storage);
-        ProductVariants productVariant = createProductVariants("IPHONE16-128GB", 10000, 100, 10, gb_128);
+        ProductImage productImage = createProductImages("http://iphone16-1.jpg", 0);
+        ProductOptionType productOptionType = createProductOptionType(storage);
+        ProductVariant productVariant = createProductVariants("IPHONE16-128GB", 10000, 100, 10, gb_128);
 
-        Reviews review1 = new Reviews(1L, "user1", 4, "good");
-        Reviews review2 = new Reviews(2L, "user2", 5, "very good");
+        Review review1 = new Review(1L, "user1", 4, "good");
+        Review review2 = new Review(2L, "user2", 5, "very good");
         productVariant.addReview(review1);
         productVariant.addReview(review2);
 
-        Products product = createProduct("IPhone 16", "IPhone Model 16", electronic,
+        Product product = createProduct("IPhone 16", "IPhone Model 16", electronic,
                 List.of(productImage), List.of(productOptionType), List.of(productVariant));
 
         productsRepository.save(product);
         reviewService.deleteReviewById(review1.getId(), 1L);
         em.flush(); em.clear();
 
-        ProductVariants findVariant = productVariantsRepository.findById(productVariant.getId()).get();
+        ProductVariant findVariant = productVariantsRepository.findById(productVariant.getId()).get();
         assertThat(findVariant.getReviews().size()).isEqualTo(1);
         assertThat(findVariant.getReviews())
-                .extracting(Reviews::getId, Reviews::getUserId, Reviews::getUserName, Reviews::getRating,
-                        Reviews::getContent)
+                .extracting(Review::getId, Review::getUserId, Review::getUserName, Review::getRating,
+                        Review::getContent)
                 .containsExactlyInAnyOrder(
                         tuple(review2.getId(), review2.getUserId(), review2.getUserName(), review2.getRating(),
                                 review2.getContent())
@@ -89,11 +89,11 @@ public class ReviewServiceTest {
     @Test
     @DisplayName("상품 리뷰 삭제 테스트-실패(상품 리뷰를 찾을 수 없음)")
     void deleteReviewByIdTest_integration_notFound_Review(){
-        ProductImages productImage = createProductImages("http://iphone16-1.jpg", 0);
-        ProductOptionTypes productOptionType = createProductOptionType(storage);
-        ProductVariants productVariant = createProductVariants("IPHONE16-128GB", 10000, 100, 10, gb_128);
+        ProductImage productImage = createProductImages("http://iphone16-1.jpg", 0);
+        ProductOptionType productOptionType = createProductOptionType(storage);
+        ProductVariant productVariant = createProductVariants("IPHONE16-128GB", 10000, 100, 10, gb_128);
 
-        Products product = createProduct("IPhone 16", "IPhone Model 16", electronic,
+        Product product = createProduct("IPhone 16", "IPhone Model 16", electronic,
                 List.of(productImage), List.of(productOptionType), List.of(productVariant));
 
         productsRepository.save(product);
@@ -107,16 +107,16 @@ public class ReviewServiceTest {
     @Test
     @DisplayName("상품 리뷰 삭제 테스트-실패(작성자가 아닌경우)")
     void deleteReviewByIdTest_integration_NoPermission(){
-        ProductImages productImage = createProductImages("http://iphone16-1.jpg", 0);
-        ProductOptionTypes productOptionType = createProductOptionType(storage);
-        ProductVariants productVariant = createProductVariants("IPHONE16-128GB", 10000, 100, 10, gb_128);
+        ProductImage productImage = createProductImages("http://iphone16-1.jpg", 0);
+        ProductOptionType productOptionType = createProductOptionType(storage);
+        ProductVariant productVariant = createProductVariants("IPHONE16-128GB", 10000, 100, 10, gb_128);
 
-        Reviews review1 = new Reviews(1L, "user1", 4, "good");
-        Reviews review2 = new Reviews(2L, "user2", 5, "very good");
+        Review review1 = new Review(1L, "user1", 4, "good");
+        Review review2 = new Review(2L, "user2", 5, "very good");
         productVariant.addReview(review1);
         productVariant.addReview(review2);
 
-        Products product = createProduct("IPhone 16", "IPhone Model 16", electronic,
+        Product product = createProduct("IPhone 16", "IPhone Model 16", electronic,
                 List.of(productImage), List.of(productOptionType), List.of(productVariant));
 
         productsRepository.save(product);
@@ -127,26 +127,26 @@ public class ReviewServiceTest {
                 .hasMessage(getMessage(REVIEW_FORBIDDEN_DELETE));
     }
 
-    private ProductImages createProductImages(String imageUrl, int sortOrder){
-        return new ProductImages(imageUrl, sortOrder);
+    private ProductImage createProductImages(String imageUrl, int sortOrder){
+        return new ProductImage(imageUrl, sortOrder);
     }
 
-    private ProductOptionTypes createProductOptionType(OptionTypes optionTypes){
-        return new ProductOptionTypes(optionTypes, 0, true);
+    private ProductOptionType createProductOptionType(OptionType optionType){
+        return new ProductOptionType(optionType, 0, true);
     }
 
-    private ProductVariants createProductVariants(String sku, int price, int stockQuantity, int discountValue, OptionValues optionValues){
-        ProductVariantOptions productVariantOptions = new ProductVariantOptions(optionValues);
+    private ProductVariant createProductVariants(String sku, int price, int stockQuantity, int discountValue, OptionValue optionValue){
+        ProductVariantOption productVariantOption = new ProductVariantOption(optionValue);
 
-        ProductVariants productVariants = new ProductVariants(sku, price, stockQuantity, discountValue);
-        productVariants.addProductVariantOption(productVariantOptions);
-        return productVariants;
+        ProductVariant productVariant = new ProductVariant(sku, price, stockQuantity, discountValue);
+        productVariant.addProductVariantOption(productVariantOption);
+        return productVariant;
     }
 
-    private Products createProduct(String name, String description, Categories category,
-                                   List<ProductImages> productImages, List<ProductOptionTypes> productOptionTypes,
-                                   List<ProductVariants> productVariants){
-        Products product = new Products(name, description, category);
+    private Product createProduct(String name, String description, Category category,
+                                  List<ProductImage> productImages, List<ProductOptionType> productOptionTypes,
+                                  List<ProductVariant> productVariants){
+        Product product = new Product(name, description, category);
         product.addImages(productImages);
         product.addOptionTypes(productOptionTypes);
         product.addVariants(productVariants);

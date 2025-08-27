@@ -57,22 +57,22 @@ public class ProductApplicationServiceTest {
     @Autowired
     EntityManager em;
 
-    OptionTypes storage;
-    OptionTypes color;
-    OptionValues red;
-    OptionValues blue;
-    OptionValues gb_128;
-    OptionValues gb_256;
-    Categories electronic;
+    OptionType storage;
+    OptionType color;
+    OptionValue red;
+    OptionValue blue;
+    OptionValue gb_128;
+    OptionValue gb_256;
+    Category electronic;
     @BeforeEach
     void saveFixture(){
-        storage = new OptionTypes("용량");
-        color = new OptionTypes("색상");
-        gb_128 = new OptionValues("128GB");
-        gb_256 = new OptionValues("256GB");
-        red = new OptionValues("RED");
-        blue = new OptionValues("BLUE");
-        electronic = new Categories("전자 기기", "http://electronic.jpg");
+        storage = new OptionType("용량");
+        color = new OptionType("색상");
+        gb_128 = new OptionValue("128GB");
+        gb_256 = new OptionValue("256GB");
+        red = new OptionValue("RED");
+        blue = new OptionValue("BLUE");
+        electronic = new Category("전자 기기", "http://electronic.jpg");
         storage.addOptionValue(gb_128);
         storage.addOptionValue(gb_256);
         color.addOptionValue(red);
@@ -263,9 +263,9 @@ public class ProductApplicationServiceTest {
     @DisplayName("상품 저장 테스트-실패(DB에 동일한 SKU가 존재할 경우)")
     @Transactional
     void saveProduct_integration_conflict_sku(){
-        Products product = new Products("IPhone 16", "IPhone Model 16", electronic);
-        ProductVariants productVariants = new ProductVariants("duplicateSku", 100, 10, 10);
-        product.addVariants(List.of(productVariants));
+        Product product = new Product("IPhone 16", "IPhone Model 16", electronic);
+        ProductVariant productVariant = new ProductVariant("duplicateSku", 100, 10, 10);
+        product.addVariants(List.of(productVariant));
         productsRepository.save(product);
         em.flush(); em.clear();
 
@@ -293,7 +293,7 @@ public class ProductApplicationServiceTest {
     @DisplayName("상품 저장 테스트-실패(최하위 카테고리가 아님)")
     @Transactional
     void saveProduct_integration_notLeaf_category(){
-        Categories leaf = new Categories("핸드폰", null);
+        Category leaf = new Category("핸드폰", null);
         electronic.addChild(leaf);
         em.flush(); em.clear();
         ProductRequest request = createProductRequest();
@@ -339,14 +339,14 @@ public class ProductApplicationServiceTest {
     @DisplayName("상품 기본 정보 변경 테스트-성공")
     @Transactional
     void updateBasicInfoByIdTest_integration_success(){
-        ProductImages productImage = createProductImages("http://iphone16-1.jpg", 0);
-        ProductOptionTypes productOptionType = createProductOptionType(storage);
-        ProductVariants product1Variant = createProductVariants("IPHONE16-128GB", 10000, 100, 10, gb_128);
+        ProductImage productImage = createProductImages("http://iphone16-1.jpg", 0);
+        ProductOptionType productOptionType = createProductOptionType(storage);
+        ProductVariant product1Variant = createProductVariants("IPHONE16-128GB", 10000, 100, 10, gb_128);
         for(long i=1; i<6; i++){
             product1Variant.addReview(i, "user"+i, 4, "good", List.of());
         }
 
-        Products product = createProduct("IPhone 16", "IPhone Model 16", electronic,
+        Product product = createProduct("IPhone 16", "IPhone Model 16", electronic,
                 List.of(productImage), List.of(productOptionType), List.of(product1Variant));
 
         productsRepository.save(product);
@@ -376,14 +376,14 @@ public class ProductApplicationServiceTest {
     @DisplayName("상품 기본 정보 수정 테스트-실패(카테고리를 찾을 수 없음)")
     @Transactional
     void updateBasicInfoByIdTest_integration_notFound_category(){
-        ProductImages productImage = createProductImages("http://iphone16.jpg", 0);
-        ProductOptionTypes productOptionType = createProductOptionType(storage);
-        ProductVariants product1Variant = createProductVariants("IPHONE16-128GB", 10000, 100, 10, gb_128);
+        ProductImage productImage = createProductImages("http://iphone16.jpg", 0);
+        ProductOptionType productOptionType = createProductOptionType(storage);
+        ProductVariant product1Variant = createProductVariants("IPHONE16-128GB", 10000, 100, 10, gb_128);
         for(long i=1; i<6; i++){
             product1Variant.addReview(i, "user"+i, 4, "good", List.of());
         }
 
-        Products product = createProduct("IPhone 16", "IPhone Model 16", electronic,
+        Product product = createProduct("IPhone 16", "IPhone Model 16", electronic,
                 List.of(productImage), List.of(productOptionType), List.of(product1Variant));
 
         productsRepository.save(product);
@@ -400,19 +400,19 @@ public class ProductApplicationServiceTest {
     @DisplayName("상품 기본 정보 수정 테스트-실패(카테고리가 최하위 카테고리가 아님)")
     @Transactional
     void updateBasicInfoByIdTest_integration_badRequest_category(){
-        ProductImages productImage = createProductImages("http://iphone16.jpg", 0);
-        ProductOptionTypes productOptionType = createProductOptionType(storage);
-        ProductVariants product1Variant = createProductVariants("IPHONE16-128GB", 10000, 100, 10, gb_128);
+        ProductImage productImage = createProductImages("http://iphone16.jpg", 0);
+        ProductOptionType productOptionType = createProductOptionType(storage);
+        ProductVariant product1Variant = createProductVariants("IPHONE16-128GB", 10000, 100, 10, gb_128);
         for(long i=1; i<6; i++){
             product1Variant.addReview(i, "user"+i, 4, "good", List.of());
         }
 
-        Products product = createProduct("IPhone 16", "IPhone Model 16", electronic,
+        Product product = createProduct("IPhone 16", "IPhone Model 16", electronic,
                 List.of(productImage), List.of(productOptionType), List.of(product1Variant));
 
         productsRepository.save(product);
-        Categories root = new Categories("상위 카테고리", null);
-        Categories child = new Categories("하위 카테고리", null);
+        Category root = new Category("상위 카테고리", null);
+        Category child = new Category("하위 카테고리", null);
         root.addChild(child);
         categoryRepository.save(root);
         em.flush(); em.clear();
@@ -427,21 +427,21 @@ public class ProductApplicationServiceTest {
     @DisplayName("상품 삭제 테스트-성공")
     @Transactional
     void deleteProductByIdTest_integration_success(){
-        ProductImages productImage = createProductImages("http://iphone16.jpg", 0);
-        ProductOptionTypes productOptionType = createProductOptionType(storage);
-        ProductVariants product1Variant = createProductVariants("IPHONE16-128GB", 10000, 100, 10, gb_128);
+        ProductImage productImage = createProductImages("http://iphone16.jpg", 0);
+        ProductOptionType productOptionType = createProductOptionType(storage);
+        ProductVariant product1Variant = createProductVariants("IPHONE16-128GB", 10000, 100, 10, gb_128);
         for(long i=1; i<6; i++){
             product1Variant.addReview(i, "user"+i, 4, "good", List.of());
         }
 
-        Products product = createProduct("IPhone 16", "IPhone Model 16", electronic,
+        Product product = createProduct("IPhone 16", "IPhone Model 16", electronic,
                 List.of(productImage), List.of(productOptionType), List.of(product1Variant));
 
         productsRepository.save(product);
         productApplicationService.deleteProductById(product.getId());
         em.flush(); em.clear();
 
-        Optional<Products> result = productsRepository.findById(product.getId());
+        Optional<Product> result = productsRepository.findById(product.getId());
 
         assertThat(result).isEmpty();
     }
@@ -459,14 +459,14 @@ public class ProductApplicationServiceTest {
     @Transactional
     void addImagesTest_integration_success(){
         AddImageRequest request = new AddImageRequest(List.of("http://iphone16-2.jpg", "http://iphone16-3.jpg"));
-        ProductImages productImage = createProductImages("http://iphone16-1.jpg", 0);
-        ProductOptionTypes productOptionType = createProductOptionType(storage);
-        ProductVariants product1Variant = createProductVariants("IPHONE16-128GB", 10000, 100, 10, gb_128);
+        ProductImage productImage = createProductImages("http://iphone16-1.jpg", 0);
+        ProductOptionType productOptionType = createProductOptionType(storage);
+        ProductVariant product1Variant = createProductVariants("IPHONE16-128GB", 10000, 100, 10, gb_128);
         for(long i=1; i<6; i++){
             product1Variant.addReview(i, "user"+i, 4, "good", List.of());
         }
 
-        Products product = createProduct("IPhone 16", "IPhone Model 16", electronic,
+        Product product = createProduct("IPhone 16", "IPhone Model 16", electronic,
                 List.of(productImage), List.of(productOptionType), List.of(product1Variant));
 
         productsRepository.save(product);
@@ -497,11 +497,11 @@ public class ProductApplicationServiceTest {
     @DisplayName("상품 변형 추가 테스트-성공")
     @Transactional
     void addVariantTest_integration_success(){
-        ProductImages productImage = createProductImages("http://iphone16-1.jpg", 0);
-        ProductOptionTypes productOptionType = createProductOptionType(storage);
-        ProductVariants productVariant = createProductVariants("IPHONE16-128GB", 10000, 100, 10, gb_128);
+        ProductImage productImage = createProductImages("http://iphone16-1.jpg", 0);
+        ProductOptionType productOptionType = createProductOptionType(storage);
+        ProductVariant productVariant = createProductVariants("IPHONE16-128GB", 10000, 100, 10, gb_128);
 
-        Products product = createProduct("IPhone 16", "IPhone Model 16", electronic,
+        Product product = createProduct("IPhone 16", "IPhone Model 16", electronic,
                 List.of(productImage), List.of(productOptionType), List.of(productVariant));
 
         productsRepository.save(product);
@@ -540,11 +540,11 @@ public class ProductApplicationServiceTest {
     @DisplayName("상품 변형 추가 테스트-실패(요청 바디에 동일한 옵션 타입 아이디가 존재하는 경우)")
     @Transactional
     void addVariantTest_integration_variant_option_option_type_duplicate(){
-        ProductImages productImage = createProductImages("http://iphone16-1.jpg", 0);
-        ProductOptionTypes productOptionType = createProductOptionType(storage);
-        ProductVariants productVariant = createProductVariants("IPHONE16-128GB", 10000, 100, 10, gb_128);
+        ProductImage productImage = createProductImages("http://iphone16-1.jpg", 0);
+        ProductOptionType productOptionType = createProductOptionType(storage);
+        ProductVariant productVariant = createProductVariants("IPHONE16-128GB", 10000, 100, 10, gb_128);
 
-        Products product = createProduct("IPhone 16", "IPhone Model 16", electronic,
+        Product product = createProduct("IPhone 16", "IPhone Model 16", electronic,
                 List.of(productImage), List.of(productOptionType), List.of(productVariant));
 
         productsRepository.save(product);
@@ -564,11 +564,11 @@ public class ProductApplicationServiceTest {
     @DisplayName("상품 변형 추가 테스트-실패(DB에 동일한 SKU 존재)")
     @Transactional
     void addVariantTest_integration_conflict_sku(){
-        ProductImages productImage = createProductImages("http://iphone16-1.jpg", 0);
-        ProductOptionTypes productOptionType = createProductOptionType(storage);
-        ProductVariants productVariant = createProductVariants("DUPLICATE_SKU", 10000, 100, 10, gb_128);
+        ProductImage productImage = createProductImages("http://iphone16-1.jpg", 0);
+        ProductOptionType productOptionType = createProductOptionType(storage);
+        ProductVariant productVariant = createProductVariants("DUPLICATE_SKU", 10000, 100, 10, gb_128);
 
-        Products product = createProduct("IPhone 16", "IPhone Model 16", electronic,
+        Product product = createProduct("IPhone 16", "IPhone Model 16", electronic,
                 List.of(productImage), List.of(productOptionType), List.of(productVariant));
 
         productsRepository.save(product);
@@ -587,11 +587,11 @@ public class ProductApplicationServiceTest {
     @DisplayName("상품 변형 추가 테스트-실패(옵션 값 찾을 수 없음)")
     @Transactional
     void addVariantTest_integration_notFound_optionValue(){
-        ProductImages productImage = createProductImages("http://iphone16-1.jpg", 0);
-        ProductOptionTypes productOptionType = createProductOptionType(storage);
-        ProductVariants productVariant = createProductVariants("IPHONE16-128GB", 10000, 100, 10, gb_128);
+        ProductImage productImage = createProductImages("http://iphone16-1.jpg", 0);
+        ProductOptionType productOptionType = createProductOptionType(storage);
+        ProductVariant productVariant = createProductVariants("IPHONE16-128GB", 10000, 100, 10, gb_128);
 
-        Products product = createProduct("IPhone 16", "IPhone Model 16", electronic,
+        Product product = createProduct("IPhone 16", "IPhone Model 16", electronic,
                 List.of(productImage), List.of(productOptionType), List.of(productVariant));
 
         productsRepository.save(product);
@@ -608,11 +608,11 @@ public class ProductApplicationServiceTest {
     @DisplayName("상품 변형 추가 테스트-실패(상품 Variant의 OptionValue가 상품 OptionType의 하위 객체가 아닌 경우)")
     @Transactional
     void addVariantTest_integration_optionValue_notMatch_optionType(){
-        ProductImages productImage = createProductImages("http://iphone16-1.jpg", 0);
-        ProductOptionTypes productOptionType = createProductOptionType(storage);
-        ProductVariants productVariant = createProductVariants("IPHONE16-128GB", 10000, 100, 10, gb_128);
+        ProductImage productImage = createProductImages("http://iphone16-1.jpg", 0);
+        ProductOptionType productOptionType = createProductOptionType(storage);
+        ProductVariant productVariant = createProductVariants("IPHONE16-128GB", 10000, 100, 10, gb_128);
 
-        Products product = createProduct("IPhone 16", "IPhone Model 16", electronic,
+        Product product = createProduct("IPhone 16", "IPhone Model 16", electronic,
                 List.of(productImage), List.of(productOptionType), List.of(productVariant));
 
         productsRepository.save(product);
@@ -630,11 +630,11 @@ public class ProductApplicationServiceTest {
     @DisplayName("상품 변형 추가 테스트-실패(ProductVariant Option 조합이 중복될 경우)")
     @Transactional
     void addVariantTest_unit_product_variant_option_combination_duplicate(){
-        ProductImages productImage = createProductImages("http://iphone16-1.jpg", 0);
-        ProductOptionTypes productOptionType = createProductOptionType(storage);
-        ProductVariants productVariant = createProductVariants("IPHONE16-128GB", 10000, 100, 10, gb_128);
+        ProductImage productImage = createProductImages("http://iphone16-1.jpg", 0);
+        ProductOptionType productOptionType = createProductOptionType(storage);
+        ProductVariant productVariant = createProductVariants("IPHONE16-128GB", 10000, 100, 10, gb_128);
 
-        Products product = createProduct("IPhone 16", "IPhone Model 16", electronic,
+        Product product = createProduct("IPhone 16", "IPhone Model 16", electronic,
                 List.of(productImage), List.of(productOptionType), List.of(productVariant));
 
         productsRepository.save(product);
@@ -657,10 +657,10 @@ public class ProductApplicationServiceTest {
         );
     }
 
-    private Products createProduct(String name, String description, Categories category,
-                                   List<ProductImages> productImages, List<ProductOptionTypes> productOptionTypes,
-                                   List<ProductVariants> productVariants){
-        Products product = new Products(name, description, category);
+    private Product createProduct(String name, String description, Category category,
+                                  List<ProductImage> productImages, List<ProductOptionType> productOptionTypes,
+                                  List<ProductVariant> productVariants){
+        Product product = new Product(name, description, category);
         product.addImages(productImages);
         product.addOptionTypes(productOptionTypes);
         product.addVariants(productVariants);
@@ -668,20 +668,20 @@ public class ProductApplicationServiceTest {
         return product;
     }
 
-    private ProductVariants createProductVariants(String sku, int price, int stockQuantity, int discountValue, OptionValues optionValues){
-        ProductVariantOptions productVariantOptions = new ProductVariantOptions(optionValues);
+    private ProductVariant createProductVariants(String sku, int price, int stockQuantity, int discountValue, OptionValue optionValue){
+        ProductVariantOption productVariantOption = new ProductVariantOption(optionValue);
 
-        ProductVariants productVariants = new ProductVariants(sku, price, stockQuantity, discountValue);
-        productVariants.addProductVariantOption(productVariantOptions);
-        return productVariants;
+        ProductVariant productVariant = new ProductVariant(sku, price, stockQuantity, discountValue);
+        productVariant.addProductVariantOption(productVariantOption);
+        return productVariant;
     }
 
-    private ProductOptionTypes createProductOptionType(OptionTypes optionTypes){
-        return new ProductOptionTypes(optionTypes, 0, true);
+    private ProductOptionType createProductOptionType(OptionType optionType){
+        return new ProductOptionType(optionType, 0, true);
     }
 
 
-    private ProductImages createProductImages(String imageUrl, int sortOrder){
-        return new ProductImages(imageUrl, sortOrder);
+    private ProductImage createProductImages(String imageUrl, int sortOrder){
+        return new ProductImage(imageUrl, sortOrder);
     }
 }

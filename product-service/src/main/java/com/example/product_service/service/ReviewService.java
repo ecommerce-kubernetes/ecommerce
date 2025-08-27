@@ -1,7 +1,7 @@
 package com.example.product_service.service;
 
 import com.example.product_service.common.MessageSourceUtil;
-import com.example.product_service.entity.Reviews;
+import com.example.product_service.entity.Review;
 import com.example.product_service.exception.NoPermissionException;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.repository.ReviewsRepository;
@@ -26,16 +26,16 @@ public class ReviewService {
     private final MessageSourceUtil ms;
 
     public void deleteReviewById(Long reviewId, Long userId) {
-        Reviews reviews = findWithVariantByIdOrThrow(reviewId);
+        Review review = findWithVariantByIdOrThrow(reviewId);
 
-        if(!Objects.equals(reviews.getUserId(), userId)){
+        if(!Objects.equals(review.getUserId(), userId)){
             throw new NoPermissionException(ms.getMessage(REVIEW_FORBIDDEN_DELETE));
         }
 
-        reviews.getProductVariant().deleteReview(reviews);
+        review.getProductVariant().deleteReview(review);
     }
 
-    private Reviews findWithVariantByIdOrThrow(Long reviewId){
+    private Review findWithVariantByIdOrThrow(Long reviewId){
         return reviewsRepository.findWithVariantById(reviewId)
                 .orElseThrow(() -> new NotFoundException(ms.getMessage(REVIEW_NOT_FOUND)));
     }

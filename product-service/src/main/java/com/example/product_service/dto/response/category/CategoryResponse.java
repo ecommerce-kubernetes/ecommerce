@@ -1,6 +1,6 @@
 package com.example.product_service.dto.response.category;
 
-import com.example.product_service.entity.Categories;
+import com.example.product_service.entity.Category;
 import lombok.*;
 
 @Getter
@@ -13,7 +13,7 @@ public class CategoryResponse {
     private Long parentId;
     private String iconUrl;
 
-    public CategoryResponse(Categories category){
+    public CategoryResponse(Category category){
         this.id = category.getId();
         this.name = category.getName();
         this.parentId = category.getParent() == null ? null : category.getParent().getId();

@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-public class Products extends BaseEntity {
+public class Product extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -28,36 +28,36 @@ public class Products extends BaseEntity {
     @Setter
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
-    private Categories category;
+    private Category category;
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ProductImages> images = new ArrayList<>();
+    private List<ProductImage> images = new ArrayList<>();
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ProductOptionTypes> productOptionTypes = new ArrayList<>();
+    private List<ProductOptionType> productOptionTypes = new ArrayList<>();
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ProductVariants> productVariants = new ArrayList<>();
+    private List<ProductVariant> productVariants = new ArrayList<>();
 
-    public Products(String name, String description, Categories category){
+    public Product(String name, String description, Category category){
         this.name = name;
         this.description = description;
         this.category = category;
     }
 
-    public void addImages(List<ProductImages> images){
-        for(ProductImages image : images){
+    public void addImages(List<ProductImage> images){
+        for(ProductImage image : images){
             addImage(image);
         }
     }
 
-    public void addImage(ProductImages image){
+    public void addImage(ProductImage image){
         image.setSortOrder(this.images.size());
         this.images.add(image);
         image.setProduct(this);
     }
 
-    public void deleteImage(ProductImages image){
+    public void deleteImage(ProductImage image){
         boolean removed = this.images.remove(image);
         if(!removed){
             return;
@@ -66,37 +66,37 @@ public class Products extends BaseEntity {
         image.setProduct(null);
 
         for(int i=0; i<this.images.size(); i++){
-            ProductImages img = this.images.get(i);
+            ProductImage img = this.images.get(i);
             img.setSortOrder(i);
         }
     }
 
-    public void swapImageSortOrder(ProductImages image, int sortOrder){
-        ProductImages productImage = this.images.stream().filter(pi -> pi.getSortOrder() == sortOrder).findFirst()
+    public void swapImageSortOrder(ProductImage image, int sortOrder){
+        ProductImage productImage = this.images.stream().filter(pi -> pi.getSortOrder() == sortOrder).findFirst()
                 .orElseThrow(() -> new BadRequestException("sortOrder cannot be modified"));
 
         productImage.setSortOrder(image.getSortOrder());
         image.setSortOrder(sortOrder);
     }
 
-    public void addOptionTypes(List<ProductOptionTypes> productOptionTypes){
-        for (ProductOptionTypes productOptionType : productOptionTypes) {
+    public void addOptionTypes(List<ProductOptionType> productOptionTypes){
+        for (ProductOptionType productOptionType : productOptionTypes) {
             addOptionType(productOptionType);
         }
     }
 
-    public void addOptionType(ProductOptionTypes productOptionType){
+    public void addOptionType(ProductOptionType productOptionType){
         this.productOptionTypes.add(productOptionType);
         productOptionType.setProduct(this);
     }
 
-    public void addVariants(List<ProductVariants> productVariants){
-        for (ProductVariants productVariant : productVariants) {
+    public void addVariants(List<ProductVariant> productVariants){
+        for (ProductVariant productVariant : productVariants) {
             addVariant(productVariant);
         }
     }
 
-    public void addVariant(ProductVariants productVariant){
+    public void addVariant(ProductVariant productVariant){
         Set<Long> variantOptionTypeIds = productVariant.getProductVariantOptions()
                 .stream()
                 .map(pvo -> pvo.getOptionValue().getOptionType().getId())
@@ -123,7 +123,7 @@ public class Products extends BaseEntity {
         productVariant.setProduct(this);
     }
 
-    public void deleteVariant(ProductVariants productVariant){
+    public void deleteVariant(ProductVariant productVariant){
         if(this.productVariants.size() == 1){
             throw new BadRequestException("must be at least one product variant per product");
         }

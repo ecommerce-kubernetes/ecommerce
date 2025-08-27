@@ -54,25 +54,25 @@ public class ProductApplicationServiceUnitTest {
     MessageSourceUtil ms;
 
     @Captor
-    private ArgumentCaptor<Products> productArgumentCaptor;
+    private ArgumentCaptor<Product> productArgumentCaptor;
     @InjectMocks
     ProductApplicationService productApplicationService;
 
     @Test
     @DisplayName("상품 저장 테스트-성공")
     void saveProductTest_unit_success(){
-        Categories category = createCategory(1L, "핸드폰", "http://phone.jpg");
-        OptionTypes storage = createOptionType(1L, "용량");
-        OptionTypes color = createOptionType(2L, "색상");
-        OptionValues gb_128 = createOptionValue(1L, "128GB", storage);
-        OptionValues red = createOptionValue(2L, "빨강", color);
+        Category category = createCategory(1L, "핸드폰", "http://phone.jpg");
+        OptionType storage = createOptionType(1L, "용량");
+        OptionType color = createOptionType(2L, "색상");
+        OptionValue gb_128 = createOptionValue(1L, "128GB", storage);
+        OptionValue red = createOptionValue(2L, "빨강", color);
 
-        Map<Long, OptionTypes> optionTypeById = createOptionTypeMap(storage, color);
-        Map<Long, OptionValues> optionValueById = createOptionValueMap(gb_128, red);
+        Map<Long, OptionType> optionTypeById = createOptionTypeMap(storage, color);
+        Map<Long, OptionValue> optionValueById = createOptionValueMap(gb_128, red);
 
         ProductCreationData creationData = new ProductCreationData(category, optionTypeById, optionValueById);
         ProductRequest request = createProductRequest();
-        Products product = createProduct(request, category, creationData);
+        Product product = createProduct(request, category, creationData);
 
         ProductCreationCommand productCreationCommand = new ProductCreationCommand(request);
         when(requestValidator.validateProductRequest(request)).thenReturn(productCreationCommand);
@@ -80,7 +80,7 @@ public class ProductApplicationServiceUnitTest {
                 .thenReturn(creationData);
         when(factory.createProducts(productCreationCommand, creationData))
                 .thenReturn(product);
-        when(productsRepository.save(any(Products.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(productsRepository.save(any(Product.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         ProductResponse response = productApplicationService.saveProduct(request);
 
@@ -118,7 +118,7 @@ public class ProductApplicationServiceUnitTest {
                 );
 
         verify(productsRepository).save(productArgumentCaptor.capture());
-        Products value = productArgumentCaptor.getValue();
+        Product value = productArgumentCaptor.getValue();
 
         assertThat(value.getName()).isEqualTo("아이폰 16 Pro");
 
@@ -378,15 +378,15 @@ public class ProductApplicationServiceUnitTest {
     @Test
     @DisplayName("상품 저장 테스트-실패(상품 Variant의 OptionValue가 상품 OptionType의 하위 객체가 아닌 경우)")
     void saveProductTest_unit_optionValue_notMatch_optionType(){
-        Categories category = createCategory(1L, "핸드폰", "http://phone.jpg");
-        OptionTypes storage = createOptionType(1L, "용량");
-        OptionTypes color = createOptionType(2L, "색상");
-        OptionValues gb_128 = createOptionValue(1L, "128GB", storage);
-        OptionValues XL = createOptionValue(3L, "XL", createOptionType(3L, "사이즈"));
+        Category category = createCategory(1L, "핸드폰", "http://phone.jpg");
+        OptionType storage = createOptionType(1L, "용량");
+        OptionType color = createOptionType(2L, "색상");
+        OptionValue gb_128 = createOptionValue(1L, "128GB", storage);
+        OptionValue XL = createOptionValue(3L, "XL", createOptionType(3L, "사이즈"));
 
 
-        Map<Long, OptionTypes> optionTypeById = createOptionTypeMap(storage, color);
-        Map<Long, OptionValues> optionValueById = createOptionValueMap(gb_128, XL);
+        Map<Long, OptionType> optionTypeById = createOptionTypeMap(storage, color);
+        Map<Long, OptionValue> optionValueById = createOptionValueMap(gb_128, XL);
         ProductCreationData creationData = new ProductCreationData(category, optionTypeById, optionValueById);
 
         ProductRequest request = createProductRequest();
@@ -416,18 +416,18 @@ public class ProductApplicationServiceUnitTest {
     @Test
     @DisplayName("상품 기본 정보 수정 테스트-성공")
     void updateBasicInfoByIdTest_unit_success(){
-        Categories phoneCategory = createCategory(1L, "핸드폰", "http://phone.jpg");
-        Categories electronicCategory = createCategory(2L, "전자기기", "http://electronic.jpg");
-        OptionTypes storage = createOptionType(1L, "용량");
-        OptionTypes color = createOptionType(2L, "색상");
-        OptionValues gb_128 = createOptionValue(1L, "128GB", storage);
-        OptionValues red = createOptionValue(2L, "빨강", color);
+        Category phoneCategory = createCategory(1L, "핸드폰", "http://phone.jpg");
+        Category electronicCategory = createCategory(2L, "전자기기", "http://electronic.jpg");
+        OptionType storage = createOptionType(1L, "용량");
+        OptionType color = createOptionType(2L, "색상");
+        OptionValue gb_128 = createOptionValue(1L, "128GB", storage);
+        OptionValue red = createOptionValue(2L, "빨강", color);
 
-        Map<Long, OptionTypes> optionTypeById = createOptionTypeMap(storage, color);
-        Map<Long, OptionValues> optionValueById = createOptionValueMap(gb_128, red);
+        Map<Long, OptionType> optionTypeById = createOptionTypeMap(storage, color);
+        Map<Long, OptionValue> optionValueById = createOptionValueMap(gb_128, red);
 
         ProductCreationData creationData = new ProductCreationData(phoneCategory, optionTypeById, optionValueById);
-        Products product = createProduct(createProductRequest(), phoneCategory, creationData);
+        Product product = createProduct(createProductRequest(), phoneCategory, creationData);
 
         UpdateProductBasicRequest request = new UpdateProductBasicRequest("변경 이름", "변경 설명", 2L);
         when(productsRepository.findById(1L)).thenReturn(Optional.of(product));
@@ -454,17 +454,17 @@ public class ProductApplicationServiceUnitTest {
     @Test
     @DisplayName("상품 기본 정보 수정 테스트-실패(카테고리를 찾을 수 없음)")
     void updateBasicInfoByIdTest_unit_notFound_category(){
-        Categories phoneCategory = createCategory(1L, "핸드폰", "http://phone.jpg");
-        OptionTypes storage = createOptionType(1L, "용량");
-        OptionTypes color = createOptionType(2L, "색상");
-        OptionValues gb_128 = createOptionValue(1L, "128GB", storage);
-        OptionValues red = createOptionValue(2L, "빨강", color);
+        Category phoneCategory = createCategory(1L, "핸드폰", "http://phone.jpg");
+        OptionType storage = createOptionType(1L, "용량");
+        OptionType color = createOptionType(2L, "색상");
+        OptionValue gb_128 = createOptionValue(1L, "128GB", storage);
+        OptionValue red = createOptionValue(2L, "빨강", color);
 
-        Map<Long, OptionTypes> optionTypeById = createOptionTypeMap(storage, color);
-        Map<Long, OptionValues> optionValueById = createOptionValueMap(gb_128, red);
+        Map<Long, OptionType> optionTypeById = createOptionTypeMap(storage, color);
+        Map<Long, OptionValue> optionValueById = createOptionValueMap(gb_128, red);
 
         ProductCreationData creationData = new ProductCreationData(phoneCategory, optionTypeById, optionValueById);
-        Products product = createProduct(createProductRequest(), phoneCategory, creationData);
+        Product product = createProduct(createProductRequest(), phoneCategory, creationData);
         UpdateProductBasicRequest request = new UpdateProductBasicRequest("변경 이름", "변경 설명", 2L);
         when(productsRepository.findById(1L)).thenReturn(Optional.of(product));
         doThrow(new NotFoundException(TestMessageUtil.getMessage(CATEGORY_NOT_FOUND)))
@@ -478,17 +478,17 @@ public class ProductApplicationServiceUnitTest {
     @Test
     @DisplayName("상품 기본 정보 수정 테스트-실패(카테고리가 최하위 카테고리가 아님)")
     void updateBasicInfoByIdTesT_unit_badRequest_category(){
-        Categories phoneCategory = createCategory(1L, "핸드폰", "http://phone.jpg");
-        OptionTypes storage = createOptionType(1L, "용량");
-        OptionTypes color = createOptionType(2L, "색상");
-        OptionValues gb_128 = createOptionValue(1L, "128GB", storage);
-        OptionValues red = createOptionValue(2L, "빨강", color);
+        Category phoneCategory = createCategory(1L, "핸드폰", "http://phone.jpg");
+        OptionType storage = createOptionType(1L, "용량");
+        OptionType color = createOptionType(2L, "색상");
+        OptionValue gb_128 = createOptionValue(1L, "128GB", storage);
+        OptionValue red = createOptionValue(2L, "빨강", color);
 
-        Map<Long, OptionTypes> optionTypeById = createOptionTypeMap(storage, color);
-        Map<Long, OptionValues> optionValueById = createOptionValueMap(gb_128, red);
+        Map<Long, OptionType> optionTypeById = createOptionTypeMap(storage, color);
+        Map<Long, OptionValue> optionValueById = createOptionValueMap(gb_128, red);
 
         ProductCreationData creationData = new ProductCreationData(phoneCategory, optionTypeById, optionValueById);
-        Products product = createProduct(createProductRequest(), phoneCategory, creationData);
+        Product product = createProduct(createProductRequest(), phoneCategory, creationData);
         UpdateProductBasicRequest request = new UpdateProductBasicRequest("변경 이름", "변경 설명", 2L);
         when(productsRepository.findById(1L)).thenReturn(Optional.of(product));
         doThrow(new BadRequestException(TestMessageUtil.getMessage(PRODUCT_CATEGORY_BAD_REQUEST)))
@@ -502,22 +502,22 @@ public class ProductApplicationServiceUnitTest {
     @Test
     @DisplayName("상품 삭제 테스트-성공")
     void deleteProductByIdTest_unit_success(){
-        Categories phoneCategory = createCategory(1L, "핸드폰", "http://phone.jpg");
-        OptionTypes storage = createOptionType(1L, "용량");
-        OptionTypes color = createOptionType(2L, "색상");
-        OptionValues gb_128 = createOptionValue(1L, "128GB", storage);
-        OptionValues red = createOptionValue(2L, "빨강", color);
+        Category phoneCategory = createCategory(1L, "핸드폰", "http://phone.jpg");
+        OptionType storage = createOptionType(1L, "용량");
+        OptionType color = createOptionType(2L, "색상");
+        OptionValue gb_128 = createOptionValue(1L, "128GB", storage);
+        OptionValue red = createOptionValue(2L, "빨강", color);
 
-        Map<Long, OptionTypes> optionTypeById = createOptionTypeMap(storage, color);
-        Map<Long, OptionValues> optionValueById = createOptionValueMap(gb_128, red);
+        Map<Long, OptionType> optionTypeById = createOptionTypeMap(storage, color);
+        Map<Long, OptionValue> optionValueById = createOptionValueMap(gb_128, red);
 
         ProductCreationData creationData = new ProductCreationData(phoneCategory, optionTypeById, optionValueById);
-        Products product = createProduct(createProductRequest(), phoneCategory, creationData);
+        Product product = createProduct(createProductRequest(), phoneCategory, creationData);
         when(productsRepository.findById(1L)).thenReturn(Optional.of(product));
 
         productApplicationService.deleteProductById(1L);
         verify(productsRepository).delete(productArgumentCaptor.capture());
-        Products value = productArgumentCaptor.getValue();
+        Product value = productArgumentCaptor.getValue();
         assertThat(value.getName()).isEqualTo("아이폰 16 Pro");
     }
 
@@ -535,17 +535,17 @@ public class ProductApplicationServiceUnitTest {
     @Test
     @DisplayName("상품 이미지 추가 테스트-성공")
     void addImagesTest_unit_success(){
-        Categories phoneCategory = createCategory(1L, "핸드폰", "http://phone.jpg");
-        OptionTypes storage = createOptionType(1L, "용량");
-        OptionTypes color = createOptionType(2L, "색상");
-        OptionValues gb_128 = createOptionValue(1L, "128GB", storage);
-        OptionValues red = createOptionValue(2L, "빨강", color);
+        Category phoneCategory = createCategory(1L, "핸드폰", "http://phone.jpg");
+        OptionType storage = createOptionType(1L, "용량");
+        OptionType color = createOptionType(2L, "색상");
+        OptionValue gb_128 = createOptionValue(1L, "128GB", storage);
+        OptionValue red = createOptionValue(2L, "빨강", color);
 
-        Map<Long, OptionTypes> optionTypeById = createOptionTypeMap(storage, color);
-        Map<Long, OptionValues> optionValueById = createOptionValueMap(gb_128, red);
+        Map<Long, OptionType> optionTypeById = createOptionTypeMap(storage, color);
+        Map<Long, OptionValue> optionValueById = createOptionValueMap(gb_128, red);
 
         ProductCreationData creationData = new ProductCreationData(phoneCategory, optionTypeById, optionValueById);
-        Products product = createProduct(createProductRequest(), phoneCategory, creationData);
+        Product product = createProduct(createProductRequest(), phoneCategory, creationData);
 
         when(productsRepository.findById(1L)).thenReturn(Optional.of(product));
         AddImageRequest request = new AddImageRequest(List.of("http://image1.jpg"));
@@ -575,18 +575,18 @@ public class ProductApplicationServiceUnitTest {
     @Test
     @DisplayName("상품 변형 추가 테스트-성공")
     void addVariantTest_unit_success(){
-        Categories phoneCategory = createCategory(1L, "핸드폰", "http://phone.jpg");
-        OptionTypes storage = createOptionType(1L, "용량");
-        OptionTypes color = createOptionType(2L, "색상");
-        OptionValues gb_128 = createOptionValue(1L, "128GB", storage);
-        OptionValues gb_256 = createOptionValue(3L, "256GB", storage);
-        OptionValues red = createOptionValue(2L, "빨강", color);
+        Category phoneCategory = createCategory(1L, "핸드폰", "http://phone.jpg");
+        OptionType storage = createOptionType(1L, "용량");
+        OptionType color = createOptionType(2L, "색상");
+        OptionValue gb_128 = createOptionValue(1L, "128GB", storage);
+        OptionValue gb_256 = createOptionValue(3L, "256GB", storage);
+        OptionValue red = createOptionValue(2L, "빨강", color);
 
-        Map<Long, OptionTypes> optionTypeById = createOptionTypeMap(storage, color);
-        Map<Long, OptionValues> optionValueById = createOptionValueMap(gb_128, red);
+        Map<Long, OptionType> optionTypeById = createOptionTypeMap(storage, color);
+        Map<Long, OptionValue> optionValueById = createOptionValueMap(gb_128, red);
 
         ProductCreationData creationData = new ProductCreationData(phoneCategory, optionTypeById, optionValueById);
-        Products product = createProduct(createProductRequest(), phoneCategory, creationData);
+        Product product = createProduct(createProductRequest(), phoneCategory, creationData);
         ProductVariantCreationData variantCreationData = new ProductVariantCreationData(Map.of(3L, gb_256, 2L, red));
         when(productsRepository.findById(1L)).thenReturn(Optional.of(product));
 
@@ -594,9 +594,9 @@ public class ProductApplicationServiceUnitTest {
                 List.of(new VariantOptionValueRequest(1L, 3L),
                         new VariantOptionValueRequest(2L, 2L)));
 
-        ProductVariants productVariant = new ProductVariants(request.getSku(), request.getPrice(), request.getStockQuantity(), request.getDiscountRate());
-        List<ProductVariantOptions> productVariantOptions = request.getVariantOption().stream()
-                .map(ovr -> new ProductVariantOptions(variantCreationData.getOptionValueById().get(ovr.getOptionValueId())))
+        ProductVariant productVariant = new ProductVariant(request.getSku(), request.getPrice(), request.getStockQuantity(), request.getDiscountRate());
+        List<ProductVariantOption> productVariantOptions = request.getVariantOption().stream()
+                .map(ovr -> new ProductVariantOption(variantCreationData.getOptionValueById().get(ovr.getOptionValueId())))
                 .toList();
 
         productVariant.addProductVariantOptions(productVariantOptions);
@@ -641,17 +641,17 @@ public class ProductApplicationServiceUnitTest {
     @Test
     @DisplayName("상품 변형 추가 테스트-실패(요청 바디에 동일한 옵션 타입 아이디가 존재하는 경우)")
     void addVariantTest_unit_variant_option_option_type_duplicate(){
-        Categories phoneCategory = createCategory(1L, "핸드폰", "http://phone.jpg");
-        OptionTypes storage = createOptionType(1L, "용량");
-        OptionTypes color = createOptionType(2L, "색상");
-        OptionValues gb_128 = createOptionValue(1L, "128GB", storage);
-        OptionValues red = createOptionValue(2L, "빨강", color);
+        Category phoneCategory = createCategory(1L, "핸드폰", "http://phone.jpg");
+        OptionType storage = createOptionType(1L, "용량");
+        OptionType color = createOptionType(2L, "색상");
+        OptionValue gb_128 = createOptionValue(1L, "128GB", storage);
+        OptionValue red = createOptionValue(2L, "빨강", color);
 
-        Map<Long, OptionTypes> optionTypeById = createOptionTypeMap(storage, color);
-        Map<Long, OptionValues> optionValueById = createOptionValueMap(gb_128, red);
+        Map<Long, OptionType> optionTypeById = createOptionTypeMap(storage, color);
+        Map<Long, OptionValue> optionValueById = createOptionValueMap(gb_128, red);
 
         ProductCreationData creationData = new ProductCreationData(phoneCategory, optionTypeById, optionValueById);
-        Products product = createProduct(createProductRequest(), phoneCategory, creationData);
+        Product product = createProduct(createProductRequest(), phoneCategory, creationData);
         when(productsRepository.findById(1L)).thenReturn(Optional.of(product));
 
         //옵션 타입 Id가 중복됨
@@ -672,17 +672,17 @@ public class ProductApplicationServiceUnitTest {
     @Test
     @DisplayName("상품 변형 추가 테스트-실패(DB 에 동일한 SKU 존재)")
     void addVariantTest_unit_sku_conflict(){
-        Categories phoneCategory = createCategory(1L, "핸드폰", "http://phone.jpg");
-        OptionTypes storage = createOptionType(1L, "용량");
-        OptionTypes color = createOptionType(2L, "색상");
-        OptionValues gb_128 = createOptionValue(1L, "128GB", storage);
-        OptionValues red = createOptionValue(2L, "빨강", color);
+        Category phoneCategory = createCategory(1L, "핸드폰", "http://phone.jpg");
+        OptionType storage = createOptionType(1L, "용량");
+        OptionType color = createOptionType(2L, "색상");
+        OptionValue gb_128 = createOptionValue(1L, "128GB", storage);
+        OptionValue red = createOptionValue(2L, "빨강", color);
 
-        Map<Long, OptionTypes> optionTypeById = createOptionTypeMap(storage, color);
-        Map<Long, OptionValues> optionValueById = createOptionValueMap(gb_128, red);
+        Map<Long, OptionType> optionTypeById = createOptionTypeMap(storage, color);
+        Map<Long, OptionValue> optionValueById = createOptionValueMap(gb_128, red);
 
         ProductCreationData creationData = new ProductCreationData(phoneCategory, optionTypeById, optionValueById);
-        Products product = createProduct(createProductRequest(), phoneCategory, creationData);
+        Product product = createProduct(createProductRequest(), phoneCategory, creationData);
         when(productsRepository.findById(1L)).thenReturn(Optional.of(product));
 
         ProductVariantRequest request = new ProductVariantRequest("conflict-sku", 1200000, 100, 5,
@@ -702,17 +702,17 @@ public class ProductApplicationServiceUnitTest {
     @Test
     @DisplayName("상품 변형 추가 테스트-실패(옵션 값을 찾을 수 없음)")
     void addVariantTest_unit_notFound_optionValue(){
-        Categories phoneCategory = createCategory(1L, "핸드폰", "http://phone.jpg");
-        OptionTypes storage = createOptionType(1L, "용량");
-        OptionTypes color = createOptionType(2L, "색상");
-        OptionValues gb_128 = createOptionValue(1L, "128GB", storage);
-        OptionValues red = createOptionValue(2L, "빨강", color);
+        Category phoneCategory = createCategory(1L, "핸드폰", "http://phone.jpg");
+        OptionType storage = createOptionType(1L, "용량");
+        OptionType color = createOptionType(2L, "색상");
+        OptionValue gb_128 = createOptionValue(1L, "128GB", storage);
+        OptionValue red = createOptionValue(2L, "빨강", color);
 
-        Map<Long, OptionTypes> optionTypeById = createOptionTypeMap(storage, color);
-        Map<Long, OptionValues> optionValueById = createOptionValueMap(gb_128, red);
+        Map<Long, OptionType> optionTypeById = createOptionTypeMap(storage, color);
+        Map<Long, OptionValue> optionValueById = createOptionValueMap(gb_128, red);
 
         ProductCreationData creationData = new ProductCreationData(phoneCategory, optionTypeById, optionValueById);
-        Products product = createProduct(createProductRequest(), phoneCategory, creationData);
+        Product product = createProduct(createProductRequest(), phoneCategory, creationData);
         when(productsRepository.findById(1L)).thenReturn(Optional.of(product));
 
 
@@ -735,19 +735,19 @@ public class ProductApplicationServiceUnitTest {
     @Test
     @DisplayName("상품 변형 추가 테스트-실패(상품 Variant의 OptionValue가 상품 OptionType의 하위 객체가 아닌 경우)")
     void addVariantTest_unit_optionValue_notMatch_optionType(){
-        Categories phoneCategory = createCategory(1L, "핸드폰", "http://phone.jpg");
-        OptionTypes storage = createOptionType(1L, "용량");
-        OptionTypes color = createOptionType(2L, "색상");
-        OptionTypes otherType = createOptionType(3L, "다른 타입");
-        OptionValues gb_128 = createOptionValue(1L, "128GB", storage);
-        OptionValues red = createOptionValue(2L, "빨강", color);
-        OptionValues otherValue = createOptionValue(3L, "다른 옵션 값", otherType);
+        Category phoneCategory = createCategory(1L, "핸드폰", "http://phone.jpg");
+        OptionType storage = createOptionType(1L, "용량");
+        OptionType color = createOptionType(2L, "색상");
+        OptionType otherType = createOptionType(3L, "다른 타입");
+        OptionValue gb_128 = createOptionValue(1L, "128GB", storage);
+        OptionValue red = createOptionValue(2L, "빨강", color);
+        OptionValue otherValue = createOptionValue(3L, "다른 옵션 값", otherType);
 
-        Map<Long, OptionTypes> optionTypeById = createOptionTypeMap(storage, color);
-        Map<Long, OptionValues> optionValueById = createOptionValueMap(gb_128, red);
+        Map<Long, OptionType> optionTypeById = createOptionTypeMap(storage, color);
+        Map<Long, OptionValue> optionValueById = createOptionValueMap(gb_128, red);
 
         ProductCreationData creationData = new ProductCreationData(phoneCategory, optionTypeById, optionValueById);
-        Products product = createProduct(createProductRequest(), phoneCategory, creationData);
+        Product product = createProduct(createProductRequest(), phoneCategory, creationData);
         ProductVariantCreationData variantCreationData = new ProductVariantCreationData(Map.of(3L, otherValue, 2L, red));
         when(productsRepository.findById(1L)).thenReturn(Optional.of(product));
 
@@ -756,9 +756,9 @@ public class ProductApplicationServiceUnitTest {
                 List.of(new VariantOptionValueRequest(1L, 3L),
                         new VariantOptionValueRequest(2L, 2L)));
 
-        ProductVariants productVariant = new ProductVariants(request.getSku(), request.getPrice(), request.getStockQuantity(), request.getDiscountRate());
-        List<ProductVariantOptions> productVariantOptions = request.getVariantOption().stream()
-                .map(ovr -> new ProductVariantOptions(variantCreationData.getOptionValueById().get(ovr.getOptionValueId())))
+        ProductVariant productVariant = new ProductVariant(request.getSku(), request.getPrice(), request.getStockQuantity(), request.getDiscountRate());
+        List<ProductVariantOption> productVariantOptions = request.getVariantOption().stream()
+                .map(ovr -> new ProductVariantOption(variantCreationData.getOptionValueById().get(ovr.getOptionValueId())))
                 .toList();
 
         productVariant.addProductVariantOptions(productVariantOptions);
@@ -777,17 +777,17 @@ public class ProductApplicationServiceUnitTest {
     @Test
     @DisplayName("상품 변형 추가 테스트-실패(ProductVariant Option 조합이 중복될 경우)")
     void addVariantTest_unit_product_variant_option_combination_duplicate(){
-        Categories phoneCategory = createCategory(1L, "핸드폰", "http://phone.jpg");
-        OptionTypes storage = createOptionType(1L, "용량");
-        OptionTypes color = createOptionType(2L, "색상");
-        OptionValues gb_128 = createOptionValue(1L, "128GB", storage);
-        OptionValues red = createOptionValue(2L, "빨강", color);
+        Category phoneCategory = createCategory(1L, "핸드폰", "http://phone.jpg");
+        OptionType storage = createOptionType(1L, "용량");
+        OptionType color = createOptionType(2L, "색상");
+        OptionValue gb_128 = createOptionValue(1L, "128GB", storage);
+        OptionValue red = createOptionValue(2L, "빨강", color);
 
-        Map<Long, OptionTypes> optionTypeById = createOptionTypeMap(storage, color);
-        Map<Long, OptionValues> optionValueById = createOptionValueMap(gb_128, red);
+        Map<Long, OptionType> optionTypeById = createOptionTypeMap(storage, color);
+        Map<Long, OptionValue> optionValueById = createOptionValueMap(gb_128, red);
 
         ProductCreationData creationData = new ProductCreationData(phoneCategory, optionTypeById, optionValueById);
-        Products product = createProduct(createProductRequest(), phoneCategory, creationData);
+        Product product = createProduct(createProductRequest(), phoneCategory, creationData);
         ProductVariantCreationData variantCreationData = new ProductVariantCreationData(Map.of(1L, gb_128, 2L, red));
         when(productsRepository.findById(1L)).thenReturn(Optional.of(product));
 
@@ -796,9 +796,9 @@ public class ProductApplicationServiceUnitTest {
                 List.of(new VariantOptionValueRequest(1L, 1L),
                         new VariantOptionValueRequest(2L, 2L)));
 
-        ProductVariants productVariant = new ProductVariants(request.getSku(), request.getPrice(), request.getStockQuantity(), request.getDiscountRate());
-        List<ProductVariantOptions> productVariantOptions = request.getVariantOption().stream()
-                .map(ovr -> new ProductVariantOptions(variantCreationData.getOptionValueById().get(ovr.getOptionValueId())))
+        ProductVariant productVariant = new ProductVariant(request.getSku(), request.getPrice(), request.getStockQuantity(), request.getDiscountRate());
+        List<ProductVariantOption> productVariantOptions = request.getVariantOption().stream()
+                .map(ovr -> new ProductVariantOption(variantCreationData.getOptionValueById().get(ovr.getOptionValueId())))
                 .toList();
 
         productVariant.addProductVariantOptions(productVariantOptions);
@@ -826,30 +826,30 @@ public class ProductApplicationServiceUnitTest {
         );
     }
 
-    private Products createProduct(ProductRequest request, Categories categories, ProductCreationData data){
-        Products product = new Products("아이폰 16 Pro", "애플 IPhone 16 (Model-Pro)", categories);
+    private Product createProduct(ProductRequest request, Category category, ProductCreationData data){
+        Product product = new Product("아이폰 16 Pro", "애플 IPhone 16 (Model-Pro)", category);
 
-        List<ProductImages> productImages = new ArrayList<>();
-        List<ProductOptionTypes> productOptionTypes = new ArrayList<>();
-        List<ProductVariants> productVariants = new ArrayList<>();
+        List<ProductImage> productImages = new ArrayList<>();
+        List<ProductOptionType> productOptionTypes = new ArrayList<>();
+        List<ProductVariant> productVariants = new ArrayList<>();
 
         for(ProductOptionTypeRequest otr : request.getProductOptionTypes()){
-            ProductOptionTypes productOptionType = new ProductOptionTypes(data.getOptionTypeById().get(otr.getOptionTypeId()), otr.getPriority(), true);
+            ProductOptionType productOptionType = new ProductOptionType(data.getOptionTypeById().get(otr.getOptionTypeId()), otr.getPriority(), true);
             productOptionTypes.add(productOptionType);
         }
 
         for(String url : request.getImages()){
-            ProductImages productImage = new ProductImages(url);
+            ProductImage productImage = new ProductImage(url);
             productImages.add(productImage);
         }
 
         for(ProductVariantRequest pvr : request.getProductVariants()){
-            ProductVariants productVariant =
-                    new ProductVariants(pvr.getSku(), pvr.getPrice(), pvr.getStockQuantity(), pvr.getDiscountRate());
+            ProductVariant productVariant =
+                    new ProductVariant(pvr.getSku(), pvr.getPrice(), pvr.getStockQuantity(), pvr.getDiscountRate());
 
             for(VariantOptionValueRequest ovr : pvr.getVariantOption()){
-                ProductVariantOptions productVariantOption =
-                        new ProductVariantOptions(data.getOptionValueById().get(ovr.getOptionValueId()));
+                ProductVariantOption productVariantOption =
+                        new ProductVariantOption(data.getOptionValueById().get(ovr.getOptionValueId()));
                 productVariant.addProductVariantOption(productVariantOption);
             }
             productVariants.add(productVariant);
@@ -861,38 +861,38 @@ public class ProductApplicationServiceUnitTest {
         return product;
     }
 
-    private Map<Long, OptionTypes> createOptionTypeMap(OptionTypes... optionTypes){
-        Map<Long, OptionTypes> optionTypesMap = new HashMap<>();
-        for (OptionTypes optionType : optionTypes) {
+    private Map<Long, OptionType> createOptionTypeMap(OptionType... optionTypes){
+        Map<Long, OptionType> optionTypesMap = new HashMap<>();
+        for (OptionType optionType : optionTypes) {
             optionTypesMap.put(optionType.getId(), optionType);
         }
         return optionTypesMap;
     }
 
-    private Map<Long, OptionValues> createOptionValueMap(OptionValues... optionValues){
-        Map<Long, OptionValues> optionValuesMap = new HashMap<>();
-        for (OptionValues optionValue : optionValues) {
+    private Map<Long, OptionValue> createOptionValueMap(OptionValue... optionValues){
+        Map<Long, OptionValue> optionValuesMap = new HashMap<>();
+        for (OptionValue optionValue : optionValues) {
             optionValuesMap.put(optionValue.getId(), optionValue);
         }
         return optionValuesMap;
     }
 
-    private Categories createCategory(Long id, String name, String iconUrl){
-        Categories categories = new Categories(name, iconUrl);
-        ReflectionTestUtils.setField(categories, "id", id);
-        return categories;
+    private Category createCategory(Long id, String name, String iconUrl){
+        Category category = new Category(name, iconUrl);
+        ReflectionTestUtils.setField(category, "id", id);
+        return category;
     }
 
-    private OptionTypes createOptionType(Long id, String name){
-        OptionTypes optionTypes = new OptionTypes(name);
-        ReflectionTestUtils.setField(optionTypes, "id", id);
-        return optionTypes;
+    private OptionType createOptionType(Long id, String name){
+        OptionType optionType = new OptionType(name);
+        ReflectionTestUtils.setField(optionType, "id", id);
+        return optionType;
     }
 
-    private OptionValues createOptionValue(Long id, String optionValue, OptionTypes optionTypes){
-        OptionValues optionValues = new OptionValues(optionValue);
+    private OptionValue createOptionValue(Long id, String optionValue, OptionType optionType){
+        OptionValue optionValues = new OptionValue(optionValue);
         ReflectionTestUtils.setField(optionValues, "id", id);
-        optionTypes.addOptionValue(optionValues);
+        optionType.addOptionValue(optionValues);
         return optionValues;
     }
 

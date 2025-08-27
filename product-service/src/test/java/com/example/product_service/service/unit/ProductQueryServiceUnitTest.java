@@ -80,13 +80,13 @@ public class ProductQueryServiceUnitTest {
     @Test
     @DisplayName("상품 상세 조회 테스트-성공")
     void getProductByIdTest_unit_success(){
-        Categories category = createCategory(1L, "category");
-        OptionTypes optionType = new OptionTypes("name");
-        OptionValues optionValue = new OptionValues("optionValue");
+        Category category = createCategory(1L, "category");
+        OptionType optionType = new OptionType("name");
+        OptionValue optionValue = new OptionValue("optionValue");
         optionType.addOptionValue(optionValue);
-        Products product = createProduct(1L, "productName", "description", category);
-        ProductVariants productVariant = new ProductVariants("sku", 10000, 100, 10);
-        productVariant.addProductVariantOption(new ProductVariantOptions(optionValue));
+        Product product = createProduct(1L, "productName", "description", category);
+        ProductVariant productVariant = new ProductVariant("sku", 10000, 100, 10);
+        productVariant.addProductVariantOption(new ProductVariantOption(optionValue));
         mockProductFindById(1L, product);
         mockProductImageByProductId(1L);
         mockProductOptionTypes(1L, optionType);
@@ -186,36 +186,36 @@ public class ProductQueryServiceUnitTest {
                 .hasMessage(getMessage(PRODUCT_NOT_FOUND));
     }
 
-    private void mockProductFindById(Long productId, Products products){
-        OngoingStubbing<Optional<Products>> when = when(productsRepository.findWithCategoryById(productId));
-        if(products == null) {
+    private void mockProductFindById(Long productId, Product product){
+        OngoingStubbing<Optional<Product>> when = when(productsRepository.findWithCategoryById(productId));
+        if(product == null) {
             when.thenReturn(Optional.empty());
         } else {
-            when.thenReturn(Optional.of(products));
+            when.thenReturn(Optional.of(product));
         }
     }
 
     private void mockProductImageByProductId(Long productId){
         when(productImagesRepository.findByProductId(productId)).thenReturn(
-                List.of(new ProductImages("http://test.jpg", 0))
+                List.of(new ProductImage("http://test.jpg", 0))
         );
     }
 
-    private void mockProductOptionTypes(Long productId, OptionTypes optionTypes){
+    private void mockProductOptionTypes(Long productId, OptionType optionType){
         when(productOptionTypesRepository.findWithOptionTypeByProductId(productId))
-                .thenReturn(List.of(new ProductOptionTypes(optionTypes, 0, true)));
+                .thenReturn(List.of(new ProductOptionType(optionType, 0, true)));
     }
 
-    private Products createProduct(Long id, String name, String description, Categories category){
-        Products products = new Products(name, description, category);
-        ReflectionTestUtils.setField(products, "id", id);
-        return products;
+    private Product createProduct(Long id, String name, String description, Category category){
+        Product product = new Product(name, description, category);
+        ReflectionTestUtils.setField(product, "id", id);
+        return product;
     }
 
-    private Categories createCategory(Long id, String name){
-        Categories categories = new Categories(name, "http://test.jpg");
-        ReflectionTestUtils.setField(categories, "id", id);
-        return categories;
+    private Category createCategory(Long id, String name){
+        Category category = new Category(name, "http://test.jpg");
+        ReflectionTestUtils.setField(category, "id", id);
+        return category;
     }
 
 
@@ -229,7 +229,7 @@ public class ProductQueryServiceUnitTest {
                 .thenReturn(returnResult);
     }
 
-    private void mockProductVariant(Long productId, List<ProductVariants> productVariants){
+    private void mockProductVariant(Long productId, List<ProductVariant> productVariants){
         when(productVariantsRepository.findWithVariantOptionByProductId(productId))
                 .thenReturn(productVariants);
     }
@@ -244,12 +244,12 @@ public class ProductQueryServiceUnitTest {
         return new PageImpl<>(content, pageable, 1);
     }
 
-    private Page<Reviews> createPageReviews(Pageable pageable){
-        Products product = new Products("productName", "description", new Categories("category", null));
-        ProductVariants productVariant = new ProductVariants("sku", 100, 10, 10);
-        List<Reviews> content = List.of(new Reviews(productVariant, 1L, "user1", 4, "very good"),
-                new Reviews(productVariant, 2L, "user2", 3, "good"),
-                new Reviews(productVariant, 3L, "user3", 5, "excellent"));
+    private Page<Review> createPageReviews(Pageable pageable){
+        Product product = new Product("productName", "description", new Category("category", null));
+        ProductVariant productVariant = new ProductVariant("sku", 100, 10, 10);
+        List<Review> content = List.of(new Review(productVariant, 1L, "user1", 4, "very good"),
+                new Review(productVariant, 2L, "user2", 3, "good"),
+                new Review(productVariant, 3L, "user3", 5, "excellent"));
         product.addVariants(List.of(productVariant));
         return new PageImpl<>(content, pageable, 3);
     }

@@ -5,8 +5,8 @@ import com.example.product_service.dto.request.options.OptionTypeRequest;
 import com.example.product_service.dto.request.options.OptionValueRequest;
 import com.example.product_service.dto.response.options.OptionTypeResponse;
 import com.example.product_service.dto.response.options.OptionValueResponse;
-import com.example.product_service.entity.OptionTypes;
-import com.example.product_service.entity.OptionValues;
+import com.example.product_service.entity.OptionType;
+import com.example.product_service.entity.OptionValue;
 import com.example.product_service.exception.DuplicateResourceException;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.repository.OptionTypeRepository;
@@ -41,13 +41,13 @@ class OptionTypeServiceTest {
     @Autowired
     EntityManager em;
 
-    OptionTypes existType;
-    OptionValues existValue;
+    OptionType existType;
+    OptionValue existValue;
 
     @BeforeEach
     void saveFixture(){
-        existType = new OptionTypes("exist");
-        existValue = new OptionValues("existValueName");
+        existType = new OptionType("exist");
+        existValue = new OptionValue("existValueName");
         existType.addOptionValue(existValue);
         optionTypeRepository.save(existType);
     }
@@ -110,9 +110,9 @@ class OptionTypeServiceTest {
     @Test
     @DisplayName("옵션 타입 조회 테스트-성공")
     void getOptionTypesTest_integration_success() {
-        OptionTypes type1 = optionTypeRepository.save(new OptionTypes("type1"));
-        OptionTypes type2 = optionTypeRepository.save(new OptionTypes("type2"));
-        OptionTypes type3 = optionTypeRepository.save(new OptionTypes("type3"));
+        OptionType type1 = optionTypeRepository.save(new OptionType("type1"));
+        OptionType type2 = optionTypeRepository.save(new OptionType("type2"));
+        OptionType type3 = optionTypeRepository.save(new OptionType("type3"));
 
         List<OptionTypeResponse> response = optionTypeService.getOptionTypes();
 
@@ -132,9 +132,9 @@ class OptionTypeServiceTest {
     @Test
     @DisplayName("옵션 값 조회 테스트-성공")
     void getOptionValuesByTypeIdTest_integration_success() {
-        OptionValues value1 = new OptionValues("value1");
-        OptionValues value2 = new OptionValues("value2");
-        OptionValues value3 = new OptionValues("value3");
+        OptionValue value1 = new OptionValue("value1");
+        OptionValue value2 = new OptionValue("value2");
+        OptionValue value3 = new OptionValue("value3");
         addOptionValues(existType, value1, value2, value3);
 
         em.flush();
@@ -184,7 +184,7 @@ class OptionTypeServiceTest {
     @Test
     @DisplayName("옵션 타입 수정 테스트-실패(옵션 타입 이름 중복)")
     void updateOptionTypeTest_integration_conflict(){
-        OptionTypes target = optionTypeRepository.save(new OptionTypes("target"));
+        OptionType target = optionTypeRepository.save(new OptionType("target"));
         OptionTypeRequest request = new OptionTypeRequest("exist");
 
         em.flush(); em.clear();
@@ -200,7 +200,7 @@ class OptionTypeServiceTest {
         optionTypeService.deleteOptionTypeById(existType.getId());
         em.flush(); em.clear();
 
-        Optional<OptionTypes> result = optionTypeRepository.findById(existType.getId());
+        Optional<OptionType> result = optionTypeRepository.findById(existType.getId());
         assertThat(result).isEmpty();
     }
 
@@ -212,8 +212,8 @@ class OptionTypeServiceTest {
                 .hasMessage(getMessage(OPTION_TYPE_NOT_FOUND));
     }
 
-    private void addOptionValues(OptionTypes type, OptionValues... optionValues){
-        for (OptionValues optionValue : optionValues) {
+    private void addOptionValues(OptionType type, OptionValue... optionValues){
+        for (OptionValue optionValue : optionValues) {
             type.addOptionValue(optionValue);
         }
     }

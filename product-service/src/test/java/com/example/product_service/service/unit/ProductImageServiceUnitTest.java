@@ -3,9 +3,9 @@ package com.example.product_service.service.unit;
 import com.example.product_service.common.MessageSourceUtil;
 import com.example.product_service.dto.request.image.UpdateImageRequest;
 import com.example.product_service.dto.response.image.ImageResponse;
-import com.example.product_service.entity.Categories;
-import com.example.product_service.entity.ProductImages;
-import com.example.product_service.entity.Products;
+import com.example.product_service.entity.Category;
+import com.example.product_service.entity.Product;
+import com.example.product_service.entity.ProductImage;
 import com.example.product_service.exception.BadRequestException;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.repository.ProductImagesRepository;
@@ -40,12 +40,12 @@ public class ProductImageServiceUnitTest {
     @Test
     @DisplayName("이미지 수정 테스트-성공")
     void updateImageByIdTest_unit_success(){
-        ProductImages productImage = createProductImage(1L, "http://productImage1.jpg", 0);
-        ProductImages productImage1 = createProductImage(2L, "http://productImage2.jpg", 1);
-        ProductImages productImage2 = createProductImage(3L, "http://productImage3.jpg", 2);
+        ProductImage productImage = createProductImage(1L, "http://productImage1.jpg", 0);
+        ProductImage productImage1 = createProductImage(2L, "http://productImage2.jpg", 1);
+        ProductImage productImage2 = createProductImage(3L, "http://productImage3.jpg", 2);
         when(productImagesRepository.findWithProductById(2L))
                 .thenReturn(Optional.of(productImage1));
-        Products product = createProduct(productImage, productImage1, productImage2);
+        Product product = createProduct(productImage, productImage1, productImage2);
 
         ImageResponse response =
                 productImageService.updateImageById(2L, new UpdateImageRequest("http://updateImage.jpg", 0));
@@ -57,7 +57,7 @@ public class ProductImageServiceUnitTest {
 
         assertThat(product.getImages().size()).isEqualTo(3);
         assertThat(product.getImages())
-                .extracting(ProductImages::getId, ProductImages::getImageUrl, ProductImages::getSortOrder)
+                .extracting(ProductImage::getId, ProductImage::getImageUrl, ProductImage::getSortOrder)
                 .containsExactlyInAnyOrder(
                         tuple(1L, "http://productImage1.jpg", 1),
                         tuple(2L, "http://updateImage.jpg", 0),
@@ -82,12 +82,12 @@ public class ProductImageServiceUnitTest {
     @Test
     @DisplayName("이미지 수정 테스트-실패(잘못된 정렬 순서 요청)")
     void updateImageByIdTest_unit_badRequest_sortOrder(){
-        ProductImages productImage = createProductImage(1L, "http://productImage1.jpg", 0);
-        ProductImages productImage1 = createProductImage(2L, "http://productImage2.jpg", 1);
-        ProductImages productImage2 = createProductImage(3L, "http://productImage3.jpg", 2);
+        ProductImage productImage = createProductImage(1L, "http://productImage1.jpg", 0);
+        ProductImage productImage1 = createProductImage(2L, "http://productImage2.jpg", 1);
+        ProductImage productImage2 = createProductImage(3L, "http://productImage3.jpg", 2);
         when(productImagesRepository.findWithProductById(2L))
                 .thenReturn(Optional.of(productImage1));
-        Products product = createProduct(productImage, productImage1, productImage2);
+        Product product = createProduct(productImage, productImage1, productImage2);
 
 
         assertThatThrownBy(() -> productImageService
@@ -99,12 +99,12 @@ public class ProductImageServiceUnitTest {
     @Test
     @DisplayName("이미지 삭제 테스트-성공")
     void deleteImageByIdTest_unit_success(){
-        ProductImages productImage = createProductImage(1L, "http://productImage1.jpg", 0);
-        ProductImages productImage1 = createProductImage(2L, "http://productImage2.jpg", 1);
-        ProductImages productImage2 = createProductImage(3L, "http://productImage3.jpg", 2);
+        ProductImage productImage = createProductImage(1L, "http://productImage1.jpg", 0);
+        ProductImage productImage1 = createProductImage(2L, "http://productImage2.jpg", 1);
+        ProductImage productImage2 = createProductImage(3L, "http://productImage3.jpg", 2);
         when(productImagesRepository.findWithProductById(2L))
                 .thenReturn(Optional.of(productImage1));
-        Products product = createProduct(productImage, productImage1, productImage2);
+        Product product = createProduct(productImage, productImage1, productImage2);
 
         productImageService.deleteImageById(2L);
 
@@ -129,16 +129,16 @@ public class ProductImageServiceUnitTest {
                 .hasMessage(getMessage(PRODUCT_IMAGE_NOT_FOUND));
     }
 
-    private Products createProduct(ProductImages... productImages){
-        Products product = new Products("productName", "product description",
-                new Categories("category", "http://test.jpg"));
+    private Product createProduct(ProductImage... productImages){
+        Product product = new Product("productName", "product description",
+                new Category("category", "http://test.jpg"));
 
         product.addImages(Arrays.stream(productImages).toList());
         return product;
     }
 
-    private ProductImages createProductImage(Long id, String url, int sortOrder){
-        ProductImages productImage = new ProductImages(url);
+    private ProductImage createProductImage(Long id, String url, int sortOrder){
+        ProductImage productImage = new ProductImage(url);
         ReflectionTestUtils.setField(productImage, "id", id);
         ReflectionTestUtils.setField(productImage, "sortOrder", sortOrder);
 

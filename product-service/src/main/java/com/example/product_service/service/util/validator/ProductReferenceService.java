@@ -41,13 +41,13 @@ public class ProductReferenceService {
         //SKU 중복확인
         validateDuplicateSkus(request);
         //카테고리 조회 -> 없으면 예외 던짐
-        Categories categories = findCategoryByIdOrThrow(request.getCategoryId());
+        Category category = findCategoryByIdOrThrow(request.getCategoryId());
         //OptionType 조회
-        Map<Long, OptionTypes> optionTypeById = findOptionTypesMap(request);
+        Map<Long, OptionType> optionTypeById = findOptionTypesMap(request);
         //OptionValue 조회
-        Map<Long, OptionValues> optionValueById = findOptionValuesMap(request);
+        Map<Long, OptionValue> optionValueById = findOptionValuesMap(request);
 
-        return new ProductCreationData(categories, optionTypeById, optionValueById);
+        return new ProductCreationData(category, optionTypeById, optionValueById);
     }
 
     public ProductVariantCreationData buildVariantCreationData(ProductVariantRequest request){
@@ -55,24 +55,24 @@ public class ProductReferenceService {
         validateDuplicateSku(request.getSku());
 
         //OptionValue 조회
-        Map<Long, OptionValues> optionValueById = findOptionValuesMap(request);
+        Map<Long, OptionValue> optionValueById = findOptionValuesMap(request);
 
         return new ProductVariantCreationData(optionValueById);
     }
 
     public ProductUpdateData resolveUpdateData(UpdateProductBasicRequest request){
-        Categories category = findCategoryByIdOrThrow(request.getCategoryId());
+        Category category = findCategoryByIdOrThrow(request.getCategoryId());
         return new ProductUpdateData(category);
     }
 
-    private Categories findCategoryByIdOrThrow(Long categoryId){
-        Categories categories = categoryRepository.findById(categoryId)
+    private Category findCategoryByIdOrThrow(Long categoryId){
+        Category category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new NotFoundException(ms.getMessage(CATEGORY_NOT_FOUND)));
 
-        if(!categories.isLeaf()){
+        if(!category.isLeaf()){
             throw new BadRequestException(ms.getMessage(PRODUCT_CATEGORY_BAD_REQUEST));
         }
-        return categories;
+        return category;
     }
 
     private void validateDuplicateSkus(ProductRequest request){
@@ -91,14 +91,14 @@ public class ProductReferenceService {
         }
     }
 
-    private Map<Long, OptionTypes> findOptionTypesMap(ProductRequest request){
+    private Map<Long, OptionType> findOptionTypesMap(ProductRequest request){
         List<Long> optionTypeIds = request.getProductOptionTypes()
                 .stream().map(ProductOptionTypeRequest::getOptionTypeId).toList();
-        List<OptionTypes> optionTypes = findOptionTypeByIdInOrThrow(optionTypeIds);
-        return optionTypes.stream().collect(Collectors.toMap(OptionTypes::getId, Function.identity()));
+        List<OptionType> optionTypes = findOptionTypeByIdInOrThrow(optionTypeIds);
+        return optionTypes.stream().collect(Collectors.toMap(OptionType::getId, Function.identity()));
     }
 
-    private Map<Long, OptionValues> findOptionValuesMap(ProductRequest request){
+    private Map<Long, OptionValue> findOptionValuesMap(ProductRequest request){
         List<List<VariantOptionValueRequest>> variantOptionValues = request.getProductVariants()
                 .stream().map(ProductVariantRequest::getVariantOption).toList();
         Set<Long> optionValueIds = variantOptionValues.stream()
@@ -106,26 +106,26 @@ public class ProductReferenceService {
                 .map(VariantOptionValueRequest::getOptionValueId)
                 .collect(Collectors.toSet());
 
-        List<OptionValues> optionValues = findOptionValueByIdInOrThrow(optionValueIds);
-        return optionValues.stream().collect(Collectors.toMap(OptionValues::getId, Function.identity()));
+        List<OptionValue> optionValues = findOptionValueByIdInOrThrow(optionValueIds);
+        return optionValues.stream().collect(Collectors.toMap(OptionValue::getId, Function.identity()));
     }
 
-    private Map<Long, OptionValues> findOptionValuesMap(ProductVariantRequest request){
+    private Map<Long, OptionValue> findOptionValuesMap(ProductVariantRequest request){
         Set<Long> optionValueIds = request.getVariantOption().stream().map(VariantOptionValueRequest::getOptionValueId).collect(Collectors.toSet());
-        List<OptionValues> optionValues = findOptionValueByIdInOrThrow(optionValueIds);
-        return optionValues.stream().collect(Collectors.toMap(OptionValues::getId, Function.identity()));
+        List<OptionValue> optionValues = findOptionValueByIdInOrThrow(optionValueIds);
+        return optionValues.stream().collect(Collectors.toMap(OptionValue::getId, Function.identity()));
     }
 
-    private List<OptionTypes> findOptionTypeByIdInOrThrow(List<Long> optionTypeIds){
-        List<OptionTypes> result = optionTypeRepository.findByIdIn(optionTypeIds);
+    private List<OptionType> findOptionTypeByIdInOrThrow(List<Long> optionTypeIds){
+        List<OptionType> result = optionTypeRepository.findByIdIn(optionTypeIds);
         if(optionTypeIds.size() != result.size()){
             throw new NotFoundException(ms.getMessage(OPTION_TYPE_NOT_FOUND));
         }
         return result;
     }
 
-    private List<OptionValues> findOptionValueByIdInOrThrow(Set<Long> optionValueIds){
-        List<OptionValues> result = optionValueRepository.findByIdIn(new ArrayList<>(optionValueIds));
+    private List<OptionValue> findOptionValueByIdInOrThrow(Set<Long> optionValueIds){
+        List<OptionValue> result = optionValueRepository.findByIdIn(new ArrayList<>(optionValueIds));
         if(optionValueIds.size() != result.size()){
             throw new NotFoundException(ms.getMessage(OPTION_VALUE_NOT_FOUND));
         }

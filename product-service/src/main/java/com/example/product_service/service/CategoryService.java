@@ -5,7 +5,7 @@ import com.example.product_service.dto.request.category.CategoryRequest;
 import com.example.product_service.dto.request.category.UpdateCategoryRequest;
 import com.example.product_service.dto.response.category.CategoryHierarchyResponse;
 import com.example.product_service.dto.response.category.CategoryResponse;
-import com.example.product_service.entity.Categories;
+import com.example.product_service.entity.Category;
 import com.example.product_service.exception.BadRequestException;
 import com.example.product_service.exception.DuplicateResourceException;
 import com.example.product_service.exception.NotFoundException;
@@ -30,36 +30,36 @@ public class CategoryService {
     @Transactional
     public CategoryResponse saveCategory(CategoryRequest request) {
         checkConflictName(request.getName());
-        Categories categories = new Categories(request.getName(), request.getIconUrl());
+        Category category = new Category(request.getName(), request.getIconUrl());
         if(request.getParentId() != null){
-            Categories parent = findByIdOrThrow(request.getParentId());
-            parent.addChild(categories);
+            Category parent = findByIdOrThrow(request.getParentId());
+            parent.addChild(category);
         }
-        Categories saved = categoryRepository.save(categories);
+        Category saved = categoryRepository.save(category);
         return new CategoryResponse(saved);
     }
 
     public List<CategoryResponse> getRootCategories() {
-        List<Categories> roots = categoryRepository.findByParentIsNull();
+        List<Category> roots = categoryRepository.findByParentIsNull();
         return roots.stream().map(CategoryResponse::new).toList();
     }
 
     public List<CategoryResponse> getChildrenCategoriesById(Long categoryId) {
-        Categories target = findByIdOrThrow(categoryId);
+        Category target = findByIdOrThrow(categoryId);
         return target.getChildren().stream().map(CategoryResponse::new).toList();
     }
 
     public CategoryHierarchyResponse getHierarchyByCategoryId(Long categoryId) {
-        Categories target = findWithParentByIdOrThrow(categoryId);
+        Category target = findWithParentByIdOrThrow(categoryId);
         CategoryHierarchyResponse response = new CategoryHierarchyResponse();
 
-        List<Categories> ancestorChain = buildAncestorPath(target);
+        List<Category> ancestorChain = buildAncestorPath(target);
         setAncestors(response, ancestorChain);
 
         setSiblingsByLevel(1, response, categoryRepository.findByParentIsNull());
 
         for(int i=0; i<ancestorChain.size(); i++){
-            Categories category = ancestorChain.get(i);
+            Category category = ancestorChain.get(i);
             if(!category.getChildren().isEmpty()){
                 setSiblingsByLevel(i+2, response, category.getChildren());
             }
@@ -69,7 +69,7 @@ public class CategoryService {
 
     @Transactional
     public CategoryResponse updateCategoryById(Long categoryId, UpdateCategoryRequest request) {
-        Categories target = findByIdOrThrow(categoryId);
+        Category target = findByIdOrThrow(categoryId);
         if (request.getName() != null){
             checkConflictName(request.getName());
             target.setName(request.getName());
@@ -79,7 +79,7 @@ public class CategoryService {
         }
         if (request.getParentId() != null){
             checkParentIsNotSelf(target.getId(), request.getParentId());
-            Categories parent = findByIdOrThrow(request.getParentId());
+            Category parent = findByIdOrThrow(request.getParentId());
             target.modifyParent(parent);
         }
         return new CategoryResponse(target);
@@ -87,7 +87,7 @@ public class CategoryService {
 
     @Transactional
     public void deleteCategoryById(Long categoryId) {
-        Categories target = findByIdOrThrow(categoryId);
+        Category target = findByIdOrThrow(categoryId);
         categoryRepository.delete(target);
     }
 
@@ -97,12 +97,12 @@ public class CategoryService {
         }
     }
 
-    private Categories findByIdOrThrow(Long categoryId){
+    private Category findByIdOrThrow(Long categoryId){
         return categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new NotFoundException(ms.getMessage(CATEGORY_NOT_FOUND)));
     }
 
-    private Categories findWithParentByIdOrThrow(Long categoryId){
+    private Category findWithParentByIdOrThrow(Long categoryId){
         return categoryRepository.findWithParentById(categoryId)
                 .orElseThrow(() -> new NotFoundException(ms.getMessage(CATEGORY_NOT_FOUND)));
     }
@@ -113,20 +113,20 @@ public class CategoryService {
         }
     }
 
-    private List<Categories> buildAncestorPath(Categories category) {
+    private List<Category> buildAncestorPath(Category category) {
         if (category == null) {
             return new ArrayList<>();
         }
-        List<Categories> ancestors = buildAncestorPath(category.getParent());
+        List<Category> ancestors = buildAncestorPath(category.getParent());
         ancestors.add(category);
         return ancestors;
     }
 
-    private void setSiblingsByLevel(int level, CategoryHierarchyResponse response, List<Categories> categories){
+    private void setSiblingsByLevel(int level, CategoryHierarchyResponse response, List<Category> categories){
         response.getSiblingsByLevel().add(new CategoryHierarchyResponse.LevelItem(level, categories.stream().map(CategoryResponse::new).toList()));
     }
 
-    private void setAncestors(CategoryHierarchyResponse response, List<Categories> ancestors){
+    private void setAncestors(CategoryHierarchyResponse response, List<Category> ancestors){
         response.setAncestors(ancestors.stream()
                 .map(CategoryResponse::new).toList());
     }

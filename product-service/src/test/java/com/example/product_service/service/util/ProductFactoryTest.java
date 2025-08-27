@@ -35,13 +35,13 @@ class ProductFactoryTest {
     void createProductsTest(){
         ProductRequest request = createProductRequest();
         ProductCreationCommand command = new ProductCreationCommand(request);
-        OptionTypes optionType = createOptionType(1L, "optionType");
-        OptionValues optionValue = createOptionValue(1L, "optionValue", optionType);
+        OptionType optionType = createOptionType(1L, "optionType");
+        OptionValue optionValue = createOptionValue(1L, "optionValue", optionType);
 
-        Map<Long, OptionTypes> optionTypeById = new HashMap<>();
+        Map<Long, OptionType> optionTypeById = new HashMap<>();
         optionTypeById.put(optionType.getId(), optionType);
 
-        Map<Long, OptionValues> optionValueById = new HashMap<>();
+        Map<Long, OptionValue> optionValueById = new HashMap<>();
         optionValueById.put(optionValue.getId(), optionValue);
 
         ProductCreationData data = new ProductCreationData(
@@ -50,7 +50,7 @@ class ProductFactoryTest {
                 optionValueById
         );
 
-        Products product = factory.createProducts(command, data);
+        Product product = factory.createProducts(command, data);
 
         assertThat(product.getName()).isEqualTo("name");
         assertThat(product.getDescription()).isEqualTo("description");
@@ -66,23 +66,23 @@ class ProductFactoryTest {
         assertThat(product.getProductOptionTypes())
                 .extracting(pot -> pot.getOptionType().getId(),
                         pot -> pot.getOptionType().getName(),
-                        ProductOptionTypes::getPriority,
-                        ProductOptionTypes::isActive)
+                        ProductOptionType::getPriority,
+                        ProductOptionType::isActive)
                 .containsExactlyInAnyOrder(
                         tuple(1L, "optionType", 0, true)
                 );
 
         assertThat(product.getProductVariants())
-                .extracting(ProductVariants::getSku,
-                        ProductVariants::getPrice,
-                        ProductVariants::getStockQuantity,
-                        ProductVariants::getDiscountValue)
+                .extracting(ProductVariant::getSku,
+                        ProductVariant::getPrice,
+                        ProductVariant::getStockQuantity,
+                        ProductVariant::getDiscountValue)
                 .containsExactlyInAnyOrder(
                         tuple("sku", 1000, 100, 10)
                 );
 
         assertThat(product.getProductVariants())
-                .flatExtracting(ProductVariants::getProductVariantOptions)
+                .flatExtracting(ProductVariant::getProductVariantOptions)
                 .extracting(pvo -> pvo.getOptionValue().getOptionValue())
                 .containsExactlyInAnyOrder( "optionValue");
     }
@@ -93,14 +93,14 @@ class ProductFactoryTest {
         ProductVariantRequest request = createProductVariantRequest();
         ProductVariantCommand command = new ProductVariantCommand(request);
 
-        OptionTypes optionType = createOptionType(1L, "optionType");
-        OptionValues optionValue = createOptionValue(1L, "optionValue", optionType);
+        OptionType optionType = createOptionType(1L, "optionType");
+        OptionValue optionValue = createOptionValue(1L, "optionValue", optionType);
 
-        Map<Long, OptionValues> optionValueById = new HashMap<>();
+        Map<Long, OptionValue> optionValueById = new HashMap<>();
         optionValueById.put(optionValue.getId(), optionValue);
         ProductVariantCreationData creationData = new ProductVariantCreationData(optionValueById);
 
-        ProductVariants productVariant = factory.createProductVariant(command, creationData);
+        ProductVariant productVariant = factory.createProductVariant(command, creationData);
 
         assertThat(productVariant.getSku()).isEqualTo("sku");
         assertThat(productVariant.getPrice()).isEqualTo(10000);
@@ -137,22 +137,22 @@ class ProductFactoryTest {
         );
     }
 
-    private Categories createCategory(Long id){
-        Categories category = new Categories("category", "http://test.jpg");
+    private Category createCategory(Long id){
+        Category category = new Category("category", "http://test.jpg");
         ReflectionTestUtils.setField(category, "id", id);
         return category;
     }
 
-    private OptionTypes createOptionType(Long id, String name){
-        OptionTypes optionTypes = new OptionTypes(name);
-        ReflectionTestUtils.setField(optionTypes, "id", id);
-        return optionTypes;
+    private OptionType createOptionType(Long id, String name){
+        OptionType optionType = new OptionType(name);
+        ReflectionTestUtils.setField(optionType, "id", id);
+        return optionType;
     }
 
-    private OptionValues createOptionValue(Long id, String name, OptionTypes optionTypes){
-        OptionValues optionValues = new OptionValues(name);
-        ReflectionTestUtils.setField(optionValues, "id", id);
-        optionTypes.addOptionValue(optionValues);
-        return optionValues;
+    private OptionValue createOptionValue(Long id, String name, OptionType optionType){
+        OptionValue optionValue = new OptionValue(name);
+        ReflectionTestUtils.setField(optionValue, "id", id);
+        optionType.addOptionValue(optionValue);
+        return optionValue;
     }
 }

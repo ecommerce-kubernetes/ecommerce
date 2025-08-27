@@ -47,10 +47,10 @@ public class ProductQueryService {
     }
 
     public ProductResponse getProductById(Long productId) {
-        Products product = findWithCategoryByIdOrThrow(productId);
-        List<ProductImages> productImages = productImagesRepository.findByProductId(productId);
-        List<ProductOptionTypes> productOptionTypes = productOptionTypesRepository.findWithOptionTypeByProductId(productId);
-        List<ProductVariants> productVariants = productVariantsRepository.findWithVariantOptionByProductId(productId);
+        Product product = findWithCategoryByIdOrThrow(productId);
+        List<ProductImage> productImages = productImagesRepository.findByProductId(productId);
+        List<ProductOptionType> productOptionTypes = productOptionTypesRepository.findWithOptionTypeByProductId(productId);
+        List<ProductVariant> productVariants = productVariantsRepository.findWithVariantOptionByProductId(productId);
         ReviewStats reviewStats = reviewsRepository.findReviewStatsByProductId(productId);
         return new ProductResponse(product, productImages, productOptionTypes, productVariants, reviewStats);
     }
@@ -71,7 +71,7 @@ public class ProductQueryService {
             throw new NotFoundException(ms.getMessage(PRODUCT_NOT_FOUND));
         }
 
-        Page<Reviews> result = reviewsRepository.findAllByProductId(productId, pageable);
+        Page<Review> result = reviewsRepository.findAllByProductId(productId, pageable);
         return parseReviewResponse(result, pageable);
     }
 
@@ -87,7 +87,7 @@ public class ProductQueryService {
         );
     }
 
-    private PageDto<ReviewResponse> parseReviewResponse(Page<Reviews> result, Pageable pageable){
+    private PageDto<ReviewResponse> parseReviewResponse(Page<Review> result, Pageable pageable){
         List<ReviewResponse> content = result.getContent().stream().map(ReviewResponse::new).toList();
 
         return new PageDto<>(
@@ -106,7 +106,7 @@ public class ProductQueryService {
         return categoryRepository.findDescendantIds(categoryId);
     }
 
-    private Products findWithCategoryByIdOrThrow(Long productId){
+    private Product findWithCategoryByIdOrThrow(Long productId){
         return productsRepository.findWithCategoryById(productId)
                 .orElseThrow(() -> new NotFoundException(ms.getMessage(PRODUCT_NOT_FOUND)));
     }

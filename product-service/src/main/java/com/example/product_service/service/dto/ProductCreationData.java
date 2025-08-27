@@ -1,18 +1,17 @@
 package com.example.product_service.service.dto;
 
-import com.example.product_service.entity.Categories;
-import com.example.product_service.entity.OptionTypes;
-import com.example.product_service.entity.OptionValues;
+import com.example.product_service.entity.Category;
+import com.example.product_service.entity.OptionType;
+import com.example.product_service.entity.OptionValue;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-import java.util.List;
 import java.util.Map;
 
 @AllArgsConstructor
 @Getter
 public class ProductCreationData {
-    private Categories category;
-    private Map<Long, OptionTypes> optionTypeById;
-    private Map<Long, OptionValues> optionValueById;
+    private Category category;
+    private Map<Long, OptionType> optionTypeById;
+    private Map<Long, OptionValue> optionValueById;
 }

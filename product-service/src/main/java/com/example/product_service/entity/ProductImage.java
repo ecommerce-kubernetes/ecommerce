@@ -10,25 +10,25 @@ import lombok.Setter;
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-public class ProductImages extends BaseEntity {
+public class ProductImage extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id")
-    private Products product;
+    private Product product;
 
     @Setter
     private String imageUrl;
     private Integer sortOrder;
 
-    public ProductImages(String imageUrl, int sortOrder){
+    public ProductImage(String imageUrl, int sortOrder){
         this.imageUrl = imageUrl;
         this.sortOrder = sortOrder;
     }
 
-    public ProductImages(String imageUrl){
+    public ProductImage(String imageUrl){
         this.imageUrl = imageUrl;
     }
 
@@ -36,7 +36,7 @@ public class ProductImages extends BaseEntity {
         this.sortOrder = sortOrder;
     }
 
-    protected void setProduct(Products product){
+    protected void setProduct(Product product){
         this.product = product;
     }
 

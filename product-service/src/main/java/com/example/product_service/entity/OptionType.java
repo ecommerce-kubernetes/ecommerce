@@ -12,7 +12,7 @@ import java.util.List;
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-public class OptionTypes {
+public class OptionType {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -22,18 +22,18 @@ public class OptionTypes {
     private String name;
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "optionType", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<OptionValues> optionValues = new ArrayList<>();
+    private List<OptionValue> optionValues = new ArrayList<>();
 
-    public OptionTypes(String name){
+    public OptionType(String name){
         this.name = name;
     }
 
-    public void addOptionValue(OptionValues optionValue){
+    public void addOptionValue(OptionValue optionValue){
         this.optionValues.add(optionValue);
         optionValue.setOptionType(this);
     }
 
-    public void removeOptionValue(OptionValues optionValue){
+    public void removeOptionValue(OptionValue optionValue){
         this.optionValues.remove(optionValue);
         optionValue.setOptionValue(null);
     }

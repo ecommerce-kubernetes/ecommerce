@@ -1,6 +1,6 @@
 package com.example.product_service.dto.response;
 
-import com.example.product_service.entity.Products;
+import com.example.product_service.entity.Product;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,7 +19,7 @@ public class CompactProductResponseDto {
     private Long categoryId;
     private String mainImgUrl;
 
-    public CompactProductResponseDto(Products product, String mainImgUrl){
+    public CompactProductResponseDto(Product product, String mainImgUrl){
         this.id = product.getId();
         this.name = product.getName();
         this.description = product.getDescription();

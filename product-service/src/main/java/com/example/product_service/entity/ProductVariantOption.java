@@ -9,24 +9,24 @@ import lombok.NoArgsConstructor;
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-public class ProductVariantOptions extends BaseEntity {
+public class ProductVariantOption extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "variant_id")
-    private ProductVariants productVariant;
+    private ProductVariant productVariant;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "option_value_id")
-    private OptionValues optionValue;
+    private OptionValue optionValue;
 
-    public ProductVariantOptions(OptionValues optionValue){
+    public ProductVariantOption(OptionValue optionValue){
         this.optionValue = optionValue;
     }
 
-    protected void setProductVariant(ProductVariants productVariant){
+    protected void setProductVariant(ProductVariant productVariant){
         this.productVariant = productVariant;
     }
 }

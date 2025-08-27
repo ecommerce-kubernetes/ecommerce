@@ -4,10 +4,10 @@ import com.example.product_service.dto.response.image.ImageResponse;
 import com.example.product_service.dto.response.options.OptionValueResponse;
 import com.example.product_service.dto.response.options.ProductOptionTypeResponse;
 import com.example.product_service.dto.response.variant.ProductVariantResponse;
-import com.example.product_service.entity.ProductImages;
-import com.example.product_service.entity.ProductOptionTypes;
-import com.example.product_service.entity.ProductVariants;
-import com.example.product_service.entity.Products;
+import com.example.product_service.entity.Product;
+import com.example.product_service.entity.ProductImage;
+import com.example.product_service.entity.ProductOptionType;
+import com.example.product_service.entity.ProductVariant;
 import com.example.product_service.service.dto.ReviewStats;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -35,27 +35,27 @@ public class ProductResponse {
     private List<ProductVariantResponse> productVariants;
 
 
-    public ProductResponse(Products products){
-        this.id = products.getId();
-        this.name = products.getName();
-        this.description = products.getDescription();
-        this.categoryId = products.getCategory().getId();
-        this.createdAt = products.getCreateAt();
-        this.updatedAt = products.getUpdateAt();
-        this.images = products.getImages().stream()
+    public ProductResponse(Product product){
+        this.id = product.getId();
+        this.name = product.getName();
+        this.description = product.getDescription();
+        this.categoryId = product.getCategory().getId();
+        this.createdAt = product.getCreateAt();
+        this.updatedAt = product.getUpdateAt();
+        this.images = product.getImages().stream()
                 .map(i -> new ImageResponse(i.getId(), i.getImageUrl(), i.getSortOrder())).toList();
-        this.productOptionTypes = products.getProductOptionTypes().stream()
+        this.productOptionTypes = product.getProductOptionTypes().stream()
                 .map(pr -> new ProductOptionTypeResponse(pr.getOptionType().getId(), pr.getOptionType().getName())).toList();
         this.productVariants =
-                products.getProductVariants().stream()
+                product.getProductVariants().stream()
                         .map(pv ->
                                 new ProductVariantResponse(pv.getId(), pv.getSku(), pv.getPrice(), pv.getStockQuantity(),
                                         pv.getDiscountValue(), pv.getProductVariantOptions().stream()
                                         .map(ot -> new OptionValueResponse(ot.getOptionValue())).toList())).toList();
     }
 
-    public ProductResponse(Products product, List<ProductImages> productImages,
-                           List<ProductOptionTypes> productOptionTypes, List<ProductVariants> productVariants,
+    public ProductResponse(Product product, List<ProductImage> productImages,
+                           List<ProductOptionType> productOptionTypes, List<ProductVariant> productVariants,
                            ReviewStats reviewStats){
 
         this.id = product.getId();

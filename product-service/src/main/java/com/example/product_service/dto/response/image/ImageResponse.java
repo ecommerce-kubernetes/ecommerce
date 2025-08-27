@@ -1,6 +1,6 @@
 package com.example.product_service.dto.response.image;
 
-import com.example.product_service.entity.ProductImages;
+import com.example.product_service.entity.ProductImage;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -15,7 +15,7 @@ public class ImageResponse {
     private String url;
     private int sortOrder;
 
-    public ImageResponse(ProductImages image){
+    public ImageResponse(ProductImage image){
         this.id = image.getId();
         this.url = image.getImageUrl();
         this.sortOrder = image.getSortOrder();

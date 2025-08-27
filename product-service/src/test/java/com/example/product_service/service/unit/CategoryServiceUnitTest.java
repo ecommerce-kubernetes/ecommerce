@@ -5,7 +5,7 @@ import com.example.product_service.dto.request.category.CategoryRequest;
 import com.example.product_service.dto.request.category.UpdateCategoryRequest;
 import com.example.product_service.dto.response.category.CategoryHierarchyResponse;
 import com.example.product_service.dto.response.category.CategoryResponse;
-import com.example.product_service.entity.Categories;
+import com.example.product_service.entity.Category;
 import com.example.product_service.exception.BadRequestException;
 import com.example.product_service.exception.DuplicateResourceException;
 import com.example.product_service.exception.NotFoundException;
@@ -39,7 +39,7 @@ public class CategoryServiceUnitTest {
     @Mock
     MessageSourceUtil ms;
     @Captor
-    private ArgumentCaptor<Categories> captor;
+    private ArgumentCaptor<Category> captor;
 
     @InjectMocks
     CategoryService categoryService;
@@ -49,14 +49,14 @@ public class CategoryServiceUnitTest {
     void saveCategoryTest_unit_success_root(){
         CategoryRequest request = new CategoryRequest("name", null, "http://test.jpg");
         mockExistsName("name", false);
-        when(categoryRepository.save(any(Categories.class)))
+        when(categoryRepository.save(any(Category.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         CategoryResponse response = categoryService.saveCategory(request);
 
         verify(categoryRepository).save(captor.capture());
 
-        Categories value = captor.getValue();
+        Category value = captor.getValue();
         assertThat(value.getParent()).isEqualTo(null);
 
         assertThat(response).isNotNull();
@@ -69,17 +69,17 @@ public class CategoryServiceUnitTest {
     @DisplayName("카테고리 등록 테스트-성공(하위 카테고리 생성시)")
     void saveCategoryTest_unit_success_leaf(){
         CategoryRequest request = new CategoryRequest("name", 1L, "http://test.jpg");
-        Categories parent = createCategoriesWithSetId(1L, "parent", "http://test.jpg");
+        Category parent = createCategoriesWithSetId(1L, "parent", "http://test.jpg");
 
         mockExistsName("name", false);
         mockFindById(1L, parent);
-        when(categoryRepository.save(any(Categories.class)))
+        when(categoryRepository.save(any(Category.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         CategoryResponse response = categoryService.saveCategory(request);
 
         verify(categoryRepository).save(captor.capture());
-        Categories value = captor.getValue();
+        Category value = captor.getValue();
 
         assertThat(value.getParent()).isNotNull();
         assertThat(value.getParent().getId()).isEqualTo(request.getParentId());
@@ -118,7 +118,7 @@ public class CategoryServiceUnitTest {
     @Test
     @DisplayName("루트 카테고리 조회 테스트-성공")
     void getRootCategoriesTest_unit_success(){
-        List<Categories> roots = List.of(createCategoriesWithSetId(1L, "root1", "http://root1.jpg"),
+        List<Category> roots = List.of(createCategoriesWithSetId(1L, "root1", "http://root1.jpg"),
                 createCategoriesWithSetId(2L, "root2", "http://root2.jpg"));
         when(categoryRepository.findByParentIsNull()).thenReturn(roots);
 
@@ -136,8 +136,8 @@ public class CategoryServiceUnitTest {
     @Test
     @DisplayName("자식 카테고리 조회 테스트-성공")
     void getChildrenCategoriesByIdTest_unit_success(){
-        Categories parent = createCategoriesWithSetId(1L, "parent", "http://parent.jpg");
-        addChildren(parent, new Categories("child1", "http://child1.jpg"), new Categories("child2", "http://child2.jpg"));
+        Category parent = createCategoriesWithSetId(1L, "parent", "http://parent.jpg");
+        addChildren(parent, new Category("child1", "http://child1.jpg"), new Category("child2", "http://child2.jpg"));
         mockFindById(1L, parent);
 
         List<CategoryResponse> response = categoryService.getChildrenCategoriesById(1L);
@@ -164,14 +164,14 @@ public class CategoryServiceUnitTest {
     @Test
     @DisplayName("카테고리 계층 구조 조회 테스트-성공")
     void getHierarchyByCategoryIdTest_unit_success(){
-        Categories level1_1 = createCategoriesWithSetId(1L, "level1-1", "http://level1-1.jpg");
-        Categories level1_2 = createCategoriesWithSetId(2L, "level1-2", "http://level1-2.jpg");
+        Category level1_1 = createCategoriesWithSetId(1L, "level1-1", "http://level1-1.jpg");
+        Category level1_2 = createCategoriesWithSetId(2L, "level1-2", "http://level1-2.jpg");
 
-        Categories level2_1 = createCategoriesWithSetId(3L, "level2-1", "http://level2-1.jpg");
-        Categories level2_2 = createCategoriesWithSetId(4L, "level2-2", "http://level2-2.jpg");
+        Category level2_1 = createCategoriesWithSetId(3L, "level2-1", "http://level2-1.jpg");
+        Category level2_2 = createCategoriesWithSetId(4L, "level2-2", "http://level2-2.jpg");
 
-        Categories level3_1 = createCategoriesWithSetId(5L, "level3-1", "http://level3-1.jpg");
-        Categories level3_2 = createCategoriesWithSetId(6L, "level3-2", "http://level3-2.jpg");
+        Category level3_1 = createCategoriesWithSetId(5L, "level3-1", "http://level3-1.jpg");
+        Category level3_2 = createCategoriesWithSetId(6L, "level3-2", "http://level3-2.jpg");
 
         addChildren(level1_1, level2_1, level2_2);
         addChildren(level2_1, level3_1, level3_2);
@@ -221,8 +221,8 @@ public class CategoryServiceUnitTest {
     @DisplayName("카테고리 수정 테스트-성공(부모 변경)")
     void updateCategoryTest_unit_success_parent_notnull(){
         UpdateCategoryRequest request = new UpdateCategoryRequest("updated", 1L, null);
-        Categories parent = spy(createCategoriesWithSetId(1L, "parent", "http://test.jpg"));
-        Categories target = spy(new Categories("name", "http://before.jpg"));
+        Category parent = spy(createCategoriesWithSetId(1L, "parent", "http://test.jpg"));
+        Category target = spy(new Category("name", "http://before.jpg"));
 
         mockFindById(1L, parent);
         mockFindById(2L, target);
@@ -245,8 +245,8 @@ public class CategoryServiceUnitTest {
     @DisplayName("카테고리 수정 테스트-성공(부모 변경 x)")
     void updateCategoryTest_unit_success_parent_null(){
         UpdateCategoryRequest request = new UpdateCategoryRequest("updated", null, null);
-        Categories parent = spy(createCategoriesWithSetId(1L, "parent", "http://test.jpg"));
-        Categories target = spy(new Categories("name", "http://before.jpg"));
+        Category parent = spy(createCategoriesWithSetId(1L, "parent", "http://test.jpg"));
+        Category target = spy(new Category("name", "http://before.jpg"));
         parent.addChild(target);
 
         mockFindById(2L, target);
@@ -280,7 +280,7 @@ public class CategoryServiceUnitTest {
     @DisplayName("카테고리 수정 테스트-실패(부모 카테고리 찾을 수 없음)")
     void updateCategoryTest_unit_notFound_parent(){
         UpdateCategoryRequest request = new UpdateCategoryRequest("update", 1L, null);
-        Categories target = new Categories("name", "http://test.jpg");
+        Category target = new Category("name", "http://test.jpg");
         mockFindById(1L, null);
         mockFindById(2L, target);
         when(ms.getMessage(CATEGORY_NOT_FOUND)).thenReturn("Category not found");
@@ -294,7 +294,7 @@ public class CategoryServiceUnitTest {
     @DisplayName("카테고리 수정 테스트-실패(중복 이름)")
     void updateCategoryTest_unit_conflict_name(){
         UpdateCategoryRequest request = new UpdateCategoryRequest("duplicate", null, null);
-        Categories target = new Categories("name", "http://test.jpg");
+        Category target = new Category("name", "http://test.jpg");
         mockFindById(2L, target);
         mockExistsName("duplicate", true);
         when(ms.getMessage(CATEGORY_CONFLICT)).thenReturn("Category already exists");
@@ -308,7 +308,7 @@ public class CategoryServiceUnitTest {
     @DisplayName("카테고리 수정 테스트-실패(부모 카테고리 Id가 target의 Id인경우")
     void updateCategoryTest_unit_badRequest_parentId(){
         UpdateCategoryRequest request = new UpdateCategoryRequest("updated", 2L, null);
-        Categories target = createCategoriesWithSetId(2L, "name", "http://test.jpg");
+        Category target = createCategoriesWithSetId(2L, "name", "http://test.jpg");
         mockFindById(2L, target);
         mockExistsName("updated", false);
         when(ms.getMessage(CATEGORY_BAD_REQUEST)).thenReturn("Cannot assign an Category to itself as a parent.");
@@ -321,12 +321,12 @@ public class CategoryServiceUnitTest {
     @Test
     @DisplayName("카테고리 삭제 테스트-성공")
     void deleteCategoryTest_unit_success(){
-        Categories target = createCategoriesWithSetId(1L, "target", "http://test.jpg");
+        Category target = createCategoriesWithSetId(1L, "target", "http://test.jpg");
         mockFindById(1L, target);
         categoryService.deleteCategoryById(1L);
         verify(categoryRepository).delete(captor.capture());
 
-        Categories value = captor.getValue();
+        Category value = captor.getValue();
         assertThat(value.getId()).isEqualTo(1L);
     }
 
@@ -340,10 +340,10 @@ public class CategoryServiceUnitTest {
                 .hasMessage(getMessage(CATEGORY_NOT_FOUND));
     }
 
-    private Categories createCategoriesWithSetId(Long id, String name, String url){
-        Categories categories = new Categories(name, url);
-        ReflectionTestUtils.setField(categories, "id", id);
-        return categories;
+    private Category createCategoriesWithSetId(Long id, String name, String url){
+        Category category = new Category(name, url);
+        ReflectionTestUtils.setField(category, "id", id);
+        return category;
     }
 
     private void mockExistsName(String name, boolean isExists){
@@ -355,8 +355,8 @@ public class CategoryServiceUnitTest {
         }
     }
 
-    private void mockFindById(Long id, Categories o){
-        OngoingStubbing<Optional<Categories>> when = when(categoryRepository.findById(id));
+    private void mockFindById(Long id, Category o){
+        OngoingStubbing<Optional<Category>> when = when(categoryRepository.findById(id));
         if(o == null){
             when.thenReturn(Optional.empty());
         } else {
@@ -364,8 +364,8 @@ public class CategoryServiceUnitTest {
         }
     }
 
-    private void mockFindWithParentById(Long id, Categories o){
-        OngoingStubbing<Optional<Categories>> when = when(categoryRepository.findWithParentById(id));
+    private void mockFindWithParentById(Long id, Category o){
+        OngoingStubbing<Optional<Category>> when = when(categoryRepository.findWithParentById(id));
         if(o == null){
             when.thenReturn(Optional.empty());
         } else {
@@ -377,9 +377,9 @@ public class CategoryServiceUnitTest {
         when(ms.getMessage(code)).thenReturn(returnMessage);
     }
 
-    private void addChildren(Categories parent, Categories... child){
-        for (Categories categories : child) {
-            parent.addChild(categories);
+    private void addChildren(Category parent, Category... child){
+        for (Category category : child) {
+            parent.addChild(category);
         }
     }
 

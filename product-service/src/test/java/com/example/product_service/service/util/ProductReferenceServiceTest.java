@@ -5,9 +5,9 @@ import com.example.product_service.dto.request.options.ProductOptionTypeRequest;
 import com.example.product_service.dto.request.product.ProductRequest;
 import com.example.product_service.dto.request.variant.ProductVariantRequest;
 import com.example.product_service.dto.request.variant.VariantOptionValueRequest;
-import com.example.product_service.entity.Categories;
-import com.example.product_service.entity.OptionTypes;
-import com.example.product_service.entity.OptionValues;
+import com.example.product_service.entity.Category;
+import com.example.product_service.entity.OptionType;
+import com.example.product_service.entity.OptionValue;
 import com.example.product_service.exception.BadRequestException;
 import com.example.product_service.exception.DuplicateResourceException;
 import com.example.product_service.exception.NotFoundException;
@@ -56,12 +56,12 @@ class ProductReferenceServiceTest {
     @Test
     @DisplayName("ProductRequest-성공")
     void buildCreationData_success(){
-        Categories category = createCategoriesWithSetId(1L, "category", "http://test.jpg");
+        Category category = createCategoriesWithSetId(1L, "category", "http://test.jpg");
         mockExistsBySkuIn(false, "sku");
         mockFindByCategory(1L, category);
 
-        OptionTypes optionType = createOptionTypesWithSetId(1L, "optionType");
-        OptionValues optionValue = createOptionValuesWithSetId(1L, "optionValue");
+        OptionType optionType = createOptionTypesWithSetId(1L, "optionType");
+        OptionValue optionValue = createOptionValuesWithSetId(1L, "optionValue");
         optionType.addOptionValue(optionValue);
 
         mockFindOptionTypeIn(List.of(1L), List.of(optionType));
@@ -103,8 +103,8 @@ class ProductReferenceServiceTest {
     @DisplayName("ProductRequest 카테고리가 최하위 카테고리가 아닌경우")
     void buildCreationData_badRequest_category(){
         mockExistsBySkuIn(false, "sku");
-        Categories root = createCategoriesWithSetId(1L, "root", "http://test.jpg");
-        Categories leaf = createCategoriesWithSetId(2L, "leaf", null);
+        Category root = createCategoriesWithSetId(1L, "root", "http://test.jpg");
+        Category leaf = createCategoriesWithSetId(2L, "leaf", null);
         root.addChild(leaf);
         mockFindByCategory(1L, root);
         mockMessageUtil(PRODUCT_CATEGORY_BAD_REQUEST, "category must be the lowest level");
@@ -117,7 +117,7 @@ class ProductReferenceServiceTest {
     @Test
     @DisplayName("ProductRequest 옵션 타입 찾을 수 없음")
     void buildCreationData_notFound_optionType(){
-        Categories category = createCategoriesWithSetId(1L, "category", "http://test.jpg");
+        Category category = createCategoriesWithSetId(1L, "category", "http://test.jpg");
         mockExistsBySkuIn(false, "sku");
         mockFindByCategory(1L, category);
         mockFindOptionTypeIn(List.of(1L), List.of());
@@ -131,8 +131,8 @@ class ProductReferenceServiceTest {
     @Test
     @DisplayName("ProductRequest 옵션 값을 찾을 수 없음")
     void buildCreationData_notFound_optionValue(){
-        Categories category = createCategoriesWithSetId(1L, "category", "http://test.jpg");
-        OptionTypes optionType = createOptionTypesWithSetId(1L, "optionType");
+        Category category = createCategoriesWithSetId(1L, "category", "http://test.jpg");
+        OptionType optionType = createOptionTypesWithSetId(1L, "optionType");
         mockExistsBySkuIn(false, "sku");
         mockFindByCategory(1L, category);
         mockFindOptionTypeIn(List.of(1L), List.of(optionType));
@@ -184,8 +184,8 @@ class ProductReferenceServiceTest {
         }
     }
 
-    private void mockFindByCategory(Long categoryId, Categories returnResult){
-        OngoingStubbing<Optional<Categories>> when = when(categoryRepository.findById(categoryId));
+    private void mockFindByCategory(Long categoryId, Category returnResult){
+        OngoingStubbing<Optional<Category>> when = when(categoryRepository.findById(categoryId));
         if(returnResult == null){
             when.thenReturn(Optional.empty());
         } else {
@@ -193,33 +193,33 @@ class ProductReferenceServiceTest {
         }
     }
 
-    private void mockFindOptionTypeIn(List<Long> ids, List<OptionTypes> returnResult){
+    private void mockFindOptionTypeIn(List<Long> ids, List<OptionType> returnResult){
         when(optionTypeRepository.findByIdIn(ids)).thenReturn(returnResult);
     }
 
-    private void mockFindOptionValueIn(List<Long> ids, List<OptionValues> returnResult){
+    private void mockFindOptionValueIn(List<Long> ids, List<OptionValue> returnResult){
         when(optionValueRepository.findByIdIn(ids)).thenReturn(returnResult);
     }
 
     private void mockMessageUtil(String code, String returnString){
         when(ms.getMessage(code)).thenReturn(returnString);
     }
-    private Categories createCategoriesWithSetId(Long id, String name, String url){
-        Categories categories = new Categories(name, url);
-        ReflectionTestUtils.setField(categories, "id", id);
-        return categories;
+    private Category createCategoriesWithSetId(Long id, String name, String url){
+        Category category = new Category(name, url);
+        ReflectionTestUtils.setField(category, "id", id);
+        return category;
     }
 
-    private OptionTypes createOptionTypesWithSetId(Long id, String name){
-        OptionTypes optionTypes = new OptionTypes(name);
-        ReflectionTestUtils.setField(optionTypes, "id", id);
-        return optionTypes;
+    private OptionType createOptionTypesWithSetId(Long id, String name){
+        OptionType optionType = new OptionType(name);
+        ReflectionTestUtils.setField(optionType, "id", id);
+        return optionType;
     }
 
-    private OptionValues createOptionValuesWithSetId(Long id, String name){
-        OptionValues optionValues = new OptionValues(name);
-        ReflectionTestUtils.setField(optionValues, "id", id);
-        return optionValues;
+    private OptionValue createOptionValuesWithSetId(Long id, String name){
+        OptionValue optionValue = new OptionValue(name);
+        ReflectionTestUtils.setField(optionValue, "id", id);
+        return optionValue;
     }
 
     private ProductRequest createProductRequest(){
