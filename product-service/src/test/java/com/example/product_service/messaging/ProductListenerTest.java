@@ -29,15 +29,17 @@ class ProductListenerTest {
     private ProductListener productListener;
 
     @Test
-    void kafkaTest(){
+    void kafkaTest_run(){
         OrderCreatedEvent build = OrderCreatedEvent.builder().orderId(1L).build();
 
         kafkaTemplate.send("order.created", build);
         kafkaTemplate.flush();
 
-        await().atMost(5, TimeUnit.SECONDS)
+        await().atMost(2, TimeUnit.SECONDS)
                 .untilAsserted(() -> verify(productListener, times(1))
                         .inventoryReductionListener(any(OrderCreatedEvent.class)));
     }
+
+
 
 }

@@ -5,9 +5,11 @@ import com.example.product_service.dto.request.variant.UpdateProductVariantReque
 import com.example.product_service.dto.response.variant.ProductVariantResponse;
 import com.example.product_service.entity.*;
 import com.example.product_service.exception.BadRequestException;
+import com.example.product_service.exception.InsufficientStockException;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.repository.ProductVariantsRepository;
 import com.example.product_service.service.ProductVariantService;
+import com.example.product_service.service.dto.InventoryReductionItem;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,8 +18,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static com.example.product_service.common.MessagePath.PRODUCT_VARIANT_NOT_FOUND;
 import static com.example.product_service.util.TestMessageUtil.getMessage;
@@ -147,6 +148,80 @@ public class ProductVariantServiceUnitTest {
         assertThatThrownBy(() -> productVariantService.deleteVariantById(1L))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessage("must be at least one product variant per product");
+    }
+
+    @Test
+    @DisplayName("재고 감소-성공")
+    void inventoryReductionByIdTest_unit_success(){
+        OptionType optionType = new OptionType("optionType");
+        OptionValue optionValue = new OptionValue("optionValue");
+        optionType.addOptionValue(optionValue);
+
+        ProductOptionType productOptionType = createProductOptionTypes(optionType);
+        ProductVariantOption productVariantOption = new ProductVariantOption(optionValue);
+        ProductVariant productVariant = createProductVariant(1L,"sku", List.of(productVariantOption));
+        Product product = createProduct(
+                List.of(new ProductImage("http://test.jpg", 0)),
+                List.of(productOptionType),
+                List.of(productVariant));
+
+        when(productVariantsRepository.findByIdIn(Set.of(1L)))
+                .thenReturn(List.of(productVariant));
+
+        Map<Long, Integer> reductionMap = new HashMap<>();
+        reductionMap.put(1L, 10);
+
+        List<InventoryReductionItem> inventoryReductionItems = productVariantService.inventoryReductionById(reductionMap);
+
+        assertThat(inventoryReductionItems)
+                .extracting("productVariantId", "price", "discountPrice")
+                .containsExactlyInAnyOrder(
+                        tuple(1L, 10000, 9000)
+                );
+    }
+
+    @Test
+    @DisplayName("재고 감소-실패(상품 변형을 찾을 수 없음)")
+    void inventoryReductionByIdTest_unit_notFound_productVariant(){
+        when(productVariantsRepository.findByIdIn(Set.of(1L)))
+                .thenReturn(List.of());
+        when(ms.getMessage(PRODUCT_VARIANT_NOT_FOUND))
+                .thenReturn("Product Variant not found");
+
+        Map<Long, Integer> reductionMap = new HashMap<>();
+        reductionMap.put(1L, 10);
+
+        assertThatThrownBy(() -> productVariantService.inventoryReductionById(reductionMap))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage(getMessage(PRODUCT_VARIANT_NOT_FOUND));
+    }
+
+    @Test
+    @DisplayName("재고 감소-실패(재고가 부족함)")
+    void inventoryReductionByIdTest_unit_outOfStock(){
+        OptionType optionType = new OptionType("optionType");
+        OptionValue optionValue = new OptionValue("optionValue");
+        optionType.addOptionValue(optionValue);
+
+        ProductOptionType productOptionType = createProductOptionTypes(optionType);
+        ProductVariantOption productVariantOption = new ProductVariantOption(optionValue);
+        ProductVariant productVariant = createProductVariant(1L,"sku", List.of(productVariantOption));
+        productVariant.setStockQuantity(5);
+        Product product = createProduct(
+                List.of(new ProductImage("http://test.jpg", 0)),
+                List.of(productOptionType),
+                List.of(productVariant));
+
+        when(productVariantsRepository.findByIdIn(Set.of(1L)))
+                .thenReturn(List.of(productVariant));
+
+        Map<Long, Integer> reductionMap = new HashMap<>();
+        reductionMap.put(1L, 10);
+
+        assertThatThrownBy(() -> productVariantService.inventoryReductionById(reductionMap))
+                .isInstanceOf(InsufficientStockException.class)
+                .hasMessage("Out of Stock");
+
     }
 
     private Product createProduct(List<ProductImage> productImages, List<ProductOptionType> productOptionTypes,

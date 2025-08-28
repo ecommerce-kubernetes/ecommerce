@@ -40,4 +40,6 @@ public final class MessagePath {
     public static final String REVIEW_FORBIDDEN_DELETE = "review.forbidden.delete";
 
     public static final String NOT_SUPPORTED_DOMAIN = "notSupport.domain";
+
+    public static final String INSUFFICIENT_STOCK = "insufficient.stock";
 }

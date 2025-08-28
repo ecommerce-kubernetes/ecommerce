@@ -1,5 +1,6 @@
 package com.example.product_service.entity;
 
+import com.example.product_service.exception.InsufficientStockException;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -56,6 +57,13 @@ public class ProductVariant {
     public int getDiscountPrice(){
         int originPrice = this.price;
         return Math.round(originPrice * (100 - discountValue)/ 100f);
+    }
+
+    public void reductionStock(int stock){
+        if(stockQuantity - stock < 0){
+            throw new InsufficientStockException("Out of Stock");
+        }
+        this.stockQuantity = this.stockQuantity - stock;
     }
 
     protected void setProduct(Product product){
