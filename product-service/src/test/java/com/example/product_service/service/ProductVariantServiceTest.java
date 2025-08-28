@@ -5,11 +5,13 @@ import com.example.product_service.dto.request.variant.UpdateProductVariantReque
 import com.example.product_service.dto.response.variant.ProductVariantResponse;
 import com.example.product_service.entity.*;
 import com.example.product_service.exception.BadRequestException;
+import com.example.product_service.exception.InsufficientStockException;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.repository.CategoryRepository;
 import com.example.product_service.repository.OptionTypeRepository;
 import com.example.product_service.repository.ProductVariantsRepository;
 import com.example.product_service.repository.ProductsRepository;
+import com.example.product_service.service.dto.InventoryReductionItem;
 import com.example.product_service.util.TestMessageUtil;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,6 +22,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.*;
 
@@ -152,8 +155,59 @@ class ProductVariantServiceTest {
         assertThatThrownBy(() -> productVariantService.deleteVariantById(productVariant.getId()))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessage("must be at least one product variant per product");
-
     }
+
+    @Test
+    @DisplayName("재고감소-성공")
+    void inventoryReductionByIdTest_integration_success(){
+        ProductImage productImage = createProductImages("http://iphone16-1.jpg", 0);
+        ProductOptionType productOptionType = createProductOptionType(storage);
+        ProductVariant productVariant = createProductVariants("IPHONE16-128GB", 10000, 100, 10, gb_128);
+        Product product = createProduct("IPhone 16", "IPhone Model 16", electronic,
+                List.of(productImage), List.of(productOptionType), List.of(productVariant));
+
+        productsRepository.save(product);
+        em.flush(); em.clear();
+
+        List<InventoryReductionItem> inventoryReductionItem = productVariantService.inventoryReductionById(Map.of(productVariant.getId(), 10));
+        assertThat(inventoryReductionItem)
+                .extracting(InventoryReductionItem::getProductVariantId, InventoryReductionItem::getPrice,
+                        InventoryReductionItem::getStock, InventoryReductionItem::getDiscountPrice)
+                .containsExactlyInAnyOrder(
+                        tuple(productVariant.getId(), productVariant.getPrice(), 10,
+                                productVariant.getDiscountPrice()));
+        em.flush();
+        em.clear();
+
+        ProductVariant result = productVariantsRepository.findById(productVariant.getId()).get();
+        assertThat(result.getStockQuantity()).isEqualTo(90);
+    }
+
+    @Test
+    @DisplayName("재고 감소-실패(상품 변형 찾을 수 없음)")
+    void inventoryReductionByIdTest_integration_notFound_productVariant(){
+        assertThatThrownBy(() -> productVariantService.inventoryReductionById(Map.of(999L, 10)))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage(TestMessageUtil.getMessage(MessagePath.PRODUCT_VARIANT_NOT_FOUND));
+    }
+
+    @Test
+    @DisplayName("재고 감소-실패(재고 부족)")
+    void inventoryReductionByIdTest_integration_outOfStock(){
+        ProductImage productImage = createProductImages("http://iphone16-1.jpg", 0);
+        ProductOptionType productOptionType = createProductOptionType(storage);
+        ProductVariant productVariant = createProductVariants("IPHONE16-128GB", 10000, 5, 10, gb_128);
+        Product product = createProduct("IPhone 16", "IPhone Model 16", electronic,
+                List.of(productImage), List.of(productOptionType), List.of(productVariant));
+
+        productsRepository.save(product);
+        em.flush(); em.clear();
+
+        assertThatThrownBy(() -> productVariantService.inventoryReductionById(Map.of(productVariant.getId(), 10)))
+                .isInstanceOf(InsufficientStockException.class)
+                .hasMessage("Out of Stock");
+    }
+
     private ProductImage createProductImages(String imageUrl, int sortOrder){
         return new ProductImage(imageUrl, sortOrder);
     }

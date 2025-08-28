@@ -178,6 +178,8 @@ public class ProductVariantServiceUnitTest {
                 .containsExactlyInAnyOrder(
                         tuple(1L, 10000, 9000)
                 );
+
+        assertThat(productVariant.getStockQuantity()).isEqualTo(90);
     }
 
     @Test

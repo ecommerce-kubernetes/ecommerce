@@ -60,7 +60,7 @@ public class ProductVariantService{
         for (ProductVariant productVariant : productVariants) {
             Integer reductionStock = reductionMap.get(productVariant.getId());
             productVariant.reductionStock(reductionStock);
-            itemList.add(new InventoryReductionItem(productVariant));
+            itemList.add(new InventoryReductionItem(productVariant, reductionStock));
         }
         return itemList;
     }
