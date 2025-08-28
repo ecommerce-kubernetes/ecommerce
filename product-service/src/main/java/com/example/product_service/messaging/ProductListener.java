@@ -42,4 +42,6 @@ public class ProductListener {
             kafkaTemplate.send(STOCK_DEDUCTED_FAIL, new FailedEvent(event.getOrderId(), e.getMessage()));
         }
     }
+
+
 }
