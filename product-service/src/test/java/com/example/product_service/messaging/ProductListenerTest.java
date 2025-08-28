@@ -2,6 +2,7 @@ package com.example.product_service.messaging;
 
 import com.example.common.OrderCreatedEvent;
 import com.example.common.Product;
+import com.example.common.ProductStockDeductedEvent;
 import com.example.product_service.exception.InsufficientStockException;
 import com.example.product_service.service.ProductVariantService;
 import com.example.product_service.service.dto.InventoryReductionItem;
@@ -32,16 +33,14 @@ import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.awaitility.Awaitility.await;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @SpringBootTest
-@EmbeddedKafka(partitions = 1, topics = {"order.created", "product.stock.deducted", "product.stock.failed"})
+@EmbeddedKafka(partitions = 1, topics = {"order.created", "product.stock.deducted", "product.stock.failed", "product.stock.restore"})
 @TestPropertySource(properties = {
         "spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}",
         "spring.kafka.consumer.group-id=products-test",
@@ -142,5 +141,25 @@ class ProductListenerTest {
         assertThat(jsonNode.has("orderId")).isTrue();
         assertThat(jsonNode.get("orderId").asLong()).isEqualTo(1L);
         assertThat(jsonNode.get("reason").asText()).isEqualTo("Out of Stock");
+    }
+
+    @Test
+    void kafkaListener_inventoryRestorationTest(){
+        for (MessageListenerContainer container : kafkaListenerEndpointRegistry.getListenerContainers()) {
+            ContainerTestUtils.waitForAssignment(container, embeddedKafka.getPartitionsPerTopic());
+        }
+        ProductStockDeductedEvent event =
+                ProductStockDeductedEvent.builder().productList(List.of(new Product(1L, 10, 1000))).build();
+
+        kafkaTemplate.send("product.stock.restore", event);
+        kafkaTemplate.flush();
+        ArgumentCaptor<Map> captor = ArgumentCaptor.forClass(Map.class);
+
+        await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
+            verify(productVariantService, times(1)).inventoryRestorationById(captor.capture());
+            Map<Long, Integer> received = captor.getValue();
+            // 전달 맵에 기대한 키/값 존재하는지 검증
+            assertThat(received).containsEntry(1L, 10);
+        });
     }
 }

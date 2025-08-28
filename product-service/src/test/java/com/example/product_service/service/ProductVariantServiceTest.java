@@ -208,6 +208,36 @@ class ProductVariantServiceTest {
                 .hasMessage("Out of Stock");
     }
 
+    @Test
+    @DisplayName("재고 복원 테스트-성공")
+    void inventoryRestorationByIdTest_integration_success(){
+        ProductImage productImage = createProductImages("http://iphone16-1.jpg", 0);
+        ProductOptionType productOptionType = createProductOptionType(storage);
+        ProductVariant productVariant = createProductVariants("IPHONE16-128GB", 10000, 90, 10, gb_128);
+
+        Product product = createProduct("IPhone 16", "IPhone Model 16", electronic,
+                List.of(productImage), List.of(productOptionType), List.of(productVariant));
+
+        productsRepository.save(product);
+        em.flush(); em.clear();
+
+        productVariantService.inventoryRestorationById(Map.of(productVariant.getId(), 10));
+
+        em.flush();
+        em.clear();
+
+        ProductVariant result = productVariantsRepository.findById(productVariant.getId()).get();
+        assertThat(result.getStockQuantity()).isEqualTo(100);
+    }
+
+    @Test
+    @DisplayName("재고 복원 테스트-실패(상품 변형을 찾을 수 없음)")
+    void inventoryRestorationByIdTest_integration_notFound_productVariant(){
+        assertThatThrownBy(() -> productVariantService.inventoryRestorationById(Map.of(999L, 10)))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage(TestMessageUtil.getMessage(MessagePath.PRODUCT_VARIANT_NOT_FOUND));
+    }
+
     private ProductImage createProductImages(String imageUrl, int sortOrder){
         return new ProductImage(imageUrl, sortOrder);
     }

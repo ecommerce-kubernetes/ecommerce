@@ -27,6 +27,7 @@ public class ProductListener {
     private static final String ORDER_CREATED = "order.created";
     private static final String STOCK_DEDUCTED = "product.stock.deducted";
     private static final String STOCK_DEDUCTED_FAIL = "product.stock.failed";
+    private static final String STOCK_RESTORE = "product.stock.restore";
 
     @KafkaListener(topics = ORDER_CREATED)
     public void inventoryReductionListener(@Payload OrderCreatedEvent event){
@@ -43,5 +44,11 @@ public class ProductListener {
         }
     }
 
+    @KafkaListener(topics = STOCK_RESTORE)
+    public void inventoryRestoreListener(@Payload ProductStockDeductedEvent event){
+        List<Product> productList = event.getProductList();
+        Map<Long, Integer> restoreMap = productList.stream().collect(Collectors.toMap(Product::getProductVariantId, Product::getStock));
+        productVariantService.inventoryRestorationById(restoreMap);
+    }
 
 }

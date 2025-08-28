@@ -66,6 +66,10 @@ public class ProductVariant {
         this.stockQuantity = this.stockQuantity - stock;
     }
 
+    public void restoreStock(int stock){
+        this.stockQuantity = this.stockQuantity + stock;
+    }
+
     protected void setProduct(Product product){
         this.product = product;
     }

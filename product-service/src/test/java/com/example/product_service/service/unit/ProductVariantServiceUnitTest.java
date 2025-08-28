@@ -223,7 +223,50 @@ public class ProductVariantServiceUnitTest {
         assertThatThrownBy(() -> productVariantService.inventoryReductionById(reductionMap))
                 .isInstanceOf(InsufficientStockException.class)
                 .hasMessage("Out of Stock");
+    }
 
+    @Test
+    @DisplayName("재고 복원-성공")
+    void inventoryRestorationByIdTest_unit_success(){
+        OptionType optionType = new OptionType("optionType");
+        OptionValue optionValue = new OptionValue("optionValue");
+        optionType.addOptionValue(optionValue);
+
+        ProductOptionType productOptionType = createProductOptionTypes(optionType);
+        ProductVariantOption productVariantOption = new ProductVariantOption(optionValue);
+        ProductVariant productVariant = createProductVariant(1L,"sku", List.of(productVariantOption));
+        productVariant.setStockQuantity(90);
+        Product product = createProduct(
+                List.of(new ProductImage("http://test.jpg", 0)),
+                List.of(productOptionType),
+                List.of(productVariant));
+
+        when(productVariantsRepository.findByIdIn(Set.of(1L)))
+                .thenReturn(List.of(productVariant));
+
+        Map<Long, Integer> restoreMap = new HashMap<>();
+        restoreMap.put(1L, 10);
+
+        productVariantService.inventoryRestorationById(restoreMap);
+
+        assertThat(productVariant.getStockQuantity()).isEqualTo(100);
+    }
+
+    @Test
+    @DisplayName("재고 복원-실패(상품 변형을 찾을 수 없음)")
+    void inventoryRestorationByIdTest_unit_notFound_productVariant(){
+        when(productVariantsRepository.findByIdIn(Set.of(1L)))
+                .thenReturn(List.of());
+
+        when(ms.getMessage(PRODUCT_VARIANT_NOT_FOUND))
+                .thenReturn("Product Variant not found");
+
+        Map<Long, Integer> restoreMap = new HashMap<>();
+        restoreMap.put(1L, 10);
+
+        assertThatThrownBy(() -> productVariantService.inventoryRestorationById(restoreMap))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage(getMessage(PRODUCT_VARIANT_NOT_FOUND));
     }
 
     private Product createProduct(List<ProductImage> productImages, List<ProductOptionType> productOptionTypes,

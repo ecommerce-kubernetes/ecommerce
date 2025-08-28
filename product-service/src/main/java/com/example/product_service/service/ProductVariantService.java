@@ -65,6 +65,15 @@ public class ProductVariantService{
         return itemList;
     }
 
+    public void inventoryRestorationById(Map<Long, Integer> restoreMap){
+        Set<Long> productVariantIds = restoreMap.keySet();
+        List<ProductVariant> productVariants = findByIdIn(productVariantIds);
+        for (ProductVariant productVariant : productVariants) {
+            Integer restorationStock = restoreMap.get(productVariant.getId());
+            productVariant.restoreStock(restorationStock);
+        }
+    }
+
     private ProductVariant findWithProductById(Long variantId){
         return productVariantsRepository.findWithProductById(variantId)
                 .orElseThrow(() -> new NotFoundException(ms.getMessage(PRODUCT_VARIANT_NOT_FOUND)));
