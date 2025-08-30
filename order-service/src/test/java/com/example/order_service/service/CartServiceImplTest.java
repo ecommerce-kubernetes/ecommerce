@@ -4,7 +4,7 @@ import com.example.order_service.dto.client.ProductImageDto;
 import com.example.order_service.dto.client.ProductRequestIdsDto;
 import com.example.order_service.dto.client.CompactProductResponseDto;
 import com.example.order_service.dto.client.ProductResponseDto;
-import com.example.order_service.dto.request.CartItemRequestDto;
+import com.example.order_service.dto.request.CartItemRequest;
 import com.example.order_service.dto.response.CartItemResponseDto;
 import com.example.order_service.dto.response.CartResponseDto;
 import com.example.order_service.entity.CartItems;
@@ -48,23 +48,23 @@ class CartServiceImplTest {
     @DisplayName("장바구니 아이템 추가")
     @Transactional
     void addItem(){
-        CartItemRequestDto cartItemRequestDto = new CartItemRequestDto(1L, 10);
+        CartItemRequest cartItemRequest = new CartItemRequest(1L, 10);
 
         ProductResponseDto productResponseDto = new ProductResponseDto(1L, "사과", "청송 사과 3EA", 3000, 50, 1L, List.of(new ProductImageDto(1L, "http://test.jpg",0)));
 
         when(productClientService.fetchProduct(1L)).thenReturn(productResponseDto);
-        CartItemResponseDto cartItemResponseDto = cartService.addItem(1L, cartItemRequestDto);
+        CartItemResponseDto cartItemResponseDto = cartService.addItem(1L, cartItemRequest);
 
-        assertThat(cartItemResponseDto.getProductId()).isEqualTo(cartItemRequestDto.getProductId());
+        assertThat(cartItemResponseDto.getProductId()).isEqualTo(cartItemRequest.getProductId());
         assertThat(cartItemResponseDto.getProductName()).isEqualTo(productResponseDto.getName());
         assertThat(cartItemResponseDto.getPrice()).isEqualTo(productResponseDto.getPrice());
-        assertThat(cartItemResponseDto.getQuantity()).isEqualTo(cartItemRequestDto.getQuantity());
+        assertThat(cartItemResponseDto.getQuantity()).isEqualTo(cartItemRequest.getQuantity());
         //동일한 상품 추가
-        CartItemResponseDto equalItemAddResponseDto = cartService.addItem(1L, cartItemRequestDto);
-        assertThat(equalItemAddResponseDto.getProductId()).isEqualTo(cartItemRequestDto.getProductId());
+        CartItemResponseDto equalItemAddResponseDto = cartService.addItem(1L, cartItemRequest);
+        assertThat(equalItemAddResponseDto.getProductId()).isEqualTo(cartItemRequest.getProductId());
         assertThat(equalItemAddResponseDto.getProductName()).isEqualTo(productResponseDto.getName());
         assertThat(equalItemAddResponseDto.getPrice()).isEqualTo(productResponseDto.getPrice());
-        assertThat(equalItemAddResponseDto.getQuantity()).isEqualTo(cartItemRequestDto.getQuantity() * 2);
+        assertThat(equalItemAddResponseDto.getQuantity()).isEqualTo(cartItemRequest.getQuantity() * 2);
         assertThat(equalItemAddResponseDto.getMainImgUrl()).isEqualTo(productResponseDto.getImages().get(0).getImageUrl());
     }
 

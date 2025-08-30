@@ -1,9 +1,14 @@
 package com.example.order_service.controller;
 
-import com.example.order_service.dto.request.CartItemRequestDto;
+import com.example.order_service.controller.util.specification.annotation.BadRequestApiResponse;
+import com.example.order_service.controller.util.specification.annotation.NotFoundApiResponse;
+import com.example.order_service.dto.request.CartItemRequest;
 import com.example.order_service.dto.response.CartItemResponseDto;
 import com.example.order_service.dto.response.CartResponseDto;
 import com.example.order_service.service.CartService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -14,18 +19,21 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/carts")
-@Slf4j
+@Tag(name = "Cart", description = "장바구니 관련 API")
 @RequiredArgsConstructor
 public class CartController {
     private final CartService cartService;
 
+    @Operation(summary = "상품 추가")
+    @ApiResponse(responseCode = "201", description = "상품 추가 성공")
+    @BadRequestApiResponse @NotFoundApiResponse
     @PostMapping
-    public ResponseEntity<CartItemResponseDto> addCartItem(@RequestBody @Validated CartItemRequestDto cartItemRequestDto,
+    public ResponseEntity<CartItemResponseDto> addCartItem(@RequestBody @Validated CartItemRequest cartItemRequest,
                                                            @RequestHeader("user-id") String userIdHeader){
 
         Long userId = Long.parseLong(userIdHeader);
 
-        CartItemResponseDto cartItemResponseDto = cartService.addItem(userId, cartItemRequestDto);
+        CartItemResponseDto cartItemResponseDto = cartService.addItem(userId, cartItemRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(cartItemResponseDto);
     }
 

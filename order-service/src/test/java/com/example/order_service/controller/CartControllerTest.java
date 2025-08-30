@@ -1,7 +1,7 @@
 package com.example.order_service.controller;
 
 import com.example.order_service.common.advice.ControllerAdvice;
-import com.example.order_service.dto.request.CartItemRequestDto;
+import com.example.order_service.dto.request.CartItemRequest;
 import com.example.order_service.dto.response.CartItemResponseDto;
 import com.example.order_service.dto.response.CartResponseDto;
 import com.example.order_service.exception.NotFoundException;
@@ -20,7 +20,6 @@ import org.springframework.test.web.servlet.ResultActions;
 import java.util.List;
 
 import static org.hamcrest.Matchers.hasItem;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
@@ -45,11 +44,11 @@ class CartControllerTest {
     void addCartItemTest() throws Exception {
         Long userId = 1L;
 
-        CartItemRequestDto cartItemRequestDto = new CartItemRequestDto( 1L, 10);
+        CartItemRequest cartItemRequest = new CartItemRequest( 1L, 10);
         CartItemResponseDto cartItemResponseDto = new CartItemResponseDto(1L, 1L, "사과", 3000, 10,"http://apple.jpg");
-        when(cartService.addItem(anyLong(), any(CartItemRequestDto.class))).thenReturn(cartItemResponseDto);
+        when(cartService.addItem(anyLong(), any(CartItemRequest.class))).thenReturn(cartItemResponseDto);
 
-        String content = mapper.writeValueAsString(cartItemRequestDto);
+        String content = mapper.writeValueAsString(cartItemRequest);
 
         ResultActions perform = mockMvc.perform(post("/carts")
                 .header("user-id", userId.toString())
@@ -70,10 +69,10 @@ class CartControllerTest {
     @DisplayName("장바구니 추가 - 없는 상품 추가시")
     void addCartItemTest_NotFoundProduct() throws Exception {
         Long userId = 1L;
-        CartItemRequestDto cartItemRequestDto = new CartItemRequestDto( 1L, 10);
-        doThrow(new NotFoundException("Not Found Product")).when(cartService).addItem(anyLong(),any(CartItemRequestDto.class));
+        CartItemRequest cartItemRequest = new CartItemRequest( 1L, 10);
+        doThrow(new NotFoundException("Not Found Product")).when(cartService).addItem(anyLong(),any(CartItemRequest.class));
 
-        String content = mapper.writeValueAsString(cartItemRequestDto);
+        String content = mapper.writeValueAsString(cartItemRequest);
 
         ResultActions perform = mockMvc.perform(post("/carts")
                 .header("user-id", userId.toString())

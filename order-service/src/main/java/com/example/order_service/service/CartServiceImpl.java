@@ -3,7 +3,7 @@ package com.example.order_service.service;
 import com.example.order_service.dto.client.ProductRequestIdsDto;
 import com.example.order_service.dto.client.CompactProductResponseDto;
 import com.example.order_service.dto.client.ProductResponseDto;
-import com.example.order_service.dto.request.CartItemRequestDto;
+import com.example.order_service.dto.request.CartItemRequest;
 import com.example.order_service.dto.response.CartItemResponseDto;
 import com.example.order_service.dto.response.CartResponseDto;
 import com.example.order_service.entity.CartItems;
@@ -35,7 +35,7 @@ public class CartServiceImpl implements CartService{
 
     @Transactional
     @Override
-    public CartItemResponseDto addItem(Long userId, CartItemRequestDto cartItemRequestDto) {
+    public CartItemResponseDto addItem(Long userId, CartItemRequest cartItemRequest) {
 
         Carts cart = cartsRepository.findByUserId(userId).orElse(null);
 
@@ -43,25 +43,25 @@ public class CartServiceImpl implements CartService{
 
         if(cart == null){
             cart = new Carts(userId);
-            cartItem = new CartItems(cart, cartItemRequestDto.getProductId(), cartItemRequestDto.getQuantity());
+            cartItem = new CartItems(cart, cartItemRequest.getProductId(), cartItemRequest.getQuantity());
         }
         else {
             cartItem = cart.getCartItems().stream()
-                    .filter(item -> Objects.equals(item.getProductId(), cartItemRequestDto.getProductId()))
+                    .filter(item -> Objects.equals(item.getProductId(), cartItemRequest.getProductId()))
                     .findFirst()
                     .orElse(null);
 
             if(cartItem != null){
-                cartItem.addQuantity(cartItemRequestDto.getQuantity());
+                cartItem.addQuantity(cartItemRequest.getQuantity());
             }
             else {
-                cartItem = new CartItems(cart, cartItemRequestDto.getProductId(), cartItemRequestDto.getQuantity());
+                cartItem = new CartItems(cart, cartItemRequest.getProductId(), cartItemRequest.getQuantity());
             }
         }
 
         Carts savedCart = cartsRepository.save(cart);
         CartItems persistedCartItem = savedCart.getCartItems().stream()
-                .filter(item -> Objects.equals(item.getProductId(), cartItemRequestDto.getProductId()))
+                .filter(item -> Objects.equals(item.getProductId(), cartItemRequest.getProductId()))
                 .findFirst()
                 .orElse(cartItem);
 

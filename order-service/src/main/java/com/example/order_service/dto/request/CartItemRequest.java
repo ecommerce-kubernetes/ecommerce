@@ -10,9 +10,9 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class CartItemRequestDto {
+public class CartItemRequest {
     @NotNull
     private Long productId;
     @NotNull
-    private int quantity;
+    private Integer quantity;
 }
