@@ -19,12 +19,20 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public final class ControllerTestHelper {
     private static final ObjectMapper mapper = new ObjectMapper()
             .registerModule(new JavaTimeModule())
-            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);;
+            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
     private ControllerTestHelper(){
     }
+
     public static ResultActions performWithBodyAndUserIdHeader(MockMvc mockMvc, MockHttpServletRequestBuilder builder,
                                                 Object bodyObject) throws Exception {
         builder.header("X-User-Id", 1L);
+        jsonBodyMapping(builder, bodyObject);
+        return mockMvc.perform(builder);
+    }
+
+    public static ResultActions performWithBody(MockMvc mockMvc, MockHttpServletRequestBuilder builder,
+                                                Object bodyObject) throws Exception {
         jsonBodyMapping(builder, bodyObject);
         return mockMvc.perform(builder);
     }
