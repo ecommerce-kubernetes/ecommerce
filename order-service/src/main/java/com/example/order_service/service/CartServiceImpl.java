@@ -5,7 +5,7 @@ import com.example.order_service.dto.client.CompactProductResponseDto;
 import com.example.order_service.dto.client.ProductResponseDto;
 import com.example.order_service.dto.request.CartItemRequest;
 import com.example.order_service.dto.response.CartItemResponse;
-import com.example.order_service.dto.response.CartResponseDto;
+import com.example.order_service.dto.response.CartResponse;
 import com.example.order_service.entity.CartItems;
 import com.example.order_service.entity.Carts;
 import com.example.order_service.exception.NotFoundException;
@@ -70,7 +70,7 @@ public class CartServiceImpl implements CartService{
     }
 
     @Override
-    public CartResponseDto getCartItemList(Long userId) {
+    public CartResponse getCartItemList(Long userId) {
         Carts cart = cartsRepository.findByUserId(userId)
                 .orElseThrow(() -> new NotFoundException("Not Found Cart"));
 
@@ -100,7 +100,7 @@ public class CartServiceImpl implements CartService{
 
     @Transactional
     @Override
-    public void deleteCartItemById(Long cartItemId) {
+    public void deleteCartItemById(Long userId, Long cartItemId) {
         CartItems cartItem = cartItemsRepository.findById(cartItemId)
                 .orElseThrow(() -> new NotFoundException("Not Found CartItem"));
 

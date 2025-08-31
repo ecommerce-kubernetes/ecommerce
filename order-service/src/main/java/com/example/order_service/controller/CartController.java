@@ -4,7 +4,7 @@ import com.example.order_service.controller.util.specification.annotation.BadReq
 import com.example.order_service.controller.util.specification.annotation.NotFoundApiResponse;
 import com.example.order_service.dto.request.CartItemRequest;
 import com.example.order_service.dto.response.CartItemResponse;
-import com.example.order_service.dto.response.CartResponseDto;
+import com.example.order_service.dto.response.CartResponse;
 import com.example.order_service.service.CartService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -34,26 +34,26 @@ public class CartController {
     }
 
     @Operation(summary = "장바구니 목록 조회")
-    @NotFoundApiResponse
+    @BadRequestApiResponse
     @GetMapping
-    public ResponseEntity<CartResponseDto> getAllCartItem(@RequestHeader("X-User-Id") Long userId) {
-        CartResponseDto cartItemList = cartService.getCartItemList(userId);
+    public ResponseEntity<CartResponse> getAllCartItem(@RequestHeader("X-User-Id") Long userId) {
+        CartResponse cartItemList = cartService.getCartItemList(userId);
         return ResponseEntity.ok(cartItemList);
     }
 
     @Operation(summary = "장바구니 상품 삭제")
-    @NotFoundApiResponse
+    @NotFoundApiResponse @BadRequestApiResponse
     @DeleteMapping("/{cartItemId}")
     public ResponseEntity<Void> removeCartItem(@RequestHeader("X-User-Id") Long userId,
                                                @PathVariable("cartItemId") Long cartItemId){
-        cartService.deleteCartItemById(cartItemId);
+        cartService.deleteCartItemById(userId, cartItemId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
     @Operation(summary = "장바구니 비우기")
-    @NotFoundApiResponse
+    @BadRequestApiResponse
     @DeleteMapping
-    public ResponseEntity<Void> removeCartAll(@RequestHeader("X-User-Id") Long userId){
+    public ResponseEntity<Void> clearCart(@RequestHeader("X-User-Id") Long userId){
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }

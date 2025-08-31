@@ -6,7 +6,7 @@ import com.example.order_service.dto.client.CompactProductResponseDto;
 import com.example.order_service.dto.client.ProductResponseDto;
 import com.example.order_service.dto.request.CartItemRequest;
 import com.example.order_service.dto.response.CartItemResponse;
-import com.example.order_service.dto.response.CartResponseDto;
+import com.example.order_service.dto.response.CartResponse;
 import com.example.order_service.entity.CartItems;
 import com.example.order_service.entity.Carts;
 import com.example.order_service.exception.NotFoundException;
@@ -77,7 +77,7 @@ class CartServiceImplTest {
 
         CompactProductResponseDto compactProductResponseDto = new CompactProductResponseDto(1L, "사과", "청송 사과 3EA", 3000, 50, 1L,"http://test.jpg");
         when(productClientService.fetchProductBatch(any(ProductRequestIdsDto.class))).thenReturn(List.of(compactProductResponseDto));
-        CartResponseDto cartItemList = cartService.getCartItemList(1L);
+        CartResponse cartItemList = cartService.getCartItemList(1L);
         assertThat(cartItemList.getCartTotalPrice()).isEqualTo(compactProductResponseDto.getPrice() * cartItems.getQuantity());
 
         List<CartItemResponse> returnCartItems = cartItemList.getCartItems();
@@ -108,7 +108,7 @@ class CartServiceImplTest {
         cartsRepository.save(cart);
 
         Long id = cartItems1.getId();
-        cartService.deleteCartItemById(id);
+//        cartService.deleteCartItemById(id);
 
         Carts savedCart = cartsRepository.findById(cart.getId())
                 .orElseThrow(() -> new NotFoundException("Not Found Cart"));

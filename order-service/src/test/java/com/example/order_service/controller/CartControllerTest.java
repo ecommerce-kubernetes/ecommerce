@@ -4,6 +4,7 @@ import com.example.order_service.common.MessageSourceUtil;
 import com.example.order_service.common.advice.ErrorResponseEntityFactory;
 import com.example.order_service.dto.request.CartItemRequest;
 import com.example.order_service.dto.response.CartItemResponse;
+import com.example.order_service.dto.response.CartResponse;
 import com.example.order_service.dto.response.ItemOptionResponse;
 import com.example.order_service.exception.NotFoundException;
 import com.example.order_service.service.CartService;
@@ -25,8 +26,8 @@ import static com.example.order_service.util.TestMessageUtil.getMessage;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -34,6 +35,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import(ErrorResponseEntityFactory.class)
 class CartControllerTest {
     private static final String BASE_PATH = "/carts";
+    private static final String ID_PATH = BASE_PATH + "/1";
 
     @Autowired
     MockMvc mockMvc;
@@ -47,13 +49,12 @@ class CartControllerTest {
         when(ms.getMessage(NOT_FOUND)).thenReturn("NotFound");
         when(ms.getMessage(BAD_REQUEST)).thenReturn("BadRequest");
         when(ms.getMessage(BAD_REQUEST_VALIDATION)).thenReturn("Validation Error");
-        when(ms.getMessage(PRODUCT_VARIANT_NOT_FOUND)).thenReturn("No products found for that option");
     }
 
     @Test
     @DisplayName("장바구니 아이템 추가 테스트-성공")
     void addCartItemTest_success() throws Exception {
-        CartItemResponse response = new CartItemResponse(1L, 1L, 1L, "productName", "http:http//test.jpg",
+        CartItemResponse response = new CartItemResponse(1L, 1L, 1L, "상품1", "http:http//test.jpg",
                 List.of(new ItemOptionResponse("색상", "RED")), 3000, 10, 10);
         when(cartService.addItem(anyLong(), any(CartItemRequest.class))).thenReturn(response);
 
@@ -95,5 +96,73 @@ class CartControllerTest {
         verifyErrorResponse(perform, status().isBadRequest(), getMessage(BAD_REQUEST),
                 "Required request header 'X-User-Id' for method parameter type Long is not present",
                 BASE_PATH);
+    }
+
+    @Test
+    @DisplayName("장바구니 목록 조회 테스트-성공")
+    void getAllCartItemTest_success() throws Exception {
+        List<CartItemResponse> cartItemResponses = List.of(new CartItemResponse(1L, 1L, 1L, "상품1", "http://product.jpg", List.of(new ItemOptionResponse("색상", "RED")),
+                3000, 10, 2));
+        CartResponse response = new CartResponse(cartItemResponses, 6000);
+        when(cartService.getCartItemList(1L))
+                .thenReturn(response);
+
+        ResultActions perform = performWithBodyAndUserIdHeader(mockMvc, get(BASE_PATH), response);
+        verifySuccessResponse(perform, status().isOk(), response);
+    }
+
+    @Test
+    @DisplayName("장바구니 목록 조회 테스트-실패(헤더 없음)")
+    void getAllCartItemTest_noHeader() throws Exception {
+        ResultActions perform = performWithBody(mockMvc, get(BASE_PATH), null);
+        verifyErrorResponse(perform, status().isBadRequest(), getMessage(BAD_REQUEST),
+                "Required request header 'X-User-Id' for method parameter type Long is not present",
+                BASE_PATH);
+    }
+
+    @Test
+    @DisplayName("장바구니 상품 삭제 테스트-성공")
+    void removeCartItemTest_success() throws Exception {
+        doNothing().when(cartService).deleteCartItemById(anyLong(), anyLong());
+        ResultActions perform = performWithBodyAndUserIdHeader(mockMvc, delete(ID_PATH), null);
+        verifySuccessResponse(perform, status().isNoContent(), null);
+    }
+
+    @Test
+    @DisplayName("장바구니 상품 삭제 테스트-실패(헤더 없음)")
+    void removeCartItemTest_noHeader() throws Exception {
+        ResultActions perform = performWithBody(mockMvc, delete(ID_PATH), null);
+        verifyErrorResponse(perform, status().isBadRequest(), getMessage(BAD_REQUEST),
+                "Required request header 'X-User-Id' for method parameter type Long is not present",
+                ID_PATH
+        );
+    }
+
+    @Test
+    @DisplayName("장바구니 상품 삭제 테스트-실패(장바구니 상품을 찾을 수 없음)")
+    void removeCartItemTest_notFound_cartItem() throws Exception {
+        doThrow(new NotFoundException(getMessage(CART_ITEM_NOT_FOUND)))
+                .when(cartService).deleteCartItemById(anyLong(), anyLong());
+        ResultActions perform = performWithBodyAndUserIdHeader(mockMvc, delete(ID_PATH), null);
+        verifyErrorResponse(perform, status().isNotFound(), getMessage(NOT_FOUND),
+                getMessage(CART_ITEM_NOT_FOUND), ID_PATH);
+    }
+
+    @Test
+    @DisplayName("장바구니 비우기 테스트-성공")
+    void clearCartTest_success() throws Exception {
+        doNothing().when(cartService).deleteCartAll(anyLong());
+        ResultActions perform = performWithBodyAndUserIdHeader(mockMvc, delete(ID_PATH), null);
+        verifySuccessResponse(perform, status().isNoContent(), null);
+    }
+
+    @Test
+    @DisplayName("장바구니 비우기 테스트-실패(헤더 없음)")
+    void clearCartTest_noHeader() throws Exception {
+        ResultActions perform = performWithBody(mockMvc, delete(BASE_PATH), null);
+        verifyErrorResponse(perform, status().isBadRequest(), getMessage(BAD_REQUEST),
+                "Required request header 'X-User-Id' for method parameter type Long is not present",
+                BASE_PATH
+        );
     }
 }

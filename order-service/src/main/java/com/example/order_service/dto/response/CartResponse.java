@@ -11,7 +11,7 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class CartResponseDto {
+public class CartResponse {
     private List<CartItemResponse> cartItems;
     private int cartTotalPrice;
 }
