@@ -3,7 +3,6 @@ package com.example.order_service.controller.validation;
 import com.example.order_service.dto.request.OrderItemRequest;
 import com.example.order_service.dto.request.OrderRequest;
 import jakarta.validation.ConstraintViolation;
-import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,7 +22,6 @@ import static com.example.order_service.util.ValidationTestHelper.validateField;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(MockitoExtension.class)
-@Slf4j
 public class OrderRequestValidationTest {
 
     @ParameterizedTest(name = "[{index}] {0} 필드 invalid")
