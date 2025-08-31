@@ -1,6 +1,7 @@
 package com.example.order_service.controller;
 
 import com.example.order_service.common.MessageSourceUtil;
+import com.example.order_service.common.advice.ErrorResponseEntityFactory;
 import com.example.order_service.dto.request.CartItemRequest;
 import com.example.order_service.dto.response.CartItemResponse;
 import com.example.order_service.dto.response.ItemOptionResponse;
@@ -11,6 +12,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -29,6 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(CartController.class)
+@Import(ErrorResponseEntityFactory.class)
 class CartControllerTest {
     private static final String BASE_PATH = "/carts";
 
@@ -43,6 +46,7 @@ class CartControllerTest {
     void setUpMessages() {
         when(ms.getMessage(NOT_FOUND)).thenReturn("NotFound");
         when(ms.getMessage(BAD_REQUEST)).thenReturn("BadRequest");
+        when(ms.getMessage(BAD_REQUEST_VALIDATION)).thenReturn("Validation Error");
         when(ms.getMessage(PRODUCT_VARIANT_NOT_FOUND)).thenReturn("No products found for that option");
     }
 
