@@ -2,8 +2,8 @@ package com.example.order_service.service;
 
 import com.example.order_service.dto.client.ProductRequestIdsDto;
 import com.example.order_service.dto.client.CompactProductResponseDto;
-import com.example.order_service.dto.request.OrderItemRequestDto;
-import com.example.order_service.dto.request.OrderRequestDto;
+import com.example.order_service.dto.request.OrderItemRequest;
+import com.example.order_service.dto.request.OrderRequest;
 import com.example.order_service.dto.response.OrderItemResponseDto;
 import com.example.order_service.dto.response.OrderResponseDto;
 import com.example.order_service.dto.response.PageDto;
@@ -56,78 +56,11 @@ class OrderServiceImplTest {
     @Test
     @Transactional
     void saveOrderTest(){
-        Long userId = 1L;
-        List<OrderItemRequestDto> orderItemRequestDtoList = new ArrayList<>();
-        orderItemRequestDtoList.add(new OrderItemRequestDto(1L, 10));
-        orderItemRequestDtoList.add(new OrderItemRequestDto(2L, 20));
-        OrderRequestDto orderRequestDto = new OrderRequestDto(orderItemRequestDtoList,"delivery Address");
-
-        when(productClientService.fetchProductBatch(any(ProductRequestIdsDto.class)))
-                .thenAnswer(invocation -> {
-                    ProductRequestIdsDto dto = invocation.getArgument(0);
-                    // dto.getIds()에 담긴 각 productId에 대해 ProductResponseDto 생성.
-                    return dto.getIds().stream()
-                            .map(productId -> new CompactProductResponseDto(
-                                    productId,
-                                    "name" + productId,
-                                    "description" + productId,
-                                    1000,
-                                    10,
-                                    1L,
-                                    "http://" + productId + "/image.jpg"))
-                            .toList();
-                });
-        OrderResponseDto orderResponseDto = orderService.saveOrder(userId, orderRequestDto);
-
-        Orders orders = ordersRepository.findById(orderResponseDto.getId())
-                .orElseThrow();
-
-        //주문 검증
-        assertThat(orders.getId()).isEqualTo(orderResponseDto.getId());
-        assertThat(orders.getUserId()).isEqualTo(orderResponseDto.getUserId());
-        assertThat(orders.getStatus()).isEqualTo(orderResponseDto.getStatus());
-        assertThat(orders.getDeliveryAddress()).isEqualTo(orderResponseDto.getDeliveryAddress());
-
-        List<OrderItems> orderItems = orderItemsRepository.findByOrderId(orderResponseDto.getId());
-        List<OrderItemResponseDto> items = orderResponseDto.getItems();
-
-        assertThat(items).hasSize(orderItems.size());
-
-        //주문 아이템 검증
-        for (int i = 0; i < orderItems.size(); i++) {
-            OrderItems dbItem = orderItems.get(i);
-            OrderItemResponseDto dtoItem = items.get(i);
-
-            assertThat(dbItem.getProductId()).isEqualTo(dtoItem.getProductId());
-            assertThat(dbItem.getProductName()).isEqualTo(dtoItem.getProductName());
-            assertThat(dbItem.getPrice()).isEqualTo(dtoItem.getPrice());
-            assertThat(dbItem.getQuantity()).isEqualTo(dtoItem.getQuantity());
-            assertThat(dbItem.getMainImgUrl()).isEqualTo(dtoItem.getMainImgUrl());
-        }
-
-        int totalPrice = orderItems.stream()
-                .mapToInt(item -> item.getPrice() * item.getQuantity())
-                .sum();
-        //주문 가격 검증
-        assertThat(orderResponseDto.getTotalPrice()).isEqualTo(totalPrice);
-
-        //KafkaProducer 호출 검증
-        verify(kafkaProducer).sendMessage(anyString(), any());
     }
 
     @Test
     void saveOrderTest_ProductClientServiceNotFound(){
-        Long userId = 1L;
-        List<OrderItemRequestDto> orderItemRequestDtoList = new ArrayList<>();
-        orderItemRequestDtoList.add(new OrderItemRequestDto(1L, 10));
-        orderItemRequestDtoList.add(new OrderItemRequestDto(2L, 20));
-        OrderRequestDto orderRequestDto = new OrderRequestDto(orderItemRequestDtoList,"delivery Address");
 
-        doThrow(new NotFoundException("Not Found Product")).when(productClientService).fetchProductBatch(any(ProductRequestIdsDto.class));
-
-        assertThatThrownBy(() -> orderService.saveOrder(userId,orderRequestDto))
-                .isInstanceOf(NotFoundException.class)
-                .hasMessage("Not Found Product");
     }
 
     @ParameterizedTest

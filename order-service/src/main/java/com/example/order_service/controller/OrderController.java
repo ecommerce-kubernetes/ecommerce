@@ -1,6 +1,6 @@
 package com.example.order_service.controller;
 
-import com.example.order_service.dto.request.OrderRequestDto;
+import com.example.order_service.dto.request.OrderRequest;
 import com.example.order_service.dto.response.OrderResponseDto;
 import com.example.order_service.dto.response.PageDto;
 import com.example.order_service.service.OrderService;
@@ -23,10 +23,10 @@ public class OrderController {
     private final OrderService orderService;
 
     @PostMapping
-    public ResponseEntity<OrderResponseDto> createOrder(@RequestBody @Validated OrderRequestDto orderRequestDto,
+    public ResponseEntity<OrderResponseDto> createOrder(@RequestBody @Validated OrderRequest orderRequest,
                                                         @RequestHeader("user-id") String userIdHeader){
         Long userId = Long.parseLong(userIdHeader);
-        OrderResponseDto orderResponseDto = orderService.saveOrder(userId, orderRequestDto);
+        OrderResponseDto orderResponseDto = orderService.saveOrder(userId, orderRequest);
 
         return ResponseEntity.status(HttpStatus.SC_CREATED).body(orderResponseDto);
     }

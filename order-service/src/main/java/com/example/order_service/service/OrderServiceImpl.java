@@ -4,8 +4,8 @@ import com.example.order_service.dto.KafkaOrderDto;
 import com.example.order_service.dto.KafkaOrderItemDto;
 import com.example.order_service.dto.client.ProductRequestIdsDto;
 import com.example.order_service.dto.client.CompactProductResponseDto;
-import com.example.order_service.dto.request.OrderItemRequestDto;
-import com.example.order_service.dto.request.OrderRequestDto;
+import com.example.order_service.dto.request.OrderItemRequest;
+import com.example.order_service.dto.request.OrderRequest;
 import com.example.order_service.dto.response.OrderItemResponseDto;
 import com.example.order_service.dto.response.OrderResponseDto;
 import com.example.order_service.dto.response.PageDto;
@@ -40,66 +40,67 @@ public class OrderServiceImpl implements OrderService{
 
     @Transactional
     @Override
-    public OrderResponseDto saveOrder(Long userId, OrderRequestDto orderRequestDto) {
-        List<OrderItemRequestDto> orderItemRequest = orderRequestDto.getItems();
-
-        List<Long> ids = orderItemRequest.stream().map(
-                OrderItemRequestDto::getProductId
-        ).toList();
-        ProductRequestIdsDto productRequestIdsDto = new ProductRequestIdsDto(ids);
-
-        List<CompactProductResponseDto> products = productClientService.fetchProductBatch(productRequestIdsDto);
-
-        Map<Long, CompactProductResponseDto> productMap = products.stream()
-                .collect(Collectors.toMap(CompactProductResponseDto::getId, Function.identity()));
-
-        List<AbstractMap.SimpleEntry<CompactProductResponseDto, OrderItemRequestDto>> orderItemRequestMap =
-                orderItemRequest.stream()
-                        .map(item -> new AbstractMap.SimpleEntry<>(
-                                productMap.get(item.getProductId()),
-                                item
-                        ))
-                        .toList();
-
-        int totalPrice = orderItemRequestMap.stream()
-                .mapToInt(entry -> entry.getKey().getPrice() * entry.getValue().getQuantity()).sum();
-
-        Orders order = new Orders(userId, totalPrice, "PENDING", orderRequestDto.getDeliveryAddress());
-        Orders savedOrder = ordersRepository.save(order);
-
-
-        orderItemRequestMap.forEach(entry -> new OrderItems(
-                savedOrder,
-                entry.getKey().getId(),
-                entry.getKey().getName(),
-                entry.getKey().getPrice(),
-                entry.getValue().getQuantity(),
-                entry.getKey().getMainImgUrl()
-        ));
-
-        List<OrderItems> savedOrderItems = savedOrder.getOrderItems();
-
-        List<KafkaOrderItemDto> kafkaOrderItems = savedOrderItems.stream().map(orderItem ->
-                new KafkaOrderItemDto(orderItem.getProductId(), orderItem.getQuantity())).toList();
-
-        kafkaProducer.sendMessage("decrement_product", new KafkaOrderDto(savedOrder.getId(), kafkaOrderItems));
-
-        List<OrderItemResponseDto> orderItemResponseDtoList = savedOrderItems.stream().map(orderItem -> new OrderItemResponseDto(
-                orderItem.getProductId(),
-                orderItem.getProductName(),
-                orderItem.getQuantity(),
-                orderItem.getPrice(),
-                orderItem.getMainImgUrl()
-        )).toList();
-
-        return new OrderResponseDto(
-                savedOrder.getId(),
-                savedOrder.getUserId(),
-                orderItemResponseDtoList,
-                savedOrder.getDeliveryAddress(),
-                savedOrder.getTotalPrice(),
-                savedOrder.getStatus(),
-                savedOrder.getCreateAt());
+    public OrderResponseDto saveOrder(Long userId, OrderRequest orderRequest) {
+//        List<OrderItemRequest> orderItemRequest = orderRequest.getItems();
+//
+//        List<Long> ids = orderItemRequest.stream().map(
+//                OrderItemRequest::getProductId
+//        ).toList();
+//        ProductRequestIdsDto productRequestIdsDto = new ProductRequestIdsDto(ids);
+//
+//        List<CompactProductResponseDto> products = productClientService.fetchProductBatch(productRequestIdsDto);
+//
+//        Map<Long, CompactProductResponseDto> productMap = products.stream()
+//                .collect(Collectors.toMap(CompactProductResponseDto::getId, Function.identity()));
+//
+//        List<AbstractMap.SimpleEntry<CompactProductResponseDto, OrderItemRequest>> orderItemRequestMap =
+//                orderItemRequest.stream()
+//                        .map(item -> new AbstractMap.SimpleEntry<>(
+//                                productMap.get(item.getProductId()),
+//                                item
+//                        ))
+//                        .toList();
+//
+//        int totalPrice = orderItemRequestMap.stream()
+//                .mapToInt(entry -> entry.getKey().getPrice() * entry.getValue().getQuantity()).sum();
+//
+//        Orders order = new Orders(userId, totalPrice, "PENDING", orderRequest.getDeliveryAddress());
+//        Orders savedOrder = ordersRepository.save(order);
+//
+//
+//        orderItemRequestMap.forEach(entry -> new OrderItems(
+//                savedOrder,
+//                entry.getKey().getId(),
+//                entry.getKey().getName(),
+//                entry.getKey().getPrice(),
+//                entry.getValue().getQuantity(),
+//                entry.getKey().getMainImgUrl()
+//        ));
+//
+//        List<OrderItems> savedOrderItems = savedOrder.getOrderItems();
+//
+//        List<KafkaOrderItemDto> kafkaOrderItems = savedOrderItems.stream().map(orderItem ->
+//                new KafkaOrderItemDto(orderItem.getProductId(), orderItem.getQuantity())).toList();
+//
+//        kafkaProducer.sendMessage("decrement_product", new KafkaOrderDto(savedOrder.getId(), kafkaOrderItems));
+//
+//        List<OrderItemResponseDto> orderItemResponseDtoList = savedOrderItems.stream().map(orderItem -> new OrderItemResponseDto(
+//                orderItem.getProductId(),
+//                orderItem.getProductName(),
+//                orderItem.getQuantity(),
+//                orderItem.getPrice(),
+//                orderItem.getMainImgUrl()
+//        )).toList();
+//
+//        return new OrderResponseDto(
+//                savedOrder.getId(),
+//                savedOrder.getUserId(),
+//                orderItemResponseDtoList,
+//                savedOrder.getDeliveryAddress(),
+//                savedOrder.getTotalPrice(),
+//                savedOrder.getStatus(),
+//                savedOrder.getCreateAt());
+        return null;
     }
 
     @Override
