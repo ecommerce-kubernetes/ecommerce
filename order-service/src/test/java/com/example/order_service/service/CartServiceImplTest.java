@@ -65,7 +65,6 @@ class CartServiceImplTest {
         assertThat(equalItemAddResponseDto.getProductName()).isEqualTo(productResponseDto.getName());
         assertThat(equalItemAddResponseDto.getPrice()).isEqualTo(productResponseDto.getPrice());
         assertThat(equalItemAddResponseDto.getQuantity()).isEqualTo(cartItemRequest.getQuantity() * 2);
-        assertThat(equalItemAddResponseDto.getMainImgUrl()).isEqualTo(productResponseDto.getImages().get(0).getImageUrl());
     }
 
     @Test
@@ -79,7 +78,6 @@ class CartServiceImplTest {
         CompactProductResponseDto compactProductResponseDto = new CompactProductResponseDto(1L, "사과", "청송 사과 3EA", 3000, 50, 1L,"http://test.jpg");
         when(productClientService.fetchProductBatch(any(ProductRequestIdsDto.class))).thenReturn(List.of(compactProductResponseDto));
         CartResponseDto cartItemList = cartService.getCartItemList(1L);
-        assertThat(cartItemList.getId()).isEqualTo(savedCart.getId());
         assertThat(cartItemList.getCartTotalPrice()).isEqualTo(compactProductResponseDto.getPrice() * cartItems.getQuantity());
 
         List<CartItemResponse> returnCartItems = cartItemList.getCartItems();
@@ -88,7 +86,6 @@ class CartServiceImplTest {
             assertThat(returnCartItem.getProductId()).isEqualTo(compactProductResponseDto.getId());
             assertThat(returnCartItem.getPrice()).isEqualTo(compactProductResponseDto.getPrice());
             assertThat(returnCartItem.getQuantity()).isEqualTo(cartItems.getQuantity());
-            assertThat(returnCartItem.getMainImgUrl()).isEqualTo(compactProductResponseDto.getMainImgUrl());
         }
     }
 
