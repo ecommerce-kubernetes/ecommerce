@@ -43,11 +43,11 @@ public class CartServiceImpl implements CartService{
 
         if(cart == null){
             cart = new Carts(userId);
-            cartItem = new CartItems(cart, cartItemRequest.getProductId(), cartItemRequest.getQuantity());
+            cartItem = new CartItems(cart, cartItemRequest.getProductVariantId(), cartItemRequest.getQuantity());
         }
         else {
             cartItem = cart.getCartItems().stream()
-                    .filter(item -> Objects.equals(item.getProductId(), cartItemRequest.getProductId()))
+                    .filter(item -> Objects.equals(item.getProductId(), cartItemRequest.getProductVariantId()))
                     .findFirst()
                     .orElse(null);
 
@@ -55,13 +55,13 @@ public class CartServiceImpl implements CartService{
                 cartItem.addQuantity(cartItemRequest.getQuantity());
             }
             else {
-                cartItem = new CartItems(cart, cartItemRequest.getProductId(), cartItemRequest.getQuantity());
+                cartItem = new CartItems(cart, cartItemRequest.getProductVariantId(), cartItemRequest.getQuantity());
             }
         }
 
         Carts savedCart = cartsRepository.save(cart);
         CartItems persistedCartItem = savedCart.getCartItems().stream()
-                .filter(item -> Objects.equals(item.getProductId(), cartItemRequest.getProductId()))
+                .filter(item -> Objects.equals(item.getProductId(), cartItemRequest.getProductVariantId()))
                 .findFirst()
                 .orElse(cartItem);
 

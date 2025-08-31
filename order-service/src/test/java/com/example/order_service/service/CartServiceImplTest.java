@@ -55,13 +55,13 @@ class CartServiceImplTest {
         when(productClientService.fetchProduct(1L)).thenReturn(productResponseDto);
         CartItemResponseDto cartItemResponseDto = cartService.addItem(1L, cartItemRequest);
 
-        assertThat(cartItemResponseDto.getProductId()).isEqualTo(cartItemRequest.getProductId());
+        assertThat(cartItemResponseDto.getProductId()).isEqualTo(cartItemRequest.getProductVariantId());
         assertThat(cartItemResponseDto.getProductName()).isEqualTo(productResponseDto.getName());
         assertThat(cartItemResponseDto.getPrice()).isEqualTo(productResponseDto.getPrice());
         assertThat(cartItemResponseDto.getQuantity()).isEqualTo(cartItemRequest.getQuantity());
         //동일한 상품 추가
         CartItemResponseDto equalItemAddResponseDto = cartService.addItem(1L, cartItemRequest);
-        assertThat(equalItemAddResponseDto.getProductId()).isEqualTo(cartItemRequest.getProductId());
+        assertThat(equalItemAddResponseDto.getProductId()).isEqualTo(cartItemRequest.getProductVariantId());
         assertThat(equalItemAddResponseDto.getProductName()).isEqualTo(productResponseDto.getName());
         assertThat(equalItemAddResponseDto.getPrice()).isEqualTo(productResponseDto.getPrice());
         assertThat(equalItemAddResponseDto.getQuantity()).isEqualTo(cartItemRequest.getQuantity() * 2);

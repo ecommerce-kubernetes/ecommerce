@@ -37,18 +37,24 @@ public class CartController {
         return ResponseEntity.status(HttpStatus.CREATED).body(cartItemResponseDto);
     }
 
+    @Operation(summary = "장바구니 목록 조회")
+    @NotFoundApiResponse
     @GetMapping("/{userId}")
     public ResponseEntity<CartResponseDto> getAllCartItem(@PathVariable("userId") Long userId) {
         CartResponseDto cartItemList = cartService.getCartItemList(userId);
         return ResponseEntity.ok(cartItemList);
     }
 
+    @Operation(summary = "장바구니 상품 삭제")
+    @NotFoundApiResponse
     @DeleteMapping("/{cartItemId}")
     public ResponseEntity<Void> removeCartItem(@PathVariable("cartItemId") Long cartItemId){
         cartService.deleteCartItemById(cartItemId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
+    @Operation(summary = "장바구니 비우기")
+    @NotFoundApiResponse
     @DeleteMapping("/{cartId}/all")
     public ResponseEntity<Void> removeCartAll(@PathVariable("cartId") Long cartId){
         cartService.deleteCartAll(cartId);

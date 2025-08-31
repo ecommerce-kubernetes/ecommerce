@@ -11,8 +11,8 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CartItemRequest {
-    @NotNull
-    private Long productId;
-    @NotNull
+    @NotNull(message = "{NotNull}")
+    private Long productVariantId;
+    @NotNull(message = "{NotNull}")
     private Integer quantity;
 }
