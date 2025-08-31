@@ -1,15 +1,10 @@
 package com.example.order_service.service;
 
-import com.example.order_service.dto.client.ProductRequestIdsDto;
-import com.example.order_service.dto.client.CompactProductResponseDto;
-import com.example.order_service.dto.request.OrderItemRequest;
-import com.example.order_service.dto.request.OrderRequest;
-import com.example.order_service.dto.response.OrderItemResponseDto;
-import com.example.order_service.dto.response.OrderResponseDto;
+import com.example.order_service.dto.response.OrderItemResponse;
+import com.example.order_service.dto.response.OrderResponse;
 import com.example.order_service.dto.response.PageDto;
 import com.example.order_service.entity.OrderItems;
 import com.example.order_service.entity.Orders;
-import com.example.order_service.exception.NotFoundException;
 import com.example.order_service.repository.OrderItemsRepository;
 import com.example.order_service.repository.OrdersRepository;
 import com.example.order_service.service.client.ProductClientService;
@@ -27,13 +22,10 @@ import org.springframework.data.domain.Sort;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
 
 
 @SpringBootTest
@@ -71,12 +63,12 @@ class OrderServiceImplTest {
 
         Pageable pageable = PageRequest.of(0, 10, Sort.Direction.DESC, "createAt");
 
-        PageDto<OrderResponseDto> orderServiceResult = orderService.getOrderList(pageable, 1L, null, keyword);
+        PageDto<OrderResponse> orderServiceResult = orderService.getOrderList(pageable, 1L, null, keyword);
 
         assertThat(orderServiceResult.getTotalElement()).isEqualTo(expectOrderItemCount);
 
         orderServiceResult.getContent().forEach(order -> assertThat(order.getItems())
-                .extracting(OrderItemResponseDto::getProductName)
+                .extracting(OrderItemResponse::getProductName)
                 .anyMatch(product -> product.contains(keyword)));
     }
 

@@ -12,12 +12,11 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class OrderResponseDto {
+public class OrderResponse {
     private Long id;
-    private Long userId;
-    private List<OrderItemResponseDto> items;
+    private List<OrderItemResponse> items;
     private String deliveryAddress;
-    private int totalPrice;
+    private int finalPrice;
     private String status;
     private LocalDateTime createAt;
 }

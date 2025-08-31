@@ -32,6 +32,8 @@ public class ErrorResponseEntityFactory {
             return createErrorResponseEntity(HttpStatus.BAD_REQUEST, "badRequest", detailMessage, request);
         } else if (status == HttpStatus.NOT_FOUND) {
             return createErrorResponseEntity(HttpStatus.NOT_FOUND, "notFound", detailMessage, request);
+        } else if (status == HttpStatus.CONFLICT){
+            return createErrorResponseEntity(HttpStatus.CONFLICT, "conflict", detailMessage, request);
         }
         throw new IllegalArgumentException("Unsupported HttpStatus: " + status);
     }

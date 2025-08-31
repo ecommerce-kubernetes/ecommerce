@@ -1,15 +1,8 @@
 package com.example.order_service.service;
 
-import com.example.order_service.dto.KafkaOrderDto;
-import com.example.order_service.dto.KafkaOrderItemDto;
-import com.example.order_service.dto.client.ProductRequestIdsDto;
-import com.example.order_service.dto.client.CompactProductResponseDto;
-import com.example.order_service.dto.request.OrderItemRequest;
 import com.example.order_service.dto.request.OrderRequest;
-import com.example.order_service.dto.response.OrderItemResponseDto;
-import com.example.order_service.dto.response.OrderResponseDto;
+import com.example.order_service.dto.response.OrderResponse;
 import com.example.order_service.dto.response.PageDto;
-import com.example.order_service.entity.OrderItems;
 import com.example.order_service.entity.Orders;
 import com.example.order_service.exception.NotFoundException;
 import com.example.order_service.repository.OrdersRepository;
@@ -17,16 +10,9 @@ import com.example.order_service.service.client.ProductClientService;
 import com.example.order_service.service.kafka.KafkaProducer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.AbstractMap;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -40,7 +26,7 @@ public class OrderServiceImpl implements OrderService{
 
     @Transactional
     @Override
-    public OrderResponseDto saveOrder(Long userId, OrderRequest orderRequest) {
+    public OrderResponse saveOrder(Long userId, OrderRequest orderRequest) {
 //        List<OrderItemRequest> orderItemRequest = orderRequest.getItems();
 //
 //        List<Long> ids = orderItemRequest.stream().map(
@@ -84,7 +70,7 @@ public class OrderServiceImpl implements OrderService{
 //
 //        kafkaProducer.sendMessage("decrement_product", new KafkaOrderDto(savedOrder.getId(), kafkaOrderItems));
 //
-//        List<OrderItemResponseDto> orderItemResponseDtoList = savedOrderItems.stream().map(orderItem -> new OrderItemResponseDto(
+//        List<OrderItemResponse> orderItemResponseDtoList = savedOrderItems.stream().map(orderItem -> new OrderItemResponse(
 //                orderItem.getProductId(),
 //                orderItem.getProductName(),
 //                orderItem.getQuantity(),
@@ -92,7 +78,7 @@ public class OrderServiceImpl implements OrderService{
 //                orderItem.getMainImgUrl()
 //        )).toList();
 //
-//        return new OrderResponseDto(
+//        return new OrderResponse(
 //                savedOrder.getId(),
 //                savedOrder.getUserId(),
 //                orderItemResponseDtoList,
@@ -104,38 +90,8 @@ public class OrderServiceImpl implements OrderService{
     }
 
     @Override
-    public PageDto<OrderResponseDto> getOrderList(Pageable pageable, Long userId, Integer year, String keyword) {
-        Page<Orders> findResult = ordersRepository.findAllByParameter(pageable, userId, year, keyword);
-
-        List<OrderResponseDto> orderResponseDtoList = findResult.getContent().stream().map(order -> {
-            List<OrderItems> orderItems = order.getOrderItems();
-            List<OrderItemResponseDto> orderItemResponseDtoList = orderItems.stream()
-                    .map(orderItem ->
-                            new OrderItemResponseDto(
-                                    orderItem.getProductId(),
-                                    orderItem.getProductName(),
-                                    orderItem.getQuantity(),
-                                    orderItem.getPrice(),
-                                    orderItem.getMainImgUrl())
-                    ).toList();
-
-            return new OrderResponseDto(
-                    order.getId(),
-                    order.getUserId(),
-                    orderItemResponseDtoList,
-                    order.getDeliveryAddress(),
-                    order.getTotalPrice(),
-                    order.getStatus(),
-                    order.getCreateAt());
-        }).toList();
-
-        return new PageDto<>(
-                orderResponseDtoList,
-                pageable.getPageNumber(),
-                findResult.getTotalPages(),
-                pageable.getPageSize(),
-                findResult.getTotalElements()
-        );
+    public PageDto<OrderResponse> getOrderList(Pageable pageable, Long userId, String year, String keyword) {
+        return null;
     }
 
     @Override

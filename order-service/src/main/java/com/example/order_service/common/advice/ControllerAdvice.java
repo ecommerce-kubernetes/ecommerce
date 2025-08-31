@@ -2,6 +2,9 @@ package com.example.order_service.common.advice;
 
 import com.example.order_service.common.advice.dto.ErrorResponse;
 import com.example.order_service.common.advice.dto.ValidationErrorResponse;
+import com.example.order_service.exception.BadRequestException;
+import com.example.order_service.exception.InsufficientException;
+import com.example.order_service.exception.InvalidResourceException;
 import com.example.order_service.exception.NotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -33,5 +36,20 @@ public class ControllerAdvice {
     @ExceptionHandler(NotFoundException.class)
     public ResponseEntity<ErrorResponse> notFoundExceptionHandler(HttpServletRequest request, NotFoundException e){
         return factory.toErrorResponseEntity(HttpStatus.NOT_FOUND, e.getMessage(), request);
+    }
+
+    @ExceptionHandler(InsufficientException.class)
+    public ResponseEntity<ErrorResponse> insufficientExceptionHandler(HttpServletRequest request, InsufficientException e){
+        return factory.toErrorResponseEntity(HttpStatus.CONFLICT, e.getMessage(), request);
+    }
+
+    @ExceptionHandler(InvalidResourceException.class)
+    public ResponseEntity<ErrorResponse> invalidResourceExceptionHandler(HttpServletRequest request, InvalidResourceException e){
+        return factory.toErrorResponseEntity(HttpStatus.CONFLICT, e.getMessage(), request);
+    }
+
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<ErrorResponse> badRequestExceptionHandler(HttpServletRequest request, BadRequestException e){
+        return factory.toErrorResponseEntity(HttpStatus.BAD_REQUEST, e.getMessage(), request);
     }
 }

@@ -1,9 +1,6 @@
 package com.example.order_service.controller.validation;
 
-import com.example.order_service.common.MessagePath;
 import com.example.order_service.dto.request.CartItemRequest;
-import com.example.order_service.util.TestMessageUtil;
-import com.example.order_service.util.ValidationTestHelper;
 import jakarta.validation.ConstraintViolation;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
