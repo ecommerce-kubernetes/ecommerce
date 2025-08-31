@@ -5,7 +5,7 @@ import com.example.order_service.dto.client.ProductRequestIdsDto;
 import com.example.order_service.dto.client.CompactProductResponseDto;
 import com.example.order_service.dto.client.ProductResponseDto;
 import com.example.order_service.dto.request.CartItemRequest;
-import com.example.order_service.dto.response.CartItemResponseDto;
+import com.example.order_service.dto.response.CartItemResponse;
 import com.example.order_service.dto.response.CartResponseDto;
 import com.example.order_service.entity.CartItems;
 import com.example.order_service.entity.Carts;
@@ -53,14 +53,14 @@ class CartServiceImplTest {
         ProductResponseDto productResponseDto = new ProductResponseDto(1L, "사과", "청송 사과 3EA", 3000, 50, 1L, List.of(new ProductImageDto(1L, "http://test.jpg",0)));
 
         when(productClientService.fetchProduct(1L)).thenReturn(productResponseDto);
-        CartItemResponseDto cartItemResponseDto = cartService.addItem(1L, cartItemRequest);
+        CartItemResponse cartItemResponse = cartService.addItem(1L, cartItemRequest);
 
-        assertThat(cartItemResponseDto.getProductId()).isEqualTo(cartItemRequest.getProductVariantId());
-        assertThat(cartItemResponseDto.getProductName()).isEqualTo(productResponseDto.getName());
-        assertThat(cartItemResponseDto.getPrice()).isEqualTo(productResponseDto.getPrice());
-        assertThat(cartItemResponseDto.getQuantity()).isEqualTo(cartItemRequest.getQuantity());
+        assertThat(cartItemResponse.getProductId()).isEqualTo(cartItemRequest.getProductVariantId());
+        assertThat(cartItemResponse.getProductName()).isEqualTo(productResponseDto.getName());
+        assertThat(cartItemResponse.getPrice()).isEqualTo(productResponseDto.getPrice());
+        assertThat(cartItemResponse.getQuantity()).isEqualTo(cartItemRequest.getQuantity());
         //동일한 상품 추가
-        CartItemResponseDto equalItemAddResponseDto = cartService.addItem(1L, cartItemRequest);
+        CartItemResponse equalItemAddResponseDto = cartService.addItem(1L, cartItemRequest);
         assertThat(equalItemAddResponseDto.getProductId()).isEqualTo(cartItemRequest.getProductVariantId());
         assertThat(equalItemAddResponseDto.getProductName()).isEqualTo(productResponseDto.getName());
         assertThat(equalItemAddResponseDto.getPrice()).isEqualTo(productResponseDto.getPrice());
@@ -82,9 +82,9 @@ class CartServiceImplTest {
         assertThat(cartItemList.getId()).isEqualTo(savedCart.getId());
         assertThat(cartItemList.getCartTotalPrice()).isEqualTo(compactProductResponseDto.getPrice() * cartItems.getQuantity());
 
-        List<CartItemResponseDto> returnCartItems = cartItemList.getCartItems();
+        List<CartItemResponse> returnCartItems = cartItemList.getCartItems();
 
-        for (CartItemResponseDto returnCartItem : returnCartItems) {
+        for (CartItemResponse returnCartItem : returnCartItems) {
             assertThat(returnCartItem.getProductId()).isEqualTo(compactProductResponseDto.getId());
             assertThat(returnCartItem.getPrice()).isEqualTo(compactProductResponseDto.getPrice());
             assertThat(returnCartItem.getQuantity()).isEqualTo(cartItems.getQuantity());

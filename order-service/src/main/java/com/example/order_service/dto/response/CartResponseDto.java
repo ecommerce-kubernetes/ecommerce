@@ -12,7 +12,6 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CartResponseDto {
-    private Long id;
-    private List<CartItemResponseDto> cartItems;
+    private List<CartItemResponse> cartItems;
     private int cartTotalPrice;
 }

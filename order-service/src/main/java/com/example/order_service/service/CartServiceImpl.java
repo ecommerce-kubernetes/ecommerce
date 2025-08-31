@@ -4,7 +4,7 @@ import com.example.order_service.dto.client.ProductRequestIdsDto;
 import com.example.order_service.dto.client.CompactProductResponseDto;
 import com.example.order_service.dto.client.ProductResponseDto;
 import com.example.order_service.dto.request.CartItemRequest;
-import com.example.order_service.dto.response.CartItemResponseDto;
+import com.example.order_service.dto.response.CartItemResponse;
 import com.example.order_service.dto.response.CartResponseDto;
 import com.example.order_service.entity.CartItems;
 import com.example.order_service.entity.Carts;
@@ -35,7 +35,7 @@ public class CartServiceImpl implements CartService{
 
     @Transactional
     @Override
-    public CartItemResponseDto addItem(Long userId, CartItemRequest cartItemRequest) {
+    public CartItemResponse addItem(Long userId, CartItemRequest cartItemRequest) {
 
         Carts cart = cartsRepository.findByUserId(userId).orElse(null);
 
@@ -66,7 +66,7 @@ public class CartServiceImpl implements CartService{
                 .orElse(cartItem);
 
         ProductResponseDto productResponseDto = productClientService.fetchProduct(cartItem.getProductId());
-        return new CartItemResponseDto(
+        return new CartItemResponse(
                 persistedCartItem.getId(),
                 persistedCartItem.getProductId(),
                 productResponseDto.getName(),
@@ -102,15 +102,15 @@ public class CartServiceImpl implements CartService{
                 .mapToInt(entry -> entry.getKey().getPrice() * entry.getValue().getQuantity())
                 .sum();
 
-        List<CartItemResponseDto> cartItemResponseDtoList = cartItemsList.stream().map(entry ->
-                new CartItemResponseDto(entry.getValue().getId(),
+        List<CartItemResponse> cartItemResponseList = cartItemsList.stream().map(entry ->
+                new CartItemResponse(entry.getValue().getId(),
                         entry.getValue().getProductId(),
                         entry.getKey().getName(),
                         entry.getKey().getPrice(),
                         entry.getValue().getQuantity(),
                         entry.getKey().getMainImgUrl())).toList();
 
-        return new CartResponseDto(cart.getId(), cartItemResponseDtoList, cartTotalPrice);
+        return new CartResponseDto(cart.getId(), cartItemResponseList, cartTotalPrice);
     }
 
     @Transactional
