@@ -16,4 +16,5 @@ public final class MessagePath {
     public static final String INSUFFICIENT_RESERVE = "insufficient.reserve";
     public static final String INVALID_COUPON = "invalid.coupon";
     public static final String NOT_MATCH_ORDER_AMOUNT = "notMatch.order.amount";
+    public static final String NOT_SUPPORTED_DOMAIN = "notSupport.domain";
 }
