@@ -26,6 +26,11 @@ public class Carts extends BaseEntity {
         this.userId = userId;
     }
 
+    public void addCartItem(CartItems cartItem){
+        cartItems.add(cartItem);
+        cartItem.setCart(this);
+    }
+
     public void removeCartItem(CartItems cartItem){
         cartItems.remove(cartItem);
         cartItem.setCart(null);

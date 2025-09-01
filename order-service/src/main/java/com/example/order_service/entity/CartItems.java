@@ -29,6 +29,11 @@ public class CartItems {
         cart.getCartItems().add(this);
     }
 
+    public CartItems(Long productId, int quantity){
+        this.productId = productId;
+        this.quantity = quantity;
+    }
+
     public void addQuantity(int quantity){
         this.quantity = this.quantity + quantity;
     }

@@ -29,7 +29,7 @@ import static org.mockito.Mockito.when;
 
 @SpringBootTest
 @Slf4j
-class CartServiceImplTest {
+class CartServiceTest {
 
     @Autowired
     CartService cartService;

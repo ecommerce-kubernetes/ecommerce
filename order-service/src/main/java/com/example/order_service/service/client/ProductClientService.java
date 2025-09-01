@@ -5,6 +5,7 @@ import com.example.order_service.dto.client.ProductRequestIdsDto;
 import com.example.order_service.dto.client.CompactProductResponseDto;
 import com.example.order_service.dto.client.ProductResponseDto;
 import com.example.order_service.exception.NotFoundException;
+import com.example.order_service.service.client.dto.ProductResponse;
 import feign.FeignException;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
@@ -31,6 +32,10 @@ public class ProductClientService {
     @CircuitBreaker(name = "productService", fallbackMethod = "getProductListFallback")
     public List<CompactProductResponseDto> fetchProductBatch(ProductRequestIdsDto productRequestIdsDto){
         return productClient.getProductsByIdBatch(productRequestIdsDto);
+    }
+
+    public ProductResponse fetchProductByVariantId(Long id){
+        return null;
     }
 
     public CompactProductResponseDto getProductFallback(Long productId, Throwable throwable){

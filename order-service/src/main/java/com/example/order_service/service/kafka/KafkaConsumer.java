@@ -2,9 +2,6 @@ package com.example.order_service.service.kafka;
 
 import com.example.order_service.dto.KafkaDeletedProductDto;
 import com.example.order_service.dto.KafkaOrderStatusDto;
-import com.example.order_service.entity.Orders;
-import com.example.order_service.exception.NotFoundException;
-import com.example.order_service.repository.OrdersRepository;
 import com.example.order_service.service.CartService;
 import com.example.order_service.service.OrderService;
 import com.fasterxml.jackson.core.JacksonException;
@@ -14,7 +11,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -55,6 +51,5 @@ public class KafkaConsumer {
             throw new RuntimeException(e);
         }
 
-        cartService.deleteCartItemByProductId(kafkaDeletedProductDto.getProductId());
     }
 }
