@@ -8,6 +8,6 @@ import java.util.List;
 @AllArgsConstructor
 @Getter
 public class OrderItemSummary {
-    private List<OrderResponse> items;
+    private List<OrderItemResponse> items;
     private int itemFinalPrice;
 }

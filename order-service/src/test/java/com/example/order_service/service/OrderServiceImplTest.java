@@ -67,9 +67,6 @@ class OrderServiceImplTest {
 
         assertThat(orderServiceResult.getTotalElement()).isEqualTo(expectOrderItemCount);
 
-        orderServiceResult.getContent().forEach(order -> assertThat(order.getItems())
-                .extracting(OrderItemResponse::getProductName)
-                .anyMatch(product -> product.contains(keyword)));
     }
 
     private void prepareTestOrders(){

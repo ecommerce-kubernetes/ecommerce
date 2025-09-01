@@ -19,5 +19,6 @@ public class OrderResponse {
     private String deliveryAddress;
     private OrderSummary orderSummary;
     private PaymentDetails paymentDetails;
+    private CouponDetails couponDetails;
     private OrderItemSummary orderItemSummary;
 }

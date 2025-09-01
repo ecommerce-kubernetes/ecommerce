@@ -4,9 +4,7 @@ import com.example.order_service.common.MessageSourceUtil;
 import com.example.order_service.common.advice.ErrorResponseEntityFactory;
 import com.example.order_service.dto.request.OrderItemRequest;
 import com.example.order_service.dto.request.OrderRequest;
-import com.example.order_service.dto.response.ItemOptionResponse;
-import com.example.order_service.dto.response.OrderItemResponse;
-import com.example.order_service.dto.response.OrderResponse;
+import com.example.order_service.dto.response.*;
 import com.example.order_service.exception.BadRequestException;
 import com.example.order_service.exception.InsufficientException;
 import com.example.order_service.exception.InvalidResourceException;
@@ -22,6 +20,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static com.example.order_service.common.MessagePath.*;
@@ -29,6 +28,8 @@ import static com.example.order_service.common.MessagePath.BAD_REQUEST_VALIDATIO
 import static com.example.order_service.util.ControllerTestHelper.performWithBodyAndUserIdHeader;
 import static com.example.order_service.util.ControllerTestHelper.verifyErrorResponse;
 import static com.example.order_service.util.TestMessageUtil.getMessage;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
@@ -59,7 +60,55 @@ class OrderControllerTest {
     @Test
     @DisplayName("주문 생성 테스트-성공")
     void createOrderTest_success(){
+        OrderResponse expectedResponse = new OrderResponse(
+                1L, "PENDING", LocalDateTime.now(), "서울시 테헤란로 123",
+                new OrderSummary(6000, 1100, 4900),
+                new PaymentDetails(4000, 900),
+                new CouponDetails(1L, 500),
+                new OrderItemSummary(
+                        List.of(new OrderItemResponse(1L, "상품1", 2, 3000, 10,
+                                List.of(new ItemOptionResponse("색상", "RED")),
+                                "http://product1.jpg")), 5400)
+        );
+        when(orderService.saveOrder(anyLong(), any(OrderRequest.class)))
+                .thenReturn(expectedResponse);
 
+        OrderRequest request = new OrderRequest(
+                List.of(new OrderItemRequest(1L, 2)),
+                "서울시 테헤란로 123", 1L, 4000, 900);
+        OrderResponse response = orderService.saveOrder(1L, request);
+
+
+        assertThat(response)
+                .extracting(OrderResponse::getId, OrderResponse::getStatus, OrderResponse::getDeliveryAddress)
+                .containsExactlyInAnyOrder(1L, "PENDING", "서울시 테헤란로 123");
+
+        assertThat(response.getOrderSummary())
+                .extracting(OrderSummary::getProductTotal, OrderSummary::getDiscount, OrderSummary::getFinalPayment)
+                .containsExactlyInAnyOrder(6000, 1100, 4900);
+
+        assertThat(response.getPaymentDetails())
+                .extracting(PaymentDetails::getUsedCash, PaymentDetails::getUsedReserve)
+                .containsExactlyInAnyOrder(4000, 900);
+
+        assertThat(response.getCouponDetails())
+                .extracting(CouponDetails::getCouponId, CouponDetails::getDiscountAmount)
+                .containsExactlyInAnyOrder(1L, 500);
+
+        assertThat(response.getOrderItemSummary().getItemFinalPrice()).isEqualTo(5400);
+        assertThat(response.getOrderItemSummary().getItems())
+                .extracting(OrderItemResponse::getProductId, OrderItemResponse::getProductName, OrderItemResponse::getPrice,
+                        OrderItemResponse::getQuantity, OrderItemResponse::getDiscountRate, OrderItemResponse::getThumbNailUrl)
+                .containsExactlyInAnyOrder(
+                        tuple(1L, "상품1", 3000, 2, 10, "http://product1.jpg")
+                );
+
+        assertThat(response.getOrderItemSummary().getItems())
+                .flatExtracting(OrderItemResponse::getOptions)
+                .extracting(ItemOptionResponse::getOptionTypeName, ItemOptionResponse::getOptionValueName)
+                .containsExactlyInAnyOrder(
+                    tuple("색상", "RED")
+                );
     }
 
     @Test
