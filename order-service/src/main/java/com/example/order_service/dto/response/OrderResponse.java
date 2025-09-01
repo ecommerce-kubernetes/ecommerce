@@ -14,9 +14,10 @@ import java.util.List;
 @AllArgsConstructor
 public class OrderResponse {
     private Long id;
-    private List<OrderItemResponse> items;
-    private String deliveryAddress;
-    private int finalPrice;
     private String status;
     private LocalDateTime createAt;
+    private String deliveryAddress;
+    private OrderSummary orderSummary;
+    private PaymentDetails paymentDetails;
+    private OrderItemSummary orderItemSummary;
 }

@@ -19,5 +19,4 @@ public class OrderItemResponse {
     private int discountRate;
     private List<ItemOptionResponse> options;
     private String thumbNailUrl;
-    private Long couponId;
 }
