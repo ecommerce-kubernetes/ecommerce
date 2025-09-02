@@ -50,7 +50,7 @@ class UserControllerTest {
     private ObjectMapper objectMapper = new ObjectMapper();
 
     @Test
-    @DisplayName("POST /users - 새로운 유저를 생성한다")
+    @DisplayName("POST /V1__create_users_table.sql - 새로운 유저를 생성한다")
     public void testCreateUser() throws Exception {
         // Given
         RequestCreateUser request = new RequestCreateUser(
@@ -77,7 +77,7 @@ class UserControllerTest {
         when(userService.createUser(any(UserDto.class))).thenReturn(userEntity);
 
         // When & Then
-        mockMvc.perform(post("/users")
+        mockMvc.perform(post("/V1__create_users_table.sql")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -91,7 +91,7 @@ class UserControllerTest {
     }
 
     @Test
-    @DisplayName("POST /users/confirm-password - 비밀번호 확인")
+    @DisplayName("POST /V1__create_users_table.sql/confirm-password - 비밀번호 확인")
     public void testConfirmPassword() throws Exception {
         // Given
         RequestLoginUser request = new RequestLoginUser("test@example.com", "Password1!");
@@ -100,14 +100,14 @@ class UserControllerTest {
         doNothing().when(userService).checkUser(eq("test@example.com"), eq("Password1!"));
 
         // When & Then
-        mockMvc.perform(post("/users/confirm-password")
+        mockMvc.perform(post("/V1__create_users_table.sql/confirm-password")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk());
     }
 
     @Test
-    @DisplayName("PATCH /users/update - 유저 정보 수정")
+    @DisplayName("PATCH /V1__create_users_table.sql/update - 유저 정보 수정")
     public void testUpdateUser() throws Exception {
         // Given
         Long userId = 1L;
@@ -132,7 +132,7 @@ class UserControllerTest {
         when(userService.updateUser(any(UserDto.class))).thenReturn(userEntity);
 
         // When & Then
-        mockMvc.perform(patch("/users/update")
+        mockMvc.perform(patch("/V1__create_users_table.sql/update")
                         .header("X-User-Id", userId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -157,7 +157,7 @@ class UserControllerTest {
         when(userService.getAddressesByUserId(userId)).thenReturn(addressList);
 
         // When & Then
-        mockMvc.perform(get("/users/address")
+        mockMvc.perform(get("/V1__create_users_table.sql/address")
                         .header("X-User-Id", String.valueOf(userId)))
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -171,7 +171,7 @@ class UserControllerTest {
     }
 
     @Test
-    @DisplayName("POST /users/address - 배송지 추가")
+    @DisplayName("POST /V1__create_users_table.sql/address - 배송지 추가")
     public void testCreateAddress() throws Exception {
         // Given
         Long userId = 1L;
@@ -203,7 +203,7 @@ class UserControllerTest {
         when(userService.addAddressByUserId(eq(userId), any())).thenReturn(userEntity);
 
         // When & Then
-        mockMvc.perform(post("/users/address")
+        mockMvc.perform(post("/V1__create_users_table.sql/address")
                         .header("X-User-Id", userId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -214,7 +214,7 @@ class UserControllerTest {
     }
 
     @Test
-    @DisplayName("PATCH /users/address - 배송지 정보 수정")
+    @DisplayName("PATCH /V1__create_users_table.sql/address - 배송지 정보 수정")
     public void testUpdateAddress() throws Exception {
         // Given
         Long userId = 1L;
@@ -248,7 +248,7 @@ class UserControllerTest {
         when(userService.updateAddress(eq(userId), any())).thenReturn(userEntity);
 
         // When & Then
-        mockMvc.perform(patch("/users/address")
+        mockMvc.perform(patch("/V1__create_users_table.sql/address")
                         .header("X-User-Id", userId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -259,7 +259,7 @@ class UserControllerTest {
     }
 
     @Test
-    @DisplayName("DELETE /users/address/{addressName} - 배송지 삭제")
+    @DisplayName("DELETE /V1__create_users_table.sql/address/{addressName} - 배송지 삭제")
     public void testDeleteAddress() throws Exception {
         // Given
         Long userId = 1L;
@@ -282,7 +282,7 @@ class UserControllerTest {
         when(userService.deleteAddress(userId, addressId)).thenReturn(userEntity);
 
         // When & Then
-        mockMvc.perform(delete("/users/address/{addressId}", addressId)
+        mockMvc.perform(delete("/V1__create_users_table.sql/address/{addressId}", addressId)
                         .header("X-User-Id", userId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.userId").value(userId))
@@ -290,7 +290,7 @@ class UserControllerTest {
     }
 
     @Test
-    @DisplayName("PATCH /users/cache/recharge/{amount} - 캐시 충전")
+    @DisplayName("PATCH /V1__create_users_table.sql/cache/recharge/{amount} - 캐시 충전")
     public void testRechargeCache() throws Exception {
         // Given
         Long userId = 1L;
@@ -312,7 +312,7 @@ class UserControllerTest {
         when(userService.rechargeCache(userId, amount)).thenReturn(userEntity);
 
         // When & Then
-        mockMvc.perform(patch("/users/cache/recharge/{amount}", amount)
+        mockMvc.perform(patch("/V1__create_users_table.sql/cache/recharge/{amount}", amount)
                         .header("X-User-Id", userId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.userId").value(userId))
@@ -320,7 +320,7 @@ class UserControllerTest {
     }
 
     @Test
-    @DisplayName("PATCH /users/cache/deduct/{amount} - 캐시 차감")
+    @DisplayName("PATCH /V1__create_users_table.sql/cache/deduct/{amount} - 캐시 차감")
     public void testDeductCache() throws Exception {
         // Given
         Long userId = 1L;
@@ -343,7 +343,7 @@ class UserControllerTest {
         when(userService.deductCache(userId, amount)).thenReturn(userEntity);
 
         // When & Then
-        mockMvc.perform(patch("/users/cache/deduct/{amount}", amount)
+        mockMvc.perform(patch("/V1__create_users_table.sql/cache/deduct/{amount}", amount)
                         .header("X-User-Id", userId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.userId").value(userId))
@@ -351,7 +351,7 @@ class UserControllerTest {
     }
 
     @Test
-    @DisplayName("PATCH /users/point/recharge/{amount} - 포인트 충전")
+    @DisplayName("PATCH /V1__create_users_table.sql/point/recharge/{amount} - 포인트 충전")
     public void testRechargePoint() throws Exception {
         // Given
         Long userId = 1L;
@@ -373,7 +373,7 @@ class UserControllerTest {
         when(userService.rechargePoint(userId, amount)).thenReturn(userEntity);
 
         // When & Then
-        mockMvc.perform(patch("/users/point/recharge/{amount}", amount)
+        mockMvc.perform(patch("/V1__create_users_table.sql/point/recharge/{amount}", amount)
                         .header("X-User-Id", userId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.userId").value(userId))
@@ -381,7 +381,7 @@ class UserControllerTest {
     }
 
     @Test
-    @DisplayName("PATCH /users/point/deduct/{amount} - 포인트 차감")
+    @DisplayName("PATCH /V1__create_users_table.sql/point/deduct/{amount} - 포인트 차감")
     public void testDeductPoint() throws Exception {
         // Given
         Long userId = 1L;
@@ -404,7 +404,7 @@ class UserControllerTest {
         when(userService.deductPoint(userId, amount)).thenReturn(userEntity);
 
         // When & Then
-        mockMvc.perform(patch("/users/point/deduct/{amount}", amount)
+        mockMvc.perform(patch("/V1__create_users_table.sql/point/deduct/{amount}", amount)
                         .header("X-User-Id", userId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.userId").value(userId))
@@ -412,7 +412,7 @@ class UserControllerTest {
     }
 
     @Test
-    @DisplayName("POST /users/refresh-token - 엑세스 토큰 재발급")
+    @DisplayName("POST /V1__create_users_table.sql/refresh-token - 엑세스 토큰 재발급")
     public void testRefreshToken() throws Exception {
         // Given
         String refreshToken = "dummyRefreshToken";
@@ -423,14 +423,14 @@ class UserControllerTest {
         when(tokenService.reissueAccessToken(refreshToken)).thenReturn(newAccessToken);
 
         // When & Then
-        mockMvc.perform(post("/users/refresh-token")
+        mockMvc.perform(post("/V1__create_users_table.sql/refresh-token")
                         .cookie(cookie))
                 .andExpect(status().isOk())
                 .andExpect(header().string("token", newAccessToken));
     }
 
     @Test
-    @DisplayName("POST /users/logout - 로그아웃")
+    @DisplayName("POST /V1__create_users_table.sql/logout - 로그아웃")
     public void testLogout() throws Exception {
         // Given
         Long userId = 1L;
@@ -438,21 +438,21 @@ class UserControllerTest {
         doNothing().when(tokenService).deleteRefreshToken(userId);
 
         // When & Then
-        mockMvc.perform(post("/users/logout")
+        mockMvc.perform(post("/V1__create_users_table.sql/logout")
                         .header("X-User-Id", String.valueOf(userId)))
                 .andExpect(status().isOk())
                 .andExpect(content().string("로그아웃 완료"));
     }
 
     @Test
-    @DisplayName("DELETE /users - 회원탈퇴")
+    @DisplayName("DELETE /V1__create_users_table.sql - 회원탈퇴")
     public void testDeleteUser() throws Exception {
         // Given
         Long userId = 1L;
         doNothing().when(userService).deleteUser(userId);
 
         // When & Then
-        mockMvc.perform(delete("/users")
+        mockMvc.perform(delete("/V1__create_users_table.sql")
                         .header("X-User-Id", userId))
                 .andExpect(status().isNoContent());
     }

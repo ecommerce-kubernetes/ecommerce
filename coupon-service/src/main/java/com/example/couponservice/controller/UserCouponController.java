@@ -1,6 +1,7 @@
 package com.example.couponservice.controller;
 
 import com.example.common.DiscountType;
+import com.example.couponservice.dto.CouponDto;
 import com.example.couponservice.jpa.entity.CouponEntity;
 import com.example.couponservice.jpa.entity.UserCouponEntity;
 import com.example.couponservice.service.CouponService;
@@ -109,6 +110,22 @@ public class UserCouponController {
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(responseList);
+    }
+
+
+    @GetMapping("/available/{userId}/{userCouponId}")
+    public ResponseEntity<ResponseCoupon> useCoupon(@PathVariable("userId") Long userId, @PathVariable("couponId") Long couponId) {
+
+        CouponDto couponDto = couponService.availableUserCoupon(userId, couponId);
+
+        return ResponseEntity.ok(
+                ResponseCoupon.builder()
+                .discountType(couponDto.getDiscountType())
+                .discountValue(couponDto.getDiscountValue())
+                .minPurchaseAmount(couponDto.getMinPurchaseAmount())
+                .maxDiscountAmount(couponDto.getMaxDiscountAmount())
+                .build()
+        );
     }
 
     //유저 쿠폰 카테고리별 조회 & 최소금액

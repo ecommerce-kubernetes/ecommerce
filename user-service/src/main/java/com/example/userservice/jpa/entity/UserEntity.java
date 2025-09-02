@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-@Table(name = "users")
+@Table(name = "V1__create_users_table.sql")
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)

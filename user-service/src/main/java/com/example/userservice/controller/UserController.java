@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/users")
+@RequestMapping("/V1__create_users_table.sql")
 @Slf4j
 public class UserController {
 
@@ -316,6 +316,20 @@ public class UserController {
                         .build()
         );
     }
+
+    //캐시, 포인트 확인
+    @GetMapping("/validation")
+    public ResponseEntity<?> validPointAndCache(
+            @RequestBody RequestValidCache requestValidCache) {
+
+        userService.validPointAndCache(
+                requestValidCache.getUserId(),
+                requestValidCache.getReservedPointAmount(),
+                requestValidCache.getReservedCacheAmount());
+
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
 
     //엑세스 토큰 재발급
     @PostMapping("/refresh-token")

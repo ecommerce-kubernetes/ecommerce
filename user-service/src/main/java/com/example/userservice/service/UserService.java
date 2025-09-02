@@ -41,6 +41,8 @@ public interface UserService extends UserDetailsService {
 
     UserEntity deductPoint(Long userId, int amount);
 
+    void validPointAndCache(Long userId, int reservedPointAmount, int reservedCacheAmount);
+
     void deleteUser(Long userId);
 
     void getMypage(Long userId);

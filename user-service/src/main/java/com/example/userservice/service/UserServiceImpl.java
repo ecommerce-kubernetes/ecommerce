@@ -30,6 +30,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -318,6 +319,18 @@ public class UserServiceImpl implements UserService{
 
         user.deductPoint(amount);
         return userRepository.save(user);
+    }
+
+    @Override
+    public void validPointAndCache(Long userId, int reservedPointAmount, int reservedCacheAmount) {
+        if (reservedPointAmount < 0) throw new InvalidAmountException("사용할 포인트 금액은 양수여야 합니다.");
+        if (reservedCacheAmount < 0) throw new InvalidAmountException("사용할 캐시 금액은 양수여야 합니다.");
+
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("해당 ID의 사용자를 찾을 수 없습니다: " + userId));
+
+        if (user.getPoint() < reservedPointAmount) throw new InvalidAmountException("포인트가 부족합니다.");
+        if (user.getCache() < reservedCacheAmount) throw new InvalidAmountException("캐시가 부족합니다.");
     }
 
     @Override

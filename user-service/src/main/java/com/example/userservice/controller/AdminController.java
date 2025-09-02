@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/admin/users")
+@RequestMapping("/admin/V1__create_users_table.sql")
 @Slf4j
 @PreAuthorize("hasRole('ROLE_ADMIN')")
 public class AdminController {
