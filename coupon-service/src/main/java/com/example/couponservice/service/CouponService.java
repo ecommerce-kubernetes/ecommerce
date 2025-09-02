@@ -26,6 +26,8 @@ public interface CouponService {
 
     CouponDto useCouponByUser(Long userCouponId);
 
+    CouponDto availableUserCoupon(Long userId, Long userCouponId);
+
     void revertUserCoupon(Long userCouponId);
 
     void changePhoneNumber(Long userId, String phoneNumber);

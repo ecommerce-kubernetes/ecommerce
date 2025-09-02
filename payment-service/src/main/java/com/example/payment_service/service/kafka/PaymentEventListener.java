@@ -170,7 +170,7 @@ public class PaymentEventListener {
     }
 
     @KafkaListener(topics = "product.stock.failed")
-    public void handleProductStockFailedEvent(@Payload ProductStockDeductedEvent event,
+    public void handleProductStockFailedEvent(@Payload PaymentFailedEvent event,
                                              @Header(KafkaHeaders.RECEIVED_TOPIC) String topic,
                                              @Header(KafkaHeaders.RECEIVED_KEY) String key) {
 
@@ -251,5 +251,4 @@ public class PaymentEventListener {
                 throw new IllegalArgumentException("Unknown topic: " + topic);
         }
     }
-
 }

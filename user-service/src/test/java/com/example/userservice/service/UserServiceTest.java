@@ -61,7 +61,7 @@ class UserServiceTest {
     }
 
     @Test
-    @DisplayName("POST /users - 회원 생성 성공")
+    @DisplayName("POST /V1__create_users_table.sql - 회원 생성 성공")
     void createUser_success() {
         UserDto dto = UserDto.builder()
                 .email("test@example.com")
@@ -83,7 +83,7 @@ class UserServiceTest {
     }
 
     @Test
-    @DisplayName("GET /users/{id} - 회원 조회 성공")
+    @DisplayName("GET /V1__create_users_table.sql/{id} - 회원 조회 성공")
     void getUserById_success() {
         when(userRepository.findById(1L)).thenReturn(Optional.of(userEntity));
         UserDto dto = userService.getUserById(1L);
@@ -93,7 +93,7 @@ class UserServiceTest {
     }
 
 //    @Test
-//    @DisplayName("PUT /users/{id} - 회원 정보 수정 성공")
+//    @DisplayName("PUT /V1__create_users_table.sql/{id} - 회원 정보 수정 성공")
 //    void updateUser_success() {
 //        UserDto dto = UserDto.builder()
 //                .id(1L)
@@ -115,7 +115,7 @@ class UserServiceTest {
 //    }
 
     @Test
-    @DisplayName("POST /users/{id}/cache - 캐시 충전 성공")
+    @DisplayName("POST /V1__create_users_table.sql/{id}/cache - 캐시 충전 성공")
     void rechargeCache_success() {
         when(userRepository.findById(1L)).thenReturn(Optional.of(userEntity));
         when(userRepository.save(any(UserEntity.class))).thenReturn(userEntity);
@@ -126,20 +126,20 @@ class UserServiceTest {
     }
 
     @Test
-    @DisplayName("POST /users/{id}/cache - 0 이하 금액 충전 시 예외 발생")
+    @DisplayName("POST /V1__create_users_table.sql/{id}/cache - 0 이하 금액 충전 시 예외 발생")
     void rechargeCache_invalidAmount_throwsException() {
         assertThrows(InvalidAmountException.class, () -> userService.rechargeCache(1L, 0));
     }
 
     @Test
-    @DisplayName("POST /users/{id}/cache/deduct - 잔액 부족 시 예외 발생")
+    @DisplayName("POST /V1__create_users_table.sql/{id}/cache/deduct - 잔액 부족 시 예외 발생")
     void deductCache_insufficientFunds_throwsException() {
         when(userRepository.findById(1L)).thenReturn(Optional.of(userEntity));
         assertThrows(InvalidAmountException.class, () -> userService.deductCache(1L, 200));
     }
 
     @Test
-    @DisplayName("POST /users/check - 비밀번호 일치 시 성공")
+    @DisplayName("POST /V1__create_users_table.sql/check - 비밀번호 일치 시 성공")
     void checkUser_passwordMatch_success() {
         when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(userEntity));
         when(bCryptPasswordEncoder.matches("rawPwd", "encryptedPwd")).thenReturn(true);
@@ -148,7 +148,7 @@ class UserServiceTest {
     }
 
     @Test
-    @DisplayName("GET /users/email/{email} - 이메일로 회원 조회 성공")
+    @DisplayName("GET /V1__create_users_table.sql/email/{email} - 이메일로 회원 조회 성공")
     void getUserByEmail_success() {
         when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(userEntity));
 
@@ -158,7 +158,7 @@ class UserServiceTest {
     }
 
     @Test
-    @DisplayName("DELETE /users/{id} - 회원 삭제 성공")
+    @DisplayName("DELETE /V1__create_users_table.sql/{id} - 회원 삭제 성공")
     void deleteUser_success() {
         userService.deleteUser(1L);
         verify(userRepository).deleteById(1L);

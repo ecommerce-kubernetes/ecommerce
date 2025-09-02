@@ -80,12 +80,12 @@ class AdminControllerTest {
     }
 
     @Test
-    @DisplayName("GET /users - 전체 유저 조회")
+    @DisplayName("GET /V1__create_users_table.sql - 전체 유저 조회")
     void getUsers_returnsPagedUsers() throws Exception {
         Page<UserDto> page = new PageImpl<>(List.of(userDto));
         when(userService.getUserByAll(any(Pageable.class))).thenReturn(page);
 
-        mockMvc.perform(get("/admin/users")
+        mockMvc.perform(get("/admin/V1__create_users_table.sql")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content[0].userId").value(1L))
@@ -93,11 +93,11 @@ class AdminControllerTest {
     }
 
     @Test
-    @DisplayName("GET /users/{userid} - 특정 userid 유저 조회")
+    @DisplayName("GET /V1__create_users_table.sql/{userid} - 특정 userid 유저 조회")
     void getUserById_returnsUser() throws Exception {
         when(userService.getUserById(1L)).thenReturn(userDto);
 
-        mockMvc.perform(get("/admin/users/1")
+        mockMvc.perform(get("/admin/V1__create_users_table.sql/1")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.userId").value(1L))
@@ -106,7 +106,7 @@ class AdminControllerTest {
     }
 
     @Test
-    @DisplayName("PATCH /users/{userId} - 유저 정보 수정 성공")
+    @DisplayName("PATCH /V1__create_users_table.sql/{userId} - 유저 정보 수정 성공")
     void updateUser_success() throws Exception {
         RequestEditUser request = new RequestEditUser(
                 "Password1!",
@@ -118,7 +118,7 @@ class AdminControllerTest {
 
         when(userService.updateUser(any(UserDto.class))).thenReturn(userEntity);
 
-        mockMvc.perform(patch("/admin/users/1")
+        mockMvc.perform(patch("/admin/V1__create_users_table.sql/1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk());
@@ -127,18 +127,18 @@ class AdminControllerTest {
     }
 
     @Test
-    @DisplayName("DELETE /users/{userId} - 유저 삭제 성공")
+    @DisplayName("DELETE /V1__create_users_table.sql/{userId} - 유저 삭제 성공")
     void deleteUser_success() throws Exception {
         doNothing().when(userService).deleteUser(1L);
 
-        mockMvc.perform(delete("/admin/users/1"))
+        mockMvc.perform(delete("/admin/V1__create_users_table.sql/1"))
                 .andExpect(status().isNoContent());
 
         verify(userService).deleteUser(1L);
     }
 
     @Test
-    @DisplayName("POST /users/{userId}/address - 배송지 추가 성공")
+    @DisplayName("POST /V1__create_users_table.sql/{userId}/address - 배송지 추가 성공")
     void createAddress_success() throws Exception {
         RequestCreateAddress request = new RequestCreateAddress("집", "서울시 강남구", "101동 202호", true);
 
@@ -154,7 +154,7 @@ class AdminControllerTest {
         userEntity.getAddresses().add(addressEntity);
         when(userService.addAddressByUserId(eq(1L), any(AddressDto.class))).thenReturn(userEntity);
 
-        mockMvc.perform(post("/admin/users/1/address")
+        mockMvc.perform(post("/admin/V1__create_users_table.sql/1/address")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -163,7 +163,7 @@ class AdminControllerTest {
     }
 
     @Test
-    @DisplayName("PATCH /users/{userId}/address - 배송지 수정 성공")
+    @DisplayName("PATCH /V1__create_users_table.sql/{userId}/address - 배송지 수정 성공")
     void updateAddress_success() throws Exception {
         RequestEditAddress request = new RequestEditAddress(1L, "회사", "서울시 서초구", "3층", false);
 
@@ -179,7 +179,7 @@ class AdminControllerTest {
         userEntity.getAddresses().add(updatedAddress);
         when(userService.updateAddress(eq(1L), any(AddressDto.class))).thenReturn(userEntity);
 
-        mockMvc.perform(patch("/admin/users/1/address")
+        mockMvc.perform(patch("/admin/V1__create_users_table.sql/1/address")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -188,7 +188,7 @@ class AdminControllerTest {
     }
 
     @Test
-    @DisplayName("DELETE /admin/users/{userId}/address/{addressId} - 배송지 삭제 성공")
+    @DisplayName("DELETE /admin/V1__create_users_table.sql/{userId}/address/{addressId} - 배송지 삭제 성공")
     void deleteAddress_success() throws Exception {
         AddressEntity updatedAddress = AddressEntity.builder()
                 .name("회사")
@@ -202,52 +202,52 @@ class AdminControllerTest {
 
         when(userService.deleteAddress(eq(1L), eq(1L))).thenReturn(userEntity);
 
-        mockMvc.perform(delete("/admin/users/1/address/1")) // ✅ 올바른 URL
+        mockMvc.perform(delete("/admin/V1__create_users_table.sql/1/address/1")) // ✅ 올바른 URL
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.userId").value(1L));
     }
 
     @Test
-    @DisplayName("PATCH /users/{userId}/cache/recharge/{amount} - 유저 캐시 충전 성공")
+    @DisplayName("PATCH /V1__create_users_table.sql/{userId}/cache/recharge/{amount} - 유저 캐시 충전 성공")
     void rechargeCache_success() throws Exception {
         when(userService.rechargeCache(1L, 100)).thenReturn(userEntity);
 
-        mockMvc.perform(patch("/admin/users/1/cache/recharge/100"))
+        mockMvc.perform(patch("/admin/V1__create_users_table.sql/1/cache/recharge/100"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.userId").value(1L))
                 .andExpect(jsonPath("$.cache").value(100));
     }
 
     @Test
-    @DisplayName("PATCH /users/{userId}/cache/deduct/{amount} - 유저 캐시 차감 성공")
+    @DisplayName("PATCH /V1__create_users_table.sql/{userId}/cache/deduct/{amount} - 유저 캐시 차감 성공")
     void deductCache_success() throws Exception {
         when(userService.deductCache(1L, 50)).thenReturn(userEntity);
 
-        mockMvc.perform(patch("/admin/users/1/cache/deduct/50"))
+        mockMvc.perform(patch("/admin/V1__create_users_table.sql/1/cache/deduct/50"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.userId").value(1L))
                 .andExpect(jsonPath("$.cache").value(100));
     }
 
     @Test
-    @DisplayName("PATCH /users/{userId}/point/recharge/{amount} - 포인트 충전 성공")
+    @DisplayName("PATCH /V1__create_users_table.sql/{userId}/point/recharge/{amount} - 포인트 충전 성공")
     void rechargePoint_success() throws Exception {
         userEntity.rechargePoint(100);
         when(userService.rechargePoint(1L, 100)).thenReturn(userEntity);
 
-        mockMvc.perform(patch("/admin/users/1/point/recharge/100"))
+        mockMvc.perform(patch("/admin/V1__create_users_table.sql/1/point/recharge/100"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.userId").value(1L))
                 .andExpect(jsonPath("$.point").value(userEntity.getPoint()));
     }
 
     @Test
-    @DisplayName("PATCH /users/{userId}/point/deduct/{amount} - 포인트 차감 성공")
+    @DisplayName("PATCH /V1__create_users_table.sql/{userId}/point/deduct/{amount} - 포인트 차감 성공")
     void deductPoint_success() throws Exception {
         userEntity.deductPoint(20);
         when(userService.deductPoint(1L, 20)).thenReturn(userEntity);
 
-        mockMvc.perform(patch("/admin/users/1/point/deduct/20"))
+        mockMvc.perform(patch("/admin/V1__create_users_table.sql/1/point/deduct/20"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.userId").value(1L))
                 .andExpect(jsonPath("$.point").value(userEntity.getPoint()));
