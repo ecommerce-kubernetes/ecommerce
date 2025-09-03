@@ -1,14 +1,11 @@
 package com.example.order_service.service;
 
-import com.example.order_service.dto.client.ProductRequestIdsDto;
-import com.example.order_service.dto.client.CompactProductResponseDto;
 import com.example.order_service.dto.request.CartItemRequest;
 import com.example.order_service.dto.response.CartItemResponse;
 import com.example.order_service.dto.response.CartResponse;
 import com.example.order_service.entity.CartItems;
 import com.example.order_service.entity.Carts;
 import com.example.order_service.exception.NotFoundException;
-import com.example.order_service.repository.CartItemsRepository;
 import com.example.order_service.repository.CartsRepository;
 import com.example.order_service.service.client.ProductClientService;
 import com.example.order_service.service.client.dto.ProductResponse;
@@ -18,8 +15,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -37,21 +32,25 @@ public class CartService{
             productResponse = productClientService.fetchProductByVariantId(request.getProductVariantId());
         } catch (NotFoundException ex){
             cart.getCartItems().stream()
-                    .filter(ci -> ci.getProductId().equals(request.getProductVariantId()))
+                    .filter(ci -> ci.getProductVariantId().equals(request.getProductVariantId()))
                     .findFirst()
                     .ifPresent(cart::removeCartItem);
             throw ex;
         }
-        Optional<CartItems> item = cart.getCartItems().stream().filter(ci -> Objects.equals(ci.getProductId(), request.getProductVariantId()))
+        CartItems savedCartItem;
+
+        Optional<CartItems> item = cart.getCartItems().stream().filter(ci -> Objects.equals(ci.getProductVariantId(), request.getProductVariantId()))
                 .findFirst();
         if(item.isPresent()){
             item.get().addQuantity(request.getQuantity());
+            savedCartItem = item.get();
         } else {
             CartItems cartItem = new CartItems(productResponse.getProductVariantId(), request.getQuantity());
             cart.addCartItem(cartItem);
+            savedCartItem = cartItem;
         }
         cartsRepository.save(cart);
-        return null;
+        return createCartItemResponse(savedCartItem, productResponse);
     }
 
     private Carts getCartByUserOrCreate(Long userId){
@@ -71,5 +70,16 @@ public class CartService{
     }
 
     public void deleteCartItemByProductId(Long productId) {
+    }
+
+    private CartItemResponse createCartItemResponse(CartItems cartItem, ProductResponse productResponse){
+        return new CartItemResponse(cartItem.getId(), productResponse.getProductId(),
+                cartItem.getProductVariantId(),
+                productResponse.getProductName(),
+                productResponse.getThumbnailUrl(),
+                productResponse.getItemOptions(),
+                productResponse.getPrice(),
+                productResponse.getDiscountRate(),
+                cartItem.getQuantity());
     }
 }

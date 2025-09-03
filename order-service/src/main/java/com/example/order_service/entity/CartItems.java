@@ -19,18 +19,18 @@ public class CartItems {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cart_id")
     private Carts cart;
-    private Long productId;
+    private Long productVariantId;
     private int quantity;
 
-    public CartItems(Carts cart, Long productId, int quantity){
+    public CartItems(Carts cart, Long productVariantId, int quantity){
         this.cart = cart;
-        this.productId = productId;
+        this.productVariantId = productVariantId;
         this.quantity = quantity;
         cart.getCartItems().add(this);
     }
 
-    public CartItems(Long productId, int quantity){
-        this.productId = productId;
+    public CartItems(Long productVariantId, int quantity){
+        this.productVariantId = productVariantId;
         this.quantity = quantity;
     }
 
