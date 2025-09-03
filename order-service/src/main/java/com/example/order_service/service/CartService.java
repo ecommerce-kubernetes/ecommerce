@@ -12,6 +12,7 @@ import com.example.order_service.exception.NotFoundException;
 import com.example.order_service.repository.CartItemsRepository;
 import com.example.order_service.repository.CartsRepository;
 import com.example.order_service.service.client.ProductClientService;
+import com.example.order_service.service.client.dto.ProductResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -33,7 +34,11 @@ public class CartService{
     private final MessageSourceUtil ms;
 
     public CartItemResponse addItem(Long userId, CartItemRequest request) {
-       return null;
+        ProductResponse productResponse = productClientService.fetchProductByVariantId(request.getProductVariantId());
+        Carts cart = findCartOrCreate(userId);
+        CartItems cartItem = cart.addItem(productResponse, request.getQuantity());
+        cartsRepository.save(cart);
+        return new CartItemResponse(cartItem, productResponse);
     }
 
     @Transactional(readOnly = true)
@@ -58,4 +63,10 @@ public class CartService{
         return cartItemsRepository.findWithCartById(cartItemId)
                 .orElseThrow(() -> new NotFoundException(ms.getMessage(CART_ITEM_NOT_FOUND)));
     }
+
+    private Carts findCartOrCreate(Long userId){
+        return cartsRepository.findByUserId(userId)
+                .orElseGet(() -> new Carts(userId));
+    }
+
 }
