@@ -50,7 +50,7 @@ public class CartServiceUnitTest {
 
     @Test
     @DisplayName("장바구니 상품 추가 테스트-성공(처음 상품을 추가하는 경우)")
-    void addItemTest_unit_success_newItem(){
+    void addItemTest_unit_success_newCart(){
         ProductResponse productResponse = new ProductResponse(1L, 1L, "상품1", 3000, 10, "http://product1.jpg",
                 List.of(new ItemOptionResponse("색상", "RED")));
         when(productClientService.fetchProductByVariantId(1L))
@@ -60,6 +60,28 @@ public class CartServiceUnitTest {
 
         CartItemResponse response = cartService.addItem(1L, new CartItemRequest(1L, 10));
 
+        assertThat(response)
+                .extracting(CartItemResponse::getProductId, CartItemResponse::getProductVariantId,
+                        CartItemResponse::getProductName, CartItemResponse::getThumbNailUrl,
+                        CartItemResponse::getPrice, CartItemResponse::getDiscountRate, CartItemResponse::getQuantity)
+                .containsExactlyInAnyOrder(
+                        1L, 1L, "상품1", "http://product1.jpg", 3000, 10, 10
+                );
+    }
+
+    @Test
+    @DisplayName("장바구니 상품 추가 테스트-성공(새로운 상품을 추가하는 경우)")
+    void addItemTest_unit_success_newItem(){
+        ProductResponse productResponse = new ProductResponse(1L, 1L, "상품1", 3000, 10, "http://product1.jpg",
+                List.of(new ItemOptionResponse("색상", "RED")));
+
+        Carts cart = new Carts(1L);
+        when(productClientService.fetchProductByVariantId(1L))
+                .thenReturn(productResponse);
+        when(cartsRepository.findByUserId(1L))
+                .thenReturn(Optional.of(cart));
+
+        CartItemResponse response = cartService.addItem(1L, new CartItemRequest(1L, 10));
         assertThat(response)
                 .extracting(CartItemResponse::getProductId, CartItemResponse::getProductVariantId,
                         CartItemResponse::getProductName, CartItemResponse::getThumbNailUrl,
