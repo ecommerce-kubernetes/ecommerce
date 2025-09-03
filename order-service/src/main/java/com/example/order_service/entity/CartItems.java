@@ -22,12 +22,6 @@ public class CartItems {
     private Long productVariantId;
     private int quantity;
 
-    public CartItems(Carts cart, Long productVariantId, int quantity){
-        this.cart = cart;
-        this.productVariantId = productVariantId;
-        this.quantity = quantity;
-        cart.getCartItems().add(this);
-    }
 
     public CartItems(Long productVariantId, int quantity){
         this.productVariantId = productVariantId;

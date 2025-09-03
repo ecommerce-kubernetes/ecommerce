@@ -151,7 +151,7 @@ class CartControllerTest {
     @Test
     @DisplayName("장바구니 비우기 테스트-성공")
     void clearCartTest_success() throws Exception {
-        doNothing().when(cartService).deleteCartAll(anyLong());
+        doNothing().when(cartService).clearAllCartItems(anyLong());
         ResultActions perform = performWithBodyAndUserIdHeader(mockMvc, delete(ID_PATH), null);
         verifySuccessResponse(perform, status().isNoContent(), null);
     }

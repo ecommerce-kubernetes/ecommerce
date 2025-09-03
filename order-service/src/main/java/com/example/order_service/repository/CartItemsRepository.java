@@ -8,6 +8,4 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface CartItemsRepository extends JpaRepository<CartItems, Long> {
-    @Query("SELECT ci FROM CartItems ci WHERE ci.productId = :productId")
-    List<CartItems> findByProductId(@Param("productId") Long productId);
 }

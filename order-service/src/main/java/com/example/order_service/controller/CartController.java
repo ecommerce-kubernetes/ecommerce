@@ -54,6 +54,7 @@ public class CartController {
     @BadRequestApiResponse
     @DeleteMapping
     public ResponseEntity<Void> clearCart(@RequestHeader("X-User-Id") Long userId){
+        cartService.clearAllCartItems(userId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }

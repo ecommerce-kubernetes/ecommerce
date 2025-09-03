@@ -11,6 +11,9 @@ spring:
     openfeign:
       loadbalancer:
         enabled: false
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
 
   kafka:
     bootstrap_servers: localhost:9092
