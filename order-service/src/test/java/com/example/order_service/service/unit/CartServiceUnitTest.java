@@ -82,7 +82,40 @@ public class CartServiceUnitTest {
     @Test
     @DisplayName("장바구니 추가 테스트-성공(기존에 존재하는 상품 추가)")
     void addItemTest_unit_success_existItem(){
+        when(productClientService.fetchProductByVariantId(1L))
+                .thenReturn(
+                        new ProductResponse(1L, 1L, "상품1", 3000, 10, "http://product1.jpg",
+                                List.of(new ItemOptionResponse("색상", "RED")))
+                );
+        Carts cart = new Carts(1L);
+        cart.addCartItem(new CartItems(1L, 10));
+        when(cartsRepository.findByUserId(1L))
+                .thenReturn(Optional.of(cart));
 
+        CartItemRequest request = new CartItemRequest(1L, 5);
+
+        CartItemResponse response = cartService.addItem(1L, request);
+        assertThat(response.getProductId()).isEqualTo(1L);
+        assertThat(response.getProductVariantId()).isEqualTo(1L);
+        assertThat(response.getProductName()).isEqualTo("상품1");
+        assertThat(response.getThumbNailUrl()).isEqualTo("http://product1.jpg");
+        assertThat(response.getPrice()).isEqualTo(3000);
+        assertThat(response.getQuantity()).isEqualTo(15);
+        assertThat(response.getDiscountRate()).isEqualTo(10);
+        assertThat(response.getOptions())
+                .extracting(ItemOptionResponse::getOptionTypeName, ItemOptionResponse::getOptionValueName)
+                .containsExactlyInAnyOrder(
+                        tuple("색상", "RED")
+                );
+
+        verify(cartsRepository).save(cartsArgumentCaptor.capture());
+        Carts savedCart = cartsArgumentCaptor.getValue();
+        assertThat(savedCart.getCartItems()).hasSize(1);
+        assertThat(savedCart.getCartItems())
+                .extracting(CartItems::getProductVariantId, CartItems::getQuantity)
+                .containsExactlyInAnyOrder(
+                        tuple(1L, 10)
+                );
     }
 
     @Test
