@@ -6,6 +6,7 @@ import com.example.order_service.dto.request.CartItemRequest;
 import com.example.order_service.dto.response.CartItemResponse;
 import com.example.order_service.dto.response.CartResponse;
 import com.example.order_service.dto.response.ItemOptionResponse;
+import com.example.order_service.exception.NoPermissionException;
 import com.example.order_service.exception.NotFoundException;
 import com.example.order_service.service.CartService;
 import org.junit.jupiter.api.BeforeEach;
@@ -49,6 +50,7 @@ class CartControllerTest {
         when(ms.getMessage(NOT_FOUND)).thenReturn("NotFound");
         when(ms.getMessage(BAD_REQUEST)).thenReturn("BadRequest");
         when(ms.getMessage(BAD_REQUEST_VALIDATION)).thenReturn("Validation Error");
+        when(ms.getMessage(FORBIDDEN)).thenReturn("Forbidden");
     }
 
     @Test
@@ -146,6 +148,17 @@ class CartControllerTest {
         ResultActions perform = performWithBodyAndUserIdHeader(mockMvc, delete(ID_PATH), null);
         verifyErrorResponse(perform, status().isNotFound(), getMessage(NOT_FOUND),
                 getMessage(CART_ITEM_NOT_FOUND), ID_PATH);
+    }
+
+    @Test
+    @DisplayName("장바구니 상품 삭제 테스트-실패(삭제할 권한이 없음)")
+    void removeCartItemTest_noPermission() throws Exception {
+        doThrow(new NoPermissionException(getMessage(CART_ITEM_NO_PERMISSION)))
+                .when(cartService).deleteCartItemById(anyLong(), anyLong());
+
+        ResultActions perform = performWithBodyAndUserIdHeader(mockMvc, delete(ID_PATH), null);
+        verifyErrorResponse(perform, status().isForbidden(), getMessage(FORBIDDEN),
+                getMessage(CART_ITEM_NO_PERMISSION), ID_PATH);
     }
 
     @Test

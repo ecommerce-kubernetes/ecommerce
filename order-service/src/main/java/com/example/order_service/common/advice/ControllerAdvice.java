@@ -2,10 +2,7 @@ package com.example.order_service.common.advice;
 
 import com.example.order_service.common.advice.dto.ErrorResponse;
 import com.example.order_service.common.advice.dto.ValidationErrorResponse;
-import com.example.order_service.exception.BadRequestException;
-import com.example.order_service.exception.InsufficientException;
-import com.example.order_service.exception.InvalidResourceException;
-import com.example.order_service.exception.NotFoundException;
+import com.example.order_service.exception.*;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -51,5 +48,10 @@ public class ControllerAdvice {
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<ErrorResponse> badRequestExceptionHandler(HttpServletRequest request, BadRequestException e){
         return factory.toErrorResponseEntity(HttpStatus.BAD_REQUEST, e.getMessage(), request);
+    }
+
+    @ExceptionHandler(NoPermissionException.class)
+    public ResponseEntity<ErrorResponse> noPermissionExceptionHandler(HttpServletRequest request, NoPermissionException e){
+        return factory.toErrorResponseEntity(HttpStatus.FORBIDDEN, e.getMessage(), request);
     }
 }
