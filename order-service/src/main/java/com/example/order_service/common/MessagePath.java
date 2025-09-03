@@ -17,4 +17,5 @@ public final class MessagePath {
     public static final String INVALID_COUPON = "invalid.coupon";
     public static final String NOT_MATCH_ORDER_AMOUNT = "notMatch.order.amount";
     public static final String NOT_SUPPORTED_DOMAIN = "notSupport.domain";
+    public static final String CART_ITEM_NO_PERMISSION = "cartItem.noPermission";
 }
