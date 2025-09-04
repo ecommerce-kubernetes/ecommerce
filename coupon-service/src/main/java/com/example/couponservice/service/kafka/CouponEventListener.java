@@ -44,7 +44,7 @@ public class CouponEventListener {
         } catch (Exception e) {
             //실패
             log.error("쿠폰 사용 실패: orderId={}, userCouponId={}, reason={}", event.getOrderId(), event.getUserCouponId() ,e.getMessage());
-            kafkaTemplate.send("coupon.used.failed", key, new PaymentFailedEvent(event.getOrderId(), e.getMessage()));
+            kafkaTemplate.send("coupon.used.failed", key, new FailedEvent(event.getOrderId(), e.getMessage()));
             log.info("send a failed message to coupon.used.failed");
         }
     }

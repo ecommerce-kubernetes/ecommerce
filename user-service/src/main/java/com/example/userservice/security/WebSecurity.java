@@ -63,8 +63,8 @@ public class WebSecurity{
                 .authorizeHttpRequests(
                         authorize -> authorize
                                 .requestMatchers(WHITE_LIST).permitAll()
-                                .requestMatchers(HttpMethod.POST, "/V1__create_users_table.sql").permitAll()
-                                .requestMatchers(HttpMethod.POST, "/V1__create_users_table.sql/refresh-token").permitAll()
+                                .requestMatchers(HttpMethod.POST, "/users").permitAll()
+                                .requestMatchers(HttpMethod.POST, "/users/refresh-token").permitAll()
                                 .anyRequest().authenticated()
                 )
                 .authenticationManager(authenticationManager)
