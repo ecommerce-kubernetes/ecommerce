@@ -15,24 +15,24 @@ import java.util.List;
 @AllArgsConstructor
 public class CartItemResponse {
     private Long id;
-    private Long productId;
-    private Long productVariantId;
-    private String productName;
-    private String thumbNailUrl;
-    private List<ItemOptionResponse> options;
-    private int price;
-    private int discountRate;
+    private ProductInfo productInfo;
     private int quantity;
+    private boolean isAvailable;
 
-    public CartItemResponse(CartItems cartItem, ProductResponse response){
+    public CartItemResponse(CartItems cartItem, ProductResponse response, boolean isAvailable){
         this.id = cartItem.getId();
-        this.productId = response.getProductId();
-        this.productVariantId = cartItem.getProductVariantId();
-        this.productName = response.getProductName();
-        this.thumbNailUrl = response.getThumbnailUrl();
-        this.options = response.getItemOptions();
-        this.price = response.getPrice();
-        this.discountRate = response.getDiscountRate();
+        this.productInfo = createProductInfo(response);
         this.quantity = cartItem.getQuantity();
+        this.isAvailable = isAvailable;
+    }
+
+    private ProductInfo createProductInfo(ProductResponse response){
+        return new ProductInfo(response.getProductId(),
+                response.getProductVariantId(),
+                response.getProductName(),
+                response.getPrice(),
+                response.getDiscountRate(),
+                response.getThumbnailUrl(),
+                response.getItemOptions());
     }
 }

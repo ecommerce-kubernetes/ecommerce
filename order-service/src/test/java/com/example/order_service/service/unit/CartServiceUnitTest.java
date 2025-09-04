@@ -4,6 +4,7 @@ import com.example.order_service.common.MessageSourceUtil;
 import com.example.order_service.dto.request.CartItemRequest;
 import com.example.order_service.dto.response.CartItemResponse;
 import com.example.order_service.dto.response.ItemOptionResponse;
+import com.example.order_service.dto.response.ProductInfo;
 import com.example.order_service.entity.CartItems;
 import com.example.order_service.entity.Carts;
 import com.example.order_service.exception.NoPermissionException;
@@ -61,12 +62,20 @@ public class CartServiceUnitTest {
         CartItemResponse response = cartService.addItem(1L, new CartItemRequest(1L, 10));
 
         assertThat(response)
-                .extracting(CartItemResponse::getProductId, CartItemResponse::getProductVariantId,
-                        CartItemResponse::getProductName, CartItemResponse::getThumbNailUrl,
-                        CartItemResponse::getPrice, CartItemResponse::getDiscountRate, CartItemResponse::getQuantity)
+                .extracting(CartItemResponse::getQuantity, CartItemResponse::isAvailable)
+                .containsExactlyInAnyOrder(10, true);
+
+        assertThat(response.getProductInfo())
+                .extracting(ProductInfo::getProductId, ProductInfo::getProductVariantId, ProductInfo::getProductName,
+                        ProductInfo::getPrice, ProductInfo::getDiscountRate, ProductInfo::getThumbnailUrl)
                 .containsExactlyInAnyOrder(
-                        1L, 1L, "상품1", "http://product1.jpg", 3000, 10, 10
+                        1L, 1L, "상품1", 3000, 10, "http://product1.jpg"
                 );
+
+        assertThat(response.getProductInfo().getItemOptions())
+                .extracting(ItemOptionResponse::getOptionTypeName, ItemOptionResponse::getOptionValueName)
+                .containsExactlyInAnyOrder(tuple("색상", "RED"));
+
     }
 
     @Test
@@ -82,13 +91,21 @@ public class CartServiceUnitTest {
                 .thenReturn(Optional.of(cart));
 
         CartItemResponse response = cartService.addItem(1L, new CartItemRequest(1L, 10));
+
         assertThat(response)
-                .extracting(CartItemResponse::getProductId, CartItemResponse::getProductVariantId,
-                        CartItemResponse::getProductName, CartItemResponse::getThumbNailUrl,
-                        CartItemResponse::getPrice, CartItemResponse::getDiscountRate, CartItemResponse::getQuantity)
+                .extracting(CartItemResponse::getQuantity, CartItemResponse::isAvailable)
+                .containsExactlyInAnyOrder(10, true);
+
+        assertThat(response.getProductInfo())
+                .extracting(ProductInfo::getProductId, ProductInfo::getProductVariantId, ProductInfo::getProductName,
+                        ProductInfo::getPrice, ProductInfo::getDiscountRate, ProductInfo::getThumbnailUrl)
                 .containsExactlyInAnyOrder(
-                        1L, 1L, "상품1", "http://product1.jpg", 3000, 10, 10
+                        1L, 1L, "상품1", 3000, 10, "http://product1.jpg"
                 );
+
+        assertThat(response.getProductInfo().getItemOptions())
+                .extracting(ItemOptionResponse::getOptionTypeName, ItemOptionResponse::getOptionValueName)
+                .containsExactlyInAnyOrder(tuple("색상", "RED"));
     }
 
     @Test
@@ -107,12 +124,19 @@ public class CartServiceUnitTest {
         CartItemResponse response = cartService.addItem(1L, new CartItemRequest(1L, 5));
 
         assertThat(response)
-                .extracting(CartItemResponse::getProductId, CartItemResponse::getProductVariantId,
-                        CartItemResponse::getProductName, CartItemResponse::getThumbNailUrl,
-                        CartItemResponse::getPrice, CartItemResponse::getDiscountRate, CartItemResponse::getQuantity)
+                .extracting(CartItemResponse::getQuantity, CartItemResponse::isAvailable)
+                .containsExactlyInAnyOrder(15, true);
+
+        assertThat(response.getProductInfo())
+                .extracting(ProductInfo::getProductId, ProductInfo::getProductVariantId, ProductInfo::getProductName,
+                        ProductInfo::getPrice, ProductInfo::getDiscountRate, ProductInfo::getThumbnailUrl)
                 .containsExactlyInAnyOrder(
-                        1L, 1L, "상품1", "http://product1.jpg", 3000, 10, 15
+                        1L, 1L, "상품1", 3000, 10, "http://product1.jpg"
                 );
+
+        assertThat(response.getProductInfo().getItemOptions())
+                .extracting(ItemOptionResponse::getOptionTypeName, ItemOptionResponse::getOptionValueName)
+                .containsExactlyInAnyOrder(tuple("색상", "RED"));
     }
 
     @Test

@@ -6,6 +6,7 @@ import com.example.order_service.dto.request.CartItemRequest;
 import com.example.order_service.dto.response.CartItemResponse;
 import com.example.order_service.dto.response.CartResponse;
 import com.example.order_service.dto.response.ItemOptionResponse;
+import com.example.order_service.dto.response.ProductInfo;
 import com.example.order_service.exception.NoPermissionException;
 import com.example.order_service.exception.NotFoundException;
 import com.example.order_service.service.CartService;
@@ -56,8 +57,9 @@ class CartControllerTest {
     @Test
     @DisplayName("장바구니 아이템 추가 테스트-성공")
     void addCartItemTest_success() throws Exception {
-        CartItemResponse response = new CartItemResponse(1L, 1L, 1L, "상품1", "http:http//test.jpg",
-                List.of(new ItemOptionResponse("색상", "RED")), 3000, 10, 10);
+        ProductInfo productInfo = new ProductInfo(1L, 1L, "상품1", 3000, 10,
+                "http://product1.jpg", List.of(new ItemOptionResponse("색상", "RED")));
+        CartItemResponse response = new CartItemResponse(1L, productInfo, 10, true);
         when(cartService.addItem(anyLong(), any(CartItemRequest.class))).thenReturn(response);
 
         CartItemRequest request = new CartItemRequest(1L, 10);
@@ -103,8 +105,8 @@ class CartControllerTest {
     @Test
     @DisplayName("장바구니 목록 조회 테스트-성공")
     void getAllCartItemTest_success() throws Exception {
-        List<CartItemResponse> cartItemResponses = List.of(new CartItemResponse(1L, 1L, 1L, "상품1", "http://product.jpg", List.of(new ItemOptionResponse("색상", "RED")),
-                3000, 10, 2));
+        List<CartItemResponse> cartItemResponses = List.of(new CartItemResponse(1L, new ProductInfo(1L, 1L, "상품1", 3000, 10, "http://product1.jpg",
+                List.of(new ItemOptionResponse("색상", "RED"))), 2, true));
         CartResponse response = new CartResponse(cartItemResponses, 6000);
         when(cartService.getCartItemList(1L))
                 .thenReturn(response);

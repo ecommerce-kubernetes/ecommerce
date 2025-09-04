@@ -38,7 +38,7 @@ public class CartService{
         Carts cart = findCartOrCreate(userId);
         CartItems cartItem = cart.addItem(productResponse, request.getQuantity());
         cartItemsRepository.save(cartItem);
-        return new CartItemResponse(cartItem, productResponse);
+        return new CartItemResponse(cartItem, productResponse, true);
     }
 
     @Transactional(readOnly = true)
