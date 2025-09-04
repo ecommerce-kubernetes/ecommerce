@@ -1,7 +1,7 @@
 package com.example.userservice.service.kafka;
 
+import com.example.common.FailedEvent;
 import com.example.common.OrderCreatedEvent;
-import com.example.common.PaymentFailedEvent;
 import com.example.common.UserCacheDeductedEvent;
 import com.example.userservice.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +34,7 @@ public class UserEventListener {
                 userService.deductPoint(event.getUserId(), event.getReservedPointAmount());
             } catch (Exception e) {
                 log.error("포인트 차감 실패: userId={}, orderId={}, 이유={}", event.getUserId(), event.getOrderId(), e.getMessage());
-                kafkaTemplate.send("user.cache.failed", key, new PaymentFailedEvent(event.getOrderId(), e.getMessage()));
+                kafkaTemplate.send("user.cache.failed", key, new FailedEvent(event.getOrderId(), e.getMessage()));
                 log.info("send a success message to user.cache.failed");
             }
         }
@@ -61,7 +61,7 @@ public class UserEventListener {
                             event.getUserId(), event.getReservedPointAmount(), rollbackEx.getMessage());
                 }
             }
-            kafkaTemplate.send("user.cache.failed", key, new PaymentFailedEvent(event.getOrderId(), e.getMessage()));
+            kafkaTemplate.send("user.cache.failed", key, new FailedEvent(event.getOrderId(), e.getMessage()));
             log.info("send a success message to user.cache.failed");
         }
     }

@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/V1__create_users_table.sql")
+@RequestMapping("/users")
 @Slf4j
 public class UserController {
 
@@ -32,6 +32,8 @@ public class UserController {
         this.userService = userService;
         this.tokenService = tokenService;
     }
+
+    //마이페이지 조회
 
     //회원가입
     @PostMapping
@@ -367,7 +369,7 @@ public class UserController {
                 .httpOnly(true)
                 .secure(true)
                 .maxAge(0)
-                .sameSite("Strict")
+                .sameSite("None")
                 .build();
 
         response.setHeader("Set-Cookie", deleteCookie.toString());
