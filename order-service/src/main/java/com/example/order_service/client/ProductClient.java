@@ -3,6 +3,7 @@ package com.example.order_service.client;
 import com.example.order_service.dto.client.ProductRequestIdsDto;
 import com.example.order_service.dto.client.CompactProductResponseDto;
 import com.example.order_service.dto.client.ProductResponseDto;
+import com.example.order_service.service.client.dto.ProductResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -18,4 +19,7 @@ public interface ProductClient {
 
     @PostMapping("/products/lookup-by-ids")
     List<CompactProductResponseDto> getProductsByIdBatch(@RequestBody ProductRequestIdsDto productRequestIdsDto);
+
+    @GetMapping("/variants/{productVariantId}")
+    ProductResponse getProductVariant(@PathVariable("productVariantId") Long productVariantId);
 }

@@ -33,11 +33,12 @@ public class CartService{
     private final CartItemsRepository cartItemsRepository;
     private final MessageSourceUtil ms;
 
+    @Transactional
     public CartItemResponse addItem(Long userId, CartItemRequest request) {
         ProductResponse productResponse = productClientService.fetchProductByVariantId(request.getProductVariantId());
         Carts cart = findCartOrCreate(userId);
         CartItems cartItem = cart.addItem(productResponse, request.getQuantity());
-        cartsRepository.save(cart);
+        cartItemsRepository.save(cartItem);
         return new CartItemResponse(cartItem, productResponse);
     }
 
@@ -66,7 +67,7 @@ public class CartService{
 
     private Carts findCartOrCreate(Long userId){
         return cartsRepository.findByUserId(userId)
-                .orElseGet(() -> new Carts(userId));
+                .orElseGet(() -> cartsRepository.save(new Carts(userId)));
     }
 
 }

@@ -11,6 +11,12 @@ spring:
     openfeign:
       loadbalancer:
         enabled: false
+    discovery:
+      client:
+        simple:
+          instances:
+            product-service:
+              - uri: http://localhost:${wiremock.server.port}
   jpa:
     hibernate:
       ddl-auto: create-drop

@@ -1,6 +1,8 @@
 package com.example.order_service.service.client;
 
 import com.example.order_service.client.ProductClient;
+import com.example.order_service.common.MessagePath;
+import com.example.order_service.common.MessageSourceUtil;
 import com.example.order_service.dto.client.ProductRequestIdsDto;
 import com.example.order_service.dto.client.CompactProductResponseDto;
 import com.example.order_service.dto.client.ProductResponseDto;
@@ -15,7 +17,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.List;
+import static com.example.order_service.common.MessagePath.PRODUCT_VARIANT_NOT_FOUND;
 
 @Service
 @RequiredArgsConstructor
@@ -23,22 +25,14 @@ import java.util.List;
 public class ProductClientService {
 
     private final ProductClient productClient;
+    private final MessageSourceUtil ms;
 
     @CircuitBreaker(name = "productService", fallbackMethod = "getProductFallback")
-    public ProductResponseDto fetchProduct(Long productId){
-        return productClient.getProduct(productId);
+    public ProductResponse fetchProductByVariantId(Long productVariantId){
+        return productClient.getProductVariant(productVariantId);
     }
 
-    @CircuitBreaker(name = "productService", fallbackMethod = "getProductListFallback")
-    public List<CompactProductResponseDto> fetchProductBatch(ProductRequestIdsDto productRequestIdsDto){
-        return productClient.getProductsByIdBatch(productRequestIdsDto);
-    }
-
-    public ProductResponse fetchProductByVariantId(Long id){
-        return null;
-    }
-
-    public CompactProductResponseDto getProductFallback(Long productId, Throwable throwable){
+    public ProductResponse getProductFallback(Long productId, Throwable throwable){
         if(throwable instanceof CallNotPermittedException){
             throw new ResponseStatusException(
                     HttpStatus.SERVICE_UNAVAILABLE,
@@ -47,25 +41,7 @@ public class ProductClientService {
         }
         else if (throwable instanceof FeignException){
             if (((FeignException) throwable).status() == 404){
-                throw new NotFoundException("Not Found Product");
-            }
-        }
-        throw new ResponseStatusException(
-                HttpStatus.INTERNAL_SERVER_ERROR,
-                "Product Service Error"
-        );
-    }
-
-    public List<CompactProductResponseDto> getProductListFallback(ProductRequestIdsDto requestDto, Throwable throwable){
-        if(throwable instanceof CallNotPermittedException){
-            throw new ResponseStatusException(
-                    HttpStatus.SERVICE_UNAVAILABLE,
-                    "Product Service unavailable"
-            );
-        }
-        else if (throwable instanceof FeignException){
-            if (((FeignException) throwable).status() == 404){
-                throw new NotFoundException("Not Found Product");
+                throw new NotFoundException(ms.getMessage(PRODUCT_VARIANT_NOT_FOUND));
             }
         }
         throw new ResponseStatusException(

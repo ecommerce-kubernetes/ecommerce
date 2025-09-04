@@ -1,6 +1,5 @@
 package com.example.order_service.service.unit;
 
-import com.example.order_service.common.MessagePath;
 import com.example.order_service.common.MessageSourceUtil;
 import com.example.order_service.dto.request.CartItemRequest;
 import com.example.order_service.dto.response.CartItemResponse;
@@ -14,14 +13,12 @@ import com.example.order_service.repository.CartsRepository;
 import com.example.order_service.service.CartService;
 import com.example.order_service.service.client.ProductClientService;
 import com.example.order_service.service.client.dto.ProductResponse;
-import com.example.order_service.util.TestMessageUtil;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import wiremock.org.checkerframework.checker.units.qual.C;
 
 import java.util.List;
 import java.util.Optional;
@@ -29,6 +26,7 @@ import java.util.Optional;
 import static com.example.order_service.common.MessagePath.*;
 import static com.example.order_service.util.TestMessageUtil.getMessage;
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
@@ -57,6 +55,8 @@ public class CartServiceUnitTest {
                 .thenReturn(productResponse);
         when(cartsRepository.findByUserId(1L))
                 .thenReturn(Optional.empty());
+        when(cartsRepository.save(any(Carts.class)))
+                .thenReturn(new Carts(1L));
 
         CartItemResponse response = cartService.addItem(1L, new CartItemRequest(1L, 10));
 
