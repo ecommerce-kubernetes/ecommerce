@@ -1,11 +1,7 @@
 package com.example.order_service.service.client;
 
 import com.example.order_service.client.ProductClient;
-import com.example.order_service.common.MessagePath;
 import com.example.order_service.common.MessageSourceUtil;
-import com.example.order_service.dto.client.ProductRequestIdsDto;
-import com.example.order_service.dto.client.CompactProductResponseDto;
-import com.example.order_service.dto.client.ProductResponseDto;
 import com.example.order_service.exception.NotFoundException;
 import com.example.order_service.service.client.dto.ProductResponse;
 import feign.FeignException;
@@ -16,6 +12,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.util.List;
 
 import static com.example.order_service.common.MessagePath.PRODUCT_VARIANT_NOT_FOUND;
 
@@ -30,6 +28,10 @@ public class ProductClientService {
     @CircuitBreaker(name = "productService", fallbackMethod = "getProductFallback")
     public ProductResponse fetchProductByVariantId(Long productVariantId){
         return productClient.getProductVariant(productVariantId);
+    }
+
+    public List<ProductResponse> fetchProductByVariantIds(List<Long> productVariantIds){
+        return productClient.getProductVariantByIds(productVariantIds);
     }
 
     public ProductResponse getProductFallback(Long productId, Throwable throwable){

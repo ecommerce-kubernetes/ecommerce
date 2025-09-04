@@ -1,6 +1,5 @@
 package com.example.order_service.service;
 
-import com.example.order_service.common.MessagePath;
 import com.example.order_service.common.MessageSourceUtil;
 import com.example.order_service.dto.request.CartItemRequest;
 import com.example.order_service.dto.response.CartItemResponse;
@@ -18,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 import static com.example.order_service.common.MessagePath.CART_ITEM_NOT_FOUND;
@@ -33,7 +33,6 @@ public class CartService{
     private final CartItemsRepository cartItemsRepository;
     private final MessageSourceUtil ms;
 
-    @Transactional
     public CartItemResponse addItem(Long userId, CartItemRequest request) {
         ProductResponse productResponse = productClientService.fetchProductByVariantId(request.getProductVariantId());
         Carts cart = findCartOrCreate(userId);
@@ -56,7 +55,7 @@ public class CartService{
     }
 
     public void clearAllCartItems(Long userId) {
-        Optional<Carts> cart = cartsRepository.findByUserId(userId);
+        Optional<Carts> cart = cartsRepository.findWithItemsByUserId(userId);
         cart.ifPresent(Carts::clearItems);
     }
 
@@ -66,7 +65,7 @@ public class CartService{
     }
 
     private Carts findCartOrCreate(Long userId){
-        return cartsRepository.findByUserId(userId)
+        return cartsRepository.findWithItemsByUserId(userId)
                 .orElseGet(() -> cartsRepository.save(new Carts(userId)));
     }
 

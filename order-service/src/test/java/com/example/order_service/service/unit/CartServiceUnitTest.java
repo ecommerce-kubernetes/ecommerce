@@ -53,7 +53,7 @@ public class CartServiceUnitTest {
                 List.of(new ItemOptionResponse("색상", "RED")));
         when(productClientService.fetchProductByVariantId(1L))
                 .thenReturn(productResponse);
-        when(cartsRepository.findByUserId(1L))
+        when(cartsRepository.findWithItemsByUserId(1L))
                 .thenReturn(Optional.empty());
         when(cartsRepository.save(any(Carts.class)))
                 .thenReturn(new Carts(1L));
@@ -78,7 +78,7 @@ public class CartServiceUnitTest {
         Carts cart = new Carts(1L);
         when(productClientService.fetchProductByVariantId(1L))
                 .thenReturn(productResponse);
-        when(cartsRepository.findByUserId(1L))
+        when(cartsRepository.findWithItemsByUserId(1L))
                 .thenReturn(Optional.of(cart));
 
         CartItemResponse response = cartService.addItem(1L, new CartItemRequest(1L, 10));
@@ -101,7 +101,7 @@ public class CartServiceUnitTest {
         cart.addCartItem(cartItem);
         when(productClientService.fetchProductByVariantId(1L))
                 .thenReturn(productResponse);
-        when(cartsRepository.findByUserId(1L))
+        when(cartsRepository.findWithItemsByUserId(1L))
                 .thenReturn(Optional.of(cart));
 
         CartItemResponse response = cartService.addItem(1L, new CartItemRequest(1L, 5));
@@ -174,7 +174,7 @@ public class CartServiceUnitTest {
         Carts cart = new Carts(1L);
         cart.addCartItem(new CartItems(1L, 10));
 
-        when(cartsRepository.findByUserId(1L))
+        when(cartsRepository.findWithItemsByUserId(1L))
                 .thenReturn(Optional.of(cart));
 
         cartService.clearAllCartItems(1L);

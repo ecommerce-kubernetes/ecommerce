@@ -194,7 +194,7 @@ class CartServiceTest {
         cartService.deleteCartItemById(1L, cartItem.getId());
         em.flush(); em.clear();
 
-        Carts cart = cartsRepository.findByUserId(1L).get();
+        Carts cart = cartsRepository.findWithItemsByUserId(1L).get();
 
         assertThat(cart.getCartItems()).hasSize(0);
     }
@@ -224,7 +224,7 @@ class CartServiceTest {
         cartService.clearAllCartItems(1L);
         em.flush(); em.clear();
 
-        Carts findCart = cartsRepository.findByUserId(1L).get();
+        Carts findCart = cartsRepository.findWithItemsByUserId(1L).get();
 
         assertThat(findCart.getCartItems()).hasSize(0);
     }
