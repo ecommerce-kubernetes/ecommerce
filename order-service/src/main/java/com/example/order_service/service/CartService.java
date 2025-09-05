@@ -18,7 +18,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static com.example.order_service.common.MessagePath.CART_ITEM_NOT_FOUND;
 import static com.example.order_service.common.MessagePath.CART_ITEM_NO_PERMISSION;
@@ -43,7 +46,21 @@ public class CartService{
 
     @Transactional(readOnly = true)
     public CartResponse getCartItemList(Long userId) {
-        return null;
+        Optional<Carts> optionalCart = cartsRepository.findWithItemsByUserId(userId);
+        if(optionalCart.isEmpty()){
+            return new CartResponse(List.of(), 0);
+        }
+        Carts cart = optionalCart.get();
+        Map<Long, ProductResponse> productResponseMap = fetchProductResponseToMap(cart.getCartItems());
+        List<CartItemResponse> cartItemResponses = cart.getCartItems().stream().map(item -> {
+            ProductResponse productResponse = productResponseMap.get(item.getProductVariantId());
+            boolean isAvailable = (productResponse != null);
+            return new CartItemResponse(item, productResponse, isAvailable);
+        }).toList();
+
+        long sum = cartItemResponses.stream()
+                .mapToLong(item -> item.getProductInfo().calcDiscountPrice() * item.getQuantity()).sum();
+        return new CartResponse(cartItemResponses, sum);
     }
 
     public void deleteCartItemById(Long userId, Long cartItemId) {
@@ -67,6 +84,12 @@ public class CartService{
     private Carts findCartOrCreate(Long userId){
         return cartsRepository.findWithItemsByUserId(userId)
                 .orElseGet(() -> cartsRepository.save(new Carts(userId)));
+    }
+
+    private Map<Long, ProductResponse> fetchProductResponseToMap(List<CartItems> items){
+        List<Long> ids = items.stream().map(CartItems::getProductVariantId).toList();
+        return productClientService.fetchProductByVariantIds(ids)
+                .stream().collect(Collectors.toMap(ProductResponse::getProductVariantId, Function.identity()));
     }
 
 }

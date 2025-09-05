@@ -3,6 +3,7 @@ package com.example.order_service.service.unit;
 import com.example.order_service.common.MessageSourceUtil;
 import com.example.order_service.dto.request.CartItemRequest;
 import com.example.order_service.dto.response.CartItemResponse;
+import com.example.order_service.dto.response.CartResponse;
 import com.example.order_service.dto.response.ItemOptionResponse;
 import com.example.order_service.dto.response.ProductInfo;
 import com.example.order_service.entity.CartItems;
@@ -148,6 +149,59 @@ public class CartServiceUnitTest {
         assertThatThrownBy(() -> cartService.addItem(1L, new CartItemRequest(1L, 3)))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage(getMessage(PRODUCT_VARIANT_NOT_FOUND));
+    }
+
+    @Test
+    @DisplayName("장바구니 목록 조회 테스트-장바구니 상품이 존재하는 경우")
+    void getCartItemListTest_unit_success_existItem(){
+        Carts cart = new Carts(1L);
+        cart.addCartItem(new CartItems(1L, 2));
+        cart.addCartItem(new CartItems(2L, 3));
+
+        when(cartsRepository.findWithItemsByUserId(1L))
+                .thenReturn(Optional.of(cart));
+        when(productClientService.fetchProductByVariantIds(List.of(1L,2L)))
+                .thenReturn(
+                        List.of(
+                                new ProductResponse(1L, 1L, "상품1",
+                                        3000, 10, "http://product1.jpg",
+                                        List.of(new ItemOptionResponse("색상", "RED"))),
+                                new ProductResponse(2L, 2L, "상품2", 5000, 5, "http://product2.jpg",
+                                        List.of(new ItemOptionResponse("사이즈", "XL")))
+                        )
+                );
+        CartResponse response = cartService.getCartItemList(1L);
+
+        assertThat(response.getCartTotalPrice()).isEqualTo(19650);
+        assertThat(response.getCartItems())
+                .extracting(CartItemResponse::getQuantity, CartItemResponse::isAvailable)
+                .containsExactlyInAnyOrder(
+                        tuple(2, true),
+                        tuple(3, true)
+                );
+    }
+
+    @Test
+    @DisplayName("장바구니 목록 조회 테스트-장바구니에 한번도 상품을 추가한적 없는 경우")
+    void getCartItemListTest_unit_success_noCart(){
+        when(cartsRepository.findWithItemsByUserId(1L))
+                .thenReturn(Optional.empty());
+
+        CartResponse response = cartService.getCartItemList(1L);
+        assertThat(response.getCartItems()).isEmpty();
+        assertThat(response.getCartTotalPrice()).isEqualTo(0);
+    }
+
+    @Test
+    @DisplayName("장바구니 목록 조회 테스트-장바구니에 상품이 없는경우")
+    void getCartItemListTest_unit_success_noItem(){
+        Carts cart = new Carts(1L);
+        when(cartsRepository.findWithItemsByUserId(1L))
+                .thenReturn(Optional.of(cart));
+
+        CartResponse response = cartService.getCartItemList(1L);
+        assertThat(response.getCartItems()).isEmpty();
+        assertThat(response.getCartTotalPrice()).isEqualTo(0);
     }
 
 

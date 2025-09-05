@@ -13,5 +13,5 @@ import java.util.List;
 @NoArgsConstructor
 public class CartResponse {
     private List<CartItemResponse> cartItems;
-    private int cartTotalPrice;
+    private long cartTotalPrice;
 }

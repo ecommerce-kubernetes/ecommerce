@@ -15,4 +15,8 @@ public class ProductInfo {
     private int discountRate;
     private String thumbnailUrl;
     private List<ItemOptionResponse> itemOptions;
+
+    public long calcDiscountPrice(){
+        return Math.round(price * (1 - discountRate / 100.0));
+    }
 }
