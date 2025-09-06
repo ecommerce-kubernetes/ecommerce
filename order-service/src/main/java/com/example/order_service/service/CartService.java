@@ -41,7 +41,7 @@ public class CartService{
         Carts cart = findCartOrCreate(userId);
         CartItems cartItem = cart.addItem(productResponse, request.getQuantity());
         cartItemsRepository.save(cartItem);
-        return new CartItemResponse(cartItem, productResponse, true);
+        return new CartItemResponse(cartItem, productResponse);
     }
 
     @Transactional(readOnly = true)
@@ -52,15 +52,16 @@ public class CartService{
         }
         Carts cart = optionalCart.get();
         Map<Long, ProductResponse> productResponseMap = fetchProductResponseToMap(cart.getCartItems());
-        List<CartItemResponse> cartItemResponses = cart.getCartItems().stream().map(item -> {
-            ProductResponse productResponse = productResponseMap.get(item.getProductVariantId());
-            boolean isAvailable = (productResponse != null);
-            return new CartItemResponse(item, productResponse, isAvailable);
-        }).toList();
 
-        long sum = cartItemResponses.stream()
-                .mapToLong(item -> item.getProductInfo().calcDiscountPrice() * item.getQuantity()).sum();
-        return new CartResponse(cartItemResponses, sum);
+        List<CartItemResponse> cartItemResponses = cart.getCartItems().stream()
+                .map(item -> new CartItemResponse(item, productResponseMap.get(item.getProductVariantId()))).toList();
+        return new CartResponse(cartItemResponses);
+    }
+
+    private Map<Long, ProductResponse> fetchProductResponseToMap(List<CartItems> items){
+        List<Long> ids = items.stream().map(CartItems::getProductVariantId).toList();
+        return productClientService.fetchProductByVariantIds(ids)
+                .stream().collect(Collectors.toMap(ProductResponse::getProductVariantId, Function.identity()));
     }
 
     public void deleteCartItemById(Long userId, Long cartItemId) {
@@ -84,12 +85,6 @@ public class CartService{
     private Carts findCartOrCreate(Long userId){
         return cartsRepository.findWithItemsByUserId(userId)
                 .orElseGet(() -> cartsRepository.save(new Carts(userId)));
-    }
-
-    private Map<Long, ProductResponse> fetchProductResponseToMap(List<CartItems> items){
-        List<Long> ids = items.stream().map(CartItems::getProductVariantId).toList();
-        return productClientService.fetchProductByVariantIds(ids)
-                .stream().collect(Collectors.toMap(ProductResponse::getProductVariantId, Function.identity()));
     }
 
 }

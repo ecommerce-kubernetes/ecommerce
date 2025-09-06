@@ -14,4 +14,15 @@ import java.util.List;
 public class CartResponse {
     private List<CartItemResponse> cartItems;
     private long cartTotalPrice;
+
+    public CartResponse(List<CartItemResponse> cartItems){
+        this.cartItems = cartItems;
+        this.cartTotalPrice = calculateTotalPrice();
+    }
+
+    private long calculateTotalPrice(){
+        return cartItems.stream()
+                .mapToLong(CartItemResponse::getItemTotalPrice)
+                .sum();
+    }
 }

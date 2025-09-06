@@ -19,14 +19,15 @@ public class CartItemResponse {
     private int quantity;
     private boolean isAvailable;
 
-    public CartItemResponse(CartItems cartItem, ProductResponse response, boolean isAvailable){
+    public CartItemResponse(CartItems cartItem, ProductResponse response){
         this.id = cartItem.getId();
-        this.productInfo = createProductInfo(response);
         this.quantity = cartItem.getQuantity();
-        this.isAvailable = isAvailable;
+        this.isAvailable = (response != null);
+        this.productInfo = isAvailable ? createProductInfo(response) : null;
     }
 
     private ProductInfo createProductInfo(ProductResponse response){
+        if(response == null) return null;
         return new ProductInfo(response.getProductId(),
                 response.getProductVariantId(),
                 response.getProductName(),
@@ -34,5 +35,12 @@ public class CartItemResponse {
                 response.getDiscountRate(),
                 response.getThumbnailUrl(),
                 response.getItemOptions());
+    }
+
+    public long getItemTotalPrice() {
+        if(!isAvailable || productInfo == null){
+            return 0;
+        }
+        return productInfo.calcDiscountPrice() * quantity;
     }
 }

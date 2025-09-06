@@ -179,6 +179,53 @@ public class CartServiceUnitTest {
                         tuple(2, true),
                         tuple(3, true)
                 );
+
+        assertThat(response.getCartItems().get(0).getProductInfo())
+                .extracting(ProductInfo::getProductId, ProductInfo::getProductVariantId, ProductInfo::getProductName,
+                        ProductInfo::getPrice, ProductInfo::getDiscountRate, ProductInfo::getThumbnailUrl)
+                .containsExactlyInAnyOrder(
+                        1L, 1L, "상품1", 3000, 10, "http://product1.jpg"
+                );
+
+        assertThat(response.getCartItems().get(1).getProductInfo())
+                .extracting(ProductInfo::getProductId, ProductInfo::getProductVariantId, ProductInfo::getProductName,
+                        ProductInfo::getPrice, ProductInfo::getDiscountRate, ProductInfo::getThumbnailUrl)
+                .containsExactlyInAnyOrder(
+                        2L, 2L, "상품2", 5000, 5, "http://product2.jpg"
+                );
+    }
+
+    @Test
+    @DisplayName("장바구니 목록 조회 테스트-장바구니 상품중 삭제된 상품이 있는 경우")
+    void getCartItemListTest_unit_success_deleted_product(){
+        Carts cart = new Carts(1L);
+        cart.addCartItem(new CartItems(1L, 2));
+        cart.addCartItem(new CartItems(2L, 3));
+
+        when(cartsRepository.findWithItemsByUserId(1L))
+                .thenReturn(Optional.of(cart));
+        when(productClientService.fetchProductByVariantIds(List.of(1L,2L)))
+                .thenReturn(List.of(new ProductResponse(1L, 1L, "상품1",
+                                        3000, 10, "http://product1.jpg",
+                                List.of(new ItemOptionResponse("색상", "RED"))))
+                );
+        CartResponse response = cartService.getCartItemList(1L);
+        assertThat(response.getCartTotalPrice()).isEqualTo(5400);
+
+        assertThat(response.getCartItems().get(0).getProductInfo())
+                .extracting(ProductInfo::getProductId, ProductInfo::getProductVariantId, ProductInfo::getProductName,
+                        ProductInfo::getPrice, ProductInfo::getDiscountRate, ProductInfo::getThumbnailUrl)
+                .containsExactlyInAnyOrder(
+                        1L, 1L, "상품1", 3000, 10, "http://product1.jpg"
+                );
+
+        assertThat(response.getCartItems().get(1).getProductInfo()).isNull();
+        assertThat(response.getCartItems())
+                .extracting(CartItemResponse::getQuantity, CartItemResponse::isAvailable)
+                .containsExactlyInAnyOrder(
+                        tuple(2, true),
+                        tuple(3, false)
+                );
     }
 
     @Test
