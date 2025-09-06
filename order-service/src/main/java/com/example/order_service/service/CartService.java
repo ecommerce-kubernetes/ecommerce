@@ -50,7 +50,13 @@ public class CartService{
         if(optionalCart.isEmpty()){
             return new CartResponse(List.of(), 0);
         }
+
         Carts cart = optionalCart.get();
+
+        if(cart.getCartItems().isEmpty()){
+            return new CartResponse(List.of(), 0);
+        }
+
         Map<Long, ProductResponse> productResponseMap = fetchProductResponseToMap(cart.getCartItems());
 
         List<CartItemResponse> cartItemResponses = cart.getCartItems().stream()
