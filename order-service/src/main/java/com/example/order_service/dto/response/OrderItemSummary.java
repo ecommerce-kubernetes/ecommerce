@@ -9,5 +9,4 @@ import java.util.List;
 @Getter
 public class OrderItemSummary {
     private List<OrderItemResponse> items;
-    private int itemFinalPrice;
 }

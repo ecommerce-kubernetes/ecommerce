@@ -20,7 +20,9 @@ public class OrderItems extends BaseEntity {
     private Orders order;
 
     private Long productId;
+    private Long productVariantId;
     private String productName;
+    private String optionJson;
     private int price;
     private int quantity;
     private String mainImgUrl;
@@ -33,5 +35,14 @@ public class OrderItems extends BaseEntity {
         this.quantity = quantity;
         this.mainImgUrl = mainImgUrl;
         order.getOrderItems().add(this);
+    }
+
+    public OrderItems(Long productVariantId, int quantity){
+        this.productVariantId = productVariantId;
+        this.quantity = quantity;
+    }
+
+    protected void setOrder(Orders order){
+        this.order = order;
     }
 }

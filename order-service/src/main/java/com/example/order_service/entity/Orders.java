@@ -35,4 +35,21 @@ public class Orders extends BaseEntity {
         this.deliveryAddress = deliveryAddress;
     }
 
+    public Orders(Long userId, String status, String deliveryAddress){
+        this.userId = userId;
+        this.status = status;
+        this.deliveryAddress = deliveryAddress;
+    }
+
+    public void addOrderItems(List<OrderItems> orderItems){
+        for (OrderItems orderItem : orderItems) {
+            addOrderItem(orderItem);
+        }
+    }
+
+    public void addOrderItem(OrderItems orderItem){
+        this.orderItems.add(orderItem);
+        orderItem.setOrder(this);
+    }
+
 }

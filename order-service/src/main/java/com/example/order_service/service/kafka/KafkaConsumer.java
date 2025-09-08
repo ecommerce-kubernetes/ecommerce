@@ -1,7 +1,5 @@
 package com.example.order_service.service.kafka;
 
-import com.example.order_service.dto.KafkaDeletedProductDto;
-import com.example.order_service.dto.KafkaOrderStatusDto;
 import com.example.order_service.service.CartService;
 import com.example.order_service.service.OrderService;
 import com.fasterxml.jackson.core.JacksonException;
@@ -23,33 +21,11 @@ public class KafkaConsumer {
 
     @KafkaListener(topics = "change_orders", groupId = "orders")
     public void changeOrdersListen(ConsumerRecord<String, Object> record){
-        KafkaOrderStatusDto kafkaOrderStatusDto;
-        try{
-            kafkaOrderStatusDto = mapper.readValue(record.value().toString(), KafkaOrderStatusDto.class);
-        } catch (JacksonException e){
-            throw new RuntimeException(e);
-        }
 
-        String status = kafkaOrderStatusDto.getStatus().toUpperCase();
-        String orderStatus;
-        if(status.equalsIgnoreCase("SUCCESS")){
-            orderStatus = "COMPLETED";
-        }
-        else{
-            orderStatus = "CANCELLED";
-        }
-
-        orderService.changeOrderStatus(kafkaOrderStatusDto.getOrderId(), orderStatus);
     }
 
     @KafkaListener(topics = "delete_product", groupId = "orders")
     public void deleteCartItemForDeletedProduct(ConsumerRecord<String, Object> record){
-        KafkaDeletedProductDto kafkaDeletedProductDto;
-        try{
-            kafkaDeletedProductDto = mapper.readValue(record.value().toString(), KafkaDeletedProductDto.class);
-        } catch (JacksonException e){
-            throw new RuntimeException(e);
-        }
-
+        
     }
 }

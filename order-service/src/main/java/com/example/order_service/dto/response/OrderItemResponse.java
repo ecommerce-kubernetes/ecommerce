@@ -14,9 +14,9 @@ import java.util.List;
 public class OrderItemResponse {
     private Long productId;
     private String productName;
-    private int quantity;
-    private int price;
-    private int discountRate;
-    private List<ItemOptionResponse> options;
     private String thumbNailUrl;
+    private int quantity;
+    private UnitPriceInfo unitPriceInfo;
+    private int totalPrice;
+    private List<ItemOptionResponse> options;
 }

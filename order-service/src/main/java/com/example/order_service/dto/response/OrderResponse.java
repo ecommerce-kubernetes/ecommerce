@@ -16,9 +16,5 @@ public class OrderResponse {
     private Long id;
     private String status;
     private LocalDateTime createAt;
-    private String deliveryAddress;
-    private OrderSummary orderSummary;
-    private PaymentDetails paymentDetails;
-    private CouponDetails couponDetails;
-    private OrderItemSummary orderItemSummary;
+    private List<OrderItemResponse> orderItems;
 }

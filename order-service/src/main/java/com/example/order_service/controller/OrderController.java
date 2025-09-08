@@ -6,6 +6,7 @@ import com.example.order_service.controller.util.specification.annotation.NotFou
 import com.example.order_service.controller.util.validator.PageableValidator;
 import com.example.order_service.controller.util.validator.PageableValidatorFactory;
 import com.example.order_service.dto.request.OrderRequest;
+import com.example.order_service.dto.response.CreateOrderResponse;
 import com.example.order_service.dto.response.OrderResponse;
 import com.example.order_service.dto.response.PageDto;
 import com.example.order_service.entity.DomainType;
@@ -31,11 +32,11 @@ public class OrderController {
     private final PageableValidatorFactory factory;
 
     @Operation(summary = "주문 생성")
-    @NotFoundApiResponse @BadRequestApiResponse @ConflictApiResponse
+    @BadRequestApiResponse
     @PostMapping
-    public ResponseEntity<OrderResponse> createOrder(@RequestBody @Validated OrderRequest orderRequest,
-                                                     @RequestHeader("X-User-Id") Long userId){
-        OrderResponse orderResponse = orderService.saveOrder(userId, orderRequest);
+    public ResponseEntity<CreateOrderResponse> createOrder(@RequestBody @Validated OrderRequest orderRequest,
+                                                           @RequestHeader("X-User-Id") Long userId){
+        CreateOrderResponse orderResponse = orderService.saveOrder(userId, orderRequest);
         return ResponseEntity.status(HttpStatus.SC_CREATED).body(orderResponse);
     }
 
