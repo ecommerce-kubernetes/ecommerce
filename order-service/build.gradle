@@ -20,6 +20,7 @@ configurations {
 }
 
 repositories {
+    maven { url = uri("https://jitpack.io") }
 	mavenCentral()
 }
 
@@ -53,6 +54,9 @@ dependencies {
 	testImplementation 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.cloud:spring-cloud-contract-wiremock'
+
+    //kafka module
+    implementation 'com.github.ecommerce-kubernetes:common-dto:2.0.2'
 
 	testImplementation 'com.h2database:h2'
 

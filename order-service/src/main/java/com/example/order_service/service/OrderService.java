@@ -1,14 +1,14 @@
 package com.example.order_service.service;
 
+import com.example.common.OrderCreatedEvent;
+import com.example.common.OrderProduct;
 import com.example.order_service.dto.request.OrderRequest;
 import com.example.order_service.dto.response.CreateOrderResponse;
 import com.example.order_service.dto.response.OrderResponse;
 import com.example.order_service.dto.response.PageDto;
 import com.example.order_service.entity.OrderItems;
 import com.example.order_service.entity.Orders;
-import com.example.order_service.exception.NotFoundException;
 import com.example.order_service.repository.OrdersRepository;
-import com.example.order_service.service.client.ProductClientService;
 import com.example.order_service.service.kafka.KafkaProducer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +16,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -24,7 +25,7 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class OrderService {
 
-    private final ProductClientService productClientService;
+    private static final String ORDER_CREATED_TOPIC = "order.created";
     private final KafkaProducer kafkaProducer;
     private final OrdersRepository ordersRepository;
 
@@ -36,19 +37,36 @@ public class OrderService {
         order.addOrderItems(orderItems);
         Orders save = ordersRepository.save(order);
 
-        //TODO 카프카 토픽 메시지 게시
-        return new CreateOrderResponse(save, "http://test.com/1/subscribe");
+        OrderCreatedEvent orderEvent = createOrderEvent(save, request);
+        kafkaProducer.sendMessage(ORDER_CREATED_TOPIC, orderEvent);
+        String url = buildSubscribeUrl(save.getId());
+        return new CreateOrderResponse(save, url);
     }
 
     public PageDto<OrderResponse> getOrderList(Pageable pageable, Long userId, String year, String keyword) {
         return null;
     }
 
-    @Transactional
-    public void changeOrderStatus(Long orderId, String status) {
-        Orders order = ordersRepository.findById(orderId)
-                .orElseThrow(() -> new NotFoundException("Not Found Order"));
-        order.setStatus(status);
+    private OrderCreatedEvent createOrderEvent(Orders order, OrderRequest request){
+        List<OrderProduct> orderProducts = order.getOrderItems().stream().map(oi ->
+                        new OrderProduct(oi.getProductVariantId(), oi.getQuantity()))
+                .toList();
+        int useReserve = request.getUseToReserve() != null ? request.getUseToReserve() : 0;
+
+        return new OrderCreatedEvent(
+                order.getId(),
+                order.getUserId(),
+                request.getCouponId(),
+                orderProducts,
+                (request.getUseToReserve() != null && request.getUseToReserve() !=0),
+                useReserve,
+                request.getUseToCash(),
+                request.getUseToCash() + useReserve
+        );
+    }
+
+    private String buildSubscribeUrl(Long orderId){
+        return "http://test.com/" + orderId + "/subscribe";
     }
 
 }
