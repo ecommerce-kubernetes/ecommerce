@@ -1,5 +1,7 @@
 package com.example.order_service.service.unit;
 
+import com.example.common.OrderCreatedEvent;
+import com.example.common.OrderProduct;
 import com.example.order_service.dto.request.OrderItemRequest;
 import com.example.order_service.dto.request.OrderRequest;
 import com.example.order_service.dto.response.CreateOrderResponse;
@@ -11,6 +13,7 @@ import com.example.order_service.service.kafka.KafkaProducer;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -20,8 +23,9 @@ import org.springframework.test.util.ReflectionTestUtils;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class OrderServiceUnitTest {
@@ -32,6 +36,7 @@ public class OrderServiceUnitTest {
     @Mock
     KafkaProducer kafkaProducer;
 
+    private static final String ORDER_CREATED_TOPIC = "order.created";
     @Test
     @DisplayName("주문 생성 테스트")
     void saveOrderTest(){
@@ -47,6 +52,17 @@ public class OrderServiceUnitTest {
                 .extracting(CreateOrderResponse::getOrderId, CreateOrderResponse::getSubscribeUrl)
                 .containsExactlyInAnyOrder(
                         1L, "http://test.com/" + 1L + "/subscribe"
+                );
+
+        ArgumentCaptor<OrderCreatedEvent> eventCaptor = ArgumentCaptor.forClass(OrderCreatedEvent.class);
+        verify(kafkaProducer, times(1)).sendMessage(eq(ORDER_CREATED_TOPIC), eventCaptor.capture());
+        OrderCreatedEvent sent = eventCaptor.getValue();
+
+        assertThat(sent.getOrderId()).isEqualTo(1L);
+        assertThat(sent.getOrderProductList())
+                .extracting(OrderProduct::getProductVariantId, OrderProduct::getStock)
+                .containsExactlyInAnyOrder(
+                        tuple(1L, 2)
                 );
     }
 }

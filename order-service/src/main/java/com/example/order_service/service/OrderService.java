@@ -36,7 +36,6 @@ public class OrderService {
                 .toList();
         order.addOrderItems(orderItems);
         Orders save = ordersRepository.save(order);
-
         OrderCreatedEvent orderEvent = createOrderEvent(save, request);
         kafkaProducer.sendMessage(ORDER_CREATED_TOPIC, orderEvent);
         String url = buildSubscribeUrl(save.getId());
