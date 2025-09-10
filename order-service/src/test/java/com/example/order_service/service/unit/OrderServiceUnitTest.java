@@ -10,14 +10,17 @@ import com.example.order_service.entity.Orders;
 import com.example.order_service.repository.OrdersRepository;
 import com.example.order_service.service.OrderService;
 import com.example.order_service.service.SagaManager;
+import com.example.order_service.service.event.PendingOrderCreatedEvent;
 import com.example.order_service.service.kafka.KafkaProducer;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.List;
@@ -33,6 +36,11 @@ public class OrderServiceUnitTest {
     OrderService orderService;
     @Mock
     OrdersRepository ordersRepository;
+    @Mock
+    ApplicationEventPublisher eventPublisher;
+
+    @Captor
+    ArgumentCaptor<PendingOrderCreatedEvent> eventArgumentCaptor;
 
 
     @Test
@@ -50,6 +58,18 @@ public class OrderServiceUnitTest {
                 .extracting(CreateOrderResponse::getOrderId, CreateOrderResponse::getSubscribeUrl)
                 .containsExactlyInAnyOrder(
                         1L, "http://test.com/" + 1L + "/subscribe"
+                );
+
+        verify(eventPublisher, times(1)).publishEvent(eventArgumentCaptor.capture());
+        PendingOrderCreatedEvent value = eventArgumentCaptor.getValue();
+
+        assertThat(value.getOrderId()).isEqualTo(1L);
+        assertThat(value.getUserId()).isEqualTo(1L);
+        assertThat(value.getStatus()).isEqualTo("PENDING");
+        assertThat(value.getOrderProducts())
+                .extracting(OrderProduct::getProductVariantId, OrderProduct::getStock)
+                .containsExactlyInAnyOrder(
+                        tuple(1L, 2)
                 );
     }
 }
