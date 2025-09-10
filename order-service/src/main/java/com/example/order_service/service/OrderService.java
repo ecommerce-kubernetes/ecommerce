@@ -9,9 +9,10 @@ import com.example.order_service.dto.response.PageDto;
 import com.example.order_service.entity.OrderItems;
 import com.example.order_service.entity.Orders;
 import com.example.order_service.repository.OrdersRepository;
-import com.example.order_service.service.kafka.KafkaProducer;
+import com.example.order_service.service.event.PendingOrderCreatedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,9 +25,7 @@ import java.util.List;
 @Slf4j
 @Transactional(readOnly = true)
 public class OrderService {
-
-    private static final String ORDER_CREATED_TOPIC = "order.created";
-    private final KafkaProducer kafkaProducer;
+    private final ApplicationEventPublisher eventPublisher;
     private final OrdersRepository ordersRepository;
 
     @Transactional
@@ -36,32 +35,13 @@ public class OrderService {
                 .toList();
         order.addOrderItems(orderItems);
         Orders save = ordersRepository.save(order);
-        OrderCreatedEvent orderEvent = createOrderEvent(save, request);
-        kafkaProducer.sendMessage(ORDER_CREATED_TOPIC, orderEvent);
         String url = buildSubscribeUrl(save.getId());
+        eventPublisher.publishEvent(new PendingOrderCreatedEvent(this, save, request));
         return new CreateOrderResponse(save, url);
     }
 
     public PageDto<OrderResponse> getOrderList(Pageable pageable, Long userId, String year, String keyword) {
         return null;
-    }
-
-    private OrderCreatedEvent createOrderEvent(Orders order, OrderRequest request){
-        List<OrderProduct> orderProducts = order.getOrderItems().stream().map(oi ->
-                        new OrderProduct(oi.getProductVariantId(), oi.getQuantity()))
-                .toList();
-        int useReserve = request.getUseToReserve() != null ? request.getUseToReserve() : 0;
-
-        return new OrderCreatedEvent(
-                order.getId(),
-                order.getUserId(),
-                request.getCouponId(),
-                orderProducts,
-                (request.getUseToReserve() != null && request.getUseToReserve() !=0),
-                useReserve,
-                request.getUseToCash(),
-                request.getUseToCash() + useReserve
-        );
     }
 
     private String buildSubscribeUrl(Long orderId){
