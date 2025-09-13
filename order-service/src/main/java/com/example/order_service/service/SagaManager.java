@@ -5,6 +5,7 @@ import com.example.order_service.dto.request.OrderRequest;
 import com.example.order_service.service.event.PendingOrderCreatedEvent;
 import com.example.order_service.service.kafka.KafkaProducer;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
@@ -16,6 +17,7 @@ import java.util.concurrent.TimeUnit;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class SagaManager {
     private final static String ORDER_CREATED_TOPIC = "order.created";
     private final KafkaProducer kafkaProducer;
@@ -34,6 +36,8 @@ public class SagaManager {
         String sagaKey = "saga:order:" + event.getOrderId();
 
         Map<String, Object> initialSagaState = new HashMap<>();
+
+        log.info("status === {}", event.getStatus());
         initialSagaState.put("status", event.getStatus());
         initialSagaState.put("createdAt", event.getCreatedAt().toString());
         redisTemplate.opsForHash().putAll(sagaKey, initialSagaState);
