@@ -17,6 +17,10 @@ spring:
           instances:
             product-service:
               - uri: http://localhost:${wiremock.server.port}
+  data:
+    redis:
+      host: testhost
+      port: 9123
   jpa:
     hibernate:
       ddl-auto: create-drop
