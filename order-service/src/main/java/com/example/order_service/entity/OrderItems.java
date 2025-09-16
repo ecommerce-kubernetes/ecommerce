@@ -40,20 +40,6 @@ public class OrderItems extends BaseEntity {
         this.quantity = quantity;
     }
 
-    public void setOrderItemInfo(List<SuccessOrderItemDto> itemsData){
-        SuccessOrderItemDto itemDto = itemsData.stream().filter(item -> item.getProductVariantId().equals(this.productVariantId))
-                .findFirst().get();
-
-        this.productId = itemDto.getProductId();
-        this.productName = itemDto.getProductName();
-        this.optionJson = itemDto.getOptionJson();
-        this.originPrice = itemDto.getOriginPrice();
-        this.discountRate = itemDto.getDiscountRate();
-        this.discountedPrice = itemDto.getDiscountedPrice();
-        this.finalPrice = itemDto.getFinalPrice();
-        this.thumbnail = itemDto.getThumbnail();
-    }
-
     protected void setOrder(Orders order){
         this.order = order;
     }

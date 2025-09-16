@@ -22,11 +22,11 @@ public class Orders extends BaseEntity {
     @Setter
     private String status;
     private String deliveryAddress;
-    private long originPrice;
-    private long prodDiscount;
-    private long couponDiscount;
-    private long reserveDiscount;
-    private long payment;
+    private Long originPrice;
+    private Long prodDiscount;
+    private Long couponDiscount;
+    private Long reserveDiscount;
+    private Long payment;
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItems> orderItems = new ArrayList<>();
@@ -38,14 +38,6 @@ public class Orders extends BaseEntity {
         this.deliveryAddress = deliveryAddress;
     }
 
-    public void setPaymentInfo(long originPrice, long prodDiscount, long couponDiscount, long reserveDiscount,
-                               long payment){
-        this.originPrice = originPrice;
-        this.prodDiscount = prodDiscount;
-        this.couponDiscount = couponDiscount;
-        this.reserveDiscount = reserveDiscount;
-        this.payment = payment;
-    }
 
     public void addOrderItems(List<OrderItems> orderItems){
         for (OrderItems orderItem : orderItems) {

@@ -13,7 +13,6 @@ import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -90,7 +89,7 @@ public class SagaManager {
         String sagaKey = "saga:order:" + event.getOrderId();
 
         Map<String, Object> initialSagaState = new HashMap<>();
-
+        initialSagaState.put("orderId", event.getOrderId());
         initialSagaState.put("status", event.getStatus());
         initialSagaState.put("createdAt", event.getCreatedAt().toString());
         redisTemplate.opsForHash().putAll(sagaKey, initialSagaState);
