@@ -2,9 +2,9 @@ package com.example.order_service.service;
 
 import com.example.common.*;
 import com.example.order_service.dto.request.OrderRequest;
+import com.example.order_service.exception.OrderVerificationException;
 import com.example.order_service.service.event.PendingOrderCreatedEvent;
 import com.example.order_service.service.kafka.KafkaProducer;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -25,7 +25,6 @@ public class SagaManager {
     private final KafkaProducer kafkaProducer;
     private final RedisTemplate<String, Object> redisTemplate;
     private final OrderService orderService;
-    private final ObjectMapper mapper = new ObjectMapper();
 
     // 트랜잭션이 커밋된 이후에 메서드를 실행
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
@@ -39,50 +38,13 @@ public class SagaManager {
         Map<Object, Object> sagaState = redisTemplate.opsForHash().entries(sagaKey);
         Set<String> requiredField = Set.of("product", "user", "coupon");
         if(sagaState.keySet().containsAll(requiredField)){
-            ProductStockDeductedEvent productEvent = mapper.convertValue(sagaState.get("product"), ProductStockDeductedEvent.class);
-            UserCacheDeductedEvent userEvent = mapper.convertValue(sagaState.get("user"), UserCacheDeductedEvent.class);
-            CouponUsedSuccessEvent couponEvent = mapper.convertValue(sagaState.get("coupon"), CouponUsedSuccessEvent.class);
-            boolean isVerifyPayment = verifyPayment(productEvent, userEvent, couponEvent);
-            if(isVerifyPayment){
-                //TODO 주문 상태 변경, 주문 데이터 추가, SSE 연결 찾아 응답 반환
-            } else {
+            try {
+                orderService.finalizeOrder(sagaState);
+            } catch (OrderVerificationException e){
                 //TODO 롤백
             }
         }
     }
-
-    private boolean verifyPayment(ProductStockDeductedEvent productEvent,
-                                  UserCacheDeductedEvent userEvent,
-                                  CouponUsedSuccessEvent couponEvent){
-
-        long itemsPrice = calcOrderItemsTotalPrice(productEvent);
-        //최소 결제 가격 만족 여부
-        if(couponEvent.getMinPurchaseAmount() > itemsPrice){
-            return false;
-        }
-        long couponDiscount = calcCouponDiscount(couponEvent, itemsPrice);
-        // 최대 할인금액보다 할인 금액이 높으면 최대 할인 금액을 적용
-        if(couponDiscount > couponEvent.getMaxDiscountAmount()){
-            couponDiscount = couponEvent.getMaxDiscountAmount();
-        }
-        // 검증 수행
-        return userEvent.getExpectTotalAmount() == itemsPrice - couponDiscount;
-    }
-
-    private long calcOrderItemsTotalPrice(ProductStockDeductedEvent event){
-        return event.getDeductedProducts().stream()
-                .mapToLong(p -> p.getPriceInfo().getFinalPrice() * p.getQuantity())
-                .sum();
-    }
-
-    private long calcCouponDiscount(CouponUsedSuccessEvent event, long itemsPrice){
-        if(event.getDiscountType() == DiscountType.AMOUNT){
-            return event.getDiscountValue();
-        }
-
-        return (long) (itemsPrice * (event.getDiscountValue() / 100.0));
-    }
-
 
     // redis Hash로 주문 생성 데이터를 저장 및 타임 아웃 시간 설정
     private void storeOrderDataToRedis(PendingOrderCreatedEvent event){
