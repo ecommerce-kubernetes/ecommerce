@@ -2,13 +2,18 @@ package com.example.order_service.service;
 
 import com.example.common.OrderCreatedEvent;
 import com.example.common.OrderProduct;
+import com.example.common.ProductStockDeductedEvent;
+import com.example.order_service.common.MessagePath;
 import com.example.order_service.dto.request.OrderRequest;
 import com.example.order_service.dto.response.CreateOrderResponse;
 import com.example.order_service.dto.response.OrderResponse;
 import com.example.order_service.dto.response.PageDto;
 import com.example.order_service.entity.OrderItems;
 import com.example.order_service.entity.Orders;
+import com.example.order_service.exception.NotFoundException;
 import com.example.order_service.repository.OrdersRepository;
+import com.example.order_service.service.dto.SuccessOrderDto;
+import com.example.order_service.service.dto.SuccessOrderItemDto;
 import com.example.order_service.service.event.PendingOrderCreatedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,6 +43,28 @@ public class OrderService {
         String url = buildSubscribeUrl(save.getId());
         eventPublisher.publishEvent(new PendingOrderCreatedEvent(this, save, request));
         return new CreateOrderResponse(save, url);
+    }
+
+    @Transactional
+    public void failOrder(Long orderId){
+        Orders order = ordersRepository.findById(orderId).orElseThrow(() -> new NotFoundException(MessagePath.ORDER_NOT_FOUND));
+        order.setStatus("CANCEL");
+    }
+
+    @Transactional
+    public void successOrder(SuccessOrderDto dto){
+        Orders order = ordersRepository.findWithOrderItemsById(dto.getOrderId())
+                .orElseThrow(() -> new NotFoundException(MessagePath.ORDER_NOT_FOUND));
+        order.setPaymentInfo(
+                dto.getOriginPrice(), dto.getProdDiscount(), dto.getCouponDiscount(), dto.getReserveDiscount(),
+                dto.getPaymentAmount()
+        );
+
+        List<SuccessOrderItemDto> itemData = dto.getOrderItems();
+
+        for(OrderItems orderItem : order.getOrderItems()){
+            orderItem.setOrderItemInfo(itemData);
+        }
     }
 
     public PageDto<OrderResponse> getOrderList(Pageable pageable, Long userId, String year, String keyword) {

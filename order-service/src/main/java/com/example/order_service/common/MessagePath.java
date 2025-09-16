@@ -19,4 +19,5 @@ public final class MessagePath {
     public static final String NOT_SUPPORTED_DOMAIN = "notSupport.domain";
     public static final String CART_ITEM_NO_PERMISSION = "cartItem.noPermission";
     public static final String FORBIDDEN = "forbidden";
+    public static final String ORDER_NOT_FOUND = "order.notFound";
 }
