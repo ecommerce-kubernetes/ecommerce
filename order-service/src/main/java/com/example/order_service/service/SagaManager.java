@@ -45,6 +45,7 @@ public class SagaManager {
         Map<Object, Object> sagaState = redisTemplate.opsForHash().entries(sagaKey);
         Set<String> requiredField = Set.of("product", "user", "coupon");
         Long orderId = (Long) sagaState.get("orderId");
+        if(sagaState.)
         if(sagaState.keySet().containsAll(requiredField)){
             try {
                 /* 주문 검증 수행 성공시
@@ -67,7 +68,7 @@ public class SagaManager {
     // 사가 롤백
     /*
         1. 주문 DB 정보 수정
-        2. 레디스 ZSET, HASH 데이터 삭제
+        2. 레디스 ZSET, HASH TTL 설정
         3. 롤백 토픽 메시지 게시
      */
     public void processRollback(String sagaKey){
@@ -77,7 +78,15 @@ public class SagaManager {
         clearFailureOrder(orderId, sagaKey);
         initiateRollback(sagaState);
     }
+    public void processTimeoutFailure(Set<Long> orderIds){
 
+    }
+
+    /* 주문 실패시 redis 데이터 정리
+        1. ZSET 삭제
+        2. HASH status CANCELLED로 변경
+        3. HASH TTL 설정
+     */
     private void clearFailureOrder(Long orderId, String sagaKey){
         redisTemplate.opsForZSet().remove(ZSET_PREFIX, orderId);
         redisTemplate.opsForHash().put(sagaKey, "status", "CANCELLED");
