@@ -8,7 +8,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.kafka.config.KafkaListenerEndpointRegistrar;
 import org.springframework.kafka.config.KafkaListenerEndpointRegistry;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.listener.MessageListenerContainer;
@@ -19,16 +18,13 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.shaded.com.fasterxml.jackson.core.JsonParser;
 import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 import org.testcontainers.utility.DockerImageName;
 
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -75,7 +71,7 @@ class OrderKafkaListenerTest {
     }
 
     @Test
-    void productSagaListenerTest_deducted_success() {
+    void productSagaSuccessListenerTest_deducted_success() {
         Map<String, Object> initialSagaState = new HashMap<>();
 
         initialSagaState.put("status", "PENDING");
@@ -96,7 +92,7 @@ class OrderKafkaListenerTest {
         kafkaTemplate.flush();
 
         verify(orderKafkaListener, timeout(10000).times(1))
-                .productSagaListener(any(ProductStockDeductedEvent.class));
+                .productSagaSuccessListener(any(ProductStockDeductedEvent.class));
 
         assertThat(redisTemplate.hasKey("saga:order:1")).isTrue();
         Object product = redisTemplate.opsForHash().get("saga:order:1", "product");

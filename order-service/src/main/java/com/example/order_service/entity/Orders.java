@@ -38,6 +38,14 @@ public class Orders extends BaseEntity {
         this.deliveryAddress = deliveryAddress;
     }
 
+    public void cancel(){
+        this.status = "CANCEL";
+    }
+
+    public void complete(){
+        this.status = "COMPLETE";
+    }
+
     public void setPriceInfo(long originPrice, long prodDiscount, long couponDiscount, long reserveDiscount,
                              long payment){
         this.originPrice = originPrice;

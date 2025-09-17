@@ -46,6 +46,10 @@ public class OrderService {
         return new CreateOrderResponse(save, url);
     }
 
+    public PageDto<OrderResponse> getOrderList(Pageable pageable, Long userId, String year, String keyword) {
+        return null;
+    }
+
     @Transactional
     public void finalizeOrder(Map<Object, Object> sagaState){
         ProductStockDeductedEvent prodEvent = mapper.convertValue(sagaState.get("product"), ProductStockDeductedEvent.class);
@@ -60,25 +64,6 @@ public class OrderService {
             updateFailOrder(orderId);
             throw new OrderVerificationException("검증 실패");
         }
-    }
-    private void updateFailOrder(Long orderId){
-        Orders order = ordersRepository.findById(orderId)
-                .orElseThrow(() -> new NotFoundException(MessagePath.ORDER_NOT_FOUND));
-        order.setStatus("CANCEL");
-    }
-    private void updateCompleteOrder(Long orderId, ProductStockDeductedEvent prodEvent, CouponUsedSuccessEvent couponEvent,
-                                     UserCacheDeductedEvent userEvent){
-        Orders order = ordersRepository.findWithOrderItemsById(orderId)
-                .orElseThrow(() -> new NotFoundException(MessagePath.ORDER_NOT_FOUND));
-        order.setStatus("COMPLETED");
-
-        long originPrice = calcOrderOriginPrice(prodEvent);
-        long prodDiscount = calcOrderItemDiscount(prodEvent);
-        long couponDiscount = calcCouponDiscount(couponEvent, calcOrderItemFinalPrice(prodEvent));
-        long reservedDiscount = userEvent.getReservedPointAmount();
-        long payment = userEvent.getReservedCacheAmount();
-        order.setPriceInfo(originPrice, prodDiscount, couponDiscount, reservedDiscount, payment);
-        updateOrderItems(order.getOrderItems(), prodEvent.getDeductedProducts());
     }
 
     private void updateOrderItems(List<OrderItems> orderItems, List<DeductedProduct> products){
@@ -141,10 +126,6 @@ public class OrderService {
                 .sum();
     }
 
-    public PageDto<OrderResponse> getOrderList(Pageable pageable, Long userId, String year, String keyword) {
-        return null;
-    }
-
     private String buildSubscribeUrl(Long orderId){
         return "http://test.com/" + orderId + "/subscribe";
     }
@@ -155,6 +136,25 @@ public class OrderService {
         } catch (JsonProcessingException e){
             throw new RuntimeException("Failed Convert To JSON");
         }
+    }
+
+    private void updateFailOrder(Long orderId){
+        Orders order = ordersRepository.findById(orderId)
+                .orElseThrow(() -> new NotFoundException(MessagePath.ORDER_NOT_FOUND));
+        order.cancel();
+    }
+    private void updateCompleteOrder(Long orderId, ProductStockDeductedEvent prodEvent, CouponUsedSuccessEvent couponEvent,
+                                     UserCacheDeductedEvent userEvent){
+        Orders order = ordersRepository.findWithOrderItemsById(orderId)
+                .orElseThrow(() -> new NotFoundException(MessagePath.ORDER_NOT_FOUND));
+        long originPrice = calcOrderOriginPrice(prodEvent);
+        long prodDiscount = calcOrderItemDiscount(prodEvent);
+        long couponDiscount = calcCouponDiscount(couponEvent, calcOrderItemFinalPrice(prodEvent));
+        long reservedDiscount = userEvent.getReservedPointAmount();
+        long payment = userEvent.getReservedCacheAmount();
+        order.setPriceInfo(originPrice, prodDiscount, couponDiscount, reservedDiscount, payment);
+        updateOrderItems(order.getOrderItems(), prodEvent.getDeductedProducts());
+        order.complete();
     }
 
 }
