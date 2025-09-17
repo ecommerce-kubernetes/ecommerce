@@ -45,7 +45,6 @@ public class SagaManager {
         Map<Object, Object> sagaState = redisTemplate.opsForHash().entries(sagaKey);
         Set<String> requiredField = Set.of("product", "user", "coupon");
         Long orderId = (Long) sagaState.get("orderId");
-        if(sagaState.)
         if(sagaState.keySet().containsAll(requiredField)){
             try {
                 /* 주문 검증 수행 성공시
@@ -78,6 +77,11 @@ public class SagaManager {
         clearFailureOrder(orderId, sagaKey);
         initiateRollback(sagaState);
     }
+
+    /*  timeout 된 주문 처리
+        1. 주문 DB 수정
+        2. 레디스 ZSET 삭제
+     */
     public void processTimeoutFailure(Set<Long> orderIds){
 
     }
