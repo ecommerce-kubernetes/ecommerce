@@ -52,20 +52,33 @@ public class SagaManager {
                     2.레디스 HASH 데이터 삭제
                 * */
                 orderService.finalizeOrder(sagaState);
-                clearCompleteOrder(orderId);
+                clearCompleteOrder(orderId, sagaKey);
             } catch (OrderVerificationException e){
                 /* 검증 실패시
                     1.레디스 ZSET 데이터 삭제
                     2.레디스 HASH 데이터 TTL 설정 (10분)
                  */
+                clearFailureOrder(orderId, sagaKey);
                 initiateRollback(sagaState);
-                clearFailureOrder(orderId);
             }
         }
     }
 
-    private void clearFailureOrder(Long orderId){
-        String sagaKey = HASH_PREFIX + orderId;
+    // 사가 롤백
+    /*
+        1. 주문 DB 정보 수정
+        2. 레디스 ZSET, HASH 데이터 삭제
+        3. 롤백 토픽 메시지 게시
+     */
+    public void processRollback(String sagaKey){
+        Map<Object, Object> sagaState = redisTemplate.opsForHash().entries(sagaKey);
+        Long orderId = (Long) sagaState.get("orderId");
+        orderService.failOrder(orderId);
+        clearFailureOrder(orderId, sagaKey);
+        initiateRollback(sagaState);
+    }
+
+    private void clearFailureOrder(Long orderId, String sagaKey){
         redisTemplate.opsForZSet().remove(ZSET_PREFIX, orderId);
         redisTemplate.opsForHash().put(sagaKey, "status", "CANCELLED");
         redisTemplate.expire(sagaKey, 10, TimeUnit.MINUTES);
@@ -86,9 +99,10 @@ public class SagaManager {
         }
     }
 
-    private void clearCompleteOrder(Long orderId){
+    // 검증 후 성공 주문 redis zset, hash 클리어
+    private void clearCompleteOrder(Long orderId, String sagaKey){
         redisTemplate.opsForZSet().remove(ZSET_PREFIX, orderId);
-        redisTemplate.opsForHash().delete(HASH_PREFIX + orderId);
+        redisTemplate.opsForHash().delete(sagaKey);
     }
 
     // redis Hash로 주문 생성 데이터를 저장 및 타임 아웃 시간 설정

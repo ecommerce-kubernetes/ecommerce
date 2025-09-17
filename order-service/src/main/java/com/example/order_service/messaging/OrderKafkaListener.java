@@ -23,6 +23,8 @@ public class OrderKafkaListener {
     private static final String COUPON_SUCCESS_TOPIC = "coupon.used.applied";
     private static final String USER_SUCCESS_TOPIC = "user.cache.deducted";
     private static final String USER_FAILURE_TOPIC = "user.cache.failed";
+    private static final String COUPON_FAILURE_TOPIC = "coupon.used.failed";
+    private static final String PRODUCT_FAILURE_TOPIC = "product.stock.failed";
 
     @KafkaListener(topics = PRODUCT_SUCCESS_TOPIC)
     public void productSagaSuccessListener(@Payload ProductStockDeductedEvent event){
@@ -64,6 +66,40 @@ public class OrderKafkaListener {
         redisTemplate.opsForHash().put(orderKey, "user", event);
         //사가 패턴 진행
         sagaManager.processSaga(orderKey);
+    }
+
+    @KafkaListener(topics = USER_FAILURE_TOPIC)
+    public void userSagaFailureListener(@Payload FailedEvent event){
+        String orderKey = "saga:order:" + event.getOrderId();
+        if(redisTemplate.opsForHash().get(orderKey, "status") == null){
+            //TODO 지각생 메시지 처리
+            log.info("레디스 조회 결과 = null");
+            return;
+        }
+        //사가 롤백 진행
+        sagaManager.processRollback(orderKey);
+    }
+
+    @KafkaListener(topics = COUPON_FAILURE_TOPIC)
+    public void couponSagaFailureListener(@Payload FailedEvent event){
+        String orderKey = "saga:order:" + event.getOrderId();
+        if(redisTemplate.opsForHash().get(orderKey, "status") == null){
+            //TODO 지각생 메시지 처리
+            log.info("레디스 조회 결과 = null");
+            return;
+        }
+        sagaManager.processRollback(orderKey);
+    }
+
+    @KafkaListener(topics = PRODUCT_FAILURE_TOPIC)
+    public void productSagaFailureListener(@Payload FailedEvent event){
+        String orderKey = "saga:order:" + event.getOrderId();
+        if(redisTemplate.opsForHash().get(orderKey, "status") == null){
+            //TODO 지각생 메시지 처리
+            log.info("레디스 조회 결과 = null");
+            return;
+        }
+        sagaManager.processRollback(orderKey);
     }
 
 }

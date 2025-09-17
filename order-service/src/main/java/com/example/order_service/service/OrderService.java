@@ -66,6 +66,11 @@ public class OrderService {
         }
     }
 
+    @Transactional
+    public void failOrder(Long orderId){
+        updateFailOrder(orderId);
+    }
+
     private void updateOrderItems(List<OrderItems> orderItems, List<DeductedProduct> products){
         Map<Long, DeductedProduct> productMap = products
                 .stream().collect(Collectors.toMap(DeductedProduct::getProductVariantId, p -> p));
