@@ -59,7 +59,7 @@ dependencies {
     testImplementation "org.testcontainers:junit-jupiter"
 
     //kafka module
-    implementation 'com.github.ecommerce-kubernetes:common-dto:2.0.3'
+    implementation 'com.github.ecommerce-kubernetes:common-dto:2.0.4'
 
 	testImplementation 'com.h2database:h2'
 

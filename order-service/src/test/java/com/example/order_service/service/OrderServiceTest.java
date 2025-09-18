@@ -112,7 +112,7 @@ class OrderServiceTest {
                         );
 
         assertThat(eventPayload.getUserCouponId()).isEqualTo(1L);
-        assertThat(eventPayload.getReservedCacheAmount()).isEqualTo(5000);
+        assertThat(eventPayload.getReservedCashAmount()).isEqualTo(5000);
         assertThat(eventPayload.getReservedPointAmount()).isEqualTo(400);
         consumer.close();
     }

@@ -53,7 +53,7 @@ public class OrderService {
     @Transactional
     public void finalizeOrder(Map<Object, Object> sagaState){
         ProductStockDeductedEvent prodEvent = mapper.convertValue(sagaState.get("product"), ProductStockDeductedEvent.class);
-        UserCacheDeductedEvent userEvent = mapper.convertValue(sagaState.get("user"), UserCacheDeductedEvent.class);
+        UserCashDeductedEvent userEvent = mapper.convertValue(sagaState.get("user"), UserCashDeductedEvent.class);
         CouponUsedSuccessEvent couponEvent = mapper.convertValue(sagaState.get("coupon"), CouponUsedSuccessEvent.class);
         boolean isVerified = verifyPayment(prodEvent, userEvent, couponEvent);
         Long orderId = (Long) sagaState.get("orderId");
@@ -85,7 +85,7 @@ public class OrderService {
     }
 
     private boolean verifyPayment(ProductStockDeductedEvent productEvent,
-                                  UserCacheDeductedEvent userEvent,
+                                  UserCashDeductedEvent userEvent,
                                   CouponUsedSuccessEvent couponEvent){
 
         long finalItemsPrice = calcOrderItemFinalPrice(productEvent);
@@ -149,14 +149,14 @@ public class OrderService {
         order.cancel();
     }
     private void updateCompleteOrder(Long orderId, ProductStockDeductedEvent prodEvent, CouponUsedSuccessEvent couponEvent,
-                                     UserCacheDeductedEvent userEvent){
+                                     UserCashDeductedEvent userEvent){
         Orders order = ordersRepository.findWithOrderItemsById(orderId)
                 .orElseThrow(() -> new NotFoundException(MessagePath.ORDER_NOT_FOUND));
         long originPrice = calcOrderOriginPrice(prodEvent);
         long prodDiscount = calcOrderItemDiscount(prodEvent);
         long couponDiscount = calcCouponDiscount(couponEvent, calcOrderItemFinalPrice(prodEvent));
         long reservedDiscount = userEvent.getReservedPointAmount();
-        long payment = userEvent.getReservedCacheAmount();
+        long payment = userEvent.getReservedCashAmount();
         order.setPriceInfo(originPrice, prodDiscount, couponDiscount, reservedDiscount, payment);
         updateOrderItems(order.getOrderItems(), prodEvent.getDeductedProducts());
         order.complete();

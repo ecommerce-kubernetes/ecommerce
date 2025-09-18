@@ -1,9 +1,7 @@
 package com.example.order_service.messaging;
 
-import com.example.common.CouponUsedSuccessEvent;
 import com.example.common.FailedEvent;
-import com.example.common.ProductStockDeductedEvent;
-import com.example.common.UserCacheDeductedEvent;
+import com.example.common.SuccessSagaEvent;
 import com.example.order_service.service.SagaManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,80 +24,8 @@ public class OrderKafkaListener {
     private static final String COUPON_FAILURE_TOPIC = "coupon.used.failed";
     private static final String PRODUCT_FAILURE_TOPIC = "product.stock.failed";
 
-    @KafkaListener(topics = PRODUCT_SUCCESS_TOPIC)
-    public void productSagaSuccessListener(@Payload ProductStockDeductedEvent event){
-        String orderKey = "saga:order:" + event.getOrderId();
-        if(redisTemplate.opsForHash().get(orderKey, "status") == null){
-            //TODO 지각생 메시지 처리
-            log.info("레디스 조회 결과 = null");
-            return;
-        }
-        //레디스에 응답 데이터 저장
-        redisTemplate.opsForHash().put(orderKey, "product", event);
-        //사가 패턴 진행
-        sagaManager.processSaga(orderKey);
-    }
+    @KafkaListener(topics = {PRODUCT_SUCCESS_TOPIC, COUPON_SUCCESS_TOPIC, USER_SUCCESS_TOPIC})
+    public void productSagaSuccessListener(@Payload SuccessSagaEvent event){
 
-    @KafkaListener(topics = COUPON_SUCCESS_TOPIC)
-    public void couponSagaSuccessListener(@Payload CouponUsedSuccessEvent event){
-        String orderKey = "saga:order:" + event.getOrderId();
-        if(redisTemplate.opsForHash().get(orderKey, "status") == null){
-            //TODO 지각생 메시지 처리
-            log.info("레디스 조회 결과 = null");
-            return;
-        }
-        //레디스에 응답 데이터 저장
-        redisTemplate.opsForHash().put(orderKey, "coupon", event);
-        //사가 패턴 진행
-        sagaManager.processSaga(orderKey);
     }
-
-    @KafkaListener(topics = USER_SUCCESS_TOPIC)
-    public void userSagaSuccessListener(@Payload UserCacheDeductedEvent event){
-        String orderKey = "saga:order:" + event.getOrderId();
-        if(redisTemplate.opsForHash().get(orderKey, "status") == null){
-            //TODO 지각생 메시지 처리
-            log.info("레디스 조회 결과 = null");
-            return;
-        }
-        //레디스에 응답 데이터 저장
-        redisTemplate.opsForHash().put(orderKey, "user", event);
-        //사가 패턴 진행
-        sagaManager.processSaga(orderKey);
-    }
-
-    @KafkaListener(topics = USER_FAILURE_TOPIC)
-    public void userSagaFailureListener(@Payload FailedEvent event){
-        String orderKey = "saga:order:" + event.getOrderId();
-        if(redisTemplate.opsForHash().get(orderKey, "status") == null){
-            //TODO 지각생 메시지 처리
-            log.info("레디스 조회 결과 = null");
-            return;
-        }
-        //사가 롤백 진행
-        sagaManager.processRollback(orderKey);
-    }
-
-    @KafkaListener(topics = COUPON_FAILURE_TOPIC)
-    public void couponSagaFailureListener(@Payload FailedEvent event){
-        String orderKey = "saga:order:" + event.getOrderId();
-        if(redisTemplate.opsForHash().get(orderKey, "status") == null){
-            //TODO 지각생 메시지 처리
-            log.info("레디스 조회 결과 = null");
-            return;
-        }
-        sagaManager.processRollback(orderKey);
-    }
-
-    @KafkaListener(topics = PRODUCT_FAILURE_TOPIC)
-    public void productSagaFailureListener(@Payload FailedEvent event){
-        String orderKey = "saga:order:" + event.getOrderId();
-        if(redisTemplate.opsForHash().get(orderKey, "status") == null){
-            //TODO 지각생 메시지 처리
-            log.info("레디스 조회 결과 = null");
-            return;
-        }
-        sagaManager.processRollback(orderKey);
-    }
-
 }
