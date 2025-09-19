@@ -5,7 +5,6 @@ import com.example.common.SuccessSagaEvent;
 import com.example.order_service.service.SagaManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
@@ -14,9 +13,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @Slf4j
 public class OrderKafkaListener {
-    private final RedisTemplate<String, Object> redisTemplate;
     private final SagaManager sagaManager;
-
     private static final String PRODUCT_SUCCESS_TOPIC = "product.stock.deducted";
     private static final String COUPON_SUCCESS_TOPIC = "coupon.used.applied";
     private static final String USER_SUCCESS_TOPIC = "user.cache.deducted";
@@ -25,7 +22,12 @@ public class OrderKafkaListener {
     private static final String PRODUCT_FAILURE_TOPIC = "product.stock.failed";
 
     @KafkaListener(topics = {PRODUCT_SUCCESS_TOPIC, COUPON_SUCCESS_TOPIC, USER_SUCCESS_TOPIC})
-    public void productSagaSuccessListener(@Payload SuccessSagaEvent event){
+    public void sagaSuccessListener(@Payload SuccessSagaEvent event){
+        sagaManager.processSagaSuccess(event);
+    }
 
+    @KafkaListener(topics = {USER_FAILURE_TOPIC, COUPON_FAILURE_TOPIC, PRODUCT_FAILURE_TOPIC})
+    public void sagaFailureListener(@Payload FailedEvent event){
+        sagaManager.processSagaFailure(event);
     }
 }
