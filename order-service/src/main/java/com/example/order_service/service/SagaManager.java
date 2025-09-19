@@ -11,8 +11,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.event.TransactionPhase;
-import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -45,9 +43,7 @@ public class SagaManager {
         this.compensatorMap = map;
     }
 
-    // 트랜잭션이 커밋된 이후에 메서드를 실행
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void handlePendingOrderCreated(PendingOrderCreatedEvent event){
+    public void processPendingOrderSaga(PendingOrderCreatedEvent event){
         OrderCreatedEvent orderEvent = createOrderEvent(event);
         kafkaProducer.sendMessage(ORDER_CREATED_TOPIC, orderEvent);
         savePendingOrder(event);
