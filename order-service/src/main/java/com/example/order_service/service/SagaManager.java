@@ -54,6 +54,7 @@ public class SagaManager {
     }
 
     //TODO race condition 고려
+    //성공 응답시 호출
     public void processSagaSuccess(SuccessSagaEvent event){
         String sagaKey = HASH_PREFIX + event.getOrderId();
         String status = (String) redisTemplate.opsForHash().get(sagaKey, "status");
@@ -92,6 +93,7 @@ public class SagaManager {
     }
 
     //TODO race condition 고려
+    //실패 응답시 호출
     public void processSagaFailure(FailedEvent event){
         String sagaKey = HASH_PREFIX + event.getOrderId();
         String status = (String) redisTemplate.opsForHash().get(sagaKey, "status");
@@ -113,6 +115,20 @@ public class SagaManager {
             clearFailureOrder(event.getOrderId(), sagaKey);
             initiateRollback(sagaState);
         }
+    }
+
+    public void processTimeoutFailure(Set<Long> orderIds){
+        Map<Long, Map<Object, Object>> timeoutMap = new HashMap<>();
+        for(Long orderId : orderIds){
+            String sagaKey = HASH_PREFIX + orderId;
+            Map<Object, Object> entries = redisTemplate.opsForHash().entries(sagaKey);
+            timeoutMap.put(orderId, entries);
+        }
+        timeoutMap.forEach((orderId, entries) -> {
+            orderService.failOrder(orderId);
+            clearFailureOrder(orderId, HASH_PREFIX + orderId);
+            initiateRollback(entries);
+        });
     }
 
     // HASH 에 들어있는 응답 모두 롤백

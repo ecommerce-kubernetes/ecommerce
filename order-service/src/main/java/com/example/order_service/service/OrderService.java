@@ -69,6 +69,7 @@ public class OrderService {
     @Transactional
     public void failOrder(Long orderId){
         updateFailOrder(orderId);
+        //TODO SSE 응답을 위해 메시지 발행
     }
 
     private void updateOrderItems(List<OrderItems> orderItems, List<DeductedProduct> products){
