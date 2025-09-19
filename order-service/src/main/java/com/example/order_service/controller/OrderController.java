@@ -11,6 +11,7 @@ import com.example.order_service.dto.response.OrderResponse;
 import com.example.order_service.dto.response.PageDto;
 import com.example.order_service.entity.DomainType;
 import com.example.order_service.service.OrderService;
+import com.example.order_service.service.SseConnectionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -18,9 +19,11 @@ import org.apache.http.HttpStatus;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 @RestController
 @RequiredArgsConstructor
@@ -29,6 +32,7 @@ import org.springframework.web.bind.annotation.*;
 public class OrderController {
 
     private final OrderService orderService;
+    private final SseConnectionService sseConnectionService;
     private final PageableValidatorFactory factory;
 
     @Operation(summary = "주문 생성")
@@ -51,5 +55,10 @@ public class OrderController {
         Pageable validatedPageable = validator.validate(pageable);
         PageDto<OrderResponse> orderList = orderService.getOrderList(validatedPageable, userId, year, keyword);
         return ResponseEntity.ok(orderList);
+    }
+
+    @GetMapping(value = "/subscribe/{orderId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public SseEmitter subscribe(@PathVariable("orderId") Long orderId){
+        return sseConnectionService.create(orderId);
     }
 }
