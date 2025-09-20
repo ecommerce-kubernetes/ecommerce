@@ -29,6 +29,7 @@ public class OrderKafkaListener {
 
     @KafkaListener(topics = {USER_FAILURE_TOPIC, COUPON_FAILURE_TOPIC, PRODUCT_FAILURE_TOPIC})
     public void sagaFailureListener(@Payload FailedEvent event){
+        log.info("received message = {}", event.getClass());
         sagaManager.processSagaFailure(event);
     }
 }
