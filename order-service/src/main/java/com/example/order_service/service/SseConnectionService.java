@@ -19,15 +19,9 @@ public class SseConnectionService {
         }
 
         emitters.put(orderId, emitter);
-        emitter.onCompletion(() -> {
-            emitters.remove(orderId);
-        });
-        emitter.onTimeout(() -> {
-            emitters.remove(orderId);
-        });
-        emitter.onError(e -> {
-            emitters.remove(orderId);
-        });
+        emitter.onCompletion(() -> emitters.remove(orderId));
+        emitter.onTimeout(() -> emitters.remove(orderId));
+        emitter.onError(e -> emitters.remove(orderId));
 
         send(orderId, "connected", "SSE connection establish");
 

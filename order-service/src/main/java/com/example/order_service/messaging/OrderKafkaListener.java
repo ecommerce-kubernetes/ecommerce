@@ -23,6 +23,7 @@ public class OrderKafkaListener {
 
     @KafkaListener(topics = {PRODUCT_SUCCESS_TOPIC, COUPON_SUCCESS_TOPIC, USER_SUCCESS_TOPIC})
     public void sagaSuccessListener(@Payload SuccessSagaEvent event){
+        log.info("receive message = {}", event.getClass());
         sagaManager.processSagaSuccess(event);
     }
 
