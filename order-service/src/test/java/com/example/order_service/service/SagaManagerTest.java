@@ -248,4 +248,37 @@ class SagaManagerTest {
         assertThat(couponRollback.getOrderId()).isEqualTo(orderId);
         assertThat(couponRollback.getUserCouponId()).isEqualTo(1L);
     }
+
+    @Test
+    @DisplayName("saga 실패 처리 PENDING 인 경우")
+    void processSagaFailureTest_CANCELLED(){
+        Long orderId = (long) ((Math.random() * 100) + 1);
+        doNothing().when(orderService).failOrder(anyLong());
+        UserCashDeductedEvent userEvent = new UserCashDeductedEvent(orderId, 1L, true, 200, 2500, 2700);
+
+        Map<String, Object> dataMap = Map.of("status", "PENDING", "user", userEvent);
+        redisTemplate.opsForHash().putAll("saga:order:" + orderId, dataMap);
+
+        FailedEvent failedEvent = new FailedEvent(orderId, "out of Stock");
+
+        sagaManager.processSagaFailure(failedEvent);
+
+        Object status = redisTemplate.opsForHash().get("saga:order:" + orderId, "status");
+        assertThat(status).isEqualTo("CANCELLED");
+        Double score = redisTemplate.opsForZSet().score("saga:timeouts", orderId);
+        assertThat(score).isNull();
+
+        ArgumentCaptor<UserCashDeductedEvent> userCaptor = ArgumentCaptor.forClass(UserCashDeductedEvent.class);
+        verify(kafkaProducer).sendMessage(eq("user.cache.restore"), userCaptor.capture());
+
+        UserCashDeductedEvent userRollback = userCaptor.getValue();
+
+        assertThat(userRollback.getOrderId()).isEqualTo(orderId);
+        assertThat(userRollback)
+                .extracting(UserCashDeductedEvent::getUserId, UserCashDeductedEvent::getReservedPointAmount,
+                        UserCashDeductedEvent::getReservedCashAmount, UserCashDeductedEvent::getExpectTotalAmount)
+                .containsExactlyInAnyOrder(
+                        1L, 200, 2500, 2700
+                );
+    }
 }
