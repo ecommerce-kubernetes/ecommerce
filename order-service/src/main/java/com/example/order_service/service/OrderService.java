@@ -11,6 +11,7 @@ import com.example.order_service.entity.Orders;
 import com.example.order_service.exception.NotFoundException;
 import com.example.order_service.exception.OrderVerificationException;
 import com.example.order_service.repository.OrdersRepository;
+import com.example.order_service.service.event.OrderEndMessageEvent;
 import com.example.order_service.service.event.PendingOrderCreatedEvent;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -57,11 +58,15 @@ public class OrderService {
         CouponUsedSuccessEvent couponEvent = mapper.convertValue(sagaState.get("coupon"), CouponUsedSuccessEvent.class);
         boolean isVerified = verifyPayment(prodEvent, userEvent, couponEvent);
         Long orderId = (Long) sagaState.get("orderId");
+        Orders finalizedOrder;
         if(isVerified){
-            updateCompleteOrder(orderId, prodEvent, couponEvent, userEvent);
-            //TODO SSE 응답을 위해 메시지 발행
+            finalizedOrder = updateCompleteOrder(orderId, prodEvent, couponEvent, userEvent);
         } else {
-            updateFailOrder(orderId);
+            finalizedOrder = updateFailOrder(orderId);
+        }
+        eventPublisher.publishEvent(new OrderEndMessageEvent(this, finalizedOrder.getId(), finalizedOrder.getStatus()));
+
+        if(!isVerified){
             throw new OrderVerificationException("검증 실패");
         }
     }
@@ -70,6 +75,7 @@ public class OrderService {
     public void failOrder(Long orderId){
         updateFailOrder(orderId);
         //TODO SSE 응답을 위해 메시지 발행
+
     }
 
     private void updateOrderItems(List<OrderItems> orderItems, List<DeductedProduct> products){
@@ -144,12 +150,13 @@ public class OrderService {
         }
     }
 
-    private void updateFailOrder(Long orderId){
+    private Orders updateFailOrder(Long orderId){
         Orders order = ordersRepository.findById(orderId)
                 .orElseThrow(() -> new NotFoundException(MessagePath.ORDER_NOT_FOUND));
         order.cancel();
+        return order;
     }
-    private void updateCompleteOrder(Long orderId, ProductStockDeductedEvent prodEvent, CouponUsedSuccessEvent couponEvent,
+    private Orders updateCompleteOrder(Long orderId, ProductStockDeductedEvent prodEvent, CouponUsedSuccessEvent couponEvent,
                                      UserCashDeductedEvent userEvent){
         Orders order = ordersRepository.findWithOrderItemsById(orderId)
                 .orElseThrow(() -> new NotFoundException(MessagePath.ORDER_NOT_FOUND));
@@ -161,6 +168,6 @@ public class OrderService {
         order.setPriceInfo(originPrice, prodDiscount, couponDiscount, reservedDiscount, payment);
         updateOrderItems(order.getOrderItems(), prodEvent.getDeductedProducts());
         order.complete();
+        return order;
     }
-
 }

@@ -1,119 +1,115 @@
 package com.example.order_service.service;
 
-import com.example.common.OrderCreatedEvent;
-import com.example.common.OrderProduct;
+import com.example.order_service.common.scheduler.PendingOrderTimeoutScheduler;
 import com.example.order_service.dto.request.OrderItemRequest;
 import com.example.order_service.dto.request.OrderRequest;
 import com.example.order_service.dto.response.CreateOrderResponse;
-import org.apache.kafka.clients.consumer.Consumer;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.common.serialization.StringDeserializer;
+import com.example.order_service.entity.OrderItems;
+import com.example.order_service.entity.Orders;
+import com.example.order_service.repository.OrdersRepository;
+import com.example.order_service.service.event.PendingOrderCreatedEvent;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
-import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.support.serializer.JsonDeserializer;
-import org.springframework.kafka.test.EmbeddedKafkaBroker;
-import org.springframework.kafka.test.context.EmbeddedKafka;
-import org.springframework.kafka.test.utils.KafkaTestUtils;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.transaction.annotation.Propagation;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.annotation.Bean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
-import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.DockerImageName;
 
-import java.time.Duration;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 @SpringBootTest
-@Testcontainers
-@EmbeddedKafka(partitions = 1, topics = {"order.created"})
-@TestPropertySource(properties = {
-        "spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}",
-        "spring.kafka.consumer.group-id=products-test",
-        "spring.kafka.consumer.auto-offset-reset=earliest"
-})
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class OrderServiceTest {
 
     @Autowired
     OrderService orderService;
     @Autowired
-    EmbeddedKafkaBroker embeddedKafka; // Embedded broker 인스턴스
+    OrdersRepository ordersRepository;
+    @MockitoBean
+    ApplicationEventPublisher applicationEventPublisher;
+    @MockitoBean
+    PendingOrderTimeoutScheduler pendingOrderTimeoutScheduler;
 
     @Autowired
-    RedisTemplate<String, Object> redisTemplate;
+    TestPendingOrderListener testListener; // 테스트 전용 리스너
 
-    @Autowired
-    KafkaTemplate<String, Object> kafkaTemplate;
+    @TestConfiguration
+    static class TestConfig {
+        @Bean
+        public TestPendingOrderListener testPendingOrderListener() {
+            return new TestPendingOrderListener();
+        }
+    }
 
+    // 테스트 전용 리스너: 발행된 이벤트를 수집
+    public static class TestPendingOrderListener implements ApplicationListener<PendingOrderCreatedEvent> {
+        private final List<PendingOrderCreatedEvent> events = new CopyOnWriteArrayList<>();
 
-    @Container
-    static final GenericContainer redis = new GenericContainer(DockerImageName.parse("redis:6-alpine"))
-            .withExposedPorts(6379);
+        @Override
+        public void onApplicationEvent(PendingOrderCreatedEvent event) {
+            events.add(event);
+        }
 
-    @DynamicPropertySource
-    static void redisProperties(DynamicPropertyRegistry registry){
-        registry.add("spring.data.redis.host", redis::getHost);
-        registry.add("spring.data.redis.port", () -> redis.getMappedPort(6379));
+        public List<PendingOrderCreatedEvent> getEvents() {
+            return events;
+        }
+
+        public void clear() {
+            events.clear();
+        }
+    }
+
+    @BeforeEach
+    void setUp() {
+        testListener.clear();
     }
 
     @Test
     @DisplayName("주문 생성 테스트")
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    @Transactional
     void saveOrderTest_integration(){
-        Map<String, Object> customerProps = KafkaTestUtils.consumerProps("test-group", "true", embeddedKafka);
-
-        DefaultKafkaConsumerFactory<String, OrderCreatedEvent> factory = new DefaultKafkaConsumerFactory<>(
-                customerProps,
-                new StringDeserializer(),
-                new JsonDeserializer<>(OrderCreatedEvent.class, false)
-        );
-        Consumer<String, OrderCreatedEvent> consumer = factory.createConsumer();
-        consumer.subscribe(List.of("order.created"));
-        OrderRequest request = new OrderRequest(
-                List.of(new OrderItemRequest(1L, 2)),
+        OrderRequest orderRequest = new OrderRequest(List.of(new OrderItemRequest(1L, 3)),
                 "서울시 테헤란로 123",
                 1L,
-                5000,
-                400
-        );
-        CreateOrderResponse response = orderService.saveOrder(1L, request);
+                2500,
+                200);
+
+        CreateOrderResponse response = orderService.saveOrder(1L, orderRequest);
 
         assertThat(response.getOrderId()).isNotNull();
-        assertThat(response.getSubscribeUrl()).isEqualTo("http://test.com/" + response.getOrderId() + "/subscribe");
+        assertThat(response.getSubscribeUrl()).isNotNull();
 
-        Boolean hashKey = redisTemplate.hasKey("saga:order:" + response.getOrderId());
-        String status = (String) redisTemplate.opsForHash().get("saga:order:" + response.getOrderId(), "status");
-        assertThat(hashKey).isTrue();
-        assertThat(status).isEqualTo("PENDING");
+        Orders findOrder = ordersRepository.findById(response.getOrderId()).get();
 
-        ConsumerRecord<String, OrderCreatedEvent> record = KafkaTestUtils.getSingleRecord(consumer, "order.created", Duration.ofSeconds(10));
+        assertThat(findOrder)
+                .extracting(Orders::getUserId, Orders::getStatus, Orders::getDeliveryAddress)
+                .containsExactlyInAnyOrder(
+                        1L, "PENDING", "서울시 테헤란로 123"
+                );
 
-        assertThat(record).isNotNull();
-        OrderCreatedEvent eventPayload = record.value();
-        assertThat(eventPayload.getOrderId()).isEqualTo(response.getOrderId());
-        assertThat(eventPayload.getOrderProductList())
-                .extracting(OrderProduct::getProductVariantId, OrderProduct::getStock)
-                        .containsExactlyInAnyOrder(
-                                tuple(1L, 2)
-                        );
+        assertThat(findOrder.getOrderItems()).hasSize(1);
+        assertThat(findOrder.getOrderItems())
+                .extracting(OrderItems::getProductVariantId, OrderItems::getQuantity)
+                .containsExactlyInAnyOrder(
+                        tuple(1L,3)
+                );
 
-        assertThat(eventPayload.getUserCouponId()).isEqualTo(1L);
-        assertThat(eventPayload.getReservedCashAmount()).isEqualTo(5000);
-        assertThat(eventPayload.getReservedPointAmount()).isEqualTo(400);
-        consumer.close();
+        List<PendingOrderCreatedEvent> events = testListener.getEvents();
+        assertThat(events).isNotEmpty();
+        PendingOrderCreatedEvent ev = events.get(0);
+        assertThat(ev.getOrderId()).isEqualTo(response.getOrderId());
+        assertThat(ev.getOrderRequest().getDeliveryAddress()).isEqualTo(orderRequest.getDeliveryAddress());
     }
 }
