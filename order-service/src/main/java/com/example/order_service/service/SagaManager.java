@@ -150,7 +150,7 @@ public class SagaManager {
     // ZSET 삭제, HASH 삭제
     private void clearCompleteOrder(Long orderId, String sagaKey){
         redisTemplate.opsForZSet().remove(ZSET_PREFIX, orderId);
-        redisTemplate.opsForHash().delete(sagaKey);
+        redisTemplate.delete(sagaKey);
     }
 
     // ZSET 삭제, HASH 상태 CANCELLED 변경, HASH TTL 설정
