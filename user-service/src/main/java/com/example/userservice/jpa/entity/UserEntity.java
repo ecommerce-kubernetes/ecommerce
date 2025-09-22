@@ -48,7 +48,7 @@ public class UserEntity {
     private LocalDateTime createdAt;
 
     @Column(nullable = false)
-    private int cache;
+    private int cash;
 
     @Column(nullable = false)
     private int point;
@@ -63,7 +63,7 @@ public class UserEntity {
     @Builder
     public UserEntity(String email, String name, String encryptedPwd,
                       String phoneNumber, boolean phoneVerified, Gender gender, LocalDate birthDate,
-                      int cache, int point, List<AddressEntity> addresses, Role role) {
+                      int cash, int point, List<AddressEntity> addresses, Role role) {
         this.email = email;
         this.name = name;
         this.encryptedPwd = encryptedPwd;
@@ -71,7 +71,7 @@ public class UserEntity {
         this.phoneVerified = phoneVerified;
         this.gender = gender;
         this.birthDate = birthDate;
-        this.cache = cache;
+        this.cash = cash;
         this.point = point;
         this.addresses = (addresses != null) ? addresses : new ArrayList<>();
         this.role = role;
@@ -101,15 +101,15 @@ public class UserEntity {
         this.birthDate = LocalDate.parse(birthDate);
     }
 
-    public void rechargeCache(int amount) {
-        this.cache += amount;
+    public void rechargeCash(int amount) {
+        this.cash += amount;
     }
 
-    public void deductCache(int amount) {
-        if (amount > this.cache) {
+    public void deductCash(int amount) {
+        if (amount > this.cash) {
             throw new IllegalArgumentException("캐시가 부족합니다.");
         }
-        this.cache -= amount;
+        this.cash -= amount;
     }
 
     public void rechargePoint(int amount) {

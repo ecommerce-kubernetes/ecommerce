@@ -20,12 +20,12 @@ public class ResponseUser {
     private Boolean phoneVerified;
     private LocalDateTime createdAt;
     private List<ResponseAddress> addresses;
-    private Integer cache;
+    private Integer cash;
     private Integer point;
     private String role;
 
     @Builder
-    public ResponseUser(Long userId, String email, String name, String birthDate, String gender, String phoneNumber, Boolean phoneVerified, LocalDateTime createdAt, List<ResponseAddress> addresses, Integer cache, Integer point, String role) {
+    public ResponseUser(Long userId, String email, String name, String birthDate, String gender, String phoneNumber, Boolean phoneVerified, LocalDateTime createdAt, List<ResponseAddress> addresses, Integer cash, Integer point, String role) {
         this.userId = userId;
         this.email = email;
         this.name = name;
@@ -35,7 +35,7 @@ public class ResponseUser {
         this.phoneVerified = phoneVerified;
         this.createdAt = createdAt;
         this.addresses = addresses;
-        this.cache = cache;
+        this.cash = cash;
         this.point = point;
         this.role = role;
     }

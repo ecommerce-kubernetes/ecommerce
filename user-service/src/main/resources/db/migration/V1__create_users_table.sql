@@ -1,6 +1,6 @@
 CREATE TABLE `users` (
   `birth_date` date NOT NULL,
-  `cache` int NOT NULL,
+  `` int NOT NULL,
   `phone_verified` bit(1) NOT NULL,
   `point` int NOT NULL,
   `created_at` datetime(6) DEFAULT NULL,

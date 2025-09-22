@@ -65,7 +65,7 @@ public class UserServiceImpl implements UserService{
                 .birthDate(LocalDate.parse(userDto.getBirthDate()))
                 .phoneNumber(userDto.getPhoneNumber())
                 .phoneVerified(userDto.isPhoneVerified())
-                .cache(0)
+                .cash(0)
                 .point(0)
                 .role(Role.ROLE_USER)
                 .build();
@@ -115,7 +115,7 @@ public class UserServiceImpl implements UserService{
                 .phoneVerified(userEntity.isPhoneVerified())
                 .gender(String.valueOf(userEntity.getGender()))
                 .birthDate(String.valueOf(userEntity.getBirthDate()))
-                .cache(userEntity.getCache())
+                .cash(userEntity.getCash())
                 .point(userEntity.getPoint())
                 .createdAt(userEntity.getCreatedAt())
                 .addresses(addressDtoList)
@@ -274,26 +274,26 @@ public class UserServiceImpl implements UserService{
     }
 
     @Override
-    public UserEntity rechargeCache(Long userId, int amount) {
+    public UserEntity rechargeCash(Long userId, int amount) {
         if (amount <= 0) throw new InvalidAmountException("충전 금액은 0보다 커야 합니다.");
 
         UserEntity user = userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("해당 ID의 사용자를 찾을 수 없습니다: " + userId));
 
-        user.rechargeCache(amount);
+        user.rechargeCash(amount);
         return userRepository.save(user);
     }
 
     @Override
-    public UserEntity deductCache(Long userId, int amount) {
+    public UserEntity deductCash(Long userId, int amount) {
         if (amount <= 0) throw new InvalidAmountException("차감 금액은 0보다 커야 합니다.");
 
         UserEntity user = userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("해당 ID의 사용자를 찾을 수 없습니다: " + userId));
 
-        if (user.getCache() < amount) throw new InvalidAmountException("캐시가 부족합니다.");
+        if (user.getCash() < amount) throw new InvalidAmountException("캐시가 부족합니다.");
 
-        user.deductCache(amount);
+        user.deductCash(amount);
         return userRepository.save(user);
     }
 
@@ -319,18 +319,6 @@ public class UserServiceImpl implements UserService{
 
         user.deductPoint(amount);
         return userRepository.save(user);
-    }
-
-    @Override
-    public void validPointAndCache(Long userId, int reservedPointAmount, int reservedCacheAmount) {
-        if (reservedPointAmount < 0) throw new InvalidAmountException("사용할 포인트 금액은 양수여야 합니다.");
-        if (reservedCacheAmount < 0) throw new InvalidAmountException("사용할 캐시 금액은 양수여야 합니다.");
-
-        UserEntity user = userRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("해당 ID의 사용자를 찾을 수 없습니다: " + userId));
-
-        if (user.getPoint() < reservedPointAmount) throw new InvalidAmountException("포인트가 부족합니다.");
-        if (user.getCache() < reservedCacheAmount) throw new InvalidAmountException("캐시가 부족합니다.");
     }
 
     @Override

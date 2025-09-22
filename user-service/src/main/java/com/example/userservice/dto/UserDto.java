@@ -20,7 +20,7 @@ public class UserDto {
     private boolean phoneVerified;
     private String gender;
     private String birthDate;
-    private int cache;
+    private int cash;
     private int point;
     private LocalDateTime createdAt;
     private List<AddressDto> addresses;
