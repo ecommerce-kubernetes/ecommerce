@@ -2,7 +2,7 @@ package com.example.userservice.service.kafka;
 
 import com.example.common.FailedEvent;
 import com.example.common.OrderCreatedEvent;
-import com.example.common.UserCacheDeductedEvent;
+import com.example.common.UserCashDeductedEvent;
 import com.example.userservice.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,7 +23,7 @@ public class UserEventListener {
 
     //주문 받았을때
     @KafkaListener(topics = "order.created")
-    public void processCache(@Payload OrderCreatedEvent event,
+    public void processCash(@Payload OrderCreatedEvent event,
                              @Header(KafkaHeaders.RECEIVED_TOPIC) String topic,
                              @Header(KafkaHeaders.RECEIVED_KEY) String key) {
 
@@ -34,22 +34,22 @@ public class UserEventListener {
                 userService.deductPoint(event.getUserId(), event.getReservedPointAmount());
             } catch (Exception e) {
                 log.error("포인트 차감 실패: userId={}, orderId={}, 이유={}", event.getUserId(), event.getOrderId(), e.getMessage());
-                kafkaTemplate.send("user.cache.failed", key, new FailedEvent(event.getOrderId(), e.getMessage()));
-                log.info("send a success message to user.cache.failed");
+                kafkaTemplate.send("user.cash.failed", key, new FailedEvent(event.getOrderId(), e.getMessage()));
+                log.info("send a success message to user.cash.failed");
             }
         }
 
         try {
-            userService.deductCache(event.getUserId(), event.getReservedCacheAmount());
-            kafkaTemplate.send("user.cache.deducted", key, new UserCacheDeductedEvent(
+            userService.deductCash(event.getUserId(), event.getReservedCashAmount());
+            kafkaTemplate.send("user.cash.deducted", key, new UserCashDeductedEvent(
                     event.getOrderId(),
                     event.getUserId(),
                     event.isPointUsage(),
                     event.getReservedPointAmount(),
-                    event.getReservedCacheAmount(),
+                    event.getReservedCashAmount(),
                     event.getExpectTotalAmount())
             );
-            log.info("send a success message to user.cache.deducted");
+            log.info("send a success message to user.cash.deducted");
         } catch (Exception e) {
             log.error("캐시 차감 실패: userId={}, orderId={}, 이유={}", event.getUserId(), event.getOrderId(), e.getMessage());
             if (event.isPointUsage()) {
@@ -61,14 +61,14 @@ public class UserEventListener {
                             event.getUserId(), event.getReservedPointAmount(), rollbackEx.getMessage());
                 }
             }
-            kafkaTemplate.send("user.cache.failed", key, new FailedEvent(event.getOrderId(), e.getMessage()));
-            log.info("send a success message to user.cache.failed");
+            kafkaTemplate.send("user.cash.failed", key, new FailedEvent(event.getOrderId(), e.getMessage()));
+            log.info("send a success message to user.cash.failed");
         }
     }
 
     //복구
-    @KafkaListener(topics = "user.cache.restore")
-    public void revertCache(@Payload UserCacheDeductedEvent event,
+    @KafkaListener(topics = "user.cash.restore")
+    public void revertCash(@Payload UserCashDeductedEvent event,
                             @Header(KafkaHeaders.RECEIVED_TOPIC) String topic,
                              @Header(KafkaHeaders.RECEIVED_KEY) String key) {
 
@@ -84,10 +84,10 @@ public class UserEventListener {
         }
 
         try {
-            userService.rechargeCache(event.getUserId(), event.getReservedCacheAmount());
-            log.info("캐시 복구 : userId={}, cache={}", event.getUserId(), event.getReservedCacheAmount());
+            userService.rechargeCash(event.getUserId(), event.getReservedCashAmount());
+            log.info("캐시 복구 : userId={}, cash={}", event.getUserId(), event.getReservedCashAmount());
         } catch (Exception ex) {
-            log.error("캐시 복구 실패: userId={}, cache={}, 이유={}", event.getUserId(), event.getReservedCacheAmount(), ex.getMessage());
+            log.error("캐시 복구 실패: userId={}, cash={}, 이유={}", event.getUserId(), event.getReservedCashAmount(), ex.getMessage());
         }
     }
 }
