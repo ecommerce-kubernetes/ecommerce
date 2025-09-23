@@ -1,0 +1,75 @@
+package com.example.order_service.service.unit;
+
+import com.example.common.OrderCreatedEvent;
+import com.example.common.OrderProduct;
+import com.example.order_service.dto.request.OrderItemRequest;
+import com.example.order_service.dto.request.OrderRequest;
+import com.example.order_service.dto.response.CreateOrderResponse;
+import com.example.order_service.entity.OrderItems;
+import com.example.order_service.entity.Orders;
+import com.example.order_service.repository.OrdersRepository;
+import com.example.order_service.service.OrderService;
+import com.example.order_service.service.SagaManager;
+import com.example.order_service.service.event.PendingOrderCreatedEvent;
+import com.example.order_service.service.kafka.KafkaProducer;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.test.util.ReflectionTestUtils;
+
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+public class OrderServiceUnitTest {
+    @InjectMocks
+    OrderService orderService;
+    @Mock
+    OrdersRepository ordersRepository;
+    @Mock
+    ApplicationEventPublisher eventPublisher;
+
+    @Captor
+    ArgumentCaptor<PendingOrderCreatedEvent> eventArgumentCaptor;
+
+
+    @Test
+    @DisplayName("주문 생성 테스트")
+    void saveOrderTest(){
+        Orders pending = new Orders(1L, "PENDING", "서울시 테헤란로 123");
+        ReflectionTestUtils.setField(pending, "id", 1L);
+        pending.addOrderItems(List.of(new OrderItems(1L, 2)));
+        when(ordersRepository.save(any(Orders.class))).thenReturn(pending);
+        List<OrderItemRequest> orderItems = List.of(new OrderItemRequest(1L, 2));
+        OrderRequest request = new OrderRequest(orderItems, "서울시 테헤란로 123", 1L, 3000, 500);
+        CreateOrderResponse response = orderService.saveOrder(1L, request);
+
+        assertThat(response)
+                .extracting(CreateOrderResponse::getOrderId, CreateOrderResponse::getSubscribeUrl)
+                .containsExactlyInAnyOrder(
+                        1L, "http://test.com/" + 1L + "/subscribe"
+                );
+
+        verify(eventPublisher, times(1)).publishEvent(eventArgumentCaptor.capture());
+        PendingOrderCreatedEvent value = eventArgumentCaptor.getValue();
+
+        assertThat(value.getOrderId()).isEqualTo(1L);
+        assertThat(value.getUserId()).isEqualTo(1L);
+        assertThat(value.getStatus()).isEqualTo("PENDING");
+        assertThat(value.getOrderProducts())
+                .extracting(OrderProduct::getProductVariantId, OrderProduct::getStock)
+                .containsExactlyInAnyOrder(
+                        tuple(1L, 2)
+                );
+    }
+}
