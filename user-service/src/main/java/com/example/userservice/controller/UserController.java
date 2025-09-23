@@ -266,7 +266,7 @@ public class UserController {
     //캐시 충전
     @PatchMapping("/cash/recharge/{amount}")
     public ResponseEntity<ResponseUser> rechargeCash(@RequestHeader("X-User-Id") Long userId, @PathVariable("amount") int amount) {
-
+        log.info("요청 응답");
         UserEntity userEntity = userService.rechargeCash(userId, amount);
 
         return ResponseEntity.status(HttpStatus.OK).body(
