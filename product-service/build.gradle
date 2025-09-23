@@ -55,7 +55,7 @@ dependencies {
 	annotationProcessor 'org.projectlombok:lombok'
 
     //kafka dto
-    implementation 'com.github.ecommerce-kubernetes:common-dto:2.0.1'
+    implementation 'com.github.ecommerce-kubernetes:common-dto:2.0.4'
 
     //Test
     testImplementation 'org.springframework.kafka:spring-kafka-test'

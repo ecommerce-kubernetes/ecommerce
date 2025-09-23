@@ -2,6 +2,7 @@ package com.example.order_service.controller;
 
 import com.example.order_service.common.MessageSourceUtil;
 import com.example.order_service.common.advice.ErrorResponseEntityFactory;
+import com.example.order_service.common.scheduler.PendingOrderTimeoutScheduler;
 import com.example.order_service.controller.util.validator.OrderPageableValidator;
 import com.example.order_service.controller.util.validator.PageableValidatorFactory;
 import com.example.order_service.dto.request.OrderItemRequest;
@@ -9,6 +10,7 @@ import com.example.order_service.dto.request.OrderRequest;
 import com.example.order_service.dto.response.*;
 import com.example.order_service.entity.DomainType;
 import com.example.order_service.service.OrderService;
+import com.example.order_service.service.SseConnectionService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -42,11 +44,15 @@ class OrderControllerTest {
     MockMvc mockMvc;
 
     @MockitoBean
+    PendingOrderTimeoutScheduler pendingOrderTimeoutScheduler;
+    @MockitoBean
     OrderService orderService;
     @MockitoBean
     MessageSourceUtil ms;
     @MockitoBean
     PageableValidatorFactory pageableValidatorFactory;
+    @MockitoBean
+    SseConnectionService sseConnectionService;
 
     @BeforeEach
     void setUpMessages() {
