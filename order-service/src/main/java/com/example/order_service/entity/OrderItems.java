@@ -20,18 +20,34 @@ public class OrderItems extends BaseEntity {
     private Orders order;
 
     private Long productId;
+    private Long productVariantId;
     private String productName;
-    private int price;
-    private int quantity;
-    private String mainImgUrl;
+    private String optionJson;
+    private Long originPrice;
+    private Long discountRate;
+    private Long discountedPrice;
+    private Long lineTotal;
 
-    public OrderItems(Orders order, Long productId, String productName, int price, int quantity, String mainImgUrl){
-        this.order = order;
+    private int quantity;
+    private String thumbnail;
+
+    public OrderItems(Long productVariantId, int quantity){
+        this.productVariantId = productVariantId;
+        this.quantity = quantity;
+    }
+
+    public void setProductData(Long productId, String productName, String optionJson, long originPrice,
+                               long discountRate, long discountedPrice, long lineTotal){
         this.productId = productId;
         this.productName = productName;
-        this.price = price;
-        this.quantity = quantity;
-        this.mainImgUrl = mainImgUrl;
-        order.getOrderItems().add(this);
+        this.optionJson = optionJson;
+        this.originPrice = originPrice;
+        this.discountRate = discountRate;
+        this.discountedPrice = discountedPrice;
+        this.lineTotal = lineTotal;
+    }
+
+    protected void setOrder(Orders order){
+        this.order = order;
     }
 }

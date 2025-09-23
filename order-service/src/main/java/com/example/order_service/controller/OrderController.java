@@ -1,46 +1,64 @@
 package com.example.order_service.controller;
 
-import com.example.order_service.dto.request.OrderRequestDto;
-import com.example.order_service.dto.response.OrderResponseDto;
+import com.example.order_service.controller.util.specification.annotation.BadRequestApiResponse;
+import com.example.order_service.controller.util.specification.annotation.ConflictApiResponse;
+import com.example.order_service.controller.util.specification.annotation.NotFoundApiResponse;
+import com.example.order_service.controller.util.validator.PageableValidator;
+import com.example.order_service.controller.util.validator.PageableValidatorFactory;
+import com.example.order_service.dto.request.OrderRequest;
+import com.example.order_service.dto.response.CreateOrderResponse;
+import com.example.order_service.dto.response.OrderResponse;
 import com.example.order_service.dto.response.PageDto;
+import com.example.order_service.entity.DomainType;
 import com.example.order_service.service.OrderService;
+import com.example.order_service.service.SseConnectionService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 @RestController
 @RequiredArgsConstructor
+@Tag(name = "Order", description = "주문 관련 API")
 @RequestMapping("/orders")
-@Slf4j
 public class OrderController {
 
     private final OrderService orderService;
+    private final SseConnectionService sseConnectionService;
+    private final PageableValidatorFactory factory;
 
+    @Operation(summary = "주문 생성")
+    @BadRequestApiResponse
     @PostMapping
-    public ResponseEntity<OrderResponseDto> createOrder(@RequestBody @Validated OrderRequestDto orderRequestDto,
-                                                        @RequestHeader("user-id") String userIdHeader){
-        Long userId = Long.parseLong(userIdHeader);
-        OrderResponseDto orderResponseDto = orderService.saveOrder(userId, orderRequestDto);
-
-        return ResponseEntity.status(HttpStatus.SC_CREATED).body(orderResponseDto);
+    public ResponseEntity<CreateOrderResponse> createOrder(@RequestBody @Validated OrderRequest orderRequest,
+                                                           @RequestHeader("X-User-Id") Long userId){
+        CreateOrderResponse orderResponse = orderService.saveOrder(userId, orderRequest);
+        return ResponseEntity.status(HttpStatus.SC_CREATED).body(orderResponse);
     }
 
-    @GetMapping("/{userId}")
-    public ResponseEntity<PageDto<OrderResponseDto>> getAllOrdersByUserId(@PathVariable("userId") Long userId,
-                                                                  @RequestParam(value = "page", defaultValue = "0") int page,
-                                                                  @RequestParam(value = "size", defaultValue = "10") int size,
-                                                                  @RequestParam(value = "year",required = false) Integer year,
-                                                                  @RequestParam(value = "keyword", required = false) String keyword){
-
-        Pageable pageable = PageRequest.of(page, size, Sort.Direction.DESC, "createAt");
-
-        PageDto<OrderResponseDto> orderList = orderService.getOrderList(pageable, userId, year, keyword);
+    @Operation(summary = "주문 목록 조회")
+    @BadRequestApiResponse
+    @GetMapping
+    public ResponseEntity<PageDto<OrderResponse>> getOrders(@RequestHeader("X-User-Id") Long userId,
+                                                                       @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.ASC) Pageable pageable,
+                                                                       @RequestParam(value = "year",required = false) String year,
+                                                                       @RequestParam(value = "keyword", required = false) String keyword){
+        PageableValidator validator = factory.getValidator(DomainType.ORDER);
+        Pageable validatedPageable = validator.validate(pageable);
+        PageDto<OrderResponse> orderList = orderService.getOrderList(validatedPageable, userId, year, keyword);
         return ResponseEntity.ok(orderList);
+    }
+
+    @GetMapping(value = "/subscribe/{orderId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public SseEmitter subscribe(@PathVariable("orderId") Long orderId){
+        return sseConnectionService.create(orderId);
     }
 }

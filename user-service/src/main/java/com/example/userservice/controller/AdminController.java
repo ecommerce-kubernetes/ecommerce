@@ -75,7 +75,7 @@ public class AdminController {
                         .phoneVerified(userDto.isPhoneVerified())
                         .createdAt(userDto.getCreatedAt())
                         .addresses(requestAddressList)
-                        .cache(userDto.getCache())
+                        .cash(userDto.getCash())
                         .point(userDto.getPoint())
                         .build()
         );
@@ -195,29 +195,29 @@ public class AdminController {
     }
 
     //캐시 충전
-    @PatchMapping("/{userId}/cache/recharge/{amount}")
-    public ResponseEntity<ResponseUser> rechargeCache(@PathVariable("userId") Long userId, @PathVariable("amount") int amount) {
+    @PatchMapping("/{userId}/cash/recharge/{amount}")
+    public ResponseEntity<ResponseUser> rechargeCash(@PathVariable("userId") Long userId, @PathVariable("amount") int amount) {
 
-        UserEntity userEntity = userService.rechargeCache(userId, amount);
+        UserEntity userEntity = userService.rechargeCash(userId, amount);
 
         return ResponseEntity.status(HttpStatus.OK).body(
                 ResponseUser.builder()
                         .userId(userEntity.getId())
-                        .cache(userEntity.getCache())
+                        .cash(userEntity.getCash())
                         .build()
         );
     }
 
     //캐시 차감
-    @PatchMapping("/{userId}/cache/deduct/{amount}")
-    public ResponseEntity<ResponseUser> deductCache(@PathVariable("userId") Long userId, @PathVariable("amount") int amount) {
+    @PatchMapping("/{userId}/cash/deduct/{amount}")
+    public ResponseEntity<ResponseUser> deductCash(@PathVariable("userId") Long userId, @PathVariable("amount") int amount) {
 
-        UserEntity userEntity = userService.deductCache(userId, amount);
+        UserEntity userEntity = userService.deductCash(userId, amount);
 
         return ResponseEntity.status(HttpStatus.OK).body(
                 ResponseUser.builder()
                         .userId(userEntity.getId())
-                        .cache(userEntity.getCache())
+                        .cash(userEntity.getCash())
                         .build()
         );
     }

@@ -33,6 +33,8 @@ public class UserController {
         this.tokenService = tokenService;
     }
 
+    //마이페이지 조회
+
     //회원가입
     @PostMapping
     public ResponseEntity<ResponseUser> createUser(@Valid @RequestBody RequestCreateUser user) {
@@ -117,7 +119,7 @@ public class UserController {
                         .phoneNumber(userDto.getPhoneNumber())
                         .phoneVerified(userDto.isPhoneVerified())
                         .createdAt(userDto.getCreatedAt())
-                        .cache(userDto.getCache())
+                        .cash(userDto.getCash())
                         .point(userDto.getPoint())
                         .build()
         );
@@ -262,29 +264,29 @@ public class UserController {
     }
 
     //캐시 충전
-    @PatchMapping("/cache/recharge/{amount}")
-    public ResponseEntity<ResponseUser> rechargeCache(@RequestHeader("X-User-Id") Long userId, @PathVariable("amount") int amount) {
+    @PatchMapping("/cash/recharge/{amount}")
+    public ResponseEntity<ResponseUser> rechargeCash(@RequestHeader("X-User-Id") Long userId, @PathVariable("amount") int amount) {
 
-        UserEntity userEntity = userService.rechargeCache(userId, amount);
+        UserEntity userEntity = userService.rechargeCash(userId, amount);
 
         return ResponseEntity.status(HttpStatus.OK).body(
                 ResponseUser.builder()
                         .userId(userEntity.getId())
-                        .cache(userEntity.getCache())
+                        .cash(userEntity.getCash())
                         .build()
         );
     }
 
     //캐시 차감
-    @PatchMapping("/cache/deduct/{amount}")
-    public ResponseEntity<ResponseUser> deductCache(@RequestHeader("X-User-Id") Long userId, @PathVariable("amount") int amount) {
+    @PatchMapping("/cash/deduct/{amount}")
+    public ResponseEntity<ResponseUser> deductCash(@RequestHeader("X-User-Id") Long userId, @PathVariable("amount") int amount) {
 
-        UserEntity userEntity = userService.deductCache(userId, amount);
+        UserEntity userEntity = userService.deductCash(userId, amount);
 
         return ResponseEntity.status(HttpStatus.OK).body(
                 ResponseUser.builder()
                         .userId(userEntity.getId())
-                        .cache(userEntity.getCache())
+                        .cash(userEntity.getCash())
                         .build()
         );
     }
@@ -353,7 +355,7 @@ public class UserController {
                 .httpOnly(true)
                 .secure(true)
                 .maxAge(0)
-                .sameSite("Strict")
+                .sameSite("None")
                 .build();
 
         response.setHeader("Set-Cookie", deleteCookie.toString());

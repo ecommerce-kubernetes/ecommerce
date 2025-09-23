@@ -33,11 +33,11 @@ public interface UserService extends UserDetailsService {
 
     UserEntity deleteAddress(Long userId, Long addressName);
 
-    UserEntity rechargeCache(Long userId, int amount);
+    UserEntity rechargeCash(Long userId, int amount);
 
     UserEntity rechargePoint(Long userId, int amount);
 
-    UserEntity deductCache(Long userId, int amount);
+    UserEntity deductCash(Long userId, int amount);
 
     UserEntity deductPoint(Long userId, int amount);
 

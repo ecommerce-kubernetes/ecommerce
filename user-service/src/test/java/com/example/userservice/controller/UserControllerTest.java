@@ -66,7 +66,7 @@ class UserControllerTest {
                 .phoneVerified(false)
                 .gender(Gender.MALE)
                 .birthDate(LocalDate.parse("1999-04-13"))
-                .cache(0)
+                .cash(0)
                 .point(0)
                 .addresses(new ArrayList<>())
                 .role(Role.ROLE_USER)
@@ -122,7 +122,7 @@ class UserControllerTest {
                 .phoneNumber("01012345678")
                 .gender(Gender.MALE)
                 .birthDate(LocalDate.parse("1999-04-13"))
-                .cache(1000)
+                .cash(1000)
                 .point(500)
                 .addresses(new ArrayList<>())
                 .role(Role.ROLE_USER)
@@ -184,7 +184,7 @@ class UserControllerTest {
                 .phoneNumber("010-1234-5678")
                 .gender(Gender.MALE)
                 .birthDate(LocalDate.parse("1999-04-13"))
-                .cache(0)
+                .cash(0)
                 .point(0)
                 .addresses(new ArrayList<>())
                 .role(Role.ROLE_USER)
@@ -227,7 +227,7 @@ class UserControllerTest {
                 .phoneNumber("010-1234-5678")
                 .gender(Gender.MALE)
                 .birthDate(LocalDate.parse("1999-04-13"))
-                .cache(0)
+                .cash(0)
                 .point(0)
                 .addresses(new ArrayList<>())
                 .role(Role.ROLE_USER)
@@ -272,7 +272,7 @@ class UserControllerTest {
                 .phoneNumber("010-1234-5678")
                 .gender(Gender.MALE)
                 .birthDate(LocalDate.parse("1999-04-13"))
-                .cache(0)
+                .cash(0)
                 .point(0)
                 .addresses(new ArrayList<>())
                 .role(Role.ROLE_USER)
@@ -290,8 +290,8 @@ class UserControllerTest {
     }
 
     @Test
-    @DisplayName("PATCH /users/cache/recharge/{amount} - 캐시 충전")
-    public void testRechargeCache() throws Exception {
+    @DisplayName("PATCH /users/cash/recharge/{amount} - 캐시 충전")
+    public void testRechargeCash() throws Exception {
         // Given
         Long userId = 1L;
         int amount = 5000;
@@ -302,26 +302,26 @@ class UserControllerTest {
                 .phoneNumber("010-1234-5678")
                 .gender(Gender.MALE)
                 .birthDate(LocalDate.parse("1999-04-13"))
-                .cache(amount)
+                .cash(amount)
                 .point(0)
                 .addresses(new ArrayList<>())
                 .role(Role.ROLE_USER)
                 .build();
         ReflectionTestUtils.setField(userEntity, "id", userId);
 
-        when(userService.rechargeCache(userId, amount)).thenReturn(userEntity);
+        when(userService.rechargeCash(userId, amount)).thenReturn(userEntity);
 
         // When & Then
-        mockMvc.perform(patch("/users/cache/recharge/{amount}", amount)
+        mockMvc.perform(patch("/users/cash/recharge/{amount}", amount)
                         .header("X-User-Id", userId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.userId").value(userId))
-                .andExpect(jsonPath("$.cache").value(amount));
+                .andExpect(jsonPath("$.cash").value(amount));
     }
 
     @Test
-    @DisplayName("PATCH /users/cache/deduct/{amount} - 캐시 차감")
-    public void testDeductCache() throws Exception {
+    @DisplayName("PATCH /users/cash/deduct/{amount} - 캐시 차감")
+    public void testDeductCash() throws Exception {
         // Given
         Long userId = 1L;
         int amount = 3000;
@@ -333,21 +333,21 @@ class UserControllerTest {
                 .phoneNumber("010-1234-5678")
                 .gender(Gender.MALE)
                 .birthDate(LocalDate.parse("1999-04-13"))
-                .cache(7000)
+                .cash(7000)
                 .point(0)
                 .addresses(new ArrayList<>())
                 .role(Role.ROLE_USER)
                 .build();
         ReflectionTestUtils.setField(userEntity, "id", userId);
 
-        when(userService.deductCache(userId, amount)).thenReturn(userEntity);
+        when(userService.deductCash(userId, amount)).thenReturn(userEntity);
 
         // When & Then
-        mockMvc.perform(patch("/users/cache/deduct/{amount}", amount)
+        mockMvc.perform(patch("/users/cash/deduct/{amount}", amount)
                         .header("X-User-Id", userId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.userId").value(userId))
-                .andExpect(jsonPath("$.cache").value(7000));
+                .andExpect(jsonPath("$.cash").value(7000));
     }
 
     @Test
@@ -363,7 +363,7 @@ class UserControllerTest {
                 .phoneNumber("010-1234-5678")
                 .gender(Gender.MALE)
                 .birthDate(LocalDate.parse("1999-04-13"))
-                .cache(0)
+                .cash(0)
                 .point(amount)
                 .addresses(new ArrayList<>())
                 .role(Role.ROLE_USER)
@@ -394,7 +394,7 @@ class UserControllerTest {
                 .phoneNumber("010-1234-5678")
                 .gender(Gender.MALE)
                 .birthDate(LocalDate.parse("1999-04-13"))
-                .cache(0)
+                .cash(0)
                 .point(8000)
                 .addresses(new ArrayList<>())
                 .role(Role.ROLE_USER)

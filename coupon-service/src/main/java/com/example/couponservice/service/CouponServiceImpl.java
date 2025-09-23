@@ -1,7 +1,6 @@
 package com.example.couponservice.service;
 
-import com.example.couponservice.advice.exceptions.InvalidPhoneNumberException;
-import com.example.couponservice.advice.exceptions.IsExistCouponException;
+import com.example.couponservice.advice.exceptions.*;
 import com.example.couponservice.client.UserServiceClient;
 import com.example.couponservice.dto.CouponDto;
 import com.example.couponservice.jpa.CouponRepository;
@@ -19,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 import java.util.stream.Collectors;
 
@@ -166,7 +166,8 @@ public class CouponServiceImpl implements CouponService{
 
         //재발급 가능하지 않은 쿠폰일 때, 해당 쿠폰 코드로 발급받은 대상이 userId 나 핸드폰 번호일 경우
         if (!couponEntity.isReusable()) {
-            if (userCouponRepository.existsByUserIdOrPhoneNumberAndCoupon_Code(responseUser.getUserId(), responseUser.getPhoneNumber(), couponCode)) {
+            if (userCouponRepository.existsByCouponIdAndUserIdOrCouponIdAndPhoneNumber(couponEntity.getId(), responseUser.getUserId(), couponEntity.getId(), responseUser.getPhoneNumber()))
+            {
                 throw new IsExistCouponException("이미 발급된 쿠폰입니다: " + couponCode);
             }
         }
@@ -186,40 +187,94 @@ public class CouponServiceImpl implements CouponService{
     }
 
     @Override
-    public List<CouponEntity> getAllValidCouponByUser(Long userId) {
+    public List<UserCouponEntity> getAllValidCouponByUser(Long userId) {
 
-        List<UserCouponEntity> userCouponEntityList = userCouponRepository.findAllByUserId(userId);
-
-        LocalDateTime now = LocalDateTime.now();
-
-        return userCouponEntityList.stream()
-                .filter(userCoupon -> !userCoupon.isUsed() && userCoupon.getExpiresAt().isAfter(now))
-                .map(UserCouponEntity::getCoupon)
-                .collect(Collectors.toList());
+        return userCouponRepository.findAllByUserIdAndUsedFalseAndExpiresAtAfter(userId, LocalDateTime.now());
     }
 
     @Override
-    public List<CouponEntity> getAllExpiredOrUsedCouponByUser(Long userId) {
-        List<UserCouponEntity> userCouponEntityList = userCouponRepository.findAllByUserId(userId);
+    public List<UserCouponEntity> getAllExpiredOrUsedCouponByUser(Long userId) {
 
-        LocalDateTime now = LocalDateTime.now();
-
-        return userCouponEntityList.stream()
-                .filter(userCoupon -> userCoupon.isUsed() || userCoupon.getExpiresAt().isBefore(now))
-                .map(UserCouponEntity::getCoupon)
-                .collect(Collectors.toList());
+        return userCouponRepository.findAllByUserIdAndUsedTrueOrUserIdAndExpiresAtBefore(userId, userId, LocalDateTime.now());
     }
 
     @Override
-    public void useCouponByUser(Long userId, Long couponId) {
+    public CouponDto useCouponByUser(Long userCouponId) {
 
         // 유저가 발급받은 해당 쿠폰 조회
-        UserCouponEntity userCoupon = userCouponRepository.findByCouponIdAndUserId(couponId, userId)
+        UserCouponEntity userCoupon = userCouponRepository.findById(userCouponId)
                 .orElseThrow(() -> new IsExistCouponException("해당 쿠폰이 존재하지 않거나 사용자에게 속하지 않습니다."));
 
-        // used, usedAt 필드 업데이트
+        //만료기간이 지났는지 확인
+        if (LocalDateTime.now().isAfter(userCoupon.getExpiresAt())) {
+            throw new IsExpiredCouponException("해당 쿠폰의 만료기간이 지났습니다.");
+        }
+
+        // used, usedAt 필드 업데이트, 이미 사용한 쿠폰일 시 에러
         userCoupon.markAsUsed(LocalDateTime.now());
 
+        //쿠폰 정보
+        CouponEntity couponEntity = userCoupon.getCoupon();
+
+        return CouponDto.builder()
+                .id(couponEntity.getId())
+                .name(couponEntity.getName())
+                .code(couponEntity.getCode())
+                .description(couponEntity.getDescription())
+                .category(couponEntity.getCategory())
+                .discountType(couponEntity.getDiscountType())
+                .discountValue(couponEntity.getDiscountValue())
+                .minPurchaseAmount(couponEntity.getMinPurchaseAmount())
+                .maxDiscountAmount(couponEntity.getMaxDiscountAmount())
+                .validFrom(couponEntity.getValidFrom())
+                .validTo(couponEntity.getValidTo())
+                .reusable(couponEntity.isReusable())
+                .build();
+    }
+
+    @Override
+    public CouponDto availableUserCoupon(Long userId, Long userCouponId) {
+
+        // 유저가 발급받은 해당 쿠폰 조회
+        UserCouponEntity userCoupon = userCouponRepository.findByUserIdAndUserCouponId(userId, userCouponId)
+                .orElseThrow(() -> new IsExistCouponException("해당 쿠폰이 존재하지 않거나 사용자에게 속하지 않습니다."));
+
+        //만료기간이 지났는지 확인
+        if (LocalDateTime.now().isAfter(userCoupon.getExpiresAt())) {
+            throw new IsExpiredCouponException("해당 쿠폰의 만료기간이 지났습니다.");
+        }
+
+        //이미 사용한 쿠폰일 시 에러
+        if (userCoupon.isUsed()) {
+            throw new AlreadyUsedCouponException("이미 사용한 쿠폰입니다.");
+        }
+
+        //쿠폰 정보
+        CouponEntity couponEntity = userCoupon.getCoupon();
+
+        return CouponDto.builder()
+                .id(couponEntity.getId())
+                .name(couponEntity.getName())
+                .code(couponEntity.getCode())
+                .description(couponEntity.getDescription())
+                .category(couponEntity.getCategory())
+                .discountType(couponEntity.getDiscountType())
+                .discountValue(couponEntity.getDiscountValue())
+                .minPurchaseAmount(couponEntity.getMinPurchaseAmount())
+                .maxDiscountAmount(couponEntity.getMaxDiscountAmount())
+                .validFrom(couponEntity.getValidFrom())
+                .validTo(couponEntity.getValidTo())
+                .reusable(couponEntity.isReusable())
+                .build();
+    }
+
+    @Override
+    public void revertUserCoupon(Long userCouponId) {
+        // 유저가 발급받은 해당 쿠폰 조회
+        UserCouponEntity userCoupon = userCouponRepository.findById(userCouponId)
+                .orElseThrow(() -> new IsExistCouponException("해당 쿠폰이 존재하지 않거나 사용자에게 속하지 않습니다."));
+
+        userCoupon.revertAsUsed();
     }
 
     @Override

@@ -26,7 +26,7 @@ public class QCartItems extends EntityPathBase<CartItems> {
 
     public final NumberPath<Long> id = createNumber("id", Long.class);
 
-    public final NumberPath<Long> productId = createNumber("productId", Long.class);
+    public final NumberPath<Long> productVariantId = createNumber("productVariantId", Long.class);
 
     public final NumberPath<Integer> quantity = createNumber("quantity", Integer.class);
 

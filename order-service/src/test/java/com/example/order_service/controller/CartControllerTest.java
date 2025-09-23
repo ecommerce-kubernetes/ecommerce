@@ -1,26 +1,31 @@
 package com.example.order_service.controller;
 
-import com.example.order_service.common.advice.ControllerAdvice;
-import com.example.order_service.dto.request.CartItemRequestDto;
-import com.example.order_service.dto.response.CartItemResponseDto;
-import com.example.order_service.dto.response.CartResponseDto;
+import com.example.order_service.common.MessageSourceUtil;
+import com.example.order_service.common.advice.ErrorResponseEntityFactory;
+import com.example.order_service.dto.request.CartItemRequest;
+import com.example.order_service.dto.response.CartItemResponse;
+import com.example.order_service.dto.response.CartResponse;
+import com.example.order_service.dto.response.ItemOptionResponse;
+import com.example.order_service.dto.response.ProductInfo;
+import com.example.order_service.exception.NoPermissionException;
 import com.example.order_service.exception.NotFoundException;
 import com.example.order_service.service.CartService;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
 import java.util.List;
 
-import static org.hamcrest.Matchers.hasItem;
-import static org.junit.jupiter.api.Assertions.*;
+import static com.example.order_service.common.MessagePath.*;
+import static com.example.order_service.util.ControllerTestHelper.*;
+import static com.example.order_service.util.TestMessageUtil.getMessage;
+import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
@@ -29,144 +34,150 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(CartController.class)
-@Import(ControllerAdvice.class)
+@Import(ErrorResponseEntityFactory.class)
 class CartControllerTest {
+    private static final String BASE_PATH = "/carts";
+    private static final String ID_PATH = BASE_PATH + "/1";
 
     @Autowired
     MockMvc mockMvc;
-
     @MockitoBean
     CartService cartService;
+    @MockitoBean
+    MessageSourceUtil ms;
 
-    ObjectMapper mapper = new ObjectMapper();
-
-    @Test
-    @DisplayName("장바구니 추가")
-    void addCartItemTest() throws Exception {
-        Long userId = 1L;
-
-        CartItemRequestDto cartItemRequestDto = new CartItemRequestDto( 1L, 10);
-        CartItemResponseDto cartItemResponseDto = new CartItemResponseDto(1L, 1L, "사과", 3000, 10,"http://apple.jpg");
-        when(cartService.addItem(anyLong(), any(CartItemRequestDto.class))).thenReturn(cartItemResponseDto);
-
-        String content = mapper.writeValueAsString(cartItemRequestDto);
-
-        ResultActions perform = mockMvc.perform(post("/carts")
-                .header("user-id", userId.toString())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(content));
-
-        perform
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").value(cartItemResponseDto.getId()))
-                .andExpect(jsonPath("$.productId").value(cartItemResponseDto.getProductId()))
-                .andExpect(jsonPath("$.productName").value(cartItemResponseDto.getProductName()))
-                .andExpect(jsonPath("$.price").value(cartItemResponseDto.getPrice()))
-                .andExpect(jsonPath("$.quantity").value(cartItemResponseDto.getQuantity()))
-                .andExpect(jsonPath("$.mainImgUrl").value(cartItemResponseDto.getMainImgUrl()));
+    @BeforeEach
+    void setUpMessages() {
+        when(ms.getMessage(NOT_FOUND)).thenReturn("NotFound");
+        when(ms.getMessage(BAD_REQUEST)).thenReturn("BadRequest");
+        when(ms.getMessage(BAD_REQUEST_VALIDATION)).thenReturn("Validation Error");
+        when(ms.getMessage(FORBIDDEN)).thenReturn("Forbidden");
     }
 
     @Test
-    @DisplayName("장바구니 추가 - 없는 상품 추가시")
-    void addCartItemTest_NotFoundProduct() throws Exception {
-        Long userId = 1L;
-        CartItemRequestDto cartItemRequestDto = new CartItemRequestDto( 1L, 10);
-        doThrow(new NotFoundException("Not Found Product")).when(cartService).addItem(anyLong(),any(CartItemRequestDto.class));
+    @DisplayName("장바구니 아이템 추가 테스트-성공")
+    void addCartItemTest_success() throws Exception {
+        ProductInfo productInfo = new ProductInfo(1L, 1L, "상품1", 3000, 10,
+                "http://product1.jpg", List.of(new ItemOptionResponse("색상", "RED")));
+        CartItemResponse response = new CartItemResponse(1L, productInfo, 10, true);
+        when(cartService.addItem(anyLong(), any(CartItemRequest.class))).thenReturn(response);
 
-        String content = mapper.writeValueAsString(cartItemRequestDto);
+        CartItemRequest request = new CartItemRequest(1L, 10);
 
-        ResultActions perform = mockMvc.perform(post("/carts")
-                .header("user-id", userId.toString())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(content));
-
-        perform
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.error").value("NotFound"))
-                .andExpect(jsonPath("$.message").value("Not Found Product"))
-                .andExpect(jsonPath("$.path").value("/carts"));
+        ResultActions perform = performWithBodyAndUserIdHeader(mockMvc, post(BASE_PATH), request);
+        verifySuccessResponse(perform, status().isCreated(), response);
     }
 
     @Test
-    @DisplayName("장바구니 조회")
-    void getAllCartItemTest() throws Exception {
-        List<CartItemResponseDto> cartItems = List.of(new CartItemResponseDto(1L, 1L, "사과", 3000, 10, "http://apple.jpg"),
-                new CartItemResponseDto(2L, 2L, "바나나", 5000, 5, "http://banana.jpg"));
-
-        int cartTotalPrice = 0;
-        for (CartItemResponseDto cartItem : cartItems) {
-            cartTotalPrice =+ cartItem.getPrice() * cartItem.getQuantity();
-        }
-        CartResponseDto responseDto = new CartResponseDto(1L, cartItems, cartTotalPrice);
-
-        when(cartService.getCartItemList(anyLong())).thenReturn(responseDto);
-
-        ResultActions perform = mockMvc.perform(get("/carts/1"));
-
-        perform
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1L))
-                .andExpect(jsonPath("$.cartTotalPrice").value(responseDto.getCartTotalPrice()));
-
-        for(int i=0; i<responseDto.getCartItems().size(); i++){
-            List<CartItemResponseDto> cartItemResponseDtoList = responseDto.getCartItems();
-            perform
-                    .andExpect(jsonPath("$.cartItems[" + i + "].id").value(cartItemResponseDtoList.get(i).getId()))
-                    .andExpect(jsonPath("$.cartItems[" + i + "].productId").value(cartItemResponseDtoList.get(i).getProductId()))
-                    .andExpect(jsonPath("$.cartItems[" + i + "].productName").value(cartItemResponseDtoList.get(i).getProductName()))
-                    .andExpect(jsonPath("$.cartItems[" + i + "].price").value(cartItemResponseDtoList.get(i).getPrice()))
-                    .andExpect(jsonPath("$.cartItems[" + i + "].quantity").value(cartItemResponseDtoList.get(i).getQuantity()))
-                    .andExpect(jsonPath("$.cartItems[" + i + "].mainImgUrl").value(cartItemResponseDtoList.get(i).getMainImgUrl()));
-        }
+    @DisplayName("장바구니 아이템 추가 테스트-실패(주문 상품을 찾을 수 없음)")
+    void addCartItemTest_notFound_productVariant_notFound() throws Exception {
+        when(cartService.addItem(anyLong(), any(CartItemRequest.class)))
+                .thenThrow(new NotFoundException(getMessage(PRODUCT_VARIANT_NOT_FOUND)));
+        CartItemRequest request = new CartItemRequest(1L, 10);
+        ResultActions perform = performWithBodyAndUserIdHeader(mockMvc, post(BASE_PATH), request);
+        verifyErrorResponse(perform, status().isNotFound(), getMessage(NOT_FOUND), getMessage(PRODUCT_VARIANT_NOT_FOUND),
+                BASE_PATH);
     }
 
     @Test
-    @DisplayName("장바구니 아이템 개별 삭제 테스트")
-    void removeCartItemTest() throws Exception {
-        doNothing().when(cartService).deleteCartItemById(anyLong());
-
-        ResultActions perform = mockMvc.perform(delete("/carts/1"));
+    @DisplayName("장바구니 아이템 추가 테스트-실패(검증)")
+    void addCartItemTest_validation() throws Exception {
+        CartItemRequest request = new CartItemRequest();
+        ResultActions perform = performWithBodyAndUserIdHeader(mockMvc, post(BASE_PATH), request);
+        verifyErrorResponse(perform, status().isBadRequest(), getMessage(BAD_REQUEST), getMessage(BAD_REQUEST_VALIDATION),
+                BASE_PATH);
 
         perform
-                .andExpect(status().isNoContent());
+                .andExpect(jsonPath("$.errors", hasSize(2)));
     }
 
     @Test
-    @DisplayName("장바구니 아이템 개별 삭제 테스트 _ 장바구니 아이탬을 찾을 수 없을때")
-    void removeCartItemTest_NotFound() throws Exception {
-        doThrow(new NotFoundException("Not Found CartItem")).when(cartService).deleteCartItemById(anyLong());
+    @DisplayName("장바구니 아이템 추가 테스트-실패(헤더 없음)")
+    void addCartItemTest_noHeader() throws Exception {
+        CartItemRequest request = new CartItemRequest(1L, 10);
+        ResultActions perform = performWithBody(mockMvc, post(BASE_PATH), request);
 
-        ResultActions perform = mockMvc.perform(delete("/carts/1"));
-
-        perform
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.error").value("NotFound"))
-                .andExpect(jsonPath("$.message").value("Not Found CartItem"))
-                .andExpect(jsonPath("$.path").value("/carts/1"));
+        verifyErrorResponse(perform, status().isBadRequest(), getMessage(BAD_REQUEST),
+                "Required request header 'X-User-Id' for method parameter type Long is not present",
+                BASE_PATH);
     }
 
     @Test
-    @DisplayName("장바구니 일괄 삭제")
-    void removeCartAllTest() throws Exception {
-        doNothing().when(cartService).deleteCartAll(anyLong());
+    @DisplayName("장바구니 목록 조회 테스트-성공")
+    void getAllCartItemTest_success() throws Exception {
+        List<CartItemResponse> cartItemResponses = List.of(new CartItemResponse(1L, new ProductInfo(1L, 1L, "상품1", 3000, 10, "http://product1.jpg",
+                List.of(new ItemOptionResponse("색상", "RED"))), 2, true));
+        CartResponse response = new CartResponse(cartItemResponses, 6000);
+        when(cartService.getCartItemList(1L))
+                .thenReturn(response);
 
-        ResultActions perform = mockMvc.perform(delete("/carts/1/all"));
-
-        perform
-                .andExpect(status().isNoContent());
+        ResultActions perform = performWithBodyAndUserIdHeader(mockMvc, get(BASE_PATH), response);
+        verifySuccessResponse(perform, status().isOk(), response);
     }
 
     @Test
-    @DisplayName("장바구니 일괄 삭제 _ 장바구니 찾을수 없을때")
-    void removeCartAllTest_NotFound() throws Exception {
-        doThrow(new NotFoundException("Not Found Cart")).when(cartService).deleteCartAll(anyLong());
+    @DisplayName("장바구니 목록 조회 테스트-실패(헤더 없음)")
+    void getAllCartItemTest_noHeader() throws Exception {
+        ResultActions perform = performWithBody(mockMvc, get(BASE_PATH), null);
+        verifyErrorResponse(perform, status().isBadRequest(), getMessage(BAD_REQUEST),
+                "Required request header 'X-User-Id' for method parameter type Long is not present",
+                BASE_PATH);
+    }
 
-        ResultActions perform = mockMvc.perform(delete("/carts/1/all"));
+    @Test
+    @DisplayName("장바구니 상품 삭제 테스트-성공")
+    void removeCartItemTest_success() throws Exception {
+        doNothing().when(cartService).deleteCartItemById(anyLong(), anyLong());
+        ResultActions perform = performWithBodyAndUserIdHeader(mockMvc, delete(ID_PATH), null);
+        verifySuccessResponse(perform, status().isNoContent(), null);
+    }
 
-        perform
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.error").value("NotFound"))
-                .andExpect(jsonPath("$.message").value("Not Found Cart"))
-                .andExpect(jsonPath("$.path").value("/carts/1/all"));
+    @Test
+    @DisplayName("장바구니 상품 삭제 테스트-실패(헤더 없음)")
+    void removeCartItemTest_noHeader() throws Exception {
+        ResultActions perform = performWithBody(mockMvc, delete(ID_PATH), null);
+        verifyErrorResponse(perform, status().isBadRequest(), getMessage(BAD_REQUEST),
+                "Required request header 'X-User-Id' for method parameter type Long is not present",
+                ID_PATH
+        );
+    }
+
+    @Test
+    @DisplayName("장바구니 상품 삭제 테스트-실패(장바구니 상품을 찾을 수 없음)")
+    void removeCartItemTest_notFound_cartItem() throws Exception {
+        doThrow(new NotFoundException(getMessage(CART_ITEM_NOT_FOUND)))
+                .when(cartService).deleteCartItemById(anyLong(), anyLong());
+        ResultActions perform = performWithBodyAndUserIdHeader(mockMvc, delete(ID_PATH), null);
+        verifyErrorResponse(perform, status().isNotFound(), getMessage(NOT_FOUND),
+                getMessage(CART_ITEM_NOT_FOUND), ID_PATH);
+    }
+
+    @Test
+    @DisplayName("장바구니 상품 삭제 테스트-실패(삭제할 권한이 없음)")
+    void removeCartItemTest_noPermission() throws Exception {
+        doThrow(new NoPermissionException(getMessage(CART_ITEM_NO_PERMISSION)))
+                .when(cartService).deleteCartItemById(anyLong(), anyLong());
+
+        ResultActions perform = performWithBodyAndUserIdHeader(mockMvc, delete(ID_PATH), null);
+        verifyErrorResponse(perform, status().isForbidden(), getMessage(FORBIDDEN),
+                getMessage(CART_ITEM_NO_PERMISSION), ID_PATH);
+    }
+
+    @Test
+    @DisplayName("장바구니 비우기 테스트-성공")
+    void clearCartTest_success() throws Exception {
+        doNothing().when(cartService).clearAllCartItems(anyLong());
+        ResultActions perform = performWithBodyAndUserIdHeader(mockMvc, delete(ID_PATH), null);
+        verifySuccessResponse(perform, status().isNoContent(), null);
+    }
+
+    @Test
+    @DisplayName("장바구니 비우기 테스트-실패(헤더 없음)")
+    void clearCartTest_noHeader() throws Exception {
+        ResultActions perform = performWithBody(mockMvc, delete(BASE_PATH), null);
+        verifyErrorResponse(perform, status().isBadRequest(), getMessage(BAD_REQUEST),
+                "Required request header 'X-User-Id' for method parameter type Long is not present",
+                BASE_PATH
+        );
     }
 }

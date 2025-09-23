@@ -62,7 +62,7 @@ class AdminControllerTest {
                 .id(1L)
                 .email("test@example.com")
                 .name("John")
-                .cache(100)
+                .cash(100)
                 .point(50)
                 .createdAt(LocalDateTime.now())
                 .addresses(Collections.emptyList())
@@ -71,7 +71,7 @@ class AdminControllerTest {
         userEntity = UserEntity.builder()
                 .email("test@example.com")
                 .name("John")
-                .cache(100)
+                .cash(100)
                 .point(50)
                 .addresses(new ArrayList<>())
                 .build();
@@ -80,7 +80,7 @@ class AdminControllerTest {
     }
 
     @Test
-    @DisplayName("GET /users - 전체 유저 조회")
+    @DisplayName("GET /admin/users - 전체 유저 조회")
     void getUsers_returnsPagedUsers() throws Exception {
         Page<UserDto> page = new PageImpl<>(List.of(userDto));
         when(userService.getUserByAll(any(Pageable.class))).thenReturn(page);
@@ -208,25 +208,25 @@ class AdminControllerTest {
     }
 
     @Test
-    @DisplayName("PATCH /users/{userId}/cache/recharge/{amount} - 유저 캐시 충전 성공")
-    void rechargeCache_success() throws Exception {
-        when(userService.rechargeCache(1L, 100)).thenReturn(userEntity);
+    @DisplayName("PATCH /users/{userId}/cash/recharge/{amount} - 유저 캐시 충전 성공")
+    void rechargeCash_success() throws Exception {
+        when(userService.rechargeCash(1L, 100)).thenReturn(userEntity);
 
-        mockMvc.perform(patch("/admin/users/1/cache/recharge/100"))
+        mockMvc.perform(patch("/admin/users/1/cash/recharge/100"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.userId").value(1L))
-                .andExpect(jsonPath("$.cache").value(100));
+                .andExpect(jsonPath("$.cash").value(100));
     }
 
     @Test
-    @DisplayName("PATCH /users/{userId}/cache/deduct/{amount} - 유저 캐시 차감 성공")
-    void deductCache_success() throws Exception {
-        when(userService.deductCache(1L, 50)).thenReturn(userEntity);
+    @DisplayName("PATCH /users/{userId}/cash/deduct/{amount} - 유저 캐시 차감 성공")
+    void deductCash_success() throws Exception {
+        when(userService.deductCash(1L, 50)).thenReturn(userEntity);
 
-        mockMvc.perform(patch("/admin/users/1/cache/deduct/50"))
+        mockMvc.perform(patch("/admin/users/1/cash/deduct/50"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.userId").value(1L))
-                .andExpect(jsonPath("$.cache").value(100));
+                .andExpect(jsonPath("$.cash").value(100));
     }
 
     @Test

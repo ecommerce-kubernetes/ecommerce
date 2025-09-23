@@ -32,7 +32,7 @@ public class AdminAccountInitializer implements ApplicationRunner {
                     .phoneVerified(true)
                     .gender(Gender.MALE)
                     .birthDate(LocalDate.of(1999, 4, 13))
-                    .cache(0)
+                    .cash(0)
                     .point(0)
                     .role(Role.ROLE_ADMIN)
                     .build();

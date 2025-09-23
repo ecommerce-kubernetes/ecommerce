@@ -99,7 +99,7 @@ public class TokenService {
                 .secure(true)
                 .path("/")
                 .maxAge(Long.parseLong(refreshExpStr) / 1000)
-                .sameSite("Strict")
+                .sameSite("None")
                 .build();
     }
 

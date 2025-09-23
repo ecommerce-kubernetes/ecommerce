@@ -49,7 +49,6 @@ public class UserCouponEntity {
     private LocalDateTime expiresAt;
 
     @Builder
-
     public UserCouponEntity(Long userId, String phoneNumber, CouponEntity coupon, boolean used, LocalDateTime usedAt, LocalDateTime expiresAt) {
         this.userId = userId;
         this.phoneNumber = phoneNumber;
@@ -69,5 +68,10 @@ public class UserCouponEntity {
         }
         this.used = true;
         this.usedAt = usedAt;
+    }
+
+    public void revertAsUsed() {
+        this.used = false;
+        this.usedAt = null;
     }
 }

@@ -52,7 +52,7 @@ class UserServiceTest {
                 .gender(Gender.MALE)
                 .birthDate(LocalDate.of(1990, 1, 1))
                 .phoneNumber("01012345678")
-                .cache(100)
+                .cash(100)
                 .point(50)
                 .role(Role.ROLE_USER)
                 .build();
@@ -115,27 +115,27 @@ class UserServiceTest {
 //    }
 
     @Test
-    @DisplayName("POST /users/{id}/cache - 캐시 충전 성공")
-    void rechargeCache_success() {
+    @DisplayName("POST /users/{id}/cash - 캐시 충전 성공")
+    void rechargeCash_success() {
         when(userRepository.findById(1L)).thenReturn(Optional.of(userEntity));
         when(userRepository.save(any(UserEntity.class))).thenReturn(userEntity);
 
-        UserEntity updated = userService.rechargeCache(1L, 100);
+        UserEntity updated = userService.rechargeCash(1L, 100);
 
-        assertEquals(200, updated.getCache());
+        assertEquals(200, updated.getCash());
     }
 
     @Test
-    @DisplayName("POST /users/{id}/cache - 0 이하 금액 충전 시 예외 발생")
-    void rechargeCache_invalidAmount_throwsException() {
-        assertThrows(InvalidAmountException.class, () -> userService.rechargeCache(1L, 0));
+    @DisplayName("POST /users/{id}/cash - 0 이하 금액 충전 시 예외 발생")
+    void rechargeCash_invalidAmount_throwsException() {
+        assertThrows(InvalidAmountException.class, () -> userService.rechargeCash(1L, 0));
     }
 
     @Test
-    @DisplayName("POST /users/{id}/cache/deduct - 잔액 부족 시 예외 발생")
-    void deductCache_insufficientFunds_throwsException() {
+    @DisplayName("POST /users/{id}/cash/deduct - 잔액 부족 시 예외 발생")
+    void deductCash_insufficientFunds_throwsException() {
         when(userRepository.findById(1L)).thenReturn(Optional.of(userEntity));
-        assertThrows(InvalidAmountException.class, () -> userService.deductCache(1L, 200));
+        assertThrows(InvalidAmountException.class, () -> userService.deductCash(1L, 200));
     }
 
     @Test
