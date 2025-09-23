@@ -1,28 +1,42 @@
 package com.example.userservice.vo;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
 
 @Data
-@AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ResponseUser {
     private Long userId;
     private String email;
     private String name;
-    private LocalDateTime createAt;
-    private List<String> addresses;
+    private String birthDate;
+    private String gender;
+    private String phoneNumber;
+    private Boolean phoneVerified;
+    private LocalDateTime createdAt;
+    private List<ResponseAddress> addresses;
+    private Integer cash;
+    private Integer point;
+    private String role;
 
-    public ResponseUser(Long userId, String email, String name, LocalDateTime createAt) {
+    @Builder
+    public ResponseUser(Long userId, String email, String name, String birthDate, String gender, String phoneNumber, Boolean phoneVerified, LocalDateTime createdAt, List<ResponseAddress> addresses, Integer cash, Integer point, String role) {
         this.userId = userId;
         this.email = email;
         this.name = name;
-        this.createAt = createAt;
+        this.birthDate = birthDate;
+        this.gender = gender;
+        this.phoneNumber = phoneNumber;
+        this.phoneVerified = phoneVerified;
+        this.createdAt = createdAt;
+        this.addresses = addresses;
+        this.cash = cash;
+        this.point = point;
+        this.role = role;
     }
 }

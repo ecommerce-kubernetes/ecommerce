@@ -1,12 +1,16 @@
 package com.example.userservice.security;
 
+import com.example.userservice.advice.CustomAccessDeniedHandler;
+import com.example.userservice.advice.CustomAuthenticationEntryPoint;
+import com.example.userservice.service.TokenService;
 import com.example.userservice.service.UserService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -15,25 +19,32 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 @EnableWebSecurity
-public class WebSecurity {
+@EnableMethodSecurity(prePostEnabled = true)
+public class WebSecurity{
 
-    private UserService userService;
-    private BCryptPasswordEncoder bCryptPasswordEncoder;
-    private Environment env;
-    private JwtAuthorizationFilter jwtAuthorizationFilter;
+    private final UserService userService;
+    private final TokenService tokenService;
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final HeaderAuthenticationFilter headerAuthenticationFilter;
+    private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
+    private final CustomAccessDeniedHandler customAccessDeniedHandler;
+
     private static final String[] WHITE_LIST = {
             "/login/**", "/health_check/**", "/actuator/**", "/swagger-ui/**", "/swagger-resources/**", "/v3/api-docs/**"
     };
 
-
-    public WebSecurity(UserService userService, BCryptPasswordEncoder bCryptPasswordEncoder, Environment env, JwtAuthorizationFilter jwtAuthorizationFilter) {
+    public WebSecurity(UserService userService, TokenService tokenService, BCryptPasswordEncoder bCryptPasswordEncoder, HeaderAuthenticationFilter headerAuthenticationFilter, CustomAuthenticationEntryPoint customAuthenticationEntryPoint, CustomAccessDeniedHandler customAccessDeniedHandler) {
         this.userService = userService;
+        this.tokenService = tokenService;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
-        this.env = env;
-        this.jwtAuthorizationFilter = jwtAuthorizationFilter;
+        this.headerAuthenticationFilter = headerAuthenticationFilter;
+        this.customAuthenticationEntryPoint = customAuthenticationEntryPoint;
+        this.customAccessDeniedHandler = customAccessDeniedHandler;
     }
 
     @Bean
@@ -53,19 +64,24 @@ public class WebSecurity {
                         authorize -> authorize
                                 .requestMatchers(WHITE_LIST).permitAll()
                                 .requestMatchers(HttpMethod.POST, "/users").permitAll()
+                                .requestMatchers(HttpMethod.POST, "/users/refresh-token").permitAll()
                                 .anyRequest().authenticated()
                 )
                 .authenticationManager(authenticationManager)
                 .sessionManagement((session) ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint(customAuthenticationEntryPoint)
+                        .accessDeniedHandler(customAccessDeniedHandler)
+                )
                 .addFilter(getAuthenticationFilter(authenticationManager))
-                .addFilterBefore(jwtAuthorizationFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(headerAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 
     private AuthenticationFilter getAuthenticationFilter(AuthenticationManager authenticationManager) throws Exception{
-        AuthenticationFilter filter = new AuthenticationFilter(authenticationManager, userService, env);
-        filter.setFilterProcessesUrl("/login"); // ✅ 이 줄이 핵심!
+        AuthenticationFilter filter = new AuthenticationFilter(authenticationManager, userService, tokenService);
+        filter.setFilterProcessesUrl("/login");
         return filter;
     }
 }

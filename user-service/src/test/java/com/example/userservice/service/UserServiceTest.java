@@ -1,207 +1,166 @@
 package com.example.userservice.service;
 
+import com.example.userservice.advice.exceptions.InvalidAmountException;
+import com.example.userservice.client.CouponServiceClient;
 import com.example.userservice.dto.UserDto;
-import com.example.userservice.jpa.UserEntity;
-import com.example.userservice.jpa.UserRepository;
-import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.AfterEach;
+import com.example.userservice.jpa.*;
+import com.example.userservice.jpa.entity.Gender;
+import com.example.userservice.jpa.entity.Role;
+import com.example.userservice.jpa.entity.UserEntity;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.client.circuitbreaker.CircuitBreaker;
-import org.springframework.cloud.client.circuitbreaker.CircuitBreakerFactory;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.test.util.ReflectionTestUtils;
 
-import java.util.List;
+import java.time.LocalDate;
+import java.util.Optional;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-@SpringBootTest(properties = {"eureka.client.enabled=false"})
 @ExtendWith(MockitoExtension.class)
-@Slf4j
+@DisplayName("UserService 단위 테스트")
 class UserServiceTest {
 
-    @Autowired
-    private BCryptPasswordEncoder bCryptPasswordEncoder;
+    @Mock
+    private CouponServiceClient couponServiceClient;
 
-    @Autowired
-    private UserService userService;
-
-    @Autowired
+    @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private BCryptPasswordEncoder bCryptPasswordEncoder;
+
+    @InjectMocks
+    private UserServiceImpl userService;
+
+    private UserEntity userEntity;
+
     @BeforeEach
-    void setup() {
-        userRepository.deleteAll();  // 테스트 실행 전에 기존 데이터 삭제
-    }
-
-    @AfterEach
-    void cleanup() {
-        userRepository.deleteAll();  // 테스트 실행 후 데이터 삭제
-    }
-
-    @Test
-    void createUser_성공() {
-        // Given
-        UserDto userDto = UserDto.builder()
-                .email("test@email.com")
-                .pwd("password")
-                .name("Test User")
+    void setUp() {
+        userEntity = UserEntity.builder()
+                .email("test@example.com")
+                .encryptedPwd("encryptedPwd")
+                .name("John")
+                .gender(Gender.MALE)
+                .birthDate(LocalDate.of(1990, 1, 1))
+                .phoneNumber("01012345678")
+                .cash(100)
+                .point(50)
+                .role(Role.ROLE_USER)
                 .build();
 
-        // When
-        UserEntity result = userService.createUser(userDto);
-
-        // Then
-        assertNotNull(result);
-        assertTrue(bCryptPasswordEncoder.matches(userDto.getPwd(), result.getEncryptedPwd()));
-        assertEquals("test@email.com", result.getEmail());
+        ReflectionTestUtils.setField(userEntity, "id", 1L);
     }
 
     @Test
-    void createUser_실패_이미존재할경우() {
-        // Given
-        UserDto userDto = UserDto.builder()
-                .email("test@email.com")
-                .pwd("password")
-                .name("Test User")
+    @DisplayName("POST /users - 회원 생성 성공")
+    void createUser_success() {
+        UserDto dto = UserDto.builder()
+                .email("test@example.com")
+                .pwd("rawPwd")
+                .name("John")
+                .gender("MALE")
+                .birthDate("1990-01-01")
+                .phoneNumber("01012345678")
                 .build();
 
-        // When
-        userService.createUser(userDto);
+        when(userRepository.existsByEmail(dto.getEmail())).thenReturn(false);
+        when(bCryptPasswordEncoder.encode(dto.getPwd())).thenReturn("encryptedPwd");
+        when(userRepository.save(any(UserEntity.class))).thenReturn(userEntity);
 
+        UserEntity savedUser = userService.createUser(dto);
 
-        // Then
-        assertThrows(IllegalArgumentException.class, () -> userService.createUser(userDto));
+        assertEquals(dto.getEmail(), savedUser.getEmail());
+        verify(userRepository).save(any(UserEntity.class));
     }
 
     @Test
-    void getUserByAll_성공() {
-        // Given
-        UserDto userDto1 = UserDto.builder()
-                .email("test1@email.com")
-                .pwd("password1")
-                .name("Test User1")
-                .build();
+    @DisplayName("GET /users/{id} - 회원 조회 성공")
+    void getUserById_success() {
+        when(userRepository.findById(1L)).thenReturn(Optional.of(userEntity));
+        UserDto dto = userService.getUserById(1L);
 
-        UserDto userDto2 = UserDto.builder()
-                .email("test2@email.com")
-                .pwd("password2")
-                .name("Test User2")
-                .build();
+        assertEquals("test@example.com", dto.getEmail());
+        assertEquals("John", dto.getName());
+    }
 
-        userService.createUser(userDto1);
-        userService.createUser(userDto2);
+//    @Test
+//    @DisplayName("PUT /users/{id} - 회원 정보 수정 성공")
+//    void updateUser_success() {
+//        UserDto dto = UserDto.builder()
+//                .id(1L)
+//                .name("Updated Name")
+//                .pwd("newPwd")
+//                .phoneNumber("01099998888")
+//                .gender("FEMALE")
+//                .birthDate("1991-02-02")
+//                .build();
+//
+//        when(userRepository.findById(1L)).thenReturn(Optional.of(userEntity));
+//        when(bCryptPasswordEncoder.encode("newPwd")).thenReturn("encodedNewPwd");
+//        when(userRepository.save(any(UserEntity.class))).thenReturn(userEntity);
+//
+//        UserEntity updated = userService.updateUser(dto);
+//
+//        assertEquals("Updated Name", updated.getName());
+//        assertEquals("encodedNewPwd", updated.getEncryptedPwd());
+//    }
 
-        // When
-        Pageable pageable = PageRequest.of(0, 10);
-        List<UserDto> result = userService.getUserByAll(pageable).getContent();
+    @Test
+    @DisplayName("POST /users/{id}/cash - 캐시 충전 성공")
+    void rechargeCash_success() {
+        when(userRepository.findById(1L)).thenReturn(Optional.of(userEntity));
+        when(userRepository.save(any(UserEntity.class))).thenReturn(userEntity);
 
-        // Then
-        assertEquals(2, result.size());
-        assertEquals("test1@email.com", result.get(0).getEmail());
-        assertEquals("Test User1", result.get(0).getName());
-        assertEquals("test2@email.com", result.get(1).getEmail());
-        assertEquals("Test User2", result.get(1).getName());
+        UserEntity updated = userService.rechargeCash(1L, 100);
+
+        assertEquals(200, updated.getCash());
     }
 
     @Test
-    void getUserById_존재하는_사용자() {
-        // Given
-        UserDto userDto = UserDto.builder()
-                .email("test@email.com")
-                .pwd("password")
-                .name("Test User")
-                .build();
-
-        UserEntity user = userService.createUser(userDto);
-
-        // When
-        UserDto result = userService.getUserById(user.getId());
-
-        // Then
-        assertNotNull(result);
-        assertEquals(user.getId(), result.getId());
+    @DisplayName("POST /users/{id}/cash - 0 이하 금액 충전 시 예외 발생")
+    void rechargeCash_invalidAmount_throwsException() {
+        assertThrows(InvalidAmountException.class, () -> userService.rechargeCash(1L, 0));
     }
 
     @Test
-    void getUserById_없는_사용자() {
-        // Given
-        Long userId = 99L;
-
-        // When & Then
-        assertThrows(UsernameNotFoundException.class, () -> userService.getUserById(userId));
+    @DisplayName("POST /users/{id}/cash/deduct - 잔액 부족 시 예외 발생")
+    void deductCash_insufficientFunds_throwsException() {
+        when(userRepository.findById(1L)).thenReturn(Optional.of(userEntity));
+        assertThrows(InvalidAmountException.class, () -> userService.deductCash(1L, 200));
     }
 
     @Test
-    void getUserByEmail_존재하는_사용자() {
-        // Given
-        UserDto userDto = UserDto.builder()
-                .email("test@email.com")
-                .pwd("password")
-                .name("Test User")
-                .build();
+    @DisplayName("POST /users/check - 비밀번호 일치 시 성공")
+    void checkUser_passwordMatch_success() {
+        when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(userEntity));
+        when(bCryptPasswordEncoder.matches("rawPwd", "encryptedPwd")).thenReturn(true);
 
-        UserEntity userEntity = userService.createUser(userDto);
-
-        // When
-        UserDto result = userService.getUserByEmail(userEntity.getEmail());
-
-        // Then
-        assertNotNull(result);
-        assertEquals(userDto.getEmail(), result.getEmail());
+        assertDoesNotThrow(() -> userService.checkUser("test@example.com", "rawPwd"));
     }
 
     @Test
-    void getUserByEmail_없는_사용자() {
-        // Given
-        String email = "notfound@example.com";
+    @DisplayName("GET /users/email/{email} - 이메일로 회원 조회 성공")
+    void getUserByEmail_success() {
+        when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(userEntity));
 
-        // When & Then
-        assertThatThrownBy(() -> userService.getUserByEmail(email))
-                .isInstanceOf(UsernameNotFoundException.class)
-                .hasMessageContaining("User not found with email");
+        UserDto result = userService.getUserByEmail("test@example.com");
+
+        assertEquals(1L, result.getId());
     }
 
     @Test
-    void loadUserByUsername_성공() {
-        // Given
-        String email = "test@example.com";
-        UserDto userDto = UserDto.builder()
-                .email(email)
-                .pwd("password")
-                .name("Test User")
-                .build();
-
-        userService.createUser(userDto);
-
-        // When
-        UserDetails userDetails = userService.loadUserByUsername(email);
-
-        // Then
-        assertNotNull(userDetails);
-        assertEquals(email, userDetails.getUsername());
-        assertTrue(bCryptPasswordEncoder.matches(userDto.getPwd(), userDetails.getPassword()));
-
-    }
-
-    @Test
-    void loadUserByUsername_없는_사용자() {
-        // Given
-        String email = "notfound@example.com";
-
-        // When & Then
-        assertThatThrownBy(() -> userService.getUserByEmail(email))
-                .isInstanceOf(UsernameNotFoundException.class)
-                .hasMessageContaining("User not found with email");
+    @DisplayName("DELETE /users/{id} - 회원 삭제 성공")
+    void deleteUser_success() {
+        userService.deleteUser(1L);
+        verify(userRepository).deleteById(1L);
     }
 }

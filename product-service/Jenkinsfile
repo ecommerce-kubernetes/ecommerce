@@ -5,7 +5,7 @@ pipeline {
 
     environment {
         GIT_REPO = 'https://github.com/ecommerce-kubernetes/ecommerce.git'
-        BRANCH = 'develop'
+        BRANCH = 'main'
         TARGET_DIR = 'product-service'
         SSH_CREDENTIALS_ID = 'ansible-key'
         REMOTE_HOST = '172.18.4.1'

@@ -1,6 +1,5 @@
 package com.example.filter;
 
-import com.example.apigatewayservice.filter.ExtractUserIdFromTokenGatewayFilterFactory;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import jakarta.ws.rs.core.HttpHeaders;
