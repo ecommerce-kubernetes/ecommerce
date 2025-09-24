@@ -236,7 +236,7 @@ public class CouponServiceImpl implements CouponService{
     public CouponDto availableUserCoupon(Long userId, Long userCouponId) {
 
         // 유저가 발급받은 해당 쿠폰 조회
-        UserCouponEntity userCoupon = userCouponRepository.findByUserIdAndUserCouponId(userId, userCouponId)
+        UserCouponEntity userCoupon = userCouponRepository.findByIdAndUserId(userId, userCouponId)
                 .orElseThrow(() -> new IsExistCouponException("해당 쿠폰이 존재하지 않거나 사용자에게 속하지 않습니다."));
 
         //만료기간이 지났는지 확인
