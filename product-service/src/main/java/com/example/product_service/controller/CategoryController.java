@@ -1,77 +1,88 @@
 package com.example.product_service.controller;
 
-import com.example.product_service.controller.util.SortFieldValidator;
-import com.example.product_service.dto.request.CategoryRequestDto;
-import com.example.product_service.dto.response.CategoryResponseDto;
-import com.example.product_service.dto.response.PageDto;
-import com.example.product_service.entity.Categories;
-import com.example.product_service.exception.BadRequestException;
+import com.example.product_service.controller.util.specification.annotation.*;
+import com.example.product_service.dto.request.category.CategoryRequest;
+import com.example.product_service.dto.request.category.UpdateCategoryRequest;
+import com.example.product_service.dto.response.category.CategoryHierarchyResponse;
+import com.example.product_service.dto.response.category.CategoryResponse;
 import com.example.product_service.service.CategoryService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
-import java.lang.reflect.Field;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
+
 
 @RestController
 @RequiredArgsConstructor
-@Slf4j
+@Tag(name = "Category", description = "카테고리 관련 API")
 @RequestMapping("/categories")
 public class CategoryController {
 
     private final CategoryService categoryService;
-    private final SortFieldValidator sortFieldValidator;
 
+    @AdminApi
+    @Operation(summary = "카테고리 생성")
+    @ApiResponse(responseCode = "201", description = "생성 성공")
+    @BadRequestApiResponse @ForbiddenApiResponse @ConflictApiResponse @NotFoundApiResponse
     @PostMapping
-    public ResponseEntity<CategoryResponseDto> createCategory(@RequestBody @Validated CategoryRequestDto categoryRequestDto){
-        CategoryResponseDto category = categoryService.saveCategory(categoryRequestDto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(category);
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public ResponseEntity<CategoryResponse> createCategory(@RequestBody @Validated CategoryRequest request){
+        CategoryResponse response = categoryService.saveCategory(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @PatchMapping("/{categoryId}")
-    public ResponseEntity<CategoryResponseDto> updateCategory(@PathVariable("categoryId") Long categoryId,
-                                                                  @RequestBody @Validated CategoryRequestDto categoryRequestDto){
+    @Operation(summary = "루트 카테고리 리스트 조회")
+    @ApiResponse(responseCode = "200", description = "조회 성공")
+    @GetMapping("/root")
+    public ResponseEntity<List<CategoryResponse>> getRootCategories(){
+        List<CategoryResponse> response = categoryService.getRootCategories();
+        return ResponseEntity.ok(response);
+    }
 
-        if(Objects.equals(categoryId, categoryRequestDto.getParentId())){
-            throw new BadRequestException("An item cannot be set as its own parent");
-        }
-        CategoryResponseDto category = categoryService.modifyCategory(categoryId, categoryRequestDto);
+    @Operation(summary = "자식 카테고리 조회")
+    @ApiResponse(responseCode = "200", description = "조회 성공")
+    @NotFoundApiResponse
+    @GetMapping("/{categoryId}/children")
+    public ResponseEntity<List<CategoryResponse>> getChildrenCategories(@PathVariable("categoryId") Long categoryId){
+        List<CategoryResponse> childCategories = categoryService.getChildrenCategoriesById(categoryId);
+        return ResponseEntity.ok(childCategories);
+    }
+
+    @Operation(summary = "카테고리 계층 구조 조회")
+    @ApiResponse(responseCode = "200", description = "조회 성공")
+    @NotFoundApiResponse
+    @GetMapping("/{categoryId}/hierarchy")
+    public ResponseEntity<CategoryHierarchyResponse> getHierarchy(@PathVariable("categoryId") Long categoryId){
+        CategoryHierarchyResponse response = categoryService.getHierarchyByCategoryId(categoryId);
+        return ResponseEntity.ok(response);
+    }
+
+    @AdminApi
+    @Operation(summary = "카테고리 수정")
+    @ApiResponse(responseCode = "200", description = "카테고리 수정")
+    @BadRequestApiResponse @ForbiddenApiResponse @NotFoundApiResponse @ConflictApiResponse
+    @PatchMapping("/{categoryId}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public ResponseEntity<CategoryResponse> updateCategory(@PathVariable("categoryId") Long categoryId,
+                                                           @RequestBody @Validated UpdateCategoryRequest request){
+        CategoryResponse category = categoryService.updateCategoryById(categoryId, request);
         return ResponseEntity.ok(category);
     }
 
+    @AdminApi
+    @Operation(summary = "카테고리 삭제")
+    @ApiResponse(responseCode = "204", description = "카테고리 삭제")
+    @ForbiddenApiResponse @NotFoundApiResponse
     @DeleteMapping("/{categoryId}")
-    public ResponseEntity<Void> removeCategory(@PathVariable("categoryId") Long categoryId){
-        categoryService.deleteCategory(categoryId);
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public ResponseEntity<Void> deleteCategory(@PathVariable("categoryId") Long categoryId){
+        categoryService.deleteCategoryById(categoryId);
         return ResponseEntity.noContent().build();
-    }
-
-    @GetMapping("/{categoryId}")
-    public ResponseEntity<CategoryResponseDto> getCategoryById(@PathVariable("categoryId") Long categoryId){
-        CategoryResponseDto categoryDetails = categoryService.getCategoryDetails(categoryId);
-        return ResponseEntity.ok(categoryDetails);
-    }
-
-    @GetMapping
-    public ResponseEntity<PageDto<CategoryResponseDto>> getMainCategoryList(
-            @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.ASC) Pageable pageable){
-
-        sortFieldValidator.validateSortFields(pageable.getSort(), Categories.class);
-        PageDto<CategoryResponseDto> pageDto = categoryService.getRootCategories(pageable);
-        return ResponseEntity.ok(pageDto);
-    }
-
-    @GetMapping("/{categoryId}/child")
-    public ResponseEntity<List<CategoryResponseDto>> getChildByCategoryId(@PathVariable("categoryId") Long categoryId){
-        List<CategoryResponseDto> childCategories = categoryService.getChildCategories(categoryId);
-        return ResponseEntity.ok(childCategories);
     }
 }

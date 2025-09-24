@@ -9,6 +9,7 @@ import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import jakarta.persistence.EntityNotFoundException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.ResponseCookie;
@@ -21,6 +22,7 @@ import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 @Service
+@Slf4j
 public class TokenService {
 
     @Value("${token.secret}")
@@ -127,6 +129,8 @@ public class TokenService {
             if (!"refresh".equals(claims.get("type"))) {
                 return false;
             }
+            log.info(" saved Token : {}", savedToken);
+            log.info(" token : {}" , token);
             // Redis 토큰과 비교
             return token.equals(savedToken);
         } catch (JwtException e) {

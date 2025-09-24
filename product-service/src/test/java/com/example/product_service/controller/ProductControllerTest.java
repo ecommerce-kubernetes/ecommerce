@@ -1,683 +1,481 @@
 package com.example.product_service.controller;
 
-import com.example.product_service.controller.util.SortFieldValidator;
-import com.example.product_service.dto.request.*;
-import com.example.product_service.dto.response.CompactProductResponseDto;
+import com.example.product_service.common.MessageSourceUtil;
+import com.example.product_service.common.advice.ErrorResponseEntityFactory;
+import com.example.product_service.controller.util.validator.PageableValidatorFactory;
+import com.example.product_service.controller.util.validator.ProductPageableValidator;
+import com.example.product_service.controller.util.validator.ReviewPageableValidator;
+import com.example.product_service.dto.ProductSearch;
+import com.example.product_service.dto.request.image.AddImageRequest;
+import com.example.product_service.dto.request.options.ProductOptionTypeRequest;
+import com.example.product_service.dto.request.product.ProductRequest;
+import com.example.product_service.dto.request.product.UpdateProductBasicRequest;
+import com.example.product_service.dto.request.variant.ProductVariantRequest;
+import com.example.product_service.dto.request.variant.VariantOptionValueRequest;
 import com.example.product_service.dto.response.PageDto;
-import com.example.product_service.dto.response.ProductImageDto;
-import com.example.product_service.dto.response.ProductResponseDto;
+import com.example.product_service.dto.response.ReviewResponse;
+import com.example.product_service.dto.response.image.ImageResponse;
+import com.example.product_service.dto.response.options.OptionValueResponse;
+import com.example.product_service.dto.response.options.ProductOptionTypeResponse;
+import com.example.product_service.dto.response.product.ProductResponse;
+import com.example.product_service.dto.response.product.ProductSummaryResponse;
+import com.example.product_service.dto.response.product.ProductUpdateResponse;
+import com.example.product_service.dto.response.variant.ProductVariantResponse;
+import com.example.product_service.entity.DomainType;
+import com.example.product_service.exception.BadRequestException;
 import com.example.product_service.exception.NotFoundException;
-import com.example.product_service.service.ProductService;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.extern.slf4j.Slf4j;
+import com.example.product_service.service.ProductApplicationService;
+import com.example.product_service.service.ProductQueryService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.CsvSource;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
-import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import org.springframework.util.LinkedMultiValueMap;
 
-import java.util.ArrayList;
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Stream;
+import java.util.Map;
 
-import static org.hamcrest.Matchers.hasItem;
-import static org.mockito.ArgumentMatchers.any;
+import static com.example.product_service.common.MessagePath.*;
+import static com.example.product_service.util.ControllerTestHelper.*;
+import static com.example.product_service.util.TestMessageUtil.getMessage;
+import static org.hamcrest.Matchers.hasSize;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-
 @WebMvcTest(ProductController.class)
-@Import(SortFieldValidator.class)
-@Slf4j
+@AutoConfigureMockMvc(addFilters = false)
+@Import(ErrorResponseEntityFactory.class)
 class ProductControllerTest {
 
+    private static final String BASE_PATH = "/products";
+    private static final String ID_PATH = BASE_PATH + "/1";
+    private static final String POPULAR_PATH = BASE_PATH + "/popular";
+    private static final String PRODUCT_IMAGE_PATH = BASE_PATH + "/1/images";
+    private static final String PRODUCT_IMAGE_BULK_PATH = PRODUCT_IMAGE_PATH + "/bulk";
+    private static final String PRODUCT_VARIANT_PATH = BASE_PATH + "/1/variants";
+    private static final String REVIEW_PATH = BASE_PATH + "/1/reviews";
+    private static final String IMAGE_URL = "http://test.jpg";
     @Autowired
     MockMvc mockMvc;
     @MockitoBean
-    ProductService productService;
+    MessageSourceUtil ms;
+    @MockitoBean
+    PageableValidatorFactory pageableValidatorFactory;
+    @MockitoBean
+    ProductApplicationService productApplicationService;
+    @MockitoBean
+    ProductQueryService productQueryService;
 
-    ObjectMapper mapper = new ObjectMapper();
-
-    @Test
-    @DisplayName("product 생성 테스트")
-    void createProductTest() throws Exception {
-        //RequestBody
-        ProductRequestDto productRequestDto = createDefaultProductRequestDto();
-        //ResponseBody
-        ProductResponseDto productResponseDto = createDefaultProductResponseDto();
-        when(productService.saveProduct(any(ProductRequestDto.class))).thenReturn(productResponseDto);
-
-        String requestBody = mapper.writeValueAsString(productRequestDto);
-        ResultActions perform = mockMvc.perform(post("/products")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(requestBody));
-
-        perform
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").value(productResponseDto.getId()))
-                .andExpect(jsonPath("$.name").value(productResponseDto.getName()))
-                .andExpect(jsonPath("$.description").value(productResponseDto.getDescription()))
-                .andExpect(jsonPath("$.price").value(productResponseDto.getPrice()))
-                .andExpect(jsonPath("$.stockQuantity").value(productResponseDto.getStockQuantity()))
-                .andExpect(jsonPath("$.categoryId").value(productResponseDto.getCategoryId()));
-
-        for(int i=0; i<productResponseDto.getImages().size(); i++){
-            perform
-                    .andExpect(jsonPath("$.images[" + i + "].id").value(productResponseDto.getImages().get(i).getId()))
-                    .andExpect(jsonPath("$.images[" + i + "].imageUrl").value(productResponseDto.getImages().get(i).getImageUrl()))
-                    .andExpect(jsonPath("$.images[" + i + "].sortOrder").value(productResponseDto.getImages().get(i).getSortOrder()));
-        }
-
-
-    }
-
-    @ParameterizedTest(name = "{1} 필드 => {2}")
-    @MethodSource("provideInvalidProductRequests")
-    @DisplayName("product 생성 테스트 - 입력값 검증 테스트")
-    void createProductTest_InvalidProductRequestDto(ProductRequestDto invalidRequestDto, String expectedField, String expectedMessage)
-            throws Exception {
-        String jsonRequestBody = mapper.writeValueAsString(invalidRequestDto);
-        ResultActions perform = mockMvc.perform(post("/products")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(jsonRequestBody));
-
-        perform
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("BadRequest"))
-                .andExpect(jsonPath("$.message").value("Validation Error"))
-                .andExpect(jsonPath("$.errors[*].fieldName").value(hasItem(expectedField)))
-                .andExpect(jsonPath("$.errors[*].message").value(hasItem(expectedMessage)))
-                .andExpect(jsonPath("$.path").value("/products"));
+    @BeforeEach
+    void setUpMessages() {
+        when(ms.getMessage(NOT_FOUND)).thenReturn("NotFound");
+        when(ms.getMessage(BAD_REQUEST)).thenReturn("BadRequest");
+        when(ms.getMessage(BAD_REQUEST_VALIDATION)).thenReturn("Validation Error");
+        when(ms.getMessage(CONFLICT)).thenReturn("Conflict");
     }
 
     @Test
-    @DisplayName("product 생성 테스트 - 없는 상품 카테고리 입력시")
-    void createProductTest_NotFoundCategory() throws Exception {
-        ProductRequestDto productRequestDto = createDefaultProductRequestDto();
-        when(productService.saveProduct(any(ProductRequestDto.class))).thenThrow(new NotFoundException("Not Found Category"));
+    @DisplayName("상품 저장 테스트-성공")
+    void createProductTest_success() throws Exception {
+        ProductRequest request = createProductRequest();
+        ProductResponse response = createProductResponse();
+        when(productApplicationService.saveProduct(any(ProductRequest.class)))
+                .thenReturn(response);
 
-        String jsonRequestBody = mapper.writeValueAsString(productRequestDto);
-        ResultActions perform = mockMvc.perform(post("/products")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(jsonRequestBody));
-
-        perform
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.error").value("NotFound"))
-                .andExpect(jsonPath("$.message").value("Not Found Category"))
-                .andExpect(jsonPath("$.path").value("/products"));
+        ResultActions perform = performWithBody(mockMvc, post(BASE_PATH), request);
+        verifySuccessResponse(perform, status().isCreated(), response);
     }
 
     @Test
-    @DisplayName("product 삭제 테스트")
-    void removeProductTest() throws Exception {
-        doNothing().when(productService).deleteProduct(any(Long.class));
+    @DisplayName("상품 저장 테스트-실패(검증)")
+    void createProductTest_validation() throws Exception {
+        ProductRequest request = new ProductRequest("", "", null,
+                List.of("invalid"),
+                List.of(new ProductOptionTypeRequest(null, -1)),
+                List.of(new ProductVariantRequest("", -1, 0, 101, List.of())));
 
-        ResultActions perform = mockMvc.perform(delete("/products/1")
-                .contentType(MediaType.APPLICATION_JSON));
+        ResultActions perform = performWithBody(mockMvc, post(BASE_PATH), request);
+        verifyErrorResponse(perform, status().isBadRequest(), getMessage(BAD_REQUEST),
+                getMessage(BAD_REQUEST_VALIDATION), BASE_PATH);
 
-        perform
-                .andExpect(status().isNoContent());
+        perform.andExpect(jsonPath("$.errors").isNotEmpty());
     }
 
     @Test
-    @DisplayName("product 삭제 테스트 - 상품을 찾을 수 없을때")
-    void removeProductTest_NotFoundProduct() throws Exception {
-        doThrow(new NotFoundException("Not Found Product"))
-                .when(productService).deleteProduct(any(Long.class));
+    @DisplayName("상품 저장 테스트-실패(카테고리 없음)")
+    void createProductTest_notFound_category() throws Exception {
+        ProductRequest request = createProductRequest();
+        when(productApplicationService.saveProduct(any(ProductRequest.class)))
+                .thenThrow(new NotFoundException(getMessage(CATEGORY_NOT_FOUND)));
 
-        ResultActions perform = mockMvc.perform(delete("/products/1")
-                .contentType(MediaType.APPLICATION_JSON));
-
-        perform
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.error").value("NotFound"))
-                .andExpect(jsonPath("$.message").value("Not Found Product"))
-                .andExpect(jsonPath("$.path").value("/products/1"));
+        ResultActions perform = performWithBody(mockMvc, post(BASE_PATH), request);
+        verifyErrorResponse(perform, status().isNotFound(), getMessage(NOT_FOUND),
+                getMessage(CATEGORY_NOT_FOUND), BASE_PATH);
     }
 
     @Test
-    @DisplayName("product stockQuantity 변경 테스트")
-    void updateProductStockQuantityTest() throws Exception {
-        StockQuantityRequestDto stockQuantityRequestDto = new StockQuantityRequestDto(40);
-        ProductResponseDto productResponseDto = createDefaultProductResponseDto();
-        productResponseDto.setStockQuantity(40);
-        when(productService.modifyStockQuantity(any(Long.class),any(StockQuantityRequestDto.class)))
-                .thenReturn(productResponseDto);
+    @DisplayName("상품 저장 테스트-실패(옵션 타입 없음)")
+    void createProductTest_notFound_optionType() throws Exception {
+        ProductRequest request = createProductRequest();
+        when(productApplicationService.saveProduct(any(ProductRequest.class)))
+                .thenThrow(new NotFoundException(getMessage(OPTION_TYPE_NOT_FOUND)));
 
-        String requestBody = mapper.writeValueAsString(stockQuantityRequestDto);
-
-        ResultActions perform = mockMvc.perform(patch("/products/1/stock")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(requestBody));
-
-        perform
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(productResponseDto.getId()))
-                .andExpect(jsonPath("$.name").value(productResponseDto.getName()))
-                .andExpect(jsonPath("$.description").value(productResponseDto.getDescription()))
-                .andExpect(jsonPath("$.price").value(productResponseDto.getPrice()))
-                .andExpect(jsonPath("$.stockQuantity").value(productResponseDto.getStockQuantity()))
-                .andExpect(jsonPath("$.categoryId").value(productResponseDto.getCategoryId()));
-    }
-
-    @ParameterizedTest
-    @MethodSource("provideInvalidStockRequests")
-    @DisplayName("product stockQuantity 변경 테스트 - 입력값 검증 테스트")
-    void updateProductStockQuantityTest_invalidStockQuantityRequestDto
-            (StockQuantityRequestDto stockQuantityRequestDto, String expectedField, String expectedMessage) throws Exception {
-        String requestBody = mapper.writeValueAsString(stockQuantityRequestDto);
-        ResultActions perform = mockMvc.perform(patch("/products/1/stock")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(requestBody));
-
-        perform
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("BadRequest"))
-                .andExpect(jsonPath("$.message").value("Validation Error"))
-                .andExpect(jsonPath("$.errors[*].fieldName").value(hasItem(expectedField)))
-                .andExpect(jsonPath("$.errors[*].message").value(hasItem(expectedMessage)))
-                .andExpect(jsonPath("$.path").value("/products/1/stock"));
+        ResultActions perform = performWithBody(mockMvc, post(BASE_PATH), request);
+        verifyErrorResponse(perform, status().isNotFound(), getMessage(NOT_FOUND),
+                getMessage(OPTION_TYPE_NOT_FOUND), BASE_PATH);
     }
 
     @Test
-    @DisplayName("product Id 조회 테스트")
-    void getProductByIdTest() throws Exception {
-        ProductResponseDto productResponseDto = createDefaultProductResponseDto();
+    @DisplayName("상품 저장 테스트-실패(옵션 값 없음)")
+    void createProductTest_notFound_optionValue() throws Exception {
+        ProductRequest request = createProductRequest();
+        when(productApplicationService.saveProduct(any(ProductRequest.class)))
+                .thenThrow(new NotFoundException(getMessage(OPTION_VALUE_NOT_FOUND)));
 
-        when(productService.getProductDetails(any(Long.class))).thenReturn(productResponseDto);
-        ResultActions perform = mockMvc.perform(get("/products/1")
-                .contentType(MediaType.APPLICATION_JSON));
-
-        perform
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1L))
-                .andExpect(jsonPath("$.name").value("테스트 상품 이름"))
-                .andExpect(jsonPath("$.description").value("테스트 상품 설명"))
-                .andExpect(jsonPath("$.price").value(10000))
-                .andExpect(jsonPath("$.stockQuantity").value(50))
-                .andExpect(jsonPath("$.categoryId").value(1L));
+        ResultActions perform = performWithBody(mockMvc, post(BASE_PATH), request);
+        verifyErrorResponse(perform, status().isNotFound(), getMessage(NOT_FOUND),
+                getMessage(OPTION_VALUE_NOT_FOUND), BASE_PATH);
     }
 
-    @ParameterizedTest
-    @CsvSource({
-            "'', ''",
-            "1, ''",
-            "'', 사과",
-            "1, 사과"
-    })
-    @DisplayName("상품 리스트 조회 테스트")
-    void getAllProductsTest(String categoryId, String name) throws Exception {
+    @Test
+    @DisplayName("상품 저장 테스트-실패(옵션 값이 상품 옵션 타입의 옵션 값에 속하지 않는경우)")
+    void createProductTest_notMatchType() throws Exception {
+        ProductRequest request = createProductRequest();
+        when(productApplicationService.saveProduct(any(ProductRequest.class)))
+                .thenThrow(new BadRequestException(getMessage(PRODUCT_OPTION_VALUE_NOT_MATCH_TYPE)));
 
-        List<ProductResponseDto> allProductList = new ArrayList<>();
-        allProductList.add(new ProductResponseDto(1L, "사과", "사과 3EA", 5000, 50, 1L,
-                List.of(new ProductImageDto(1L, "http://test/image1.jpg",0))
-        ));
-        allProductList.add(new ProductResponseDto(2L, "바나나", "바나나 3EA", 5000, 50, 1L,
-                List.of(new ProductImageDto(2L, "http://test/image2.jpg",0))));
-        allProductList.add(new ProductResponseDto(3L, "파인애플", "파인애플 5EA", 6000, 40, 1L,
-                List.of(new ProductImageDto(3L, "http://test/image3.jpg",0))));
-        allProductList.add(new ProductResponseDto(4L, "포도", "포도 6EA",10000, 40, 1L,
-                List.of(new ProductImageDto(4L, "http://test/image4.jpg",0))));
-        allProductList.add(new ProductResponseDto(5L, "아이폰 16", "애플 아이폰 16", 1250000, 50, 2L,
-                List.of(new ProductImageDto(5L, "http://test/image5.jpg",0))));
+        ResultActions perform = performWithBody(mockMvc, post(BASE_PATH), request);
+        verifyErrorResponse(perform, status().isBadRequest(), getMessage(BAD_REQUEST),
+                getMessage(PRODUCT_OPTION_VALUE_NOT_MATCH_TYPE), BASE_PATH);
+    }
 
-        List<ProductResponseDto> filteredProductResponseDto = allProductList.stream()
-                .filter(product -> {
-                    if (!categoryId.isEmpty()) {
-                        return product.getCategoryId().toString().equals(categoryId);
-                    }
-                    return true;
-                })
-                .filter(product -> {
-                    if (!name.isEmpty()) {
-                        return product.getName().toLowerCase().contains(name.toLowerCase());
-                    }
-                    return true;
-                })
-                .toList();
+    @Test
+    @DisplayName("상품 저장 테스트-실패(하나의 옵션타입당 하나의 옵션 값만 설정 가능)")
+    void createProductTest_cardinality_violation() throws Exception {
+        ProductRequest request = createProductRequest();
+        when(productApplicationService.saveProduct(any(ProductRequest.class)))
+                .thenThrow(new BadRequestException(getMessage(PRODUCT_OPTION_VALUE_CARDINALITY_VIOLATION)));
 
-        PageDto<ProductResponseDto> pageDto = new PageDto<>(
-                filteredProductResponseDto,
-                0,
-                1,
-                10,
-                filteredProductResponseDto.size()
+        ResultActions perform = performWithBody(mockMvc, post(BASE_PATH), request);
+        verifyErrorResponse(perform, status().isBadRequest(), getMessage(BAD_REQUEST),
+                getMessage(PRODUCT_OPTION_VALUE_CARDINALITY_VIOLATION), BASE_PATH);
+    }
+
+    @Test
+    @DisplayName("상품 저장 테스트-실패(상품 옵션에 중복된 아이디가 있는 경우)")
+    void createProductTest_duplicate_productOptionType_id() throws Exception {
+        ProductRequest request = createProductRequest();
+        request.setProductOptionTypes(
+                List.of(new ProductOptionTypeRequest(1L, 1),
+                        new ProductOptionTypeRequest(1L,2)));
+
+        when(productApplicationService.saveProduct(any(ProductRequest.class)))
+                .thenThrow(new BadRequestException(getMessage(PRODUCT_OPTION_TYPE_TYPE_BAD_REQUEST)));
+
+        ResultActions perform = performWithBody(mockMvc, post(BASE_PATH), request);
+        verifyErrorResponse(perform, status().isBadRequest(), getMessage(BAD_REQUEST),
+                getMessage(PRODUCT_OPTION_TYPE_TYPE_BAD_REQUEST), BASE_PATH);
+    }
+
+    @Test
+    @DisplayName("상품 저장 테스트-실패(상품 옵션에 중복된 priority 가 있는 경우")
+    void createProductTest_duplicate_productOptionType_priority() throws Exception {
+        ProductRequest request = createProductRequest();
+        request.setProductOptionTypes(
+                List.of(new ProductOptionTypeRequest(1L, 1),
+                        new ProductOptionTypeRequest(2L, 1))
         );
 
-        when(productService.getProductList(any(Pageable.class) , nullable(Long.class), nullable(String.class)))
-                .thenReturn(pageDto);
+        when(productApplicationService.saveProduct(any(ProductRequest.class)))
+                .thenThrow(new BadRequestException(getMessage(PRODUCT_OPTION_TYPE_PRIORITY_BAD_REQUEST)));
 
-        MockHttpServletRequestBuilder requestBuilder = get("/products")
-                .param("page", "0")
-                .param("size", "10")
-                .param("sort", "id")
-                .param("direction", "asc")
-                .contentType(MediaType.APPLICATION_JSON);
-
-        if(!categoryId.isEmpty()){
-            requestBuilder.param("categoryId", categoryId);
-        }
-        if (!name.isEmpty()) {
-            requestBuilder.param("name", name);
-        }
-        ResultActions perform = mockMvc.perform(requestBuilder);
-
-        perform
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.currentPage").value(0))
-                .andExpect(jsonPath("$.totalPage").value(1))
-                .andExpect(jsonPath("$.pageSize").value(10))
-                .andExpect(jsonPath("$.totalElement").value(filteredProductResponseDto.size()));
-
-        for (int i = 0; i < filteredProductResponseDto.size(); i++) {
-            ProductResponseDto expected = filteredProductResponseDto.get(i);
-            perform
-                    .andExpect(jsonPath("$.content[" + i + "].id").value(expected.getId()))
-                    .andExpect(jsonPath("$.content[" + i + "].name").value(expected.getName()))
-                    .andExpect(jsonPath("$.content[" + i + "].description").value(expected.getDescription()))
-                    .andExpect(jsonPath("$.content[" + i + "].price").value(expected.getPrice()))
-                    .andExpect(jsonPath("$.content[" + i + "].stockQuantity").value(expected.getStockQuantity()))
-                    .andExpect(jsonPath("$.content[" + i + "].categoryId").value(expected.getCategoryId()));
-        }
+        ResultActions perform = performWithBody(mockMvc, post(BASE_PATH), request);
+        verifyErrorResponse(perform, status().isBadRequest(), getMessage(BAD_REQUEST),
+                getMessage(PRODUCT_OPTION_TYPE_PRIORITY_BAD_REQUEST), BASE_PATH);
     }
 
     @Test
-    @DisplayName("상품 조회 (배치)")
-    void getProductsByIdBatchTest() throws Exception {
-        ProductRequestIdsDto productRequestIdsDto = new ProductRequestIdsDto(List.of(1L,2L,3L));
-        List<CompactProductResponseDto> compactProductResponseDtoList =
-                List.of(new CompactProductResponseDto(1L, "사과" , "청송사과 3EA", 3000, 10, 1L,"http://test/image.jpg"),
-                        new CompactProductResponseDto(2L, "바나나", "바나나 5EA", 5000, 50, 1L,"http://test/image.jpg"),
-                        new CompactProductResponseDto(3L, "아이폰 16", "애플 아이폰 16", 1250000, 50, 2L,"http://test/image.jpg"));
-
-        when(productService.getProductListByIds(any(ProductRequestIdsDto.class))).thenReturn(compactProductResponseDtoList);
-        String content = mapper.writeValueAsString(productRequestIdsDto);
-
-        ResultActions perform = mockMvc.perform(post("/products/lookup-by-ids")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(content));
-
-        perform
-                .andExpect(status().isOk());
-
-        for (int i=0; i<compactProductResponseDtoList.size(); i++) {
-            perform
-                    .andExpect(jsonPath("[" + i + "].id").value(compactProductResponseDtoList.get(i).getId()))
-                    .andExpect(jsonPath("[" + i + "].name").value(compactProductResponseDtoList.get(i).getName()))
-                    .andExpect(jsonPath("[" + i + "].price").value(compactProductResponseDtoList.get(i).getPrice()))
-                    .andExpect(jsonPath("[" + i + "].stockQuantity").value(compactProductResponseDtoList.get(i).getStockQuantity()))
-                    .andExpect(jsonPath("[" + i + "].categoryId").value(compactProductResponseDtoList.get(i).getCategoryId()));
-        }
+    @DisplayName("상품 이미지 추가 테스트-성공")
+    void addImagesTest_success() throws Exception {
+        AddImageRequest request = new AddImageRequest(List.of("http://test1.jpg", "http://test2.jpg"));
+        List<ImageResponse> response = List.of(new ImageResponse(1L, "http://test1.jpg", 2),
+                new ImageResponse(1L, "http://test2.jpg", 3));
+        when(productApplicationService.addImages(anyLong(), any(AddImageRequest.class)))
+                .thenReturn(response);
+        ResultActions perform = performWithBody(mockMvc, post(PRODUCT_IMAGE_BULK_PATH), request);
+        verifySuccessResponse(perform, status().isCreated(), response);
     }
 
     @Test
-    @DisplayName("상품 조회(배치) 상품 찾을 수 없는 경우")
-    void getProductsByIdBatchTest_NotFoundProduct() throws Exception {
-        ProductRequestIdsDto productRequestIdsDto = new ProductRequestIdsDto(List.of(1L,2L,99L, 100L));
-
-        String content = mapper.writeValueAsString(productRequestIdsDto);
-        List<Long> notFoundId = List.of(99L, 100L);
-        doThrow(new NotFoundException("Not Found Product by id: " + notFoundId))
-                .when(productService)
-                .getProductListByIds(any(ProductRequestIdsDto.class));
-
-        ResultActions perform = mockMvc.perform(post("/products/lookup-by-ids")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(content));
-
-        perform
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.error").value("NotFound"))
-                .andExpect(jsonPath("$.message").value("Not Found Product by id: " + notFoundId))
-                .andExpect(jsonPath("$.path").value("/products/lookup-by-ids"));
+    @DisplayName("상품 이미지 추가 테스트-실패(검증)")
+    void addImagesTest_validation() throws Exception {
+        AddImageRequest request = new AddImageRequest(List.of());
+        ResultActions perform = performWithBody(mockMvc, post(PRODUCT_IMAGE_BULK_PATH), request);
+        verifyErrorResponse(perform, status().isBadRequest(), getMessage(BAD_REQUEST),
+                getMessage(BAD_REQUEST_VALIDATION), PRODUCT_IMAGE_BULK_PATH);
     }
 
     @Test
-    @DisplayName("상품 이미지 추가")
-    void addProductImgTest() throws Exception {
-        ProductImageRequestDto productImageRequestDto = new ProductImageRequestDto(
-                List.of("http://test/image.jpg")
-        );
-
-        ProductResponseDto productResponseDto = createDefaultProductResponseDto();
-
-        String content = mapper.writeValueAsString(productImageRequestDto);
-
-        when(productService.addImage(anyLong(), any(ProductImageRequestDto.class)))
-                .thenReturn(productResponseDto);
-
-        ResultActions perform = mockMvc.perform(post("/products/1/image")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(content));
-
-        perform
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").value(1L))
-                .andExpect(jsonPath("$.name").value("테스트 상품 이름"))
-                .andExpect(jsonPath("$.description").value("테스트 상품 설명"))
-                .andExpect(jsonPath("$.price").value(10000))
-                .andExpect(jsonPath("$.stockQuantity").value(50))
-                .andExpect(jsonPath("$.categoryId").value(1L));
-
-        for(int i=0; i<productResponseDto.getImages().size(); i++){
-            perform
-                    .andExpect(jsonPath("$.images[" + i + "].id").value(productResponseDto.getImages().get(i).getId()))
-                    .andExpect(jsonPath("$.images[" + i + "].imageUrl").value(productResponseDto.getImages().get(i).getImageUrl()))
-                    .andExpect(jsonPath("$.images[" + i + "].sortOrder").value(productResponseDto.getImages().get(i).getSortOrder()));
-        }
+    @DisplayName("상품 이미지 추가 테스트-실패(상품 없음)")
+    void addImagesTest_notFound() throws Exception {
+        AddImageRequest request = new AddImageRequest(List.of("http://test1.jpg", "http://test2.jpg"));
+        when(productApplicationService.addImages(anyLong(),any(AddImageRequest.class)))
+                .thenThrow(new NotFoundException(getMessage(PRODUCT_NOT_FOUND)));
+        ResultActions perform = performWithBody(mockMvc, post(PRODUCT_IMAGE_BULK_PATH), request);
+        verifyErrorResponse(perform, status().isNotFound(), getMessage(NOT_FOUND),
+                getMessage(PRODUCT_NOT_FOUND), PRODUCT_IMAGE_BULK_PATH);
     }
 
     @Test
-    @DisplayName("상품 이미지 추가 - 상품을 찾을 수 없을때")
-    void addProductImgTest_NotFoundProducts() throws Exception {
-        ProductImageRequestDto productImageRequestDto = new ProductImageRequestDto(
-                List.of("http://test/image.jpg")
-        );
-        String content = mapper.writeValueAsString(productImageRequestDto);
-        doThrow(new NotFoundException("Not Found Product")).when(productService).addImage(any(), any(ProductImageRequestDto.class));
+    @DisplayName("상품 변형 추가 테스트-성공")
+    void addVariantTest_success() throws Exception {
+        ProductVariantRequest request =createProductVariantRequest();
+        ProductVariantResponse response = new ProductVariantResponse(1L, "sku", 1000, 10, 10,
+                List.of(new OptionValueResponse(1L, 1L, "value1"),
+                        new OptionValueResponse(2L, 1L, "value2")));
+        when(productApplicationService.addVariant(anyLong(), any(ProductVariantRequest.class)))
+                .thenReturn(response);
 
-        ResultActions perform = mockMvc.perform(post("/products/1/image")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(content));
-
-        perform
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.error").value("NotFound"))
-                .andExpect(jsonPath("$.message").value("Not Found Product"))
-                .andExpect(jsonPath("$.path").value("/products/1/image"));
-    }
-
-    @ParameterizedTest
-    @MethodSource("provideInvalidProductImageRequests")
-    @DisplayName("상품 이미지 검증 실패 - 입력값 검증 테스트")
-    void addProductImgTest_invalidProductImageRequestDto(ProductImageRequestDto productImageRequestDto, String expectedField, String expectedMessage) throws Exception {
-        String content = mapper.writeValueAsString(productImageRequestDto);
-        ResultActions perform = mockMvc.perform(post("/products/1/image")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(content));
-
-        perform
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("BadRequest"))
-                .andExpect(jsonPath("$.message").value("Validation Error"))
-                .andExpect(jsonPath("$.errors[*].fieldName").value(hasItem(expectedField)))
-                .andExpect(jsonPath("$.errors[*].message").value(hasItem(expectedMessage)))
-                .andExpect(jsonPath("$.path").value("/products/1/image"));
+        ResultActions perform = performWithBody(mockMvc, post(PRODUCT_VARIANT_PATH), request);
+        verifySuccessResponse(perform, status().isCreated(), response);
     }
 
     @Test
-    @DisplayName("상품 이미지 순서 변경")
-    void changeImgOrderTest() throws Exception {
-        ImageOrderRequestDto imageOrderRequestDto = new ImageOrderRequestDto(1L, 1);
-        ProductResponseDto productResponseDto = createDefaultProductResponseDto();
-        productResponseDto.setImages(
-                List.of(
-                        new ProductImageDto(2L, "http://test/img1.jpg", 0),
-                        new ProductImageDto(1L, "http://test/img2.jpg",1))
-        );
-
-        String content = mapper.writeValueAsString(imageOrderRequestDto);
-
-        when(productService.imgSwapOrder(anyLong(), any(ImageOrderRequestDto.class)))
-                .thenReturn(productResponseDto);
-
-        ResultActions perform = mockMvc.perform(patch("/products/1/image/sort")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(content));
-
-
-        perform
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1L))
-                .andExpect(jsonPath("$.name").value("테스트 상품 이름"))
-                .andExpect(jsonPath("$.description").value("테스트 상품 설명"))
-                .andExpect(jsonPath("$.price").value(10000))
-                .andExpect(jsonPath("$.stockQuantity").value(50))
-                .andExpect(jsonPath("$.categoryId").value(1L));
-
-        for(int i=0; i<productResponseDto.getImages().size(); i++){
-            perform
-                    .andExpect(jsonPath("$.images[" + i + "].id").value(productResponseDto.getImages().get(i).getId()))
-                    .andExpect(jsonPath("$.images[" + i + "].imageUrl").value(productResponseDto.getImages().get(i).getImageUrl()))
-                    .andExpect(jsonPath("$.images[" + i + "].sortOrder").value(productResponseDto.getImages().get(i).getSortOrder()));
-        }
+    @DisplayName("상품 변형 추가 테스트-실패(검증)")
+    void addVariantTest_validation() throws Exception {
+        ProductVariantRequest request = new ProductVariantRequest();
+        ResultActions perform = performWithBody(mockMvc, post(PRODUCT_VARIANT_PATH), request);
+        verifyErrorResponse(perform, status().isBadRequest(), getMessage(BAD_REQUEST),
+                getMessage(BAD_REQUEST_VALIDATION), PRODUCT_VARIANT_PATH);
     }
 
     @Test
-    @DisplayName("상품 이미지 순서 변경 - 상품을 찾을 수 없을때")
-    void changeImgOrderTest_NotFoundProduct() throws Exception {
-        ImageOrderRequestDto imageOrderRequestDto = new ImageOrderRequestDto(1L, 1);
-        ProductResponseDto productResponseDto = createDefaultProductResponseDto();
-        productResponseDto.setImages(
-                List.of(
-                        new ProductImageDto(2L, "http://test/img1.jpg", 0),
-                        new ProductImageDto(1L, "http://test/img2.jpg",1))
-        );
-
-        String content = mapper.writeValueAsString(imageOrderRequestDto);
-
-        doThrow(new NotFoundException("Not Found Product")).when(productService).imgSwapOrder(anyLong(), any(ImageOrderRequestDto.class));
-        ResultActions perform = mockMvc.perform(patch("/products/1/image/sort")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(content));
-
-        perform
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.error").value("NotFound"))
-                .andExpect(jsonPath("$.message").value("Not Found Product"))
-                .andExpect(jsonPath("$.path").value("/products/1/image/sort"));
+    @DisplayName("상품 변형 추가 테스트-실패(상품 없음)")
+    void addVariantTest_notFound() throws Exception {
+        ProductVariantRequest request = createProductVariantRequest();
+        when(productApplicationService.addVariant(anyLong(), any(ProductVariantRequest.class)))
+                .thenThrow(new NotFoundException(getMessage(PRODUCT_VARIANT_NOT_FOUND)));
+        ResultActions perform = performWithBody(mockMvc, post(PRODUCT_VARIANT_PATH), request);
+        verifyErrorResponse(perform, status().isNotFound(), getMessage(NOT_FOUND),
+                getMessage(PRODUCT_VARIANT_NOT_FOUND), PRODUCT_VARIANT_PATH);
     }
 
     @Test
-    @DisplayName("상품 이미지 순서 변경 - 상품 이미지를 찾을 수 없을때")
-    void changeImgOrderTest_NotFoundProductImg() throws Exception {
-        ImageOrderRequestDto imageOrderRequestDto = new ImageOrderRequestDto(1L, 1);
-        ProductResponseDto productResponseDto = createDefaultProductResponseDto();
-        productResponseDto.setImages(
-                List.of(
-                        new ProductImageDto(2L, "http://test/img1.jpg", 0),
-                        new ProductImageDto(1L, "http://test/img2.jpg",1))
-        );
-
-        String content = mapper.writeValueAsString(imageOrderRequestDto);
-
-        doThrow(new NotFoundException("Not Found ProductImage")).when(productService).imgSwapOrder(anyLong(), any(ImageOrderRequestDto.class));
-        ResultActions perform = mockMvc.perform(patch("/products/1/image/sort")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(content));
-
-        perform
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.error").value("NotFound"))
-                .andExpect(jsonPath("$.message").value("Not Found ProductImage"))
-                .andExpect(jsonPath("$.path").value("/products/1/image/sort"));
-    }
-
-    @ParameterizedTest
-    @MethodSource("provideInvalidImageOrderRequests")
-    @DisplayName("상품 이미지 순서변경 검증 테스트")
-    void changeImgOrderTest_InvalidImageOrderRequestDto(ImageOrderRequestDto imageOrderRequestDto, String expectedField, String expectedMessage) throws Exception {
-        String content = mapper.writeValueAsString(imageOrderRequestDto);
-
-        ResultActions perform = mockMvc.perform(patch("/products/1/image/sort")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(content));
-
-        perform
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("BadRequest"))
-                .andExpect(jsonPath("$.message").value("Validation Error"))
-                .andExpect(jsonPath("$.errors[*].fieldName").value(hasItem(expectedField)))
-                .andExpect(jsonPath("$.errors[*].message").value(hasItem(expectedMessage)))
-                .andExpect(jsonPath("$.path").value("/products/1/image/sort"));
+    @DisplayName("상품 변형 추가 테스트-실패(옵션 값이 상품 옵션 타입의 옵션 값에 속하지 않는경우)")
+    void addVariantTest_notMatchType() throws Exception {
+        ProductVariantRequest request = createProductVariantRequest();
+        when(productApplicationService.addVariant(anyLong(), any(ProductVariantRequest.class)))
+                .thenThrow(new BadRequestException(getMessage(PRODUCT_OPTION_VALUE_NOT_MATCH_TYPE)));
+        ResultActions perform = performWithBody(mockMvc, post(PRODUCT_VARIANT_PATH), request);
+        verifyErrorResponse(perform, status().isBadRequest(), getMessage(BAD_REQUEST),
+                getMessage(PRODUCT_OPTION_VALUE_NOT_MATCH_TYPE), PRODUCT_VARIANT_PATH);
     }
 
     @Test
-    @DisplayName("상품 이미지 삭제 테스트")
-    void deleteProductImageTest() throws Exception {
-        doNothing().when(productService).deleteImage(anyLong());
-
-        ResultActions perform = mockMvc.perform(delete("/products/image/1"));
-
-        perform
-                .andExpect(status().isNoContent());
+    @DisplayName("상품 변형 추가 테스트-실패(하나의 옵션타입당 하나의 옵션 값만 설정 가능)")
+    void addVariantTest_cardinality_violation() throws Exception {
+        ProductVariantRequest request = createProductVariantRequest();
+        when(productApplicationService.addVariant(anyLong(), any(ProductVariantRequest.class)))
+                .thenThrow(new BadRequestException(getMessage(PRODUCT_OPTION_VALUE_CARDINALITY_VIOLATION)));
+        ResultActions perform = performWithBody(mockMvc, post(PRODUCT_VARIANT_PATH), request);
+        verifyErrorResponse(perform, status().isBadRequest(), getMessage(BAD_REQUEST),
+                getMessage(PRODUCT_OPTION_VALUE_CARDINALITY_VIOLATION), PRODUCT_VARIANT_PATH);
     }
 
     @Test
-    @DisplayName("상품 이미지 삭제 - 상품을 찾을 수 없을때")
-    void deleteProductImageTest_NotFoundProduct() throws Exception {
-        doThrow(new NotFoundException("Not Found Product")).when(productService).deleteImage(anyLong());
-        ResultActions perform = mockMvc.perform(delete("/products/image/1"));
-
-        perform
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.error").value("NotFound"))
-                .andExpect(jsonPath("$.message").value("Not Found Product"))
-                .andExpect(jsonPath("$.path").value("/products/image/1"));
+    @DisplayName("상품 조회 테스트-성공")
+    void getProductsTest_success() throws Exception {
+        PageDto<ProductSummaryResponse> response = new PageDto<>(
+                createProductSummaryResponse(),
+                0, 10, 10, 100);
+        when(pageableValidatorFactory.getValidator(DomainType.PRODUCT)).thenReturn(new ProductPageableValidator());
+        when(productQueryService.getProducts(any(ProductSearch.class), any(Pageable.class)))
+                .thenReturn(response);
+        ResultActions perform = performWithPageRequest(mockMvc, get(BASE_PATH), 0,
+                10, List.of("id,asc"), Map.of("categoryId", "3", "rating", "5"));
+        verifySuccessResponse(perform, status().isOk(), response);
 
     }
-    private ProductRequestDto createDefaultProductRequestDto(){
-        return new ProductRequestDto(
-                    "테스트 상품 이름",
-                    "테스트 상품 설명",
-                    10000,
-                    50,
-                    1L,
-                    List.of("http://test/image.jpg")
-                );
+
+    @Test
+    @DisplayName("상품 조회 테스트-실패(검증)")
+    void getProductTest_validation() throws Exception {
+        ResultActions perform = performWithPageRequest(mockMvc, get(BASE_PATH), 0, 10, List.of("id,asc"),
+                Map.of("categoryId", "-1", "rating", ""));
+        verifyErrorResponse(perform, status().isBadRequest(),
+                getMessage(BAD_REQUEST), getMessage(BAD_REQUEST_VALIDATION), BASE_PATH);
+
+        perform.andExpect(jsonPath("$.errors").isNotEmpty())
+                .andExpect(jsonPath("$.errors", hasSize(1)));
     }
-    private ProductResponseDto createDefaultProductResponseDto(){
-        ProductRequestDto request = createDefaultProductRequestDto();
-        return new ProductResponseDto(
-                1L,
-                request.getName(),
-                request.getDescription(),
-                request.getPrice(),
-                request.getStockQuantity(),
-                request.getCategoryId(),
-                List.of(new ProductImageDto(1L, "http://test/image1.jpg",0))
+
+    @Test
+    @DisplayName("상품 상세 조회 테스트-성공")
+    void getProductTest_success() throws Exception {
+        ProductResponse response = createProductResponse();
+        when(productQueryService.getProductById(anyLong()))
+                .thenReturn(response);
+        ResultActions perform = performWithBody(mockMvc, get(ID_PATH), null);
+        verifySuccessResponse(perform, status().isOk(), response);
+    }
+
+    @Test
+    @DisplayName("상품 상세 조회 테스트-실패(없음)")
+    void getProductTest_notFound() throws Exception {
+        when(productQueryService.getProductById(anyLong()))
+                .thenThrow(new NotFoundException(getMessage(PRODUCT_NOT_FOUND)));
+        ResultActions perform = performWithBody(mockMvc, get(ID_PATH), null);
+        verifyErrorResponse(perform, status().isNotFound(),
+                getMessage(NOT_FOUND), getMessage(PRODUCT_NOT_FOUND),ID_PATH);
+    }
+
+    @Test
+    @DisplayName("인기 상품 조회 테스트-성공")
+    void getPopularProductsTest_success() throws Exception {
+        PageDto<ProductSummaryResponse> response =
+                new PageDto<>(createProductSummaryResponse(), 0, 10, 10, 100);
+        when(productQueryService.getPopularProducts(anyInt(), anyInt(), anyLong()))
+                .thenReturn(response);
+        ResultActions perform = performWithParams(mockMvc, get(POPULAR_PATH), new LinkedMultiValueMap<>() {{
+            add("page", "0");
+            add("size", "10");
+            add("categoryId", "1");
+        }});
+        verifySuccessResponse(perform, status().isOk(), response);
+    }
+
+    @Test
+    @DisplayName("상품 리뷰 조회 테스트-성공")
+    void getReviewsByProductIdTest_success() throws Exception {
+        PageDto<ReviewResponse> response = new PageDto<>(createReviewResponse(), 0, 10, 10, 100);
+        when(productQueryService.getReviewsByProductId(anyLong(), any(Pageable.class)))
+                .thenReturn(response);
+        when(pageableValidatorFactory.getValidator(DomainType.REVIEW)).thenReturn(new ReviewPageableValidator());
+
+        ResultActions perform = performWithBody(mockMvc, get(REVIEW_PATH), null);
+        verifySuccessResponse(perform, status().isOk(), response);
+    }
+
+    @Test
+    @DisplayName("상품 리뷰 조회 테스트-실패(상품 없음)")
+    void getReviewsByProductIdTest_notFound() throws Exception {
+        when(productQueryService.getReviewsByProductId(anyLong(), any(Pageable.class)))
+                .thenThrow(new NotFoundException(getMessage(PRODUCT_NOT_FOUND)));
+        when(pageableValidatorFactory.getValidator(DomainType.REVIEW)).thenReturn(new ReviewPageableValidator());
+
+        ResultActions perform = performWithBody(mockMvc, get(REVIEW_PATH), null);
+        verifyErrorResponse(perform, status().isNotFound(), getMessage(NOT_FOUND),
+                getMessage(PRODUCT_NOT_FOUND), REVIEW_PATH);
+    }
+
+    @Test
+    @DisplayName("상품 기본 정보 수정 테스트-성공")
+    void updateBasicInfoTest_success() throws Exception {
+        UpdateProductBasicRequest request =
+                new UpdateProductBasicRequest("updateName", "description", 1L);
+        ProductUpdateResponse response = new ProductUpdateResponse(1L, "name", "description", 1L);
+        when(productApplicationService.updateBasicInfoById(anyLong(), any(UpdateProductBasicRequest.class)))
+                .thenReturn(response);
+
+        ResultActions perform = performWithBody(mockMvc, patch(ID_PATH), request);
+        verifySuccessResponse(perform, status().isOk(), response);
+    }
+
+    @Test
+    @DisplayName("상품 기본 정보 수정 테스트-실패(검증)")
+    void updateBasicInfoTest_validation() throws Exception {
+        UpdateProductBasicRequest request = new UpdateProductBasicRequest(" ", "description", 1L);
+        ResultActions perform = performWithBody(mockMvc, patch(ID_PATH), request);
+        verifyErrorResponse(perform, status().isBadRequest(), getMessage(BAD_REQUEST),
+                getMessage(BAD_REQUEST_VALIDATION), ID_PATH);
+    }
+
+    @Test
+    @DisplayName("상품 기본 정보 수정 테스트-실패(상품 없음)")
+    void updateBasicInfoTest_product_notFound() throws Exception {
+        UpdateProductBasicRequest request = new UpdateProductBasicRequest("updatedName", "description", 1L);
+        when(productApplicationService.updateBasicInfoById(anyLong(), any(UpdateProductBasicRequest.class)))
+                .thenThrow(new NotFoundException(getMessage(NOT_FOUND)));
+        ResultActions perform = performWithBody(mockMvc, patch(ID_PATH), request);
+        verifyErrorResponse(perform, status().isNotFound(), getMessage(NOT_FOUND),
+                getMessage(NOT_FOUND),ID_PATH);
+    }
+
+    @Test
+    @DisplayName("상품 기본 정보 수정 테스트-실패(카테고리 없음)")
+    void updateBasicInfoTest_category_notFound() throws Exception {
+        UpdateProductBasicRequest request = new UpdateProductBasicRequest("updatedName", "description", 1L);
+        when(productApplicationService.updateBasicInfoById(anyLong(), any(UpdateProductBasicRequest.class)))
+                .thenThrow(new NotFoundException(getMessage(CATEGORY_NOT_FOUND)));
+        ResultActions perform = performWithBody(mockMvc, patch(ID_PATH), request);
+        verifyErrorResponse(perform, status().isNotFound(), getMessage(NOT_FOUND),
+                getMessage(CATEGORY_NOT_FOUND), ID_PATH);
+    }
+
+    @Test
+    @DisplayName("상품 삭제 테스트-성공")
+    void deleteProductTest_success() throws Exception {
+        doNothing().when(productApplicationService).deleteProductById(anyLong());
+        ResultActions perform = performWithBody(mockMvc, delete(ID_PATH), null);
+        verifySuccessResponse(perform, status().isNoContent(), null);
+    }
+
+    @Test
+    @DisplayName("상품 삭제 테스트-실패(상품 없음)")
+    void deleteProductTest_notFound() throws Exception {
+        doThrow(new NotFoundException(getMessage(PRODUCT_NOT_FOUND)))
+                .when(productApplicationService).deleteProductById(anyLong());
+        ResultActions perform = performWithBody(mockMvc, delete(ID_PATH), null);
+        verifyErrorResponse(perform, status().isNotFound(), getMessage(NOT_FOUND),
+                getMessage(PRODUCT_NOT_FOUND), ID_PATH);
+    }
+
+    private ProductResponse createProductResponse() {
+        return new ProductResponse(1L, "product", "description", 1L, 0L, 0.0,
+                LocalDateTime.now(), LocalDateTime.now(),
+                List.of(new ImageResponse(1L, IMAGE_URL, 0)),
+                List.of(new ProductOptionTypeResponse(1L, "optionType1")),
+                List.of(new ProductVariantResponse(1L, "sku", 100, 10, 10,
+                        List.of(new OptionValueResponse(1L, 1L, "value")))));
+    }
+
+    private ProductRequest createProductRequest() {
+        return new ProductRequest("product", "description", 1L,
+                List.of(IMAGE_URL),
+                List.of(new ProductOptionTypeRequest(1L, 0)),
+                List.of(new ProductVariantRequest("sku", 100, 10, 10, List.of(new VariantOptionValueRequest(1L, 1L)))));
+    }
+
+    private List<ProductSummaryResponse> createProductSummaryResponse(){
+        return List.of(
+                new ProductSummaryResponse(1L, "product1", "description", IMAGE_URL, 1L,
+                        LocalDateTime.now(), 3.5, 100, 10000, 9000, 10),
+                new ProductSummaryResponse(2L, "product2", "description", IMAGE_URL, 1L,
+                        LocalDateTime.now(), 3.7, 100, 10000, 9000, 10)
         );
     }
 
-    private static Stream<Arguments> provideInvalidProductRequests(){
-        return Stream.of(
-                Arguments.of(
-                        //이름이 비어있는 경우
-                        new ProductRequestDto("", "테스트 상품 설명",10000, 50, 1L, List.of("http://test/image.jpg")),
-                        "name", //오류 필드
-                        "Product name is required" //오류 메시지
-                ),
-                Arguments.of(
-                        //설명이 비어있는 경우
-                        new ProductRequestDto("테스트 상품", "", 10000, 50, 1L, List.of("http://test/image.jpg")),
-                        "description",
-                        "Product description is required"
-                ),
-                Arguments.of(
-                        //상품 가격이 0원 미만일때
-                        new ProductRequestDto("테스트 상품", "테스트 상품 설명", -1, 50, 1L, List.of("http://test/image.jpg")),
-                        "price",
-                        "Product price must not be less than 0"
-                ),
-                Arguments.of(
-                        //상품 가격이 10000000 이상일때
-                        new ProductRequestDto("테스트 상품", "테스트 상품 설명", 10000001, 50, 1L, List.of("http://test/image.jpg")),
-                        "price",
-                        "Product price must not be greater than 10,000,000"
-                ),
-                Arguments.of(
-                        //상품 개수가 0개 이하일때
-                        new ProductRequestDto("테스트 상품", "테스트 상품 설명", 10000, -1, 1L, List.of("http://test/image.jpg")),
-                        "stockQuantity",
-                        "Product stockQuantity must not be less than 0"
-                ),
-                Arguments.of(
-                        //상품 개수가 100개 이상일때
-                        new ProductRequestDto("테스트 상품", "테스트 상품 설명", 10000, 101, 1L, List.of("http://test/image.jpg")),
-                        "stockQuantity",
-                        "Product stockQuantity must not be greater than 100"
-                ),
-                Arguments.of(
-                        //상품 카테고리가 없는 경우
-                        new ProductRequestDto("테스트 상품", "테스트 상품 설명", 10000, 50, null, List.of("http://test/image.jpg")),
-                        "categoryId",
-                        "Product categoryId is required"
-                ),
-                Arguments.of(
-                        //상품 이미지가 없는 경우
-                        new ProductRequestDto("테스트 상품", "테스트 상품 설명", 10000, 50, 1L, null),
-                        "imageUrls",
-                        "At least one image URL is required"
-                ),
-                Arguments.of(
-                        new ProductRequestDto("테스트 상품", "테스트 상품 설명", 10000, 50, 1L, List.of("invalidUrl")),
-                        "imageUrls[0]",
-                        "Invalid image URL"
-                )
-        );
-    }
-    private static Stream<Arguments> provideInvalidStockRequests() {
-        return Stream.of(
-                Arguments.of(
-                        new StockQuantityRequestDto(-1),
-                        "updateStockQuantity",
-                        "Product stockQuantity must not be less than 0"
-                ),
-                Arguments.of(
-                        new StockQuantityRequestDto(101),
-                        "updateStockQuantity",
-                        "Product stockQuantity must not be greater than 100"
-                )
+    private List<ReviewResponse> createReviewResponse(){
+        return List.of(
+                new ReviewResponse(1L, "productName", 1L, "username", 4, "content",
+                        List.of(new OptionValueResponse(1L, 1L, "value1"),
+                                new OptionValueResponse(2L, 2L, "value2")), LocalDateTime.now())
         );
     }
 
-    private static Stream<Arguments> provideInvalidProductImageRequests(){
-        return Stream.of(
-                Arguments.of(
-                        new ProductImageRequestDto(),
-                        "imageUrls",
-                        "At least one image URL is required"
-                ),
-                Arguments.of(
-                        new ProductImageRequestDto(
-                                List.of("invalidUrls")
-                        ),
-                        "imageUrls[0]",
-                        "Invalid image URL"
-                )
-        );
-    }
-
-    private static Stream<Arguments> provideInvalidImageOrderRequests(){
-        return Stream.of(
-                Arguments.of(
-                        new ImageOrderRequestDto(),
-                        "imageId",
-                        "imageId is required"
-                ),
-                Arguments.of(
-                        new ImageOrderRequestDto(1L, null),
-                        "sortOrder",
-                        "sortOrder is required"
-                ),
-                Arguments.of(
-                        new ImageOrderRequestDto(null, 1),
-                        "imageId",
-                        "imageId is required"
-                )
-        );
+    private ProductVariantRequest createProductVariantRequest(){
+        return new ProductVariantRequest("sku", 1000, 10, 10, List.of(new VariantOptionValueRequest(1L, 2L),
+                new VariantOptionValueRequest(2L, 5L)));
     }
 }

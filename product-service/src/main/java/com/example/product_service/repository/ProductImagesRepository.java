@@ -1,16 +1,17 @@
 package com.example.product_service.repository;
 
-import com.example.product_service.entity.ProductImages;
+import com.example.product_service.entity.ProductImage;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Optional;
 
-public interface ProductImagesRepository extends JpaRepository<ProductImages, Long> {
-    @Query("SELECT pi FROM ProductImages pi WHERE pi.product.id =:id AND pi.sortOrder = 0")
-    Optional<ProductImages> findByMainImage(@Param("id") Long id);
+public interface ProductImagesRepository extends JpaRepository<ProductImage, Long> {
+    @Query("SELECT i FROM ProductImage i WHERE i.product.id = :productId")
+    List<ProductImage> findByProductId(@Param("productId") Long productId);
 
-    @Query("SELECT pi FROM ProductImages pi WHERE pi.product.id =:productId AND pi.sortOrder =:sortOrder")
-    Optional<ProductImages> findByProductIdAndSortOrder(@Param("productId") Long productId, @Param("sortOrder") int sortOrder);
+    @Query("SELECT i FROM ProductImage i JOIN FETCH i.product WHERE i.id = :imageId")
+    Optional<ProductImage> findWithProductById(@Param("imageId") Long imageId);
 }
