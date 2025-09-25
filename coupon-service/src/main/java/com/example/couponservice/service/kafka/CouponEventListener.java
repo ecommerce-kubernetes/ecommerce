@@ -28,6 +28,10 @@ public class CouponEventListener {
 
         log.info("Successfully received the message for {}", topic);
 
+        if (event.getUserCouponId() == null) {
+            return;
+        }
+
         try {
             //성공
             CouponDto couponDto = couponService.useCouponByUser(event.getUserCouponId());
