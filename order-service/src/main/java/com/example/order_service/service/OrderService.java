@@ -57,7 +57,8 @@ public class OrderService {
         UserCashDeductedEvent userEvent = mapper.convertValue(sagaState.get("user"), UserCashDeductedEvent.class);
         CouponUsedSuccessEvent couponEvent = mapper.convertValue(sagaState.get("coupon"), CouponUsedSuccessEvent.class);
         boolean isVerified = verifyPayment(prodEvent, userEvent, couponEvent);
-        Long orderId = (Long) sagaState.get("orderId");
+        String orderStatus = sagaState.get("orderId").toString();
+        Long orderId = Long.parseLong(orderStatus);
         Orders finalizedOrder;
         if(isVerified){
             finalizedOrder = updateCompleteOrder(orderId, prodEvent, couponEvent, userEvent);
@@ -96,8 +97,10 @@ public class OrderService {
                                   CouponUsedSuccessEvent couponEvent){
 
         long finalItemsPrice = calcOrderItemFinalPrice(productEvent);
+        log.info("finalItemPrice =  {}", finalItemsPrice);
         //최소 결제 가격 만족 여부
         if(couponEvent.getMinPurchaseAmount() > finalItemsPrice){
+            log.info("최소 결제 금액 부족");
             return false;
         }
         long couponDiscount = calcCouponDiscount(couponEvent, finalItemsPrice);

@@ -26,7 +26,7 @@ public class InventoryReductionItem {
         this.price = productVariant.getPrice();
         this.discountRate = productVariant.getDiscountValue();
         this.discountAmount = productVariant.getDiscountPrice();
-        this.finalPrice = productVariant.getPrice() - productVariant.getDiscountPrice();
+        this.finalPrice = productVariant.getDiscountPrice();
         this.stock = stock;
     }
 }

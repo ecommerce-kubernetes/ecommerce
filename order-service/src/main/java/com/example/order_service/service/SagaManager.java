@@ -45,7 +45,7 @@ public class SagaManager {
 
     public void processPendingOrderSaga(PendingOrderCreatedEvent event){
         OrderCreatedEvent orderEvent = createOrderEvent(event);
-        kafkaProducer.sendMessage(ORDER_CREATED_TOPIC, orderEvent);
+        kafkaProducer.sendMessage(ORDER_CREATED_TOPIC,event.getOrderId().toString(), orderEvent);
         savePendingOrder(event);
     }
 

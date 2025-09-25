@@ -16,8 +16,8 @@ public class OrderKafkaListener {
     private final SagaManager sagaManager;
     private static final String PRODUCT_SUCCESS_TOPIC = "product.stock.deducted";
     private static final String COUPON_SUCCESS_TOPIC = "coupon.used.applied";
-    private static final String USER_SUCCESS_TOPIC = "user.cache.deducted";
-    private static final String USER_FAILURE_TOPIC = "user.cache.failed";
+    private static final String USER_SUCCESS_TOPIC = "user.cash.deducted";
+    private static final String USER_FAILURE_TOPIC = "user.cash.failed";
     private static final String COUPON_FAILURE_TOPIC = "coupon.used.failed";
     private static final String PRODUCT_FAILURE_TOPIC = "product.stock.failed";
 
