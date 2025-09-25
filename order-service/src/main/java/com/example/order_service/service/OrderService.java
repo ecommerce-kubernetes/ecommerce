@@ -2,6 +2,7 @@ package com.example.order_service.service;
 
 import com.example.common.*;
 import com.example.order_service.common.MessagePath;
+import com.example.order_service.dto.request.OrderItemRequest;
 import com.example.order_service.dto.request.OrderRequest;
 import com.example.order_service.dto.response.CreateOrderResponse;
 import com.example.order_service.dto.response.OrderResponse;
@@ -11,6 +12,12 @@ import com.example.order_service.entity.Orders;
 import com.example.order_service.exception.NotFoundException;
 import com.example.order_service.exception.OrderVerificationException;
 import com.example.order_service.repository.OrdersRepository;
+import com.example.order_service.service.client.CouponClientService;
+import com.example.order_service.service.client.ProductClientService;
+import com.example.order_service.service.client.UserClientService;
+import com.example.order_service.service.client.dto.CouponResponse;
+import com.example.order_service.service.client.dto.ProductResponse;
+import com.example.order_service.service.client.dto.UserBalanceResponse;
 import com.example.order_service.service.event.OrderEndMessageEvent;
 import com.example.order_service.service.event.PendingOrderCreatedEvent;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -34,9 +41,24 @@ public class OrderService {
     private final ApplicationEventPublisher eventPublisher;
     private final ObjectMapper mapper;
     private final OrdersRepository ordersRepository;
+    private final ProductClientService productClientService;
+    private final UserClientService userClientService;
+    private final CouponClientService couponClientService;
 
     @Transactional
     public CreateOrderResponse saveOrder(Long userId, OrderRequest request) {
+        Map<Long, Integer> quantityMap = request.toQuantityMap();
+        List<ProductResponse> products = productClientService.fetchProductByVariantIds(List.copyOf(quantityMap.keySet()));
+        long totalItemsPrice = products.stream().mapToLong(product ->
+                        product.getDiscountedPrice() * quantityMap.get(product.getProductVariantId())).sum();
+        UserBalanceResponse userBalance = userClientService.fetchBalanceByUserId(userId);
+        if(userBalance.getCashAmount() < request.getExpectedPrice() && userBalance.getPointAmount() < request.getPointToUse()){
+            throw new RuntimeException();
+        }
+        if(request.getCouponId() != null){
+            CouponResponse couponInfo = couponClientService.fetchCouponByUserCouponId(request.getCouponId());
+        }
+
         Orders order = new Orders(userId, "PENDING", request.getDeliveryAddress());
         List<OrderItems> orderItems = request.getItems().stream().map(item -> new OrderItems(item.getProductVariantId(), item.getQuantity()))
                 .toList();

@@ -183,17 +183,17 @@ public class SagaManager {
 
     private OrderCreatedEvent createOrderEvent(PendingOrderCreatedEvent event){
         OrderRequest request = event.getOrderRequest();
-        int useReserve = request.getUseToReserve() != null ? request.getUseToReserve() : 0;
+        int useReserve = request.getPointToUse() != null ? request.getPointToUse() : 0;
 
         return new OrderCreatedEvent(
                 event.getOrderId(),
                 event.getUserId(),
                 request.getCouponId(),
                 event.getOrderProducts(),
-                (request.getUseToReserve() != null && request.getUseToReserve() !=0),
+                (request.getPointToUse() != null && request.getPointToUse() !=0),
                 useReserve,
-                request.getUseToCash(),
-                request.getUseToCash() + useReserve
+                request.getExpectedPrice(),
+                request.getExpectedPrice() + useReserve
         );
     }
 }
