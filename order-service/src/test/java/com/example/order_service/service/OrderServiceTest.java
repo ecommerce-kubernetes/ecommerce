@@ -8,6 +8,9 @@ import com.example.order_service.dto.response.CreateOrderResponse;
 import com.example.order_service.dto.response.ItemOptionResponse;
 import com.example.order_service.entity.OrderItems;
 import com.example.order_service.entity.Orders;
+import com.example.order_service.exception.BadRequestException;
+import com.example.order_service.exception.InsufficientException;
+import com.example.order_service.exception.NotFoundException;
 import com.example.order_service.repository.OrdersRepository;
 import com.example.order_service.service.client.CouponClientService;
 import com.example.order_service.service.client.ProductClientService;
@@ -36,6 +39,7 @@ import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.groups.Tuple.tuple;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -100,9 +104,9 @@ class OrderServiceTest {
     }
 
     @Test
-    @DisplayName("주문 생성 테스트")
+    @DisplayName("주문 생성 테스트-정상 처리")
     @Transactional
-    void saveOrderTest_integration(){
+    void saveOrderTest_success(){
         //상품 서비스 모킹
         when(productClientService.fetchProductByVariantIds(any()))
                 .thenReturn(
@@ -123,6 +127,7 @@ class OrderServiceTest {
                 200L,
                 6900L);
 
+        //서비스 실행
         CreateOrderResponse response = orderService.saveOrder(1L, orderRequest);
         em.flush(); em.clear();
 
@@ -171,36 +176,172 @@ class OrderServiceTest {
     }
 
     @Test
-    @DisplayName("주문 처리 테스트")
-    @Transactional
-    void finalizedOrderTest(){
-        ProductStockDeductedEvent prodEvent = new ProductStockDeductedEvent(saveOrder.getId(), List.of(new DeductedProduct(1L, 1L, "상품1", "http://test.jpg",
-                new PriceInfo(3000, 10, 300, 2700), 3, List.of(new ItemOption("색상", "RED")))));
-        UserCashDeductedEvent userEvent = new UserCashDeductedEvent(saveOrder.getId(), 1L, true, 100, 7700, 7800);
-        CouponUsedSuccessEvent couponEvent = new CouponUsedSuccessEvent(saveOrder.getId(), 1L, DiscountType.AMOUNT, 300, 100, 10000);
-        Map<Object, Object> sagaStatus = Map.of("product", prodEvent, "user", userEvent, "coupon", couponEvent, "orderId", 1L);
-        orderService.finalizeOrder(sagaStatus);
-        em.flush(); em.clear();
+    @DisplayName("주문 생성 테스트-상품 서비스 404")
+    void saveOrderTest_productService404(){
+        when(productClientService.fetchProductByVariantIds(any()))
+                .thenThrow(new NotFoundException("No products found for that option"));
+        OrderRequest orderRequest = new OrderRequest(List.of(new OrderItemRequest(1L, 3)),
+                "서울시 테헤란로 123",
+                1L,
+                200L,
+                6900L);
 
-        Orders findOrder = ordersRepository.findById(saveOrder.getId()).get();
-
-        assertThat(findOrder.getStatus()).isEqualTo("COMPLETE");
+        assertThatThrownBy(() -> orderService.saveOrder(1L, orderRequest))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage("No products found for that option");
     }
 
     @Test
-    @DisplayName("주문 처리 테스트")
-    @Transactional
-    void finalizedOrderTest_fail(){
-        ProductStockDeductedEvent prodEvent = new ProductStockDeductedEvent(saveOrder.getId(), List.of(new DeductedProduct(1L, 1L, "상품1", "http://test.jpg",
-                new PriceInfo(3000, 10, 300, 2700), 3, List.of(new ItemOption("색상", "RED")))));
-        UserCashDeductedEvent userEvent = new UserCashDeductedEvent(saveOrder.getId(), 1L, true, 100, 7700, 7800);
-        CouponUsedSuccessEvent couponEvent = new CouponUsedSuccessEvent(saveOrder.getId(), 1L, DiscountType.AMOUNT, 1000, 100, 10000);
-        Map<Object, Object> sagaStatus = Map.of("product", prodEvent, "user", userEvent, "coupon", couponEvent, "orderId", 1L);
-        orderService.finalizeOrder(sagaStatus);
-        em.flush(); em.clear();
+    @DisplayName("주문 생성 테스트-유저 서비스 404")
+    void saveOrderTest_userService404(){
+        when(productClientService.fetchProductByVariantIds(any()))
+                .thenReturn(List.of(new ProductResponse(1L, 1L, "상품1",
+                        new ProductPrice(3000, 10, 300, 2700),
+                        "http://test.jpg", List.of(new ItemOptionResponse("색상", "RED")))));
+        when(userClientService.fetchBalanceByUserId(anyLong()))
+                .thenThrow(new NotFoundException("UserService 404"));
 
-        Orders findOrder = ordersRepository.findById(saveOrder.getId()).get();
-
-        assertThat(findOrder.getStatus()).isEqualTo("CANCEL");
+        OrderRequest orderRequest = new OrderRequest(List.of(new OrderItemRequest(1L, 3)),
+                "서울시 테헤란로 123",
+                1L,
+                200L,
+                6900L);
+        assertThatThrownBy(() -> orderService.saveOrder(1L, orderRequest))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage("UserService 404");
     }
+
+    @Test
+    @DisplayName("주문 생성 테스트-쿠폰 서비스 404")
+    void saveOrderTest_couponService404(){
+        when(productClientService.fetchProductByVariantIds(any()))
+                .thenReturn(List.of(new ProductResponse(1L, 1L, "상품1",
+                        new ProductPrice(3000, 10, 300, 2700),
+                        "http://test.jpg", List.of(new ItemOptionResponse("색상", "RED")))));
+
+        when(userClientService.fetchBalanceByUserId(anyLong()))
+                .thenReturn(new UserBalanceResponse(1L, 10000L, 3000L));
+        when(couponClientService.fetchCouponByUserCouponId(anyLong()))
+                .thenThrow(new NotFoundException("CouponService 404"));
+
+        OrderRequest orderRequest = new OrderRequest(List.of(new OrderItemRequest(1L, 3)),
+                "서울시 테헤란로 123",
+                1L,
+                200L,
+                6900L);
+
+        assertThatThrownBy(() -> orderService.saveOrder(1L, orderRequest));
+    }
+
+    @Test
+    @DisplayName("주문 생성 테스트-포인트 부족")
+    void saveOrderTest_InsufficientPoint(){
+        //상품 서비스 모킹
+        when(productClientService.fetchProductByVariantIds(any()))
+                .thenReturn(
+                        List.of(new ProductResponse(1L, 1L, "상품1",
+                                new ProductPrice(3000, 10, 300, 2700),
+                                "http://test.jpg", List.of(new ItemOptionResponse("색상", "RED"))))
+                );
+        //유저 서비스 모킹
+        when(userClientService.fetchBalanceByUserId(anyLong()))
+                .thenReturn(new UserBalanceResponse(1L, 10000L, 100L));
+        //쿠폰 서비스 모킹
+        when(couponClientService.fetchCouponByUserCouponId(anyLong()))
+                .thenReturn(new CouponResponse(1L, "AMOUNT", 1000, 3000, 10000));
+
+        OrderRequest orderRequest = new OrderRequest(List.of(new OrderItemRequest(1L, 3)),
+                "서울시 테헤란로 123",
+                1L,
+                200L,
+                6900L);
+
+        assertThatThrownBy(() -> orderService.saveOrder(1L, orderRequest))
+                .isInstanceOf(InsufficientException.class)
+                .hasMessage("사용가능한 포인트가 부족");
+    }
+
+    @Test
+    @DisplayName("주문 생성 테스트-최소 결제 금액 만족 실패")
+    void saveOrderTest_InsufficientMinPurchaseAmount(){
+        //상품 서비스 모킹
+        when(productClientService.fetchProductByVariantIds(any()))
+                .thenReturn(
+                        List.of(new ProductResponse(1L, 1L, "상품1",
+                                new ProductPrice(3000, 10, 300, 2700),
+                                "http://test.jpg", List.of(new ItemOptionResponse("색상", "RED"))))
+                );
+        //유저 서비스 모킹
+        when(userClientService.fetchBalanceByUserId(anyLong()))
+                .thenReturn(new UserBalanceResponse(1L, 10000L, 1000L));
+        //쿠폰 서비스 모킹
+        when(couponClientService.fetchCouponByUserCouponId(anyLong()))
+                .thenReturn(new CouponResponse(1L, "AMOUNT", 1000, 10000, 20000));
+
+        OrderRequest orderRequest = new OrderRequest(List.of(new OrderItemRequest(1L, 3)),
+                "서울시 테헤란로 123",
+                1L,
+                200L,
+                6900L);
+        assertThatThrownBy(() -> orderService.saveOrder(1L, orderRequest))
+                .isInstanceOf(InsufficientException.class)
+                .hasMessage("결제 금액이 쿠폰 최소 결제 금액 미만");
+    }
+
+    @Test
+    @DisplayName("주문 생성 테스트-예상 결제 금액과 실제 결제 금액이 맞지 않음")
+    void saveOrderTest_expectedPriceNotMatched(){
+        //상품 서비스 모킹
+        when(productClientService.fetchProductByVariantIds(any()))
+                .thenReturn(
+                        List.of(new ProductResponse(1L, 1L, "상품1",
+                                new ProductPrice(3000, 10, 300, 2700),
+                                "http://test.jpg", List.of(new ItemOptionResponse("색상", "RED"))))
+                );
+        //유저 서비스 모킹
+        when(userClientService.fetchBalanceByUserId(anyLong()))
+                .thenReturn(new UserBalanceResponse(1L, 10000L, 3000L));
+        //쿠폰 서비스 모킹
+        when(couponClientService.fetchCouponByUserCouponId(anyLong()))
+                .thenReturn(new CouponResponse(1L, "AMOUNT", 1000, 3000, 10000));
+
+        OrderRequest orderRequest = new OrderRequest(List.of(new OrderItemRequest(1L, 3)),
+                "서울시 테헤란로 123",
+                1L,
+                200L,
+                6700L);
+
+        assertThatThrownBy(() -> orderService.saveOrder(1L, orderRequest))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("예상 결제 금액과 실제 결제 금액이 맞지 않습니다");
+    }
+
+    @Test
+    @DisplayName("주문 생성 테스트-예상 결제 금액과 실제 결제 금액이 맞지 않음")
+    void saveOrderTest_insufficientCash(){
+        //상품 서비스 모킹
+        when(productClientService.fetchProductByVariantIds(any()))
+                .thenReturn(
+                        List.of(new ProductResponse(1L, 1L, "상품1",
+                                new ProductPrice(3000, 10, 300, 2700),
+                                "http://test.jpg", List.of(new ItemOptionResponse("색상", "RED"))))
+                );
+        //유저 서비스 모킹
+        when(userClientService.fetchBalanceByUserId(anyLong()))
+                .thenReturn(new UserBalanceResponse(1L, 1000L, 3000L));
+        //쿠폰 서비스 모킹
+        when(couponClientService.fetchCouponByUserCouponId(anyLong()))
+                .thenReturn(new CouponResponse(1L, "AMOUNT", 1000, 3000, 10000));
+
+        OrderRequest orderRequest = new OrderRequest(List.of(new OrderItemRequest(1L, 3)),
+                "서울시 테헤란로 123",
+                1L,
+                200L,
+                6900L);
+
+        assertThatThrownBy(() -> orderService.saveOrder(1L, orderRequest))
+                .isInstanceOf(InsufficientException.class)
+                .hasMessage("잔액이 부족합니다");
+    }
+
 }
