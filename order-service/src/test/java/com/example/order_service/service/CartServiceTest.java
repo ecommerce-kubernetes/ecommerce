@@ -73,8 +73,7 @@ class CartServiceTest {
         Long productVariantId = 100L;
         int quantity = 5;
         CartItemRequest request = new CartItemRequest(productVariantId, quantity);
-        ProductResponse productResponse = new ProductResponse(1L, productVariantId, "상품1", 3000, 10, "http://product1.jpg",
-                List.of(new ItemOptionResponse("색상", "RED")));
+        ProductResponse productResponse = new ProductResponse();
 
         stubFor(get(urlEqualTo("/variants/" + productVariantId))
                 .willReturn(aResponse()
@@ -110,8 +109,7 @@ class CartServiceTest {
         Long productVariantId = 100L;
         int quantity = 5;
         CartItemRequest request = new CartItemRequest(productVariantId, quantity);
-        ProductResponse productResponse = new ProductResponse(1L, productVariantId, "상품1", 3000, 10, "http://product1.jpg",
-                List.of(new ItemOptionResponse("색상", "RED")));
+        ProductResponse productResponse = new ProductResponse();
 
         stubFor(get(urlEqualTo("/variants/" + productVariantId))
                 .willReturn(aResponse()
@@ -147,8 +145,7 @@ class CartServiceTest {
         Long productVariantId = cartItem.getProductVariantId();
         int quantity = 5;
         CartItemRequest request = new CartItemRequest(productVariantId, quantity);
-        ProductResponse productResponse = new ProductResponse(1L, productVariantId, "상품1", 3000, 10, "http://product1.jpg",
-                List.of(new ItemOptionResponse("색상", "RED")));
+        ProductResponse productResponse = new ProductResponse();
 
         stubFor(get(urlEqualTo("/variants/" + productVariantId))
                 .willReturn(aResponse()
@@ -228,10 +225,7 @@ class CartServiceTest {
         cartsRepository.save(cart);
         em.flush(); em.clear();
         String productRequest = mapper.writeValueAsString(List.of(1L, 2L));
-        String productResponse = mapper.writeValueAsString(List.of(new ProductResponse(1L, 1L, "상품1", 3000, 10, "http://product1.jpg",
-                        List.of(new ItemOptionResponse("색상", "RED"))),
-                new ProductResponse(2L, 2L, "상품2", 5000, 5, "http://product2.jpg",
-                        List.of(new ItemOptionResponse("사이즈", "XL")))));
+        String productResponse = mapper.writeValueAsString(List.of());
         stubFor(post(urlEqualTo("/variants/by-ids"))
                 .withRequestBody(equalToJson(productRequest, true, true))
                 .willReturn(aResponse()
@@ -278,8 +272,7 @@ class CartServiceTest {
         em.flush(); em.clear();
 
         String productRequest = mapper.writeValueAsString(List.of(1L, 2L));
-        String productResponse = mapper.writeValueAsString(List.of(new ProductResponse(1L, 1L, "상품1", 3000, 10, "http://product1.jpg",
-                        List.of(new ItemOptionResponse("색상", "RED")))));
+        String productResponse = mapper.writeValueAsString(List.of(new ProductResponse()));
         stubFor(post(urlEqualTo("/variants/by-ids"))
                 .withRequestBody(equalToJson(productRequest, true, true))
                 .willReturn(aResponse()

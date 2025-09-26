@@ -31,8 +31,8 @@ public class CartItemResponse {
         return new ProductInfo(response.getProductId(),
                 response.getProductVariantId(),
                 response.getProductName(),
-                response.getPrice(),
-                response.getDiscountRate(),
+                response.getProductPrice().getUnitPrice(),
+                response.getProductPrice().getDiscountRate(),
                 response.getThumbnailUrl(),
                 response.getItemOptions());
     }

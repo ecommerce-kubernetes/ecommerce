@@ -182,18 +182,8 @@ public class SagaManager {
     }
 
     private OrderCreatedEvent createOrderEvent(PendingOrderCreatedEvent event){
-        OrderRequest request = event.getOrderRequest();
-        int useReserve = request.getPointToUse() != null ? request.getPointToUse() : 0;
-
-        return new OrderCreatedEvent(
-                event.getOrderId(),
-                event.getUserId(),
-                request.getCouponId(),
-                event.getOrderProducts(),
-                (request.getPointToUse() != null && request.getPointToUse() !=0),
-                useReserve,
-                request.getExpectedPrice(),
-                request.getExpectedPrice() + useReserve
-        );
+//        OrderRequest request = event.getOrderRequest();
+//        long useReserve = request.getPointToUse() != null ? request.getPointToUse() : 0;
+        return null;
     }
 }

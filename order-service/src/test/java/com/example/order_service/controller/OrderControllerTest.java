@@ -71,7 +71,7 @@ class OrderControllerTest {
 
         OrderRequest request = new OrderRequest(
                 List.of(new OrderItemRequest(1L, 2)),
-                "서울시 테헤란로 123", 1L, 4000, 900);
+                "서울시 테헤란로 123", 1L, 4000L, 900L);
         ResultActions perform = performWithBodyAndUserIdHeader(mockMvc, post(BASE_PATH), request);
         verifySuccessResponse(perform, status().isCreated(), expectedResponse);
     }
@@ -80,7 +80,7 @@ class OrderControllerTest {
     @DisplayName("주문 생성 테스트-실패(헤더 없음)")
     void createOrderTest_noHeader() throws Exception {
         List<OrderItemRequest> orderItemRequests = List.of(new OrderItemRequest(1L, 10));
-        OrderRequest request = new OrderRequest(orderItemRequests, "서울시 테헤란로 234", 1L, 3000, 5000);
+        OrderRequest request = new OrderRequest(orderItemRequests, "서울시 테헤란로 234", 1L, 3000L, 5000L);
 
         ResultActions perform = performWithBody(mockMvc, post(BASE_PATH), request);
         verifyErrorResponse(perform, status().isBadRequest(), getMessage(BAD_REQUEST),

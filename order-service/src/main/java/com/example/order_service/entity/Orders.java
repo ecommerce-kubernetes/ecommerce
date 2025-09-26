@@ -1,5 +1,7 @@
 package com.example.order_service.entity;
 
+import com.example.order_service.dto.OrderCalculationResult;
+import com.example.order_service.dto.request.OrderRequest;
 import com.example.order_service.entity.base.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -22,11 +24,12 @@ public class Orders extends BaseEntity {
     @Setter
     private String status;
     private String deliveryAddress;
+    private Long usedCouponId;
     private Long originPrice;
     private Long prodDiscount;
     private Long couponDiscount;
-    private Long reserveDiscount;
-    private Long payment;
+    private Long pointDiscount;
+    private Long amountToPay;
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItems> orderItems = new ArrayList<>();
@@ -36,6 +39,33 @@ public class Orders extends BaseEntity {
         this.userId = userId;
         this.status = status;
         this.deliveryAddress = deliveryAddress;
+    }
+
+    public static Orders create(Long userId, OrderRequest orderRequest, OrderCalculationResult result){
+        Orders orders = new Orders(userId, orderRequest.getCouponId(), "PENDING", orderRequest.getDeliveryAddress(),
+                result.getOriginOrderItemPrice(),
+                result.getProductDiscountAmount(),
+                result.getCouponDiscount(),
+                orderRequest.getPointToUse(),
+                result.getAmountToPay());
+        List<OrderItems> orderItems = orderRequest.getItems().stream()
+                .map(item -> OrderItems.from(item, result.getProductByVariantId()))
+                .toList();
+        orders.addOrderItems(orderItems);
+        return orders;
+    }
+
+    public Orders(Long userId, Long usedCouponId, String status, String deliveryAddress, Long originPrice,
+                  Long prodDiscount, Long couponDiscount, Long pointDiscount, Long amountToPay){
+        this.userId = userId;
+        this.usedCouponId = usedCouponId;
+        this.status = status;
+        this.deliveryAddress = deliveryAddress;
+        this.originPrice = originPrice;
+        this.prodDiscount = prodDiscount;
+        this.couponDiscount = couponDiscount;
+        this.pointDiscount = pointDiscount;
+        this.amountToPay = amountToPay;
     }
 
     public void cancel(){
@@ -51,8 +81,8 @@ public class Orders extends BaseEntity {
         this.originPrice = originPrice;
         this.prodDiscount = prodDiscount;
         this.couponDiscount = couponDiscount;
-        this.reserveDiscount = reserveDiscount;
-        this.payment = payment;
+        this.pointDiscount = reserveDiscount;
+        this.amountToPay = payment;
     }
 
     public void addOrderItems(List<OrderItems> orderItems){

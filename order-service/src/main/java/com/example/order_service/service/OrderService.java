@@ -2,13 +2,17 @@ package com.example.order_service.service;
 
 import com.example.common.*;
 import com.example.order_service.common.MessagePath;
-import com.example.order_service.dto.request.OrderItemRequest;
+import com.example.order_service.dto.OrderCalculationResult;
+import com.example.order_service.dto.OrderValidationData;
 import com.example.order_service.dto.request.OrderRequest;
 import com.example.order_service.dto.response.CreateOrderResponse;
+import com.example.order_service.dto.response.ItemOptionResponse;
 import com.example.order_service.dto.response.OrderResponse;
 import com.example.order_service.dto.response.PageDto;
 import com.example.order_service.entity.OrderItems;
 import com.example.order_service.entity.Orders;
+import com.example.order_service.exception.BadRequestException;
+import com.example.order_service.exception.InsufficientException;
 import com.example.order_service.exception.NotFoundException;
 import com.example.order_service.exception.OrderVerificationException;
 import com.example.order_service.repository.OrdersRepository;
@@ -47,26 +51,76 @@ public class OrderService {
 
     @Transactional
     public CreateOrderResponse saveOrder(Long userId, OrderRequest request) {
-        Map<Long, Integer> quantityMap = request.toQuantityMap();
-        List<ProductResponse> products = productClientService.fetchProductByVariantIds(List.copyOf(quantityMap.keySet()));
-        long totalItemsPrice = products.stream().mapToLong(product ->
-                        product.getDiscountedPrice() * quantityMap.get(product.getProductVariantId())).sum();
-        UserBalanceResponse userBalance = userClientService.fetchBalanceByUserId(userId);
-        if(userBalance.getCashAmount() < request.getExpectedPrice() && userBalance.getPointAmount() < request.getPointToUse()){
-            throw new RuntimeException();
-        }
-        if(request.getCouponId() != null){
-            CouponResponse couponInfo = couponClientService.fetchCouponByUserCouponId(request.getCouponId());
-        }
+        OrderValidationData orderValidationData = fetchRequiredData(userId, request);
+        OrderCalculationResult calcResult = calculateOrderTotals(request, orderValidationData);
+        validateOrder(calcResult, request, orderValidationData);
 
-        Orders order = new Orders(userId, "PENDING", request.getDeliveryAddress());
-        List<OrderItems> orderItems = request.getItems().stream().map(item -> new OrderItems(item.getProductVariantId(), item.getQuantity()))
-                .toList();
-        order.addOrderItems(orderItems);
+        Orders order = Orders.create(userId, request, calcResult);
         Orders save = ordersRepository.save(order);
         String url = buildSubscribeUrl(save.getId());
-        eventPublisher.publishEvent(new PendingOrderCreatedEvent(this, save, request));
+        eventPublisher.publishEvent(new PendingOrderCreatedEvent(this, save));
         return new CreateOrderResponse(save, url);
+    }
+
+    private OrderCalculationResult calculateOrderTotals(OrderRequest request, OrderValidationData data){
+        Map<Long, Integer> quantityMap = request.toQuantityMap();
+        Map<Long, ProductResponse> productByVariantId = data.toProductByVariantId();
+        long originOrderItemsPrice = 0;
+        long productDiscountAmount = 0;
+        long discountedOrderItemPrice = 0;
+
+        for (Map.Entry<Long, ProductResponse> e : productByVariantId.entrySet()) {
+            Long variantId = e.getKey();
+            ProductResponse product = e.getValue();
+            Integer quantity = quantityMap.getOrDefault(variantId, 0);
+            originOrderItemsPrice += product.getProductPrice().getUnitPrice() * quantity;
+            productDiscountAmount += product.getProductPrice().getDiscountAmount() * quantity;
+            discountedOrderItemPrice += product.getProductPrice().getDiscountedPrice() * quantity;
+        }
+
+        long couponDiscount = (data.getCoupon() != null) ? calcCouponDiscount(data.getCoupon(), discountedOrderItemPrice) : 0;
+        long amountToPay = discountedOrderItemPrice - request.getPointToUse() - couponDiscount;
+
+        return new OrderCalculationResult(quantityMap, productByVariantId, originOrderItemsPrice,
+                productDiscountAmount, discountedOrderItemPrice, couponDiscount, amountToPay);
+    }
+
+    private void validateOrder(OrderCalculationResult result, OrderRequest orderRequest, OrderValidationData data){
+        if(data.getUserBalance().getPointAmount() < orderRequest.getPointToUse()){
+            throw new InsufficientException("사용가능한 포인트가 부족");
+        }
+
+        if(data.getCoupon() != null && result.getDiscountedOrderItemsPrice() < data.getCoupon().getMinPurchaseAmount()) {
+            throw new InsufficientException("결제 금액이 쿠폰 최소 결제 금액 미만");
+        }
+
+        if(result.getAmountToPay() != orderRequest.getExpectedPrice()){
+            throw new BadRequestException("예상 결제 금액과 실제 결제 금액이 맞지 않습니다");
+        }
+
+        if(result.getAmountToPay() > data.getUserBalance().getCashAmount()){
+            throw new InsufficientException("잔액이 부족합니다");
+        }
+    }
+
+    private OrderValidationData fetchRequiredData(Long userId, OrderRequest orderRequest){
+        List<ProductResponse> product = productClientService.fetchProductByVariantIds(orderRequest.getItemsVariantId());
+        UserBalanceResponse userBalance = userClientService.fetchBalanceByUserId(userId);
+        CouponResponse couponInfo = (orderRequest.getCouponId() != null) ? couponClientService.fetchCouponByUserCouponId(orderRequest.getCouponId())
+                : null;
+
+        return new OrderValidationData(product, userBalance, couponInfo);
+    }
+
+    private long calcCouponDiscount(CouponResponse coupon, long totalItemPrice){
+        if(coupon.getDiscountType().equals("AMOUNT")){
+            return coupon.getDiscountValue();
+        }
+        long couponDiscount = (long) (totalItemPrice * (coupon.getDiscountValue() / 100.0));
+        if(couponDiscount > coupon.getMaxDiscountAmount()){
+            couponDiscount = coupon.getMaxDiscountAmount();
+        }
+        return couponDiscount;
     }
 
     public PageDto<OrderResponse> getOrderList(Pageable pageable, Long userId, String year, String keyword) {
@@ -113,7 +167,6 @@ public class OrderService {
                     product.getPriceInfo().getFinalPrice() * orderItem.getQuantity());
         }
     }
-
     private boolean verifyPayment(ProductStockDeductedEvent productEvent,
                                   UserCashDeductedEvent userEvent,
                                   CouponUsedSuccessEvent couponEvent){
@@ -135,6 +188,7 @@ public class OrderService {
     }
 
     //주문한 상품들의 최종 가격 : (할인적용 가격 * 수량) 합계
+
     private long calcOrderItemFinalPrice(ProductStockDeductedEvent event){
         return event.getDeductedProducts().stream()
                 .mapToLong(item -> item.getPriceInfo().getFinalPrice() * item.getQuantity())
@@ -168,6 +222,13 @@ public class OrderService {
     }
 
     private String convertToJson(List<ItemOption> itemOptions){
+        try{
+            return mapper.writeValueAsString(itemOptions);
+        } catch (JsonProcessingException e){
+            throw new RuntimeException("Failed Convert To JSON");
+        }
+    }
+    private String convertToJsonResponse(List<ItemOptionResponse> itemOptions){
         try{
             return mapper.writeValueAsString(itemOptions);
         } catch (JsonProcessingException e){

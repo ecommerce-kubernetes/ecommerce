@@ -66,12 +66,12 @@ class SagaManagerTest {
         orders.addOrderItems(List.of(new OrderItems(1L, 3)));
         OrderRequest orderRequest = new OrderRequest(
                 List.of(new OrderItemRequest(1L, 3)),
-                "서울시 테헤란로 123", 1L, 2500,
-                200);
+                "서울시 테헤란로 123", 1L, 2500L,
+                200L);
         ReflectionTestUtils.setField(orders, "id", orderId);
         LocalDateTime createdAt = LocalDateTime.now();
         ReflectionTestUtils.setField(orders, "createAt", createdAt);
-        PendingOrderCreatedEvent pendingOrderCreatedEvent = new PendingOrderCreatedEvent(OrderService.class, orders, orderRequest);
+        PendingOrderCreatedEvent pendingOrderCreatedEvent = new PendingOrderCreatedEvent(OrderService.class, orders);
 
         //로직 실행
         sagaManager.processPendingOrderSaga(pendingOrderCreatedEvent);

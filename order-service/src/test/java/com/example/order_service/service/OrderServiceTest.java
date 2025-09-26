@@ -5,15 +5,22 @@ import com.example.order_service.common.scheduler.PendingOrderTimeoutScheduler;
 import com.example.order_service.dto.request.OrderItemRequest;
 import com.example.order_service.dto.request.OrderRequest;
 import com.example.order_service.dto.response.CreateOrderResponse;
+import com.example.order_service.dto.response.ItemOptionResponse;
 import com.example.order_service.entity.OrderItems;
 import com.example.order_service.entity.Orders;
 import com.example.order_service.repository.OrdersRepository;
+import com.example.order_service.service.client.CouponClientService;
+import com.example.order_service.service.client.ProductClientService;
+import com.example.order_service.service.client.UserClientService;
+import com.example.order_service.service.client.dto.CouponResponse;
+import com.example.order_service.service.client.dto.ProductPrice;
+import com.example.order_service.service.client.dto.ProductResponse;
+import com.example.order_service.service.client.dto.UserBalanceResponse;
 import com.example.order_service.service.event.PendingOrderCreatedEvent;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -25,10 +32,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
+import static org.assertj.core.groups.Tuple.tuple;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.when;
 
 @SpringBootTest
 class OrderServiceTest {
@@ -45,6 +56,12 @@ class OrderServiceTest {
     EntityManager em;
     @Autowired
     TestPendingOrderListener testListener; // 테스트 전용 리스너
+    @MockitoBean
+    ProductClientService productClientService;
+    @MockitoBean
+    UserClientService userClientService;
+    @MockitoBean
+    CouponClientService couponClientService;
 
     private Orders saveOrder;
     @TestConfiguration
@@ -86,37 +103,71 @@ class OrderServiceTest {
     @DisplayName("주문 생성 테스트")
     @Transactional
     void saveOrderTest_integration(){
+        //상품 서비스 모킹
+        when(productClientService.fetchProductByVariantIds(any()))
+                .thenReturn(
+                        List.of(new ProductResponse(1L, 1L, "상품1",
+                                new ProductPrice(3000, 10, 300, 2700),
+                                "http://test.jpg", List.of(new ItemOptionResponse("색상", "RED"))))
+                );
+        //유저 서비스 모킹
+        when(userClientService.fetchBalanceByUserId(anyLong()))
+                .thenReturn(new UserBalanceResponse(1L, 10000L, 3000L));
+        //쿠폰 서비스 모킹
+        when(couponClientService.fetchCouponByUserCouponId(anyLong()))
+                .thenReturn(new CouponResponse(1L, "AMOUNT", 1000, 3000, 10000));
+
         OrderRequest orderRequest = new OrderRequest(List.of(new OrderItemRequest(1L, 3)),
                 "서울시 테헤란로 123",
                 1L,
-                2500,
-                200);
+                200L,
+                6900L);
 
         CreateOrderResponse response = orderService.saveOrder(1L, orderRequest);
+        em.flush(); em.clear();
 
+        // 응답 체크
         assertThat(response.getOrderId()).isNotNull();
         assertThat(response.getSubscribeUrl()).isNotNull();
 
-        Orders findOrder = ordersRepository.findById(response.getOrderId()).get();
+        Optional<Orders> orderOptional = ordersRepository.findById(response.getOrderId());
+        assertThat(orderOptional).isNotEmpty();
+        Orders order = orderOptional.get();
 
-        assertThat(findOrder)
-                .extracting(Orders::getUserId, Orders::getStatus, Orders::getDeliveryAddress)
+        //주문 데이터 체크
+        assertThat(order)
+                .satisfies(o -> assertThat(o.getId()).isNotNull())
+                .extracting(
+                        Orders::getUserId, Orders::getUsedCouponId, Orders::getStatus, Orders::getDeliveryAddress, Orders::getOriginPrice,
+                        Orders::getProdDiscount, Orders::getCouponDiscount, Orders::getPointDiscount, Orders::getAmountToPay
+                )
+                        .containsExactlyInAnyOrder(
+                                1L, 1L, "PENDING", "서울시 테헤란로 123", 9000L,
+                                900L, 1000L, 200L, 6900L
+                        );
+        //주문 상품 데이터 체크
+        assertThat(order.getOrderItems())
+                .allSatisfy(item -> assertThat(item.getId()).isNotNull())
+                .extracting(OrderItems::getProductId, OrderItems::getProductVariantId, OrderItems::getProductName,
+                        OrderItems::getUnitPrice, OrderItems::getDiscountRate,
+                        OrderItems::getDiscountedPrice, OrderItems::getLineTotal, OrderItems::getQuantity, OrderItems::getThumbnail)
                 .containsExactlyInAnyOrder(
-                        1L, "PENDING", "서울시 테헤란로 123"
-                );
+                        tuple(1L, 1L, "상품1",
+                                3000L, 10, 2700L, 8100L, 3, "http://test.jpg"));
 
-        assertThat(findOrder.getOrderItems()).hasSize(1);
-        assertThat(findOrder.getOrderItems())
-                .extracting(OrderItems::getProductVariantId, OrderItems::getQuantity)
-                .containsExactlyInAnyOrder(
-                        tuple(1L,3)
-                );
-
+        //발행된 메시지 체크
         List<PendingOrderCreatedEvent> events = testListener.getEvents();
         assertThat(events).isNotEmpty();
         PendingOrderCreatedEvent ev = events.get(0);
-        assertThat(ev.getOrderId()).isEqualTo(response.getOrderId());
-        assertThat(ev.getOrderRequest().getDeliveryAddress()).isEqualTo(orderRequest.getDeliveryAddress());
+        assertThat(ev)
+                .satisfies(e ->{
+                    assertThat(e.getOrderId()).isNotNull();
+                    assertThat(e.getCreatedAt()).isNotNull();
+                })
+                .extracting(PendingOrderCreatedEvent::getUserId, PendingOrderCreatedEvent::getCouponId,
+                        PendingOrderCreatedEvent::getUsedPoint, PendingOrderCreatedEvent::getAmountToPay,
+                        PendingOrderCreatedEvent::getStatus)
+                .containsExactlyInAnyOrder(1L, 1L, 200L, 6900L, "PENDING");
     }
 
     @Test

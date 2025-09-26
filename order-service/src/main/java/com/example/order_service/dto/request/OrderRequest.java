@@ -23,8 +23,8 @@ public class OrderRequest {
     @NotBlank(message = "{NotBlank}")
     private String deliveryAddress;
     private Long couponId;
-    private Integer pointToUse;
-    private Integer expectedPrice;
+    private Long pointToUse;
+    private Long expectedPrice;
 
     public Map<Long, Integer> toQuantityMap(){
         return items.stream().collect(
@@ -33,5 +33,9 @@ public class OrderRequest {
                     OrderItemRequest::getQuantity
                 )
         );
+    }
+
+    public List<Long> getItemsVariantId(){
+        return items.stream().map(OrderItemRequest::getProductVariantId).toList();
     }
 }
