@@ -97,8 +97,10 @@ class OrderServiceTest {
     @BeforeEach
     void setUp() {
         testListener.clear();
-        saveOrder = new Orders(1L, "PENDING", "서울시 테헤란로 123");
-        List<OrderItems> orderItems = List.of(new OrderItems(1L, 3));
+        saveOrder = new Orders(1L, 1L, "PENDING", "서울시 테헤란로 123", 3000L, 300L,
+                1000L, 700L, 1000L);
+        List<OrderItems> orderItems = List.of(new OrderItems(1L, 1L, "상품1", List.of(new ItemOptionResponse("색상", "RED")),
+                1000L, 10, 900L, 2700L, 3, "http://test.jpg"));
         saveOrder.addOrderItems(orderItems);
         ordersRepository.save(saveOrder);
     }
@@ -344,4 +346,27 @@ class OrderServiceTest {
                 .hasMessage("잔액이 부족합니다");
     }
 
+    @Test
+    @DisplayName("주문 상태 변경 - COMPLETE")
+    @Transactional
+    void completeOrderTest(){
+        orderService.completeOrder(saveOrder.getId());
+        em.flush(); em.clear();
+
+        Orders orders = ordersRepository.findById(saveOrder.getId()).get();
+
+        assertThat(orders.getStatus()).isEqualTo("COMPLETE");
+    }
+
+    @Test
+    @DisplayName("주문 상태 변경 - CANCELLED")
+    @Transactional
+    void cancelOrderTest(){
+        orderService.cancelOrder(saveOrder.getId());
+        em.flush(); em.clear();
+
+        Orders orders = ordersRepository.findById(saveOrder.getId()).get();
+
+        assertThat(orders.getStatus()).isEqualTo("CANCEL");
+    }
 }

@@ -1,13 +1,9 @@
 package com.example.order_service.service;
 
 import com.example.common.*;
-import com.example.order_service.dto.request.OrderRequest;
-import com.example.order_service.exception.OrderVerificationException;
 import com.example.order_service.service.event.PendingOrderCreatedEvent;
 import com.example.order_service.service.kafka.KafkaProducer;
 import com.example.order_service.service.kafka.SagaCompensator;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -98,7 +94,7 @@ public class SagaManager {
         if(status.equals("PENDING")){
             //진행중인 주문에 대해 실패 응답이 온 경우
             //1. 주문 실패로 변경하기
-            orderService.failOrder(event.getOrderId());
+            orderService.cancelOrder(event.getOrderId());
             //2. redis 에 저장된 모든 응답 꺼내기
             Map<Object, Object> sagaState = redisTemplate.opsForHash().entries(sagaKey);
             //3. redis ZSET 삭제, HASH TTL 설정
@@ -115,7 +111,7 @@ public class SagaManager {
             timeoutMap.put(orderId, entries);
         }
         timeoutMap.forEach((orderId, entries) -> {
-            orderService.failOrder(orderId);
+            orderService.cancelOrder(orderId);
             clearFailureOrder(orderId, HASH_PREFIX + orderId);
             initiateRollback(entries);
         });

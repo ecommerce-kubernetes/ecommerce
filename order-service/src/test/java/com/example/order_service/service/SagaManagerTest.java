@@ -3,7 +3,6 @@ package com.example.order_service.service;
 import com.example.common.*;
 import com.example.order_service.service.event.PendingOrderCreatedEvent;
 import com.example.order_service.service.kafka.KafkaProducer;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -59,7 +58,7 @@ class SagaManagerTest {
     @Test
     @DisplayName("pending 주문 처리")
     void processPendingOrderSagaTest(){
-        Long orderId = 1L;
+        Long orderId = (long) ((Math.random() * 100) + 1);
         LocalDateTime createdAt = LocalDateTime.now();
 
         PendingOrderCreatedEvent pendingOrderCreatedEvent = new PendingOrderCreatedEvent(OrderService.class, orderId, 1L, 1L, 200L, 6900L, "PENDING", createdAt,
@@ -103,7 +102,7 @@ class SagaManagerTest {
     @Test
     @DisplayName("saga 성공 처리 1. PENDING 상태일때")
     void processSagaSuccessTest_PENDING(){
-        Long orderId = 1L;
+        Long orderId = (long) ((Math.random() * 100) + 1);
         LocalDateTime createdAt = LocalDateTime.now();
         Map<String, Object> initialState = Map.of("orderId", orderId, "status", "PENDING",
                 "createdAt", createdAt.toString());
@@ -136,7 +135,7 @@ class SagaManagerTest {
     @Test
     @DisplayName("saga 성공 처리 2. CANCELLED 상태일때")
     void processSagaSuccessTest_CANCELLED(){
-        Long orderId = 1L;
+        Long orderId = (long) ((Math.random() * 100) + 1);
         redisTemplate.opsForHash().put("saga:order:" + orderId, "status", "CANCELLED");
 
         ProductStockDeductedEvent event = new ProductStockDeductedEvent(orderId,
@@ -167,7 +166,7 @@ class SagaManagerTest {
     @Test
     @DisplayName("saga 성공 처리 3. 모든 응답 도착")
     void processSagaSuccessTest_COMPLETED(){
-        Long orderId = 1L;
+        Long orderId = (long) ((Math.random() * 100) + 1);
         doNothing().when(orderService).completeOrder(orderId);
         List<String> requiredField = new ArrayList<>();
         ProductStockDeductedEvent productEvent = new ProductStockDeductedEvent(orderId, List.of(new DeductedProduct(1L, 3, List.of())));
@@ -190,8 +189,8 @@ class SagaManagerTest {
     @Test
     @DisplayName("saga 실패 처리 PENDING 인 경우")
     void processSagaFailureTest_PENDING(){
-        Long orderId = 1L;
-        doNothing().when(orderService).failOrder(orderId);
+        Long orderId = (long) ((Math.random() * 100) + 1);
+        doNothing().when(orderService).cancelOrder(orderId);
         List<String> requiredField = new ArrayList<>();
         FailedEvent productEvent = new FailedEvent(orderId, "out of stock");
         long score = TimeUnit.MINUTES.toMillis(5) + System.currentTimeMillis();

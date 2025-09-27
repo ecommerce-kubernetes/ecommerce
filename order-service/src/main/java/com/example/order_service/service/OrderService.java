@@ -1,20 +1,15 @@
 package com.example.order_service.service;
 
-import com.example.common.*;
-import com.example.order_service.common.MessagePath;
 import com.example.order_service.dto.OrderCalculationResult;
 import com.example.order_service.dto.OrderValidationData;
 import com.example.order_service.dto.request.OrderRequest;
 import com.example.order_service.dto.response.CreateOrderResponse;
-import com.example.order_service.dto.response.ItemOptionResponse;
 import com.example.order_service.dto.response.OrderResponse;
 import com.example.order_service.dto.response.PageDto;
-import com.example.order_service.entity.OrderItems;
 import com.example.order_service.entity.Orders;
 import com.example.order_service.exception.BadRequestException;
 import com.example.order_service.exception.InsufficientException;
 import com.example.order_service.exception.NotFoundException;
-import com.example.order_service.exception.OrderVerificationException;
 import com.example.order_service.repository.OrdersRepository;
 import com.example.order_service.service.client.CouponClientService;
 import com.example.order_service.service.client.ProductClientService;
@@ -24,8 +19,6 @@ import com.example.order_service.service.client.dto.ProductResponse;
 import com.example.order_service.service.client.dto.UserBalanceResponse;
 import com.example.order_service.service.event.OrderEndMessageEvent;
 import com.example.order_service.service.event.PendingOrderCreatedEvent;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -35,7 +28,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -73,21 +65,14 @@ public class OrderService {
     }
 
     @Transactional
-    public void failOrder(Long orderId){
-        updateFailOrder(orderId);
-        //TODO SSE 응답을 위해 메시지 발행
-
+    public void cancelOrder(Long orderId){
+        Orders order = ordersRepository.findById(orderId).orElseThrow(() -> new NotFoundException("주문을 찾을 수 없음"));
+        order.cancel();
+        eventPublisher.publishEvent(new OrderEndMessageEvent(this, order.getId(), order.getStatus()));
     }
 
     private String buildSubscribeUrl(Long orderId){
         return "http://test.com/" + orderId + "/subscribe";
-    }
-
-    private Orders updateFailOrder(Long orderId){
-        Orders order = ordersRepository.findById(orderId)
-                .orElseThrow(() -> new NotFoundException(MessagePath.ORDER_NOT_FOUND));
-        order.cancel();
-        return order;
     }
 
     private OrderCalculationResult calculateOrderTotals(OrderRequest request, OrderValidationData data){
