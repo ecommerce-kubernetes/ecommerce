@@ -6,6 +6,9 @@ import com.example.order_service.exception.OrderVerificationException;
 import com.example.order_service.service.event.PendingOrderCreatedEvent;
 import com.example.order_service.service.kafka.KafkaProducer;
 import com.example.order_service.service.kafka.SagaCompensator;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,9 +32,11 @@ public class SagaManager {
     private final static String ORDER_CREATED_TOPIC = "order.created";
     private final static String ZSET_PREFIX = "saga:timeouts";
     private final static String HASH_PREFIX = "saga:order:";
+    private final static String SET_PREFIX = "saga:steps:";
     private final KafkaProducer kafkaProducer;
     private final RedisTemplate<String, Object> redisTemplate;
     private final OrderService orderService;
+    private final ObjectMapper mapper;
 
     @PostConstruct
     public void initializeCompensators(){
@@ -45,7 +50,7 @@ public class SagaManager {
 
     public void processPendingOrderSaga(PendingOrderCreatedEvent event){
         OrderCreatedEvent orderEvent = createOrderEvent(event);
-        kafkaProducer.sendMessage(ORDER_CREATED_TOPIC,event.getOrderId().toString(), orderEvent);
+        kafkaProducer.sendMessage(ORDER_CREATED_TOPIC, String.valueOf(event.getOrderId()), orderEvent);
         savePendingOrder(event);
     }
 
@@ -53,14 +58,10 @@ public class SagaManager {
     //성공 응답시 호출
     public void processSagaSuccess(SuccessSagaEvent event){
         String sagaKey = HASH_PREFIX + event.getOrderId();
+        String stepKey = SET_PREFIX + event.getOrderId();
         String status = (String) redisTemplate.opsForHash().get(sagaKey, "status");
-        if(status == null) {
-            //지각생 메시지
-            individualRollback(event);
-            return;
-        }
-        if(status.equals("CANCELLED")){
-            //이미 실패된 주문에 성공 응답이 온 경우
+        if(status == null || status.equals("CANCELLED")){
+            //지각생 메시지 또는 실패된 주문
             individualRollback(event);
             return;
         }
@@ -69,20 +70,13 @@ public class SagaManager {
             //1. 응답 저장
             String field = SAGA_STEP_FIELD.get(event.getClass());
             redisTemplate.opsForHash().put(sagaKey, field, event);
-            //2. 저장된 모든 응답 꺼내기
-            Map<Object, Object> sagaState = redisTemplate.opsForHash().entries(sagaKey);
-            Set<String> requiredField = Set.copyOf(SAGA_STEP_FIELD.values());
-            // 응답이 모두 온 경우
-            if(sagaState.keySet().containsAll(requiredField)){
-                try{
-                    //검증이 성공하면 주문 데이터를 저장하고 레디스 ZSET, HASH 모두 삭제
-                    orderService.finalizeOrder(sagaState);
-                    clearCompleteOrder(event.getOrderId(), sagaKey);
-                } catch (OrderVerificationException e){
-                    //검증이 실패하면 주문 데이터를 저장하고 레디스 ZSET 삭제, HASH TTL 설정
-                    clearFailureOrder(event.getOrderId(), sagaKey);
-                    initiateRollback(sagaState);
-                }
+            redisTemplate.opsForSet().remove(stepKey, field);
+            //2. 필요 필드 체크
+            Long remainingSteps = redisTemplate.opsForSet().size(stepKey);
+//            // 응답이 모두 온 경우
+            if(remainingSteps != null && remainingSteps == 0){
+                orderService.completeOrder(event.getOrderId());
+                clearCompleteOrder(event.getOrderId(), sagaKey);
             }
             // 응답이 모두 오지 않은 경우 스킵
         }
@@ -150,12 +144,14 @@ public class SagaManager {
     // ZSET 삭제, HASH 삭제
     private void clearCompleteOrder(Long orderId, String sagaKey){
         redisTemplate.opsForZSet().remove(ZSET_PREFIX, orderId);
+        redisTemplate.delete(SET_PREFIX + orderId);
         redisTemplate.delete(sagaKey);
     }
 
     // ZSET 삭제, HASH 상태 CANCELLED 변경, HASH TTL 설정
     private void clearFailureOrder(Long orderId, String sagaKey){
         redisTemplate.opsForZSet().remove(ZSET_PREFIX, orderId);
+        redisTemplate.delete(SET_PREFIX + orderId);
         redisTemplate.opsForHash().put(sagaKey, "status", "CANCELLED");
         redisTemplate.expire(sagaKey, 10, TimeUnit.MINUTES);
     }
@@ -163,7 +159,19 @@ public class SagaManager {
     // redis Hash로 주문 생성 데이터를 저장 및 타임 아웃 시간 설정
     private void savePendingOrder(PendingOrderCreatedEvent event){
         addOrderData(event.getOrderId(), event.getStatus(), event.getCreatedAt().toString());
+        addRequiredField(event.getOrderId(), (event.getCouponId() != null));
         addOrderTimeout(event.getOrderId(), 5, TimeUnit.MINUTES);
+    }
+
+    private void addRequiredField(Long orderId, boolean couponUsage){
+        String stepKey = SET_PREFIX + orderId;
+        List<String> requiredField = new ArrayList<>();
+        requiredField.add("product");
+        requiredField.add("user");
+        if(couponUsage){
+            requiredField.add("coupon");
+        }
+        redisTemplate.opsForSet().add(stepKey, requiredField.toArray(new String[0]));
     }
 
     private void addOrderData(Long orderId, String status, String createdAt){
@@ -182,8 +190,12 @@ public class SagaManager {
     }
 
     private OrderCreatedEvent createOrderEvent(PendingOrderCreatedEvent event){
-//        OrderRequest request = event.getOrderRequest();
-//        long useReserve = request.getPointToUse() != null ? request.getPointToUse() : 0;
-        return null;
+        Map<Long, Integer> itemsMap = event.getVariantIdQuantiyMap();
+        List<OrderProduct> orderProducts = itemsMap.keySet().stream().map(variantId -> new OrderProduct(variantId, itemsMap.get(variantId))).toList();
+        return new OrderCreatedEvent(event.getOrderId(), event.getUserId(), event.getCouponId(), orderProducts,
+                (event.getUsedPoint() != 0),
+                event.getUsedPoint(),
+                event.getAmountToPay(),
+                event.getUsedPoint() + event.getAmountToPay());
     }
 }

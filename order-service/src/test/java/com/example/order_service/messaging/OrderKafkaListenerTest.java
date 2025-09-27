@@ -29,8 +29,8 @@ import static org.mockito.Mockito.verify;
 @EmbeddedKafka(partitions = 1, topics = {
         "product.stock.deducted",
         "coupon.used.applied",
-        "user.cache.deducted",
-        "user.cache.failed",
+        "user.cash.deducted",
+        "user.cash.failed",
         "coupon.used.failed",
         "product.stock.failed"
 })
@@ -53,10 +53,10 @@ public class OrderKafkaListenerTest {
     SagaManager sagaManager;
 
     private static final String PRODUCT_SUCCESS_TOPIC = "product.stock.deducted";
-    private static final String USER_CASH_TOPIC = "user.cache.deducted";
+    private static final String USER_CASH_TOPIC = "user.cash.deducted";
     private static final String COUPON_USED_TOPIC = "coupon.used.applied";
     private static final String PRODUCT_FAILURE_TOPIC = "product.stock.failed";
-    private static final String USER_CASH_FAILURE_TOPIC = "user.cache.failed";
+    private static final String USER_CASH_FAILURE_TOPIC = "user.cash.failed";
     @BeforeEach
     void setUp(){
         for (MessageListenerContainer container : registry.getListenerContainers()) {
@@ -71,13 +71,7 @@ public class OrderKafkaListenerTest {
         //Kafka 메시지 발생
         ProductStockDeductedEvent event =
                 new ProductStockDeductedEvent(
-                        1L,
-                        List.of(
-                                new DeductedProduct(1L, 1L, "상품1", "http://test.jpg",
-                                        new PriceInfo(3000, 10, 300, 2700),
-                                        3,
-                                        List.of(new ItemOption("색상", "RED")))
-                        ));
+                        1L, List.of(new DeductedProduct(1L, 3, List.of())));
         kafkaTemplate.send(PRODUCT_SUCCESS_TOPIC, event);
 
         //processSagaSuccess() 메시지 호출 확인
@@ -88,13 +82,10 @@ public class OrderKafkaListenerTest {
         ProductStockDeductedEvent receivedEvent = captor.getValue();
         assertThat(receivedEvent.getOrderId()).isEqualTo(1L);
         assertThat(receivedEvent.getDeductedProducts())
-                .extracting(DeductedProduct::getProductId,
-                        DeductedProduct::getProductVariantId,
-                        DeductedProduct::getProductName,
-                        DeductedProduct::getThumbnail,
+                .extracting(DeductedProduct::getProductVariantId,
                         DeductedProduct::getQuantity)
                 .containsExactlyInAnyOrder(
-                        tuple(1L, 1L, "상품1", "http://test.jpg", 3)
+                        tuple(1L, 3)
                 );
     }
 
@@ -144,7 +135,7 @@ public class OrderKafkaListenerTest {
                         CouponUsedSuccessEvent::getMinPurchaseAmount,
                         CouponUsedSuccessEvent::getMaxDiscountAmount)
                 .containsExactlyInAnyOrder(
-                        1L, DiscountType.AMOUNT, 3000, 5000, 3000
+                        1L, DiscountType.AMOUNT, 3000L, 5000L, 3000L
                 );
     }
 

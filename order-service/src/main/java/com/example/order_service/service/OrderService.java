@@ -43,7 +43,6 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 public class OrderService {
     private final ApplicationEventPublisher eventPublisher;
-    private final ObjectMapper mapper;
     private final OrdersRepository ordersRepository;
     private final ProductClientService productClientService;
     private final UserClientService userClientService;
@@ -60,6 +59,35 @@ public class OrderService {
         String url = buildSubscribeUrl(save.getId());
         eventPublisher.publishEvent(new PendingOrderCreatedEvent(this, save));
         return new CreateOrderResponse(save, url);
+    }
+
+    public PageDto<OrderResponse> getOrderList(Pageable pageable, Long userId, String year, String keyword) {
+        return null;
+    }
+
+    @Transactional
+    public void completeOrder(Long orderId){
+        Orders order = ordersRepository.findById(orderId).orElseThrow(() -> new NotFoundException("주문을 찾을 수 없음"));
+        order.complete();
+        eventPublisher.publishEvent(new OrderEndMessageEvent(this, order.getId(), order.getStatus()));
+    }
+
+    @Transactional
+    public void failOrder(Long orderId){
+        updateFailOrder(orderId);
+        //TODO SSE 응답을 위해 메시지 발행
+
+    }
+
+    private String buildSubscribeUrl(Long orderId){
+        return "http://test.com/" + orderId + "/subscribe";
+    }
+
+    private Orders updateFailOrder(Long orderId){
+        Orders order = ordersRepository.findById(orderId)
+                .orElseThrow(() -> new NotFoundException(MessagePath.ORDER_NOT_FOUND));
+        order.cancel();
+        return order;
     }
 
     private OrderCalculationResult calculateOrderTotals(OrderRequest request, OrderValidationData data){
@@ -121,139 +149,5 @@ public class OrderService {
             couponDiscount = coupon.getMaxDiscountAmount();
         }
         return couponDiscount;
-    }
-
-    public PageDto<OrderResponse> getOrderList(Pageable pageable, Long userId, String year, String keyword) {
-        return null;
-    }
-
-    @Transactional
-    public void finalizeOrder(Map<Object, Object> sagaState){
-        ProductStockDeductedEvent prodEvent = mapper.convertValue(sagaState.get("product"), ProductStockDeductedEvent.class);
-        UserCashDeductedEvent userEvent = mapper.convertValue(sagaState.get("user"), UserCashDeductedEvent.class);
-        CouponUsedSuccessEvent couponEvent = mapper.convertValue(sagaState.get("coupon"), CouponUsedSuccessEvent.class);
-        boolean isVerified = verifyPayment(prodEvent, userEvent, couponEvent);
-        String orderStatus = sagaState.get("orderId").toString();
-        Long orderId = Long.parseLong(orderStatus);
-        Orders finalizedOrder;
-        if(isVerified){
-            finalizedOrder = updateCompleteOrder(orderId, prodEvent, couponEvent, userEvent);
-        } else {
-            finalizedOrder = updateFailOrder(orderId);
-        }
-        eventPublisher.publishEvent(new OrderEndMessageEvent(this, finalizedOrder.getId(), finalizedOrder.getStatus()));
-
-        if(!isVerified){
-            throw new OrderVerificationException("검증 실패");
-        }
-    }
-
-    @Transactional
-    public void failOrder(Long orderId){
-        updateFailOrder(orderId);
-        //TODO SSE 응답을 위해 메시지 발행
-
-    }
-
-    private void updateOrderItems(List<OrderItems> orderItems, List<DeductedProduct> products){
-        Map<Long, DeductedProduct> productMap = products
-                .stream().collect(Collectors.toMap(DeductedProduct::getProductVariantId, p -> p));
-        for (OrderItems orderItem : orderItems){
-            DeductedProduct product = productMap.get(orderItem.getProductVariantId());
-            String options = convertToJson(product.getOptions());
-            orderItem.setProductData(product.getProductId(),
-                    product.getProductName(), options, product.getPriceInfo().getPrice(),
-                    product.getPriceInfo().getDiscountRate(), product.getPriceInfo().getFinalPrice(),
-                    product.getPriceInfo().getFinalPrice() * orderItem.getQuantity());
-        }
-    }
-    private boolean verifyPayment(ProductStockDeductedEvent productEvent,
-                                  UserCashDeductedEvent userEvent,
-                                  CouponUsedSuccessEvent couponEvent){
-
-        long finalItemsPrice = calcOrderItemFinalPrice(productEvent);
-        log.info("finalItemPrice =  {}", finalItemsPrice);
-        //최소 결제 가격 만족 여부
-        if(couponEvent.getMinPurchaseAmount() > finalItemsPrice){
-            log.info("최소 결제 금액 부족");
-            return false;
-        }
-        long couponDiscount = calcCouponDiscount(couponEvent, finalItemsPrice);
-        // 최대 할인금액보다 할인 금액이 높으면 최대 할인 금액을 적용
-        if(couponDiscount > couponEvent.getMaxDiscountAmount()){
-            couponDiscount = couponEvent.getMaxDiscountAmount();
-        }
-        // 검증 수행
-        return userEvent.getExpectTotalAmount() == finalItemsPrice - couponDiscount;
-    }
-
-    //주문한 상품들의 최종 가격 : (할인적용 가격 * 수량) 합계
-
-    private long calcOrderItemFinalPrice(ProductStockDeductedEvent event){
-        return event.getDeductedProducts().stream()
-                .mapToLong(item -> item.getPriceInfo().getFinalPrice() * item.getQuantity())
-                .sum();
-    }
-
-    private long calcCouponDiscount(CouponUsedSuccessEvent event, long finalItemsPrice){
-        if(event.getDiscountType() == DiscountType.AMOUNT){
-            return event.getDiscountValue();
-        }
-
-        return (long) (finalItemsPrice * (event.getDiscountValue() / 100.0));
-    }
-
-    //주문 원 가격
-    private long calcOrderOriginPrice(ProductStockDeductedEvent event){
-        return event.getDeductedProducts().stream()
-                .mapToLong(item -> (long) item.getPriceInfo().getPrice() * item.getQuantity())
-                .sum();
-    }
-
-    //주문 상품 할인 금액
-    private long calcOrderItemDiscount(ProductStockDeductedEvent event){
-        return event.getDeductedProducts().stream()
-                .mapToLong(item -> item.getPriceInfo().getDiscountAmount() * item.getQuantity())
-                .sum();
-    }
-
-    private String buildSubscribeUrl(Long orderId){
-        return "http://test.com/" + orderId + "/subscribe";
-    }
-
-    private String convertToJson(List<ItemOption> itemOptions){
-        try{
-            return mapper.writeValueAsString(itemOptions);
-        } catch (JsonProcessingException e){
-            throw new RuntimeException("Failed Convert To JSON");
-        }
-    }
-    private String convertToJsonResponse(List<ItemOptionResponse> itemOptions){
-        try{
-            return mapper.writeValueAsString(itemOptions);
-        } catch (JsonProcessingException e){
-            throw new RuntimeException("Failed Convert To JSON");
-        }
-    }
-
-    private Orders updateFailOrder(Long orderId){
-        Orders order = ordersRepository.findById(orderId)
-                .orElseThrow(() -> new NotFoundException(MessagePath.ORDER_NOT_FOUND));
-        order.cancel();
-        return order;
-    }
-    private Orders updateCompleteOrder(Long orderId, ProductStockDeductedEvent prodEvent, CouponUsedSuccessEvent couponEvent,
-                                     UserCashDeductedEvent userEvent){
-        Orders order = ordersRepository.findWithOrderItemsById(orderId)
-                .orElseThrow(() -> new NotFoundException(MessagePath.ORDER_NOT_FOUND));
-        long originPrice = calcOrderOriginPrice(prodEvent);
-        long prodDiscount = calcOrderItemDiscount(prodEvent);
-        long couponDiscount = calcCouponDiscount(couponEvent, calcOrderItemFinalPrice(prodEvent));
-        long reservedDiscount = userEvent.getReservedPointAmount();
-        long payment = userEvent.getReservedCashAmount();
-        order.setPriceInfo(originPrice, prodDiscount, couponDiscount, reservedDiscount, payment);
-        updateOrderItems(order.getOrderItems(), prodEvent.getDeductedProducts());
-        order.complete();
-        return order;
     }
 }

@@ -3,6 +3,7 @@ package com.example.order_service.service.event;
 import com.example.order_service.dto.request.OrderRequest;
 import com.example.order_service.entity.OrderItems;
 import com.example.order_service.entity.Orders;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
 
@@ -21,7 +22,6 @@ public class PendingOrderCreatedEvent extends ApplicationEvent {
     private LocalDateTime createdAt;
     private Map<Long, Integer> variantIdQuantiyMap;
 
-
     // 생성자를 통해 이벤트를 발행한 객체와 데이터를 추가
     public PendingOrderCreatedEvent(Object source, Orders order){
         super(source);
@@ -34,5 +34,19 @@ public class PendingOrderCreatedEvent extends ApplicationEvent {
         this.variantIdQuantiyMap = order.getOrderItems()
                 .stream().collect(Collectors.toMap(OrderItems::getId, OrderItems::getQuantity));
         this.amountToPay = order.getAmountToPay();
+    }
+
+    public PendingOrderCreatedEvent(Object source, Long orderId, Long userId, Long couponId,
+                                    Long usedPoint, Long amountToPay, String status, LocalDateTime createdAt,
+                                    Map<Long, Integer> variantIdQuantiyMap) {
+        super(source);
+        this.orderId = orderId;
+        this.userId = userId;
+        this.couponId = couponId;
+        this.usedPoint = usedPoint;
+        this.amountToPay = amountToPay;
+        this.status = status;
+        this.createdAt = createdAt;
+        this.variantIdQuantiyMap = variantIdQuantiyMap;
     }
 }

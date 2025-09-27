@@ -1,13 +1,10 @@
 package com.example.order_service.service;
 
 import com.example.common.*;
-import com.example.order_service.dto.request.OrderItemRequest;
-import com.example.order_service.dto.request.OrderRequest;
-import com.example.order_service.entity.OrderItems;
-import com.example.order_service.entity.Orders;
-import com.example.order_service.exception.OrderVerificationException;
 import com.example.order_service.service.event.PendingOrderCreatedEvent;
 import com.example.order_service.service.kafka.KafkaProducer;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -18,19 +15,19 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
@@ -47,6 +44,8 @@ class SagaManagerTest {
     RedisTemplate<String, Object> redisTemplate;
     @MockitoBean
     OrderService orderService;
+    @Autowired
+    ObjectMapper mapper;
     @Container
     static final GenericContainer redis = new GenericContainer(DockerImageName.parse("redis:6-alpine"))
             .withExposedPorts(6379);
@@ -60,20 +59,12 @@ class SagaManagerTest {
     @Test
     @DisplayName("pending 주문 처리")
     void processPendingOrderSagaTest(){
-        Long orderId = (long) ((Math.random() * 100) + 1);
-        //데이터 준비
-        Orders orders = new Orders(1L, "PENDING", "서울시 테헤란로 123");
-        orders.addOrderItems(List.of(new OrderItems(1L, 3)));
-        OrderRequest orderRequest = new OrderRequest(
-                List.of(new OrderItemRequest(1L, 3)),
-                "서울시 테헤란로 123", 1L, 2500L,
-                200L);
-        ReflectionTestUtils.setField(orders, "id", orderId);
+        Long orderId = 1L;
         LocalDateTime createdAt = LocalDateTime.now();
-        ReflectionTestUtils.setField(orders, "createAt", createdAt);
-        PendingOrderCreatedEvent pendingOrderCreatedEvent = new PendingOrderCreatedEvent(OrderService.class, orders);
 
-        //로직 실행
+        PendingOrderCreatedEvent pendingOrderCreatedEvent = new PendingOrderCreatedEvent(OrderService.class, orderId, 1L, 1L, 200L, 6900L, "PENDING", createdAt,
+                Map.of(1L, 3));
+
         sagaManager.processPendingOrderSaga(pendingOrderCreatedEvent);
 
         //결과 확인
@@ -84,13 +75,17 @@ class SagaManagerTest {
         assertThat(((Number) entries.get("orderId")).longValue()).isEqualTo(orderId);
         assertThat(entries.get("createdAt")).isEqualTo(createdAt.toString());
 
-        //2. redis ZSet Data
+        //2. redis set data
+        Long steps = redisTemplate.opsForSet().size("saga:steps:" + orderId);
+        assertThat(steps).isEqualTo(3);
+
+        //3. redis ZSet Data
         Double score = redisTemplate.opsForZSet().score("saga:timeouts", orderId);
         assertThat(score).isNotNull();
 
-        //3. kafkaProducer 호출 확인
+        //4. kafkaProducer 호출 확인
         ArgumentCaptor<OrderCreatedEvent> captor = ArgumentCaptor.forClass(OrderCreatedEvent.class);
-        verify(kafkaProducer).sendMessage(eq("order.created"), captor.capture());
+        verify(kafkaProducer).sendMessage(eq("order.created"), anyString(), captor.capture());
 
         OrderCreatedEvent value = captor.getValue();
         assertThat(value.getOrderId()).isEqualTo(orderId);
@@ -100,55 +95,52 @@ class SagaManagerTest {
                         tuple(1L, 3)
                 );
         assertThat(value.getUserCouponId()).isEqualTo(1L);
-        assertThat(value.getReservedCashAmount()).isEqualTo(2500);
+        assertThat(value.getReservedCashAmount()).isEqualTo(6900);
         assertThat(value.getReservedPointAmount()).isEqualTo(200);
-        assertThat(value.getExpectTotalAmount()).isEqualTo(2700);
+        assertThat(value.getExpectTotalAmount()).isEqualTo(7100);
     }
 
     @Test
     @DisplayName("saga 성공 처리 1. PENDING 상태일때")
     void processSagaSuccessTest_PENDING(){
-        Long orderId = (long) ((Math.random() * 100) + 1);
-        redisTemplate.opsForHash().put("saga:order:" + orderId, "status", "PENDING");
-        ProductStockDeductedEvent event = new ProductStockDeductedEvent(orderId,
-                List.of(new DeductedProduct(1L, 1L, "상품1", "http://test.jpg", new PriceInfo(3000, 10, 300, 2700),
-                        3, List.of(new ItemOption("색상", "RED")))));
+        Long orderId = 1L;
+        LocalDateTime createdAt = LocalDateTime.now();
+        Map<String, Object> initialState = Map.of("orderId", orderId, "status", "PENDING",
+                "createdAt", createdAt.toString());
+        List<String> requiredField = List.of("product", "coupon", "user");
+        redisTemplate.opsForHash().putAll("saga:order:" + orderId, initialState);
+        redisTemplate.opsForSet().add("saga:steps:" + orderId, requiredField.toArray(new String[0]));
+
+        ProductStockDeductedEvent event = new ProductStockDeductedEvent(orderId, List.of(new DeductedProduct(1L, 3, List.of())));
 
         sagaManager.processSagaSuccess(event);
 
+        //응답 셋 확인
+        Long size = redisTemplate.opsForSet().size("saga:steps:" + orderId);
         Map<Object, Object> entries = redisTemplate.opsForHash().entries("saga:order:" + orderId);
+        assertThat(size).isEqualTo(2);
 
         // redis hash "product" 필드 저장 확인
-        assertThat(entries.size()).isEqualTo(2);
         assertThat(entries.containsKey("product")).isTrue();
 
         // 저장된 메시지 확인
         ProductStockDeductedEvent product = (ProductStockDeductedEvent) entries.get("product");
         assertThat(product.getOrderId()).isEqualTo(orderId);
         assertThat(product.getDeductedProducts())
-                .extracting(DeductedProduct::getProductId, DeductedProduct::getProductVariantId,
-                        DeductedProduct::getProductName, DeductedProduct::getQuantity)
+                .extracting(DeductedProduct::getProductVariantId, DeductedProduct::getQuantity)
                 .containsExactlyInAnyOrder(
-                        tuple(1L, 1L, "상품1", 3)
-                );
-
-        assertThat(product.getDeductedProducts())
-                .extracting(DeductedProduct::getPriceInfo)
-                .extracting(PriceInfo::getPrice, PriceInfo::getDiscountRate, PriceInfo::getDiscountAmount, PriceInfo::getFinalPrice)
-                .containsExactlyInAnyOrder(
-                        tuple(3000, 10, 300L, 2700L)
+                        tuple(1L, 3)
                 );
     }
 
     @Test
     @DisplayName("saga 성공 처리 2. CANCELLED 상태일때")
     void processSagaSuccessTest_CANCELLED(){
-        Long orderId = (long) ((Math.random() * 100) + 1);
+        Long orderId = 1L;
         redisTemplate.opsForHash().put("saga:order:" + orderId, "status", "CANCELLED");
 
         ProductStockDeductedEvent event = new ProductStockDeductedEvent(orderId,
-                List.of(new DeductedProduct(1L, 1L, "상품1", "http://test.jpg", new PriceInfo(3000, 10, 300, 2700),
-                        3, List.of(new ItemOption("색상", "RED")))));
+                List.of(new DeductedProduct(1L, 3, List.of())));
 
         sagaManager.processSagaSuccess(event);
 
@@ -173,112 +165,66 @@ class SagaManagerTest {
     }
 
     @Test
-    @DisplayName("saga 성공 처리 3. 검증 처리 성공")
-    void processSagaSuccessTest_finalizedOrderSuccess(){
-        Long orderId = (long) ((Math.random() * 100) + 1);
-        doNothing().when(orderService).finalizeOrder(any());
-        Map<String, String> dataMap = Map.of("status", "PENDING", "user", "MockValue",
-                "coupon", "MockValue");
-        redisTemplate.opsForHash().putAll("saga:order:" + orderId, dataMap);
-
-        ProductStockDeductedEvent event = new ProductStockDeductedEvent(orderId,
-                List.of(new DeductedProduct(1L, 1L, "상품1", "http://test.jpg", new PriceInfo(3000, 10, 300, 2700),
-                        3, List.of(new ItemOption("색상", "RED")))));
-
-        sagaManager.processSagaSuccess(event);
-
-        Object status = redisTemplate.opsForHash().get("saga:order:" + orderId, "status");
-        assertThat(status).isNull();
-        Double score = redisTemplate.opsForZSet().score("saga:timeouts", orderId);
-        assertThat(score).isNull();
-    }
-
-    @Test
-    @DisplayName("saga 성공 처리 4. 검증 처리 실패")
-    void processSagaSuccessTest_finalizedOrderFail(){
-        Long orderId = (long) ((Math.random() * 100) + 1);
-        doThrow(new OrderVerificationException("exception"))
-                .when(orderService).finalizeOrder(any());
+    @DisplayName("saga 성공 처리 3. 모든 응답 도착")
+    void processSagaSuccessTest_COMPLETED(){
+        Long orderId = 1L;
+        doNothing().when(orderService).completeOrder(orderId);
+        List<String> requiredField = new ArrayList<>();
+        ProductStockDeductedEvent productEvent = new ProductStockDeductedEvent(orderId, List.of(new DeductedProduct(1L, 3, List.of())));
+        long score = TimeUnit.MINUTES.toMillis(5) + System.currentTimeMillis();
+        requiredField.add("product");
         UserCashDeductedEvent userEvent = new UserCashDeductedEvent(orderId, 1L, true, 200, 2500, 2700);
-        CouponUsedSuccessEvent couponEvent = new CouponUsedSuccessEvent(orderId, 1L, DiscountType.AMOUNT, 3000, 10000, 50000);
-        Map<String, Object> dataMap = Map.of("status", "PENDING", "user", userEvent,
-                "coupon", couponEvent);
+        CouponUsedSuccessEvent couponEvent = new CouponUsedSuccessEvent(orderId, 1L, DiscountType.AMOUNT, 1000, 100, 10000);
+        Map<String, Object> dataMap = Map.of("status", "PENDING", "user", userEvent, "coupon", couponEvent);
         redisTemplate.opsForHash().putAll("saga:order:" + orderId, dataMap);
+        redisTemplate.opsForSet().add("saga:steps:" + orderId, requiredField.toArray(new String[0]));
+        redisTemplate.opsForZSet().add("saga:timeouts", orderId, score);
 
-        ProductStockDeductedEvent event = new ProductStockDeductedEvent(orderId,
-                List.of(new DeductedProduct(1L, 1L, "상품1", "http://test.jpg", new PriceInfo(3000, 10, 300, 2700),
-                        3, List.of(new ItemOption("색상", "RED")))));
+        sagaManager.processSagaSuccess(productEvent);
 
-        sagaManager.processSagaSuccess(event);
-
-        // redis 정리
-        Object status = redisTemplate.opsForHash().get("saga:order:" + orderId, "status");
-        assertThat(status).isEqualTo("CANCELLED");
-        Double score = redisTemplate.opsForZSet().score("saga:timeouts", orderId);
-        assertThat(score).isNull();
-
-        //kafkaMessage
-        ArgumentCaptor<ProductStockDeductedEvent> productCaptor = ArgumentCaptor.forClass(ProductStockDeductedEvent.class);
-        ArgumentCaptor<UserCashDeductedEvent> userCaptor = ArgumentCaptor.forClass(UserCashDeductedEvent.class);
-        ArgumentCaptor<CouponUsedSuccessEvent> couponCaptor = ArgumentCaptor.forClass(CouponUsedSuccessEvent.class);
-
-        verify(kafkaProducer).sendMessage(eq("product.stock.restore"), productCaptor.capture());
-        verify(kafkaProducer).sendMessage(eq("user.cache.restore"), userCaptor.capture());
-        verify(kafkaProducer).sendMessage(eq("coupon.used.cancel"), couponCaptor.capture());
-
-        ProductStockDeductedEvent productRollback = productCaptor.getValue();
-
-        assertThat(productRollback.getOrderId()).isEqualTo(orderId);
-        assertThat(productRollback.getDeductedProducts())
-                .extracting(DeductedProduct::getProductVariantId, DeductedProduct::getQuantity)
-                .containsExactlyInAnyOrder(
-                        tuple(1L, 3)
-                );
-
-        UserCashDeductedEvent userRollback = userCaptor.getValue();
-        assertThat(userRollback.getOrderId()).isEqualTo(orderId);
-        assertThat(userRollback)
-                .extracting(UserCashDeductedEvent::getUserId, UserCashDeductedEvent::getReservedPointAmount,
-                        UserCashDeductedEvent::getReservedCashAmount, UserCashDeductedEvent::getExpectTotalAmount)
-                .containsExactlyInAnyOrder(
-                        1L, 200, 2500, 2700
-                );
-
-        CouponUsedSuccessEvent couponRollback = couponCaptor.getValue();
-        assertThat(couponRollback.getOrderId()).isEqualTo(orderId);
-        assertThat(couponRollback.getUserCouponId()).isEqualTo(1L);
+        assertThat(redisTemplate.hasKey("saga:order:" + orderId)).isFalse();
+        assertThat(redisTemplate.hasKey("saga:steps:" + orderId)).isFalse();
+        assertThat(redisTemplate.opsForZSet().score("saga:timeouts", orderId)).isNull();
     }
 
     @Test
     @DisplayName("saga 실패 처리 PENDING 인 경우")
-    void processSagaFailureTest_CANCELLED(){
-        Long orderId = (long) ((Math.random() * 100) + 1);
-        doNothing().when(orderService).failOrder(anyLong());
+    void processSagaFailureTest_PENDING(){
+        Long orderId = 1L;
+        doNothing().when(orderService).failOrder(orderId);
+        List<String> requiredField = new ArrayList<>();
+        FailedEvent productEvent = new FailedEvent(orderId, "out of stock");
+        long score = TimeUnit.MINUTES.toMillis(5) + System.currentTimeMillis();
+        requiredField.add("product");
         UserCashDeductedEvent userEvent = new UserCashDeductedEvent(orderId, 1L, true, 200, 2500, 2700);
-
-        Map<String, Object> dataMap = Map.of("status", "PENDING", "user", userEvent);
+        CouponUsedSuccessEvent couponEvent = new CouponUsedSuccessEvent(orderId, 1L, DiscountType.AMOUNT, 1000, 100, 10000);
+        Map<String, Object> dataMap = Map.of("status", "PENDING", "user", userEvent, "coupon", couponEvent);
         redisTemplate.opsForHash().putAll("saga:order:" + orderId, dataMap);
+        redisTemplate.opsForSet().add("saga:steps:" + orderId, requiredField.toArray(new String[0]));
+        redisTemplate.opsForZSet().add("saga:timeouts", orderId, score);
 
-        FailedEvent failedEvent = new FailedEvent(orderId, "out of Stock");
+        sagaManager.processSagaFailure(productEvent);
 
-        sagaManager.processSagaFailure(failedEvent);
+        Map<Object, Object> entries = redisTemplate.opsForHash().entries("saga:order:" + orderId);
 
-        Object status = redisTemplate.opsForHash().get("saga:order:" + orderId, "status");
-        assertThat(status).isEqualTo("CANCELLED");
-        Double score = redisTemplate.opsForZSet().score("saga:timeouts", orderId);
-        assertThat(score).isNull();
+        assertThat(entries.get("status")).isEqualTo("CANCELLED");
+        assertThat(redisTemplate.hasKey("saga:steps:" + orderId)).isFalse();
+        assertThat(redisTemplate.opsForZSet().score("saga:timeouts", orderId)).isNull();
 
         ArgumentCaptor<UserCashDeductedEvent> userCaptor = ArgumentCaptor.forClass(UserCashDeductedEvent.class);
-        verify(kafkaProducer).sendMessage(eq("user.cache.restore"), userCaptor.capture());
+        ArgumentCaptor<CouponUsedSuccessEvent> couponCaptor = ArgumentCaptor.forClass(CouponUsedSuccessEvent.class);
+
+        verify(kafkaProducer).sendMessage(eq("user.cash.restore"), userCaptor.capture());
+        verify(kafkaProducer).sendMessage(eq("coupon.used.cancel"), couponCaptor.capture());
 
         UserCashDeductedEvent userRollback = userCaptor.getValue();
+        CouponUsedSuccessEvent couponRollback = couponCaptor.getValue();
 
-        assertThat(userRollback.getOrderId()).isEqualTo(orderId);
         assertThat(userRollback)
-                .extracting(UserCashDeductedEvent::getUserId, UserCashDeductedEvent::getReservedPointAmount,
-                        UserCashDeductedEvent::getReservedCashAmount, UserCashDeductedEvent::getExpectTotalAmount)
-                .containsExactlyInAnyOrder(
-                        1L, 200, 2500, 2700
-                );
+                .extracting(UserCashDeductedEvent::getOrderId, UserCashDeductedEvent::getUserId,
+                        UserCashDeductedEvent::getReservedPointAmount, UserCashDeductedEvent::getReservedCashAmount)
+                .containsExactlyInAnyOrder(orderId, 1L, 200, 2500);
+
+        assertThat(couponRollback.getUserCouponId()).isEqualTo(1L);
     }
 }
