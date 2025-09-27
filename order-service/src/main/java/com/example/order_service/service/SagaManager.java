@@ -187,7 +187,7 @@ public class SagaManager {
 
     private OrderCreatedEvent createOrderEvent(PendingOrderCreatedEvent event){
         Map<Long, Integer> itemsMap = event.getVariantIdQuantiyMap();
-        List<OrderProduct> orderProducts = itemsMap.keySet().stream().map(variantId -> new OrderProduct(variantId, itemsMap.get(variantId))).toList();
+        List<DeductedProduct> orderProducts = itemsMap.keySet().stream().map(variantId -> new DeductedProduct(variantId, itemsMap.get(variantId))).toList();
         return new OrderCreatedEvent(event.getOrderId(), event.getUserId(), event.getCouponId(), orderProducts,
                 (event.getUsedPoint() != 0),
                 event.getUsedPoint(),

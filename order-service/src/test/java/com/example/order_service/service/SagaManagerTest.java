@@ -88,8 +88,8 @@ class SagaManagerTest {
 
         OrderCreatedEvent value = captor.getValue();
         assertThat(value.getOrderId()).isEqualTo(orderId);
-        assertThat(value.getOrderProductList())
-                .extracting(OrderProduct::getProductVariantId, OrderProduct::getStock)
+        assertThat(value.getDeductedProducts())
+                .extracting(DeductedProduct::getProductVariantId, DeductedProduct::getQuantity)
                 .containsExactlyInAnyOrder(
                         tuple(1L, 3)
                 );
@@ -110,7 +110,7 @@ class SagaManagerTest {
         redisTemplate.opsForHash().putAll("saga:order:" + orderId, initialState);
         redisTemplate.opsForSet().add("saga:steps:" + orderId, requiredField.toArray(new String[0]));
 
-        ProductStockDeductedEvent event = new ProductStockDeductedEvent(orderId, List.of(new DeductedProduct(1L, 3, List.of())));
+        ProductStockDeductedEvent event = new ProductStockDeductedEvent(orderId, List.of(new DeductedProduct(1L, 3)));
 
         sagaManager.processSagaSuccess(event);
 
@@ -139,7 +139,7 @@ class SagaManagerTest {
         redisTemplate.opsForHash().put("saga:order:" + orderId, "status", "CANCELLED");
 
         ProductStockDeductedEvent event = new ProductStockDeductedEvent(orderId,
-                List.of(new DeductedProduct(1L, 3, List.of())));
+                List.of(new DeductedProduct(1L, 3)));
 
         sagaManager.processSagaSuccess(event);
 
@@ -169,7 +169,7 @@ class SagaManagerTest {
         Long orderId = (long) ((Math.random() * 100) + 1);
         doNothing().when(orderService).completeOrder(orderId);
         List<String> requiredField = new ArrayList<>();
-        ProductStockDeductedEvent productEvent = new ProductStockDeductedEvent(orderId, List.of(new DeductedProduct(1L, 3, List.of())));
+        ProductStockDeductedEvent productEvent = new ProductStockDeductedEvent(orderId, List.of(new DeductedProduct(1L, 3)));
         long score = TimeUnit.MINUTES.toMillis(5) + System.currentTimeMillis();
         requiredField.add("product");
         UserCashDeductedEvent userEvent = new UserCashDeductedEvent(orderId, 1L, true, 200, 2500, 2700);
@@ -222,7 +222,7 @@ class SagaManagerTest {
         assertThat(userRollback)
                 .extracting(UserCashDeductedEvent::getOrderId, UserCashDeductedEvent::getUserId,
                         UserCashDeductedEvent::getReservedPointAmount, UserCashDeductedEvent::getReservedCashAmount)
-                .containsExactlyInAnyOrder(orderId, 1L, 200, 2500);
+                .containsExactlyInAnyOrder(orderId, 1L, 200L, 2500L);
 
         assertThat(couponRollback.getUserCouponId()).isEqualTo(1L);
     }

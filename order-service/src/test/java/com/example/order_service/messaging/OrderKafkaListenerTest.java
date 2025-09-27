@@ -71,7 +71,7 @@ public class OrderKafkaListenerTest {
         //Kafka 메시지 발생
         ProductStockDeductedEvent event =
                 new ProductStockDeductedEvent(
-                        1L, List.of(new DeductedProduct(1L, 3, List.of())));
+                        1L, List.of(new DeductedProduct(1L, 3)));
         kafkaTemplate.send(PRODUCT_SUCCESS_TOPIC, event);
 
         //processSagaSuccess() 메시지 호출 확인
