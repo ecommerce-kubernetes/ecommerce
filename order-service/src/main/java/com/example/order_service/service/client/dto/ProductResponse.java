@@ -19,8 +19,4 @@ public class ProductResponse {
     private ProductPrice productPrice;
     private String thumbnailUrl;
     private List<ItemOptionResponse> itemOptions;
-
-    public long getDiscountedPrice(){
-        return productPrice.getDiscountedPrice();
-    }
 }

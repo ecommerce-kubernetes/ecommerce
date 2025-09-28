@@ -31,7 +31,7 @@ public class UserEventListener {
 
         if (event.isPointUsage()) {
             try {
-                userService.deductPoint(event.getUserId(), event.getReservedPointAmount());
+                userService.deductPoint(event.getUserId(), (int) event.getReservedPointAmount());
             } catch (Exception e) {
                 log.error("포인트 차감 실패: userId={}, orderId={}, 이유={}", event.getUserId(), event.getOrderId(), e.getMessage());
                 kafkaTemplate.send("user.cash.failed", key, new FailedEvent(event.getOrderId(), e.getMessage()));
@@ -40,7 +40,7 @@ public class UserEventListener {
         }
 
         try {
-            userService.deductCash(event.getUserId(), event.getReservedCashAmount());
+            userService.deductCash(event.getUserId(), (int) event.getReservedCashAmount());
             kafkaTemplate.send("user.cash.deducted", key, new UserCashDeductedEvent(
                     event.getOrderId(),
                     event.getUserId(),
@@ -54,7 +54,7 @@ public class UserEventListener {
             log.error("캐시 차감 실패: userId={}, orderId={}, 이유={}", event.getUserId(), event.getOrderId(), e.getMessage());
             if (event.isPointUsage()) {
                 try {
-                    userService.rechargePoint(event.getUserId(), event.getReservedPointAmount());
+                    userService.rechargePoint(event.getUserId(), (int) event.getReservedPointAmount());
                     log.info("포인트 복구 완료: userId={}, point={}", event.getUserId(), event.getReservedPointAmount());
                 } catch (Exception rollbackEx) {
                     log.error("포인트 복구 실패: userId={}, point={}, 이유={}",
@@ -76,7 +76,7 @@ public class UserEventListener {
 
         if (event.isPointUsage()) {
             try {
-                userService.rechargePoint(event.getUserId(), event.getReservedPointAmount());
+                userService.rechargePoint(event.getUserId(), (int) event.getReservedPointAmount());
                 log.info("포인트 복구 : userId={}, point={}", event.getUserId(), event.getReservedPointAmount());
             } catch (Exception ex) {
                 log.error("포인트 복구 실패: userId={}, point={}, 이유={}", event.getUserId(), event.getReservedPointAmount(), ex.getMessage());
@@ -84,7 +84,7 @@ public class UserEventListener {
         }
 
         try {
-            userService.rechargeCash(event.getUserId(), event.getReservedCashAmount());
+            userService.rechargeCash(event.getUserId(), (int) event.getReservedCashAmount());
             log.info("캐시 복구 : userId={}, cash={}", event.getUserId(), event.getReservedCashAmount());
         } catch (Exception ex) {
             log.error("캐시 복구 실패: userId={}, cash={}, 이유={}", event.getUserId(), event.getReservedCashAmount(), ex.getMessage());

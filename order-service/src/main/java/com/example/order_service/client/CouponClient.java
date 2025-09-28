@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 @FeignClient(name = "coupon-service")
 public interface CouponClient {
-    @GetMapping("/coupon/{userId}/{userCouponId}")
+    @GetMapping("/coupon/available/{userId}/{userCouponId}")
     CouponResponse getCoupon(@PathVariable("userId") Long userId, @PathVariable("userCouponId") Long userCouponId);
 
 }

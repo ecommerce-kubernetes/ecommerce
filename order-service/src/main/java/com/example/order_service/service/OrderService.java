@@ -118,9 +118,12 @@ public class OrderService {
 
     private OrderValidationData fetchRequiredData(Long userId, OrderRequest orderRequest){
         List<ProductResponse> product = productClientService.fetchProductByVariantIds(orderRequest.getItemsVariantId());
+        log.info("product {}", product.get(0).getProductId());
         UserBalanceResponse userBalance = userClientService.fetchBalanceByUserId(userId);
+        log.info("user {}", userBalance.getUserId());
         CouponResponse couponInfo = (orderRequest.getCouponId() != null) ? couponClientService.fetchCouponByUserCouponId(orderRequest.getCouponId())
                 : null;
+        log.info("coupon {}", couponInfo.getDiscountValue());
 
         return new OrderValidationData(product, userBalance, couponInfo);
     }

@@ -8,6 +8,7 @@ import feign.FeignException;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -16,6 +17,7 @@ import static com.example.order_service.common.MessagePath.PRODUCT_VARIANT_NOT_F
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class UserClientService {
     private final UserClient userClient;
     private final MessageSourceUtil ms;
@@ -26,6 +28,7 @@ public class UserClientService {
     }
 
     public UserBalanceResponse fetchBalanceByUserIdFallback(Long userId, Throwable throwable){
+        log.info("{}", throwable.getMessage());
         if(throwable instanceof CallNotPermittedException){
             throw new ResponseStatusException(
                     HttpStatus.SERVICE_UNAVAILABLE,

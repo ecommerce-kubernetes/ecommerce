@@ -9,7 +9,6 @@ import com.example.product_service.exception.InsufficientStockException;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.repository.ProductVariantsRepository;
 import com.example.product_service.service.ProductVariantService;
-import com.example.product_service.service.dto.InventoryReductionItem;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -171,14 +170,10 @@ public class ProductVariantServiceUnitTest {
         Map<Long, Integer> reductionMap = new HashMap<>();
         reductionMap.put(1L, 10);
 
-        List<InventoryReductionItem> inventoryReductionItems = productVariantService.inventoryReductionById(reductionMap);
+        Map<Long, Integer> resultMap = productVariantService.inventoryReductionById(reductionMap);
 
-        assertThat(inventoryReductionItems)
-                .extracting("productVariantId", "price", "discountPrice")
-                .containsExactlyInAnyOrder(
-                        tuple(1L, 10000, 9000)
-                );
-
+        assertThat(resultMap.keySet()).contains(1L);
+        assertThat(resultMap.values()).contains(10);
         assertThat(productVariant.getStockQuantity()).isEqualTo(90);
     }
 

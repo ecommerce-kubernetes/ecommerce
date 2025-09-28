@@ -114,7 +114,7 @@ public class UserCouponController {
 
 
     @GetMapping("/available/{userId}/{userCouponId}")
-    public ResponseEntity<ResponseCoupon> useCoupon(@PathVariable("userId") Long userId, @PathVariable("couponId") Long couponId) {
+    public ResponseEntity<ResponseCoupon> useCoupon(@PathVariable("userId") Long userId, @PathVariable("userCouponId") Long couponId) {
 
         CouponDto couponDto = couponService.availableUserCoupon(userId, couponId);
 

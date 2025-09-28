@@ -4,19 +4,17 @@ import com.example.product_service.common.MessageSourceUtil;
 import com.example.product_service.dto.request.review.ReviewRequest;
 import com.example.product_service.dto.request.variant.UpdateProductVariantRequest;
 import com.example.product_service.dto.response.ReviewResponse;
+import com.example.product_service.dto.response.variant.OrderProductVariantResponse;
+import com.example.product_service.dto.response.variant.ProductPrice;
 import com.example.product_service.dto.response.variant.ProductVariantResponse;
 import com.example.product_service.entity.ProductVariant;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.repository.ProductVariantsRepository;
-import com.example.product_service.service.dto.InventoryReductionItem;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static com.example.product_service.common.MessagePath.PRODUCT_VARIANT_NOT_FOUND;
 
@@ -53,16 +51,21 @@ public class ProductVariantService{
         productVariant.getProduct().deleteVariant(productVariant);
     }
 
-    public List<InventoryReductionItem> inventoryReductionById(Map<Long, Integer> reductionMap){
+    public Map<Long, Integer> inventoryReductionById(Map<Long, Integer> reductionMap){
         Set<Long> productVariantIds = reductionMap.keySet();
-        List<InventoryReductionItem> itemList = new ArrayList<>();
         List<ProductVariant> productVariants = findByIdIn(productVariantIds);
+        Map<Long, Integer> resultMap = new HashMap<>();
         for (ProductVariant productVariant : productVariants) {
             Integer reductionStock = reductionMap.get(productVariant.getId());
             productVariant.reductionStock(reductionStock);
-            itemList.add(new InventoryReductionItem(productVariant, reductionStock));
+            resultMap.put(productVariant.getId(), reductionStock);
         }
-        return itemList;
+        return resultMap;
+    }
+
+    public List<OrderProductVariantResponse> getOrderVariantByIds(List<Long> variantIds){
+        List<ProductVariant> variants = productVariantsRepository.findWithProductAndOptionsByIds(variantIds);
+        return variants.stream().map(OrderProductVariantResponse::new).toList();
     }
 
     public void inventoryRestorationById(Map<Long, Integer> restoreMap){
