@@ -119,8 +119,8 @@ class OrderServiceTest {
         when(userClientService.fetchBalanceByUserId(anyLong()))
                 .thenReturn(new UserBalanceResponse(1L, 10000L, 3000L));
         //쿠폰 서비스 모킹
-        when(couponClientService.fetchCouponByUserCouponId(anyLong()))
-                .thenReturn(new CouponResponse(1L, "AMOUNT", 1000, 3000, 10000));
+        when(couponClientService.fetchCouponByUserCouponId(anyLong(), anyLong()))
+                .thenReturn(new CouponResponse("AMOUNT", 1000, 3000, 10000));
 
         OrderRequest orderRequest = new OrderRequest(List.of(new OrderItemRequest(1L, 3)),
                 "서울시 테헤란로 123",
@@ -222,7 +222,7 @@ class OrderServiceTest {
 
         when(userClientService.fetchBalanceByUserId(anyLong()))
                 .thenReturn(new UserBalanceResponse(1L, 10000L, 3000L));
-        when(couponClientService.fetchCouponByUserCouponId(anyLong()))
+        when(couponClientService.fetchCouponByUserCouponId(anyLong(), anyLong()))
                 .thenThrow(new NotFoundException("CouponService 404"));
 
         OrderRequest orderRequest = new OrderRequest(List.of(new OrderItemRequest(1L, 3)),
@@ -248,8 +248,8 @@ class OrderServiceTest {
         when(userClientService.fetchBalanceByUserId(anyLong()))
                 .thenReturn(new UserBalanceResponse(1L, 10000L, 100L));
         //쿠폰 서비스 모킹
-        when(couponClientService.fetchCouponByUserCouponId(anyLong()))
-                .thenReturn(new CouponResponse(1L, "AMOUNT", 1000, 3000, 10000));
+        when(couponClientService.fetchCouponByUserCouponId(anyLong(), anyLong()))
+                .thenReturn(new CouponResponse("AMOUNT", 1000, 3000, 10000));
 
         OrderRequest orderRequest = new OrderRequest(List.of(new OrderItemRequest(1L, 3)),
                 "서울시 테헤란로 123",
@@ -276,8 +276,8 @@ class OrderServiceTest {
         when(userClientService.fetchBalanceByUserId(anyLong()))
                 .thenReturn(new UserBalanceResponse(1L, 10000L, 1000L));
         //쿠폰 서비스 모킹
-        when(couponClientService.fetchCouponByUserCouponId(anyLong()))
-                .thenReturn(new CouponResponse(1L, "AMOUNT", 1000, 10000, 20000));
+        when(couponClientService.fetchCouponByUserCouponId(anyLong(), anyLong()))
+                .thenReturn(new CouponResponse("AMOUNT", 1000, 10000, 20000));
 
         OrderRequest orderRequest = new OrderRequest(List.of(new OrderItemRequest(1L, 3)),
                 "서울시 테헤란로 123",
@@ -303,8 +303,8 @@ class OrderServiceTest {
         when(userClientService.fetchBalanceByUserId(anyLong()))
                 .thenReturn(new UserBalanceResponse(1L, 10000L, 3000L));
         //쿠폰 서비스 모킹
-        when(couponClientService.fetchCouponByUserCouponId(anyLong()))
-                .thenReturn(new CouponResponse(1L, "AMOUNT", 1000, 3000, 10000));
+        when(couponClientService.fetchCouponByUserCouponId(anyLong(), anyLong()))
+                .thenReturn(new CouponResponse("AMOUNT", 1000, 3000, 10000));
 
         OrderRequest orderRequest = new OrderRequest(List.of(new OrderItemRequest(1L, 3)),
                 "서울시 테헤란로 123",
@@ -331,8 +331,8 @@ class OrderServiceTest {
         when(userClientService.fetchBalanceByUserId(anyLong()))
                 .thenReturn(new UserBalanceResponse(1L, 1000L, 3000L));
         //쿠폰 서비스 모킹
-        when(couponClientService.fetchCouponByUserCouponId(anyLong()))
-                .thenReturn(new CouponResponse(1L, "AMOUNT", 1000, 3000, 10000));
+        when(couponClientService.fetchCouponByUserCouponId(anyLong(), anyLong()))
+                .thenReturn(new CouponResponse("AMOUNT", 1000, 3000, 10000));
 
         OrderRequest orderRequest = new OrderRequest(List.of(new OrderItemRequest(1L, 3)),
                 "서울시 테헤란로 123",

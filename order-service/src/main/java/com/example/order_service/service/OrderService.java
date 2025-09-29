@@ -104,6 +104,7 @@ public class OrderService {
         }
 
         if(data.getCoupon() != null && result.getDiscountedOrderItemsPrice() < data.getCoupon().getMinPurchaseAmount()) {
+            log.info("discountedOrderItemPrice = {}" , result.getDiscountedOrderItemsPrice());
             throw new InsufficientException("결제 금액이 쿠폰 최소 결제 금액 미만");
         }
 
@@ -121,7 +122,7 @@ public class OrderService {
         log.info("product {}", product.get(0).getProductId());
         UserBalanceResponse userBalance = userClientService.fetchBalanceByUserId(userId);
         log.info("user {}", userBalance.getUserId());
-        CouponResponse couponInfo = (orderRequest.getCouponId() != null) ? couponClientService.fetchCouponByUserCouponId(orderRequest.getCouponId())
+        CouponResponse couponInfo = (orderRequest.getCouponId() != null) ? couponClientService.fetchCouponByUserCouponId(userId, orderRequest.getCouponId())
                 : null;
         log.info("coupon {}", couponInfo.getDiscountValue());
 

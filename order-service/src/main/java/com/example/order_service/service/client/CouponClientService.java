@@ -12,7 +12,7 @@ public class CouponClientService {
     private final CouponClient couponClient;
     private final MessageSourceUtil ms;
 
-    public CouponResponse fetchCouponByUserCouponId(Long userCouponId){
-        return couponClient.getCoupon(1L, 1L);
+    public CouponResponse fetchCouponByUserCouponId(Long userId, Long userCouponId){
+        return couponClient.getCoupon(userId, userCouponId);
     }
 }

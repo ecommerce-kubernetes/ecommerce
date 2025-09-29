@@ -18,6 +18,6 @@ public class ProductPrice {
         this.unitPrice = productVariant.getPrice();
         this.discountRate = productVariant.getDiscountValue();
         this.discountAmount = productVariant.getDiscountPrice();
-        this.discountedPrice = productVariant.getPrice() - productVariant.getDiscountPrice();
+        this.discountedPrice = productVariant.getDiscountPrice();
     }
 }

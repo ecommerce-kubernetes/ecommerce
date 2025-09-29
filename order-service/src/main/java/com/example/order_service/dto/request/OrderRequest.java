@@ -3,6 +3,7 @@ package com.example.order_service.dto.request;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -24,6 +25,7 @@ public class OrderRequest {
     private String deliveryAddress;
     private Long couponId;
     private Long pointToUse;
+    @NotNull(message = "{NotNull}")
     private Long expectedPrice;
 
     public Map<Long, Integer> toQuantityMap(){

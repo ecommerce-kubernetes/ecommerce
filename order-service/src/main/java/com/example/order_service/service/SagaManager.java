@@ -4,11 +4,13 @@ import com.example.common.*;
 import com.example.order_service.service.event.PendingOrderCreatedEvent;
 import com.example.order_service.service.kafka.KafkaProducer;
 import com.example.order_service.service.kafka.SagaCompensator;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -32,6 +34,8 @@ public class SagaManager {
     private final KafkaProducer kafkaProducer;
     private final RedisTemplate<String, Object> redisTemplate;
     private final OrderService orderService;
+    private final RedisScript<Long> checkAndCompleteSagaScript;
+    private final RedisScript<Long> processSagaFailureScript;
     private final ObjectMapper mapper;
 
     @PostConstruct
@@ -55,50 +59,34 @@ public class SagaManager {
     public void processSagaSuccess(SuccessSagaEvent event){
         String sagaKey = HASH_PREFIX + event.getOrderId();
         String stepKey = SET_PREFIX + event.getOrderId();
-        String status = (String) redisTemplate.opsForHash().get(sagaKey, "status");
-        if(status == null || status.equals("CANCELLED")){
-            //지각생 메시지 또는 실패된 주문
-            individualRollback(event);
+        String field = SAGA_STEP_FIELD.get(event.getClass());
+        String eventJson = parseToJson(event);
+        Long remainingSteps = redisTemplate
+                .execute(checkAndCompleteSagaScript, Arrays.asList(sagaKey, stepKey), field, eventJson);
+        if(remainingSteps == null){
             return;
         }
-        if(status.equals("PENDING")){
-            //주문이 아직 진행중인 경우
-            //1. 응답 저장
-            String field = SAGA_STEP_FIELD.get(event.getClass());
-            redisTemplate.opsForHash().put(sagaKey, field, event);
-            redisTemplate.opsForSet().remove(stepKey, field);
-            //2. 필요 필드 체크
-            Long remainingSteps = redisTemplate.opsForSet().size(stepKey);
-//            // 응답이 모두 온 경우
-            if(remainingSteps != null && remainingSteps == 0){
-                orderService.completeOrder(event.getOrderId());
-                clearCompleteOrder(event.getOrderId(), sagaKey);
-            }
-            // 응답이 모두 오지 않은 경우 스킵
+        if(remainingSteps == 0){
+            orderService.completeOrder(event.getOrderId());
+            clearCompleteOrder(event.getOrderId(), sagaKey);
+        } else if (remainingSteps == -1){
+            individualRollback(event);
         }
     }
-
-    //TODO race condition 고려
     //실패 응답시 호출
     public void processSagaFailure(FailedEvent event){
         String sagaKey = HASH_PREFIX + event.getOrderId();
-        String status = (String) redisTemplate.opsForHash().get(sagaKey, "status");
-        if(status == null){
-            //지각생 메시지
-            return;
-        }
-        if(status.equals("CANCELLED")){
-            //이미 실패된 주문에 대해 실패 응답이 온 경우
-            return;
-        }
-        if(status.equals("PENDING")){
-            //진행중인 주문에 대해 실패 응답이 온 경우
-            //1. 주문 실패로 변경하기
-            orderService.cancelOrder(event.getOrderId());
-            //2. redis 에 저장된 모든 응답 꺼내기
+        String stepKey = SET_PREFIX + event.getOrderId();
+        Long orderId = event.getOrderId();
+        long ttlInSecond = 600;
+
+        Long result = redisTemplate.execute(processSagaFailureScript,
+                Arrays.asList(sagaKey, ZSET_PREFIX, stepKey),
+                String.valueOf(orderId), String.valueOf(ttlInSecond));
+
+        if (result != null && result == 1){
+            orderService.cancelOrder(orderId);
             Map<Object, Object> sagaState = redisTemplate.opsForHash().entries(sagaKey);
-            //3. redis ZSET 삭제, HASH TTL 설정
-            clearFailureOrder(event.getOrderId(), sagaKey);
             initiateRollback(sagaState);
         }
     }
@@ -193,5 +181,13 @@ public class SagaManager {
                 event.getUsedPoint(),
                 event.getAmountToPay(),
                 event.getUsedPoint() + event.getAmountToPay());
+    }
+
+    private String parseToJson(Object o){
+        try {
+            return mapper.writeValueAsString(o);
+        } catch (JsonProcessingException e){
+            throw new RuntimeException("Json Parse Exception",e);
+        }
     }
 }

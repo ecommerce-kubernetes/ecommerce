@@ -32,7 +32,7 @@ public class OrderItems extends BaseEntity {
 
     @Column(columnDefinition = "TEXT")
     @Convert(converter = ItemOptionsConverter.class)
-    private List<ItemOptionResponse> option;
+    private List<ItemOptionResponse> itemOption;
     private Long unitPrice;
     private Integer discountRate;
     private Long discountedPrice;
@@ -42,12 +42,12 @@ public class OrderItems extends BaseEntity {
     private String thumbnail;
 
     public OrderItems(Long productId, Long productVariantId, String productName,
-                      List<ItemOptionResponse> option, Long unitPrice, Integer discountRate, Long discountedPrice,
+                      List<ItemOptionResponse> itemOption, Long unitPrice, Integer discountRate, Long discountedPrice,
                       Long lineTotal, int quantity, String thumbnail){
         this.productId = productId;
         this.productVariantId = productVariantId;
         this.productName = productName;
-        this.option = option;
+        this.itemOption = itemOption;
         this.unitPrice = unitPrice;
         this.discountRate = discountRate;
         this.discountedPrice = discountedPrice;
@@ -68,21 +68,6 @@ public class OrderItems extends BaseEntity {
                 productResponse.getProductPrice().getDiscountedPrice() * orderItemRequest.getQuantity(),
                 orderItemRequest.getQuantity(),
                 productResponse.getThumbnailUrl());
-    }
-
-    public OrderItems(Long productVariantId, int quantity){
-        this.productVariantId = productVariantId;
-        this.quantity = quantity;
-    }
-
-    public void setProductData(Long productId, String productName, String optionJson, long originPrice,
-                               long discountRate, long discountedPrice, long lineTotal){
-        this.productId = productId;
-        this.productName = productName;
-        this.unitPrice = originPrice;
-//        this.discountRate = discountRate;
-        this.discountedPrice = discountedPrice;
-        this.lineTotal = lineTotal;
     }
 
     protected void setOrder(Orders order){
