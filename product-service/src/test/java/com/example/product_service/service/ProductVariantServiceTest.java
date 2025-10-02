@@ -11,7 +11,6 @@ import com.example.product_service.repository.CategoryRepository;
 import com.example.product_service.repository.OptionTypeRepository;
 import com.example.product_service.repository.ProductVariantsRepository;
 import com.example.product_service.repository.ProductsRepository;
-import com.example.product_service.service.dto.InventoryReductionItem;
 import com.example.product_service.util.TestMessageUtil;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
@@ -169,13 +168,9 @@ class ProductVariantServiceTest {
         productsRepository.save(product);
         em.flush(); em.clear();
 
-        List<InventoryReductionItem> inventoryReductionItem = productVariantService.inventoryReductionById(Map.of(productVariant.getId(), 10));
-        assertThat(inventoryReductionItem)
-                .extracting(InventoryReductionItem::getProductVariantId, InventoryReductionItem::getPrice,
-                        InventoryReductionItem::getStock, InventoryReductionItem::getDiscountPrice)
-                .containsExactlyInAnyOrder(
-                        tuple(productVariant.getId(), productVariant.getPrice(), 10,
-                                productVariant.getDiscountPrice()));
+        Map<Long, Integer> reductionMap = productVariantService.inventoryReductionById(Map.of(productVariant.getId(), 10));
+        assertThat(reductionMap.keySet()).contains(productVariant.getId());
+        assertThat(reductionMap.values()).contains(10);
         em.flush();
         em.clear();
 

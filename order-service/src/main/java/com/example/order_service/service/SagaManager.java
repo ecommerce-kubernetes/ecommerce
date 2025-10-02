@@ -1,15 +1,16 @@
 package com.example.order_service.service;
 
 import com.example.common.*;
-import com.example.order_service.dto.request.OrderRequest;
-import com.example.order_service.exception.OrderVerificationException;
 import com.example.order_service.service.event.PendingOrderCreatedEvent;
 import com.example.order_service.service.kafka.KafkaProducer;
 import com.example.order_service.service.kafka.SagaCompensator;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -29,9 +30,13 @@ public class SagaManager {
     private final static String ORDER_CREATED_TOPIC = "order.created";
     private final static String ZSET_PREFIX = "saga:timeouts";
     private final static String HASH_PREFIX = "saga:order:";
+    private final static String SET_PREFIX = "saga:steps:";
     private final KafkaProducer kafkaProducer;
     private final RedisTemplate<String, Object> redisTemplate;
     private final OrderService orderService;
+    private final RedisScript<Long> checkAndCompleteSagaScript;
+    private final RedisScript<Long> processSagaFailureScript;
+    private final ObjectMapper mapper;
 
     @PostConstruct
     public void initializeCompensators(){
@@ -45,7 +50,7 @@ public class SagaManager {
 
     public void processPendingOrderSaga(PendingOrderCreatedEvent event){
         OrderCreatedEvent orderEvent = createOrderEvent(event);
-        kafkaProducer.sendMessage(ORDER_CREATED_TOPIC,event.getOrderId().toString(), orderEvent);
+        kafkaProducer.sendMessage(ORDER_CREATED_TOPIC, String.valueOf(event.getOrderId()), orderEvent);
         savePendingOrder(event);
     }
 
@@ -53,62 +58,34 @@ public class SagaManager {
     //성공 응답시 호출
     public void processSagaSuccess(SuccessSagaEvent event){
         String sagaKey = HASH_PREFIX + event.getOrderId();
-        String status = (String) redisTemplate.opsForHash().get(sagaKey, "status");
-        if(status == null) {
-            //지각생 메시지
+        String stepKey = SET_PREFIX + event.getOrderId();
+        String field = SAGA_STEP_FIELD.get(event.getClass());
+        String eventJson = parseToJson(event);
+        Long remainingSteps = redisTemplate
+                .execute(checkAndCompleteSagaScript, Arrays.asList(sagaKey, stepKey), field, eventJson);
+        log.info("success {} redis remainingStep = {}", event.getClass(), remainingSteps);
+        if(remainingSteps == 0){
+            orderService.completeOrder(event.getOrderId());
+            clearCompleteOrder(event.getOrderId(), sagaKey);
+        } else if (remainingSteps == -1){
             individualRollback(event);
-            return;
-        }
-        if(status.equals("CANCELLED")){
-            //이미 실패된 주문에 성공 응답이 온 경우
-            individualRollback(event);
-            return;
-        }
-        if(status.equals("PENDING")){
-            //주문이 아직 진행중인 경우
-            //1. 응답 저장
-            String field = SAGA_STEP_FIELD.get(event.getClass());
-            redisTemplate.opsForHash().put(sagaKey, field, event);
-            //2. 저장된 모든 응답 꺼내기
-            Map<Object, Object> sagaState = redisTemplate.opsForHash().entries(sagaKey);
-            Set<String> requiredField = Set.copyOf(SAGA_STEP_FIELD.values());
-            // 응답이 모두 온 경우
-            if(sagaState.keySet().containsAll(requiredField)){
-                try{
-                    //검증이 성공하면 주문 데이터를 저장하고 레디스 ZSET, HASH 모두 삭제
-                    orderService.finalizeOrder(sagaState);
-                    clearCompleteOrder(event.getOrderId(), sagaKey);
-                } catch (OrderVerificationException e){
-                    //검증이 실패하면 주문 데이터를 저장하고 레디스 ZSET 삭제, HASH TTL 설정
-                    clearFailureOrder(event.getOrderId(), sagaKey);
-                    initiateRollback(sagaState);
-                }
-            }
-            // 응답이 모두 오지 않은 경우 스킵
         }
     }
-
-    //TODO race condition 고려
     //실패 응답시 호출
     public void processSagaFailure(FailedEvent event){
         String sagaKey = HASH_PREFIX + event.getOrderId();
-        String status = (String) redisTemplate.opsForHash().get(sagaKey, "status");
-        if(status == null){
-            //지각생 메시지
-            return;
-        }
-        if(status.equals("CANCELLED")){
-            //이미 실패된 주문에 대해 실패 응답이 온 경우
-            return;
-        }
-        if(status.equals("PENDING")){
-            //진행중인 주문에 대해 실패 응답이 온 경우
-            //1. 주문 실패로 변경하기
-            orderService.failOrder(event.getOrderId());
-            //2. redis 에 저장된 모든 응답 꺼내기
+        String stepKey = SET_PREFIX + event.getOrderId();
+        Long orderId = event.getOrderId();
+        long ttlInSecond = 600;
+        log.info("failure");
+        Long result = redisTemplate.execute(processSagaFailureScript,
+                Arrays.asList(sagaKey, ZSET_PREFIX, stepKey),
+                String.valueOf(orderId), String.valueOf(ttlInSecond));
+        log.info("redis result= {}", result);
+        if (result == 1){
+            log.info("order cancelled");
+            orderService.cancelOrder(orderId);
             Map<Object, Object> sagaState = redisTemplate.opsForHash().entries(sagaKey);
-            //3. redis ZSET 삭제, HASH TTL 설정
-            clearFailureOrder(event.getOrderId(), sagaKey);
             initiateRollback(sagaState);
         }
     }
@@ -121,7 +98,7 @@ public class SagaManager {
             timeoutMap.put(orderId, entries);
         }
         timeoutMap.forEach((orderId, entries) -> {
-            orderService.failOrder(orderId);
+            orderService.cancelOrder(orderId);
             clearFailureOrder(orderId, HASH_PREFIX + orderId);
             initiateRollback(entries);
         });
@@ -149,13 +126,15 @@ public class SagaManager {
 
     // ZSET 삭제, HASH 삭제
     private void clearCompleteOrder(Long orderId, String sagaKey){
-        redisTemplate.opsForZSet().remove(ZSET_PREFIX, orderId);
+        redisTemplate.opsForZSet().remove(ZSET_PREFIX, String.valueOf(orderId));
+        redisTemplate.delete(SET_PREFIX + orderId);
         redisTemplate.delete(sagaKey);
     }
 
     // ZSET 삭제, HASH 상태 CANCELLED 변경, HASH TTL 설정
     private void clearFailureOrder(Long orderId, String sagaKey){
-        redisTemplate.opsForZSet().remove(ZSET_PREFIX, orderId);
+        redisTemplate.opsForZSet().remove(ZSET_PREFIX, String.valueOf(orderId));
+        redisTemplate.delete(SET_PREFIX + orderId);
         redisTemplate.opsForHash().put(sagaKey, "status", "CANCELLED");
         redisTemplate.expire(sagaKey, 10, TimeUnit.MINUTES);
     }
@@ -163,7 +142,19 @@ public class SagaManager {
     // redis Hash로 주문 생성 데이터를 저장 및 타임 아웃 시간 설정
     private void savePendingOrder(PendingOrderCreatedEvent event){
         addOrderData(event.getOrderId(), event.getStatus(), event.getCreatedAt().toString());
+        addRequiredField(event.getOrderId(), (event.getCouponId() != null));
         addOrderTimeout(event.getOrderId(), 5, TimeUnit.MINUTES);
+    }
+
+    private void addRequiredField(Long orderId, boolean couponUsage){
+        String stepKey = SET_PREFIX + orderId;
+        List<String> requiredField = new ArrayList<>();
+        requiredField.add("product");
+        requiredField.add("user");
+        if(couponUsage){
+            requiredField.add("coupon");
+        }
+        redisTemplate.opsForSet().add(stepKey, requiredField.toArray(new String[0]));
     }
 
     private void addOrderData(Long orderId, String status, String createdAt){
@@ -178,22 +169,27 @@ public class SagaManager {
     private void addOrderTimeout(Long orderId, long timeout, TimeUnit timeUnit){
         long timeMilliSeconds = timeUnit.toMillis(timeout);
         double score = System.currentTimeMillis() + timeMilliSeconds;
-        redisTemplate.opsForZSet().add(ZSET_PREFIX, orderId, score);
+        redisTemplate.opsForZSet().add(ZSET_PREFIX, String.valueOf(orderId), score);
     }
 
     private OrderCreatedEvent createOrderEvent(PendingOrderCreatedEvent event){
-        OrderRequest request = event.getOrderRequest();
-        int useReserve = request.getUseToReserve() != null ? request.getUseToReserve() : 0;
+        Map<Long, Integer> itemsMap = event.getVariantIdQuantiyMap();
+        for (Long l : itemsMap.keySet()) {
+            log.info("variant Id = {}" , l);
+        }
+        List<DeductedProduct> orderProducts = itemsMap.keySet().stream().map(variantId -> new DeductedProduct(variantId, itemsMap.get(variantId))).toList();
+        return new OrderCreatedEvent(event.getOrderId(), event.getUserId(), event.getCouponId(), orderProducts,
+                (event.getUsedPoint() != 0),
+                event.getUsedPoint(),
+                event.getAmountToPay(),
+                event.getUsedPoint() + event.getAmountToPay());
+    }
 
-        return new OrderCreatedEvent(
-                event.getOrderId(),
-                event.getUserId(),
-                request.getCouponId(),
-                event.getOrderProducts(),
-                (request.getUseToReserve() != null && request.getUseToReserve() !=0),
-                useReserve,
-                request.getUseToCash(),
-                request.getUseToCash() + useReserve
-        );
+    private String parseToJson(Object o){
+        try {
+            return mapper.writeValueAsString(o);
+        } catch (JsonProcessingException e){
+            throw new RuntimeException("Json Parse Exception",e);
+        }
     }
 }

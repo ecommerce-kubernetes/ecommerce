@@ -1,4 +1,4 @@
-package com.example.order_service.dto.response;
+package com.example.userservice.vo;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -9,7 +9,8 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class ItemOptionResponse {
-    private String optionTypeName;
-    private String optionValueName;
+public class ResponseUserBalance {
+    private Long userId;
+    private Long cashAmount;
+    private Long pointAmount;
 }

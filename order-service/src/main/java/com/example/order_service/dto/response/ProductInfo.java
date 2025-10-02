@@ -11,7 +11,7 @@ public class ProductInfo {
     private Long productId;
     private Long productVariantId;
     private String productName;
-    private int price;
+    private long price;
     private int discountRate;
     private String thumbnailUrl;
     private List<ItemOptionResponse> itemOptions;

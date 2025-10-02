@@ -125,6 +125,12 @@ public class UserController {
         );
     }
 
+    @GetMapping("/balance")
+    public ResponseEntity<ResponseUserBalance> getUserBalance(@RequestHeader("X-User-Id") Long userId){
+        UserDto userDto = userService.getUserById(userId);
+        return ResponseEntity.ok(new ResponseUserBalance(userDto.getId(), (long) userDto.getCash(), (long) userDto.getPoint()));
+    }
+
     //마이페이지 조회  { 이름(String),  잔액(Int), 적립금(Int), 주문(Int) - 주문서비스, 장바구니 금액(Int) - 주문서비스, 쿠폰개수(Int) - 쿠폰서비스}
     @GetMapping("/mypage")
     public ResponseEntity<ResponseUser> getMypage(@RequestHeader("X-User-Id") Long userId) {

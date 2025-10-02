@@ -198,6 +198,9 @@ public class ProductVariantControllerTest {
                 getMessage(PRODUCT_VARIANT_NOT_FOUND), ID_PATH);
     }
 
+    //TODO
+    //by-ids 테스트
+
     private UpdateProductVariantRequest createUpdateProductVariantRequest(){
         return new UpdateProductVariantRequest(3000, 100, 10);
     }

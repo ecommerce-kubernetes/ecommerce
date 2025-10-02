@@ -21,4 +21,7 @@ public interface ProductVariantsRepository extends JpaRepository<ProductVariant,
     List<ProductVariant> findWithVariantOptionByProductId(@Param("productId")Long productId);
 
     List<ProductVariant> findByIdIn(Collection<Long> ids);
+
+    @Query("SELECT pv FROM ProductVariant pv JOIN FETCH pv.product LEFT JOIN FETCH pv.productVariantOptions WHERE pv.id in :ids")
+    List<ProductVariant> findWithProductAndOptionsByIds(@Param("ids") List<Long> ids);
 }

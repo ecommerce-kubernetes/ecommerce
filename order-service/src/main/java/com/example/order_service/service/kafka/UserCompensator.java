@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 public class UserCompensator implements SagaCompensator{
     private final ObjectMapper mapper;
     private final KafkaProducer kafkaProducer;
-    private static final String USER_ROLLBACK_TOPIC = "user.cache.restore";
+    private static final String USER_ROLLBACK_TOPIC = "user.cash.restore";
     @Override
     public String getStepName() {
         return "user";
@@ -19,6 +19,6 @@ public class UserCompensator implements SagaCompensator{
     @Override
     public void compensate(Object rollbackEvent) {
         UserCashDeductedEvent event = mapper.convertValue(rollbackEvent, UserCashDeductedEvent.class);
-        kafkaProducer.sendMessage(USER_ROLLBACK_TOPIC, event);
+        kafkaProducer.sendMessage(USER_ROLLBACK_TOPIC, event.getOrderId().toString() ,event);
     }
 }

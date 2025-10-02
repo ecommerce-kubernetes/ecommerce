@@ -19,6 +19,6 @@ public class CouponCompensator implements SagaCompensator{
     @Override
     public void compensate(Object rollbackEvent) {
         CouponUsedSuccessEvent event = mapper.convertValue(rollbackEvent, CouponUsedSuccessEvent.class);
-        kafkaProducer.sendMessage(COUPON_ROLLBACK_TOPIC, event);
+        kafkaProducer.sendMessage(COUPON_ROLLBACK_TOPIC, event.getOrderId().toString(), event);
     }
 }

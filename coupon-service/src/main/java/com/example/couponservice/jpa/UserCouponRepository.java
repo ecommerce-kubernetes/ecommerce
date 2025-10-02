@@ -2,6 +2,8 @@ package com.example.couponservice.jpa;
 
 import com.example.couponservice.jpa.entity.UserCouponEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -17,5 +19,6 @@ public interface UserCouponRepository extends JpaRepository<UserCouponEntity, Lo
 
     boolean existsByCouponIdAndUserIdOrCouponIdAndPhoneNumber(Long couponId1, Long userId, Long couponId2, String phoneNumber);
 
-    Optional<UserCouponEntity> findByIdAndUserId(Long userCouponId, Long userId);
+    @Query("SELECT uc FROM UserCouponEntity uc WHERE uc.id = :userCouponId AND uc.userId = :userId")
+    Optional<UserCouponEntity> findByIdAndUserId(@Param("userCouponId") Long userCouponId, @Param("userId") Long userId);
 }

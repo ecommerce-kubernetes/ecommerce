@@ -7,6 +7,7 @@ import com.example.product_service.controller.util.specification.annotation.NotF
 import com.example.product_service.dto.request.review.ReviewRequest;
 import com.example.product_service.dto.request.variant.UpdateProductVariantRequest;
 import com.example.product_service.dto.response.ReviewResponse;
+import com.example.product_service.dto.response.variant.OrderProductVariantResponse;
 import com.example.product_service.dto.response.variant.ProductVariantResponse;
 import com.example.product_service.service.ProductVariantService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -18,6 +19,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/variants")
@@ -59,5 +62,11 @@ public class ProductVariantController {
     public ResponseEntity<Void> deleteProductVariant(@PathVariable("variantId") Long variantId){
         productVariantService.deleteVariantById(variantId);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/by-ids")
+    public ResponseEntity<List<OrderProductVariantResponse>> getVariantByIds(@RequestBody List<Long> variantIds){
+        List<OrderProductVariantResponse> responses = productVariantService.getOrderVariantByIds(variantIds);
+        return ResponseEntity.ok(responses);
     }
 }
