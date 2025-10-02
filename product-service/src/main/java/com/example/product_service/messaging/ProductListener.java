@@ -32,8 +32,8 @@ public class ProductListener {
             Map<Long, Integer> resultMap = productVariantService.inventoryReductionById(reductionMap);
             List<DeductedProduct> deductedList = resultMap.entrySet().stream().map(entry -> new DeductedProduct(entry.getKey(), entry.getValue())).toList();
             kafkaTemplate.send(STOCK_DEDUCTED, new ProductStockDeductedEvent(event.getOrderId(), deductedList));
+            log.info("adsfasdfadsf");
         } catch (Exception e){
-            log.info(" failed Message");
             kafkaTemplate.send(STOCK_DEDUCTED_FAIL, new FailedEvent(event.getOrderId(), e.getMessage()));
         }
     }

@@ -1,6 +1,6 @@
 local status = redis.call('HGET', KEYS[1], 'status')
 
-if status ~= 'PENDING' then
+if status ~= '"PENDING"' then
     return -1
 end
 

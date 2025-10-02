@@ -32,7 +32,7 @@ public class PendingOrderCreatedEvent extends ApplicationEvent {
         this.status = order.getStatus();
         this.createdAt = order.getCreateAt();
         this.variantIdQuantiyMap = order.getOrderItems()
-                .stream().collect(Collectors.toMap(OrderItems::getId, OrderItems::getQuantity));
+                .stream().collect(Collectors.toMap(OrderItems::getProductVariantId, OrderItems::getQuantity));
         this.amountToPay = order.getAmountToPay();
     }
 

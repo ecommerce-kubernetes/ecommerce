@@ -20,4 +20,5 @@ public final class MessagePath {
     public static final String CART_ITEM_NO_PERMISSION = "cartItem.noPermission";
     public static final String FORBIDDEN = "forbidden";
     public static final String ORDER_NOT_FOUND = "order.notFound";
+    public static final String ALREADY_USED_COUPON = "insufficient.coupon";
 }

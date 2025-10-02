@@ -1,5 +1,6 @@
 package com.example.couponservice.advice;
 
+import com.example.couponservice.advice.exceptions.AlreadyUsedCouponException;
 import com.example.couponservice.advice.exceptions.InvalidPhoneNumberException;
 import com.example.couponservice.advice.exceptions.IsExistCouponException;
 import com.example.couponservice.vo.ResponseError;
@@ -36,6 +37,13 @@ public class GlobalExceptionHandler {
         log.warn("{}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(ResponseError.of(HttpStatus.NOT_FOUND, ex.getMessage()));
+    }
+
+    @ExceptionHandler(AlreadyUsedCouponException.class)
+    public ResponseEntity<ResponseError> handleAlreadyUsedCoupon(AlreadyUsedCouponException ex) {
+        log.warn("{}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ResponseError.of(HttpStatus.CONFLICT, ex.getMessage()));
     }
 
     /**

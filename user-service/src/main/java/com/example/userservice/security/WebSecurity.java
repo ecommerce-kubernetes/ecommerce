@@ -32,7 +32,7 @@ public class WebSecurity {
     private final CustomAccessDeniedHandler customAccessDeniedHandler;
 
     private static final String[] WHITE_LIST = {
-            "/login/**", "/health_check/**", "/actuator/**", "/swagger-ui/**", "/swagger-resources/**", "/v3/api-docs/**", "/users/{userId}/balance"
+            "/login/**", "/health_check/**", "/actuator/**", "/swagger-ui/**", "/swagger-resources/**", "/v3/api-docs/**"
     };
 
     public WebSecurity(UserService userService, TokenService tokenService, BCryptPasswordEncoder bCryptPasswordEncoder, HeaderAuthenticationFilter headerAuthenticationFilter, CustomAuthenticationEntryPoint customAuthenticationEntryPoint, CustomAccessDeniedHandler customAccessDeniedHandler) {

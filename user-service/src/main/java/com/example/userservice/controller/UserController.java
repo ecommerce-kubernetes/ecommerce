@@ -125,8 +125,8 @@ public class UserController {
         );
     }
 
-    @GetMapping("/{userId}/balance")
-    public ResponseEntity<ResponseUserBalance> getUserBalance(@PathVariable("userId") Long userId){
+    @GetMapping("/balance")
+    public ResponseEntity<ResponseUserBalance> getUserBalance(@RequestHeader("X-User-Id") Long userId){
         UserDto userDto = userService.getUserById(userId);
         return ResponseEntity.ok(new ResponseUserBalance(userDto.getId(), (long) userDto.getCash(), (long) userDto.getPoint()));
     }

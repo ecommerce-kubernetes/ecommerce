@@ -22,12 +22,12 @@ public class UserClientService {
     private final UserClient userClient;
     private final MessageSourceUtil ms;
 
-    @CircuitBreaker(name = "userService", fallbackMethod = "fetchBalanceByUserIdFallback")
-    public UserBalanceResponse fetchBalanceByUserId(Long userId){
-        return userClient.getUserBalance(userId);
+    @CircuitBreaker(name = "userService", fallbackMethod = "fetchBalanceFallback")
+    public UserBalanceResponse fetchBalance(){
+        return userClient.getUserBalance();
     }
 
-    public UserBalanceResponse fetchBalanceByUserIdFallback(Long userId, Throwable throwable){
+    public UserBalanceResponse fetchBalanceFallback(Throwable throwable){
         log.info("{}", throwable.getMessage());
         if(throwable instanceof CallNotPermittedException){
             throw new ResponseStatusException(

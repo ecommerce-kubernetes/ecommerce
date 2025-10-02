@@ -63,9 +63,7 @@ public class SagaManager {
         String eventJson = parseToJson(event);
         Long remainingSteps = redisTemplate
                 .execute(checkAndCompleteSagaScript, Arrays.asList(sagaKey, stepKey), field, eventJson);
-        if(remainingSteps == null){
-            return;
-        }
+        log.info("success {} redis remainingStep = {}", event.getClass(), remainingSteps);
         if(remainingSteps == 0){
             orderService.completeOrder(event.getOrderId());
             clearCompleteOrder(event.getOrderId(), sagaKey);
@@ -79,12 +77,13 @@ public class SagaManager {
         String stepKey = SET_PREFIX + event.getOrderId();
         Long orderId = event.getOrderId();
         long ttlInSecond = 600;
-
+        log.info("failure");
         Long result = redisTemplate.execute(processSagaFailureScript,
                 Arrays.asList(sagaKey, ZSET_PREFIX, stepKey),
                 String.valueOf(orderId), String.valueOf(ttlInSecond));
-
-        if (result != null && result == 1){
+        log.info("redis result= {}", result);
+        if (result == 1){
+            log.info("order cancelled");
             orderService.cancelOrder(orderId);
             Map<Object, Object> sagaState = redisTemplate.opsForHash().entries(sagaKey);
             initiateRollback(sagaState);
@@ -127,14 +126,14 @@ public class SagaManager {
 
     // ZSET 삭제, HASH 삭제
     private void clearCompleteOrder(Long orderId, String sagaKey){
-        redisTemplate.opsForZSet().remove(ZSET_PREFIX, orderId);
+        redisTemplate.opsForZSet().remove(ZSET_PREFIX, String.valueOf(orderId));
         redisTemplate.delete(SET_PREFIX + orderId);
         redisTemplate.delete(sagaKey);
     }
 
     // ZSET 삭제, HASH 상태 CANCELLED 변경, HASH TTL 설정
     private void clearFailureOrder(Long orderId, String sagaKey){
-        redisTemplate.opsForZSet().remove(ZSET_PREFIX, orderId);
+        redisTemplate.opsForZSet().remove(ZSET_PREFIX, String.valueOf(orderId));
         redisTemplate.delete(SET_PREFIX + orderId);
         redisTemplate.opsForHash().put(sagaKey, "status", "CANCELLED");
         redisTemplate.expire(sagaKey, 10, TimeUnit.MINUTES);
@@ -170,11 +169,14 @@ public class SagaManager {
     private void addOrderTimeout(Long orderId, long timeout, TimeUnit timeUnit){
         long timeMilliSeconds = timeUnit.toMillis(timeout);
         double score = System.currentTimeMillis() + timeMilliSeconds;
-        redisTemplate.opsForZSet().add(ZSET_PREFIX, orderId, score);
+        redisTemplate.opsForZSet().add(ZSET_PREFIX, String.valueOf(orderId), score);
     }
 
     private OrderCreatedEvent createOrderEvent(PendingOrderCreatedEvent event){
         Map<Long, Integer> itemsMap = event.getVariantIdQuantiyMap();
+        for (Long l : itemsMap.keySet()) {
+            log.info("variant Id = {}" , l);
+        }
         List<DeductedProduct> orderProducts = itemsMap.keySet().stream().map(variantId -> new DeductedProduct(variantId, itemsMap.get(variantId))).toList();
         return new OrderCreatedEvent(event.getOrderId(), event.getUserId(), event.getCouponId(), orderProducts,
                 (event.getUsedPoint() != 0),
