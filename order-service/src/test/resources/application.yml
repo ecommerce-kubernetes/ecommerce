@@ -1,0 +1,29 @@
+eureka:
+  client:
+    enable: false
+    fetch-registry: false
+    register-with-eureka: false
+
+spring:
+  cloud:
+    config:
+      enabled: false
+    openfeign:
+      loadbalancer:
+        enabled: false
+    discovery:
+      client:
+        simple:
+          instances:
+            product-service:
+              - uri: http://localhost:${wiremock.server.port}
+  data:
+    redis:
+      host: testhost
+      port: 9123
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+
+  kafka:
+    bootstrap_servers: localhost:9092
