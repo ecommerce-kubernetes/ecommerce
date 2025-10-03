@@ -115,7 +115,7 @@ class OrderServiceTest {
                                 "http://test.jpg", List.of(new ItemOptionResponse("색상", "RED"))))
                 );
         //유저 서비스 모킹
-        when(userClientService.fetchBalance(anyLong()))
+        when(userClientService.fetchBalance())
                 .thenReturn(new UserBalanceResponse(1L, 10000L, 3000L));
         //쿠폰 서비스 모킹
         when(couponClientService.fetchCouponByUserCouponId(anyLong(), anyLong()))
@@ -198,7 +198,7 @@ class OrderServiceTest {
                 .thenReturn(List.of(new ProductResponse(1L, 1L, "상품1",
                         new ProductPrice(3000, 10, 300, 2700),
                         "http://test.jpg", List.of(new ItemOptionResponse("색상", "RED")))));
-        when(userClientService.fetchBalance(anyLong()))
+        when(userClientService.fetchBalance())
                 .thenThrow(new NotFoundException("UserService 404"));
 
         OrderRequest orderRequest = new OrderRequest(List.of(new OrderItemRequest(1L, 3)),
@@ -219,7 +219,7 @@ class OrderServiceTest {
                         new ProductPrice(3000, 10, 300, 2700),
                         "http://test.jpg", List.of(new ItemOptionResponse("색상", "RED")))));
 
-        when(userClientService.fetchBalance(anyLong()))
+        when(userClientService.fetchBalance())
                 .thenReturn(new UserBalanceResponse(1L, 10000L, 3000L));
         when(couponClientService.fetchCouponByUserCouponId(anyLong(), anyLong()))
                 .thenThrow(new NotFoundException("CouponService 404"));
@@ -244,7 +244,7 @@ class OrderServiceTest {
                                 "http://test.jpg", List.of(new ItemOptionResponse("색상", "RED"))))
                 );
         //유저 서비스 모킹
-        when(userClientService.fetchBalance(anyLong()))
+        when(userClientService.fetchBalance())
                 .thenReturn(new UserBalanceResponse(1L, 10000L, 100L));
         //쿠폰 서비스 모킹
         when(couponClientService.fetchCouponByUserCouponId(anyLong(), anyLong()))
@@ -272,7 +272,7 @@ class OrderServiceTest {
                                 "http://test.jpg", List.of(new ItemOptionResponse("색상", "RED"))))
                 );
         //유저 서비스 모킹
-        when(userClientService.fetchBalance(anyLong()))
+        when(userClientService.fetchBalance())
                 .thenReturn(new UserBalanceResponse(1L, 10000L, 1000L));
         //쿠폰 서비스 모킹
         when(couponClientService.fetchCouponByUserCouponId(anyLong(), anyLong()))
@@ -299,7 +299,7 @@ class OrderServiceTest {
                                 "http://test.jpg", List.of(new ItemOptionResponse("색상", "RED"))))
                 );
         //유저 서비스 모킹
-        when(userClientService.fetchBalance(anyLong()))
+        when(userClientService.fetchBalance())
                 .thenReturn(new UserBalanceResponse(1L, 10000L, 3000L));
         //쿠폰 서비스 모킹
         when(couponClientService.fetchCouponByUserCouponId(anyLong(), anyLong()))
@@ -327,7 +327,7 @@ class OrderServiceTest {
                                 "http://test.jpg", List.of(new ItemOptionResponse("색상", "RED"))))
                 );
         //유저 서비스 모킹
-        when(userClientService.fetchBalance(anyLong()))
+        when(userClientService.fetchBalance())
                 .thenReturn(new UserBalanceResponse(1L, 1000L, 3000L));
         //쿠폰 서비스 모킹
         when(couponClientService.fetchCouponByUserCouponId(anyLong(), anyLong()))
