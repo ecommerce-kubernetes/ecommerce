@@ -1,5 +1,6 @@
 package com.example.order_service.service;
 
+import com.example.order_service.common.scheduler.PendingOrderTimeoutScheduler;
 import com.example.order_service.dto.request.CartItemRequest;
 import com.example.order_service.dto.response.CartItemResponse;
 import com.example.order_service.dto.response.CartResponse;
@@ -10,10 +11,12 @@ import com.example.order_service.entity.Carts;
 import com.example.order_service.exception.NoPermissionException;
 import com.example.order_service.exception.NotFoundException;
 import com.example.order_service.repository.CartsRepository;
+import com.example.order_service.service.client.dto.ProductPrice;
 import com.example.order_service.service.client.dto.ProductResponse;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -46,7 +49,8 @@ class CartServiceTest {
     static void registerPgProperties(DynamicPropertyRegistry registry){
         registry.add("product-service.url", () -> "http://localhost:${wiremock.server.port}");
     }
-
+    @MockitoBean
+    PendingOrderTimeoutScheduler pendingOrderTimeoutScheduler;
     @Autowired
     CartsRepository cartsRepository;
     @Autowired
@@ -65,6 +69,11 @@ class CartServiceTest {
         cartsRepository.save(cart);
     }
 
+    @AfterEach
+    void clearDB(){
+        cartsRepository.deleteAll();
+    }
+
     @Test
     @DisplayName("장바구니 상품 추가 테스트-성공(처음 상품 추가시)")
     @Transactional
@@ -73,7 +82,8 @@ class CartServiceTest {
         Long productVariantId = 100L;
         int quantity = 5;
         CartItemRequest request = new CartItemRequest(productVariantId, quantity);
-        ProductResponse productResponse = new ProductResponse();
+        ProductResponse productResponse = new ProductResponse(1L, productVariantId, "상품1", new ProductPrice(3000L, 10, 300L, 2700L),
+                "http://test.jpg", List.of(new ItemOptionResponse("색상" ,"RED")));
 
         stubFor(get(urlEqualTo("/variants/" + productVariantId))
                 .willReturn(aResponse()
@@ -94,7 +104,7 @@ class CartServiceTest {
                 .extracting(ProductInfo::getProductId, ProductInfo::getProductVariantId, ProductInfo::getProductName,
                         ProductInfo::getPrice, ProductInfo::getDiscountRate, ProductInfo::getThumbnailUrl)
                 .containsExactlyInAnyOrder(
-                        1L, 100L, "상품1", 3000, 10, "http://product1.jpg"
+                        1L, productVariantId, "상품1", 3000L, 10, "http://test.jpg"
                 );
 
         assertThat(response.getProductInfo().getItemOptions())
@@ -106,10 +116,11 @@ class CartServiceTest {
     @DisplayName("장바구니 상품 추가 테스트-성공(새로운 상품 추가시)")
     @Transactional
     void addItemTest_integration_success_newItem() throws JsonProcessingException {
-        Long productVariantId = 100L;
+        Long productVariantId = 101L;
         int quantity = 5;
         CartItemRequest request = new CartItemRequest(productVariantId, quantity);
-        ProductResponse productResponse = new ProductResponse();
+        ProductResponse productResponse = new ProductResponse(1L, productVariantId, "상품1", new ProductPrice(3000L, 10, 300L, 2700L),
+                "http://test.jpg", List.of(new ItemOptionResponse("색상" ,"RED")));
 
         stubFor(get(urlEqualTo("/variants/" + productVariantId))
                 .willReturn(aResponse()
@@ -130,7 +141,7 @@ class CartServiceTest {
                 .extracting(ProductInfo::getProductId, ProductInfo::getProductVariantId, ProductInfo::getProductName,
                         ProductInfo::getPrice, ProductInfo::getDiscountRate, ProductInfo::getThumbnailUrl)
                 .containsExactlyInAnyOrder(
-                        1L, 100L, "상품1", 3000, 10, "http://product1.jpg"
+                        1L, productVariantId, "상품1", 3000L, 10, "http://test.jpg"
                 );
 
         assertThat(response.getProductInfo().getItemOptions())
@@ -145,7 +156,8 @@ class CartServiceTest {
         Long productVariantId = cartItem.getProductVariantId();
         int quantity = 5;
         CartItemRequest request = new CartItemRequest(productVariantId, quantity);
-        ProductResponse productResponse = new ProductResponse();
+        ProductResponse productResponse = new ProductResponse(1L, productVariantId, "상품1", new ProductPrice(3000L, 10, 300L, 2700L),
+                "http://test.jpg", List.of(new ItemOptionResponse("색상" ,"RED")));
 
         stubFor(get(urlEqualTo("/variants/" + productVariantId))
                 .willReturn(aResponse()
@@ -166,7 +178,7 @@ class CartServiceTest {
                 .extracting(ProductInfo::getProductId, ProductInfo::getProductVariantId, ProductInfo::getProductName,
                         ProductInfo::getPrice, ProductInfo::getDiscountRate, ProductInfo::getThumbnailUrl)
                 .containsExactlyInAnyOrder(
-                        1L, cartItem.getProductVariantId(), "상품1", 3000, 10, "http://product1.jpg"
+                        1L, cartItem.getProductVariantId(), "상품1", 3000L, 10, "http://test.jpg"
                 );
 
         assertThat(response.getProductInfo().getItemOptions())
@@ -218,14 +230,19 @@ class CartServiceTest {
     @Transactional
     void getCartItemListTest_integration_existItem() throws JsonProcessingException {
         Carts cart = new Carts(2L);
-        CartItems cartItem1 = new CartItems(1L, 2);
-        CartItems cartItem2 = new CartItems(2L, 5);
+        CartItems cartItem1 = new CartItems(100L, 2);
+        CartItems cartItem2 = new CartItems(200L, 5);
         cart.addCartItem(cartItem1);
         cart.addCartItem(cartItem2);
         cartsRepository.save(cart);
         em.flush(); em.clear();
-        String productRequest = mapper.writeValueAsString(List.of(1L, 2L));
-        String productResponse = mapper.writeValueAsString(List.of());
+        String productRequest = mapper.writeValueAsString(List.of(100L, 200L));
+        String productResponse = mapper.writeValueAsString(List.of(
+                new ProductResponse(1L, 100L, "상품1", new ProductPrice(3000, 10, 300, 2700),
+                        "http://test1.jpg", List.of(new ItemOptionResponse("색상", "RED"))),
+                new ProductResponse(2L, 200L, "상품2", new ProductPrice(5000, 10, 500, 4500),
+                        "http://test2.jpg", List.of(new ItemOptionResponse("사이즈" ,"XL")))
+        ));
         stubFor(post(urlEqualTo("/variants/by-ids"))
                 .withRequestBody(equalToJson(productRequest, true, true))
                 .willReturn(aResponse()
@@ -235,7 +252,7 @@ class CartServiceTest {
 
 
         CartResponse response = cartService.getCartItemList(2L);
-        assertThat(response.getCartTotalPrice()).isEqualTo(29150);
+        assertThat(response.getCartTotalPrice()).isEqualTo(27900);
         assertThat(response.getCartItems())
                 .extracting(CartItemResponse::getQuantity, CartItemResponse::isAvailable)
                 .containsExactlyInAnyOrder(
@@ -247,14 +264,14 @@ class CartServiceTest {
                 .extracting(ProductInfo::getProductId, ProductInfo::getProductVariantId, ProductInfo::getProductName,
                         ProductInfo::getPrice, ProductInfo::getDiscountRate, ProductInfo::getThumbnailUrl)
                 .containsExactlyInAnyOrder(
-                        1L, 1L, "상품1", 3000, 10, "http://product1.jpg"
+                        1L, 100L, "상품1", 3000L, 10, "http://test1.jpg"
                 );
 
         assertThat(response.getCartItems().get(1).getProductInfo())
                 .extracting(ProductInfo::getProductId, ProductInfo::getProductVariantId, ProductInfo::getProductName,
                         ProductInfo::getPrice, ProductInfo::getDiscountRate, ProductInfo::getThumbnailUrl)
                 .containsExactlyInAnyOrder(
-                        2L, 2L, "상품2", 5000, 5, "http://product2.jpg"
+                        2L, 200L, "상품2", 5000L, 10, "http://test2.jpg"
                 );
 
     }
@@ -264,15 +281,18 @@ class CartServiceTest {
     @Transactional
     void getCartItemListTest_integration_deletedItems() throws JsonProcessingException{
         Carts cart = new Carts(2L);
-        CartItems cartItem1 = new CartItems(1L, 2);
-        CartItems cartItem2 = new CartItems(2L, 5);
+        CartItems cartItem1 = new CartItems(100L, 2);
+        CartItems cartItem2 = new CartItems(200L, 5);
         cart.addCartItem(cartItem1);
         cart.addCartItem(cartItem2);
         cartsRepository.save(cart);
         em.flush(); em.clear();
 
-        String productRequest = mapper.writeValueAsString(List.of(1L, 2L));
-        String productResponse = mapper.writeValueAsString(List.of(new ProductResponse()));
+        String productRequest = mapper.writeValueAsString(List.of(100L, 200L));
+        String productResponse = mapper.writeValueAsString(List.of(
+                new ProductResponse(1L, 100L, "상품1", new ProductPrice(3000, 10, 300, 2700),
+                        "http://test1.jpg", List.of(new ItemOptionResponse("색상", "RED"))))
+        );
         stubFor(post(urlEqualTo("/variants/by-ids"))
                 .withRequestBody(equalToJson(productRequest, true, true))
                 .willReturn(aResponse()
@@ -293,7 +313,7 @@ class CartServiceTest {
                 .extracting(ProductInfo::getProductId, ProductInfo::getProductVariantId, ProductInfo::getProductName,
                         ProductInfo::getPrice, ProductInfo::getDiscountRate, ProductInfo::getThumbnailUrl)
                 .containsExactlyInAnyOrder(
-                        1L, 1L, "상품1", 3000, 10, "http://product1.jpg"
+                        1L, 100L, "상품1", 3000L, 10, "http://test1.jpg"
                 );
 
         assertThat(response.getCartItems().get(1).getProductInfo()).isNull();
