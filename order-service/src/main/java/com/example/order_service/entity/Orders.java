@@ -76,15 +76,6 @@ public class Orders extends BaseEntity {
         this.status = "COMPLETE";
     }
 
-    public void setPriceInfo(long originPrice, long prodDiscount, long couponDiscount, long reserveDiscount,
-                             long payment){
-        this.originPrice = originPrice;
-        this.prodDiscount = prodDiscount;
-        this.couponDiscount = couponDiscount;
-        this.pointDiscount = reserveDiscount;
-        this.amountToPay = payment;
-    }
-
     public void addOrderItems(List<OrderItems> orderItems){
         for (OrderItems orderItem : orderItems) {
             addOrderItem(orderItem);

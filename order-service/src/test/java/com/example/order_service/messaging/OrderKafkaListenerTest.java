@@ -110,7 +110,7 @@ public class OrderKafkaListenerTest {
                         UserCashDeductedEvent::getReservedPointAmount,
                         UserCashDeductedEvent::getExpectTotalAmount)
                 .containsExactlyInAnyOrder(
-                        1L, 2500, 200, 2700
+                        1L, 2500L, 200L, 2700L
                 );
 
     }

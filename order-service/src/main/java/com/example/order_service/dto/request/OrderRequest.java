@@ -1,5 +1,6 @@
 package com.example.order_service.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
@@ -37,6 +38,7 @@ public class OrderRequest {
         );
     }
 
+    @JsonIgnore
     public List<Long> getItemsVariantId(){
         return items.stream().map(OrderItemRequest::getProductVariantId).toList();
     }

@@ -79,7 +79,7 @@ class SagaManagerTest {
         assertThat(steps).isEqualTo(3);
 
         //3. redis ZSet Data
-        Double score = redisTemplate.opsForZSet().score("saga:timeouts", orderId);
+        Double score = redisTemplate.opsForZSet().score("saga:timeouts", String.valueOf(orderId));
         assertThat(score).isNotNull();
 
         //4. kafkaProducer 호출 확인
@@ -123,7 +123,8 @@ class SagaManagerTest {
         assertThat(entries.containsKey("product")).isTrue();
 
         // 저장된 메시지 확인
-        ProductStockDeductedEvent product = (ProductStockDeductedEvent) entries.get("product");
+        ProductStockDeductedEvent product = mapper.convertValue(entries.get("product"), ProductStockDeductedEvent.class);
+
         assertThat(product.getOrderId()).isEqualTo(orderId);
         assertThat(product.getDeductedProducts())
                 .extracting(DeductedProduct::getProductVariantId, DeductedProduct::getQuantity)
@@ -177,13 +178,13 @@ class SagaManagerTest {
         Map<String, Object> dataMap = Map.of("status", "PENDING", "user", userEvent, "coupon", couponEvent);
         redisTemplate.opsForHash().putAll("saga:order:" + orderId, dataMap);
         redisTemplate.opsForSet().add("saga:steps:" + orderId, requiredField.toArray(new String[0]));
-        redisTemplate.opsForZSet().add("saga:timeouts", orderId, score);
+        redisTemplate.opsForZSet().add("saga:timeouts",  String.valueOf(orderId), score);
 
         sagaManager.processSagaSuccess(productEvent);
 
         assertThat(redisTemplate.hasKey("saga:order:" + orderId)).isFalse();
         assertThat(redisTemplate.hasKey("saga:steps:" + orderId)).isFalse();
-        assertThat(redisTemplate.opsForZSet().score("saga:timeouts", orderId)).isNull();
+        assertThat(redisTemplate.opsForZSet().score("saga:timeouts",  String.valueOf(orderId))).isNull();
     }
 
     @Test
@@ -200,7 +201,7 @@ class SagaManagerTest {
         Map<String, Object> dataMap = Map.of("status", "PENDING", "user", userEvent, "coupon", couponEvent);
         redisTemplate.opsForHash().putAll("saga:order:" + orderId, dataMap);
         redisTemplate.opsForSet().add("saga:steps:" + orderId, requiredField.toArray(new String[0]));
-        redisTemplate.opsForZSet().add("saga:timeouts", orderId, score);
+        redisTemplate.opsForZSet().add("saga:timeouts",  String.valueOf(orderId), score);
 
         sagaManager.processSagaFailure(productEvent);
 
@@ -208,13 +209,13 @@ class SagaManagerTest {
 
         assertThat(entries.get("status")).isEqualTo("CANCELLED");
         assertThat(redisTemplate.hasKey("saga:steps:" + orderId)).isFalse();
-        assertThat(redisTemplate.opsForZSet().score("saga:timeouts", orderId)).isNull();
+        assertThat(redisTemplate.opsForZSet().score("saga:timeouts", String.valueOf(orderId))).isNull();
 
         ArgumentCaptor<UserCashDeductedEvent> userCaptor = ArgumentCaptor.forClass(UserCashDeductedEvent.class);
         ArgumentCaptor<CouponUsedSuccessEvent> couponCaptor = ArgumentCaptor.forClass(CouponUsedSuccessEvent.class);
 
-        verify(kafkaProducer).sendMessage(eq("user.cash.restore"), userCaptor.capture());
-        verify(kafkaProducer).sendMessage(eq("coupon.used.cancel"), couponCaptor.capture());
+        verify(kafkaProducer).sendMessage(eq("user.cash.restore"), eq(String.valueOf(orderId)), userCaptor.capture());
+        verify(kafkaProducer).sendMessage(eq("coupon.used.cancel"), eq(String.valueOf(orderId)), couponCaptor.capture());
 
         UserCashDeductedEvent userRollback = userCaptor.getValue();
         CouponUsedSuccessEvent couponRollback = couponCaptor.getValue();
