@@ -21,6 +21,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -73,6 +74,7 @@ class OrderControllerTest {
                 List.of(new OrderItemRequest(1L, 2)),
                 "서울시 테헤란로 123", 1L, 4000L, 900L);
         ResultActions perform = performWithBodyAndUserIdHeader(mockMvc, post(BASE_PATH), request);
+        perform.andDo(MockMvcResultHandlers.print()); // status, headers, body 전부 출력
         verifySuccessResponse(perform, status().isCreated(), expectedResponse);
     }
 

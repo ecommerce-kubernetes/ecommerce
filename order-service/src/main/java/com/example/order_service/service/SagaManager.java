@@ -54,7 +54,6 @@ public class SagaManager {
         savePendingOrder(event);
     }
 
-    //TODO race condition 고려
     //성공 응답시 호출
     public void processSagaSuccess(SuccessSagaEvent event){
         String sagaKey = HASH_PREFIX + event.getOrderId();
@@ -63,7 +62,7 @@ public class SagaManager {
         String eventJson = parseToJson(event);
         Long remainingSteps = redisTemplate
                 .execute(checkAndCompleteSagaScript, Arrays.asList(sagaKey, stepKey), field, eventJson);
-        log.info("success {} redis remainingStep = {}", event.getClass(), remainingSteps);
+
         if(remainingSteps == 0){
             orderService.completeOrder(event.getOrderId());
             clearCompleteOrder(event.getOrderId(), sagaKey);
@@ -77,13 +76,10 @@ public class SagaManager {
         String stepKey = SET_PREFIX + event.getOrderId();
         Long orderId = event.getOrderId();
         long ttlInSecond = 600;
-        log.info("failure");
         Long result = redisTemplate.execute(processSagaFailureScript,
                 Arrays.asList(sagaKey, ZSET_PREFIX, stepKey),
                 String.valueOf(orderId), String.valueOf(ttlInSecond));
-        log.info("redis result= {}", result);
         if (result == 1){
-            log.info("order cancelled");
             orderService.cancelOrder(orderId);
             Map<Object, Object> sagaState = redisTemplate.opsForHash().entries(sagaKey);
             initiateRollback(sagaState);

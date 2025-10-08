@@ -19,6 +19,6 @@ public class ProductCompensator implements SagaCompensator {
     @Override
     public void compensate(Object rollbackEvent) {
         ProductStockDeductedEvent event = mapper.convertValue(rollbackEvent, ProductStockDeductedEvent.class);
-        kafkaProducer.sendMessage(PRODUCT_ROLLBACK_TOPIC, event);
+        kafkaProducer.sendMessage(PRODUCT_ROLLBACK_TOPIC,  event);
     }
 }

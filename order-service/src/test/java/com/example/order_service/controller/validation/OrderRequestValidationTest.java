@@ -37,8 +37,8 @@ public class OrderRequestValidationTest {
         OrderRequest request = new OrderRequest();
         Set<ConstraintViolation<OrderRequest>> violations = validateField(request);
         List<String> field = violations.stream().map(v -> v.getPropertyPath().toString()).toList();
-        assertThat(violations).hasSize(2);
-        assertThat(field).containsExactlyInAnyOrder("items", "deliveryAddress");
+        assertThat(violations).hasSize(3);
+        assertThat(field).containsExactlyInAnyOrder("items", "deliveryAddress", "expectedPrice");
     }
 
     private OrderRequest createOrderRequest(){
