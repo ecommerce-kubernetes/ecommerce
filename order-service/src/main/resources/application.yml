@@ -1,3 +1,5 @@
 spring:
   application:
     name: order-service
+  flyway:
+    baseline-on-migrate: true
