@@ -1,4 +1,4 @@
-# 🛒 E-Commerce Microservices Platform [Buynest]
+# 🛒 Buynest [E-Commerce Microservices Platform] 
 
 > Spring Boot 기반 **전자상거래 마이크로서비스 프로젝트**입니다.  
 > 서비스 간 비동기 이벤트 통신(Kafka)과 Eureka 기반 서비스 디스커버리,  
@@ -125,3 +125,4 @@ Redis를 이용해 상태 캐싱 및 집계
 
 이 프로젝트는 개인 포트폴리오 용도로 제작되었으며,
 상업적 사용은 금지됩니다.
+
