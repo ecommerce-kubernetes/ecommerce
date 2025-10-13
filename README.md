@@ -46,14 +46,14 @@ Redis/MySQL → 캐시 및 영속 데이터 저장
 
 | Service | Description | Port | Communication |
 |----------|--------------|------|----------------|
-| **User Service** | 회원 관리, 인증 및 권한 처리 | 8081 | Kafka / REST |
-| **Product Service** | 상품 등록, 수정, 조회 | 8082 | Kafka / REST |
-| **Order Service** | 주문 생성 및 상태 관리 | 8083 | Kafka / REST (Feign) |
-| **Coupon Service** | 쿠폰 발급, 검증, 만료 처리 | 8084 | Kafka |
-| **Image Service** | 상품 이미지 저장 및 관리 | 8085 | REST |
-| **Config Service** | Spring Cloud Config 중앙 설정 서버 | 8888 | REST |
-| **Discovery Service (Eureka)** | 서비스 등록/탐색 | 8761 | REST |
-| **Gateway Service** | 외부 요청 진입점 (라우팅/보안) | 8080 | REST |
+| **User Service** | 회원 관리, 인증 및 권한 처리 |
+| **Product Service** | 상품 등록, 수정, 조회 |
+| **Order Service** | 주문 생성 및 상태 관리 |
+| **Coupon Service** | 쿠폰 발급, 검증, 만료 처리 |
+| **Image Service** | 상품 이미지 저장 및 관리 |
+| **Config Service** | Spring Cloud Config 중앙 설정 서버 |
+| **Discovery Service (Eureka)** | 서비스 등록/탐색 |
+| **Gateway Service** | 외부 요청 진입점 (라우팅/보안) |
 
 ---
 
@@ -130,6 +130,7 @@ Redis를 이용해 상태 캐싱 및 집계
 
 이 프로젝트는 개인 포트폴리오 용도로 제작되었으며,
 상업적 사용은 금지됩니다.
+
 
 
 
