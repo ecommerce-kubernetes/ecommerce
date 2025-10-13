@@ -39,9 +39,8 @@ Redis/MySQL → 캐시 및 영속 데이터 저장
 
 ## ⚙️ Services Overview
 
-
 <p align="left">
-  <img src="https://github.com/user-attachments/assets/f534af47-185c-4f01-b741-bd05ca210bbf" width="70%" />
+  <img src="https://github.com/user-attachments/assets/d86536eb-e6be-4169-bd2d-0113d4465005" width="70%" />
   <br/>
   <em>전체 마이크로서비스 구조도</em>
 </p>
@@ -138,6 +137,7 @@ Redis를 이용해 상태 캐싱 및 집계
 
 이 프로젝트는 개인 포트폴리오 용도로 제작되었으며,
 상업적 사용은 금지됩니다.
+
 
 
 
