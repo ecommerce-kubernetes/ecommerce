@@ -45,8 +45,9 @@ Redis/MySQL → 캐시 및 영속 데이터 저장
 </p>
 
 <p align="left">
-  <img src="https://github.com/user-attachments/assets/47054e9b-c18e-4869-b232-21545a835fdd" width="40%" />
+  <img src="https://github.com/user-attachments/assets/47054e9b-c18e-4869-b232-21545a835fdd" width="50%" />
   <br/>
+  <em>전체 마이크로서비스 구조도</em>
 </p>
 
 
