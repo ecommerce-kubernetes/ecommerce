@@ -92,7 +92,7 @@ Kafka, MySQL, Redis, Eureka, Config Server를 먼저 실행해야 합니다.
 
 ---
 
-## Event Flow Example
+## 🧭 Event Flow Example
 
 사용자가 POST /orders 요청을 보냄
 
@@ -106,11 +106,11 @@ Order Service에서 최종 상태 업데이트
 
 Redis를 이용해 상태 캐싱 및 집계
 
-## Domain
+## 🌐 Domain
 
 현재 실제 배포 서버: https://buynestshop.store
 
-## Developer
+## 👨‍💻 Developer
 
 > 유호연 (Ho-Yeon Yu)
 > Email: [zmfmsh46@gmail.com]
@@ -121,8 +121,9 @@ Redis를 이용해 상태 캐싱 및 집계
 > GitHub: 
 
 
-## License
+## 📄 License
 
 이 프로젝트는 개인 포트폴리오 용도로 제작되었으며,
 상업적 사용은 금지됩니다.
+
 
