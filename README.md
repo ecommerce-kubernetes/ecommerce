@@ -10,9 +10,9 @@
 ## 📐 Architecture Overview
 
 <p align="left">
-  <img src="https://github.com/user-attachments/assets/d8ccbedd-bc02-41fe-8702-f652cabca638" width="70%" />
+  <img src="https://github.com/user-attachments/assets/df5a3918-463a-44c5-8c53-7ef7b609a2d2" width="70%"/>
   <br/>
-  <em>전체 마이크로서비스 구조도</em>
+  <em>Jenkins CI/CD Pipeline</em>
 </p>
 
 <p align="left">
@@ -26,10 +26,11 @@
 </p>
 
 <p align="left">
-  <img src="https://github.com/user-attachments/assets/df5a3918-463a-44c5-8c53-7ef7b609a2d2" width="70%"/>
+  <img src="https://github.com/user-attachments/assets/d8ccbedd-bc02-41fe-8702-f652cabca638" width="70%" />
   <br/>
-  <em>Jenkins CI/CD Pipeline</em>
+  <em>전체 마이크로서비스 구조도</em>
 </p>
+
 ---
 
 ## ⚙️ Services Overview
@@ -123,6 +124,7 @@ Redis를 이용해 상태 캐싱 및 집계
 
 이 프로젝트는 개인 포트폴리오 용도로 제작되었으며,
 상업적 사용은 금지됩니다.
+
 
 
 
