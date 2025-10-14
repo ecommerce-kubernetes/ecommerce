@@ -7,7 +7,6 @@
 
 ---
 
-
 ## 📐 Architecture Overview
 
 <p align="left">
@@ -24,6 +23,12 @@
 <p align="left">
   <img src="https://github.com/user-attachments/assets/47054e9b-c18e-4869-b232-21545a835fdd" width="70%" />
   <br/>
+</p>
+
+<p align="left">
+  <img src="https://github.com/user-attachments/assets/df5a3918-463a-44c5-8c53-7ef7b609a2d2" width="70%"/>
+  <br/>
+  <em>Jenkins CI/CD Pipeline</em>
 </p>
 ---
 
@@ -118,6 +123,7 @@ Redis를 이용해 상태 캐싱 및 집계
 
 이 프로젝트는 개인 포트폴리오 용도로 제작되었으며,
 상업적 사용은 금지됩니다.
+
 
 
 
