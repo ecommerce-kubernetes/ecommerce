@@ -7,48 +7,29 @@
 
 ---
 
+
 ## 📐 Architecture Overview
-┌────────────────────────┐
-│ API Gateway │
-│ (Spring Cloud Gateway) │
-└────────────┬───────────┘
-│
-┌───────────┼────────────┐
-│ │ │
-▼ ▼ ▼
-UserSvc ProductSvc OrderSvc
-(CRUD, (상품 관리) (주문 처리)
-Auth)
-│ │ │
-▼ ▼ ▼
-CouponSvc PaymentSvc ImageSvc
-(쿠폰 검증) (결제 로직) (이미지 저장)
-│
-▼
-Kafka Broker
-│
-▼
-Orchestration Flow
 
-ConfigSvc ──→ 모든 서비스 설정 관리
-EurekaSvc ──→ 서비스 등록 및 디스커버리
-Zipkin ─────→ 분산 트레이싱
-Redis/MySQL → 캐시 및 영속 데이터 저장
-
----
-
-## ⚙️ Services Overview
+<p align="left">
+  <img src="https://github.com/user-attachments/assets/d8ccbedd-bc02-41fe-8702-f652cabca638" width="70%" />
+  <br/>
+  <em>전체 마이크로서비스 구조도</em>
+</p>
 
 <p align="left">
   <img src="https://github.com/user-attachments/assets/d86536eb-e6be-4169-bd2d-0113d4465005" width="70%" />
   <br/>
-  <em>전체 마이크로서비스 구조도</em>
 </p>
 
 <p align="left">
   <img src="https://github.com/user-attachments/assets/47054e9b-c18e-4869-b232-21545a835fdd" width="70%" />
   <br/>
 </p>
+---
+
+## ⚙️ Services Overview
+
+
 
 
 | Service | Description |
@@ -137,6 +118,7 @@ Redis를 이용해 상태 캐싱 및 집계
 
 이 프로젝트는 개인 포트폴리오 용도로 제작되었으며,
 상업적 사용은 금지됩니다.
+
 
 
 
