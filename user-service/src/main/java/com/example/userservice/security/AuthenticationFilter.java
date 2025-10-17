@@ -39,9 +39,8 @@ public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
     public Authentication attemptAuthentication(HttpServletRequest request,
                                                 HttpServletResponse response) throws AuthenticationException {
         try {
-
             RequestLoginUser credentials = new ObjectMapper().readValue(request.getInputStream(), RequestLoginUser.class);
-            log.info("credentials: {}", credentials);
+            log.info("credentials: {}", credentials.getEmail());
             //받은 이메일, 패스워드 사용 >> UsernamePasswordAuthenticationToken 얻어 인증처리해주는 매니저에 넘김
             return getAuthenticationManager().authenticate(
                     new UsernamePasswordAuthenticationToken(

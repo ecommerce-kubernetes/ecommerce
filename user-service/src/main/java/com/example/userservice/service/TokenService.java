@@ -11,6 +11,7 @@ import io.jsonwebtoken.security.Keys;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Service;
@@ -23,6 +24,7 @@ import java.util.concurrent.TimeUnit;
 
 @Service
 @Slf4j
+@RefreshScope
 public class TokenService {
 
     @Value("${token.secret}")

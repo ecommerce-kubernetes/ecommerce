@@ -3,6 +3,7 @@ package com.example.couponservice.vo;
 import com.example.common.DiscountType;
 import com.example.couponservice.annotation.HasValidDateRange;
 import com.example.couponservice.annotation.ValidDateRange;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -40,10 +41,12 @@ public class RequestCreateCoupon implements HasValidDateRange {
     private int maxDiscountAmount;
 
     @NotNull
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     @Future(message = "유효 시작일은 현재 시각 이후여야 합니다.")
     private LocalDateTime validFrom;
 
     @NotNull
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     @Future(message = "유효 종료일은 현재 시각 이후여야 합니다.")
     private LocalDateTime validTo;
 
