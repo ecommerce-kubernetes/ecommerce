@@ -1,30 +1,28 @@
 package com.example.product_service.controller.util.specification.config;
 
-import com.example.product_service.controller.util.specification.annotation.AdminApi;
-import io.swagger.v3.oas.models.media.StringSchema;
-import io.swagger.v3.oas.models.parameters.Parameter;
-import org.springdoc.core.customizers.OperationCustomizer;
+import io.swagger.v3.oas.models.Components;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.security.SecurityRequirement;
+import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpHeaders;
 
 @Configuration
 public class OpenApiConfig {
-    @Bean
-    public OperationCustomizer adminHeaderCustomizer(){
-        return (operation, handlerMethod) -> {
-            if(handlerMethod.hasMethodAnnotation(AdminApi.class)){
-                operation.addParametersItem(
-                        new Parameter()
-                                .in("header")
-                                .name("X-User-Role")
-                                .required(true)
-                                .description("관리자 권한 헤더 (ROLE_ADMIN)")
-                                .schema(new StringSchema()
-                                        ._enum(java.util.List.of("ROLE_USER", "ROLE_ADMIN")))
-                );
-            }
 
-            return operation;
-        };
+    @Bean
+    public OpenAPI customOpenAPI() {
+        return new OpenAPI()
+                .addSecurityItem(new SecurityRequirement().addList("BearerAuth"))
+                .components(new Components().addSecuritySchemes("BearerAuth",
+                        new SecurityScheme()
+                                .type(SecurityScheme.Type.HTTP)
+                                .scheme("bearer")
+                                .bearerFormat("JWT")
+                                .in(SecurityScheme.In.HEADER)
+                                .name(HttpHeaders.AUTHORIZATION)))
+                .info(new Info().title("Product Service API").version("1.0"));
     }
 }

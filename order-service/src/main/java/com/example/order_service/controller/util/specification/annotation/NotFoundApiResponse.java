@@ -14,7 +14,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @ApiResponse(
         responseCode = "404",
-        description = "리소스를 찾이 못함",
+        description = "리소스를 찾지 못함",
         content = @Content(
                 schema = @Schema(implementation = ErrorResponse.class)
         )

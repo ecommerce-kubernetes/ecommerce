@@ -5,6 +5,7 @@ import com.example.product_service.common.advice.CustomAuthenticationEntryPoint;
 import com.example.product_service.common.filter.HeaderAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -24,6 +25,10 @@ public class WebSecurity {
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
     private final CustomAccessDeniedHandler customAccessDeniedHandler;
 
+    private static final String[] WHITE_LIST = {
+            "/health_check/**", "/actuator/**", "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**"
+    };
+
     public WebSecurity(HeaderAuthenticationFilter headerAuthenticationFilter, CustomAuthenticationEntryPoint customAuthenticationEntryPoint, CustomAccessDeniedHandler customAccessDeniedHandler) {
         this.headerAuthenticationFilter = headerAuthenticationFilter;
         this.customAuthenticationEntryPoint = customAuthenticationEntryPoint;
@@ -35,9 +40,11 @@ public class WebSecurity {
 
         return http
                 .csrf(AbstractHttpConfigurer::disable)
+                .cors(Customizer.withDefaults())
                 .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin))
                 .authorizeHttpRequests(
                         authorize -> authorize
+                                .requestMatchers(WHITE_LIST).permitAll()
                                 .anyRequest().permitAll()
                 )
                 .sessionManagement((session) ->
