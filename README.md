@@ -107,7 +107,11 @@ Redis를 이용해 상태 캐싱 및 집계
 
 ## 🌐 Domain
 
-현재 실제 배포 서버: https://buynestshop.store
+Jenkins Server : https://buynestshop.store/jenkins
+
+Swagger API : https://buynestshop.store/swagger-ui/index.html
+
+현재 실제 배포 서버 : https://buynestshop.store/
 
 ## 👨‍💻 Developer
 
@@ -124,6 +128,7 @@ Redis를 이용해 상태 캐싱 및 집계
 
 이 프로젝트는 개인 포트폴리오 용도로 제작되었으며,
 상업적 사용은 금지됩니다.
+
 
 
 
