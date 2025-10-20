@@ -29,3 +29,7 @@ spring:
     bootstrap_servers: localhost:9092
   flyway:
     enabled: false
+
+swagger:
+  allowed-origins:
+    - "http://localhost:8000"

@@ -13,3 +13,7 @@ eureka:
     enable: false
     fetch-registry: false
     register-with-eureka: false
+
+swagger:
+  allowed-origins:
+    - "http://localhost:8000"

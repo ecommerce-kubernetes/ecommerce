@@ -1,5 +1,6 @@
-package com.example.userservice.config;
+package com.example.product_service.config;
 
+import com.example.product_service.controller.util.specification.config.SwaggerProperties;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -7,23 +8,11 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.web.SecurityFilterChain;
 
 @TestConfiguration
-public class TestSecurityConfig {
+public class TestConfig {
 
     @Bean
     public SwaggerProperties swaggerProperties() {
         return new SwaggerProperties(); // 기본 생성자만 있으면 충분
     }
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-
-        return http
-                .csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(
-                        authorize -> authorize
-                                .requestMatchers("/**").permitAll()
-                )
-                .build();
-
-    }
 }
