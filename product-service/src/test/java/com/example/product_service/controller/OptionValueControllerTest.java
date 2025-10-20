@@ -2,6 +2,7 @@ package com.example.product_service.controller;
 
 import com.example.product_service.common.MessageSourceUtil;
 import com.example.product_service.common.advice.ErrorResponseEntityFactory;
+import com.example.product_service.config.TestConfig;
 import com.example.product_service.dto.request.options.OptionValueRequest;
 import com.example.product_service.dto.response.options.OptionValueResponse;
 import com.example.product_service.exception.DuplicateResourceException;
@@ -29,7 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(OptionValueController.class)
 @AutoConfigureMockMvc(addFilters = false)
-@Import(ErrorResponseEntityFactory.class)
+@Import({ErrorResponseEntityFactory.class, TestConfig.class})
 class OptionValueControllerTest {
 
     private static final String CREATE_OPTION_VALUE_PATH = "/option-types/1/option-values";

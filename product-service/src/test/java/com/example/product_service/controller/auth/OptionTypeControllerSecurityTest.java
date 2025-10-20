@@ -3,6 +3,7 @@ package com.example.product_service.controller.auth;
 import com.example.product_service.common.MessageSourceUtil;
 import com.example.product_service.common.advice.CustomAccessDeniedHandler;
 import com.example.product_service.common.advice.CustomAuthenticationEntryPoint;
+import com.example.product_service.config.TestConfig;
 import com.example.product_service.config.WebSecurity;
 import com.example.product_service.controller.OptionTypeController;
 import com.example.product_service.util.UserRole;
@@ -29,7 +30,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
         type = FilterType.ANNOTATION,
         classes = RestControllerAdvice.class
 ))
-@Import({WebSecurity.class, CustomAccessDeniedHandler.class, CustomAuthenticationEntryPoint.class, MessageSourceUtil.class})
+@Import({WebSecurity.class, CustomAccessDeniedHandler.class, CustomAuthenticationEntryPoint.class, MessageSourceUtil.class, TestConfig.class})
 @AutoConfigureMockMvc
 public class OptionTypeControllerSecurityTest {
 

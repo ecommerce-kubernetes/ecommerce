@@ -3,6 +3,7 @@ package com.example.order_service.controller;
 import com.example.order_service.common.MessageSourceUtil;
 import com.example.order_service.common.advice.ErrorResponseEntityFactory;
 import com.example.order_service.common.scheduler.PendingOrderTimeoutScheduler;
+import com.example.order_service.config.TestConfig;
 import com.example.order_service.controller.util.validator.OrderPageableValidator;
 import com.example.order_service.controller.util.validator.PageableValidatorFactory;
 import com.example.order_service.dto.request.OrderItemRequest;
@@ -37,7 +38,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(OrderController.class)
-@Import({ErrorResponseEntityFactory.class})
+@Import({ErrorResponseEntityFactory.class, TestConfig.class})
 class OrderControllerTest {
 
     private static final String BASE_PATH = "/orders";

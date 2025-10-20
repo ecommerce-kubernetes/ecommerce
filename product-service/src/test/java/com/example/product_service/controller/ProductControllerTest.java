@@ -2,6 +2,7 @@ package com.example.product_service.controller;
 
 import com.example.product_service.common.MessageSourceUtil;
 import com.example.product_service.common.advice.ErrorResponseEntityFactory;
+import com.example.product_service.config.TestConfig;
 import com.example.product_service.controller.util.validator.PageableValidatorFactory;
 import com.example.product_service.controller.util.validator.ProductPageableValidator;
 import com.example.product_service.controller.util.validator.ReviewPageableValidator;
@@ -55,7 +56,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(ProductController.class)
 @AutoConfigureMockMvc(addFilters = false)
-@Import(ErrorResponseEntityFactory.class)
+@Import({ErrorResponseEntityFactory.class, TestConfig.class})
 class ProductControllerTest {
 
     private static final String BASE_PATH = "/products";

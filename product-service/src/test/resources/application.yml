@@ -21,3 +21,7 @@ spring:
       hibernate.default_batch_fetch_size: 1000
   flyway:
     enabled: false
+
+swagger:
+  allowed-origins:
+    - "http://localhost:8000"

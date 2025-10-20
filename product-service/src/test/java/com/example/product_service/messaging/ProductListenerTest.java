@@ -2,6 +2,11 @@ package com.example.product_service.messaging;
 
 import com.example.common.OrderCreatedEvent;
 import com.example.common.ProductStockDeductedEvent;
+import com.example.product_service.common.MessageSourceUtil;
+import com.example.product_service.common.advice.CustomAccessDeniedHandler;
+import com.example.product_service.common.advice.CustomAuthenticationEntryPoint;
+import com.example.product_service.config.TestConfig;
+import com.example.product_service.config.WebSecurity;
 import com.example.product_service.exception.InsufficientStockException;
 import com.example.product_service.service.ProductVariantService;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -17,6 +22,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.config.KafkaListenerEndpointRegistry;
 import org.springframework.kafka.core.KafkaTemplate;;
 import org.springframework.kafka.listener.MessageListenerContainer;
@@ -38,6 +45,7 @@ import static org.awaitility.Awaitility.await;
 import static org.mockito.Mockito.*;
 
 @SpringBootTest
+@EnableKafka
 @EmbeddedKafka(partitions = 1, topics = {"order.created", "product.stock.deducted", "product.stock.failed", "product.stock.restore"})
 @TestPropertySource(properties = {
         "spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}",

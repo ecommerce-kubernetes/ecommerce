@@ -2,6 +2,7 @@ package com.example.order_service.controller;
 
 import com.example.order_service.common.MessageSourceUtil;
 import com.example.order_service.common.advice.ErrorResponseEntityFactory;
+import com.example.order_service.config.TestConfig;
 import com.example.order_service.dto.request.CartItemRequest;
 import com.example.order_service.dto.response.CartItemResponse;
 import com.example.order_service.dto.response.CartResponse;
@@ -34,7 +35,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(CartController.class)
-@Import(ErrorResponseEntityFactory.class)
+@Import({ErrorResponseEntityFactory.class, TestConfig.class})
 class CartControllerTest {
     private static final String BASE_PATH = "/carts";
     private static final String ID_PATH = BASE_PATH + "/1";

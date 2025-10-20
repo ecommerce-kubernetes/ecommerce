@@ -2,6 +2,7 @@ package com.example.product_service.controller;
 
 import com.example.product_service.common.MessageSourceUtil;
 import com.example.product_service.common.advice.ErrorResponseEntityFactory;
+import com.example.product_service.config.TestConfig;
 import com.example.product_service.dto.request.image.UpdateImageRequest;
 import com.example.product_service.dto.response.image.ImageResponse;
 import com.example.product_service.exception.NotFoundException;
@@ -28,7 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(ProductImageController.class)
 @AutoConfigureMockMvc(addFilters = false)
-@Import(ErrorResponseEntityFactory.class)
+@Import({ErrorResponseEntityFactory.class, TestConfig.class})
 class ProductImageControllerTest {
     private static final String BASE_PATH = "/images";
     private static final String ID_PATH = BASE_PATH + "/1";

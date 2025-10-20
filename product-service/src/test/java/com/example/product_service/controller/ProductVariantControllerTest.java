@@ -2,6 +2,7 @@ package com.example.product_service.controller;
 
 import com.example.product_service.common.MessageSourceUtil;
 import com.example.product_service.common.advice.ErrorResponseEntityFactory;
+import com.example.product_service.config.TestConfig;
 import com.example.product_service.dto.request.review.ReviewRequest;
 import com.example.product_service.dto.request.variant.UpdateProductVariantRequest;
 import com.example.product_service.dto.response.ReviewResponse;
@@ -36,7 +37,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(ProductVariantController.class)
 @AutoConfigureMockMvc(addFilters = false)
-@Import(ErrorResponseEntityFactory.class)
+@Import({ErrorResponseEntityFactory.class, TestConfig.class})
 public class ProductVariantControllerTest {
 
     private static final String BASE_PATH = "/variants";
