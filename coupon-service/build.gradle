@@ -41,6 +41,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
 	implementation 'org.springframework.kafka:spring-kafka'
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.13'
 	implementation("com.github.ecommerce-kubernetes:common-dto:2.0.6")
 	implementation 'mysql:mysql-connector-java:8.0.33'
 	implementation("org.flywaydb:flyway-mysql:10.8.1")

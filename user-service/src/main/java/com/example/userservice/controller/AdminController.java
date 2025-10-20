@@ -1,5 +1,9 @@
 package com.example.userservice.controller;
 
+import com.example.userservice.config.specification.annotation.BadRequestApiResponse;
+import com.example.userservice.config.specification.annotation.ConflictApiResponse;
+import com.example.userservice.config.specification.annotation.ForbiddenApiResponse;
+import com.example.userservice.config.specification.annotation.NotFoundApiResponse;
 import com.example.userservice.dto.AddressDto;
 import com.example.userservice.dto.UserDto;
 import com.example.userservice.jpa.entity.UserEntity;
@@ -8,6 +12,9 @@ import com.example.userservice.vo.RequestCreateAddress;
 import com.example.userservice.vo.RequestEditUser;
 import com.example.userservice.vo.ResponseAddress;
 import com.example.userservice.vo.ResponseUser;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -24,6 +31,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/admin/users")
 @Slf4j
+@Tag(name = "Admin-User", description = "유저 관련 관리자 API")
 @PreAuthorize("hasRole('ROLE_ADMIN')")
 public class AdminController {
     private final UserService userService;
@@ -34,6 +42,10 @@ public class AdminController {
 
     //전체 유저 조회
     @GetMapping
+    @Operation(summary = "전체 유저 조회", description = "전체 유저를 조회합니다.")
+    @BadRequestApiResponse
+    @ForbiddenApiResponse
+    @NotFoundApiResponse
     public ResponseEntity<Page<ResponseUser>> getUsers(@PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.ASC) Pageable pageable) {
 
         Page<UserDto> userPage = userService.getUserByAll(pageable);
@@ -50,7 +62,11 @@ public class AdminController {
 
     //유저아이디로 유저 조회
     @GetMapping("/{userId}")
-    public ResponseEntity<ResponseUser> getUser(@PathVariable("userId") Long userId) {
+    @Operation(summary = "유저 조회", description = "userId로 유저를 조회합니다.")
+    @BadRequestApiResponse
+    @ForbiddenApiResponse
+    @NotFoundApiResponse
+    public ResponseEntity<ResponseUser> getUser(@Parameter(description = "유저 ID")@PathVariable("userId") Long userId) {
 
         UserDto userDto = userService.getUserById(userId);
 
@@ -83,7 +99,11 @@ public class AdminController {
 
     //유저 정보 수정
     @PatchMapping("/{userId}")
-    public ResponseEntity<?> updateUser(@PathVariable("userId") Long userId, @Valid @RequestBody RequestEditUser user) {
+    @Operation(summary = "유저 정보 수정", description = "userId에 해당하는 유저 정보를 수정합니다.")
+    @BadRequestApiResponse
+    @ForbiddenApiResponse
+    @NotFoundApiResponse
+    public ResponseEntity<?> updateUser(@Parameter(description = "유저 ID")@PathVariable("userId") Long userId, @Valid @RequestBody RequestEditUser user) {
 
         UserDto editUserData = UserDto.builder()
                 .id(userId)
@@ -101,7 +121,11 @@ public class AdminController {
 
     //유저 삭제
     @DeleteMapping("/{userId}")
-    public ResponseEntity<?> deleteUser(@PathVariable("userId") Long userId) {
+    @Operation(summary = "유저 삭제", description = "userId에 해당하는 유저를 삭제합니다.")
+    @BadRequestApiResponse
+    @ForbiddenApiResponse
+    @NotFoundApiResponse
+    public ResponseEntity<?> deleteUser(@Parameter(description = "유저 ID")@PathVariable("userId") Long userId) {
 
         userService.deleteUser(userId);
 
@@ -110,7 +134,12 @@ public class AdminController {
 
     //배송지 추가
     @PostMapping("/{userId}/address")
-    public ResponseEntity<ResponseUser> createAddress(@PathVariable("userId") Long userId, @Valid @RequestBody RequestCreateAddress address) {
+    @Operation(summary = "유저 배송지 등록", description = "userId에 해당하는 유저의 배송지를 등록합니다.")
+    @BadRequestApiResponse
+    @ForbiddenApiResponse
+    @NotFoundApiResponse
+    @ConflictApiResponse
+    public ResponseEntity<ResponseUser> createAddress(@Parameter(description = "유저 ID")@PathVariable("userId") Long userId, @Valid @RequestBody RequestCreateAddress address) {
 
         AddressDto addressDto = AddressDto.builder()
                 .name(address.getName())
@@ -141,7 +170,11 @@ public class AdminController {
 
     //배송지 정보 수정
     @PatchMapping("/{userId}/address")
-    public ResponseEntity<ResponseUser> updateAddress(@PathVariable("userId") Long userId, @Valid @RequestBody RequestCreateAddress address) {
+    @Operation(summary = "유저 배송지 정보 수정", description = "userId에 해당하는 유저의 배송지 정보를 수정합니다.")
+    @BadRequestApiResponse
+    @ForbiddenApiResponse
+    @NotFoundApiResponse
+    public ResponseEntity<ResponseUser> updateAddress(@Parameter(description = "유저 ID")@PathVariable("userId") Long userId, @Valid @RequestBody RequestCreateAddress address) {
 
         AddressDto addressDto = AddressDto.builder()
                 .name(address.getName())
@@ -172,7 +205,11 @@ public class AdminController {
 
     //배송지 삭제
     @DeleteMapping("/{userId}/address/{addressId}")
-    public ResponseEntity<ResponseUser> deleteAddress(@PathVariable("userId") Long userId, @PathVariable("addressId") Long addressId) {
+    @Operation(summary = "유저 배송지 삭제", description = "userId에 해당하는 유저의 배송지를 삭제합니다.")
+    @BadRequestApiResponse
+    @ForbiddenApiResponse
+    @NotFoundApiResponse
+    public ResponseEntity<ResponseUser> deleteAddress(@Parameter(description = "유저 ID")@PathVariable("userId") Long userId, @Parameter(description = "주소 ID")@PathVariable("addressId") Long addressId) {
 
         UserEntity userEntity = userService.deleteAddress(userId, addressId);
 
@@ -196,7 +233,11 @@ public class AdminController {
 
     //캐시 충전
     @PatchMapping("/{userId}/cash/recharge/{amount}")
-    public ResponseEntity<ResponseUser> rechargeCash(@PathVariable("userId") Long userId, @PathVariable("amount") int amount) {
+    @Operation(summary = "유저 캐시 충전", description = "userId에 해당하는 유저의 캐쉬를 충전합니다.")
+    @BadRequestApiResponse
+    @ForbiddenApiResponse
+    @NotFoundApiResponse
+    public ResponseEntity<ResponseUser> rechargeCash(@Parameter(description = "유저 ID")@PathVariable("userId") Long userId, @Parameter(description = "금액")@PathVariable("amount") int amount) {
 
         UserEntity userEntity = userService.rechargeCash(userId, amount);
 
@@ -210,7 +251,11 @@ public class AdminController {
 
     //캐시 차감
     @PatchMapping("/{userId}/cash/deduct/{amount}")
-    public ResponseEntity<ResponseUser> deductCash(@PathVariable("userId") Long userId, @PathVariable("amount") int amount) {
+    @Operation(summary = "유저 캐시 차감", description = "userId에 해당하는 유저의 캐쉬를 차감합니다.")
+    @BadRequestApiResponse
+    @ForbiddenApiResponse
+    @NotFoundApiResponse
+    public ResponseEntity<ResponseUser> deductCash(@Parameter(description = "유저 ID")@PathVariable("userId") Long userId, @Parameter(description = "금액")@PathVariable("amount") int amount) {
 
         UserEntity userEntity = userService.deductCash(userId, amount);
 
@@ -224,7 +269,11 @@ public class AdminController {
 
     //포인트 충전
     @PatchMapping("/{userId}/point/recharge/{amount}")
-    public ResponseEntity<ResponseUser> rechargePoint(@PathVariable("userId") Long userId, @PathVariable("amount") int amount) {
+    @Operation(summary = "유저 포인트 충전", description = "userId에 해당하는 유저의 포인트를 충전합니다.")
+    @BadRequestApiResponse
+    @ForbiddenApiResponse
+    @NotFoundApiResponse
+    public ResponseEntity<ResponseUser> rechargePoint(@Parameter(description = "유저 ID")@PathVariable("userId") Long userId, @Parameter(description = "포인트")@PathVariable("amount") int amount) {
 
         UserEntity userEntity = userService.rechargePoint(userId, amount);
 
@@ -238,7 +287,11 @@ public class AdminController {
 
     //포인트 차감
     @PatchMapping("/{userId}/point/deduct/{amount}")
-    public ResponseEntity<ResponseUser> deductPoint(@PathVariable("userId") Long userId, @PathVariable("amount") int amount) {
+    @Operation(summary = "유저 포인트 차감", description = "userId에 해당하는 유저의 포인트를 차감합니다.")
+    @BadRequestApiResponse
+    @ForbiddenApiResponse
+    @NotFoundApiResponse
+    public ResponseEntity<ResponseUser> deductPoint(@Parameter(description = "유저 ID")@PathVariable("userId") Long userId, @Parameter(description = "포인트")@PathVariable("amount") int amount) {
 
         UserEntity userEntity = userService.deductPoint(userId, amount);
 

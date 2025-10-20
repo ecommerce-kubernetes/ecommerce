@@ -1,6 +1,10 @@
 package com.example.userservice.controller;
 
 import com.example.userservice.advice.exceptions.RefreshTokenNotFoundException;
+import com.example.userservice.config.specification.annotation.BadRequestApiResponse;
+import com.example.userservice.config.specification.annotation.ConflictApiResponse;
+import com.example.userservice.config.specification.annotation.ForbiddenApiResponse;
+import com.example.userservice.config.specification.annotation.NotFoundApiResponse;
 import com.example.userservice.dto.AddressDto;
 import com.example.userservice.dto.UserDto;
 import com.example.userservice.jpa.entity.AddressEntity;
@@ -8,6 +12,9 @@ import com.example.userservice.jpa.entity.UserEntity;
 import com.example.userservice.service.TokenService;
 import com.example.userservice.service.UserService;
 import com.example.userservice.vo.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -25,6 +32,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/users")
 @Slf4j
+@Tag(name = "User", description = "유저 관련 API")
 public class UserController {
 
     private final UserService userService;
@@ -39,6 +47,10 @@ public class UserController {
 
     //회원가입
     @PostMapping
+    @Operation(summary = "회원가입", description = "새로운 유저를 등록합니다.")
+    @BadRequestApiResponse
+    @ForbiddenApiResponse
+    @ConflictApiResponse
     public ResponseEntity<ResponseUser> createUser(@Valid @RequestBody RequestCreateUser user) {
 
         UserDto userDto = UserDto.builder()
@@ -72,6 +84,10 @@ public class UserController {
 
     //비밀번호 확인
     @PostMapping("/confirm-password")
+    @Operation(summary = "비밀번호 확인", description = "유저의 비밀번호가 맞는지 확인합니다.")
+    @BadRequestApiResponse
+    @ForbiddenApiResponse
+    @NotFoundApiResponse
     public ResponseEntity<?> confirmPassword(@Valid @RequestBody RequestLoginUser user) {
         userService.checkUser(user.getEmail(), user.getPassword());
 
@@ -80,7 +96,11 @@ public class UserController {
 
     //유저 정보 수정
     @PatchMapping("/update")
-    public ResponseEntity<?> updateUser(@RequestHeader("X-User-Id") Long userId, @Valid @RequestBody RequestEditUser user) {
+    @Operation(summary = "유저 정보 수정", description = "유저 정보를 수정합니다.")
+    @BadRequestApiResponse
+    @ForbiddenApiResponse
+    @NotFoundApiResponse
+    public ResponseEntity<?> updateUser(@Parameter(description = "토큰에서 추출된 유저 ID")@RequestHeader("X-User-Id") Long userId, @Valid @RequestBody RequestEditUser user) {
 
         UserDto editUserData = UserDto.builder()
                 .id(userId)
@@ -96,9 +116,12 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
-    //전화번호 인증 완료
     @PatchMapping("/update/verify-phoneNumber")
-    public ResponseEntity<?> verifyPhoneNumberSuccess(@RequestHeader("X-User-Id") Long userId) {
+    @Operation(summary = "전화번호 인증", description = "유저의 전화번호를 인증합니다.")
+    @BadRequestApiResponse
+    @ForbiddenApiResponse
+    @NotFoundApiResponse
+    public ResponseEntity<?> verifyPhoneNumberSuccess(@Parameter(description = "토큰에서 추출된 유저 ID")@RequestHeader("X-User-Id") Long userId) {
 
         userService.verifyPhoneNumber(userId);
 
@@ -107,7 +130,11 @@ public class UserController {
 
     //사용자 조회
     @GetMapping
-    public ResponseEntity<ResponseUser> getMyUserData(@RequestHeader("X-User-Id") Long userId) {
+    @Operation(summary = "유저 조회", description = "로그인한 해당 유저의 정보를 조회합니다.")
+    @BadRequestApiResponse
+    @ForbiddenApiResponse
+    @NotFoundApiResponse
+    public ResponseEntity<ResponseUser> getMyUserData(@Parameter(description = "토큰에서 추출된 유저 ID")@RequestHeader("X-User-Id") Long userId) {
 
         UserDto userDto = userService.getUserById(userId);
 
@@ -128,14 +155,19 @@ public class UserController {
     }
 
     @GetMapping("/balance")
-    public ResponseEntity<ResponseUserBalance> getUserBalance(@RequestHeader("X-User-Id") Long userId){
+    @Operation(summary = "유저 캐쉬/포인트 조회", description = "로그인한 해당 유저의 캐쉬/포인트를 조회합니다.")
+    @BadRequestApiResponse
+    @ForbiddenApiResponse
+    @NotFoundApiResponse
+    public ResponseEntity<ResponseUserBalance> getUserBalance(@Parameter(description = "토큰에서 추출된 유저 ID")@RequestHeader("X-User-Id") Long userId){
         UserDto userDto = userService.getUserById(userId);
         return ResponseEntity.ok(new ResponseUserBalance(userDto.getId(), (long) userDto.getCash(), (long) userDto.getPoint()));
     }
 
     //마이페이지 조회  { 이름(String),  잔액(Int), 적립금(Int), 주문(Int) - 주문서비스, 장바구니 금액(Int) - 주문서비스, 쿠폰개수(Int) - 쿠폰서비스}
     @GetMapping("/mypage")
-    public ResponseEntity<ResponseUser> getMypage(@RequestHeader("X-User-Id") Long userId) {
+    @Operation(summary = "마이페이지 조회", description = "로그인한 해당 유저의 마이페이지를 조회합니다.")
+    public ResponseEntity<ResponseUser> getMypage(@Parameter(description = "토큰에서 추출된 유저 ID")@RequestHeader("X-User-Id") Long userId) {
 
         userService.getMypage(userId);
 
@@ -162,7 +194,11 @@ public class UserController {
 
     //배송지 조회
     @GetMapping("/address")
-    public ResponseEntity<ResponseUser> getAddress(@RequestHeader("X-User-Id") Long userId) {
+    @Operation(summary = "배송지 조회", description = "로그인한 해당 유저의 등록된 배송지를 조회합니다.")
+    @BadRequestApiResponse
+    @ForbiddenApiResponse
+    @NotFoundApiResponse
+    public ResponseEntity<ResponseUser> getAddress(@Parameter(description = "토큰에서 추출된 유저 ID")@RequestHeader("X-User-Id") Long userId) {
 
         List<AddressEntity> addresses = userService.getAddressesByUserId(userId);
 
@@ -184,9 +220,14 @@ public class UserController {
         );
     }
 
-    //배송지 추가
+    //배송지 등록
     @PostMapping("/address")
-    public ResponseEntity<ResponseUser> createAddress(@RequestHeader("X-User-Id") Long userId, @Valid @RequestBody RequestCreateAddress address) {
+    @Operation(summary = "배송지 등록", description = "로그인한 해당 유저의 배송지를 등록합니다.")
+    @BadRequestApiResponse
+    @ForbiddenApiResponse
+    @NotFoundApiResponse
+    @ConflictApiResponse
+    public ResponseEntity<ResponseUser> createAddress(@Parameter(description = "토큰에서 추출된 유저 ID")@RequestHeader("X-User-Id") Long userId, @Valid @RequestBody RequestCreateAddress address) {
 
         AddressDto addressDto = AddressDto.builder()
                 .name(address.getName())
@@ -217,7 +258,11 @@ public class UserController {
 
     //배송지 정보 수정
     @PatchMapping("/address")
-    public ResponseEntity<ResponseUser> updateAddress(@RequestHeader("X-User-Id") Long userId, @Valid @RequestBody RequestEditAddress address) {
+    @Operation(summary = "배송지 정보 수정", description = "로그인한 해당 유저의 배송지 정보를 수정합니다.")
+    @BadRequestApiResponse
+    @ForbiddenApiResponse
+    @NotFoundApiResponse
+    public ResponseEntity<ResponseUser> updateAddress(@Parameter(description = "토큰에서 추출된 유저 ID")@RequestHeader("X-User-Id") Long userId, @Valid @RequestBody RequestEditAddress address) {
 
         AddressDto addressDto = AddressDto.builder()
                 .addressId(address.getAddressId())
@@ -249,7 +294,11 @@ public class UserController {
 
     //배송지 삭제
     @DeleteMapping("/address/{addressId}")
-    public ResponseEntity<ResponseUser> deleteAddress(@RequestHeader("X-User-Id") Long userId, @PathVariable("addressId") Long addressId) {
+    @Operation(summary = "배송지 삭제", description = "로그인한 해당 유저의 배송지를 삭제합니다.")
+    @BadRequestApiResponse
+    @ForbiddenApiResponse
+    @NotFoundApiResponse
+    public ResponseEntity<ResponseUser> deleteAddress(@Parameter(description = "토큰에서 추출된 유저 ID")@RequestHeader("X-User-Id") Long userId, @Parameter(description = "주소 ID")@PathVariable("addressId") Long addressId) {
 
         UserEntity userEntity = userService.deleteAddress(userId, addressId);
 
@@ -273,7 +322,11 @@ public class UserController {
 
     //캐시 충전
     @PatchMapping("/cash/recharge/{amount}")
-    public ResponseEntity<ResponseUser> rechargeCash(@RequestHeader("X-User-Id") Long userId, @PathVariable("amount") int amount) {
+    @Operation(summary = "유저 캐쉬 충전", description = "로그인한 해당 유저의 캐쉬를 충전합니다.")
+    @BadRequestApiResponse
+    @ForbiddenApiResponse
+    @NotFoundApiResponse
+    public ResponseEntity<ResponseUser> rechargeCash(@Parameter(description = "토큰에서 추출된 유저 ID")@RequestHeader("X-User-Id") Long userId, @Parameter(description = "금액")@PathVariable("amount") int amount) {
         log.info("요청 응답");
         UserEntity userEntity = userService.rechargeCash(userId, amount);
 
@@ -287,7 +340,11 @@ public class UserController {
 
     //캐시 차감
     @PatchMapping("/cash/deduct/{amount}")
-    public ResponseEntity<ResponseUser> deductCash(@RequestHeader("X-User-Id") Long userId, @PathVariable("amount") int amount) {
+    @Operation(summary = "유저 캐쉬 차감", description = "로그인한 해당 유저의 캐쉬를 차감합니다.")
+    @BadRequestApiResponse
+    @ForbiddenApiResponse
+    @NotFoundApiResponse
+    public ResponseEntity<ResponseUser> deductCash(@Parameter(description = "토큰에서 추출된 유저 ID")@RequestHeader("X-User-Id") Long userId, @Parameter(description = "금액")@PathVariable("amount") int amount) {
 
         UserEntity userEntity = userService.deductCash(userId, amount);
 
@@ -301,7 +358,11 @@ public class UserController {
 
     //포인트 충전
     @PatchMapping("/point/recharge/{amount}")
-    public ResponseEntity<ResponseUser> rechargePoint(@RequestHeader("X-User-Id") Long userId, @PathVariable("amount") int amount) {
+    @Operation(summary = "유저 포인트 충전", description = "로그인한 해당 유저의 포인트를 충전합니다.")
+    @BadRequestApiResponse
+    @ForbiddenApiResponse
+    @NotFoundApiResponse
+    public ResponseEntity<ResponseUser> rechargePoint(@Parameter(description = "토큰에서 추출된 유저 ID")@RequestHeader("X-User-Id") Long userId, @Parameter(description = "포인트")@PathVariable("amount") int amount) {
 
         UserEntity userEntity = userService.rechargePoint(userId, amount);
 
@@ -315,7 +376,11 @@ public class UserController {
 
     //포인트 차감
     @PatchMapping("/point/deduct/{amount}")
-    public ResponseEntity<ResponseUser> deductPoint(@RequestHeader("X-User-Id") Long userId, @PathVariable("amount") int amount) {
+    @Operation(summary = "유저 포인트 차감", description = "로그인한 해당 유저의 포인트를 차감합니다.")
+    @BadRequestApiResponse
+    @ForbiddenApiResponse
+    @NotFoundApiResponse
+    public ResponseEntity<ResponseUser> deductPoint(@Parameter(description = "토큰에서 추출된 유저 ID")@RequestHeader("X-User-Id") Long userId, @Parameter(description = "포인트")@PathVariable("amount") int amount) {
 
         UserEntity userEntity = userService.deductPoint(userId, amount);
 
@@ -329,6 +394,10 @@ public class UserController {
 
     //엑세스 토큰 재발급
     @PostMapping("/refresh-token")
+    @Operation(summary = "엑세스 토큰 재발급", description = "엑세스 토큰이 만료되었을 때, 리프레시 토큰을 통해 엑세스 토큰을 재발급 받는 API입니다.")
+    @BadRequestApiResponse
+    @ForbiddenApiResponse
+    @NotFoundApiResponse
     public ResponseEntity<?> refreshToken(HttpServletRequest request, HttpServletResponse response) {
         //쿠키에서 refresh_token 가져오기
         Cookie[] cookies = request.getCookies();
@@ -354,7 +423,11 @@ public class UserController {
 
     //로그아웃
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(@RequestHeader("X-User-Id") Long userId, HttpServletResponse response) {
+    @Operation(summary = "로그아웃", description = "로그인한 해당 유저의 쿠키에 있는 리프레시 토큰을 지워 로그아웃합니다.")
+    @BadRequestApiResponse
+    @ForbiddenApiResponse
+    @NotFoundApiResponse
+    public ResponseEntity<?> logout(@Parameter(description = "토큰에서 추출된 유저 ID")@RequestHeader("X-User-Id") Long userId, HttpServletResponse response) {
         tokenService.deleteRefreshToken(userId);
 
         // 쿠키 삭제
@@ -372,7 +445,11 @@ public class UserController {
 
     //회원탈퇴
     @DeleteMapping
-    public ResponseEntity<?> deleteUser(@RequestHeader("X-User-Id") Long userId) {
+    @Operation(summary = "회원탈퇴", description = "로그인한 해당 유저 정보를 지워 회원탈퇴합니다.")
+    @BadRequestApiResponse
+    @ForbiddenApiResponse
+    @NotFoundApiResponse
+    public ResponseEntity<?> deleteUser(@Parameter(description = "토큰에서 추출된 유저 ID")@RequestHeader("X-User-Id") Long userId) {
 
         userService.deleteUser(userId);
 

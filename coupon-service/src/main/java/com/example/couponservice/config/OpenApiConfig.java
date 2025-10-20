@@ -1,4 +1,4 @@
-package com.example.product_service.controller.util.specification.config;
+package com.example.couponservice.config;
 
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
@@ -23,6 +23,6 @@ public class OpenApiConfig {
                                 .bearerFormat("JWT")
                                 .in(SecurityScheme.In.HEADER)
                                 .name(HttpHeaders.AUTHORIZATION)))
-                .info(new Info().title("Product Service API").version("1.0"));
+                .info(new Info().title("Coupon Service API").version("1.0"));
     }
 }

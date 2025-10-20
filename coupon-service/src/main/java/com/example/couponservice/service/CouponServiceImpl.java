@@ -168,7 +168,7 @@ public class CouponServiceImpl implements CouponService{
         if (!couponEntity.isReusable()) {
             if (userCouponRepository.existsByCouponIdAndUserIdOrCouponIdAndPhoneNumber(couponEntity.getId(), responseUser.getUserId(), couponEntity.getId(), responseUser.getPhoneNumber()))
             {
-                throw new IsExistCouponException("이미 발급된 쿠폰입니다: " + couponCode);
+                throw new AlreadyUsedCouponException("이미 발급된 쿠폰입니다: " + couponCode);
             }
         }
 

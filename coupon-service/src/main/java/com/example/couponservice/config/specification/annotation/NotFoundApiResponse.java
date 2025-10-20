@@ -1,6 +1,6 @@
-package com.example.order_service.controller.util.specification.annotation;
+package com.example.couponservice.config.specification.annotation;
 
-import com.example.order_service.common.advice.dto.ErrorResponse;
+import com.example.couponservice.vo.ResponseError;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -16,7 +16,7 @@ import java.lang.annotation.Target;
         responseCode = "404",
         description = "리소스를 찾지 못함",
         content = @Content(
-                schema = @Schema(implementation = ErrorResponse.class)
+                schema = @Schema(implementation = ResponseError.class)
         )
 )
 public @interface NotFoundApiResponse {
