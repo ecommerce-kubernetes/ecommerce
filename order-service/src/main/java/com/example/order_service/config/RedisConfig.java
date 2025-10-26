@@ -20,7 +20,6 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.scripting.support.ResourceScriptSource;
 
 @Configuration
-@RefreshScope
 public class RedisConfig {
 
     @Value("${spring.data.redis.host}")
@@ -43,6 +42,7 @@ public class RedisConfig {
     )
     private static abstract class FailedEventMixIn{}
 
+    @RefreshScope
     @Bean
     public RedisConnectionFactory redisConnectionFactory(){
         return new LettuceConnectionFactory(host, port);

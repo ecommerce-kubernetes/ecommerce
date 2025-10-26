@@ -8,19 +8,10 @@ spring:
     hibernate:
       ddl-auto: update
     database-platform: org.hibernate.dialect.H2Dialect
-  redis:
-    host: localhost
-    port: 6379
-    password:
   kafka:
     bootstrap-servers: localhost:9092
   flyway:
     enabled: false
-
-token:
-  expiration_time: 3000000
-  refresh_expiration_time: 604800000
-  secret: 'native1234567890123456789012345678901234567890123456789012345678901234567890'
 
 swagger:
   allowed-origins:
