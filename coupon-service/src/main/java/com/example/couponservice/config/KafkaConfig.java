@@ -17,7 +17,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Configuration
-@RefreshScope
 public class KafkaConfig {
 
     @Value("${spring.kafka.bootstrap-servers}")
@@ -25,6 +24,7 @@ public class KafkaConfig {
     private static final String GROUP_ID = "coupons";
 
     @Bean
+    @RefreshScope
     public ProducerFactory<String, Object> producerFactory(){
         Map<String, Object> config = new HashMap<>();
         config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
@@ -33,13 +33,8 @@ public class KafkaConfig {
 
         return new DefaultKafkaProducerFactory<>(config);
     }
-
     @Bean
-    public KafkaTemplate<String, Object> kafkaTemplate(){
-        return new KafkaTemplate<>(producerFactory());
-    }
-
-    @Bean
+    @RefreshScope
     public ConsumerFactory<String, Object> consumerFactory() {
         JsonDeserializer<Object> deserializer = new JsonDeserializer<>();
         deserializer.addTrustedPackages("*"); // 또는 특정 패키지 지정
@@ -51,6 +46,11 @@ public class KafkaConfig {
         config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
 
         return new DefaultKafkaConsumerFactory<>(config, new StringDeserializer(), deserializer);
+    }
+
+    @Bean
+    public KafkaTemplate<String, Object> kafkaTemplate(){
+        return new KafkaTemplate<>(producerFactory());
     }
 
     @Bean

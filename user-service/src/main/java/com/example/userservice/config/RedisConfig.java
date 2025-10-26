@@ -11,7 +11,6 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 @Configuration
-@RefreshScope
 public class RedisConfig {
 
     @Value("${spring.redis.host}")
@@ -24,6 +23,7 @@ public class RedisConfig {
     private String redisPassword;
 
     @Bean
+    @RefreshScope
     public RedisConnectionFactory redisConnectionFactory() {
         RedisStandaloneConfiguration redisStandaloneConfiguration = new RedisStandaloneConfiguration();
         redisStandaloneConfiguration.setHostName(redisHost);

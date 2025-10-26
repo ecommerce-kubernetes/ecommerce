@@ -17,13 +17,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Configuration
-@RefreshScope
 public class KafkaConfig {
 
     @Value("${spring.kafka.bootstrap-servers}")
     private String BOOTSTRAP_SERVERS;
+
     private static final String GROUP_ID = "orders";
 
+    @RefreshScope
     @Bean
     public ProducerFactory<String, Object> producerFactory(){
         Map<String, Object> config = new HashMap<>();
@@ -38,6 +39,7 @@ public class KafkaConfig {
         return new KafkaTemplate<>(producerFactory());
     }
 
+    @RefreshScope
     @Bean
     public ConsumerFactory<String, Object> consumerFactory(){
         Map<String, Object> config = new HashMap<>();
