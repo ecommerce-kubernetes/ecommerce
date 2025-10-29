@@ -71,7 +71,7 @@
 | **Messaging** | Apache Kafka |
 | **Database** | MySQL, Redis |
 | **Infra** | Docker, Nginx, Kubernetes(구상) |
-| **Monitoring** | Zipkin |
+| **Monitoring** |  |
 | **Build/Deploy** | Jenkins CI/CD (Pipeline 기반), Ansible |
 | **Language** | Java 17 |
 
@@ -90,20 +90,6 @@ Kafka, MySQL, Redis, Eureka, Config Server를 먼저 실행해야 합니다.
 이후 각 서비스들이 Eureka에 등록되고, Gateway를 통해 접근할 수 있습니다.
 
 ---
-
-## 🧭 Event Flow Example
-
-사용자가 POST /orders 요청을 보냄
-
-Order Service → order.created 이벤트 발행
-
-User Service, Product Service, Coupon Service 각각 소비 후 처리
-
-성공 시 order.success 이벤트, 실패 시 order.failed 이벤트 발행
-
-Order Service에서 최종 상태 업데이트
-
-Redis를 이용해 상태 캐싱 및 집계
 
 ## 🌐 Domain
 
@@ -128,6 +114,7 @@ Swagger API : https://buynestshop.store/swagger-ui/index.html
 
 이 프로젝트는 개인 포트폴리오 용도로 제작되었으며,
 상업적 사용은 금지됩니다.
+
 
 
 
