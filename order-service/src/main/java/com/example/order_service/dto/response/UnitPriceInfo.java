@@ -11,5 +11,5 @@ public class UnitPriceInfo {
     private int originalPrice;
     private int discountRate;
     private int discountAmount;
-    private int finalPrice;
+    private int discountedPrice;
 }
