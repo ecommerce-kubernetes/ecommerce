@@ -47,22 +47,21 @@ public class CartService{
     @Transactional(readOnly = true)
     public CartResponse getCartItemList(Long userId) {
         Optional<Carts> optionalCart = cartsRepository.findWithItemsByUserId(userId);
-//        if(optionalCart.isEmpty()){
-//            return new CartResponse(List.of(), 0);
-//        }
-//
-//        Carts cart = optionalCart.get();
-//
-//        if(cart.getCartItems().isEmpty()){
-//            return new CartResponse(List.of(), 0);
-//        }
+        if(optionalCart.isEmpty()){
+            return CartResponse.builder()
+                    .cartItems(List.of())
+                    .cartTotalPrice(0)
+                    .build();
+        }
 
-//        Map<Long, ProductResponse> productResponseMap = fetchProductResponseToMap(cart.getCartItems());
-//
-//        List<CartItemResponse> cartItemResponses = cart.getCartItems().stream()
-//                .map(item -> new CartItemResponse(item, productResponseMap.get(item.getProductVariantId()))).toList();
-//        return new CartResponse(cartItemResponses);
+        Carts cart = optionalCart.get();
 
+        if(cart.getCartItems().isEmpty()){
+            return CartResponse.builder()
+                    .cartItems(List.of())
+                    .cartTotalPrice(0)
+                    .build();
+        }
         return null;
     }
 
