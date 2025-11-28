@@ -1,15 +1,22 @@
 package com.example.order_service.dto.response;
 
-import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
-@AllArgsConstructor
 @Getter
 @Setter
 public class UnitPriceInfo {
-    private int originalPrice;
+    private long originalPrice;
     private int discountRate;
-    private int discountAmount;
-    private int discountedPrice;
+    private long discountAmount;
+    private long discountedPrice;
+
+    @Builder
+    private UnitPriceInfo(long originalPrice, int discountRate, long discountAmount, long discountedPrice){
+        this.originalPrice = originalPrice;
+        this.discountRate = discountRate;
+        this.discountAmount = discountAmount;
+        this.discountedPrice = discountedPrice;
+    }
 }
