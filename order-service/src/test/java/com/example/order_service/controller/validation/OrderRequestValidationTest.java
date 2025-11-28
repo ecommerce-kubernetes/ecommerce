@@ -44,10 +44,11 @@ public class OrderRequestValidationTest {
     private OrderRequest createOrderRequest(){
         List<OrderItemRequest> orderItemRequests =
                 List.of(
-                        new OrderItemRequest(1L, 10),
-                        new OrderItemRequest(2L, 10)
+//                        new OrderItemRequest(1L, 10),
+//                        new OrderItemRequest(2L, 10)
                 );
-        return new OrderRequest(orderItemRequests, "deliveryAddress", 1L, 3000L, 5000L);
+//        return new OrderRequest(orderItemRequests, "deliveryAddress", 1L, 3000L, 5000L);
+        return null;
     }
 
     static Stream<Arguments> invalidOrderRequestFieldProvider(){

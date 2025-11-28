@@ -4,6 +4,8 @@ import com.example.order_service.controller.OrderController;
 import com.example.order_service.controller.util.validator.OrderPageableValidator;
 import com.example.order_service.controller.util.validator.PageableValidatorFactory;
 import com.example.order_service.docs.RestDocSupport;
+import com.example.order_service.dto.request.OrderItemRequest;
+import com.example.order_service.dto.request.OrderRequest;
 import com.example.order_service.dto.response.*;
 import com.example.order_service.entity.DomainType;
 import com.example.order_service.service.OrderService;
@@ -12,8 +14,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.restdocs.payload.JsonFieldType;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -24,8 +26,7 @@ import static org.springframework.restdocs.headers.HeaderDocumentation.headerWit
 import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
-import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
-import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
+import static org.springframework.restdocs.payload.PayloadDocumentation.*;
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
 import static org.springframework.restdocs.request.RequestDocumentation.queryParameters;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -35,6 +36,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 public class OrderControllerDocsTest extends RestDocSupport {
 
+    private static final String USER_ID_HEADER_DESCRIPTION = "회원 Id(회원 식별자)";
+    private static final String USER_ROLE_HEADER_DESCRIPTION = "회원 role(회원 권한)";
     private OrderService orderService = mock(OrderService.class);
     private SseConnectionService sseConnectionService = mock(SseConnectionService.class);
     private PageableValidatorFactory factory = mock(PageableValidatorFactory.class);
@@ -48,6 +51,65 @@ public class OrderControllerDocsTest extends RestDocSupport {
     @Override
     protected Object initController() {
         return new OrderController(orderService, sseConnectionService, factory);
+    }
+
+    @Test
+    @DisplayName("주문 생성 API")
+    void createOrder() throws Exception {
+        //given
+        OrderItemRequest item = OrderItemRequest.builder()
+                .productVariantId(1L)
+                .quantity(3)
+                .build();
+        OrderRequest orderRequest = OrderRequest.builder()
+                .items(List.of(item))
+                .deliveryAddress("서울시 테헤란로 123")
+                .couponId(1L)
+                .pointToUse(300L)
+                .expectedPrice(5400L)
+                .build();
+
+        CreateOrderResponse response = CreateOrderResponse.builder()
+                        .orderId(1L)
+                        .subscribeUrl("http://subscribe")
+                        .build();
+
+        HttpHeaders roleUser = createUserHeader("ROLE_USER");
+        given(orderService.saveOrder(anyLong(), any(OrderRequest.class)))
+                .willReturn(response);
+
+        //when
+        //then
+        mockMvc.perform(post("/orders")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .headers(roleUser)
+                    .content(objectMapper.writeValueAsString(orderRequest))
+                )
+                .andDo(print())
+                .andExpect(status().isCreated())
+                .andDo(
+                        document(
+                                "order-create",
+                                preprocessRequest(prettyPrint()),
+                                preprocessResponse(prettyPrint()),
+                                requestHeaders(
+                                        headerWithName("X-User-Id").description(USER_ID_HEADER_DESCRIPTION),
+                                        headerWithName("X-User-Role").description(USER_ROLE_HEADER_DESCRIPTION)
+                                ),
+                                requestFields(
+                                        fieldWithPath("items[].productVariantId").description("상품 변형 Id (상품 변형 식별자)").optional(),
+                                        fieldWithPath("items[].quantity").description("주문 수량").optional(),
+                                        fieldWithPath("deliveryAddress").description("배송지").optional(),
+                                        fieldWithPath("couponId").description("사용 쿠폰 Id"),
+                                        fieldWithPath("pointToUse").description("사용 포인트"),
+                                        fieldWithPath("expectedPrice").description("예상 결제 금액").optional()
+                                ),
+                                responseFields(
+                                        fieldWithPath("orderId").description("주문 ID(주문 식별자)"),
+                                        fieldWithPath("subscribeUrl").description("SSE Url")
+                                )
+                        )
+                );
     }
 
     @Test
@@ -81,7 +143,7 @@ public class OrderControllerDocsTest extends RestDocSupport {
                 .andDo(document("getOrderList",
                         preprocessResponse(prettyPrint()),
                         requestHeaders(
-                                headerWithName("X-User-Id").description("회원 Id(회원 식별자)")
+                                headerWithName("X-User-Id").description(USER_ID_HEADER_DESCRIPTION)
                         ),
                         queryParameters(
                                 parameterWithName("page").description("페이지 번호(0-based)"),
@@ -132,6 +194,13 @@ public class OrderControllerDocsTest extends RestDocSupport {
                 .createAt(createAt)
                 .orderItems(orderItemResponses)
                 .build();
+    }
+
+    private HttpHeaders createUserHeader(String userRole){
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("X-User-Id", "1");
+        headers.add("X-User-Role", userRole);
+        return headers;
     }
 
 }

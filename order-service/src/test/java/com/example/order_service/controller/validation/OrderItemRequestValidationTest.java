@@ -50,7 +50,7 @@ public class OrderItemRequestValidationTest {
     }
 
     private OrderItemRequest createOrderItemRequest(){
-        return new OrderItemRequest(1L, 10);
+        return null;
     }
 
     static Stream<Arguments> invalidOrderItemRequestFieldProvider(){

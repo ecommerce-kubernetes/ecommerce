@@ -5,10 +5,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.List;
 import java.util.Map;
@@ -16,7 +13,6 @@ import java.util.stream.Collectors;
 
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
 public class OrderRequest {
     @NotEmpty(message = "{NotEmpty}")
@@ -36,6 +32,15 @@ public class OrderRequest {
                     OrderItemRequest::getQuantity
                 )
         );
+    }
+
+    @Builder
+    private OrderRequest(List<OrderItemRequest> items, String deliveryAddress, Long couponId, Long pointToUse, Long expectedPrice){
+        this.items = items;
+        this.deliveryAddress = deliveryAddress;
+        this.couponId = couponId;
+        this.pointToUse = pointToUse;
+        this.expectedPrice = expectedPrice;
     }
 
     @JsonIgnore
