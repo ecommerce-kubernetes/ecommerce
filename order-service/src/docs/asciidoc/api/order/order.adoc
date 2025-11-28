@@ -3,6 +3,10 @@
 
 ==== HTTP Request
 include::{snippets}/getOrderList/http-request.adoc[]
+===== Request Header
+include::{snippets}/getOrderList/request-headers.adoc[]
+===== Request Parameter
+include::{snippets}/getOrderList/query-parameters.adoc[]
 
 ==== HTTP Response
 include::{snippets}/getOrderList/http-response.adoc[]
@@ -14,6 +18,8 @@ include::{snippets}/getOrderList/response-fields.adoc[]
 
 ==== HTTP Request
 include::{snippets}/order-create/http-request.adoc[]
+===== Request Header
+include::{snippets}/order-create/request-headers.adoc[]
 ===== Request Fields
 include::{snippets}/order-create/request-fields.adoc[]
 ==== HTTP Response

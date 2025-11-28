@@ -1,0 +1,46 @@
+[[add-cartItem]]
+=== 장바구니 상품 추가
+
+==== HTTP Request
+include::{snippets}/add-cartItem/http-request.adoc[]
+===== Request Header
+include::{snippets}/add-cartItem/request-headers.adoc[]
+===== Request Fields
+include::{snippets}/add-cartItem/request-fields.adoc[]
+==== HTTP Response
+include::{snippets}/add-cartItem/http-response.adoc[]
+===== Response Fields
+include::{snippets}/add-cartItem/response-fields.adoc[]
+
+[[getAllCartItem]]
+=== 장바구니 목록 조회
+
+==== HTTP Request
+include::{snippets}/getAllCartItem/http-request.adoc[]
+===== Request Header
+include::{snippets}/getOrderList/request-headers.adoc[]
+==== HTTP Response
+include::{snippets}/getAllCartItem/http-response.adoc[]
+===== Response Fields
+include::{snippets}/getAllCartItem/response-fields.adoc[]
+
+[[removeCartItem]]
+=== 장바구니 상품 삭제
+
+==== HTTP Request
+include::{snippets}/removeCartItem/http-request.adoc[]
+===== Request Header
+include::{snippets}/removeCartItem/request-headers.adoc[]
+==== HTTP Response
+include::{snippets}/removeCartItem/http-response.adoc[]
+
+
+[[clearCart]]
+=== 장바구니 비우기
+
+==== HTTP Request
+include::{snippets}/clearCart/http-request.adoc[]
+===== Request Header
+include::{snippets}/clearCart/request-headers.adoc[]
+==== HTTP Response
+include::{snippets}/removeCartItem/http-response.adoc[]

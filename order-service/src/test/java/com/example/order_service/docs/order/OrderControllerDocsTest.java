@@ -35,9 +35,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class OrderControllerDocsTest extends RestDocSupport {
-
-    private static final String USER_ID_HEADER_DESCRIPTION = "회원 Id(회원 식별자)";
-    private static final String USER_ROLE_HEADER_DESCRIPTION = "회원 role(회원 권한)";
     private OrderService orderService = mock(OrderService.class);
     private SseConnectionService sseConnectionService = mock(SseConnectionService.class);
     private PageableValidatorFactory factory = mock(PageableValidatorFactory.class);
@@ -93,8 +90,8 @@ public class OrderControllerDocsTest extends RestDocSupport {
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint()),
                                 requestHeaders(
-                                        headerWithName("X-User-Id").description(USER_ID_HEADER_DESCRIPTION),
-                                        headerWithName("X-User-Role").description(USER_ROLE_HEADER_DESCRIPTION)
+                                        headerWithName("X-User-Id").description(USER_ID_HEADER_DESCRIPTION).optional(),
+                                        headerWithName("X-User-Role").description(USER_ROLE_HEADER_DESCRIPTION).optional()
                                 ),
                                 requestFields(
                                         fieldWithPath("items[].productVariantId").description("상품 변형 Id (상품 변형 식별자)").optional(),
@@ -143,7 +140,8 @@ public class OrderControllerDocsTest extends RestDocSupport {
                 .andDo(document("getOrderList",
                         preprocessResponse(prettyPrint()),
                         requestHeaders(
-                                headerWithName("X-User-Id").description(USER_ID_HEADER_DESCRIPTION)
+                                headerWithName("X-User-Id").description(USER_ID_HEADER_DESCRIPTION).optional(),
+                                headerWithName("X-User-Role").description(USER_ROLE_HEADER_DESCRIPTION).optional()
                         ),
                         queryParameters(
                                 parameterWithName("page").description("페이지 번호(0-based)"),

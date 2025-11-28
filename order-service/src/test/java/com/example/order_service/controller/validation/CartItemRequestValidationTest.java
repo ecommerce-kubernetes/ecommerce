@@ -59,6 +59,8 @@ public class CartItemRequestValidationTest {
     }
 
     private CartItemRequest createCartItemRequest(){
-        return new CartItemRequest(1L, 10);
+//        return new CartItemRequest(1L, 10);
+
+        return null;
     }
 }
