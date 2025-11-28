@@ -41,27 +41,28 @@ public class CartService{
         Carts cart = findCartOrCreate(userId);
         CartItems cartItem = cart.addItem(productResponse, request.getQuantity());
         cartItemsRepository.save(cartItem);
-        return new CartItemResponse(cartItem, productResponse);
+        return null;
     }
 
     @Transactional(readOnly = true)
     public CartResponse getCartItemList(Long userId) {
         Optional<Carts> optionalCart = cartsRepository.findWithItemsByUserId(userId);
         if(optionalCart.isEmpty()){
-            return new CartResponse(List.of(), 0);
+            return CartResponse.builder()
+                    .cartItems(List.of())
+                    .cartTotalPrice(0)
+                    .build();
         }
 
         Carts cart = optionalCart.get();
 
         if(cart.getCartItems().isEmpty()){
-            return new CartResponse(List.of(), 0);
+            return CartResponse.builder()
+                    .cartItems(List.of())
+                    .cartTotalPrice(0)
+                    .build();
         }
-
-        Map<Long, ProductResponse> productResponseMap = fetchProductResponseToMap(cart.getCartItems());
-
-        List<CartItemResponse> cartItemResponses = cart.getCartItems().stream()
-                .map(item -> new CartItemResponse(item, productResponseMap.get(item.getProductVariantId()))).toList();
-        return new CartResponse(cartItemResponses);
+        return null;
     }
 
     private Map<Long, ProductResponse> fetchProductResponseToMap(List<CartItems> items){

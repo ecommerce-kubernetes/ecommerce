@@ -14,7 +14,8 @@ import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.docu
 
 @ExtendWith(RestDocumentationExtension.class)
 public abstract class RestDocSupport {
-
+    protected static final String USER_ID_HEADER_DESCRIPTION = "회원 Id(회원 식별자)";
+    protected static final String USER_ROLE_HEADER_DESCRIPTION = "회원 role(회원 권한)";
     protected MockMvc mockMvc;
     protected ObjectMapper objectMapper = new ObjectMapper();
 

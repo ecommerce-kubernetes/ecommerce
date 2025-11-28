@@ -12,5 +12,8 @@ endif::[]
 
 [[ORDER-SERVICE-API]]
 == OrderService API
-
+= Order
 include::api/order/order.adoc[]
+
+= Cart
+include::api/cart/cart.adoc[]

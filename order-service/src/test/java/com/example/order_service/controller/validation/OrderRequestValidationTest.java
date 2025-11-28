@@ -1,6 +1,5 @@
 package com.example.order_service.controller.validation;
 
-import com.example.order_service.dto.request.OrderItemRequest;
 import com.example.order_service.dto.request.OrderRequest;
 import jakarta.validation.ConstraintViolation;
 import org.junit.jupiter.api.DisplayName;
@@ -42,12 +41,6 @@ public class OrderRequestValidationTest {
     }
 
     private OrderRequest createOrderRequest(){
-        List<OrderItemRequest> orderItemRequests =
-                List.of(
-//                        new OrderItemRequest(1L, 10),
-//                        new OrderItemRequest(2L, 10)
-                );
-//        return new OrderRequest(orderItemRequests, "deliveryAddress", 1L, 3000L, 5000L);
         return null;
     }
 
