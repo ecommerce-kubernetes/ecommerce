@@ -2,7 +2,7 @@ package com.example.order_service.docs.cart;
 
 import com.example.order_service.controller.CartController;
 import com.example.order_service.docs.RestDocSupport;
-import com.example.order_service.dto.request.CartItemRequest;
+import com.example.order_service.controller.dto.CartItemRequest;
 import com.example.order_service.dto.response.CartItemResponse;
 import com.example.order_service.dto.response.CartResponse;
 import com.example.order_service.dto.response.ItemOptionResponse;

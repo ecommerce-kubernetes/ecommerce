@@ -1,20 +1,12 @@
 package com.example.order_service.service;
 
 import com.example.order_service.common.scheduler.PendingOrderTimeoutScheduler;
-import com.example.order_service.config.TestConfig;
-import com.example.order_service.dto.request.CartItemRequest;
-import com.example.order_service.dto.response.CartItemResponse;
 import com.example.order_service.dto.response.CartResponse;
-import com.example.order_service.dto.response.ItemOptionResponse;
-import com.example.order_service.dto.response.ProductInfo;
 import com.example.order_service.entity.CartItems;
 import com.example.order_service.entity.Carts;
 import com.example.order_service.exception.NoPermissionException;
 import com.example.order_service.exception.NotFoundException;
 import com.example.order_service.repository.CartsRepository;
-import com.example.order_service.service.client.dto.ProductPrice;
-import com.example.order_service.service.client.dto.ProductResponse;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.AfterEach;
@@ -24,23 +16,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock;
-import org.springframework.context.annotation.Import;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.core.RedisKeyValueAdapter;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import static com.example.order_service.common.MessagePath.*;
 import static com.example.order_service.util.TestMessageUtil.getMessage;
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.assertj.core.api.Assertions.*;
 
 @SpringBootTest

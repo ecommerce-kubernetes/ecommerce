@@ -1,15 +1,11 @@
-package com.example.order_service.controller;
+package com.example.order_service.controller.order;
 
 import com.example.order_service.common.MessageSourceUtil;
 import com.example.order_service.common.advice.ErrorResponseEntityFactory;
 import com.example.order_service.common.scheduler.PendingOrderTimeoutScheduler;
 import com.example.order_service.config.TestConfig;
-import com.example.order_service.controller.util.validator.OrderPageableValidator;
+import com.example.order_service.controller.OrderController;
 import com.example.order_service.controller.util.validator.PageableValidatorFactory;
-import com.example.order_service.dto.request.OrderItemRequest;
-import com.example.order_service.dto.request.OrderRequest;
-import com.example.order_service.dto.response.*;
-import com.example.order_service.entity.DomainType;
 import com.example.order_service.service.OrderService;
 import com.example.order_service.service.SseConnectionService;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,21 +14,15 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
-import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
-
-import java.time.LocalDateTime;
-import java.util.List;
 
 import static com.example.order_service.common.MessagePath.*;
 import static com.example.order_service.common.MessagePath.BAD_REQUEST_VALIDATION;
 import static com.example.order_service.util.ControllerTestHelper.*;
 import static com.example.order_service.util.TestMessageUtil.getMessage;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;

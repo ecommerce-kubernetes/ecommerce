@@ -1,4 +1,4 @@
-package com.example.order_service.dto.request;
+package com.example.order_service.controller.dto;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;

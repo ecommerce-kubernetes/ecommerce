@@ -2,7 +2,7 @@ package com.example.order_service.controller;
 
 import com.example.order_service.controller.util.specification.annotation.BadRequestApiResponse;
 import com.example.order_service.controller.util.specification.annotation.NotFoundApiResponse;
-import com.example.order_service.dto.request.CartItemRequest;
+import com.example.order_service.controller.dto.CartItemRequest;
 import com.example.order_service.dto.response.CartItemResponse;
 import com.example.order_service.dto.response.CartResponse;
 import com.example.order_service.service.CartService;
