@@ -48,6 +48,13 @@ asciidoctor {
     baseDirFollowsSourceFile()
 }
 
+bootJar {
+	dependsOn asciidoctor
+	from("${asciidoctor.outputDir}"){
+		into 'static/docs'
+	}
+}
+
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-web'

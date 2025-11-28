@@ -1,0 +1,11 @@
+[[getOrderList]]
+=== 주문 내역 조회
+
+==== HTTP Request
+include::{snippets}/getOrderList/http-request.adoc[]
+include::{snippets}/getOrderList/request-fields.adoc[]
+
+==== HTTP Response
+include::{snippets}/getOrderList/http-response.adoc[]
+===== Response Fields
+include::{snippets}/getOrderList/response-fields.adoc[]
