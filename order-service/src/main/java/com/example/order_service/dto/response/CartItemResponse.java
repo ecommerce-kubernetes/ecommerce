@@ -1,46 +1,33 @@
 package com.example.order_service.dto.response;
 
-import com.example.order_service.entity.CartItems;
-import com.example.order_service.service.client.dto.ProductResponse;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.List;
 
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
 public class CartItemResponse {
     private Long id;
-    private ProductInfo productInfo;
+    private Long productId;
+    private String productName;
+    private String thumbNailUrl;
     private int quantity;
+    private UnitPriceInfo unitPriceInfo;
+    private int lineTotal;
+    private List<ItemOptionResponse> options;
     private boolean isAvailable;
 
-    public CartItemResponse(CartItems cartItem, ProductResponse response){
-        this.id = cartItem.getId();
-        this.quantity = cartItem.getQuantity();
-        this.isAvailable = (response != null);
-        this.productInfo = isAvailable ? createProductInfo(response) : null;
-    }
-
-    private ProductInfo createProductInfo(ProductResponse response){
-        if(response == null) return null;
-        return new ProductInfo(response.getProductId(),
-                response.getProductVariantId(),
-                response.getProductName(),
-                response.getProductPrice().getUnitPrice(),
-                response.getProductPrice().getDiscountRate(),
-                response.getThumbnailUrl(),
-                response.getItemOptions());
-    }
-
-    public long getItemTotalPrice() {
-        if(!isAvailable || productInfo == null){
-            return 0;
-        }
-        return productInfo.calcDiscountPrice() * quantity;
+    @Builder
+    private CartItemResponse(Long id, Long productId, String productName, String thumbNailUrl, int quantity,
+                             UnitPriceInfo unitPriceInfo, int lineTotal, List<ItemOptionResponse> options, boolean isAvailable){
+        this.id = id;
+        this.productId = productId;
+        this.productName = productName;
+        this.thumbNailUrl = thumbNailUrl;
+        this.quantity = quantity;
+        this.unitPriceInfo = unitPriceInfo;
+        this.lineTotal = lineTotal;
+        this.options = options;
+        this.isAvailable = isAvailable;
     }
 }

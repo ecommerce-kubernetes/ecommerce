@@ -1,0 +1,22 @@
+[[getOrderList]]
+=== 주문 내역 조회
+
+==== HTTP Request
+include::{snippets}/getOrderList/http-request.adoc[]
+
+==== HTTP Response
+include::{snippets}/getOrderList/http-response.adoc[]
+===== Response Fields
+include::{snippets}/getOrderList/response-fields.adoc[]
+
+[[order-create]]
+=== 주문 생성
+
+==== HTTP Request
+include::{snippets}/order-create/http-request.adoc[]
+===== Request Fields
+include::{snippets}/order-create/request-fields.adoc[]
+==== HTTP Response
+include::{snippets}/order-create/http-response.adoc[]
+===== Response Fields
+include::{snippets}/order-create/response-fields.adoc[]

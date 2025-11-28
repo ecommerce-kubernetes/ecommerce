@@ -2,6 +2,8 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.4.4'
 	id 'io.spring.dependency-management' version '1.1.7'
+    // api 명세 restdocs 플러그인
+    id "org.asciidoctor.jvm.convert" version "3.3.2"
 }
 
 group = 'com.example'
@@ -17,6 +19,8 @@ configurations {
 	compileOnly {
 		extendsFrom annotationProcessor
 	}
+    //아스키독
+    asciidoctorExt
 }
 
 repositories {
@@ -25,7 +29,30 @@ repositories {
 }
 
 ext {
-	set('springCloudVersion', "2024.0.1")
+    //명세 스니펫
+    snippetsDir = file('build/generated-snippets')
+    set('springCloudVersion', "2024.0.1")
+}
+
+test {
+    outputs.dir snippetsDir
+}
+
+asciidoctor {
+    inputs.dir snippetsDir
+    configurations 'asciidoctorExt'
+    dependsOn test
+    sources {
+        include("**/index.adoc")
+    }
+    baseDirFollowsSourceFile()
+}
+
+bootJar {
+	dependsOn asciidoctor
+	from("${asciidoctor.outputDir}"){
+		into 'static/docs'
+	}
 }
 
 dependencies {
@@ -60,6 +87,10 @@ dependencies {
 	testImplementation 'org.springframework.cloud:spring-cloud-contract-wiremock'
     testImplementation "org.testcontainers:testcontainers"
     testImplementation "org.testcontainers:junit-jupiter"
+
+    //API 명세
+    asciidoctorExt 'org.springframework.restdocs:spring-restdocs-asciidoctor'
+    testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
 
     //kafka module
     implementation 'com.github.ecommerce-kubernetes:common-dto:2.0.6'

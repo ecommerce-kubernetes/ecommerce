@@ -1,6 +1,7 @@
 package com.example.order_service.dto.response;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 
 import java.util.List;
@@ -18,5 +19,17 @@ public class ProductInfo {
 
     public long calcDiscountPrice(){
         return Math.round(price * (1 - discountRate / 100.0));
+    }
+
+    @Builder
+    private ProductInfo(Long productId, long productVariantId, String productName, long price, int discountRate,
+                        String thumbnailUrl, List<ItemOptionResponse> itemOptions){
+        this.productId = productId;
+        this.productVariantId = productVariantId;
+        this.productName = productName;
+        this.price = price;
+        this.discountRate = discountRate;
+        this.thumbnailUrl = thumbnailUrl;
+        this.itemOptions = itemOptions;
     }
 }
