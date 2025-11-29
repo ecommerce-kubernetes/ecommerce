@@ -6,12 +6,14 @@ import com.example.order_service.controller.dto.CartItemRequest;
 import com.example.order_service.dto.response.CartItemResponse;
 import com.example.order_service.dto.response.CartResponse;
 import com.example.order_service.service.CartService;
+import com.example.order_service.service.dto.AddCartItemDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,10 +29,12 @@ public class CartController {
     @ApiResponse(responseCode = "201", description = "상품 추가 성공")
     @BadRequestApiResponse @NotFoundApiResponse
     @PostMapping
+    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
     public ResponseEntity<CartItemResponse> addCartItem(@RequestBody @Validated CartItemRequest cartItemRequest,
                                                         @RequestHeader("X-User-Id") Long userId){
-        CartItemResponse cartItemResponse = cartService.addItem(userId, cartItemRequest);
-        return ResponseEntity.status(HttpStatus.CREATED).body(cartItemResponse);
+        AddCartItemDto dto = AddCartItemDto.of(userId, cartItemRequest);
+        CartItemResponse response = cartService.addItem(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @Operation(summary = "장바구니 목록 조회")

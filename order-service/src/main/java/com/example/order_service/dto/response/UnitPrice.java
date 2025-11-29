@@ -6,14 +6,14 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class UnitPriceInfo {
+public class UnitPrice {
     private long originalPrice;
     private int discountRate;
     private long discountAmount;
     private long discountedPrice;
 
     @Builder
-    private UnitPriceInfo(long originalPrice, int discountRate, long discountAmount, long discountedPrice){
+    private UnitPrice(long originalPrice, int discountRate, long discountAmount, long discountedPrice){
         this.originalPrice = originalPrice;
         this.discountRate = discountRate;
         this.discountAmount = discountAmount;

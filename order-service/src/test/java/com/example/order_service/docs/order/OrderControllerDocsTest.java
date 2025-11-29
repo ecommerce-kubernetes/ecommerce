@@ -179,8 +179,8 @@ public class OrderControllerDocsTest extends RestDocSupport {
                 .productName(productName)
                 .thumbNailUrl(thumbNailUrl)
                 .quantity(2)
-                .unitPriceInfo(
-                        UnitPriceInfo.builder()
+                .unitPrice(
+                        UnitPrice.builder()
                                 .originalPrice(3000)
                                 .discountRate(10)
                                 .discountAmount(300)
@@ -188,7 +188,10 @@ public class OrderControllerDocsTest extends RestDocSupport {
                                 .build()
                 )
                 .lineTotal(5700)
-                .options(List.of(new ItemOptionResponse("사이즈", "XL")))
+                .options(List.of(                        ItemOptionResponse.builder()
+                        .optionTypeName("사이즈")
+                        .optionValueName("XL")
+                        .build()))
                 .build();
     }
 

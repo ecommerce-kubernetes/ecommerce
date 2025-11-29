@@ -12,6 +12,7 @@ import com.example.order_service.repository.CartItemsRepository;
 import com.example.order_service.repository.CartsRepository;
 import com.example.order_service.service.client.ProductClientService;
 import com.example.order_service.service.client.dto.ProductResponse;
+import com.example.order_service.service.dto.AddCartItemDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -41,6 +42,10 @@ public class CartService{
         Carts cart = findCartOrCreate(userId);
         CartItems cartItem = cart.addItem(productResponse, request.getQuantity());
         cartItemsRepository.save(cartItem);
+        return null;
+    }
+
+    public CartItemResponse addItem(AddCartItemDto addCartItemDto){
         return null;
     }
 

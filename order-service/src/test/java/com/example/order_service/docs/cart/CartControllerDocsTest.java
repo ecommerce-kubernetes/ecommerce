@@ -6,7 +6,7 @@ import com.example.order_service.controller.dto.CartItemRequest;
 import com.example.order_service.dto.response.CartItemResponse;
 import com.example.order_service.dto.response.CartResponse;
 import com.example.order_service.dto.response.ItemOptionResponse;
-import com.example.order_service.dto.response.UnitPriceInfo;
+import com.example.order_service.dto.response.UnitPrice;
 import com.example.order_service.service.CartService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -82,10 +82,10 @@ public class CartControllerDocsTest extends RestDocSupport {
                                         fieldWithPath("productName").description("상품 이름"),
                                         fieldWithPath("thumbNailUrl").description("상품 썸네일"),
                                         fieldWithPath("quantity").description("수량"),
-                                        fieldWithPath("unitPriceInfo.originalPrice").description("상품 원본 가격"),
-                                        fieldWithPath("unitPriceInfo.discountRate").description("상품 할인율"),
-                                        fieldWithPath("unitPriceInfo.discountAmount").description("상품 할인 금액"),
-                                        fieldWithPath("unitPriceInfo.discountedPrice").description("할인된 가격"),
+                                        fieldWithPath("unitPrice.originalPrice").description("상품 원본 가격"),
+                                        fieldWithPath("unitPrice.discountRate").description("상품 할인율"),
+                                        fieldWithPath("unitPrice.discountAmount").description("상품 할인 금액"),
+                                        fieldWithPath("unitPrice.discountedPrice").description("할인된 가격"),
                                         fieldWithPath("lineTotal").description("항목 총액 (상품 할인 가격 X 수량)"),
                                         fieldWithPath("options[].optionTypeName").description("상품 옵션 타입 (예: 사이즈)"),
                                         fieldWithPath("options[].optionValueName").description("상품 옵션 값 (예: XL)"),
@@ -132,10 +132,10 @@ public class CartControllerDocsTest extends RestDocSupport {
                                         fieldWithPath("cartItems[].productName").description("상품 이름"),
                                         fieldWithPath("cartItems[].thumbNailUrl").description("상품 썸네일"),
                                         fieldWithPath("cartItems[].quantity").description("수량"),
-                                        fieldWithPath("cartItems[].unitPriceInfo.originalPrice").description("상품 원본 가격"),
-                                        fieldWithPath("cartItems[].unitPriceInfo.discountRate").description("상품 할인율"),
-                                        fieldWithPath("cartItems[].unitPriceInfo.discountAmount").description("상품 할인 금액"),
-                                        fieldWithPath("cartItems[].unitPriceInfo.discountedPrice").description("할인된 가격"),
+                                        fieldWithPath("cartItems[].unitPrice.originalPrice").description("상품 원본 가격"),
+                                        fieldWithPath("cartItems[].unitPrice.discountRate").description("상품 할인율"),
+                                        fieldWithPath("cartItems[].unitPrice.discountAmount").description("상품 할인 금액"),
+                                        fieldWithPath("cartItems[].unitPrice.discountedPrice").description("할인된 가격"),
                                         fieldWithPath("cartItems[].lineTotal").description("항목 총액 (상품 할인 가격 X 수량)"),
                                         fieldWithPath("cartItems[].options[].optionTypeName").description("상품 옵션 타입 (예: 사이즈)"),
                                         fieldWithPath("cartItems[].options[].optionValueName").description("상품 옵션 값 (예: XL)"),
@@ -205,8 +205,8 @@ public class CartControllerDocsTest extends RestDocSupport {
                 .productName("상품1")
                 .thumbNailUrl("http://thumbnail.jpg")
                 .quantity(2)
-                .unitPriceInfo(
-                        UnitPriceInfo.builder()
+                .unitPrice(
+                        UnitPrice.builder()
                                 .originalPrice(3000)
                                 .discountRate(10)
                                 .discountAmount(300)
@@ -214,7 +214,12 @@ public class CartControllerDocsTest extends RestDocSupport {
                                 .build()
                 )
                 .lineTotal(5700)
-                .options(List.of(new ItemOptionResponse("사이즈", "XL")))
+                .options(List.of(
+                        ItemOptionResponse.builder()
+                                .optionTypeName("사이즈")
+                                .optionValueName("XL")
+                                .build()
+                ))
                 .build();
 
     }
