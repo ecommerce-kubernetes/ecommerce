@@ -89,6 +89,10 @@ public class CartService{
         cartItem.getCart().removeCartItem(cartItem);
     }
 
+    public void deleteCartItemById(UserPrincipal userPrincipal, Long cartItemId){
+
+    }
+
     public void clearAllCartItems(Long userId) {
         Optional<Carts> cart = cartsRepository.findWithItemsByUserId(userId);
         cart.ifPresent(Carts::clearItems);

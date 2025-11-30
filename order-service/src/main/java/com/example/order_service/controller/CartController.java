@@ -49,13 +49,11 @@ public class CartController {
         return ResponseEntity.ok(cartItemList);
     }
 
-    @Operation(summary = "장바구니 상품 삭제")
-    @NotFoundApiResponse @BadRequestApiResponse
     @DeleteMapping("/{cartItemId}")
-    public ResponseEntity<Void> removeCartItem(@RequestHeader("X-User-Id") Long userId,
+    public ResponseEntity<Void> deleteCartItem(@AuthenticationPrincipal UserPrincipal userPrincipal,
                                                @PathVariable("cartItemId") Long cartItemId){
-        cartService.deleteCartItemById(userId, cartItemId);
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        cartService.deleteCartItemById(userPrincipal, cartItemId);
+        return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "장바구니 비우기")

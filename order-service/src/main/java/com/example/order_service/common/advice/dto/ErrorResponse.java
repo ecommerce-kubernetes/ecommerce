@@ -25,6 +25,10 @@ public class ErrorResponse {
         return of(HttpStatus.BAD_REQUEST.name(), message, timestamp, path);
     }
 
+    public static ErrorResponse toNotFound(String message, String timestamp, String path){
+        return of(HttpStatus.NOT_FOUND.name(), message, timestamp, path);
+    }
+
     public static ErrorResponse of(String error, String message, String timestamp, String path) {
         return ErrorResponse.builder()
                 .error(error)

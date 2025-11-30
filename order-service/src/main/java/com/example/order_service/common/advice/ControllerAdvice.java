@@ -22,20 +22,14 @@ public class ControllerAdvice {
 
     private final ErrorResponseEntityFactory factory;
 
-//    @ExceptionHandler(MethodArgumentNotValidException.class)
-//    public ResponseEntity<ValidationErrorResponse> validationExceptionHandler(HttpServletRequest request,
-//                                                                              MethodArgumentNotValidException e){
-//        return factory.toValidationErrorResponseEntity(HttpStatus.BAD_REQUEST, request, e);
-//    }
-
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> validationExceptionHandler(HttpServletRequest request,
                                                                     MethodArgumentNotValidException e){
         LocalDateTime now = LocalDateTime.now();
         List<FieldError> fieldErrors = e.getBindingResult().getFieldErrors();
-        String errorMessage = fieldErrors.get(0).getDefaultMessage();
-        ErrorResponse response = ErrorResponse.toBadRequest(errorMessage, now.toString(), request.getRequestURI());
-        return ResponseEntity.badRequest().body(response);
+        String message = fieldErrors.get(0).getDefaultMessage();
+        ErrorResponse response = ErrorResponse.toBadRequest(message, now.toString(), request.getRequestURI());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
 
     }
 
@@ -46,8 +40,16 @@ public class ControllerAdvice {
 
     @ExceptionHandler(NotFoundException.class)
     public ResponseEntity<ErrorResponse> notFoundExceptionHandler(HttpServletRequest request, NotFoundException e){
-        return factory.toErrorResponseEntity(HttpStatus.NOT_FOUND, e.getMessage(), request);
+        LocalDateTime now = LocalDateTime.now();
+        String message = e.getMessage();
+        ErrorResponse response = ErrorResponse.toNotFound(message, now.toString(), request.getRequestURI());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
+
+//    @ExceptionHandler(NotFoundException.class)
+//    public ResponseEntity<ErrorResponse> notFoundExceptionHandler(HttpServletRequest request, NotFoundException e){
+//        return factory.toErrorResponseEntity(HttpStatus.NOT_FOUND, e.getMessage(), request);
+//    }
 
     @ExceptionHandler(InsufficientException.class)
     public ResponseEntity<ErrorResponse> insufficientExceptionHandler(HttpServletRequest request, InsufficientException e){

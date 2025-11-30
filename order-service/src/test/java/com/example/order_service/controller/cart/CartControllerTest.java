@@ -37,7 +37,7 @@ import static com.example.order_service.common.MessagePath.*;
 import static com.example.order_service.util.ControllerTestHelper.*;
 import static com.example.order_service.util.TestMessageUtil.getMessage;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -206,7 +206,8 @@ class CartControllerTest extends ControllerTestSupport {
         //when
         //then
         mockMvc.perform(get("/carts")
-                .contentType(MediaType.APPLICATION_JSON))
+                .contentType(MediaType.APPLICATION_JSON)
+                .with(SecurityMockMvcRequestPostProcessors.csrf()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.cartItems[0].id").value(1L))
                 .andExpect(jsonPath("$.cartItems[0].productId").value(1L))
@@ -220,6 +221,41 @@ class CartControllerTest extends ControllerTestSupport {
                 .andExpect(jsonPath("$.cartItems[0].lineTotal").value(5400))
                 .andExpect(jsonPath("$.cartItems.length()").value(1))
                 .andExpect(jsonPath("$.cartTotalPrice").value(5400));
+    }
+
+    @Test
+    @DisplayName("장바구니에서 상품을 삭제한다")
+    @WithCustomMockUser
+    void deleteCartItem() throws Exception {
+        //given
+        willDoNothing().given(cartService).deleteCartItemById(any(UserPrincipal.class), anyLong());
+        //when
+        //then
+        mockMvc.perform(delete("/carts/{cartItemId}", 1)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .with(SecurityMockMvcRequestPostProcessors.csrf()))
+                .andDo(print())
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @DisplayName("장바구니에 없는 상품을 삭제하려 시도하면 404 예외 응답을 반환한다")
+    @WithCustomMockUser
+    void deleteCartItemThrowNotFound() throws Exception {
+        //given
+        willThrow(new NotFoundException("장바구니에 해당 상품을 찾을 수 없습니다"))
+                .given(cartService).deleteCartItemById(any(UserPrincipal.class), anyLong());
+        //when
+        //then
+        mockMvc.perform(delete("/carts/{cartItemId}", 1)
+                .contentType(MediaType.APPLICATION_JSON)
+                .with(SecurityMockMvcRequestPostProcessors.csrf()))
+                .andDo(print())
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("NOT_FOUND"))
+                .andExpect(jsonPath("$.message").value("장바구니에 해당 상품을 찾을 수 없습니다"))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/carts/1"));
     }
 
     @Test
