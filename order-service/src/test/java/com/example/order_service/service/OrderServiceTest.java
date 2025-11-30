@@ -99,7 +99,10 @@ class OrderServiceTest {
         testListener.clear();
         saveOrder = new Orders(1L, 1L, "PENDING", "서울시 테헤란로 123", 3000L, 300L,
                 1000L, 700L, 1000L);
-        List<OrderItems> orderItems = List.of(new OrderItems(1L, 1L, "상품1", List.of(new ItemOptionResponse("색상", "RED")),
+        List<OrderItems> orderItems = List.of(new OrderItems(1L, 1L, "상품1", List.of(ItemOptionResponse.builder()
+                .optionTypeName("사이즈")
+                .optionValueName("XL")
+                .build()),
                 1000L, 10, 900L, 2700L, 3, "http://test.jpg"));
         saveOrder.addOrderItems(orderItems);
         ordersRepository.save(saveOrder);

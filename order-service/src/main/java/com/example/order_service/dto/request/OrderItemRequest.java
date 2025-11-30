@@ -8,10 +8,10 @@ import lombok.*;
 @Setter
 @NoArgsConstructor
 public class OrderItemRequest {
-    @NotNull(message = "{NotNull}")
+    @NotNull(message = "productVariantId는 필수입니다")
     private Long productVariantId;
-    @NotNull(message = "{NotNull}")
-    @Min(value = 1, message = "{Min}")
+    @NotNull(message = "수량은 필수입니다")
+    @Min(value = 1, message = "수량은 1이상이여야 합니다")
     private Integer quantity;
 
     @Builder

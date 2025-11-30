@@ -12,18 +12,18 @@ public class OrderItemResponse {
     private String productName;
     private String thumbNailUrl;
     private int quantity;
-    private UnitPriceInfo unitPriceInfo;
+    private UnitPrice unitPrice;
     private int lineTotal;
     private List<ItemOptionResponse> options;
 
     @Builder
     private OrderItemResponse(Long productId, String productName, String thumbNailUrl, int quantity,
-                              UnitPriceInfo unitPriceInfo, int lineTotal, List<ItemOptionResponse> options){
+                              UnitPrice unitPrice, int lineTotal, List<ItemOptionResponse> options){
         this.productId = productId;
         this.productName = productName;
         this.thumbNailUrl = thumbNailUrl;
         this.quantity = quantity;
-        this.unitPriceInfo = unitPriceInfo;
+        this.unitPrice = unitPrice;
         this.lineTotal = lineTotal;
         this.options = options;
     }

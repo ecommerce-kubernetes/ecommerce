@@ -2,6 +2,7 @@ package com.example.order_service.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -15,14 +16,16 @@ import java.util.stream.Collectors;
 @Setter
 @NoArgsConstructor
 public class OrderRequest {
-    @NotEmpty(message = "{NotEmpty}")
+    @NotEmpty(message = "주문 상품은 필수입니다")
     @Valid
     private List<OrderItemRequest> items;
-    @NotBlank(message = "{NotBlank}")
+    @NotBlank(message = "배송지는 필수입니다")
     private String deliveryAddress;
     private Long couponId;
+    @NotNull(message = "사용할 포인트는 필수입니다")
+    @Min(value = 0, message = "사용할 포인트는 0원 이상이여야 합니다")
     private Long pointToUse;
-    @NotNull(message = "{NotNull}")
+    @NotNull(message = "예상 결제 금액은 필수입니다")
     private Long expectedPrice;
 
     public Map<Long, Integer> toQuantityMap(){

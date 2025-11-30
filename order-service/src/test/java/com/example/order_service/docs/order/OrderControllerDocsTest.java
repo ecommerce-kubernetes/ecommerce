@@ -10,6 +10,7 @@ import com.example.order_service.dto.response.*;
 import com.example.order_service.entity.DomainType;
 import com.example.order_service.service.OrderService;
 import com.example.order_service.service.SseConnectionService;
+import com.example.order_service.service.dto.CreateOrderDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -21,6 +22,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.BDDMockito.willReturn;
 import static org.mockito.Mockito.mock;
 import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
 import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
@@ -72,7 +74,7 @@ public class OrderControllerDocsTest extends RestDocSupport {
                         .build();
 
         HttpHeaders roleUser = createUserHeader("ROLE_USER");
-        given(orderService.saveOrder(anyLong(), any(OrderRequest.class)))
+        given(orderService.saveOrder(any(CreateOrderDto.class)))
                 .willReturn(response);
 
         //when
@@ -83,7 +85,7 @@ public class OrderControllerDocsTest extends RestDocSupport {
                     .content(objectMapper.writeValueAsString(orderRequest))
                 )
                 .andDo(print())
-                .andExpect(status().isCreated())
+                .andExpect(status().isAccepted())
                 .andDo(
                         document(
                                 "order-create",
@@ -98,11 +100,14 @@ public class OrderControllerDocsTest extends RestDocSupport {
                                         fieldWithPath("items[].quantity").description("주문 수량").optional(),
                                         fieldWithPath("deliveryAddress").description("배송지").optional(),
                                         fieldWithPath("couponId").description("사용 쿠폰 Id"),
-                                        fieldWithPath("pointToUse").description("사용 포인트"),
+                                        fieldWithPath("pointToUse").description("사용 포인트").optional(),
                                         fieldWithPath("expectedPrice").description("예상 결제 금액").optional()
                                 ),
                                 responseFields(
                                         fieldWithPath("orderId").description("주문 ID(주문 식별자)"),
+                                        fieldWithPath("status").description("주문 상태"),
+                                        fieldWithPath("createAt").description("주문 일시"),
+                                        fieldWithPath("message").description("주문 설명"),
                                         fieldWithPath("subscribeUrl").description("SSE Url")
                                 )
                         )
@@ -158,10 +163,10 @@ public class OrderControllerDocsTest extends RestDocSupport {
                                 fieldWithPath("content[].orderItems[].productName").description("주문 상품 이름"),
                                 fieldWithPath("content[].orderItems[].thumbNailUrl").description("주문 상품 썸네일"),
                                 fieldWithPath("content[].orderItems[].quantity").description("주문 수량"),
-                                fieldWithPath("content[].orderItems[].unitPriceInfo.originalPrice").description("주문 상품 원본 가격"),
-                                fieldWithPath("content[].orderItems[].unitPriceInfo.discountRate").description("상품 할인율"),
-                                fieldWithPath("content[].orderItems[].unitPriceInfo.discountAmount").description("상품 할인 금액"),
-                                fieldWithPath("content[].orderItems[].unitPriceInfo.discountedPrice").description("할인된 가격"),
+                                fieldWithPath("content[].orderItems[].unitPrice.originalPrice").description("주문 상품 원본 가격"),
+                                fieldWithPath("content[].orderItems[].unitPrice.discountRate").description("상품 할인율"),
+                                fieldWithPath("content[].orderItems[].unitPrice.discountAmount").description("상품 할인 금액"),
+                                fieldWithPath("content[].orderItems[].unitPrice.discountedPrice").description("할인된 가격"),
                                 fieldWithPath("content[].orderItems[].lineTotal").description("주문 항목 총액"),
                                 fieldWithPath("content[].orderItems[].options[].optionTypeName").description("주문 상품 옵션 타입 (예: 사이즈)"),
                                 fieldWithPath("content[].orderItems[].options[].optionValueName").description("주문 상품 옵션 값 (예: XL)"),
@@ -179,8 +184,8 @@ public class OrderControllerDocsTest extends RestDocSupport {
                 .productName(productName)
                 .thumbNailUrl(thumbNailUrl)
                 .quantity(2)
-                .unitPriceInfo(
-                        UnitPriceInfo.builder()
+                .unitPrice(
+                        UnitPrice.builder()
                                 .originalPrice(3000)
                                 .discountRate(10)
                                 .discountAmount(300)
@@ -188,7 +193,10 @@ public class OrderControllerDocsTest extends RestDocSupport {
                                 .build()
                 )
                 .lineTotal(5700)
-                .options(List.of(new ItemOptionResponse("사이즈", "XL")))
+                .options(List.of(                        ItemOptionResponse.builder()
+                        .optionTypeName("사이즈")
+                        .optionValueName("XL")
+                        .build()))
                 .build();
     }
 

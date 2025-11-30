@@ -27,19 +27,29 @@ public class QOrderItems extends EntityPathBase<OrderItems> {
     //inherited
     public final DateTimePath<java.time.LocalDateTime> createAt = _super.createAt;
 
+    public final NumberPath<Long> discountedPrice = createNumber("discountedPrice", Long.class);
+
+    public final NumberPath<Integer> discountRate = createNumber("discountRate", Integer.class);
+
     public final NumberPath<Long> id = createNumber("id", Long.class);
 
-    public final StringPath mainImgUrl = createString("mainImgUrl");
+    public final ListPath<com.example.order_service.dto.response.ItemOptionResponse, SimplePath<com.example.order_service.dto.response.ItemOptionResponse>> itemOption = this.<com.example.order_service.dto.response.ItemOptionResponse, SimplePath<com.example.order_service.dto.response.ItemOptionResponse>>createList("itemOption", com.example.order_service.dto.response.ItemOptionResponse.class, SimplePath.class, PathInits.DIRECT2);
+
+    public final NumberPath<Long> lineTotal = createNumber("lineTotal", Long.class);
 
     public final QOrders order;
-
-    public final NumberPath<Integer> price = createNumber("price", Integer.class);
 
     public final NumberPath<Long> productId = createNumber("productId", Long.class);
 
     public final StringPath productName = createString("productName");
 
+    public final NumberPath<Long> productVariantId = createNumber("productVariantId", Long.class);
+
     public final NumberPath<Integer> quantity = createNumber("quantity", Integer.class);
+
+    public final StringPath thumbnail = createString("thumbnail");
+
+    public final NumberPath<Long> unitPrice = createNumber("unitPrice", Long.class);
 
     //inherited
     public final DateTimePath<java.time.LocalDateTime> updateAt = _super.updateAt;

@@ -17,6 +17,7 @@ import com.example.order_service.service.client.UserClientService;
 import com.example.order_service.service.client.dto.CouponResponse;
 import com.example.order_service.service.client.dto.ProductResponse;
 import com.example.order_service.service.client.dto.UserBalanceResponse;
+import com.example.order_service.service.dto.CreateOrderDto;
 import com.example.order_service.service.event.OrderEndMessageEvent;
 import com.example.order_service.service.event.PendingOrderCreatedEvent;
 import lombok.RequiredArgsConstructor;
@@ -51,6 +52,10 @@ public class OrderService {
         String url = buildSubscribeUrl(save.getId());
         eventPublisher.publishEvent(new PendingOrderCreatedEvent(this, save));
         return new CreateOrderResponse(save, url);
+    }
+
+    public CreateOrderResponse saveOrder(CreateOrderDto createOrderDto){
+        return null;
     }
 
     public PageDto<OrderResponse> getOrderList(Pageable pageable, Long userId, String year, String keyword) {

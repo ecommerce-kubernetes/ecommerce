@@ -1,7 +1,8 @@
 package com.example.order_service.service;
 
 import com.example.order_service.common.MessageSourceUtil;
-import com.example.order_service.dto.request.CartItemRequest;
+import com.example.order_service.common.security.UserPrincipal;
+import com.example.order_service.controller.dto.CartItemRequest;
 import com.example.order_service.dto.response.CartItemResponse;
 import com.example.order_service.dto.response.CartResponse;
 import com.example.order_service.entity.CartItems;
@@ -12,6 +13,8 @@ import com.example.order_service.repository.CartItemsRepository;
 import com.example.order_service.repository.CartsRepository;
 import com.example.order_service.service.client.ProductClientService;
 import com.example.order_service.service.client.dto.ProductResponse;
+import com.example.order_service.service.dto.AddCartItemDto;
+import com.example.order_service.service.dto.UpdateQuantityDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -41,6 +44,14 @@ public class CartService{
         Carts cart = findCartOrCreate(userId);
         CartItems cartItem = cart.addItem(productResponse, request.getQuantity());
         cartItemsRepository.save(cartItem);
+        return null;
+    }
+
+    public CartItemResponse addItem(AddCartItemDto addCartItemDto){
+        return null;
+    }
+
+    public CartResponse getCartItemList(UserPrincipal userPrincipal){
         return null;
     }
 
@@ -77,6 +88,18 @@ public class CartService{
             throw new NoPermissionException(ms.getMessage(CART_ITEM_NO_PERMISSION));
         }
         cartItem.getCart().removeCartItem(cartItem);
+    }
+
+    public void deleteCartItemById(UserPrincipal userPrincipal, Long cartItemId){
+
+    }
+
+    public void clearAllCartItems(UserPrincipal userPrincipal){
+
+    }
+
+    public CartItemResponse updateCartItemQuantity(UpdateQuantityDto updateQuantityDto) {
+        return null;
     }
 
     public void clearAllCartItems(Long userId) {

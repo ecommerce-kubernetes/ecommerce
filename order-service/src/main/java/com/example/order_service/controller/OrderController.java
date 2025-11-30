@@ -1,5 +1,6 @@
 package com.example.order_service.controller;
 
+import com.example.order_service.common.security.UserPrincipal;
 import com.example.order_service.controller.util.specification.annotation.BadRequestApiResponse;
 import com.example.order_service.controller.util.specification.annotation.ConflictApiResponse;
 import com.example.order_service.controller.util.specification.annotation.NotFoundApiResponse;
@@ -12,6 +13,7 @@ import com.example.order_service.dto.response.PageDto;
 import com.example.order_service.entity.DomainType;
 import com.example.order_service.service.OrderService;
 import com.example.order_service.service.SseConnectionService;
+import com.example.order_service.service.dto.CreateOrderDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +23,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -39,9 +42,11 @@ public class OrderController {
     @BadRequestApiResponse
     @PostMapping
     public ResponseEntity<CreateOrderResponse> createOrder(@RequestBody @Validated OrderRequest orderRequest,
-                                                           @RequestHeader("X-User-Id") Long userId){
-        CreateOrderResponse orderResponse = orderService.saveOrder(userId, orderRequest);
-        return ResponseEntity.status(HttpStatus.SC_CREATED).body(orderResponse);
+                                                           @AuthenticationPrincipal UserPrincipal userPrincipal){
+
+        CreateOrderDto createOrderDto = CreateOrderDto.of(userPrincipal, orderRequest);
+        CreateOrderResponse orderResponse = orderService.saveOrder(createOrderDto);
+        return ResponseEntity.status(HttpStatus.SC_ACCEPTED).body(orderResponse);
     }
 
     @Operation(summary = "주문 목록 조회")

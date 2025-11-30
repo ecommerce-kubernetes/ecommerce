@@ -7,10 +7,14 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 @RestControllerAdvice
 @RequiredArgsConstructor
@@ -18,21 +22,23 @@ public class ControllerAdvice {
 
     private final ErrorResponseEntityFactory factory;
 
-
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ValidationErrorResponse> validationExceptionHandler(HttpServletRequest request,
-                                                                              MethodArgumentNotValidException e){
-        return factory.toValidationErrorResponseEntity(HttpStatus.BAD_REQUEST, request, e);
-    }
+    public ResponseEntity<ErrorResponse> validationExceptionHandler(HttpServletRequest request,
+                                                                    MethodArgumentNotValidException e){
+        LocalDateTime now = LocalDateTime.now();
+        List<FieldError> fieldErrors = e.getBindingResult().getFieldErrors();
+        String message = fieldErrors.get(0).getDefaultMessage();
+        ErrorResponse response = ErrorResponse.toBadRequest(message, now.toString(), request.getRequestURI());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
 
-    @ExceptionHandler(MissingRequestHeaderException.class)
-    public ResponseEntity<ErrorResponse> missingHeaderExceptionHandler(HttpServletRequest request, MissingRequestHeaderException e){
-        return factory.toErrorResponseEntity(HttpStatus.BAD_REQUEST, e.getMessage(), request);
     }
 
     @ExceptionHandler(NotFoundException.class)
     public ResponseEntity<ErrorResponse> notFoundExceptionHandler(HttpServletRequest request, NotFoundException e){
-        return factory.toErrorResponseEntity(HttpStatus.NOT_FOUND, e.getMessage(), request);
+        LocalDateTime now = LocalDateTime.now();
+        String message = e.getMessage();
+        ErrorResponse response = ErrorResponse.toNotFound(message, now.toString(), request.getRequestURI());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
 
     @ExceptionHandler(InsufficientException.class)
