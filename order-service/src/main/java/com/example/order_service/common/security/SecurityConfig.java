@@ -1,5 +1,6 @@
 package com.example.order_service.common.security;
 
+import com.example.order_service.common.security.filter.HeaderPreAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -7,6 +8,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @EnableWebSecurity
 @Configuration
@@ -23,8 +25,14 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(
                         auth -> auth.anyRequest().authenticated()
-                );
+                )
+                .addFilterBefore(headerPreAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    @Bean
+    public HeaderPreAuthenticationFilter headerPreAuthenticationFilter(){
+        return new HeaderPreAuthenticationFilter();
     }
 }

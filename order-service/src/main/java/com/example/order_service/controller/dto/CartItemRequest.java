@@ -8,10 +8,10 @@ import lombok.*;
 @Setter
 @NoArgsConstructor
 public class CartItemRequest {
-    @NotNull(message = "{NotNull}")
+    @NotNull(message = "productVariantId는 필수값입니다")
     private Long productVariantId;
-    @NotNull(message = "{NotNull}")
-    @Min(value = 1, message = "{Min}")
+    @NotNull(message = "quantity는 필수값입니다")
+    @Min(value = 1, message = "quantity는 1이상 이여야 합니다")
     private Integer quantity;
 
     @Builder

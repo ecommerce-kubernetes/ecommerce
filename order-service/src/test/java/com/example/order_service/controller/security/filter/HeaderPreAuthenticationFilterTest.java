@@ -1,9 +1,9 @@
 package com.example.order_service.controller.security.filter;
 
 import com.example.order_service.common.advice.ControllerAdvice;
+import com.example.order_service.common.security.SecurityConfig;
 import com.example.order_service.config.CorsConfig;
 import com.example.order_service.controller.security.DummyController;
-import com.example.order_service.controller.security.TestSecurityConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -28,7 +28,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@Import(TestSecurityConfig.class)
+@Import(SecurityConfig.class)
 @WebMvcTest(
         controllers = DummyController.class,
         excludeFilters = @ComponentScan.Filter(
@@ -53,7 +53,7 @@ public class HeaderPreAuthenticationFilterTest {
                 .headers(headers))
                 .andDo(print())
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.error").value("401 UNAUTHORIZED"))
+                .andExpect(jsonPath("$.error").value("UNAUTHORIZED"))
                 .andExpect(jsonPath("$.message").value("인증 헤더가 존재하지 않습니다"))
                 .andExpect(jsonPath("$.timestamp").exists())
                 .andExpect(jsonPath("$.path").value("/security"));
@@ -72,7 +72,7 @@ public class HeaderPreAuthenticationFilterTest {
                 .headers(invalidUserIdHeader))
                 .andDo(print())
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.error").value("401 UNAUTHORIZED"))
+                .andExpect(jsonPath("$.error").value("UNAUTHORIZED"))
                 .andExpect(jsonPath("$.message").value("X-User-Id 헤더가 유효하지 않습니다"))
                 .andExpect(jsonPath("$.timestamp").exists())
                 .andExpect(jsonPath("$.path").value("/security"));
@@ -93,7 +93,7 @@ public class HeaderPreAuthenticationFilterTest {
                 .headers(invalidUserRoleHeader))
                 .andDo(print())
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.error").value("401 UNAUTHORIZED"))
+                .andExpect(jsonPath("$.error").value("UNAUTHORIZED"))
                 .andExpect(jsonPath("$.message").value("X-User-Role 헤더가 유효하지 않습니다"))
                 .andExpect(jsonPath("$.timestamp").exists())
                 .andExpect(jsonPath("$.path").value("/security"));

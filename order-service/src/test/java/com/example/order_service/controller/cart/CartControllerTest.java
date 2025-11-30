@@ -1,20 +1,28 @@
 package com.example.order_service.controller.cart;
 
 import com.example.order_service.common.MessageSourceUtil;
+import com.example.order_service.common.advice.ControllerAdvice;
 import com.example.order_service.common.advice.ErrorResponseEntityFactory;
+import com.example.order_service.common.security.UserPrincipal;
+import com.example.order_service.common.security.UserRole;
 import com.example.order_service.config.TestConfig;
 import com.example.order_service.controller.ControllerTestSupport;
 import com.example.order_service.controller.dto.CartItemRequest;
+import com.example.order_service.controller.security.WithCustomMockUser;
 import com.example.order_service.dto.response.CartItemResponse;
+import com.example.order_service.dto.response.CartResponse;
 import com.example.order_service.dto.response.ItemOptionResponse;
 import com.example.order_service.dto.response.UnitPrice;
 import com.example.order_service.exception.NoPermissionException;
 import com.example.order_service.exception.NotFoundException;
 import com.example.order_service.service.SseConnectionService;
 import com.example.order_service.service.dto.AddCartItemDto;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -49,7 +57,7 @@ class CartControllerTest extends ControllerTestSupport {
 
     @Test
     @DisplayName("장바구니에 상품을 추가한다")
-    @WithMockUser
+    @WithCustomMockUser
     void addCartItem() throws Exception {
         Long productVariantId = 1L;
         int quantity = 2;
@@ -58,8 +66,6 @@ class CartControllerTest extends ControllerTestSupport {
                 .productVariantId(productVariantId)
                 .quantity(quantity)
                 .build();
-
-        HttpHeaders roleUser = createUserHeader("ROLE_USER");
         UnitPrice unitPrice = createUnitPrice(3000, 10);
 
         ItemOptionResponse itemOption = ItemOptionResponse.builder()
@@ -86,7 +92,6 @@ class CartControllerTest extends ControllerTestSupport {
         //then
         mockMvc.perform(post("/carts")
                 .contentType(MediaType.APPLICATION_JSON)
-                .headers(roleUser)
                 .with(SecurityMockMvcRequestPostProcessors.csrf())
                 .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
@@ -100,6 +105,121 @@ class CartControllerTest extends ControllerTestSupport {
                 .andExpect(jsonPath("$.unitPrice.discountRate").value(response.getUnitPrice().getDiscountRate()))
                 .andExpect(jsonPath("$.unitPrice.discountAmount").value(response.getUnitPrice().getDiscountAmount()))
                 .andExpect(jsonPath("$.unitPrice.discountedPrice").value(response.getUnitPrice().getDiscountedPrice()));
+    }
+
+    @Test
+    @DisplayName("장바구니에 상품을 추가할때 productVariantId는 필수값이다")
+    @WithCustomMockUser
+    void addCartItemWithNoProductVariantId() throws Exception {
+        //given
+        CartItemRequest request = CartItemRequest.builder()
+                .quantity(1).build();
+        //when
+        //then
+        mockMvc.perform(post("/carts")
+                .contentType(MediaType.APPLICATION_JSON)
+                .with(SecurityMockMvcRequestPostProcessors.csrf())
+                .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("BAD_REQUEST"))
+                .andExpect(jsonPath("$.message").value("productVariantId는 필수값입니다"))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/carts"));
+    }
+
+    @Test
+    @DisplayName("장바구니에 상품을 추가할때 quantity는 필수값이다")
+    @WithCustomMockUser
+    void addCartItemWithNoQuantity() throws Exception {
+        //given
+        CartItemRequest request = CartItemRequest.builder()
+                .productVariantId(1L)
+                .build();
+        //when
+        //then
+        mockMvc.perform(post("/carts")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .with(SecurityMockMvcRequestPostProcessors.csrf())
+                        .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("BAD_REQUEST"))
+                .andExpect(jsonPath("$.message").value("quantity는 필수값입니다"))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/carts"));
+    }
+
+    @Test
+    @DisplayName("장바구니에 상품을 추가할때 수량은 1이상 이여야 한다")
+    @WithCustomMockUser
+    void addCartItemWithQuantityLessThan1() throws Exception {
+        //given
+        CartItemRequest request = CartItemRequest.builder()
+                .productVariantId(1L)
+                .quantity(0)
+                .build();
+        //when
+        //then
+        mockMvc.perform(post("/carts")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .with(SecurityMockMvcRequestPostProcessors.csrf())
+                        .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("BAD_REQUEST"))
+                .andExpect(jsonPath("$.message").value("quantity는 1이상 이여야 합니다"))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/carts"));
+    }
+
+    @Test
+    @DisplayName("장바구니 목록을 조회한다")
+    @WithCustomMockUser
+    void getAllCartItem() throws Exception {
+        //given
+        UnitPrice unitPrice = createUnitPrice(3000, 10);
+        ItemOptionResponse itemOption = ItemOptionResponse.builder()
+                .optionTypeName("사이즈")
+                .optionValueName("XL")
+                .build();
+
+        CartItemResponse cartItem = CartItemResponse.builder()
+                .id(1L)
+                .productId(1L)
+                .productName("상품1")
+                .thumbNailUrl("http://thumbnail.jpg")
+                .quantity(2)
+                .unitPrice(unitPrice)
+                .lineTotal(unitPrice.getDiscountedPrice() * 2)
+                .options(List.of(itemOption))
+                .isAvailable(true)
+                .build();
+
+        CartResponse response = CartResponse.builder()
+                .cartItems(List.of(cartItem))
+                .cartTotalPrice(cartItem.getLineTotal())
+                .build();
+
+        given(cartService.getCartItemList(any(UserPrincipal.class)))
+                .willReturn(response);
+        //when
+        //then
+        mockMvc.perform(get("/carts")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.cartItems[0].id").value(1L))
+                .andExpect(jsonPath("$.cartItems[0].productId").value(1L))
+                .andExpect(jsonPath("$.cartItems[0].productName").value("상품1"))
+                .andExpect(jsonPath("$.cartItems[0].thumbNailUrl").value("http://thumbnail.jpg"))
+                .andExpect(jsonPath("$.cartItems[0].quantity").value(2))
+                .andExpect(jsonPath("$.cartItems[0].unitPrice.originalPrice").value(3000))
+                .andExpect(jsonPath("$.cartItems[0].unitPrice.discountRate").value(10))
+                .andExpect(jsonPath("$.cartItems[0].unitPrice.discountAmount").value(300))
+                .andExpect(jsonPath("$.cartItems[0].unitPrice.discountedPrice").value(2700))
+                .andExpect(jsonPath("$.cartItems[0].lineTotal").value(5400))
+                .andExpect(jsonPath("$.cartItems.length()").value(1))
+                .andExpect(jsonPath("$.cartTotalPrice").value(5400));
     }
 
     @Test

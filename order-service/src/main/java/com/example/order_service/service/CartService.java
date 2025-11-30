@@ -1,6 +1,7 @@
 package com.example.order_service.service;
 
 import com.example.order_service.common.MessageSourceUtil;
+import com.example.order_service.common.security.UserPrincipal;
 import com.example.order_service.controller.dto.CartItemRequest;
 import com.example.order_service.dto.response.CartItemResponse;
 import com.example.order_service.dto.response.CartResponse;
@@ -46,6 +47,10 @@ public class CartService{
     }
 
     public CartItemResponse addItem(AddCartItemDto addCartItemDto){
+        return null;
+    }
+
+    public CartResponse getCartItemList(UserPrincipal userPrincipal){
         return null;
     }
 
