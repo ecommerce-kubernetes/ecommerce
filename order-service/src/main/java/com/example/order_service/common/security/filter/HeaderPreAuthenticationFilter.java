@@ -1,0 +1,67 @@
+package com.example.order_service.common.security.filter;
+
+import com.example.order_service.common.advice.dto.ErrorResponse;
+import com.example.order_service.common.security.UserPrincipal;
+import com.example.order_service.common.security.UserRole;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.ws.rs.core.MediaType;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.filter.OncePerRequestFilter;
+
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.List;
+
+@Slf4j
+public class HeaderPreAuthenticationFilter extends OncePerRequestFilter {
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        String userIdHeader = request.getHeader("X-User-Id");
+        String userRoleHeader = request.getHeader("X-User-Role");
+        LocalDateTime requestAt = LocalDateTime.now();
+
+        if(userIdHeader == null || userRoleHeader == null){
+            writeErrorResponse(response, "인증 헤더가 존재하지 않습니다", requestAt, request.getRequestURI());
+            return;
+        }
+
+        try {
+            Long userId = Long.parseLong(userIdHeader);
+            UserRole userRole = UserRole.valueOf(userRoleHeader);
+            List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(userRole.name()));
+
+            UserPrincipal userPrincipal = UserPrincipal.of(userId, userRole);
+            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userPrincipal,
+                    null, authorities);
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+        } catch (NumberFormatException e) {
+            writeErrorResponse(response, "X-User-Id 헤더가 유효하지 않습니다", requestAt, request.getRequestURI());
+            return;
+        } catch (IllegalArgumentException e) {
+            writeErrorResponse(response, "X-User-Role 헤더가 유효하지 않습니다", requestAt, request.getRequestURI());
+            return;
+        }
+
+        filterChain.doFilter(request, response);
+    }
+
+    private void writeErrorResponse(HttpServletResponse response, String message, LocalDateTime requestAt, String requestUrl) throws IOException {
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setContentType(MediaType.APPLICATION_JSON);
+        //TODO Builder 사용
+        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.UNAUTHORIZED.toString(), message, requestAt.toString(), requestUrl);
+        response.getWriter()
+                .write(objectMapper.writeValueAsString(errorResponse));
+    }
+}

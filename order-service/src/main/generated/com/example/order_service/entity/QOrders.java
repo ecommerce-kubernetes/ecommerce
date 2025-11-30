@@ -22,6 +22,10 @@ public class QOrders extends EntityPathBase<Orders> {
 
     public final com.example.order_service.entity.base.QBaseEntity _super = new com.example.order_service.entity.base.QBaseEntity(this);
 
+    public final NumberPath<Long> amountToPay = createNumber("amountToPay", Long.class);
+
+    public final NumberPath<Long> couponDiscount = createNumber("couponDiscount", Long.class);
+
     //inherited
     public final DateTimePath<java.time.LocalDateTime> createAt = _super.createAt;
 
@@ -31,12 +35,18 @@ public class QOrders extends EntityPathBase<Orders> {
 
     public final ListPath<OrderItems, QOrderItems> orderItems = this.<OrderItems, QOrderItems>createList("orderItems", OrderItems.class, QOrderItems.class, PathInits.DIRECT2);
 
-    public final StringPath status = createString("status");
+    public final NumberPath<Long> originPrice = createNumber("originPrice", Long.class);
 
-    public final NumberPath<Integer> totalPrice = createNumber("totalPrice", Integer.class);
+    public final NumberPath<Long> pointDiscount = createNumber("pointDiscount", Long.class);
+
+    public final NumberPath<Long> prodDiscount = createNumber("prodDiscount", Long.class);
+
+    public final StringPath status = createString("status");
 
     //inherited
     public final DateTimePath<java.time.LocalDateTime> updateAt = _super.updateAt;
+
+    public final NumberPath<Long> usedCouponId = createNumber("usedCouponId", Long.class);
 
     public final NumberPath<Long> userId = createNumber("userId", Long.class);
 
