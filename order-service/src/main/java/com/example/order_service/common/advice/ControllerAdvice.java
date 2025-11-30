@@ -33,11 +33,6 @@ public class ControllerAdvice {
 
     }
 
-    @ExceptionHandler(MissingRequestHeaderException.class)
-    public ResponseEntity<ErrorResponse> missingHeaderExceptionHandler(HttpServletRequest request, MissingRequestHeaderException e){
-        return factory.toErrorResponseEntity(HttpStatus.BAD_REQUEST, e.getMessage(), request);
-    }
-
     @ExceptionHandler(NotFoundException.class)
     public ResponseEntity<ErrorResponse> notFoundExceptionHandler(HttpServletRequest request, NotFoundException e){
         LocalDateTime now = LocalDateTime.now();
@@ -45,11 +40,6 @@ public class ControllerAdvice {
         ErrorResponse response = ErrorResponse.toNotFound(message, now.toString(), request.getRequestURI());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
-
-//    @ExceptionHandler(NotFoundException.class)
-//    public ResponseEntity<ErrorResponse> notFoundExceptionHandler(HttpServletRequest request, NotFoundException e){
-//        return factory.toErrorResponseEntity(HttpStatus.NOT_FOUND, e.getMessage(), request);
-//    }
 
     @ExceptionHandler(InsufficientException.class)
     public ResponseEntity<ErrorResponse> insufficientExceptionHandler(HttpServletRequest request, InsufficientException e){

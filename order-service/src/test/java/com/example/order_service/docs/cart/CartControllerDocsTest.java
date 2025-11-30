@@ -1,6 +1,8 @@
 package com.example.order_service.docs.cart;
 
+import com.example.order_service.common.security.UserPrincipal;
 import com.example.order_service.controller.CartController;
+import com.example.order_service.controller.dto.UpdateQuantityRequest;
 import com.example.order_service.docs.RestDocSupport;
 import com.example.order_service.controller.dto.CartItemRequest;
 import com.example.order_service.dto.response.CartItemResponse;
@@ -8,6 +10,8 @@ import com.example.order_service.dto.response.CartResponse;
 import com.example.order_service.dto.response.ItemOptionResponse;
 import com.example.order_service.dto.response.UnitPrice;
 import com.example.order_service.service.CartService;
+import com.example.order_service.service.dto.AddCartItemDto;
+import com.example.order_service.service.dto.UpdateQuantityDto;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -53,7 +57,7 @@ public class CartControllerDocsTest extends RestDocSupport {
 
         HttpHeaders roleUser = createUserHeader("ROLE_USER");
         CartItemResponse cartItemResponse = createCartItemResponse();
-        given(cartService.addItem(anyLong(), any(CartItemRequest.class)))
+        given(cartService.addItem(any(AddCartItemDto.class)))
                 .willReturn(cartItemResponse);
         //when
         //then
@@ -107,7 +111,7 @@ public class CartControllerDocsTest extends RestDocSupport {
                 .cartItems(List.of(cartItem))
                 .cartTotalPrice(5700)
                 .build();
-        given(cartService.getCartItemList(anyLong()))
+        given(cartService.getCartItemList(any(UserPrincipal.class)))
                 .willReturn(response);
         //when
         //then
@@ -171,7 +175,7 @@ public class CartControllerDocsTest extends RestDocSupport {
     }
 
     @Test
-    @DisplayName("장바구니 비우기 API")
+    @DisplayName("장바구니 비우기")
     void clearCart() throws Exception {
         //given
         HttpHeaders roleUser = createUserHeader("ROLE_USER");
@@ -189,6 +193,55 @@ public class CartControllerDocsTest extends RestDocSupport {
                                 headerWithName("X-User-Role").description(USER_ROLE_HEADER_DESCRIPTION).optional()
                         )
                 ));
+    }
+
+    @Test
+    @DisplayName("장바구니 상품 수량 변경")
+    void updateQuantity() throws Exception {
+        //given
+        HttpHeaders roleUser = createUserHeader("ROLE_USER");
+        UpdateQuantityRequest request = UpdateQuantityRequest.builder()
+                .quantity(3)
+                .build();
+        CartItemResponse cartItemResponse = createCartItemResponse();
+        given(cartService.updateCartItemQuantity(any(UpdateQuantityDto.class)))
+                .willReturn(cartItemResponse);
+        //when
+        //then
+        mockMvc.perform(patch("/carts/{cartItemId}", 1)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
+                .headers(roleUser))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(
+                        document("updateCartItemQuantity",
+                                preprocessRequest(prettyPrint()),
+                                preprocessResponse(prettyPrint()),
+                                requestHeaders(
+                                        headerWithName("X-User-Id").description(USER_ID_HEADER_DESCRIPTION).optional(),
+                                        headerWithName("X-User-Role").description(USER_ROLE_HEADER_DESCRIPTION).optional()
+                                ),
+                                requestFields(
+                                        fieldWithPath("quantity").description("변경할 수량").optional()
+                                ),
+                                responseFields(
+                                        fieldWithPath("id").description("장바구니 상품 ID(장바구니 상품 식별자)"),
+                                        fieldWithPath("productId").description("상품 ID(상품 식별자)"),
+                                        fieldWithPath("productName").description("상품 이름"),
+                                        fieldWithPath("thumbNailUrl").description("상품 썸네일"),
+                                        fieldWithPath("quantity").description("수량"),
+                                        fieldWithPath("unitPrice.originalPrice").description("상품 원본 가격"),
+                                        fieldWithPath("unitPrice.discountRate").description("상품 할인율"),
+                                        fieldWithPath("unitPrice.discountAmount").description("상품 할인 금액"),
+                                        fieldWithPath("unitPrice.discountedPrice").description("할인된 가격"),
+                                        fieldWithPath("lineTotal").description("항목 총액 (상품 할인 가격 X 수량)"),
+                                        fieldWithPath("options[].optionTypeName").description("상품 옵션 타입 (예: 사이즈)"),
+                                        fieldWithPath("options[].optionValueName").description("상품 옵션 값 (예: XL)"),
+                                        fieldWithPath("available").description("주문 가능 여부")
+                                )
+                        )
+                );
     }
 
     private HttpHeaders createUserHeader(String userRole){
