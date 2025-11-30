@@ -1,13 +1,12 @@
 package com.example.order_service.controller.cart;
 
 import com.example.order_service.common.MessageSourceUtil;
-import com.example.order_service.common.advice.ControllerAdvice;
 import com.example.order_service.common.advice.ErrorResponseEntityFactory;
 import com.example.order_service.common.security.UserPrincipal;
-import com.example.order_service.common.security.UserRole;
 import com.example.order_service.config.TestConfig;
 import com.example.order_service.controller.ControllerTestSupport;
 import com.example.order_service.controller.dto.CartItemRequest;
+import com.example.order_service.controller.dto.UpdateQuantityRequest;
 import com.example.order_service.controller.security.WithCustomMockUser;
 import com.example.order_service.dto.response.CartItemResponse;
 import com.example.order_service.dto.response.CartResponse;
@@ -17,16 +16,14 @@ import com.example.order_service.exception.NoPermissionException;
 import com.example.order_service.exception.NotFoundException;
 import com.example.order_service.service.SseConnectionService;
 import com.example.order_service.service.dto.AddCartItemDto;
+import com.example.order_service.service.dto.UpdateQuantityDto;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.ResultActions;
@@ -38,7 +35,6 @@ import static com.example.order_service.util.ControllerTestHelper.*;
 import static com.example.order_service.util.TestMessageUtil.getMessage;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.*;
-import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -257,6 +253,119 @@ class CartControllerTest extends ControllerTestSupport {
                 .andExpect(jsonPath("$.timestamp").exists())
                 .andExpect(jsonPath("$.path").value("/carts/1"));
     }
+
+    @Test
+    @DisplayName("장바구니 상품 전체를 삭제한다")
+    @WithCustomMockUser
+    void clearCart() throws Exception {
+        //given
+        willDoNothing().given(cartService).clearAllCartItems(any(UserPrincipal.class));
+        //when
+        //then
+        mockMvc.perform(delete("/carts")
+                .contentType(MediaType.APPLICATION_JSON)
+                .with(SecurityMockMvcRequestPostProcessors.csrf()))
+                .andDo(print())
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @DisplayName("장바구니에 담긴 상품의 수량을 수정한다")
+    @WithCustomMockUser
+    void updateQuantity() throws Exception {
+        //given
+        UpdateQuantityRequest request = UpdateQuantityRequest.builder()
+                .quantity(3)
+                .build();
+
+        UnitPrice unitPrice = createUnitPrice(3000, 10);
+
+        ItemOptionResponse itemOption = ItemOptionResponse.builder()
+                .optionTypeName("사이즈")
+                .optionValueName("XL")
+                .build();
+
+        CartItemResponse response = CartItemResponse.builder()
+                .id(1L)
+                .productId(1L)
+                .productName("상품1")
+                .thumbNailUrl("http://thumbNail.jpg")
+                .quantity(3)
+                .unitPrice(unitPrice)
+                .lineTotal(unitPrice.getDiscountedPrice() * 3)
+                .options(List.of(itemOption))
+                .isAvailable(true)
+                .build();
+        given(cartService.updateCartItemQuantity(any(UpdateQuantityDto.class)))
+                .willReturn(response);
+        //when
+        //then
+        mockMvc.perform(patch("/carts/{cartItemId}", 1)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
+                        .with(SecurityMockMvcRequestPostProcessors.csrf()))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(response.getId()))
+                .andExpect(jsonPath("$.productId").value(response.getProductId()))
+                .andExpect(jsonPath("$.productName").value(response.getProductName()))
+                .andExpect(jsonPath("$.thumbNailUrl").value(response.getThumbNailUrl()))
+                .andExpect(jsonPath("$.quantity").value(response.getQuantity()))
+                .andExpect(jsonPath("$.unitPrice.originalPrice").value(response.getUnitPrice().getOriginalPrice()))
+                .andExpect(jsonPath("$.unitPrice.discountRate").value(response.getUnitPrice().getDiscountRate()))
+                .andExpect(jsonPath("$.unitPrice.discountAmount").value(response.getUnitPrice().getDiscountAmount()))
+                .andExpect(jsonPath("$.unitPrice.discountedPrice").value(response.getUnitPrice().getDiscountedPrice()));
+    }
+
+    @Test
+    @DisplayName("장바구니 상품 수량을 변경할때 수량은 1이상 이여야 한다")
+    @WithCustomMockUser
+    void updateQuantityWithQuantityLessThan1() throws Exception {
+        //given
+        UpdateQuantityRequest request = UpdateQuantityRequest.builder()
+                .quantity(0)
+                .build();
+        //when
+        //then
+        mockMvc.perform(patch("/carts/{cartItemId}", 1)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request))
+                .with(SecurityMockMvcRequestPostProcessors.csrf()))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("BAD_REQUEST"))
+                .andExpect(jsonPath("$.message").value("quantity는 1이상 이여야 합니다"))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/carts/1"));
+    }
+
+    @Test
+    @DisplayName("장바구니 상품 수량을 변경할때 장바구니에서 상품을 찾을 수 없는 경우 404 예외 응답을 반환한다")
+    @WithCustomMockUser
+    void updateQuantityThrowNotFound() throws Exception {
+        //given
+        UpdateQuantityRequest request = UpdateQuantityRequest.builder()
+                .quantity(5)
+                .build();
+
+        willThrow(new NotFoundException("장바구니에 해당 상품을 찾을 수 없습니다"))
+                .given(cartService).updateCartItemQuantity(any(UpdateQuantityDto.class));
+
+        //when
+        //then
+        mockMvc.perform(patch("/carts/{cartItemId}", 1)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
+                        .with(SecurityMockMvcRequestPostProcessors.csrf()))
+                .andDo(print())
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("NOT_FOUND"))
+                .andExpect(jsonPath("$.message").value("장바구니에 해당 상품을 찾을 수 없습니다"))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/carts/1"));
+
+    }
+
 
     @Test
     @DisplayName("장바구니 목록 조회 테스트-실패(헤더 없음)")

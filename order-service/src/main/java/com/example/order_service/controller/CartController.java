@@ -1,6 +1,7 @@
 package com.example.order_service.controller;
 
 import com.example.order_service.common.security.UserPrincipal;
+import com.example.order_service.controller.dto.UpdateQuantityRequest;
 import com.example.order_service.controller.util.specification.annotation.BadRequestApiResponse;
 import com.example.order_service.controller.util.specification.annotation.NotFoundApiResponse;
 import com.example.order_service.controller.dto.CartItemRequest;
@@ -8,6 +9,7 @@ import com.example.order_service.dto.response.CartItemResponse;
 import com.example.order_service.dto.response.CartResponse;
 import com.example.order_service.service.CartService;
 import com.example.order_service.service.dto.AddCartItemDto;
+import com.example.order_service.service.dto.UpdateQuantityDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -59,8 +61,16 @@ public class CartController {
     @Operation(summary = "장바구니 비우기")
     @BadRequestApiResponse
     @DeleteMapping
-    public ResponseEntity<Void> clearCart(@RequestHeader("X-User-Id") Long userId){
-        cartService.clearAllCartItems(userId);
+    public ResponseEntity<Void> clearCart(@AuthenticationPrincipal UserPrincipal userPrincipal){
+        cartService.clearAllCartItems(userPrincipal);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+
+    @PatchMapping("/{cartItemId}")
+    public ResponseEntity<CartItemResponse> updateQuantity(@AuthenticationPrincipal UserPrincipal userPrincipal,
+                                                           @RequestBody @Validated UpdateQuantityRequest request){
+        UpdateQuantityDto updateQuantityDto = UpdateQuantityDto.of(userPrincipal, request);
+        CartItemResponse response = cartService.updateCartItemQuantity(updateQuantityDto);
+        return ResponseEntity.ok(response);
     }
 }

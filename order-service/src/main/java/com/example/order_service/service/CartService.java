@@ -14,6 +14,7 @@ import com.example.order_service.repository.CartsRepository;
 import com.example.order_service.service.client.ProductClientService;
 import com.example.order_service.service.client.dto.ProductResponse;
 import com.example.order_service.service.dto.AddCartItemDto;
+import com.example.order_service.service.dto.UpdateQuantityDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -91,6 +92,14 @@ public class CartService{
 
     public void deleteCartItemById(UserPrincipal userPrincipal, Long cartItemId){
 
+    }
+
+    public void clearAllCartItems(UserPrincipal userPrincipal){
+
+    }
+
+    public CartItemResponse updateCartItemQuantity(UpdateQuantityDto updateQuantityDto) {
+        return null;
     }
 
     public void clearAllCartItems(Long userId) {
