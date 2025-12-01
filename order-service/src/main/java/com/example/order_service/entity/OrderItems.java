@@ -62,10 +62,10 @@ public class OrderItems extends BaseEntity {
                 productResponse.getProductVariantId(),
                 productResponse.getProductName(),
                 productResponse.getItemOptions(),
-                productResponse.getProductPrice().getUnitPrice(),
-                productResponse.getProductPrice().getDiscountRate(),
-                productResponse.getProductPrice().getDiscountedPrice(),
-                productResponse.getProductPrice().getDiscountedPrice() * orderItemRequest.getQuantity(),
+                productResponse.getUnitPrice().getOriginalPrice(),
+                productResponse.getUnitPrice().getDiscountRate(),
+                productResponse.getUnitPrice().getDiscountedPrice(),
+                productResponse.getUnitPrice().getDiscountedPrice() * orderItemRequest.getQuantity(),
                 orderItemRequest.getQuantity(),
                 productResponse.getThumbnailUrl());
     }

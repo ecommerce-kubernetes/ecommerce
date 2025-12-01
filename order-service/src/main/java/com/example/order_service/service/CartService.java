@@ -2,6 +2,7 @@ package com.example.order_service.service;
 
 import com.example.order_service.common.MessageSourceUtil;
 import com.example.order_service.common.security.UserPrincipal;
+import com.example.order_service.common.security.UserRole;
 import com.example.order_service.controller.dto.CartItemRequest;
 import com.example.order_service.dto.response.CartItemResponse;
 import com.example.order_service.dto.response.CartResponse;
@@ -39,15 +40,21 @@ public class CartService{
     private final CartItemsRepository cartItemsRepository;
     private final MessageSourceUtil ms;
 
-    public CartItemResponse addItem(Long userId, CartItemRequest request) {
-        ProductResponse productResponse = productClientService.fetchProductByVariantId(request.getProductVariantId());
-        Carts cart = findCartOrCreate(userId);
-        CartItems cartItem = cart.addItem(productResponse, request.getQuantity());
-        cartItemsRepository.save(cartItem);
-        return null;
-    }
+    public CartItemResponse addItem(AddCartItemDto dto){
+        UserPrincipal userPrincipal = dto.getUserPrincipal();
+        Long userId = userPrincipal.getUserId();
+        Optional<Carts> cartOptional = cartsRepository.findWithItemsByUserId(userId);
 
-    public CartItemResponse addItem(AddCartItemDto addCartItemDto){
+        if(cartOptional.isEmpty()){
+            Carts cart = Carts.builder()
+                    .userId(userId)
+                    .build();
+            ProductResponse product = productClientService.fetchProductByVariantId(dto.getProductVariantId());
+            CartItems cartItem = cart.addItem(product.getProductVariantId(), dto.getQuantity());
+            cartsRepository.save(cart);
+            return CartItemResponse.of(cartItem.getId(), cartItem.getQuantity(), product);
+        }
+
         return null;
     }
 

@@ -87,15 +87,6 @@ public class OrderService {
         long productDiscountAmount = 0;
         long discountedOrderItemPrice = 0;
 
-        for (Map.Entry<Long, ProductResponse> e : productByVariantId.entrySet()) {
-            Long variantId = e.getKey();
-            ProductResponse product = e.getValue();
-            Integer quantity = quantityMap.getOrDefault(variantId, 0);
-            originOrderItemsPrice += product.getProductPrice().getUnitPrice() * quantity;
-            productDiscountAmount += product.getProductPrice().getDiscountAmount() * quantity;
-            discountedOrderItemPrice += product.getProductPrice().getDiscountedPrice() * quantity;
-        }
-
         long couponDiscount = (data.getCoupon() != null) ? calcCouponDiscount(data.getCoupon(), discountedOrderItemPrice) : 0;
         long amountToPay = discountedOrderItemPrice - request.getPointToUse() - couponDiscount;
 

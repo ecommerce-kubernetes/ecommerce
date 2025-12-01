@@ -4,6 +4,7 @@ import com.example.order_service.entity.base.BaseEntity;
 import com.example.order_service.service.client.dto.ProductResponse;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -21,9 +22,10 @@ public class Carts extends BaseEntity {
     private Long id;
 
     private Long userId;
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "cart", cascade = CascadeType.PERSIST, orphanRemoval = true)
     List<CartItems> cartItems = new ArrayList<>();
 
+    @Builder
     public Carts(Long userId){
         this.userId = userId;
     }
@@ -40,17 +42,17 @@ public class Carts extends BaseEntity {
         cartItems.clear();
     }
 
-    public CartItems addItem(ProductResponse productResponse, int quantity){
-        Optional<CartItems> item = cartItems.stream().filter(ci -> productResponse.getProductVariantId().equals(ci.getProductVariantId()))
+    public CartItems addItem(Long productVariantId, int quantity){
+        Optional<CartItems> existCartItem = this.cartItems.stream()
+                .filter(item -> item.getProductVariantId().equals(productVariantId))
                 .findFirst();
 
-        if(item.isPresent()){
-            CartItems existingItem = item.get();
-            existingItem.addQuantity(quantity);
-            return existingItem;
+        if(existCartItem.isPresent()){
+            existCartItem.get().addQuantity(quantity);
+            return  existCartItem.get();
         } else {
-            CartItems cartItem = new CartItems(productResponse.getProductVariantId(), quantity);
-            addCartItem(cartItem);
+            CartItems cartItem = CartItems.of(productVariantId, quantity);
+            this.cartItems.add(cartItem);
             return cartItem;
         }
     }

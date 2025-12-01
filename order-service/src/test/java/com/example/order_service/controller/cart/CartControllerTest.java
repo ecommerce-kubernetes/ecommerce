@@ -12,26 +12,20 @@ import com.example.order_service.dto.response.CartItemResponse;
 import com.example.order_service.dto.response.CartResponse;
 import com.example.order_service.dto.response.ItemOptionResponse;
 import com.example.order_service.dto.response.UnitPrice;
-import com.example.order_service.exception.NoPermissionException;
 import com.example.order_service.exception.NotFoundException;
 import com.example.order_service.service.SseConnectionService;
 import com.example.order_service.service.dto.AddCartItemDto;
 import com.example.order_service.service.dto.UpdateQuantityDto;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.Import;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.ResultActions;
 
 import java.util.List;
 
-import static com.example.order_service.common.MessagePath.*;
-import static com.example.order_service.util.ControllerTestHelper.*;
 import static com.example.order_service.util.TestMessageUtil.getMessage;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.*;
@@ -71,7 +65,7 @@ class CartControllerTest extends ControllerTestSupport {
                 .id(1L)
                 .productId(1L)
                 .productName("상품1")
-                .thumbNailUrl("http://thumbNail.jpg")
+                .thumbnailUrl("http://thumbNail.jpg")
                 .quantity(quantity)
                 .unitPrice(unitPrice)
                 .lineTotal(unitPrice.getDiscountedPrice() * 2)
@@ -93,7 +87,7 @@ class CartControllerTest extends ControllerTestSupport {
                 .andExpect(jsonPath("$.id").value(response.getId()))
                 .andExpect(jsonPath("$.productId").value(response.getProductId()))
                 .andExpect(jsonPath("$.productName").value(response.getProductName()))
-                .andExpect(jsonPath("$.thumbNailUrl").value(response.getThumbNailUrl()))
+                .andExpect(jsonPath("$.thumbNailUrl").value(response.getThumbnailUrl()))
                 .andExpect(jsonPath("$.quantity").value(response.getQuantity()))
                 .andExpect(jsonPath("$.unitPrice.originalPrice").value(response.getUnitPrice().getOriginalPrice()))
                 .andExpect(jsonPath("$.unitPrice.discountRate").value(response.getUnitPrice().getDiscountRate()))
@@ -183,7 +177,7 @@ class CartControllerTest extends ControllerTestSupport {
                 .id(1L)
                 .productId(1L)
                 .productName("상품1")
-                .thumbNailUrl("http://thumbnail.jpg")
+                .thumbnailUrl("http://thumbnail.jpg")
                 .quantity(2)
                 .unitPrice(unitPrice)
                 .lineTotal(unitPrice.getDiscountedPrice() * 2)
@@ -289,7 +283,7 @@ class CartControllerTest extends ControllerTestSupport {
                 .id(1L)
                 .productId(1L)
                 .productName("상품1")
-                .thumbNailUrl("http://thumbNail.jpg")
+                .thumbnailUrl("http://thumbNail.jpg")
                 .quantity(3)
                 .unitPrice(unitPrice)
                 .lineTotal(unitPrice.getDiscountedPrice() * 3)
@@ -309,7 +303,7 @@ class CartControllerTest extends ControllerTestSupport {
                 .andExpect(jsonPath("$.id").value(response.getId()))
                 .andExpect(jsonPath("$.productId").value(response.getProductId()))
                 .andExpect(jsonPath("$.productName").value(response.getProductName()))
-                .andExpect(jsonPath("$.thumbNailUrl").value(response.getThumbNailUrl()))
+                .andExpect(jsonPath("$.thumbNailUrl").value(response.getThumbnailUrl()))
                 .andExpect(jsonPath("$.quantity").value(response.getQuantity()))
                 .andExpect(jsonPath("$.unitPrice.originalPrice").value(response.getUnitPrice().getOriginalPrice()))
                 .andExpect(jsonPath("$.unitPrice.discountRate").value(response.getUnitPrice().getDiscountRate()))

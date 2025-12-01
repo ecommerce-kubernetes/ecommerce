@@ -256,7 +256,7 @@ public class CartControllerDocsTest extends RestDocSupport {
                 .id(1L)
                 .productId(1L)
                 .productName("상품1")
-                .thumbNailUrl("http://thumbnail.jpg")
+                .thumbnailUrl("http://thumbnail.jpg")
                 .quantity(2)
                 .unitPrice(
                         UnitPrice.builder()

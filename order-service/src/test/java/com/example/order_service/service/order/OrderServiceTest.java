@@ -1,24 +1,14 @@
-package com.example.order_service.service;
+package com.example.order_service.service.order;
 
 import com.example.order_service.common.scheduler.PendingOrderTimeoutScheduler;
-import com.example.order_service.config.TestConfig;
-import com.example.order_service.dto.request.OrderItemRequest;
-import com.example.order_service.dto.request.OrderRequest;
-import com.example.order_service.dto.response.CreateOrderResponse;
 import com.example.order_service.dto.response.ItemOptionResponse;
 import com.example.order_service.entity.OrderItems;
 import com.example.order_service.entity.Orders;
-import com.example.order_service.exception.BadRequestException;
-import com.example.order_service.exception.InsufficientException;
-import com.example.order_service.exception.NotFoundException;
 import com.example.order_service.repository.OrdersRepository;
+import com.example.order_service.service.OrderService;
 import com.example.order_service.service.client.CouponClientService;
 import com.example.order_service.service.client.ProductClientService;
 import com.example.order_service.service.client.UserClientService;
-import com.example.order_service.service.client.dto.CouponResponse;
-import com.example.order_service.service.client.dto.ProductPrice;
-import com.example.order_service.service.client.dto.ProductResponse;
-import com.example.order_service.service.client.dto.UserBalanceResponse;
 import com.example.order_service.service.event.PendingOrderCreatedEvent;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,20 +20,15 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.groups.Tuple.tuple;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.when;
 
 @SpringBootTest
 class OrderServiceTest {
