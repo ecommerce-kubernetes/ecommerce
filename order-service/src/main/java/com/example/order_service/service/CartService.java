@@ -53,9 +53,13 @@ public class CartService{
             CartItems cartItem = cart.addItem(product.getProductVariantId(), dto.getQuantity());
             cartsRepository.save(cart);
             return CartItemResponse.of(cartItem.getId(), cartItem.getQuantity(), product);
+        } else {
+            Carts cart = cartOptional.get();
+            ProductResponse product = productClientService.fetchProductByVariantId(dto.getProductVariantId());
+            CartItems cartItem = cart.addItem(dto.getProductVariantId(), dto.getQuantity());
+            cartsRepository.saveAndFlush(cart);
+            return CartItemResponse.of(cartItem.getId(), cartItem.getQuantity(), product);
         }
-
-        return null;
     }
 
     public CartResponse getCartItemList(UserPrincipal userPrincipal){

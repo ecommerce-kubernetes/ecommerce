@@ -13,13 +13,11 @@ public class CartItems {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Setter
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cart_id")
     private Carts cart;
     private Long productVariantId;
     private int quantity;
-
 
     @Builder
     public CartItems(Long productVariantId, int quantity){
@@ -36,5 +34,9 @@ public class CartItems {
                 .productVariantId(productVariantId)
                 .quantity(quantity)
                 .build();
+    }
+
+    protected void setCart(Carts cart){
+        this.cart = cart;
     }
 }

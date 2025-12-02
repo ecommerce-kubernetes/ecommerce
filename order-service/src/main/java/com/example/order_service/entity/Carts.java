@@ -53,6 +53,7 @@ public class Carts extends BaseEntity {
         } else {
             CartItems cartItem = CartItems.of(productVariantId, quantity);
             this.cartItems.add(cartItem);
+            cartItem.setCart(this);
             return cartItem;
         }
     }
