@@ -48,7 +48,8 @@ class CartServiceTest extends ExcludeInfraIntegrationTestSupport {
     void addItem_firstAdd(){
         //given
         AddCartItemDto dto = createAddCartItemDto(1L, 3);
-        ProductResponse productResponse = createProductResponse(1L, 1L, "상품1", 3000L, 10, "http://thumbnail.jpg",
+        ProductResponse productResponse = createProductResponse(1L, 1L, "상품1",
+                3000L, 10, "http://thumbnail.jpg",
                 List.of(ItemOptionResponse.builder()
                         .optionTypeName("사이즈")
                         .optionValueName("XL")
@@ -308,13 +309,13 @@ class CartServiceTest extends ExcludeInfraIntegrationTestSupport {
                             assertThat(itemResponse1.getUnitPrice())
                                     .isNotNull()
                                     .extracting("originalPrice", "discountRate", "discountAmount", "discountedPrice")
-                                    .containsExactly(3000, 10, 300, 2700);
+                                    .containsExactly(3000L, 10, 300L, 2700L);
                             assertThat(itemResponse1.getOptions())
                                     .hasSize(1)
                                     .extracting("optionTypeName", "optionValueName")
                                     .containsExactly(tuple("사이즈", "XL"));
                         },
-                        itemResponse2 ->{
+                        itemResponse2 -> {
                             assertThat(itemResponse2.getId()).isNotNull();
                             assertThat(itemResponse2.getProductId()).isEqualTo(2L);
                             assertThat(itemResponse2.getProductName()).isEqualTo("상품2");
@@ -325,13 +326,14 @@ class CartServiceTest extends ExcludeInfraIntegrationTestSupport {
                             assertThat(itemResponse2.getUnitPrice())
                                     .isNotNull()
                                     .extracting("originalPrice", "discountRate", "discountAmount", "discountedPrice")
-                                    .containsExactly(5000, 10, 500, 4500);
+                                    .containsExactly(5000L, 10, 500L, 4500L);
                             assertThat(itemResponse2.getOptions())
                                     .hasSize(1)
                                     .extracting("optionTypeName", "optionValueName")
                                     .containsExactly(tuple("용량", "256GB"));
                         }
                 );
+        assertThat(response.getCartTotalPrice()).isEqualTo(17100);
     }
 
     private AddCartItemDto createAddCartItemDto(Long productVariantId, int quantity){

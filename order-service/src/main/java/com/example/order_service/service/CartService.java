@@ -21,10 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -63,9 +60,31 @@ public class CartService{
         if(cart.isEmpty()){
             return CartResponse.ofEmpty();
         } else {
+            List<Long> productVariantIds = cart.get().getCartItems().stream().map(CartItems::getProductVariantId).toList();
+            List<ProductResponse> products = productClientService.fetchProductByVariantIds(productVariantIds);
 
+            Map<Long, ProductResponse> productByVariantId  = products.stream().collect(Collectors.toMap(
+                    ProductResponse::getProductVariantId,
+                    Function.identity(),
+                    (existing, replacement) -> existing
+            ));
+
+            List<CartItemResponse> cartItemResponses = cart.get().getCartItems().stream()
+                    .map(cartItem -> {
+                        ProductResponse product = productByVariantId.get(cartItem.getProductVariantId());
+                        if (product == null) {
+                            return CartItemResponse.ofUnavailable(cartItem.getId(), cartItem.getQuantity());
+                        } else {
+                            return CartItemResponse.of(cartItem.getId(), cartItem.getQuantity(), product);
+                        }
+                    })
+                    .toList();
+
+            return CartResponse.builder()
+                    .cartItems(cartItemResponses)
+                    .cartTotalPrice(cartItemResponses.stream().mapToLong(CartItemResponse::getLineTotal).sum())
+                    .build();
         }
-        return null;
     }
 
     @Transactional(readOnly = true)
