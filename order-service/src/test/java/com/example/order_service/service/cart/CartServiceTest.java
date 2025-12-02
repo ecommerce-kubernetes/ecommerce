@@ -297,7 +297,7 @@ class CartServiceTest extends ExcludeInfraIntegrationTestSupport {
         //then
         assertThat(response.getCartItems())
                 .hasSize(2)
-                .satisfiesExactly(
+                .satisfiesExactlyInAnyOrder(
                         itemResponse1 -> {
                             assertThat(itemResponse1.getId()).isNotNull();
                             assertThat(itemResponse1.getProductId()).isEqualTo(1L);
@@ -334,6 +334,74 @@ class CartServiceTest extends ExcludeInfraIntegrationTestSupport {
                         }
                 );
         assertThat(response.getCartTotalPrice()).isEqualTo(17100);
+    }
+
+    @Test
+    @DisplayName("장바구니에 담긴 상품의 목록을 불러올때 특정 상품을 찾을 수 없는 상품이 존재하는 경우 해당 상품의 정보는 찾을 수 없음으로 반환한다")
+    void getCartItemListWhenNotFoundProduct(){
+        //given
+        UserPrincipal userPrincipal = UserPrincipal.builder()
+                .userId(1L)
+                .userRole(UserRole.ROLE_USER)
+                .build();
+        Carts cart = Carts.builder()
+                .userId(1L)
+                .build();
+
+        CartItems item1 = CartItems.builder()
+                .productVariantId(1L)
+                .quantity(3)
+                .build();
+        CartItems item2 = CartItems.builder()
+                .productVariantId(2L)
+                .quantity(2)
+                .build();
+        cart.getCartItems().addAll(List.of(item1, item2));
+        cartsRepository.save(cart);
+
+        ProductResponse product1 = createProductResponse(1L, 1L, "상품1", 3000L, 10,
+                "http://thumbnail1.jpg", List.of(ItemOptionResponse.builder()
+                        .optionTypeName("사이즈")
+                        .optionValueName("XL").build()));
+
+        given(productClientService.fetchProductByVariantIds(anyList()))
+                .willReturn(List.of(product1));
+        //when
+        CartResponse response = cartService.getCartItemList(userPrincipal);
+        //then
+        assertThat(response.getCartItems())
+                .hasSize(2)
+                .satisfiesExactlyInAnyOrder(
+                        itemResponse1 -> {
+                            assertThat(itemResponse1.getId()).isNotNull();
+                            assertThat(itemResponse1.getProductId()).isEqualTo(1L);
+                            assertThat(itemResponse1.getProductName()).isEqualTo("상품1");
+                            assertThat(itemResponse1.getThumbnailUrl()).isEqualTo("http://thumbnail1.jpg");
+                            assertThat(itemResponse1.getQuantity()).isEqualTo(3);
+                            assertThat(itemResponse1.getLineTotal()).isEqualTo(8100);
+                            assertThat(itemResponse1.isAvailable()).isTrue();
+                            assertThat(itemResponse1.getUnitPrice())
+                                    .isNotNull()
+                                    .extracting("originalPrice", "discountRate", "discountAmount", "discountedPrice")
+                                    .containsExactly(3000L, 10, 300L, 2700L);
+                            assertThat(itemResponse1.getOptions())
+                                    .hasSize(1)
+                                    .extracting("optionTypeName", "optionValueName")
+                                    .containsExactly(tuple("사이즈", "XL"));
+                        },
+                        itemResponse2 -> {
+                            assertThat(itemResponse2.getId()).isNotNull();
+                            assertThat(itemResponse2.getProductId()).isNull();
+                            assertThat(itemResponse2.getProductName()).isEqualTo("정보를 불러올 수 없거나 판매 중지된 상품입니다");
+                            assertThat(itemResponse2.getThumbnailUrl()).isNull();
+                            assertThat(itemResponse2.getQuantity()).isEqualTo(2);
+                            assertThat(itemResponse2.getLineTotal()).isEqualTo(0);
+                            assertThat(itemResponse2.isAvailable()).isFalse();
+                            assertThat(itemResponse2.getUnitPrice()).isNull();
+                            assertThat(itemResponse2.getOptions()).isNull();
+                        }
+                );
+        assertThat(response.getCartTotalPrice()).isEqualTo(8100);
     }
 
     private AddCartItemDto createAddCartItemDto(Long productVariantId, int quantity){

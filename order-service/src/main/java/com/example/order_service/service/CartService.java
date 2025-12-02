@@ -30,7 +30,6 @@ import static com.example.order_service.common.MessagePath.CART_ITEM_NO_PERMISSI
 
 @Service
 @RequiredArgsConstructor
-@Transactional
 @Slf4j
 public class CartService{
     private final ProductClientService productClientService;
@@ -38,6 +37,7 @@ public class CartService{
     private final CartItemsRepository cartItemsRepository;
     private final MessageSourceUtil ms;
 
+    @Transactional
     public CartItemResponse addItem(AddCartItemDto dto){
         UserPrincipal userPrincipal = dto.getUserPrincipal();
         Long userId = userPrincipal.getUserId();
@@ -60,30 +60,11 @@ public class CartService{
         if(cart.isEmpty()){
             return CartResponse.ofEmpty();
         } else {
-            List<Long> productVariantIds = cart.get().getCartItems().stream().map(CartItems::getProductVariantId).toList();
+            List<CartItems> cartItems = cart.get().getCartItems();
+            List<Long> productVariantIds = getProductVariantIds(cartItems);
             List<ProductResponse> products = productClientService.fetchProductByVariantIds(productVariantIds);
-
-            Map<Long, ProductResponse> productByVariantId  = products.stream().collect(Collectors.toMap(
-                    ProductResponse::getProductVariantId,
-                    Function.identity(),
-                    (existing, replacement) -> existing
-            ));
-
-            List<CartItemResponse> cartItemResponses = cart.get().getCartItems().stream()
-                    .map(cartItem -> {
-                        ProductResponse product = productByVariantId.get(cartItem.getProductVariantId());
-                        if (product == null) {
-                            return CartItemResponse.ofUnavailable(cartItem.getId(), cartItem.getQuantity());
-                        } else {
-                            return CartItemResponse.of(cartItem.getId(), cartItem.getQuantity(), product);
-                        }
-                    })
-                    .toList();
-
-            return CartResponse.builder()
-                    .cartItems(cartItemResponses)
-                    .cartTotalPrice(cartItemResponses.stream().mapToLong(CartItemResponse::getLineTotal).sum())
-                    .build();
+            List<CartItemResponse> cartItemResponses = mapToCartItemResponse(cartItems, products);
+            return CartResponse.from(cartItemResponses);
         }
     }
 
@@ -144,4 +125,28 @@ public class CartService{
                 .orElseThrow(() -> new NotFoundException(ms.getMessage(CART_ITEM_NOT_FOUND)));
     }
 
+
+    private List<CartItemResponse> mapToCartItemResponse(List<CartItems> cartItems, List<ProductResponse> products){
+        Map<Long, ProductResponse> productMap = products.stream().collect(Collectors.toMap(
+                ProductResponse::getProductVariantId,
+                Function.identity(),
+                (p1, p2) -> p1
+        ));
+
+        return cartItems.stream()
+                .map(item -> createCartItemResponse(item, productMap.get(item.getProductVariantId())))
+                .toList();
+    }
+
+    private CartItemResponse createCartItemResponse(CartItems item, ProductResponse product){
+        if(product == null){
+            return CartItemResponse.ofUnavailable(item.getId(), item.getQuantity());
+        }
+        return CartItemResponse.of(item.getId(), item.getQuantity(), product);
+    }
+
+    private List<Long> getProductVariantIds(List<CartItems> cartItems){
+        return cartItems.stream()
+                .map(CartItems::getProductVariantId).toList();
+    }
 }

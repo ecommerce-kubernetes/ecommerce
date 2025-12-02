@@ -20,4 +20,19 @@ public class CartResponse {
     public static CartResponse ofEmpty(){
         return CartResponse.builder().build();
     }
+
+    public static CartResponse from(List<CartItemResponse> cartItems){
+        long total = cartItems.stream()
+                .mapToLong(CartItemResponse::getLineTotal)
+                .sum();
+
+        return of(cartItems, total);
+    }
+
+    public static CartResponse of(List<CartItemResponse> cartItems, long cartTotalPrice){
+        return CartResponse.builder()
+                .cartItems(cartItems)
+                .cartTotalPrice(cartTotalPrice)
+                .build();
+    }
 }
