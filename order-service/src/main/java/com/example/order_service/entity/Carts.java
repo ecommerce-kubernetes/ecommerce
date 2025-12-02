@@ -62,4 +62,10 @@ public class Carts extends BaseEntity {
         cartItems.remove(cartItem);
         cartItem.setCart(null);
     }
+
+    public static Carts of(Long userId){
+        return Carts.builder()
+                .userId(userId)
+                .build();
+    }
 }

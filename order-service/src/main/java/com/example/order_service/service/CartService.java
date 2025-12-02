@@ -43,23 +43,17 @@ public class CartService{
     public CartItemResponse addItem(AddCartItemDto dto){
         UserPrincipal userPrincipal = dto.getUserPrincipal();
         Long userId = userPrincipal.getUserId();
-        Optional<Carts> cartOptional = cartsRepository.findWithItemsByUserId(userId);
 
-        if(cartOptional.isEmpty()){
-            Carts cart = Carts.builder()
-                    .userId(userId)
-                    .build();
-            ProductResponse product = productClientService.fetchProductByVariantId(dto.getProductVariantId());
-            CartItems cartItem = cart.addItem(product.getProductVariantId(), dto.getQuantity());
-            cartsRepository.save(cart);
-            return CartItemResponse.of(cartItem.getId(), cartItem.getQuantity(), product);
-        } else {
-            Carts cart = cartOptional.get();
-            ProductResponse product = productClientService.fetchProductByVariantId(dto.getProductVariantId());
-            CartItems cartItem = cart.addItem(dto.getProductVariantId(), dto.getQuantity());
-            cartsRepository.saveAndFlush(cart);
-            return CartItemResponse.of(cartItem.getId(), cartItem.getQuantity(), product);
-        }
+        Carts cart = cartsRepository.findWithItemsByUserId(userId)
+                .orElseGet(() -> cartsRepository.save(
+                        Carts.of(userId)
+                ));
+
+        ProductResponse product = productClientService.fetchProductByVariantId(dto.getProductVariantId());
+        CartItems cartItem = cart.addItem(dto.getProductVariantId(), dto.getQuantity());
+        CartItems save = cartItemsRepository.save(cartItem);
+
+        return CartItemResponse.of(save.getId(), save.getQuantity(), product);
     }
 
     public CartResponse getCartItemList(UserPrincipal userPrincipal){
@@ -121,11 +115,6 @@ public class CartService{
     private CartItems findWithCartByIdOrThrow(Long cartItemId){
         return cartItemsRepository.findWithCartById(cartItemId)
                 .orElseThrow(() -> new NotFoundException(ms.getMessage(CART_ITEM_NOT_FOUND)));
-    }
-
-    private Carts findCartOrCreate(Long userId){
-        return cartsRepository.findWithItemsByUserId(userId)
-                .orElseGet(() -> cartsRepository.save(new Carts(userId)));
     }
 
 }
