@@ -3,6 +3,8 @@ package com.example.order_service.common.advice;
 import com.example.order_service.common.advice.dto.ErrorResponse;
 import com.example.order_service.common.advice.dto.ValidationErrorResponse;
 import com.example.order_service.exception.*;
+import com.example.order_service.exception.server.InternalServerException;
+import com.example.order_service.exception.server.UnavailableServerException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -30,7 +32,6 @@ public class ControllerAdvice {
         String message = fieldErrors.get(0).getDefaultMessage();
         ErrorResponse response = ErrorResponse.toBadRequest(message, now.toString(), request.getRequestURI());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-
     }
 
     @ExceptionHandler(NotFoundException.class)
@@ -39,6 +40,22 @@ public class ControllerAdvice {
         String message = e.getMessage();
         ErrorResponse response = ErrorResponse.toNotFound(message, now.toString(), request.getRequestURI());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+
+    @ExceptionHandler(UnavailableServerException.class)
+    public ResponseEntity<ErrorResponse> unAvailableServerExceptionHandler(HttpServletRequest request, UnavailableServerException e){
+        LocalDateTime now = LocalDateTime.now();
+        String message = e.getMessage();
+        ErrorResponse response = ErrorResponse.toUnavailableServer(message, now.toString(), request.getRequestURI());
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(response);
+    }
+
+    @ExceptionHandler(InternalServerException.class)
+    public ResponseEntity<ErrorResponse> internalServerExceptionHandler(HttpServletRequest request, InternalServerException e){
+        LocalDateTime now = LocalDateTime.now();
+        String message = e.getMessage();
+        ErrorResponse response = ErrorResponse.toInternalServerError(message, now.toString(), request.getRequestURI());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
 
     @ExceptionHandler(InsufficientException.class)

@@ -6,7 +6,9 @@ import com.example.order_service.common.security.UserRole;
 import com.example.order_service.dto.response.CartItemResponse;
 import com.example.order_service.dto.response.ItemOptionResponse;
 import com.example.order_service.dto.response.UnitPrice;
+import com.example.order_service.entity.CartItems;
 import com.example.order_service.entity.Carts;
+import com.example.order_service.exception.NotFoundException;
 import com.example.order_service.repository.CartsRepository;
 import com.example.order_service.service.CartService;
 import com.example.order_service.service.ExcludeInfraIntegrationTestSupport;
@@ -22,10 +24,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willThrow;
 
 class CartServiceTest extends ExcludeInfraIntegrationTestSupport {
     @MockitoBean
@@ -150,6 +152,79 @@ class CartServiceTest extends ExcludeInfraIntegrationTestSupport {
                 .containsExactlyInAnyOrder(
                         tuple("사이즈", "XL")
                 );
+    }
+
+    @Test
+    @DisplayName("장바구니에 상품을 추가할때 추가하려는 상품이 이미 장바구니에 존재하는 상품이면 수량을 요청 수량만큼 증가시킨다")
+    void addItem_existProduct() {
+        //given
+        Carts cart = Carts.builder()
+                .userId(1L)
+                .build();
+        cart.addItem(1L, 3);
+        cartsRepository.save(cart);
+
+        AddCartItemDto dto = createAddCartItemDto(1L, 3);
+        ProductResponse productResponse = createProductResponse(1L, 1L, "상품1", 3000L, 10, "http://thumbnail.jpg",
+                List.of(ItemOptionResponse.builder()
+                        .optionTypeName("사이즈")
+                        .optionValueName("XL")
+                        .build()));
+        given(productClientService.fetchProductByVariantId(anyLong()))
+                .willReturn(productResponse);
+        //when
+        CartItemResponse response = cartService.addItem(dto);
+        //then
+        assertThat(response.getId()).isNotNull();
+        assertThat(response)
+                .extracting(
+                        "productId",
+                        "productName",
+                        "thumbnailUrl",
+                        "quantity",
+                        "lineTotal",
+                        "isAvailable"
+                )
+                .contains(
+                        1L, "상품1", "http://thumbnail.jpg", 6, 16200L, true
+                );
+
+        assertThat(response.getUnitPrice())
+                .extracting(
+                        "originalPrice",
+                        "discountRate",
+                        "discountAmount",
+                        "discountedPrice"
+                )
+                .contains(
+                        3000L,
+                        10,
+                        300L,
+                        2700L
+                );
+
+        assertThat(response.getOptions())
+                .extracting(
+                        "optionTypeName",
+                        "optionValueName"
+                )
+                .containsExactlyInAnyOrder(
+                        tuple("사이즈", "XL")
+                );
+    }
+
+    @Test
+    @DisplayName("장바구니에 상품을 추가할때 상품 정보를 불러올 수 없으면 404 예외를 반환한다")
+    void addItemWhenNotFoundProduct() {
+        //given
+        AddCartItemDto dto = createAddCartItemDto(1L, 3);
+        willThrow(new NotFoundException("해당 상품을 찾을 수 없습니다"))
+                .given(productClientService).fetchProductByVariantId(anyLong());
+        //when
+        //then
+        assertThatThrownBy(() -> cartService.addItem(dto))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage("해당 상품을 찾을 수 없습니다");
     }
 
     private AddCartItemDto createAddCartItemDto(Long productVariantId, int quantity){

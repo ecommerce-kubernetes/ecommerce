@@ -29,6 +29,14 @@ public class ErrorResponse {
         return of(HttpStatus.NOT_FOUND.name(), message, timestamp, path);
     }
 
+    public static ErrorResponse toUnavailableServer(String message, String timestamp, String path){
+        return of(HttpStatus.SERVICE_UNAVAILABLE.name(), message, timestamp, path);
+    }
+
+    public static ErrorResponse toInternalServerError(String message, String timestamp, String path){
+        return of(HttpStatus.INTERNAL_SERVER_ERROR.name(), message, timestamp, path);
+    }
+
     public static ErrorResponse of(String error, String message, String timestamp, String path) {
         return ErrorResponse.builder()
                 .error(error)
