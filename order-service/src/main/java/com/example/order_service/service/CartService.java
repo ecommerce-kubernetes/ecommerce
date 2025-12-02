@@ -21,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -57,6 +58,13 @@ public class CartService{
     }
 
     public CartResponse getCartItemList(UserPrincipal userPrincipal){
+        Long userId = userPrincipal.getUserId();
+        Optional<Carts> cart = cartsRepository.findWithItemsByUserId(userId);
+        if(cart.isEmpty()){
+            return CartResponse.ofEmpty();
+        } else {
+
+        }
         return null;
     }
 

@@ -16,4 +16,8 @@ public class CartResponse {
         this.cartItems = cartItems;
         this.cartTotalPrice = cartTotalPrice;
     }
+
+    public static CartResponse ofEmpty(){
+        return CartResponse.builder().build();
+    }
 }

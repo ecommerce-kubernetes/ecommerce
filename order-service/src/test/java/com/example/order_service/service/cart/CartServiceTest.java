@@ -4,11 +4,14 @@ import com.example.order_service.common.MessageSourceUtil;
 import com.example.order_service.common.security.UserPrincipal;
 import com.example.order_service.common.security.UserRole;
 import com.example.order_service.dto.response.CartItemResponse;
+import com.example.order_service.dto.response.CartResponse;
 import com.example.order_service.dto.response.ItemOptionResponse;
 import com.example.order_service.dto.response.UnitPrice;
 import com.example.order_service.entity.CartItems;
 import com.example.order_service.entity.Carts;
 import com.example.order_service.exception.NotFoundException;
+import com.example.order_service.exception.server.InternalServerException;
+import com.example.order_service.exception.server.UnavailableServerException;
 import com.example.order_service.repository.CartsRepository;
 import com.example.order_service.service.CartService;
 import com.example.order_service.service.ExcludeInfraIntegrationTestSupport;
@@ -25,7 +28,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
 
@@ -214,7 +217,7 @@ class CartServiceTest extends ExcludeInfraIntegrationTestSupport {
     }
 
     @Test
-    @DisplayName("장바구니에 상품을 추가할때 상품 정보를 불러올 수 없으면 404 예외를 반환한다")
+    @DisplayName("장바구니에 상품을 추가할때 상품 정보를 찾을 수 없으면 NotFoundException를 반환한다")
     void addItemWhenNotFoundProduct() {
         //given
         AddCartItemDto dto = createAddCartItemDto(1L, 3);
@@ -225,6 +228,110 @@ class CartServiceTest extends ExcludeInfraIntegrationTestSupport {
         assertThatThrownBy(() -> cartService.addItem(dto))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage("해당 상품을 찾을 수 없습니다");
+    }
+
+    @Test
+    @DisplayName("장바구니에 상품을 추가할때 상품 서비스에서 503에러가 발생하면 UnavailableServerException를 반환한다")
+    void addItemWhen503Error() {
+        //given
+        AddCartItemDto dto = createAddCartItemDto(1L, 3);
+        willThrow(new UnavailableServerException("상품을 불러올 수 없습니다 잠시후 다시 시도해주세요"))
+                .given(productClientService).fetchProductByVariantId(anyLong());
+        //when
+        //then
+        assertThatThrownBy(() -> cartService.addItem(dto))
+                .isInstanceOf(UnavailableServerException.class)
+                .hasMessage("상품을 불러올 수 없습니다 잠시후 다시 시도해주세요");
+    }
+
+    @Test
+    @DisplayName("장바구니에 상품을 추가할때 상품 서비스에서 500에러가 발생한 경우 InternalServerException을 반환한다")
+    void addItemWhen500Error() {
+        //given
+        AddCartItemDto dto = createAddCartItemDto(1L, 3);
+        willThrow(new InternalServerException("상품을 불러올 수 없습니다"))
+                .given(productClientService).fetchProductByVariantId(anyLong());
+        //when
+        //then
+        assertThatThrownBy(() -> cartService.addItem(dto))
+                .isInstanceOf(InternalServerException.class)
+                .hasMessage("상품을 불러올 수 없습니다");
+    }
+
+    @Test
+    @DisplayName("장바구니에 추가된 상품의 정보 목록을 조회한다")
+    void getCartItemList() {
+        //given
+        UserPrincipal userPrincipal = UserPrincipal.builder()
+                .userId(1L)
+                .userRole(UserRole.ROLE_USER)
+                .build();
+        Carts cart = Carts.builder()
+                .userId(1L)
+                .build();
+
+        CartItems item1 = CartItems.builder()
+                .productVariantId(1L)
+                .quantity(3)
+                .build();
+        CartItems item2 = CartItems.builder()
+                .productVariantId(2L)
+                .quantity(2)
+                .build();
+        cart.getCartItems().addAll(List.of(item1, item2));
+        cartsRepository.save(cart);
+
+        ProductResponse product1 = createProductResponse(1L, 1L, "상품1", 3000L, 10,
+                "http://thumbnail1.jpg", List.of(ItemOptionResponse.builder()
+                        .optionTypeName("사이즈")
+                        .optionValueName("XL").build()));
+        ProductResponse product2 = createProductResponse(2L, 2L, "상품2", 5000L, 10,
+                "http://thumbnail2.jpg", List.of(ItemOptionResponse.builder()
+                        .optionTypeName("용량")
+                        .optionValueName("256GB").build()));
+        given(productClientService.fetchProductByVariantIds(anyList()))
+                .willReturn(List.of(product1, product2));
+        //when
+        CartResponse response = cartService.getCartItemList(userPrincipal);
+        //then
+        assertThat(response.getCartItems())
+                .hasSize(2)
+                .satisfiesExactly(
+                        itemResponse1 -> {
+                            assertThat(itemResponse1.getId()).isNotNull();
+                            assertThat(itemResponse1.getProductId()).isEqualTo(1L);
+                            assertThat(itemResponse1.getProductName()).isEqualTo("상품1");
+                            assertThat(itemResponse1.getThumbnailUrl()).isEqualTo("http://thumbnail1.jpg");
+                            assertThat(itemResponse1.getQuantity()).isEqualTo(3);
+                            assertThat(itemResponse1.getLineTotal()).isEqualTo(8100);
+                            assertThat(itemResponse1.isAvailable()).isTrue();
+                            assertThat(itemResponse1.getUnitPrice())
+                                    .isNotNull()
+                                    .extracting("originalPrice", "discountRate", "discountAmount", "discountedPrice")
+                                    .containsExactly(3000, 10, 300, 2700);
+                            assertThat(itemResponse1.getOptions())
+                                    .hasSize(1)
+                                    .extracting("optionTypeName", "optionValueName")
+                                    .containsExactly(tuple("사이즈", "XL"));
+                        },
+                        itemResponse2 ->{
+                            assertThat(itemResponse2.getId()).isNotNull();
+                            assertThat(itemResponse2.getProductId()).isEqualTo(2L);
+                            assertThat(itemResponse2.getProductName()).isEqualTo("상품2");
+                            assertThat(itemResponse2.getThumbnailUrl()).isEqualTo("http://thumbnail2.jpg");
+                            assertThat(itemResponse2.getQuantity()).isEqualTo(2);
+                            assertThat(itemResponse2.getLineTotal()).isEqualTo(9000);
+                            assertThat(itemResponse2.isAvailable()).isTrue();
+                            assertThat(itemResponse2.getUnitPrice())
+                                    .isNotNull()
+                                    .extracting("originalPrice", "discountRate", "discountAmount", "discountedPrice")
+                                    .containsExactly(5000, 10, 500, 4500);
+                            assertThat(itemResponse2.getOptions())
+                                    .hasSize(1)
+                                    .extracting("optionTypeName", "optionValueName")
+                                    .containsExactly(tuple("용량", "256GB"));
+                        }
+                );
     }
 
     private AddCartItemDto createAddCartItemDto(Long productVariantId, int quantity){
