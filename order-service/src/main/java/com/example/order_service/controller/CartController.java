@@ -68,8 +68,9 @@ public class CartController {
 
     @PatchMapping("/{cartItemId}")
     public ResponseEntity<CartItemResponse> updateQuantity(@AuthenticationPrincipal UserPrincipal userPrincipal,
+                                                           @PathVariable("cartItemId") Long cartItemId,
                                                            @RequestBody @Validated UpdateQuantityRequest request){
-        UpdateQuantityDto updateQuantityDto = UpdateQuantityDto.of(userPrincipal, request);
+        UpdateQuantityDto updateQuantityDto = UpdateQuantityDto.of(userPrincipal, cartItemId, request);
         CartItemResponse response = cartService.updateCartItemQuantity(updateQuantityDto);
         return ResponseEntity.ok(response);
     }

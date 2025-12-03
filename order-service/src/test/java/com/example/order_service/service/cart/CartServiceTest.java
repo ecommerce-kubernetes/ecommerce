@@ -19,6 +19,7 @@ import com.example.order_service.service.ExcludeInfraIntegrationTestSupport;
 import com.example.order_service.service.client.ProductClientService;
 import com.example.order_service.service.client.dto.ProductResponse;
 import com.example.order_service.service.dto.AddCartItemDto;
+import com.example.order_service.service.dto.UpdateQuantityDto;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -558,6 +559,69 @@ class CartServiceTest extends ExcludeInfraIntegrationTestSupport {
         assertThatThrownBy(() -> cartService.clearAllCartItems(userPrincipal))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage("장바구니를 찾을 수 없습니다");
+    }
+
+    @Test
+    @DisplayName("장바구니 상품의 수량을 변경한다")
+    void updateCartItemQuantity() {
+        //given
+        Carts cart = Carts.builder().userId(1L).build();
+        CartItems item = CartItems.builder().productVariantId(1L).quantity(3).build();
+        cart.addCartItem(item);
+        cartsRepository.save(cart);
+
+        UserPrincipal userPrincipal = UserPrincipal.builder().userId(1L).userRole(UserRole.ROLE_USER).build();
+        UpdateQuantityDto dto = UpdateQuantityDto.builder()
+                .userPrincipal(userPrincipal)
+                .cartItemId(item.getId())
+                .quantity(2).build();
+
+        ProductResponse productResponse = createProductResponse(1L, 1L, "상품1", 3000L, 10, "http://thumbnail.jpg",
+                List.of(ItemOptionResponse.builder()
+                        .optionTypeName("사이즈")
+                        .optionValueName("XL")
+                        .build()));
+        given(productClientService.fetchProductByVariantId(anyLong()))
+                .willReturn(productResponse);
+        //when
+        CartItemResponse response = cartService.updateCartItemQuantity(dto);
+        //then
+        assertThat(response.getId()).isNotNull();
+        assertThat(response)
+                .extracting(
+                        "productId",
+                        "productName",
+                        "thumbnailUrl",
+                        "quantity",
+                        "lineTotal",
+                        "isAvailable"
+                )
+                .contains(
+                        1L, "상품1", "http://thumbnail.jpg", 3, 8100L, true
+                );
+
+        assertThat(response.getUnitPrice())
+                .extracting(
+                        "originalPrice",
+                        "discountRate",
+                        "discountAmount",
+                        "discountedPrice"
+                )
+                .contains(
+                        3000L,
+                        10,
+                        300L,
+                        2700L
+                );
+
+        assertThat(response.getOptions())
+                .extracting(
+                        "optionTypeName",
+                        "optionValueName"
+                )
+                .containsExactlyInAnyOrder(
+                        tuple("사이즈", "XL")
+                );
     }
 
     private AddCartItemDto createAddCartItemDto(Long productVariantId, int quantity){
