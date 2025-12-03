@@ -1,6 +1,5 @@
 package com.example.order_service.entity;
 
-import com.example.order_service.service.client.dto.ProductResponse;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -34,6 +33,11 @@ public class CartItems {
                 .productVariantId(productVariantId)
                 .quantity(quantity)
                 .build();
+    }
+
+    public void removeFromCart(){
+        this.cart.getCartItems().remove(this);
+        this.cart = null;
     }
 
     protected void setCart(Carts cart){

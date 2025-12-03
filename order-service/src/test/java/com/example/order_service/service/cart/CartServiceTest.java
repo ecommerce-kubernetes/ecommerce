@@ -19,6 +19,7 @@ import com.example.order_service.service.ExcludeInfraIntegrationTestSupport;
 import com.example.order_service.service.client.ProductClientService;
 import com.example.order_service.service.client.dto.ProductResponse;
 import com.example.order_service.service.dto.AddCartItemDto;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +43,8 @@ class CartServiceTest extends ExcludeInfraIntegrationTestSupport {
     private CartService cartService;
     @Autowired
     private CartsRepository cartsRepository;
+    @Autowired
+    private EntityManager em;
 
     @Test
     @DisplayName("처음 장바구니에 상품을 추가하면 장바구니를 생성하고 상품을 추가한다")
@@ -166,7 +169,11 @@ class CartServiceTest extends ExcludeInfraIntegrationTestSupport {
         Carts cart = Carts.builder()
                 .userId(1L)
                 .build();
-        cart.addItem(1L, 3);
+        CartItems cartItem = CartItems.builder()
+                .productVariantId(1L)
+                .quantity(3)
+                .build();
+        cart.addCartItem(cartItem);
         cartsRepository.save(cart);
 
         AddCartItemDto dto = createAddCartItemDto(1L, 3);
@@ -280,7 +287,8 @@ class CartServiceTest extends ExcludeInfraIntegrationTestSupport {
                 .productVariantId(2L)
                 .quantity(2)
                 .build();
-        cart.getCartItems().addAll(List.of(item1, item2));
+        cart.addCartItem(item1);
+        cart.addCartItem(item2);
         cartsRepository.save(cart);
 
         ProductResponse product1 = createProductResponse(1L, 1L, "상품1", 3000L, 10,
@@ -357,7 +365,8 @@ class CartServiceTest extends ExcludeInfraIntegrationTestSupport {
                 .productVariantId(2L)
                 .quantity(2)
                 .build();
-        cart.getCartItems().addAll(List.of(item1, item2));
+        cart.addCartItem(item1);
+        cart.addCartItem(item2);
         cartsRepository.save(cart);
 
         ProductResponse product1 = createProductResponse(1L, 1L, "상품1", 3000L, 10,
@@ -406,7 +415,7 @@ class CartServiceTest extends ExcludeInfraIntegrationTestSupport {
     }
 
     @Test
-    @DisplayName("")
+    @DisplayName("장바구니의 상품을 제거한다")
     void deleteCartItemById(){
         //given
         UserPrincipal userPrincipal = UserPrincipal.builder()
@@ -427,7 +436,8 @@ class CartServiceTest extends ExcludeInfraIntegrationTestSupport {
                 .quantity(2)
                 .build();
 
-        cart.getCartItems().addAll(List.of(item1, item2));
+        cart.addCartItem(item1);
+        cart.addCartItem(item2);
         cartsRepository.save(cart);
         //when
         cartService.deleteCartItemById(userPrincipal, 1L);
@@ -460,7 +470,7 @@ class CartServiceTest extends ExcludeInfraIntegrationTestSupport {
                 .quantity(3)
                 .build();
 
-        cart.getCartItems().add(item1);
+        cart.addCartItem(item1);
         cartsRepository.save(cart);
         //when
         //then
@@ -492,7 +502,8 @@ class CartServiceTest extends ExcludeInfraIntegrationTestSupport {
                 .quantity(2)
                 .build();
 
-        cart.getCartItems().addAll(List.of(item1, item2));
+        cart.addCartItem(item1);
+        cart.addCartItem(item2);
         cartsRepository.save(cart);
         //when
         //then
@@ -501,6 +512,53 @@ class CartServiceTest extends ExcludeInfraIntegrationTestSupport {
                 .hasMessage("장바구니의 상품을 삭제할 권한이 없습니다");
     }
 
+    @Test
+    @DisplayName("장바구니에 담긴 상품을 모두 삭제한다")
+    void clearCart() {
+        //given
+        UserPrincipal userPrincipal = UserPrincipal.builder()
+                .userId(1L)
+                .userRole(UserRole.ROLE_USER)
+                .build();
+
+        Carts cart = Carts.builder()
+                .userId(1L)
+                .build();
+
+        CartItems item1 = CartItems.builder()
+                .productVariantId(1L)
+                .quantity(3)
+                .build();
+        CartItems item2 = CartItems.builder()
+                .productVariantId(2L)
+                .quantity(2)
+                .build();
+
+        cart.addCartItem(item1);
+        cart.addCartItem(item2);
+        cartsRepository.save(cart);
+        //when
+        cartService.clearAllCartItems(userPrincipal);
+        //then
+        Optional<Carts> findCart = cartsRepository.findWithItemsByUserId(1L);
+        assertThat(findCart).isNotEmpty();
+        assertThat(findCart.get().getCartItems()).hasSize(0);
+    }
+
+    @Test
+    @DisplayName("장바구니 상품을 모두 삭제할때 유저의 장바구니가 없는 경우 404 예외를 반환한다")
+    void clearCartWhenNotFoundUserCart() {
+        //given
+        UserPrincipal userPrincipal = UserPrincipal.builder()
+                .userId(1L)
+                .userRole(UserRole.ROLE_USER)
+                .build();
+        //when
+        //then
+        assertThatThrownBy(() -> cartService.clearAllCartItems(userPrincipal))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage("장바구니를 찾을 수 없습니다");
+    }
 
     private AddCartItemDto createAddCartItemDto(Long productVariantId, int quantity){
         return AddCartItemDto.builder()

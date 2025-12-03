@@ -2,8 +2,6 @@ package com.example.order_service.service;
 
 import com.example.order_service.common.MessageSourceUtil;
 import com.example.order_service.common.security.UserPrincipal;
-import com.example.order_service.common.security.UserRole;
-import com.example.order_service.controller.dto.CartItemRequest;
 import com.example.order_service.dto.response.CartItemResponse;
 import com.example.order_service.dto.response.CartResponse;
 import com.example.order_service.entity.CartItems;
@@ -70,23 +68,28 @@ public class CartService{
         }
     }
 
-    public void deleteCartItemById(Long userId, Long cartItemId) {
-        CartItems cartItem = findWithCartByIdOrThrow(cartItemId);
-        if(!cartItem.getCart().getUserId().equals(userId)){
-            throw new NoPermissionException(ms.getMessage(CART_ITEM_NO_PERMISSION));
+    // 상품을 찾을 수 없을때 404 또는 204..?
+    @Transactional
+    public void deleteCartItemById(UserPrincipal userPrincipal, Long cartItemId){
+        CartItems cartItem = cartItemsRepository.findWithCartById(cartItemId)
+                .orElseThrow(() -> new NotFoundException("장바구니에 해당 상품을 찾을 수 없습니다"));
+
+        if(!cartItem.getCart().getUserId().equals(userPrincipal.getUserId())){
+            throw new NoPermissionException("장바구니의 상품을 삭제할 권한이 없습니다");
         }
-        cartItem.getCart().removeCartItem(cartItem);
+        cartItem.removeFromCart();
+        cartItemsRepository.delete(cartItem);
     }
 
     @Transactional
-    public void deleteCartItemById(UserPrincipal userPrincipal, Long cartItemId){
-        Long userId = userPrincipal.getUserId();
-        CartItems cartItem = cartItemsRepository.findById(cartItemId)
-                .orElseThrow(() -> new NotFoundException("장바구니에 해당 상품을 찾을 수 없습니다"));
-    }
-
     public void clearAllCartItems(UserPrincipal userPrincipal){
+        Long userId = userPrincipal.getUserId();
+        Optional<Carts> cart = cartsRepository.findWithItemsByUserId(userId);
+        if(cart.isEmpty()){
+            throw new NotFoundException("장바구니를 찾을 수 없습니다");
+        }
 
+        cart.get().clearItems();
     }
 
     public CartItemResponse updateCartItemQuantity(UpdateQuantityDto updateQuantityDto) {

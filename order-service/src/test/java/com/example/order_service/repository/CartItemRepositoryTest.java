@@ -38,7 +38,7 @@ public class CartItemRepositoryTest {
                 .quantity(3)
                 .build();
 
-        cart.getCartItems().add(item);
+        cart.addCartItem(item);
         cartsRepository.save(cart);
 
         Session session = em.unwrap(Session.class);
