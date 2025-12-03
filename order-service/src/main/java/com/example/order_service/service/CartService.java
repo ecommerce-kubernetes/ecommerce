@@ -54,6 +54,8 @@ public class CartService{
         return CartItemResponse.of(save.getId(), save.getQuantity(), product);
     }
 
+    // 단순 조회 로직인 메서드에서 외부 서비스 호출 로직이 메서드 안에 존재하므로
+    // 서비스 레이어에서 @Transactional을 사용하지 않고 리포지토리 레이어의 @Transactional 사용
     public CartResponse getCartItemList(UserPrincipal userPrincipal){
         Long userId = userPrincipal.getUserId();
         Optional<Carts> cart = cartsRepository.findWithItemsByUserId(userId);
@@ -68,33 +70,6 @@ public class CartService{
         }
     }
 
-    @Transactional(readOnly = true)
-    public CartResponse getCartItemList(Long userId) {
-        Optional<Carts> optionalCart = cartsRepository.findWithItemsByUserId(userId);
-        if(optionalCart.isEmpty()){
-            return CartResponse.builder()
-                    .cartItems(List.of())
-                    .cartTotalPrice(0)
-                    .build();
-        }
-
-        Carts cart = optionalCart.get();
-
-        if(cart.getCartItems().isEmpty()){
-            return CartResponse.builder()
-                    .cartItems(List.of())
-                    .cartTotalPrice(0)
-                    .build();
-        }
-        return null;
-    }
-
-    private Map<Long, ProductResponse> fetchProductResponseToMap(List<CartItems> items){
-        List<Long> ids = items.stream().map(CartItems::getProductVariantId).toList();
-        return productClientService.fetchProductByVariantIds(ids)
-                .stream().collect(Collectors.toMap(ProductResponse::getProductVariantId, Function.identity()));
-    }
-
     public void deleteCartItemById(Long userId, Long cartItemId) {
         CartItems cartItem = findWithCartByIdOrThrow(cartItemId);
         if(!cartItem.getCart().getUserId().equals(userId)){
@@ -103,8 +78,11 @@ public class CartService{
         cartItem.getCart().removeCartItem(cartItem);
     }
 
+    @Transactional
     public void deleteCartItemById(UserPrincipal userPrincipal, Long cartItemId){
-
+        Long userId = userPrincipal.getUserId();
+        CartItems cartItem = cartItemsRepository.findById(cartItemId)
+                .orElseThrow(() -> new NotFoundException("장바구니에 해당 상품을 찾을 수 없습니다"));
     }
 
     public void clearAllCartItems(UserPrincipal userPrincipal){
