@@ -68,7 +68,6 @@ public class CartService{
         }
     }
 
-    // 상품을 찾을 수 없을때 404 또는 204..?
     @Transactional
     public void deleteCartItemById(UserPrincipal userPrincipal, Long cartItemId){
         CartItems cartItem = cartItemsRepository.findWithCartById(cartItemId)
@@ -88,7 +87,6 @@ public class CartService{
         if(cart.isEmpty()){
             throw new NotFoundException("장바구니를 찾을 수 없습니다");
         }
-
         cart.get().clearItems();
     }
 

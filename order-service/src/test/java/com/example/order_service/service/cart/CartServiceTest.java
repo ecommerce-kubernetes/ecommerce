@@ -227,7 +227,7 @@ class CartServiceTest extends ExcludeInfraIntegrationTestSupport {
     }
 
     @Test
-    @DisplayName("장바구니에 상품을 추가할때 상품 정보를 찾을 수 없으면 NotFoundException를 반환한다")
+    @DisplayName("장바구니에 상품을 추가할때 상품 서비스에서 상품 정보를 찾을 수 없으면 NotFoundException를 반환한다")
     void addItemWhenNotFoundProduct() {
         //given
         AddCartItemDto dto = createAddCartItemDto(1L, 3);
@@ -622,6 +622,66 @@ class CartServiceTest extends ExcludeInfraIntegrationTestSupport {
                 .containsExactlyInAnyOrder(
                         tuple("사이즈", "XL")
                 );
+    }
+
+    @Test
+    @DisplayName("장바구니 상품의 수량을 변경할때 장바구니에 상품을 찾을 수 없는 경우 404 예외를 반환한다")
+    void updateCartItemQuantityWhenNotFoundCartItem() {
+        //given
+        UserPrincipal userPrincipal = UserPrincipal.builder()
+                .userId(1L)
+                .userRole(UserRole.ROLE_USER)
+                .build();
+
+        UpdateQuantityDto dto = UpdateQuantityDto.builder()
+                .userPrincipal(userPrincipal)
+                .cartItemId(1L)
+                .quantity(3)
+                .build();
+        //when
+        //then
+        assertThatThrownBy(() -> cartService.updateCartItemQuantity(dto))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage("상품을 찾을 수 없습니다");
+    }
+
+    @Test
+    @DisplayName("장바구니의 상품 수량을 변경할때 상품을 찾을 수 없는 경우 해당 상품의 정보는 찾을 수 없음으로 반환한다")
+    void updateCartItemQuantityWhenNotFoundProduct() {
+        //given
+        UserPrincipal userPrincipal = UserPrincipal.builder()
+                .userId(1L)
+                .userRole(UserRole.ROLE_USER)
+                .build();
+
+        UpdateQuantityDto dto = UpdateQuantityDto.builder()
+                .userPrincipal(userPrincipal)
+                .cartItemId(1L)
+                .quantity(3)
+                .build();
+
+        willThrow(new NotFoundException("상품을 찾을 수 없습니다"))
+                .given(productClientService)
+                .fetchProductByVariantId(anyLong());
+        //when
+        CartItemResponse response = cartService.updateCartItemQuantity(dto);
+        //then
+        assertThat(response.getId()).isNotNull();
+        assertThat(response)
+                .extracting(
+                        "productId",
+                        "productName",
+                        "thumbnailUrl",
+                        "quantity",
+                        "lineTotal",
+                        "isAvailable"
+                )
+                .contains(
+                        null, "정보를 불러올 수 없거나 판매 중지된 상품입니다", null, 3, 0, false
+                );
+
+        assertThat(response.getUnitPrice()).isNull();
+        assertThat(response.getOptions()).isNull();
     }
 
     private AddCartItemDto createAddCartItemDto(Long productVariantId, int quantity){
