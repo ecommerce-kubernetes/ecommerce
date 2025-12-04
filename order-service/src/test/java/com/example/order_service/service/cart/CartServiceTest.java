@@ -441,7 +441,7 @@ class CartServiceTest extends ExcludeInfraIntegrationTestSupport {
         cart.addCartItem(item2);
         cartsRepository.save(cart);
         //when
-        cartService.deleteCartItemById(userPrincipal, 1L);
+        cartService.deleteCartItemById(userPrincipal, item1.getId());
         //then
         Optional<Carts> findCart = cartsRepository.findWithItemsByUserId(1L);
         assertThat(findCart).isNotEmpty();
@@ -597,7 +597,7 @@ class CartServiceTest extends ExcludeInfraIntegrationTestSupport {
                         "isAvailable"
                 )
                 .contains(
-                        1L, "상품1", "http://thumbnail.jpg", 3, 8100L, true
+                        1L, "상품1", "http://thumbnail.jpg", 5, 13500L, true
                 );
 
         assertThat(response.getUnitPrice())
@@ -625,7 +625,7 @@ class CartServiceTest extends ExcludeInfraIntegrationTestSupport {
     }
 
     @Test
-    @DisplayName("장바구니 상품의 수량을 변경할때 장바구니에 상품을 찾을 수 없는 경우 404 예외를 반환한다")
+    @DisplayName("장바구니 상품의 수량을 변경할때 장바구니에 해당 상품이 존재하지 않을때 404 예외를 반환한다")
     void updateCartItemQuantityWhenNotFoundCartItem() {
         //given
         UserPrincipal userPrincipal = UserPrincipal.builder()
@@ -642,13 +642,45 @@ class CartServiceTest extends ExcludeInfraIntegrationTestSupport {
         //then
         assertThatThrownBy(() -> cartService.updateCartItemQuantity(dto))
                 .isInstanceOf(NotFoundException.class)
-                .hasMessage("상품을 찾을 수 없습니다");
+                .hasMessage("장바구니에 해당 상품을 찾을 수 없습니다");
     }
 
     @Test
-    @DisplayName("장바구니의 상품 수량을 변경할때 상품을 찾을 수 없는 경우 해당 상품의 정보는 찾을 수 없음으로 반환한다")
+    @DisplayName("장바구니 상품 수량을 변경할때 userId가 동일하지 않는 경우 NoPermissionException")
+    void updateCartItemQuantityWhenNotMatchCartUserId(){
+        //given
+        Carts cart = Carts.builder().userId(1L).build();
+        CartItems item = CartItems.builder().productVariantId(1L).quantity(3).build();
+        cart.addCartItem(item);
+        cartsRepository.save(cart);
+
+        UserPrincipal userPrincipal = UserPrincipal.builder()
+                .userId(2L)
+                .userRole(UserRole.ROLE_USER)
+                .build();
+
+        UpdateQuantityDto dto = UpdateQuantityDto.builder()
+                .userPrincipal(userPrincipal)
+                .cartItemId(item.getId())
+                .quantity(3)
+                .build();
+        //when
+        //then
+        assertThatThrownBy(() -> cartService.updateCartItemQuantity(dto))
+                .isInstanceOf(NoPermissionException.class)
+                .hasMessage("장바구니의 상품을 삭제할 권한이 없습니다");
+    }
+
+
+    @Test
+    @DisplayName("장바구니의 상품 수량을 변경할때 상품 서비스에서 상품을 찾을 수 없는 경우 해당 상품의 정보는 찾을 수 없음으로 반환한다")
     void updateCartItemQuantityWhenNotFoundProduct() {
         //given
+        Carts cart = Carts.builder().userId(1L).build();
+        CartItems item = CartItems.builder().productVariantId(1L).quantity(3).build();
+        cart.addCartItem(item);
+        cartsRepository.save(cart);
+
         UserPrincipal userPrincipal = UserPrincipal.builder()
                 .userId(1L)
                 .userRole(UserRole.ROLE_USER)
@@ -656,7 +688,7 @@ class CartServiceTest extends ExcludeInfraIntegrationTestSupport {
 
         UpdateQuantityDto dto = UpdateQuantityDto.builder()
                 .userPrincipal(userPrincipal)
-                .cartItemId(1L)
+                .cartItemId(item.getId())
                 .quantity(3)
                 .build();
 
@@ -677,7 +709,7 @@ class CartServiceTest extends ExcludeInfraIntegrationTestSupport {
                         "isAvailable"
                 )
                 .contains(
-                        null, "정보를 불러올 수 없거나 판매 중지된 상품입니다", null, 3, 0, false
+                        null, "정보를 불러올 수 없거나 판매 중지된 상품입니다", null, 3, 0L, false
                 );
 
         assertThat(response.getUnitPrice()).isNull();

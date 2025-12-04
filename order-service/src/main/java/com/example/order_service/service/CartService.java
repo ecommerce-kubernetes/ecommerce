@@ -91,13 +91,23 @@ public class CartService{
     }
 
     public CartItemResponse updateCartItemQuantity(UpdateQuantityDto updateQuantityDto) {
-        return null;
+        Long cartItemId = updateQuantityDto.getCartItemId();
+        CartItems cartItem = cartItemsRepository.findWithCartById(cartItemId)
+                .orElseThrow(() -> new NotFoundException("장바구니에 해당 상품을 찾을 수 없습니다"));
+
+        if(!cartItem.getCart().getUserId().equals(updateQuantityDto.getUserPrincipal().getUserId())){
+            throw new NoPermissionException("장바구니의 상품을 삭제할 권한이 없습니다");
+        }
+
+        try {
+            ProductResponse product = productClientService.fetchProductByVariantId(cartItem.getProductVariantId());
+            cartItem.addQuantity(updateQuantityDto.getQuantity());
+            return CartItemResponse.of(cartItem.getId(), cartItem.getQuantity(), product);
+        } catch (NotFoundException e) {
+            return CartItemResponse.ofUnavailable(cartItem.getId(), cartItem.getQuantity());
+        }
     }
 
-    public void clearAllCartItems(Long userId) {
-        Optional<Carts> cart = cartsRepository.findWithItemsByUserId(userId);
-        cart.ifPresent(Carts::clearItems);
-    }
 
     private CartItems findWithCartByIdOrThrow(Long cartItemId){
         return cartItemsRepository.findWithCartById(cartItemId)
