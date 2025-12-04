@@ -75,6 +75,9 @@ public class ControllerAdvice {
 
     @ExceptionHandler(NoPermissionException.class)
     public ResponseEntity<ErrorResponse> noPermissionExceptionHandler(HttpServletRequest request, NoPermissionException e){
-        return factory.toErrorResponseEntity(HttpStatus.FORBIDDEN, e.getMessage(), request);
+        LocalDateTime now = LocalDateTime.now();
+        String message = e.getMessage();
+        ErrorResponse response = ErrorResponse.toNoPermission(message, now.toString(), request.getRequestURI());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
     }
 }

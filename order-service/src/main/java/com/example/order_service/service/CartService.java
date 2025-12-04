@@ -108,13 +108,6 @@ public class CartService{
         }
     }
 
-
-    private CartItems findWithCartByIdOrThrow(Long cartItemId){
-        return cartItemsRepository.findWithCartById(cartItemId)
-                .orElseThrow(() -> new NotFoundException(ms.getMessage(CART_ITEM_NOT_FOUND)));
-    }
-
-
     private List<CartItemResponse> mapToCartItemResponse(List<CartItems> cartItems, List<ProductResponse> products){
         Map<Long, ProductResponse> productMap = products.stream().collect(Collectors.toMap(
                 ProductResponse::getProductVariantId,

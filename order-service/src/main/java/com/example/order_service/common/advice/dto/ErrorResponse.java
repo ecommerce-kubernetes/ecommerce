@@ -37,6 +37,10 @@ public class ErrorResponse {
         return of(HttpStatus.INTERNAL_SERVER_ERROR.name(), message, timestamp, path);
     }
 
+    public static ErrorResponse toNoPermission(String message, String timestamp, String path){
+        return of(HttpStatus.FORBIDDEN.name(), message, timestamp, path);
+    }
+
     public static ErrorResponse of(String error, String message, String timestamp, String path) {
         return ErrorResponse.builder()
                 .error(error)
