@@ -12,8 +12,6 @@ import com.example.order_service.api.cart.domain.model.CartItems;
 import com.example.order_service.api.cart.domain.model.Carts;
 import com.example.order_service.exception.NoPermissionException;
 import com.example.order_service.exception.NotFoundException;
-import com.example.order_service.exception.server.InternalServerException;
-import com.example.order_service.exception.server.UnavailableServerException;
 import com.example.order_service.api.cart.domain.repository.CartsRepository;
 import com.example.order_service.service.ExcludeInfraIntegrationTestSupport;
 import com.example.order_service.service.client.ProductClientService;

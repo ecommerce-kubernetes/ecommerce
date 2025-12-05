@@ -42,23 +42,6 @@ public class CartService{
         return CartItemDto.of(savedItem.getId(), savedItem.getProductVariantId(), savedItem.getQuantity());
     }
 
-    @Transactional
-    public CartItemResponse addItem(AddCartItemDto dto){
-        UserPrincipal userPrincipal = dto.getUserPrincipal();
-        Long userId = userPrincipal.getUserId();
-
-        Carts cart = cartsRepository.findWithItemsByUserId(userId)
-                .orElseGet(() -> cartsRepository.save(
-                        Carts.of(userId)
-                ));
-
-        ProductResponse product = productClientService.fetchProductByVariantId(dto.getProductVariantId());
-        CartItems cartItem = cart.addItem(dto.getProductVariantId(), dto.getQuantity());
-        CartItems save = cartItemsRepository.save(cartItem);
-
-        return CartItemResponse.of(save.getId(), save.getQuantity(), product);
-    }
-
     // 단순 조회 로직인 메서드에서 외부 서비스 호출 로직이 메서드 안에 존재하므로
     // 서비스 레이어에서 @Transactional을 사용하지 않고 리포지토리 레이어의 @Transactional 사용
     public CartResponse getCartItemList(UserPrincipal userPrincipal){

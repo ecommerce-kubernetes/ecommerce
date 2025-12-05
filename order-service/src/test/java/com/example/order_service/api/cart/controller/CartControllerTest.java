@@ -14,7 +14,7 @@ import com.example.order_service.dto.response.ItemOptionResponse;
 import com.example.order_service.dto.response.UnitPrice;
 import com.example.order_service.exception.NotFoundException;
 import com.example.order_service.exception.server.InternalServerException;
-import com.example.order_service.exception.server.UnavailableServerException;
+import com.example.order_service.exception.server.UnavailableServiceException;
 import com.example.order_service.service.SseConnectionService;
 import com.example.order_service.api.cart.application.dto.command.AddCartItemDto;
 import com.example.order_service.api.cart.application.dto.command.UpdateQuantityDto;
@@ -65,6 +65,7 @@ class CartControllerTest extends ControllerTestSupport {
         CartItemResponse response = CartItemResponse.builder()
                 .id(1L)
                 .productId(1L)
+                .productVariantId(1L)
                 .productName("상품1")
                 .thumbnailUrl("http://thumbNail.jpg")
                 .quantity(quantity)
@@ -87,6 +88,7 @@ class CartControllerTest extends ControllerTestSupport {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(response.getId()))
                 .andExpect(jsonPath("$.productId").value(response.getProductId()))
+                .andExpect(jsonPath("$.productVariantId").value(response.getProductVariantId()))
                 .andExpect(jsonPath("$.productName").value(response.getProductName()))
                 .andExpect(jsonPath("$.thumbnailUrl").value(response.getThumbnailUrl()))
                 .andExpect(jsonPath("$.quantity").value(response.getQuantity()))
@@ -164,16 +166,16 @@ class CartControllerTest extends ControllerTestSupport {
     }
 
     @Test
-    @DisplayName("장바구니에 상품을 추가할때 상품을 찾을 수 없으면 404 에러 응답을 반환한다")
+    @DisplayName("장바구니에 상품을 추가할때 CartApplicationService 에서 NotFoundException이 던져지면 404 에러 응답을 반환한다")
     @WithCustomMockUser
-    void addCartItemWhenNotFoundProduct() throws Exception {
+    void addCartItem_When_NotFoundException_Thrown_In_CartApplicationService() throws Exception {
         //given
         CartItemRequest request = CartItemRequest.builder()
                 .productVariantId(1L)
                 .quantity(1)
                 .build();
         willThrow(new NotFoundException("해당 상품을 찾을 수 없습니다"))
-                .given(cartService).addItem(any(AddCartItemDto.class));
+                .given(cartApplicationService).addItem(any(AddCartItemDto.class));
         //when
         //then
         mockMvc.perform(post("/carts")
@@ -189,16 +191,16 @@ class CartControllerTest extends ControllerTestSupport {
     }
     
     @Test
-    @DisplayName("장바구니에 상품을 추가할때 상품을 불러올 수 없는경우 503 에러 응답을 반환한다")
+    @DisplayName("장바구니에 상품을 추가할때 CartApplicationService 에서 UnavailableServiceException이 던져지면 503 에러 응답을 반환한다")
     @WithCustomMockUser
-    void addCartItemWhenUnableServer() throws Exception {
+    void addCartItem_When_UnavailableServiceException_Thrown_In_CartApplicationService() throws Exception {
         //given
         CartItemRequest request = CartItemRequest.builder()
                 .productVariantId(1L)
                 .quantity(1)
                 .build();
-        willThrow(new UnavailableServerException("상품을 불러올 수 없습니다 잠시 후 다시 시도해 주세요"))
-                .given(cartService).addItem(any(AddCartItemDto.class));
+        willThrow(new UnavailableServiceException("상품을 불러올 수 없습니다 잠시 후 다시 시도해 주세요"))
+                .given(cartApplicationService).addItem(any(AddCartItemDto.class));
         //when
         //then
         mockMvc.perform(post("/carts")
@@ -214,16 +216,16 @@ class CartControllerTest extends ControllerTestSupport {
     }
 
     @Test
-    @DisplayName("장바구니에 상품을 추가할때 서버 오류가 발생한 경우 500 에러 응답을 반환한다")
+    @DisplayName("장바구니에 상품을 추가할때 CartApplicationService 에서 InternalServerException이 던져지면 500 에러 응답을 반환한다")
     @WithCustomMockUser
-    void addCartItemWhenInternalServer() throws Exception {
+    void addCartItem_When_InternalServerException_Thrown_In_CartApplicationService() throws Exception {
         //given
         CartItemRequest request = CartItemRequest.builder()
                 .productVariantId(1L)
                 .quantity(1)
                 .build();
         willThrow(new InternalServerException("장바구니 상품 추가중 서버에 오류가 발생했습니다"))
-                .given(cartService).addItem(any(AddCartItemDto.class));
+                .given(cartApplicationService).addItem(any(AddCartItemDto.class));
         //when
         //then
         mockMvc.perform(post("/carts")

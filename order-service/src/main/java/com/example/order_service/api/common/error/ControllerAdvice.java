@@ -4,7 +4,7 @@ import com.example.order_service.common.advice.ErrorResponseEntityFactory;
 import com.example.order_service.api.common.error.dto.response.ErrorResponse;
 import com.example.order_service.exception.*;
 import com.example.order_service.exception.server.InternalServerException;
-import com.example.order_service.exception.server.UnavailableServerException;
+import com.example.order_service.exception.server.UnavailableServiceException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -41,8 +41,8 @@ public class ControllerAdvice {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
 
-    @ExceptionHandler(UnavailableServerException.class)
-    public ResponseEntity<ErrorResponse> unAvailableServerExceptionHandler(HttpServletRequest request, UnavailableServerException e){
+    @ExceptionHandler(UnavailableServiceException.class)
+    public ResponseEntity<ErrorResponse> unAvailableServerExceptionHandler(HttpServletRequest request, UnavailableServiceException e){
         LocalDateTime now = LocalDateTime.now();
         String message = e.getMessage();
         ErrorResponse response = ErrorResponse.toUnavailableServer(message, now.toString(), request.getRequestURI());
