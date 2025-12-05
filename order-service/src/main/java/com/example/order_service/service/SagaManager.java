@@ -4,6 +4,7 @@ import com.example.common.*;
 import com.example.order_service.service.event.PendingOrderCreatedEvent;
 import com.example.order_service.service.kafka.KafkaProducer;
 import com.example.order_service.service.kafka.SagaCompensator;
+import com.example.order_service.service.order.OrderService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;

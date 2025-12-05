@@ -22,7 +22,7 @@ public class QOrderItems extends EntityPathBase<OrderItems> {
 
     public static final QOrderItems orderItems = new QOrderItems("orderItems");
 
-    public final com.example.order_service.entity.base.QBaseEntity _super = new com.example.order_service.entity.base.QBaseEntity(this);
+    public final com.example.order_service.api.common.entity.QBaseEntity _super = new com.example.order_service.api.common.entity.QBaseEntity(this);
 
     //inherited
     public final DateTimePath<java.time.LocalDateTime> createAt = _super.createAt;

@@ -1,9 +1,7 @@
 package com.example.order_service.service.event;
 
-import com.example.order_service.dto.request.OrderRequest;
 import com.example.order_service.entity.OrderItems;
 import com.example.order_service.entity.Orders;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
 

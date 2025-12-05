@@ -1,8 +1,8 @@
 package com.example.order_service.entity;
 
-import com.example.order_service.dto.request.OrderItemRequest;
+import com.example.order_service.api.order.controller.dto.request.OrderItemRequest;
 import com.example.order_service.dto.response.ItemOptionResponse;
-import com.example.order_service.entity.base.BaseEntity;
+import com.example.order_service.api.common.entity.BaseEntity;
 import com.example.order_service.entity.convert.ItemOptionsConverter;
 import com.example.order_service.service.client.dto.ProductResponse;
 import jakarta.persistence.*;

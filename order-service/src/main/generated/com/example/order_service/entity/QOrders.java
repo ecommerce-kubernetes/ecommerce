@@ -20,7 +20,7 @@ public class QOrders extends EntityPathBase<Orders> {
 
     public static final QOrders orders = new QOrders("orders");
 
-    public final com.example.order_service.entity.base.QBaseEntity _super = new com.example.order_service.entity.base.QBaseEntity(this);
+    public final com.example.order_service.api.common.entity.QBaseEntity _super = new com.example.order_service.api.common.entity.QBaseEntity(this);
 
     public final NumberPath<Long> amountToPay = createNumber("amountToPay", Long.class);
 

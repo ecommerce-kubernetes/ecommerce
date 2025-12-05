@@ -1,6 +1,6 @@
 package com.example.order_service.controller.util.specification.annotation;
 
-import com.example.order_service.common.advice.dto.ErrorResponse;
+import com.example.order_service.api.common.error.dto.response.ErrorResponse;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;

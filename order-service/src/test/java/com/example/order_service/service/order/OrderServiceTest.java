@@ -5,7 +5,6 @@ import com.example.order_service.dto.response.ItemOptionResponse;
 import com.example.order_service.entity.OrderItems;
 import com.example.order_service.entity.Orders;
 import com.example.order_service.repository.OrdersRepository;
-import com.example.order_service.service.OrderService;
 import com.example.order_service.service.client.CouponClientService;
 import com.example.order_service.service.client.ProductClientService;
 import com.example.order_service.service.client.UserClientService;

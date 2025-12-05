@@ -1,17 +1,18 @@
 package com.example.order_service.docs.cart;
 
+import com.example.order_service.api.cart.application.CartApplicationService;
 import com.example.order_service.common.security.UserPrincipal;
-import com.example.order_service.controller.CartController;
-import com.example.order_service.controller.dto.UpdateQuantityRequest;
+import com.example.order_service.api.cart.controller.CartController;
+import com.example.order_service.api.cart.controller.dto.request.UpdateQuantityRequest;
 import com.example.order_service.docs.RestDocSupport;
-import com.example.order_service.controller.dto.CartItemRequest;
-import com.example.order_service.dto.response.CartItemResponse;
-import com.example.order_service.dto.response.CartResponse;
+import com.example.order_service.api.cart.controller.dto.request.CartItemRequest;
+import com.example.order_service.api.cart.controller.dto.response.CartItemResponse;
+import com.example.order_service.api.cart.controller.dto.response.CartResponse;
 import com.example.order_service.dto.response.ItemOptionResponse;
 import com.example.order_service.dto.response.UnitPrice;
-import com.example.order_service.service.CartService;
-import com.example.order_service.service.dto.AddCartItemDto;
-import com.example.order_service.service.dto.UpdateQuantityDto;
+import com.example.order_service.api.cart.domain.service.CartService;
+import com.example.order_service.api.cart.application.dto.command.AddCartItemDto;
+import com.example.order_service.api.cart.application.dto.command.UpdateQuantityDto;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -39,11 +40,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 
 public class CartControllerDocsTest extends RestDocSupport {
 
+    //TODO 계층 분리로 제거
     private CartService cartService = Mockito.mock(CartService.class);
-
+    private CartApplicationService cartApplicationService = Mockito.mock(CartApplicationService.class);
     @Override
     protected Object initController() {
-        return new CartController(cartService);
+        return new CartController(cartApplicationService, cartService);
     }
 
     @Test
@@ -57,7 +59,7 @@ public class CartControllerDocsTest extends RestDocSupport {
 
         HttpHeaders roleUser = createUserHeader("ROLE_USER");
         CartItemResponse cartItemResponse = createCartItemResponse();
-        given(cartService.addItem(any(AddCartItemDto.class)))
+        given(cartApplicationService.addItem(any(AddCartItemDto.class)))
                 .willReturn(cartItemResponse);
         //when
         //then
@@ -84,7 +86,7 @@ public class CartControllerDocsTest extends RestDocSupport {
                                         fieldWithPath("id").description("장바구니 상품 ID(장바구니 상품 식별자)"),
                                         fieldWithPath("productId").description("상품 ID(상품 식별자)"),
                                         fieldWithPath("productName").description("상품 이름"),
-                                        fieldWithPath("thumbNailUrl").description("상품 썸네일"),
+                                        fieldWithPath("thumbnailUrl").description("상품 썸네일"),
                                         fieldWithPath("quantity").description("수량"),
                                         fieldWithPath("unitPrice.originalPrice").description("상품 원본 가격"),
                                         fieldWithPath("unitPrice.discountRate").description("상품 할인율"),

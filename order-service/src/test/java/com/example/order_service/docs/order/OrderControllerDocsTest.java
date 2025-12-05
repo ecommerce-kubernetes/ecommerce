@@ -1,14 +1,16 @@
 package com.example.order_service.docs.order;
 
-import com.example.order_service.controller.OrderController;
+import com.example.order_service.api.order.controller.OrderController;
+import com.example.order_service.api.order.controller.dto.response.OrderItemResponse;
+import com.example.order_service.api.order.controller.dto.response.OrderResponse;
 import com.example.order_service.controller.util.validator.OrderPageableValidator;
 import com.example.order_service.controller.util.validator.PageableValidatorFactory;
 import com.example.order_service.docs.RestDocSupport;
-import com.example.order_service.dto.request.OrderItemRequest;
-import com.example.order_service.dto.request.OrderRequest;
+import com.example.order_service.api.order.controller.dto.request.OrderItemRequest;
+import com.example.order_service.api.order.controller.dto.request.OrderRequest;
 import com.example.order_service.dto.response.*;
 import com.example.order_service.entity.DomainType;
-import com.example.order_service.service.OrderService;
+import com.example.order_service.service.order.OrderService;
 import com.example.order_service.service.SseConnectionService;
 import com.example.order_service.service.dto.CreateOrderDto;
 import org.junit.jupiter.api.BeforeEach;

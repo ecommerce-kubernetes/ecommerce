@@ -1,8 +1,8 @@
 package com.example.order_service.entity;
 
 import com.example.order_service.dto.OrderCalculationResult;
-import com.example.order_service.dto.request.OrderRequest;
-import com.example.order_service.entity.base.BaseEntity;
+import com.example.order_service.api.order.controller.dto.request.OrderRequest;
+import com.example.order_service.api.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;

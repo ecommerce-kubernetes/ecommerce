@@ -1,6 +1,6 @@
 package com.example.order_service.common.security;
 
-import com.example.order_service.common.security.filter.HeaderPreAuthenticationFilter;
+import com.example.order_service.api.common.security.filter.HeaderPreAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;

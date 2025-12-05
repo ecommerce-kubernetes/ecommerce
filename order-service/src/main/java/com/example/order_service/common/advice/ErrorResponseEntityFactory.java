@@ -2,7 +2,7 @@ package com.example.order_service.common.advice;
 
 import com.example.order_service.common.MessageSourceUtil;
 import com.example.order_service.common.advice.dto.DetailError;
-import com.example.order_service.common.advice.dto.ErrorResponse;
+import com.example.order_service.api.common.error.dto.response.ErrorResponse;
 import com.example.order_service.common.advice.dto.ValidationErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;

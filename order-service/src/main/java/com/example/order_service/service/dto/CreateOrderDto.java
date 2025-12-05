@@ -1,7 +1,7 @@
 package com.example.order_service.service.dto;
 
 import com.example.order_service.common.security.UserPrincipal;
-import com.example.order_service.dto.request.OrderRequest;
+import com.example.order_service.api.order.controller.dto.request.OrderRequest;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
