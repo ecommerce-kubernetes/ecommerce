@@ -1,6 +1,6 @@
 package com.example.order_service.api.cart.application;
 
-import com.example.order_service.api.cart.controller.dto.response.CartItemResponse;
+import com.example.order_service.api.cart.application.dto.result.CartItemResponse;
 import com.example.order_service.api.cart.domain.service.CartService;
 import com.example.order_service.api.cart.application.dto.command.AddCartItemDto;
 import com.example.order_service.api.cart.domain.service.dto.CartItemDto;

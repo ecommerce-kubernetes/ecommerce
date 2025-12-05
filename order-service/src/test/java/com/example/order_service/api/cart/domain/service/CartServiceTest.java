@@ -1,10 +1,11 @@
 package com.example.order_service.api.cart.domain.service;
 
+import com.example.order_service.api.cart.domain.service.dto.CartItemDto;
 import com.example.order_service.common.MessageSourceUtil;
 import com.example.order_service.common.security.UserPrincipal;
 import com.example.order_service.common.security.UserRole;
-import com.example.order_service.api.cart.controller.dto.response.CartItemResponse;
-import com.example.order_service.api.cart.controller.dto.response.CartResponse;
+import com.example.order_service.api.cart.application.dto.result.CartItemResponse;
+import com.example.order_service.api.cart.application.dto.result.CartResponse;
 import com.example.order_service.dto.response.ItemOptionResponse;
 import com.example.order_service.dto.response.UnitPrice;
 import com.example.order_service.api.cart.domain.model.CartItems;
@@ -35,6 +36,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
 
 class CartServiceTest extends ExcludeInfraIntegrationTestSupport {
+    //TODO 계층 분리로 삭제
     @MockitoBean
     private ProductClientService productClientService;
     @MockitoBean
@@ -49,57 +51,15 @@ class CartServiceTest extends ExcludeInfraIntegrationTestSupport {
     @Test
     @DisplayName("처음 장바구니에 상품을 추가하면 장바구니를 생성하고 상품을 추가한다")
     @Transactional
-    void addItem_firstAdd(){
+    void addItemToCartWhenFirstAdd(){
         //given
-        AddCartItemDto dto = createAddCartItemDto(1L, 3);
-        ProductResponse productResponse = createProductResponse(1L, 1L, "상품1",
-                3000L, 10, "http://thumbnail.jpg",
-                List.of(ItemOptionResponse.builder()
-                        .optionTypeName("사이즈")
-                        .optionValueName("XL")
-                        .build()));
-        given(productClientService.fetchProductByVariantId(anyLong()))
-                .willReturn(productResponse);
-
         //when
-        CartItemResponse response = cartService.addItem(dto);
+        CartItemDto result = cartService.addItemToCart(1L, 1L, 3);
         //then
-        assertThat(response.getId()).isNotNull();
-        assertThat(response)
-                .extracting(
-                        "productId",
-                        "productName",
-                        "thumbnailUrl",
-                        "quantity",
-                        "lineTotal",
-                        "isAvailable"
-                )
-                .contains(
-                        1L, "상품1", "http://thumbnail.jpg", 3, 8100L, true
-                );
-
-        assertThat(response.getUnitPrice())
-                .extracting(
-                        "originalPrice",
-                        "discountRate",
-                        "discountAmount",
-                        "discountedPrice"
-                )
-                .contains(
-                        3000L,
-                        10,
-                        300L,
-                        2700L
-                );
-
-        assertThat(response.getOptions())
-                .extracting(
-                        "optionTypeName",
-                        "optionValueName"
-                )
-                .containsExactlyInAnyOrder(
-                        tuple("사이즈", "XL")
-                );
+        assertThat(result.getId()).isNotNull();
+        assertThat(result)
+                .extracting("productVariantId", "quantity")
+                .contains(1L, 3);
 
         Optional<Carts> cart = cartsRepository.findByUserId(1L);
         assertThat(cart).isNotNull();
@@ -107,64 +67,24 @@ class CartServiceTest extends ExcludeInfraIntegrationTestSupport {
 
     @Test
     @DisplayName("처음 이후 장바구니에 새로운 상품을 추가하면 기존 장바구니에 상품을 추가한다")
-    void addItem_subsequent(){
+    void addItemToCartWhenAddAfterSecond(){
         //given
-        AddCartItemDto dto = createAddCartItemDto(1L, 3);
         Carts cart = Carts.builder()
                 .userId(1L)
                 .build();
         cartsRepository.save(cart);
-        ProductResponse productResponse = createProductResponse(1L, 1L, "상품1", 3000L, 10, "http://thumbnail.jpg",
-                List.of(ItemOptionResponse.builder()
-                        .optionTypeName("사이즈")
-                        .optionValueName("XL")
-                        .build()));
-        given(productClientService.fetchProductByVariantId(anyLong()))
-                .willReturn(productResponse);
         //when
-        CartItemResponse response = cartService.addItem(dto);
+        CartItemDto result = cartService.addItemToCart(1L, 1L, 3);
         //then
-        assertThat(response.getId()).isNotNull();
-        assertThat(response)
-                .extracting(
-                        "productId",
-                        "productName",
-                        "thumbnailUrl",
-                        "quantity",
-                        "lineTotal",
-                        "isAvailable"
-                )
-                .contains(
-                        1L, "상품1", "http://thumbnail.jpg", 3, 8100L, true
-                );
-
-        assertThat(response.getUnitPrice())
-                .extracting(
-                        "originalPrice",
-                        "discountRate",
-                        "discountAmount",
-                        "discountedPrice"
-                )
-                .contains(
-                        3000L,
-                        10,
-                        300L,
-                        2700L
-                );
-
-        assertThat(response.getOptions())
-                .extracting(
-                        "optionTypeName",
-                        "optionValueName"
-                )
-                .containsExactlyInAnyOrder(
-                        tuple("사이즈", "XL")
-                );
+        assertThat(result.getId()).isNotNull();
+        assertThat(result)
+                .extracting("productVariantId", "quantity")
+                .contains(1L, 3);
     }
 
     @Test
     @DisplayName("장바구니에 상품을 추가할때 추가하려는 상품이 이미 장바구니에 존재하는 상품이면 수량을 요청 수량만큼 증가시킨다")
-    void addItem_existProduct() {
+    void addItemToCartWhenExistCartItem() {
         //given
         Carts cart = Carts.builder()
                 .userId(1L)
@@ -175,96 +95,14 @@ class CartServiceTest extends ExcludeInfraIntegrationTestSupport {
                 .build();
         cart.addCartItem(cartItem);
         cartsRepository.save(cart);
-
-        AddCartItemDto dto = createAddCartItemDto(1L, 3);
-        ProductResponse productResponse = createProductResponse(1L, 1L, "상품1", 3000L, 10, "http://thumbnail.jpg",
-                List.of(ItemOptionResponse.builder()
-                        .optionTypeName("사이즈")
-                        .optionValueName("XL")
-                        .build()));
-        given(productClientService.fetchProductByVariantId(anyLong()))
-                .willReturn(productResponse);
         //when
-        CartItemResponse response = cartService.addItem(dto);
+        CartItemDto result = cartService.addItemToCart(1L, 1L, 2);
         //then
-        assertThat(response.getId()).isNotNull();
-        assertThat(response)
-                .extracting(
-                        "productId",
-                        "productName",
-                        "thumbnailUrl",
-                        "quantity",
-                        "lineTotal",
-                        "isAvailable"
-                )
-                .contains(
-                        1L, "상품1", "http://thumbnail.jpg", 6, 16200L, true
-                );
+        assertThat(result.getId()).isNotNull();
 
-        assertThat(response.getUnitPrice())
-                .extracting(
-                        "originalPrice",
-                        "discountRate",
-                        "discountAmount",
-                        "discountedPrice"
-                )
-                .contains(
-                        3000L,
-                        10,
-                        300L,
-                        2700L
-                );
-
-        assertThat(response.getOptions())
-                .extracting(
-                        "optionTypeName",
-                        "optionValueName"
-                )
-                .containsExactlyInAnyOrder(
-                        tuple("사이즈", "XL")
-                );
-    }
-
-    @Test
-    @DisplayName("장바구니에 상품을 추가할때 상품 서비스에서 상품 정보를 찾을 수 없으면 NotFoundException를 반환한다")
-    void addItemWhenNotFoundProduct() {
-        //given
-        AddCartItemDto dto = createAddCartItemDto(1L, 3);
-        willThrow(new NotFoundException("해당 상품을 찾을 수 없습니다"))
-                .given(productClientService).fetchProductByVariantId(anyLong());
-        //when
-        //then
-        assertThatThrownBy(() -> cartService.addItem(dto))
-                .isInstanceOf(NotFoundException.class)
-                .hasMessage("해당 상품을 찾을 수 없습니다");
-    }
-
-    @Test
-    @DisplayName("장바구니에 상품을 추가할때 상품 서비스에서 503에러가 발생하면 UnavailableServerException를 반환한다")
-    void addItemWhen503Error() {
-        //given
-        AddCartItemDto dto = createAddCartItemDto(1L, 3);
-        willThrow(new UnavailableServerException("상품을 불러올 수 없습니다 잠시후 다시 시도해주세요"))
-                .given(productClientService).fetchProductByVariantId(anyLong());
-        //when
-        //then
-        assertThatThrownBy(() -> cartService.addItem(dto))
-                .isInstanceOf(UnavailableServerException.class)
-                .hasMessage("상품을 불러올 수 없습니다 잠시후 다시 시도해주세요");
-    }
-
-    @Test
-    @DisplayName("장바구니에 상품을 추가할때 상품 서비스에서 500에러가 발생한 경우 InternalServerException을 반환한다")
-    void addItemWhen500Error() {
-        //given
-        AddCartItemDto dto = createAddCartItemDto(1L, 3);
-        willThrow(new InternalServerException("상품을 불러올 수 없습니다"))
-                .given(productClientService).fetchProductByVariantId(anyLong());
-        //when
-        //then
-        assertThatThrownBy(() -> cartService.addItem(dto))
-                .isInstanceOf(InternalServerException.class)
-                .hasMessage("상품을 불러올 수 없습니다");
+        assertThat(result)
+                .extracting("productVariantId", "quantity")
+                .contains(1L, 5);
     }
 
     @Test

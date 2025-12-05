@@ -3,8 +3,8 @@ package com.example.order_service.api.cart.domain.service;
 import com.example.order_service.api.cart.domain.service.dto.CartItemDto;
 import com.example.order_service.common.MessageSourceUtil;
 import com.example.order_service.common.security.UserPrincipal;
-import com.example.order_service.api.cart.controller.dto.response.CartItemResponse;
-import com.example.order_service.api.cart.controller.dto.response.CartResponse;
+import com.example.order_service.api.cart.application.dto.result.CartItemResponse;
+import com.example.order_service.api.cart.application.dto.result.CartResponse;
 import com.example.order_service.api.cart.domain.model.CartItems;
 import com.example.order_service.api.cart.domain.model.Carts;
 import com.example.order_service.exception.NoPermissionException;
@@ -35,7 +35,11 @@ public class CartService{
 
     @Transactional
     public CartItemDto addItemToCart(Long userId, Long productVariantId, int quantity){
-        return null;
+        Carts cart = cartsRepository.findWithItemsByUserId(userId)
+                .orElseGet(() -> cartsRepository.save(Carts.of(userId)));
+        CartItems cartItem = cart.addItem(productVariantId, quantity);
+        CartItems savedItem = cartItemsRepository.save(cartItem);
+        return CartItemDto.of(savedItem.getId(), savedItem.getProductVariantId(), savedItem.getQuantity());
     }
 
     @Transactional

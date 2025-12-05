@@ -1,4 +1,4 @@
-package com.example.order_service.api.cart.controller.dto.response;
+package com.example.order_service.api.cart.application.dto.result;
 
 import com.example.order_service.api.cart.domain.service.dto.CartItemDto;
 import com.example.order_service.dto.response.ItemOptionResponse;
@@ -13,6 +13,7 @@ import java.util.List;
 public class CartItemResponse {
     private Long id;
     private Long productId;
+    private Long productVariantId;
     private String productName;
     private String thumbnailUrl;
     private int quantity;
@@ -22,10 +23,11 @@ public class CartItemResponse {
     private boolean isAvailable;
 
     @Builder
-    private CartItemResponse(Long id, Long productId, String productName, String thumbnailUrl, int quantity,
+    private CartItemResponse(Long id, Long productVariantId, Long productId, String productName, String thumbnailUrl, int quantity,
                              UnitPrice unitPrice, long lineTotal, List<ItemOptionResponse> options, boolean isAvailable){
         this.id = id;
         this.productId = productId;
+        this.productVariantId = productVariantId;
         this.productName = productName;
         this.thumbnailUrl = thumbnailUrl;
         this.quantity = quantity;
@@ -39,6 +41,7 @@ public class CartItemResponse {
         return CartItemResponse.builder()
                 .id(cartItemDto.getId())
                 .productId(product.getProductId())
+                .productVariantId(cartItemDto.getProductVariantId())
                 .productName(product.getProductName())
                 .thumbnailUrl(product.getThumbnailUrl())
                 .quantity(cartItemDto.getQuantity())

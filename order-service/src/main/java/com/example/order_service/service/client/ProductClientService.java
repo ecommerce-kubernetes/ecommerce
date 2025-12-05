@@ -34,6 +34,7 @@ public class ProductClientService {
         return productClient.getProductVariantByIds(productVariantIds);
     }
 
+    //TODO 예외 클래스 변경
     public ProductResponse getProductFallback(Long productId, Throwable throwable){
         if(throwable instanceof CallNotPermittedException){
             throw new ResponseStatusException(

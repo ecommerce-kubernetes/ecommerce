@@ -16,4 +16,12 @@ public class CartItemDto {
         this.productVariantId = productVariantId;
         this.quantity = quantity;
     }
+
+    public static CartItemDto of(Long id, Long productVariantId, int quantity){
+        return CartItemDto.builder()
+                .id(id)
+                .productVariantId(productVariantId)
+                .quantity(quantity)
+                .build();
+    }
 }

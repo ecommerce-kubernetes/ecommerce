@@ -6,8 +6,8 @@ import com.example.order_service.api.cart.controller.dto.request.UpdateQuantityR
 import com.example.order_service.controller.util.specification.annotation.BadRequestApiResponse;
 import com.example.order_service.controller.util.specification.annotation.NotFoundApiResponse;
 import com.example.order_service.api.cart.controller.dto.request.CartItemRequest;
-import com.example.order_service.api.cart.controller.dto.response.CartItemResponse;
-import com.example.order_service.api.cart.controller.dto.response.CartResponse;
+import com.example.order_service.api.cart.application.dto.result.CartItemResponse;
+import com.example.order_service.api.cart.application.dto.result.CartResponse;
 import com.example.order_service.api.cart.domain.service.CartService;
 import com.example.order_service.api.cart.application.dto.command.AddCartItemDto;
 import com.example.order_service.api.cart.application.dto.command.UpdateQuantityDto;
@@ -37,7 +37,6 @@ public class CartController {
     @ApiResponse(responseCode = "201", description = "상품 추가 성공")
     @BadRequestApiResponse @NotFoundApiResponse
     @PostMapping
-    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
     public ResponseEntity<CartItemResponse> addCartItem(@RequestBody @Validated CartItemRequest cartItemRequest,
                                                         @AuthenticationPrincipal UserPrincipal userPrincipal){
         AddCartItemDto dto = AddCartItemDto.of(userPrincipal, cartItemRequest);
