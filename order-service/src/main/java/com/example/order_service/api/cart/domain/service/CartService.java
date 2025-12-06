@@ -2,26 +2,18 @@ package com.example.order_service.api.cart.domain.service;
 
 import com.example.order_service.api.cart.domain.service.dto.CartItemDto;
 import com.example.order_service.common.MessageSourceUtil;
-import com.example.order_service.common.security.UserPrincipal;
-import com.example.order_service.api.cart.application.dto.result.CartItemResponse;
-import com.example.order_service.api.cart.application.dto.result.CartResponse;
 import com.example.order_service.api.cart.domain.model.CartItems;
 import com.example.order_service.api.cart.domain.model.Carts;
 import com.example.order_service.api.common.exception.NoPermissionException;
 import com.example.order_service.api.common.exception.NotFoundException;
 import com.example.order_service.api.cart.domain.repository.CartItemsRepository;
 import com.example.order_service.api.cart.domain.repository.CartsRepository;
-import com.example.order_service.service.client.ProductClientService;
-import com.example.order_service.service.client.dto.ProductResponse;
-import com.example.order_service.api.cart.application.dto.command.UpdateQuantityDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor

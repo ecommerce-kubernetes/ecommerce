@@ -8,7 +8,6 @@ import com.example.order_service.api.common.util.specification.annotation.NotFou
 import com.example.order_service.api.cart.controller.dto.request.CartItemRequest;
 import com.example.order_service.api.cart.application.dto.result.CartItemResponse;
 import com.example.order_service.api.cart.application.dto.result.CartResponse;
-import com.example.order_service.api.cart.domain.service.CartService;
 import com.example.order_service.api.cart.application.dto.command.AddCartItemDto;
 import com.example.order_service.api.cart.application.dto.command.UpdateQuantityDto;
 import io.swagger.v3.oas.annotations.Operation;

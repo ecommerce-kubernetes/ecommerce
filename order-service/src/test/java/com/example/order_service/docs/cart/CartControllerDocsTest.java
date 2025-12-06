@@ -10,7 +10,6 @@ import com.example.order_service.api.cart.application.dto.result.CartItemRespons
 import com.example.order_service.api.cart.application.dto.result.CartResponse;
 import com.example.order_service.dto.response.ItemOptionResponse;
 import com.example.order_service.dto.response.UnitPrice;
-import com.example.order_service.api.cart.domain.service.CartService;
 import com.example.order_service.api.cart.application.dto.command.AddCartItemDto;
 import com.example.order_service.api.cart.application.dto.command.UpdateQuantityDto;
 import org.junit.jupiter.api.DisplayName;
@@ -230,8 +229,9 @@ public class CartControllerDocsTest extends RestDocSupport {
                                 responseFields(
                                         fieldWithPath("id").description("장바구니 상품 ID(장바구니 상품 식별자)"),
                                         fieldWithPath("productId").description("상품 ID(상품 식별자)"),
+                                        fieldWithPath("productVariantId").description("상품 변형 ID"),
                                         fieldWithPath("productName").description("상품 이름"),
-                                        fieldWithPath("thumbNailUrl").description("상품 썸네일"),
+                                        fieldWithPath("thumbnailUrl").description("상품 썸네일"),
                                         fieldWithPath("quantity").description("수량"),
                                         fieldWithPath("unitPrice.originalPrice").description("상품 원본 가격"),
                                         fieldWithPath("unitPrice.discountRate").description("상품 할인율"),
