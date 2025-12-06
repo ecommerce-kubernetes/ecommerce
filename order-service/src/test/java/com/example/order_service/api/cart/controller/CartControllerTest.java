@@ -367,7 +367,7 @@ class CartControllerTest extends ControllerTestSupport {
                 .options(List.of(itemOption))
                 .isAvailable(true)
                 .build();
-        given(cartService.updateCartItemQuantity(any(UpdateQuantityDto.class)))
+        given(cartApplicationService.updateCartItemQuantity(any(UpdateQuantityDto.class)))
                 .willReturn(response);
         //when
         //then
@@ -421,7 +421,7 @@ class CartControllerTest extends ControllerTestSupport {
                 .build();
 
         willThrow(new NotFoundException("장바구니에 해당 상품을 찾을 수 없습니다"))
-                .given(cartService).updateCartItemQuantity(any(UpdateQuantityDto.class));
+                .given(cartApplicationService).updateCartItemQuantity(any(UpdateQuantityDto.class));
 
         //when
         //then

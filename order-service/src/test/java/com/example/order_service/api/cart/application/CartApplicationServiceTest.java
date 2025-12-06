@@ -70,6 +70,29 @@ public class CartApplicationServiceTest {
         CartItemResponse result = cartApplicationService.addItem(command);
         //then
         assertThat(result.getId()).isNotNull();
+
+        assertThat(result.getProductId()).isEqualTo(1L);
+        assertThat(result.getProductVariantId()).isEqualTo(1L);
+        assertThat(result.getProductName()).isEqualTo("상품1");
+        assertThat(result.getThumbnailUrl()).isEqualTo("http://thumbnail.jpg");
+        assertThat(result.getQuantity()).isEqualTo(3);
+        assertThat(result.getLineTotal()).isEqualTo(8100L);
+        assertThat(result.isAvailable()).isTrue();
+
+        assertThat(result.getUnitPrice())
+                .satisfies(price -> {
+                    assertThat(price.getOriginalPrice()).isEqualTo(3000L);
+                    assertThat(price.getDiscountRate()).isEqualTo(10);
+                    assertThat(price.getDiscountAmount()).isEqualTo(300L);
+                    assertThat(price.getDiscountedPrice()).isEqualTo(2700L);
+                });
+
+        assertThat(result.getOptions())
+                .hasSize(1)
+                .extracting("optionTypeName", "optionValueName")
+                .containsExactly(
+                        tuple("사이즈", "XL")
+                );
     }
 
     @Test
@@ -347,16 +370,87 @@ public class CartApplicationServiceTest {
     @DisplayName("장바구니에 상품 수량을 수정하고 수정된 상품 정보가 포함된 응답을 반환한다")
     void updateCartItemQuantity() {
         //given
+        UserPrincipal userPrincipal = createUserPrincipal(1L, UserRole.ROLE_USER);
+        UpdateQuantityDto dto = UpdateQuantityDto.builder()
+                .userPrincipal(userPrincipal)
+                .cartItemId(1L)
+                .quantity(3)
+                .build();
+        given(cartService.getCartItem(anyLong()))
+                .willReturn(
+                        CartItemDto.builder()
+                                .id(1L)
+                                .productVariantId(1L)
+                                .quantity(1)
+                                .build()
+                );
+        ProductResponse product = createProductResponse(1L, 1L, "상품1", 3000L, 10,
+                "http://thumbnail.jpg", List.of(
+                        ItemOptionResponse.builder()
+                                .optionTypeName("사이즈")
+                                .optionValueName("XL")
+                                .build()
+                ));
+
+        given(productClientService.fetchProductByVariantId(anyLong()))
+                .willReturn(product);
+
+        given(cartService.updateQuantity(anyLong(), anyInt()))
+                .willReturn(
+                        CartItemDto.builder()
+                                .id(1L)
+                                .productVariantId(1L)
+                                .quantity(3)
+                                .build()
+                );
         //when
+        CartItemResponse result = cartApplicationService.updateCartItemQuantity(dto);
         //then
+
+        assertThat(result.getId()).isNotNull();
+
+        assertThat(result.getProductId()).isEqualTo(1L);
+        assertThat(result.getProductVariantId()).isEqualTo(1L);
+        assertThat(result.getProductName()).isEqualTo("상품1");
+        assertThat(result.getThumbnailUrl()).isEqualTo("http://thumbnail.jpg");
+        assertThat(result.getQuantity()).isEqualTo(3);
+        assertThat(result.getLineTotal()).isEqualTo(8100L);
+        assertThat(result.isAvailable()).isTrue();
+
+        assertThat(result.getUnitPrice())
+                .satisfies(price -> {
+                    assertThat(price.getOriginalPrice()).isEqualTo(3000L);
+                    assertThat(price.getDiscountRate()).isEqualTo(10);
+                    assertThat(price.getDiscountAmount()).isEqualTo(300L);
+                    assertThat(price.getDiscountedPrice()).isEqualTo(2700L);
+                });
+
+        assertThat(result.getOptions())
+                .hasSize(1)
+                .extracting("optionTypeName", "optionValueName")
+                .containsExactly(
+                        tuple("사이즈", "XL")
+                );
     }
 
     @Test
-    @DisplayName("")
-    void updateCartItemQuantity_When_NotFoundException_Thrown_In_ProductClientService() {
+    @DisplayName("장바구니에 담긴 상품의 수량을 수정할때 장바구니에 해당 상품을 찾을 수 없는 경우 NotFoundException을 반환한다")
+    void updateCartItemQuantityWhenNotFoundCartItem(){
         //given
+        UserPrincipal userPrincipal = createUserPrincipal(1L, UserRole.ROLE_USER);
+        UpdateQuantityDto dto = UpdateQuantityDto
+                .builder()
+                .userPrincipal(userPrincipal)
+                .cartItemId(1L)
+                .quantity(3)
+                .build();
+        willThrow(new NotFoundException("장바구니에서 해당 상품을 찾을 수 없습니다"))
+                .given(cartService).getCartItem(anyLong());
         //when
         //then
+        assertThatThrownBy(() -> cartApplicationService.updateCartItemQuantity(dto))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage("장바구니에서 해당 상품을 찾을 수 없습니다");
     }
 
     private UserPrincipal createUserPrincipal(Long userId, UserRole userRole){

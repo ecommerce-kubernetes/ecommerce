@@ -26,8 +26,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class CartService{
-    private final ProductClientService productClientService;
+public class CartService {
     private final CartsRepository cartsRepository;
     private final CartItemsRepository cartItemsRepository;
     private final MessageSourceUtil ms;
@@ -74,22 +73,13 @@ public class CartService{
                 .ifPresent(Carts::clearItems);
     }
 
-    public CartItemResponse updateCartItemQuantity(UpdateQuantityDto updateQuantityDto) {
-        Long cartItemId = updateQuantityDto.getCartItemId();
-        CartItems cartItem = cartItemsRepository.findWithCartById(cartItemId)
-                .orElseThrow(() -> new NotFoundException("장바구니에 해당 상품을 찾을 수 없습니다"));
+    @Transactional
+    public CartItemDto updateQuantity(Long cartItemId, int quantity){
+        CartItems cartItem = cartItemsRepository.findById(cartItemId)
+                .orElseThrow(() -> new NotFoundException("장바구니에서 해당 상품을 찾을 수 없습니다"));
 
-        if(!cartItem.getCart().getUserId().equals(updateQuantityDto.getUserPrincipal().getUserId())){
-            throw new NoPermissionException("장바구니의 상품을 삭제할 권한이 없습니다");
-        }
-
-        try {
-            ProductResponse product = productClientService.fetchProductByVariantId(cartItem.getProductVariantId());
-            cartItem.addQuantity(updateQuantityDto.getQuantity());
-            return CartItemResponse.of(cartItem.getId(), cartItem.getQuantity(), product);
-        } catch (NotFoundException e) {
-            return CartItemResponse.ofUnavailable(cartItem.getId(), cartItem.getQuantity());
-        }
+        cartItem.updateQuantity(quantity);
+        return CartItemDto.of(cartItem);
     }
 
     private List<CartItemDto> createCartItemDtoList(Carts cart){

@@ -30,7 +30,6 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class CartController {
     private final CartApplicationService cartApplicationService;
-    private final CartService cartService;
 
     @Operation(summary = "상품 추가")
     @ApiResponse(responseCode = "201", description = "상품 추가 성공")
@@ -71,7 +70,7 @@ public class CartController {
                                                            @PathVariable("cartItemId") Long cartItemId,
                                                            @RequestBody @Validated UpdateQuantityRequest request){
         UpdateQuantityDto updateQuantityDto = UpdateQuantityDto.of(userPrincipal, cartItemId, request);
-        CartItemResponse response = cartService.updateCartItemQuantity(updateQuantityDto);
+        CartItemResponse response = cartApplicationService.updateCartItemQuantity(updateQuantityDto);
         return ResponseEntity.ok(response);
     }
 }

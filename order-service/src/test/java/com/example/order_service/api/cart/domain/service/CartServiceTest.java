@@ -2,41 +2,24 @@ package com.example.order_service.api.cart.domain.service;
 
 import com.example.order_service.api.cart.domain.service.dto.CartItemDto;
 import com.example.order_service.common.MessageSourceUtil;
-import com.example.order_service.common.security.UserPrincipal;
-import com.example.order_service.common.security.UserRole;
-import com.example.order_service.api.cart.application.dto.result.CartItemResponse;
-import com.example.order_service.api.cart.application.dto.result.CartResponse;
-import com.example.order_service.dto.response.ItemOptionResponse;
-import com.example.order_service.dto.response.UnitPrice;
 import com.example.order_service.api.cart.domain.model.CartItems;
 import com.example.order_service.api.cart.domain.model.Carts;
 import com.example.order_service.api.common.exception.NoPermissionException;
 import com.example.order_service.api.common.exception.NotFoundException;
 import com.example.order_service.api.cart.domain.repository.CartsRepository;
 import com.example.order_service.service.ExcludeInfraIntegrationTestSupport;
-import com.example.order_service.service.client.ProductClientService;
-import com.example.order_service.service.client.dto.ProductResponse;
-import com.example.order_service.api.cart.application.dto.command.AddCartItemDto;
-import com.example.order_service.api.cart.application.dto.command.UpdateQuantityDto;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.willThrow;
 
 class CartServiceTest extends ExcludeInfraIntegrationTestSupport {
-    //TODO 계층 분리로 삭제
-    @MockitoBean
-    private ProductClientService productClientService;
     @MockitoBean
     private MessageSourceUtil messageSourceUtil;
     @Autowired
@@ -288,175 +271,23 @@ class CartServiceTest extends ExcludeInfraIntegrationTestSupport {
 
     @Test
     @DisplayName("장바구니 상품의 수량을 변경한다")
-    void updateCartItemQuantity() {
+    void updateQuantity(){
         //given
-        Carts cart = Carts.builder().userId(1L).build();
-        CartItems item = CartItems.builder().productVariantId(1L).quantity(3).build();
-        cart.addCartItem(item);
-        cartsRepository.save(cart);
-
-        UserPrincipal userPrincipal = UserPrincipal.builder().userId(1L).userRole(UserRole.ROLE_USER).build();
-        UpdateQuantityDto dto = UpdateQuantityDto.builder()
-                .userPrincipal(userPrincipal)
-                .cartItemId(item.getId())
-                .quantity(2).build();
-
-        ProductResponse productResponse = createProductResponse(1L, 1L, "상품1", 3000L, 10, "http://thumbnail.jpg",
-                List.of(ItemOptionResponse.builder()
-                        .optionTypeName("사이즈")
-                        .optionValueName("XL")
-                        .build()));
-        given(productClientService.fetchProductByVariantId(anyLong()))
-                .willReturn(productResponse);
-        //when
-        CartItemResponse response = cartService.updateCartItemQuantity(dto);
-        //then
-        assertThat(response.getId()).isNotNull();
-        assertThat(response)
-                .extracting(
-                        "productId",
-                        "productName",
-                        "thumbnailUrl",
-                        "quantity",
-                        "lineTotal",
-                        "isAvailable"
-                )
-                .contains(
-                        1L, "상품1", "http://thumbnail.jpg", 5, 13500L, true
-                );
-
-        assertThat(response.getUnitPrice())
-                .extracting(
-                        "originalPrice",
-                        "discountRate",
-                        "discountAmount",
-                        "discountedPrice"
-                )
-                .contains(
-                        3000L,
-                        10,
-                        300L,
-                        2700L
-                );
-
-        assertThat(response.getOptions())
-                .extracting(
-                        "optionTypeName",
-                        "optionValueName"
-                )
-                .containsExactlyInAnyOrder(
-                        tuple("사이즈", "XL")
-                );
-    }
-
-    @Test
-    @DisplayName("장바구니 상품의 수량을 변경할때 장바구니에 해당 상품이 존재하지 않을때 404 예외를 반환한다")
-    void updateCartItemQuantityWhenNotFoundCartItem() {
-        //given
-        UserPrincipal userPrincipal = UserPrincipal.builder()
+        Carts cart = Carts.builder()
                 .userId(1L)
-                .userRole(UserRole.ROLE_USER)
                 .build();
 
-        UpdateQuantityDto dto = UpdateQuantityDto.builder()
-                .userPrincipal(userPrincipal)
-                .cartItemId(1L)
+        CartItems item = CartItems.builder()
+                .productVariantId(1L)
                 .quantity(3)
                 .build();
-        //when
-        //then
-        assertThatThrownBy(() -> cartService.updateCartItemQuantity(dto))
-                .isInstanceOf(NotFoundException.class)
-                .hasMessage("장바구니에 해당 상품을 찾을 수 없습니다");
-    }
 
-    @Test
-    @DisplayName("장바구니 상품 수량을 변경할때 userId가 동일하지 않는 경우 NoPermissionException")
-    void updateCartItemQuantityWhenNotMatchCartUserId(){
-        //given
-        Carts cart = Carts.builder().userId(1L).build();
-        CartItems item = CartItems.builder().productVariantId(1L).quantity(3).build();
         cart.addCartItem(item);
         cartsRepository.save(cart);
-
-        UserPrincipal userPrincipal = UserPrincipal.builder()
-                .userId(2L)
-                .userRole(UserRole.ROLE_USER)
-                .build();
-
-        UpdateQuantityDto dto = UpdateQuantityDto.builder()
-                .userPrincipal(userPrincipal)
-                .cartItemId(item.getId())
-                .quantity(3)
-                .build();
         //when
+        CartItemDto cartItemDto = cartService.updateQuantity(item.getId(), 5);
         //then
-        assertThatThrownBy(() -> cartService.updateCartItemQuantity(dto))
-                .isInstanceOf(NoPermissionException.class)
-                .hasMessage("장바구니의 상품을 삭제할 권한이 없습니다");
-    }
-
-    @Test
-    @DisplayName("장바구니의 상품 수량을 변경할때 상품 서비스에서 상품을 찾을 수 없는 경우 해당 상품의 정보는 찾을 수 없음으로 반환한다")
-    void updateCartItemQuantityWhenNotFoundProduct() {
-        //given
-        Carts cart = Carts.builder().userId(1L).build();
-        CartItems item = CartItems.builder().productVariantId(1L).quantity(3).build();
-        cart.addCartItem(item);
-        cartsRepository.save(cart);
-
-        UserPrincipal userPrincipal = UserPrincipal.builder()
-                .userId(1L)
-                .userRole(UserRole.ROLE_USER)
-                .build();
-
-        UpdateQuantityDto dto = UpdateQuantityDto.builder()
-                .userPrincipal(userPrincipal)
-                .cartItemId(item.getId())
-                .quantity(3)
-                .build();
-
-        willThrow(new NotFoundException("상품을 찾을 수 없습니다"))
-                .given(productClientService)
-                .fetchProductByVariantId(anyLong());
-        //when
-        CartItemResponse response = cartService.updateCartItemQuantity(dto);
-        //then
-        assertThat(response.getId()).isNotNull();
-        assertThat(response)
-                .extracting(
-                        "productId",
-                        "productName",
-                        "thumbnailUrl",
-                        "quantity",
-                        "lineTotal",
-                        "isAvailable"
-                )
-                .contains(
-                        null, "정보를 불러올 수 없거나 판매 중지된 상품입니다", null, 3, 0L, false
-                );
-
-        assertThat(response.getUnitPrice()).isNull();
-        assertThat(response.getOptions()).isNull();
-    }
-
-    private ProductResponse createProductResponse(Long productId, Long productVariantId,
-                                                  String productName, Long originalPrice, int discountRate,
-                                                  String thumbnail, List<ItemOptionResponse> options){
-        long discountAmount = originalPrice * discountRate / 100;
-        return ProductResponse.builder()
-                .productId(productId)
-                .productVariantId(productVariantId)
-                .productName(productName)
-                .unitPrice(
-                        UnitPrice.builder()
-                                .originalPrice(originalPrice)
-                                .discountRate(discountRate)
-                                .discountAmount(discountAmount)
-                                .discountedPrice(originalPrice - discountAmount)
-                                .build())
-                .thumbnailUrl(thumbnail)
-                .itemOptions(options)
-                .build();
+        assertThat(cartItemDto.getId()).isEqualTo(item.getId());
+        assertThat(cartItemDto.getQuantity()).isEqualTo(5);
     }
 }

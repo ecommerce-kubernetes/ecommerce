@@ -40,12 +40,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 
 public class CartControllerDocsTest extends RestDocSupport {
 
-    //TODO 계층 분리로 제거
-    private CartService cartService = Mockito.mock(CartService.class);
     private CartApplicationService cartApplicationService = Mockito.mock(CartApplicationService.class);
     @Override
     protected Object initController() {
-        return new CartController(cartApplicationService, cartService);
+        return new CartController(cartApplicationService);
     }
 
     @Test
@@ -208,7 +206,7 @@ public class CartControllerDocsTest extends RestDocSupport {
                 .quantity(3)
                 .build();
         CartItemResponse cartItemResponse = createCartItemResponse();
-        given(cartService.updateCartItemQuantity(any(UpdateQuantityDto.class)))
+        given(cartApplicationService.updateCartItemQuantity(any(UpdateQuantityDto.class)))
                 .willReturn(cartItemResponse);
         //when
         //then

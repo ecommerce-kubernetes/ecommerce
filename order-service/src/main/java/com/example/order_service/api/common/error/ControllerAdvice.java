@@ -62,12 +62,12 @@ public class ControllerAdvice {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
     }
 
-    @ExceptionHandler(InvalidResourceException.class)
-    public ResponseEntity<ErrorResponse> invalidResourceExceptionHandler(HttpServletRequest request, InvalidResourceException e){
+    @ExceptionHandler(InvalidQuantityException.class)
+    public ResponseEntity<ErrorResponse> invalidQuantityExceptionHandler(HttpServletRequest request, InvalidQuantityException e){
         LocalDateTime now = LocalDateTime.now();
         String message = e.getMessage();
-        ErrorResponse response = ErrorResponse.toConflict(message, now.toString(), request.getRequestURI());
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+        ErrorResponse response = ErrorResponse.toBadRequest(message, now.toString(), request.getRequestURI());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
     @ExceptionHandler(BadRequestException.class)

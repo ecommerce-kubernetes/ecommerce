@@ -18,9 +18,6 @@ public abstract class ControllerTestSupport {
     protected MockMvc mockMvc;
     @Autowired
     protected ObjectMapper objectMapper;
-    //TODO 계층 분리로 제거
-    @MockitoBean
-    protected CartService cartService;
     @MockitoBean
     protected OrderService orderService;
     @MockitoBean

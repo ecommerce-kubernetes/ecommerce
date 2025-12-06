@@ -52,7 +52,10 @@ public class CartApplicationService {
     }
 
     public CartItemResponse updateCartItemQuantity(UpdateQuantityDto dto){
-        return null;
+        CartItemDto cartItem = cartService.getCartItem(dto.getCartItemId());
+        ProductResponse product = productClientService.fetchProductByVariantId(cartItem.getProductVariantId());
+        CartItemDto cartItemDto = cartService.updateQuantity(cartItem.getId(), dto.getQuantity());
+        return CartItemResponse.of(cartItemDto, product);
     }
 
     private CartResponse fetchInfoAndMapToCartResponse(List<CartItemDto> cartItems){
