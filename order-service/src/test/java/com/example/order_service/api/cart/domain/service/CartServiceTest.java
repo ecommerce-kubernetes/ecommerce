@@ -144,17 +144,26 @@ class CartServiceTest extends ExcludeInfraIntegrationTestSupport {
     }
 
     @Test
-    @DisplayName("장바구니에 추가된 상품의 정보 목록을 조회한다")
-    void getCartItemList() {
+    @DisplayName("장바구니 상품 목록을 조회할때 해당 유저의 장바구니에 상품이 존재하지 않으면 빈 리스트를 반환한다")
+    void getCatItemsWhenCartItemEmpty() {
         //given
-        UserPrincipal userPrincipal = UserPrincipal.builder()
-                .userId(1L)
-                .userRole(UserRole.ROLE_USER)
-                .build();
         Carts cart = Carts.builder()
                 .userId(1L)
                 .build();
-
+        cartsRepository.save(cart);
+        //when
+        List<CartItemDto> cartItems = cartService.getCartItems(1L);
+        //then
+        assertThat(cartItems).hasSize(0);
+    }
+    
+    @Test
+    @DisplayName("장바구니에 담긴 상품을 삭제한다")
+    void deleteCartItem() {
+        //given
+        Carts cart = Carts.builder()
+                .userId(1L)
+                .build();
         CartItems item1 = CartItems.builder()
                 .productVariantId(1L)
                 .quantity(3)
@@ -166,73 +175,39 @@ class CartServiceTest extends ExcludeInfraIntegrationTestSupport {
         cart.addCartItem(item1);
         cart.addCartItem(item2);
         cartsRepository.save(cart);
-
-        ProductResponse product1 = createProductResponse(1L, 1L, "상품1", 3000L, 10,
-                "http://thumbnail1.jpg", List.of(ItemOptionResponse.builder()
-                        .optionTypeName("사이즈")
-                        .optionValueName("XL").build()));
-        ProductResponse product2 = createProductResponse(2L, 2L, "상품2", 5000L, 10,
-                "http://thumbnail2.jpg", List.of(ItemOptionResponse.builder()
-                        .optionTypeName("용량")
-                        .optionValueName("256GB").build()));
-        given(productClientService.fetchProductByVariantIds(anyList()))
-                .willReturn(List.of(product1, product2));
         //when
-        CartResponse response = cartService.getCartItemList(userPrincipal);
+        cartService.deleteCartItem(1L, item1.getId());
+        em.flush();
+        em.clear();
         //then
-        assertThat(response.getCartItems())
-                .hasSize(2)
-                .satisfiesExactlyInAnyOrder(
-                        itemResponse1 -> {
-                            assertThat(itemResponse1.getId()).isNotNull();
-                            assertThat(itemResponse1.getProductId()).isEqualTo(1L);
-                            assertThat(itemResponse1.getProductName()).isEqualTo("상품1");
-                            assertThat(itemResponse1.getThumbnailUrl()).isEqualTo("http://thumbnail1.jpg");
-                            assertThat(itemResponse1.getQuantity()).isEqualTo(3);
-                            assertThat(itemResponse1.getLineTotal()).isEqualTo(8100);
-                            assertThat(itemResponse1.isAvailable()).isTrue();
-                            assertThat(itemResponse1.getUnitPrice())
-                                    .isNotNull()
-                                    .extracting("originalPrice", "discountRate", "discountAmount", "discountedPrice")
-                                    .containsExactly(3000L, 10, 300L, 2700L);
-                            assertThat(itemResponse1.getOptions())
-                                    .hasSize(1)
-                                    .extracting("optionTypeName", "optionValueName")
-                                    .containsExactly(tuple("사이즈", "XL"));
-                        },
-                        itemResponse2 -> {
-                            assertThat(itemResponse2.getId()).isNotNull();
-                            assertThat(itemResponse2.getProductId()).isEqualTo(2L);
-                            assertThat(itemResponse2.getProductName()).isEqualTo("상품2");
-                            assertThat(itemResponse2.getThumbnailUrl()).isEqualTo("http://thumbnail2.jpg");
-                            assertThat(itemResponse2.getQuantity()).isEqualTo(2);
-                            assertThat(itemResponse2.getLineTotal()).isEqualTo(9000);
-                            assertThat(itemResponse2.isAvailable()).isTrue();
-                            assertThat(itemResponse2.getUnitPrice())
-                                    .isNotNull()
-                                    .extracting("originalPrice", "discountRate", "discountAmount", "discountedPrice")
-                                    .containsExactly(5000L, 10, 500L, 4500L);
-                            assertThat(itemResponse2.getOptions())
-                                    .hasSize(1)
-                                    .extracting("optionTypeName", "optionValueName")
-                                    .containsExactly(tuple("용량", "256GB"));
-                        }
+        Optional<Carts> findCart = cartsRepository.findWithItemsByUserId(1L);
+        assertThat(findCart).isNotEmpty();
+        assertThat(findCart.get().getCartItems()).hasSize(1);
+        assertThat(findCart.get().getCartItems())
+                .extracting("productVariantId", "quantity")
+                .contains(
+                        tuple(2L, 2)
                 );
-        assertThat(response.getCartTotalPrice()).isEqualTo(17100);
     }
 
     @Test
-    @DisplayName("장바구니에 담긴 상품의 목록을 불러올때 특정 상품을 찾을 수 없는 상품이 존재하는 경우 해당 상품의 정보는 찾을 수 없음으로 반환한다")
-    void getCartItemListWhenNotFoundProduct(){
+    @DisplayName("없는 상품을 삭제하려는 경우 NotFoundException 예외를 반환한다")
+    void deleteCartItemWhenNotFoundException() {
         //given
-        UserPrincipal userPrincipal = UserPrincipal.builder()
-                .userId(1L)
-                .userRole(UserRole.ROLE_USER)
-                .build();
+        //when
+        //then
+        assertThatThrownBy(() -> cartService.deleteCartItem(1L, 1L))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage("장바구니에서 해당 상품을 찾을 수 없습니다");
+    }
+
+    @Test
+    @DisplayName("다른 사용자의 장바구니 상품을 삭제하려 하면 NoPermissionException이 발생한다")
+    void deleteCartItemWhenNoPermissionException() {
+        //given
         Carts cart = Carts.builder()
                 .userId(1L)
                 .build();
-
         CartItems item1 = CartItems.builder()
                 .productVariantId(1L)
                 .quantity(3)
@@ -244,50 +219,11 @@ class CartServiceTest extends ExcludeInfraIntegrationTestSupport {
         cart.addCartItem(item1);
         cart.addCartItem(item2);
         cartsRepository.save(cart);
-
-        ProductResponse product1 = createProductResponse(1L, 1L, "상품1", 3000L, 10,
-                "http://thumbnail1.jpg", List.of(ItemOptionResponse.builder()
-                        .optionTypeName("사이즈")
-                        .optionValueName("XL").build()));
-
-        given(productClientService.fetchProductByVariantIds(anyList()))
-                .willReturn(List.of(product1));
         //when
-        CartResponse response = cartService.getCartItemList(userPrincipal);
         //then
-        assertThat(response.getCartItems())
-                .hasSize(2)
-                .satisfiesExactlyInAnyOrder(
-                        itemResponse1 -> {
-                            assertThat(itemResponse1.getId()).isNotNull();
-                            assertThat(itemResponse1.getProductId()).isEqualTo(1L);
-                            assertThat(itemResponse1.getProductName()).isEqualTo("상품1");
-                            assertThat(itemResponse1.getThumbnailUrl()).isEqualTo("http://thumbnail1.jpg");
-                            assertThat(itemResponse1.getQuantity()).isEqualTo(3);
-                            assertThat(itemResponse1.getLineTotal()).isEqualTo(8100);
-                            assertThat(itemResponse1.isAvailable()).isTrue();
-                            assertThat(itemResponse1.getUnitPrice())
-                                    .isNotNull()
-                                    .extracting("originalPrice", "discountRate", "discountAmount", "discountedPrice")
-                                    .containsExactly(3000L, 10, 300L, 2700L);
-                            assertThat(itemResponse1.getOptions())
-                                    .hasSize(1)
-                                    .extracting("optionTypeName", "optionValueName")
-                                    .containsExactly(tuple("사이즈", "XL"));
-                        },
-                        itemResponse2 -> {
-                            assertThat(itemResponse2.getId()).isNotNull();
-                            assertThat(itemResponse2.getProductId()).isNull();
-                            assertThat(itemResponse2.getProductName()).isEqualTo("정보를 불러올 수 없거나 판매 중지된 상품입니다");
-                            assertThat(itemResponse2.getThumbnailUrl()).isNull();
-                            assertThat(itemResponse2.getQuantity()).isEqualTo(2);
-                            assertThat(itemResponse2.getLineTotal()).isEqualTo(0);
-                            assertThat(itemResponse2.isAvailable()).isFalse();
-                            assertThat(itemResponse2.getUnitPrice()).isNull();
-                            assertThat(itemResponse2.getOptions()).isNull();
-                        }
-                );
-        assertThat(response.getCartTotalPrice()).isEqualTo(8100);
+        assertThatThrownBy(() -> cartService.deleteCartItem(2L, 1L))
+                .isInstanceOf(NoPermissionException.class)
+                .hasMessage("장바구니의 상품을 삭제할 권한이 없습니다");
     }
 
     @Test

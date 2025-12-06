@@ -267,7 +267,7 @@ class CartControllerTest extends ControllerTestSupport {
                 .cartTotalPrice(cartItem.getLineTotal())
                 .build();
 
-        given(cartService.getCartItemList(any(UserPrincipal.class)))
+        given(cartApplicationService.getCartDetails(any(UserPrincipal.class)))
                 .willReturn(response);
         //when
         //then

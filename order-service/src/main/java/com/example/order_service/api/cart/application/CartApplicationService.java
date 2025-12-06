@@ -41,6 +41,11 @@ public class CartApplicationService {
                 .orElseGet(CartResponse::ofEmpty);
     }
 
+    public void removeCartItem(UserPrincipal userPrincipal, Long cartItemId){
+        Long userId = userPrincipal.getUserId();
+        cartService.deleteCartItem(userId, cartItemId);
+    }
+
     private CartResponse fetchInfoAndMapToCartResponse(List<CartItemDto> cartItems){
         List<Long> productVariantIds = getProductVariantId(cartItems);
         List<ProductResponse> products = productClientService.fetchProductByVariantIds(productVariantIds);

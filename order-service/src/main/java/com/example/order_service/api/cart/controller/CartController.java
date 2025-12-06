@@ -47,7 +47,7 @@ public class CartController {
     @BadRequestApiResponse
     @GetMapping
     public ResponseEntity<CartResponse> getAllCartItem(@AuthenticationPrincipal UserPrincipal userPrincipal) {
-        CartResponse cartItemList = cartService.getCartItemList(userPrincipal);
+        CartResponse cartItemList = cartApplicationService.getCartDetails(userPrincipal);
         return ResponseEntity.ok(cartItemList);
     }
 

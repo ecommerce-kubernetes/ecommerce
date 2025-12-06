@@ -5,6 +5,7 @@ import com.example.order_service.api.cart.application.dto.result.CartItemRespons
 import com.example.order_service.api.cart.application.dto.result.CartResponse;
 import com.example.order_service.api.cart.domain.service.CartService;
 import com.example.order_service.api.cart.domain.service.dto.CartItemDto;
+import com.example.order_service.api.common.exception.NoPermissionException;
 import com.example.order_service.common.security.UserPrincipal;
 import com.example.order_service.common.security.UserRole;
 import com.example.order_service.dto.response.ItemOptionResponse;
@@ -26,8 +27,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.willThrow;
+import static org.mockito.BDDMockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class CartApplicationServiceTest {
@@ -221,11 +221,112 @@ public class CartApplicationServiceTest {
     }
 
     @Test
-    @DisplayName("장바구니에 담긴 상품을 조회할때 상품서비스에서 반환되지 않은 응답은 해당 상품의 정보는 찾을 수 없음으로 반환한다")
-    void test(){
+    @DisplayName("장바구니에 담긴 상품을 조회할때 ProductClientService 에서 반환되지 않은 응답은 해당 상품의 정보는 찾을 수 없음으로 반환한다")
+    void getCartDetailsWhenProductInfoEmpty(){
         //given
+        UserPrincipal userPrincipal = createUserPrincipal(1L, UserRole.ROLE_USER);
+        CartItemDto item1 = CartItemDto.builder()
+                .id(1L)
+                .productVariantId(1L)
+                .quantity(3)
+                .build();
+
+        CartItemDto item2 = CartItemDto.builder()
+                .id(2L)
+                .productVariantId(2L)
+                .quantity(2)
+                .build();
+
+        ProductResponse product1 = createProductResponse(1L, 1L, "상품1",
+                3000L, 10, "http://thumbnail1.jpg",
+                List.of(ItemOptionResponse.builder().optionTypeName("사이즈").optionValueName("XL").build()));
+
+        given(cartService.getCartItems(1L))
+                .willReturn(List.of(item1, item2));
+
+        given(productClientService.fetchProductByVariantIds(anyList()))
+                .willReturn(List.of(product1));
+        //when
+        CartResponse cartDetails = cartApplicationService.getCartDetails(userPrincipal);
+        //then
+        assertThat(cartDetails.getCartItems()).hasSize(2)
+                .satisfiesExactlyInAnyOrder(
+                        itemResponse1 -> {
+                            assertThat(itemResponse1.getId()).isNotNull();
+                            assertThat(itemResponse1.getProductId()).isEqualTo(1L);
+                            assertThat(itemResponse1.getProductName()).isEqualTo("상품1");
+                            assertThat(itemResponse1.getThumbnailUrl()).isEqualTo("http://thumbnail1.jpg");
+                            assertThat(itemResponse1.getQuantity()).isEqualTo(3);
+                            assertThat(itemResponse1.getLineTotal()).isEqualTo(8100);
+                            assertThat(itemResponse1.isAvailable()).isTrue();
+                            assertThat(itemResponse1.getUnitPrice())
+                                    .isNotNull()
+                                    .extracting("originalPrice", "discountRate", "discountAmount", "discountedPrice")
+                                    .containsExactly(3000L, 10, 300L, 2700L);
+                            assertThat(itemResponse1.getOptions())
+                                    .hasSize(1)
+                                    .extracting("optionTypeName", "optionValueName")
+                                    .containsExactly(tuple("사이즈", "XL"));
+                        },
+                        itemResponse2 -> {
+                            assertThat(itemResponse2.getId()).isNotNull();
+                            assertThat(itemResponse2.getProductId()).isNull();
+                            assertThat(itemResponse2.getProductName()).isEqualTo("정보를 불러올 수 없거나 판매 중지된 상품입니다");
+                            assertThat(itemResponse2.getThumbnailUrl()).isNull();
+                            assertThat(itemResponse2.getQuantity()).isEqualTo(2);
+                            assertThat(itemResponse2.getLineTotal()).isEqualTo(0);
+                            assertThat(itemResponse2.isAvailable()).isFalse();
+                            assertThat(itemResponse2.getUnitPrice()).isNull();
+                            assertThat(itemResponse2.getOptions()).isNull();
+                        }
+                );
+        assertThat(cartDetails.getCartTotalPrice()).isEqualTo(8100L);
+    }
+
+    @Test
+    @DisplayName("장바구니에 담긴 상품을 삭제한다")
+    void removeCartItem() {
+        //given
+        Long userId = 1L;
+        Long cartItemId = 1L;
+        UserPrincipal userPrincipal = createUserPrincipal(userId, UserRole.ROLE_USER);
+        willDoNothing().given(cartService).deleteCartItem(anyLong(), anyLong());
+        //when
+        cartApplicationService.removeCartItem(userPrincipal, cartItemId);
+        //then
+        verify(cartService, times(1)).deleteCartItem(userId, cartItemId);
+    }
+
+    @Test
+    @DisplayName("장바구니에 존재하지 않는 상품을 삭제하려 하면 NotFoundException이 발생한다")
+    void removeCartItemWhenNotFoundException() {
+        //given
+        Long userId = 1L;
+        Long cartItemId = 1L;
+        UserPrincipal userPrincipal = createUserPrincipal(userId, UserRole.ROLE_USER);
+        willThrow(new NotFoundException("장바구니에서 상품을 찾을 수 없습니다"))
+                .given(cartService).deleteCartItem(anyLong(), anyLong());
         //when
         //then
+        assertThatThrownBy(() -> cartApplicationService.removeCartItem(userPrincipal, cartItemId))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage("장바구니에서 상품을 찾을 수 없습니다");
+    }
+
+    @Test
+    @DisplayName("다른 사용자의 장바구니 상품을 삭제하려 하면 NoPermissionException이 발생한다")
+    void removeCartItemWhenNoPermissionException() {
+        //given
+        Long userId = 1L;
+        Long cartItemId = 1L;
+        UserPrincipal userPrincipal = createUserPrincipal(userId, UserRole.ROLE_USER);
+        willThrow(new NoPermissionException("장바구니의 상품을 삭제할 권한이 없습니다"))
+                .given(cartService).deleteCartItem(anyLong(), anyLong());
+        //when
+        //then
+        assertThatThrownBy(() -> cartApplicationService.removeCartItem(userPrincipal, cartItemId))
+                .isInstanceOf(NoPermissionException.class)
+                .hasMessage("장바구니의 상품을 삭제할 권한이 없습니다");
     }
 
     private UserPrincipal createUserPrincipal(Long userId, UserRole userRole){

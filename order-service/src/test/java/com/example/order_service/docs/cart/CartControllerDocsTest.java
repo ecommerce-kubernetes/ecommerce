@@ -85,6 +85,7 @@ public class CartControllerDocsTest extends RestDocSupport {
                                 responseFields(
                                         fieldWithPath("id").description("장바구니 상품 ID(장바구니 상품 식별자)"),
                                         fieldWithPath("productId").description("상품 ID(상품 식별자)"),
+                                        fieldWithPath("productVariantId").description("상품 변형 ID"),
                                         fieldWithPath("productName").description("상품 이름"),
                                         fieldWithPath("thumbnailUrl").description("상품 썸네일"),
                                         fieldWithPath("quantity").description("수량"),
@@ -101,7 +102,7 @@ public class CartControllerDocsTest extends RestDocSupport {
                 );
 
     }
-    
+
     @Test
     @DisplayName("장바구니 목록 조회")
     void addAllCartItem() throws Exception {
@@ -113,7 +114,7 @@ public class CartControllerDocsTest extends RestDocSupport {
                 .cartItems(List.of(cartItem))
                 .cartTotalPrice(5700)
                 .build();
-        given(cartService.getCartItemList(any(UserPrincipal.class)))
+        given(cartApplicationService.getCartDetails(any(UserPrincipal.class)))
                 .willReturn(response);
         //when
         //then
@@ -135,8 +136,9 @@ public class CartControllerDocsTest extends RestDocSupport {
                                 responseFields(
                                         fieldWithPath("cartItems[].id").description("장바구니 상품 ID(장바구니 상품 식별자)"),
                                         fieldWithPath("cartItems[].productId").description("상품 ID(상품 식별자)"),
+                                        fieldWithPath("cartItems[].productVariantId").description("상품 변형 ID"),
                                         fieldWithPath("cartItems[].productName").description("상품 이름"),
-                                        fieldWithPath("cartItems[].thumbNailUrl").description("상품 썸네일"),
+                                        fieldWithPath("cartItems[].thumbnailUrl").description("상품 썸네일"),
                                         fieldWithPath("cartItems[].quantity").description("수량"),
                                         fieldWithPath("cartItems[].unitPrice.originalPrice").description("상품 원본 가격"),
                                         fieldWithPath("cartItems[].unitPrice.discountRate").description("상품 할인율"),
@@ -257,6 +259,7 @@ public class CartControllerDocsTest extends RestDocSupport {
         return CartItemResponse.builder()
                 .id(1L)
                 .productId(1L)
+                .productVariantId(1L)
                 .productName("상품1")
                 .thumbnailUrl("http://thumbnail.jpg")
                 .quantity(2)

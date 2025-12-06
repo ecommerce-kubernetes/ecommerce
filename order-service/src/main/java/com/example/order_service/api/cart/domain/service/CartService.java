@@ -48,22 +48,19 @@ public class CartService{
                 .orElseGet(List::of);
     }
 
-    // 단순 조회 로직인 메서드에서 외부 서비스 호출 로직이 메서드 안에 존재하므로
-    // 서비스 레이어에서 @Transactional을 사용하지 않고 리포지토리 레이어의 @Transactional 사용
+    @Transactional
+    public void deleteCartItem(Long userId, Long cartItemId){
+        CartItems cartItem = cartItemsRepository.findWithCartById(cartItemId)
+                .orElseThrow(() -> new NotFoundException("장바구니에서 해당 상품을 찾을 수 없습니다"));
 
-    public CartResponse getCartItemList(UserPrincipal userPrincipal){
-        Long userId = userPrincipal.getUserId();
-        Optional<Carts> cart = cartsRepository.findWithItemsByUserId(userId);
-        if(cart.isEmpty()){
-            return CartResponse.ofEmpty();
-        } else {
-            List<CartItems> cartItems = cart.get().getCartItems();
-            List<Long> productVariantIds = getProductVariantIds(cartItems);
-            List<ProductResponse> products = productClientService.fetchProductByVariantIds(productVariantIds);
-            List<CartItemResponse> cartItemResponses = mapToCartItemResponse(cartItems, products);
-            return CartResponse.from(cartItemResponses);
+        Long cartUserId = cartItem.getCart().getUserId();
+        if(!userId.equals(cartUserId)){
+            throw new NoPermissionException("장바구니의 상품을 삭제할 권한이 없습니다");
         }
+        cartItem.removeFromCart();
+        cartItemsRepository.delete(cartItem);
     }
+
     @Transactional
     public void deleteCartItemById(UserPrincipal userPrincipal, Long cartItemId){
         CartItems cartItem = cartItemsRepository.findWithCartById(cartItemId)
