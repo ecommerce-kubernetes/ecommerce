@@ -6,6 +6,7 @@ import com.example.order_service.api.cart.application.dto.result.CartResponse;
 import com.example.order_service.api.cart.domain.service.CartService;
 import com.example.order_service.api.cart.application.dto.command.AddCartItemDto;
 import com.example.order_service.api.cart.domain.service.dto.CartItemDto;
+import com.example.order_service.api.common.exception.NotFoundException;
 import com.example.order_service.common.security.UserPrincipal;
 import com.example.order_service.service.client.ProductClientService;
 import com.example.order_service.service.client.dto.ProductResponse;
@@ -53,9 +54,13 @@ public class CartApplicationService {
 
     public CartItemResponse updateCartItemQuantity(UpdateQuantityDto dto){
         CartItemDto cartItem = cartService.getCartItem(dto.getCartItemId());
-        ProductResponse product = productClientService.fetchProductByVariantId(cartItem.getProductVariantId());
-        CartItemDto cartItemDto = cartService.updateQuantity(cartItem.getId(), dto.getQuantity());
-        return CartItemResponse.of(cartItemDto, product);
+        try {
+            ProductResponse product = productClientService.fetchProductByVariantId(cartItem.getProductVariantId());
+            CartItemDto cartItemDto = cartService.updateQuantity(cartItem.getId(), dto.getQuantity());
+            return CartItemResponse.of(cartItemDto, product);
+        } catch (NotFoundException e){
+            return CartItemResponse.ofUnavailable(cartItem.getId(), cartItem.getQuantity());
+        }
     }
 
     private CartResponse fetchInfoAndMapToCartResponse(List<CartItemDto> cartItems){

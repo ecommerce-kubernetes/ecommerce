@@ -434,6 +434,45 @@ public class CartApplicationServiceTest {
     }
 
     @Test
+    @DisplayName("장바구니의 상품 수량을 수정할때 상품 서비스에서 상품 정보를 찾을 수 없는 경우 상품 정보는 찾을 수 없음을 반환한다")
+    void updateCartItemQuantityWhenProductServiceNotFoundException(){
+        //given
+        UserPrincipal userPrincipal = createUserPrincipal(1L, UserRole.ROLE_USER);
+        UpdateQuantityDto dto = UpdateQuantityDto.builder()
+                .userPrincipal(userPrincipal)
+                .cartItemId(1L)
+                .quantity(3)
+                .build();
+        given(cartService.getCartItem(anyLong()))
+                .willReturn(
+                        CartItemDto.builder()
+                                .id(1L)
+                                .productVariantId(1L)
+                                .quantity(1)
+                                .build()
+                );
+        willThrow(new NotFoundException("상품을 찾을 수 없습니다"))
+                .given(productClientService)
+                .fetchProductByVariantId(anyLong());
+        //when
+        CartItemResponse result = cartApplicationService.updateCartItemQuantity(dto);
+        //then
+        assertThat(result.getId()).isNotNull();
+
+        assertThat(result.getProductId()).isNull();
+        assertThat(result.getProductVariantId()).isNull();
+        assertThat(result.getProductName()).isEqualTo("정보를 불러올 수 없거나 판매 중지된 상품입니다");
+        assertThat(result.getThumbnailUrl()).isNull();
+        assertThat(result.getQuantity()).isEqualTo(1);
+        assertThat(result.getLineTotal()).isEqualTo(0);
+        assertThat(result.isAvailable()).isFalse();
+
+        assertThat(result.getUnitPrice()).isNull();;
+
+        assertThat(result.getOptions()).isNull();
+    }
+
+    @Test
     @DisplayName("장바구니에 담긴 상품의 수량을 수정할때 장바구니에 해당 상품을 찾을 수 없는 경우 NotFoundException을 반환한다")
     void updateCartItemQuantityWhenNotFoundCartItem(){
         //given

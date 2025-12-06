@@ -72,6 +72,7 @@ public class CartItemResponse {
                 .builder()
                 .id(id)
                 .productId(null)
+                .productVariantId(null)
                 .productName("정보를 불러올 수 없거나 판매 중지된 상품입니다")
                 .thumbnailUrl(null)
                 .quantity(quantity)
