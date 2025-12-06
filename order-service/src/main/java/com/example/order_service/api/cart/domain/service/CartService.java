@@ -62,15 +62,9 @@ public class CartService{
     }
 
     @Transactional
-    public void deleteCartItemById(UserPrincipal userPrincipal, Long cartItemId){
-        CartItems cartItem = cartItemsRepository.findWithCartById(cartItemId)
-                .orElseThrow(() -> new NotFoundException("장바구니에 해당 상품을 찾을 수 없습니다"));
-
-        if(!cartItem.getCart().getUserId().equals(userPrincipal.getUserId())){
-            throw new NoPermissionException("장바구니의 상품을 삭제할 권한이 없습니다");
-        }
-        cartItem.removeFromCart();
-        cartItemsRepository.delete(cartItem);
+    public void clearCart(Long userId){
+        cartsRepository.findWithItemsByUserId(userId)
+                .ifPresent(Carts::clearItems);
     }
 
     @Transactional

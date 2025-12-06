@@ -295,7 +295,7 @@ class CartControllerTest extends ControllerTestSupport {
     @WithCustomMockUser
     void deleteCartItem() throws Exception {
         //given
-        willDoNothing().given(cartService).deleteCartItemById(any(UserPrincipal.class), anyLong());
+        willDoNothing().given(cartApplicationService).removeCartItem(any(UserPrincipal.class), anyLong());
         //when
         //then
         mockMvc.perform(delete("/carts/{cartItemId}", 1)
@@ -311,7 +311,7 @@ class CartControllerTest extends ControllerTestSupport {
     void deleteCartItemThrowNotFound() throws Exception {
         //given
         willThrow(new NotFoundException("장바구니에 해당 상품을 찾을 수 없습니다"))
-                .given(cartService).deleteCartItemById(any(UserPrincipal.class), anyLong());
+                .given(cartApplicationService).removeCartItem(any(UserPrincipal.class), anyLong());
         //when
         //then
         mockMvc.perform(delete("/carts/{cartItemId}", 1)

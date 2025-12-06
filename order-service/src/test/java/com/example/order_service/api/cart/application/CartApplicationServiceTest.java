@@ -329,6 +329,19 @@ public class CartApplicationServiceTest {
                 .hasMessage("장바구니의 상품을 삭제할 권한이 없습니다");
     }
 
+    @Test
+    @DisplayName("장바구니에 담긴 상품을 모두 삭제")
+    void clearCart() {
+        //given
+        UserPrincipal userPrincipal = createUserPrincipal(1L, UserRole.ROLE_USER);
+        willDoNothing().given(cartService).clearCart(anyLong());
+        //when
+        cartApplicationService.clearCart(userPrincipal);
+        //then
+        verify(cartService, times(1))
+                .clearCart(1L);
+    }
+
     private UserPrincipal createUserPrincipal(Long userId, UserRole userRole){
         return UserPrincipal.builder()
                 .userId(userId)

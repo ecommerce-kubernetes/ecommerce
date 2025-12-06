@@ -227,112 +227,9 @@ class CartServiceTest extends ExcludeInfraIntegrationTestSupport {
     }
 
     @Test
-    @DisplayName("장바구니의 상품을 제거한다")
-    void deleteCartItemById(){
-        //given
-        UserPrincipal userPrincipal = UserPrincipal.builder()
-                .userId(1L)
-                .userRole(UserRole.ROLE_USER)
-                .build();
-
-        Carts cart = Carts.builder()
-                .userId(1L)
-                .build();
-
-        CartItems item1 = CartItems.builder()
-                .productVariantId(1L)
-                .quantity(3)
-                .build();
-        CartItems item2 = CartItems.builder()
-                .productVariantId(2L)
-                .quantity(2)
-                .build();
-
-        cart.addCartItem(item1);
-        cart.addCartItem(item2);
-        cartsRepository.save(cart);
-        //when
-        cartService.deleteCartItemById(userPrincipal, item1.getId());
-        //then
-        Optional<Carts> findCart = cartsRepository.findWithItemsByUserId(1L);
-        assertThat(findCart).isNotEmpty();
-        assertThat(findCart.get().getCartItems()).hasSize(1);
-        assertThat(findCart.get().getCartItems())
-                .extracting("productVariantId", "quantity")
-                .contains(
-                        tuple(2L, 2)
-                );
-    }
-
-    @Test
-    @DisplayName("장바구니에 담긴 상품을 삭제할때 상품을 찾을 수 없는 경우 NotFoundException을 반환한다")
-    void deleteCartItemByIdWhenNotFoundItem(){
-        //given
-        UserPrincipal userPrincipal = UserPrincipal.builder()
-                .userId(1L)
-                .userRole(UserRole.ROLE_USER)
-                .build();
-
-        Carts cart = Carts.builder()
-                .userId(1L)
-                .build();
-
-        CartItems item1 = CartItems.builder()
-                .productVariantId(1L)
-                .quantity(3)
-                .build();
-
-        cart.addCartItem(item1);
-        cartsRepository.save(cart);
-        //when
-        //then
-        assertThatThrownBy(() -> cartService.deleteCartItemById(userPrincipal, 999L))
-                .isInstanceOf(NotFoundException.class)
-                        .hasMessage("장바구니에 해당 상품을 찾을 수 없습니다");
-    }
-
-    @Test
-    @DisplayName("장바구니에 상품을 삭제할때 장바구니 userId가 동일하지 않는 경우 NoPermissionException을 반환한다")
-    void deleteCartItemByIdWhenNotMatchCartUserId(){
-        //given
-        UserPrincipal userPrincipal = UserPrincipal.builder()
-                .userId(2L)
-                .userRole(UserRole.ROLE_USER)
-                .build();
-
-        Carts cart = Carts.builder()
-                .userId(1L)
-                .build();
-
-        CartItems item1 = CartItems.builder()
-                .productVariantId(1L)
-                .quantity(3)
-                .build();
-
-        CartItems item2 = CartItems.builder()
-                .productVariantId(2L)
-                .quantity(2)
-                .build();
-
-        cart.addCartItem(item1);
-        cart.addCartItem(item2);
-        cartsRepository.save(cart);
-        //when
-        //then
-        assertThatThrownBy(() -> cartService.deleteCartItemById(userPrincipal, item1.getId()))
-                .isInstanceOf(NoPermissionException.class)
-                .hasMessage("장바구니의 상품을 삭제할 권한이 없습니다");
-    }
-
-    @Test
     @DisplayName("장바구니에 담긴 상품을 모두 삭제한다")
     void clearCart() {
         //given
-        UserPrincipal userPrincipal = UserPrincipal.builder()
-                .userId(1L)
-                .userRole(UserRole.ROLE_USER)
-                .build();
-
         Carts cart = Carts.builder()
                 .userId(1L)
                 .build();
@@ -350,26 +247,11 @@ class CartServiceTest extends ExcludeInfraIntegrationTestSupport {
         cart.addCartItem(item2);
         cartsRepository.save(cart);
         //when
-        cartService.clearAllCartItems(userPrincipal);
+        cartService.clearCart(1L);
         //then
         Optional<Carts> findCart = cartsRepository.findWithItemsByUserId(1L);
         assertThat(findCart).isNotEmpty();
         assertThat(findCart.get().getCartItems()).hasSize(0);
-    }
-
-    @Test
-    @DisplayName("장바구니 상품을 모두 삭제할때 유저의 장바구니가 없는 경우 404 예외를 반환한다")
-    void clearCartWhenNotFoundUserCart() {
-        //given
-        UserPrincipal userPrincipal = UserPrincipal.builder()
-                .userId(1L)
-                .userRole(UserRole.ROLE_USER)
-                .build();
-        //when
-        //then
-        assertThatThrownBy(() -> cartService.clearAllCartItems(userPrincipal))
-                .isInstanceOf(NotFoundException.class)
-                .hasMessage("장바구니를 찾을 수 없습니다");
     }
 
     @Test

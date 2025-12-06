@@ -159,7 +159,7 @@ public class CartControllerDocsTest extends RestDocSupport {
     void removeCartItem() throws Exception {
         //given
         HttpHeaders roleUser = createUserHeader("ROLE_USER");
-        willDoNothing().given(cartService).deleteCartItemById(any(UserPrincipal.class), anyLong());
+        willDoNothing().given(cartApplicationService).removeCartItem(any(UserPrincipal.class), anyLong());
         //when
         //then
         mockMvc.perform(delete("/carts/{cartItemId}", 1)
