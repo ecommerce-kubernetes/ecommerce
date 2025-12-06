@@ -1,12 +1,13 @@
 package com.example.order_service.service.order;
 
+import com.example.order_service.api.order.domain.service.OrderService;
 import com.example.order_service.common.scheduler.PendingOrderTimeoutScheduler;
 import com.example.order_service.dto.response.ItemOptionResponse;
 import com.example.order_service.api.order.domain.model.OrderItems;
 import com.example.order_service.api.order.domain.model.Orders;
 import com.example.order_service.api.order.domain.repository.OrdersRepository;
 import com.example.order_service.service.client.CouponClientService;
-import com.example.order_service.service.client.ProductClientService;
+import com.example.order_service.api.cart.infrastructure.client.ProductClientService;
 import com.example.order_service.service.client.UserClientService;
 import com.example.order_service.service.event.PendingOrderCreatedEvent;
 import jakarta.persistence.EntityManager;

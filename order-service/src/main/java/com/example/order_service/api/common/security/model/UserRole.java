@@ -1,4 +1,4 @@
-package com.example.order_service.common.security;
+package com.example.order_service.api.common.security.model;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

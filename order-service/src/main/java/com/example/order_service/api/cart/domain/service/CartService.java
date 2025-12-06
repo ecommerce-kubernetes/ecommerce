@@ -21,7 +21,6 @@ import java.util.*;
 public class CartService {
     private final CartsRepository cartsRepository;
     private final CartItemsRepository cartItemsRepository;
-    private final MessageSourceUtil ms;
 
     @Transactional
     public CartItemDto addItemToCart(Long userId, Long productVariantId, int quantity){

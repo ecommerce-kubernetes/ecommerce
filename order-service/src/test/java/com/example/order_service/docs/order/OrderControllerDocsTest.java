@@ -10,7 +10,7 @@ import com.example.order_service.api.order.controller.dto.request.OrderItemReque
 import com.example.order_service.api.order.controller.dto.request.OrderRequest;
 import com.example.order_service.dto.response.*;
 import com.example.order_service.entity.DomainType;
-import com.example.order_service.service.order.OrderService;
+import com.example.order_service.api.order.domain.service.OrderService;
 import com.example.order_service.service.SseConnectionService;
 import com.example.order_service.service.dto.CreateOrderDto;
 import org.junit.jupiter.api.BeforeEach;

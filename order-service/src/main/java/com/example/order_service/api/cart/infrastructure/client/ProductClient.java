@@ -1,4 +1,4 @@
-package com.example.order_service.client;
+package com.example.order_service.api.cart.infrastructure.client;
 
 import com.example.order_service.service.client.dto.ProductResponse;
 import org.springframework.cloud.openfeign.FeignClient;

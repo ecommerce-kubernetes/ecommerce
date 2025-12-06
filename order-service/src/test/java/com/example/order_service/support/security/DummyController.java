@@ -1,7 +1,7 @@
 package com.example.order_service.support.security;
 
-import com.example.order_service.common.security.UserPrincipal;
-import com.example.order_service.common.security.UserRole;
+import com.example.order_service.api.common.security.principal.UserPrincipal;
+import com.example.order_service.api.common.security.model.UserRole;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;

@@ -1,5 +1,6 @@
-package com.example.order_service.common.security;
+package com.example.order_service.api.common.security.principal;
 
+import com.example.order_service.api.common.security.model.UserRole;
 import lombok.Builder;
 import lombok.Getter;
 

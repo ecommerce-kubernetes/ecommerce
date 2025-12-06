@@ -1,7 +1,7 @@
 package com.example.order_service.api.cart.controller;
 
 import com.example.order_service.common.MessageSourceUtil;
-import com.example.order_service.common.security.UserPrincipal;
+import com.example.order_service.api.common.security.principal.UserPrincipal;
 import com.example.order_service.config.TestConfig;
 import com.example.order_service.support.ControllerTestSupport;
 import com.example.order_service.api.cart.controller.dto.request.CartItemRequest;

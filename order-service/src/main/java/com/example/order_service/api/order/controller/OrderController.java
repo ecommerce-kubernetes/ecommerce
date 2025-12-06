@@ -1,6 +1,6 @@
 package com.example.order_service.api.order.controller;
 
-import com.example.order_service.common.security.UserPrincipal;
+import com.example.order_service.api.common.security.principal.UserPrincipal;
 import com.example.order_service.api.common.util.specification.annotation.BadRequestApiResponse;
 import com.example.order_service.api.common.util.validator.PageableValidator;
 import com.example.order_service.api.common.util.validator.PageableValidatorFactory;
@@ -9,7 +9,7 @@ import com.example.order_service.dto.response.CreateOrderResponse;
 import com.example.order_service.api.order.controller.dto.response.OrderResponse;
 import com.example.order_service.dto.response.PageDto;
 import com.example.order_service.entity.DomainType;
-import com.example.order_service.service.order.OrderService;
+import com.example.order_service.api.order.domain.service.OrderService;
 import com.example.order_service.service.SseConnectionService;
 import com.example.order_service.service.dto.CreateOrderDto;
 import io.swagger.v3.oas.annotations.Operation;

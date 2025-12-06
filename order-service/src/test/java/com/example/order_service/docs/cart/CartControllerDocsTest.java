@@ -1,7 +1,7 @@
 package com.example.order_service.docs.cart;
 
 import com.example.order_service.api.cart.application.CartApplicationService;
-import com.example.order_service.common.security.UserPrincipal;
+import com.example.order_service.api.common.security.principal.UserPrincipal;
 import com.example.order_service.api.cart.controller.CartController;
 import com.example.order_service.api.cart.controller.dto.request.UpdateQuantityRequest;
 import com.example.order_service.docs.RestDocSupport;

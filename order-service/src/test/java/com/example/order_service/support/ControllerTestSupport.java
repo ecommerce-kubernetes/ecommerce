@@ -4,7 +4,7 @@ import com.example.order_service.api.cart.application.CartApplicationService;
 import com.example.order_service.api.cart.controller.CartController;
 import com.example.order_service.api.order.controller.OrderController;
 import com.example.order_service.api.common.util.validator.PageableValidatorFactory;
-import com.example.order_service.service.order.OrderService;
+import com.example.order_service.api.order.domain.service.OrderService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;

@@ -1,4 +1,4 @@
-package com.example.order_service.service.order;
+package com.example.order_service.api.order.domain.service;
 
 import com.example.order_service.dto.OrderCalculationResult;
 import com.example.order_service.dto.OrderValidationData;
@@ -12,7 +12,7 @@ import com.example.order_service.api.common.exception.InsufficientException;
 import com.example.order_service.api.common.exception.NotFoundException;
 import com.example.order_service.api.order.domain.repository.OrdersRepository;
 import com.example.order_service.service.client.CouponClientService;
-import com.example.order_service.service.client.ProductClientService;
+import com.example.order_service.api.cart.infrastructure.client.ProductClientService;
 import com.example.order_service.service.client.UserClientService;
 import com.example.order_service.service.client.dto.CouponResponse;
 import com.example.order_service.service.client.dto.ProductResponse;

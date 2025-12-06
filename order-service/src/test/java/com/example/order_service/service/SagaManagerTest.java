@@ -3,7 +3,7 @@ package com.example.order_service.service;
 import com.example.common.*;
 import com.example.order_service.service.event.PendingOrderCreatedEvent;
 import com.example.order_service.service.kafka.KafkaProducer;
-import com.example.order_service.service.order.OrderService;
+import com.example.order_service.api.order.domain.service.OrderService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

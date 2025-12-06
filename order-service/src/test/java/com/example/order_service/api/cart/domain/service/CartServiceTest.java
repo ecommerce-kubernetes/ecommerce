@@ -12,7 +12,6 @@ import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.util.List;
 import java.util.Optional;
@@ -20,8 +19,6 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.*;
 
 class CartServiceTest extends ExcludeInfraIntegrationTestSupport {
-    @MockitoBean
-    private MessageSourceUtil messageSourceUtil;
     @Autowired
     private CartService cartService;
     @Autowired

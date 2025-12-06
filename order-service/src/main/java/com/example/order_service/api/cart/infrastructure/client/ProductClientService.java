@@ -1,6 +1,5 @@
-package com.example.order_service.service.client;
+package com.example.order_service.api.cart.infrastructure.client;
 
-import com.example.order_service.client.ProductClient;
 import com.example.order_service.common.MessageSourceUtil;
 import com.example.order_service.api.common.exception.NotFoundException;
 import com.example.order_service.service.client.dto.ProductResponse;
