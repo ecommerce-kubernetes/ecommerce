@@ -1,7 +1,6 @@
 package com.example.order_service.api.order.controller;
 
 import com.example.order_service.common.MessageSourceUtil;
-import com.example.order_service.common.advice.ErrorResponseEntityFactory;
 import com.example.order_service.config.TestConfig;
 import com.example.order_service.support.ControllerTestSupport;
 import com.example.order_service.support.security.annotation.WithCustomMockUser;
@@ -29,7 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Slf4j
-@Import({ErrorResponseEntityFactory.class, TestConfig.class})
+@Import({TestConfig.class})
 class OrderControllerTest extends ControllerTestSupport {
 
     @MockitoBean

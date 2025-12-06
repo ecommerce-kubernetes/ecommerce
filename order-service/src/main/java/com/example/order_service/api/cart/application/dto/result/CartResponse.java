@@ -18,7 +18,10 @@ public class CartResponse {
     }
 
     public static CartResponse ofEmpty(){
-        return CartResponse.builder().build();
+        return CartResponse.builder()
+                .cartItems(List.of())
+                .cartTotalPrice(0)
+                .build();
     }
 
     public static CartResponse from(List<CartItemResponse> cartItems){

@@ -10,8 +10,8 @@ import com.example.order_service.dto.response.ItemOptionResponse;
 import com.example.order_service.dto.response.UnitPrice;
 import com.example.order_service.api.cart.domain.model.CartItems;
 import com.example.order_service.api.cart.domain.model.Carts;
-import com.example.order_service.exception.NoPermissionException;
-import com.example.order_service.exception.NotFoundException;
+import com.example.order_service.api.common.exception.NoPermissionException;
+import com.example.order_service.api.common.exception.NotFoundException;
 import com.example.order_service.api.cart.domain.repository.CartsRepository;
 import com.example.order_service.service.ExcludeInfraIntegrationTestSupport;
 import com.example.order_service.service.client.ProductClientService;
@@ -48,7 +48,6 @@ class CartServiceTest extends ExcludeInfraIntegrationTestSupport {
 
     @Test
     @DisplayName("처음 장바구니에 상품을 추가하면 장바구니를 생성하고 상품을 추가한다")
-    @Transactional
     void addItemToCartWhenFirstAdd(){
         //given
         //when
@@ -101,6 +100,47 @@ class CartServiceTest extends ExcludeInfraIntegrationTestSupport {
         assertThat(result)
                 .extracting("productVariantId", "quantity")
                 .contains(1L, 5);
+    }
+
+    @Test
+    @DisplayName("장바구니 상품 목록을 조회한다")
+    void getCartItems(){
+        //given
+        Carts cart = Carts.builder()
+                .userId(1L)
+                .build();
+
+        CartItems item1 = CartItems.builder()
+                .productVariantId(1L)
+                .quantity(3)
+                .build();
+        CartItems item2 = CartItems.builder()
+                .productVariantId(2L)
+                .quantity(2)
+                .build();
+        cart.addCartItem(item1);
+        cart.addCartItem(item2);
+        cartsRepository.save(cart);
+        //when
+        List<CartItemDto> cartItems = cartService.getCartItems(1L);
+        //then
+        assertThat(cartItems).hasSize(2);
+        assertThat(cartItems)
+                .extracting("id", "productVariantId", "quantity")
+                .containsExactlyInAnyOrder(
+                        tuple(item1.getId(), 1L, 3),
+                        tuple(item2.getId(), 2L, 2)
+                );
+    }
+
+    @Test
+    @DisplayName("장바구니 상품 목록을 조회할때 해당 유저의 장바구니가 존재하지 않으면 빈 리스트를 반환한다")
+    void getCartItemsWhenNotFoundCart(){
+        //given
+        //when
+        List<CartItemDto> cartItems = cartService.getCartItems(1L);
+        //then
+        assertThat(cartItems).hasSize(0);
     }
 
     @Test
@@ -548,14 +588,6 @@ class CartServiceTest extends ExcludeInfraIntegrationTestSupport {
 
         assertThat(response.getUnitPrice()).isNull();
         assertThat(response.getOptions()).isNull();
-    }
-
-    private AddCartItemDto createAddCartItemDto(Long productVariantId, int quantity){
-        return AddCartItemDto.builder()
-                .userPrincipal(UserPrincipal.builder().userId(1L).userRole(UserRole.ROLE_USER).build())
-                .productVariantId(productVariantId)
-                .quantity(quantity)
-                .build();
     }
 
     private ProductResponse createProductResponse(Long productId, Long productVariantId,

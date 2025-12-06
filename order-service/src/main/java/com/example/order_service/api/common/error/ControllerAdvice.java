@@ -1,10 +1,9 @@
 package com.example.order_service.api.common.error;
 
-import com.example.order_service.common.advice.ErrorResponseEntityFactory;
+import com.example.order_service.api.common.exception.*;
 import com.example.order_service.api.common.error.dto.response.ErrorResponse;
-import com.example.order_service.exception.*;
-import com.example.order_service.exception.server.InternalServerException;
-import com.example.order_service.exception.server.UnavailableServiceException;
+import com.example.order_service.api.common.exception.server.InternalServerException;
+import com.example.order_service.api.common.exception.server.UnavailableServiceException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -20,8 +19,6 @@ import java.util.List;
 @RestControllerAdvice
 @RequiredArgsConstructor
 public class ControllerAdvice {
-
-    private final ErrorResponseEntityFactory factory;
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> validationExceptionHandler(HttpServletRequest request,
@@ -59,17 +56,26 @@ public class ControllerAdvice {
 
     @ExceptionHandler(InsufficientException.class)
     public ResponseEntity<ErrorResponse> insufficientExceptionHandler(HttpServletRequest request, InsufficientException e){
-        return factory.toErrorResponseEntity(HttpStatus.CONFLICT, e.getMessage(), request);
+        LocalDateTime now = LocalDateTime.now();
+        String message = e.getMessage();
+        ErrorResponse response = ErrorResponse.toConflict(message, now.toString(), request.getRequestURI());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
     }
 
     @ExceptionHandler(InvalidResourceException.class)
     public ResponseEntity<ErrorResponse> invalidResourceExceptionHandler(HttpServletRequest request, InvalidResourceException e){
-        return factory.toErrorResponseEntity(HttpStatus.CONFLICT, e.getMessage(), request);
+        LocalDateTime now = LocalDateTime.now();
+        String message = e.getMessage();
+        ErrorResponse response = ErrorResponse.toConflict(message, now.toString(), request.getRequestURI());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
     }
 
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<ErrorResponse> badRequestExceptionHandler(HttpServletRequest request, BadRequestException e){
-        return factory.toErrorResponseEntity(HttpStatus.BAD_REQUEST, e.getMessage(), request);
+        LocalDateTime now = LocalDateTime.now();
+        String message = e.getMessage();
+        ErrorResponse response = ErrorResponse.toBadRequest(message, now.toString(), request.getRequestURI());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
     @ExceptionHandler(NoPermissionException.class)

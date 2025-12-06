@@ -44,6 +44,10 @@ public class ErrorResponse {
         return of(HttpStatus.UNAUTHORIZED.name(), message, timestamp, path);
     }
 
+    public static ErrorResponse toConflict(String message, String timestamp, String path){
+        return of(HttpStatus.CONFLICT.name(), message, timestamp, path);
+    }
+
     public static ErrorResponse of(String error, String message, String timestamp, String path) {
         return ErrorResponse.builder()
                 .error(error)

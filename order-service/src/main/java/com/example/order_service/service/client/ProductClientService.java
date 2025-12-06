@@ -2,7 +2,7 @@ package com.example.order_service.service.client;
 
 import com.example.order_service.client.ProductClient;
 import com.example.order_service.common.MessageSourceUtil;
-import com.example.order_service.exception.NotFoundException;
+import com.example.order_service.api.common.exception.NotFoundException;
 import com.example.order_service.service.client.dto.ProductResponse;
 import feign.FeignException;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;

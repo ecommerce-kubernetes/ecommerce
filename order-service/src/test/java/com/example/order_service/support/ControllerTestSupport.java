@@ -3,7 +3,7 @@ package com.example.order_service.support;
 import com.example.order_service.api.cart.application.CartApplicationService;
 import com.example.order_service.api.cart.controller.CartController;
 import com.example.order_service.api.order.controller.OrderController;
-import com.example.order_service.controller.util.validator.PageableValidatorFactory;
+import com.example.order_service.api.common.util.validator.PageableValidatorFactory;
 import com.example.order_service.api.cart.domain.service.CartService;
 import com.example.order_service.service.order.OrderService;
 import com.fasterxml.jackson.databind.ObjectMapper;

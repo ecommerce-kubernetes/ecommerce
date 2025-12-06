@@ -1,7 +1,7 @@
 package com.example.order_service.service.event;
 
-import com.example.order_service.entity.OrderItems;
-import com.example.order_service.entity.Orders;
+import com.example.order_service.api.order.domain.model.OrderItems;
+import com.example.order_service.api.order.domain.model.Orders;
 import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
 

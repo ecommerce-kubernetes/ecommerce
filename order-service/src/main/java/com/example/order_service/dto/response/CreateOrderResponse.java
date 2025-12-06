@@ -1,7 +1,6 @@
 package com.example.order_service.dto.response;
 
-import com.example.order_service.entity.Orders;
-import lombok.AllArgsConstructor;
+import com.example.order_service.api.order.domain.model.Orders;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;

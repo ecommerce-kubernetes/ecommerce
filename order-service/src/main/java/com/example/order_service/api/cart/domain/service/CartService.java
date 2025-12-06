@@ -7,13 +7,12 @@ import com.example.order_service.api.cart.application.dto.result.CartItemRespons
 import com.example.order_service.api.cart.application.dto.result.CartResponse;
 import com.example.order_service.api.cart.domain.model.CartItems;
 import com.example.order_service.api.cart.domain.model.Carts;
-import com.example.order_service.exception.NoPermissionException;
-import com.example.order_service.exception.NotFoundException;
+import com.example.order_service.api.common.exception.NoPermissionException;
+import com.example.order_service.api.common.exception.NotFoundException;
 import com.example.order_service.api.cart.domain.repository.CartItemsRepository;
 import com.example.order_service.api.cart.domain.repository.CartsRepository;
 import com.example.order_service.service.client.ProductClientService;
 import com.example.order_service.service.client.dto.ProductResponse;
-import com.example.order_service.api.cart.application.dto.command.AddCartItemDto;
 import com.example.order_service.api.cart.application.dto.command.UpdateQuantityDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -39,11 +38,19 @@ public class CartService{
                 .orElseGet(() -> cartsRepository.save(Carts.of(userId)));
         CartItems cartItem = cart.addItem(productVariantId, quantity);
         CartItems savedItem = cartItemsRepository.save(cartItem);
-        return CartItemDto.of(savedItem.getId(), savedItem.getProductVariantId(), savedItem.getQuantity());
+        return CartItemDto.of(savedItem);
+    }
+
+    @Transactional(readOnly = true)
+    public List<CartItemDto> getCartItems(Long userId){
+        return cartsRepository.findWithItemsByUserId(userId)
+                .map(this::createCartItemDtoList)
+                .orElseGet(List::of);
     }
 
     // 단순 조회 로직인 메서드에서 외부 서비스 호출 로직이 메서드 안에 존재하므로
     // 서비스 레이어에서 @Transactional을 사용하지 않고 리포지토리 레이어의 @Transactional 사용
+
     public CartResponse getCartItemList(UserPrincipal userPrincipal){
         Long userId = userPrincipal.getUserId();
         Optional<Carts> cart = cartsRepository.findWithItemsByUserId(userId);
@@ -57,7 +64,6 @@ public class CartService{
             return CartResponse.from(cartItemResponses);
         }
     }
-
     @Transactional
     public void deleteCartItemById(UserPrincipal userPrincipal, Long cartItemId){
         CartItems cartItem = cartItemsRepository.findWithCartById(cartItemId)
@@ -120,5 +126,10 @@ public class CartService{
     private List<Long> getProductVariantIds(List<CartItems> cartItems){
         return cartItems.stream()
                 .map(CartItems::getProductVariantId).toList();
+    }
+
+    private List<CartItemDto> createCartItemDtoList(Carts cart){
+        return cart.getCartItems().stream().map(CartItemDto::of)
+                .toList();
     }
 }

@@ -1,7 +1,6 @@
 package com.example.order_service.api.cart.controller;
 
 import com.example.order_service.common.MessageSourceUtil;
-import com.example.order_service.common.advice.ErrorResponseEntityFactory;
 import com.example.order_service.common.security.UserPrincipal;
 import com.example.order_service.config.TestConfig;
 import com.example.order_service.support.ControllerTestSupport;
@@ -12,9 +11,9 @@ import com.example.order_service.api.cart.application.dto.result.CartItemRespons
 import com.example.order_service.api.cart.application.dto.result.CartResponse;
 import com.example.order_service.dto.response.ItemOptionResponse;
 import com.example.order_service.dto.response.UnitPrice;
-import com.example.order_service.exception.NotFoundException;
-import com.example.order_service.exception.server.InternalServerException;
-import com.example.order_service.exception.server.UnavailableServiceException;
+import com.example.order_service.api.common.exception.NotFoundException;
+import com.example.order_service.api.common.exception.server.InternalServerException;
+import com.example.order_service.api.common.exception.server.UnavailableServiceException;
 import com.example.order_service.service.SseConnectionService;
 import com.example.order_service.api.cart.application.dto.command.AddCartItemDto;
 import com.example.order_service.api.cart.application.dto.command.UpdateQuantityDto;
@@ -36,7 +35,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Slf4j
-@Import({ErrorResponseEntityFactory.class, TestConfig.class})
+@Import({TestConfig.class})
 class CartControllerTest extends ControllerTestSupport {
 
     @MockitoBean

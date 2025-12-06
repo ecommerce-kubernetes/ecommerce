@@ -2,15 +2,16 @@ package com.example.order_service.api.cart.application;
 
 import com.example.order_service.api.cart.application.dto.command.AddCartItemDto;
 import com.example.order_service.api.cart.application.dto.result.CartItemResponse;
+import com.example.order_service.api.cart.application.dto.result.CartResponse;
 import com.example.order_service.api.cart.domain.service.CartService;
 import com.example.order_service.api.cart.domain.service.dto.CartItemDto;
 import com.example.order_service.common.security.UserPrincipal;
 import com.example.order_service.common.security.UserRole;
 import com.example.order_service.dto.response.ItemOptionResponse;
 import com.example.order_service.dto.response.UnitPrice;
-import com.example.order_service.exception.NotFoundException;
-import com.example.order_service.exception.server.InternalServerException;
-import com.example.order_service.exception.server.UnavailableServiceException;
+import com.example.order_service.api.common.exception.NotFoundException;
+import com.example.order_service.api.common.exception.server.InternalServerException;
+import com.example.order_service.api.common.exception.server.UnavailableServiceException;
 import com.example.order_service.service.client.ProductClientService;
 import com.example.order_service.service.client.dto.ProductResponse;
 import org.junit.jupiter.api.DisplayName;
@@ -22,8 +23,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
@@ -33,7 +34,6 @@ public class CartApplicationServiceTest {
 
     @InjectMocks
     private CartApplicationService cartApplicationService;
-
     @Mock
     private ProductClientService productClientService;
     @Mock
@@ -43,36 +43,16 @@ public class CartApplicationServiceTest {
     @DisplayName("장바구니에 상품이 추가되면 상품 정보가 포함된 응답값을 반환한다")
     void addItem(){
         //given
-        UserPrincipal userPrincipal = UserPrincipal.builder()
-                .userId(1L)
-                .userRole(UserRole.ROLE_USER)
-                .build();
+        UserPrincipal userPrincipal = createUserPrincipal(1L, UserRole.ROLE_USER);
         AddCartItemDto command = AddCartItemDto.builder()
                 .userPrincipal(userPrincipal)
                 .productVariantId(1L)
                 .quantity(3)
                 .build();
 
-        UnitPrice unitPrice = UnitPrice.builder()
-                .originalPrice(3000)
-                .discountRate(10)
-                .discountAmount(300)
-                .discountedPrice(2700)
-                .build();
-
-        ProductResponse product = ProductResponse.builder()
-                .productId(1L)
-                .productVariantId(1L)
-                .productName("상품1")
-                .unitPrice(unitPrice)
-                .thumbnailUrl("http://thumbnail.jpg")
-                .itemOptions(
-                        List.of(ItemOptionResponse.builder()
-                                .optionTypeName("사이즈")
-                                .optionValueName("XL")
-                                .build()
-                        )
-                ).build();
+        ProductResponse product = createProductResponse(1L, 1L, "상품1", 3000L,
+                10, "http://thumbnail.jpg",
+                List.of(ItemOptionResponse.builder().optionTypeName("사이즈").optionValueName("XL").build()));
 
         CartItemDto cartItem = CartItemDto.builder()
                 .id(1L)
@@ -96,10 +76,7 @@ public class CartApplicationServiceTest {
             "ProductClientService가 NotFoundException을 던지면 CartApplicationService도 NotFoundException을 던진다")
     void addItem_When_NotFoundException_Thrown_In_ProductClientService(){
         //given
-        UserPrincipal userPrincipal = UserPrincipal.builder()
-                .userId(1L)
-                .userRole(UserRole.ROLE_USER)
-                .build();
+        UserPrincipal userPrincipal = createUserPrincipal(1L, UserRole.ROLE_USER);
         AddCartItemDto command = AddCartItemDto.builder()
                 .userPrincipal(userPrincipal)
                 .productVariantId(1L)
@@ -120,10 +97,7 @@ public class CartApplicationServiceTest {
             "ProductClientService가 UnavailableServiceException을 던지면 CartApplicationService 도 UnavailableServiceException을 던진다")
     void addItem_When_UnavailableServiceException_Thrown_In_ProductClientService(){
         //given
-        UserPrincipal userPrincipal = UserPrincipal.builder()
-                .userId(1L)
-                .userRole(UserRole.ROLE_USER)
-                .build();
+        UserPrincipal userPrincipal = createUserPrincipal(1L, UserRole.ROLE_USER);
         AddCartItemDto command = AddCartItemDto.builder()
                 .userPrincipal(userPrincipal)
                 .productVariantId(1L)
@@ -144,10 +118,7 @@ public class CartApplicationServiceTest {
             "ProductClientService가 InternalServerException을 던지면 CartApplicationService 도 InternalServerException을 던진다")
     void addItem_When_InternalServerException_Thrown_In_ProductClientService(){
         //given
-        UserPrincipal userPrincipal = UserPrincipal.builder()
-                .userId(1L)
-                .userRole(UserRole.ROLE_USER)
-                .build();
+        UserPrincipal userPrincipal = createUserPrincipal(1L, UserRole.ROLE_USER);
         AddCartItemDto command = AddCartItemDto.builder()
                 .userPrincipal(userPrincipal)
                 .productVariantId(1L)
@@ -161,5 +132,126 @@ public class CartApplicationServiceTest {
         assertThatThrownBy(() -> cartApplicationService.addItem(command))
                 .isInstanceOf(InternalServerException.class)
                 .hasMessage("서비스에 오류가 발생했습니다");
+    }
+
+    @Test
+    @DisplayName("장바구니에 담긴 상품 목록을 조회해 상품정보가 포함된 응답값을 반환한다")
+    void getCartDetails(){
+        //given
+        UserPrincipal userPrincipal = createUserPrincipal(1L, UserRole.ROLE_USER);
+        CartItemDto item1 = CartItemDto.builder()
+                .id(1L)
+                .productVariantId(1L)
+                .quantity(3)
+                .build();
+        CartItemDto item2 = CartItemDto.builder()
+                .id(2L)
+                .productVariantId(2L)
+                .quantity(2)
+                .build();
+
+        ProductResponse product1 = createProductResponse(1L, 1L, "상품1",
+                3000L, 10, "http://thumbnail1.jpg",
+                List.of(ItemOptionResponse.builder().optionTypeName("사이즈").optionValueName("XL").build()));
+
+        ProductResponse product2 = createProductResponse(2L, 2L, "상품2",
+                5000L, 10, "http://thumbnail2.jpg",
+                List.of(ItemOptionResponse.builder().optionTypeName("용량").optionValueName("256GB").build()));
+
+        given(cartService.getCartItems(anyLong()))
+                .willReturn(List.of(item1, item2));
+
+        given(productClientService.fetchProductByVariantIds(anyList()))
+                .willReturn(List.of(product1, product2));
+        //when
+        CartResponse response = cartApplicationService.getCartDetails(userPrincipal);
+        //then
+        assertThat(response.getCartItems()).hasSize(2)
+                        .satisfiesExactlyInAnyOrder(
+                                itemResponse1 -> {
+                                    assertThat(itemResponse1.getId()).isNotNull();
+                                    assertThat(itemResponse1.getProductId()).isEqualTo(1L);
+                                    assertThat(itemResponse1.getProductName()).isEqualTo("상품1");
+                                    assertThat(itemResponse1.getThumbnailUrl()).isEqualTo("http://thumbnail1.jpg");
+                                    assertThat(itemResponse1.getQuantity()).isEqualTo(3);
+                                    assertThat(itemResponse1.getLineTotal()).isEqualTo(8100);
+                                    assertThat(itemResponse1.isAvailable()).isTrue();
+                                    assertThat(itemResponse1.getUnitPrice())
+                                            .isNotNull()
+                                            .extracting("originalPrice", "discountRate", "discountAmount", "discountedPrice")
+                                            .containsExactly(3000L, 10, 300L, 2700L);
+                                    assertThat(itemResponse1.getOptions())
+                                            .hasSize(1)
+                                            .extracting("optionTypeName", "optionValueName")
+                                            .containsExactly(tuple("사이즈", "XL"));
+                                },
+                                itemResponse2 -> {
+                                    assertThat(itemResponse2.getId()).isNotNull();
+                                    assertThat(itemResponse2.getProductId()).isEqualTo(2L);
+                                    assertThat(itemResponse2.getProductName()).isEqualTo("상품2");
+                                    assertThat(itemResponse2.getThumbnailUrl()).isEqualTo("http://thumbnail2.jpg");
+                                    assertThat(itemResponse2.getQuantity()).isEqualTo(2);
+                                    assertThat(itemResponse2.getLineTotal()).isEqualTo(9000);
+                                    assertThat(itemResponse2.isAvailable()).isTrue();
+                                    assertThat(itemResponse2.getUnitPrice())
+                                            .isNotNull()
+                                            .extracting("originalPrice", "discountRate", "discountAmount", "discountedPrice")
+                                            .containsExactly(5000L, 10, 500L, 4500L);
+                                    assertThat(itemResponse2.getOptions())
+                                            .hasSize(1)
+                                            .extracting("optionTypeName", "optionValueName")
+                                            .containsExactly(tuple("용량", "256GB"));
+                                }
+                        );
+        assertThat(response.getCartTotalPrice()).isEqualTo(17100);
+    }
+
+    @Test
+    @DisplayName("장바구니에 담긴 상품을 조회할때 장바구니에 상품이 없는 경우 비어있는 응답을 반환한다")
+    void getCartDetailsWhenEmptyCartItems(){
+        //given
+        UserPrincipal userPrincipal = createUserPrincipal(1L, UserRole.ROLE_USER);
+        given(cartService.getCartItems(anyLong()))
+                .willReturn(List.of());
+        //when
+        CartResponse response = cartApplicationService.getCartDetails(userPrincipal);
+        //then
+        assertThat(response.getCartItems()).isEmpty();
+        assertThat(response.getCartTotalPrice()).isEqualTo(0L);
+    }
+
+    @Test
+    @DisplayName("장바구니에 담긴 상품을 조회할때 상품서비스에서 반환되지 않은 응답은 해당 상품의 정보는 찾을 수 없음으로 반환한다")
+    void test(){
+        //given
+        //when
+        //then
+    }
+
+    private UserPrincipal createUserPrincipal(Long userId, UserRole userRole){
+        return UserPrincipal.builder()
+                .userId(userId)
+                .userRole(userRole)
+                .build();
+    }
+
+    private ProductResponse createProductResponse(Long productId, Long productVariantId,
+                                                  String productName, Long originalPrice, int discountRate,
+                                                  String thumbnail, List<ItemOptionResponse> options){
+        long discountAmount = originalPrice * discountRate / 100;
+        return ProductResponse.builder()
+                .productId(productId)
+                .productVariantId(productVariantId)
+                .productName(productName)
+                .unitPrice(
+                        UnitPrice.builder()
+                                .originalPrice(originalPrice)
+                                .discountRate(discountRate)
+                                .discountAmount(discountAmount)
+                                .discountedPrice(originalPrice - discountAmount)
+                                .build())
+                .thumbnailUrl(thumbnail)
+                .itemOptions(options)
+                .build();
     }
 }
