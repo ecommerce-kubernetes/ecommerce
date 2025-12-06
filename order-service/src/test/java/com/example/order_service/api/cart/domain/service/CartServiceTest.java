@@ -103,6 +103,38 @@ class CartServiceTest extends ExcludeInfraIntegrationTestSupport {
     }
 
     @Test
+    @DisplayName("장바구니 상품을 조회한다")
+    void getCartItem() {
+        //given
+        Carts cart = Carts.builder()
+                .userId(1L)
+                .build();
+        CartItems item = CartItems.builder()
+                .productVariantId(1L)
+                .quantity(3)
+                .build();
+        cart.addCartItem(item);
+        cartsRepository.save(cart);
+        //when
+        CartItemDto cartItem = cartService.getCartItem(item.getId());
+        //then
+        assertThat(cartItem.getId()).isEqualTo(item.getId());
+        assertThat(cartItem.getProductVariantId()).isEqualTo(1L);
+        assertThat(cartItem.getQuantity()).isEqualTo(3);
+    }
+
+    @Test
+    @DisplayName("장바구니 상품을 찾을 수 없을때는 NotFoundException을 반환한다")
+    void getCartItemWhenNotFoundException() {
+        //given
+        //when
+        //then
+        assertThatThrownBy(() -> cartService.getCartItem(1L))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage("장바구니에서 해당 상품을 찾을 수 없습니다");
+    }
+
+    @Test
     @DisplayName("장바구니 상품 목록을 조회한다")
     void getCartItems(){
         //given
@@ -221,7 +253,7 @@ class CartServiceTest extends ExcludeInfraIntegrationTestSupport {
         cartsRepository.save(cart);
         //when
         //then
-        assertThatThrownBy(() -> cartService.deleteCartItem(2L, 1L))
+        assertThatThrownBy(() -> cartService.deleteCartItem(2L, item1.getId()))
                 .isInstanceOf(NoPermissionException.class)
                 .hasMessage("장바구니의 상품을 삭제할 권한이 없습니다");
     }

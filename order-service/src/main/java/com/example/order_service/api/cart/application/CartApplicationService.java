@@ -1,5 +1,6 @@
 package com.example.order_service.api.cart.application;
 
+import com.example.order_service.api.cart.application.dto.command.UpdateQuantityDto;
 import com.example.order_service.api.cart.application.dto.result.CartItemResponse;
 import com.example.order_service.api.cart.application.dto.result.CartResponse;
 import com.example.order_service.api.cart.domain.service.CartService;
@@ -48,6 +49,10 @@ public class CartApplicationService {
     public void clearCart(UserPrincipal userPrincipal){
         Long userId = userPrincipal.getUserId();
         cartService.clearCart(userId);
+    }
+
+    public CartItemResponse updateCartItemQuantity(UpdateQuantityDto dto){
+        return null;
     }
 
     private CartResponse fetchInfoAndMapToCartResponse(List<CartItemDto> cartItems){

@@ -183,7 +183,7 @@ public class CartControllerDocsTest extends RestDocSupport {
     void clearCart() throws Exception {
         //given
         HttpHeaders roleUser = createUserHeader("ROLE_USER");
-        willDoNothing().given(cartService).clearAllCartItems(any(UserPrincipal.class));
+        willDoNothing().given(cartApplicationService).clearCart(any(UserPrincipal.class));
         //when
         //then
         mockMvc.perform(delete("/carts")

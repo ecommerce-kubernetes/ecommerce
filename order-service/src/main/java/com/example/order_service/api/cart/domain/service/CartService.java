@@ -42,6 +42,13 @@ public class CartService{
     }
 
     @Transactional(readOnly = true)
+    public CartItemDto getCartItem(Long cartItemId){
+        CartItems cartItem = cartItemsRepository.findWithCartById(cartItemId)
+                .orElseThrow(() -> new NotFoundException("장바구니에서 해당 상품을 찾을 수 없습니다"));
+        return CartItemDto.of(cartItem);
+    }
+
+    @Transactional(readOnly = true)
     public List<CartItemDto> getCartItems(Long userId){
         return cartsRepository.findWithItemsByUserId(userId)
                 .map(this::createCartItemDtoList)
@@ -67,16 +74,6 @@ public class CartService{
                 .ifPresent(Carts::clearItems);
     }
 
-    @Transactional
-    public void clearAllCartItems(UserPrincipal userPrincipal){
-        Long userId = userPrincipal.getUserId();
-        Optional<Carts> cart = cartsRepository.findWithItemsByUserId(userId);
-        if(cart.isEmpty()){
-            throw new NotFoundException("장바구니를 찾을 수 없습니다");
-        }
-        cart.get().clearItems();
-    }
-
     public CartItemResponse updateCartItemQuantity(UpdateQuantityDto updateQuantityDto) {
         Long cartItemId = updateQuantityDto.getCartItemId();
         CartItems cartItem = cartItemsRepository.findWithCartById(cartItemId)
@@ -93,30 +90,6 @@ public class CartService{
         } catch (NotFoundException e) {
             return CartItemResponse.ofUnavailable(cartItem.getId(), cartItem.getQuantity());
         }
-    }
-
-    private List<CartItemResponse> mapToCartItemResponse(List<CartItems> cartItems, List<ProductResponse> products){
-        Map<Long, ProductResponse> productMap = products.stream().collect(Collectors.toMap(
-                ProductResponse::getProductVariantId,
-                Function.identity(),
-                (p1, p2) -> p1
-        ));
-
-        return cartItems.stream()
-                .map(item -> createCartItemResponse(item, productMap.get(item.getProductVariantId())))
-                .toList();
-    }
-
-    private CartItemResponse createCartItemResponse(CartItems item, ProductResponse product){
-        if(product == null){
-            return CartItemResponse.ofUnavailable(item.getId(), item.getQuantity());
-        }
-        return CartItemResponse.of(item.getId(), item.getQuantity(), product);
-    }
-
-    private List<Long> getProductVariantIds(List<CartItems> cartItems){
-        return cartItems.stream()
-                .map(CartItems::getProductVariantId).toList();
     }
 
     private List<CartItemDto> createCartItemDtoList(Carts cart){

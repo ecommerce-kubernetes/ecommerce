@@ -1,6 +1,7 @@
 package com.example.order_service.api.cart.application;
 
 import com.example.order_service.api.cart.application.dto.command.AddCartItemDto;
+import com.example.order_service.api.cart.application.dto.command.UpdateQuantityDto;
 import com.example.order_service.api.cart.application.dto.result.CartItemResponse;
 import com.example.order_service.api.cart.application.dto.result.CartResponse;
 import com.example.order_service.api.cart.domain.service.CartService;
@@ -340,6 +341,22 @@ public class CartApplicationServiceTest {
         //then
         verify(cartService, times(1))
                 .clearCart(1L);
+    }
+    
+    @Test
+    @DisplayName("장바구니에 상품 수량을 수정하고 수정된 상품 정보가 포함된 응답을 반환한다")
+    void updateCartItemQuantity() {
+        //given
+        //when
+        //then
+    }
+
+    @Test
+    @DisplayName("")
+    void updateCartItemQuantity_When_NotFoundException_Thrown_In_ProductClientService() {
+        //given
+        //when
+        //then
     }
 
     private UserPrincipal createUserPrincipal(Long userId, UserRole userRole){

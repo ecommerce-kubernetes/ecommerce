@@ -330,7 +330,7 @@ class CartControllerTest extends ControllerTestSupport {
     @WithCustomMockUser
     void clearCart() throws Exception {
         //given
-        willDoNothing().given(cartService).clearAllCartItems(any(UserPrincipal.class));
+        willDoNothing().given(cartApplicationService).clearCart(any(UserPrincipal.class));
         //when
         //then
         mockMvc.perform(delete("/carts")

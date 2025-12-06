@@ -62,7 +62,7 @@ public class CartController {
     @BadRequestApiResponse
     @DeleteMapping
     public ResponseEntity<Void> clearCart(@AuthenticationPrincipal UserPrincipal userPrincipal){
-        cartService.clearAllCartItems(userPrincipal);
+        cartApplicationService.clearCart(userPrincipal);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
