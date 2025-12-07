@@ -1,7 +1,5 @@
-package com.example.order_service.api.cart.infrastructure;
+package com.example.order_service.api.cart.infrastructure.client;
 
-import com.example.order_service.api.cart.infrastructure.client.CartProductClient;
-import com.example.order_service.api.cart.infrastructure.client.CartProductClientService;
 import com.example.order_service.api.cart.infrastructure.client.dto.CartProductResponse;
 import com.example.order_service.api.cart.infrastructure.client.dto.ItemOption;
 import com.example.order_service.api.cart.infrastructure.client.dto.UnitPrice;

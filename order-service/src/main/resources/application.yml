@@ -8,6 +8,6 @@ resilience4j:
         recordExceptions:
           - java.io.IOException
           - java.util.concurrent.TimeoutException
-          - com.example.exception.InternalServerException
+          - com.example.order_service.api.common.exception.server.InternalServerException
         ignoreExceptions:
-          - com.example.exception.NotFoundException
+          - com.example.order_service.api.common.exception.NotFoundException
