@@ -12,10 +12,10 @@ import com.example.order_service.api.common.exception.InsufficientException;
 import com.example.order_service.api.common.exception.NotFoundException;
 import com.example.order_service.api.order.domain.repository.OrdersRepository;
 import com.example.order_service.service.client.CouponClientService;
-import com.example.order_service.api.cart.infrastructure.client.ProductClientService;
+import com.example.order_service.api.cart.infrastructure.client.CartProductClientService;
 import com.example.order_service.service.client.UserClientService;
 import com.example.order_service.service.client.dto.CouponResponse;
-import com.example.order_service.service.client.dto.ProductResponse;
+import com.example.order_service.api.cart.infrastructure.client.dto.CartProductResponse;
 import com.example.order_service.service.client.dto.UserBalanceResponse;
 import com.example.order_service.service.dto.CreateOrderDto;
 import com.example.order_service.service.event.OrderEndMessageEvent;
@@ -37,7 +37,7 @@ import java.util.Map;
 public class OrderService {
     private final ApplicationEventPublisher eventPublisher;
     private final OrdersRepository ordersRepository;
-    private final ProductClientService productClientService;
+    private final CartProductClientService cartProductClientService;
     private final UserClientService userClientService;
     private final CouponClientService couponClientService;
 
@@ -82,7 +82,7 @@ public class OrderService {
 
     private OrderCalculationResult calculateOrderTotals(OrderRequest request, OrderValidationData data){
         Map<Long, Integer> quantityMap = request.toQuantityMap();
-        Map<Long, ProductResponse> productByVariantId = data.toProductByVariantId();
+        Map<Long, CartProductResponse> productByVariantId = data.toProductByVariantId();
         long originOrderItemsPrice = 0;
         long productDiscountAmount = 0;
         long discountedOrderItemPrice = 0;
@@ -113,7 +113,7 @@ public class OrderService {
     }
 
     private OrderValidationData fetchRequiredData(Long userId, OrderRequest orderRequest){
-        List<ProductResponse> product = productClientService.fetchProductByVariantIds(orderRequest.getItemsVariantId());
+        List<CartProductResponse> product = cartProductClientService.getProducts(orderRequest.getItemsVariantId());
         UserBalanceResponse userBalance = userClientService.fetchBalance();
         CouponResponse couponInfo = (orderRequest.getCouponId() != null) ? couponClientService.fetchCouponByUserCouponId(userId, orderRequest.getCouponId())
                 : null;

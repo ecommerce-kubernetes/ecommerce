@@ -1,16 +1,16 @@
-package com.example.order_service.dto.response;
+package com.example.order_service.api.cart.infrastructure.client.dto;
 
 import lombok.*;
 
 @Getter
 @Setter
 @NoArgsConstructor
-public class ItemOptionResponse {
+public class ItemOption {
     private String optionTypeName;
     private String optionValueName;
 
     @Builder
-    private ItemOptionResponse(String optionTypeName, String optionValueName){
+    private ItemOption(String optionTypeName, String optionValueName){
         this.optionTypeName = optionTypeName;
         this.optionValueName = optionValueName;
     }

@@ -1,10 +1,10 @@
 package com.example.order_service.api.order.domain.model;
 
 import com.example.order_service.api.order.controller.dto.request.OrderItemRequest;
-import com.example.order_service.dto.response.ItemOptionResponse;
+import com.example.order_service.api.cart.infrastructure.client.dto.ItemOption;
 import com.example.order_service.api.common.entity.BaseEntity;
 import com.example.order_service.entity.convert.ItemOptionsConverter;
-import com.example.order_service.service.client.dto.ProductResponse;
+import com.example.order_service.api.cart.infrastructure.client.dto.CartProductResponse;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -32,7 +32,7 @@ public class OrderItems extends BaseEntity {
 
     @Column(columnDefinition = "TEXT")
     @Convert(converter = ItemOptionsConverter.class)
-    private List<ItemOptionResponse> itemOption;
+    private List<ItemOption> itemOption;
     private Long unitPrice;
     private Integer discountRate;
     private Long discountedPrice;
@@ -42,7 +42,7 @@ public class OrderItems extends BaseEntity {
     private String thumbnail;
 
     public OrderItems(Long productId, Long productVariantId, String productName,
-                      List<ItemOptionResponse> itemOption, Long unitPrice, Integer discountRate, Long discountedPrice,
+                      List<ItemOption> itemOption, Long unitPrice, Integer discountRate, Long discountedPrice,
                       Long lineTotal, int quantity, String thumbnail){
         this.productId = productId;
         this.productVariantId = productVariantId;
@@ -56,18 +56,18 @@ public class OrderItems extends BaseEntity {
         this.thumbnail = thumbnail;
     }
 
-    public static OrderItems from(OrderItemRequest orderItemRequest, Map<Long, ProductResponse> productResponseMap){
-        ProductResponse productResponse = productResponseMap.get(orderItemRequest.getProductVariantId());
-        return new OrderItems(productResponse.getProductId(),
-                productResponse.getProductVariantId(),
-                productResponse.getProductName(),
-                productResponse.getItemOptions(),
-                productResponse.getUnitPrice().getOriginalPrice(),
-                productResponse.getUnitPrice().getDiscountRate(),
-                productResponse.getUnitPrice().getDiscountedPrice(),
-                productResponse.getUnitPrice().getDiscountedPrice() * orderItemRequest.getQuantity(),
+    public static OrderItems from(OrderItemRequest orderItemRequest, Map<Long, CartProductResponse> productResponseMap){
+        CartProductResponse cartProductResponse = productResponseMap.get(orderItemRequest.getProductVariantId());
+        return new OrderItems(cartProductResponse.getProductId(),
+                cartProductResponse.getProductVariantId(),
+                cartProductResponse.getProductName(),
+                cartProductResponse.getItemOptions(),
+                cartProductResponse.getUnitPrice().getOriginalPrice(),
+                cartProductResponse.getUnitPrice().getDiscountRate(),
+                cartProductResponse.getUnitPrice().getDiscountedPrice(),
+                cartProductResponse.getUnitPrice().getDiscountedPrice() * orderItemRequest.getQuantity(),
                 orderItemRequest.getQuantity(),
-                productResponse.getThumbnailUrl());
+                cartProductResponse.getThumbnailUrl());
     }
 
     protected void setOrder(Orders order){

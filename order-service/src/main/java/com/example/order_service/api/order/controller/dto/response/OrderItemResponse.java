@@ -1,7 +1,7 @@
 package com.example.order_service.api.order.controller.dto.response;
 
-import com.example.order_service.dto.response.ItemOptionResponse;
-import com.example.order_service.dto.response.UnitPrice;
+import com.example.order_service.api.cart.infrastructure.client.dto.ItemOption;
+import com.example.order_service.api.cart.infrastructure.client.dto.UnitPrice;
 import lombok.*;
 
 import java.util.List;
@@ -16,11 +16,11 @@ public class OrderItemResponse {
     private int quantity;
     private UnitPrice unitPrice;
     private int lineTotal;
-    private List<ItemOptionResponse> options;
+    private List<ItemOption> options;
 
     @Builder
     private OrderItemResponse(Long productId, String productName, String thumbNailUrl, int quantity,
-                              UnitPrice unitPrice, int lineTotal, List<ItemOptionResponse> options){
+                              UnitPrice unitPrice, int lineTotal, List<ItemOption> options){
         this.productId = productId;
         this.productName = productName;
         this.thumbNailUrl = thumbNailUrl;

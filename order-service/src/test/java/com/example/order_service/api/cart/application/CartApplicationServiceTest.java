@@ -6,16 +6,16 @@ import com.example.order_service.api.cart.application.dto.result.CartItemRespons
 import com.example.order_service.api.cart.application.dto.result.CartResponse;
 import com.example.order_service.api.cart.domain.service.CartService;
 import com.example.order_service.api.cart.domain.service.dto.CartItemDto;
+import com.example.order_service.api.cart.infrastructure.client.dto.ItemOption;
 import com.example.order_service.api.common.exception.NoPermissionException;
 import com.example.order_service.api.common.security.principal.UserPrincipal;
 import com.example.order_service.api.common.security.model.UserRole;
-import com.example.order_service.dto.response.ItemOptionResponse;
-import com.example.order_service.dto.response.UnitPrice;
+import com.example.order_service.api.cart.infrastructure.client.dto.UnitPrice;
 import com.example.order_service.api.common.exception.NotFoundException;
 import com.example.order_service.api.common.exception.server.InternalServerException;
 import com.example.order_service.api.common.exception.server.UnavailableServiceException;
-import com.example.order_service.api.cart.infrastructure.client.ProductClientService;
-import com.example.order_service.service.client.dto.ProductResponse;
+import com.example.order_service.api.cart.infrastructure.client.CartProductClientService;
+import com.example.order_service.api.cart.infrastructure.client.dto.CartProductResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,7 +36,7 @@ public class CartApplicationServiceTest {
     @InjectMocks
     private CartApplicationService cartApplicationService;
     @Mock
-    private ProductClientService productClientService;
+    private CartProductClientService cartProductClientService;
     @Mock
     private CartService cartService;
 
@@ -51,9 +51,9 @@ public class CartApplicationServiceTest {
                 .quantity(3)
                 .build();
 
-        ProductResponse product = createProductResponse(1L, 1L, "상품1", 3000L,
+        CartProductResponse product = createProductResponse(1L, 1L, "상품1", 3000L,
                 10, "http://thumbnail.jpg",
-                List.of(ItemOptionResponse.builder().optionTypeName("사이즈").optionValueName("XL").build()));
+                List.of(ItemOption.builder().optionTypeName("사이즈").optionValueName("XL").build()));
 
         CartItemDto cartItem = CartItemDto.builder()
                 .id(1L)
@@ -61,7 +61,7 @@ public class CartApplicationServiceTest {
                 .quantity(3)
                 .build();
 
-        given(productClientService.fetchProductByVariantId(anyLong()))
+        given(cartProductClientService.getProduct(anyLong()))
                 .willReturn(product);
 
         given(cartService.addItemToCart(anyLong(), anyLong(), anyInt()))
@@ -79,7 +79,7 @@ public class CartApplicationServiceTest {
         assertThat(result.getLineTotal()).isEqualTo(8100L);
         assertThat(result.isAvailable()).isTrue();
 
-        assertThat(result.getUnitPrice())
+        assertThat(result.getPrice())
                 .satisfies(price -> {
                     assertThat(price.getOriginalPrice()).isEqualTo(3000L);
                     assertThat(price.getDiscountRate()).isEqualTo(10);
@@ -108,7 +108,7 @@ public class CartApplicationServiceTest {
                 .build();
 
         willThrow(new NotFoundException("해당 상품을 찾을 수 없습니다"))
-                .given(productClientService).fetchProductByVariantId(anyLong());
+                .given(cartProductClientService).getProduct(anyLong());
         //when
         //then
         assertThatThrownBy(() -> cartApplicationService.addItem(command))
@@ -129,7 +129,7 @@ public class CartApplicationServiceTest {
                 .build();
 
         willThrow(new UnavailableServiceException("서비스가 응답하지 않습니다 잠시후에 다시 시도해주세요"))
-                .given(productClientService).fetchProductByVariantId(anyLong());
+                .given(cartProductClientService).getProduct(anyLong());
         //when
         //then
         assertThatThrownBy(() -> cartApplicationService.addItem(command))
@@ -150,7 +150,7 @@ public class CartApplicationServiceTest {
                 .build();
 
         willThrow(new InternalServerException("서비스에 오류가 발생했습니다"))
-                .given(productClientService).fetchProductByVariantId(anyLong());
+                .given(cartProductClientService).getProduct(anyLong());
         //when
         //then
         assertThatThrownBy(() -> cartApplicationService.addItem(command))
@@ -174,18 +174,18 @@ public class CartApplicationServiceTest {
                 .quantity(2)
                 .build();
 
-        ProductResponse product1 = createProductResponse(1L, 1L, "상품1",
+        CartProductResponse product1 = createProductResponse(1L, 1L, "상품1",
                 3000L, 10, "http://thumbnail1.jpg",
-                List.of(ItemOptionResponse.builder().optionTypeName("사이즈").optionValueName("XL").build()));
+                List.of(ItemOption.builder().optionTypeName("사이즈").optionValueName("XL").build()));
 
-        ProductResponse product2 = createProductResponse(2L, 2L, "상품2",
+        CartProductResponse product2 = createProductResponse(2L, 2L, "상품2",
                 5000L, 10, "http://thumbnail2.jpg",
-                List.of(ItemOptionResponse.builder().optionTypeName("용량").optionValueName("256GB").build()));
+                List.of(ItemOption.builder().optionTypeName("용량").optionValueName("256GB").build()));
 
         given(cartService.getCartItems(anyLong()))
                 .willReturn(List.of(item1, item2));
 
-        given(productClientService.fetchProductByVariantIds(anyList()))
+        given(cartProductClientService.getProducts(anyList()))
                 .willReturn(List.of(product1, product2));
         //when
         CartResponse response = cartApplicationService.getCartDetails(userPrincipal);
@@ -200,7 +200,7 @@ public class CartApplicationServiceTest {
                                     assertThat(itemResponse1.getQuantity()).isEqualTo(3);
                                     assertThat(itemResponse1.getLineTotal()).isEqualTo(8100);
                                     assertThat(itemResponse1.isAvailable()).isTrue();
-                                    assertThat(itemResponse1.getUnitPrice())
+                                    assertThat(itemResponse1.getPrice())
                                             .isNotNull()
                                             .extracting("originalPrice", "discountRate", "discountAmount", "discountedPrice")
                                             .containsExactly(3000L, 10, 300L, 2700L);
@@ -217,7 +217,7 @@ public class CartApplicationServiceTest {
                                     assertThat(itemResponse2.getQuantity()).isEqualTo(2);
                                     assertThat(itemResponse2.getLineTotal()).isEqualTo(9000);
                                     assertThat(itemResponse2.isAvailable()).isTrue();
-                                    assertThat(itemResponse2.getUnitPrice())
+                                    assertThat(itemResponse2.getPrice())
                                             .isNotNull()
                                             .extracting("originalPrice", "discountRate", "discountAmount", "discountedPrice")
                                             .containsExactly(5000L, 10, 500L, 4500L);
@@ -261,14 +261,14 @@ public class CartApplicationServiceTest {
                 .quantity(2)
                 .build();
 
-        ProductResponse product1 = createProductResponse(1L, 1L, "상품1",
+        CartProductResponse product1 = createProductResponse(1L, 1L, "상품1",
                 3000L, 10, "http://thumbnail1.jpg",
-                List.of(ItemOptionResponse.builder().optionTypeName("사이즈").optionValueName("XL").build()));
+                List.of(ItemOption.builder().optionTypeName("사이즈").optionValueName("XL").build()));
 
         given(cartService.getCartItems(1L))
                 .willReturn(List.of(item1, item2));
 
-        given(productClientService.fetchProductByVariantIds(anyList()))
+        given(cartProductClientService.getProducts(anyList()))
                 .willReturn(List.of(product1));
         //when
         CartResponse cartDetails = cartApplicationService.getCartDetails(userPrincipal);
@@ -283,7 +283,7 @@ public class CartApplicationServiceTest {
                             assertThat(itemResponse1.getQuantity()).isEqualTo(3);
                             assertThat(itemResponse1.getLineTotal()).isEqualTo(8100);
                             assertThat(itemResponse1.isAvailable()).isTrue();
-                            assertThat(itemResponse1.getUnitPrice())
+                            assertThat(itemResponse1.getPrice())
                                     .isNotNull()
                                     .extracting("originalPrice", "discountRate", "discountAmount", "discountedPrice")
                                     .containsExactly(3000L, 10, 300L, 2700L);
@@ -300,7 +300,7 @@ public class CartApplicationServiceTest {
                             assertThat(itemResponse2.getQuantity()).isEqualTo(2);
                             assertThat(itemResponse2.getLineTotal()).isEqualTo(0);
                             assertThat(itemResponse2.isAvailable()).isFalse();
-                            assertThat(itemResponse2.getUnitPrice()).isNull();
+                            assertThat(itemResponse2.getPrice()).isNull();
                             assertThat(itemResponse2.getOptions()).isNull();
                         }
                 );
@@ -384,15 +384,15 @@ public class CartApplicationServiceTest {
                                 .quantity(1)
                                 .build()
                 );
-        ProductResponse product = createProductResponse(1L, 1L, "상품1", 3000L, 10,
+        CartProductResponse product = createProductResponse(1L, 1L, "상품1", 3000L, 10,
                 "http://thumbnail.jpg", List.of(
-                        ItemOptionResponse.builder()
+                        ItemOption.builder()
                                 .optionTypeName("사이즈")
                                 .optionValueName("XL")
                                 .build()
                 ));
 
-        given(productClientService.fetchProductByVariantId(anyLong()))
+        given(cartProductClientService.getProduct(anyLong()))
                 .willReturn(product);
 
         given(cartService.updateQuantity(anyLong(), anyInt()))
@@ -417,7 +417,7 @@ public class CartApplicationServiceTest {
         assertThat(result.getLineTotal()).isEqualTo(8100L);
         assertThat(result.isAvailable()).isTrue();
 
-        assertThat(result.getUnitPrice())
+        assertThat(result.getPrice())
                 .satisfies(price -> {
                     assertThat(price.getOriginalPrice()).isEqualTo(3000L);
                     assertThat(price.getDiscountRate()).isEqualTo(10);
@@ -452,8 +452,8 @@ public class CartApplicationServiceTest {
                                 .build()
                 );
         willThrow(new NotFoundException("상품을 찾을 수 없습니다"))
-                .given(productClientService)
-                .fetchProductByVariantId(anyLong());
+                .given(cartProductClientService)
+                .getProduct(anyLong());
         //when
         CartItemResponse result = cartApplicationService.updateCartItemQuantity(dto);
         //then
@@ -467,7 +467,7 @@ public class CartApplicationServiceTest {
         assertThat(result.getLineTotal()).isEqualTo(0);
         assertThat(result.isAvailable()).isFalse();
 
-        assertThat(result.getUnitPrice()).isNull();;
+        assertThat(result.getPrice()).isNull();;
 
         assertThat(result.getOptions()).isNull();
     }
@@ -499,11 +499,11 @@ public class CartApplicationServiceTest {
                 .build();
     }
 
-    private ProductResponse createProductResponse(Long productId, Long productVariantId,
-                                                  String productName, Long originalPrice, int discountRate,
-                                                  String thumbnail, List<ItemOptionResponse> options){
+    private CartProductResponse createProductResponse(Long productId, Long productVariantId,
+                                                      String productName, Long originalPrice, int discountRate,
+                                                      String thumbnail, List<ItemOption> options){
         long discountAmount = originalPrice * discountRate / 100;
-        return ProductResponse.builder()
+        return CartProductResponse.builder()
                 .productId(productId)
                 .productVariantId(productVariantId)
                 .productName(productName)

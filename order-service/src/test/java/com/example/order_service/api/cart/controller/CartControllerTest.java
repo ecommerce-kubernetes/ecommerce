@@ -9,8 +9,6 @@ import com.example.order_service.api.cart.controller.dto.request.UpdateQuantityR
 import com.example.order_service.support.security.annotation.WithCustomMockUser;
 import com.example.order_service.api.cart.application.dto.result.CartItemResponse;
 import com.example.order_service.api.cart.application.dto.result.CartResponse;
-import com.example.order_service.dto.response.ItemOptionResponse;
-import com.example.order_service.dto.response.UnitPrice;
 import com.example.order_service.api.common.exception.NotFoundException;
 import com.example.order_service.api.common.exception.server.InternalServerException;
 import com.example.order_service.api.common.exception.server.UnavailableServiceException;
@@ -54,9 +52,10 @@ class CartControllerTest extends ControllerTestSupport {
                 .productVariantId(productVariantId)
                 .quantity(quantity)
                 .build();
-        UnitPrice unitPrice = createUnitPrice(3000, 10);
 
-        ItemOptionResponse itemOption = ItemOptionResponse.builder()
+        CartItemResponse.CartItemPrice cartItemPrice = createCartItemPrice(3000, 10);
+
+        CartItemResponse.CartItemOption cartItemOption = CartItemResponse.CartItemOption.builder()
                 .optionTypeName("사이즈")
                 .optionValueName("XL")
                 .build();
@@ -68,9 +67,9 @@ class CartControllerTest extends ControllerTestSupport {
                 .productName("상품1")
                 .thumbnailUrl("http://thumbNail.jpg")
                 .quantity(quantity)
-                .unitPrice(unitPrice)
-                .lineTotal(unitPrice.getDiscountedPrice() * 2)
-                .options(List.of(itemOption))
+                .price(cartItemPrice)
+                .lineTotal(cartItemPrice.getDiscountedPrice() * quantity)
+                .options(List.of(cartItemOption))
                 .isAvailable(true)
                 .build();
 
@@ -91,10 +90,10 @@ class CartControllerTest extends ControllerTestSupport {
                 .andExpect(jsonPath("$.productName").value(response.getProductName()))
                 .andExpect(jsonPath("$.thumbnailUrl").value(response.getThumbnailUrl()))
                 .andExpect(jsonPath("$.quantity").value(response.getQuantity()))
-                .andExpect(jsonPath("$.unitPrice.originalPrice").value(response.getUnitPrice().getOriginalPrice()))
-                .andExpect(jsonPath("$.unitPrice.discountRate").value(response.getUnitPrice().getDiscountRate()))
-                .andExpect(jsonPath("$.unitPrice.discountAmount").value(response.getUnitPrice().getDiscountAmount()))
-                .andExpect(jsonPath("$.unitPrice.discountedPrice").value(response.getUnitPrice().getDiscountedPrice()))
+                .andExpect(jsonPath("$.price.originalPrice").value(response.getPrice().getOriginalPrice()))
+                .andExpect(jsonPath("$.price.discountRate").value(response.getPrice().getDiscountRate()))
+                .andExpect(jsonPath("$.price.discountAmount").value(response.getPrice().getDiscountAmount()))
+                .andExpect(jsonPath("$.price.discountedPrice").value(response.getPrice().getDiscountedPrice()))
                 .andExpect(jsonPath("$.available").value(response.isAvailable()));
     }
 
@@ -244,8 +243,8 @@ class CartControllerTest extends ControllerTestSupport {
     @WithCustomMockUser
     void getAllCartItem() throws Exception {
         //given
-        UnitPrice unitPrice = createUnitPrice(3000, 10);
-        ItemOptionResponse itemOption = ItemOptionResponse.builder()
+        CartItemResponse.CartItemPrice cartItemPrice = createCartItemPrice(3000, 10);
+        CartItemResponse.CartItemOption cartItemOption = CartItemResponse.CartItemOption.builder()
                 .optionTypeName("사이즈")
                 .optionValueName("XL")
                 .build();
@@ -256,9 +255,9 @@ class CartControllerTest extends ControllerTestSupport {
                 .productName("상품1")
                 .thumbnailUrl("http://thumbnail.jpg")
                 .quantity(2)
-                .unitPrice(unitPrice)
-                .lineTotal(unitPrice.getDiscountedPrice() * 2)
-                .options(List.of(itemOption))
+                .price(cartItemPrice)
+                .lineTotal(cartItemPrice.getDiscountedPrice() * 2)
+                .options(List.of(cartItemOption))
                 .isAvailable(true)
                 .build();
 
@@ -280,10 +279,10 @@ class CartControllerTest extends ControllerTestSupport {
                 .andExpect(jsonPath("$.cartItems[0].productName").value("상품1"))
                 .andExpect(jsonPath("$.cartItems[0].thumbnailUrl").value("http://thumbnail.jpg"))
                 .andExpect(jsonPath("$.cartItems[0].quantity").value(2))
-                .andExpect(jsonPath("$.cartItems[0].unitPrice.originalPrice").value(3000))
-                .andExpect(jsonPath("$.cartItems[0].unitPrice.discountRate").value(10))
-                .andExpect(jsonPath("$.cartItems[0].unitPrice.discountAmount").value(300))
-                .andExpect(jsonPath("$.cartItems[0].unitPrice.discountedPrice").value(2700))
+                .andExpect(jsonPath("$.cartItems[0].price.originalPrice").value(3000))
+                .andExpect(jsonPath("$.cartItems[0].price.discountRate").value(10))
+                .andExpect(jsonPath("$.cartItems[0].price.discountAmount").value(300))
+                .andExpect(jsonPath("$.cartItems[0].price.discountedPrice").value(2700))
                 .andExpect(jsonPath("$.cartItems[0].lineTotal").value(5400))
                 .andExpect(jsonPath("$.cartItems[0].available").value(true))
                 .andExpect(jsonPath("$.cartItems.length()").value(1))
@@ -349,9 +348,8 @@ class CartControllerTest extends ControllerTestSupport {
                 .quantity(3)
                 .build();
 
-        UnitPrice unitPrice = createUnitPrice(3000, 10);
-
-        ItemOptionResponse itemOption = ItemOptionResponse.builder()
+        CartItemResponse.CartItemPrice cartItemPrice = createCartItemPrice(3000, 10);
+        CartItemResponse.CartItemOption cartItemOption = CartItemResponse.CartItemOption.builder()
                 .optionTypeName("사이즈")
                 .optionValueName("XL")
                 .build();
@@ -362,9 +360,9 @@ class CartControllerTest extends ControllerTestSupport {
                 .productName("상품1")
                 .thumbnailUrl("http://thumbNail.jpg")
                 .quantity(3)
-                .unitPrice(unitPrice)
-                .lineTotal(unitPrice.getDiscountedPrice() * 3)
-                .options(List.of(itemOption))
+                .price(cartItemPrice)
+                .lineTotal(cartItemPrice.getDiscountedPrice() * 3)
+                .options(List.of(cartItemOption))
                 .isAvailable(true)
                 .build();
         given(cartApplicationService.updateCartItemQuantity(any(UpdateQuantityDto.class)))
@@ -382,10 +380,10 @@ class CartControllerTest extends ControllerTestSupport {
                 .andExpect(jsonPath("$.productName").value(response.getProductName()))
                 .andExpect(jsonPath("$.thumbnailUrl").value(response.getThumbnailUrl()))
                 .andExpect(jsonPath("$.quantity").value(response.getQuantity()))
-                .andExpect(jsonPath("$.unitPrice.originalPrice").value(response.getUnitPrice().getOriginalPrice()))
-                .andExpect(jsonPath("$.unitPrice.discountRate").value(response.getUnitPrice().getDiscountRate()))
-                .andExpect(jsonPath("$.unitPrice.discountAmount").value(response.getUnitPrice().getDiscountAmount()))
-                .andExpect(jsonPath("$.unitPrice.discountedPrice").value(response.getUnitPrice().getDiscountedPrice()))
+                .andExpect(jsonPath("$.price.originalPrice").value(response.getPrice().getOriginalPrice()))
+                .andExpect(jsonPath("$.price.discountRate").value(response.getPrice().getDiscountRate()))
+                .andExpect(jsonPath("$.price.discountAmount").value(response.getPrice().getDiscountAmount()))
+                .andExpect(jsonPath("$.price.discountedPrice").value(response.getPrice().getDiscountedPrice()))
                 .andExpect(jsonPath("$.available").value(true));
     }
 
@@ -438,9 +436,9 @@ class CartControllerTest extends ControllerTestSupport {
 
     }
 
-    private UnitPrice createUnitPrice(long originalPrice, int discountRate){
+    private CartItemResponse.CartItemPrice createCartItemPrice(long originalPrice, int discountRate){
         long discountAmount = calcDiscountAmount(originalPrice, discountRate);
-        return UnitPrice.builder()
+        return CartItemResponse.CartItemPrice.builder()
                 .originalPrice(originalPrice)
                 .discountRate(discountRate)
                 .discountAmount(discountAmount)

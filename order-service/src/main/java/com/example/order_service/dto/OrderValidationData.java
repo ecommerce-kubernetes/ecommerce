@@ -1,7 +1,7 @@
 package com.example.order_service.dto;
 
 import com.example.order_service.service.client.dto.CouponResponse;
-import com.example.order_service.service.client.dto.ProductResponse;
+import com.example.order_service.api.cart.infrastructure.client.dto.CartProductResponse;
 import com.example.order_service.service.client.dto.UserBalanceResponse;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -16,11 +16,11 @@ import java.util.stream.Collectors;
 @Getter
 @Setter
 public class OrderValidationData {
-    List<ProductResponse> products;
+    List<CartProductResponse> products;
     UserBalanceResponse userBalance;
     CouponResponse coupon;
 
-    public Map<Long, ProductResponse> toProductByVariantId(){
-        return products.stream().collect(Collectors.toMap(ProductResponse::getProductVariantId, Function.identity()));
+    public Map<Long, CartProductResponse> toProductByVariantId(){
+        return products.stream().collect(Collectors.toMap(CartProductResponse::getProductVariantId, Function.identity()));
     }
 }

@@ -1,5 +1,7 @@
 package com.example.order_service.docs.order;
 
+import com.example.order_service.api.cart.infrastructure.client.dto.ItemOption;
+import com.example.order_service.api.cart.infrastructure.client.dto.UnitPrice;
 import com.example.order_service.api.order.controller.OrderController;
 import com.example.order_service.api.order.controller.dto.response.OrderItemResponse;
 import com.example.order_service.api.order.controller.dto.response.OrderResponse;
@@ -195,7 +197,7 @@ public class OrderControllerDocsTest extends RestDocSupport {
                                 .build()
                 )
                 .lineTotal(5700)
-                .options(List.of(                        ItemOptionResponse.builder()
+                .options(List.of(                        ItemOption.builder()
                         .optionTypeName("사이즈")
                         .optionValueName("XL")
                         .build()))

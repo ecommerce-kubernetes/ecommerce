@@ -8,8 +8,6 @@ import com.example.order_service.docs.RestDocSupport;
 import com.example.order_service.api.cart.controller.dto.request.CartItemRequest;
 import com.example.order_service.api.cart.application.dto.result.CartItemResponse;
 import com.example.order_service.api.cart.application.dto.result.CartResponse;
-import com.example.order_service.dto.response.ItemOptionResponse;
-import com.example.order_service.dto.response.UnitPrice;
 import com.example.order_service.api.cart.application.dto.command.AddCartItemDto;
 import com.example.order_service.api.cart.application.dto.command.UpdateQuantityDto;
 import org.junit.jupiter.api.DisplayName;
@@ -86,10 +84,10 @@ public class CartControllerDocsTest extends RestDocSupport {
                                         fieldWithPath("productName").description("상품 이름"),
                                         fieldWithPath("thumbnailUrl").description("상품 썸네일"),
                                         fieldWithPath("quantity").description("수량"),
-                                        fieldWithPath("unitPrice.originalPrice").description("상품 원본 가격"),
-                                        fieldWithPath("unitPrice.discountRate").description("상품 할인율"),
-                                        fieldWithPath("unitPrice.discountAmount").description("상품 할인 금액"),
-                                        fieldWithPath("unitPrice.discountedPrice").description("할인된 가격"),
+                                        fieldWithPath("price.originalPrice").description("상품 원본 가격"),
+                                        fieldWithPath("price.discountRate").description("상품 할인율"),
+                                        fieldWithPath("price.discountAmount").description("상품 할인 금액"),
+                                        fieldWithPath("price.discountedPrice").description("할인된 가격"),
                                         fieldWithPath("lineTotal").description("항목 총액 (상품 할인 가격 X 수량)"),
                                         fieldWithPath("options[].optionTypeName").description("상품 옵션 타입 (예: 사이즈)"),
                                         fieldWithPath("options[].optionValueName").description("상품 옵션 값 (예: XL)"),
@@ -137,10 +135,10 @@ public class CartControllerDocsTest extends RestDocSupport {
                                         fieldWithPath("cartItems[].productName").description("상품 이름"),
                                         fieldWithPath("cartItems[].thumbnailUrl").description("상품 썸네일"),
                                         fieldWithPath("cartItems[].quantity").description("수량"),
-                                        fieldWithPath("cartItems[].unitPrice.originalPrice").description("상품 원본 가격"),
-                                        fieldWithPath("cartItems[].unitPrice.discountRate").description("상품 할인율"),
-                                        fieldWithPath("cartItems[].unitPrice.discountAmount").description("상품 할인 금액"),
-                                        fieldWithPath("cartItems[].unitPrice.discountedPrice").description("할인된 가격"),
+                                        fieldWithPath("cartItems[].price.originalPrice").description("상품 원본 가격"),
+                                        fieldWithPath("cartItems[].price.discountRate").description("상품 할인율"),
+                                        fieldWithPath("cartItems[].price.discountAmount").description("상품 할인 금액"),
+                                        fieldWithPath("cartItems[].price.discountedPrice").description("할인된 가격"),
                                         fieldWithPath("cartItems[].lineTotal").description("항목 총액 (상품 할인 가격 X 수량)"),
                                         fieldWithPath("cartItems[].options[].optionTypeName").description("상품 옵션 타입 (예: 사이즈)"),
                                         fieldWithPath("cartItems[].options[].optionValueName").description("상품 옵션 값 (예: XL)"),
@@ -233,10 +231,10 @@ public class CartControllerDocsTest extends RestDocSupport {
                                         fieldWithPath("productName").description("상품 이름"),
                                         fieldWithPath("thumbnailUrl").description("상품 썸네일"),
                                         fieldWithPath("quantity").description("수량"),
-                                        fieldWithPath("unitPrice.originalPrice").description("상품 원본 가격"),
-                                        fieldWithPath("unitPrice.discountRate").description("상품 할인율"),
-                                        fieldWithPath("unitPrice.discountAmount").description("상품 할인 금액"),
-                                        fieldWithPath("unitPrice.discountedPrice").description("할인된 가격"),
+                                        fieldWithPath("price.originalPrice").description("상품 원본 가격"),
+                                        fieldWithPath("price.discountRate").description("상품 할인율"),
+                                        fieldWithPath("price.discountAmount").description("상품 할인 금액"),
+                                        fieldWithPath("price.discountedPrice").description("할인된 가격"),
                                         fieldWithPath("lineTotal").description("항목 총액 (상품 할인 가격 X 수량)"),
                                         fieldWithPath("options[].optionTypeName").description("상품 옵션 타입 (예: 사이즈)"),
                                         fieldWithPath("options[].optionValueName").description("상품 옵션 값 (예: XL)"),
@@ -261,17 +259,17 @@ public class CartControllerDocsTest extends RestDocSupport {
                 .productName("상품1")
                 .thumbnailUrl("http://thumbnail.jpg")
                 .quantity(2)
-                .unitPrice(
-                        UnitPrice.builder()
+                .price(
+                        CartItemResponse.CartItemPrice.builder()
                                 .originalPrice(3000)
                                 .discountRate(10)
                                 .discountAmount(300)
                                 .discountedPrice(2700)
                                 .build()
                 )
-                .lineTotal(5700)
+                .lineTotal(5400)
                 .options(List.of(
-                        ItemOptionResponse.builder()
+                        CartItemResponse.CartItemOption.builder()
                                 .optionTypeName("사이즈")
                                 .optionValueName("XL")
                                 .build()
