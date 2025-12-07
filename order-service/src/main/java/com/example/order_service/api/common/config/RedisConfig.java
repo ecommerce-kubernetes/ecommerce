@@ -1,4 +1,4 @@
-package com.example.order_service.config;
+package com.example.order_service.api.common.config;
 
 import com.example.common.FailedEvent;
 import com.example.common.SuccessSagaEvent;
@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
@@ -20,6 +21,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.scripting.support.ResourceScriptSource;
 
 @Configuration
+@Profile("!test-mock")
 public class RedisConfig {
 
     @Value("${spring.data.redis.host}")

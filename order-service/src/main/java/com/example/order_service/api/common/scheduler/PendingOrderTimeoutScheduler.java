@@ -1,4 +1,4 @@
-package com.example.order_service.common.scheduler;
+package com.example.order_service.api.common.scheduler;
 
 import com.example.order_service.service.SagaManager;
 import lombok.RequiredArgsConstructor;

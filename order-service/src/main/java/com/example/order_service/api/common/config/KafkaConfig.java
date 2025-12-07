@@ -1,14 +1,14 @@
-package com.example.order_service.config;
+package com.example.order_service.api.common.config;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
+import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.*;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
@@ -18,7 +18,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Configuration
-@ConditionalOnProperty(name = "kafka.enabled", havingValue = "true", matchIfMissing = true)
+@EnableKafka
+@Profile("!test-mock")
 public class KafkaConfig {
 
     @Value("${spring.kafka.bootstrap-servers}")
@@ -26,7 +27,6 @@ public class KafkaConfig {
 
     private static final String GROUP_ID = "orders";
 
-    @RefreshScope
     @Bean
     public ProducerFactory<String, Object> producerFactory(){
         Map<String, Object> config = new HashMap<>();
@@ -41,7 +41,6 @@ public class KafkaConfig {
         return new KafkaTemplate<>(producerFactory());
     }
 
-    @RefreshScope
     @Bean
     public ConsumerFactory<String, Object> consumerFactory(){
         Map<String, Object> config = new HashMap<>();

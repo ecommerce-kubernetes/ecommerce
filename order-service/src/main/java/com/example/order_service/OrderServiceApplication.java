@@ -9,13 +9,8 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
-@SpringBootApplication(exclude = {
-		RedisAutoConfiguration.class,
-		RedisRepositoriesAutoConfiguration.class,
-		KafkaAutoConfiguration.class
-})
+@SpringBootApplication
 @EnableDiscoveryClient
-@EnableScheduling
 @EnableFeignClients
 public class OrderServiceApplication {
 

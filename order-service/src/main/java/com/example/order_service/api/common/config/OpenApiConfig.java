@@ -1,4 +1,4 @@
-package com.example.order_service.config;
+package com.example.order_service.api.common.config;
 
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;

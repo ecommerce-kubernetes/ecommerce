@@ -2,7 +2,7 @@ package com.example.order_service.api.common;
 
 import com.example.order_service.api.common.error.ControllerAdvice;
 import com.example.order_service.api.common.security.config.SecurityConfig;
-import com.example.order_service.config.CorsConfig;
+import com.example.order_service.api.common.config.CorsConfig;
 import com.example.order_service.support.security.DummyController;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

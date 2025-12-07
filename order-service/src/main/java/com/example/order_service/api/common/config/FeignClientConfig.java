@@ -1,4 +1,4 @@
-package com.example.order_service.config;
+package com.example.order_service.api.common.config;
 
 import feign.RequestInterceptor;
 import feign.RequestTemplate;

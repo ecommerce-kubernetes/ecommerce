@@ -1,7 +1,7 @@
 package com.example.order_service.service.order;
 
 import com.example.order_service.api.order.domain.service.OrderService;
-import com.example.order_service.common.scheduler.PendingOrderTimeoutScheduler;
+import com.example.order_service.api.common.scheduler.PendingOrderTimeoutScheduler;
 import com.example.order_service.api.cart.infrastructure.client.dto.ItemOption;
 import com.example.order_service.api.order.domain.model.OrderItems;
 import com.example.order_service.api.order.domain.model.Orders;
