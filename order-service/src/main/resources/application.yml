@@ -1,0 +1,13 @@
+resilience4j:
+  circuitbreaker:
+    instances:
+      productService:
+        baseConfig: default
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+        recordExceptions:
+          - java.io.IOException
+          - java.util.concurrent.TimeoutException
+          - com.example.exception.InternalServerException
+        ignoreExceptions:
+          - com.example.exception.NotFoundException

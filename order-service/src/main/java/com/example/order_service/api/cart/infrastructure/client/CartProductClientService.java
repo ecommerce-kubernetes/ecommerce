@@ -4,15 +4,17 @@ import com.example.order_service.api.common.exception.server.InternalServerExcep
 import com.example.order_service.api.common.exception.server.UnavailableServiceException;
 import com.example.order_service.api.common.exception.NotFoundException;
 import com.example.order_service.api.cart.infrastructure.client.dto.CartProductResponse;
-import feign.FeignException;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class CartProductClientService {
 
@@ -23,23 +25,29 @@ public class CartProductClientService {
         return cartProductClient.getProductByVariantId(productVariantId);
     }
 
+    @CircuitBreaker(name = "productService", fallbackMethod = "getProductsFallback")
     public List<CartProductResponse> getProducts(List<Long> productVariantIds){
         return cartProductClient.getProductVariantByIds(productVariantIds);
     }
 
     private CartProductResponse getProductFallback(Long productVariantId, Throwable throwable){
         if(throwable instanceof CallNotPermittedException){
-            throw new UnavailableServiceException(
-                    "상품 서비스가 응답하지 않습니다"
-            );
+            log.error("상품 서비스 장애로 서킷브레이커 열림");
+            throw new UnavailableServiceException("상품 서비스가 응답하지 않습니다");
         }
-        else if (throwable instanceof FeignException){
-            if (((FeignException) throwable).status() == 404){
-                throw new NotFoundException("상품을 찾을 수 없습니다");
-            }
+
+        if (throwable instanceof NotFoundException){
+            throw (NotFoundException) throwable;
         }
-        throw new InternalServerException(
-                "상품 서비스에서 오류가 발생했습니다"
-        );
+
+        throw new InternalServerException(throwable.getMessage());
+    }
+
+    private List<CartProductResponse> getProductsFallback(List<Long> productVariantIds, Throwable throwable){
+        if(throwable instanceof CallNotPermittedException) {
+            log.error("상품 서비스 장애로 서킷브레이커 열림");
+            return Collections.emptyList();
+        }
+        return Collections.emptyList();
     }
 }

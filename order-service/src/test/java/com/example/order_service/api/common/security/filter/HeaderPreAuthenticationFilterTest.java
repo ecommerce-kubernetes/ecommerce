@@ -1,4 +1,4 @@
-package com.example.order_service.api.common;
+package com.example.order_service.api.common.security.filter;
 
 import com.example.order_service.api.common.error.ControllerAdvice;
 import com.example.order_service.api.common.security.config.SecurityConfig;
