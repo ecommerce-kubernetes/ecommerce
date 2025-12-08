@@ -1,8 +1,6 @@
 package com.example.order_service.api.cart.application.dto.result;
 
 import com.example.order_service.api.cart.domain.service.dto.CartItemDto;
-import com.example.order_service.api.cart.infrastructure.client.dto.ItemOption;
-import com.example.order_service.api.cart.infrastructure.client.dto.UnitPrice;
 import com.example.order_service.api.cart.infrastructure.client.dto.CartProductResponse;
 import lombok.*;
 
@@ -68,14 +66,14 @@ public class CartItemResponse {
                 .build();
     }
 
-    private static List<CartItemOption> mapToOptions(List<ItemOption> optionResponses){
+    private static List<CartItemOption> mapToOptions(List<CartProductResponse.ItemOption> optionResponses){
         return optionResponses.stream().map(optionResponse -> CartItemOption.builder()
                 .optionTypeName(optionResponse.getOptionTypeName())
                 .optionValueName(optionResponse.getOptionValueName())
                 .build()).toList();
     }
 
-    private static CartItemPrice mapToPrice(UnitPrice unitPrice){
+    private static CartItemPrice mapToPrice(CartProductResponse.UnitPrice unitPrice){
         return CartItemPrice.builder()
                 .originalPrice(unitPrice.getOriginalPrice())
                 .discountRate(unitPrice.getDiscountRate())

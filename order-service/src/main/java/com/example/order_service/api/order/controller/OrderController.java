@@ -6,7 +6,7 @@ import com.example.order_service.api.common.util.validator.PageableValidatorFact
 import com.example.order_service.api.order.application.OrderApplicationService;
 import com.example.order_service.api.order.controller.dto.request.CreateOrderRequest;
 import com.example.order_service.api.order.application.dto.result.CreateOrderResponse;
-import com.example.order_service.api.order.controller.dto.response.OrderResponse;
+import com.example.order_service.api.order.application.dto.result.OrderResponse;
 import com.example.order_service.api.order.domain.service.OrderService;
 import com.example.order_service.dto.response.PageDto;
 import com.example.order_service.entity.DomainType;

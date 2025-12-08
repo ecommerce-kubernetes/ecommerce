@@ -1,9 +1,7 @@
 package com.example.order_service.api.order.domain.model;
 
 import com.example.order_service.api.order.controller.dto.request.CreateOrderItemRequest;
-import com.example.order_service.api.cart.infrastructure.client.dto.ItemOption;
 import com.example.order_service.api.common.entity.BaseEntity;
-import com.example.order_service.entity.convert.ItemOptionsConverter;
 import com.example.order_service.api.cart.infrastructure.client.dto.CartProductResponse;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -30,9 +28,9 @@ public class OrderItems extends BaseEntity {
     private Long productVariantId;
     private String productName;
 
-    @Column(columnDefinition = "TEXT")
-    @Convert(converter = ItemOptionsConverter.class)
-    private List<ItemOption> itemOption;
+//    @Column(columnDefinition = "TEXT")
+//    @Convert(converter = ItemOptionsConverter.class)
+//    private List<ItemOption> itemOption;
     private Long unitPrice;
     private Integer discountRate;
     private Long discountedPrice;
@@ -42,12 +40,12 @@ public class OrderItems extends BaseEntity {
     private String thumbnail;
 
     public OrderItems(Long productId, Long productVariantId, String productName,
-                      List<ItemOption> itemOption, Long unitPrice, Integer discountRate, Long discountedPrice,
+                      List<CartProductResponse.ItemOption> itemOption, Long unitPrice, Integer discountRate, Long discountedPrice,
                       Long lineTotal, int quantity, String thumbnail){
         this.productId = productId;
         this.productVariantId = productVariantId;
         this.productName = productName;
-        this.itemOption = itemOption;
+//        this.itemOption = itemOption;
         this.unitPrice = unitPrice;
         this.discountRate = discountRate;
         this.discountedPrice = discountedPrice;

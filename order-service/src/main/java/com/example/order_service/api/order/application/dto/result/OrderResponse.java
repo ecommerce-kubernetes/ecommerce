@@ -1,4 +1,4 @@
-package com.example.order_service.api.order.controller.dto.response;
+package com.example.order_service.api.order.application.dto.result;
 
 import lombok.*;
 

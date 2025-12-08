@@ -1,12 +1,10 @@
 package com.example.order_service.docs.order;
 
-import com.example.order_service.api.cart.infrastructure.client.dto.ItemOption;
-import com.example.order_service.api.cart.infrastructure.client.dto.UnitPrice;
 import com.example.order_service.api.order.application.OrderApplicationService;
 import com.example.order_service.api.order.application.dto.result.CreateOrderResponse;
 import com.example.order_service.api.order.controller.OrderController;
-import com.example.order_service.api.order.controller.dto.response.OrderItemResponse;
-import com.example.order_service.api.order.controller.dto.response.OrderResponse;
+import com.example.order_service.api.order.application.dto.result.OrderItemResponse;
+import com.example.order_service.api.order.application.dto.result.OrderResponse;
 import com.example.order_service.api.common.util.validator.OrderPageableValidator;
 import com.example.order_service.api.common.util.validator.PageableValidatorFactory;
 import com.example.order_service.docs.RestDocSupport;
@@ -45,7 +43,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class OrderControllerDocsTest extends RestDocSupport {
     private OrderService orderService = mock(OrderService.class);
     private OrderApplicationService orderApplicationService = mock(OrderApplicationService.class);
-    private SseConnectionService sseConnectionService = mock(SseConnectionService.class);
     private PageableValidatorFactory factory = mock(PageableValidatorFactory.class);
 
     @BeforeEach
@@ -195,7 +192,7 @@ public class OrderControllerDocsTest extends RestDocSupport {
                 .thumbNailUrl(thumbNailUrl)
                 .quantity(2)
                 .unitPrice(
-                        UnitPrice.builder()
+                        OrderItemResponse.OrderItemPrice.builder()
                                 .originalPrice(3000)
                                 .discountRate(10)
                                 .discountAmount(300)
@@ -203,7 +200,7 @@ public class OrderControllerDocsTest extends RestDocSupport {
                                 .build()
                 )
                 .lineTotal(5700)
-                .options(List.of(                        ItemOption.builder()
+                .options(List.of(OrderItemResponse.OrderItemOption.builder()
                         .optionTypeName("사이즈")
                         .optionValueName("XL")
                         .build()))

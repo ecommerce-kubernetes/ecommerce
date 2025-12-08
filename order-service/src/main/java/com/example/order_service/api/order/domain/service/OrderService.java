@@ -4,7 +4,7 @@ import com.example.order_service.dto.OrderCalculationResult;
 import com.example.order_service.dto.OrderValidationData;
 import com.example.order_service.api.order.controller.dto.request.CreateOrderRequest;
 import com.example.order_service.api.order.application.dto.result.CreateOrderResponse;
-import com.example.order_service.api.order.controller.dto.response.OrderResponse;
+import com.example.order_service.api.order.application.dto.result.OrderResponse;
 import com.example.order_service.dto.response.PageDto;
 import com.example.order_service.api.order.domain.model.Orders;
 import com.example.order_service.api.common.exception.BadRequestException;

@@ -1,7 +1,5 @@
-package com.example.order_service.api.order.controller.dto.response;
+package com.example.order_service.api.order.application.dto.result;
 
-import com.example.order_service.api.cart.infrastructure.client.dto.ItemOption;
-import com.example.order_service.api.cart.infrastructure.client.dto.UnitPrice;
 import lombok.*;
 
 import java.util.List;
@@ -14,13 +12,13 @@ public class OrderItemResponse {
     private String productName;
     private String thumbNailUrl;
     private int quantity;
-    private UnitPrice unitPrice;
+    private OrderItemPrice unitPrice;
     private int lineTotal;
-    private List<ItemOption> options;
+    private List<OrderItemOption> options;
 
     @Builder
     private OrderItemResponse(Long productId, String productName, String thumbNailUrl, int quantity,
-                              UnitPrice unitPrice, int lineTotal, List<ItemOption> options){
+                              OrderItemPrice unitPrice, int lineTotal, List<OrderItemOption> options){
         this.productId = productId;
         this.productName = productName;
         this.thumbNailUrl = thumbNailUrl;
@@ -28,5 +26,21 @@ public class OrderItemResponse {
         this.unitPrice = unitPrice;
         this.lineTotal = lineTotal;
         this.options = options;
+    }
+
+    @Getter
+    @Builder
+    public static class OrderItemPrice {
+        private long originalPrice;
+        private int discountRate;
+        private long discountAmount;
+        private long discountedPrice;
+    }
+
+    @Getter
+    @Builder
+    public static class OrderItemOption {
+        private String optionTypeName;
+        private String optionValueName;
     }
 }

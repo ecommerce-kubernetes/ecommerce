@@ -1,8 +1,8 @@
 package com.example.order_service.service.order;
 
+import com.example.order_service.api.cart.infrastructure.client.dto.CartProductResponse;
 import com.example.order_service.api.order.domain.service.OrderService;
 import com.example.order_service.api.common.scheduler.PendingOrderTimeoutScheduler;
-import com.example.order_service.api.cart.infrastructure.client.dto.ItemOption;
 import com.example.order_service.api.order.domain.model.OrderItems;
 import com.example.order_service.api.order.domain.model.Orders;
 import com.example.order_service.api.order.domain.repository.OrdersRepository;
@@ -82,7 +82,7 @@ class OrderServiceTest {
         testListener.clear();
         saveOrder = new Orders(1L, 1L, "PENDING", "서울시 테헤란로 123", 3000L, 300L,
                 1000L, 700L, 1000L);
-        List<OrderItems> orderItems = List.of(new OrderItems(1L, 1L, "상품1", List.of(ItemOption.builder()
+        List<OrderItems> orderItems = List.of(new OrderItems(1L, 1L, "상품1", List.of(CartProductResponse.ItemOption.builder()
                 .optionTypeName("사이즈")
                 .optionValueName("XL")
                 .build()),

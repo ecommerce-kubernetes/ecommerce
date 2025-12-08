@@ -1,7 +1,5 @@
 package com.example.order_service.api.order.infrastructure.client.dto;
 
-import com.example.order_service.api.cart.infrastructure.client.dto.ItemOption;
-import com.example.order_service.api.cart.infrastructure.client.dto.UnitPrice;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -25,5 +23,21 @@ public class OrderProductResponse {
         this.unitPrice = unitPrice;
         this.thumbnailUrl = thumbnailUrl;
         this.itemOptions = itemOptions;
+    }
+
+    @Getter
+    @Builder
+    public static class UnitPrice {
+        private long originalPrice;
+        private int discountRate;
+        private long discountAmount;
+        private long discountedPrice;
+    }
+
+    @Getter
+    @Builder
+    public static class ItemOption {
+        private String optionTypeName;
+        private String optionValueName;
     }
 }

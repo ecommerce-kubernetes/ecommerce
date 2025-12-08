@@ -6,11 +6,9 @@ import com.example.order_service.api.cart.application.dto.result.CartItemRespons
 import com.example.order_service.api.cart.application.dto.result.CartResponse;
 import com.example.order_service.api.cart.domain.service.CartService;
 import com.example.order_service.api.cart.domain.service.dto.CartItemDto;
-import com.example.order_service.api.cart.infrastructure.client.dto.ItemOption;
 import com.example.order_service.api.common.exception.NoPermissionException;
 import com.example.order_service.api.common.security.principal.UserPrincipal;
 import com.example.order_service.api.common.security.model.UserRole;
-import com.example.order_service.api.cart.infrastructure.client.dto.UnitPrice;
 import com.example.order_service.api.common.exception.NotFoundException;
 import com.example.order_service.api.common.exception.server.InternalServerException;
 import com.example.order_service.api.common.exception.server.UnavailableServiceException;
@@ -53,7 +51,7 @@ public class CartApplicationServiceTest {
 
         CartProductResponse product = createProductResponse(1L, 1L, "상품1", 3000L,
                 10, "http://thumbnail.jpg",
-                List.of(ItemOption.builder().optionTypeName("사이즈").optionValueName("XL").build()));
+                List.of(CartProductResponse.ItemOption.builder().optionTypeName("사이즈").optionValueName("XL").build()));
 
         CartItemDto cartItem = CartItemDto.builder()
                 .id(1L)
@@ -176,11 +174,11 @@ public class CartApplicationServiceTest {
 
         CartProductResponse product1 = createProductResponse(1L, 1L, "상품1",
                 3000L, 10, "http://thumbnail1.jpg",
-                List.of(ItemOption.builder().optionTypeName("사이즈").optionValueName("XL").build()));
+                List.of(CartProductResponse.ItemOption.builder().optionTypeName("사이즈").optionValueName("XL").build()));
 
         CartProductResponse product2 = createProductResponse(2L, 2L, "상품2",
                 5000L, 10, "http://thumbnail2.jpg",
-                List.of(ItemOption.builder().optionTypeName("용량").optionValueName("256GB").build()));
+                List.of(CartProductResponse.ItemOption.builder().optionTypeName("용량").optionValueName("256GB").build()));
 
         given(cartService.getCartItems(anyLong()))
                 .willReturn(List.of(item1, item2));
@@ -263,7 +261,7 @@ public class CartApplicationServiceTest {
 
         CartProductResponse product1 = createProductResponse(1L, 1L, "상품1",
                 3000L, 10, "http://thumbnail1.jpg",
-                List.of(ItemOption.builder().optionTypeName("사이즈").optionValueName("XL").build()));
+                List.of(CartProductResponse.ItemOption.builder().optionTypeName("사이즈").optionValueName("XL").build()));
 
         given(cartService.getCartItems(1L))
                 .willReturn(List.of(item1, item2));
@@ -386,7 +384,7 @@ public class CartApplicationServiceTest {
                 );
         CartProductResponse product = createProductResponse(1L, 1L, "상품1", 3000L, 10,
                 "http://thumbnail.jpg", List.of(
-                        ItemOption.builder()
+                        CartProductResponse.ItemOption.builder()
                                 .optionTypeName("사이즈")
                                 .optionValueName("XL")
                                 .build()
@@ -501,14 +499,14 @@ public class CartApplicationServiceTest {
 
     private CartProductResponse createProductResponse(Long productId, Long productVariantId,
                                                       String productName, Long originalPrice, int discountRate,
-                                                      String thumbnail, List<ItemOption> options){
+                                                      String thumbnail, List<CartProductResponse.ItemOption> options){
         long discountAmount = originalPrice * discountRate / 100;
         return CartProductResponse.builder()
                 .productId(productId)
                 .productVariantId(productVariantId)
                 .productName(productName)
                 .unitPrice(
-                        UnitPrice.builder()
+                        CartProductResponse.UnitPrice.builder()
                                 .originalPrice(originalPrice)
                                 .discountRate(discountRate)
                                 .discountAmount(discountAmount)

@@ -23,4 +23,20 @@ public class CartProductResponse {
         this.thumbnailUrl = thumbnailUrl;
         this.itemOptions = itemOptions;
     }
+
+    @Getter
+    @Builder
+    public static class UnitPrice {
+        private long originalPrice;
+        private int discountRate;
+        private long discountAmount;
+        private long discountedPrice;
+    }
+
+    @Getter
+    @Builder
+    public static class ItemOption {
+        private String optionTypeName;
+        private String optionValueName;
+    }
 }

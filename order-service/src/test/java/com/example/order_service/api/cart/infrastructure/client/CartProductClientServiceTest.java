@@ -1,8 +1,6 @@
 package com.example.order_service.api.cart.infrastructure.client;
 
 import com.example.order_service.api.cart.infrastructure.client.dto.CartProductResponse;
-import com.example.order_service.api.cart.infrastructure.client.dto.ItemOption;
-import com.example.order_service.api.cart.infrastructure.client.dto.UnitPrice;
 import com.example.order_service.api.common.exception.server.InternalServerException;
 import com.example.order_service.api.common.exception.server.UnavailableServiceException;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
@@ -36,7 +34,7 @@ public class CartProductClientServiceTest {
     void getProduct(){
         //given
         CartProductResponse product = createProductResponse(1L, 1L, "상품1", 3000L, 10,
-                "http://thumbnail.jpg", List.of(ItemOption.builder().optionTypeName("사이즈").optionValueName("XL").build()));
+                "http://thumbnail.jpg", List.of(CartProductResponse.ItemOption.builder().optionTypeName("사이즈").optionValueName("XL").build()));
 
         given(cartProductClient.getProductByVariantId(anyLong()))
                 .willReturn(product);
@@ -84,10 +82,10 @@ public class CartProductClientServiceTest {
     void getProducts(){
         //given
         CartProductResponse product1 = createProductResponse(1L, 1L, "상품1", 3000L, 10,
-                "http://thumbnail1.jpg", List.of(ItemOption.builder().optionTypeName("사이즈").optionValueName("XL").build()));
+                "http://thumbnail1.jpg", List.of(CartProductResponse.ItemOption.builder().optionTypeName("사이즈").optionValueName("XL").build()));
 
         CartProductResponse product2 = createProductResponse(2L, 2L, "상품2", 5000L, 10,
-                "http://thumbnail2.jpg", List.of(ItemOption.builder().optionTypeName("용량").optionValueName("256").build()));
+                "http://thumbnail2.jpg", List.of(CartProductResponse.ItemOption.builder().optionTypeName("용량").optionValueName("256").build()));
 
         given(cartProductClient.getProductVariantByIds(anyList()))
                 .willReturn(List.of(product1, product2));
@@ -138,14 +136,14 @@ public class CartProductClientServiceTest {
 
     private CartProductResponse createProductResponse(Long productId, Long productVariantId,
                                                       String productName, Long originalPrice, int discountRate,
-                                                      String thumbnail, List<ItemOption> options){
+                                                      String thumbnail, List<CartProductResponse.ItemOption> options){
         long discountAmount = originalPrice * discountRate / 100;
         return CartProductResponse.builder()
                 .productId(productId)
                 .productVariantId(productVariantId)
                 .productName(productName)
                 .unitPrice(
-                        UnitPrice.builder()
+                        CartProductResponse.UnitPrice.builder()
                                 .originalPrice(originalPrice)
                                 .discountRate(discountRate)
                                 .discountAmount(discountAmount)
