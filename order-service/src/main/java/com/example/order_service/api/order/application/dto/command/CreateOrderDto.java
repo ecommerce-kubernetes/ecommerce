@@ -1,7 +1,7 @@
-package com.example.order_service.service.dto;
+package com.example.order_service.api.order.application.dto.command;
 
 import com.example.order_service.api.common.security.principal.UserPrincipal;
-import com.example.order_service.api.order.controller.dto.request.OrderRequest;
+import com.example.order_service.api.order.controller.dto.request.CreateOrderRequest;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -29,11 +29,11 @@ public class CreateOrderDto {
         this.expectedPrice = expectedPrice;
     }
 
-    public static CreateOrderDto of(UserPrincipal userPrincipal, OrderRequest orderRequest){
-        List<CreateOrderItemDto> orderItems = orderRequest.getItems().stream().map(item ->
+    public static CreateOrderDto of(UserPrincipal userPrincipal, CreateOrderRequest createOrderRequest){
+        List<CreateOrderItemDto> orderItems = createOrderRequest.getItems().stream().map(item ->
                 CreateOrderItemDto.of(item.getProductVariantId(), item.getQuantity())).toList();
-        return of(userPrincipal, orderItems, orderRequest.getDeliveryAddress(), orderRequest.getCouponId(),
-                orderRequest.getPointToUse(), orderRequest.getExpectedPrice());
+        return of(userPrincipal, orderItems, createOrderRequest.getDeliveryAddress(), createOrderRequest.getCouponId(),
+                createOrderRequest.getPointToUse(), createOrderRequest.getExpectedPrice());
     }
 
     public static CreateOrderDto of(UserPrincipal userPrincipal, List<CreateOrderItemDto> orderItemDtoList,

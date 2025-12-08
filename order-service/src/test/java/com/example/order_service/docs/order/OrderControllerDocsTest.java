@@ -2,19 +2,21 @@ package com.example.order_service.docs.order;
 
 import com.example.order_service.api.cart.infrastructure.client.dto.ItemOption;
 import com.example.order_service.api.cart.infrastructure.client.dto.UnitPrice;
+import com.example.order_service.api.order.application.OrderApplicationService;
+import com.example.order_service.api.order.application.dto.result.CreateOrderResponse;
 import com.example.order_service.api.order.controller.OrderController;
 import com.example.order_service.api.order.controller.dto.response.OrderItemResponse;
 import com.example.order_service.api.order.controller.dto.response.OrderResponse;
 import com.example.order_service.api.common.util.validator.OrderPageableValidator;
 import com.example.order_service.api.common.util.validator.PageableValidatorFactory;
 import com.example.order_service.docs.RestDocSupport;
-import com.example.order_service.api.order.controller.dto.request.OrderItemRequest;
-import com.example.order_service.api.order.controller.dto.request.OrderRequest;
+import com.example.order_service.api.order.controller.dto.request.CreateOrderItemRequest;
+import com.example.order_service.api.order.controller.dto.request.CreateOrderRequest;
 import com.example.order_service.dto.response.*;
 import com.example.order_service.entity.DomainType;
 import com.example.order_service.api.order.domain.service.OrderService;
 import com.example.order_service.service.SseConnectionService;
-import com.example.order_service.service.dto.CreateOrderDto;
+import com.example.order_service.api.order.application.dto.command.CreateOrderDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -42,6 +44,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 public class OrderControllerDocsTest extends RestDocSupport {
     private OrderService orderService = mock(OrderService.class);
+    private OrderApplicationService orderApplicationService = mock(OrderApplicationService.class);
     private SseConnectionService sseConnectionService = mock(SseConnectionService.class);
     private PageableValidatorFactory factory = mock(PageableValidatorFactory.class);
 
@@ -53,18 +56,18 @@ public class OrderControllerDocsTest extends RestDocSupport {
 
     @Override
     protected Object initController() {
-        return new OrderController(orderService, sseConnectionService, factory);
+        return new OrderController(orderApplicationService, orderService, factory);
     }
 
     @Test
     @DisplayName("주문 생성 API")
     void createOrder() throws Exception {
         //given
-        OrderItemRequest item = OrderItemRequest.builder()
+        CreateOrderItemRequest item = CreateOrderItemRequest.builder()
                 .productVariantId(1L)
                 .quantity(3)
                 .build();
-        OrderRequest orderRequest = OrderRequest.builder()
+        CreateOrderRequest createOrderRequest = CreateOrderRequest.builder()
                 .items(List.of(item))
                 .deliveryAddress("서울시 테헤란로 123")
                 .couponId(1L)
@@ -89,7 +92,7 @@ public class OrderControllerDocsTest extends RestDocSupport {
         mockMvc.perform(post("/orders")
                     .contentType(MediaType.APPLICATION_JSON)
                     .headers(roleUser)
-                    .content(objectMapper.writeValueAsString(orderRequest))
+                    .content(objectMapper.writeValueAsString(createOrderRequest))
                 )
                 .andDo(print())
                 .andExpect(status().isAccepted())

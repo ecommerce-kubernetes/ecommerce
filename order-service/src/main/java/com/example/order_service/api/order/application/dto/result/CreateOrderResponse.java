@@ -1,4 +1,4 @@
-package com.example.order_service.dto.response;
+package com.example.order_service.api.order.application.dto.result;
 
 import com.example.order_service.api.order.domain.model.Orders;
 import lombok.Builder;
@@ -13,6 +13,7 @@ public class CreateOrderResponse {
     private Long orderId;
     private String status;
     private String message;
+    private Integer totalQuantity;
     private Long finalPaymentAmount;
     private LocalDateTime createAt;
 
@@ -22,10 +23,11 @@ public class CreateOrderResponse {
     }
 
     @Builder
-    private CreateOrderResponse(Long orderId, String status, String message, LocalDateTime createAt, Long finalPaymentAmount){
+    private CreateOrderResponse(Long orderId, String status, String message, Integer totalQuantity, LocalDateTime createAt, Long finalPaymentAmount){
         this.orderId = orderId;
         this.status = status;
         this.message = message;
+        this.totalQuantity = totalQuantity;
         this.finalPaymentAmount = finalPaymentAmount;
         this.createAt = createAt;
     }

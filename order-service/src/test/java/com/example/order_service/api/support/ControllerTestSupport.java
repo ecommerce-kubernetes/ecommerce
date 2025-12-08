@@ -2,6 +2,7 @@ package com.example.order_service.api.support;
 
 import com.example.order_service.api.cart.application.CartApplicationService;
 import com.example.order_service.api.cart.controller.CartController;
+import com.example.order_service.api.order.application.OrderApplicationService;
 import com.example.order_service.api.order.controller.OrderController;
 import com.example.order_service.api.common.util.validator.PageableValidatorFactory;
 import com.example.order_service.api.order.domain.service.OrderService;
@@ -26,8 +27,7 @@ public abstract class ControllerTestSupport {
     @MockitoBean
     protected CartApplicationService cartApplicationService;
     @MockitoBean
-    protected MessageSourceUtil ms;
+    protected OrderApplicationService orderApplicationService;
     @MockitoBean
-    protected SseConnectionService sseConnectionService;
-
+    protected MessageSourceUtil ms;
 }

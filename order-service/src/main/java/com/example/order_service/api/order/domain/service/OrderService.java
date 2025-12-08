@@ -2,8 +2,8 @@ package com.example.order_service.api.order.domain.service;
 
 import com.example.order_service.dto.OrderCalculationResult;
 import com.example.order_service.dto.OrderValidationData;
-import com.example.order_service.api.order.controller.dto.request.OrderRequest;
-import com.example.order_service.dto.response.CreateOrderResponse;
+import com.example.order_service.api.order.controller.dto.request.CreateOrderRequest;
+import com.example.order_service.api.order.application.dto.result.CreateOrderResponse;
 import com.example.order_service.api.order.controller.dto.response.OrderResponse;
 import com.example.order_service.dto.response.PageDto;
 import com.example.order_service.api.order.domain.model.Orders;
@@ -17,7 +17,7 @@ import com.example.order_service.service.client.UserClientService;
 import com.example.order_service.service.client.dto.CouponResponse;
 import com.example.order_service.api.cart.infrastructure.client.dto.CartProductResponse;
 import com.example.order_service.service.client.dto.UserBalanceResponse;
-import com.example.order_service.service.dto.CreateOrderDto;
+import com.example.order_service.api.order.application.dto.command.CreateOrderDto;
 import com.example.order_service.service.event.OrderEndMessageEvent;
 import com.example.order_service.service.event.PendingOrderCreatedEvent;
 import lombok.RequiredArgsConstructor;
@@ -42,7 +42,7 @@ public class OrderService {
     private final CouponClientService couponClientService;
 
     @Transactional
-    public CreateOrderResponse saveOrder(Long userId, OrderRequest request) {
+    public CreateOrderResponse saveOrder(Long userId, CreateOrderRequest request) {
         OrderValidationData orderValidationData = fetchRequiredData(userId, request);
         OrderCalculationResult calcResult = calculateOrderTotals(request, orderValidationData);
         validateOrder(calcResult, request, orderValidationData);
@@ -80,7 +80,7 @@ public class OrderService {
         return "http://test.com/" + orderId + "/subscribe";
     }
 
-    private OrderCalculationResult calculateOrderTotals(OrderRequest request, OrderValidationData data){
+    private OrderCalculationResult calculateOrderTotals(CreateOrderRequest request, OrderValidationData data){
         Map<Long, Integer> quantityMap = request.toQuantityMap();
         Map<Long, CartProductResponse> productByVariantId = data.toProductByVariantId();
         long originOrderItemsPrice = 0;
@@ -94,8 +94,8 @@ public class OrderService {
                 productDiscountAmount, discountedOrderItemPrice, couponDiscount, amountToPay);
     }
 
-    private void validateOrder(OrderCalculationResult result, OrderRequest orderRequest, OrderValidationData data){
-        if(data.getUserBalance().getPointAmount() < orderRequest.getPointToUse()){
+    private void validateOrder(OrderCalculationResult result, CreateOrderRequest createOrderRequest, OrderValidationData data){
+        if(data.getUserBalance().getPointAmount() < createOrderRequest.getPointToUse()){
             throw new InsufficientException("사용가능한 포인트가 부족");
         }
 
@@ -103,7 +103,7 @@ public class OrderService {
             throw new InsufficientException("결제 금액이 쿠폰 최소 결제 금액 미만");
         }
 
-        if(result.getAmountToPay() != orderRequest.getExpectedPrice()){
+        if(result.getAmountToPay() != createOrderRequest.getExpectedPrice()){
             throw new BadRequestException("예상 결제 금액과 실제 결제 금액이 맞지 않습니다");
         }
 
@@ -112,10 +112,10 @@ public class OrderService {
         }
     }
 
-    private OrderValidationData fetchRequiredData(Long userId, OrderRequest orderRequest){
-        List<CartProductResponse> product = cartProductClientService.getProducts(orderRequest.getItemsVariantId());
+    private OrderValidationData fetchRequiredData(Long userId, CreateOrderRequest createOrderRequest){
+        List<CartProductResponse> product = cartProductClientService.getProducts(createOrderRequest.getItemsVariantId());
         UserBalanceResponse userBalance = userClientService.fetchBalance();
-        CouponResponse couponInfo = (orderRequest.getCouponId() != null) ? couponClientService.fetchCouponByUserCouponId(userId, orderRequest.getCouponId())
+        CouponResponse couponInfo = (createOrderRequest.getCouponId() != null) ? couponClientService.fetchCouponByUserCouponId(userId, createOrderRequest.getCouponId())
                 : null;
 
         return new OrderValidationData(product, userBalance, couponInfo);

@@ -1,11 +1,14 @@
-package com.example.order_service.api.cart.infrastructure.client.dto;
+package com.example.order_service.api.order.infrastructure.client.dto;
 
-import lombok.*;
+import com.example.order_service.api.cart.infrastructure.client.dto.ItemOption;
+import com.example.order_service.api.cart.infrastructure.client.dto.UnitPrice;
+import lombok.Builder;
+import lombok.Getter;
 
 import java.util.List;
 
 @Getter
-public class CartProductResponse {
+public class OrderProductResponse {
     private Long productId;
     private Long productVariantId;
     private String productName;
@@ -14,7 +17,7 @@ public class CartProductResponse {
     private List<ItemOption> itemOptions;
 
     @Builder
-    private CartProductResponse(Long productId, Long productVariantId, String productName, UnitPrice unitPrice, String thumbnailUrl,
+    private OrderProductResponse(Long productId, Long productVariantId, String productName, UnitPrice unitPrice, String thumbnailUrl,
                                 List<ItemOption> itemOptions){
         this.productId = productId;
         this.productVariantId = productVariantId;

@@ -15,10 +15,10 @@ import java.util.stream.Collectors;
 @Getter
 @Setter
 @NoArgsConstructor
-public class OrderRequest {
+public class CreateOrderRequest {
     @NotEmpty(message = "주문 상품은 필수입니다")
     @Valid
-    private List<OrderItemRequest> items;
+    private List<CreateOrderItemRequest> items;
     @NotBlank(message = "배송지는 필수입니다")
     private String deliveryAddress;
     private Long couponId;
@@ -31,14 +31,14 @@ public class OrderRequest {
     public Map<Long, Integer> toQuantityMap(){
         return items.stream().collect(
                 Collectors.toMap(
-                    OrderItemRequest::getProductVariantId,
-                    OrderItemRequest::getQuantity
+                    CreateOrderItemRequest::getProductVariantId,
+                    CreateOrderItemRequest::getQuantity
                 )
         );
     }
 
     @Builder
-    private OrderRequest(List<OrderItemRequest> items, String deliveryAddress, Long couponId, Long pointToUse, Long expectedPrice){
+    private CreateOrderRequest(List<CreateOrderItemRequest> items, String deliveryAddress, Long couponId, Long pointToUse, Long expectedPrice){
         this.items = items;
         this.deliveryAddress = deliveryAddress;
         this.couponId = couponId;
@@ -48,6 +48,6 @@ public class OrderRequest {
 
     @JsonIgnore
     public List<Long> getItemsVariantId(){
-        return items.stream().map(OrderItemRequest::getProductVariantId).toList();
+        return items.stream().map(CreateOrderItemRequest::getProductVariantId).toList();
     }
 }

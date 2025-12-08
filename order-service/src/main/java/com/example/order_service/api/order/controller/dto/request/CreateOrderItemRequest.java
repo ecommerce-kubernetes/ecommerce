@@ -7,7 +7,7 @@ import lombok.*;
 @Getter
 @Setter
 @NoArgsConstructor
-public class OrderItemRequest {
+public class CreateOrderItemRequest {
     @NotNull(message = "productVariantId는 필수입니다")
     private Long productVariantId;
     @NotNull(message = "수량은 필수입니다")
@@ -15,7 +15,7 @@ public class OrderItemRequest {
     private Integer quantity;
 
     @Builder
-    private OrderItemRequest(Long productVariantId, Integer quantity){
+    private CreateOrderItemRequest(Long productVariantId, Integer quantity){
         this.productVariantId = productVariantId;
         this.quantity = quantity;
     }

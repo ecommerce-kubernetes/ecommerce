@@ -1,31 +1,26 @@
 package com.example.order_service.api.order.controller;
 
 import com.example.order_service.api.common.security.principal.UserPrincipal;
-import com.example.order_service.api.common.util.specification.annotation.BadRequestApiResponse;
 import com.example.order_service.api.common.util.validator.PageableValidator;
 import com.example.order_service.api.common.util.validator.PageableValidatorFactory;
-import com.example.order_service.api.order.controller.dto.request.OrderRequest;
-import com.example.order_service.dto.response.CreateOrderResponse;
+import com.example.order_service.api.order.application.OrderApplicationService;
+import com.example.order_service.api.order.controller.dto.request.CreateOrderRequest;
+import com.example.order_service.api.order.application.dto.result.CreateOrderResponse;
 import com.example.order_service.api.order.controller.dto.response.OrderResponse;
+import com.example.order_service.api.order.domain.service.OrderService;
 import com.example.order_service.dto.response.PageDto;
 import com.example.order_service.entity.DomainType;
-import com.example.order_service.api.order.domain.service.OrderService;
-import com.example.order_service.service.SseConnectionService;
-import com.example.order_service.service.dto.CreateOrderDto;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
+import com.example.order_service.api.order.application.dto.command.CreateOrderDto;
 import lombok.RequiredArgsConstructor;
 import org.apache.http.HttpStatus;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 @RestController
 @RequiredArgsConstructor
@@ -33,17 +28,17 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 @PreAuthorize("hasRole('USER')")
 public class OrderController {
 
+    private final OrderApplicationService orderApplicationService;
     private final OrderService orderService;
-    private final SseConnectionService sseConnectionService;
     private final PageableValidatorFactory factory;
 
     @PostMapping
-    public ResponseEntity<CreateOrderResponse> createOrder(@RequestBody @Validated OrderRequest orderRequest,
+    public ResponseEntity<CreateOrderResponse> createOrder(@RequestBody @Validated CreateOrderRequest createOrderRequest,
                                                            @AuthenticationPrincipal UserPrincipal userPrincipal){
 
-        CreateOrderDto createOrderDto = CreateOrderDto.of(userPrincipal, orderRequest);
-        CreateOrderResponse orderResponse = orderService.saveOrder(createOrderDto);
-        return ResponseEntity.status(HttpStatus.SC_ACCEPTED).body(orderResponse);
+        CreateOrderDto createOrderDto = CreateOrderDto.of(userPrincipal, createOrderRequest);
+        CreateOrderResponse response = orderApplicationService.createOrder(createOrderDto);
+        return ResponseEntity.status(HttpStatus.SC_ACCEPTED).body(response);
     }
 
     @GetMapping
@@ -57,8 +52,4 @@ public class OrderController {
         return ResponseEntity.ok(orderList);
     }
 
-    @GetMapping(value = "/subscribe/{orderId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public SseEmitter subscribe(@PathVariable("orderId") Long orderId){
-        return sseConnectionService.create(orderId);
-    }
 }

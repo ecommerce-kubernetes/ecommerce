@@ -1,6 +1,6 @@
 package com.example.order_service.api.order.domain.model;
 
-import com.example.order_service.api.order.controller.dto.request.OrderItemRequest;
+import com.example.order_service.api.order.controller.dto.request.CreateOrderItemRequest;
 import com.example.order_service.api.cart.infrastructure.client.dto.ItemOption;
 import com.example.order_service.api.common.entity.BaseEntity;
 import com.example.order_service.entity.convert.ItemOptionsConverter;
@@ -56,8 +56,8 @@ public class OrderItems extends BaseEntity {
         this.thumbnail = thumbnail;
     }
 
-    public static OrderItems from(OrderItemRequest orderItemRequest, Map<Long, CartProductResponse> productResponseMap){
-        CartProductResponse cartProductResponse = productResponseMap.get(orderItemRequest.getProductVariantId());
+    public static OrderItems from(CreateOrderItemRequest createOrderItemRequest, Map<Long, CartProductResponse> productResponseMap){
+        CartProductResponse cartProductResponse = productResponseMap.get(createOrderItemRequest.getProductVariantId());
         return new OrderItems(cartProductResponse.getProductId(),
                 cartProductResponse.getProductVariantId(),
                 cartProductResponse.getProductName(),
@@ -65,8 +65,8 @@ public class OrderItems extends BaseEntity {
                 cartProductResponse.getUnitPrice().getOriginalPrice(),
                 cartProductResponse.getUnitPrice().getDiscountRate(),
                 cartProductResponse.getUnitPrice().getDiscountedPrice(),
-                cartProductResponse.getUnitPrice().getDiscountedPrice() * orderItemRequest.getQuantity(),
-                orderItemRequest.getQuantity(),
+                cartProductResponse.getUnitPrice().getDiscountedPrice() * createOrderItemRequest.getQuantity(),
+                createOrderItemRequest.getQuantity(),
                 cartProductResponse.getThumbnailUrl());
     }
 

@@ -1,7 +1,7 @@
 package com.example.order_service.api.order.domain.model;
 
 import com.example.order_service.dto.OrderCalculationResult;
-import com.example.order_service.api.order.controller.dto.request.OrderRequest;
+import com.example.order_service.api.order.controller.dto.request.CreateOrderRequest;
 import com.example.order_service.api.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -41,14 +41,14 @@ public class Orders extends BaseEntity {
         this.deliveryAddress = deliveryAddress;
     }
 
-    public static Orders create(Long userId, OrderRequest orderRequest, OrderCalculationResult result){
-        Orders orders = new Orders(userId, orderRequest.getCouponId(), "PENDING", orderRequest.getDeliveryAddress(),
+    public static Orders create(Long userId, CreateOrderRequest createOrderRequest, OrderCalculationResult result){
+        Orders orders = new Orders(userId, createOrderRequest.getCouponId(), "PENDING", createOrderRequest.getDeliveryAddress(),
                 result.getOriginOrderItemPrice(),
                 result.getProductDiscountAmount(),
                 result.getCouponDiscount(),
-                orderRequest.getPointToUse(),
+                createOrderRequest.getPointToUse(),
                 result.getAmountToPay());
-        List<OrderItems> orderItems = orderRequest.getItems().stream()
+        List<OrderItems> orderItems = createOrderRequest.getItems().stream()
                 .map(item -> OrderItems.from(item, result.getProductByVariantId()))
                 .toList();
         orders.addOrderItems(orderItems);
