@@ -28,12 +28,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@Import(SecurityConfig.class)
+@Import({SecurityConfig.class})
 @WebMvcTest(
-        controllers = DummyController.class,
+        controllers = DummyController.class, //더미 컨트롤러
         excludeFilters = @ComponentScan.Filter(
                 type = FilterType.ASSIGNABLE_TYPE,
-                classes = {ControllerAdvice.class, CorsConfig.class}
+                classes = {ControllerAdvice.class, CorsConfig.class} //ControllerAdvice 제외 (필터 작동 테스트)
         )
 )
 public class HeaderPreAuthenticationFilterTest {

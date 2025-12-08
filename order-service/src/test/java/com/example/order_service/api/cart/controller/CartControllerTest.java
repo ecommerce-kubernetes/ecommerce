@@ -1,6 +1,6 @@
 package com.example.order_service.api.cart.controller;
 
-import com.example.order_service.common.MessageSourceUtil;
+import com.example.order_service.api.common.security.model.UserRole;
 import com.example.order_service.api.common.security.principal.UserPrincipal;
 import com.example.order_service.config.TestConfig;
 import com.example.order_service.support.ControllerTestSupport;
@@ -12,16 +12,14 @@ import com.example.order_service.api.cart.application.dto.result.CartResponse;
 import com.example.order_service.api.common.exception.NotFoundException;
 import com.example.order_service.api.common.exception.server.InternalServerException;
 import com.example.order_service.api.common.exception.server.UnavailableServiceException;
-import com.example.order_service.service.SseConnectionService;
 import com.example.order_service.api.cart.application.dto.command.AddCartItemDto;
 import com.example.order_service.api.cart.application.dto.command.UpdateQuantityDto;
+import com.example.order_service.support.security.config.TestSecurityConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.util.List;
 
@@ -33,13 +31,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Slf4j
-@Import({TestConfig.class})
+@Import({TestConfig.class, TestSecurityConfig.class})
 class CartControllerTest extends ControllerTestSupport {
-
-    @MockitoBean
-    MessageSourceUtil ms;
-    @MockitoBean
-    SseConnectionService sseConnectionService;
 
     @Test
     @DisplayName("장바구니에 상품을 추가한다")
@@ -80,7 +73,6 @@ class CartControllerTest extends ControllerTestSupport {
         //then
         mockMvc.perform(post("/carts")
                 .contentType(MediaType.APPLICATION_JSON)
-                .with(SecurityMockMvcRequestPostProcessors.csrf())
                 .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
                 .andExpect(status().isCreated())
@@ -98,6 +90,28 @@ class CartControllerTest extends ControllerTestSupport {
     }
 
     @Test
+    @DisplayName("장바구니에 상품을 추가할 때는 유저 권한이여야 한다")
+    @WithCustomMockUser(userRole = UserRole.ROLE_ADMIN)
+    void addCartItemWithAdminPrincipal() throws Exception {
+        //given
+        CartItemRequest request = CartItemRequest.builder()
+                .productVariantId(1L)
+                .quantity(1)
+                .build();
+        //when
+        //then
+        mockMvc.perform(post("/carts")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.error").value("FORBIDDEN"))
+                .andExpect(jsonPath("$.message").value("권한이 부족합니다"))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/carts"));
+    }
+
+    @Test
     @DisplayName("장바구니에 상품을 추가할때 productVariantId는 필수값이다")
     @WithCustomMockUser
     void addCartItemWithNoProductVariantId() throws Exception {
@@ -108,7 +122,6 @@ class CartControllerTest extends ControllerTestSupport {
         //then
         mockMvc.perform(post("/carts")
                 .contentType(MediaType.APPLICATION_JSON)
-                .with(SecurityMockMvcRequestPostProcessors.csrf())
                 .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
                 .andExpect(status().isBadRequest())
@@ -130,7 +143,6 @@ class CartControllerTest extends ControllerTestSupport {
         //then
         mockMvc.perform(post("/carts")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .with(SecurityMockMvcRequestPostProcessors.csrf())
                         .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
                 .andExpect(status().isBadRequest())
@@ -153,7 +165,6 @@ class CartControllerTest extends ControllerTestSupport {
         //then
         mockMvc.perform(post("/carts")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .with(SecurityMockMvcRequestPostProcessors.csrf())
                         .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
                 .andExpect(status().isBadRequest())
@@ -178,8 +189,7 @@ class CartControllerTest extends ControllerTestSupport {
         //then
         mockMvc.perform(post("/carts")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request))
-                .with(SecurityMockMvcRequestPostProcessors.csrf()))
+                .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.error").value("NOT_FOUND"))
@@ -203,8 +213,7 @@ class CartControllerTest extends ControllerTestSupport {
         //then
         mockMvc.perform(post("/carts")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request))
-                        .with(SecurityMockMvcRequestPostProcessors.csrf()))
+                        .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
                 .andExpect(status().isServiceUnavailable())
                 .andExpect(jsonPath("$.error").value("SERVICE_UNAVAILABLE"))
@@ -228,8 +237,7 @@ class CartControllerTest extends ControllerTestSupport {
         //then
         mockMvc.perform(post("/carts")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request))
-                        .with(SecurityMockMvcRequestPostProcessors.csrf()))
+                        .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.error").value("INTERNAL_SERVER_ERROR"))
@@ -271,8 +279,7 @@ class CartControllerTest extends ControllerTestSupport {
         //when
         //then
         mockMvc.perform(get("/carts")
-                .contentType(MediaType.APPLICATION_JSON)
-                .with(SecurityMockMvcRequestPostProcessors.csrf()))
+                .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.cartItems[0].id").value(1L))
                 .andExpect(jsonPath("$.cartItems[0].productId").value(1L))
@@ -290,6 +297,23 @@ class CartControllerTest extends ControllerTestSupport {
     }
 
     @Test
+    @DisplayName("장바구니 목록을 조회할때는 유저 권한이여야 한다")
+    @WithCustomMockUser(userRole = UserRole.ROLE_ADMIN)
+    void getAllCartItemWithAdminPrincipal() throws Exception {
+        //given
+        //when
+        //then
+        mockMvc.perform(get("/carts")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.error").value("FORBIDDEN"))
+                .andExpect(jsonPath("$.message").value("권한이 부족합니다"))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/carts"));
+    }
+
+    @Test
     @DisplayName("장바구니에서 상품을 삭제한다")
     @WithCustomMockUser
     void deleteCartItem() throws Exception {
@@ -298,10 +322,25 @@ class CartControllerTest extends ControllerTestSupport {
         //when
         //then
         mockMvc.perform(delete("/carts/{cartItemId}", 1)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .with(SecurityMockMvcRequestPostProcessors.csrf()))
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @DisplayName("장바구에서 상품을 삭제할때는 유저 권한이여야 한다")
+    void deleteCartItemWithAdminPrincipal() throws Exception {
+        //given
+        //when
+        //then
+        mockMvc.perform(delete("/carts/{cartItemId}", 1)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.error").value("FORBIDDEN"))
+                .andExpect(jsonPath("$.message").value("권한이 부족합니다"))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/carts/1"));
     }
 
     @Test
@@ -314,8 +353,7 @@ class CartControllerTest extends ControllerTestSupport {
         //when
         //then
         mockMvc.perform(delete("/carts/{cartItemId}", 1)
-                .contentType(MediaType.APPLICATION_JSON)
-                .with(SecurityMockMvcRequestPostProcessors.csrf()))
+                .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.error").value("NOT_FOUND"))
@@ -333,8 +371,7 @@ class CartControllerTest extends ControllerTestSupport {
         //when
         //then
         mockMvc.perform(delete("/carts")
-                .contentType(MediaType.APPLICATION_JSON)
-                .with(SecurityMockMvcRequestPostProcessors.csrf()))
+                .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isNoContent());
     }
@@ -371,8 +408,7 @@ class CartControllerTest extends ControllerTestSupport {
         //then
         mockMvc.perform(patch("/carts/{cartItemId}", 1)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request))
-                        .with(SecurityMockMvcRequestPostProcessors.csrf()))
+                        .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(response.getId()))
@@ -399,8 +435,7 @@ class CartControllerTest extends ControllerTestSupport {
         //then
         mockMvc.perform(patch("/carts/{cartItemId}", 1)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request))
-                .with(SecurityMockMvcRequestPostProcessors.csrf()))
+                .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("BAD_REQUEST"))
@@ -425,8 +460,7 @@ class CartControllerTest extends ControllerTestSupport {
         //then
         mockMvc.perform(patch("/carts/{cartItemId}", 1)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request))
-                        .with(SecurityMockMvcRequestPostProcessors.csrf()))
+                        .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.error").value("NOT_FOUND"))

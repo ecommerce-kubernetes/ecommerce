@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -82,6 +83,14 @@ public class ControllerAdvice {
     public ResponseEntity<ErrorResponse> noPermissionExceptionHandler(HttpServletRequest request, NoPermissionException e){
         LocalDateTime now = LocalDateTime.now();
         String message = e.getMessage();
+        ErrorResponse response = ErrorResponse.toNoPermission(message, now.toString(), request.getRequestURI());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> accessDeniedExceptionHandler(HttpServletRequest request, AccessDeniedException e){
+        LocalDateTime now = LocalDateTime.now();
+        String message = "권한이 부족합니다";
         ErrorResponse response = ErrorResponse.toNoPermission(message, now.toString(), request.getRequestURI());
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
     }
