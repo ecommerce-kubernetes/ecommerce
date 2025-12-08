@@ -1,7 +1,7 @@
-package com.example.order_service.support.security.annotation;
+package com.example.order_service.api.support.security.annotation;
 
 import com.example.order_service.api.common.security.model.UserRole;
-import com.example.order_service.support.security.WithCustomMockUserSecurityContextFactory;
+import com.example.order_service.api.support.security.WithCustomMockUserSecurityContextFactory;
 import org.springframework.security.test.context.support.WithSecurityContext;
 
 import java.lang.annotation.Retention;

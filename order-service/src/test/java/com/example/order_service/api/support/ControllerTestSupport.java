@@ -1,4 +1,4 @@
-package com.example.order_service.support;
+package com.example.order_service.api.support;
 
 import com.example.order_service.api.cart.application.CartApplicationService;
 import com.example.order_service.api.cart.controller.CartController;

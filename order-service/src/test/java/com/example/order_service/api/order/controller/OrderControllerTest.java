@@ -1,13 +1,13 @@
 package com.example.order_service.api.order.controller;
 
-import com.example.order_service.common.MessageSourceUtil;
+import com.example.order_service.api.common.security.model.UserRole;
+import com.example.order_service.api.support.security.config.TestSecurityConfig;
 import com.example.order_service.config.TestConfig;
-import com.example.order_service.support.ControllerTestSupport;
-import com.example.order_service.support.security.annotation.WithCustomMockUser;
+import com.example.order_service.api.support.ControllerTestSupport;
+import com.example.order_service.api.support.security.annotation.WithCustomMockUser;
 import com.example.order_service.api.order.controller.dto.request.OrderItemRequest;
 import com.example.order_service.api.order.controller.dto.request.OrderRequest;
 import com.example.order_service.dto.response.CreateOrderResponse;
-import com.example.order_service.service.SseConnectionService;
 import com.example.order_service.service.dto.CreateOrderDto;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
@@ -15,7 +15,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -28,13 +27,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Slf4j
-@Import({TestConfig.class})
+@Import({TestConfig.class, TestSecurityConfig.class})
 class OrderControllerTest extends ControllerTestSupport {
-
-    @MockitoBean
-    MessageSourceUtil ms;
-    @MockitoBean
-    SseConnectionService sseConnectionService;
 
     @Test
     @DisplayName("주문을 생성한다")
@@ -57,9 +51,9 @@ class OrderControllerTest extends ControllerTestSupport {
         CreateOrderResponse response = CreateOrderResponse.builder()
                 .orderId(1L)
                 .status("PENDING")
-                .message("주문이 접수되었습니다")
+                .message("상품1 외 1건")
                 .createAt(LocalDateTime.now())
-                .subscribeUrl("http://subscribe.com")
+                .finalPaymentAmount(2400L)
                 .build();
 
         given(orderService.saveOrder(any(CreateOrderDto.class)))
@@ -69,16 +63,47 @@ class OrderControllerTest extends ControllerTestSupport {
         //then
         mockMvc.perform(post("/orders")
                 .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(orderRequest))
-                .with(SecurityMockMvcRequestPostProcessors.csrf()))
+                        .content(objectMapper.writeValueAsString(orderRequest)))
                 .andDo(print())
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("$.orderId").value(1L))
                 .andExpect(jsonPath("$.status").value("PENDING"))
-                .andExpect(jsonPath("$.message").value("주문이 접수되었습니다"))
-                .andExpect(jsonPath("$.createAt").exists())
-                .andExpect(jsonPath("$.subscribeUrl").value("http://subscribe.com"));
+                .andExpect(jsonPath("$.message").value("상품1 외 1건"))
+                .andExpect(jsonPath("$.finalPaymentAmount").value(2400L))
+                .andExpect(jsonPath("$.createAt").exists());
     }
+
+    @Test
+    @DisplayName("주문 요청시 권한은 유저여야 한다")
+    @WithCustomMockUser(userRole = UserRole.ROLE_ADMIN)
+    void createOrderWithAdminPrincipal() throws Exception {
+        //given
+        OrderItemRequest orderItemRequest = OrderItemRequest.builder()
+                .productVariantId(1L)
+                .quantity(2)
+                .build();
+
+        OrderRequest orderRequest = OrderRequest.builder()
+                .items(List.of(orderItemRequest))
+                .deliveryAddress("서울시 테헤란로 123")
+                .couponId(1L)
+                .pointToUse(300L)
+                .expectedPrice(2400L)
+                .build();
+
+        //when
+        //then
+        mockMvc.perform(post("/orders")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(orderRequest)))
+                .andDo(print())
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.error").value("FORBIDDEN"))
+                .andExpect(jsonPath("$.message").value("권한이 부족합니다"))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/orders"));
+    }
+
 
     @Test
     @DisplayName("주문 요청시 주문 상품은 필수이다")
@@ -96,8 +121,7 @@ class OrderControllerTest extends ControllerTestSupport {
         //then
         mockMvc.perform(post("/orders")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(orderRequest))
-                .with(SecurityMockMvcRequestPostProcessors.csrf()))
+                .content(objectMapper.writeValueAsString(orderRequest)))
                 .andDo(print())
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("BAD_REQUEST"))
@@ -126,8 +150,7 @@ class OrderControllerTest extends ControllerTestSupport {
         //then
         mockMvc.perform(post("/orders")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(orderRequest))
-                .with(SecurityMockMvcRequestPostProcessors.csrf()))
+                .content(objectMapper.writeValueAsString(orderRequest)))
                 .andDo(print())
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("BAD_REQUEST"))
@@ -157,8 +180,7 @@ class OrderControllerTest extends ControllerTestSupport {
 
         mockMvc.perform(post("/orders")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(orderRequest))
-                        .with(SecurityMockMvcRequestPostProcessors.csrf()))
+                        .content(objectMapper.writeValueAsString(orderRequest)))
                 .andDo(print())
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("BAD_REQUEST"))

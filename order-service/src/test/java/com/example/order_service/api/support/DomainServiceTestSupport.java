@@ -1,4 +1,4 @@
-package com.example.order_service.support;
+package com.example.order_service.api.support;
 
 
 import org.springframework.boot.test.context.SpringBootTest;

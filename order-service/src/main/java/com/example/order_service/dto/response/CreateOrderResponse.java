@@ -13,20 +13,20 @@ public class CreateOrderResponse {
     private Long orderId;
     private String status;
     private String message;
+    private Long finalPaymentAmount;
     private LocalDateTime createAt;
-    private String subscribeUrl;
 
+    //TODO 제거
     public CreateOrderResponse(Orders order, String subscribeUrl){
         this.orderId = order.getId();
-        this.subscribeUrl = subscribeUrl;
     }
 
     @Builder
-    private CreateOrderResponse(Long orderId, String status, String message, LocalDateTime createAt, String subscribeUrl){
+    private CreateOrderResponse(Long orderId, String status, String message, LocalDateTime createAt, Long finalPaymentAmount){
         this.orderId = orderId;
         this.status = status;
         this.message = message;
+        this.finalPaymentAmount = finalPaymentAmount;
         this.createAt = createAt;
-        this.subscribeUrl = subscribeUrl;
     }
 }

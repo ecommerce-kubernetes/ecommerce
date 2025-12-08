@@ -21,6 +21,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -28,16 +29,14 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 @RestController
 @RequiredArgsConstructor
-@Tag(name = "Order", description = "주문 관련 API")
 @RequestMapping("/orders")
+@PreAuthorize("hasRole('USER')")
 public class OrderController {
 
     private final OrderService orderService;
     private final SseConnectionService sseConnectionService;
     private final PageableValidatorFactory factory;
 
-    @Operation(summary = "주문 생성")
-    @BadRequestApiResponse
     @PostMapping
     public ResponseEntity<CreateOrderResponse> createOrder(@RequestBody @Validated OrderRequest orderRequest,
                                                            @AuthenticationPrincipal UserPrincipal userPrincipal){
@@ -47,8 +46,6 @@ public class OrderController {
         return ResponseEntity.status(HttpStatus.SC_ACCEPTED).body(orderResponse);
     }
 
-    @Operation(summary = "주문 목록 조회")
-    @BadRequestApiResponse
     @GetMapping
     public ResponseEntity<PageDto<OrderResponse>> getOrders(@RequestHeader("X-User-Id") Long userId,
                                                                        @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.ASC) Pageable pageable,
