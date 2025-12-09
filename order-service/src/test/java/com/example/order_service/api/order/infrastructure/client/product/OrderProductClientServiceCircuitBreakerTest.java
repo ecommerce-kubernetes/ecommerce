@@ -2,8 +2,10 @@ package com.example.order_service.api.order.infrastructure.client.product;
 
 import com.example.order_service.api.common.exception.server.UnavailableServiceException;
 import com.example.order_service.api.support.ExcludeInfraServiceTest;
+import com.github.tomakehurst.wiremock.client.WireMock;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +27,14 @@ public class OrderProductClientServiceCircuitBreakerTest extends ExcludeInfraSer
     private OrderProductClientService orderProductClientService;
     @Autowired
     private CircuitBreakerRegistry circuitBreakerRegistry;
+
+    @BeforeEach
+    void setUp(){
+        WireMock.reset();;
+
+        CircuitBreaker circuitBreaker = circuitBreakerRegistry.circuitBreaker("productService");
+        circuitBreaker.reset();
+    }
 
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {
@@ -52,6 +62,7 @@ public class OrderProductClientServiceCircuitBreakerTest extends ExcludeInfraSer
             } catch (Exception e) {}
         }
         //then
+        verify(10, postRequestedFor(urlMatching("/internal/variants/.*")));
         CircuitBreaker breaker = circuitBreakerRegistry.circuitBreaker("productService");
         assertThat(breaker.getState()).isEqualTo(CircuitBreaker.State.CLOSED);
     }
@@ -71,6 +82,7 @@ public class OrderProductClientServiceCircuitBreakerTest extends ExcludeInfraSer
             } catch (Exception e) {}
         }
         //then
+        verify(10, postRequestedFor(urlMatching("/internal/variants/.*")));
         CircuitBreaker breaker = circuitBreakerRegistry.circuitBreaker("productService");
         assertThat(breaker.getState()).isEqualTo(CircuitBreaker.State.OPEN);
 

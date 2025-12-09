@@ -1,11 +1,10 @@
-package com.example.order_service.api.cart.infrastructure.client;
+package com.example.order_service.api.order.infrastructure.client.user;
 
 import com.example.order_service.api.common.exception.server.UnavailableServiceException;
 import com.example.order_service.api.support.ExcludeInfraServiceTest;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
-import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -18,76 +17,74 @@ import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-
-@Slf4j
 @AutoConfigureWireMock(port = 0)
-public class CartProductClientServiceCircuitBreakerTest extends ExcludeInfraServiceTest {
+public class OrderUserClientServiceCircuitBreakerTest extends ExcludeInfraServiceTest {
+
     @Autowired
-    private CartProductClientService cartProductClientService;
+    private OrderUserClientService orderUserClientService;
     @Autowired
     private CircuitBreakerRegistry circuitBreakerRegistry;
 
     @BeforeEach
-    void setUp(){
+    void setUp() {
         WireMock.reset();
-
-        CircuitBreaker circuitBreaker = circuitBreakerRegistry.circuitBreaker("productService");
+        CircuitBreaker circuitBreaker = circuitBreakerRegistry.circuitBreaker("userService");
         circuitBreaker.reset();
     }
 
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {
-        registry.add("resilience4j.circuitbreaker.instances.productService.slidingWindowSize", () -> 10);
-        registry.add("resilience4j.circuitbreaker.instances.productService.failureRateThreshold", () -> 50);
-        registry.add("resilience4j.circuitbreaker.instances.productService.recordExceptions[0]",
+        registry.add("resilience4j.circuitbreaker.instances.userService.slidingWindowSize", () -> 10);
+        registry.add("resilience4j.circuitbreaker.instances.userService.failureRateThreshold", () -> 50);
+        registry.add("resilience4j.circuitbreaker.instances.userService.recordExceptions[0]",
                 () -> "com.example.order_service.api.common.exception.server.InternalServerException");
 
-        registry.add("resilience4j.circuitbreaker.instances.productService.ignoreExceptions[0]",
+        registry.add("resilience4j.circuitbreaker.instances.userService.ignoreExceptions[0]",
                 () -> "com.example.order_service.api.common.exception.NotFoundException");
     }
 
     @Test
-    @DisplayName("productService 서킷 브레이커는 404에러가 여러번 발생해도 서킷브레이커가 닫혀있어야 한다")
+    @DisplayName("userService 서킷 브레이커는 404에러가 여러번 발생해도 서킷브레이커가 닫혀있어야 한다")
     void circuitBreakerClosedWhen404(){
         //given
-        stubFor(get(urlMatching("/internal/variants/.*"))
+        stubFor(get("/internal/users/.*")
                 .willReturn(aResponse()
                         .withStatus(404)
                         .withHeader("Content-Type", "application/json")));
         //when
         for (int i = 0; i < 10; i++) {
             try {
-                cartProductClientService.getProduct(1L);
+                orderUserClientService.getUserForOrder(1L);
             } catch (Exception e) {}
         }
         //then
-        verify(10, getRequestedFor(urlMatching("/internal/variants/.*")));
-        CircuitBreaker breaker = circuitBreakerRegistry.circuitBreaker("productService");
+        verify(10, getRequestedFor(urlMatching("/internal/users/.*")));
+        CircuitBreaker breaker = circuitBreakerRegistry.circuitBreaker("userService");
         assertThat(breaker.getState()).isEqualTo(CircuitBreaker.State.CLOSED);
     }
 
     @Test
-    @DisplayName("productService 서킷 브레이커는 500 에러가 여러번 발생하면 서킷브레이커가 열려야 한다")
-    void circuitBreakerOpenWhen5xx(){
+    @DisplayName("productService 서킷 브레이커는 5xx에러가 여러번 발생하면 서킷브레이커가 열려야 한다")
+    void circuitBreakerOpenWhen5xx() {
         //given
-        stubFor(get(urlMatching("/internal/variants/.*"))
+        stubFor(get(urlMatching("/internal/users/.*"))
                 .willReturn(aResponse()
                         .withStatus(500)
                         .withHeader("Content-Type", "application/json")));
         //when
         for (int i = 0; i < 10; i++) {
             try {
-                cartProductClientService.getProduct(1L);
-            } catch (Exception e) {
-            }
+                orderUserClientService.getUserForOrder(1L);
+            } catch (Exception e) {}
         }
         //then
-        verify(10, getRequestedFor(urlMatching("/internal/variants/.*")));
-        CircuitBreaker breaker = circuitBreakerRegistry.circuitBreaker("productService");
+        verify(10, getRequestedFor(urlMatching("/internal/users/.*")));
+        CircuitBreaker breaker = circuitBreakerRegistry.circuitBreaker("userService");
         assertThat(breaker.getState()).isEqualTo(CircuitBreaker.State.OPEN);
 
-        assertThatThrownBy(() -> cartProductClientService.getProduct(1L))
+        assertThatThrownBy(() -> orderUserClientService.getUserForOrder(1L))
                 .isInstanceOf(UnavailableServiceException.class)
-                .hasMessage("상품 서비스가 응답하지 않습니다");
+                .hasMessage("유저 서비스가 응답하지 않습니다");
     }
+
 }

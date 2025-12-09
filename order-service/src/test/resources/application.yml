@@ -17,6 +17,8 @@ spring:
           instances:
             product-service:
               - uri: http://localhost:${wiremock.server.port}
+            user-service:
+              - uri: http://localhost:${wiremock.server.port}
   data:
     redis:
       host: testhost
