@@ -11,7 +11,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 @ActiveProfiles("test-mock")
 @SpringBootTest
-public abstract class DomainServiceTestSupport {
+public abstract class ExcludeInfraServiceTest {
     @MockitoBean
     private KafkaTemplate<String, Object> kafkaTemplate;
     @MockitoBean

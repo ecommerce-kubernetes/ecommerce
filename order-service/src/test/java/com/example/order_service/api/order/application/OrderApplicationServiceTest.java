@@ -41,6 +41,14 @@ public class OrderApplicationServiceTest {
         assertThat(response.getCreateAt()).isNotNull();
     }
 
+    @Test
+    @DisplayName("")
+    void test(){
+        //given
+        //when
+        //then
+    }
+
     private CreateOrderDto createOrderDto(UserPrincipal userPrincipal, String deliveryAddress, Long couponId, Long pointToUse,
                                           Long expectedPrice, CreateOrderItemDto... orderItems){
         return CreateOrderDto.builder()

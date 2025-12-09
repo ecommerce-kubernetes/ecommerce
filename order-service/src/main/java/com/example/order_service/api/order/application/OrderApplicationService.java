@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class OrderApplicationService {
     public CreateOrderResponse createOrder(CreateOrderDto dto){
-
         return null;
     }
 }

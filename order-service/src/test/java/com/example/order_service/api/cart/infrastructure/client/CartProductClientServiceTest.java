@@ -3,6 +3,7 @@ package com.example.order_service.api.cart.infrastructure.client;
 import com.example.order_service.api.cart.infrastructure.client.dto.CartProductResponse;
 import com.example.order_service.api.common.exception.server.InternalServerException;
 import com.example.order_service.api.common.exception.server.UnavailableServiceException;
+import com.example.order_service.api.support.ExcludeInfraServiceTest;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import org.junit.jupiter.api.DisplayName;
@@ -11,6 +12,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.List;
@@ -19,14 +22,14 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willThrow;
 
-@ExtendWith(MockitoExtension.class)
-public class CartProductClientServiceTest {
+public class CartProductClientServiceTest extends ExcludeInfraServiceTest {
 
-    @InjectMocks
+    @Autowired
     private CartProductClientService cartProductClientService;
 
-    @Mock
+    @MockitoBean
     private CartProductClient cartProductClient;
 
     @Test
@@ -54,13 +57,10 @@ public class CartProductClientServiceTest {
     @DisplayName("서킷 브레이커가 열리면 503 예외를 던진다")
     void getProductWhenOpenCircuitBreaker(){
         //given
-        CallNotPermittedException exception = CallNotPermittedException
-                .createCallNotPermittedException(CircuitBreaker.ofDefaults("productService"));
+        willThrow(CallNotPermittedException.class).given(cartProductClient).getProductByVariantId(anyLong());
         //when
         //then
-        assertThatThrownBy(() ->
-                ReflectionTestUtils.invokeMethod(cartProductClientService, "getProductFallback", 1L, exception)
-        )
+        assertThatThrownBy(() -> cartProductClientService.getProduct(1L))
                 .isInstanceOf(UnavailableServiceException.class)
                 .hasMessage("상품 서비스가 응답하지 않습니다");
     }
@@ -69,10 +69,11 @@ public class CartProductClientServiceTest {
     @DisplayName("500 응답이 오면 InternalServerError를 던진다")
     void getProductWhen500Code(){
         //given
-        InternalServerException exception = new InternalServerException("상품 서비스 장애 발생");
+        willThrow(new InternalServerException("상품 서비스 장애 발생")).given(cartProductClient)
+                        .getProductByVariantId(anyLong());
         //when
         //then
-        assertThatThrownBy(() -> ReflectionTestUtils.invokeMethod(cartProductClientService, "getProductFallback", 1L, exception))
+        assertThatThrownBy(() -> cartProductClientService.getProduct(1L))
                 .isInstanceOf(InternalServerException.class)
                 .hasMessage("상품 서비스 장애 발생");
     }
@@ -105,33 +106,26 @@ public class CartProductClientServiceTest {
     @DisplayName("상품 목록을 조회할때 서킷 브레이커가 열리면 빈 배열을 반환한다")
     void getProductsWhenOpenCircuitBreaker(){
         //given
-        CallNotPermittedException exception = CallNotPermittedException
-                .createCallNotPermittedException(CircuitBreaker.ofDefaults("productService"));
+        willThrow(CallNotPermittedException.class)
+                .given(cartProductClient)
+                .getProductVariantByIds(anyList());
         //when
-        List<CartProductResponse> result = ReflectionTestUtils.invokeMethod(
-                cartProductClientService,
-                "getProductsFallback", // 메서드 이름 정확해야 함
-                List.of(1L, 2L),
-                exception
-        );
+        List<CartProductResponse> products = cartProductClientService.getProducts(List.of(1L, 2L));
         //then
-        assertThat(result).isEmpty();
+        assertThat(products).isEmpty();
     }
 
     @Test
     @DisplayName("상품 목록을 조회할때 알 수 없는 에러가 발생하면 빈 배열을 반환한다")
     void getProductsWhenOtherException(){
         //given
-        InternalServerException exception = new InternalServerException("상품 서비스 장애 발생");
+        willThrow(InternalServerException.class)
+                .given(cartProductClient)
+                .getProductVariantByIds(anyList());
         //when
-        List<CartProductResponse> result = ReflectionTestUtils.invokeMethod(
-                cartProductClientService,
-                "getProductsFallback", // 메서드 이름 정확해야 함
-                List.of(1L, 2L),
-                exception
-        );
+        List<CartProductResponse> products = cartProductClientService.getProducts(List.of(1L, 2L));
         //then
-        assertThat(result).isEmpty();
+        assertThat(products).isEmpty();
     }
 
     private CartProductResponse createProductResponse(Long productId, Long productVariantId,
