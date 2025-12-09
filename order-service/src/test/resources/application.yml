@@ -28,7 +28,9 @@ spring:
     bootstrap_servers: localhost:9092
   flyway:
     enabled: false
-
+  output:
+    ansi:
+      enabled: always
 swagger:
   allowed-origins:
     - "http://localhost:8000"

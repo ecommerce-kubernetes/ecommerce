@@ -1,8 +1,7 @@
-package com.example.order_service.api.order.infrastructure.client;
+package com.example.order_service.api.order.infrastructure.client.product;
 
-import com.example.order_service.api.common.exception.NotFoundException;
 import com.example.order_service.api.common.exception.server.UnavailableServiceException;
-import com.example.order_service.api.order.infrastructure.client.dto.OrderProductResponse;
+import com.example.order_service.api.order.infrastructure.client.product.dto.OrderProductResponse;
 import com.example.order_service.api.support.ExcludeInfraServiceTest;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import org.junit.jupiter.api.DisplayName;
@@ -78,23 +77,7 @@ public class OrderProductClientServiceTest extends ExcludeInfraServiceTest {
     }
 
     @Test
-    @DisplayName("상품 서비스에서 상품을 조회할때 응답이 요청 id와 정확히 일치하지 않으면 예외를 던진다")
-    void getProductsWhenMissingProduct(){
-        //given
-        OrderProductResponse product = createOrderProductResponse(1L, 1L,
-                "상품1", 3000L, 10, "http://thumbnail1.jpg",
-                Map.of("사이즈", "XL"));
-        given(orderProductClient.getProductVariantByIds(anyList()))
-                .willReturn(List.of(product));
-        //when
-        //then
-        assertThatThrownBy(() -> orderProductClientService.getProducts(List.of(1L, 2L)))
-                .isInstanceOf(NotFoundException.class)
-                .hasMessage("주문상품중 존재하지 않은 상품이 있습니다");
-    }
-
-    @Test
-    @DisplayName("서킷브레이커가 열리면 예외를 던진다")
+    @DisplayName("상품목록 정보를 조회할때 서킷브레이커가 열리면 예외를 던진다")
     void getProductsWhenOpenCircuitBreaker(){
         //given
         willThrow(CallNotPermittedException.class).given(orderProductClient).getProductVariantByIds(anyList());

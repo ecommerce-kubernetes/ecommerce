@@ -54,7 +54,7 @@ public class CartProductClientServiceTest extends ExcludeInfraServiceTest {
     }
 
     @Test
-    @DisplayName("서킷 브레이커가 열리면 503 예외를 던진다")
+    @DisplayName("상품의 정보를 조회할때 서킷 브레이커가 열리면 503 예외를 던진다")
     void getProductWhenOpenCircuitBreaker(){
         //given
         willThrow(CallNotPermittedException.class).given(cartProductClient).getProductByVariantId(anyLong());

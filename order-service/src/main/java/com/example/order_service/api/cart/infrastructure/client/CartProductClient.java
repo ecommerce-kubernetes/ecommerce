@@ -11,9 +11,9 @@ import java.util.List;
 
 @FeignClient(name = "product-service", contextId = "cartProductClient", configuration = ProductFeignConfig.class)
 public interface CartProductClient {
-    @GetMapping("/variants/{productVariantId}")
+    @GetMapping("/internal/variants/{productVariantId}")
     CartProductResponse getProductByVariantId(@PathVariable("productVariantId") Long productVariantId);
 
-    @PostMapping("/variants/by-ids")
+    @PostMapping("/internal/variants/by-ids")
     List<CartProductResponse> getProductVariantByIds(List<Long> ids);
 }

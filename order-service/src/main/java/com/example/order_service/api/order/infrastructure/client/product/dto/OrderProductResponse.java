@@ -1,4 +1,4 @@
-package com.example.order_service.api.order.infrastructure.client.dto;
+package com.example.order_service.api.order.infrastructure.client.product.dto;
 
 import lombok.Builder;
 import lombok.Getter;
