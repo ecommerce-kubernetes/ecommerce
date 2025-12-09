@@ -17,7 +17,6 @@ import com.example.order_service.api.order.infrastructure.client.user.dto.OrderU
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.BDDMockito;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -120,7 +119,7 @@ public class OrderApplicationServiceTest {
     }
 
     @Test
-    @DisplayName("")
+    @DisplayName("주문 생성시 사용포인트가 유저 포인트 잔액보다 많으면 예외를 던진다")
     void createOrderWhenNotEnoughPoint() {
         //given
         UserPrincipal userPrincipal = createUserPrincipal(1L, UserRole.ROLE_USER);
@@ -180,7 +179,7 @@ public class OrderApplicationServiceTest {
     }
 
     @Test
-    @DisplayName("")
+    @DisplayName("주문 생성시 상품 서비스 서킷브레이커가 열리면 예외를 던진다")
     void createOrderWhenProductClientServiceThrownUnavailableServiceException() {
         //given
         UserPrincipal userPrincipal = createUserPrincipal(1L, UserRole.ROLE_USER);

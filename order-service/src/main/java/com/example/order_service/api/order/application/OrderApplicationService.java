@@ -13,7 +13,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -26,9 +28,25 @@ public class OrderApplicationService {
     public CreateOrderResponse createOrder(CreateOrderDto dto){
         OrderUserResponse user = getOrderUser(dto);
         List<OrderProductResponse> products = getOrderProducts(dto.getOrderItemDtoList());
+        long totalPrice = calculateTotalPrice(dto.getOrderItemDtoList(), products);
 
+        if(dto.getCouponId() != null){
+
+        }
         return null;
     }
+
+    private long calculateTotalPrice(List<CreateOrderItemDto> requests, List<OrderProductResponse> responses){
+        Map<Long, Integer> requestMap = requests.stream()
+                .collect(Collectors.toMap(CreateOrderItemDto::getProductVariantId, CreateOrderItemDto::getQuantity));
+
+        Map<Long, OrderProductResponse.UnitPrice> responseMap = responses.stream()
+                .collect(Collectors.toMap(OrderProductResponse::getProductVariantId, OrderProductResponse::getUnitPrice));
+
+        return requestMap.entrySet().stream()
+                .mapToLong(entry -> entry.getValue() * responseMap.get(entry.getKey()).getDiscountedPrice()).sum();
+    }
+
     private OrderUserResponse getOrderUser(CreateOrderDto dto){
         OrderUserResponse user = orderUserClientService.getUserForOrder(dto.getUserPrincipal().getUserId());
         verifyEnoughPoints(dto.getPointToUse(), user);
