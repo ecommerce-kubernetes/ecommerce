@@ -1,25 +1,44 @@
 package com.example.order_service.api.order.application;
 
+import com.example.order_service.api.cart.infrastructure.client.dto.CartProductResponse;
+import com.example.order_service.api.common.exception.NotFoundException;
+import com.example.order_service.api.common.exception.server.InternalServerException;
+import com.example.order_service.api.common.exception.server.UnavailableServiceException;
 import com.example.order_service.api.common.security.model.UserRole;
 import com.example.order_service.api.common.security.principal.UserPrincipal;
 import com.example.order_service.api.order.application.dto.command.CreateOrderDto;
 import com.example.order_service.api.order.application.dto.command.CreateOrderItemDto;
 import com.example.order_service.api.order.application.dto.result.CreateOrderResponse;
+import com.example.order_service.api.order.infrastructure.client.product.OrderProductClientService;
+import com.example.order_service.api.order.infrastructure.client.product.dto.OrderProductResponse;
+import com.example.order_service.api.order.infrastructure.client.user.OrderUserClientService;
+import com.example.order_service.api.order.infrastructure.client.user.dto.OrderUserResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.BDDMockito;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willThrow;
 
 @ExtendWith(MockitoExtension.class)
 public class OrderApplicationServiceTest {
 
     @InjectMocks
     private OrderApplicationService orderApplicationService;
+    @Mock
+    private OrderProductClientService orderProductClientService;
+    @Mock
+    private OrderUserClientService orderUserClientService;
 
     @Test
     @DisplayName("주문을 생성한다")
@@ -42,11 +61,124 @@ public class OrderApplicationServiceTest {
     }
 
     @Test
-    @DisplayName("")
-    void test(){
+    @DisplayName("주문을 생성할때 유저를 찾을 수 없으면 예외를 던진다")
+    void createOrderWhenUserClientServiceThrownNotFoundException(){
         //given
+        UserPrincipal userPrincipal = createUserPrincipal(1L, UserRole.ROLE_USER);
+        CreateOrderItemDto orderItem1 = createOrderItemDto(1L, 3);
+        CreateOrderItemDto orderItem2 = createOrderItemDto(2L, 5);
+
+        CreateOrderDto createOrderDto = createOrderDto(userPrincipal, "서울시 테헤란로 123", 1L, 300L,
+                5700L, orderItem1, orderItem2);
+
+        willThrow(new NotFoundException("유저를 찾을 수 없습니다"))
+                .given(orderUserClientService).getUserForOrder(anyLong());
         //when
         //then
+        assertThatThrownBy(() -> orderApplicationService.createOrder(createOrderDto))
+                .isInstanceOf(NotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("주문을 생성할때 유저 서비스가 응답하지 않으면 예외를 던진다")
+    void createOrderWhenUserClientServiceThrownUnavailableException() {
+        //given
+        UserPrincipal userPrincipal = createUserPrincipal(1L, UserRole.ROLE_USER);
+        CreateOrderItemDto orderItem1 = createOrderItemDto(1L, 3);
+        CreateOrderItemDto orderItem2 = createOrderItemDto(2L, 5);
+
+        CreateOrderDto createOrderDto = createOrderDto(userPrincipal, "서울시 테헤란로 123", 1L, 300L,
+                5700L, orderItem1, orderItem2);
+
+        willThrow(new UnavailableServiceException("유저 서비스가 응답하지 않습니다"))
+                .given(orderUserClientService).getUserForOrder(anyLong());
+        //when
+        //then
+        assertThatThrownBy(() -> orderApplicationService.createOrder(createOrderDto))
+                .isInstanceOf(UnavailableServiceException.class)
+                .hasMessage("유저 서비스가 응답하지 않습니다");
+    }
+
+    @Test
+    @DisplayName("주문을 생성할때 유저 서비스에서 오류가 발생하면 예외를 던진다")
+    void createOrderWhenUserClientServiceThrownInternalServerException() {
+        //given
+        UserPrincipal userPrincipal = createUserPrincipal(1L, UserRole.ROLE_USER);
+        CreateOrderItemDto orderItem1 = createOrderItemDto(1L, 3);
+        CreateOrderItemDto orderItem2 = createOrderItemDto(2L, 5);
+
+        CreateOrderDto createOrderDto = createOrderDto(userPrincipal, "서울시 테헤란로 123", 1L, 300L,
+                5700L, orderItem1, orderItem2);
+        willThrow(new InternalServerException("유저 서비스에서 오류가 발생했습니다"))
+                .given(orderUserClientService).getUserForOrder(anyLong());
+        //when
+        //then
+        assertThatThrownBy(() -> orderApplicationService.createOrder(createOrderDto))
+                .isInstanceOf(InternalServerException.class)
+                .hasMessage("유저 서비스에서 오류가 발생했습니다");
+    }
+    
+    @Test
+    @DisplayName("주문을 생성할때 상품 서비스에서 요청 상품에 대한 온전한 응답이 오지 않으면 예외를 던진다")
+    void createOrderWhenProductClientServiceReturnInCompleteResponse() {
+        //given
+        UserPrincipal userPrincipal = createUserPrincipal(1L, UserRole.ROLE_USER);
+        CreateOrderItemDto orderItem1 = createOrderItemDto(1L, 3);
+        CreateOrderItemDto orderItem2 = createOrderItemDto(2L, 5);
+
+        CreateOrderDto createOrderDto = createOrderDto(userPrincipal, "서울시 테헤란로 123", 1L, 300L,
+                5700L, orderItem1, orderItem2);
+
+        OrderUserResponse userInfo = OrderUserResponse.builder()
+                .userId(1L)
+                .pointBalance(3000L)
+                .build();
+        given(orderUserClientService.getUserForOrder(anyLong()))
+                .willReturn(userInfo);
+
+        OrderProductResponse product = createProductResponse(1L, 1L, "상품1", 3000L, 10,
+                "http://thumbnail.jpg",
+                List.of(
+                        OrderProductResponse.ItemOption.builder()
+                                .optionTypeName("사이즈")
+                                .optionValueName("XL")
+                                .build()
+                )
+        );
+        given(orderProductClientService.getProducts(anyList()))
+                .willReturn(List.of(product));
+        //when
+        //then
+        assertThatThrownBy(() -> orderApplicationService.createOrder(createOrderDto))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage("주문 상품중 존재하지 않은 상품이 있습니다. missingIds=[2]");
+    }
+
+    @Test
+    @DisplayName("")
+    void createOrderWhenProductClientServiceThrownUnavailableServiceException() {
+        //given
+        UserPrincipal userPrincipal = createUserPrincipal(1L, UserRole.ROLE_USER);
+        CreateOrderItemDto orderItem1 = createOrderItemDto(1L, 3);
+        CreateOrderItemDto orderItem2 = createOrderItemDto(2L, 5);
+
+        CreateOrderDto createOrderDto = createOrderDto(userPrincipal, "서울시 테헤란로 123", 1L, 300L,
+                5700L, orderItem1, orderItem2);
+
+        OrderUserResponse userInfo = OrderUserResponse.builder()
+                .userId(1L)
+                .pointBalance(3000L)
+                .build();
+        given(orderUserClientService.getUserForOrder(anyLong()))
+                .willReturn(userInfo);
+        willThrow(new UnavailableServiceException("상품 서비스가 응답하지 않습니다"))
+                .given(orderProductClientService)
+                .getProducts(anyList());
+        //when
+        //then
+        assertThatThrownBy(() -> orderApplicationService.createOrder(createOrderDto))
+                .isInstanceOf(UnavailableServiceException.class)
+                .hasMessage("상품 서비스가 응답하지 않습니다");
     }
 
     private CreateOrderDto createOrderDto(UserPrincipal userPrincipal, String deliveryAddress, Long couponId, Long pointToUse,
@@ -72,6 +204,26 @@ public class OrderApplicationServiceTest {
         return UserPrincipal.builder()
                 .userId(userId)
                 .userRole(userRole)
+                .build();
+    }
+
+    private OrderProductResponse createProductResponse(Long productId, Long productVariantId,
+                                                      String productName, Long originalPrice, int discountRate,
+                                                      String thumbnail, List<OrderProductResponse.ItemOption> options){
+        long discountAmount = originalPrice * discountRate / 100;
+        return OrderProductResponse.builder()
+                .productId(productId)
+                .productVariantId(productVariantId)
+                .productName(productName)
+                .unitPrice(
+                        OrderProductResponse.UnitPrice.builder()
+                                .originalPrice(originalPrice)
+                                .discountRate(discountRate)
+                                .discountAmount(discountAmount)
+                                .discountedPrice(originalPrice - discountAmount)
+                                .build())
+                .thumbnailUrl(thumbnail)
+                .itemOptions(options)
                 .build();
     }
 }

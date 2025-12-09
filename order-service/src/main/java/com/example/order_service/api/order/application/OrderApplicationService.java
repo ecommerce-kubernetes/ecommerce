@@ -6,6 +6,8 @@ import com.example.order_service.api.order.application.dto.command.CreateOrderIt
 import com.example.order_service.api.order.application.dto.result.CreateOrderResponse;
 import com.example.order_service.api.order.infrastructure.client.product.OrderProductClientService;
 import com.example.order_service.api.order.infrastructure.client.product.dto.OrderProductResponse;
+import com.example.order_service.api.order.infrastructure.client.user.OrderUserClientService;
+import com.example.order_service.api.order.infrastructure.client.user.dto.OrderUserResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -18,9 +20,13 @@ import java.util.stream.Collectors;
 public class OrderApplicationService {
 
     private final OrderProductClientService orderProductClientService;
+    private final OrderUserClientService orderUserClientService;
 
     public CreateOrderResponse createOrder(CreateOrderDto dto){
-//        List<OrderProductResponse> products = getOrderProducts(dto.getOrderItemDtoList());
+        Long userId = dto.getUserPrincipal().getUserId();
+        OrderUserResponse user = orderUserClientService.getUserForOrder(userId);
+        List<OrderProductResponse> products = getOrderProducts(dto.getOrderItemDtoList());
+
         return null;
     }
 
@@ -37,6 +43,7 @@ public class OrderApplicationService {
                 .toList();
     }
 
+    // 요청 id 와 반환값이 일치하는지 검증
     private void verifyMissingProducts(List<Long> productVariantIds, List<OrderProductResponse> products){
         if(products.size() != productVariantIds.size()){
             Set<Long> resultIds = products.stream().map(OrderProductResponse::getProductVariantId)
