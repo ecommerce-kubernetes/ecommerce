@@ -1,6 +1,7 @@
 package com.example.order_service.api.order.application;
 
 import com.example.order_service.api.cart.infrastructure.client.dto.CartProductResponse;
+import com.example.order_service.api.common.exception.InsufficientException;
 import com.example.order_service.api.common.exception.NotFoundException;
 import com.example.order_service.api.common.exception.server.InternalServerException;
 import com.example.order_service.api.common.exception.server.UnavailableServiceException;
@@ -116,6 +117,30 @@ public class OrderApplicationServiceTest {
         assertThatThrownBy(() -> orderApplicationService.createOrder(createOrderDto))
                 .isInstanceOf(InternalServerException.class)
                 .hasMessage("유저 서비스에서 오류가 발생했습니다");
+    }
+
+    @Test
+    @DisplayName("")
+    void createOrderWhenNotEnoughPoint() {
+        //given
+        UserPrincipal userPrincipal = createUserPrincipal(1L, UserRole.ROLE_USER);
+        CreateOrderItemDto orderItem1 = createOrderItemDto(1L, 3);
+        CreateOrderItemDto orderItem2 = createOrderItemDto(2L, 5);
+
+        CreateOrderDto createOrderDto = createOrderDto(userPrincipal, "서울시 테헤란로 123", 1L, 300L,
+                5700L, orderItem1, orderItem2);
+
+        OrderUserResponse userInfo = OrderUserResponse.builder()
+                .userId(1L)
+                .pointBalance(100L)
+                .build();
+        given(orderUserClientService.getUserForOrder(anyLong()))
+                .willReturn(userInfo);
+        //when
+        //then
+        assertThatThrownBy(() -> orderApplicationService.createOrder(createOrderDto))
+                .isInstanceOf(InsufficientException.class)
+                .hasMessage("포인트가 부족합니다");
     }
     
     @Test

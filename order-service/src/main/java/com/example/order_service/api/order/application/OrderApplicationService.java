@@ -1,5 +1,6 @@
 package com.example.order_service.api.order.application;
 
+import com.example.order_service.api.common.exception.InsufficientException;
 import com.example.order_service.api.common.exception.NotFoundException;
 import com.example.order_service.api.order.application.dto.command.CreateOrderDto;
 import com.example.order_service.api.order.application.dto.command.CreateOrderItemDto;
@@ -23,11 +24,23 @@ public class OrderApplicationService {
     private final OrderUserClientService orderUserClientService;
 
     public CreateOrderResponse createOrder(CreateOrderDto dto){
-        Long userId = dto.getUserPrincipal().getUserId();
-        OrderUserResponse user = orderUserClientService.getUserForOrder(userId);
+        OrderUserResponse user = getOrderUser(dto);
         List<OrderProductResponse> products = getOrderProducts(dto.getOrderItemDtoList());
 
         return null;
+    }
+    private OrderUserResponse getOrderUser(CreateOrderDto dto){
+        OrderUserResponse user = orderUserClientService.getUserForOrder(dto.getUserPrincipal().getUserId());
+        verifyEnoughPoints(dto.getPointToUse(), user);
+        return user;
+    }
+
+    private void verifyEnoughPoints(Long useToPoint, OrderUserResponse user){
+        if(useToPoint != null && useToPoint > 0) {
+            if(useToPoint > user.getPointBalance()){
+                throw new InsufficientException("포인트가 부족합니다");
+            }
+        }
     }
 
     // 주문 상품을 조회, 검증 후 응답 반환
