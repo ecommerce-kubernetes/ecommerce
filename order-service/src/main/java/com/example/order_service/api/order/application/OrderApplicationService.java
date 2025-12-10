@@ -2,9 +2,12 @@ package com.example.order_service.api.order.application;
 
 import com.example.order_service.api.common.exception.InsufficientException;
 import com.example.order_service.api.common.exception.NotFoundException;
+import com.example.order_service.api.common.exception.OrderVerificationException;
 import com.example.order_service.api.order.application.dto.command.CreateOrderDto;
 import com.example.order_service.api.order.application.dto.command.CreateOrderItemDto;
 import com.example.order_service.api.order.application.dto.result.CreateOrderResponse;
+import com.example.order_service.api.order.infrastructure.client.coupon.OrderCouponClientService;
+import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponCalcResponse;
 import com.example.order_service.api.order.infrastructure.client.product.OrderProductClientService;
 import com.example.order_service.api.order.infrastructure.client.product.dto.OrderProductResponse;
 import com.example.order_service.api.order.infrastructure.client.user.OrderUserClientService;
@@ -24,6 +27,7 @@ public class OrderApplicationService {
 
     private final OrderProductClientService orderProductClientService;
     private final OrderUserClientService orderUserClientService;
+    private final OrderCouponClientService orderCouponClientService;
 
     public CreateOrderResponse createOrder(CreateOrderDto dto){
         OrderUserResponse user = getOrderUser(dto);
@@ -31,7 +35,15 @@ public class OrderApplicationService {
         long totalPrice = calculateTotalPrice(dto.getOrderItemDtoList(), products);
 
         if(dto.getCouponId() != null){
+            Long userId = dto.getUserPrincipal().getUserId();
+            Long couponId = dto.getCouponId();
+            OrderCouponCalcResponse calcResponse = orderCouponClientService.calculateDiscount(userId, couponId, totalPrice);
+            totalPrice = calcResponse.getFinalPaymentAmount();
+        }
+        long finalPaymentPrice = totalPrice - dto.getPointToUse();
 
+        if(finalPaymentPrice != dto.getExpectedPrice()){
+            throw new OrderVerificationException("주문 금액이 변동되었습니다");
         }
         return null;
     }

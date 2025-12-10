@@ -10,6 +10,7 @@ import com.example.order_service.api.common.security.principal.UserPrincipal;
 import com.example.order_service.api.order.application.dto.command.CreateOrderDto;
 import com.example.order_service.api.order.application.dto.command.CreateOrderItemDto;
 import com.example.order_service.api.order.application.dto.result.CreateOrderResponse;
+import com.example.order_service.api.order.infrastructure.client.coupon.OrderCouponClientService;
 import com.example.order_service.api.order.infrastructure.client.product.OrderProductClientService;
 import com.example.order_service.api.order.infrastructure.client.product.dto.OrderProductResponse;
 import com.example.order_service.api.order.infrastructure.client.user.OrderUserClientService;
@@ -39,6 +40,8 @@ public class OrderApplicationServiceTest {
     private OrderProductClientService orderProductClientService;
     @Mock
     private OrderUserClientService orderUserClientService;
+    @Mock
+    private OrderCouponClientService orderCouponClientService;
 
     @Test
     @DisplayName("주문을 생성한다")
@@ -203,6 +206,75 @@ public class OrderApplicationServiceTest {
         assertThatThrownBy(() -> orderApplicationService.createOrder(createOrderDto))
                 .isInstanceOf(UnavailableServiceException.class)
                 .hasMessage("상품 서비스가 응답하지 않습니다");
+    }
+
+    @Test
+    @DisplayName("쿠폰을 사용한 주문을 생성할때 쿠폰을 찾을 수 없는 경우 예외를 던진다")
+    void createOrderWhenCouponClientServiceThrownNotFoundException(){
+        //given
+        UserPrincipal userPrincipal = createUserPrincipal(1L, UserRole.ROLE_USER);
+        CreateOrderItemDto orderItem1 = createOrderItemDto(1L, 3);
+        CreateOrderItemDto orderItem2 = createOrderItemDto(2L, 5);
+
+        CreateOrderDto createOrderDto = createOrderDto(userPrincipal, "서울시 테헤란로 123", 1L, 300L,
+                5700L, orderItem1, orderItem2);
+
+        OrderUserResponse userInfo = OrderUserResponse.builder()
+                .userId(1L)
+                .pointBalance(3000L)
+                .build();
+
+        OrderProductResponse product1 = createProductResponse(1L, 1L, "상품1", 3000L,
+                10, "http://thumbnail1.jpg",
+                List.of(OrderProductResponse.ItemOption.builder().optionTypeName("사이즈").optionValueName("XL").build()));
+        OrderProductResponse product2 = createProductResponse(2L, 2L, "상품2", 5000L,
+                10, "http://thumbnail2.jpg",
+                List.of(OrderProductResponse.ItemOption.builder().optionTypeName("용량").optionValueName("256GB").build()));
+
+        given(orderUserClientService.getUserForOrder(anyLong()))
+                .willReturn(userInfo);
+        given(orderProductClientService.getProducts(anyList()))
+                .willReturn(List.of(product1, product2));
+        willThrow(new NotFoundException("쿠폰을 찾을 수 없습니다"))
+                .given(orderCouponClientService).calculateDiscount(anyLong(), anyLong(), anyLong());
+        //when
+        //then
+        assertThatThrownBy(() -> orderApplicationService.createOrder(createOrderDto))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage("쿠폰을 찾을 수 없습니다");
+    }
+
+    @Test
+    @DisplayName("쿠폰을 사용한 주문을 생성할때 쿠폰 서비스가 응답하지 않으면 예외를 던진다")
+    void createOrderWhenCouponClientServiceThrownUnavailableService(){
+        //given
+        UserPrincipal userPrincipal = createUserPrincipal(1L, UserRole.ROLE_USER);
+        CreateOrderItemDto orderItem1 = createOrderItemDto(1L, 3);
+        CreateOrderItemDto orderItem2 = createOrderItemDto(2L, 5);
+
+        CreateOrderDto createOrderDto = createOrderDto(userPrincipal, "서울시 테헤란로 123", 1L, 300L,
+                5700L, orderItem1, orderItem2);
+
+        OrderUserResponse userInfo = OrderUserResponse.builder()
+                .userId(1L)
+                .pointBalance(3000L)
+                .build();
+
+        OrderProductResponse product1 = createProductResponse(1L, 1L, "상품1", 3000L,
+                10, "http://thumbnail1.jpg",
+                List.of(OrderProductResponse.ItemOption.builder().optionTypeName("사이즈").optionValueName("XL").build()));
+        OrderProductResponse product2 = createProductResponse(2L, 2L, "상품2", 5000L,
+                10, "http://thumbnail2.jpg",
+                List.of(OrderProductResponse.ItemOption.builder().optionTypeName("용량").optionValueName("256GB").build()));
+
+        given(orderUserClientService.getUserForOrder(anyLong()))
+                .willReturn(userInfo);
+        given(orderProductClientService.getProducts(anyList()))
+                .willReturn(List.of(product1, product2));
+        willThrow(new NotFoundException("쿠폰을 찾을 수 없습니다"))
+                .given(orderCouponClientService).calculateDiscount(anyLong(), anyLong(), anyLong());
+        //when
+        //then
     }
 
     private CreateOrderDto createOrderDto(UserPrincipal userPrincipal, String deliveryAddress, Long couponId, Long pointToUse,

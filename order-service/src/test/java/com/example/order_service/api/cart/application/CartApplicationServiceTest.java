@@ -17,6 +17,7 @@ import com.example.order_service.api.cart.infrastructure.client.dto.CartProductR
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -91,6 +92,14 @@ public class CartApplicationServiceTest {
                 .containsExactly(
                         tuple("사이즈", "XL")
                 );
+    }
+
+    @Test
+    @DisplayName("장바구니 추가시 상품 서비스에서 예외가 발생하면 그대로 던진다")
+    void test(){
+        //given
+        //when
+        //then
     }
 
     @Test

@@ -1,11 +1,14 @@
 package com.example.order_service.api.order.infrastructure.client.product.dto;
 
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
 @Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class OrderProductResponse {
     private Long productId;
     private Long productVariantId;
