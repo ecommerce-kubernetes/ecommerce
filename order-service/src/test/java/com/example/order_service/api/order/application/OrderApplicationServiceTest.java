@@ -2,12 +2,14 @@ package com.example.order_service.api.order.application;
 
 import com.example.order_service.api.common.exception.InsufficientException;
 import com.example.order_service.api.common.exception.NotFoundException;
+import com.example.order_service.api.common.exception.OrderVerificationException;
 import com.example.order_service.api.common.security.model.UserRole;
 import com.example.order_service.api.common.security.principal.UserPrincipal;
 import com.example.order_service.api.order.application.dto.command.CreateOrderDto;
 import com.example.order_service.api.order.application.dto.command.CreateOrderItemDto;
 import com.example.order_service.api.order.application.dto.result.CreateOrderResponse;
 import com.example.order_service.api.order.infrastructure.client.coupon.OrderCouponClientService;
+import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponCalcResponse;
 import com.example.order_service.api.order.infrastructure.client.product.OrderProductClientService;
 import com.example.order_service.api.order.infrastructure.client.product.dto.OrderProductResponse;
 import com.example.order_service.api.order.infrastructure.client.user.OrderUserClientService;
@@ -48,17 +50,16 @@ public class OrderApplicationServiceTest {
         CreateOrderItemDto orderItem2 = createOrderItemDto(2L, 5);
 
         CreateOrderDto createOrderDto = createOrderDto(userPrincipal, "서울시 테헤란로 123", 1L, 300L,
-                5700L, orderItem1, orderItem2);
+                29600L, orderItem1, orderItem2);
         //when
         CreateOrderResponse response = orderApplicationService.createOrder(createOrderDto);
         //then
         assertThat(response.getOrderId()).isNotNull();
         assertThat(response)
                 .extracting("status", "message", "totalQuantity", "finalPaymentAmount")
-                .contains("PENDING", "상품1 외 2건", 8, 5700L);
+                .contains("PENDING", "상품1 외 2건", 8, 29600L);
         assertThat(response.getCreateAt()).isNotNull();
     }
-
 
     @Test
     @DisplayName("주문 생성시 사용포인트가 유저 포인트 잔액보다 많으면 예외를 던진다")
@@ -69,7 +70,7 @@ public class OrderApplicationServiceTest {
         CreateOrderItemDto orderItem2 = createOrderItemDto(2L, 5);
 
         CreateOrderDto createOrderDto = createOrderDto(userPrincipal, "서울시 테헤란로 123", 1L, 300L,
-                5700L, orderItem1, orderItem2);
+                29600L, orderItem1, orderItem2);
 
         OrderUserResponse userInfo = OrderUserResponse.builder()
                 .userId(1L)
@@ -93,7 +94,7 @@ public class OrderApplicationServiceTest {
         CreateOrderItemDto orderItem2 = createOrderItemDto(2L, 5);
 
         CreateOrderDto createOrderDto = createOrderDto(userPrincipal, "서울시 테헤란로 123", 1L, 300L,
-                5700L, orderItem1, orderItem2);
+                29600L, orderItem1, orderItem2);
 
         OrderUserResponse userInfo = OrderUserResponse.builder()
                 .userId(1L)
@@ -118,6 +119,60 @@ public class OrderApplicationServiceTest {
         assertThatThrownBy(() -> orderApplicationService.createOrder(createOrderDto))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage("주문 상품중 존재하지 않은 상품이 있습니다. missingIds=[2]");
+    }
+    
+    @Test
+    @DisplayName("주문을 생성할때 결제 예상 금액과 실제 결제 금액이 같지 않은 경우 OrderVerification 예외를 던진다")
+    void createOrder_When_finalPaymentAmount_NotEqual_ExpectedPrice() {
+        //given
+        UserPrincipal userPrincipal = createUserPrincipal(1L, UserRole.ROLE_USER);
+        CreateOrderItemDto orderItem1 = createOrderItemDto(1L, 3);
+        CreateOrderItemDto orderItem2 = createOrderItemDto(2L, 5);
+
+        CreateOrderDto createOrderDto = createOrderDto(userPrincipal, "서울시 테헤란로 123", 1L, 300L,
+                30000L, orderItem1, orderItem2);
+
+        OrderUserResponse userInfo = OrderUserResponse.builder()
+                .userId(1L)
+                .pointBalance(3000L)
+                .build();
+
+        OrderProductResponse product1 = createProductResponse(1L, 1L, "상품1", 3000L, 10,
+                "http://thumbnail1.jpg",
+                List.of(
+                        OrderProductResponse.ItemOption.builder()
+                                .optionTypeName("사이즈")
+                                .optionValueName("XL")
+                                .build()
+                )
+        );
+
+        OrderProductResponse product2 = createProductResponse(2L, 2L, "상품2", 5000L, 10,
+                "http://thumbnail2.jpg",
+                List.of(
+                        OrderProductResponse.ItemOption.builder()
+                                .optionTypeName("용량")
+                                .optionValueName("256GB")
+                                .build()
+                )
+        );
+        OrderCouponCalcResponse coupon = OrderCouponCalcResponse.builder()
+                .couponId(1L)
+                .discountAmount(1000L)
+                .finalPaymentAmount(29600L)
+                .build();
+
+        given(orderUserClientService.getUserForOrder(anyLong()))
+                .willReturn(userInfo);
+        given(orderProductClientService.getProducts(anyList()))
+                .willReturn(List.of(product1, product2));
+        given(orderCouponClientService.calculateDiscount(anyLong(), anyLong(), anyLong()))
+                .willReturn(coupon);
+        //when
+        //then
+        assertThatThrownBy(() -> orderApplicationService.createOrder(createOrderDto))
+                .isInstanceOf(OrderVerificationException.class)
+                .hasMessage("주문 금액이 변동되었습니다");
     }
 
     private CreateOrderDto createOrderDto(UserPrincipal userPrincipal, String deliveryAddress, Long couponId, Long pointToUse,

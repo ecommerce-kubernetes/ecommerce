@@ -18,7 +18,6 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -30,16 +29,31 @@ public class OrderApplicationService {
     private final OrderCouponClientService orderCouponClientService;
 
     public CreateOrderResponse createOrder(CreateOrderDto dto){
+        //주문 유저 조회
         OrderUserResponse user = getOrderUser(dto);
+        //사용 포인트가 있는 경우 포인트 잔액이 충분한지 검증
+        verifyEnoughPoints(dto.getPointToUse(), user);
+        //주문 상품 목록 조회
         List<OrderProductResponse> products = getOrderProducts(dto.getOrderItemDtoList());
+        //주문 상품 총 가격 계산
         long totalPrice = calculateTotalPrice(dto.getOrderItemDtoList(), products);
 
+        OrderCouponCalcResponse coupon = null;
+
         if(dto.getCouponId() != null){
-            Long userId = dto.getUserPrincipal().getUserId();
-            Long couponId = dto.getCouponId();
-            OrderCouponCalcResponse calcResponse = orderCouponClientService.calculateDiscount(userId, couponId, totalPrice);
-            totalPrice = calcResponse.getFinalPaymentAmount();
+            coupon = orderCouponClientService
+                    .calculateDiscount(
+                            dto.getUserPrincipal().getUserId(),
+                            dto.getCouponId(),
+                            totalPrice
+                    );
+
         }
+
+        if(coupon != null) {
+            totalPrice = coupon.getFinalPaymentAmount();
+        }
+
         long finalPaymentPrice = totalPrice - dto.getPointToUse();
 
         if(finalPaymentPrice != dto.getExpectedPrice()){
@@ -60,9 +74,7 @@ public class OrderApplicationService {
     }
 
     private OrderUserResponse getOrderUser(CreateOrderDto dto){
-        OrderUserResponse user = orderUserClientService.getUserForOrder(dto.getUserPrincipal().getUserId());
-        verifyEnoughPoints(dto.getPointToUse(), user);
-        return user;
+        return orderUserClientService.getUserForOrder(dto.getUserPrincipal().getUserId());
     }
 
     private void verifyEnoughPoints(Long useToPoint, OrderUserResponse user){

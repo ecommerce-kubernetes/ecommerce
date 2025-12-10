@@ -42,6 +42,9 @@ public class OrderService {
     private final CouponClientService couponClientService;
 
     @Transactional
+    public
+
+    @Transactional
     public CreateOrderResponse saveOrder(Long userId, CreateOrderRequest request) {
         OrderValidationData orderValidationData = fetchRequiredData(userId, request);
         OrderCalculationResult calcResult = calculateOrderTotals(request, orderValidationData);
