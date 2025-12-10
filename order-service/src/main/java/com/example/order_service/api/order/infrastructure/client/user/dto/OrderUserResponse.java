@@ -1,9 +1,12 @@
 package com.example.order_service.api.order.infrastructure.client.user.dto;
 
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class OrderUserResponse {
     private Long userId;
     private Long pointBalance;

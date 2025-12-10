@@ -89,7 +89,6 @@ public class CartApplicationServiceTest {
                         tuple("사이즈", "XL")
                 );
     }
-
     @Test
     @DisplayName("장바구니에 담긴 상품 목록을 조회해 상품정보가 포함된 응답값을 반환한다")
     void getCartDetails(){
