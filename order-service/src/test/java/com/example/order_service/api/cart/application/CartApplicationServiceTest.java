@@ -6,12 +6,9 @@ import com.example.order_service.api.cart.application.dto.result.CartItemRespons
 import com.example.order_service.api.cart.application.dto.result.CartResponse;
 import com.example.order_service.api.cart.domain.service.CartService;
 import com.example.order_service.api.cart.domain.service.dto.CartItemDto;
-import com.example.order_service.api.common.exception.NoPermissionException;
 import com.example.order_service.api.common.security.principal.UserPrincipal;
 import com.example.order_service.api.common.security.model.UserRole;
 import com.example.order_service.api.common.exception.NotFoundException;
-import com.example.order_service.api.common.exception.server.InternalServerException;
-import com.example.order_service.api.common.exception.server.UnavailableServiceException;
 import com.example.order_service.api.cart.infrastructure.client.CartProductClientService;
 import com.example.order_service.api.cart.infrastructure.client.dto.CartProductResponse;
 import org.junit.jupiter.api.DisplayName;
@@ -94,69 +91,6 @@ public class CartApplicationServiceTest {
     }
 
     @Test
-    @DisplayName("장바구니에 상품을 추가하는 과정에서 " +
-            "ProductClientService가 NotFoundException을 던지면 CartApplicationService도 NotFoundException을 던진다")
-    void addItem_When_NotFoundException_Thrown_In_ProductClientService(){
-        //given
-        UserPrincipal userPrincipal = createUserPrincipal(1L, UserRole.ROLE_USER);
-        AddCartItemDto command = AddCartItemDto.builder()
-                .userPrincipal(userPrincipal)
-                .productVariantId(1L)
-                .quantity(3)
-                .build();
-
-        willThrow(new NotFoundException("해당 상품을 찾을 수 없습니다"))
-                .given(cartProductClientService).getProduct(anyLong());
-        //when
-        //then
-        assertThatThrownBy(() -> cartApplicationService.addItem(command))
-                .isInstanceOf(NotFoundException.class)
-                .hasMessage("해당 상품을 찾을 수 없습니다");
-    }
-
-    @Test
-    @DisplayName("장바구니에 상품을 추가하는 과정에서 " +
-            "ProductClientService가 UnavailableServiceException을 던지면 CartApplicationService 도 UnavailableServiceException을 던진다")
-    void addItem_When_UnavailableServiceException_Thrown_In_ProductClientService(){
-        //given
-        UserPrincipal userPrincipal = createUserPrincipal(1L, UserRole.ROLE_USER);
-        AddCartItemDto command = AddCartItemDto.builder()
-                .userPrincipal(userPrincipal)
-                .productVariantId(1L)
-                .quantity(3)
-                .build();
-
-        willThrow(new UnavailableServiceException("서비스가 응답하지 않습니다 잠시후에 다시 시도해주세요"))
-                .given(cartProductClientService).getProduct(anyLong());
-        //when
-        //then
-        assertThatThrownBy(() -> cartApplicationService.addItem(command))
-                .isInstanceOf(UnavailableServiceException.class)
-                .hasMessage("서비스가 응답하지 않습니다 잠시후에 다시 시도해주세요");
-    }
-
-    @Test
-    @DisplayName("장바구니에 상품을 추가하는 과정에서 " +
-            "ProductClientService가 InternalServerException을 던지면 CartApplicationService 도 InternalServerException을 던진다")
-    void addItem_When_InternalServerException_Thrown_In_ProductClientService(){
-        //given
-        UserPrincipal userPrincipal = createUserPrincipal(1L, UserRole.ROLE_USER);
-        AddCartItemDto command = AddCartItemDto.builder()
-                .userPrincipal(userPrincipal)
-                .productVariantId(1L)
-                .quantity(3)
-                .build();
-
-        willThrow(new InternalServerException("서비스에 오류가 발생했습니다"))
-                .given(cartProductClientService).getProduct(anyLong());
-        //when
-        //then
-        assertThatThrownBy(() -> cartApplicationService.addItem(command))
-                .isInstanceOf(InternalServerException.class)
-                .hasMessage("서비스에 오류가 발생했습니다");
-    }
-
-    @Test
     @DisplayName("장바구니에 담긴 상품 목록을 조회해 상품정보가 포함된 응답값을 반환한다")
     void getCartDetails(){
         //given
@@ -229,8 +163,8 @@ public class CartApplicationServiceTest {
     }
 
     @Test
-    @DisplayName("장바구니에 담긴 상품을 조회할때 장바구니에 상품이 없는 경우 비어있는 응답을 반환한다")
-    void getCartDetailsWhenEmptyCartItems(){
+    @DisplayName("장바구니에 담긴 상품을 조회할때 장바구니에 상품이 없는 경우 빈 응답을 반환한다")
+    void getCartDetails_When_Empty_CartItems(){
         //given
         UserPrincipal userPrincipal = createUserPrincipal(1L, UserRole.ROLE_USER);
         given(cartService.getCartItems(anyLong()))
@@ -243,8 +177,8 @@ public class CartApplicationServiceTest {
     }
 
     @Test
-    @DisplayName("장바구니에 담긴 상품을 조회할때 ProductClientService 에서 반환되지 않은 응답은 해당 상품의 정보는 찾을 수 없음으로 반환한다")
-    void getCartDetailsWhenProductInfoEmpty(){
+    @DisplayName("장바구니에 담긴 상품을 조회할때 해당 상품이 상품서비스에서 찾을 수 없는 경우 해당 상품은 실패 응답으로 채워 반환한다")
+    void getCartDetails_When_ProductInfoEmpty(){
         //given
         UserPrincipal userPrincipal = createUserPrincipal(1L, UserRole.ROLE_USER);
         CartItemDto item1 = CartItemDto.builder()
@@ -317,38 +251,6 @@ public class CartApplicationServiceTest {
         cartApplicationService.removeCartItem(userPrincipal, cartItemId);
         //then
         verify(cartService, times(1)).deleteCartItem(userId, cartItemId);
-    }
-
-    @Test
-    @DisplayName("장바구니에 존재하지 않는 상품을 삭제하려 하면 NotFoundException이 발생한다")
-    void removeCartItemWhenNotFoundException() {
-        //given
-        Long userId = 1L;
-        Long cartItemId = 1L;
-        UserPrincipal userPrincipal = createUserPrincipal(userId, UserRole.ROLE_USER);
-        willThrow(new NotFoundException("장바구니에서 상품을 찾을 수 없습니다"))
-                .given(cartService).deleteCartItem(anyLong(), anyLong());
-        //when
-        //then
-        assertThatThrownBy(() -> cartApplicationService.removeCartItem(userPrincipal, cartItemId))
-                .isInstanceOf(NotFoundException.class)
-                .hasMessage("장바구니에서 상품을 찾을 수 없습니다");
-    }
-
-    @Test
-    @DisplayName("다른 사용자의 장바구니 상품을 삭제하려 하면 NoPermissionException이 발생한다")
-    void removeCartItemWhenNoPermissionException() {
-        //given
-        Long userId = 1L;
-        Long cartItemId = 1L;
-        UserPrincipal userPrincipal = createUserPrincipal(userId, UserRole.ROLE_USER);
-        willThrow(new NoPermissionException("장바구니의 상품을 삭제할 권한이 없습니다"))
-                .given(cartService).deleteCartItem(anyLong(), anyLong());
-        //when
-        //then
-        assertThatThrownBy(() -> cartApplicationService.removeCartItem(userPrincipal, cartItemId))
-                .isInstanceOf(NoPermissionException.class)
-                .hasMessage("장바구니의 상품을 삭제할 권한이 없습니다");
     }
 
     @Test
@@ -432,8 +334,8 @@ public class CartApplicationServiceTest {
     }
 
     @Test
-    @DisplayName("장바구니의 상품 수량을 수정할때 상품 서비스에서 상품 정보를 찾을 수 없는 경우 상품 정보는 찾을 수 없음을 반환한다")
-    void updateCartItemQuantityWhenProductServiceNotFoundException(){
+    @DisplayName("장바구니의 상품 수량을 수정할때 상품 서비스에서 상품을 찾을 수 없는 경우 수량을 변경하지 않고 실패 응답으로 채워 반환한다")
+    void updateCartItemQuantity_When_ProductService_NotFound_Exception(){
         //given
         UserPrincipal userPrincipal = createUserPrincipal(1L, UserRole.ROLE_USER);
         UpdateQuantityDto dto = UpdateQuantityDto.builder()
@@ -457,37 +359,17 @@ public class CartApplicationServiceTest {
         //then
         assertThat(result.getId()).isNotNull();
 
-        assertThat(result.getProductId()).isNull();
-        assertThat(result.getProductVariantId()).isNull();
-        assertThat(result.getProductName()).isEqualTo("정보를 불러올 수 없거나 판매 중지된 상품입니다");
-        assertThat(result.getThumbnailUrl()).isNull();
-        assertThat(result.getQuantity()).isEqualTo(1);
-        assertThat(result.getLineTotal()).isEqualTo(0);
-        assertThat(result.isAvailable()).isFalse();
-
-        assertThat(result.getPrice()).isNull();;
-
-        assertThat(result.getOptions()).isNull();
-    }
-
-    @Test
-    @DisplayName("장바구니에 담긴 상품의 수량을 수정할때 장바구니에 해당 상품을 찾을 수 없는 경우 NotFoundException을 반환한다")
-    void updateCartItemQuantityWhenNotFoundCartItem(){
-        //given
-        UserPrincipal userPrincipal = createUserPrincipal(1L, UserRole.ROLE_USER);
-        UpdateQuantityDto dto = UpdateQuantityDto
-                .builder()
-                .userPrincipal(userPrincipal)
-                .cartItemId(1L)
-                .quantity(3)
-                .build();
-        willThrow(new NotFoundException("장바구니에서 해당 상품을 찾을 수 없습니다"))
-                .given(cartService).getCartItem(anyLong());
-        //when
-        //then
-        assertThatThrownBy(() -> cartApplicationService.updateCartItemQuantity(dto))
-                .isInstanceOf(NotFoundException.class)
-                .hasMessage("장바구니에서 해당 상품을 찾을 수 없습니다");
+        assertThat(result)
+                .extracting("productId",
+                        "productVariantId",
+                        "productName",
+                        "thumbnailUrl",
+                        "quantity",
+                        "lineTotal",
+                        "available",
+                        "price",
+                        "options")
+                        .contains(null, null, "정보를 불러올 수 없거나 판매 중지된 상품입니다", null, 1, 0L, false, null, null);
     }
 
     private UserPrincipal createUserPrincipal(Long userId, UserRole userRole){

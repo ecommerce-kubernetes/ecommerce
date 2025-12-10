@@ -1,20 +1,15 @@
 package com.example.order_service.api.cart.infrastructure.client;
 
 import com.example.order_service.api.cart.infrastructure.client.dto.CartProductResponse;
+import com.example.order_service.api.common.exception.NotFoundException;
 import com.example.order_service.api.common.exception.server.InternalServerException;
 import com.example.order_service.api.common.exception.server.UnavailableServiceException;
 import com.example.order_service.api.support.ExcludeInfraServiceTest;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
-import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.List;
 
@@ -54,8 +49,8 @@ public class CartProductClientServiceTest extends ExcludeInfraServiceTest {
     }
 
     @Test
-    @DisplayName("상품의 정보를 조회할때 서킷 브레이커가 열리면 503 예외를 던진다")
-    void getProductWhenOpenCircuitBreaker(){
+    @DisplayName("서킷브레이커가 열렸을때 상품을 조회하면 UnavailableService 예외를 던진다")
+    void getProduct_When_Open_CircuitBreaker(){
         //given
         willThrow(CallNotPermittedException.class).given(cartProductClient).getProductByVariantId(anyLong());
         //when
@@ -66,8 +61,8 @@ public class CartProductClientServiceTest extends ExcludeInfraServiceTest {
     }
 
     @Test
-    @DisplayName("500 응답이 오면 InternalServerError를 던진다")
-    void getProductWhen500Code(){
+    @DisplayName("상품을 조회할때 알 수 없는 에러가 발생한 경우 InternalServerException을 던진다")
+    void getProduct_When_Unknown_Exception(){
         //given
         willThrow(new InternalServerException("상품 서비스 장애 발생")).given(cartProductClient)
                         .getProductByVariantId(anyLong());
@@ -76,6 +71,20 @@ public class CartProductClientServiceTest extends ExcludeInfraServiceTest {
         assertThatThrownBy(() -> cartProductClientService.getProduct(1L))
                 .isInstanceOf(InternalServerException.class)
                 .hasMessage("상품 서비스 장애 발생");
+    }
+    
+    @Test
+    @DisplayName("상품을 조회할때 상품을 찾을 수 없는 경우 받은 예외를 그대로 던진다")
+    void getProduct_When_NotFound_Exception() {
+        //given
+        willThrow(new NotFoundException("상품을 찾을 수 없습니다"))
+                .given(cartProductClient)
+                .getProductByVariantId(anyLong());
+        //when
+        //then
+        assertThatThrownBy(() -> cartProductClientService.getProduct(1L))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage("상품을 찾을 수 없습니다");
     }
 
     @Test
@@ -104,7 +113,7 @@ public class CartProductClientServiceTest extends ExcludeInfraServiceTest {
 
     @Test
     @DisplayName("상품 목록을 조회할때 서킷 브레이커가 열리면 빈 배열을 반환한다")
-    void getProductsWhenOpenCircuitBreaker(){
+    void getProducts_When_Open_CircuitBreaker(){
         //given
         willThrow(CallNotPermittedException.class)
                 .given(cartProductClient)
@@ -117,7 +126,7 @@ public class CartProductClientServiceTest extends ExcludeInfraServiceTest {
 
     @Test
     @DisplayName("상품 목록을 조회할때 알 수 없는 에러가 발생하면 빈 배열을 반환한다")
-    void getProductsWhenOtherException(){
+    void getProducts_When_Other_Exception(){
         //given
         willThrow(InternalServerException.class)
                 .given(cartProductClient)
