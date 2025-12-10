@@ -1,5 +1,6 @@
 package com.example.order_service.api.order.infrastructure.client.product;
 
+import com.example.order_service.api.common.exception.server.InternalServerException;
 import com.example.order_service.api.common.exception.server.UnavailableServiceException;
 import com.example.order_service.api.order.infrastructure.client.product.dto.OrderProductResponse;
 import com.example.order_service.api.support.ExcludeInfraServiceTest;
@@ -77,8 +78,8 @@ public class OrderProductClientServiceTest extends ExcludeInfraServiceTest {
     }
 
     @Test
-    @DisplayName("상품목록 정보를 조회할때 서킷브레이커가 열리면 예외를 던진다")
-    void getProductsWhenOpenCircuitBreaker(){
+    @DisplayName("서킷브레이커가 열렸을때 상품 목록 정보를 조회하면 UnavailableServiceException을 던진다")
+    void getProducts_When_OpenCircuitBreaker(){
         //given
         willThrow(CallNotPermittedException.class).given(orderProductClient).getProductVariantByIds(anyList());
         //when
@@ -86,6 +87,19 @@ public class OrderProductClientServiceTest extends ExcludeInfraServiceTest {
         assertThatThrownBy(() -> orderProductClientService.getProducts(List.of(1L, 2L)))
                 .isInstanceOf(UnavailableServiceException.class)
                 .hasMessage("상품 서비스가 응답하지 않습니다");
+    }
+
+    @Test
+    @DisplayName("상품 목록을 조회할때 알 수 없는 에러가 발생한 경우 InternalServerError를 던진다")
+    void getProducts_When_Unknown_Exception() {
+        //given
+        willThrow(new RuntimeException("상품 서비스 장애 발생"))
+                .given(orderProductClient).getProductVariantByIds(anyList());
+        //when
+        //then
+        assertThatThrownBy(() -> orderProductClientService.getProducts(List.of(1L, 2L)))
+                .isInstanceOf(InternalServerException.class)
+                .hasMessage("상품 서비스에서 오류가 발생했습니다");
     }
 
     private OrderProductResponse createOrderProductResponse(Long productId, Long productVariantId, String productName,

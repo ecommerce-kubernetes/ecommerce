@@ -46,8 +46,8 @@ public class OrderCouponClientServiceTest extends ExcludeInfraServiceTest {
     }
 
     @Test
-    @DisplayName("쿠폰 서비스에서 할인 금액을 조회할때 서킷브레이커가 열리면 예외를 던진다")
-    void calculateDiscountWhenOpenCircuitBreaker(){
+    @DisplayName("서킷브레이커가 열렸을때 쿠폰 할인 정보를 조회하면 UnavailableService 예외를 던진다")
+    void calculateDiscount_When_Open_CircuitBreaker(){
         //given
         willThrow(CallNotPermittedException.class)
                 .given(orderCouponClient)
@@ -60,8 +60,8 @@ public class OrderCouponClientServiceTest extends ExcludeInfraServiceTest {
     }
 
     @Test
-    @DisplayName("쿠폰서비스에서 NOT_FOUND 응답이 온 경우 예외를 던진다")
-    void calculateDiscountWhenNotFound(){
+    @DisplayName("쿠폰 할인 정보를 조회할때 쿠폰을 찾을 수 없는 경우 받은 예외를 그대로 던진다")
+    void calculateDiscount_When_NotFound_Exception(){
         //given
         willThrow(new NotFoundException("쿠폰을 찾을 수 없습니다"))
                 .given(orderCouponClient)
@@ -74,16 +74,16 @@ public class OrderCouponClientServiceTest extends ExcludeInfraServiceTest {
     }
 
     @Test
-    @DisplayName("쿠폰서비스에서 오류가 발생하면 예외를 던진다")
-    void calculateDiscountWhenInternalServerError(){
+    @DisplayName("쿠폰 할인 정보를 조회할때 알 수 없는 에러가 발생한 경우 InternalServerError를 던진다")
+    void calculateDiscount_When_InternalServerError(){
         //given
-        willThrow(new InternalServerException("쿠폰서비스에서 오류가 발생했습니다"))
+        willThrow(new RuntimeException("쿠폰 서비스 오류 발생"))
                 .given(orderCouponClient)
                 .calculate(any(OrderCouponCalcRequest.class));
         //when
         //then
         assertThatThrownBy(() -> orderCouponClientService.calculateDiscount(1L, 1L, 3100L))
                 .isInstanceOf(InternalServerException.class)
-                .hasMessage("쿠폰서비스에서 오류가 발생했습니다");
+                .hasMessage("쿠폰 서비스에서 오류가 발생했습니다");
     }
 }

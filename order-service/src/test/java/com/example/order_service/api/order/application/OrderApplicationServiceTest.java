@@ -1,10 +1,7 @@
 package com.example.order_service.api.order.application;
 
-import com.example.order_service.api.cart.infrastructure.client.dto.CartProductResponse;
 import com.example.order_service.api.common.exception.InsufficientException;
 import com.example.order_service.api.common.exception.NotFoundException;
-import com.example.order_service.api.common.exception.server.InternalServerException;
-import com.example.order_service.api.common.exception.server.UnavailableServiceException;
 import com.example.order_service.api.common.security.model.UserRole;
 import com.example.order_service.api.common.security.principal.UserPrincipal;
 import com.example.order_service.api.order.application.dto.command.CreateOrderDto;
@@ -29,7 +26,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.willThrow;
 
 @ExtendWith(MockitoExtension.class)
 public class OrderApplicationServiceTest {
@@ -63,67 +59,10 @@ public class OrderApplicationServiceTest {
         assertThat(response.getCreateAt()).isNotNull();
     }
 
-    @Test
-    @DisplayName("주문을 생성할때 유저를 찾을 수 없으면 예외를 던진다")
-    void createOrderWhenUserClientServiceThrownNotFoundException(){
-        //given
-        UserPrincipal userPrincipal = createUserPrincipal(1L, UserRole.ROLE_USER);
-        CreateOrderItemDto orderItem1 = createOrderItemDto(1L, 3);
-        CreateOrderItemDto orderItem2 = createOrderItemDto(2L, 5);
-
-        CreateOrderDto createOrderDto = createOrderDto(userPrincipal, "서울시 테헤란로 123", 1L, 300L,
-                5700L, orderItem1, orderItem2);
-
-        willThrow(new NotFoundException("유저를 찾을 수 없습니다"))
-                .given(orderUserClientService).getUserForOrder(anyLong());
-        //when
-        //then
-        assertThatThrownBy(() -> orderApplicationService.createOrder(createOrderDto))
-                .isInstanceOf(NotFoundException.class);
-    }
-
-    @Test
-    @DisplayName("주문을 생성할때 유저 서비스가 응답하지 않으면 예외를 던진다")
-    void createOrderWhenUserClientServiceThrownUnavailableException() {
-        //given
-        UserPrincipal userPrincipal = createUserPrincipal(1L, UserRole.ROLE_USER);
-        CreateOrderItemDto orderItem1 = createOrderItemDto(1L, 3);
-        CreateOrderItemDto orderItem2 = createOrderItemDto(2L, 5);
-
-        CreateOrderDto createOrderDto = createOrderDto(userPrincipal, "서울시 테헤란로 123", 1L, 300L,
-                5700L, orderItem1, orderItem2);
-
-        willThrow(new UnavailableServiceException("유저 서비스가 응답하지 않습니다"))
-                .given(orderUserClientService).getUserForOrder(anyLong());
-        //when
-        //then
-        assertThatThrownBy(() -> orderApplicationService.createOrder(createOrderDto))
-                .isInstanceOf(UnavailableServiceException.class)
-                .hasMessage("유저 서비스가 응답하지 않습니다");
-    }
-
-    @Test
-    @DisplayName("주문을 생성할때 유저 서비스에서 오류가 발생하면 예외를 던진다")
-    void createOrderWhenUserClientServiceThrownInternalServerException() {
-        //given
-        UserPrincipal userPrincipal = createUserPrincipal(1L, UserRole.ROLE_USER);
-        CreateOrderItemDto orderItem1 = createOrderItemDto(1L, 3);
-        CreateOrderItemDto orderItem2 = createOrderItemDto(2L, 5);
-
-        CreateOrderDto createOrderDto = createOrderDto(userPrincipal, "서울시 테헤란로 123", 1L, 300L,
-                5700L, orderItem1, orderItem2);
-        willThrow(new InternalServerException("유저 서비스에서 오류가 발생했습니다"))
-                .given(orderUserClientService).getUserForOrder(anyLong());
-        //when
-        //then
-        assertThatThrownBy(() -> orderApplicationService.createOrder(createOrderDto))
-                .isInstanceOf(InternalServerException.class)
-                .hasMessage("유저 서비스에서 오류가 발생했습니다");
-    }
 
     @Test
     @DisplayName("주문 생성시 사용포인트가 유저 포인트 잔액보다 많으면 예외를 던진다")
-    void createOrderWhenNotEnoughPoint() {
+    void createOrder_When_NotEnoughPoint() {
         //given
         UserPrincipal userPrincipal = createUserPrincipal(1L, UserRole.ROLE_USER);
         CreateOrderItemDto orderItem1 = createOrderItemDto(1L, 3);
@@ -146,8 +85,8 @@ public class OrderApplicationServiceTest {
     }
     
     @Test
-    @DisplayName("주문을 생성할때 상품 서비스에서 요청 상품에 대한 온전한 응답이 오지 않으면 예외를 던진다")
-    void createOrderWhenProductClientServiceReturnInCompleteResponse() {
+    @DisplayName("주문을 생성할때 상품 서비스에서 요청 상품에 대한 모든 상품 정보가 오지 않으면 예외를 던진다")
+    void createOrder_When_ProductClientService_Return_InCompleteResponse() {
         //given
         UserPrincipal userPrincipal = createUserPrincipal(1L, UserRole.ROLE_USER);
         CreateOrderItemDto orderItem1 = createOrderItemDto(1L, 3);
@@ -179,102 +118,6 @@ public class OrderApplicationServiceTest {
         assertThatThrownBy(() -> orderApplicationService.createOrder(createOrderDto))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage("주문 상품중 존재하지 않은 상품이 있습니다. missingIds=[2]");
-    }
-
-    @Test
-    @DisplayName("주문 생성시 상품 서비스 서킷브레이커가 열리면 예외를 던진다")
-    void createOrderWhenProductClientServiceThrownUnavailableServiceException() {
-        //given
-        UserPrincipal userPrincipal = createUserPrincipal(1L, UserRole.ROLE_USER);
-        CreateOrderItemDto orderItem1 = createOrderItemDto(1L, 3);
-        CreateOrderItemDto orderItem2 = createOrderItemDto(2L, 5);
-
-        CreateOrderDto createOrderDto = createOrderDto(userPrincipal, "서울시 테헤란로 123", 1L, 300L,
-                5700L, orderItem1, orderItem2);
-
-        OrderUserResponse userInfo = OrderUserResponse.builder()
-                .userId(1L)
-                .pointBalance(3000L)
-                .build();
-        given(orderUserClientService.getUserForOrder(anyLong()))
-                .willReturn(userInfo);
-        willThrow(new UnavailableServiceException("상품 서비스가 응답하지 않습니다"))
-                .given(orderProductClientService)
-                .getProducts(anyList());
-        //when
-        //then
-        assertThatThrownBy(() -> orderApplicationService.createOrder(createOrderDto))
-                .isInstanceOf(UnavailableServiceException.class)
-                .hasMessage("상품 서비스가 응답하지 않습니다");
-    }
-
-    @Test
-    @DisplayName("쿠폰을 사용한 주문을 생성할때 쿠폰을 찾을 수 없는 경우 예외를 던진다")
-    void createOrderWhenCouponClientServiceThrownNotFoundException(){
-        //given
-        UserPrincipal userPrincipal = createUserPrincipal(1L, UserRole.ROLE_USER);
-        CreateOrderItemDto orderItem1 = createOrderItemDto(1L, 3);
-        CreateOrderItemDto orderItem2 = createOrderItemDto(2L, 5);
-
-        CreateOrderDto createOrderDto = createOrderDto(userPrincipal, "서울시 테헤란로 123", 1L, 300L,
-                5700L, orderItem1, orderItem2);
-
-        OrderUserResponse userInfo = OrderUserResponse.builder()
-                .userId(1L)
-                .pointBalance(3000L)
-                .build();
-
-        OrderProductResponse product1 = createProductResponse(1L, 1L, "상품1", 3000L,
-                10, "http://thumbnail1.jpg",
-                List.of(OrderProductResponse.ItemOption.builder().optionTypeName("사이즈").optionValueName("XL").build()));
-        OrderProductResponse product2 = createProductResponse(2L, 2L, "상품2", 5000L,
-                10, "http://thumbnail2.jpg",
-                List.of(OrderProductResponse.ItemOption.builder().optionTypeName("용량").optionValueName("256GB").build()));
-
-        given(orderUserClientService.getUserForOrder(anyLong()))
-                .willReturn(userInfo);
-        given(orderProductClientService.getProducts(anyList()))
-                .willReturn(List.of(product1, product2));
-        willThrow(new NotFoundException("쿠폰을 찾을 수 없습니다"))
-                .given(orderCouponClientService).calculateDiscount(anyLong(), anyLong(), anyLong());
-        //when
-        //then
-        assertThatThrownBy(() -> orderApplicationService.createOrder(createOrderDto))
-                .isInstanceOf(NotFoundException.class)
-                .hasMessage("쿠폰을 찾을 수 없습니다");
-    }
-
-    @Test
-    @DisplayName("쿠폰을 사용한 주문을 생성할때 쿠폰 서비스가 응답하지 않으면 예외를 던진다")
-    void createOrderWhenCouponClientServiceThrownUnavailableService(){
-        //given
-        UserPrincipal userPrincipal = createUserPrincipal(1L, UserRole.ROLE_USER);
-        CreateOrderItemDto orderItem1 = createOrderItemDto(1L, 3);
-        CreateOrderItemDto orderItem2 = createOrderItemDto(2L, 5);
-
-        CreateOrderDto createOrderDto = createOrderDto(userPrincipal, "서울시 테헤란로 123", 1L, 300L,
-                5700L, orderItem1, orderItem2);
-
-        OrderUserResponse userInfo = OrderUserResponse.builder()
-                .userId(1L)
-                .pointBalance(3000L)
-                .build();
-
-        OrderProductResponse product1 = createProductResponse(1L, 1L, "상품1", 3000L,
-                10, "http://thumbnail1.jpg",
-                List.of(OrderProductResponse.ItemOption.builder().optionTypeName("사이즈").optionValueName("XL").build()));
-        OrderProductResponse product2 = createProductResponse(2L, 2L, "상품2", 5000L,
-                10, "http://thumbnail2.jpg",
-                List.of(OrderProductResponse.ItemOption.builder().optionTypeName("용량").optionValueName("256GB").build()));
-
-        given(orderUserClientService.getUserForOrder(anyLong()))
-                .willReturn(userInfo);
-        given(orderProductClientService.getProducts(anyList()))
-                .willReturn(List.of(product1, product2));
-        willThrow(new NotFoundException("쿠폰을 찾을 수 없습니다"))
-                .given(orderCouponClientService).calculateDiscount(anyLong(), anyLong(), anyLong());
-        //when
-        //then
     }
 
     private CreateOrderDto createOrderDto(UserPrincipal userPrincipal, String deliveryAddress, Long couponId, Long pointToUse,

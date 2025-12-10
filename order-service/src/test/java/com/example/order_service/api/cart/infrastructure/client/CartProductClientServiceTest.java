@@ -64,13 +64,13 @@ public class CartProductClientServiceTest extends ExcludeInfraServiceTest {
     @DisplayName("상품을 조회할때 알 수 없는 에러가 발생한 경우 InternalServerException을 던진다")
     void getProduct_When_Unknown_Exception(){
         //given
-        willThrow(new InternalServerException("상품 서비스 장애 발생")).given(cartProductClient)
+        willThrow(new RuntimeException("상품 서비스 장애 발생")).given(cartProductClient)
                         .getProductByVariantId(anyLong());
         //when
         //then
         assertThatThrownBy(() -> cartProductClientService.getProduct(1L))
                 .isInstanceOf(InternalServerException.class)
-                .hasMessage("상품 서비스 장애 발생");
+                .hasMessage("상품 서비스에서 오류가 발생했습니다");
     }
     
     @Test

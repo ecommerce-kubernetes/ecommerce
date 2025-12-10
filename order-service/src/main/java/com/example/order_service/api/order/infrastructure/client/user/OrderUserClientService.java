@@ -32,6 +32,6 @@ public class OrderUserClientService {
             throw (NotFoundException) throwable;
         }
 
-        throw new InternalServerException(throwable.getMessage());
+        throw new InternalServerException("유저 서비스에서 오류가 발생했습니다");
     }
 }

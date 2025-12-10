@@ -44,8 +44,8 @@ public class OrderUserClientServiceTest extends ExcludeInfraServiceTest {
     }
 
     @Test
-    @DisplayName("서킷브레이커가 열리면 예외를 던진다")
-    void getUserForOrderWhenOpenCircuitBreaker() {
+    @DisplayName("서킷브레이커가 열렸을때 유저 정보를 조회하면 UnavailableServiceException을 반환한다")
+    void getUserForOrder_When_OpenCircuitBreaker() {
         //given
         willThrow(CallNotPermittedException.class)
                 .given(orderUserClient).getOrderInfo(anyLong());
@@ -57,8 +57,8 @@ public class OrderUserClientServiceTest extends ExcludeInfraServiceTest {
     }
 
     @Test
-    @DisplayName("NotFound 에러 응답이 온 경우 예외를 던진다")
-    void getUserForOrderWhenNotFoundException() {
+    @DisplayName("유저 정보를 조회할때 유저를 찾을 수 없는 경우 받은 예외를 그대로 던진다")
+    void getUserForOrder_When_NotFound_Exception() {
         //given
         willThrow(new NotFoundException("유저를 찾을 수 없습니다"))
                 .given(orderUserClient).getOrderInfo(anyLong());
@@ -71,14 +71,14 @@ public class OrderUserClientServiceTest extends ExcludeInfraServiceTest {
 
     @Test
     @DisplayName("서버 에러 응답이 온 경우 예외를 던진다")
-    void getUserForOrderWhenServerError() {
+    void getUserForOrder_When_Unknown_Exception() {
         //given
-        willThrow(new InternalServerException("유저 서비스 오류 발생"))
+        willThrow(new RuntimeException("유저 서비스 오류 발생"))
                 .given(orderUserClient).getOrderInfo(anyLong());
         //when
         //then
         assertThatThrownBy(() -> orderUserClientService.getUserForOrder(1L))
                 .isInstanceOf(InternalServerException.class)
-                .hasMessage("유저 서비스 오류 발생");
+                .hasMessage("유저 서비스에서 오류가 발생했습니다");
     }
 }

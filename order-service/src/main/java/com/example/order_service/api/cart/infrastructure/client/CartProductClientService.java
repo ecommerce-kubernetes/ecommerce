@@ -40,7 +40,7 @@ public class CartProductClientService {
             throw (NotFoundException) throwable;
         }
 
-        throw new InternalServerException(throwable.getMessage());
+        throw new InternalServerException("상품 서비스에서 오류가 발생했습니다");
     }
 
     private List<CartProductResponse> getProductsFallback(List<Long> productVariantIds, Throwable throwable){
