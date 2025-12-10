@@ -1,7 +1,6 @@
 package com.example.order_service.api.cart.domain.service;
 
 import com.example.order_service.api.cart.domain.service.dto.CartItemDto;
-import com.example.order_service.common.MessageSourceUtil;
 import com.example.order_service.api.cart.domain.model.CartItems;
 import com.example.order_service.api.cart.domain.model.Carts;
 import com.example.order_service.api.common.exception.NoPermissionException;
@@ -18,7 +17,7 @@ import java.util.*;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class CartService {
+public class CartDomainService {
     private final CartsRepository cartsRepository;
     private final CartItemsRepository cartItemsRepository;
 

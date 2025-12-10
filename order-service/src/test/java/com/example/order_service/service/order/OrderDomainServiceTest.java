@@ -1,7 +1,7 @@
 package com.example.order_service.service.order;
 
 import com.example.order_service.api.cart.infrastructure.client.dto.CartProductResponse;
-import com.example.order_service.api.order.domain.service.OrderService;
+import com.example.order_service.api.order.domain.service.OrderDomainService;
 import com.example.order_service.api.common.scheduler.PendingOrderTimeoutScheduler;
 import com.example.order_service.api.order.domain.model.OrderItems;
 import com.example.order_service.api.order.domain.model.Orders;
@@ -29,10 +29,10 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
-class OrderServiceTest {
+class OrderDomainServiceTest {
 
     @Autowired
-    OrderService orderService;
+    OrderDomainService orderDomainService;
     @Autowired
     OrdersRepository ordersRepository;
     @MockitoBean
@@ -95,7 +95,7 @@ class OrderServiceTest {
     @DisplayName("주문 상태 변경 - COMPLETE")
     @Transactional
     void completeOrderTest(){
-        orderService.completeOrder(saveOrder.getId());
+        orderDomainService.completeOrder(saveOrder.getId());
         em.flush(); em.clear();
 
         Orders orders = ordersRepository.findById(saveOrder.getId()).get();
@@ -107,7 +107,7 @@ class OrderServiceTest {
     @DisplayName("주문 상태 변경 - CANCELLED")
     @Transactional
     void cancelOrderTest(){
-        orderService.cancelOrder(saveOrder.getId());
+        orderDomainService.cancelOrder(saveOrder.getId());
         em.flush(); em.clear();
 
         Orders orders = ordersRepository.findById(saveOrder.getId()).get();

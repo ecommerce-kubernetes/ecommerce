@@ -3,7 +3,7 @@ package com.example.order_service.service;
 import com.example.common.*;
 import com.example.order_service.service.event.PendingOrderCreatedEvent;
 import com.example.order_service.service.kafka.KafkaProducer;
-import com.example.order_service.api.order.domain.service.OrderService;
+import com.example.order_service.api.order.domain.service.OrderDomainService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -43,7 +43,7 @@ class SagaManagerTest {
     @Autowired
     RedisTemplate<String, Object> redisTemplate;
     @MockitoBean
-    OrderService orderService;
+    OrderDomainService orderDomainService;
     @Autowired
     ObjectMapper mapper;
     @Container
@@ -62,7 +62,7 @@ class SagaManagerTest {
         Long orderId = (long) ((Math.random() * 100) + 1);
         LocalDateTime createdAt = LocalDateTime.now();
 
-        PendingOrderCreatedEvent pendingOrderCreatedEvent = new PendingOrderCreatedEvent(OrderService.class, orderId, 1L, 1L, 200L, 6900L, "PENDING", createdAt,
+        PendingOrderCreatedEvent pendingOrderCreatedEvent = new PendingOrderCreatedEvent(OrderDomainService.class, orderId, 1L, 1L, 200L, 6900L, "PENDING", createdAt,
                 Map.of(1L, 3));
 
         sagaManager.processPendingOrderSaga(pendingOrderCreatedEvent);
@@ -169,7 +169,7 @@ class SagaManagerTest {
     @DisplayName("saga 성공 처리 3. 모든 응답 도착")
     void processSagaSuccessTest_COMPLETED(){
         Long orderId = (long) ((Math.random() * 100) + 1);
-        doNothing().when(orderService).completeOrder(orderId);
+        doNothing().when(orderDomainService).completeOrder(orderId);
         List<String> requiredField = new ArrayList<>();
         ProductStockDeductedEvent productEvent = new ProductStockDeductedEvent(orderId, List.of(new DeductedProduct(1L, 3)));
         long score = TimeUnit.MINUTES.toMillis(5) + System.currentTimeMillis();
@@ -192,7 +192,7 @@ class SagaManagerTest {
     @DisplayName("saga 실패 처리 PENDING 인 경우")
     void processSagaFailureTest_PENDING(){
         Long orderId = (long) ((Math.random() * 100) + 1);
-        doNothing().when(orderService).cancelOrder(orderId);
+        doNothing().when(orderDomainService).cancelOrder(orderId);
         List<String> requiredField = new ArrayList<>();
         FailedEvent productEvent = new FailedEvent(orderId, "out of stock");
         long score = TimeUnit.MINUTES.toMillis(5) + System.currentTimeMillis();

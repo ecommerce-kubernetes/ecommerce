@@ -12,8 +12,7 @@ import com.example.order_service.api.order.controller.dto.request.CreateOrderIte
 import com.example.order_service.api.order.controller.dto.request.CreateOrderRequest;
 import com.example.order_service.dto.response.*;
 import com.example.order_service.entity.DomainType;
-import com.example.order_service.api.order.domain.service.OrderService;
-import com.example.order_service.service.SseConnectionService;
+import com.example.order_service.api.order.domain.service.OrderDomainService;
 import com.example.order_service.api.order.application.dto.command.CreateOrderDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -41,7 +40,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class OrderControllerDocsTest extends RestDocSupport {
-    private OrderService orderService = mock(OrderService.class);
+    private OrderDomainService orderDomainService = mock(OrderDomainService.class);
     private OrderApplicationService orderApplicationService = mock(OrderApplicationService.class);
     private PageableValidatorFactory factory = mock(PageableValidatorFactory.class);
 
@@ -53,7 +52,7 @@ public class OrderControllerDocsTest extends RestDocSupport {
 
     @Override
     protected Object initController() {
-        return new OrderController(orderApplicationService, orderService, factory);
+        return new OrderController(orderApplicationService, orderDomainService, factory);
     }
 
     @Test
@@ -81,7 +80,7 @@ public class OrderControllerDocsTest extends RestDocSupport {
                 .build();
 
         HttpHeaders roleUser = createUserHeader("ROLE_USER");
-        given(orderService.saveOrder(any(CreateOrderDto.class)))
+        given(orderDomainService.saveOrder(any(CreateOrderDto.class)))
                 .willReturn(response);
 
         //when
@@ -128,7 +127,7 @@ public class OrderControllerDocsTest extends RestDocSupport {
         LocalDateTime createAt = LocalDateTime.of(2025, 11, 27, 15, 30, 30);
         OrderItemResponse orderItem = createOrderItemResponse(1L, "상품1", "http://product1.jpg");
         OrderResponse orderResponse = createOrderResponse(1L, "COMPLETED", createAt, List.of(orderItem));
-        given(orderService.getOrderList(any(Pageable.class), anyLong(), anyString(), anyString()))
+        given(orderDomainService.getOrderList(any(Pageable.class), anyLong(), anyString(), anyString()))
                 .willReturn(
                         PageDto.<OrderResponse>builder()
                                 .content(List.of(orderResponse))

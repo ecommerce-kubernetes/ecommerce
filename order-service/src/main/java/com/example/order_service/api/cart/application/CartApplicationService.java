@@ -3,7 +3,7 @@ package com.example.order_service.api.cart.application;
 import com.example.order_service.api.cart.application.dto.command.UpdateQuantityDto;
 import com.example.order_service.api.cart.application.dto.result.CartItemResponse;
 import com.example.order_service.api.cart.application.dto.result.CartResponse;
-import com.example.order_service.api.cart.domain.service.CartService;
+import com.example.order_service.api.cart.domain.service.CartDomainService;
 import com.example.order_service.api.cart.application.dto.command.AddCartItemDto;
 import com.example.order_service.api.cart.domain.service.dto.CartItemDto;
 import com.example.order_service.api.common.exception.NotFoundException;
@@ -22,19 +22,19 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class CartApplicationService {
-    private final CartService cartService;
+    private final CartDomainService cartDomainService;
     private final CartProductClientService cartProductClientService;
 
     public CartItemResponse addItem(AddCartItemDto dto) {
         CartProductResponse product = cartProductClientService.getProduct(dto.getProductVariantId());
         Long userId = dto.getUserPrincipal().getUserId();
-        CartItemDto result = cartService.addItemToCart(userId, dto.getProductVariantId(), dto.getQuantity());
+        CartItemDto result = cartDomainService.addItemToCart(userId, dto.getProductVariantId(), dto.getQuantity());
         return CartItemResponse.of(result, product);
     }
 
     public CartResponse getCartDetails(UserPrincipal userPrincipal){
         Long userId = userPrincipal.getUserId();
-        List<CartItemDto> cartItems = cartService.getCartItems(userId);
+        List<CartItemDto> cartItems = cartDomainService.getCartItems(userId);
 
         return Optional.of(cartItems)
                 .filter(items -> !items.isEmpty())
@@ -44,19 +44,19 @@ public class CartApplicationService {
 
     public void removeCartItem(UserPrincipal userPrincipal, Long cartItemId){
         Long userId = userPrincipal.getUserId();
-        cartService.deleteCartItem(userId, cartItemId);
+        cartDomainService.deleteCartItem(userId, cartItemId);
     }
 
     public void clearCart(UserPrincipal userPrincipal){
         Long userId = userPrincipal.getUserId();
-        cartService.clearCart(userId);
+        cartDomainService.clearCart(userId);
     }
 
     public CartItemResponse updateCartItemQuantity(UpdateQuantityDto dto){
-        CartItemDto cartItem = cartService.getCartItem(dto.getCartItemId());
+        CartItemDto cartItem = cartDomainService.getCartItem(dto.getCartItemId());
         try {
             CartProductResponse product = cartProductClientService.getProduct(cartItem.getProductVariantId());
-            CartItemDto cartItemDto = cartService.updateQuantity(cartItem.getId(), dto.getQuantity());
+            CartItemDto cartItemDto = cartDomainService.updateQuantity(cartItem.getId(), dto.getQuantity());
             return CartItemResponse.of(cartItemDto, product);
         } catch (NotFoundException e){
             return CartItemResponse.ofUnavailable(cartItem.getId(), cartItem.getQuantity());

@@ -5,9 +5,8 @@ import com.example.order_service.api.cart.controller.CartController;
 import com.example.order_service.api.order.application.OrderApplicationService;
 import com.example.order_service.api.order.controller.OrderController;
 import com.example.order_service.api.common.util.validator.PageableValidatorFactory;
-import com.example.order_service.api.order.domain.service.OrderService;
+import com.example.order_service.api.order.domain.service.OrderDomainService;
 import com.example.order_service.common.MessageSourceUtil;
-import com.example.order_service.service.SseConnectionService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -21,7 +20,7 @@ public abstract class ControllerTestSupport {
     @Autowired
     protected ObjectMapper objectMapper;
     @MockitoBean
-    protected OrderService orderService;
+    protected OrderDomainService orderDomainService;
     @MockitoBean
     protected PageableValidatorFactory pageableValidatorFactory;
     @MockitoBean

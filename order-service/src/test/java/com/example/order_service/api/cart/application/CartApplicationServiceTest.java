@@ -4,7 +4,7 @@ import com.example.order_service.api.cart.application.dto.command.AddCartItemDto
 import com.example.order_service.api.cart.application.dto.command.UpdateQuantityDto;
 import com.example.order_service.api.cart.application.dto.result.CartItemResponse;
 import com.example.order_service.api.cart.application.dto.result.CartResponse;
-import com.example.order_service.api.cart.domain.service.CartService;
+import com.example.order_service.api.cart.domain.service.CartDomainService;
 import com.example.order_service.api.cart.domain.service.dto.CartItemDto;
 import com.example.order_service.api.common.security.principal.UserPrincipal;
 import com.example.order_service.api.common.security.model.UserRole;
@@ -33,7 +33,7 @@ public class CartApplicationServiceTest {
     @Mock
     private CartProductClientService cartProductClientService;
     @Mock
-    private CartService cartService;
+    private CartDomainService cartDomainService;
 
     @Test
     @DisplayName("장바구니에 상품이 추가되면 상품 정보가 포함된 응답값을 반환한다")
@@ -59,7 +59,7 @@ public class CartApplicationServiceTest {
         given(cartProductClientService.getProduct(anyLong()))
                 .willReturn(product);
 
-        given(cartService.addItemToCart(anyLong(), anyLong(), anyInt()))
+        given(cartDomainService.addItemToCart(anyLong(), anyLong(), anyInt()))
                 .willReturn(cartItem);
         //when
         CartItemResponse result = cartApplicationService.addItem(command);
@@ -113,7 +113,7 @@ public class CartApplicationServiceTest {
                 5000L, 10, "http://thumbnail2.jpg",
                 List.of(CartProductResponse.ItemOption.builder().optionTypeName("용량").optionValueName("256GB").build()));
 
-        given(cartService.getCartItems(anyLong()))
+        given(cartDomainService.getCartItems(anyLong()))
                 .willReturn(List.of(item1, item2));
 
         given(cartProductClientService.getProducts(anyList()))
@@ -166,7 +166,7 @@ public class CartApplicationServiceTest {
     void getCartDetails_When_Empty_CartItems(){
         //given
         UserPrincipal userPrincipal = createUserPrincipal(1L, UserRole.ROLE_USER);
-        given(cartService.getCartItems(anyLong()))
+        given(cartDomainService.getCartItems(anyLong()))
                 .willReturn(List.of());
         //when
         CartResponse response = cartApplicationService.getCartDetails(userPrincipal);
@@ -196,7 +196,7 @@ public class CartApplicationServiceTest {
                 3000L, 10, "http://thumbnail1.jpg",
                 List.of(CartProductResponse.ItemOption.builder().optionTypeName("사이즈").optionValueName("XL").build()));
 
-        given(cartService.getCartItems(1L))
+        given(cartDomainService.getCartItems(1L))
                 .willReturn(List.of(item1, item2));
 
         given(cartProductClientService.getProducts(anyList()))
@@ -245,11 +245,11 @@ public class CartApplicationServiceTest {
         Long userId = 1L;
         Long cartItemId = 1L;
         UserPrincipal userPrincipal = createUserPrincipal(userId, UserRole.ROLE_USER);
-        willDoNothing().given(cartService).deleteCartItem(anyLong(), anyLong());
+        willDoNothing().given(cartDomainService).deleteCartItem(anyLong(), anyLong());
         //when
         cartApplicationService.removeCartItem(userPrincipal, cartItemId);
         //then
-        verify(cartService, times(1)).deleteCartItem(userId, cartItemId);
+        verify(cartDomainService, times(1)).deleteCartItem(userId, cartItemId);
     }
 
     @Test
@@ -257,11 +257,11 @@ public class CartApplicationServiceTest {
     void clearCart() {
         //given
         UserPrincipal userPrincipal = createUserPrincipal(1L, UserRole.ROLE_USER);
-        willDoNothing().given(cartService).clearCart(anyLong());
+        willDoNothing().given(cartDomainService).clearCart(anyLong());
         //when
         cartApplicationService.clearCart(userPrincipal);
         //then
-        verify(cartService, times(1))
+        verify(cartDomainService, times(1))
                 .clearCart(1L);
     }
     
@@ -275,7 +275,7 @@ public class CartApplicationServiceTest {
                 .cartItemId(1L)
                 .quantity(3)
                 .build();
-        given(cartService.getCartItem(anyLong()))
+        given(cartDomainService.getCartItem(anyLong()))
                 .willReturn(
                         CartItemDto.builder()
                                 .id(1L)
@@ -294,7 +294,7 @@ public class CartApplicationServiceTest {
         given(cartProductClientService.getProduct(anyLong()))
                 .willReturn(product);
 
-        given(cartService.updateQuantity(anyLong(), anyInt()))
+        given(cartDomainService.updateQuantity(anyLong(), anyInt()))
                 .willReturn(
                         CartItemDto.builder()
                                 .id(1L)
@@ -342,7 +342,7 @@ public class CartApplicationServiceTest {
                 .cartItemId(1L)
                 .quantity(3)
                 .build();
-        given(cartService.getCartItem(anyLong()))
+        given(cartDomainService.getCartItem(anyLong()))
                 .willReturn(
                         CartItemDto.builder()
                                 .id(1L)

@@ -4,7 +4,7 @@ import com.example.common.*;
 import com.example.order_service.service.event.PendingOrderCreatedEvent;
 import com.example.order_service.service.kafka.KafkaProducer;
 import com.example.order_service.service.kafka.SagaCompensator;
-import com.example.order_service.api.order.domain.service.OrderService;
+import com.example.order_service.api.order.domain.service.OrderDomainService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
@@ -34,7 +34,7 @@ public class SagaManager {
     private final static String SET_PREFIX = "saga:steps:";
     private final KafkaProducer kafkaProducer;
     private final RedisTemplate<String, Object> redisTemplate;
-    private final OrderService orderService;
+    private final OrderDomainService orderDomainService;
     private final RedisScript<Long> checkAndCompleteSagaScript;
     private final RedisScript<Long> processSagaFailureScript;
     private final ObjectMapper mapper;
@@ -65,7 +65,7 @@ public class SagaManager {
                 .execute(checkAndCompleteSagaScript, Arrays.asList(sagaKey, stepKey), field, eventJson);
 
         if(remainingSteps == 0){
-            orderService.completeOrder(event.getOrderId());
+            orderDomainService.completeOrder(event.getOrderId());
             clearCompleteOrder(event.getOrderId(), sagaKey);
         } else if (remainingSteps == -1){
             individualRollback(event);
@@ -81,7 +81,7 @@ public class SagaManager {
                 Arrays.asList(sagaKey, ZSET_PREFIX, stepKey),
                 String.valueOf(orderId), String.valueOf(ttlInSecond));
         if (result == 1){
-            orderService.cancelOrder(orderId);
+            orderDomainService.cancelOrder(orderId);
             Map<Object, Object> sagaState = redisTemplate.opsForHash().entries(sagaKey);
             initiateRollback(sagaState);
         }
@@ -95,7 +95,7 @@ public class SagaManager {
             timeoutMap.put(orderId, entries);
         }
         timeoutMap.forEach((orderId, entries) -> {
-            orderService.cancelOrder(orderId);
+            orderDomainService.cancelOrder(orderId);
             clearFailureOrder(orderId, HASH_PREFIX + orderId);
             initiateRollback(entries);
         });

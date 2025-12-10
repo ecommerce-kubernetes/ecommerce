@@ -1,5 +1,6 @@
 package com.example.order_service.api.order.application.dto.result;
 
+import com.example.order_service.api.order.domain.model.Orders;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -24,5 +25,10 @@ public class CreateOrderResponse {
         this.totalQuantity = totalQuantity;
         this.finalPaymentAmount = finalPaymentAmount;
         this.createAt = createAt;
+    }
+
+    //TODO 리팩터링을 위해 임시 생성이므로 제거
+    public static CreateOrderResponse of(Orders order, String url){
+        return null;
     }
 }

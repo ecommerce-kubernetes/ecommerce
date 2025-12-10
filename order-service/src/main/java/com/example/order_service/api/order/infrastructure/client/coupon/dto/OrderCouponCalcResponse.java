@@ -9,12 +9,14 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class OrderCouponCalcResponse {
     private Long couponId;
+    private String couponName;
     private Long discountAmount;
     private Long finalPaymentAmount;
 
     @Builder
-    private OrderCouponCalcResponse(Long couponId, Long discountAmount, Long finalPaymentAmount) {
+    private OrderCouponCalcResponse(Long couponId, String couponName, Long discountAmount, Long finalPaymentAmount) {
         this.couponId = couponId;
+        this.couponName = couponName;
         this.discountAmount = discountAmount;
         this.finalPaymentAmount = finalPaymentAmount;
     }

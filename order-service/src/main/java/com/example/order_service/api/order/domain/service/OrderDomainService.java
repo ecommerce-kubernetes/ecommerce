@@ -1,5 +1,7 @@
 package com.example.order_service.api.order.domain.service;
 
+import com.example.order_service.api.order.domain.service.dto.command.OrderCreationContext;
+import com.example.order_service.api.order.domain.service.dto.result.OrderCreationResult;
 import com.example.order_service.dto.OrderCalculationResult;
 import com.example.order_service.dto.OrderValidationData;
 import com.example.order_service.api.order.controller.dto.request.CreateOrderRequest;
@@ -34,7 +36,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 @Slf4j
 @Transactional(readOnly = true)
-public class OrderService {
+public class OrderDomainService {
     private final ApplicationEventPublisher eventPublisher;
     private final OrdersRepository ordersRepository;
     private final CartProductClientService cartProductClientService;
@@ -42,7 +44,9 @@ public class OrderService {
     private final CouponClientService couponClientService;
 
     @Transactional
-    public
+    public OrderCreationResult saveOrder(OrderCreationContext context){
+        return null;
+    }
 
     @Transactional
     public CreateOrderResponse saveOrder(Long userId, CreateOrderRequest request) {
@@ -54,7 +58,7 @@ public class OrderService {
         Orders save = ordersRepository.save(order);
         String url = buildSubscribeUrl(save.getId());
         eventPublisher.publishEvent(new PendingOrderCreatedEvent(this, save));
-        return new CreateOrderResponse(save, url);
+        return CreateOrderResponse.of(save, url);
     }
 
     public CreateOrderResponse saveOrder(CreateOrderDto createOrderDto){

@@ -3,6 +3,8 @@ package com.example.order_service.api.order.domain.service.dto.command;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.util.List;
+
 @Getter
 public class OrderItemSpec {
     private Long productId;
@@ -12,11 +14,11 @@ public class OrderItemSpec {
     private UnitPrice unitPrice;
     private int quantity;
     private Long lineTotal;
-    private ItemOption itemOption;
+    private List<ItemOption> itemOptions;
 
     @Builder
     private OrderItemSpec(Long productId, Long productVariantId, String productName, String thumbnailUrl,
-                          UnitPrice unitPrice, int quantity, Long lineTotal, ItemOption itemOption){
+                          UnitPrice unitPrice, int quantity, Long lineTotal, List<ItemOption> itemOptions){
         this.productId = productId;
         this.productVariantId = productVariantId;
         this.productName = productName;
@@ -24,7 +26,7 @@ public class OrderItemSpec {
         this.unitPrice = unitPrice;
         this.quantity = quantity;
         this.lineTotal = lineTotal;
-        this.itemOption = itemOption;
+        this.itemOptions = itemOptions;
     }
 
     @Builder

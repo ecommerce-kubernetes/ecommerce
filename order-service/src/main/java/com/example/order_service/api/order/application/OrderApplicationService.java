@@ -6,6 +6,11 @@ import com.example.order_service.api.common.exception.OrderVerificationException
 import com.example.order_service.api.order.application.dto.command.CreateOrderDto;
 import com.example.order_service.api.order.application.dto.command.CreateOrderItemDto;
 import com.example.order_service.api.order.application.dto.result.CreateOrderResponse;
+import com.example.order_service.api.order.domain.service.OrderDomainService;
+import com.example.order_service.api.order.domain.service.dto.command.CouponSpec;
+import com.example.order_service.api.order.domain.service.dto.command.OrderCreationContext;
+import com.example.order_service.api.order.domain.service.dto.command.OrderItemSpec;
+import com.example.order_service.api.order.domain.service.dto.result.OrderCreationResult;
 import com.example.order_service.api.order.infrastructure.client.coupon.OrderCouponClientService;
 import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponCalcResponse;
 import com.example.order_service.api.order.infrastructure.client.product.OrderProductClientService;
@@ -18,6 +23,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -27,6 +33,7 @@ public class OrderApplicationService {
     private final OrderProductClientService orderProductClientService;
     private final OrderUserClientService orderUserClientService;
     private final OrderCouponClientService orderCouponClientService;
+    private final OrderDomainService orderDomainService;
 
     public CreateOrderResponse createOrder(CreateOrderDto dto){
         //주문 유저 조회
@@ -49,7 +56,6 @@ public class OrderApplicationService {
                     );
 
         }
-
         if(coupon != null) {
             totalPrice = coupon.getFinalPaymentAmount();
         }
@@ -59,6 +65,60 @@ public class OrderApplicationService {
         if(finalPaymentPrice != dto.getExpectedPrice()){
             throw new OrderVerificationException("주문 금액이 변동되었습니다");
         }
+
+        Map<Long, Integer> requestMap = dto.getOrderItemDtoList().stream()
+                .collect(Collectors.toMap(CreateOrderItemDto::getProductVariantId, CreateOrderItemDto::getQuantity));
+
+        Map<Long, OrderProductResponse> responseMap = products.stream()
+                .collect(Collectors.toMap(OrderProductResponse::getProductVariantId, Function.identity()));
+
+        List<OrderItemSpec> itemSpecs = requestMap.entrySet().stream()
+                .map(entry -> {
+                    OrderProductResponse orderProduct = responseMap.get(entry.getKey());
+                    return OrderItemSpec.builder()
+                            .productId(orderProduct.getProductId())
+                            .productVariantId(orderProduct.getProductVariantId())
+                            .productName(orderProduct.getProductName())
+                            .thumbnailUrl(orderProduct.getThumbnailUrl())
+                            .unitPrice(
+                                    OrderItemSpec.UnitPrice.builder()
+                                            .originalPrice(orderProduct.getUnitPrice().getOriginalPrice())
+                                            .discountRate(orderProduct.getUnitPrice().getDiscountRate())
+                                            .discountAmount(orderProduct.getUnitPrice().getDiscountAmount())
+                                            .discountedPrice(orderProduct.getUnitPrice().getDiscountedPrice())
+                                            .build())
+                            .quantity(entry.getValue())
+                            .lineTotal(orderProduct.getUnitPrice().getDiscountedPrice() * entry.getValue())
+                            .itemOptions(
+                                    orderProduct.getItemOptions().stream().map(item ->
+                                            OrderItemSpec.ItemOption.builder()
+                                                    .optionTypeName(item.getOptionTypeName())
+                                                    .optionValueName(item.getOptionValueName())
+                                                    .build()
+                                    ).toList()
+                            ).build();
+
+                }).toList();
+        CouponSpec couponSpec = null;
+        if(coupon != null){
+            couponSpec = CouponSpec.builder()
+                    .couponId(coupon.getCouponId())
+                    .couponName(coupon.getCouponName())
+                    .discountAmount(coupon.getDiscountAmount())
+                    .build();
+        }
+        CouponSpec.builder()
+                .couponId(coupon.getCouponId())
+                .build();
+        OrderCreationContext creationContext = OrderCreationContext.builder()
+                .userId(user.getUserId())
+                .itemSpecs(itemSpecs)
+                .couponSpec(couponSpec)
+                .useToPoint(dto.getPointToUse())
+                .deliveryAddress(dto.getDeliveryAddress())
+                .finalPaymentAmount(finalPaymentPrice)
+                .build();
+        OrderCreationResult orderCreationResult = orderDomainService.saveOrder(creationContext);
         return null;
     }
 

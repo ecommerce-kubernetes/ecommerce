@@ -19,9 +19,9 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.*;
 
 @Transactional
-class CartServiceTest extends ExcludeInfraServiceTest {
+class CartDomainServiceTest extends ExcludeInfraServiceTest {
     @Autowired
-    private CartService cartService;
+    private CartDomainService cartDomainService;
     @Autowired
     private CartsRepository cartsRepository;
     @Autowired
@@ -32,7 +32,7 @@ class CartServiceTest extends ExcludeInfraServiceTest {
     void addItemToCartWhenFirstAdd(){
         //given
         //when
-        CartItemDto result = cartService.addItemToCart(1L, 1L, 3);
+        CartItemDto result = cartDomainService.addItemToCart(1L, 1L, 3);
         //then
         assertThat(result.getId()).isNotNull();
         assertThat(result)
@@ -52,7 +52,7 @@ class CartServiceTest extends ExcludeInfraServiceTest {
                 .build();
         cartsRepository.save(cart);
         //when
-        CartItemDto result = cartService.addItemToCart(1L, 1L, 3);
+        CartItemDto result = cartDomainService.addItemToCart(1L, 1L, 3);
         //then
         assertThat(result.getId()).isNotNull();
         assertThat(result)
@@ -74,7 +74,7 @@ class CartServiceTest extends ExcludeInfraServiceTest {
         cart.addCartItem(cartItem);
         cartsRepository.save(cart);
         //when
-        CartItemDto result = cartService.addItemToCart(1L, 1L, 2);
+        CartItemDto result = cartDomainService.addItemToCart(1L, 1L, 2);
         //then
         assertThat(result.getId()).isNotNull();
 
@@ -97,7 +97,7 @@ class CartServiceTest extends ExcludeInfraServiceTest {
         cart.addCartItem(item);
         cartsRepository.save(cart);
         //when
-        CartItemDto cartItem = cartService.getCartItem(item.getId());
+        CartItemDto cartItem = cartDomainService.getCartItem(item.getId());
         //then
         assertThat(cartItem.getId()).isEqualTo(item.getId());
         assertThat(cartItem.getProductVariantId()).isEqualTo(1L);
@@ -110,7 +110,7 @@ class CartServiceTest extends ExcludeInfraServiceTest {
         //given
         //when
         //then
-        assertThatThrownBy(() -> cartService.getCartItem(1L))
+        assertThatThrownBy(() -> cartDomainService.getCartItem(1L))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage("장바구니에서 해당 상품을 찾을 수 없습니다");
     }
@@ -135,7 +135,7 @@ class CartServiceTest extends ExcludeInfraServiceTest {
         cart.addCartItem(item2);
         cartsRepository.save(cart);
         //when
-        List<CartItemDto> cartItems = cartService.getCartItems(1L);
+        List<CartItemDto> cartItems = cartDomainService.getCartItems(1L);
         //then
         assertThat(cartItems).hasSize(2);
         assertThat(cartItems)
@@ -151,7 +151,7 @@ class CartServiceTest extends ExcludeInfraServiceTest {
     void getCartItemsWhenNotFoundCart(){
         //given
         //when
-        List<CartItemDto> cartItems = cartService.getCartItems(1L);
+        List<CartItemDto> cartItems = cartDomainService.getCartItems(1L);
         //then
         assertThat(cartItems).hasSize(0);
     }
@@ -165,7 +165,7 @@ class CartServiceTest extends ExcludeInfraServiceTest {
                 .build();
         cartsRepository.save(cart);
         //when
-        List<CartItemDto> cartItems = cartService.getCartItems(1L);
+        List<CartItemDto> cartItems = cartDomainService.getCartItems(1L);
         //then
         assertThat(cartItems).hasSize(0);
     }
@@ -189,7 +189,7 @@ class CartServiceTest extends ExcludeInfraServiceTest {
         cart.addCartItem(item2);
         cartsRepository.save(cart);
         //when
-        cartService.deleteCartItem(1L, item1.getId());
+        cartDomainService.deleteCartItem(1L, item1.getId());
         em.flush();
         em.clear();
         //then
@@ -209,7 +209,7 @@ class CartServiceTest extends ExcludeInfraServiceTest {
         //given
         //when
         //then
-        assertThatThrownBy(() -> cartService.deleteCartItem(1L, 1L))
+        assertThatThrownBy(() -> cartDomainService.deleteCartItem(1L, 1L))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage("장바구니에서 해당 상품을 찾을 수 없습니다");
     }
@@ -234,7 +234,7 @@ class CartServiceTest extends ExcludeInfraServiceTest {
         cartsRepository.save(cart);
         //when
         //then
-        assertThatThrownBy(() -> cartService.deleteCartItem(2L, item1.getId()))
+        assertThatThrownBy(() -> cartDomainService.deleteCartItem(2L, item1.getId()))
                 .isInstanceOf(NoPermissionException.class)
                 .hasMessage("장바구니의 상품을 삭제할 권한이 없습니다");
     }
@@ -260,7 +260,7 @@ class CartServiceTest extends ExcludeInfraServiceTest {
         cart.addCartItem(item2);
         cartsRepository.save(cart);
         //when
-        cartService.clearCart(1L);
+        cartDomainService.clearCart(1L);
         //then
         Optional<Carts> findCart = cartsRepository.findWithItemsByUserId(1L);
         assertThat(findCart).isNotEmpty();
@@ -283,7 +283,7 @@ class CartServiceTest extends ExcludeInfraServiceTest {
         cart.addCartItem(item);
         cartsRepository.save(cart);
         //when
-        CartItemDto cartItemDto = cartService.updateQuantity(item.getId(), 5);
+        CartItemDto cartItemDto = cartDomainService.updateQuantity(item.getId(), 5);
         //then
         assertThat(cartItemDto.getId()).isEqualTo(item.getId());
         assertThat(cartItemDto.getQuantity()).isEqualTo(5);

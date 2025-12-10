@@ -7,7 +7,7 @@ import com.example.order_service.api.order.application.OrderApplicationService;
 import com.example.order_service.api.order.controller.dto.request.CreateOrderRequest;
 import com.example.order_service.api.order.application.dto.result.CreateOrderResponse;
 import com.example.order_service.api.order.application.dto.result.OrderResponse;
-import com.example.order_service.api.order.domain.service.OrderService;
+import com.example.order_service.api.order.domain.service.OrderDomainService;
 import com.example.order_service.dto.response.PageDto;
 import com.example.order_service.entity.DomainType;
 import com.example.order_service.api.order.application.dto.command.CreateOrderDto;
@@ -29,7 +29,7 @@ import org.springframework.web.bind.annotation.*;
 public class OrderController {
 
     private final OrderApplicationService orderApplicationService;
-    private final OrderService orderService;
+    private final OrderDomainService orderDomainService;
     private final PageableValidatorFactory factory;
 
     @PostMapping
@@ -48,7 +48,7 @@ public class OrderController {
                                                                        @RequestParam(value = "keyword", required = false) String keyword){
         PageableValidator validator = factory.getValidator(DomainType.ORDER);
         Pageable validatedPageable = validator.validate(pageable);
-        PageDto<OrderResponse> orderList = orderService.getOrderList(validatedPageable, userId, year, keyword);
+        PageDto<OrderResponse> orderList = orderDomainService.getOrderList(validatedPageable, userId, year, keyword);
         return ResponseEntity.ok(orderList);
     }
 
