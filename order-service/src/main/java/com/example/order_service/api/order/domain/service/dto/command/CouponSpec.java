@@ -15,4 +15,12 @@ public class CouponSpec {
         this.couponName = couponName;
         this.discountAmount = discountAmount;
     }
+
+    public static CouponSpec of(Long couponId, String couponName, Long discountAmount){
+        return CouponSpec.builder()
+                .couponId(couponId)
+                .couponName(couponName)
+                .discountAmount(discountAmount)
+                .build();
+    }
 }
