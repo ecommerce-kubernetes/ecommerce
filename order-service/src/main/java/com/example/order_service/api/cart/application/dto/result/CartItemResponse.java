@@ -2,7 +2,9 @@ package com.example.order_service.api.cart.application.dto.result;
 
 import com.example.order_service.api.cart.domain.service.dto.CartItemDto;
 import com.example.order_service.api.cart.infrastructure.client.dto.CartProductResponse;
-import lombok.*;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.List;
 

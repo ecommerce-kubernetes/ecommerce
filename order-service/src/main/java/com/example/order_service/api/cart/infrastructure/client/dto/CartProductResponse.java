@@ -1,6 +1,7 @@
 package com.example.order_service.api.cart.infrastructure.client.dto;
 
-import lombok.*;
+import lombok.Builder;
+import lombok.Getter;
 
 import java.util.List;
 

@@ -3,7 +3,7 @@ package com.example.order_service.api.order.domain.service;
 import com.example.order_service.api.common.exception.InsufficientException;
 import com.example.order_service.api.common.exception.OrderVerificationException;
 import com.example.order_service.api.order.application.dto.command.CreateOrderItemDto;
-import com.example.order_service.api.order.application.dto.context.PriceCalculateResult;
+import com.example.order_service.api.order.domain.service.dto.result.PriceCalculateResult;
 import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponCalcResponse;
 import com.example.order_service.api.order.infrastructure.client.product.dto.OrderProductResponse;
 import com.example.order_service.api.order.infrastructure.client.user.dto.OrderUserResponse;
@@ -48,10 +48,8 @@ public class OrderPriceCalculator {
     }
 
     private void verifyEnoughPoints(Long useToPoint, OrderUserResponse user){
-        if(useToPoint != null && useToPoint > 0) {
-            if(useToPoint > user.getPointBalance()){
-                throw new InsufficientException("포인트가 부족합니다");
-            }
+        if(useToPoint > 0 && !user.hasEnoughPoints(useToPoint)) {
+            throw new InsufficientException("포인트가 부족합니다");
         }
     }
 

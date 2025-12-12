@@ -3,7 +3,6 @@ package com.example.order_service.api.cart.domain.service.dto;
 import com.example.order_service.api.cart.domain.model.CartItems;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
 
 @Getter
 public class CartItemDto {

@@ -1,21 +1,20 @@
 package com.example.order_service.docs.cart;
 
 import com.example.order_service.api.cart.application.CartApplicationService;
-import com.example.order_service.api.common.security.principal.UserPrincipal;
-import com.example.order_service.api.cart.controller.CartController;
-import com.example.order_service.api.cart.controller.dto.request.UpdateQuantityRequest;
-import com.example.order_service.docs.RestDocSupport;
-import com.example.order_service.api.cart.controller.dto.request.CartItemRequest;
-import com.example.order_service.api.cart.application.dto.result.CartItemResponse;
-import com.example.order_service.api.cart.application.dto.result.CartResponse;
 import com.example.order_service.api.cart.application.dto.command.AddCartItemDto;
 import com.example.order_service.api.cart.application.dto.command.UpdateQuantityDto;
+import com.example.order_service.api.cart.application.dto.result.CartItemResponse;
+import com.example.order_service.api.cart.application.dto.result.CartResponse;
+import com.example.order_service.api.cart.controller.CartController;
+import com.example.order_service.api.cart.controller.dto.request.CartItemRequest;
+import com.example.order_service.api.cart.controller.dto.request.UpdateQuantityRequest;
+import com.example.order_service.api.common.security.principal.UserPrincipal;
+import com.example.order_service.docs.RestDocSupport;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-
 
 import java.util.List;
 
@@ -30,10 +29,9 @@ import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
 import static org.springframework.restdocs.payload.PayloadDocumentation.*;
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
 import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 
 public class CartControllerDocsTest extends RestDocSupport {
 

@@ -1,7 +1,7 @@
 package com.example.order_service.dto;
 
-import com.example.order_service.service.client.dto.CouponResponse;
 import com.example.order_service.api.cart.infrastructure.client.dto.CartProductResponse;
+import com.example.order_service.service.client.dto.CouponResponse;
 import com.example.order_service.service.client.dto.UserBalanceResponse;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

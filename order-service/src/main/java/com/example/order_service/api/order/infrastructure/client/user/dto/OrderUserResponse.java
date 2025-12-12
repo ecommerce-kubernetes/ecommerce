@@ -16,4 +16,8 @@ public class OrderUserResponse {
         this.userId = userId;
         this.pointBalance = pointBalance;
     }
+
+    public boolean hasEnoughPoints(long pointToUse){
+        return this.pointBalance >= pointToUse;
+    }
 }

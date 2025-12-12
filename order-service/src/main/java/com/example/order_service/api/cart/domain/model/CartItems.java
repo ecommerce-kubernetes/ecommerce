@@ -2,7 +2,10 @@ package com.example.order_service.api.cart.domain.model;
 
 import com.example.order_service.api.common.exception.InvalidQuantityException;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)

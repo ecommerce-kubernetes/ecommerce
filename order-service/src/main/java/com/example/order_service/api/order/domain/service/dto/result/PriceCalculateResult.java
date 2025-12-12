@@ -1,4 +1,4 @@
-package com.example.order_service.api.order.application.dto.context;
+package com.example.order_service.api.order.domain.service.dto.result;
 
 import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponCalcResponse;
 import lombok.Builder;

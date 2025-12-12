@@ -1,8 +1,8 @@
 package com.example.order_service.api.common.security.filter;
 
+import com.example.order_service.api.common.config.CorsConfig;
 import com.example.order_service.api.common.error.ControllerAdvice;
 import com.example.order_service.api.common.security.config.SecurityConfig;
-import com.example.order_service.api.common.config.CorsConfig;
 import com.example.order_service.api.support.security.DummyController;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -24,7 +24,7 @@ import org.springframework.util.MultiValueMap;
 import java.util.Map;
 import java.util.stream.Stream;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 

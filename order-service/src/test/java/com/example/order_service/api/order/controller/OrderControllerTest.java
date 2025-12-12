@@ -1,14 +1,14 @@
 package com.example.order_service.api.order.controller;
 
 import com.example.order_service.api.common.security.model.UserRole;
-import com.example.order_service.api.support.security.config.TestSecurityConfig;
-import com.example.order_service.config.TestConfig;
-import com.example.order_service.api.support.ControllerTestSupport;
-import com.example.order_service.api.support.security.annotation.WithCustomMockUser;
+import com.example.order_service.api.order.application.dto.command.CreateOrderDto;
+import com.example.order_service.api.order.application.dto.result.CreateOrderResponse;
 import com.example.order_service.api.order.controller.dto.request.CreateOrderItemRequest;
 import com.example.order_service.api.order.controller.dto.request.CreateOrderRequest;
-import com.example.order_service.api.order.application.dto.result.CreateOrderResponse;
-import com.example.order_service.api.order.application.dto.command.CreateOrderDto;
+import com.example.order_service.api.support.ControllerTestSupport;
+import com.example.order_service.api.support.security.annotation.WithCustomMockUser;
+import com.example.order_service.api.support.security.config.TestSecurityConfig;
+import com.example.order_service.config.TestConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -21,7 +21,7 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;

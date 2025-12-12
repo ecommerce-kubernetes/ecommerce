@@ -1,7 +1,7 @@
 package com.example.order_service.api.order.domain.service.dto.command;
 
 import com.example.order_service.api.order.application.dto.command.CreateOrderItemDto;
-import com.example.order_service.api.order.application.dto.context.PriceCalculateResult;
+import com.example.order_service.api.order.domain.service.dto.result.PriceCalculateResult;
 import com.example.order_service.api.order.infrastructure.client.product.dto.OrderProductResponse;
 import com.example.order_service.api.order.infrastructure.client.user.dto.OrderUserResponse;
 import lombok.Builder;
