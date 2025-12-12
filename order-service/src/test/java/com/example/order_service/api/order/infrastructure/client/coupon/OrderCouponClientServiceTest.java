@@ -31,8 +31,8 @@ public class OrderCouponClientServiceTest extends ExcludeInfraServiceTest {
         //given
         OrderCouponCalcResponse calcResponse = OrderCouponCalcResponse.builder()
                 .couponId(1L)
+                .couponName("1000원 할인 쿠폰")
                 .discountAmount(1000L)
-                .finalPaymentAmount(3000L)
                 .build();
 
         given(orderCouponClient.calculate(any(OrderCouponCalcRequest.class)))
@@ -41,8 +41,8 @@ public class OrderCouponClientServiceTest extends ExcludeInfraServiceTest {
         OrderCouponCalcResponse result = orderCouponClientService.calculateDiscount(1L, 1L, 3100L);
         //then
         assertThat(result)
-                .extracting("couponId", "discountAmount", "finalPaymentAmount")
-                .contains(1L, 1000L, 3000L);
+                .extracting("couponId", "couponName", "discountAmount")
+                .contains(1L, "1000원 할인 쿠폰", 1000L);
     }
 
     @Test

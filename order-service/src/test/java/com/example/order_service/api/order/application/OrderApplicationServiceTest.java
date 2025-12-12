@@ -76,8 +76,30 @@ public class OrderApplicationServiceTest {
                 .userId(1L)
                 .pointBalance(100L)
                 .build();
+
+        OrderProductResponse product1 = createProductResponse(1L, 1L, "상품1", 3000L, 10,
+                "http://thumbnail.jpg",
+                List.of(
+                        OrderProductResponse.ItemOption.builder()
+                                .optionTypeName("사이즈")
+                                .optionValueName("XL")
+                                .build()
+                )
+        );
+
+        OrderProductResponse product2 = createProductResponse(1L, 1L, "상품1", 3000L, 10,
+                "http://thumbnail.jpg",
+                List.of(
+                        OrderProductResponse.ItemOption.builder()
+                                .optionTypeName("사이즈")
+                                .optionValueName("XL")
+                                .build()
+                )
+        );
         given(orderUserClientService.getUserForOrder(anyLong()))
                 .willReturn(userInfo);
+        given(orderProductClientService.getProducts(anyList()))
+                .willReturn(List.of(product1, product2));
         //when
         //then
         assertThatThrownBy(() -> orderApplicationService.createOrder(createOrderDto))
@@ -158,8 +180,8 @@ public class OrderApplicationServiceTest {
         );
         OrderCouponCalcResponse coupon = OrderCouponCalcResponse.builder()
                 .couponId(1L)
+                .couponName("1000원 할인 쿠폰")
                 .discountAmount(1000L)
-                .finalPaymentAmount(29600L)
                 .build();
 
         given(orderUserClientService.getUserForOrder(anyLong()))

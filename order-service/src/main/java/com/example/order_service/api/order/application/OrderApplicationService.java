@@ -8,9 +8,7 @@ import com.example.order_service.api.order.application.dto.command.CreateOrderIt
 import com.example.order_service.api.order.application.dto.context.PriceCalculateResult;
 import com.example.order_service.api.order.application.dto.result.CreateOrderResponse;
 import com.example.order_service.api.order.domain.service.OrderDomainService;
-import com.example.order_service.api.order.domain.service.dto.command.CouponSpec;
 import com.example.order_service.api.order.domain.service.dto.command.OrderCreationContext;
-import com.example.order_service.api.order.domain.service.dto.command.OrderItemSpec;
 import com.example.order_service.api.order.domain.service.dto.result.OrderCreationResult;
 import com.example.order_service.api.order.infrastructure.client.coupon.OrderCouponClientService;
 import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponCalcResponse;
@@ -18,7 +16,6 @@ import com.example.order_service.api.order.infrastructure.client.product.OrderPr
 import com.example.order_service.api.order.infrastructure.client.product.dto.OrderProductResponse;
 import com.example.order_service.api.order.infrastructure.client.user.OrderUserClientService;
 import com.example.order_service.api.order.infrastructure.client.user.dto.OrderUserResponse;
-import com.example.order_service.service.client.dto.CouponResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -26,7 +23,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -43,7 +39,7 @@ public class OrderApplicationService {
         OrderUserResponse user = getOrderUser(dto);
         //주문 상품 목록 조회
         List<OrderProductResponse> products = getOrderProducts(dto.getOrderItemDtoList());
-        //주문 상품 총 가격 계산
+        //주문 가격 정보 계산
         PriceCalculateResult priceResult = calculateOrderPrice(dto, products, user);
 
         OrderCreationContext creationContext = OrderCreationContext.of(user, dto.getOrderItemDtoList(), products,
@@ -62,27 +58,8 @@ public class OrderApplicationService {
                 .orElse(null);
     }
 
-    private long calculateRowTotalPrice(List<CreateOrderItemDto> requests, List<OrderProductResponse> responses){
-        Map<Long, Integer> requestMap = requests.stream()
-                .collect(Collectors.toMap(CreateOrderItemDto::getProductVariantId, CreateOrderItemDto::getQuantity));
-
-        Map<Long, OrderProductResponse.UnitPrice> responseMap = responses.stream()
-                .collect(Collectors.toMap(OrderProductResponse::getProductVariantId, OrderProductResponse::getUnitPrice));
-
-        return requestMap.entrySet().stream()
-                .mapToLong(entry -> entry.getValue() * responseMap.get(entry.getKey()).getDiscountedPrice()).sum();
-    }
-
     private OrderUserResponse getOrderUser(CreateOrderDto dto){
         return orderUserClientService.getUserForOrder(dto.getUserPrincipal().getUserId());
-    }
-
-    private void verifyEnoughPoints(Long useToPoint, OrderUserResponse user){
-        if(useToPoint != null && useToPoint > 0) {
-            if(useToPoint > user.getPointBalance()){
-                throw new InsufficientException("포인트가 부족합니다");
-            }
-        }
     }
 
     // 주문 상품을 조회, 검증 후 응답 반환
@@ -111,12 +88,33 @@ public class OrderApplicationService {
         }
     }
 
+    private void verifyEnoughPoints(Long useToPoint, OrderUserResponse user){
+        if(useToPoint != null && useToPoint > 0) {
+            if(useToPoint > user.getPointBalance()){
+                throw new InsufficientException("포인트가 부족합니다");
+            }
+        }
+    }
+
+    private long calculateRowTotalPrice(List<CreateOrderItemDto> requests, List<OrderProductResponse> responses){
+        Map<Long, Integer> quantityByVariantId = requests.stream()
+                .collect(Collectors.toMap(CreateOrderItemDto::getProductVariantId, CreateOrderItemDto::getQuantity));
+                                                                                    
+        Map<Long, OrderProductResponse.UnitPrice> unitPriceByVariantId = responses.stream()
+                .collect(Collectors.toMap(OrderProductResponse::getProductVariantId, OrderProductResponse::getUnitPrice));
+
+        return quantityByVariantId.entrySet().stream()
+                .mapToLong(
+                        entry -> entry.getValue() * unitPriceByVariantId.get(entry.getKey()).getDiscountedPrice())
+                .sum();
+    }
+
     private PriceCalculateResult calculateOrderPrice(CreateOrderDto dto, List<OrderProductResponse> products, OrderUserResponse user){
         verifyEnoughPoints(dto.getPointToUse(), user);
 
         long originTotalPrice = calculateRowTotalPrice(dto.getOrderItemDtoList(), products);
         OrderCouponCalcResponse coupon = getOrderCouponCalcResponse(dto, originTotalPrice);
-        long priceAfterCoupon = (coupon != null) ? coupon.getFinalPaymentAmount() : originTotalPrice;
+        long priceAfterCoupon =  (coupon != null) ? 300L : originTotalPrice;
         long finalPaymentPrice = priceAfterCoupon - dto.getPointToUse();
 
         if(finalPaymentPrice != dto.getExpectedPrice()) {

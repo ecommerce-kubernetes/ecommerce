@@ -11,13 +11,11 @@ public class OrderCouponCalcResponse {
     private Long couponId;
     private String couponName;
     private Long discountAmount;
-    private Long finalPaymentAmount;
 
     @Builder
-    private OrderCouponCalcResponse(Long couponId, String couponName, Long discountAmount, Long finalPaymentAmount) {
+    private OrderCouponCalcResponse(Long couponId, String couponName, Long discountAmount) {
         this.couponId = couponId;
         this.couponName = couponName;
         this.discountAmount = discountAmount;
-        this.finalPaymentAmount = finalPaymentAmount;
     }
 }
