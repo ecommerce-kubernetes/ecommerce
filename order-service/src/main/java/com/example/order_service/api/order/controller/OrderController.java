@@ -48,8 +48,7 @@ public class OrderController {
                                                                        @RequestParam(value = "keyword", required = false) String keyword){
         PageableValidator validator = factory.getValidator(DomainType.ORDER);
         Pageable validatedPageable = validator.validate(pageable);
-        PageDto<OrderResponse> orderList = orderDomainService.getOrderList(validatedPageable, userId, year, keyword);
-        return ResponseEntity.ok(orderList);
+        return ResponseEntity.noContent().build();
     }
 
 }

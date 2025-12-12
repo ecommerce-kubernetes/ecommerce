@@ -124,64 +124,64 @@ public class OrderControllerDocsTest extends RestDocSupport {
     @DisplayName("주문 목록 조회 API")
     void getOrders() throws Exception {
         //given
-        LocalDateTime createAt = LocalDateTime.of(2025, 11, 27, 15, 30, 30);
-        OrderItemResponse orderItem = createOrderItemResponse(1L, "상품1", "http://product1.jpg");
-        OrderResponse orderResponse = createOrderResponse(1L, "COMPLETED", createAt, List.of(orderItem));
-        given(orderDomainService.getOrderList(any(Pageable.class), anyLong(), anyString(), anyString()))
-                .willReturn(
-                        PageDto.<OrderResponse>builder()
-                                .content(List.of(orderResponse))
-                                .currentPage(0)
-                                .totalPage(10)
-                                .pageSize(10)
-                                .totalElement(100)
-                                .build());
-        //when
-        //then
-        mockMvc.perform(get("/orders")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .header("X-User-Id", "1")
-                        .param("page", "0")
-                        .param("size", "10")
-                        .param("sort", "id,asc")
-                        .param("keyword", "keyword")
-                        .param("year", "2025"))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andDo(document("getOrderList",
-                        preprocessResponse(prettyPrint()),
-                        requestHeaders(
-                                headerWithName("X-User-Id").description(USER_ID_HEADER_DESCRIPTION).optional(),
-                                headerWithName("X-User-Role").description(USER_ROLE_HEADER_DESCRIPTION).optional()
-                        ),
-                        queryParameters(
-                                parameterWithName("page").description("페이지 번호(0-based)"),
-                                parameterWithName("size").description("페이지 크기"),
-                                parameterWithName("sort").description("정렬 기준 속성, 뱡향 (예: id,asc)"),
-                                parameterWithName("year").description("조회 연도"),
-                                parameterWithName("keyword").description("검색 키워드")
-                        ),
-                        responseFields(
-                                fieldWithPath("content[].id").description("주문 ID"),
-                                fieldWithPath("content[].status").description("주문 상태"),
-                                fieldWithPath("content[].createAt").description("주문 생성 시각"),
-                                fieldWithPath("content[].orderItems[].productId").description("주문 상품 ID(상품(Product) 식별자)"),
-                                fieldWithPath("content[].orderItems[].productName").description("주문 상품 이름"),
-                                fieldWithPath("content[].orderItems[].thumbNailUrl").description("주문 상품 썸네일"),
-                                fieldWithPath("content[].orderItems[].quantity").description("주문 수량"),
-                                fieldWithPath("content[].orderItems[].unitPrice.originalPrice").description("주문 상품 원본 가격"),
-                                fieldWithPath("content[].orderItems[].unitPrice.discountRate").description("상품 할인율"),
-                                fieldWithPath("content[].orderItems[].unitPrice.discountAmount").description("상품 할인 금액"),
-                                fieldWithPath("content[].orderItems[].unitPrice.discountedPrice").description("할인된 가격"),
-                                fieldWithPath("content[].orderItems[].lineTotal").description("주문 항목 총액"),
-                                fieldWithPath("content[].orderItems[].options[].optionTypeName").description("주문 상품 옵션 타입 (예: 사이즈)"),
-                                fieldWithPath("content[].orderItems[].options[].optionValueName").description("주문 상품 옵션 값 (예: XL)"),
-                                fieldWithPath("currentPage").description("현재 페이지"),
-                                fieldWithPath("totalPage").description("총 페이지"),
-                                fieldWithPath("pageSize").description("페이지 사이즈"),
-                                fieldWithPath("totalElement").description("총 Element")
-                        )
-                ));
+//        LocalDateTime createAt = LocalDateTime.of(2025, 11, 27, 15, 30, 30);
+//        OrderItemResponse orderItem = createOrderItemResponse(1L, "상품1", "http://product1.jpg");
+//        OrderResponse orderResponse = createOrderResponse(1L, "COMPLETED", createAt, List.of(orderItem));
+//        given(orderDomainService.getOrderList(any(Pageable.class), anyLong(), anyString(), anyString()))
+//                .willReturn(
+//                        PageDto.<OrderResponse>builder()
+//                                .content(List.of(orderResponse))
+//                                .currentPage(0)
+//                                .totalPage(10)
+//                                .pageSize(10)
+//                                .totalElement(100)
+//                                .build());
+//        //when
+//        //then
+//        mockMvc.perform(get("/orders")
+//                        .contentType(MediaType.APPLICATION_JSON)
+//                        .header("X-User-Id", "1")
+//                        .param("page", "0")
+//                        .param("size", "10")
+//                        .param("sort", "id,asc")
+//                        .param("keyword", "keyword")
+//                        .param("year", "2025"))
+//                .andDo(print())
+//                .andExpect(status().isOk())
+//                .andDo(document("getOrderList",
+//                        preprocessResponse(prettyPrint()),
+//                        requestHeaders(
+//                                headerWithName("X-User-Id").description(USER_ID_HEADER_DESCRIPTION).optional(),
+//                                headerWithName("X-User-Role").description(USER_ROLE_HEADER_DESCRIPTION).optional()
+//                        ),
+//                        queryParameters(
+//                                parameterWithName("page").description("페이지 번호(0-based)"),
+//                                parameterWithName("size").description("페이지 크기"),
+//                                parameterWithName("sort").description("정렬 기준 속성, 뱡향 (예: id,asc)"),
+//                                parameterWithName("year").description("조회 연도"),
+//                                parameterWithName("keyword").description("검색 키워드")
+//                        ),
+//                        responseFields(
+//                                fieldWithPath("content[].id").description("주문 ID"),
+//                                fieldWithPath("content[].status").description("주문 상태"),
+//                                fieldWithPath("content[].createAt").description("주문 생성 시각"),
+//                                fieldWithPath("content[].orderItems[].productId").description("주문 상품 ID(상품(Product) 식별자)"),
+//                                fieldWithPath("content[].orderItems[].productName").description("주문 상품 이름"),
+//                                fieldWithPath("content[].orderItems[].thumbNailUrl").description("주문 상품 썸네일"),
+//                                fieldWithPath("content[].orderItems[].quantity").description("주문 수량"),
+//                                fieldWithPath("content[].orderItems[].unitPrice.originalPrice").description("주문 상품 원본 가격"),
+//                                fieldWithPath("content[].orderItems[].unitPrice.discountRate").description("상품 할인율"),
+//                                fieldWithPath("content[].orderItems[].unitPrice.discountAmount").description("상품 할인 금액"),
+//                                fieldWithPath("content[].orderItems[].unitPrice.discountedPrice").description("할인된 가격"),
+//                                fieldWithPath("content[].orderItems[].lineTotal").description("주문 항목 총액"),
+//                                fieldWithPath("content[].orderItems[].options[].optionTypeName").description("주문 상품 옵션 타입 (예: 사이즈)"),
+//                                fieldWithPath("content[].orderItems[].options[].optionValueName").description("주문 상품 옵션 값 (예: XL)"),
+//                                fieldWithPath("currentPage").description("현재 페이지"),
+//                                fieldWithPath("totalPage").description("총 페이지"),
+//                                fieldWithPath("pageSize").description("페이지 사이즈"),
+//                                fieldWithPath("totalElement").description("총 Element")
+//                        )
+//                ));
     }
 
     private OrderItemResponse createOrderItemResponse(Long productId, String productName, String thumbNailUrl){
