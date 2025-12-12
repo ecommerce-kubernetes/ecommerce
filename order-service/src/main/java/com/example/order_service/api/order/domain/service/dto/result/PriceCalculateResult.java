@@ -6,22 +6,22 @@ import lombok.Getter;
 
 @Getter
 public class PriceCalculateResult {
-    private long originTotalPrice;
+    private long subTotalPrice;
     private long finalPaymentAmount;
     private OrderCouponCalcResponse coupon;
     private long useToPoint;
 
     @Builder
-    private PriceCalculateResult(long originTotalPrice, long finalPaymentAmount, OrderCouponCalcResponse coupon, long useToPoint){
-        this.originTotalPrice = originTotalPrice;
+    private PriceCalculateResult(long subTotalPrice, long finalPaymentAmount, OrderCouponCalcResponse coupon, long useToPoint){
+        this.subTotalPrice = subTotalPrice;
         this.finalPaymentAmount = finalPaymentAmount;
         this.coupon = coupon;
         this.useToPoint = useToPoint;
     }
 
-    public static PriceCalculateResult of(long originTotalPrice, long finalPaymentAmount, OrderCouponCalcResponse coupon, long useToPoint){
+    public static PriceCalculateResult of(long subTotalPrice, long finalPaymentAmount, OrderCouponCalcResponse coupon, long useToPoint){
         return PriceCalculateResult.builder()
-                .originTotalPrice(originTotalPrice)
+                .subTotalPrice(subTotalPrice)
                 .finalPaymentAmount(finalPaymentAmount)
                 .coupon(coupon)
                 .useToPoint(useToPoint)

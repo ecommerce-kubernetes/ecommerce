@@ -14,16 +14,18 @@ public class OrderProductResponse {
     private Long productVariantId;
     private String productName;
     private UnitPrice unitPrice;
+    private Integer stockQuantity;
     private String thumbnailUrl;
     private List<ItemOption> itemOptions;
 
     @Builder
-    private OrderProductResponse(Long productId, Long productVariantId, String productName, UnitPrice unitPrice, String thumbnailUrl,
-                                List<ItemOption> itemOptions){
+    private OrderProductResponse(Long productId, Long productVariantId, String productName, UnitPrice unitPrice, Integer stockQuantity,
+                                 String thumbnailUrl, List<ItemOption> itemOptions){
         this.productId = productId;
         this.productVariantId = productVariantId;
         this.productName = productName;
         this.unitPrice = unitPrice;
+        this.stockQuantity = stockQuantity;
         this.thumbnailUrl = thumbnailUrl;
         this.itemOptions = itemOptions;
     }

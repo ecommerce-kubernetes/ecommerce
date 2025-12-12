@@ -1,5 +1,6 @@
 package com.example.order_service.api.order.infrastructure;
 
+import com.example.order_service.api.common.exception.InsufficientException;
 import com.example.order_service.api.common.exception.NotFoundException;
 import com.example.order_service.api.common.security.principal.UserPrincipal;
 import com.example.order_service.api.order.application.dto.command.CreateOrderItemDto;
@@ -13,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -43,6 +45,7 @@ public class OrderIntegrationService {
         List<Long> reqVariantIds = extractVariantIds(dtoList);
         List<OrderProductResponse> products = orderProductClientService.getProducts(reqVariantIds);
         verifyMissingProducts(reqVariantIds, products);
+        verifyStockAvailability(dtoList, products);
         return products;
     }
 
@@ -60,6 +63,19 @@ public class OrderIntegrationService {
                     .toList();
 
             throw new NotFoundException("주문 상품중 존재하지 않은 상품이 있습니다. missingIds=" + missingIds);
+        }
+    }
+
+    private void verifyStockAvailability(List<CreateOrderItemDto> requestItems, List<OrderProductResponse> products) {
+        Map<Long, Integer> stockMap = products.stream()
+                .collect(Collectors.toMap(OrderProductResponse::getProductVariantId, OrderProductResponse::getStockQuantity));
+
+        for (CreateOrderItemDto item : requestItems) {
+            Integer currentStock = stockMap.get(item.getProductVariantId());
+            if(currentStock != null && item.getQuantity() > currentStock) {
+                throw new InsufficientException("재고가 부족합니다 (ProductVariantId : "
+                        + item.getProductVariantId() + " | 현재 재고: " + currentStock + " | 요청 수량: " + item.getQuantity() + ")");
+            }
         }
     }
 }

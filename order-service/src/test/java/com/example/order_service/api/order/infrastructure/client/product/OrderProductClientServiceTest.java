@@ -31,11 +31,11 @@ public class OrderProductClientServiceTest extends ExcludeInfraServiceTest {
     void getProducts(){
         //given
         OrderProductResponse product1 = createOrderProductResponse(1L, 1L,
-                "상품1", 3000L, 10, "http://thumbnail1.jpg",
+                "상품1", 3000L, 10, "http://thumbnail1.jpg", 100,
                 Map.of("사이즈", "XL"));
 
         OrderProductResponse product2 = createOrderProductResponse(2L, 2L,
-                "상품2", 5000L, 10, "http://thumbnail2.jpg",
+                "상품2", 5000L, 10, "http://thumbnail2.jpg", 100,
                 Map.of("용량", "256GB"));
 
         given(orderProductClient.getProductVariantByIds(anyList()))
@@ -47,8 +47,8 @@ public class OrderProductClientServiceTest extends ExcludeInfraServiceTest {
                 .satisfiesExactlyInAnyOrder(
                         item1 -> {
                             assertThat(item1)
-                                    .extracting("productId", "productVariantId", "productName", "thumbnailUrl")
-                                    .contains(1L, 1L, "상품1", "http://thumbnail1.jpg");
+                                    .extracting("productId", "productVariantId", "productName", "thumbnailUrl", "stockQuantity")
+                                    .contains(1L, 1L, "상품1", "http://thumbnail1.jpg", 100);
 
                             assertThat(item1.getUnitPrice())
                                     .extracting("originalPrice", "discountRate", "discountAmount", "discountedPrice")
@@ -62,8 +62,8 @@ public class OrderProductClientServiceTest extends ExcludeInfraServiceTest {
                         },
                         item2 -> {
                             assertThat(item2)
-                                    .extracting("productId", "productVariantId", "productName", "thumbnailUrl")
-                                    .contains(2L, 2L, "상품2", "http://thumbnail2.jpg");
+                                    .extracting("productId", "productVariantId", "productName", "thumbnailUrl", "stockQuantity")
+                                    .contains(2L, 2L, "상품2", "http://thumbnail2.jpg", 100);
                             assertThat(item2.getUnitPrice())
                                     .extracting("originalPrice", "discountRate", "discountAmount", "discountedPrice")
                                     .contains(5000L, 10, 500L, 4500L);
@@ -104,6 +104,7 @@ public class OrderProductClientServiceTest extends ExcludeInfraServiceTest {
 
     private OrderProductResponse createOrderProductResponse(Long productId, Long productVariantId, String productName,
                                                             Long originalPrice, int discountRate, String thumbnailUrl,
+                                                            int stockQuantity,
                                                             Map<String, String> optionMap) {
 
         return OrderProductResponse.builder()
@@ -117,6 +118,7 @@ public class OrderProductClientServiceTest extends ExcludeInfraServiceTest {
                                 .discountAmount(originalPrice / discountRate)
                                 .discountedPrice(originalPrice - (originalPrice / discountRate))
                                 .build())
+                .stockQuantity(stockQuantity)
                 .thumbnailUrl(thumbnailUrl)
                 .itemOptions(
                         optionMap.entrySet().stream()

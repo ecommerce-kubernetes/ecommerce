@@ -44,7 +44,7 @@ public class OrderApplicationService {
         OrderCreationContext creationContext =
                 createCreationContext(dto, user, products, priceResult);
         OrderCreationResult orderCreationResult = orderDomainService.saveOrder(creationContext);
-        return null;
+        return CreateOrderResponse.of(orderCreationResult);
     }
 
     private OrderCreationContext createCreationContext(CreateOrderDto dto,

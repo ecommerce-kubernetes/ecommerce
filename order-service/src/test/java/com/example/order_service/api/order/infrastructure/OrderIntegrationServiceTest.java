@@ -1,5 +1,6 @@
 package com.example.order_service.api.order.infrastructure;
 
+import com.example.order_service.api.common.exception.InsufficientException;
 import com.example.order_service.api.common.exception.NotFoundException;
 import com.example.order_service.api.common.security.model.UserRole;
 import com.example.order_service.api.common.security.principal.UserPrincipal;
@@ -115,6 +116,7 @@ public class OrderIntegrationServiceTest {
                 .quantity(5)
                 .build();
         OrderProductResponse product1 = createProductResponse(1L, 1L, "상품1", 3000L, 10,
+                100,
                 "http://thumbnail1.jpg",
                 List.of(OrderProductResponse
                         .ItemOption.builder()
@@ -123,6 +125,7 @@ public class OrderIntegrationServiceTest {
                         .build())
         );
         OrderProductResponse product2 = createProductResponse(2L, 2L, "상품2", 5000L, 10,
+                100,
                 "http://thumbnail2.jpg",
                 List.of(OrderProductResponse
                         .ItemOption.builder()
@@ -141,8 +144,8 @@ public class OrderIntegrationServiceTest {
                 .satisfiesExactlyInAnyOrder(
                         item1 -> {
                             assertThat(item1)
-                                    .extracting("productId", "productVariantId", "productName", "thumbnailUrl")
-                                    .contains(1L, 1L, "상품1", "http://thumbnail1.jpg");
+                                    .extracting("productId", "productVariantId", "productName", "thumbnailUrl", "stockQuantity")
+                                    .contains(1L, 1L, "상품1", "http://thumbnail1.jpg", 100);
 
                             assertThat(item1.getUnitPrice())
                                     .extracting("originalPrice", "discountRate", "discountAmount", "discountedPrice")
@@ -156,8 +159,8 @@ public class OrderIntegrationServiceTest {
                         },
                         item2 -> {
                             assertThat(item2)
-                                    .extracting("productId", "productVariantId", "productName", "thumbnailUrl")
-                                    .contains(2L, 2L, "상품2", "http://thumbnail2.jpg");
+                                    .extracting("productId", "productVariantId", "productName", "thumbnailUrl", "stockQuantity")
+                                    .contains(2L, 2L, "상품2", "http://thumbnail2.jpg", 100);
                             assertThat(item2.getUnitPrice())
                                     .extracting("originalPrice", "discountRate", "discountAmount", "discountedPrice")
                                     .contains(5000L, 10, 500L, 4500L);
@@ -185,6 +188,7 @@ public class OrderIntegrationServiceTest {
                 .build();
 
         OrderProductResponse product1 = createProductResponse(1L, 1L, "상품1", 3000L, 10,
+                100,
                 "http://thumbnail1.jpg",
                 List.of(OrderProductResponse
                         .ItemOption.builder()
@@ -203,9 +207,48 @@ public class OrderIntegrationServiceTest {
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage("주문 상품중 존재하지 않은 상품이 있습니다. missingIds=[2]");
     }
+    
+    @Test
+    @DisplayName("주문을 생성할때 상품 재고가 주문 수량보다 부족하면 예외를 던진다")
+    void getOrderProducts_When_OutOfStock() {
+        //given
+        CreateOrderItemDto orderItem1 = CreateOrderItemDto.builder()
+                .productVariantId(1L)
+                .quantity(3)
+                .build();
+        CreateOrderItemDto orderItem2 = CreateOrderItemDto.builder()
+                .productVariantId(2L)
+                .quantity(5)
+                .build();
+        OrderProductResponse product1 = createProductResponse(1L, 1L, "상품1", 3000L, 10,
+                100,
+                "http://thumbnail1.jpg",
+                List.of(OrderProductResponse
+                        .ItemOption.builder()
+                        .optionTypeName("사이즈")
+                        .optionValueName("XL")
+                        .build())
+        );
+        OrderProductResponse product2 = createProductResponse(2L, 2L, "상품2", 5000L, 10,
+                3,
+                "http://thumbnail2.jpg",
+                List.of(OrderProductResponse
+                        .ItemOption.builder()
+                        .optionTypeName("용량")
+                        .optionValueName("256GB")
+                        .build())
+        );
+        given(orderProductClientService.getProducts(anyList()))
+                .willReturn(List.of(product1, product2));
+        //when
+        //then
+        assertThatThrownBy(() -> orderIntegrationService.getOrderProducts(List.of(orderItem1, orderItem2)))
+                .isInstanceOf(InsufficientException.class)
+                .hasMessage("재고가 부족합니다 (ProductVariantId : 2 | 현재 재고: 3 | 요청 수량: 5)");
+    }
 
     private OrderProductResponse createProductResponse(Long productId, Long productVariantId,
-                                                       String productName, Long originalPrice, int discountRate,
+                                                       String productName, Long originalPrice, int discountRate, int stockQuantity,
                                                        String thumbnail, List<OrderProductResponse.ItemOption> options){
         long discountAmount = originalPrice * discountRate / 100;
         return OrderProductResponse.builder()
@@ -219,6 +262,7 @@ public class OrderIntegrationServiceTest {
                                 .discountAmount(discountAmount)
                                 .discountedPrice(originalPrice - discountAmount)
                                 .build())
+                .stockQuantity(stockQuantity)
                 .thumbnailUrl(thumbnail)
                 .itemOptions(options)
                 .build();
