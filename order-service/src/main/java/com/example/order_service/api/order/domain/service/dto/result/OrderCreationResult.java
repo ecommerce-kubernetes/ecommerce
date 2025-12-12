@@ -10,16 +10,18 @@ import java.util.List;
 public class OrderCreationResult {
     private Long orderId;
     private String status;
+    private String orderName;
     private LocalDateTime orderedAt;
     private PaymentInfo paymentInfo;
     private List<OrderItemDto> orderItemDtoList;
     private AppliedCoupon appliedCoupon;
 
     @Builder
-    private OrderCreationResult(Long orderId, String status, LocalDateTime orderedAt,
+    private OrderCreationResult(Long orderId, String status, String orderName, LocalDateTime orderedAt,
                                 PaymentInfo paymentInfo, List<OrderItemDto> orderItemDtoList, AppliedCoupon appliedCoupon){
         this.orderId = orderId;
         this.status = status;
+        this.orderName = orderName;
         this.orderedAt = orderedAt;
         this.paymentInfo = paymentInfo;
         this.orderItemDtoList = orderItemDtoList;

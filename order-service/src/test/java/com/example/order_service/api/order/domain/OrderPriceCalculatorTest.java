@@ -67,7 +67,7 @@ public class OrderPriceCalculatorTest {
         PriceCalculateResult result = calculator.calculateFinalPrice(1000, 30600L, 28600L, user, coupon);
         //then
         assertThat(result)
-                .extracting("originTotalPrice", "finalPaymentAmount", "useToPoint")
+                .extracting("subTotalPrice", "finalPaymentAmount", "useToPoint")
                 .contains(30600L, 28600L, 1000L);
         assertThat(result.getCoupon())
                 .extracting("couponId", "couponName", "discountAmount")
@@ -86,7 +86,7 @@ public class OrderPriceCalculatorTest {
         PriceCalculateResult result = calculator.calculateFinalPrice(1000, 30600L, 29600L, user, null);
         //then
         assertThat(result)
-                .extracting("originTotalPrice", "finalPaymentAmount", "useToPoint")
+                .extracting("subTotalPrice", "finalPaymentAmount", "useToPoint")
                 .contains(30600L, 29600L, 1000L);
         assertThat(result.getCoupon()).isNull();
     }

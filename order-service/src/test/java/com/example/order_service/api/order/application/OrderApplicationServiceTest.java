@@ -7,7 +7,11 @@ import com.example.order_service.api.order.application.dto.command.CreateOrderIt
 import com.example.order_service.api.order.application.dto.result.CreateOrderResponse;
 import com.example.order_service.api.order.domain.service.OrderDomainService;
 import com.example.order_service.api.order.domain.service.OrderPriceCalculator;
-import com.example.order_service.api.order.domain.service.dto.result.PriceCalculateResult;
+import com.example.order_service.api.order.domain.service.dto.command.OrderCreationContext;
+import com.example.order_service.api.order.domain.service.dto.result.AppliedCoupon;
+import com.example.order_service.api.order.domain.service.dto.result.OrderCreationResult;
+import com.example.order_service.api.order.domain.service.dto.result.OrderItemDto;
+import com.example.order_service.api.order.domain.service.dto.result.PaymentInfo;
 import com.example.order_service.api.order.infrastructure.OrderIntegrationService;
 import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponCalcResponse;
 import com.example.order_service.api.order.infrastructure.client.product.dto.OrderProductResponse;
@@ -17,8 +21,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -33,9 +39,9 @@ public class OrderApplicationServiceTest {
     @Mock
     private OrderIntegrationService orderIntegrationService;
     @Mock
-    private OrderPriceCalculator calculator;
-    @Mock
     private OrderDomainService orderDomainService;
+    @Spy
+    private OrderPriceCalculator calculator;
 
     @Test
     @DisplayName("주문을 생성한다")
@@ -56,30 +62,33 @@ public class OrderApplicationServiceTest {
         OrderProductResponse product2 = createProductResponse(2L, 2L, "상품2", 5000L, 10,
                 "http://thumbnail2.jpg", 100,
                 List.of(OrderProductResponse.ItemOption.builder().optionTypeName("용량").optionValueName("256GB").build()));
-        long subTotalPrice = 30600L;
         OrderCouponCalcResponse coupon = OrderCouponCalcResponse.builder()
                 .couponId(1L)
                 .couponName("1000원 할인 쿠폰")
                 .discountAmount(1000L)
                 .build();
-        PriceCalculateResult priceCalcResult = createPriceCalcResult(subTotalPrice, 28600, coupon, 1000L);
+
+
+        OrderItemDto savedProduct1 = createOrderItemDto(1L, 1L, "상품1", "http://thumbnail1.jpg", 3, 3000L, 10);
+        OrderItemDto savedProduct2 = createOrderItemDto(2L, 2L, "상품2", "http://thumbnail1.jpg", 5, 5000L, 10);
+        AppliedCoupon appliedCoupon = createAppliedCoupon(1L, "1000원 할인 쿠폰");
+        PaymentInfo paymentInfo = createPaymentInfo(34000, 3400, 1000, 1000, 28600);
+        OrderCreationResult orderCreationResult = createOrderCreationResult("상품1 외 1건",paymentInfo, List.of(savedProduct1, savedProduct2), appliedCoupon);
 
         given(orderIntegrationService.getOrderUser(any(UserPrincipal.class))).willReturn(user);
         given(orderIntegrationService.getOrderProducts(anyList()))
                 .willReturn(List.of(product1, product2));
-        given(calculator.calculateSubTotalPrice(anyList(), anyList()))
-                .willReturn(subTotalPrice);
         given(orderIntegrationService.getCoupon(any(UserPrincipal.class), anyLong(), anyLong()))
                 .willReturn(coupon);
-        given(calculator.calculateFinalPrice(anyLong(), anyLong(), anyLong(), any(OrderUserResponse.class), any(OrderCouponCalcResponse.class)))
-                .willReturn(priceCalcResult);
+        given(orderDomainService.saveOrder(any(OrderCreationContext.class)))
+                .willReturn(orderCreationResult);
         //when
         CreateOrderResponse response = orderApplicationService.createOrder(createOrderDto);
         //then
         assertThat(response.getOrderId()).isNotNull();
         assertThat(response)
-                .extracting("status", "message", "totalQuantity", "finalPaymentAmount")
-                .contains("PENDING", "상품1 외 2건", 8, 29600L);
+                .extracting("status", "orderName", "finalPaymentAmount")
+                .contains("PENDING", "상품1 외 1건", 28600L);
         assertThat(response.getCreateAt()).isNotNull();
     }
 
@@ -130,13 +139,53 @@ public class OrderApplicationServiceTest {
                 .build();
     }
 
-    private PriceCalculateResult createPriceCalcResult(long subTotalPrice, long finalPaymentAmount, OrderCouponCalcResponse coupon,
-                                                       long useToPoint){
-        return PriceCalculateResult.builder()
-                .subTotalPrice(subTotalPrice)
+    private OrderCreationResult createOrderCreationResult(String orderName, PaymentInfo paymentInfo, List<OrderItemDto> orderItemDtoList, AppliedCoupon appliedCoupon){
+        return OrderCreationResult.builder()
+                .orderId(1L)
+                .status("PENDING")
+                .orderName(orderName)
+                .orderedAt(LocalDateTime.now())
+                .paymentInfo(paymentInfo)
+                .orderItemDtoList(orderItemDtoList)
+                .appliedCoupon(appliedCoupon)
+                .build();
+    }
+
+    private PaymentInfo createPaymentInfo(long totalOriginPrice, long totalProductDiscount, long couponDiscount, long usedPoint,
+                                          long finalPaymentAmount){
+        return PaymentInfo.builder()
+                .totalOriginPrice(totalOriginPrice)
+                .totalProductDiscount(totalProductDiscount)
+                .couponDiscount(couponDiscount)
+                .usedPoint(usedPoint)
                 .finalPaymentAmount(finalPaymentAmount)
-                .coupon(coupon)
-                .useToPoint(useToPoint)
+                .build();
+    }
+
+    private AppliedCoupon createAppliedCoupon(Long couponId, String couponName){
+        return AppliedCoupon.builder()
+                .couponId(couponId)
+                .couponName(couponName)
+                .build();
+    }
+
+    private OrderItemDto createOrderItemDto(Long productId, Long productVariantId, String productName, String thumbnailUrl,
+                                            int quantity, long originPrice, int discountRate){
+        long discountAmount = originPrice * discountRate / 100;
+        return OrderItemDto.builder()
+                .productId(productId)
+                .productVariantId(productVariantId)
+                .productName(productName)
+                .thumbnailUrl(thumbnailUrl)
+                .quantity(quantity)
+                .unitPrice(
+                        OrderItemDto.UnitPrice.builder()
+                                .originalPrice(originPrice)
+                                .discountRate(discountRate)
+                                .discountAmount(discountAmount)
+                                .discountedPrice(originPrice - discountAmount)
+                                .build()
+                )
                 .build();
     }
 }

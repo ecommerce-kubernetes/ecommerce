@@ -74,13 +74,13 @@ public class OrderControllerDocsTest extends RestDocSupport {
         CreateOrderResponse response = CreateOrderResponse.builder()
                 .orderId(1L)
                 .status("PENDING")
-                .message("상품1 외 1건")
+                .orderName("상품1 외 1건")
                 .finalPaymentAmount(5400L)
                 .createAt(LocalDateTime.now())
                 .build();
 
         HttpHeaders roleUser = createUserHeader("ROLE_USER");
-        given(orderDomainService.saveOrder(any(CreateOrderDto.class)))
+        given(orderApplicationService.createOrder(any(CreateOrderDto.class)))
                 .willReturn(response);
 
         //when
@@ -113,7 +113,7 @@ public class OrderControllerDocsTest extends RestDocSupport {
                                         fieldWithPath("orderId").description("주문 ID(주문 식별자)"),
                                         fieldWithPath("status").description("주문 상태"),
                                         fieldWithPath("createAt").description("주문 일시"),
-                                        fieldWithPath("message").description("주문 설명"),
+                                        fieldWithPath("orderName").description("주문 설명"),
                                         fieldWithPath("finalPaymentAmount").description("최종 결제 금액")
                                 )
                         )

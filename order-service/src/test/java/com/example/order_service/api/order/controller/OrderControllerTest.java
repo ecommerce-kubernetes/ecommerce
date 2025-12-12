@@ -51,7 +51,7 @@ class OrderControllerTest extends ControllerTestSupport {
         CreateOrderResponse response = CreateOrderResponse.builder()
                 .orderId(1L)
                 .status("PENDING")
-                .message("상품1 외 1건")
+                .orderName("상품1 외 1건")
                 .createAt(LocalDateTime.now())
                 .finalPaymentAmount(2400L)
                 .build();
@@ -68,7 +68,7 @@ class OrderControllerTest extends ControllerTestSupport {
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("$.orderId").value(1L))
                 .andExpect(jsonPath("$.status").value("PENDING"))
-                .andExpect(jsonPath("$.message").value("상품1 외 1건"))
+                .andExpect(jsonPath("$.orderName").value("상품1 외 1건"))
                 .andExpect(jsonPath("$.finalPaymentAmount").value(2400L))
                 .andExpect(jsonPath("$.createAt").exists());
     }

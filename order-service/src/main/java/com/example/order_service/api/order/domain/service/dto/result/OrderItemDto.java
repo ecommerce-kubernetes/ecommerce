@@ -14,6 +14,19 @@ public class OrderItemDto {
     private int quantity;
     private UnitPrice unitPrice;
     private List<ItemOption> itemOptions;
+
+    @Builder
+    private OrderItemDto(Long productId, Long productVariantId, String productName, String thumbnailUrl, int quantity,
+                         UnitPrice unitPrice, List<ItemOption> itemOptions){
+        this.productId = productId;
+        this.productVariantId = productVariantId;
+        this.productName = productName;
+        this.thumbnailUrl = thumbnailUrl;
+        this.quantity = quantity;
+        this.unitPrice = unitPrice;
+        this.itemOptions = itemOptions;
+    }
+
     @Builder
     @Getter
     public static class UnitPrice {

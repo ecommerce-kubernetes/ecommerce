@@ -58,7 +58,7 @@ public class OrderDomainService {
         Orders save = ordersRepository.save(order);
         String url = buildSubscribeUrl(save.getId());
         eventPublisher.publishEvent(new PendingOrderCreatedEvent(this, save));
-        return CreateOrderResponse.of(save, url);
+        return null;
     }
 
     public CreateOrderResponse saveOrder(CreateOrderDto createOrderDto){
