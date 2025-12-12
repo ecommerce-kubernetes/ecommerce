@@ -1,5 +1,6 @@
 package com.example.order_service.api.order.domain.service.dto.command;
 
+import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponCalcResponse;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -14,6 +15,13 @@ public class CouponSpec {
         this.couponId = couponId;
         this.couponName = couponName;
         this.discountAmount = discountAmount;
+    }
+
+    public static CouponSpec from(OrderCouponCalcResponse response) {
+        if (response == null) {
+            return null;
+        }
+        return of(response.getCouponId(), response.getCouponName(), response.getDiscountAmount());
     }
 
     public static CouponSpec of(Long couponId, String couponName, Long discountAmount){
