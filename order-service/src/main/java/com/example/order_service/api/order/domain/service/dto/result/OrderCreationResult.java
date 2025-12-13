@@ -1,5 +1,7 @@
 package com.example.order_service.api.order.domain.service.dto.result;
 
+import com.example.order_service.api.order.domain.model.vo.AppliedCoupon;
+import com.example.order_service.api.order.domain.model.vo.PaymentInfo;
 import lombok.Builder;
 import lombok.Getter;
 

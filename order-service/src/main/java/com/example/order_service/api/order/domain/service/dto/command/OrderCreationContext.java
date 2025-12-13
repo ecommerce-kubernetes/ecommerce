@@ -1,5 +1,6 @@
 package com.example.order_service.api.order.domain.service.dto.command;
 
+import com.example.order_service.api.order.domain.model.vo.PriceCalculateResult;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -9,31 +10,25 @@ import java.util.List;
 public class OrderCreationContext {
     private Long userId;
     private List<OrderItemSpec> itemSpecs;
-    private CouponSpec couponSpec;
-    private Long useToPoint;
+    private PriceCalculateResult priceResult;
     private String deliveryAddress;
-    private Long finalPaymentAmount;
 
     @Builder
-    private OrderCreationContext(Long userId, List<OrderItemSpec> itemSpecs, CouponSpec couponSpec,
-                                 Long useToPoint, String deliveryAddress, Long finalPaymentAmount){
+    private OrderCreationContext(Long userId, List<OrderItemSpec> itemSpecs, PriceCalculateResult priceResult,
+                                 String deliveryAddress){
         this.userId = userId;
         this.itemSpecs = itemSpecs;
-        this.couponSpec = couponSpec;
-        this.useToPoint = useToPoint;
+        this.priceResult = priceResult;
         this.deliveryAddress = deliveryAddress;
-        this.finalPaymentAmount = finalPaymentAmount;
     }
 
-    public static OrderCreationContext of(Long userId, List<OrderItemSpec> itemSpecs, CouponSpec couponSpec, Long useToPoint,
-                                          String deliveryAddress, Long finalPaymentAmount){
+    public static OrderCreationContext of(Long userId, List<OrderItemSpec> itemSpecs, PriceCalculateResult priceResult, String deliveryAddress){
         return OrderCreationContext.builder()
                 .userId(userId)
                 .itemSpecs(itemSpecs)
-                .couponSpec(couponSpec)
-                .useToPoint(useToPoint)
+                .priceResult(priceResult)
                 .deliveryAddress(deliveryAddress)
-                .finalPaymentAmount(finalPaymentAmount)
                 .build();
+
     }
 }

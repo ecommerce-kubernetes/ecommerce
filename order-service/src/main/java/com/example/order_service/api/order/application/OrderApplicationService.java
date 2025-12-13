@@ -2,13 +2,13 @@ package com.example.order_service.api.order.application;
 
 import com.example.order_service.api.order.application.dto.command.CreateOrderDto;
 import com.example.order_service.api.order.application.dto.result.CreateOrderResponse;
+import com.example.order_service.api.order.domain.model.vo.PriceCalculateResult;
 import com.example.order_service.api.order.domain.service.OrderDomainService;
 import com.example.order_service.api.order.domain.service.OrderPriceCalculator;
-import com.example.order_service.api.order.domain.service.dto.command.CouponSpec;
 import com.example.order_service.api.order.domain.service.dto.command.OrderCreationContext;
 import com.example.order_service.api.order.domain.service.dto.command.OrderItemSpec;
+import com.example.order_service.api.order.domain.service.dto.result.ItemCalculationResult;
 import com.example.order_service.api.order.domain.service.dto.result.OrderCreationResult;
-import com.example.order_service.api.order.domain.service.dto.result.PriceCalculateResult;
 import com.example.order_service.api.order.infrastructure.OrderIntegrationService;
 import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponCalcResponse;
 import com.example.order_service.api.order.infrastructure.client.product.dto.OrderProductResponse;
@@ -34,12 +34,12 @@ public class OrderApplicationService {
         OrderUserResponse user = orderIntegrationService.getOrderUser(dto.getUserPrincipal());
         //주문 상품 목록 조회
         List<OrderProductResponse> products = orderIntegrationService.getOrderProducts(dto.getOrderItemDtoList());
-        //주문 상품 총가격 계산
-        long subTotalPrice = calculator.calculateSubTotalPrice(dto.getOrderItemDtoList(), products);
-        OrderCouponCalcResponse coupon = orderIntegrationService.getCoupon(dto.getUserPrincipal(), dto.getCouponId(), subTotalPrice);
+        //주문 상품 가격 정보 계산
+        ItemCalculationResult itemResult = calculator.calculateItemAmounts(dto.getOrderItemDtoList(), products);
+        OrderCouponCalcResponse coupon = orderIntegrationService.getCoupon(dto.getUserPrincipal(), dto.getCouponId(), itemResult.getSubTotalPrice());
         //할인 적용 최종 금액 계산
         PriceCalculateResult priceResult = calculator
-                .calculateFinalPrice(dto.getPointToUse(), subTotalPrice, dto.getExpectedPrice(), user, coupon);
+                .calculateFinalPrice(dto.getPointToUse(), itemResult, dto.getExpectedPrice(), user, coupon);
 
         OrderCreationContext creationContext =
                 createCreationContext(dto, user, products, priceResult);
@@ -59,9 +59,7 @@ public class OrderApplicationService {
                     OrderProductResponse product = productMap.get(item.getProductVariantId());
                     return OrderItemSpec.of(product, item.getQuantity());
                 }).toList();
-        CouponSpec couponSpec = CouponSpec.from(priceResult.getCoupon());
-        return OrderCreationContext.of(user.getUserId(), itemSpecs, couponSpec, priceResult.getUseToPoint(),
-                dto.getDeliveryAddress(), priceResult.getFinalPaymentAmount());
+        return OrderCreationContext.of(null, null, null, null);
     }
 
 }

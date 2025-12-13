@@ -5,13 +5,13 @@ import com.example.order_service.api.common.security.principal.UserPrincipal;
 import com.example.order_service.api.order.application.dto.command.CreateOrderDto;
 import com.example.order_service.api.order.application.dto.command.CreateOrderItemDto;
 import com.example.order_service.api.order.application.dto.result.CreateOrderResponse;
+import com.example.order_service.api.order.domain.model.vo.AppliedCoupon;
+import com.example.order_service.api.order.domain.model.vo.PaymentInfo;
 import com.example.order_service.api.order.domain.service.OrderDomainService;
 import com.example.order_service.api.order.domain.service.OrderPriceCalculator;
 import com.example.order_service.api.order.domain.service.dto.command.OrderCreationContext;
-import com.example.order_service.api.order.domain.service.dto.result.AppliedCoupon;
 import com.example.order_service.api.order.domain.service.dto.result.OrderCreationResult;
 import com.example.order_service.api.order.domain.service.dto.result.OrderItemDto;
-import com.example.order_service.api.order.domain.service.dto.result.PaymentInfo;
 import com.example.order_service.api.order.infrastructure.OrderIntegrationService;
 import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponCalcResponse;
 import com.example.order_service.api.order.infrastructure.client.product.dto.OrderProductResponse;
@@ -69,8 +69,10 @@ public class OrderApplicationServiceTest {
                 .build();
 
 
-        OrderItemDto savedProduct1 = createOrderItemDto(1L, 1L, "상품1", "http://thumbnail1.jpg", 3, 3000L, 10);
-        OrderItemDto savedProduct2 = createOrderItemDto(2L, 2L, "상품2", "http://thumbnail1.jpg", 5, 5000L, 10);
+        OrderItemDto savedProduct1 = createOrderItemDto(1L, 1L, "상품1", "http://thumbnail1.jpg", 3, 3000L, 10,
+                List.of(OrderItemDto.ItemOption.builder().optionTypeName("사이즈").optionValueName("XL").build()));
+        OrderItemDto savedProduct2 = createOrderItemDto(2L, 2L, "상품2", "http://thumbnail1.jpg", 5, 5000L, 10,
+                List.of(OrderItemDto.ItemOption.builder().optionTypeName("용량").optionValueName("256GB").build()));
         AppliedCoupon appliedCoupon = createAppliedCoupon(1L, "1000원 할인 쿠폰");
         PaymentInfo paymentInfo = createPaymentInfo(34000, 3400, 1000, 1000, 28600);
         OrderCreationResult orderCreationResult = createOrderCreationResult("상품1 외 1건",paymentInfo, List.of(savedProduct1, savedProduct2), appliedCoupon);
@@ -170,7 +172,8 @@ public class OrderApplicationServiceTest {
     }
 
     private OrderItemDto createOrderItemDto(Long productId, Long productVariantId, String productName, String thumbnailUrl,
-                                            int quantity, long originPrice, int discountRate){
+                                            int quantity, long originPrice, int discountRate,
+                                            List<OrderItemDto.ItemOption> itemOptions){
         long discountAmount = originPrice * discountRate / 100;
         return OrderItemDto.builder()
                 .productId(productId)
@@ -184,8 +187,8 @@ public class OrderApplicationServiceTest {
                                 .discountRate(discountRate)
                                 .discountAmount(discountAmount)
                                 .discountedPrice(originPrice - discountAmount)
-                                .build()
-                )
+                                .build())
+                .itemOptions(itemOptions)
                 .build();
     }
 }

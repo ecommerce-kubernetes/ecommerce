@@ -3,8 +3,9 @@ package com.example.order_service.api.order.domain;
 import com.example.order_service.api.common.exception.InsufficientException;
 import com.example.order_service.api.common.exception.OrderVerificationException;
 import com.example.order_service.api.order.application.dto.command.CreateOrderItemDto;
+import com.example.order_service.api.order.domain.model.vo.PriceCalculateResult;
 import com.example.order_service.api.order.domain.service.OrderPriceCalculator;
-import com.example.order_service.api.order.domain.service.dto.result.PriceCalculateResult;
+import com.example.order_service.api.order.domain.service.dto.result.ItemCalculationResult;
 import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponCalcResponse;
 import com.example.order_service.api.order.infrastructure.client.product.dto.OrderProductResponse;
 import com.example.order_service.api.order.infrastructure.client.user.dto.OrderUserResponse;
@@ -16,7 +17,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
 @ExtendWith(MockitoExtension.class)
 public class OrderPriceCalculatorTest {
@@ -24,8 +25,8 @@ public class OrderPriceCalculatorTest {
     private final OrderPriceCalculator calculator = new OrderPriceCalculator();
 
     @Test
-    @DisplayName("주문 상품의 총 가격을 계산한다 (할인된 상품 가격 * 주문 수량)")
-    void calculateSubTotalPrice() {
+    @DisplayName("주문 상품의 가격 정보를 계산한다")
+    void calculateItemAmounts() {
         //given
         CreateOrderItemDto item1 = CreateOrderItemDto.builder()
                 .productVariantId(1L)
@@ -44,9 +45,11 @@ public class OrderPriceCalculatorTest {
         List<CreateOrderItemDto> requestItems = List.of(item1, item2);
         List<OrderProductResponse> responseItems = List.of(product1, product2);
         //when
-        long subTotalPrice = calculator.calculateSubTotalPrice(requestItems, responseItems);
+        ItemCalculationResult result = calculator.calculateItemAmounts(requestItems, responseItems);
         //then
-        assertThat(subTotalPrice).isEqualTo(30600L);
+        assertThat(result)
+                .extracting("totalOriginalPrice", "totalProductDiscount", "subTotalPrice")
+                .contains(34000L, 3400L, 30600L);
     }
 
     @Test
@@ -63,13 +66,20 @@ public class OrderPriceCalculatorTest {
                 .couponName("1000원 할인 쿠폰")
                 .discountAmount(1000L)
                 .build();
+
+        ItemCalculationResult itemCalculationResult = ItemCalculationResult.builder()
+                .totalOriginalPrice(34000L)
+                .totalProductDiscount(3400L)
+                .subTotalPrice(30600L)
+                .build();
+
         //when
-        PriceCalculateResult result = calculator.calculateFinalPrice(1000, 30600L, 28600L, user, coupon);
+        PriceCalculateResult result = calculator.calculateFinalPrice(1000, itemCalculationResult, 28600L, user, coupon);
         //then
-        assertThat(result)
-                .extracting("subTotalPrice", "finalPaymentAmount", "useToPoint")
-                .contains(30600L, 28600L, 1000L);
-        assertThat(result.getCoupon())
+        assertThat(result.getPaymentInfo())
+                .extracting("totalOriginPrice", "totalProductDiscount", "couponDiscount", "usedPoint", "finalPaymentAmount")
+                .contains(34000L, 3400L, 1000L, 1000L, 28600L);
+        assertThat(result.getAppliedCoupon())
                 .extracting("couponId", "couponName", "discountAmount")
                 .contains(1L, "1000원 할인 쿠폰", 1000L);
     }
@@ -82,13 +92,19 @@ public class OrderPriceCalculatorTest {
                 .userId(1L)
                 .pointBalance(4000L)
                 .build();
+
+        ItemCalculationResult itemCalculationResult = ItemCalculationResult.builder()
+                .totalOriginalPrice(34000L)
+                .totalProductDiscount(3400L)
+                .subTotalPrice(30600L)
+                .build();
         //when
-        PriceCalculateResult result = calculator.calculateFinalPrice(1000, 30600L, 29600L, user, null);
+        PriceCalculateResult result = calculator.calculateFinalPrice(1000, itemCalculationResult, 29600L, user, null);
         //then
-        assertThat(result)
-                .extracting("subTotalPrice", "finalPaymentAmount", "useToPoint")
-                .contains(30600L, 29600L, 1000L);
-        assertThat(result.getCoupon()).isNull();
+        assertThat(result.getPaymentInfo())
+                .extracting("totalOriginPrice", "totalProductDiscount", "couponDiscount", "usedPoint", "finalPaymentAmount")
+                .contains(34000L, 3400L, 0L, 1000L, 29600L);
+        assertThat(result.getAppliedCoupon()).isNull();
     }
     
     @Test
@@ -99,9 +115,14 @@ public class OrderPriceCalculatorTest {
                 .userId(1L)
                 .pointBalance(100L)
                 .build();
+        ItemCalculationResult itemCalculationResult = ItemCalculationResult.builder()
+                .totalOriginalPrice(34000L)
+                .totalProductDiscount(3400L)
+                .subTotalPrice(30600L)
+                .build();
         //when
         //then
-        assertThatThrownBy(() -> calculator.calculateFinalPrice(1000, 30600L, 29600L, user, null))
+        assertThatThrownBy(() -> calculator.calculateFinalPrice(1000, itemCalculationResult, 29600L, user, null))
                 .isInstanceOf(InsufficientException.class)
                 .hasMessage("포인트가 부족합니다");
     }
@@ -114,9 +135,14 @@ public class OrderPriceCalculatorTest {
                 .userId(1L)
                 .pointBalance(1000L)
                 .build();
+        ItemCalculationResult itemCalculationResult = ItemCalculationResult.builder()
+                .totalOriginalPrice(34000L)
+                .totalProductDiscount(3400L)
+                .subTotalPrice(30600L)
+                .build();
         //when
         //then
-        assertThatThrownBy(() -> calculator.calculateFinalPrice(1000, 30600L, 29500L, user, null))
+        assertThatThrownBy(() -> calculator.calculateFinalPrice(1000, itemCalculationResult, 29500L, user, null))
                 .isInstanceOf(OrderVerificationException.class)
                 .hasMessage("주문 금액이 변동되었습니다");
     }
