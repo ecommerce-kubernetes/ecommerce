@@ -1,7 +1,9 @@
 package com.example.order_service.api.order.domain.model;
 
+import com.example.order_service.api.order.domain.model.vo.AppliedCoupon;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -19,4 +21,23 @@ public class Coupon {
     @OneToOne
     @JoinColumn(name = "order_id")
     private Order order;
+
+    @Builder
+    private Coupon(Long couponId, String couponName, Long discountAmount) {
+        this.couponId = couponId;
+        this.couponName = couponName;
+        this.discountAmount = discountAmount;
+    }
+
+    protected void setOrder(Order order){
+        this.order = order;
+    }
+
+    public static Coupon create(AppliedCoupon coupon){
+        return Coupon.builder()
+                .couponId(coupon.getCouponId())
+                .couponName(coupon.getCouponName())
+                .discountAmount(coupon.getDiscountAmount())
+                .build();
+    }
 }

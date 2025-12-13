@@ -1,9 +1,8 @@
-package com.example.order_service.api.order.domain;
+package com.example.order_service.api.order.domain.service;
 
 import com.example.order_service.api.order.domain.model.vo.AppliedCoupon;
 import com.example.order_service.api.order.domain.model.vo.PaymentInfo;
 import com.example.order_service.api.order.domain.model.vo.PriceCalculateResult;
-import com.example.order_service.api.order.domain.service.OrderDomainService;
 import com.example.order_service.api.order.domain.service.dto.command.OrderCreationContext;
 import com.example.order_service.api.order.domain.service.dto.command.OrderItemSpec;
 import com.example.order_service.api.order.domain.service.dto.result.OrderCreationResult;
