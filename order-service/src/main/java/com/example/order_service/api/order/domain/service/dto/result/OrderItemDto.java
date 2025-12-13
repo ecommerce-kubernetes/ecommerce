@@ -7,22 +7,26 @@ import java.util.List;
 
 @Getter
 public class OrderItemDto {
+    private Long orderItemId;
     private Long productId;
     private Long productVariantId;
     private String productName;
     private String thumbnailUrl;
     private int quantity;
+    private Long lineTotal;
     private UnitPrice unitPrice;
     private List<ItemOption> itemOptions;
 
     @Builder
-    private OrderItemDto(Long productId, Long productVariantId, String productName, String thumbnailUrl, int quantity,
-                         UnitPrice unitPrice, List<ItemOption> itemOptions){
+    private OrderItemDto(Long orderItemId, Long productId, Long productVariantId, String productName, String thumbnailUrl, int quantity,
+                         Long lineTotal, UnitPrice unitPrice, List<ItemOption> itemOptions){
+        this.orderItemId = orderItemId;
         this.productId = productId;
         this.productVariantId = productVariantId;
         this.productName = productName;
         this.thumbnailUrl = thumbnailUrl;
         this.quantity = quantity;
+        this.lineTotal = lineTotal;
         this.unitPrice = unitPrice;
         this.itemOptions = itemOptions;
     }

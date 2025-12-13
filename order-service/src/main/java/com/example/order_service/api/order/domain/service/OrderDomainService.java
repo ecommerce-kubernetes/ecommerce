@@ -1,5 +1,6 @@
 package com.example.order_service.api.order.domain.service;
 
+import com.example.order_service.api.order.domain.repository.OrderRepository;
 import com.example.order_service.api.order.domain.service.dto.command.OrderCreationContext;
 import com.example.order_service.api.order.domain.service.dto.result.OrderCreationResult;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Transactional(readOnly = true)
 public class OrderDomainService {
+    private final OrderRepository orderRepository;
 
     @Transactional
     public OrderCreationResult saveOrder(OrderCreationContext context){
