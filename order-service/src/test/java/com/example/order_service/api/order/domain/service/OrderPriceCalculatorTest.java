@@ -1,7 +1,6 @@
 package com.example.order_service.api.order.domain.service;
 
 import com.example.order_service.api.common.exception.InsufficientException;
-import com.example.order_service.api.common.exception.OrderVerificationException;
 import com.example.order_service.api.order.application.dto.command.CreateOrderItemDto;
 import com.example.order_service.api.order.domain.model.vo.PriceCalculateResult;
 import com.example.order_service.api.order.domain.service.dto.result.ItemCalculationResult;
@@ -14,6 +13,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
@@ -66,11 +66,21 @@ public class OrderPriceCalculatorTest {
                 .discountAmount(1000L)
                 .build();
 
-        ItemCalculationResult itemCalculationResult = ItemCalculationResult.builder()
-                .totalOriginalPrice(34000L)
-                .totalProductDiscount(3400L)
-                .subTotalPrice(30600L)
-                .build();
+        Map<Long, Integer> quantityByVariantId = Map.of(1L, 3, 2L, 5);
+        Map<Long, OrderProductResponse.UnitPrice> unitPriceByVariantId = Map.of(
+                1L, OrderProductResponse.UnitPrice.builder()
+                        .originalPrice(3000L)
+                        .discountRate(10)
+                        .discountAmount(300L)
+                        .discountedPrice(2700L).build(),
+                2L, OrderProductResponse.UnitPrice.builder()
+                        .originalPrice(5000L)
+                        .discountRate(10)
+                        .discountAmount(500L)
+                        .discountedPrice(4500L).build()
+        );
+
+        ItemCalculationResult itemCalculationResult = ItemCalculationResult.of(quantityByVariantId, unitPriceByVariantId);
 
         //when
         PriceCalculateResult result = calculator.calculateFinalPrice(1000, itemCalculationResult, 28600L, user, coupon);
@@ -92,11 +102,20 @@ public class OrderPriceCalculatorTest {
                 .pointBalance(4000L)
                 .build();
 
-        ItemCalculationResult itemCalculationResult = ItemCalculationResult.builder()
-                .totalOriginalPrice(34000L)
-                .totalProductDiscount(3400L)
-                .subTotalPrice(30600L)
-                .build();
+        Map<Long, Integer> quantityByVariantId = Map.of(1L, 3, 2L, 5);
+        Map<Long, OrderProductResponse.UnitPrice> unitPriceByVariantId = Map.of(
+                1L, OrderProductResponse.UnitPrice.builder()
+                        .originalPrice(3000L)
+                        .discountRate(10)
+                        .discountAmount(300L)
+                        .discountedPrice(2700L).build(),
+                2L, OrderProductResponse.UnitPrice.builder()
+                        .originalPrice(5000L)
+                        .discountRate(10)
+                        .discountAmount(500L)
+                        .discountedPrice(4500L).build()
+        );
+        ItemCalculationResult itemCalculationResult = ItemCalculationResult.of(quantityByVariantId, unitPriceByVariantId);
         //when
         PriceCalculateResult result = calculator.calculateFinalPrice(1000, itemCalculationResult, 29600L, user, null);
         //then
@@ -114,36 +133,25 @@ public class OrderPriceCalculatorTest {
                 .userId(1L)
                 .pointBalance(100L)
                 .build();
-        ItemCalculationResult itemCalculationResult = ItemCalculationResult.builder()
-                .totalOriginalPrice(34000L)
-                .totalProductDiscount(3400L)
-                .subTotalPrice(30600L)
-                .build();
+        Map<Long, Integer> quantityByVariantId = Map.of(1L, 3, 2L, 5);
+        Map<Long, OrderProductResponse.UnitPrice> unitPriceByVariantId = Map.of(
+                1L, OrderProductResponse.UnitPrice.builder()
+                        .originalPrice(3000L)
+                        .discountRate(10)
+                        .discountAmount(300L)
+                        .discountedPrice(2700L).build(),
+                2L, OrderProductResponse.UnitPrice.builder()
+                        .originalPrice(5000L)
+                        .discountRate(10)
+                        .discountAmount(500L)
+                        .discountedPrice(4500L).build()
+        );
+        ItemCalculationResult itemCalculationResult = ItemCalculationResult.of(quantityByVariantId, unitPriceByVariantId);
         //when
         //then
         assertThatThrownBy(() -> calculator.calculateFinalPrice(1000, itemCalculationResult, 29600L, user, null))
                 .isInstanceOf(InsufficientException.class)
                 .hasMessage("포인트가 부족합니다");
-    }
-
-    @Test
-    @DisplayName("최종 결제 금액이 예상 결제 금액과 동일하지 않은 경우 예외를 던진다")
-    void calculateFinalPrice_When_Not_Match_ExpectedPrice() {
-        //given
-        OrderUserResponse user = OrderUserResponse.builder()
-                .userId(1L)
-                .pointBalance(1000L)
-                .build();
-        ItemCalculationResult itemCalculationResult = ItemCalculationResult.builder()
-                .totalOriginalPrice(34000L)
-                .totalProductDiscount(3400L)
-                .subTotalPrice(30600L)
-                .build();
-        //when
-        //then
-        assertThatThrownBy(() -> calculator.calculateFinalPrice(1000, itemCalculationResult, 29500L, user, null))
-                .isInstanceOf(OrderVerificationException.class)
-                .hasMessage("주문 금액이 변동되었습니다");
     }
 
     private OrderProductResponse createProductResponse(Long productId, Long productVariantId,

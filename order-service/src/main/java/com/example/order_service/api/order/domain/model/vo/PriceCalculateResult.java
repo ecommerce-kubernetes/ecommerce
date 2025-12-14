@@ -1,5 +1,6 @@
 package com.example.order_service.api.order.domain.model.vo;
 
+import com.example.order_service.api.common.exception.OrderVerificationException;
 import com.example.order_service.api.order.domain.service.dto.result.ItemCalculationResult;
 import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponCalcResponse;
 import lombok.AccessLevel;
@@ -23,10 +24,16 @@ public class PriceCalculateResult {
                 .appliedCoupon(appliedCoupon)
                 .build();
     }
+    public static PriceCalculateResult of(ItemCalculationResult itemCalculationResult, OrderCouponCalcResponse coupon, long useToPoint,
+                                          long expectedPrice) {
+        long couponDiscount = coupon != null ? coupon.getDiscountAmount() : 0L;
+        long priceAfterCoupon = itemCalculationResult.getSubTotalPrice() - couponDiscount;
+        long finalPaymentPrice = priceAfterCoupon - useToPoint;
 
-    public static PriceCalculateResult of(ItemCalculationResult itemResult, OrderCouponCalcResponse coupon, long usedPoint,
-                                          long finalPaymentAmount){
-        long couponDiscount = (coupon != null) ? coupon.getDiscountAmount() : 0;
-        return of(PaymentInfo.from(itemResult, couponDiscount, usedPoint, finalPaymentAmount), AppliedCoupon.from(coupon));
+        if(finalPaymentPrice != expectedPrice) {
+            throw new OrderVerificationException("주문 금액이 변동되었습니다");
+        }
+
+        return PriceCalculateResult.of(PaymentInfo.from(itemCalculationResult, couponDiscount, useToPoint, finalPaymentPrice), AppliedCoupon.from(coupon));
     }
 }

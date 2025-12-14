@@ -20,31 +20,13 @@ public class OrderPriceCalculator {
     public ItemCalculationResult calculateItemAmounts(List<CreateOrderItemDto> items, List<OrderProductResponse> products) {
         Map<Long, Integer> quantityByVariantId = mapToQuantityByVariantId(items);
         Map<Long, OrderProductResponse.UnitPrice> unitPriceByVariantId = mapToUnitPriceByVariantId(products);
-        long totalOriginPrice = 0;
-        long totalProductDiscount = 0;
-        long subTotalPrice = 0;
-        for (Map.Entry<Long, Integer> entry : quantityByVariantId.entrySet()) {
-            Long productVariantId = entry.getKey();
-            OrderProductResponse.UnitPrice unitPrice = unitPriceByVariantId.get(productVariantId);
-
-            totalOriginPrice += unitPrice.getOriginalPrice() * entry.getValue();
-            totalProductDiscount += unitPrice.getDiscountAmount() * entry.getValue();
-            subTotalPrice += unitPrice.getDiscountedPrice() * entry.getValue();
-        }
-        return ItemCalculationResult.of(totalOriginPrice, totalProductDiscount, subTotalPrice);
+        return ItemCalculationResult.of(quantityByVariantId, unitPriceByVariantId);
     }
 
     public PriceCalculateResult calculateFinalPrice(long useToPoint, ItemCalculationResult itemCalculationResult, long expectedPrice,
                                                     OrderUserResponse user, OrderCouponCalcResponse coupon) {
         verifyEnoughPoints(useToPoint, user);
-        long couponDiscount = coupon != null ? coupon.getDiscountAmount() : 0L;
-        long priceAfterCoupon = itemCalculationResult.getSubTotalPrice() - couponDiscount;
-        long finalPaymentPrice = priceAfterCoupon - useToPoint;
-
-        if(finalPaymentPrice != expectedPrice) {
-            throw new OrderVerificationException("주문 금액이 변동되었습니다");
-        }
-        return PriceCalculateResult.of(itemCalculationResult, coupon, useToPoint, finalPaymentPrice);
+        return PriceCalculateResult.of(itemCalculationResult, coupon, useToPoint, expectedPrice);
     }
 
     private Map<Long, OrderProductResponse.UnitPrice> mapToUnitPriceByVariantId(List<OrderProductResponse> products) {

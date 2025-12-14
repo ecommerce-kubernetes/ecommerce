@@ -74,7 +74,7 @@ public class OrderItemTest {
         assertThat(orderItem)
                 .extracting("productId", "productVariantId", "productName", "originPrice", "discountRate",
                         "discountAmount", "discountedPrice", "lineTotal", "quantity", "thumbnail")
-                .contains(1L, 1L, "상품1", 3000L, 10, 300L, 2700L, 8100L, 3, "http://thumbnail.jpg");
+                .containsExactly(1L, 1L, "상품1", 3000L, 10, 300L, 2700L, 8100L, 3, "http://thumbnail.jpg");
         assertThat(orderItem.getItemOptions()).isEmpty();
     }
 }
