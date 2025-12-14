@@ -4,7 +4,6 @@ import com.example.order_service.api.common.entity.BaseEntity;
 import com.example.order_service.api.common.exception.OrderVerificationException;
 import com.example.order_service.api.order.domain.service.dto.command.OrderCreationContext;
 import com.example.order_service.api.order.domain.service.dto.command.OrderItemSpec;
-import com.example.order_service.api.order.domain.service.dto.result.OrderItemDto;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -36,7 +35,7 @@ public class Order extends BaseEntity {
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "order", cascade = CascadeType.PERSIST, orphanRemoval = true)
     private List<OrderItem> orderItems = new ArrayList<>();
 
-    @OneToOne(mappedBy = "order")
+    @OneToOne(mappedBy = "order", cascade = CascadeType.PERSIST, orphanRemoval = true)
     private Coupon coupon;
 
     @Builder(access = AccessLevel.PRIVATE)

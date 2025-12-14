@@ -1,5 +1,6 @@
 package com.example.order_service.api.order.domain.model.vo;
 
+import com.example.order_service.api.order.domain.model.Coupon;
 import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponCalcResponse;
 import lombok.Builder;
 import lombok.Getter;
@@ -27,6 +28,13 @@ public class AppliedCoupon {
 
     public static AppliedCoupon from(OrderCouponCalcResponse coupon) {
         if (coupon == null) {
+            return null;
+        }
+        return of(coupon.getCouponId(), coupon.getCouponName(), coupon.getDiscountAmount());
+    }
+
+    public static AppliedCoupon from(Coupon coupon){
+        if(coupon == null) {
             return null;
         }
         return of(coupon.getCouponId(), coupon.getCouponName(), coupon.getDiscountAmount());

@@ -10,6 +10,7 @@ import com.example.order_service.api.support.ExcludeInfraServiceTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
@@ -24,6 +25,7 @@ public class OrderDomainServiceTest extends ExcludeInfraServiceTest {
 
     @Test
     @DisplayName("주문을 저장한다")
+    @Transactional
     void saveOrder(){
         //given
         long usedPoint = 1000L;
@@ -68,7 +70,7 @@ public class OrderDomainServiceTest extends ExcludeInfraServiceTest {
                             assertThat(item1.getUnitPrice())
                                     .extracting("originalPrice", "discountRate", "discountAmount", "discountedPrice")
                                     .contains(3000L, 10, 300L, 2700L);
-                            assertThat(item1.getItemOptions())
+                            assertThat(item1.getItemOptionDtos())
                                     .extracting("optionTypeName", "optionValueName")
                                     .containsExactlyInAnyOrder(
                                             tuple("사이즈", "XL")
@@ -81,11 +83,11 @@ public class OrderDomainServiceTest extends ExcludeInfraServiceTest {
                             assertThat(item2.getProductName()).isEqualTo("상품2");
                             assertThat(item2.getThumbnailUrl()).isEqualTo("http://thumbnail2.jpg");
                             assertThat(item2.getQuantity()).isEqualTo(5);
-                            assertThat(item2.getLineTotal()).isEqualTo(4500L);
+                            assertThat(item2.getLineTotal()).isEqualTo(22500L);
                             assertThat(item2.getUnitPrice())
                                     .extracting("originalPrice", "discountRate", "discountAmount", "discountedPrice")
                                     .contains(5000L, 10, 500L, 4500L);
-                            assertThat(item2.getItemOptions())
+                            assertThat(item2.getItemOptionDtos())
                                     .extracting("optionTypeName", "optionValueName")
                                     .containsExactlyInAnyOrder(
                                             tuple("용량", "256GB")
@@ -150,6 +152,7 @@ public class OrderDomainServiceTest extends ExcludeInfraServiceTest {
                                 .discountAmount(discountAmount)
                                 .discountedPrice(originalPrice - discountAmount)
                                 .build())
+                .quantity(quantity)
                 .lineTotal((originalPrice - discountAmount) * quantity)
                 .itemOptions(
                         optionMap.entrySet().stream().map(entry -> OrderItemSpec.ItemOption.builder()

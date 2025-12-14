@@ -1,5 +1,6 @@
 package com.example.order_service.api.order.domain.model.vo;
 
+import com.example.order_service.api.order.domain.model.Order;
 import com.example.order_service.api.order.domain.service.dto.result.ItemCalculationResult;
 import lombok.Builder;
 import lombok.Getter;
@@ -30,6 +31,10 @@ public class PaymentInfo {
                 .usedPoint(usedPoint)
                 .finalPaymentAmount(finalPaymentAmount)
                 .build();
+    }
+
+    public static PaymentInfo from(Order order){
+        return of(order.getTotalOriginPrice(), order.getTotalProductDiscount(), order.getCouponDiscount(), order.getPointDiscount(), order.getFinalPaymentAmount());
     }
 
     public static PaymentInfo from(ItemCalculationResult result, long couponDiscount, long usedPoint, long finalPaymentAmount) {

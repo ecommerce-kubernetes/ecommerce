@@ -59,7 +59,7 @@ public class OrderApplicationService {
                     OrderProductResponse product = productMap.get(item.getProductVariantId());
                     return OrderItemSpec.of(product, item.getQuantity());
                 }).toList();
-        return OrderCreationContext.of(null, null, null, null);
+        return OrderCreationContext.of(dto.getUserPrincipal().getUserId(), itemSpecs, priceResult, dto.getDeliveryAddress());
     }
 
 }

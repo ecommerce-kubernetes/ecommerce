@@ -11,7 +11,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class OrderItemTest {
 
     @Test
-    @DisplayName("주문 생성시 상품 옵션이 있는 경우 매핑되어 생성된다")
+    @DisplayName("주문 상품 생성시 상품 옵션이 있는 경우 매핑되어 생성된다")
     void createOrderItem(){
         //given
         OrderItemSpec.ItemOption itemOption = OrderItemSpec.ItemOption.builder()
@@ -50,7 +50,7 @@ public class OrderItemTest {
     }
 
     @Test
-    @DisplayName("주문 생성시 상품 옵션이 없는 경우 매핑하지 않은 객체를 생성한다")
+    @DisplayName("주문 상품 생성시 상품 옵션이 없는 경우 매핑하지 않은 객체를 생성한다")
     void createOrderItem_withoutOptions(){
         //given
         OrderItemSpec item = OrderItemSpec.builder()
