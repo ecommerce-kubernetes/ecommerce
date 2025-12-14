@@ -1,4 +1,4 @@
-package com.example.order_service.common;
+package com.example.order_service.api.common.util;
 
 public final class MessagePath {
     public static final String PRODUCT_VARIANT_NOT_FOUND = "notFound.productVariant";

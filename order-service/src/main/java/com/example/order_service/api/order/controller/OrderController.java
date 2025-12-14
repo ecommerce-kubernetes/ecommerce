@@ -1,6 +1,8 @@
 package com.example.order_service.api.order.controller;
 
+import com.example.order_service.api.common.dto.PageDto;
 import com.example.order_service.api.common.security.principal.UserPrincipal;
+import com.example.order_service.api.common.util.DomainType;
 import com.example.order_service.api.common.util.validator.PageableValidator;
 import com.example.order_service.api.common.util.validator.PageableValidatorFactory;
 import com.example.order_service.api.order.application.OrderApplicationService;
@@ -9,8 +11,6 @@ import com.example.order_service.api.order.application.dto.result.CreateOrderRes
 import com.example.order_service.api.order.application.dto.result.OrderResponse;
 import com.example.order_service.api.order.controller.dto.request.CreateOrderRequest;
 import com.example.order_service.api.order.domain.service.OrderDomainService;
-import com.example.order_service.api.common.dto.PageDto;
-import com.example.order_service.entity.DomainType;
 import lombok.RequiredArgsConstructor;
 import org.apache.http.HttpStatus;
 import org.springframework.data.domain.Pageable;

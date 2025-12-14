@@ -1,4 +1,4 @@
-package com.example.order_service.common;
+package com.example.order_service.api.common.util;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.MessageSource;

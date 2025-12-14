@@ -1,13 +1,13 @@
 package com.example.order_service.api.common.util.validator;
 
-import com.example.order_service.common.MessageSourceUtil;
-import com.example.order_service.entity.DomainType;
+import com.example.order_service.api.common.util.DomainType;
+import com.example.order_service.api.common.util.MessageSourceUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-import static com.example.order_service.common.MessagePath.NOT_SUPPORTED_DOMAIN;
+import static com.example.order_service.api.common.util.MessagePath.NOT_SUPPORTED_DOMAIN;
 
 @Component
 @RequiredArgsConstructor

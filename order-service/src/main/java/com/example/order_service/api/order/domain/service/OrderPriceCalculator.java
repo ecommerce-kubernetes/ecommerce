@@ -1,7 +1,6 @@
 package com.example.order_service.api.order.domain.service;
 
 import com.example.order_service.api.common.exception.InsufficientException;
-import com.example.order_service.api.common.exception.OrderVerificationException;
 import com.example.order_service.api.order.application.dto.command.CreateOrderItemDto;
 import com.example.order_service.api.order.domain.model.vo.PriceCalculateResult;
 import com.example.order_service.api.order.domain.service.dto.result.ItemCalculationResult;

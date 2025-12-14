@@ -1,5 +1,6 @@
 package com.example.order_service.docs.order;
 
+import com.example.order_service.api.common.util.DomainType;
 import com.example.order_service.api.common.util.validator.OrderPageableValidator;
 import com.example.order_service.api.common.util.validator.PageableValidatorFactory;
 import com.example.order_service.api.order.application.OrderApplicationService;
@@ -12,7 +13,6 @@ import com.example.order_service.api.order.controller.dto.request.CreateOrderIte
 import com.example.order_service.api.order.controller.dto.request.CreateOrderRequest;
 import com.example.order_service.api.order.domain.service.OrderDomainService;
 import com.example.order_service.docs.RestDocSupport;
-import com.example.order_service.entity.DomainType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
