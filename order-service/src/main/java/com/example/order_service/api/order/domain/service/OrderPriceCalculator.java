@@ -44,7 +44,7 @@ public class OrderPriceCalculator {
         if(finalPaymentPrice != expectedPrice) {
             throw new OrderVerificationException("주문 금액이 변동되었습니다");
         }
-        return PriceCalculateResult.from(itemCalculationResult, coupon, useToPoint, finalPaymentPrice);
+        return PriceCalculateResult.of(itemCalculationResult, coupon, useToPoint, finalPaymentPrice);
     }
 
     private Map<Long, OrderProductResponse.UnitPrice> mapToUnitPriceByVariantId(List<OrderProductResponse> products) {

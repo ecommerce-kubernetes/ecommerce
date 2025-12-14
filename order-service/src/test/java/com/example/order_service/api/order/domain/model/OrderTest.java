@@ -1,10 +1,10 @@
 package com.example.order_service.api.order.domain.model;
 
-import com.example.order_service.api.order.domain.model.vo.AppliedCoupon;
-import com.example.order_service.api.order.domain.model.vo.PaymentInfo;
 import com.example.order_service.api.order.domain.model.vo.PriceCalculateResult;
 import com.example.order_service.api.order.domain.service.dto.command.OrderCreationContext;
 import com.example.order_service.api.order.domain.service.dto.command.OrderItemSpec;
+import com.example.order_service.api.order.domain.service.dto.result.ItemCalculationResult;
+import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponCalcResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -23,9 +23,12 @@ public class OrderTest {
                 3, Map.of("사이즈", "XL"));
         OrderItemSpec orderItem2 = createOrderItemSpec(2L, 2L, "상품2", "http://thumbnail2.jpg", 5000L, 10, 5,
                 Map.of("용량", "256GB"));
-        PaymentInfo paymentInfo = createPaymentInfo(34000L, 3400L, 1000L, 1000L, 28600L);
-        AppliedCoupon appliedCoupon = createAppliedCoupon(1L, "1000원 할인 쿠폰", 1000L);
-        PriceCalculateResult priceCalculateResult = createPriceCalculateResult(paymentInfo, appliedCoupon);
+        OrderCouponCalcResponse coupon = OrderCouponCalcResponse.builder()
+                .couponId(1L)
+                .couponName("1000원 할인 쿠폰")
+                .discountAmount(1000L)
+                .build();
+        PriceCalculateResult priceCalculateResult = createPriceCalculateResult(List.of(orderItem1, orderItem2), coupon, 1000L);
         OrderCreationContext orderCreationContext = createOrderCreationContext(1L, List.of(orderItem1, orderItem2), priceCalculateResult, "서울시 테헤란로 123");
         //when
         Order order = Order.create(orderCreationContext);
@@ -53,8 +56,7 @@ public class OrderTest {
                 3, Map.of("사이즈", "XL"));
         OrderItemSpec orderItem2 = createOrderItemSpec(2L, 2L, "상품2", "http://thumbnail2.jpg", 5000L, 10, 5,
                 Map.of("용량", "256GB"));
-        PaymentInfo paymentInfo = createPaymentInfo(34000L, 3400L, 0L, 1000L, 28600L);
-        PriceCalculateResult priceCalculateResult = createPriceCalculateResult(paymentInfo, null);
+        PriceCalculateResult priceCalculateResult = createPriceCalculateResult(List.of(orderItem1, orderItem2), null, 1000L);
         OrderCreationContext orderCreationContext = createOrderCreationContext(1L, List.of(orderItem1, orderItem2), priceCalculateResult, "서울시 테헤란로 123");
         //when
         Order order = Order.create(orderCreationContext);
@@ -62,7 +64,7 @@ public class OrderTest {
         assertThat(order).
                 extracting("userId", "status", "orderName", "deliveryAddress", "totalOriginPrice", "totalProductDiscount", "couponDiscount",
                         "pointDiscount", "finalPaymentAmount")
-                .contains(1L, OrderStatus.PENDING, "상품1 외 1건", "서울시 테헤란로 123", 34000L, 3400L, 1000L, 1000L, 28600L);
+                .contains(1L, OrderStatus.PENDING, "상품1 외 1건", "서울시 테헤란로 123", 34000L, 3400L, 0L, 1000L, 29600L);
         assertThat(order.getCoupon()).isNull();
 
 
@@ -70,30 +72,21 @@ public class OrderTest {
                 .allSatisfy(orderItem -> assertThat(orderItem.getOrder()).isEqualTo(order));
     }
 
-    private AppliedCoupon createAppliedCoupon(Long couponId, String couponName, long discountAmount){
-        return AppliedCoupon.builder()
-                .couponId(couponId)
-                .couponName(couponName)
-                .discountAmount(discountAmount)
-                .build();
-    }
+    private PriceCalculateResult createPriceCalculateResult(List<OrderItemSpec> orderItemSpecs, OrderCouponCalcResponse coupon,
+                                                            Long usedPoint){
+        long totalOriginPrice = orderItemSpecs.stream()
+                .mapToLong(item -> item.getUnitPrice().getOriginalPrice() * item.getQuantity()).sum();
+        long totalProductDiscount = orderItemSpecs.stream()
+                .mapToLong(item -> item.getUnitPrice().getDiscountAmount() * item.getQuantity()).sum();
+        long finalPaymentAmount = totalOriginPrice - totalProductDiscount - (coupon != null ? coupon.getDiscountAmount() : 0L) - usedPoint;
 
-    private PaymentInfo createPaymentInfo(long totalOriginPrice, long totalProductDiscount, long couponDiscount, long usedPoint,
-                                          long finalPaymentPrice){
-        return PaymentInfo.builder()
-                .totalOriginPrice(totalOriginPrice)
+        ItemCalculationResult itemCalcResult = ItemCalculationResult.builder()
+                .totalOriginalPrice(totalOriginPrice)
                 .totalProductDiscount(totalProductDiscount)
-                .couponDiscount(couponDiscount)
-                .usedPoint(usedPoint)
-                .finalPaymentAmount(finalPaymentPrice)
+                .subTotalPrice(totalOriginPrice - totalProductDiscount)
                 .build();
-    }
 
-    private PriceCalculateResult createPriceCalculateResult(PaymentInfo paymentInfo, AppliedCoupon coupon){
-        return PriceCalculateResult.builder()
-                .paymentInfo(paymentInfo)
-                .appliedCoupon(coupon)
-                .build();
+        return PriceCalculateResult.of(itemCalcResult, coupon, usedPoint, finalPaymentAmount);
     }
 
     private OrderCreationContext createOrderCreationContext(Long userId, List<OrderItemSpec> itemSpecs, PriceCalculateResult priceCalculateResult,
@@ -123,6 +116,7 @@ public class OrderTest {
                                 .discountedPrice(originalPrice - discountAmount)
                                 .build())
                 .lineTotal((originalPrice - discountAmount) * quantity)
+                .quantity(quantity)
                 .itemOptions(
                         optionMap.entrySet().stream().map(entry -> OrderItemSpec.ItemOption.builder()
                                 .optionTypeName(entry.getKey())
