@@ -5,6 +5,7 @@ import com.example.order_service.api.common.security.principal.UserPrincipal;
 import com.example.order_service.api.order.application.dto.command.CreateOrderDto;
 import com.example.order_service.api.order.application.dto.command.CreateOrderItemDto;
 import com.example.order_service.api.order.application.dto.result.CreateOrderResponse;
+import com.example.order_service.api.order.application.event.OrderCreatedEvent;
 import com.example.order_service.api.order.domain.model.vo.AppliedCoupon;
 import com.example.order_service.api.order.domain.model.vo.PaymentInfo;
 import com.example.order_service.api.order.domain.service.OrderDomainService;
@@ -19,10 +20,12 @@ import com.example.order_service.api.order.infrastructure.client.user.dto.OrderU
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -30,6 +33,8 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 public class OrderApplicationServiceTest {
@@ -40,6 +45,8 @@ public class OrderApplicationServiceTest {
     private OrderIntegrationService orderIntegrationService;
     @Mock
     private OrderDomainService orderDomainService;
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
     @Spy
     private OrderPriceCalculator calculator;
 
@@ -75,7 +82,7 @@ public class OrderApplicationServiceTest {
                 List.of(OrderItemDto.ItemOptionDto.builder().optionTypeName("용량").optionValueName("256GB").build()));
         AppliedCoupon appliedCoupon = createAppliedCoupon(1L, "1000원 할인 쿠폰");
         PaymentInfo paymentInfo = createPaymentInfo(34000, 3400, 1000, 1000, 28600);
-        OrderCreationResult orderCreationResult = createOrderCreationResult("상품1 외 1건",paymentInfo, List.of(savedProduct1, savedProduct2), appliedCoupon);
+        OrderCreationResult orderCreationResult = createOrderCreationResult(1L, "상품1 외 1건", "서울시 테헤란로 123", paymentInfo, List.of(savedProduct1, savedProduct2), appliedCoupon);
 
         given(orderIntegrationService.getOrderUser(any(UserPrincipal.class))).willReturn(user);
         given(orderIntegrationService.getOrderProducts(anyList()))
@@ -92,6 +99,15 @@ public class OrderApplicationServiceTest {
                 .extracting("status", "orderName", "finalPaymentAmount")
                 .contains("PENDING", "상품1 외 1건", 28600L);
         assertThat(response.getCreateAt()).isNotNull();
+
+        ArgumentCaptor<OrderCreatedEvent> captor = ArgumentCaptor.forClass(OrderCreatedEvent.class);
+        verify(eventPublisher, times(1)).publishEvent(captor.capture());
+
+        OrderCreatedEvent publishedEvent = captor.getValue();
+        assertThat(publishedEvent.getUserId()).isEqualTo(1L);
+        assertThat(publishedEvent.getOrderedVariantIds())
+                .hasSize(2)
+                .contains(1L, 2L);
     }
 
     private CreateOrderDto createOrderDto(UserPrincipal userPrincipal, String deliveryAddress, Long couponId, Long pointToUse,
@@ -141,11 +157,13 @@ public class OrderApplicationServiceTest {
                 .build();
     }
 
-    private OrderCreationResult createOrderCreationResult(String orderName, PaymentInfo paymentInfo, List<OrderItemDto> orderItemDtoList, AppliedCoupon appliedCoupon){
+    private OrderCreationResult createOrderCreationResult(Long userId, String orderName, String deliveryAddress, PaymentInfo paymentInfo, List<OrderItemDto> orderItemDtoList, AppliedCoupon appliedCoupon){
         return OrderCreationResult.builder()
                 .orderId(1L)
+                .userId(userId)
                 .status("PENDING")
                 .orderName(orderName)
+                .deliveryAddress(deliveryAddress)
                 .orderedAt(LocalDateTime.now())
                 .paymentInfo(paymentInfo)
                 .orderItemDtoList(orderItemDtoList)

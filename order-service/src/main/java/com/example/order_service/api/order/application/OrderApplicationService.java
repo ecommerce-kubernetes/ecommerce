@@ -2,6 +2,7 @@ package com.example.order_service.api.order.application;
 
 import com.example.order_service.api.order.application.dto.command.CreateOrderDto;
 import com.example.order_service.api.order.application.dto.result.CreateOrderResponse;
+import com.example.order_service.api.order.application.event.OrderCreatedEvent;
 import com.example.order_service.api.order.domain.model.vo.PriceCalculateResult;
 import com.example.order_service.api.order.domain.service.OrderDomainService;
 import com.example.order_service.api.order.domain.service.OrderPriceCalculator;
@@ -14,6 +15,7 @@ import com.example.order_service.api.order.infrastructure.client.coupon.dto.Orde
 import com.example.order_service.api.order.infrastructure.client.product.dto.OrderProductResponse;
 import com.example.order_service.api.order.infrastructure.client.user.dto.OrderUserResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -28,6 +30,7 @@ public class OrderApplicationService {
     private final OrderIntegrationService orderIntegrationService;
     private final OrderPriceCalculator calculator;
     private final OrderDomainService orderDomainService;
+    private final ApplicationEventPublisher eventPublisher;
 
     public CreateOrderResponse createOrder(CreateOrderDto dto){
         //주문 유저 조회
@@ -44,6 +47,7 @@ public class OrderApplicationService {
         OrderCreationContext creationContext =
                 createCreationContext(dto, user, products, priceResult);
         OrderCreationResult orderCreationResult = orderDomainService.saveOrder(creationContext);
+        eventPublisher.publishEvent(OrderCreatedEvent.from(orderCreationResult));
         return CreateOrderResponse.of(orderCreationResult);
     }
 
