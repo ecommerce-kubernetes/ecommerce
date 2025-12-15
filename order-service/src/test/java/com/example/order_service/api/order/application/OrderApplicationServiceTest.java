@@ -31,6 +31,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
@@ -104,10 +105,17 @@ public class OrderApplicationServiceTest {
         verify(eventPublisher, times(1)).publishEvent(captor.capture());
 
         OrderCreatedEvent publishedEvent = captor.getValue();
-        assertThat(publishedEvent.getUserId()).isEqualTo(1L);
-        assertThat(publishedEvent.getOrderedVariantIds())
+        assertThat(publishedEvent)
+                .extracting("orderId", "userId", "couponId", "usedPoint")
+                .containsExactly(1L, 1L, 1L, 1000L);
+
+        assertThat(publishedEvent.getOrderedItems())
                 .hasSize(2)
-                .contains(1L, 2L);
+                .extracting("productVariantId", "quantity")
+                .containsExactlyInAnyOrder(
+                        tuple(1L, 3),
+                        tuple(2L, 5)
+                );
     }
 
     private CreateOrderDto createOrderDto(UserPrincipal userPrincipal, String deliveryAddress, Long couponId, Long pointToUse,

@@ -10,24 +10,48 @@ import java.util.List;
 
 @Getter
 public class OrderCreatedEvent {
+    private Long orderId;
     private Long userId;
-    private List<Long> orderedVariantIds;
+    private Long couponId;
+    private List<OrderedItem> orderedItems;
+    private Long usedPoint;
 
-    @Builder(access = AccessLevel.PRIVATE)
-    private OrderCreatedEvent(Long userId, List<Long> orderedVariantIds) {
+    @Builder
+    private OrderCreatedEvent(Long orderId, Long userId, Long couponId, List<OrderedItem> orderedItems, Long usedPoint) {
+        this.orderId = orderId;
         this.userId = userId;
-        this.orderedVariantIds = orderedVariantIds;
+        this.couponId = couponId;
+        this.orderedItems = orderedItems;
+        this.usedPoint = usedPoint;
     }
 
-    private static OrderCreatedEvent of(Long userId, List<Long> orderedVariantIds) {
+    @Builder
+    @Getter
+    public static class OrderedItem {
+        private Long productVariantId;
+        private Integer quantity;
+
+        private static OrderedItem from(OrderItemDto orderItemDto){
+            return OrderedItem.builder()
+                    .productVariantId(orderItemDto.getProductVariantId())
+                    .quantity(orderItemDto.getQuantity())
+                    .build();
+        }
+    }
+
+    private static OrderCreatedEvent of(Long orderId, Long userId, Long couponId, List<OrderedItem> orderedItems,
+                                        Long usedPoint) {
         return OrderCreatedEvent.builder()
+                .orderId(orderId)
                 .userId(userId)
-                .orderedVariantIds(orderedVariantIds)
+                .couponId(couponId)
+                .orderedItems(orderedItems)
+                .usedPoint(usedPoint)
                 .build();
     }
 
     public static OrderCreatedEvent from(OrderCreationResult result) {
-        List<Long> orderedVariantIds = result.getOrderItemDtoList().stream().map(OrderItemDto::getProductVariantId).toList();
-        return of(result.getUserId(), orderedVariantIds);
+        List<OrderedItem> orderedItems = result.getOrderItemDtoList().stream().map(OrderedItem::from).toList();
+        return of(result.getOrderId(), result.getUserId(), result.getAppliedCoupon().getCouponId(), orderedItems, result.getPaymentInfo().getUsedPoint());
     }
 }
