@@ -14,6 +14,7 @@ public class SagaStartCommand {
     private List<DeductProduct> deductProductList;
     private Long usedPoint;
 
+    @Getter
     public static class DeductProduct {
         private Long productVariantId;
         private Integer quantity;
