@@ -4,7 +4,7 @@ import com.example.order_service.api.cart.infrastructure.client.dto.CartProductR
 import com.example.order_service.api.common.exception.NotFoundException;
 import com.example.order_service.api.common.exception.server.InternalServerException;
 import com.example.order_service.api.common.exception.server.UnavailableServiceException;
-import com.example.order_service.api.support.ExcludeInfraServiceTest;
+import com.example.order_service.api.support.ExcludeInfraTest;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -19,7 +19,7 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
 
-public class CartProductClientServiceTest extends ExcludeInfraServiceTest {
+public class CartProductClientTest extends ExcludeInfraTest {
 
     @Autowired
     private CartProductClientService cartProductClientService;

@@ -4,7 +4,7 @@ import com.example.order_service.api.order.saga.domain.model.Progress;
 import com.example.order_service.api.order.saga.domain.model.Step;
 import com.example.order_service.api.order.saga.domain.model.vo.Payload;
 import com.example.order_service.api.order.saga.domain.service.dto.SagaInstanceDto;
-import com.example.order_service.api.support.ExcludeInfraServiceTest;
+import com.example.order_service.api.support.ExcludeInfraTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +14,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
-public class OrderSagaDomainServiceTest extends ExcludeInfraServiceTest {
+public class OrderSagaDomainTest extends ExcludeInfraTest {
 
     @Autowired
     private OrderSagaDomainService orderSagaDomainService;

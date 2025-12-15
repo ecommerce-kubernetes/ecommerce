@@ -4,7 +4,7 @@ import com.example.order_service.api.common.exception.NotFoundException;
 import com.example.order_service.api.common.exception.server.InternalServerException;
 import com.example.order_service.api.common.exception.server.UnavailableServiceException;
 import com.example.order_service.api.order.infrastructure.client.user.dto.OrderUserResponse;
-import com.example.order_service.api.support.ExcludeInfraServiceTest;
+import com.example.order_service.api.support.ExcludeInfraTest;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -17,7 +17,7 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
 
-public class OrderUserClientServiceTest extends ExcludeInfraServiceTest {
+public class OrderUserClientTest extends ExcludeInfraTest {
 
     @Autowired
     private OrderUserClientService orderUserClientService;

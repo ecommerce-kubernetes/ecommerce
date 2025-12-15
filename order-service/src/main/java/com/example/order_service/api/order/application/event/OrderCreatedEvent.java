@@ -2,7 +2,6 @@ package com.example.order_service.api.order.application.event;
 
 import com.example.order_service.api.order.domain.service.dto.result.OrderCreationResult;
 import com.example.order_service.api.order.domain.service.dto.result.OrderItemDto;
-import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 

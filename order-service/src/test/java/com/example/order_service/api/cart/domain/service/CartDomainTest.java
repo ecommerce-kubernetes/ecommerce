@@ -6,7 +6,7 @@ import com.example.order_service.api.cart.domain.repository.CartsRepository;
 import com.example.order_service.api.cart.domain.service.dto.CartItemDto;
 import com.example.order_service.api.common.exception.NoPermissionException;
 import com.example.order_service.api.common.exception.NotFoundException;
-import com.example.order_service.api.support.ExcludeInfraServiceTest;
+import com.example.order_service.api.support.ExcludeInfraTest;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -19,7 +19,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.*;
 
 @Transactional
-class CartDomainServiceTest extends ExcludeInfraServiceTest {
+class CartDomainTest extends ExcludeInfraTest {
     @Autowired
     private CartDomainService cartDomainService;
     @Autowired

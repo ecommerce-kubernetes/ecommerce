@@ -7,7 +7,7 @@ import com.example.order_service.api.order.domain.service.dto.result.ItemCalcula
 import com.example.order_service.api.order.domain.service.dto.result.OrderCreationResult;
 import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponCalcResponse;
 import com.example.order_service.api.order.infrastructure.client.product.dto.OrderProductResponse;
-import com.example.order_service.api.support.ExcludeInfraServiceTest;
+import com.example.order_service.api.support.ExcludeInfraTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
-public class OrderDomainServiceTest extends ExcludeInfraServiceTest {
+public class OrderDomainTest extends ExcludeInfraTest {
 
     @Autowired
     private OrderDomainService orderDomainService;

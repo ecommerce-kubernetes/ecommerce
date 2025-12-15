@@ -1,7 +1,7 @@
 package com.example.order_service.api.order.infrastructure.client.coupon;
 
 import com.example.order_service.api.common.exception.server.UnavailableServiceException;
-import com.example.order_service.api.support.ExcludeInfraServiceTest;
+import com.example.order_service.api.support.ExcludeInfraTest;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
@@ -18,7 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @AutoConfigureWireMock(port = 0)
-public class OrderCouponClientServiceCircuitBreakerTest extends ExcludeInfraServiceTest {
+public class OrderCouponClientCircuitBreakerTest extends ExcludeInfraTest {
 
     @Autowired
     private OrderCouponClientService orderCouponClientService;

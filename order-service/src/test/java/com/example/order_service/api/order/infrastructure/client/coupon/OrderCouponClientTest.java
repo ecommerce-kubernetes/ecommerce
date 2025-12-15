@@ -5,7 +5,7 @@ import com.example.order_service.api.common.exception.server.InternalServerExcep
 import com.example.order_service.api.common.exception.server.UnavailableServiceException;
 import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponCalcRequest;
 import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponCalcResponse;
-import com.example.order_service.api.support.ExcludeInfraServiceTest;
+import com.example.order_service.api.support.ExcludeInfraTest;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -18,7 +18,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
 
-public class OrderCouponClientServiceTest extends ExcludeInfraServiceTest {
+public class OrderCouponClientTest extends ExcludeInfraTest {
 
     @Autowired
     private OrderCouponClientService orderCouponClientService;
