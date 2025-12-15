@@ -1,7 +1,11 @@
 package com.example.order_service.api.order.saga.orchestrator;
 
+import com.example.order_service.api.order.saga.domain.model.Progress;
+import com.example.order_service.api.order.saga.domain.model.Step;
 import com.example.order_service.api.order.saga.domain.model.vo.Payload;
 import com.example.order_service.api.order.saga.domain.service.OrderSagaDomainService;
+import com.example.order_service.api.order.saga.domain.service.OrderSagaDomainServiceTest;
+import com.example.order_service.api.order.saga.domain.service.dto.SagaInstanceDto;
 import com.example.order_service.api.order.saga.infrastructure.SagaEventProducer;
 import com.example.order_service.api.order.saga.orchestrator.dto.command.SagaStartCommand;
 import org.junit.jupiter.api.DisplayName;
@@ -16,6 +20,8 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -31,9 +37,10 @@ public class SagaManagerTest {
     private OrderSagaDomainService orderSagaDomainService;
 
     @Test
-    @DisplayName("")
+    @DisplayName("Saga 시작 시 인스턴스를 저장하고 재고 차감 요청 이벤트를 발행한다")
     void startSaga() {
         //given
+        Long sagaId = 1L;
         SagaStartCommand.DeductProduct deductProduct1 = SagaStartCommand.DeductProduct.builder()
                 .productVariantId(1L)
                 .quantity(3)
@@ -50,6 +57,17 @@ public class SagaManagerTest {
                 .deductProductList(List.of(deductProduct1, deductProduct2))
                 .usedPoint(1000L)
                 .build();
+
+        SagaInstanceDto sagaInstanceDto = SagaInstanceDto.builder()
+                .id(sagaId)
+                .orderId(1L)
+                .step(Step.PRODUCT.name())
+                .progress(Progress.STARTED.name())
+                .payload(Payload.from(command)).build();
+
+        given(orderSagaDomainService.saveOrderSagaInstance(anyLong(), any(Payload.class)))
+                .willReturn(sagaInstanceDto);
+
         //when
         sagaManager.startSaga(command);
         //then
@@ -69,5 +87,10 @@ public class SagaManagerTest {
                         tuple(1L, 3),
                         tuple(2L, 5)
                 );
+
+        verify(sagaEventProducer).requestInventoryDeduction(
+                eq(sagaId),
+                refEq(sagaInstanceDto.getPayload())
+        );
     }
 }

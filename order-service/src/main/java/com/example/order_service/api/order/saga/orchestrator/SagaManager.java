@@ -16,8 +16,8 @@ public class SagaManager {
     private final SagaEventProducer sagaEventProducer;
     public void startSaga(SagaStartCommand command) {
         Payload payload = Payload.from(command);
-
         SagaInstanceDto sagaInstanceDto = orderSagaDomainService.saveOrderSagaInstance(command.getOrderId(), payload);
+        sagaEventProducer.requestInventoryDeduction(sagaInstanceDto.getId(), sagaInstanceDto.getPayload());
     }
 
 }

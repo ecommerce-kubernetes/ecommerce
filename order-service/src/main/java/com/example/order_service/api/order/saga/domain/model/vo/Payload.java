@@ -29,6 +29,9 @@ public class Payload {
 
     @Builder
     private Payload(Long userId, List<SagaItem> sagaItems, Long couponId, Long useToPoint){
+        if(sagaItems == null || sagaItems.isEmpty()) {
+            throw new IllegalArgumentException("Saga Item은 하나 이상이여야 합니다");
+        }
         this.userId = userId;
         this.sagaItems = sagaItems;
         this.couponId = couponId;
