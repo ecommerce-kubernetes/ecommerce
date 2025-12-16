@@ -21,4 +21,8 @@ public class OrderSagaDomainService {
         OrderSagaInstance savedSagaInstance = orderSagaInstanceRepository.save(sagaInstance);
         return SagaInstanceDto.from(savedSagaInstance);
     }
+
+    public SagaInstanceDto getOrderSagaInstance(Long sagaId){
+        return null;
+    }
 }

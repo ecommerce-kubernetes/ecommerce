@@ -93,7 +93,7 @@ dependencies {
     testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
 
     //kafka module
-    implementation 'com.github.ecommerce-kubernetes:common-dto:2.0.6'
+    implementation 'com.github.ecommerce-kubernetes:common-dto:3.0.2'
 
 	testImplementation 'com.h2database:h2'
 

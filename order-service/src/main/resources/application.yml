@@ -11,3 +11,11 @@ resilience4j:
           - com.example.order_service.api.common.exception.server.InternalServerException
         ignoreExceptions:
           - com.example.order_service.api.common.exception.NotFoundException
+
+order:
+  topics:
+    # 발행
+    deduct-inventory: "order.saga.inventory.deduct"
+
+    # 수신
+    product-result: "product.saga.result"

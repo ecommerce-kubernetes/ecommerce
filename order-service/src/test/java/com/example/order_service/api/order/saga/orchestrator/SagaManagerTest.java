@@ -5,7 +5,7 @@ import com.example.order_service.api.order.saga.domain.model.Step;
 import com.example.order_service.api.order.saga.domain.model.vo.Payload;
 import com.example.order_service.api.order.saga.domain.service.OrderSagaDomainService;
 import com.example.order_service.api.order.saga.domain.service.dto.SagaInstanceDto;
-import com.example.order_service.api.order.saga.infrastructure.SagaEventProducer;
+import com.example.order_service.api.order.saga.infrastructure.kafka.producer.SagaEventProducer;
 import com.example.order_service.api.order.saga.orchestrator.dto.command.SagaStartCommand;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -89,6 +89,7 @@ public class SagaManagerTest {
 
         verify(sagaEventProducer).requestInventoryDeduction(
                 eq(sagaId),
+                eq(sagaInstanceDto.getId()),
                 refEq(sagaInstanceDto.getPayload())
         );
     }

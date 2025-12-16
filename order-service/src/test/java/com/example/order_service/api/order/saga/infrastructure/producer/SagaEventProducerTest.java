@@ -1,8 +1,9 @@
-package com.example.order_service.api.order.saga.infrastructure;
+package com.example.order_service.api.order.saga.infrastructure.producer;
 
+import com.example.common.InventoryDeductRequest;
 import com.example.order_service.api.order.saga.domain.model.vo.Payload;
+import com.example.order_service.api.order.saga.infrastructure.kafka.producer.SagaEventProducer;
 import com.example.order_service.api.support.IncludeInfraTest;
-import com.fasterxml.jackson.core.type.TypeReference;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.junit.jupiter.api.DisplayName;
@@ -27,6 +28,7 @@ public class SagaEventProducerTest extends IncludeInfraTest {
     void requestInventoryDeduction() throws IOException {
         //given
         Long sagaId = 1L;
+        Long orderId = 1L;
         Payload payload = Payload.builder()
                 .userId(1L)
                 .sagaItems(List.of(Payload.SagaItem.builder().productVariantId(1L).quantity(3).build()))
@@ -34,16 +36,16 @@ public class SagaEventProducerTest extends IncludeInfraTest {
 
         Consumer<String, String> consumer = createTestConsumer(INVENTORY_DEDUCTED_TOPIC_NAME);
         //when
-        sagaEventProducer.requestInventoryDeduction(sagaId, payload);
+        sagaEventProducer.requestInventoryDeduction(sagaId, orderId, payload);
         //then
         ConsumerRecord<String, String> record = KafkaTestUtils.getSingleRecord(consumer, INVENTORY_DEDUCTED_TOPIC_NAME, Duration.ofMillis(5000L));
         assertThat(record.key()).isEqualTo(String.valueOf(sagaId));
-        List<Payload.SagaItem> items = objectMapper.readValue(
-                record.value(),
-                new TypeReference<>() {}
-        );
-        assertThat(items).hasSize(1);
-        assertThat(items)
+        InventoryDeductRequest message = objectMapper.readValue(record.value(), InventoryDeductRequest.class);
+        assertThat(message)
+                .extracting("sagaId", "orderId", "userId")
+                        .containsExactly(1L, 1L, 1L);
+        assertThat(message.getItems()).hasSize(1);
+        assertThat(message.getItems())
                 .extracting("productVariantId", "quantity")
                 .containsExactlyInAnyOrder(
                         tuple(1L, 3)
