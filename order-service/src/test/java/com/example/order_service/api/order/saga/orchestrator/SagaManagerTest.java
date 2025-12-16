@@ -1,7 +1,7 @@
 package com.example.order_service.api.order.saga.orchestrator;
 
-import com.example.order_service.api.order.saga.domain.model.Progress;
-import com.example.order_service.api.order.saga.domain.model.Step;
+import com.example.order_service.api.order.saga.domain.model.SagaProgress;
+import com.example.order_service.api.order.saga.domain.model.SagaStep;
 import com.example.order_service.api.order.saga.domain.model.vo.Payload;
 import com.example.order_service.api.order.saga.domain.service.OrderSagaDomainService;
 import com.example.order_service.api.order.saga.domain.service.dto.SagaInstanceDto;
@@ -60,8 +60,8 @@ public class SagaManagerTest {
         SagaInstanceDto sagaInstanceDto = SagaInstanceDto.builder()
                 .id(sagaId)
                 .orderId(1L)
-                .step(Step.PRODUCT.name())
-                .progress(Progress.STARTED.name())
+                .step(SagaStep.PRODUCT.name())
+                .progress(SagaProgress.STARTED.name())
                 .payload(Payload.from(command)).build();
 
         given(orderSagaDomainService.saveOrderSagaInstance(anyLong(), any(Payload.class)))
@@ -92,5 +92,14 @@ public class SagaManagerTest {
                 eq(sagaInstanceDto.getId()),
                 refEq(sagaInstanceDto.getPayload())
         );
+    }
+
+    //TODO sagaManager 테스트 작성
+    @Test
+    @DisplayName("")
+    void proceedToCoupon(){
+        //given
+        //when
+        //then
     }
 }

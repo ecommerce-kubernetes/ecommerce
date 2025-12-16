@@ -27,7 +27,7 @@ public class OrderEventSagaListenerTest {
     private SagaManager sagaManager;
 
     @Test
-    @DisplayName("")
+    @DisplayName("주문 생성 이벤트를 수신하면 SAGA 를 수행한다")
     void handleOrderCreated() {
         //given
         OrderCreatedEvent.OrderedItem item1 = OrderCreatedEvent.OrderedItem.builder()

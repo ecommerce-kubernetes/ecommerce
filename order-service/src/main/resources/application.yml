@@ -16,6 +16,7 @@ order:
   topics:
     # 발행
     deduct-inventory: "order.saga.inventory.deduct"
-
+    used-coupon: "order.saga.coupon.used"
+    used-point: "order.saga.point.used"
     # 수신
     product-result: "product.saga.result"

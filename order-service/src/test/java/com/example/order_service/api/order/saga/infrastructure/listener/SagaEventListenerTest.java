@@ -18,7 +18,7 @@ public class SagaEventListenerTest extends IncludeInfraTest {
     private SagaManager sagaManager;
 
     @Test
-    @DisplayName("상품 재고감소 응답의 SagaStatus가 SUCCESS이면 쿠폰 saga를 진행한다")
+    @DisplayName("상품 재고감소 응답의 SagaStatus가 SUCCESS 면 쿠폰 saga를 진행한다")
     void handleProductResult_SUCCESS() {
         //given
         Long sagaId = 1L;

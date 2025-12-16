@@ -25,4 +25,12 @@ public class OrderSagaDomainService {
     public SagaInstanceDto getOrderSagaInstance(Long sagaId){
         return null;
     }
+
+    public SagaInstanceDto updateToCouponSagaInstance(Long sagaId) {
+        return null;
+    }
+
+    public SagaInstanceDto updateToPointSagaInstance(Long sagaId) {
+        return null;
+    }
 }

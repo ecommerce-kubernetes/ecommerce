@@ -22,7 +22,25 @@ public class SagaManager {
     }
 
     public void proceedToCoupon(Long sagaId){
+        SagaInstanceDto sagaInstanceDto = orderSagaDomainService.getOrderSagaInstance(sagaId);
+        if(sagaInstanceDto.getPayload().getCouponId() == null) {
+            proceedToUserPoint(sagaId);
+            return;
+        }
 
+        SagaInstanceDto instance = orderSagaDomainService.updateToCouponSagaInstance(sagaId);
+        sagaEventProducer.requestCouponUse(instance.getId(), instance.getOrderId(), instance.getPayload());
+    }
+
+    public void proceedToUserPoint(Long sagaId) {
+        SagaInstanceDto orderSagaInstance = orderSagaDomainService.getOrderSagaInstance(sagaId);
+        Long useToPoint = orderSagaInstance.getPayload().getUseToPoint();
+        if (useToPoint == null || useToPoint == 0) {
+            //TODO 사가 종료
+        }
+
+        SagaInstanceDto instance = orderSagaDomainService.updateToPointSagaInstance(sagaId);
+        sagaEventProducer.requestUserPointUse(instance.getId(), instance.getOrderId(), instance.getPayload());
     }
 
     public void abortSaga(Long sagaId, String failureReason){

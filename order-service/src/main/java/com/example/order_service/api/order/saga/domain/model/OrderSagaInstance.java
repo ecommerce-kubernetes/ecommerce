@@ -21,9 +21,9 @@ public class OrderSagaInstance {
     private Long id;
     private Long orderId;
     @Enumerated(EnumType.STRING)
-    private Step step;
+    private SagaStep sagaStep;
     @Enumerated(EnumType.STRING)
-    private Progress progress;
+    private SagaProgress sagaProgress;
     @Column(name = "payload", columnDefinition = "json")
     @JdbcTypeCode(SqlTypes.JSON)
     private Payload payload;
@@ -32,11 +32,11 @@ public class OrderSagaInstance {
     private LocalDateTime finishedAt;
 
     @Builder(access = AccessLevel.PRIVATE)
-    private OrderSagaInstance(Long orderId, Step step, Progress progress, Payload payload, String failureReason,
+    private OrderSagaInstance(Long orderId, SagaStep sagaStep, SagaProgress sagaProgress, Payload payload, String failureReason,
                               LocalDateTime startedAt, LocalDateTime finishedAt) {
         this.orderId = orderId;
-        this.step = step;
-        this.progress = progress;
+        this.sagaStep = sagaStep;
+        this.sagaProgress = sagaProgress;
         this.payload = payload;
         this.failureReason = failureReason;
         this.startedAt = startedAt;
@@ -44,15 +44,15 @@ public class OrderSagaInstance {
     }
 
     public static OrderSagaInstance start(Long orderId, Payload payload) {
-        return of(orderId, Step.PRODUCT, Progress.STARTED, payload, null, LocalDateTime.now(), null);
+        return of(orderId, SagaStep.PRODUCT, SagaProgress.STARTED, payload, null, LocalDateTime.now(), null);
     }
 
-    private static OrderSagaInstance of(Long orderId, Step step, Progress progress, Payload payload, String failureReason,
-                                 LocalDateTime startedAt, LocalDateTime finishedAt) {
+    private static OrderSagaInstance of(Long orderId, SagaStep sagaStep, SagaProgress sagaProgress, Payload payload, String failureReason,
+                                        LocalDateTime startedAt, LocalDateTime finishedAt) {
         return OrderSagaInstance.builder()
                 .orderId(orderId)
-                .step(step)
-                .progress(progress)
+                .sagaStep(sagaStep)
+                .sagaProgress(sagaProgress)
                 .payload(payload)
                 .failureReason(failureReason)
                 .startedAt(startedAt)

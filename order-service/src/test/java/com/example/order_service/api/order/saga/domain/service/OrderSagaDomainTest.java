@@ -1,7 +1,7 @@
 package com.example.order_service.api.order.saga.domain.service;
 
-import com.example.order_service.api.order.saga.domain.model.Progress;
-import com.example.order_service.api.order.saga.domain.model.Step;
+import com.example.order_service.api.order.saga.domain.model.SagaProgress;
+import com.example.order_service.api.order.saga.domain.model.SagaStep;
 import com.example.order_service.api.order.saga.domain.model.vo.Payload;
 import com.example.order_service.api.order.saga.domain.service.dto.SagaInstanceDto;
 import com.example.order_service.api.support.ExcludeInfraTest;
@@ -39,7 +39,7 @@ public class OrderSagaDomainTest extends ExcludeInfraTest {
         assertThat(sagaInstanceDto.getId()).isNotNull();
         assertThat(sagaInstanceDto)
                 .extracting("orderId", "step", "progress", "failureReason")
-                .containsExactly(1L, Step.PRODUCT.name(), Progress.STARTED.name(), null);
+                .containsExactly(1L, SagaStep.PRODUCT.name(), SagaProgress.STARTED.name(), null);
         assertThat(sagaInstanceDto.getPayload())
                 .extracting("userId", "couponId", "useToPoint")
                 .containsExactlyInAnyOrder(1L, 1L, 1000L);

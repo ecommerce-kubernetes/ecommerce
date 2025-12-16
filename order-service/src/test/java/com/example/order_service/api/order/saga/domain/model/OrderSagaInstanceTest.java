@@ -30,7 +30,7 @@ public class OrderSagaInstanceTest {
         //then
         assertThat(sagaInstance)
                 .extracting("orderId", "step", "progress", "failureReason")
-                .containsExactly(1L, Step.PRODUCT, Progress.STARTED, null);
+                .containsExactly(1L, SagaStep.PRODUCT, SagaProgress.STARTED, null);
         assertThat(sagaInstance.getStartedAt())
                 .isNotNull();
         assertThat(sagaInstance.getFinishedAt())
