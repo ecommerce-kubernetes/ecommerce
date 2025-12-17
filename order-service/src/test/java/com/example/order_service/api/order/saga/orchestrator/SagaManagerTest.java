@@ -1,6 +1,6 @@
 package com.example.order_service.api.order.saga.orchestrator;
 
-import com.example.order_service.api.order.saga.domain.model.SagaProgress;
+import com.example.order_service.api.order.saga.domain.model.SagaStatus;
 import com.example.order_service.api.order.saga.domain.model.SagaStep;
 import com.example.order_service.api.order.saga.domain.model.vo.Payload;
 import com.example.order_service.api.order.saga.domain.service.OrderSagaDomainService;
@@ -11,20 +11,18 @@ import com.example.order_service.api.order.saga.orchestrator.event.SagaCompleted
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.verification.VerificationMode;
 import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.List;
 import java.util.stream.Stream;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
@@ -64,7 +62,7 @@ public class SagaManagerTest {
                 .usedPoint(1000L)
                 .build();
 
-        SagaInstanceDto sagaInstanceDto = createSagaInstanceDto(sagaId, 1L, SagaStep.PRODUCT, SagaProgress.STARTED,
+        SagaInstanceDto sagaInstanceDto = createSagaInstanceDto(sagaId, 1L, SagaStatus.STARTED, SagaStep.PRODUCT,
                 Payload.from(command));
 
         given(orderSagaDomainService.saveOrderSagaInstance(anyLong(), any(Payload.class)))
@@ -97,62 +95,239 @@ public class SagaManagerTest {
         );
     }
 
-    //TODO @Test로 시나리오별로 테스트 분리
-    @ParameterizedTest(name = "{0}")
-    @MethodSource("provideInventoryDeductScenarios")
-    @DisplayName("재고 감소 성공시 SAGA 시나리오별 검증")
-    @SuppressWarnings("ConstantConditions")
-    void proceedSaga_inventory_success_scenario(String description, Long couponId, Long usedPoint,
-                                                VerificationMode couponStatus, VerificationMode couponEvent,
-                                                VerificationMode pointStatus, VerificationMode pointEvent,
-                                                VerificationMode completeStatus, boolean completeEvent) {
+    @Test
+    @DisplayName("재고감소 성공 후 쿠폰과 포인트를 모두 사용한다면 다음 단계인 쿠폰 단계를 실행한다")
+    void proceedSaga_inventory_success_with_coupon_point(){
         //given
         Long sagaId = 1L;
         Long orderId = 1L;
         Long userId = 1L;
+        Long couponId = 1L;
+        Long usedPoint = 1000L;
         Payload payload = Payload.builder()
                 .userId(userId)
                 .sagaItems(List.of(Payload.SagaItem.builder().productVariantId(1L).quantity(3).build()))
                 .couponId(couponId)
                 .useToPoint(usedPoint)
                 .build();
-
-        SagaInstanceDto initInstanceDto = createSagaInstanceDto(sagaId, orderId, SagaStep.PRODUCT, SagaProgress.STARTED, payload);
-        SagaInstanceDto couponInstanceDto = createSagaInstanceDto(sagaId, orderId, SagaStep.COUPON, SagaProgress.STARTED, payload);
-        SagaInstanceDto userInstanceDto = createSagaInstanceDto(sagaId, orderId, SagaStep.USER, SagaProgress.STARTED, payload);
-        SagaInstanceDto completeInstanceDto = createSagaInstanceDto(sagaId, orderId, SagaStep.USER, SagaProgress.COMPLETED, payload);
-        given(orderSagaDomainService.getOrderSagaInstance(anyLong())).willReturn(initInstanceDto);
-        lenient().when(orderSagaDomainService.updateToCouponSagaInstance(anyLong())).thenReturn(couponInstanceDto);
-        lenient().when(orderSagaDomainService.updateToPointSagaInstance(anyLong())).thenReturn(userInstanceDto);
-        lenient().when(orderSagaDomainService.updateToCompleteSagaInstance(anyLong())).thenReturn(completeInstanceDto);
+        SagaInstanceDto initInstanceDto = createSagaInstanceDto(sagaId, orderId, SagaStatus.STARTED, SagaStep.PRODUCT, payload);
+        SagaInstanceDto couponInstanceDto = createSagaInstanceDto(sagaId, orderId,SagaStatus.STARTED, SagaStep.COUPON, payload);
+        given(orderSagaDomainService.getOrderSagaInstance(anyLong()))
+                .willReturn(initInstanceDto);
+        given(orderSagaDomainService.updateToCouponSagaInstance(sagaId))
+                .willReturn(couponInstanceDto);
         //when
-        sagaManager.proceedSaga(1L);
+        sagaManager.proceedSaga(sagaId);
+        //then
 
-        //쿠폰 관련 검증
-        verify(orderSagaDomainService, couponStatus).updateToCouponSagaInstance(sagaId);
-        verify(sagaEventProducer, couponEvent).requestCouponUse(sagaId, orderId, payload);
+        // 쿠폰 관련 로직은 실행되어야 함
+        verify(orderSagaDomainService, times(1)).updateToCouponSagaInstance(sagaId);
+        verify(sagaEventProducer, times(1)).requestCouponUse(sagaId, orderId, payload);
 
-        // 포인트 관련 검증
-        verify(orderSagaDomainService, pointStatus).updateToPointSagaInstance(sagaId);
-        verify(sagaEventProducer, pointEvent).requestUserPointUse(sagaId, orderId, payload);
+        // 다음 단계의 로직은 실행되서는 안됨
+        verify(orderSagaDomainService, never()).updateToPointSagaInstance(sagaId);
+        verify(orderSagaDomainService, never()).updateToCompleteSagaInstance(sagaId);
 
-        // Saga 완료 검증
-        verify(orderSagaDomainService, completeStatus).updateToCompleteSagaInstance(sagaId);
+        verify(sagaEventProducer, never()).requestUserPointUse(sagaId, orderId, payload);
+        verify(eventPublisher, never()).publishEvent(any());
+    }
 
-        if (completeEvent) {
-            verify(eventPublisher, times(1)).publishEvent(refEq(SagaCompletedEvent.of(sagaId, orderId, userId)));
-        } else {
-            verify(eventPublisher, never()).publishEvent(any());
-        }
+    @Test
+    @DisplayName("재고감소 성공 후 쿠폰은 사용하지 않고 포인트만 사용한다면 다음 단계인 쿠폰 단계를 건너뛰고 포인트 단계를 실행한다")
+    void proceedSaga_inventory_success_skip_coupon(){
+        //given
+        Long sagaId = 1L;
+        Long orderId = 1L;
+        Long userId = 1L;
+        Long usedPoint = 1000L;
+        Payload payload = Payload.builder()
+                .userId(userId)
+                .sagaItems(List.of(Payload.SagaItem.builder().productVariantId(1L).quantity(3).build()))
+                .couponId(null)
+                .useToPoint(usedPoint)
+                .build();
+        SagaInstanceDto initInstanceDto = createSagaInstanceDto(sagaId, orderId, SagaStatus.STARTED, SagaStep.PRODUCT, payload);
+        SagaInstanceDto pointInstanceDto = createSagaInstanceDto(sagaId, orderId, SagaStatus.STARTED, SagaStep.USER, payload);
+        given(orderSagaDomainService.getOrderSagaInstance(anyLong()))
+                .willReturn(initInstanceDto);
+        given(orderSagaDomainService.updateToPointSagaInstance(anyLong()))
+                .willReturn(pointInstanceDto);
+        //when
+        sagaManager.proceedSaga(sagaId);
+        //then
+
+        //포인트 관련 로직은 실행되어야함
+        verify(orderSagaDomainService, times(1)).updateToPointSagaInstance(sagaId);
+        verify(sagaEventProducer, times(1)).requestUserPointUse(sagaId, orderId, payload);
+
+        // 쿠폰단계 또는 사가 완료 단계는 실행되서는 안됨
+        verify(orderSagaDomainService, never()).updateToCouponSagaInstance(sagaId);
+        verify(orderSagaDomainService, never()).updateToCompleteSagaInstance(sagaId);
+
+        verify(sagaEventProducer, never()).requestCouponUse(sagaId, orderId, payload);
+        verify(eventPublisher, never()).publishEvent(any());
+    }
+
+    @Test
+    @DisplayName("재고감소 성공 후 쿠폰과 포인트 모두 사용하지 않는다면 쿠폰 단계와 포인트 단계를 건너뛰고 사가 완료 단계를 실행한다")
+    void proceedSaga_inventory_success_all_skip(){
+        //given
+        Long sagaId = 1L;
+        Long orderId = 1L;
+        Long userId = 1L;
+        Long usedPoint = 0L;
+        Payload payload = Payload.builder()
+                .userId(userId)
+                .sagaItems(List.of(Payload.SagaItem.builder().productVariantId(1L).quantity(3).build()))
+                .couponId(null)
+                .useToPoint(usedPoint)
+                .build();
+        SagaInstanceDto initInstanceDto = createSagaInstanceDto(sagaId, orderId, SagaStatus.STARTED, SagaStep.PRODUCT, payload);
+        SagaInstanceDto pointInstanceDto = createSagaInstanceDto(sagaId, orderId, SagaStatus.FINISHED, SagaStep.PRODUCT, payload);
+        given(orderSagaDomainService.getOrderSagaInstance(anyLong()))
+                .willReturn(initInstanceDto);
+        given(orderSagaDomainService.updateToCompleteSagaInstance(anyLong()))
+                .willReturn(pointInstanceDto);
+        //when
+        sagaManager.proceedSaga(sagaId);
+        //then
+        // 사가 완료 단계가 실행되어야 함
+        ArgumentCaptor<SagaCompletedEvent> sagaCompleteCaptor = ArgumentCaptor.forClass(SagaCompletedEvent.class);
+        verify(orderSagaDomainService, times(1)).updateToCompleteSagaInstance(sagaId);
+        verify(eventPublisher, times(1)).publishEvent(sagaCompleteCaptor.capture());
+        assertThat(sagaCompleteCaptor.getValue())
+                .extracting(SagaCompletedEvent::getSagaId, SagaCompletedEvent::getOrderId, SagaCompletedEvent::getUserId)
+                        .containsExactly(1L, 1L, 1L);
+
+        // 쿠폰단계 또는 포인트 단계가 실행되서는 안됨
+        verify(orderSagaDomainService, never()).updateToCouponSagaInstance(sagaId);
+        verify(orderSagaDomainService, never()).updateToPointSagaInstance(sagaId);
+
+        verify(sagaEventProducer, never()).requestCouponUse(sagaId, orderId, payload);
+        verify(sagaEventProducer, never()).requestUserPointUse(sagaId, orderId, payload);
+    }
+
+    @Test
+    @DisplayName("쿠폰 사용 성공 후 포인트를 사용한다면 포인트단계를 진행한다")
+    void proceedSaga_coupon_success_with_point(){
+        //given
+        Long sagaId = 1L;
+        Long orderId = 1L;
+        Long couponId = 1L;
+        Long userId = 1L;
+        Long usedPoint = 1000L;
+        Payload payload = Payload.builder()
+                .userId(userId)
+                .sagaItems(List.of(Payload.SagaItem.builder().productVariantId(1L).quantity(3).build()))
+                .couponId(couponId)
+                .useToPoint(usedPoint)
+                .build();
+        SagaInstanceDto initInstanceDto = createSagaInstanceDto(sagaId, orderId, SagaStatus.STARTED, SagaStep.COUPON, payload);
+        SagaInstanceDto pointInstanceDto = createSagaInstanceDto(sagaId, orderId, SagaStatus.STARTED, SagaStep.USER, payload);
+        given(orderSagaDomainService.getOrderSagaInstance(anyLong()))
+                .willReturn(initInstanceDto);
+        given(orderSagaDomainService.updateToPointSagaInstance(anyLong()))
+                .willReturn(pointInstanceDto);
+        //when
+        sagaManager.proceedSaga(sagaId);
+        //then
+        // 포인트 단계가 실행되어야 함
+        verify(orderSagaDomainService, times(1)).updateToPointSagaInstance(sagaId);
+        verify(sagaEventProducer, times(1)).requestUserPointUse(sagaId, orderId, payload);
+
+        // 쿠폰단계 또는 사가 완료 단계는 실행되서는 안됨
+        verify(orderSagaDomainService, never()).updateToCouponSagaInstance(sagaId);
+        verify(orderSagaDomainService, never()).updateToCompleteSagaInstance(sagaId);
+
+        verify(sagaEventProducer, never()).requestCouponUse(sagaId, orderId, payload);
+        verify(eventPublisher, never()).publishEvent(any());
+    }
+
+    @Test
+    @DisplayName("쿠폰 사용 성공 후 포인트를 사용하지 않는다면 포인트단계를 건너뛰고 사가 완료 단계를 진행한다")
+    void proceedSaga_coupon_success_skip_point(){
+        //given
+        Long sagaId = 1L;
+        Long orderId = 1L;
+        Long couponId = 1L;
+        Long userId = 1L;
+        Long usedPoint = 0L;
+        Payload payload = Payload.builder()
+                .userId(userId)
+                .sagaItems(List.of(Payload.SagaItem.builder().productVariantId(1L).quantity(3).build()))
+                .couponId(couponId)
+                .useToPoint(usedPoint)
+                .build();
+        SagaInstanceDto initInstanceDto = createSagaInstanceDto(sagaId, orderId, SagaStatus.STARTED, SagaStep.COUPON, payload);
+        SagaInstanceDto completeInstanceDto = createSagaInstanceDto(sagaId, orderId, SagaStatus.FINISHED, SagaStep.COUPON, payload);
+        given(orderSagaDomainService.getOrderSagaInstance(anyLong()))
+                .willReturn(initInstanceDto);
+        given(orderSagaDomainService.updateToCompleteSagaInstance(anyLong()))
+                .willReturn(completeInstanceDto);
+        //when
+        sagaManager.proceedSaga(sagaId);
+        //then
+        ArgumentCaptor<SagaCompletedEvent> sagaCompleteCaptor = ArgumentCaptor.forClass(SagaCompletedEvent.class);
+        verify(orderSagaDomainService, times(1)).updateToCompleteSagaInstance(sagaId);
+        verify(eventPublisher, times(1)).publishEvent(sagaCompleteCaptor.capture());
+        assertThat(sagaCompleteCaptor.getValue())
+                .extracting(SagaCompletedEvent::getSagaId, SagaCompletedEvent::getOrderId, SagaCompletedEvent::getUserId)
+                .containsExactly(1L, 1L, 1L);
+
+        // 쿠폰단계 또는 포인트 단계가 실행되서는 안됨
+        verify(orderSagaDomainService, never()).updateToCouponSagaInstance(sagaId);
+        verify(orderSagaDomainService, never()).updateToPointSagaInstance(sagaId);
+
+        verify(sagaEventProducer, never()).requestCouponUse(sagaId, orderId, payload);
+        verify(sagaEventProducer, never()).requestUserPointUse(sagaId, orderId, payload);
+    }
+
+    @Test
+    @DisplayName("포인트 차감 성공후 사가 완료 단계를 진행한다")
+    void proceedSaga_point_success(){
+        //given
+        Long sagaId = 1L;
+        Long orderId = 1L;
+        Long couponId = 1L;
+        Long userId = 1L;
+        Long usedPoint = 0L;
+        Payload payload = Payload.builder()
+                .userId(userId)
+                .sagaItems(List.of(Payload.SagaItem.builder().productVariantId(1L).quantity(3).build()))
+                .couponId(couponId)
+                .useToPoint(usedPoint)
+                .build();
+        SagaInstanceDto initInstanceDto = createSagaInstanceDto(sagaId, orderId, SagaStatus.STARTED, SagaStep.USER, payload);
+        SagaInstanceDto completeInstanceDto = createSagaInstanceDto(sagaId, orderId, SagaStatus.FINISHED, SagaStep.USER, payload);
+        given(orderSagaDomainService.getOrderSagaInstance(anyLong()))
+                .willReturn(initInstanceDto);
+        given(orderSagaDomainService.updateToCompleteSagaInstance(anyLong()))
+                .willReturn(completeInstanceDto);
+        //when
+        sagaManager.proceedSaga(sagaId);
+        //then
+        ArgumentCaptor<SagaCompletedEvent> sagaCompleteCaptor = ArgumentCaptor.forClass(SagaCompletedEvent.class);
+        verify(orderSagaDomainService, times(1)).updateToCompleteSagaInstance(sagaId);
+        verify(eventPublisher, times(1)).publishEvent(sagaCompleteCaptor.capture());
+        assertThat(sagaCompleteCaptor.getValue())
+                .extracting(SagaCompletedEvent::getSagaId, SagaCompletedEvent::getOrderId, SagaCompletedEvent::getUserId)
+                .containsExactly(1L, 1L, 1L);
+
+        // 쿠폰단계 또는 포인트 단계가 실행되서는 안됨
+        verify(orderSagaDomainService, never()).updateToCouponSagaInstance(sagaId);
+        verify(orderSagaDomainService, never()).updateToPointSagaInstance(sagaId);
+
+        verify(sagaEventProducer, never()).requestCouponUse(sagaId, orderId, payload);
+        verify(sagaEventProducer, never()).requestUserPointUse(sagaId, orderId, payload);
     }
 
     private SagaInstanceDto createSagaInstanceDto(Long sagaId, Long orderId,
-                                                  SagaStep sagaStep, SagaProgress sagaProgress, Payload payload) {
+                                                  SagaStatus sagaStatus, SagaStep sagaStep,  Payload payload) {
         return SagaInstanceDto.builder()
                 .id(sagaId)
                 .orderId(orderId)
+                .sagaStatus(sagaStatus)
                 .sagaStep(sagaStep)
-                .sagaProgress(sagaProgress)
                 .payload(payload)
                 .build();
     }

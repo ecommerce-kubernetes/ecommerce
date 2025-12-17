@@ -29,8 +29,8 @@ public class OrderSagaInstanceTest {
         OrderSagaInstance sagaInstance = OrderSagaInstance.start(1L, payload);
         //then
         assertThat(sagaInstance)
-                .extracting(OrderSagaInstance::getOrderId, OrderSagaInstance::getSagaStep, OrderSagaInstance::getSagaProgress, OrderSagaInstance::getFailureReason)
-                .containsExactly(1L, SagaStep.PRODUCT, SagaProgress.STARTED, null);
+                .extracting(OrderSagaInstance::getOrderId, OrderSagaInstance::getSagaStep, OrderSagaInstance::getSagaStatus, OrderSagaInstance::getFailureReason)
+                .containsExactly(1L, SagaStep.PRODUCT, SagaStatus.STARTED, null);
         assertThat(sagaInstance.getStartedAt())
                 .isNotNull();
         assertThat(sagaInstance.getFinishedAt())
