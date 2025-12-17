@@ -11,16 +11,20 @@ import com.example.order_service.api.order.saga.orchestrator.event.SagaCompleted
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.verification.VerificationMode;
 import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.List;
+import java.util.stream.Stream;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
@@ -93,134 +97,53 @@ public class SagaManagerTest {
         );
     }
 
-    @Test
-    @DisplayName("쿠폰 아이디가 존재하면 상태를 업데이트 하고 쿠폰 사용 이벤트를 발행한다")
-    void proceedToCoupon_WithCouponId(){
+    //TODO @Test로 시나리오별로 테스트 분리
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("provideInventoryDeductScenarios")
+    @DisplayName("재고 감소 성공시 SAGA 시나리오별 검증")
+    @SuppressWarnings("ConstantConditions")
+    void proceedSaga_inventory_success_scenario(String description, Long couponId, Long usedPoint,
+                                                VerificationMode couponStatus, VerificationMode couponEvent,
+                                                VerificationMode pointStatus, VerificationMode pointEvent,
+                                                VerificationMode completeStatus, boolean completeEvent) {
         //given
         Long sagaId = 1L;
         Long orderId = 1L;
-        Long couponId = 1L;
+        Long userId = 1L;
         Payload payload = Payload.builder()
-                .userId(1L)
+                .userId(userId)
                 .sagaItems(List.of(Payload.SagaItem.builder().productVariantId(1L).quantity(3).build()))
                 .couponId(couponId)
-                .useToPoint(1000L)
+                .useToPoint(usedPoint)
                 .build();
 
-        SagaInstanceDto initSagaInstance = createSagaInstanceDto(sagaId, orderId, SagaStep.PRODUCT, SagaProgress.STARTED, payload);
-        SagaInstanceDto updateSagaInstance = createSagaInstanceDto(sagaId, orderId, SagaStep.COUPON, SagaProgress.STARTED, payload);
-        given(orderSagaDomainService.getOrderSagaInstance(anyLong()))
-                .willReturn(initSagaInstance);
-        given(orderSagaDomainService.updateToCouponSagaInstance(sagaId))
-                .willReturn(updateSagaInstance);
+        SagaInstanceDto initInstanceDto = createSagaInstanceDto(sagaId, orderId, SagaStep.PRODUCT, SagaProgress.STARTED, payload);
+        SagaInstanceDto couponInstanceDto = createSagaInstanceDto(sagaId, orderId, SagaStep.COUPON, SagaProgress.STARTED, payload);
+        SagaInstanceDto userInstanceDto = createSagaInstanceDto(sagaId, orderId, SagaStep.USER, SagaProgress.STARTED, payload);
+        SagaInstanceDto completeInstanceDto = createSagaInstanceDto(sagaId, orderId, SagaStep.USER, SagaProgress.COMPLETED, payload);
+        given(orderSagaDomainService.getOrderSagaInstance(anyLong())).willReturn(initInstanceDto);
+        lenient().when(orderSagaDomainService.updateToCouponSagaInstance(anyLong())).thenReturn(couponInstanceDto);
+        lenient().when(orderSagaDomainService.updateToPointSagaInstance(anyLong())).thenReturn(userInstanceDto);
+        lenient().when(orderSagaDomainService.updateToCompleteSagaInstance(anyLong())).thenReturn(completeInstanceDto);
         //when
-        sagaManager.proceedToCoupon(sagaId);
-        //then
-        verify(sagaEventProducer, times(1))
-                .requestCouponUse(updateSagaInstance.getId(), updateSagaInstance.getOrderId(), updateSagaInstance.getPayload());
+        sagaManager.proceedSaga(1L);
 
-        verify(orderSagaDomainService, times(1)).updateToCouponSagaInstance(sagaId);
-    }
+        //쿠폰 관련 검증
+        verify(orderSagaDomainService, couponStatus).updateToCouponSagaInstance(sagaId);
+        verify(sagaEventProducer, couponEvent).requestCouponUse(sagaId, orderId, payload);
 
-    @Test
-    @DisplayName("쿠폰 아이디가 없으면 쿠폰 단계를 건너뛰고 포인트 차감 단계로 넘어간다")
-    void proceedToCoupon_WithoutCouponId() {
-        //given
-        Long sagaId = 1L;
-        Long orderId = 1L;
-        Payload payload = Payload.builder()
-                .userId(1L)
-                .sagaItems(List.of(Payload.SagaItem.builder().productVariantId(1L).quantity(3).build()))
-                .useToPoint(1000L)
-                .build();
-        SagaInstanceDto initSagaInstance = createSagaInstanceDto(sagaId, orderId, SagaStep.PRODUCT, SagaProgress.STARTED, payload);
-        given(orderSagaDomainService.getOrderSagaInstance(anyLong()))
-                .willReturn(initSagaInstance);
-        SagaManager spyManager = spy(new SagaManager(orderSagaDomainService, sagaEventProducer, eventPublisher));
-        doNothing().when(spyManager).proceedToUserPoint(anyLong());
-        //when
-        spyManager.proceedToCoupon(sagaId);
-        //then
-        verify(spyManager, times(1)).proceedToUserPoint(sagaId);
-        verify(sagaEventProducer, never()).requestCouponUse(anyLong(), anyLong(), any(Payload.class));
-        verify(orderSagaDomainService, never()).updateToCouponSagaInstance(anyLong());
-    }
+        // 포인트 관련 검증
+        verify(orderSagaDomainService, pointStatus).updateToPointSagaInstance(sagaId);
+        verify(sagaEventProducer, pointEvent).requestUserPointUse(sagaId, orderId, payload);
 
-    @Test
-    @DisplayName("사용 포인트가 null 또는 0 이 아닌경우 포인트 사용 상태로 변경하고 포인트 차감 메시지를 발행한다")
-    void proceedToUserPoint_WithPoint() {
-        //given
-        Long sagaId = 1L;
-        Long orderId = 1L;
-        Payload payload = Payload.builder()
-                .userId(1L)
-                .sagaItems(List.of(Payload.SagaItem.builder().productVariantId(1L).quantity(3).build()))
-                .useToPoint(1000L)
-                .build();
+        // Saga 완료 검증
+        verify(orderSagaDomainService, completeStatus).updateToCompleteSagaInstance(sagaId);
 
-        SagaInstanceDto initSagaInstance = createSagaInstanceDto(sagaId, orderId, SagaStep.COUPON, SagaProgress.STARTED, payload);
-        SagaInstanceDto updateSagaInstance = createSagaInstanceDto(sagaId, orderId, SagaStep.USER, SagaProgress.STARTED, payload);
-        given(orderSagaDomainService.getOrderSagaInstance(anyLong()))
-                .willReturn(initSagaInstance);
-        given(orderSagaDomainService.updateToPointSagaInstance(sagaId))
-                .willReturn(updateSagaInstance);
-        //when
-        sagaManager.proceedToUserPoint(sagaId);
-        //then
-        verify(sagaEventProducer, times(1))
-                .requestUserPointUse(updateSagaInstance.getId(), updateSagaInstance.getOrderId(), updateSagaInstance.getPayload());
-        verify(orderSagaDomainService, times(1)).updateToPointSagaInstance(sagaId);
-    }
-
-    @Test
-    @DisplayName("포인트가 null 또는 0인 경우 포인트 사용 단계를 건너뛰고 사가 완료 단계로 넘어간다")
-    void proceedToUserPoint_WithoutPoint() {
-        //given
-        Long sagaId = 1L;
-        Long orderId = 1L;
-        Payload payload = Payload.builder()
-                .userId(1L)
-                .sagaItems(List.of(Payload.SagaItem.builder().productVariantId(1L).quantity(3).build()))
-                .useToPoint(0L)
-                .build();
-
-        SagaInstanceDto initSagaInstance = createSagaInstanceDto(sagaId, orderId, SagaStep.COUPON, SagaProgress.STARTED, payload);
-        given(orderSagaDomainService.getOrderSagaInstance(anyLong()))
-                .willReturn(initSagaInstance);
-        SagaManager spySagaManager = spy(new SagaManager(orderSagaDomainService, sagaEventProducer, eventPublisher));
-        doNothing().when(spySagaManager).completeSaga(anyLong());
-        //when
-        spySagaManager.proceedToUserPoint(sagaId);
-        //then
-        verify(spySagaManager, times(1)).completeSaga(sagaId);
-        verify(sagaEventProducer, never()).requestUserPointUse(anyLong(), anyLong(), any(Payload.class));
-        verify(orderSagaDomainService, never()).updateToPointSagaInstance(anyLong());
-    }
-
-    @Test
-    @DisplayName("사가가 완료되면 사가 완료 상태로 변경하고 사가 완료 이벤트를 발행한다")
-    void completeSaga() {
-        //given
-        Long sagaId = 1L;
-        Long orderId = 1L;
-        Payload payload = Payload.builder()
-                .userId(1L)
-                .sagaItems(List.of(Payload.SagaItem.builder().productVariantId(1L).quantity(3).build()))
-                .useToPoint(0L)
-                .build();
-
-        SagaInstanceDto sagaInstanceDto = createSagaInstanceDto(sagaId, orderId, SagaStep.USER, SagaProgress.COMPLETED, payload);
-        given(orderSagaDomainService.updateToCompleteSagaInstance(sagaId))
-                .willReturn(sagaInstanceDto);
-        //when
-        sagaManager.completeSaga(sagaId);
-        //then
-        ArgumentCaptor<SagaCompletedEvent> captor = ArgumentCaptor.forClass(SagaCompletedEvent.class);
-        verify(eventPublisher, times(1)).publishEvent(captor.capture());
-
-        assertThat(captor.getValue())
-                .extracting("sagaId", "orderId", "userId")
-                .containsExactly(1L, 1L, 1L);
+        if (completeEvent) {
+            verify(eventPublisher, times(1)).publishEvent(refEq(SagaCompletedEvent.of(sagaId, orderId, userId)));
+        } else {
+            verify(eventPublisher, never()).publishEvent(any());
+        }
     }
 
     private SagaInstanceDto createSagaInstanceDto(Long sagaId, Long orderId,
@@ -228,9 +151,40 @@ public class SagaManagerTest {
         return SagaInstanceDto.builder()
                 .id(sagaId)
                 .orderId(orderId)
-                .sagaStep(sagaStep.name())
-                .sagaProgress(sagaProgress.name())
+                .sagaStep(sagaStep)
+                .sagaProgress(sagaProgress)
                 .payload(payload)
                 .build();
+    }
+
+    private static Stream<Arguments> provideInventoryDeductScenarios() {
+        return Stream.of(
+                //재고 감소 성공 메시지 수신시 쿠폰 사용, 포인트 사용 시나리오
+                Arguments.of(
+                        "쿠폰 사용, 포인트 사용",
+                        1L, 1000L, // 쿠폰 Id, 사용 포인트
+                        times(1), times(1), // 쿠폰상태 변경, 쿠폰 사용 메시지 발송
+                        never(), never(), // 포인트 상태 변경, 포인트 사용 메시지 발송
+                        never(), false// Saga 완료 상태 변경, Saga 완료 메시지 발행
+                ),
+
+                //재고 감소 성공 메시지 수신시 쿠폰 미사용, 포인트 사용 시나리오
+                Arguments.of(
+                        "쿠폰 미사용, 포인트 사용",
+                        null, 1000L, // 쿠폰 Id, 사용 포인트
+                        never(), never(), // 쿠폰상태 변경, 쿠폰 사용 메시지 발송
+                        times(1), times(1), // 포인트 상태 변경, 포인트 사용 메시지 발송
+                        never(), false // Saga 완료 상태 변경, Saga 완료 메시지 발행
+                ),
+
+                //재고 감소 성공 메시지 수신시 쿠폰 미사용, 포인트 미사용 시나리오
+                Arguments.of(
+                        "쿠폰 미사용, 포인트 미사용",
+                        null, 0L, // 쿠폰 Id, 사용 포인트
+                        never(), never(), // 쿠폰상태 변경, 쿠폰 사용 메시지 발송
+                        never(), never(), // 포인트 상태 변경, 포인트 사용 메시지 발송
+                        times(1), true // Saga 완료 상태 변경, Saga 완료 메시지 발행
+                )
+        );
     }
 }

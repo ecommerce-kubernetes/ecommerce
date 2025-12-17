@@ -28,7 +28,4 @@ public class OrderEventListener {
     public void handleSagaCompleted(SagaCompletedEvent event){
 
     }
-
-    @EventListener
-    public void handleSagaAbort() {}
 }

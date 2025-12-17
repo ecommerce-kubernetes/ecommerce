@@ -24,7 +24,7 @@ public class SagaEventListenerTest extends IncludeInfraTest {
         //when
         kafkaTemplate.send(PRODUCT_RESULT_TOPIC_NAME, String.valueOf(result.getSagaId()), result);
         //then
-        verify(sagaManager, timeout(3000).times(1)).proceedToCoupon(sagaId);
+        verify(sagaManager, timeout(3000).times(1)).proceedSaga(sagaId);
     }
 
     @Test

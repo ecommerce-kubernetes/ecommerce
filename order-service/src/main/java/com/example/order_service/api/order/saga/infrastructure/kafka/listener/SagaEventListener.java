@@ -18,7 +18,7 @@ public class SagaEventListener {
     @KafkaListener(topics = "${order.topics.product-result}")
     public void handleProductResult(@Payload SagaProcessResult result){
         if (result.getStatus() == SagaStatus.SUCCESS){
-            sagaManager.proceedToCoupon(result.getSagaId());
+            sagaManager.proceedSaga(result.getSagaId());
         } else if (result.getStatus() == SagaStatus.FAIL) {
             sagaManager.abortSaga(result.getSagaId(), result.getFailureReason());
         }
