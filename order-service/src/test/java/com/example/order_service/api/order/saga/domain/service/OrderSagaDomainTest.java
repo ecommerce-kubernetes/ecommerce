@@ -38,8 +38,8 @@ public class OrderSagaDomainTest extends ExcludeInfraTest {
         //then
         assertThat(sagaInstanceDto.getId()).isNotNull();
         assertThat(sagaInstanceDto)
-                .extracting(SagaInstanceDto::getOrderId, SagaInstanceDto::getSagaStep, SagaInstanceDto::getSagaStatus, SagaInstanceDto::getFailureReason)
-                .containsExactly(1L, SagaStep.PRODUCT.name(), SagaStatus.STARTED.name(), null);
+                .extracting(SagaInstanceDto::getOrderId, SagaInstanceDto::getSagaStatus, SagaInstanceDto::getSagaStep, SagaInstanceDto::getFailureReason)
+                .containsExactly(1L, SagaStatus.STARTED, SagaStep.PRODUCT, null);
         assertThat(sagaInstanceDto.getPayload())
                 .extracting(Payload::getUserId, Payload::getUserId, Payload::getUseToPoint)
                 .containsExactlyInAnyOrder(1L, 1L, 1000L);
