@@ -9,5 +9,5 @@ public enum OrderStatus {
     COMPLETED("주문 완료"),
     CANCELED("취소됨");
 
-    private final String status;
+    private final String name;
 }

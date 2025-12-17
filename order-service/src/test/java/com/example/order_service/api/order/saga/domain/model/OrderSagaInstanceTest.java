@@ -29,20 +29,17 @@ public class OrderSagaInstanceTest {
         OrderSagaInstance sagaInstance = OrderSagaInstance.start(1L, payload);
         //then
         assertThat(sagaInstance)
-                .extracting("orderId", "step", "progress", "failureReason")
+                .extracting(OrderSagaInstance::getOrderId, OrderSagaInstance::getSagaStep, OrderSagaInstance::getSagaProgress, OrderSagaInstance::getFailureReason)
                 .containsExactly(1L, SagaStep.PRODUCT, SagaProgress.STARTED, null);
         assertThat(sagaInstance.getStartedAt())
                 .isNotNull();
         assertThat(sagaInstance.getFinishedAt())
                 .isNull();
         assertThat(sagaInstance.getPayload())
-                .extracting("userId", "couponId", "useToPoint")
-                .containsExactly(1L, 1L, 1000L);
-        assertThat(sagaInstance.getPayload())
-                .extracting("userId", "couponId", "useToPoint")
+                .extracting(Payload::getUserId, Payload::getCouponId, Payload::getUseToPoint)
                 .containsExactly(1L, 1L, 1000L);
         assertThat(sagaInstance.getPayload().getSagaItems())
-                .extracting("productVariantId", "quantity")
+                .extracting(Payload.SagaItem::getProductVariantId, Payload.SagaItem::getQuantity)
                 .containsExactlyInAnyOrder(
                         tuple(1L, 3),
                         tuple(2L, 5)

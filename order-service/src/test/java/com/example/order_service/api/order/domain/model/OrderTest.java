@@ -45,8 +45,8 @@ public class OrderTest {
         //then
         assertThat(order)
                 .extracting("userId", "status", "orderName", "deliveryAddress", "totalOriginPrice", "totalProductDiscount", "couponDiscount",
-                        "pointDiscount", "finalPaymentAmount")
-                .contains(1L, OrderStatus.PENDING, "상품1 외 1건", "서울시 테헤란로 123", 34000L, 3400L, 1000L, 1000L, 28600L);
+                        "pointDiscount", "finalPaymentAmount", "failureCode")
+                .contains(1L, OrderStatus.PENDING, "상품1 외 1건", "서울시 테헤란로 123", 34000L, 3400L, 1000L, 1000L, 28600L, null);
 
         assertThat(order.getCoupon()).isNotNull();
         assertThat(order.getCoupon().getOrder()).isEqualTo(order);
@@ -80,8 +80,8 @@ public class OrderTest {
         //then
         assertThat(order).
                 extracting("userId", "status", "orderName", "deliveryAddress", "totalOriginPrice", "totalProductDiscount", "couponDiscount",
-                        "pointDiscount", "finalPaymentAmount")
-                .containsExactly(1L, OrderStatus.PENDING, "상품1 외 1건", "서울시 테헤란로 123", 34000L, 3400L, 0L, 1000L, 29600L);
+                        "pointDiscount", "finalPaymentAmount", "failureCode")
+                .containsExactly(1L, OrderStatus.PENDING, "상품1 외 1건", "서울시 테헤란로 123", 34000L, 3400L, 0L, 1000L, 29600L, null);
         assertThat(order.getCoupon()).isNull();
 
 

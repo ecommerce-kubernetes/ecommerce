@@ -22,14 +22,11 @@ import java.util.Map;
 
 @SpringBootTest
 @TestPropertySource(properties = {
-        "order.topics.deduct-inventory=order.saga.inventory.deduct",
-        "order.topics.used-coupon=order.saga.coupon.used",
-        "order.topics.product-result=product.saga.result",
-        "order.topics.used-point=order.saga.point.used"
+        "spring.kafka.consumer.group-id=saga-test-${random.uuid}"
 })
 @EmbeddedKafka(
         partitions = 1,
-        brokerProperties = {"listeners=PLAINTEXT://localhost:9092", "port=9092"},
+        brokerProperties = {"listeners=PLAINTEXT://127.0.0.1:0"},
         topics = {"order.saga.inventory.deduct", "order.saga.coupon.used", "order.saga.point.used", "product.saga.result"}
 )
 public abstract class IncludeInfraTest {

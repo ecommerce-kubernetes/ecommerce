@@ -5,13 +5,11 @@ import com.example.order_service.api.order.saga.orchestrator.SagaManager;
 import com.example.order_service.api.support.IncludeInfraTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class SagaEventListenerTest extends IncludeInfraTest {
 
     @MockitoBean

@@ -33,4 +33,8 @@ public class OrderSagaDomainService {
     public SagaInstanceDto updateToPointSagaInstance(Long sagaId) {
         return null;
     }
+
+    public SagaInstanceDto updateToCompleteSagaInstance(Long sagaId) {
+        return null;
+    }
 }

@@ -11,19 +11,19 @@ import java.time.LocalDateTime;
 public class SagaInstanceDto {
     private Long id;
     private Long orderId;
-    private String step;
-    private String progress;
+    private String sagaStep;
+    private String sagaProgress;
     private Payload payload;
     private String failureReason;
     private LocalDateTime startedAt;
     private LocalDateTime finishedAt;
 
     @Builder
-    private SagaInstanceDto(Long id, Long orderId, String step, String progress, Payload payload, String failureReason, LocalDateTime startedAt, LocalDateTime finishedAt) {
+    private SagaInstanceDto(Long id, Long orderId, String sagaStep, String sagaProgress, Payload payload, String failureReason, LocalDateTime startedAt, LocalDateTime finishedAt) {
         this.id = id;
         this.orderId = orderId;
-        this.step = step;
-        this.progress = progress;
+        this.sagaStep = sagaStep;
+        this.sagaProgress = sagaProgress;
         this.payload = payload;
         this.failureReason = failureReason;
         this.startedAt = startedAt;
@@ -34,8 +34,8 @@ public class SagaInstanceDto {
         return SagaInstanceDto.builder()
                 .id(orderSagaInstance.getId())
                 .orderId(orderSagaInstance.getOrderId())
-                .step(orderSagaInstance.getSagaStep().name())
-                .progress(orderSagaInstance.getSagaProgress().name())
+                .sagaStep(orderSagaInstance.getSagaStep().name())
+                .sagaProgress(orderSagaInstance.getSagaProgress().name())
                 .payload(orderSagaInstance.getPayload())
                 .failureReason(orderSagaInstance.getFailureReason())
                 .startedAt(orderSagaInstance.getStartedAt())

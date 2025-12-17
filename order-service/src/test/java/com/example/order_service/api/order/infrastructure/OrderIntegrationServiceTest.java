@@ -210,7 +210,7 @@ public class OrderIntegrationServiceTest {
     
     @Test
     @DisplayName("주문을 생성할때 상품 재고가 주문 수량보다 부족하면 예외를 던진다")
-    void getOrderProducts_When_OutOfStock() {
+    void getOrderProducts_When_OutCreateOrderStock() {
         //given
         CreateOrderItemDto orderItem1 = CreateOrderItemDto.builder()
                 .productVariantId(1L)

@@ -1,5 +1,6 @@
 package com.example.order_service.api.order.saga.listener;
 
+import com.example.order_service.api.order.application.OrderApplicationService;
 import com.example.order_service.api.order.application.event.OrderCreatedEvent;
 import com.example.order_service.api.order.saga.orchestrator.SagaManager;
 import com.example.order_service.api.order.saga.orchestrator.dto.command.SagaStartCommand;
@@ -19,12 +20,14 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
-public class OrderEventSagaListenerTest {
+public class OrderEventListenerTest {
 
     @InjectMocks
-    private OrderEventSagaListener orderEventSagaListener;
+    private OrderEventListener orderEventListener;
     @Mock
     private SagaManager sagaManager;
+    @Mock
+    private OrderApplicationService orderApplicationService;
 
     @Test
     @DisplayName("주문 생성 이벤트를 수신하면 SAGA 를 수행한다")
@@ -46,7 +49,7 @@ public class OrderEventSagaListenerTest {
                 .usedPoint(1000L)
                 .build();
         //when
-        orderEventSagaListener.handleOrderCreated(orderCreatedEvent);
+        orderEventListener.handleOrderCreated(orderCreatedEvent);
         //then
         ArgumentCaptor<SagaStartCommand> captor = ArgumentCaptor.forClass(SagaStartCommand.class);
         verify(sagaManager, times(1)).startSaga(captor.capture());

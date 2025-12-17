@@ -32,6 +32,9 @@ public class Order extends BaseEntity {
     private Long pointDiscount;
     private Long finalPaymentAmount;
 
+    @Enumerated(EnumType.STRING)
+    private OrderFailureCode failureCode;
+
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "order", cascade = CascadeType.PERSIST, orphanRemoval = true)
     private List<OrderItem> orderItems = new ArrayList<>();
 
@@ -40,7 +43,7 @@ public class Order extends BaseEntity {
 
     @Builder(access = AccessLevel.PRIVATE)
     private Order(Long userId, OrderStatus status, String orderName, String deliveryAddress, Long totalOriginPrice,
-                 Long totalProductDiscount, Long couponDiscount, Long pointDiscount, Long finalPaymentAmount) {
+                 Long totalProductDiscount, Long couponDiscount, Long pointDiscount, Long finalPaymentAmount, OrderFailureCode failureCode) {
         this.userId = userId;
         this.status = status;
         this.orderName = orderName;
@@ -50,6 +53,7 @@ public class Order extends BaseEntity {
         this.couponDiscount = couponDiscount;
         this.pointDiscount = pointDiscount;
         this.finalPaymentAmount = finalPaymentAmount;
+        this.failureCode = failureCode;
     }
 
     private void addOrderItem(OrderItem orderItem){
@@ -79,7 +83,7 @@ public class Order extends BaseEntity {
 
     public static Order create(OrderCreationContext context) {
         String generatedOrderName = generateOrderName(context.getItemSpecs());
-        Order order = of(context, generatedOrderName);
+        Order order = createOrder(context, generatedOrderName);
         for (OrderItemSpec item : context.getItemSpecs()) {
             order.addOrderItem(OrderItem.create(item));
         }
@@ -90,7 +94,7 @@ public class Order extends BaseEntity {
         return order;
     }
 
-    private static Order of(OrderCreationContext context, String orderName){
+    private static Order createOrder(OrderCreationContext context, String orderName){
         return Order.builder()
                 .userId(context.getUserId())
                 .status(OrderStatus.PENDING)
@@ -101,6 +105,7 @@ public class Order extends BaseEntity {
                 .couponDiscount(context.getPriceResult().getPaymentInfo().getCouponDiscount())
                 .pointDiscount(context.getPriceResult().getPaymentInfo().getUsedPoint())
                 .finalPaymentAmount(context.getPriceResult().getPaymentInfo().getFinalPaymentAmount())
+                .failureCode(null)
                 .build();
     }
 

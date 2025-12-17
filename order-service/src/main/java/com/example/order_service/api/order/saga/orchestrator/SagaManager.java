@@ -5,7 +5,9 @@ import com.example.order_service.api.order.saga.domain.service.OrderSagaDomainSe
 import com.example.order_service.api.order.saga.domain.service.dto.SagaInstanceDto;
 import com.example.order_service.api.order.saga.infrastructure.kafka.producer.SagaEventProducer;
 import com.example.order_service.api.order.saga.orchestrator.dto.command.SagaStartCommand;
+import com.example.order_service.api.order.saga.orchestrator.event.SagaCompletedEvent;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -14,6 +16,7 @@ public class SagaManager {
 
     private final OrderSagaDomainService orderSagaDomainService;
     private final SagaEventProducer sagaEventProducer;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     public void startSaga(SagaStartCommand command) {
         Payload payload = Payload.from(command);
@@ -36,11 +39,20 @@ public class SagaManager {
         SagaInstanceDto orderSagaInstance = orderSagaDomainService.getOrderSagaInstance(sagaId);
         Long useToPoint = orderSagaInstance.getPayload().getUseToPoint();
         if (useToPoint == null || useToPoint == 0) {
-            //TODO 사가 종료
+            completeSaga(sagaId);
+            return;
         }
 
         SagaInstanceDto instance = orderSagaDomainService.updateToPointSagaInstance(sagaId);
         sagaEventProducer.requestUserPointUse(instance.getId(), instance.getOrderId(), instance.getPayload());
+    }
+
+    public void completeSaga(Long sagaId) {
+        SagaInstanceDto sagaInstanceDto = orderSagaDomainService.updateToCompleteSagaInstance(sagaId);
+        SagaCompletedEvent completedEvent = SagaCompletedEvent
+                .of(sagaInstanceDto.getId(), sagaInstanceDto.getOrderId(), sagaInstanceDto.getPayload().getUserId());
+
+        applicationEventPublisher.publishEvent(completedEvent);
     }
 
     public void abortSaga(Long sagaId, String failureReason){
