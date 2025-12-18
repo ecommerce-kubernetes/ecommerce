@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 public enum SagaStatus {
     STARTED("전송"),
     FINISHED("완료"),
-    COMPENSATING("보상중");
+    COMPENSATING("보상중"),
+    FAILED("실패");
     private final String name;
 }

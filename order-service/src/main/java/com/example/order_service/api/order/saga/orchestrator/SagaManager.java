@@ -6,6 +6,7 @@ import com.example.order_service.api.order.saga.domain.service.OrderSagaDomainSe
 import com.example.order_service.api.order.saga.domain.service.dto.SagaInstanceDto;
 import com.example.order_service.api.order.saga.infrastructure.kafka.producer.SagaEventProducer;
 import com.example.order_service.api.order.saga.orchestrator.dto.command.SagaStartCommand;
+import com.example.order_service.api.order.saga.orchestrator.event.SagaAbortEvent;
 import com.example.order_service.api.order.saga.orchestrator.event.SagaCompletedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -21,13 +22,46 @@ public class SagaManager {
 
     public void startSaga(SagaStartCommand command) {
         Payload payload = Payload.from(command);
-        SagaInstanceDto sagaInstanceDto = orderSagaDomainService.saveOrderSagaInstance(command.getOrderId(), payload);
+        SagaInstanceDto sagaInstanceDto = orderSagaDomainService.create(command.getOrderId(), payload);
         sagaEventProducer.requestInventoryDeduction(sagaInstanceDto.getId(), sagaInstanceDto.getOrderId(), sagaInstanceDto.getPayload());
     }
 
     public void proceedSaga(Long sagaId){
-        SagaInstanceDto sagaInstanceDto = orderSagaDomainService.getOrderSagaInstance(sagaId);
+        SagaInstanceDto sagaInstanceDto = orderSagaDomainService.getSaga(sagaId);
         proceed(sagaInstanceDto.getId(), sagaInstanceDto.getSagaStep(), sagaInstanceDto.getPayload());
+    }
+
+    //TODO 테스트 작성
+    public void abortSaga(Long sagaId, String failureReason){
+        SagaInstanceDto sagaInstanceDto = orderSagaDomainService.abort(sagaId, failureReason);
+        compensate(sagaInstanceDto.getId(), sagaInstanceDto.getSagaStep(), sagaInstanceDto.getPayload());
+    }
+
+    //TODO 테스트 작성
+    public void compensateSaga(Long sagaId) {
+    }
+
+    private void compensate(Long sagaId, SagaStep sagaStep, Payload payload) {
+        switch (sagaStep) {
+            case USER:
+                compensateCoupon();
+                break;
+            case COUPON:
+                compensateInventory();
+                break;
+            case PRODUCT:
+                failSaga();
+                break;
+        }
+    }
+
+    private void compensateCoupon(){
+    }
+
+    private void compensateInventory() {
+    }
+
+    private void failSaga() {
     }
 
     private void proceed(Long sagaId, SagaStep sagaStep, Payload payload) {
@@ -39,7 +73,7 @@ public class SagaManager {
                 executeUsePoint(sagaId, payload);
                 break;
             case USER:
-                executeCompleteSaga(sagaId);
+                completeSaga(sagaId);
                 break;
         }
     }
@@ -50,7 +84,7 @@ public class SagaManager {
             proceed(sagaId, SagaStep.COUPON, payload);
             return;
         }
-        SagaInstanceDto instance = orderSagaDomainService.updateToCouponSagaInstance(sagaId);
+        SagaInstanceDto instance = orderSagaDomainService.nextStepToCoupon(sagaId);
         sagaEventProducer.requestCouponUse(instance.getId(), instance.getOrderId(), instance.getPayload());
     }
 
@@ -60,18 +94,14 @@ public class SagaManager {
             proceed(sagaId, SagaStep.USER, payload);
             return;
         }
-        SagaInstanceDto sagaInstanceDto = orderSagaDomainService.updateToPointSagaInstance(sagaId);
+        SagaInstanceDto sagaInstanceDto = orderSagaDomainService.nextStepToUser(sagaId);
         sagaEventProducer.requestUserPointUse(sagaInstanceDto.getId(), sagaInstanceDto.getOrderId(), sagaInstanceDto.getPayload());
     }
 
-    private void executeCompleteSaga(Long sagaId) {
-        SagaInstanceDto sagaInstanceDto = orderSagaDomainService.updateToCompleteSagaInstance(sagaId);
+    private void completeSaga(Long sagaId) {
+        SagaInstanceDto sagaInstanceDto = orderSagaDomainService.finish(sagaId);
         SagaCompletedEvent completedEvent = SagaCompletedEvent
                 .of(sagaInstanceDto.getId(), sagaInstanceDto.getOrderId(), sagaInstanceDto.getPayload().getUserId());
         applicationEventPublisher.publishEvent(completedEvent);
-    }
-
-    public void abortSaga(Long sagaId, String failureReason){
-
     }
 }

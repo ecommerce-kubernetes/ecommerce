@@ -19,20 +19,29 @@ public class OrderSagaDomainService {
     private final OrderSagaInstanceRepository orderSagaInstanceRepository;
 
     @Transactional
-    public SagaInstanceDto saveOrderSagaInstance(Long orderId, Payload payload){
+    public SagaInstanceDto create(Long orderId, Payload payload){
         OrderSagaInstance sagaInstance = OrderSagaInstance.start(orderId, payload);
         OrderSagaInstance savedSagaInstance = orderSagaInstanceRepository.save(sagaInstance);
         return SagaInstanceDto.from(savedSagaInstance);
     }
 
-    public SagaInstanceDto getOrderSagaInstance(Long sagaId){
+    public SagaInstanceDto getSaga(Long sagaId){
         OrderSagaInstance sagaInstance = orderSagaInstanceRepository.findById(sagaId)
                 .orElseThrow(() -> new NotFoundException("주문 SAGA 인스턴스를 찾을 수 없습니다"));
         return SagaInstanceDto.from(sagaInstance);
     }
 
+    //TODO 테스트 작성
     @Transactional
-    public SagaInstanceDto updateToCouponSagaInstance(Long sagaId) {
+    public SagaInstanceDto nextStepToProduct(Long sagaId) {
+        OrderSagaInstance sagaInstance = orderSagaInstanceRepository.findById(sagaId)
+                .orElseThrow(() -> new NotFoundException("주문 SAGA 인스턴스를 찾을 수 없습니다"));
+        sagaInstance.changeStep(SagaStep.PRODUCT);
+        return SagaInstanceDto.from(sagaInstance);
+    }
+
+    @Transactional
+    public SagaInstanceDto nextStepToCoupon(Long sagaId) {
         OrderSagaInstance sagaInstance = orderSagaInstanceRepository.findById(sagaId)
                 .orElseThrow(() -> new NotFoundException("주문 SAGA 인스턴스를 찾을 수 없습니다"));
         sagaInstance.changeStep(SagaStep.COUPON);
@@ -40,7 +49,7 @@ public class OrderSagaDomainService {
     }
 
     @Transactional
-    public SagaInstanceDto updateToPointSagaInstance(Long sagaId) {
+    public SagaInstanceDto nextStepToUser(Long sagaId) {
         OrderSagaInstance sagaInstance = orderSagaInstanceRepository.findById(sagaId)
                 .orElseThrow(() -> new NotFoundException("주문 SAGA 인스턴스를 찾을 수 없습니다"));
         sagaInstance.changeStep(SagaStep.USER);
@@ -48,10 +57,23 @@ public class OrderSagaDomainService {
     }
 
     @Transactional
-    public SagaInstanceDto updateToCompleteSagaInstance(Long sagaId) {
+    public SagaInstanceDto finish(Long sagaId) {
         OrderSagaInstance sagaInstance = orderSagaInstanceRepository.findById(sagaId)
                 .orElseThrow(() -> new NotFoundException("주문 SAGA 인스턴스를 찾을 수 없습니다"));
         sagaInstance.changeStatus(SagaStatus.FINISHED);
         return SagaInstanceDto.from(sagaInstance);
+    }
+
+    //TODO 테스트 작성
+    @Transactional
+    public SagaInstanceDto fail(Long sagaId) {
+        OrderSagaInstance sagaInstance = orderSagaInstanceRepository.findById(sagaId)
+                .orElseThrow(() -> new NotFoundException("주문 SAGA 인스턴스를 찾을 수 없습니다"));
+        sagaInstance.changeStatus(SagaStatus.FAILED);
+        return SagaInstanceDto.from(sagaInstance);
+    }
+
+    public SagaInstanceDto abort(Long sagaId, String failureReason) {
+        return null;
     }
 }

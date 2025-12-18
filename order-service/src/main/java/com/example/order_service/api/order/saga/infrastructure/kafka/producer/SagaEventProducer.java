@@ -41,6 +41,16 @@ public class SagaEventProducer {
         kafkaTemplate.send(pointUsedTopic, String.valueOf(sagaId), message);
     }
 
+    //TODO 테스트 작성
+    public void requestCouponCompensate(Long sagaId, Long orderId, Payload payload) {
+
+    }
+
+    //TODO 테스트 작성
+    public void requestInventoryCompensate(Long sagaId, Long orderId, Payload payload) {
+
+    }
+
     private InventoryDeductRequest createInventoryDeductMessage(Long sagaId, Long orderId, Payload payload){
         LocalDateTime currentTimestamp = LocalDateTime.now();
         List<Item> items = payload.getSagaItems().stream()

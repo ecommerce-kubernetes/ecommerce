@@ -18,7 +18,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.*;
 
 @Transactional
-public class OrderSagaDomainTest extends ExcludeInfraTest {
+public class OrderSagaDomainServiceTest extends ExcludeInfraTest {
 
     @Autowired
     private OrderSagaDomainService orderSagaDomainService;
@@ -27,7 +27,7 @@ public class OrderSagaDomainTest extends ExcludeInfraTest {
 
     @Test
     @DisplayName("Saga 인스턴스를 생성해 저장한다")
-    void saveOrderSagaInstance(){
+    void create(){
         //given
         Payload.SagaItem item1 = Payload.SagaItem.builder().productVariantId(1L)
                 .quantity(3).build();
@@ -40,7 +40,7 @@ public class OrderSagaDomainTest extends ExcludeInfraTest {
                 .useToPoint(1000L)
                 .build();
         //when
-        SagaInstanceDto sagaInstanceDto = orderSagaDomainService.saveOrderSagaInstance(1L, payload);
+        SagaInstanceDto sagaInstanceDto = orderSagaDomainService.create(1L, payload);
         //then
         assertThat(sagaInstanceDto.getId()).isNotNull();
         assertThat(sagaInstanceDto)
@@ -59,7 +59,7 @@ public class OrderSagaDomainTest extends ExcludeInfraTest {
 
     @Test
     @DisplayName("Saga 인스턴스를 조회한다")
-    void getOrderSagaInstance() {
+    void getSaga() {
         //given
         Payload payload = Payload.builder()
                 .userId(1L)
@@ -70,7 +70,7 @@ public class OrderSagaDomainTest extends ExcludeInfraTest {
         OrderSagaInstance sagaInstance = OrderSagaInstance.start(1L, payload);
         OrderSagaInstance save = orderSagaInstanceRepository.save(sagaInstance);
         //when
-        SagaInstanceDto result = orderSagaDomainService.getOrderSagaInstance(save.getId());
+        SagaInstanceDto result = orderSagaDomainService.getSaga(save.getId());
         //then
         assertThat(result.getId()).isNotNull();
         assertThat(result)
@@ -81,18 +81,18 @@ public class OrderSagaDomainTest extends ExcludeInfraTest {
 
     @Test
     @DisplayName("Saga 인스턴스를 찾을 수 없을때는 예외를 던진다")
-    void getOrderSagaInstance_notFound() {
+    void getSaga_notFound() {
         //given
         //when
         //then
-        assertThatThrownBy(() -> orderSagaDomainService.getOrderSagaInstance(999L))
+        assertThatThrownBy(() -> orderSagaDomainService.getSaga(999L))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage("주문 SAGA 인스턴스를 찾을 수 없습니다");
     }
 
     @Test
     @DisplayName("Saga 인스턴스 Step을 Coupon으로 변경한다")
-    void updateToCouponSagaInstance() {
+    void nextStepToCoupon() {
         //given
         Payload payload = Payload.builder()
                 .userId(1L)
@@ -103,7 +103,7 @@ public class OrderSagaDomainTest extends ExcludeInfraTest {
         OrderSagaInstance sagaInstance = OrderSagaInstance.start(1L, payload);
         OrderSagaInstance save = orderSagaInstanceRepository.save(sagaInstance);
         //when
-        SagaInstanceDto result = orderSagaDomainService.updateToCouponSagaInstance(save.getId());
+        SagaInstanceDto result = orderSagaDomainService.nextStepToCoupon(save.getId());
         //then
         assertThat(result.getId()).isNotNull();
         assertThat(result)
@@ -114,18 +114,18 @@ public class OrderSagaDomainTest extends ExcludeInfraTest {
 
     @Test
     @DisplayName("Saga 인스턴스 Step을 Coupon으로 변경할때 Saga 인스턴스를 찾을 수 없을때 예외를 던진다")
-    void updateToCouponSagaInstance_notFound() {
+    void nextStepToCoupon_notFound() {
         //given
         //when
         //then
-        assertThatThrownBy(() -> orderSagaDomainService.updateToCouponSagaInstance(999L))
+        assertThatThrownBy(() -> orderSagaDomainService.nextStepToCoupon(999L))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage("주문 SAGA 인스턴스를 찾을 수 없습니다");
     }
 
     @Test
     @DisplayName("Saga 인스턴스 Step을 User로 변경한다")
-    void updateToPointSagaInstance() {
+    void nextStepToUser() {
         //given
         Payload payload = Payload.builder()
                 .userId(1L)
@@ -136,7 +136,7 @@ public class OrderSagaDomainTest extends ExcludeInfraTest {
         OrderSagaInstance sagaInstance = OrderSagaInstance.start(1L, payload);
         OrderSagaInstance save = orderSagaInstanceRepository.save(sagaInstance);
         //when
-        SagaInstanceDto result = orderSagaDomainService.updateToPointSagaInstance(save.getId());
+        SagaInstanceDto result = orderSagaDomainService.nextStepToUser(save.getId());
         //then
         assertThat(result.getId()).isNotNull();
         assertThat(result)
@@ -147,18 +147,18 @@ public class OrderSagaDomainTest extends ExcludeInfraTest {
 
     @Test
     @DisplayName("Saga 인스턴스 Step을 USER로 변경할때 Saga 인스턴스를 찾을 수 없을때 예외를 던진다")
-    void updateToPointSagaInstance_notFound() {
+    void nextStepToUser_notFound() {
         //given
         //when
         //then
-        assertThatThrownBy(() -> orderSagaDomainService.updateToPointSagaInstance(999L))
+        assertThatThrownBy(() -> orderSagaDomainService.nextStepToUser(999L))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage("주문 SAGA 인스턴스를 찾을 수 없습니다");
     }
 
     @Test
     @DisplayName("Saga 인스턴스 Status를 FINISHED로 변경한다")
-    void updateToCompleteSagaInstance() {
+    void finish() {
         //given
         Payload payload = Payload.builder()
                 .userId(1L)
@@ -169,7 +169,7 @@ public class OrderSagaDomainTest extends ExcludeInfraTest {
         OrderSagaInstance sagaInstance = OrderSagaInstance.start(1L, payload);
         OrderSagaInstance save = orderSagaInstanceRepository.save(sagaInstance);
         //when
-        SagaInstanceDto result = orderSagaDomainService.updateToCompleteSagaInstance(save.getId());
+        SagaInstanceDto result = orderSagaDomainService.finish(save.getId());
         //then
         assertThat(result.getId()).isNotNull();
         assertThat(result)
@@ -180,11 +180,11 @@ public class OrderSagaDomainTest extends ExcludeInfraTest {
 
     @Test
     @DisplayName("Saga 인스턴스 Status를 FINISHED로 변경할때 Saga 인스턴스를 찾을 수 없을때 예외를 던진다")
-    void updateToCompleteSagaInstance_notFound() {
+    void finish_notFound() {
         //given
         //when
         //then
-        assertThatThrownBy(() -> orderSagaDomainService.updateToCompleteSagaInstance(999L))
+        assertThatThrownBy(() -> orderSagaDomainService.finish(999L))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage("주문 SAGA 인스턴스를 찾을 수 없습니다");
     }
