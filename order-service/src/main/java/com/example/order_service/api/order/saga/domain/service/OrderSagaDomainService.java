@@ -1,6 +1,9 @@
 package com.example.order_service.api.order.saga.domain.service;
 
+import com.example.order_service.api.common.exception.NotFoundException;
 import com.example.order_service.api.order.saga.domain.model.OrderSagaInstance;
+import com.example.order_service.api.order.saga.domain.model.SagaStatus;
+import com.example.order_service.api.order.saga.domain.model.SagaStep;
 import com.example.order_service.api.order.saga.domain.model.vo.Payload;
 import com.example.order_service.api.order.saga.domain.repository.OrderSagaInstanceRepository;
 import com.example.order_service.api.order.saga.domain.service.dto.SagaInstanceDto;
@@ -23,18 +26,32 @@ public class OrderSagaDomainService {
     }
 
     public SagaInstanceDto getOrderSagaInstance(Long sagaId){
-        return null;
+        OrderSagaInstance sagaInstance = orderSagaInstanceRepository.findById(sagaId)
+                .orElseThrow(() -> new NotFoundException("주문 SAGA 인스턴스를 찾을 수 없습니다"));
+        return SagaInstanceDto.from(sagaInstance);
     }
 
+    @Transactional
     public SagaInstanceDto updateToCouponSagaInstance(Long sagaId) {
-        return null;
+        OrderSagaInstance sagaInstance = orderSagaInstanceRepository.findById(sagaId)
+                .orElseThrow(() -> new NotFoundException("주문 SAGA 인스턴스를 찾을 수 없습니다"));
+        sagaInstance.changeStep(SagaStep.COUPON);
+        return SagaInstanceDto.from(sagaInstance);
     }
 
+    @Transactional
     public SagaInstanceDto updateToPointSagaInstance(Long sagaId) {
-        return null;
+        OrderSagaInstance sagaInstance = orderSagaInstanceRepository.findById(sagaId)
+                .orElseThrow(() -> new NotFoundException("주문 SAGA 인스턴스를 찾을 수 없습니다"));
+        sagaInstance.changeStep(SagaStep.USER);
+        return SagaInstanceDto.from(sagaInstance);
     }
 
+    @Transactional
     public SagaInstanceDto updateToCompleteSagaInstance(Long sagaId) {
-        return null;
+        OrderSagaInstance sagaInstance = orderSagaInstanceRepository.findById(sagaId)
+                .orElseThrow(() -> new NotFoundException("주문 SAGA 인스턴스를 찾을 수 없습니다"));
+        sagaInstance.changeStatus(SagaStatus.FINISHED);
+        return SagaInstanceDto.from(sagaInstance);
     }
 }

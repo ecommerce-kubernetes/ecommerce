@@ -45,4 +45,66 @@ public class OrderSagaInstanceTest {
                         tuple(2L, 5)
                 );
     }
+
+    @Test
+    @DisplayName("sagaStep을 변경한다")
+    void changeStep() {
+        //given
+        Payload payload = Payload.builder()
+                .userId(1L)
+                .sagaItems(List.of(Payload.SagaItem.builder().productVariantId(1L).quantity(3).build()))
+                .couponId(1L)
+                .useToPoint(1000L)
+                .build();
+        OrderSagaInstance sagaInstance = OrderSagaInstance.start(1L, payload);
+        //when
+        sagaInstance.changeStep(SagaStep.COUPON);
+        //then
+        assertThat(sagaInstance)
+                .extracting(OrderSagaInstance::getOrderId, OrderSagaInstance::getSagaStep, OrderSagaInstance::getSagaStatus, OrderSagaInstance::getFailureReason)
+                .containsExactly(1L, SagaStep.COUPON, SagaStatus.STARTED, null);
+        assertThat(sagaInstance.getStartedAt())
+                .isNotNull();
+        assertThat(sagaInstance.getFinishedAt())
+                .isNull();
+        assertThat(sagaInstance.getPayload())
+                .extracting(Payload::getUserId, Payload::getCouponId, Payload::getUseToPoint)
+                .containsExactly(1L, 1L, 1000L);
+        assertThat(sagaInstance.getPayload().getSagaItems())
+                .extracting(Payload.SagaItem::getProductVariantId, Payload.SagaItem::getQuantity)
+                .containsExactlyInAnyOrder(
+                        tuple(1L, 3)
+                );
+    }
+
+    @Test
+    @DisplayName("SagaStatus를 변경한다")
+    void changeStatus() {
+        //given
+        Payload payload = Payload.builder()
+                .userId(1L)
+                .sagaItems(List.of(Payload.SagaItem.builder().productVariantId(1L).quantity(3).build()))
+                .couponId(1L)
+                .useToPoint(1000L)
+                .build();
+        OrderSagaInstance sagaInstance = OrderSagaInstance.start(1L, payload);
+        //when
+        sagaInstance.changeStatus(SagaStatus.FINISHED);
+        //then
+        assertThat(sagaInstance)
+                .extracting(OrderSagaInstance::getOrderId, OrderSagaInstance::getSagaStep, OrderSagaInstance::getSagaStatus, OrderSagaInstance::getFailureReason)
+                .containsExactly(1L, SagaStep.PRODUCT, SagaStatus.FINISHED, null);
+        assertThat(sagaInstance.getStartedAt())
+                .isNotNull();
+        assertThat(sagaInstance.getFinishedAt())
+                .isNull();
+        assertThat(sagaInstance.getPayload())
+                .extracting(Payload::getUserId, Payload::getCouponId, Payload::getUseToPoint)
+                .containsExactly(1L, 1L, 1000L);
+        assertThat(sagaInstance.getPayload().getSagaItems())
+                .extracting(Payload.SagaItem::getProductVariantId, Payload.SagaItem::getQuantity)
+                .containsExactlyInAnyOrder(
+                        tuple(1L, 3)
+                );
+    }
 }

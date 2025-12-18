@@ -11,7 +11,6 @@ import com.example.order_service.api.order.saga.orchestrator.event.SagaCompleted
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.provider.Arguments;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -19,7 +18,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.List;
-import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
@@ -330,36 +328,5 @@ public class SagaManagerTest {
                 .sagaStep(sagaStep)
                 .payload(payload)
                 .build();
-    }
-
-    private static Stream<Arguments> provideInventoryDeductScenarios() {
-        return Stream.of(
-                //재고 감소 성공 메시지 수신시 쿠폰 사용, 포인트 사용 시나리오
-                Arguments.of(
-                        "쿠폰 사용, 포인트 사용",
-                        1L, 1000L, // 쿠폰 Id, 사용 포인트
-                        times(1), times(1), // 쿠폰상태 변경, 쿠폰 사용 메시지 발송
-                        never(), never(), // 포인트 상태 변경, 포인트 사용 메시지 발송
-                        never(), false// Saga 완료 상태 변경, Saga 완료 메시지 발행
-                ),
-
-                //재고 감소 성공 메시지 수신시 쿠폰 미사용, 포인트 사용 시나리오
-                Arguments.of(
-                        "쿠폰 미사용, 포인트 사용",
-                        null, 1000L, // 쿠폰 Id, 사용 포인트
-                        never(), never(), // 쿠폰상태 변경, 쿠폰 사용 메시지 발송
-                        times(1), times(1), // 포인트 상태 변경, 포인트 사용 메시지 발송
-                        never(), false // Saga 완료 상태 변경, Saga 완료 메시지 발행
-                ),
-
-                //재고 감소 성공 메시지 수신시 쿠폰 미사용, 포인트 미사용 시나리오
-                Arguments.of(
-                        "쿠폰 미사용, 포인트 미사용",
-                        null, 0L, // 쿠폰 Id, 사용 포인트
-                        never(), never(), // 쿠폰상태 변경, 쿠폰 사용 메시지 발송
-                        never(), never(), // 포인트 상태 변경, 포인트 사용 메시지 발송
-                        times(1), true // Saga 완료 상태 변경, Saga 완료 메시지 발행
-                )
-        );
     }
 }

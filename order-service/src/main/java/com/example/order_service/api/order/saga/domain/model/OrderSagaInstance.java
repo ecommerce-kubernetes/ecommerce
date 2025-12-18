@@ -43,6 +43,14 @@ public class OrderSagaInstance {
         this.finishedAt = finishedAt;
     }
 
+    public void changeStep(SagaStep sagaStep) {
+        this.sagaStep = sagaStep;
+    }
+
+    public void changeStatus(SagaStatus sagaStatus) {
+        this.sagaStatus = sagaStatus;
+    }
+
     public static OrderSagaInstance start(Long orderId, Payload payload) {
         return of(orderId, SagaStatus.STARTED, SagaStep.PRODUCT, payload, null, LocalDateTime.now(), null);
     }
