@@ -47,6 +47,8 @@ order:
     used-point: "order.saga.point.used"
     # 수신
     product-result: "product.saga.result"
+    coupon-result: "coupon.saga.result"
+    user-result: "user.saga.result"
 ---
 spring:
   config:

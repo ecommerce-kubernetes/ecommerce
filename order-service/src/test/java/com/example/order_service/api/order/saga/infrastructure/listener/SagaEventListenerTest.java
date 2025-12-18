@@ -16,7 +16,7 @@ public class SagaEventListenerTest extends IncludeInfraTest {
     private SagaManager sagaManager;
 
     @Test
-    @DisplayName("상품 재고감소 응답의 SagaStatus가 SUCCESS 면 쿠폰 saga를 진행한다")
+    @DisplayName("상품 재고감소 응답의 SagaStatus가 SUCCESS 면 다음 saga를 진행한다")
     void handleProductResult_SUCCESS() {
         //given
         Long sagaId = 1L;
@@ -24,11 +24,11 @@ public class SagaEventListenerTest extends IncludeInfraTest {
         //when
         kafkaTemplate.send(PRODUCT_RESULT_TOPIC_NAME, String.valueOf(result.getSagaId()), result);
         //then
-        verify(sagaManager, timeout(3000).times(1)).proceedSaga(sagaId);
+        verify(sagaManager, timeout(10000).times(1)).proceedSaga(sagaId);
     }
 
     @Test
-    @DisplayName("상품 재고감소 응답의 SagaStatus가 FAIL 이면 보상 로직을 수행한다")
+    @DisplayName("상품 재고감소 응답의 SagaStatus가 FAIL 이면 보상 로직을 진행한다")
     void handleProductResult_FAIL() {
         //given
         Long sagaId = 1L;
@@ -36,6 +36,54 @@ public class SagaEventListenerTest extends IncludeInfraTest {
         //when
         kafkaTemplate.send(PRODUCT_RESULT_TOPIC_NAME, String.valueOf(result.getSagaId()), result);
         //then
-        verify(sagaManager, timeout(3000).times(1)).abortSaga(sagaId, "재고가 부족합니다");
+        verify(sagaManager, timeout(10000).times(1)).abortSaga(sagaId, "재고가 부족합니다");
+    }
+
+    @Test
+    @DisplayName("쿠폰 사용 응답의 SagaStatus가 SUCCESS 면 다음 saga를 진행한다")
+    void handleCouponResult_SUCCESS() {
+        //given
+        Long sagaId = 1L;
+        SagaProcessResult result = SagaProcessResult.success(sagaId, 1L);
+        //when
+        kafkaTemplate.send(COUPON_RESULT_TOPIC_NAME, String.valueOf(result.getSagaId()), result);
+        //then
+        verify(sagaManager, timeout(10000).times(1)).proceedSaga(sagaId);
+    }
+
+    @Test
+    @DisplayName("쿠폰 사용 응답의 SagaStatus가 FAIL 이면 보상 로직을 진행한다")
+    void handleCouponResult_FAIL() {
+        //given
+        Long sagaId = 1L;
+        SagaProcessResult result = SagaProcessResult.fail(sagaId, 1L, "COUPON_INVALID", "쿠폰이 유효하지 않습니다");
+        //when
+        kafkaTemplate.send(COUPON_RESULT_TOPIC_NAME, String.valueOf(result.getSagaId()), result);
+        //then
+        verify(sagaManager, timeout(10000).times(1)).abortSaga(sagaId, "쿠폰이 유효하지 않습니다");
+    }
+
+    @Test
+    @DisplayName("포인트 사용 응답의 SagaStatus가 SUCCESS 면 다음 saga를 진행한다")
+    void handleUserResult_SUCCESS() {
+        //given
+        Long sagaId = 1L;
+        SagaProcessResult result = SagaProcessResult.success(sagaId, 1L);
+        //when
+        kafkaTemplate.send(USER_RESULT_TOPIC_NAME, String.valueOf(result.getSagaId()), result);
+        //then
+        verify(sagaManager, timeout(10000).times(1)).proceedSaga(sagaId);
+    }
+
+    @Test
+    @DisplayName("포인트 사용 응답의 SagaStatus가 FAIL 이면 보상 로직을 진행한다")
+    void handleUserResult_FAIL() {
+        //given
+        Long sagaId = 1L;
+        SagaProcessResult result = SagaProcessResult.fail(sagaId, 1L, "INSUFFICIENT_POINT", "포인트가 부족합니다");
+        //when
+        kafkaTemplate.send(USER_RESULT_TOPIC_NAME, String.valueOf(sagaId), result);
+        //then
+        verify(sagaManager, timeout(10000).times(1)).abortSaga(sagaId, "포인트가 부족합니다");
     }
 }

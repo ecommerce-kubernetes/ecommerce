@@ -27,7 +27,10 @@ import java.util.Map;
 @EmbeddedKafka(
         partitions = 1,
         brokerProperties = {"listeners=PLAINTEXT://127.0.0.1:0"},
-        topics = {"order.saga.inventory.deduct", "order.saga.coupon.used", "order.saga.point.used", "product.saga.result"}
+        topics = {
+                "order.saga.inventory.deduct", "order.saga.coupon.used", "order.saga.point.used",
+                "product.saga.result", "coupon.saga.result", "user.saga.result"
+        }
 )
 public abstract class IncludeInfraTest {
 
@@ -39,6 +42,10 @@ public abstract class IncludeInfraTest {
     protected String POINT_USED_TOPIC_NAME;
     @Value("${order.topics.product-result}")
     protected String PRODUCT_RESULT_TOPIC_NAME;
+    @Value("${order.topics.coupon-result}")
+    protected String COUPON_RESULT_TOPIC_NAME;
+    @Value("${order.topics.user-result}")
+    protected String USER_RESULT_TOPIC_NAME;
     @Autowired
     protected EmbeddedKafkaBroker embeddedKafkaBroker;
     @Autowired

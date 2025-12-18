@@ -23,4 +23,22 @@ public class SagaEventListener {
             sagaManager.abortSaga(result.getSagaId(), result.getFailureReason());
         }
     }
+
+    @KafkaListener(topics = "${order.topics.coupon-result}")
+    public void handleCouponResult(@Payload SagaProcessResult result) {
+        if (result.getStatus() == SagaStatus.SUCCESS) {
+            sagaManager.proceedSaga(result.getSagaId());
+        } else if (result.getStatus() == SagaStatus.FAIL) {
+            sagaManager.abortSaga(result.getSagaId(), result.getFailureReason());
+        }
+    }
+
+    @KafkaListener(topics = "${order.topics.user-result}")
+    public void handleUserResult(@Payload SagaProcessResult result) {
+        if (result.getStatus() == SagaStatus.SUCCESS) {
+            sagaManager.proceedSaga(result.getSagaId());
+        } else if (result.getStatus() == SagaStatus.FAIL) {
+            sagaManager.abortSaga(result.getSagaId(), result.getFailureReason());
+        }
+    }
 }
