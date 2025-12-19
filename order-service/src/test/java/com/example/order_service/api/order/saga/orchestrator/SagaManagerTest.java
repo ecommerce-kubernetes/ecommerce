@@ -1,5 +1,6 @@
 package com.example.order_service.api.order.saga.orchestrator;
 
+import com.example.order_service.api.order.domain.model.OrderFailureCode;
 import com.example.order_service.api.order.saga.domain.model.SagaStatus;
 import com.example.order_service.api.order.saga.domain.model.SagaStep;
 import com.example.order_service.api.order.saga.domain.model.vo.Payload;
@@ -7,6 +8,7 @@ import com.example.order_service.api.order.saga.domain.service.OrderSagaDomainSe
 import com.example.order_service.api.order.saga.domain.service.dto.SagaInstanceDto;
 import com.example.order_service.api.order.saga.infrastructure.kafka.producer.SagaEventProducer;
 import com.example.order_service.api.order.saga.orchestrator.dto.command.SagaStartCommand;
+import com.example.order_service.api.order.saga.orchestrator.event.SagaAbortEvent;
 import com.example.order_service.api.order.saga.orchestrator.event.SagaCompletedEvent;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -335,7 +337,7 @@ public class SagaManagerTest {
                 .useToPoint(usedPoint)
                 .build();
 
-        SagaInstanceDto abortInstanceDto = createSagaInstanceDto(sagaId, orderId, SagaStatus.COMPENSATING, SagaStep.USER, payload);
+        SagaInstanceDto abortInstanceDto = createSagaInstanceDto(sagaId, orderId, SagaStatus.ABORTED, SagaStep.USER, payload);
         SagaInstanceDto compensateInstanceDto = createSagaInstanceDto(sagaId, orderId, SagaStatus.COMPENSATING, SagaStep.COUPON, payload);
         given(orderSagaDomainService.abort(anyLong(), anyString()))
                 .willReturn(abortInstanceDto);
@@ -345,9 +347,15 @@ public class SagaManagerTest {
         sagaManager.abortSaga(sagaId, "포인트 부족");
         //then
         //포인트 차감과정 문제 발생이므로 SagaAbort 이벤트 발행과 다음 스텝인 Coupon 호출과 Coupon 보상이 이뤄져야함
+        ArgumentCaptor<SagaAbortEvent> captor = ArgumentCaptor.forClass(SagaAbortEvent.class);
         verify(orderSagaDomainService, times(1)).nextStepToCoupon(sagaId);
         verify(sagaEventProducer, times(1)).requestCouponCompensate(sagaId, orderId, payload);
-//        verify(eventPublisher, times(1)).publishEvent(any());
+        verify(eventPublisher, times(1)).publishEvent(captor.capture());
+
+        assertThat(captor.getValue())
+                .extracting(SagaAbortEvent::getSagaId, SagaAbortEvent::getOrderId, SagaAbortEvent::getUserId,
+                        SagaAbortEvent::getOrderFailureCode)
+                        .containsExactly(1L, 1L, 1L, OrderFailureCode.POINT_SHORTAGE);
 
         //재고 복구 로직은 실행되서는 안됨
         verify(orderSagaDomainService, never()).nextStepToProduct(sagaId);

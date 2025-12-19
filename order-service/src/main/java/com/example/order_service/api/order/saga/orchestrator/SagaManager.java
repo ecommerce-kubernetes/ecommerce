@@ -1,5 +1,6 @@
 package com.example.order_service.api.order.saga.orchestrator;
 
+import com.example.order_service.api.order.domain.model.OrderFailureCode;
 import com.example.order_service.api.order.saga.domain.model.SagaStep;
 import com.example.order_service.api.order.saga.domain.model.vo.Payload;
 import com.example.order_service.api.order.saga.domain.service.OrderSagaDomainService;
@@ -32,8 +33,11 @@ public class SagaManager {
     }
 
     //TODO 테스트 작성
-    public void abortSaga(Long sagaId, String failureReason){
+    public void abortSaga(Long sagaId, String errorCode, String failureReason){
         SagaInstanceDto sagaInstanceDto = orderSagaDomainService.abort(sagaId, failureReason);
+        SagaAbortEvent sagaAbortEvent = createSagaAbortEvent(sagaInstanceDto.getId(), sagaInstanceDto.getOrderId(), sagaInstanceDto.getPayload().getUserId(),
+                errorCode);
+        applicationEventPublisher.publishEvent(sagaAbortEvent);
         compensate(sagaInstanceDto.getId(), sagaInstanceDto.getSagaStep(), sagaInstanceDto.getPayload());
     }
 
@@ -103,5 +107,19 @@ public class SagaManager {
         SagaCompletedEvent completedEvent = SagaCompletedEvent
                 .of(sagaInstanceDto.getId(), sagaInstanceDto.getOrderId(), sagaInstanceDto.getPayload().getUserId());
         applicationEventPublisher.publishEvent(completedEvent);
+    }
+
+    private SagaAbortEvent createSagaAbortEvent(Long sagaId, Long orderId, Long userId, String errorCode) {
+
+        OrderFailureCode failureCode = OrderFailureCode.UNKNOWN;
+        if(errorCode.equals("OUT_OF_STOCK")) {
+            failureCode = OrderFailureCode.OUT_OF_STOCK;
+        } else if (errorCode.equals("INVALID_COUPON")) {
+            failureCode = OrderFailureCode.INVALID_COUPON;
+        } else if (errorCode.equals("INSUFFICIENT_POINT")){
+            failureCode = OrderFailureCode.POINT_SHORTAGE;
+        }
+
+        return SagaAbortEvent.of(sagaId, orderId, userId, failureCode);
     }
 }

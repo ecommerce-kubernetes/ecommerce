@@ -36,7 +36,7 @@ public class SagaEventListenerTest extends IncludeInfraTest {
         //when
         kafkaTemplate.send(PRODUCT_RESULT_TOPIC_NAME, String.valueOf(result.getSagaId()), result);
         //then
-        verify(sagaManager, timeout(10000).times(1)).abortSaga(sagaId, "재고가 부족합니다");
+        verify(sagaManager, timeout(10000).times(1)).abortSaga(sagaId, result.getErrorCode(), result.getFailureReason());
     }
 
     @Test
@@ -56,11 +56,11 @@ public class SagaEventListenerTest extends IncludeInfraTest {
     void handleCouponResult_FAIL() {
         //given
         Long sagaId = 1L;
-        SagaProcessResult result = SagaProcessResult.fail(sagaId, 1L, "COUPON_INVALID", "쿠폰이 유효하지 않습니다");
+        SagaProcessResult result = SagaProcessResult.fail(sagaId, 1L, "INVALID_COUPON", "쿠폰이 유효하지 않습니다");
         //when
         kafkaTemplate.send(COUPON_RESULT_TOPIC_NAME, String.valueOf(result.getSagaId()), result);
         //then
-        verify(sagaManager, timeout(10000).times(1)).abortSaga(sagaId, "쿠폰이 유효하지 않습니다");
+        verify(sagaManager, timeout(10000).times(1)).abortSaga(sagaId, result.getErrorCode(), result.getFailureReason());
     }
 
     @Test
@@ -84,6 +84,6 @@ public class SagaEventListenerTest extends IncludeInfraTest {
         //when
         kafkaTemplate.send(USER_RESULT_TOPIC_NAME, String.valueOf(sagaId), result);
         //then
-        verify(sagaManager, timeout(10000).times(1)).abortSaga(sagaId, "포인트가 부족합니다");
+        verify(sagaManager, timeout(10000).times(1)).abortSaga(sagaId, result.getErrorCode(), result.getFailureReason());
     }
 }
