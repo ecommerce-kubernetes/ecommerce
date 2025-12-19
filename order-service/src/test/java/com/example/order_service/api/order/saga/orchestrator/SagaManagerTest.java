@@ -344,7 +344,7 @@ public class SagaManagerTest {
         given(orderSagaDomainService.nextStepToCoupon(any()))
                 .willReturn(compensateInstanceDto);
         //when
-        sagaManager.abortSaga(sagaId, "포인트 부족");
+        sagaManager.abortSaga(sagaId,"INSUFFICIENT_POINT", "포인트 부족");
         //then
         //포인트 차감과정 문제 발생이므로 SagaAbort 이벤트 발행과 다음 스텝인 Coupon 호출과 Coupon 보상이 이뤄져야함
         ArgumentCaptor<SagaAbortEvent> captor = ArgumentCaptor.forClass(SagaAbortEvent.class);
