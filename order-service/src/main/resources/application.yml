@@ -15,12 +15,9 @@ resilience4j:
 order:
   topics:
     # 발행
-    deduct-inventory: "order.saga.inventory.deduct"
-    used-coupon: "order.saga.coupon.used"
-    used-point: "order.saga.point.used"
-    compensate-inventory: "order.saga.inventory.compensate"
-    compensate-coupon: "order.saga.coupon.compensate"
-    compensate-point: "order.saga.point.compensate"
+    product-request: "order.saga.product.request"
+    coupon-request: "order.saga.coupon.request"
+    user-request: "order.saga.user.request"
     # 수신
     product-result: "product.saga.result"
     coupon-result: "coupon.saga.result"

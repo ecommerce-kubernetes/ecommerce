@@ -1,5 +1,6 @@
 package com.example.order_service.api.order.saga.orchestrator;
 
+import com.example.common.result.SagaProcessResult;
 import com.example.order_service.api.order.domain.model.OrderFailureCode;
 import com.example.order_service.api.order.saga.domain.model.SagaStep;
 import com.example.order_service.api.order.saga.domain.model.vo.Payload;
@@ -25,6 +26,18 @@ public class SagaManager {
         Payload payload = Payload.from(command);
         SagaInstanceDto sagaInstanceDto = orderSagaDomainService.create(command.getOrderId(), payload);
         sagaEventProducer.requestInventoryDeduction(sagaInstanceDto.getId(), sagaInstanceDto.getOrderId(), sagaInstanceDto.getPayload());
+    }
+
+    public void processProductResult(SagaProcessResult result) {
+
+    }
+
+    public void processCouponResult(SagaProcessResult result) {
+
+    }
+
+    public void processUserResult(SagaProcessResult result) {
+
     }
 
     public void proceedSaga(Long sagaId){

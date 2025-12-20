@@ -1,7 +1,6 @@
 package com.example.order_service.api.order.saga.infrastructure.kafka.listener;
 
-import com.example.common.SagaProcessResult;
-import com.example.common.SagaEventStatus;
+import com.example.common.result.SagaProcessResult;
 import com.example.order_service.api.order.saga.orchestrator.SagaManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,28 +16,16 @@ public class SagaEventListener {
 
     @KafkaListener(topics = "${order.topics.product-result}")
     public void handleProductResult(@Payload SagaProcessResult result){
-        if (result.getStatus() == SagaEventStatus.SUCCESS){
-            sagaManager.proceedSaga(result.getSagaId());
-        } else if (result.getStatus() == SagaEventStatus.FAIL) {
-            sagaManager.abortSaga(result.getSagaId(), result.getErrorCode(), result.getFailureReason());
-        }
+        sagaManager.processProductResult(result);
     }
 
     @KafkaListener(topics = "${order.topics.coupon-result}")
     public void handleCouponResult(@Payload SagaProcessResult result) {
-        if (result.getStatus() == SagaEventStatus.SUCCESS) {
-            sagaManager.proceedSaga(result.getSagaId());
-        } else if (result.getStatus() == SagaEventStatus.FAIL) {
-            sagaManager.abortSaga(result.getSagaId(), result.getErrorCode(), result.getFailureReason());
-        }
+        sagaManager.processCouponResult(result);
     }
 
     @KafkaListener(topics = "${order.topics.user-result}")
     public void handleUserResult(@Payload SagaProcessResult result) {
-        if (result.getStatus() == SagaEventStatus.SUCCESS) {
-            sagaManager.proceedSaga(result.getSagaId());
-        } else if (result.getStatus() == SagaEventStatus.FAIL) {
-            sagaManager.abortSaga(result.getSagaId(), result.getErrorCode(), result.getFailureReason());
-        }
+        sagaManager.processUserResult(result);
     }
 }
