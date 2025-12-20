@@ -83,21 +83,11 @@ public class SagaManager {
         }
     }
 
-    public void proceedSaga(Long sagaId){
-        SagaInstanceDto sagaInstanceDto = orderSagaDomainService.getSaga(sagaId);
-        proceed(sagaInstanceDto.getId(), sagaInstanceDto.getSagaStep(), sagaInstanceDto.getPayload());
-    }
-
-    public void abortSaga(Long sagaId, String errorCode, String failureReason){
+    private void abortSaga(Long sagaId, String errorCode, String failureReason){
         SagaInstanceDto sagaInstanceDto = orderSagaDomainService.abort(sagaId, failureReason);
         SagaAbortEvent sagaAbortEvent = createSagaAbortEvent(sagaInstanceDto.getId(), sagaInstanceDto.getOrderId(), sagaInstanceDto.getPayload().getUserId(),
                 errorCode);
         applicationEventPublisher.publishEvent(sagaAbortEvent);
-        compensate(sagaInstanceDto.getId(), sagaInstanceDto.getSagaStep(), sagaInstanceDto.getPayload());
-    }
-
-    public void compensateSaga(Long sagaId) {
-        SagaInstanceDto sagaInstanceDto = orderSagaDomainService.getSaga(sagaId);
         compensate(sagaInstanceDto.getId(), sagaInstanceDto.getSagaStep(), sagaInstanceDto.getPayload());
     }
 
