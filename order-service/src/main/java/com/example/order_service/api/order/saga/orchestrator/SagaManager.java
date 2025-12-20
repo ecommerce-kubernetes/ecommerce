@@ -32,7 +32,6 @@ public class SagaManager {
         proceed(sagaInstanceDto.getId(), sagaInstanceDto.getSagaStep(), sagaInstanceDto.getPayload());
     }
 
-    //TODO 테스트 작성
     public void abortSaga(Long sagaId, String errorCode, String failureReason){
         SagaInstanceDto sagaInstanceDto = orderSagaDomainService.abort(sagaId, failureReason);
         SagaAbortEvent sagaAbortEvent = createSagaAbortEvent(sagaInstanceDto.getId(), sagaInstanceDto.getOrderId(), sagaInstanceDto.getPayload().getUserId(),
@@ -41,31 +40,41 @@ public class SagaManager {
         compensate(sagaInstanceDto.getId(), sagaInstanceDto.getSagaStep(), sagaInstanceDto.getPayload());
     }
 
-    //TODO 테스트 작성
     public void compensateSaga(Long sagaId) {
+        SagaInstanceDto sagaInstanceDto = orderSagaDomainService.getSaga(sagaId);
+        compensate(sagaInstanceDto.getId(), sagaInstanceDto.getSagaStep(), sagaInstanceDto.getPayload());
     }
 
     private void compensate(Long sagaId, SagaStep sagaStep, Payload payload) {
         switch (sagaStep) {
             case USER:
-                compensateCoupon();
+                compensateCoupon(sagaId, payload);
                 break;
             case COUPON:
-                compensateInventory();
+                compensateInventory(sagaId, payload);
                 break;
             case PRODUCT:
-                failSaga();
+                failSaga(sagaId);
                 break;
         }
     }
 
-    private void compensateCoupon(){
+    private void compensateCoupon(Long sagaId, Payload payload){
+        if (payload.getCouponId() == null) {
+            compensate(sagaId, SagaStep.COUPON, payload);
+            return;
+        }
+        SagaInstanceDto sagaInstanceDto = orderSagaDomainService.compensateTo(sagaId, SagaStep.COUPON);
+        sagaEventProducer.requestCouponCompensate(sagaInstanceDto.getId(), sagaInstanceDto.getOrderId(), sagaInstanceDto.getPayload());
     }
 
-    private void compensateInventory() {
+    private void compensateInventory(Long sagaId, Payload payload) {
+        SagaInstanceDto sagaInstanceDto = orderSagaDomainService.compensateTo(sagaId, SagaStep.PRODUCT);
+        sagaEventProducer.requestInventoryCompensate(sagaInstanceDto.getId(), sagaInstanceDto.getOrderId(), sagaInstanceDto.getPayload());
     }
 
-    private void failSaga() {
+    private void failSaga(Long sagaId) {
+        orderSagaDomainService.fail(sagaId);
     }
 
     private void proceed(Long sagaId, SagaStep sagaStep, Payload payload) {
@@ -88,7 +97,7 @@ public class SagaManager {
             proceed(sagaId, SagaStep.COUPON, payload);
             return;
         }
-        SagaInstanceDto instance = orderSagaDomainService.nextStepToCoupon(sagaId);
+        SagaInstanceDto instance = orderSagaDomainService.proceedTo(sagaId, SagaStep.COUPON);
         sagaEventProducer.requestCouponUse(instance.getId(), instance.getOrderId(), instance.getPayload());
     }
 
@@ -98,7 +107,7 @@ public class SagaManager {
             proceed(sagaId, SagaStep.USER, payload);
             return;
         }
-        SagaInstanceDto sagaInstanceDto = orderSagaDomainService.nextStepToUser(sagaId);
+        SagaInstanceDto sagaInstanceDto = orderSagaDomainService.proceedTo(sagaId, SagaStep.USER);
         sagaEventProducer.requestUserPointUse(sagaInstanceDto.getId(), sagaInstanceDto.getOrderId(), sagaInstanceDto.getPayload());
     }
 

@@ -80,19 +80,8 @@ public class OrderSagaDomainServiceTest extends ExcludeInfraTest {
     }
 
     @Test
-    @DisplayName("Saga 인스턴스를 찾을 수 없을때는 예외를 던진다")
-    void getSaga_notFound() {
-        //given
-        //when
-        //then
-        assertThatThrownBy(() -> orderSagaDomainService.getSaga(999L))
-                .isInstanceOf(NotFoundException.class)
-                .hasMessage("주문 SAGA 인스턴스를 찾을 수 없습니다");
-    }
-
-    @Test
-    @DisplayName("Saga 인스턴스 Step을 Coupon으로 변경한다")
-    void nextStepToCoupon() {
+    @DisplayName("Saga 인스턴스를 다음 Saga 진행 인스턴스로 변경한다")
+    void proceedTo(){
         //given
         Payload payload = Payload.builder()
                 .userId(1L)
@@ -103,7 +92,7 @@ public class OrderSagaDomainServiceTest extends ExcludeInfraTest {
         OrderSagaInstance sagaInstance = OrderSagaInstance.start(1L, payload);
         OrderSagaInstance save = orderSagaInstanceRepository.save(sagaInstance);
         //when
-        SagaInstanceDto result = orderSagaDomainService.nextStepToCoupon(save.getId());
+        SagaInstanceDto result = orderSagaDomainService.proceedTo(save.getId(), SagaStep.COUPON);
         //then
         assertThat(result.getId()).isNotNull();
         assertThat(result)
@@ -113,19 +102,19 @@ public class OrderSagaDomainServiceTest extends ExcludeInfraTest {
     }
 
     @Test
-    @DisplayName("Saga 인스턴스 Step을 Coupon으로 변경할때 Saga 인스턴스를 찾을 수 없을때 예외를 던진다")
-    void nextStepToCoupon_notFound() {
+    @DisplayName("Saga 인스턴스를 다음 Saga 진행 인스턴스로 변경할때 Saga 인스턴스를 찾을 수 없으면 예외를 던진다")
+    void proceedTo_notFound(){
         //given
         //when
         //then
-        assertThatThrownBy(() -> orderSagaDomainService.nextStepToCoupon(999L))
+        assertThatThrownBy(() -> orderSagaDomainService.proceedTo(999L, SagaStep.COUPON))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage("주문 SAGA 인스턴스를 찾을 수 없습니다");
     }
 
     @Test
-    @DisplayName("Saga 인스턴스 Step을 User로 변경한다")
-    void nextStepToUser() {
+    @DisplayName("Saga 인스턴스를 다음 Saga 보상 인스턴스로 변경한다")
+    void compensateTo(){
         //given
         Payload payload = Payload.builder()
                 .userId(1L)
@@ -136,22 +125,33 @@ public class OrderSagaDomainServiceTest extends ExcludeInfraTest {
         OrderSagaInstance sagaInstance = OrderSagaInstance.start(1L, payload);
         OrderSagaInstance save = orderSagaInstanceRepository.save(sagaInstance);
         //when
-        SagaInstanceDto result = orderSagaDomainService.nextStepToUser(save.getId());
+        SagaInstanceDto result = orderSagaDomainService.compensateTo(save.getId(), SagaStep.COUPON);
         //then
         assertThat(result.getId()).isNotNull();
         assertThat(result)
                 .extracting(SagaInstanceDto::getOrderId, SagaInstanceDto::getSagaStep,
                         SagaInstanceDto::getSagaStatus, SagaInstanceDto::getFailureReason)
-                .containsExactly(1L, SagaStep.USER, SagaStatus.STARTED, null);
+                .containsExactly(1L, SagaStep.COUPON, SagaStatus.COMPENSATING, null);
     }
 
     @Test
-    @DisplayName("Saga 인스턴스 Step을 USER로 변경할때 Saga 인스턴스를 찾을 수 없을때 예외를 던진다")
-    void nextStepToUser_notFound() {
+    @DisplayName("Saga 인스턴스를 다음 Saga 보상 인스턴스로 변경할때 Saga 인스턴스를 찾을 수 없으면 예외를 던진다")
+    void compensateTo_notFound(){
         //given
         //when
         //then
-        assertThatThrownBy(() -> orderSagaDomainService.nextStepToUser(999L))
+        assertThatThrownBy(() -> orderSagaDomainService.compensateTo(999L, SagaStep.COUPON))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage("주문 SAGA 인스턴스를 찾을 수 없습니다");
+    }
+
+    @Test
+    @DisplayName("Saga 인스턴스를 찾을 수 없을때는 예외를 던진다")
+    void getSaga_notFound() {
+        //given
+        //when
+        //then
+        assertThatThrownBy(() -> orderSagaDomainService.getSaga(999L))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage("주문 SAGA 인스턴스를 찾을 수 없습니다");
     }
@@ -179,12 +179,78 @@ public class OrderSagaDomainServiceTest extends ExcludeInfraTest {
     }
 
     @Test
-    @DisplayName("Saga 인스턴스 Status를 FINISHED로 변경할때 Saga 인스턴스를 찾을 수 없을때 예외를 던진다")
+    @DisplayName("Saga 인스턴스 Status를 FINISHED로 변경할때 Saga 인스턴스를 찾을 수 없으면 예외를 던진다")
     void finish_notFound() {
         //given
         //when
         //then
         assertThatThrownBy(() -> orderSagaDomainService.finish(999L))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage("주문 SAGA 인스턴스를 찾을 수 없습니다");
+    }
+
+    @Test
+    @DisplayName("Saga 인스턴스의 Status를 FAILED로 변경한다")
+    void fail(){
+        //given
+        Payload payload = Payload.builder()
+                .userId(1L)
+                .sagaItems(List.of(Payload.SagaItem.builder().productVariantId(1L).quantity(3).build()))
+                .couponId(1L)
+                .useToPoint(1000L)
+                .build();
+        OrderSagaInstance sagaInstance = OrderSagaInstance.start(1L, payload);
+        OrderSagaInstance save = orderSagaInstanceRepository.save(sagaInstance);
+        //when
+        SagaInstanceDto result = orderSagaDomainService.fail(save.getId());
+        //then
+        assertThat(result.getId()).isNotNull();
+        assertThat(result)
+                .extracting(SagaInstanceDto::getOrderId, SagaInstanceDto::getSagaStep,
+                        SagaInstanceDto::getSagaStatus, SagaInstanceDto::getFailureReason)
+                .containsExactly(1L, SagaStep.PRODUCT, SagaStatus.FAILED, null);
+    }
+
+    @Test
+    @DisplayName("Saga 인스턴스 Status를 FAILED로 변경할때 Saga 인스턴스를 찾을 수 없으면 예외를 던진다")
+    void fail_notFound(){
+        //given
+        //when
+        //then
+        assertThatThrownBy(() -> orderSagaDomainService.fail(999L))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage("주문 SAGA 인스턴스를 찾을 수 없습니다");
+    }
+
+    @Test
+    @DisplayName("Saga 인스턴스를 saga 중지로 변경한다")
+    void abort(){
+        //given
+        Payload payload = Payload.builder()
+                .userId(1L)
+                .sagaItems(List.of(Payload.SagaItem.builder().productVariantId(1L).quantity(3).build()))
+                .couponId(1L)
+                .useToPoint(1000L)
+                .build();
+        OrderSagaInstance sagaInstance = OrderSagaInstance.start(1L, payload);
+        OrderSagaInstance save = orderSagaInstanceRepository.save(sagaInstance);
+        //when
+        SagaInstanceDto result = orderSagaDomainService.abort(save.getId(), "OUT_OF_STOCK");
+        //then
+        assertThat(result.getId()).isNotNull();
+        assertThat(result)
+                .extracting(SagaInstanceDto::getOrderId, SagaInstanceDto::getSagaStep,
+                        SagaInstanceDto::getSagaStatus, SagaInstanceDto::getFailureReason)
+                .containsExactly(1L, SagaStep.PRODUCT, SagaStatus.ABORTED, "OUT_OF_STOCK");
+    }
+
+    @Test
+    @DisplayName("Saga 인스턴스를 saga 중지 상태로 변경할 때 Saga 인스턴스를 찾을 수 없으면 예외를 던진다")
+    void abort_notFound(){
+        //given
+        //when
+        //then
+        assertThatThrownBy(() -> orderSagaDomainService.abort(999L, "OUT_OF_STOCK"))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage("주문 SAGA 인스턴스를 찾을 수 없습니다");
     }

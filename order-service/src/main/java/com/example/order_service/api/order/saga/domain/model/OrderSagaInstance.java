@@ -43,6 +43,11 @@ public class OrderSagaInstance {
         this.finishedAt = finishedAt;
     }
 
+    public void abort(String failureReason) {
+        this.failureReason = failureReason;
+        this.sagaStatus = SagaStatus.ABORTED;
+    }
+
     public void changeStep(SagaStep sagaStep) {
         this.sagaStep = sagaStep;
     }
