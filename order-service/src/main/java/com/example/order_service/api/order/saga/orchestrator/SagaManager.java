@@ -1,7 +1,9 @@
 package com.example.order_service.api.order.saga.orchestrator;
 
+import com.example.common.result.SagaEventStatus;
 import com.example.common.result.SagaProcessResult;
 import com.example.order_service.api.order.domain.model.OrderFailureCode;
+import com.example.order_service.api.order.saga.domain.model.SagaStatus;
 import com.example.order_service.api.order.saga.domain.model.SagaStep;
 import com.example.order_service.api.order.saga.domain.model.vo.Payload;
 import com.example.order_service.api.order.saga.domain.service.OrderSagaDomainService;
@@ -11,9 +13,11 @@ import com.example.order_service.api.order.saga.orchestrator.dto.command.SagaSta
 import com.example.order_service.api.order.saga.orchestrator.event.SagaAbortEvent;
 import com.example.order_service.api.order.saga.orchestrator.event.SagaCompletedEvent;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SagaManager {
@@ -29,15 +33,54 @@ public class SagaManager {
     }
 
     public void processProductResult(SagaProcessResult result) {
-
+        SagaInstanceDto sagaInstance = orderSagaDomainService.getSaga(result.getSagaId());
+        if (sagaInstance.getSagaStatus() == SagaStatus.STARTED) {
+            if (result.getStatus() == SagaEventStatus.SUCCESS) {
+                proceed(sagaInstance.getId(), sagaInstance.getSagaStep(), sagaInstance.getPayload());
+            } else {
+                abortSaga(sagaInstance.getId(), result.getErrorCode(), result.getFailureReason());
+            }
+        } else if (sagaInstance.getSagaStatus() == SagaStatus.COMPENSATING) {
+            if (result.getStatus() == SagaEventStatus.SUCCESS) {
+                compensate(sagaInstance.getId(), sagaInstance.getSagaStep(), sagaInstance.getPayload());
+            } else {
+                log.error("상품 보상 실패");
+            }
+        }
     }
 
     public void processCouponResult(SagaProcessResult result) {
-
+        SagaInstanceDto sagaInstance = orderSagaDomainService.getSaga(result.getSagaId());
+        if (sagaInstance.getSagaStatus() == SagaStatus.STARTED) {
+            if (result.getStatus() == SagaEventStatus.SUCCESS) {
+                proceed(sagaInstance.getId(), sagaInstance.getSagaStep(), sagaInstance.getPayload());
+            } else {
+                abortSaga(sagaInstance.getId(), result.getErrorCode(), result.getFailureReason());
+            }
+        } else if (sagaInstance.getSagaStatus() == SagaStatus.COMPENSATING) {
+            if (result.getStatus() == SagaEventStatus.SUCCESS) {
+                compensate(sagaInstance.getId(), sagaInstance.getSagaStep(), sagaInstance.getPayload());
+            } else {
+                log.error("쿠폰 보상 실패");
+            }
+        }
     }
 
     public void processUserResult(SagaProcessResult result) {
-
+        SagaInstanceDto sagaInstance = orderSagaDomainService.getSaga(result.getSagaId());
+        if (sagaInstance.getSagaStatus() == SagaStatus.STARTED) {
+            if (result.getStatus() == SagaEventStatus.SUCCESS) {
+                proceed(sagaInstance.getId(), sagaInstance.getSagaStep(), sagaInstance.getPayload());
+            } else {
+                abortSaga(sagaInstance.getId(), result.getErrorCode(), result.getFailureReason());
+            }
+        } else if (sagaInstance.getSagaStatus() == SagaStatus.COMPENSATING) {
+            if (result.getStatus() == SagaEventStatus.SUCCESS) {
+                compensate(sagaInstance.getId(), sagaInstance.getSagaStep(), sagaInstance.getPayload());
+            } else {
+                log.error("포인트 보상 실패");
+            }
+        }
     }
 
     public void proceedSaga(Long sagaId){
