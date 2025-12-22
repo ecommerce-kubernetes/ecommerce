@@ -67,6 +67,15 @@ public class OrderSagaInstance {
         this.sagaStep = nextSagaStep;
     }
 
+    public void fail(String newFailureReason) {
+        this.sagaStatus = SagaStatus.FAILED;
+        this.finishedAt = LocalDateTime.now();
+
+        if (this.failureReason == null && newFailureReason != null) {
+            this.failureReason = newFailureReason;
+        }
+    }
+
     public static OrderSagaInstance start(Long orderId, Payload payload) {
         return of(orderId, SagaStatus.STARTED, SagaStep.PRODUCT, payload, null, LocalDateTime.now(), null);
     }

@@ -56,10 +56,10 @@ public class OrderSagaDomainService {
         return SagaInstanceDto.from(sagaInstance);
     }
 
-    public SagaInstanceDto fail(Long sagaId) {
+    public SagaInstanceDto fail(Long sagaId, String failureReason) {
         OrderSagaInstance sagaInstance = orderSagaInstanceRepository.findById(sagaId)
                 .orElseThrow(() -> new NotFoundException("주문 SAGA 인스턴스를 찾을 수 없습니다"));
-        sagaInstance.changeStatus(SagaStatus.FAILED);
+        sagaInstance.fail(failureReason);
         return SagaInstanceDto.from(sagaInstance);
     }
 

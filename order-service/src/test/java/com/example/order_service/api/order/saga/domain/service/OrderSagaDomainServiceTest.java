@@ -190,7 +190,7 @@ public class OrderSagaDomainServiceTest extends ExcludeInfraTest {
     }
 
     @Test
-    @DisplayName("Saga 인스턴스의 Status를 FAILED로 변경한다")
+    @DisplayName("Saga 인스턴스를 실패 처리한다")
     void fail(){
         //given
         Payload payload = Payload.builder()
@@ -202,7 +202,7 @@ public class OrderSagaDomainServiceTest extends ExcludeInfraTest {
         OrderSagaInstance sagaInstance = OrderSagaInstance.start(1L, payload);
         OrderSagaInstance save = orderSagaInstanceRepository.save(sagaInstance);
         //when
-        SagaInstanceDto result = orderSagaDomainService.fail(save.getId());
+        SagaInstanceDto result = orderSagaDomainService.fail(save.getId(), null);
         //then
         assertThat(result.getId()).isNotNull();
         assertThat(result)
@@ -212,12 +212,12 @@ public class OrderSagaDomainServiceTest extends ExcludeInfraTest {
     }
 
     @Test
-    @DisplayName("Saga 인스턴스 Status를 FAILED로 변경할때 Saga 인스턴스를 찾을 수 없으면 예외를 던진다")
+    @DisplayName("Saga 인스턴스를 실패 처리할때 SAGA 인스턴스를 찾을 수 없으면 예외를 던진다")
     void fail_notFound(){
         //given
         //when
         //then
-        assertThatThrownBy(() -> orderSagaDomainService.fail(999L))
+        assertThatThrownBy(() -> orderSagaDomainService.fail(999L, null))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage("주문 SAGA 인스턴스를 찾을 수 없습니다");
     }

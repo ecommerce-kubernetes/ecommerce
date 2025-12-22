@@ -147,4 +147,45 @@ public class OrderSagaInstanceTest {
                 .extracting(OrderSagaInstance::getSagaStatus, OrderSagaInstance::getSagaStep, OrderSagaInstance::getFailureReason)
                 .containsExactly(SagaStatus.COMPENSATING, SagaStep.PRODUCT, "포인트가 부족합니다");
     }
+
+    @Test
+    @DisplayName("Saga 인스턴스를 실패 상태로 변경한다")
+    void fail() {
+        //given
+        Payload payload = Payload.builder()
+                .userId(1L)
+                .sagaItems(List.of(Payload.SagaItem.builder().productVariantId(1L).quantity(3).build()))
+                .couponId(1L)
+                .useToPoint(1000L)
+                .build();
+        OrderSagaInstance sagaInstance = OrderSagaInstance.start(1L, payload);
+        //when
+        sagaInstance.fail("재고감소 실패");
+        //then
+        assertThat(sagaInstance)
+                .extracting(OrderSagaInstance::getSagaStatus, OrderSagaInstance::getSagaStep, OrderSagaInstance::getFailureReason)
+                .containsExactly(SagaStatus.FAILED, SagaStep.PRODUCT, "재고감소 실패");
+        assertThat(sagaInstance.getFinishedAt()).isNotNull();
+    }
+
+    @Test
+    @DisplayName("Saga 인스턴스의 실패 메시지는 최초의 메시지여야 한다")
+    void fail_exist_failReason() {
+        //given
+        Payload payload = Payload.builder()
+                .userId(1L)
+                .sagaItems(List.of(Payload.SagaItem.builder().productVariantId(1L).quantity(3).build()))
+                .couponId(1L)
+                .useToPoint(1000L)
+                .build();
+        OrderSagaInstance sagaInstance = OrderSagaInstance.start(1L, payload);
+        sagaInstance.startCompensation(SagaStep.COUPON, "포인트가 부족합니다");
+        //when
+        sagaInstance.fail(null);
+        //then
+        assertThat(sagaInstance)
+                .extracting(OrderSagaInstance::getSagaStatus, OrderSagaInstance::getSagaStep, OrderSagaInstance::getFailureReason)
+                .containsExactly(SagaStatus.FAILED, SagaStep.COUPON, "포인트가 부족합니다");
+        assertThat(sagaInstance.getFinishedAt()).isNotNull();
+    }
 }

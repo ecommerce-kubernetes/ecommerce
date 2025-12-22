@@ -33,94 +33,19 @@ public class SagaManager {
     }
 
     public void processProductResult(SagaProcessResult result) {
-        SagaInstanceDto sagaInstance = orderSagaDomainService.getSaga(result.getSagaId());
-        if (sagaInstance.getSagaStatus() == SagaStatus.STARTED) {
-            if (result.getStatus() == SagaEventStatus.SUCCESS) {
-                proceed(sagaInstance.getId(), sagaInstance.getSagaStep(), sagaInstance.getPayload());
-            } else {
-                abortSaga(sagaInstance.getId(), result.getErrorCode(), result.getFailureReason());
-            }
-        } else if (sagaInstance.getSagaStatus() == SagaStatus.COMPENSATING) {
-            if (result.getStatus() == SagaEventStatus.SUCCESS) {
-                compensate(sagaInstance.getId(), sagaInstance.getSagaStep(), sagaInstance.getPayload());
-            } else {
-                log.error("상품 보상 실패");
-            }
-        }
+        evaluateResult(result, SagaStep.PRODUCT);
     }
 
     public void processCouponResult(SagaProcessResult result) {
-        SagaInstanceDto sagaInstance = orderSagaDomainService.getSaga(result.getSagaId());
-        if (sagaInstance.getSagaStatus() == SagaStatus.STARTED) {
-            if (result.getStatus() == SagaEventStatus.SUCCESS) {
-                proceed(sagaInstance.getId(), sagaInstance.getSagaStep(), sagaInstance.getPayload());
-            } else {
-                abortSaga(sagaInstance.getId(), result.getErrorCode(), result.getFailureReason());
-            }
-        } else if (sagaInstance.getSagaStatus() == SagaStatus.COMPENSATING) {
-            if (result.getStatus() == SagaEventStatus.SUCCESS) {
-                compensate(sagaInstance.getId(), sagaInstance.getSagaStep(), sagaInstance.getPayload());
-            } else {
-                log.error("쿠폰 보상 실패");
-            }
-        }
+        evaluateResult(result, SagaStep.COUPON);
     }
 
     public void processUserResult(SagaProcessResult result) {
-        SagaInstanceDto sagaInstance = orderSagaDomainService.getSaga(result.getSagaId());
-        if (sagaInstance.getSagaStatus() == SagaStatus.STARTED) {
-            if (result.getStatus() == SagaEventStatus.SUCCESS) {
-                proceed(sagaInstance.getId(), sagaInstance.getSagaStep(), sagaInstance.getPayload());
-            } else {
-                abortSaga(sagaInstance.getId(), result.getErrorCode(), result.getFailureReason());
-            }
-        } else if (sagaInstance.getSagaStatus() == SagaStatus.COMPENSATING) {
-            if (result.getStatus() == SagaEventStatus.SUCCESS) {
-                compensate(sagaInstance.getId(), sagaInstance.getSagaStep(), sagaInstance.getPayload());
-            } else {
-                log.error("포인트 보상 실패");
-            }
-        }
+        evaluateResult(result, SagaStep.USER);
     }
 
-    private void abortSaga(Long sagaId, String errorCode, String failureReason){
-        SagaInstanceDto sagaInstanceDto = orderSagaDomainService.abort(sagaId, failureReason);
-        SagaAbortEvent sagaAbortEvent = createSagaAbortEvent(sagaInstanceDto.getId(), sagaInstanceDto.getOrderId(), sagaInstanceDto.getPayload().getUserId(),
-                errorCode);
-        applicationEventPublisher.publishEvent(sagaAbortEvent);
-        compensate(sagaInstanceDto.getId(), sagaInstanceDto.getSagaStep(), sagaInstanceDto.getPayload());
-    }
-
-    private void compensate(Long sagaId, SagaStep sagaStep, Payload payload) {
-        switch (sagaStep) {
-            case USER:
-                compensateCoupon(sagaId, payload);
-                break;
-            case COUPON:
-                compensateInventory(sagaId, payload);
-                break;
-            case PRODUCT:
-                failSaga(sagaId);
-                break;
-        }
-    }
-
-    private void compensateCoupon(Long sagaId, Payload payload){
-        if (payload.getCouponId() == null) {
-            compensate(sagaId, SagaStep.COUPON, payload);
-            return;
-        }
-        SagaInstanceDto sagaInstanceDto = orderSagaDomainService.compensateTo(sagaId, SagaStep.COUPON);
-        sagaEventProducer.requestCouponCompensate(sagaInstanceDto.getId(), sagaInstanceDto.getOrderId(), sagaInstanceDto.getPayload());
-    }
-
-    private void compensateInventory(Long sagaId, Payload payload) {
-        SagaInstanceDto sagaInstanceDto = orderSagaDomainService.compensateTo(sagaId, SagaStep.PRODUCT);
-        sagaEventProducer.requestInventoryCompensate(sagaInstanceDto.getId(), sagaInstanceDto.getOrderId(), sagaInstanceDto.getPayload());
-    }
-
-    private void failSaga(Long sagaId) {
-        orderSagaDomainService.fail(sagaId);
+    private void failSaga(Long sagaId, String failureReason) {
+        orderSagaDomainService.fail(sagaId, failureReason);
     }
 
     private void proceed(Long sagaId, SagaStep sagaStep, Payload payload) {
@@ -176,5 +101,76 @@ public class SagaManager {
         }
 
         return SagaAbortEvent.of(sagaId, orderId, userId, failureCode);
+    }
+    private void evaluateResult(SagaProcessResult result, SagaStep expectedStep) {
+        SagaInstanceDto saga = orderSagaDomainService.getSaga(result.getSagaId());
+
+        // 메시지 재전송과 같은 문제로 메시지가 두번 이상 발행되었을때 이미 SAGA가 진행되었으면 무시함
+        if (saga.getSagaStep() != expectedStep) {
+            log.warn("잘못된 sagaStep 현재 진행 상태: {}, 호출된 sagaStep: {}", saga.getSagaStep(), expectedStep);
+            return;
+        }
+
+        if (saga.getSagaStatus() == SagaStatus.STARTED) { // SAGA 가 진행중인 경우
+            if (result.getStatus() == SagaEventStatus.SUCCESS) {
+
+            } else {
+                // 응답받은 메시지가 실패라면 보상을 시작함
+                startCompensationSequence(saga, result.getErrorCode(), result.getFailureReason());
+            }
+        } else if (saga.getSagaStatus() == SagaStatus.COMPENSATING) { // 보상이 진행중인 경우
+            if (result.getStatus() == SagaEventStatus.SUCCESS) {
+
+            } else {
+                log.error("ERROR : 보상 실패 SagaId : {}", saga.getId());
+            }
+        }
+    }
+
+    private void startCompensationSequence(SagaInstanceDto saga, String errorCode, String failureReason) {
+        applicationEventPublisher.publishEvent(createSagaAbortEvent(saga.getId(), saga.getOrderId(), saga.getPayload().getUserId(),
+                errorCode));
+
+        // 다음 보상 단계
+        SagaStep nextStep = getNextCompensationStep(saga.getSagaStep(), saga.getPayload());
+
+        // 다음 단계가 없다면 보상없이 바로 실패 처리
+        if(nextStep == null) {
+            failSaga(saga.getId(), failureReason);
+            return;
+        }
+
+        // Saga 인스턴스를 보상단계로 변경
+        SagaInstanceDto updateSagaInstanceDto = orderSagaDomainService.startCompensation(saga.getId(), nextStep, failureReason);
+        // 단계에 맞는 Saga 보상 메시지 발행
+        dispatchCompensationMessage(updateSagaInstanceDto);
+    }
+
+    private SagaStep getNextCompensationStep(SagaStep currentStep, Payload payload) {
+        return switch (currentStep) {
+            //보상 흐름 : 포인트복구 -> 쿠폰 복구 -> 재고 복구 순
+            case USER ->
+                // 쿠폰 아이디가 있다면 쿠폰 복구, 쿠폰 아이디가 없다면 상품 재고 복구
+                    (payload.getCouponId() != null) ? SagaStep.COUPON : SagaStep.PRODUCT;
+            case COUPON ->
+                // 쿠폰 복구 이후 상품 재고 복구
+                    SagaStep.PRODUCT;
+            case PRODUCT ->
+                // 상품 재고 복구 이후는 Saga 종료
+                    null;
+        };
+    }
+
+    private void dispatchCompensationMessage(SagaInstanceDto saga) {
+        switch (saga.getSagaStep()) {
+            // Step 이 COUPON -> 쿠폰 복구 메시지 발행
+            case COUPON:
+                sagaEventProducer.requestCouponCompensate(saga.getId(), saga.getOrderId(), saga.getPayload());
+                break;
+            // Step 이 PRODUCT -> 상품 재고 복구 메시지 발행
+            case PRODUCT:
+                sagaEventProducer.requestInventoryCompensate(saga.getId(), saga.getOrderId(), saga.getPayload());
+                break;
+        }
     }
 }
