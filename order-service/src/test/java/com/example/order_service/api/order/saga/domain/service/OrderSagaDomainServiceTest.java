@@ -254,4 +254,73 @@ public class OrderSagaDomainServiceTest extends ExcludeInfraTest {
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage("주문 SAGA 인스턴스를 찾을 수 없습니다");
     }
+
+    @Test
+    @DisplayName("보상을 시작하기 위해 SagaInstance를 변경한다")
+    void startCompensation() {
+        //given
+        Payload payload = Payload.builder()
+                .userId(1L)
+                .sagaItems(List.of(Payload.SagaItem.builder().productVariantId(1L).quantity(3).build()))
+                .couponId(1L)
+                .useToPoint(1000L)
+                .build();
+        OrderSagaInstance sagaInstance = OrderSagaInstance.start(1L, payload);
+        sagaInstance.changeStep(SagaStep.COUPON);
+        OrderSagaInstance save = orderSagaInstanceRepository.save(sagaInstance);
+        //when
+        SagaInstanceDto result = orderSagaDomainService.startCompensation(save.getId(), SagaStep.PRODUCT, "유효하지 않은 쿠폰");
+        //then
+        assertThat(result.getId()).isNotNull();
+        assertThat(result)
+                .extracting(SagaInstanceDto::getOrderId, SagaInstanceDto::getSagaStep,
+                        SagaInstanceDto::getSagaStatus, SagaInstanceDto::getFailureReason)
+                .containsExactly(1L, SagaStep.PRODUCT, SagaStatus.COMPENSATING, "유효하지 않은 쿠폰");
+    }
+
+    @Test
+    @DisplayName("보상을 시작할때 주문 Saga 인스턴스를 찾을 수 없으면 예외를 던진다")
+    void startCompensation_notFound() {
+        //given
+        //when
+        //then
+        assertThatThrownBy(() -> orderSagaDomainService.startCompensation(1L, SagaStep.PRODUCT, "유효하지 않은 쿠폰"))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage("주문 SAGA 인스턴스를 찾을 수 없습니다");
+    }
+
+    @Test
+    @DisplayName("다음 보상을 진행하기 위해 Saga 인스턴스를 변경한다")
+    void continueCompensation() {
+        //given
+        Payload payload = Payload.builder()
+                .userId(1L)
+                .sagaItems(List.of(Payload.SagaItem.builder().productVariantId(1L).quantity(3).build()))
+                .couponId(1L)
+                .useToPoint(1000L)
+                .build();
+        OrderSagaInstance sagaInstance = OrderSagaInstance.start(1L, payload);
+        sagaInstance.startCompensation(SagaStep.COUPON, "포인트가 부족합니다");
+        OrderSagaInstance save = orderSagaInstanceRepository.save(sagaInstance);
+        //when
+        SagaInstanceDto result = orderSagaDomainService.continueCompensation(save.getId(), SagaStep.PRODUCT);
+        //then
+        assertThat(result.getId()).isNotNull();
+        assertThat(result)
+                .extracting(SagaInstanceDto::getOrderId, SagaInstanceDto::getSagaStep,
+                        SagaInstanceDto::getSagaStatus, SagaInstanceDto::getFailureReason)
+                .containsExactly(1L, SagaStep.PRODUCT, SagaStatus.COMPENSATING, "포인트가 부족합니다");
+
+    }
+
+    @Test
+    @DisplayName("다음 보상을 진행할때 Saga 인스턴스를 찾을 수 없으면 예외를 던진다")
+    void continueCompensation_notFound() {
+        //given
+        //when
+        //then
+        assertThatThrownBy(() -> orderSagaDomainService.continueCompensation(1L, SagaStep.PRODUCT))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage("주문 SAGA 인스턴스를 찾을 수 없습니다");
+    }
 }

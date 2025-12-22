@@ -107,4 +107,44 @@ public class OrderSagaInstanceTest {
                         tuple(1L, 3)
                 );
     }
+
+    @Test
+    @DisplayName("Saga를 보상을 시작하기 위해 Step과 Status를 변경하고 실패 이유를 추가한다")
+    void startCompensation() {
+        //given
+        Payload payload = Payload.builder()
+                .userId(1L)
+                .sagaItems(List.of(Payload.SagaItem.builder().productVariantId(1L).quantity(3).build()))
+                .couponId(1L)
+                .useToPoint(1000L)
+                .build();
+        OrderSagaInstance sagaInstance = OrderSagaInstance.start(1L, payload);
+        sagaInstance.changeStep(SagaStep.COUPON);
+        //when
+        sagaInstance.startCompensation(SagaStep.PRODUCT, "유효하지 않은 쿠폰");
+        //then
+        assertThat(sagaInstance)
+                .extracting(OrderSagaInstance::getSagaStatus, OrderSagaInstance::getSagaStep, OrderSagaInstance::getFailureReason)
+                .containsExactly(SagaStatus.COMPENSATING, SagaStep.PRODUCT, "유효하지 않은 쿠폰");
+    }
+
+    @Test
+    @DisplayName("다음 보상을 진행하기 위해 SagaStep을 다음 Step으로 변경한다")
+    void continueCompensation() {
+        //given
+        Payload payload = Payload.builder()
+                .userId(1L)
+                .sagaItems(List.of(Payload.SagaItem.builder().productVariantId(1L).quantity(3).build()))
+                .couponId(1L)
+                .useToPoint(1000L)
+                .build();
+        OrderSagaInstance sagaInstance = OrderSagaInstance.start(1L, payload);
+        sagaInstance.startCompensation(SagaStep.COUPON, "포인트가 부족합니다");
+        //when
+        sagaInstance.continueCompensation(SagaStep.PRODUCT);
+        //then
+        assertThat(sagaInstance)
+                .extracting(OrderSagaInstance::getSagaStatus, OrderSagaInstance::getSagaStep, OrderSagaInstance::getFailureReason)
+                .containsExactly(SagaStatus.COMPENSATING, SagaStep.PRODUCT, "포인트가 부족합니다");
+    }
 }

@@ -56,6 +56,17 @@ public class OrderSagaInstance {
         this.sagaStatus = sagaStatus;
     }
 
+    public void startCompensation(SagaStep nextStep, String failureReason) {
+        this.sagaStatus = SagaStatus.COMPENSATING;
+        this.sagaStep = nextStep;
+        this.failureReason = failureReason;
+    }
+
+    public void continueCompensation(SagaStep nextSagaStep) {
+        this.sagaStatus = SagaStatus.COMPENSATING;
+        this.sagaStep = nextSagaStep;
+    }
+
     public static OrderSagaInstance start(Long orderId, Payload payload) {
         return of(orderId, SagaStatus.STARTED, SagaStep.PRODUCT, payload, null, LocalDateTime.now(), null);
     }

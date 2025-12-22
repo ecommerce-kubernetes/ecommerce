@@ -69,4 +69,19 @@ public class OrderSagaDomainService {
         sagaInstance.abort(failureReason);
         return SagaInstanceDto.from(sagaInstance);
     }
+
+    public SagaInstanceDto startCompensation(Long sagaId, SagaStep nextStep, String failureReason) {
+        OrderSagaInstance sagaInstance = orderSagaInstanceRepository.findById(sagaId)
+                .orElseThrow(() -> new NotFoundException("주문 SAGA 인스턴스를 찾을 수 없습니다"));
+
+        sagaInstance.startCompensation(nextStep, failureReason);
+        return SagaInstanceDto.from(sagaInstance);
+    }
+
+    public SagaInstanceDto continueCompensation(Long sagaId, SagaStep nextStep) {
+        OrderSagaInstance sagaInstance = orderSagaInstanceRepository.findById(sagaId)
+                .orElseThrow(() -> new NotFoundException("주문 SAGA 인스턴스를 찾을 수 없습니다"));
+        sagaInstance.continueCompensation(nextStep);
+        return SagaInstanceDto.from(sagaInstance);
+    }
 }
