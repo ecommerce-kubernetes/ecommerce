@@ -213,6 +213,29 @@ public class OrderSagaDomainServiceTest extends ExcludeInfraTest {
     }
 
     @Test
+    @DisplayName("보상을 시작하는데 Saga 인스턴스 상태가 STARTED가 아닌경우 인스턴스 상태를 변경하지 않는다")
+    void startCompensation_no_started(){
+        //given
+        Payload payload = Payload.builder()
+                .userId(1L)
+                .sagaItems(List.of(Payload.SagaItem.builder().productVariantId(1L).quantity(3).build()))
+                .couponId(1L)
+                .useToPoint(1000L)
+                .build();
+        OrderSagaInstance sagaInstance = OrderSagaInstance.create(1L, payload, SagaStep.PRODUCT);
+        sagaInstance.changeStatus(SagaStatus.FINISHED);
+        OrderSagaInstance save = orderSagaInstanceRepository.save(sagaInstance);
+        //when
+        SagaInstanceDto result = orderSagaDomainService.startCompensation(save.getId(), SagaStep.PRODUCT, "timeout");
+        //then
+        assertThat(result.getId()).isNotNull();
+        assertThat(result)
+                .extracting(SagaInstanceDto::getOrderId, SagaInstanceDto::getSagaStep,
+                        SagaInstanceDto::getSagaStatus, SagaInstanceDto::getFailureReason)
+                .containsExactly(1L, SagaStep.PRODUCT, SagaStatus.FINISHED, null);
+    }
+
+    @Test
     @DisplayName("보상을 시작할때 주문 Saga 인스턴스를 찾을 수 없으면 예외를 던진다")
     void startCompensation_notFound() {
         //given

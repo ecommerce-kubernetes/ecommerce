@@ -17,6 +17,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -43,6 +46,18 @@ public class SagaManager {
 
     public void processUserResult(SagaProcessResult result) {
         evaluateResult(result, SagaStep.USER);
+    }
+
+    public void processTimeouts() {
+        LocalDateTime currentTime = LocalDateTime.now();
+        List<SagaInstanceDto> timeouts = orderSagaDomainService.getTimeouts(currentTime);
+        for (SagaInstanceDto saga : timeouts) {
+            try {
+                startCompensationSequence(saga, "TIMEOUT", "주문 처리 지연");
+            } catch (Exception e) {
+                log.error("Timeout 처리 실패 SagaId : {}", saga.getId());
+            }
+        }
     }
 
     private void evaluateResult(SagaProcessResult result, SagaStep expectedStep) {
@@ -191,6 +206,8 @@ public class SagaManager {
             failureCode = OrderFailureCode.INVALID_COUPON;
         } else if (errorCode.equals("INSUFFICIENT_POINT")){
             failureCode = OrderFailureCode.POINT_SHORTAGE;
+        } else if (errorCode.equals("TIMEOUT")){
+            failureCode = OrderFailureCode.TIMEOUT;
         }
 
         return SagaAbortEvent.of(sagaId, orderId, userId, failureCode);

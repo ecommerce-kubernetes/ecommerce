@@ -9,6 +9,7 @@ public enum OrderFailureCode {
     INVALID_COUPON("유효하지 않은 쿠폰"),
     POINT_SHORTAGE("포인트 부족"),
     PAYMENT_FAILED("결제 승인 거절"),
+    TIMEOUT("SAGA 타임아웃"),
     UNKNOWN("알 수 없는 오류");
 
     private final String name;

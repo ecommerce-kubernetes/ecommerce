@@ -20,6 +20,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -560,6 +561,37 @@ public class SagaManagerTest {
         verify(sagaEventProducer, never()).requestInventoryCompensate(sagaId, orderId, payload);
         verify(sagaEventProducer, never()).requestCouponCompensate(sagaId, orderId, payload);
         verify(eventPublisher, never()).publishEvent(any());
+    }
+
+    @Test
+    @DisplayName("타임아웃시 타임아웃된 SAGA를 조회하고 보상을 수행한다")
+    void processTimeouts(){
+        //given
+        Long sagaId1 = 1L;
+        Long sagaId2 = 2L;
+        Payload payload = Payload.builder()
+                .userId(1L)
+                .sagaItems(List.of(Payload.SagaItem.builder().productVariantId(1L).quantity(3).build()))
+                .couponId(1L)
+                .useToPoint(0L)
+                .build();
+        SagaInstanceDto saga1 = createSagaInstanceDto(sagaId1, 1L, SagaStatus.STARTED, SagaStep.COUPON, payload);
+        SagaInstanceDto saga2 = createSagaInstanceDto(sagaId2, 2L, SagaStatus.STARTED, SagaStep.COUPON, payload);
+        given(orderSagaDomainService.getTimeouts(any(LocalDateTime.class)))
+                .willReturn(List.of(saga1, saga2));
+
+        given(orderSagaDomainService.startCompensation(anyLong(), any(), anyString()))
+                .willAnswer(invocation -> {
+                    Long id = invocation.getArgument(0);
+                    // COUPON 다음 보상 단계는 PRODUCT 이므로 PRODUCT로 설정된 객체 반환
+                    return createSagaInstanceDto(id, 1L, SagaStatus.COMPENSATING, SagaStep.PRODUCT, payload);
+                });
+        //when
+        sagaManager.processTimeouts();
+        //then
+        verify(orderSagaDomainService).startCompensation(eq(1L), any(), eq("주문 처리 지연"));
+        verify(orderSagaDomainService).startCompensation(eq(2L), any(), eq("주문 처리 지연"));
+        verify(sagaEventProducer, times(2)).requestInventoryCompensate(any(), any(), any());
     }
 
     private SagaInstanceDto createSagaInstanceDto(Long sagaId, Long orderId,

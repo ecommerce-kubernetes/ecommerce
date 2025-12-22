@@ -7,7 +7,6 @@ public enum SagaStatus {
     STARTED("전송"),
     FINISHED("완료"),
     COMPENSATING("보상중"),
-    ABORTED("중단"),
     FAILED("실패");
     private final String name;
 }

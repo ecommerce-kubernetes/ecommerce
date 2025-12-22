@@ -8,15 +8,24 @@ import com.example.order_service.api.order.saga.domain.model.vo.Payload;
 import com.example.order_service.api.order.saga.domain.repository.OrderSagaInstanceRepository;
 import com.example.order_service.api.order.saga.domain.service.dto.SagaInstanceDto;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
 public class OrderSagaDomainService {
 
     private final OrderSagaInstanceRepository orderSagaInstanceRepository;
+
+    public List<SagaInstanceDto> getTimeouts(LocalDateTime currentTime) {
+        return null;
+    }
 
     public SagaInstanceDto create(Long orderId, Payload payload, SagaStep firstStep){
         OrderSagaInstance sagaInstance = OrderSagaInstance.create(orderId, payload, firstStep);
@@ -56,6 +65,11 @@ public class OrderSagaDomainService {
     public SagaInstanceDto startCompensation(Long sagaId, SagaStep nextStep, String failureReason) {
         OrderSagaInstance sagaInstance = orderSagaInstanceRepository.findById(sagaId)
                 .orElseThrow(() -> new NotFoundException("주문 SAGA 인스턴스를 찾을 수 없습니다"));
+
+        if (sagaInstance.getSagaStatus() != SagaStatus.STARTED) {
+            log.info("이미 처리된 Saga 인스턴스");
+            return SagaInstanceDto.from(sagaInstance);
+        }
 
         sagaInstance.startCompensation(nextStep, failureReason);
         return SagaInstanceDto.from(sagaInstance);
