@@ -328,253 +328,6 @@ public class SagaManagerTest {
         verify(sagaEventProducer, never()).requestUserPointUse(sagaId, orderId, payload);
     }
 
-//    @Test
-//    @DisplayName("포인트 차감이 실패한 경우 쿠폰을 사용했다면 쿠폰 보상을 진행한다")
-//    void abortSaga_point_fail_with_couponId() {
-//        //given
-//        Long sagaId = 1L;
-//        Long orderId = 1L;
-//        Long couponId = 1L;
-//        Long userId = 1L;
-//        Long usedPoint = 1000L;
-//        SagaProcessResult fail = SagaProcessResult.fail(sagaId, orderId, "INSUFFICIENT_POINT", "포인트 부족");
-//        Payload payload = Payload.builder()
-//                .userId(userId)
-//                .sagaItems(List.of(Payload.SagaItem.builder().productVariantId(1L).quantity(3).build()))
-//                .couponId(couponId)
-//                .useToPoint(usedPoint)
-//                .build();
-//
-//        SagaInstanceDto initInstanceDto = createSagaInstanceDto(sagaId, orderId, SagaStatus.STARTED, SagaStep.USER, payload);
-//        SagaInstanceDto abortInstanceDto = createSagaInstanceDto(sagaId, orderId, SagaStatus.ABORTED, SagaStep.USER, payload);
-//        SagaInstanceDto compensateInstanceDto = createSagaInstanceDto(sagaId, orderId, SagaStatus.COMPENSATING, SagaStep.COUPON, payload);
-//        given(orderSagaDomainService.getSaga(any()))
-//                .willReturn(initInstanceDto);
-//        given(orderSagaDomainService.abort(anyLong(), anyString()))
-//                .willReturn(abortInstanceDto);
-//        given(orderSagaDomainService.compensateTo(anyLong(), any(SagaStep.class)))
-//                .willReturn(compensateInstanceDto);
-//        //when
-//        sagaManager.processUserResult(fail);
-//        //then
-//        //포인트 차감과정 문제 발생이므로 SagaAbort 이벤트 발행과 다음 스텝인 Coupon 보상이 이뤄져야함
-//        ArgumentCaptor<SagaAbortEvent> captor = ArgumentCaptor.forClass(SagaAbortEvent.class);
-//        verify(orderSagaDomainService, times(1)).compensateTo(sagaId, SagaStep.COUPON);
-//        verify(sagaEventProducer, times(1)).requestCouponCompensate(sagaId, orderId, payload);
-//        verify(eventPublisher, times(1)).publishEvent(captor.capture());
-//
-//        assertThat(captor.getValue())
-//                .extracting(SagaAbortEvent::getSagaId, SagaAbortEvent::getOrderId, SagaAbortEvent::getUserId,
-//                        SagaAbortEvent::getOrderFailureCode)
-//                        .containsExactly(1L, 1L, 1L, OrderFailureCode.POINT_SHORTAGE);
-//
-//        //재고 복구 로직은 실행되서는 안됨
-//        verify(orderSagaDomainService, never()).compensateTo(sagaId, SagaStep.PRODUCT);
-//        verify(sagaEventProducer, never()).requestInventoryCompensate(sagaId, orderId, payload);
-//        //SAGA 가 완료되서는 안됨
-//        verify(orderSagaDomainService, never()).fail(sagaId);
-//    }
-//
-//    @Test
-//    @DisplayName("포인트 차감이 실패한 경우 쿠폰을 사용하지 않았다면 상품 재고 보상을 진행한다")
-//    void abortSaga_point_fail_without_couponId(){
-//        //given
-//        Long sagaId = 1L;
-//        Long orderId = 1L;
-//        Long userId = 1L;
-//        Long usedPoint = 1000L;
-//        Payload payload = Payload.builder()
-//                .userId(userId)
-//                .sagaItems(List.of(Payload.SagaItem.builder().productVariantId(1L).quantity(3).build()))
-//                .couponId(null)
-//                .useToPoint(usedPoint)
-//                .build();
-//        SagaProcessResult fail = SagaProcessResult.fail(sagaId, orderId, "INSUFFICIENT_POINT", "포인트 부족");
-//        SagaInstanceDto initInstanceDto = createSagaInstanceDto(sagaId, orderId, SagaStatus.STARTED, SagaStep.USER, payload);
-//        SagaInstanceDto abortInstanceDto = createSagaInstanceDto(sagaId, orderId, SagaStatus.ABORTED, SagaStep.USER, payload);
-//        SagaInstanceDto compensateInstanceDto = createSagaInstanceDto(sagaId, orderId, SagaStatus.COMPENSATING, SagaStep.PRODUCT, payload);
-//        given(orderSagaDomainService.getSaga(any()))
-//                .willReturn(initInstanceDto);
-//        given(orderSagaDomainService.abort(anyLong(), anyString()))
-//                .willReturn(abortInstanceDto);
-//        given(orderSagaDomainService.compensateTo(anyLong(), any(SagaStep.class)))
-//                .willReturn(compensateInstanceDto);
-//        //when
-//        sagaManager.processUserResult(fail);
-//        //then
-//        //쿠폰을 사용하지 않았으므로 쿠폰 보상을 건너 뛰고 상품 재고 보상이 진행되어야 함
-//        ArgumentCaptor<SagaAbortEvent> captor = ArgumentCaptor.forClass(SagaAbortEvent.class);
-//        verify(orderSagaDomainService, times(1)).compensateTo(sagaId, SagaStep.PRODUCT);
-//        verify(sagaEventProducer, times(1)).requestInventoryCompensate(sagaId, orderId, payload);
-//        verify(eventPublisher, times(1)).publishEvent(captor.capture());
-//
-//        assertThat(captor.getValue())
-//                .extracting(SagaAbortEvent::getSagaId, SagaAbortEvent::getOrderId, SagaAbortEvent::getUserId,
-//                        SagaAbortEvent::getOrderFailureCode)
-//                .containsExactly(1L, 1L, 1L, OrderFailureCode.POINT_SHORTAGE);
-//
-//        //쿠폰 복구는 진행되서는 안됨
-//        verify(orderSagaDomainService, never()).compensateTo(sagaId, SagaStep.COUPON);
-//        verify(sagaEventProducer, never()).requestCouponCompensate(sagaId, orderId, payload);
-//        //SAGA 가 완료되서는 안됨
-//        verify(orderSagaDomainService, never()).fail(sagaId);
-//    }
-//
-//    @Test
-//    @DisplayName("쿠폰 사용이 실패한 경우 상품 보상을 진행한다")
-//    void abortSaga_coupon_fail(){
-//        //given
-//        Long sagaId = 1L;
-//        Long orderId = 1L;
-//        Long userId = 1L;
-//        Long usedPoint = 1000L;
-//        Payload payload = Payload.builder()
-//                .userId(userId)
-//                .sagaItems(List.of(Payload.SagaItem.builder().productVariantId(1L).quantity(3).build()))
-//                .couponId(null)
-//                .useToPoint(usedPoint)
-//                .build();
-//
-//        SagaProcessResult fail = SagaProcessResult.fail(sagaId, orderId, "INVALID_COUPON", "유효하지 않은 쿠폰");
-//        SagaInstanceDto initInstanceDto = createSagaInstanceDto(sagaId, orderId, SagaStatus.STARTED, SagaStep.COUPON, payload);
-//        SagaInstanceDto abortInstanceDto = createSagaInstanceDto(sagaId, orderId, SagaStatus.ABORTED, SagaStep.COUPON, payload);
-//        SagaInstanceDto compensateInstanceDto = createSagaInstanceDto(sagaId, orderId, SagaStatus.COMPENSATING, SagaStep.PRODUCT, payload);
-//        given(orderSagaDomainService.getSaga(anyLong()))
-//                .willReturn(initInstanceDto);
-//        given(orderSagaDomainService.abort(anyLong(), anyString()))
-//                .willReturn(abortInstanceDto);
-//        given(orderSagaDomainService.compensateTo(anyLong(), any(SagaStep.class)))
-//                .willReturn(compensateInstanceDto);
-//        //when
-//        sagaManager.processCouponResult(fail);
-//        //then
-//        ArgumentCaptor<SagaAbortEvent> captor = ArgumentCaptor.forClass(SagaAbortEvent.class);
-//        verify(orderSagaDomainService, times(1)).compensateTo(sagaId, SagaStep.PRODUCT);
-//        verify(sagaEventProducer, times(1)).requestInventoryCompensate(sagaId, orderId, payload);
-//        verify(eventPublisher, times(1)).publishEvent(captor.capture());
-//
-//        assertThat(captor.getValue())
-//                .extracting(SagaAbortEvent::getSagaId, SagaAbortEvent::getOrderId, SagaAbortEvent::getUserId,
-//                        SagaAbortEvent::getOrderFailureCode)
-//                .containsExactly(1L, 1L, 1L, OrderFailureCode.INVALID_COUPON);
-//
-//        //SAGA 가 완료되서는 안됨
-//        verify(orderSagaDomainService, never()).fail(sagaId);
-//    }
-//
-//    @Test
-//    @DisplayName("재고감소가 실패한 경우 saga를 실패 처리한다")
-//    void abortSaga_inventory_fail(){
-//        //given
-//        Long sagaId = 1L;
-//        Long orderId = 1L;
-//        Long userId = 1L;
-//        Long usedPoint = 1000L;
-//        Payload payload = Payload.builder()
-//                .userId(userId)
-//                .sagaItems(List.of(Payload.SagaItem.builder().productVariantId(1L).quantity(3).build()))
-//                .couponId(null)
-//                .useToPoint(usedPoint)
-//                .build();
-//
-//        SagaProcessResult fail = SagaProcessResult.fail(sagaId, orderId, "OUT_OF_STOCK", "재고 부족");
-//        SagaInstanceDto initInstanceDto = createSagaInstanceDto(sagaId, orderId, SagaStatus.STARTED, SagaStep.PRODUCT, payload);
-//        SagaInstanceDto abortInstanceDto = createSagaInstanceDto(sagaId, orderId, SagaStatus.ABORTED, SagaStep.PRODUCT, payload);
-//        SagaInstanceDto failInstanceDto = createSagaInstanceDto(sagaId, orderId, SagaStatus.FAILED, SagaStep.PRODUCT, payload);
-//        given(orderSagaDomainService.getSaga(anyLong()))
-//                .willReturn(initInstanceDto);
-//        given(orderSagaDomainService.abort(anyLong(), anyString()))
-//                .willReturn(abortInstanceDto);
-//        given(orderSagaDomainService.fail(anyLong()))
-//                .willReturn(failInstanceDto);
-//        //when
-//        sagaManager.processProductResult(fail);
-//        //then
-//        ArgumentCaptor<SagaAbortEvent> captor = ArgumentCaptor.forClass(SagaAbortEvent.class);
-//        verify(orderSagaDomainService, times(1)).fail(sagaId);
-//        verify(eventPublisher, times(1)).publishEvent(captor.capture());
-//
-//        verify(sagaEventProducer, never()).requestInventoryCompensate(sagaId, orderId, payload);
-//
-//        assertThat(captor.getValue())
-//                .extracting(SagaAbortEvent::getSagaId, SagaAbortEvent::getOrderId, SagaAbortEvent::getUserId,
-//                        SagaAbortEvent::getOrderFailureCode)
-//                .containsExactly(1L, 1L, 1L, OrderFailureCode.OUT_OF_STOCK);
-//    }
-//
-//    @Test
-//    @DisplayName("쿠폰 보상이 완료된 이후 상품 재고 보상을 진행한다")
-//    void compensateSaga_coupon_success(){
-//        //given
-//        Long sagaId = 1L;
-//        Long orderId = 1L;
-//        Long couponId = 1L;
-//        Long userId = 1L;
-//        Long usedPoint = 1000L;
-//        Payload payload = Payload.builder()
-//                .userId(userId)
-//                .sagaItems(List.of(Payload.SagaItem.builder().productVariantId(1L).quantity(3).build()))
-//                .couponId(couponId)
-//                .useToPoint(usedPoint)
-//                .build();
-//        SagaProcessResult success = SagaProcessResult.success(sagaId, orderId);
-//        SagaInstanceDto currentInstanceDto = createSagaInstanceDto(sagaId, orderId, SagaStatus.COMPENSATING, SagaStep.COUPON, payload);
-//        SagaInstanceDto compensateInstanceDto = createSagaInstanceDto(sagaId, orderId, SagaStatus.COMPENSATING, SagaStep.PRODUCT, payload);
-//        given(orderSagaDomainService.getSaga(anyLong()))
-//                .willReturn(currentInstanceDto);
-//        given(orderSagaDomainService.compensateTo(anyLong(), any(SagaStep.class)))
-//                .willReturn(compensateInstanceDto);
-//        //when
-//        sagaManager.processCouponResult(success);
-//        //then
-//        verify(orderSagaDomainService, times(1)).compensateTo(sagaId, SagaStep.PRODUCT);
-//        verify(sagaEventProducer, times(1)).requestInventoryCompensate(sagaId, orderId, payload);
-//
-//        //쿠폰 복구는 진행되서는 안됨
-//        verify(orderSagaDomainService, never()).compensateTo(sagaId, SagaStep.COUPON);
-//        verify(sagaEventProducer, never()).requestCouponCompensate(sagaId, orderId, payload);
-//        //SAGA 가 완료되서는 안됨, Saga 실패 이벤트가 발행되서는 안됨
-//        verify(orderSagaDomainService, never()).fail(sagaId);
-//        verify(eventPublisher, never()).publishEvent(any());
-//    }
-//
-//    @Test
-//    @DisplayName("상품 재고 보상이 완료되면 Saga를 마친다")
-//    void compensateSaga_inventory_success(){
-//        //given
-//        Long sagaId = 1L;
-//        Long orderId = 1L;
-//        Long couponId = 1L;
-//        Long userId = 1L;
-//        Long usedPoint = 1000L;
-//        Payload payload = Payload.builder()
-//                .userId(userId)
-//                .sagaItems(List.of(Payload.SagaItem.builder().productVariantId(1L).quantity(3).build()))
-//                .couponId(couponId)
-//                .useToPoint(usedPoint)
-//                .build();
-//        SagaProcessResult success = SagaProcessResult.success(sagaId, orderId);
-//        SagaInstanceDto currentInstanceDto = createSagaInstanceDto(sagaId, orderId, SagaStatus.COMPENSATING, SagaStep.PRODUCT, payload);
-//        SagaInstanceDto failInstanceDto = createSagaInstanceDto(sagaId, orderId, SagaStatus.FAILED, SagaStep.PRODUCT, payload);
-//        given(orderSagaDomainService.getSaga(anyLong()))
-//                .willReturn(currentInstanceDto);
-//        given(orderSagaDomainService.fail(anyLong()))
-//                .willReturn(failInstanceDto);
-//        //when
-//        sagaManager.processProductResult(success);
-//        //then
-//        //사가가 완료됨
-//        verify(orderSagaDomainService, times(1)).fail(sagaId);
-//
-//        //다른 단계는 진행되서는 안됨
-//        verify(sagaEventProducer, never()).requestInventoryCompensate(sagaId, orderId, payload);
-//        verify(sagaEventProducer, never()).requestCouponCompensate(sagaId, orderId, payload);
-//        verify(orderSagaDomainService, never()).compensateTo(sagaId, SagaStep.COUPON);
-//        verify(orderSagaDomainService, never()).compensateTo(sagaId, SagaStep.PRODUCT);
-//        verify(eventPublisher, never()).publishEvent(any());
-//    }
-
-
     @Test
     @DisplayName("포인트 차감이 실패한 경우 쿠폰을 사용했다면 쿠폰 보상을 진행한다")
     void processUserResult_point_fail_with_couponId() {
@@ -733,6 +486,76 @@ public class SagaManagerTest {
                 .extracting(SagaAbortEvent::getSagaId, SagaAbortEvent::getOrderId, SagaAbortEvent::getUserId,
                         SagaAbortEvent::getOrderFailureCode)
                 .containsExactly(1L, 1L, 1L, OrderFailureCode.OUT_OF_STOCK);
+    }
+
+    @Test
+    @DisplayName("쿠폰 보상이 완료된 이후 상품 재고 보상을 진행한다")
+    void compensateSaga_coupon_success(){
+        //given
+        Long sagaId = 1L;
+        Long orderId = 1L;
+        Long couponId = 1L;
+        Long userId = 1L;
+        Long usedPoint = 1000L;
+        Payload payload = Payload.builder()
+                .userId(userId)
+                .sagaItems(List.of(Payload.SagaItem.builder().productVariantId(1L).quantity(3).build()))
+                .couponId(couponId)
+                .useToPoint(usedPoint)
+                .build();
+        SagaProcessResult success = SagaProcessResult.success(sagaId, orderId);
+        SagaInstanceDto currentInstanceDto = createSagaInstanceDto(sagaId, orderId, SagaStatus.COMPENSATING, SagaStep.COUPON, payload);
+        SagaInstanceDto compensateInstanceDto = createSagaInstanceDto(sagaId, orderId, SagaStatus.COMPENSATING, SagaStep.PRODUCT, payload);
+        given(orderSagaDomainService.getSaga(anyLong()))
+                .willReturn(currentInstanceDto);
+        given(orderSagaDomainService.continueCompensation(anyLong(), any(SagaStep.class)))
+                .willReturn(compensateInstanceDto);
+        //when
+        sagaManager.processCouponResult(success);
+        //then
+        //상품 보상 로직이 진행되어야 함
+        verify(orderSagaDomainService, times(1)).continueCompensation(sagaId, SagaStep.PRODUCT);
+        verify(sagaEventProducer, times(1)).requestInventoryCompensate(sagaId, orderId, payload);
+
+        //쿠폰 복구는 진행되서는 안됨
+        verify(sagaEventProducer, never()).requestCouponCompensate(sagaId, orderId, payload);
+        //SAGA 가 완료되서는 안됨, Saga 실패 이벤트가 발행되서는 안됨
+        verify(orderSagaDomainService, never()).fail(anyLong(), nullable(String.class));
+        verify(eventPublisher, never()).publishEvent(any());
+    }
+
+    @Test
+    @DisplayName("상품 재고 보상이 완료되면 Saga를 마친다")
+    void compensateSaga_inventory_success(){
+        //given
+        Long sagaId = 1L;
+        Long orderId = 1L;
+        Long couponId = 1L;
+        Long userId = 1L;
+        Long usedPoint = 1000L;
+        Payload payload = Payload.builder()
+                .userId(userId)
+                .sagaItems(List.of(Payload.SagaItem.builder().productVariantId(1L).quantity(3).build()))
+                .couponId(couponId)
+                .useToPoint(usedPoint)
+                .build();
+        SagaProcessResult success = SagaProcessResult.success(sagaId, orderId);
+        SagaInstanceDto currentInstanceDto = createSagaInstanceDto(sagaId, orderId, SagaStatus.COMPENSATING, SagaStep.PRODUCT, payload);
+        SagaInstanceDto failInstanceDto = createSagaInstanceDto(sagaId, orderId, SagaStatus.FAILED, SagaStep.PRODUCT, payload);
+        given(orderSagaDomainService.getSaga(anyLong()))
+                .willReturn(currentInstanceDto);
+        given(orderSagaDomainService.fail(anyLong(), nullable(String.class)))
+                .willReturn(failInstanceDto);
+        //when
+        sagaManager.processProductResult(success);
+        //then
+        //사가가 완료됨
+        verify(orderSagaDomainService, times(1)).fail(sagaId, null);
+
+        //다른 단계는 진행되서는 안됨
+        verify(sagaEventProducer, never()).requestInventoryCompensate(sagaId, orderId, payload);
+        verify(sagaEventProducer, never()).requestCouponCompensate(sagaId, orderId, payload);
+        verify(eventPublisher, never()).publishEvent(any());
     }
 
     private SagaInstanceDto createSagaInstanceDto(Long sagaId, Long orderId,

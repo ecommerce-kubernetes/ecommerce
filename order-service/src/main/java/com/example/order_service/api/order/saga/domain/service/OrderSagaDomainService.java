@@ -40,15 +40,6 @@ public class OrderSagaDomainService {
         return SagaInstanceDto.from(sagaInstance);
     }
 
-    public SagaInstanceDto compensateTo(Long sagaId, SagaStep sagaStep) {
-        OrderSagaInstance sagaInstance = orderSagaInstanceRepository.findById(sagaId)
-                .orElseThrow(() -> new NotFoundException("주문 SAGA 인스턴스를 찾을 수 없습니다"));
-
-        sagaInstance.changeStep(sagaStep);
-        sagaInstance.changeStatus(SagaStatus.COMPENSATING);
-        return SagaInstanceDto.from(sagaInstance);
-    }
-
     public SagaInstanceDto finish(Long sagaId) {
         OrderSagaInstance sagaInstance = orderSagaInstanceRepository.findById(sagaId)
                 .orElseThrow(() -> new NotFoundException("주문 SAGA 인스턴스를 찾을 수 없습니다"));
@@ -60,13 +51,6 @@ public class OrderSagaDomainService {
         OrderSagaInstance sagaInstance = orderSagaInstanceRepository.findById(sagaId)
                 .orElseThrow(() -> new NotFoundException("주문 SAGA 인스턴스를 찾을 수 없습니다"));
         sagaInstance.fail(failureReason);
-        return SagaInstanceDto.from(sagaInstance);
-    }
-
-    public SagaInstanceDto abort(Long sagaId, String failureReason) {
-        OrderSagaInstance sagaInstance = orderSagaInstanceRepository.findById(sagaId)
-                .orElseThrow(() -> new NotFoundException("주문 SAGA 인스턴스를 찾을 수 없습니다"));
-        sagaInstance.abort(failureReason);
         return SagaInstanceDto.from(sagaInstance);
     }
 

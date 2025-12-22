@@ -120,8 +120,10 @@ public class SagaManager {
             }
         } else if (saga.getSagaStatus() == SagaStatus.COMPENSATING) { // 보상이 진행중인 경우
             if (result.getStatus() == SagaEventStatus.SUCCESS) {
-
+                // 다음 보상을 진행함
+                continueCompensationSequence(saga);
             } else {
+                // 보상이 실패되었으므로 에러 로그
                 log.error("ERROR : 보상 실패 SagaId : {}", saga.getId());
             }
         }
@@ -142,6 +144,20 @@ public class SagaManager {
 
         // Saga 인스턴스를 보상단계로 변경
         SagaInstanceDto updateSagaInstanceDto = orderSagaDomainService.startCompensation(saga.getId(), nextStep, failureReason);
+        // 단계에 맞는 Saga 보상 메시지 발행
+        dispatchCompensationMessage(updateSagaInstanceDto);
+    }
+
+    private void continueCompensationSequence(SagaInstanceDto saga) {
+        // 다음 보상 단계
+        SagaStep nextStep = getNextCompensationStep(saga.getSagaStep(), saga.getPayload());
+        // 다음 단계가 없다면 보상 없이 실패 처리 진행 (이때는 실패 이유는 null)
+        if (nextStep == null) {
+            failSaga(saga.getId(), null);
+            return;
+        }
+        // Saga 인스턴스 단계를 다음 보상 단계로 변경
+        SagaInstanceDto updateSagaInstanceDto = orderSagaDomainService.continueCompensation(saga.getId(), nextStep);
         // 단계에 맞는 Saga 보상 메시지 발행
         dispatchCompensationMessage(updateSagaInstanceDto);
     }
