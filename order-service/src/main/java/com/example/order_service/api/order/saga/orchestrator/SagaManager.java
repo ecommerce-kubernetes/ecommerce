@@ -28,8 +28,9 @@ public class SagaManager {
 
     public void startSaga(SagaStartCommand command) {
         Payload payload = Payload.from(command);
-        SagaInstanceDto sagaInstanceDto = orderSagaDomainService.create(command.getOrderId(), payload);
-        sagaEventProducer.requestInventoryDeduction(sagaInstanceDto.getId(), sagaInstanceDto.getOrderId(), sagaInstanceDto.getPayload());
+        SagaStep firstStep = getNextStep(null, payload);
+        SagaInstanceDto sagaInstanceDto = orderSagaDomainService.create(command.getOrderId(), payload, firstStep);
+        dispatchProceedMessage(sagaInstanceDto);
     }
 
     public void processProductResult(SagaProcessResult result) {
@@ -44,64 +45,6 @@ public class SagaManager {
         evaluateResult(result, SagaStep.USER);
     }
 
-    private void failSaga(Long sagaId, String failureReason) {
-        orderSagaDomainService.fail(sagaId, failureReason);
-    }
-
-    private void proceed(Long sagaId, SagaStep sagaStep, Payload payload) {
-        switch (sagaStep) {
-            case PRODUCT:
-                executeCoupon(sagaId, payload);
-                break;
-            case COUPON:
-                executeUsePoint(sagaId, payload);
-                break;
-            case USER:
-                completeSaga(sagaId);
-                break;
-        }
-    }
-
-    private void executeCoupon(Long sagaId, Payload payload) {
-        if (payload.getCouponId() == null) {
-            // CouponId 가 null 이므로 다음(포인트 차감) 단계로 건너뛰기
-            proceed(sagaId, SagaStep.COUPON, payload);
-            return;
-        }
-        SagaInstanceDto instance = orderSagaDomainService.proceedTo(sagaId, SagaStep.COUPON);
-        sagaEventProducer.requestCouponUse(instance.getId(), instance.getOrderId(), instance.getPayload());
-    }
-
-    private void executeUsePoint(Long sagaId, Payload payload) {
-        if (payload.getUseToPoint() == null || payload.getUseToPoint() == 0) {
-            // 사용 포인트가 없으므로 Saga 완료 단계로 건너뛰기
-            proceed(sagaId, SagaStep.USER, payload);
-            return;
-        }
-        SagaInstanceDto sagaInstanceDto = orderSagaDomainService.proceedTo(sagaId, SagaStep.USER);
-        sagaEventProducer.requestUserPointUse(sagaInstanceDto.getId(), sagaInstanceDto.getOrderId(), sagaInstanceDto.getPayload());
-    }
-
-    private void completeSaga(Long sagaId) {
-        SagaInstanceDto sagaInstanceDto = orderSagaDomainService.finish(sagaId);
-        SagaCompletedEvent completedEvent = SagaCompletedEvent
-                .of(sagaInstanceDto.getId(), sagaInstanceDto.getOrderId(), sagaInstanceDto.getPayload().getUserId());
-        applicationEventPublisher.publishEvent(completedEvent);
-    }
-
-    private SagaAbortEvent createSagaAbortEvent(Long sagaId, Long orderId, Long userId, String errorCode) {
-
-        OrderFailureCode failureCode = OrderFailureCode.UNKNOWN;
-        if(errorCode.equals("OUT_OF_STOCK")) {
-            failureCode = OrderFailureCode.OUT_OF_STOCK;
-        } else if (errorCode.equals("INVALID_COUPON")) {
-            failureCode = OrderFailureCode.INVALID_COUPON;
-        } else if (errorCode.equals("INSUFFICIENT_POINT")){
-            failureCode = OrderFailureCode.POINT_SHORTAGE;
-        }
-
-        return SagaAbortEvent.of(sagaId, orderId, userId, failureCode);
-    }
     private void evaluateResult(SagaProcessResult result, SagaStep expectedStep) {
         SagaInstanceDto saga = orderSagaDomainService.getSaga(result.getSagaId());
 
@@ -113,7 +56,7 @@ public class SagaManager {
 
         if (saga.getSagaStatus() == SagaStatus.STARTED) { // SAGA 가 진행중인 경우
             if (result.getStatus() == SagaEventStatus.SUCCESS) {
-
+                proceedSequence(saga);
             } else {
                 // 응답받은 메시지가 실패라면 보상을 시작함
                 startCompensationSequence(saga, result.getErrorCode(), result.getFailureReason());
@@ -129,6 +72,17 @@ public class SagaManager {
         }
     }
 
+    private void proceedSequence(SagaInstanceDto saga) {
+        SagaStep nextStep = getNextStep(saga.getSagaStep(), saga.getPayload());
+
+        if (nextStep == null) {
+            completeSaga(saga.getId());
+            return;
+        }
+
+        SagaInstanceDto updateSaga = orderSagaDomainService.proceedTo(saga.getId(), nextStep);
+        dispatchProceedMessage(updateSaga);
+    }
     private void startCompensationSequence(SagaInstanceDto saga, String errorCode, String failureReason) {
         applicationEventPublisher.publishEvent(createSagaAbortEvent(saga.getId(), saga.getOrderId(), saga.getPayload().getUserId(),
                 errorCode));
@@ -177,6 +131,44 @@ public class SagaManager {
         };
     }
 
+    private SagaStep getNextStep(SagaStep currentStep, Payload payload) {
+        // 진행 흐름 : 재고 차감 -> 쿠폰 사용 -> 포인트 차감
+
+        // 현재 Step 이 null 이면 처음 단계인 재고 차감을 진행
+        if (currentStep == null) return SagaStep.PRODUCT;
+
+        switch (currentStep) {
+            case PRODUCT:
+                //쿠폰을 사용한다면 쿠폰 사용
+                if (payload.getCouponId() != null) return SagaStep.COUPON;
+                //포인트를 사용한다면 포인트 사용
+                if (payload.getUseToPoint() != null && payload.getUseToPoint() > 0) return SagaStep.USER;
+                return null;
+            case COUPON:
+                //포인트를 사용한다면 포인트 사용
+                if (payload.getUseToPoint() != null && payload.getUseToPoint() > 0) return SagaStep.USER;
+                return null;
+            case USER:
+                // 포인트 사용 다음 단계는 SAGA 완료
+                return null;
+            default: return null;
+        }
+    }
+
+    private void dispatchProceedMessage(SagaInstanceDto saga) {
+        switch (saga.getSagaStep()) {
+            case PRODUCT:
+                sagaEventProducer.requestInventoryDeduction(saga.getId(), saga.getOrderId(), saga.getPayload());
+                break;
+            case COUPON:
+                sagaEventProducer.requestCouponUse(saga.getId(), saga.getOrderId(), saga.getPayload());
+                break;
+            case USER:
+                sagaEventProducer.requestUserPointUse(saga.getId(), saga.getOrderId(), saga.getPayload());
+                break;
+        }
+    }
+
     private void dispatchCompensationMessage(SagaInstanceDto saga) {
         switch (saga.getSagaStep()) {
             // Step 이 COUPON -> 쿠폰 복구 메시지 발행
@@ -188,5 +180,30 @@ public class SagaManager {
                 sagaEventProducer.requestInventoryCompensate(saga.getId(), saga.getOrderId(), saga.getPayload());
                 break;
         }
+    }
+
+    private SagaAbortEvent createSagaAbortEvent(Long sagaId, Long orderId, Long userId, String errorCode) {
+
+        OrderFailureCode failureCode = OrderFailureCode.UNKNOWN;
+        if(errorCode.equals("OUT_OF_STOCK")) {
+            failureCode = OrderFailureCode.OUT_OF_STOCK;
+        } else if (errorCode.equals("INVALID_COUPON")) {
+            failureCode = OrderFailureCode.INVALID_COUPON;
+        } else if (errorCode.equals("INSUFFICIENT_POINT")){
+            failureCode = OrderFailureCode.POINT_SHORTAGE;
+        }
+
+        return SagaAbortEvent.of(sagaId, orderId, userId, failureCode);
+    }
+
+    private void failSaga(Long sagaId, String failureReason) {
+        orderSagaDomainService.fail(sagaId, failureReason);
+    }
+
+    private void completeSaga(Long sagaId) {
+        SagaInstanceDto sagaInstanceDto = orderSagaDomainService.finish(sagaId);
+        SagaCompletedEvent completedEvent = SagaCompletedEvent
+                .of(sagaInstanceDto.getId(), sagaInstanceDto.getOrderId(), sagaInstanceDto.getPayload().getUserId());
+        applicationEventPublisher.publishEvent(completedEvent);
     }
 }

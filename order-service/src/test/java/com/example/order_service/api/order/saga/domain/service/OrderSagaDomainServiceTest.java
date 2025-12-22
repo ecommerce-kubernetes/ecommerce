@@ -40,7 +40,7 @@ public class OrderSagaDomainServiceTest extends ExcludeInfraTest {
                 .useToPoint(1000L)
                 .build();
         //when
-        SagaInstanceDto sagaInstanceDto = orderSagaDomainService.create(1L, payload);
+        SagaInstanceDto sagaInstanceDto = orderSagaDomainService.create(1L, payload, SagaStep.PRODUCT);
         //then
         assertThat(sagaInstanceDto.getId()).isNotNull();
         assertThat(sagaInstanceDto)
@@ -67,7 +67,7 @@ public class OrderSagaDomainServiceTest extends ExcludeInfraTest {
                 .couponId(1L)
                 .useToPoint(1000L)
                 .build();
-        OrderSagaInstance sagaInstance = OrderSagaInstance.start(1L, payload);
+        OrderSagaInstance sagaInstance = OrderSagaInstance.create(1L, payload, SagaStep.PRODUCT);
         OrderSagaInstance save = orderSagaInstanceRepository.save(sagaInstance);
         //when
         SagaInstanceDto result = orderSagaDomainService.getSaga(save.getId());
@@ -89,7 +89,7 @@ public class OrderSagaDomainServiceTest extends ExcludeInfraTest {
                 .couponId(1L)
                 .useToPoint(1000L)
                 .build();
-        OrderSagaInstance sagaInstance = OrderSagaInstance.start(1L, payload);
+        OrderSagaInstance sagaInstance = OrderSagaInstance.create(1L, payload, SagaStep.PRODUCT);
         OrderSagaInstance save = orderSagaInstanceRepository.save(sagaInstance);
         //when
         SagaInstanceDto result = orderSagaDomainService.proceedTo(save.getId(), SagaStep.COUPON);
@@ -133,7 +133,7 @@ public class OrderSagaDomainServiceTest extends ExcludeInfraTest {
                 .couponId(1L)
                 .useToPoint(1000L)
                 .build();
-        OrderSagaInstance sagaInstance = OrderSagaInstance.start(1L, payload);
+        OrderSagaInstance sagaInstance = OrderSagaInstance.create(1L, payload, SagaStep.PRODUCT);
         OrderSagaInstance save = orderSagaInstanceRepository.save(sagaInstance);
         //when
         SagaInstanceDto result = orderSagaDomainService.finish(save.getId());
@@ -166,7 +166,7 @@ public class OrderSagaDomainServiceTest extends ExcludeInfraTest {
                 .couponId(1L)
                 .useToPoint(1000L)
                 .build();
-        OrderSagaInstance sagaInstance = OrderSagaInstance.start(1L, payload);
+        OrderSagaInstance sagaInstance = OrderSagaInstance.create(1L, payload, SagaStep.PRODUCT);
         OrderSagaInstance save = orderSagaInstanceRepository.save(sagaInstance);
         //when
         SagaInstanceDto result = orderSagaDomainService.fail(save.getId(), null);
@@ -199,7 +199,7 @@ public class OrderSagaDomainServiceTest extends ExcludeInfraTest {
                 .couponId(1L)
                 .useToPoint(1000L)
                 .build();
-        OrderSagaInstance sagaInstance = OrderSagaInstance.start(1L, payload);
+        OrderSagaInstance sagaInstance = OrderSagaInstance.create(1L, payload, SagaStep.PRODUCT);
         sagaInstance.changeStep(SagaStep.COUPON);
         OrderSagaInstance save = orderSagaInstanceRepository.save(sagaInstance);
         //when
@@ -233,7 +233,7 @@ public class OrderSagaDomainServiceTest extends ExcludeInfraTest {
                 .couponId(1L)
                 .useToPoint(1000L)
                 .build();
-        OrderSagaInstance sagaInstance = OrderSagaInstance.start(1L, payload);
+        OrderSagaInstance sagaInstance = OrderSagaInstance.create(1L, payload, SagaStep.PRODUCT);
         sagaInstance.startCompensation(SagaStep.COUPON, "포인트가 부족합니다");
         OrderSagaInstance save = orderSagaInstanceRepository.save(sagaInstance);
         //when

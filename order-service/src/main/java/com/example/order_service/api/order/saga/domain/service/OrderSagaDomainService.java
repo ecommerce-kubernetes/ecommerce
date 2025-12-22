@@ -18,8 +18,8 @@ public class OrderSagaDomainService {
 
     private final OrderSagaInstanceRepository orderSagaInstanceRepository;
 
-    public SagaInstanceDto create(Long orderId, Payload payload){
-        OrderSagaInstance sagaInstance = OrderSagaInstance.start(orderId, payload);
+    public SagaInstanceDto create(Long orderId, Payload payload, SagaStep firstStep){
+        OrderSagaInstance sagaInstance = OrderSagaInstance.create(orderId, payload, firstStep);
         OrderSagaInstance savedSagaInstance = orderSagaInstanceRepository.save(sagaInstance);
         return SagaInstanceDto.from(savedSagaInstance);
     }
@@ -35,8 +35,7 @@ public class OrderSagaDomainService {
         OrderSagaInstance sagaInstance = orderSagaInstanceRepository.findById(sagaId)
                 .orElseThrow(() -> new NotFoundException("주문 SAGA 인스턴스를 찾을 수 없습니다"));
 
-        sagaInstance.changeStep(sagaStep);
-        sagaInstance.changeStatus(SagaStatus.STARTED);
+        sagaInstance.proceedTo(sagaStep);
         return SagaInstanceDto.from(sagaInstance);
     }
 

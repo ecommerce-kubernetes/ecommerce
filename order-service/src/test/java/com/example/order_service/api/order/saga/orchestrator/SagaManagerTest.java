@@ -66,7 +66,7 @@ public class SagaManagerTest {
         SagaInstanceDto sagaInstanceDto = createSagaInstanceDto(sagaId, 1L, SagaStatus.STARTED, SagaStep.PRODUCT,
                 Payload.from(command));
 
-        given(orderSagaDomainService.create(anyLong(), any(Payload.class)))
+        given(orderSagaDomainService.create(anyLong(), any(Payload.class), any(SagaStep.class)))
                 .willReturn(sagaInstanceDto);
 
         //when
@@ -74,8 +74,9 @@ public class SagaManagerTest {
         //then
         ArgumentCaptor<Long> orderIdCaptor = ArgumentCaptor.forClass(Long.class);
         ArgumentCaptor<Payload> payloadCaptor = ArgumentCaptor.forClass(Payload.class);
+        ArgumentCaptor<SagaStep> stepCaptor = ArgumentCaptor.forClass(SagaStep.class);
         verify(orderSagaDomainService, times(1))
-                .create(orderIdCaptor.capture(), payloadCaptor.capture());
+                .create(orderIdCaptor.capture(), payloadCaptor.capture(), stepCaptor.capture());
 
         assertThat(orderIdCaptor.getValue()).isEqualTo(1L);
         assertThat(payloadCaptor.getValue())
@@ -88,6 +89,9 @@ public class SagaManagerTest {
                         tuple(1L, 3),
                         tuple(2L, 5)
                 );
+
+        assertThat(stepCaptor.getValue())
+                .isEqualTo(SagaStep.PRODUCT);
 
         verify(sagaEventProducer).requestInventoryDeduction(
                 eq(sagaId),

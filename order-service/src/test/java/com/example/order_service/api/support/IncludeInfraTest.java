@@ -7,14 +7,18 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.kafka.config.KafkaListenerEndpointRegistry;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.listener.MessageListenerContainer;
 import org.springframework.kafka.test.EmbeddedKafkaBroker;
 import org.springframework.kafka.test.context.EmbeddedKafka;
+import org.springframework.kafka.test.utils.ContainerTestUtils;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.test.context.TestPropertySource;
 
@@ -26,7 +30,8 @@ import java.util.UUID;
 
 @SpringBootTest
 @TestPropertySource(properties = {
-        "spring.kafka.consumer.group-id=saga-test-${random.uuid}"
+        "spring.kafka.consumer.group-id=saga-test-${random.uuid}",
+        "spring.kafka.consumer.auto-offset-reset=earliest"
 })
 @EmbeddedKafka(
         partitions = 1,
@@ -56,6 +61,15 @@ public abstract class IncludeInfraTest {
     protected ObjectMapper objectMapper;
     @Autowired
     protected KafkaTemplate<String, Object> kafkaTemplate;
+    @Autowired
+    private KafkaListenerEndpointRegistry kafkaListenerEndpointRegistry;
+
+    @BeforeEach
+    void waitForListenerAssignment() {
+        for (MessageListenerContainer container : kafkaListenerEndpointRegistry.getListenerContainers()) {
+            ContainerTestUtils.waitForAssignment(container, embeddedKafkaBroker.getPartitionsPerTopic());
+        }
+    }
 
     private final List<Consumer<?, ?>> consumers = new ArrayList<>();
 

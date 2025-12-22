@@ -12,8 +12,8 @@ import static org.assertj.core.api.Assertions.tuple;
 public class OrderSagaInstanceTest {
 
     @Test
-    @DisplayName("인스턴스 생성시 초기상태는 PRODUCT_STARTED 인 초기 SAGA 인스턴스이다")
-    void start(){
+    @DisplayName("인스턴스 생성시 초기상태는 STARTED 인 초기 SAGA 인스턴스이다")
+    void create(){
         //given
         Payload.SagaItem item1 = Payload.SagaItem.builder().productVariantId(1L)
                 .quantity(3).build();
@@ -26,7 +26,7 @@ public class OrderSagaInstanceTest {
                 .useToPoint(1000L)
                 .build();
         //when
-        OrderSagaInstance sagaInstance = OrderSagaInstance.start(1L, payload);
+        OrderSagaInstance sagaInstance = OrderSagaInstance.create(1L, payload, SagaStep.PRODUCT);
         //then
         assertThat(sagaInstance)
                 .extracting(OrderSagaInstance::getOrderId, OrderSagaInstance::getSagaStep, OrderSagaInstance::getSagaStatus, OrderSagaInstance::getFailureReason)
@@ -56,7 +56,7 @@ public class OrderSagaInstanceTest {
                 .couponId(1L)
                 .useToPoint(1000L)
                 .build();
-        OrderSagaInstance sagaInstance = OrderSagaInstance.start(1L, payload);
+        OrderSagaInstance sagaInstance = OrderSagaInstance.create(1L, payload, SagaStep.PRODUCT);
         //when
         sagaInstance.changeStep(SagaStep.COUPON);
         //then
@@ -87,7 +87,7 @@ public class OrderSagaInstanceTest {
                 .couponId(1L)
                 .useToPoint(1000L)
                 .build();
-        OrderSagaInstance sagaInstance = OrderSagaInstance.start(1L, payload);
+        OrderSagaInstance sagaInstance = OrderSagaInstance.create(1L, payload, SagaStep.PRODUCT);
         //when
         sagaInstance.changeStatus(SagaStatus.FINISHED);
         //then
@@ -118,7 +118,7 @@ public class OrderSagaInstanceTest {
                 .couponId(1L)
                 .useToPoint(1000L)
                 .build();
-        OrderSagaInstance sagaInstance = OrderSagaInstance.start(1L, payload);
+        OrderSagaInstance sagaInstance = OrderSagaInstance.create(1L, payload, SagaStep.PRODUCT);
         sagaInstance.changeStep(SagaStep.COUPON);
         //when
         sagaInstance.startCompensation(SagaStep.PRODUCT, "유효하지 않은 쿠폰");
@@ -138,7 +138,7 @@ public class OrderSagaInstanceTest {
                 .couponId(1L)
                 .useToPoint(1000L)
                 .build();
-        OrderSagaInstance sagaInstance = OrderSagaInstance.start(1L, payload);
+        OrderSagaInstance sagaInstance = OrderSagaInstance.create(1L, payload, SagaStep.PRODUCT);
         sagaInstance.startCompensation(SagaStep.COUPON, "포인트가 부족합니다");
         //when
         sagaInstance.continueCompensation(SagaStep.PRODUCT);
@@ -158,7 +158,7 @@ public class OrderSagaInstanceTest {
                 .couponId(1L)
                 .useToPoint(1000L)
                 .build();
-        OrderSagaInstance sagaInstance = OrderSagaInstance.start(1L, payload);
+        OrderSagaInstance sagaInstance = OrderSagaInstance.create(1L, payload, SagaStep.PRODUCT);
         //when
         sagaInstance.fail("재고감소 실패");
         //then
@@ -178,7 +178,7 @@ public class OrderSagaInstanceTest {
                 .couponId(1L)
                 .useToPoint(1000L)
                 .build();
-        OrderSagaInstance sagaInstance = OrderSagaInstance.start(1L, payload);
+        OrderSagaInstance sagaInstance = OrderSagaInstance.create(1L, payload, SagaStep.PRODUCT);
         sagaInstance.startCompensation(SagaStep.COUPON, "포인트가 부족합니다");
         //when
         sagaInstance.fail(null);
@@ -187,5 +187,24 @@ public class OrderSagaInstanceTest {
                 .extracting(OrderSagaInstance::getSagaStatus, OrderSagaInstance::getSagaStep, OrderSagaInstance::getFailureReason)
                 .containsExactly(SagaStatus.FAILED, SagaStep.COUPON, "포인트가 부족합니다");
         assertThat(sagaInstance.getFinishedAt()).isNotNull();
+    }
+
+    @Test
+    @DisplayName("Saga 인스턴스를 다음 단계로 변경")
+    void proceedTo() {
+        //given
+        Payload payload = Payload.builder()
+                .userId(1L)
+                .sagaItems(List.of(Payload.SagaItem.builder().productVariantId(1L).quantity(3).build()))
+                .couponId(1L)
+                .useToPoint(1000L)
+                .build();
+        OrderSagaInstance sagaInstance = OrderSagaInstance.create(1L, payload, SagaStep.PRODUCT);
+        //when
+        sagaInstance.proceedTo(SagaStep.COUPON);
+        //then
+        assertThat(sagaInstance)
+                .extracting(OrderSagaInstance::getSagaStatus, OrderSagaInstance::getSagaStep, OrderSagaInstance::getFailureReason)
+                .containsExactly(SagaStatus.STARTED, SagaStep.COUPON, null);
     }
 }
