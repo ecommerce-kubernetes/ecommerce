@@ -81,6 +81,15 @@ public class Order extends BaseEntity {
         }
     }
 
+    public void changeStatus(OrderStatus orderStatus){
+        this.status = orderStatus;
+    }
+
+    public void canceled(OrderFailureCode code) {
+        this.status = OrderStatus.CANCELED;
+        this.failureCode = code;
+    }
+
     public static Order create(OrderCreationContext context) {
         String generatedOrderName = generateOrderName(context.getItemSpecs());
         Order order = createOrder(context, generatedOrderName);

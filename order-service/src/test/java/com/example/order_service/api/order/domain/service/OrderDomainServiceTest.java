@@ -1,6 +1,11 @@
 package com.example.order_service.api.order.domain.service;
 
+import com.example.order_service.api.common.exception.NotFoundException;
+import com.example.order_service.api.order.domain.model.Order;
+import com.example.order_service.api.order.domain.model.OrderFailureCode;
+import com.example.order_service.api.order.domain.model.OrderStatus;
 import com.example.order_service.api.order.domain.model.vo.PriceCalculateResult;
+import com.example.order_service.api.order.domain.repository.OrderRepository;
 import com.example.order_service.api.order.domain.service.dto.command.OrderCreationContext;
 import com.example.order_service.api.order.domain.service.dto.command.OrderItemSpec;
 import com.example.order_service.api.order.domain.service.dto.result.ItemCalculationResult;
@@ -17,17 +22,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
+import static org.assertj.core.api.Assertions.*;
 
-public class OrderDomainTest extends ExcludeInfraTest {
+@Transactional
+public class OrderDomainServiceTest extends ExcludeInfraTest {
 
     @Autowired
     private OrderDomainService orderDomainService;
+    @Autowired
+    private OrderRepository orderRepository;
 
     @Test
     @DisplayName("주문을 저장한다")
-    @Transactional
     void saveOrder(){
         //given
         OrderProductResponse product1 = createProductResponse(1L, 1L, "상품1", 3000L, 10, "http://thumbnail1.jpg",
@@ -104,6 +110,89 @@ public class OrderDomainTest extends ExcludeInfraTest {
         assertThat(orderCreationResult.getAppliedCoupon())
                 .extracting("couponId", "couponName", "discountAmount")
                 .contains(1L, "1000원 할인 쿠폰", 1000L);
+    }
+
+    @Test
+    @DisplayName("주문을 결제 대기 상태로 변경한다")
+    void changePaymentWaiting() {
+        //given
+        OrderProductResponse product1 = createProductResponse(1L, 1L, "상품1", 3000L, 10, "http://thumbnail1.jpg",
+                Map.of("사이즈", "XL"));
+        OrderProductResponse product2 = createProductResponse(2L, 2L, "상품2", 5000L, 10, "http://thumbnail2.jpg",
+                Map.of("용량", "256GB"));
+        OrderCouponCalcResponse coupon = OrderCouponCalcResponse.builder()
+                .couponId(1L)
+                .couponName("1000원 할인 쿠폰")
+                .discountAmount(1000L)
+                .build();
+        List<OrderItemSpec> orderItemSpec = createOrderItemSpec(List.of(product1, product2), Map.of(1L, 3, 2L, 5));
+        ItemCalculationResult itemCalculationResult = createItemCalculationResult(Map.of(1L, 3, 2L, 5), List.of(product1, product2));
+        PriceCalculateResult priceCalculateResult = PriceCalculateResult.of(itemCalculationResult, coupon, 1000L, 28600L);
+        OrderCreationContext creationContext = OrderCreationContext.builder()
+                .userId(1L)
+                .itemSpecs(orderItemSpec)
+                .priceResult(priceCalculateResult)
+                .deliveryAddress("서울시 테헤란로 123")
+                .build();
+        Order order = Order.create(creationContext);
+        Order save = orderRepository.save(order);
+        //when
+        orderDomainService.changePaymentWaiting(save.getId());
+        //then
+        assertThat(save.getStatus()).isEqualTo(OrderStatus.PAYMENT_WAITING);
+    }
+
+    @Test
+    @DisplayName("주문을 결제 대기 상태로 변경할때 주문을 찾을 수 없으면 예외를 던진다")
+    void changePaymentWaiting_notFound() {
+        //given
+        //when
+        //then
+        assertThatThrownBy(() -> orderDomainService.changePaymentWaiting(999L))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage("주문을 찾을 수 없습니다");
+    }
+
+    @Test
+    @DisplayName("주문을 실패 상태로 변경한다")
+    void changeCanceled() {
+        //given
+        OrderProductResponse product1 = createProductResponse(1L, 1L, "상품1", 3000L, 10, "http://thumbnail1.jpg",
+                Map.of("사이즈", "XL"));
+        OrderProductResponse product2 = createProductResponse(2L, 2L, "상품2", 5000L, 10, "http://thumbnail2.jpg",
+                Map.of("용량", "256GB"));
+        OrderCouponCalcResponse coupon = OrderCouponCalcResponse.builder()
+                .couponId(1L)
+                .couponName("1000원 할인 쿠폰")
+                .discountAmount(1000L)
+                .build();
+        List<OrderItemSpec> orderItemSpec = createOrderItemSpec(List.of(product1, product2), Map.of(1L, 3, 2L, 5));
+        ItemCalculationResult itemCalculationResult = createItemCalculationResult(Map.of(1L, 3, 2L, 5), List.of(product1, product2));
+        PriceCalculateResult priceCalculateResult = PriceCalculateResult.of(itemCalculationResult, coupon, 1000L, 28600L);
+        OrderCreationContext creationContext = OrderCreationContext.builder()
+                .userId(1L)
+                .itemSpecs(orderItemSpec)
+                .priceResult(priceCalculateResult)
+                .deliveryAddress("서울시 테헤란로 123")
+                .build();
+        Order order = Order.create(creationContext);
+        Order save = orderRepository.save(order);
+        //when
+        orderDomainService.changeCanceled(save.getId(), OrderFailureCode.OUT_OF_STOCK);
+        //then
+        assertThat(save.getStatus()).isEqualTo(OrderStatus.CANCELED);
+        assertThat(save.getFailureCode()).isEqualTo(OrderFailureCode.OUT_OF_STOCK);
+    }
+
+    @Test
+    @DisplayName("주문을 실패 상태로 변경할때 주문을 찾을 수 없으면 예외를 던진다")
+    void changeCanceled_notFound() {
+        //given
+        //when
+        //then
+        assertThatThrownBy(() -> orderDomainService.changeCanceled(999L, OrderFailureCode.OUT_OF_STOCK))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage("주문을 찾을 수 없습니다");
     }
 
     private List<OrderItemSpec> createOrderItemSpec(List<OrderProductResponse> products, Map<Long, Integer> quantityByVariantId) {

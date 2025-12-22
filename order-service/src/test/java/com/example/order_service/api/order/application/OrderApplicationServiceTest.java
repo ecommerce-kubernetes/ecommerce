@@ -6,6 +6,7 @@ import com.example.order_service.api.order.application.dto.command.CreateOrderDt
 import com.example.order_service.api.order.application.dto.command.CreateOrderItemDto;
 import com.example.order_service.api.order.application.dto.result.CreateOrderResponse;
 import com.example.order_service.api.order.application.event.OrderCreatedEvent;
+import com.example.order_service.api.order.domain.model.OrderFailureCode;
 import com.example.order_service.api.order.domain.model.vo.AppliedCoupon;
 import com.example.order_service.api.order.domain.model.vo.PaymentInfo;
 import com.example.order_service.api.order.domain.service.OrderDomainService;
@@ -116,6 +117,29 @@ public class OrderApplicationServiceTest {
                         tuple(1L, 3),
                         tuple(2L, 5)
                 );
+    }
+
+    @Test
+    @DisplayName("주문의 상태를 결제 대기로 변경한다")
+    void changePaymentWaiting() {
+        //given
+        Long orderId = 1L;
+        //when
+        orderApplicationService.changePaymentWaiting(orderId);
+        //then
+        verify(orderDomainService, times(1)).changePaymentWaiting(orderId);
+    }
+
+    @Test
+    @DisplayName("주문의 상태를 주문 취소로 변경하고 실패 코드를 추가한다")
+    void changeCanceled() {
+        //given
+        Long orderId = 1L;
+        OrderFailureCode code = OrderFailureCode.OUT_OF_STOCK;
+        //when
+        orderApplicationService.changeCanceled(orderId, code);
+        //then
+        verify(orderDomainService, times(1)).changeCanceled(orderId, code);
     }
 
     private CreateOrderDto createOrderDto(UserPrincipal userPrincipal, String deliveryAddress, Long couponId, Long pointToUse,

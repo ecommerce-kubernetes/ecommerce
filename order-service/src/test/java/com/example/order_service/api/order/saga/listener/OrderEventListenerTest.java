@@ -2,8 +2,11 @@ package com.example.order_service.api.order.saga.listener;
 
 import com.example.order_service.api.order.application.OrderApplicationService;
 import com.example.order_service.api.order.application.event.OrderCreatedEvent;
+import com.example.order_service.api.order.domain.model.OrderFailureCode;
 import com.example.order_service.api.order.saga.orchestrator.SagaManager;
 import com.example.order_service.api.order.saga.orchestrator.dto.command.SagaStartCommand;
+import com.example.order_service.api.order.saga.orchestrator.event.SagaAbortEvent;
+import com.example.order_service.api.order.saga.orchestrator.event.SagaCompletedEvent;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -66,5 +69,29 @@ public class OrderEventListenerTest {
                         tuple(1L, 3),
                         tuple(2L, 5)
                 );
+    }
+
+    @Test
+    @DisplayName("Saga가 완료되면 주문의 상태를 변경하기 위해 orderApplicationService를 호출한다")
+    void handleSagaCompleted() {
+        //given
+        Long orderId = 1L;
+        SagaCompletedEvent sagaCompletedEvent = SagaCompletedEvent.of(1L, orderId, 1L);
+        //when
+        orderEventListener.handleSagaCompleted(sagaCompletedEvent);
+        //then
+        verify(orderApplicationService, times(1)).changePaymentWaiting(orderId);
+    }
+
+    @Test
+    @DisplayName("Saga가 실패되면 주문 상태를 변경하기 위해 orderApplicationService를 호출한다")
+    void handleSagaAborted() {
+        //given
+        Long orderId = 1L;
+        SagaAbortEvent sagaAbortEvent = SagaAbortEvent.of(1L, orderId, 1L, OrderFailureCode.OUT_OF_STOCK);
+        //when
+        orderEventListener.handleSagaAborted(sagaAbortEvent);
+        //then
+        verify(orderApplicationService, times(1)).changeCanceled(orderId, OrderFailureCode.OUT_OF_STOCK);
     }
 }

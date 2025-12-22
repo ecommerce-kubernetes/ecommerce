@@ -88,6 +88,56 @@ public class OrderTest {
         assertThat(order.getOrderItems())
                 .allSatisfy(orderItem -> assertThat(orderItem.getOrder()).isEqualTo(order));
     }
+
+    @Test
+    @DisplayName("주문의 상태를 변경한다")
+    void changeStatus() {
+        //given
+        OrderProductResponse product1 = createProductResponse(1L, 1L, "상품1", 3000L, 10, "http://thumbnail1.jpg",
+                Map.of("사이즈", "XL"));
+        OrderProductResponse product2 = createProductResponse(2L, 2L, "상품2", 5000L, 10, "http://thumbnail2.jpg",
+                Map.of("용량", "256GB"));
+        List<OrderItemSpec> orderItemSpec = createOrderItemSpec(List.of(product1, product2), Map.of(1L, 3, 2L, 5));
+        ItemCalculationResult itemCalculationResult = createItemCalculationResult(Map.of(1L, 3, 2L, 5), List.of(product1, product2));
+        PriceCalculateResult priceCalculateResult = PriceCalculateResult.of(itemCalculationResult, null, 1000L, 29600L);
+        OrderCreationContext creationContext = OrderCreationContext.builder()
+                .userId(1L)
+                .itemSpecs(orderItemSpec)
+                .priceResult(priceCalculateResult)
+                .deliveryAddress("서울시 테헤란로 123")
+                .build();
+        Order order = Order.create(creationContext);
+        //when
+        order.changeStatus(OrderStatus.PAYMENT_WAITING);
+        //then
+        assertThat(order.getStatus()).isEqualTo(OrderStatus.PAYMENT_WAITING);
+    }
+
+    @Test
+    @DisplayName("주문을 취소한다")
+    void canceled() {
+        //given
+        OrderProductResponse product1 = createProductResponse(1L, 1L, "상품1", 3000L, 10, "http://thumbnail1.jpg",
+                Map.of("사이즈", "XL"));
+        OrderProductResponse product2 = createProductResponse(2L, 2L, "상품2", 5000L, 10, "http://thumbnail2.jpg",
+                Map.of("용량", "256GB"));
+        List<OrderItemSpec> orderItemSpec = createOrderItemSpec(List.of(product1, product2), Map.of(1L, 3, 2L, 5));
+        ItemCalculationResult itemCalculationResult = createItemCalculationResult(Map.of(1L, 3, 2L, 5), List.of(product1, product2));
+        PriceCalculateResult priceCalculateResult = PriceCalculateResult.of(itemCalculationResult, null, 1000L, 29600L);
+        OrderCreationContext creationContext = OrderCreationContext.builder()
+                .userId(1L)
+                .itemSpecs(orderItemSpec)
+                .priceResult(priceCalculateResult)
+                .deliveryAddress("서울시 테헤란로 123")
+                .build();
+        Order order = Order.create(creationContext);
+        //when
+        order.canceled(OrderFailureCode.OUT_OF_STOCK);
+        //then
+        assertThat(order.getStatus()).isEqualTo(OrderStatus.CANCELED);
+        assertThat(order.getFailureCode()).isEqualTo(OrderFailureCode.OUT_OF_STOCK);
+    }
+
     private ItemCalculationResult createItemCalculationResult(Map<Long, Integer> quantityById, List<OrderProductResponse> products) {
         Map<Long, OrderProductResponse.UnitPrice> unitPriceByVariantId = products.stream().collect(Collectors.toMap(OrderProductResponse::getProductVariantId, OrderProductResponse::getUnitPrice));
         return ItemCalculationResult.of(quantityById, unitPriceByVariantId);

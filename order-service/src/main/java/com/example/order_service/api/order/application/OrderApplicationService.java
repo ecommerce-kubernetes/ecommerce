@@ -3,6 +3,7 @@ package com.example.order_service.api.order.application;
 import com.example.order_service.api.order.application.dto.command.CreateOrderDto;
 import com.example.order_service.api.order.application.dto.result.CreateOrderResponse;
 import com.example.order_service.api.order.application.event.OrderCreatedEvent;
+import com.example.order_service.api.order.domain.model.OrderFailureCode;
 import com.example.order_service.api.order.domain.model.vo.PriceCalculateResult;
 import com.example.order_service.api.order.domain.service.OrderDomainService;
 import com.example.order_service.api.order.domain.service.OrderPriceCalculator;
@@ -49,6 +50,14 @@ public class OrderApplicationService {
         OrderCreationResult orderCreationResult = orderDomainService.saveOrder(creationContext);
         eventPublisher.publishEvent(OrderCreatedEvent.from(orderCreationResult));
         return CreateOrderResponse.of(orderCreationResult);
+    }
+
+    public void changePaymentWaiting(Long orderId) {
+        orderDomainService.changePaymentWaiting(orderId);
+    }
+
+    public void changeCanceled(Long orderId, OrderFailureCode orderFailureCode){
+        orderDomainService.changeCanceled(orderId, orderFailureCode);
     }
 
     private OrderCreationContext createCreationContext(CreateOrderDto dto,

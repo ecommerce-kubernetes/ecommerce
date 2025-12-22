@@ -4,6 +4,7 @@ import com.example.order_service.api.order.application.OrderApplicationService;
 import com.example.order_service.api.order.application.event.OrderCreatedEvent;
 import com.example.order_service.api.order.saga.orchestrator.SagaManager;
 import com.example.order_service.api.order.saga.orchestrator.dto.command.SagaStartCommand;
+import com.example.order_service.api.order.saga.orchestrator.event.SagaAbortEvent;
 import com.example.order_service.api.order.saga.orchestrator.event.SagaCompletedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;
@@ -22,10 +23,13 @@ public class OrderEventListener {
         sagaManager.startSaga(command);
     }
 
-
-    //TODO 테스트 작성
     @EventListener
     public void handleSagaCompleted(SagaCompletedEvent event){
+        orderApplicationService.changePaymentWaiting(event.getOrderId());
+    }
 
+    @EventListener
+    public void handleSagaAborted(SagaAbortEvent event) {
+        orderApplicationService.changeCanceled(event.getOrderId(), event.getOrderFailureCode());
     }
 }
