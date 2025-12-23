@@ -60,6 +60,7 @@ public class OrderApplicationService {
         eventPublisher.publishEvent(OrderResultEvent.of(
                 orderDto.getOrderId(), orderDto.getUserId(),
                 OrderResultStatus.SUCCESS, OrderResultCode.PAYMENT_READY,
+                orderDto.getOrderName(), orderDto.getPaymentInfo().getFinalPaymentAmount(),
                 "결제 대기중입니다"
         ));
     }
@@ -69,6 +70,7 @@ public class OrderApplicationService {
         eventPublisher.publishEvent(OrderResultEvent.of(
                 orderDto.getOrderId(), orderDto.getUserId(),
                 OrderResultStatus.FAILURE, OrderResultCode.from(orderDto.getOrderFailureCode()),
+                orderDto.getOrderName(), null,
                 orderDto.getOrderFailureCode().name()
         ));
     }

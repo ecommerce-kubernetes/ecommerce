@@ -148,8 +148,9 @@ public class OrderApplicationServiceTest {
 
         assertThat(orderResultCaptor.getValue())
                 .extracting(OrderResultEvent::getOrderId, OrderResultEvent::getUserId, OrderResultEvent::getStatus,
-                        OrderResultEvent::getCode)
-                .containsExactly(orderId, 1L, OrderResultStatus.SUCCESS, OrderResultCode.PAYMENT_READY);
+                        OrderResultEvent::getCode, OrderResultEvent::getOrderName, OrderResultEvent::getFinalPaymentAmount)
+                .containsExactly(orderId, 1L, OrderResultStatus.SUCCESS, OrderResultCode.PAYMENT_READY,
+                        "상품1 외 1건", 28600L);
     }
 
     @Test
@@ -178,8 +179,9 @@ public class OrderApplicationServiceTest {
 
         assertThat(orderResultCaptor.getValue())
                 .extracting(OrderResultEvent::getOrderId, OrderResultEvent::getUserId, OrderResultEvent::getStatus,
-                        OrderResultEvent::getCode)
-                .containsExactly(orderId, 1L, OrderResultStatus.FAILURE, OrderResultCode.OUT_OF_STOCK);
+                        OrderResultEvent::getCode, OrderResultEvent::getOrderName, OrderResultEvent::getFinalPaymentAmount)
+                .containsExactly(orderId, 1L, OrderResultStatus.FAILURE, OrderResultCode.OUT_OF_STOCK,
+                        "상품1 외 1건", null);
     }
 
     private CreateOrderDto createOrderDto(UserPrincipal userPrincipal, String deliveryAddress, Long couponId, Long pointToUse,

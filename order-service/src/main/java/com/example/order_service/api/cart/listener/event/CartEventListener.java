@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class CartEventListener {
 
+    //TODO 주문시 해당 상품 장바구니 삭제
     @EventListener
     public void handleOrderCreated(OrderCreatedEvent event) {
     }
