@@ -49,8 +49,10 @@ public class SagaManager {
     }
 
     public void processTimeouts() {
-        LocalDateTime currentTime = LocalDateTime.now();
-        List<SagaInstanceDto> timeouts = orderSagaDomainService.getTimeouts(currentTime);
+        //Saga 시작 시간이 5분 이전이면서 상태는 STARTED인 Saga 모두 조회
+        LocalDateTime timeout = LocalDateTime.now().minusMinutes(5);
+        List<SagaInstanceDto> timeouts = orderSagaDomainService.getTimeouts(timeout);
+        //조회된 SAGA 를 보상 처리함
         for (SagaInstanceDto saga : timeouts) {
             try {
                 startCompensationSequence(saga, "TIMEOUT", "주문 처리 지연");

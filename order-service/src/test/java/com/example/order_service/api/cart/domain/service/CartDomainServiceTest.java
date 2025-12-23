@@ -19,7 +19,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.*;
 
 @Transactional
-class CartDomainTest extends ExcludeInfraTest {
+class CartDomainServiceTest extends ExcludeInfraTest {
     @Autowired
     private CartDomainService cartDomainService;
     @Autowired

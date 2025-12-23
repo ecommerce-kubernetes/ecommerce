@@ -23,10 +23,6 @@ public class OrderSagaDomainService {
 
     private final OrderSagaInstanceRepository orderSagaInstanceRepository;
 
-    public List<SagaInstanceDto> getTimeouts(LocalDateTime currentTime) {
-        return null;
-    }
-
     public SagaInstanceDto create(Long orderId, Payload payload, SagaStep firstStep){
         OrderSagaInstance sagaInstance = OrderSagaInstance.create(orderId, payload, firstStep);
         OrderSagaInstance savedSagaInstance = orderSagaInstanceRepository.save(sagaInstance);
@@ -80,5 +76,11 @@ public class OrderSagaDomainService {
                 .orElseThrow(() -> new NotFoundException("주문 SAGA 인스턴스를 찾을 수 없습니다"));
         sagaInstance.continueCompensation(nextStep);
         return SagaInstanceDto.from(sagaInstance);
+    }
+
+    @Transactional(readOnly = true)
+    public List<SagaInstanceDto> getTimeouts(LocalDateTime timeout) {
+        return orderSagaInstanceRepository.findByStartedAtBeforeAndSagaStatus(timeout, SagaStatus.STARTED)
+                .stream().map(SagaInstanceDto::from).toList();
     }
 }
