@@ -4,6 +4,9 @@ import com.example.order_service.api.cart.application.CartApplicationService;
 import com.example.order_service.api.cart.controller.CartController;
 import com.example.order_service.api.common.util.MessageSourceUtil;
 import com.example.order_service.api.common.util.validator.PageableValidatorFactory;
+import com.example.order_service.api.notification.controller.NotificationController;
+import com.example.order_service.api.notification.controller.NotificationControllerTest;
+import com.example.order_service.api.notification.service.NotificationService;
 import com.example.order_service.api.order.application.OrderApplicationService;
 import com.example.order_service.api.order.controller.OrderController;
 import com.example.order_service.api.order.domain.service.OrderDomainService;
@@ -13,7 +16,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-@WebMvcTest(controllers = {CartController.class, OrderController.class})
+@WebMvcTest(controllers = {CartController.class, OrderController.class, NotificationController.class})
 public abstract class ControllerTestSupport {
     @Autowired
     protected MockMvc mockMvc;
@@ -27,6 +30,8 @@ public abstract class ControllerTestSupport {
     protected CartApplicationService cartApplicationService;
     @MockitoBean
     protected OrderApplicationService orderApplicationService;
+    @MockitoBean
+    protected NotificationService notificationService;
     @MockitoBean
     protected MessageSourceUtil ms;
 }

@@ -1,0 +1,48 @@
+package com.example.order_service.api.notification.service;
+
+import com.example.order_service.api.notification.listener.dto.OrderNotificationDto;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
+
+@ExtendWith(MockitoExtension.class)
+public class NotificationServiceTest {
+
+    @InjectMocks
+    private NotificationService notificationService;
+
+    @Test
+    @DisplayName("새로운 에미터 생성 시 맵에 저장되고 연결 메시지가 전송된다")
+    void createEmitter() {
+        //given
+        Long userId = 1L;
+        //when
+        SseEmitter emitter = notificationService.createEmitter(userId);
+        //then
+        assertThat(emitter).isNotNull();
+    }
+
+    @Test
+    @DisplayName("에미터가 없는 유저에게 메시지 전송 시 예외가 발생하지 않는다")
+    void sendMessageWithoutEmitter() {
+        //given
+        OrderNotificationDto dto = OrderNotificationDto.builder()
+                .orderId(1L)
+                .userId(1L)
+                .status("SUCCESS")
+                .code("PAYMENT_READY")
+                .orderName("상품1 외 1건")
+                .amount(30000L)
+                .message("결제 대기중입니다")
+                .build();
+        //when
+        //then
+        assertThatCode(() -> notificationService.sendMessage(dto)).doesNotThrowAnyException();
+    }
+}
