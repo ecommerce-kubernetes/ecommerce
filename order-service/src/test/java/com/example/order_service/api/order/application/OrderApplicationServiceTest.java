@@ -6,13 +6,17 @@ import com.example.order_service.api.order.application.dto.command.CreateOrderDt
 import com.example.order_service.api.order.application.dto.command.CreateOrderItemDto;
 import com.example.order_service.api.order.application.dto.result.CreateOrderResponse;
 import com.example.order_service.api.order.application.event.OrderCreatedEvent;
+import com.example.order_service.api.order.application.event.OrderResultCode;
+import com.example.order_service.api.order.application.event.OrderResultEvent;
+import com.example.order_service.api.order.application.event.OrderResultStatus;
 import com.example.order_service.api.order.domain.model.OrderFailureCode;
+import com.example.order_service.api.order.domain.model.OrderStatus;
 import com.example.order_service.api.order.domain.model.vo.AppliedCoupon;
 import com.example.order_service.api.order.domain.model.vo.PaymentInfo;
 import com.example.order_service.api.order.domain.service.OrderDomainService;
 import com.example.order_service.api.order.domain.service.OrderPriceCalculator;
 import com.example.order_service.api.order.domain.service.dto.command.OrderCreationContext;
-import com.example.order_service.api.order.domain.service.dto.result.OrderCreationResult;
+import com.example.order_service.api.order.domain.service.dto.result.OrderDto;
 import com.example.order_service.api.order.domain.service.dto.result.OrderItemDto;
 import com.example.order_service.api.order.infrastructure.OrderIntegrationService;
 import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponCalcResponse;
@@ -84,7 +88,8 @@ public class OrderApplicationServiceTest {
                 List.of(OrderItemDto.ItemOptionDto.builder().optionTypeName("용량").optionValueName("256GB").build()));
         AppliedCoupon appliedCoupon = createAppliedCoupon(1L, "1000원 할인 쿠폰");
         PaymentInfo paymentInfo = createPaymentInfo(34000, 3400, 1000, 1000, 28600);
-        OrderCreationResult orderCreationResult = createOrderCreationResult(1L, "상품1 외 1건", "서울시 테헤란로 123", paymentInfo, List.of(savedProduct1, savedProduct2), appliedCoupon);
+        OrderDto orderDto = createOrderDto(1L, OrderStatus.PENDING, "상품1 외 1건", "서울시 테헤란로 123", paymentInfo, List.of(savedProduct1, savedProduct2), appliedCoupon,
+                null);
 
         given(orderIntegrationService.getOrderUser(any(UserPrincipal.class))).willReturn(user);
         given(orderIntegrationService.getOrderProducts(anyList()))
@@ -92,7 +97,7 @@ public class OrderApplicationServiceTest {
         given(orderIntegrationService.getCoupon(any(UserPrincipal.class), anyLong(), anyLong()))
                 .willReturn(coupon);
         given(orderDomainService.saveOrder(any(OrderCreationContext.class)))
-                .willReturn(orderCreationResult);
+                .willReturn(orderDto);
         //when
         CreateOrderResponse response = orderApplicationService.createOrder(createOrderDto);
         //then
@@ -124,10 +129,27 @@ public class OrderApplicationServiceTest {
     void changePaymentWaiting() {
         //given
         Long orderId = 1L;
+        OrderItemDto savedProduct1 = createOrderItemDto(1L, 1L, "상품1", "http://thumbnail1.jpg", 3, 3000L, 10,
+                List.of(OrderItemDto.ItemOptionDto.builder().optionTypeName("사이즈").optionValueName("XL").build()));
+        OrderItemDto savedProduct2 = createOrderItemDto(2L, 2L, "상품2", "http://thumbnail1.jpg", 5, 5000L, 10,
+                List.of(OrderItemDto.ItemOptionDto.builder().optionTypeName("용량").optionValueName("256GB").build()));
+        AppliedCoupon appliedCoupon = createAppliedCoupon(1L, "1000원 할인 쿠폰");
+        PaymentInfo paymentInfo = createPaymentInfo(34000, 3400, 1000, 1000, 28600);
+        OrderDto orderDto = createOrderDto(1L, OrderStatus.PAYMENT_WAITING, "상품1 외 1건", "서울시 테헤란로 123", paymentInfo, List.of(savedProduct1, savedProduct2), appliedCoupon,
+                null);
+        given(orderDomainService.changePaymentWaiting(orderId))
+                .willReturn(orderDto);
         //when
         orderApplicationService.changePaymentWaiting(orderId);
         //then
+        ArgumentCaptor<OrderResultEvent> orderResultCaptor = ArgumentCaptor.forClass(OrderResultEvent.class);
         verify(orderDomainService, times(1)).changePaymentWaiting(orderId);
+        verify(eventPublisher, times(1)).publishEvent(orderResultCaptor.capture());
+
+        assertThat(orderResultCaptor.getValue())
+                .extracting(OrderResultEvent::getOrderId, OrderResultEvent::getUserId, OrderResultEvent::getStatus,
+                        OrderResultEvent::getCode)
+                .containsExactly(orderId, 1L, OrderResultStatus.SUCCESS, OrderResultCode.PAYMENT_READY);
     }
 
     @Test
@@ -136,10 +158,28 @@ public class OrderApplicationServiceTest {
         //given
         Long orderId = 1L;
         OrderFailureCode code = OrderFailureCode.OUT_OF_STOCK;
+        OrderItemDto savedProduct1 = createOrderItemDto(1L, 1L, "상품1", "http://thumbnail1.jpg", 3, 3000L, 10,
+                List.of(OrderItemDto.ItemOptionDto.builder().optionTypeName("사이즈").optionValueName("XL").build()));
+        OrderItemDto savedProduct2 = createOrderItemDto(2L, 2L, "상품2", "http://thumbnail1.jpg", 5, 5000L, 10,
+                List.of(OrderItemDto.ItemOptionDto.builder().optionTypeName("용량").optionValueName("256GB").build()));
+        AppliedCoupon appliedCoupon = createAppliedCoupon(1L, "1000원 할인 쿠폰");
+        PaymentInfo paymentInfo = createPaymentInfo(34000, 3400, 1000, 1000, 28600);
+        OrderDto orderDto = createOrderDto(1L, OrderStatus.CANCELED, "상품1 외 1건", "서울시 테헤란로 123", paymentInfo, List.of(savedProduct1, savedProduct2), appliedCoupon,
+                code);
+        given(orderDomainService.changeCanceled(orderId, code))
+                .willReturn(orderDto);
         //when
         orderApplicationService.changeCanceled(orderId, code);
         //then
+        ArgumentCaptor<OrderResultEvent> orderResultCaptor = ArgumentCaptor.forClass(OrderResultEvent.class);
         verify(orderDomainService, times(1)).changeCanceled(orderId, code);
+        verify(eventPublisher, times(1))
+                .publishEvent(orderResultCaptor.capture());
+
+        assertThat(orderResultCaptor.getValue())
+                .extracting(OrderResultEvent::getOrderId, OrderResultEvent::getUserId, OrderResultEvent::getStatus,
+                        OrderResultEvent::getCode)
+                .containsExactly(orderId, 1L, OrderResultStatus.FAILURE, OrderResultCode.OUT_OF_STOCK);
     }
 
     private CreateOrderDto createOrderDto(UserPrincipal userPrincipal, String deliveryAddress, Long couponId, Long pointToUse,
@@ -189,17 +229,20 @@ public class OrderApplicationServiceTest {
                 .build();
     }
 
-    private OrderCreationResult createOrderCreationResult(Long userId, String orderName, String deliveryAddress, PaymentInfo paymentInfo, List<OrderItemDto> orderItemDtoList, AppliedCoupon appliedCoupon){
-        return OrderCreationResult.builder()
+    private OrderDto createOrderDto(Long userId, OrderStatus status, String orderName, String deliveryAddress,
+                                    PaymentInfo paymentInfo, List<OrderItemDto> orderItemDtoList, AppliedCoupon appliedCoupon,
+                                    OrderFailureCode failureCode){
+        return OrderDto.builder()
                 .orderId(1L)
                 .userId(userId)
-                .status("PENDING")
+                .status(status)
                 .orderName(orderName)
                 .deliveryAddress(deliveryAddress)
                 .orderedAt(LocalDateTime.now())
                 .paymentInfo(paymentInfo)
                 .orderItemDtoList(orderItemDtoList)
                 .appliedCoupon(appliedCoupon)
+                .orderFailureCode(failureCode)
                 .build();
     }
 

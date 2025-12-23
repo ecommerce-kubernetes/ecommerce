@@ -3,6 +3,9 @@ package com.example.order_service.api.order.application;
 import com.example.order_service.api.order.application.dto.command.CreateOrderDto;
 import com.example.order_service.api.order.application.dto.result.CreateOrderResponse;
 import com.example.order_service.api.order.application.event.OrderCreatedEvent;
+import com.example.order_service.api.order.application.event.OrderResultCode;
+import com.example.order_service.api.order.application.event.OrderResultEvent;
+import com.example.order_service.api.order.application.event.OrderResultStatus;
 import com.example.order_service.api.order.domain.model.OrderFailureCode;
 import com.example.order_service.api.order.domain.model.vo.PriceCalculateResult;
 import com.example.order_service.api.order.domain.service.OrderDomainService;
@@ -10,7 +13,7 @@ import com.example.order_service.api.order.domain.service.OrderPriceCalculator;
 import com.example.order_service.api.order.domain.service.dto.command.OrderCreationContext;
 import com.example.order_service.api.order.domain.service.dto.command.OrderItemSpec;
 import com.example.order_service.api.order.domain.service.dto.result.ItemCalculationResult;
-import com.example.order_service.api.order.domain.service.dto.result.OrderCreationResult;
+import com.example.order_service.api.order.domain.service.dto.result.OrderDto;
 import com.example.order_service.api.order.infrastructure.OrderIntegrationService;
 import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponCalcResponse;
 import com.example.order_service.api.order.infrastructure.client.product.dto.OrderProductResponse;
@@ -47,17 +50,27 @@ public class OrderApplicationService {
 
         OrderCreationContext creationContext =
                 createCreationContext(dto, user, products, priceResult);
-        OrderCreationResult orderCreationResult = orderDomainService.saveOrder(creationContext);
-        eventPublisher.publishEvent(OrderCreatedEvent.from(orderCreationResult));
-        return CreateOrderResponse.of(orderCreationResult);
+        OrderDto orderDto = orderDomainService.saveOrder(creationContext);
+        eventPublisher.publishEvent(OrderCreatedEvent.from(orderDto));
+        return CreateOrderResponse.of(orderDto);
     }
 
     public void changePaymentWaiting(Long orderId) {
-        orderDomainService.changePaymentWaiting(orderId);
+        OrderDto orderDto = orderDomainService.changePaymentWaiting(orderId);
+        eventPublisher.publishEvent(OrderResultEvent.of(
+                orderDto.getOrderId(), orderDto.getUserId(),
+                OrderResultStatus.SUCCESS, OrderResultCode.PAYMENT_READY,
+                "결제 대기중입니다"
+        ));
     }
 
     public void changeCanceled(Long orderId, OrderFailureCode orderFailureCode){
-        orderDomainService.changeCanceled(orderId, orderFailureCode);
+        OrderDto orderDto = orderDomainService.changeCanceled(orderId, orderFailureCode);
+        eventPublisher.publishEvent(OrderResultEvent.of(
+                orderDto.getOrderId(), orderDto.getUserId(),
+                OrderResultStatus.FAILURE, OrderResultCode.from(orderDto.getOrderFailureCode()),
+                orderDto.getOrderFailureCode().name()
+        ));
     }
 
     private OrderCreationContext createCreationContext(CreateOrderDto dto,

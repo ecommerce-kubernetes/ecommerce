@@ -4,12 +4,15 @@ import com.example.order_service.api.common.exception.NotFoundException;
 import com.example.order_service.api.order.domain.model.Order;
 import com.example.order_service.api.order.domain.model.OrderFailureCode;
 import com.example.order_service.api.order.domain.model.OrderStatus;
+import com.example.order_service.api.order.domain.model.vo.AppliedCoupon;
+import com.example.order_service.api.order.domain.model.vo.PaymentInfo;
 import com.example.order_service.api.order.domain.model.vo.PriceCalculateResult;
 import com.example.order_service.api.order.domain.repository.OrderRepository;
 import com.example.order_service.api.order.domain.service.dto.command.OrderCreationContext;
 import com.example.order_service.api.order.domain.service.dto.command.OrderItemSpec;
 import com.example.order_service.api.order.domain.service.dto.result.ItemCalculationResult;
-import com.example.order_service.api.order.domain.service.dto.result.OrderCreationResult;
+import com.example.order_service.api.order.domain.service.dto.result.OrderDto;
+import com.example.order_service.api.order.domain.service.dto.result.OrderItemDto;
 import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponCalcResponse;
 import com.example.order_service.api.order.infrastructure.client.product.dto.OrderProductResponse;
 import com.example.order_service.api.support.ExcludeInfraTest;
@@ -55,21 +58,22 @@ public class OrderDomainServiceTest extends ExcludeInfraTest {
                 .deliveryAddress("서울시 테헤란로 123")
                 .build();
         //when
-        OrderCreationResult orderCreationResult = orderDomainService.saveOrder(creationContext);
+        OrderDto orderDto = orderDomainService.saveOrder(creationContext);
         //then
-        assertThat(orderCreationResult.getOrderId()).isNotNull();
-        assertThat(orderCreationResult)
-                .extracting("status", "orderName")
-                .contains("PENDING", "상품1 외 1건");
-        assertThat(orderCreationResult.getOrderedAt()).isNotNull();
+        assertThat(orderDto.getOrderId()).isNotNull();
+        assertThat(orderDto)
+                .extracting(OrderDto::getStatus, OrderDto::getOrderName, OrderDto::getOrderFailureCode)
+                .contains(OrderStatus.PENDING, "상품1 외 1건", null);
+        assertThat(orderDto.getOrderedAt()).isNotNull();
 
-        assertThat(orderCreationResult.getPaymentInfo())
-                .extracting("totalOriginPrice", "totalProductDiscount", "couponDiscount", "usedPoint", "finalPaymentAmount")
+        assertThat(orderDto.getPaymentInfo())
+                .extracting(PaymentInfo::getTotalOriginPrice, PaymentInfo::getTotalProductDiscount,
+                        PaymentInfo::getCouponDiscount, PaymentInfo::getUsedPoint, PaymentInfo::getFinalPaymentAmount)
                 .contains(34000L, 3400L, 1000L, 1000L, 28600L);
 
-        assertThat(orderCreationResult.getOrderItemDtoList()).hasSize(2);
+        assertThat(orderDto.getOrderItemDtoList()).hasSize(2);
 
-        assertThat(orderCreationResult.getOrderItemDtoList())
+        assertThat(orderDto.getOrderItemDtoList())
                 .satisfiesExactlyInAnyOrder(
                         item1 -> {
                             assertThat(item1.getOrderItemId()).isNotNull();
@@ -80,10 +84,11 @@ public class OrderDomainServiceTest extends ExcludeInfraTest {
                             assertThat(item1.getQuantity()).isEqualTo(3);
                             assertThat(item1.getLineTotal()).isEqualTo(8100L);
                             assertThat(item1.getUnitPrice())
-                                    .extracting("originalPrice", "discountRate", "discountAmount", "discountedPrice")
+                                    .extracting(OrderItemDto.UnitPrice::getOriginalPrice, OrderItemDto.UnitPrice::getDiscountRate,
+                                            OrderItemDto.UnitPrice::getDiscountAmount, OrderItemDto.UnitPrice::getDiscountedPrice)
                                     .contains(3000L, 10, 300L, 2700L);
                             assertThat(item1.getItemOptionDtos())
-                                    .extracting("optionTypeName", "optionValueName")
+                                    .extracting(OrderItemDto.ItemOptionDto::getOptionTypeName, OrderItemDto.ItemOptionDto::getOptionValueName)
                                     .containsExactlyInAnyOrder(
                                             tuple("사이즈", "XL")
                                     );
@@ -97,18 +102,19 @@ public class OrderDomainServiceTest extends ExcludeInfraTest {
                             assertThat(item2.getQuantity()).isEqualTo(5);
                             assertThat(item2.getLineTotal()).isEqualTo(22500L);
                             assertThat(item2.getUnitPrice())
-                                    .extracting("originalPrice", "discountRate", "discountAmount", "discountedPrice")
+                                    .extracting(OrderItemDto.UnitPrice::getOriginalPrice, OrderItemDto.UnitPrice::getDiscountRate,
+                                            OrderItemDto.UnitPrice::getDiscountAmount, OrderItemDto.UnitPrice::getDiscountedPrice)
                                     .contains(5000L, 10, 500L, 4500L);
                             assertThat(item2.getItemOptionDtos())
-                                    .extracting("optionTypeName", "optionValueName")
+                                    .extracting(OrderItemDto.ItemOptionDto::getOptionTypeName, OrderItemDto.ItemOptionDto::getOptionValueName)
                                     .containsExactlyInAnyOrder(
                                             tuple("용량", "256GB")
                                     );
                         }
                 );
 
-        assertThat(orderCreationResult.getAppliedCoupon())
-                .extracting("couponId", "couponName", "discountAmount")
+        assertThat(orderDto.getAppliedCoupon())
+                .extracting(AppliedCoupon::getCouponId, AppliedCoupon::getCouponName, AppliedCoupon::getDiscountAmount)
                 .contains(1L, "1000원 할인 쿠폰", 1000L);
     }
 
@@ -137,9 +143,10 @@ public class OrderDomainServiceTest extends ExcludeInfraTest {
         Order order = Order.create(creationContext);
         Order save = orderRepository.save(order);
         //when
-        orderDomainService.changePaymentWaiting(save.getId());
+        OrderDto orderDto = orderDomainService.changePaymentWaiting(save.getId());
         //then
-        assertThat(save.getStatus()).isEqualTo(OrderStatus.PAYMENT_WAITING);
+        assertThat(orderDto.getStatus()).isEqualTo(OrderStatus.PAYMENT_WAITING);
+        assertThat(orderDto.getOrderFailureCode()).isNull();
     }
 
     @Test
@@ -178,9 +185,9 @@ public class OrderDomainServiceTest extends ExcludeInfraTest {
         Order order = Order.create(creationContext);
         Order save = orderRepository.save(order);
         //when
-        orderDomainService.changeCanceled(save.getId(), OrderFailureCode.OUT_OF_STOCK);
+        OrderDto orderDto = orderDomainService.changeCanceled(save.getId(), OrderFailureCode.OUT_OF_STOCK);
         //then
-        assertThat(save.getStatus()).isEqualTo(OrderStatus.CANCELED);
+        assertThat(orderDto.getStatus()).isEqualTo(OrderStatus.CANCELED);
         assertThat(save.getFailureCode()).isEqualTo(OrderFailureCode.OUT_OF_STOCK);
     }
 

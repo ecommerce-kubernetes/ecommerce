@@ -1,6 +1,6 @@
 package com.example.order_service.api.order.application.dto.result;
 
-import com.example.order_service.api.order.domain.service.dto.result.OrderCreationResult;
+import com.example.order_service.api.order.domain.service.dto.result.OrderDto;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -25,10 +25,10 @@ public class CreateOrderResponse {
         this.createAt = createAt;
     }
 
-    public static CreateOrderResponse of(OrderCreationResult result) {
+    public static CreateOrderResponse of(OrderDto result) {
         return CreateOrderResponse.builder()
                 .orderId(result.getOrderId())
-                .status(result.getStatus())
+                .status(result.getStatus().name())
                 .orderName(result.getOrderName())
                 .finalPaymentAmount(result.getPaymentInfo().getFinalPaymentAmount())
                 .createAt(result.getOrderedAt())
