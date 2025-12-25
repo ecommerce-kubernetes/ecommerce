@@ -8,6 +8,7 @@ import org.springframework.restdocs.RestDocumentationContextProvider;
 import org.springframework.restdocs.RestDocumentationExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.view.json.MappingJackson2JsonView;
 
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.documentationConfiguration;
@@ -22,10 +23,16 @@ public abstract class RestDocSupport {
     @BeforeEach
     void setUp(RestDocumentationContextProvider provider){
         this.mockMvc = MockMvcBuilders.standaloneSetup(initController())
-                .setCustomArgumentResolvers(new PageableHandlerMethodArgumentResolver())
+                .setCustomArgumentResolvers(getArgumentResolvers())
                 .setViewResolvers((viewName, locale) -> new MappingJackson2JsonView())
                 .apply(documentationConfiguration(provider))
                 .build();
     }
     protected abstract Object initController();
+
+    protected HandlerMethodArgumentResolver[] getArgumentResolvers() {
+        return new HandlerMethodArgumentResolver[]{
+                new PageableHandlerMethodArgumentResolver()
+        };
+    }
 }

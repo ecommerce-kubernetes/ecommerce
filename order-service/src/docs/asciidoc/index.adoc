@@ -17,3 +17,6 @@ include::api/order/order.adoc[]
 
 = Cart
 include::api/cart/cart.adoc[]
+
+= Notification
+include::api/notification/notification.adoc[]
