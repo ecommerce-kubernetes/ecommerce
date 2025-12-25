@@ -56,7 +56,7 @@ public class NotificationControllerTest extends ControllerTestSupport {
         mockMvc.perform(asyncDispatch(mvcResult))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.TEXT_EVENT_STREAM_VALUE));
+                .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_EVENT_STREAM));
 
         verify(notificationService).createEmitter(userId);
     }
