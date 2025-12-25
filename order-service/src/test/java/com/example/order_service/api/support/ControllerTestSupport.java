@@ -5,7 +5,6 @@ import com.example.order_service.api.cart.controller.CartController;
 import com.example.order_service.api.common.util.MessageSourceUtil;
 import com.example.order_service.api.common.util.validator.PageableValidatorFactory;
 import com.example.order_service.api.notification.controller.NotificationController;
-import com.example.order_service.api.notification.controller.NotificationControllerTest;
 import com.example.order_service.api.notification.service.NotificationService;
 import com.example.order_service.api.order.application.OrderApplicationService;
 import com.example.order_service.api.order.controller.OrderController;

@@ -6,10 +6,15 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+
+import java.io.IOException;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class NotificationServiceTest {
@@ -26,6 +31,30 @@ public class NotificationServiceTest {
         SseEmitter emitter = notificationService.createEmitter(userId);
         //then
         assertThat(emitter).isNotNull();
+    }
+
+    @Test
+    @DisplayName("메시지 전송 시 실제 전송 로직이 호출된다")
+    void sendMessage() throws IOException {
+        //given
+        Long userId = 1L;
+        SseEmitter sseEmitter = spy(new SseEmitter());
+        ConcurrentHashMap<Long, SseEmitter> emitters = new ConcurrentHashMap<>();
+        emitters.put(userId, sseEmitter);
+        ReflectionTestUtils.setField(notificationService, "emitters", emitters);
+
+        OrderNotificationDto dto = OrderNotificationDto.builder()
+                .orderId(1L)
+                .userId(1L)
+                .status("SUCCESS")
+                .code("PAYMENT_READY")
+                .amount(5000L)
+                .message("결제 대기")
+                .build();
+        //when
+        notificationService.sendMessage(dto);
+        //then
+        verify(sseEmitter, times(1)).send(any(SseEmitter.SseEventBuilder.class));
     }
 
     @Test
