@@ -12,17 +12,20 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 public class OrderResponse {
-    private Long id;
-    private String status;
-    private LocalDateTime createAt;
+    private Long orderId;
+    private Long userId;
+    private String orderStatus;
+    private String orderName;
+    private String deliveryAddress;
+    private PaymentInfo paymentInfo;
     private List<OrderItemResponse> orderItems;
 
-    @Builder
-    private OrderResponse(Long id, String status, LocalDateTime createAt, List<OrderItemResponse> orderItems){
-        this.id = id;
-        this.status = status;
-        this.createAt = createAt;
-        this.orderItems = orderItems;
+    public static class PaymentInfo {
+        private Long totalOriginPrice;
+        private Long totalProductDiscount;
+        private Long couponDiscount;
+        private Long pointDiscount;
+        private Long finalPaymentAmount;
     }
 
 }

@@ -1,0 +1,17 @@
+package com.example.order_service.api.order.controller.dto.request;
+
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Getter
+@Setter
+@NoArgsConstructor
+public class OrderConfirmRequest {
+    @NotNull(message = "주문 Id는 필수 입니다")
+    private Long orderId;
+    @NotEmpty(message = "결제 키는 필수 입니다")
+    private String paymentKey;
+}

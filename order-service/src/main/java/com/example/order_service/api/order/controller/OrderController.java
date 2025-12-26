@@ -10,7 +10,7 @@ import com.example.order_service.api.order.application.dto.command.CreateOrderDt
 import com.example.order_service.api.order.application.dto.result.CreateOrderResponse;
 import com.example.order_service.api.order.application.dto.result.OrderResponse;
 import com.example.order_service.api.order.controller.dto.request.CreateOrderRequest;
-import com.example.order_service.api.order.domain.service.OrderDomainService;
+import com.example.order_service.api.order.controller.dto.request.OrderConfirmRequest;
 import lombok.RequiredArgsConstructor;
 import org.apache.http.HttpStatus;
 import org.springframework.data.domain.Pageable;
@@ -29,7 +29,6 @@ import org.springframework.web.bind.annotation.*;
 public class OrderController {
 
     private final OrderApplicationService orderApplicationService;
-    private final OrderDomainService orderDomainService;
     private final PageableValidatorFactory factory;
 
     @PostMapping
@@ -49,6 +48,11 @@ public class OrderController {
         PageableValidator validator = factory.getValidator(DomainType.ORDER);
         Pageable validatedPageable = validator.validate(pageable);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/confirm")
+    public ResponseEntity<OrderResponse> confirm(@RequestBody @Validated OrderConfirmRequest request) {
+        return null;
     }
 
 }

@@ -35,7 +35,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class OrderControllerDocsTest extends RestDocSupport {
-    private OrderDomainService orderDomainService = mock(OrderDomainService.class);
     private OrderApplicationService orderApplicationService = mock(OrderApplicationService.class);
     private PageableValidatorFactory factory = mock(PageableValidatorFactory.class);
 
@@ -47,7 +46,7 @@ public class OrderControllerDocsTest extends RestDocSupport {
 
     @Override
     protected Object initController() {
-        return new OrderController(orderApplicationService, orderDomainService, factory);
+        return new OrderController(orderApplicationService, factory);
     }
 
     @Test
@@ -177,6 +176,14 @@ public class OrderControllerDocsTest extends RestDocSupport {
 //                                fieldWithPath("totalElement").description("총 Element")
 //                        )
 //                ));
+    }
+
+    @Test
+    @DisplayName("")
+    void test(){
+        //given
+        //when
+        //then
     }
 
     private OrderItemResponse createOrderItemResponse(Long productId, String productName, String thumbNailUrl){

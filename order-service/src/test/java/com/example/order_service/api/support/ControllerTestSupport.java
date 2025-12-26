@@ -22,8 +22,6 @@ public abstract class ControllerTestSupport {
     @Autowired
     protected ObjectMapper objectMapper;
     @MockitoBean
-    protected OrderDomainService orderDomainService;
-    @MockitoBean
     protected PageableValidatorFactory pageableValidatorFactory;
     @MockitoBean
     protected CartApplicationService cartApplicationService;
