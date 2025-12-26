@@ -12,17 +12,19 @@ import java.util.List;
 @NoArgsConstructor
 public class OrderItemResponse {
     private Long productId;
+    private Long productVariantId;
     private String productName;
     private String thumbNailUrl;
     private int quantity;
     private OrderItemPrice unitPrice;
-    private int lineTotal;
+    private Long lineTotal;
     private List<OrderItemOption> options;
 
     @Builder
-    private OrderItemResponse(Long productId, String productName, String thumbNailUrl, int quantity,
-                              OrderItemPrice unitPrice, int lineTotal, List<OrderItemOption> options){
+    private OrderItemResponse(Long productId, Long productVariantId, String productName, String thumbNailUrl, int quantity,
+                              OrderItemPrice unitPrice, Long lineTotal, List<OrderItemOption> options){
         this.productId = productId;
+        this.productVariantId = productVariantId;
         this.productName = productName;
         this.thumbNailUrl = thumbNailUrl;
         this.quantity = quantity;

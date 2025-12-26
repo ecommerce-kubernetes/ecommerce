@@ -52,7 +52,8 @@ public class OrderController {
 
     @PostMapping("/confirm")
     public ResponseEntity<OrderResponse> confirm(@RequestBody @Validated OrderConfirmRequest request) {
-        return null;
+        OrderResponse orderResponse = orderApplicationService.confirmOrder(request.getOrderId(), request.getPaymentKey());
+        return ResponseEntity.ok(orderResponse);
     }
 
 }

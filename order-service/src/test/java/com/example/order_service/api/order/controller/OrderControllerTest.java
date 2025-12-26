@@ -1,14 +1,19 @@
 package com.example.order_service.api.order.controller;
 
+import com.example.order_service.api.common.exception.PaymentException;
 import com.example.order_service.api.common.security.model.UserRole;
 import com.example.order_service.api.order.application.dto.command.CreateOrderDto;
 import com.example.order_service.api.order.application.dto.result.CreateOrderResponse;
+import com.example.order_service.api.order.application.dto.result.OrderItemResponse;
+import com.example.order_service.api.order.application.dto.result.OrderResponse;
 import com.example.order_service.api.order.controller.dto.request.CreateOrderItemRequest;
 import com.example.order_service.api.order.controller.dto.request.CreateOrderRequest;
+import com.example.order_service.api.order.controller.dto.request.OrderConfirmRequest;
 import com.example.order_service.api.support.ControllerTestSupport;
 import com.example.order_service.api.support.security.annotation.WithCustomMockUser;
 import com.example.order_service.api.support.security.config.TestSecurityConfig;
 import com.example.order_service.config.TestConfig;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -19,8 +24,9 @@ import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequ
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willThrow;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -331,8 +337,7 @@ class OrderControllerTest extends ControllerTestSupport {
         //then
         mockMvc.perform(post("/orders")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(createOrderRequest))
-                        .with(SecurityMockMvcRequestPostProcessors.csrf()))
+                        .content(objectMapper.writeValueAsString(createOrderRequest)))
                 .andDo(print())
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("BAD_REQUEST"))
@@ -341,4 +346,147 @@ class OrderControllerTest extends ControllerTestSupport {
                 .andExpect(jsonPath("$.path").value("/orders"));
     }
 
+    @Test
+    @DisplayName("주문 확정시 해당 주문의 정보를 반환한다")
+    @WithCustomMockUser
+    void confirm() throws Exception {
+        //given
+        Long orderId = 1L;
+        OrderConfirmRequest request = OrderConfirmRequest.builder()
+                .orderId(orderId)
+                .paymentKey("paymentKey")
+                .build();
+        OrderResponse orderResponse = createOrderResponse(orderId);
+
+        given(orderApplicationService.confirmOrder(anyLong(), anyString()))
+                .willReturn(orderResponse);
+        //when
+        //then
+        mockMvc.perform(post("/orders/confirm")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.orderId").value(1L))
+                .andExpect(jsonPath("$.orderStatus").value("COMPLETED"))
+                .andExpect(jsonPath("$.orderItems").isNotEmpty());
+    }
+
+    @Test
+    @DisplayName("주문 확정시 주문 ID는 필수이다")
+    @WithCustomMockUser
+    void confirm_without_no_orderId() throws Exception {
+        //given
+        OrderConfirmRequest request = OrderConfirmRequest.builder()
+                .paymentKey("paymentKey")
+                .build();
+        //when
+        //then
+        mockMvc.perform(post("/orders/confirm")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("BAD_REQUEST"))
+                .andExpect(jsonPath("$.message").value("주문 Id는 필수 입니다"))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/orders/confirm"));
+    }
+
+    @Test
+    @DisplayName("주문 확정시 결제 키는 필수이다")
+    @WithCustomMockUser
+    void confirm_without_no_paymentKey() throws Exception {
+        //given
+        OrderConfirmRequest request = OrderConfirmRequest.builder()
+                .orderId(1L)
+                .build();
+        //when
+        //then
+        mockMvc.perform(post("/orders/confirm")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("BAD_REQUEST"))
+                .andExpect(jsonPath("$.message").value("결제 키는 필수 입니다"))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/orders/confirm"));
+    }
+
+    @Test
+    @DisplayName("결제 오류 발생시 에러 응답을 반환한다")
+    @WithCustomMockUser
+    void confirm_exception_payment() throws Exception {
+        //given
+        OrderConfirmRequest request = OrderConfirmRequest.builder()
+                .orderId(1L)
+                .paymentKey("paymentKey")
+                .build();
+
+        willThrow(new PaymentException("결제 오류"))
+                .given(orderApplicationService).confirmOrder(anyLong(), anyString());
+        //when
+        //then
+        mockMvc.perform(post("/orders/confirm")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("BAD_REQUEST"))
+                .andExpect(jsonPath("$.message").value("결제 오류"))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/orders/confirm"));
+    }
+
+    private OrderResponse createOrderResponse(Long orderId) {
+        return OrderResponse.builder()
+                .orderId(orderId)
+                .userId(1L)
+                .orderStatus("COMPLETED")
+                .orderName("상품1")
+                .deliveryAddress("서울시 테헤란로 123")
+                .paymentInfo(
+                        OrderResponse.PaymentInfo.builder()
+                                .totalOriginPrice(30000L)
+                                .totalProductDiscount(3000L)
+                                .couponDiscount(1000L)
+                                .pointDiscount(1000L)
+                                .finalPaymentAmount(25000L)
+                                .build()
+                )
+                .couponInfo(
+                        OrderResponse.CouponInfo.builder()
+                                .couponId(1L)
+                                .couponName("1000원 할인 쿠폰")
+                                .couponDiscount(1000L)
+                                .build()
+                )
+                .orderItems(
+                        List.of(
+                                OrderItemResponse.builder()
+                                        .productId(1L)
+                                        .productVariantId(1L)
+                                        .productName("상품1")
+                                        .thumbNailUrl("http://thumbanil.jpg")
+                                        .quantity(1)
+                                        .unitPrice(
+                                                OrderItemResponse.OrderItemPrice.builder()
+                                                        .originalPrice(30000L)
+                                                        .discountAmount(3000L)
+                                                        .discountRate(10)
+                                                        .discountedPrice(27000L).build()
+                                        )
+                                        .lineTotal(27000L)
+                                        .options(
+                                                List.of(OrderItemResponse.OrderItemOption.builder()
+                                                        .optionTypeName("사이즈")
+                                                        .optionValueName("XL")
+                                                        .build())
+                                        )
+                                        .build()
+                        )
+                ).build();
+
+    }
 }

@@ -94,4 +94,11 @@ public class ControllerAdvice {
         ErrorResponse response = ErrorResponse.toNoPermission(message, now.toString(), request.getRequestURI());
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
     }
+
+    @ExceptionHandler(PaymentException.class)
+    public ResponseEntity<ErrorResponse> paymentExceptionHandler(HttpServletRequest request, PaymentException e) {
+        LocalDateTime now = LocalDateTime.now();
+        ErrorResponse response = ErrorResponse.toBadRequest(e.getMessage(), now.toString(), request.getRequestURI());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
 }

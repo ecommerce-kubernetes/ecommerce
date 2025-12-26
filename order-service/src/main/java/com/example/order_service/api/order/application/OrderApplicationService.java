@@ -2,6 +2,7 @@ package com.example.order_service.api.order.application;
 
 import com.example.order_service.api.order.application.dto.command.CreateOrderDto;
 import com.example.order_service.api.order.application.dto.result.CreateOrderResponse;
+import com.example.order_service.api.order.application.dto.result.OrderResponse;
 import com.example.order_service.api.order.application.event.OrderCreatedEvent;
 import com.example.order_service.api.order.application.event.OrderResultCode;
 import com.example.order_service.api.order.application.event.OrderResultEvent;
@@ -73,6 +74,10 @@ public class OrderApplicationService {
                 orderDto.getOrderName(), null,
                 orderDto.getOrderFailureCode().name()
         ));
+    }
+
+    public OrderResponse confirmOrder(Long orderId, String paymentKey) {
+        return null;
     }
 
     private OrderCreationContext createCreationContext(CreateOrderDto dto,

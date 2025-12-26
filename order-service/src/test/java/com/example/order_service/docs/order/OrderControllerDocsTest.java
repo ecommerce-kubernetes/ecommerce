@@ -7,11 +7,9 @@ import com.example.order_service.api.order.application.OrderApplicationService;
 import com.example.order_service.api.order.application.dto.command.CreateOrderDto;
 import com.example.order_service.api.order.application.dto.result.CreateOrderResponse;
 import com.example.order_service.api.order.application.dto.result.OrderItemResponse;
-import com.example.order_service.api.order.application.dto.result.OrderResponse;
 import com.example.order_service.api.order.controller.OrderController;
 import com.example.order_service.api.order.controller.dto.request.CreateOrderItemRequest;
 import com.example.order_service.api.order.controller.dto.request.CreateOrderRequest;
-import com.example.order_service.api.order.domain.service.OrderDomainService;
 import com.example.order_service.docs.RestDocSupport;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -178,14 +176,6 @@ public class OrderControllerDocsTest extends RestDocSupport {
 //                ));
     }
 
-    @Test
-    @DisplayName("")
-    void test(){
-        //given
-        //when
-        //then
-    }
-
     private OrderItemResponse createOrderItemResponse(Long productId, String productName, String thumbNailUrl){
         return OrderItemResponse.builder()
                 .productId(productId)
@@ -200,20 +190,11 @@ public class OrderControllerDocsTest extends RestDocSupport {
                                 .discountedPrice(2700)
                                 .build()
                 )
-                .lineTotal(5700)
+                .lineTotal(5700L)
                 .options(List.of(OrderItemResponse.OrderItemOption.builder()
                         .optionTypeName("사이즈")
                         .optionValueName("XL")
                         .build()))
-                .build();
-    }
-
-    private OrderResponse createOrderResponse(Long orderId, String status, LocalDateTime createAt, List<OrderItemResponse> orderItemResponses){
-        return OrderResponse.builder()
-                .id(orderId)
-                .status(status)
-                .createAt(createAt)
-                .orderItems(orderItemResponses)
                 .build();
     }
 
