@@ -1,5 +1,6 @@
 package com.example.order_service.api.order.application;
 
+import com.example.order_service.api.common.exception.PaymentException;
 import com.example.order_service.api.common.security.model.UserRole;
 import com.example.order_service.api.common.security.principal.UserPrincipal;
 import com.example.order_service.api.order.application.dto.command.CreateOrderDto;
@@ -35,8 +36,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
@@ -137,13 +137,13 @@ public class OrderApplicationServiceTest {
         PaymentInfo paymentInfo = createPaymentInfo(34000, 3400, 1000, 1000, 28600);
         OrderDto orderDto = createOrderDto(1L, OrderStatus.PAYMENT_WAITING, "상품1 외 1건", "서울시 테헤란로 123", paymentInfo, List.of(savedProduct1, savedProduct2), appliedCoupon,
                 null);
-        given(orderDomainService.changePaymentWaiting(orderId))
+        given(orderDomainService.changeOrderStatus(orderId, OrderStatus.PAYMENT_WAITING))
                 .willReturn(orderDto);
         //when
         orderApplicationService.changePaymentWaiting(orderId);
         //then
         ArgumentCaptor<OrderResultEvent> orderResultCaptor = ArgumentCaptor.forClass(OrderResultEvent.class);
-        verify(orderDomainService, times(1)).changePaymentWaiting(orderId);
+        verify(orderDomainService, times(1)).changeOrderStatus(orderId, OrderStatus.PAYMENT_WAITING);
         verify(eventPublisher, times(1)).publishEvent(orderResultCaptor.capture());
 
         assertThat(orderResultCaptor.getValue())
@@ -182,6 +182,44 @@ public class OrderApplicationServiceTest {
                         OrderResultEvent::getCode, OrderResultEvent::getOrderName, OrderResultEvent::getFinalPaymentAmount)
                 .containsExactly(orderId, 1L, OrderResultStatus.FAILURE, OrderResultCode.OUT_OF_STOCK,
                         "상품1 외 1건", null);
+    }
+
+    @Test
+    @DisplayName("")
+    void confirmOrder(){
+        //given
+        OrderItemDto savedProduct1 = createOrderItemDto(1L, 1L, "상품1", "http://thumbnail1.jpg", 3, 3000L, 10,
+                List.of(OrderItemDto.ItemOptionDto.builder().optionTypeName("사이즈").optionValueName("XL").build()));
+        OrderItemDto savedProduct2 = createOrderItemDto(2L, 2L, "상품2", "http://thumbnail1.jpg", 5, 5000L, 10,
+                List.of(OrderItemDto.ItemOptionDto.builder().optionTypeName("용량").optionValueName("256GB").build()));
+        AppliedCoupon appliedCoupon = createAppliedCoupon(1L, "1000원 할인 쿠폰");
+        PaymentInfo paymentInfo = createPaymentInfo(34000, 3400, 1000, 1000, 28600);
+        OrderDto orderDto = createOrderDto(1L, OrderStatus.PAYMENT_WAITING, "상품1 외 1건", "서울시 테헤란로 123", paymentInfo, List.of(savedProduct1, savedProduct2), appliedCoupon,
+                null);
+        //when
+        //then
+    }
+
+    @Test
+    @DisplayName("결제를 승인할때 주문 상태가 결제 대기 상태가 아니면 예외를 던진다")
+    void confirmOrder_with_notPaymentWaiting(){
+        //given
+        OrderItemDto savedProduct1 = createOrderItemDto(1L, 1L, "상품1", "http://thumbnail1.jpg", 3, 3000L, 10,
+                List.of(OrderItemDto.ItemOptionDto.builder().optionTypeName("사이즈").optionValueName("XL").build()));
+        OrderItemDto savedProduct2 = createOrderItemDto(2L, 2L, "상품2", "http://thumbnail1.jpg", 5, 5000L, 10,
+                List.of(OrderItemDto.ItemOptionDto.builder().optionTypeName("용량").optionValueName("256GB").build()));
+        AppliedCoupon appliedCoupon = createAppliedCoupon(1L, "1000원 할인 쿠폰");
+        PaymentInfo paymentInfo = createPaymentInfo(34000, 3400, 1000, 1000, 28600);
+        OrderDto orderDto = createOrderDto(1L, OrderStatus.PENDING, "상품1 외 1건", "서울시 테헤란로 123", paymentInfo, List.of(savedProduct1, savedProduct2), appliedCoupon,
+                null);
+
+        given(orderDomainService.getOrder(anyLong()))
+                .willReturn(orderDto);
+        //when
+        //then
+        assertThatThrownBy(() -> orderApplicationService.confirmOrder(1L, "paymentKey"))
+                .isInstanceOf(PaymentException.class)
+                .hasMessage("주문이 결제 가능한 상태가 아닙니다");
     }
 
     private CreateOrderDto createOrderDto(UserPrincipal userPrincipal, String deliveryAddress, Long couponId, Long pointToUse,

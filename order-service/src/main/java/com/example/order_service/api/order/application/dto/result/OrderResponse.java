@@ -3,7 +3,6 @@ package com.example.order_service.api.order.application.dto.result;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.util.List;
 

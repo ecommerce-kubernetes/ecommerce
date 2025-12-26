@@ -6,6 +6,8 @@ import com.example.order_service.api.common.security.principal.UserPrincipal;
 import com.example.order_service.api.order.application.dto.command.CreateOrderItemDto;
 import com.example.order_service.api.order.infrastructure.client.coupon.OrderCouponClientService;
 import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponCalcResponse;
+import com.example.order_service.api.order.infrastructure.client.payment.TossPaymentClientService;
+import com.example.order_service.api.order.infrastructure.client.payment.dto.TossPaymentConfirmResponse;
 import com.example.order_service.api.order.infrastructure.client.product.OrderProductClientService;
 import com.example.order_service.api.order.infrastructure.client.product.dto.OrderProductResponse;
 import com.example.order_service.api.order.infrastructure.client.user.OrderUserClientService;
@@ -25,9 +27,14 @@ public class OrderIntegrationService {
     private final OrderProductClientService orderProductClientService;
     private final OrderUserClientService orderUserClientService;
     private final OrderCouponClientService orderCouponClientService;
+    private final TossPaymentClientService tossPaymentClientService;
 
     public OrderUserResponse getOrderUser(UserPrincipal userPrincipal){
         return orderUserClientService.getUserForOrder(userPrincipal.getUserId());
+    }
+
+    public TossPaymentConfirmResponse confirmOrderPayment(Long orderId, String paymentKey, Long amount) {
+        return tossPaymentClientService.confirmPayment(orderId, paymentKey, amount);
     }
 
     public OrderCouponCalcResponse getCoupon(UserPrincipal userPrincipal, Long couponId, long subTotalPrice) {

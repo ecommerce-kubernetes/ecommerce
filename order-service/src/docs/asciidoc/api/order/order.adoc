@@ -26,3 +26,17 @@ include::{snippets}/order-create/request-fields.adoc[]
 include::{snippets}/order-create/http-response.adoc[]
 ===== Response Fields
 include::{snippets}/order-create/response-fields.adoc[]
+
+[[order-confirm]]
+=== 주문 검증
+
+==== HTTP Request
+include::{snippets}/order-confirm/http-request.adoc[]
+===== Request Header
+include::{snippets}/order-confirm/request-headers.adoc[]
+===== Request Fields
+include::{snippets}/order-confirm/request-fields.adoc[]
+==== HTTP Response
+include::{snippets}/order-confirm/http-response.adoc[]
+===== Response Fields
+include::{snippets}/order-confirm/response-fields.adoc[]

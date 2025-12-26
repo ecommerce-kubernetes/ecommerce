@@ -1,5 +1,6 @@
 package com.example.order_service.api.order.application;
 
+import com.example.order_service.api.common.exception.PaymentException;
 import com.example.order_service.api.order.application.dto.command.CreateOrderDto;
 import com.example.order_service.api.order.application.dto.result.CreateOrderResponse;
 import com.example.order_service.api.order.application.dto.result.OrderResponse;
@@ -8,6 +9,7 @@ import com.example.order_service.api.order.application.event.OrderResultCode;
 import com.example.order_service.api.order.application.event.OrderResultEvent;
 import com.example.order_service.api.order.application.event.OrderResultStatus;
 import com.example.order_service.api.order.domain.model.OrderFailureCode;
+import com.example.order_service.api.order.domain.model.OrderStatus;
 import com.example.order_service.api.order.domain.model.vo.PriceCalculateResult;
 import com.example.order_service.api.order.domain.service.OrderDomainService;
 import com.example.order_service.api.order.domain.service.OrderPriceCalculator;
@@ -17,6 +19,7 @@ import com.example.order_service.api.order.domain.service.dto.result.ItemCalcula
 import com.example.order_service.api.order.domain.service.dto.result.OrderDto;
 import com.example.order_service.api.order.infrastructure.OrderIntegrationService;
 import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponCalcResponse;
+import com.example.order_service.api.order.infrastructure.client.payment.dto.TossPaymentConfirmResponse;
 import com.example.order_service.api.order.infrastructure.client.product.dto.OrderProductResponse;
 import com.example.order_service.api.order.infrastructure.client.user.dto.OrderUserResponse;
 import lombok.RequiredArgsConstructor;
@@ -57,7 +60,7 @@ public class OrderApplicationService {
     }
 
     public void changePaymentWaiting(Long orderId) {
-        OrderDto orderDto = orderDomainService.changePaymentWaiting(orderId);
+        OrderDto orderDto = orderDomainService.changeOrderStatus(orderId, OrderStatus.PAYMENT_WAITING);
         eventPublisher.publishEvent(OrderResultEvent.of(
                 orderDto.getOrderId(), orderDto.getUserId(),
                 OrderResultStatus.SUCCESS, OrderResultCode.PAYMENT_READY,
@@ -77,6 +80,12 @@ public class OrderApplicationService {
     }
 
     public OrderResponse confirmOrder(Long orderId, String paymentKey) {
+        OrderDto order = orderDomainService.getOrder(orderId);
+        if (!order.getStatus().equals(OrderStatus.PAYMENT_WAITING)) {
+            throw new PaymentException("주문이 결제 가능한 상태가 아닙니다");
+        }
+        TossPaymentConfirmResponse paymentConfirm =
+                orderIntegrationService.confirmOrderPayment(order.getOrderId(), paymentKey, order.getPaymentInfo().getFinalPaymentAmount());
         return null;
     }
 

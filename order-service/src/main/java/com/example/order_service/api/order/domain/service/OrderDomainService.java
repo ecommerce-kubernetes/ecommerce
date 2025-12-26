@@ -25,10 +25,16 @@ public class OrderDomainService {
         return OrderDto.from(savedOrder);
     }
 
-    public OrderDto changePaymentWaiting(Long orderId){
+    @Transactional(readOnly = true)
+    public OrderDto getOrder(Long orderId) {
+        Order order = orderRepository.findById(orderId).orElseThrow(() -> new NotFoundException("주문을 찾을 수 없습니다"));
+        return OrderDto.from(order);
+    }
+
+    public OrderDto changeOrderStatus(Long orderId, OrderStatus orderStatus){
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new NotFoundException("주문을 찾을 수 없습니다"));
-        order.changeStatus(OrderStatus.PAYMENT_WAITING);
+        order.changeStatus(orderStatus);
         return OrderDto.from(order);
     }
 
