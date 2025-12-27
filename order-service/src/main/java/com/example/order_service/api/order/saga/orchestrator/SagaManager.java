@@ -11,7 +11,7 @@ import com.example.order_service.api.order.saga.domain.service.dto.SagaInstanceD
 import com.example.order_service.api.order.saga.infrastructure.kafka.producer.SagaEventProducer;
 import com.example.order_service.api.order.saga.orchestrator.dto.command.SagaStartCommand;
 import com.example.order_service.api.order.saga.orchestrator.event.SagaAbortEvent;
-import com.example.order_service.api.order.saga.orchestrator.event.SagaCompletedEvent;
+import com.example.order_service.api.order.saga.orchestrator.event.SagaResourceSecuredEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -46,6 +46,10 @@ public class SagaManager {
 
     public void processUserResult(SagaProcessResult result) {
         evaluateResult(result, SagaStep.USER);
+    }
+
+    public void processPaymentResult(Long orderId) {
+
     }
 
     public void processTimeouts() {
@@ -93,7 +97,7 @@ public class SagaManager {
         SagaStep nextStep = getNextStep(saga.getSagaStep(), saga.getPayload());
 
         if (nextStep == null) {
-            completeSaga(saga.getId());
+            orderSagaDomainService.finish(saga.getId());
             return;
         }
 
@@ -109,7 +113,7 @@ public class SagaManager {
 
         // 다음 단계가 없다면 보상없이 바로 실패 처리
         if(nextStep == null) {
-            failSaga(saga.getId(), failureReason);
+            orderSagaDomainService.fail(saga.getId(), failureReason);
             return;
         }
 
@@ -124,7 +128,7 @@ public class SagaManager {
         SagaStep nextStep = getNextCompensationStep(saga.getSagaStep(), saga.getPayload());
         // 다음 단계가 없다면 보상 없이 실패 처리 진행 (이때는 실패 이유는 null)
         if (nextStep == null) {
-            failSaga(saga.getId(), null);
+            orderSagaDomainService.fail(saga.getId(), null);
             return;
         }
         // Saga 인스턴스 단계를 다음 보상 단계로 변경
@@ -136,6 +140,8 @@ public class SagaManager {
     private SagaStep getNextCompensationStep(SagaStep currentStep, Payload payload) {
         return switch (currentStep) {
             //보상 흐름 : 포인트복구 -> 쿠폰 복구 -> 재고 복구 순
+            case PAYMENT -> (payload.getUseToPoint() > 0) ? SagaStep.USER :
+                    (payload.getCouponId() != null) ? SagaStep.COUPON : SagaStep.PRODUCT;
             case USER ->
                 // 쿠폰 아이디가 있다면 쿠폰 복구, 쿠폰 아이디가 없다면 상품 재고 복구
                     (payload.getCouponId() != null) ? SagaStep.COUPON : SagaStep.PRODUCT;
@@ -160,13 +166,15 @@ public class SagaManager {
                 if (payload.getCouponId() != null) return SagaStep.COUPON;
                 //포인트를 사용한다면 포인트 사용
                 if (payload.getUseToPoint() != null && payload.getUseToPoint() > 0) return SagaStep.USER;
-                return null;
+                return SagaStep.PAYMENT;
             case COUPON:
                 //포인트를 사용한다면 포인트 사용
                 if (payload.getUseToPoint() != null && payload.getUseToPoint() > 0) return SagaStep.USER;
-                return null;
+                return SagaStep.PAYMENT;
             case USER:
                 // 포인트 사용 다음 단계는 SAGA 완료
+                return SagaStep.PAYMENT;
+            case PAYMENT:
                 return null;
             default: return null;
         }
@@ -183,11 +191,18 @@ public class SagaManager {
             case USER:
                 sagaEventProducer.requestUserPointUse(saga.getId(), saga.getOrderId(), saga.getPayload());
                 break;
+            case PAYMENT:
+                SagaResourceSecuredEvent paymentWaitingEvent =
+                        SagaResourceSecuredEvent.of(saga.getId(), saga.getOrderId(), saga.getPayload().getUserId());
+                applicationEventPublisher.publishEvent(paymentWaitingEvent);
         }
     }
 
     private void dispatchCompensationMessage(SagaInstanceDto saga) {
         switch (saga.getSagaStep()) {
+            case USER:
+            // Step 이 USEr -> 유저 포인트 복구 메시지 발행
+                sagaEventProducer.requestUserPointCompensate(saga.getId(), saga.getOrderId(), saga.getPayload());
             // Step 이 COUPON -> 쿠폰 복구 메시지 발행
             case COUPON:
                 sagaEventProducer.requestCouponCompensate(saga.getId(), saga.getOrderId(), saga.getPayload());
@@ -213,16 +228,5 @@ public class SagaManager {
         }
 
         return SagaAbortEvent.of(sagaId, orderId, userId, failureCode);
-    }
-
-    private void failSaga(Long sagaId, String failureReason) {
-        orderSagaDomainService.fail(sagaId, failureReason);
-    }
-
-    private void completeSaga(Long sagaId) {
-        SagaInstanceDto sagaInstanceDto = orderSagaDomainService.finish(sagaId);
-        SagaCompletedEvent completedEvent = SagaCompletedEvent
-                .of(sagaInstanceDto.getId(), sagaInstanceDto.getOrderId(), sagaInstanceDto.getPayload().getUserId());
-        applicationEventPublisher.publishEvent(completedEvent);
     }
 }

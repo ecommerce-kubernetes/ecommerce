@@ -4,20 +4,20 @@ import lombok.Builder;
 import lombok.Getter;
 
 @Getter
-public class SagaCompletedEvent {
+public class SagaResourceSecuredEvent {
     private Long sagaId;
     private Long orderId;
     private Long userId;
 
     @Builder
-    private SagaCompletedEvent(Long sagaId, Long orderId, Long userId) {
+    private SagaResourceSecuredEvent(Long sagaId, Long orderId, Long userId) {
         this.sagaId = sagaId;
         this.orderId = orderId;
         this.userId = userId;
     }
 
-    public static SagaCompletedEvent of(Long sagaId, Long orderId, Long userId) {
-        return SagaCompletedEvent.builder()
+    public static SagaResourceSecuredEvent of(Long sagaId, Long orderId, Long userId) {
+        return SagaResourceSecuredEvent.builder()
                 .sagaId(sagaId)
                 .orderId(orderId)
                 .userId(userId)

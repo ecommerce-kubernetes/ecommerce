@@ -5,7 +5,7 @@ import com.example.order_service.api.order.application.event.OrderCreatedEvent;
 import com.example.order_service.api.order.saga.orchestrator.SagaManager;
 import com.example.order_service.api.order.saga.orchestrator.dto.command.SagaStartCommand;
 import com.example.order_service.api.order.saga.orchestrator.event.SagaAbortEvent;
-import com.example.order_service.api.order.saga.orchestrator.event.SagaCompletedEvent;
+import com.example.order_service.api.order.saga.orchestrator.event.SagaResourceSecuredEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
@@ -24,7 +24,7 @@ public class OrderEventListener {
     }
 
     @EventListener
-    public void handleSagaCompleted(SagaCompletedEvent event){
+    public void handleSagaCompleted(SagaResourceSecuredEvent event){
         orderApplicationService.changePaymentWaiting(event.getOrderId());
     }
 

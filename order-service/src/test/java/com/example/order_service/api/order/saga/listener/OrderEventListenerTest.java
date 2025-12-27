@@ -6,7 +6,7 @@ import com.example.order_service.api.order.domain.model.OrderFailureCode;
 import com.example.order_service.api.order.saga.orchestrator.SagaManager;
 import com.example.order_service.api.order.saga.orchestrator.dto.command.SagaStartCommand;
 import com.example.order_service.api.order.saga.orchestrator.event.SagaAbortEvent;
-import com.example.order_service.api.order.saga.orchestrator.event.SagaCompletedEvent;
+import com.example.order_service.api.order.saga.orchestrator.event.SagaResourceSecuredEvent;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -72,13 +72,13 @@ public class OrderEventListenerTest {
     }
 
     @Test
-    @DisplayName("Saga가 완료되면 주문의 상태를 변경하기 위해 orderApplicationService를 호출한다")
+    @DisplayName("Saga가 결제 대기 상태가 되면 주문의 상태를 변경하기 위해 orderApplicationService를 호출한다")
     void handleSagaCompleted() {
         //given
         Long orderId = 1L;
-        SagaCompletedEvent sagaCompletedEvent = SagaCompletedEvent.of(1L, orderId, 1L);
+        SagaResourceSecuredEvent sagaResourceSecuredEvent = SagaResourceSecuredEvent.of(1L, orderId, 1L);
         //when
-        orderEventListener.handleSagaCompleted(sagaCompletedEvent);
+        orderEventListener.handleSagaCompleted(sagaResourceSecuredEvent);
         //then
         verify(orderApplicationService, times(1)).changePaymentWaiting(orderId);
     }

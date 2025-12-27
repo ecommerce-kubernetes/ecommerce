@@ -4,9 +4,10 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public enum SagaStep {
-    PRODUCT("상품 서비스"),
-    COUPON("쿠폰 서비스"),
-    USER("유저 서비스");
+    PRODUCT("상품 재고 단계"),
+    COUPON("쿠폰 단계"),
+    USER("유저 포인트 단계"),
+    PAYMENT("결제 단계");
 
     private final String name;
 }
