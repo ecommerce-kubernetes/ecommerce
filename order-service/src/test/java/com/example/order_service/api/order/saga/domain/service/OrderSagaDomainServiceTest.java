@@ -61,7 +61,7 @@ public class OrderSagaDomainServiceTest extends ExcludeInfraTest {
 
     @Test
     @DisplayName("Saga 인스턴스를 조회한다")
-    void getSaga() {
+    void getSagaBySagaId() {
         //given
         Payload payload = Payload.builder()
                 .userId(1L)
@@ -72,7 +72,7 @@ public class OrderSagaDomainServiceTest extends ExcludeInfraTest {
         OrderSagaInstance sagaInstance = OrderSagaInstance.create(1L, payload, SagaStep.PRODUCT);
         OrderSagaInstance save = orderSagaInstanceRepository.save(sagaInstance);
         //when
-        SagaInstanceDto result = orderSagaDomainService.getSaga(save.getId());
+        SagaInstanceDto result = orderSagaDomainService.getSagaBySagaId(save.getId());
         //then
         assertThat(result.getId()).isNotNull();
         assertThat(result)
@@ -116,11 +116,11 @@ public class OrderSagaDomainServiceTest extends ExcludeInfraTest {
 
     @Test
     @DisplayName("Saga 인스턴스를 찾을 수 없을때는 예외를 던진다")
-    void getSaga_notFound() {
+    void getSagaBySaga_Id_notFound() {
         //given
         //when
         //then
-        assertThatThrownBy(() -> orderSagaDomainService.getSaga(999L))
+        assertThatThrownBy(() -> orderSagaDomainService.getSagaBySagaId(999L))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage("주문 SAGA 인스턴스를 찾을 수 없습니다");
     }

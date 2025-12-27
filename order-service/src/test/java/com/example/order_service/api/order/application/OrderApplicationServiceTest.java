@@ -7,9 +7,9 @@ import com.example.order_service.api.order.application.dto.command.CreateOrderDt
 import com.example.order_service.api.order.application.dto.command.CreateOrderItemDto;
 import com.example.order_service.api.order.application.dto.result.CreateOrderResponse;
 import com.example.order_service.api.order.application.event.OrderCreatedEvent;
-import com.example.order_service.api.order.application.event.OrderResultCode;
+import com.example.order_service.api.order.application.event.OrderEventCode;
 import com.example.order_service.api.order.application.event.OrderResultEvent;
-import com.example.order_service.api.order.application.event.OrderResultStatus;
+import com.example.order_service.api.order.application.event.OrderEventStatus;
 import com.example.order_service.api.order.domain.model.OrderFailureCode;
 import com.example.order_service.api.order.domain.model.OrderStatus;
 import com.example.order_service.api.order.domain.model.vo.AppliedCoupon;
@@ -149,7 +149,7 @@ public class OrderApplicationServiceTest {
         assertThat(orderResultCaptor.getValue())
                 .extracting(OrderResultEvent::getOrderId, OrderResultEvent::getUserId, OrderResultEvent::getStatus,
                         OrderResultEvent::getCode, OrderResultEvent::getOrderName, OrderResultEvent::getFinalPaymentAmount)
-                .containsExactly(orderId, 1L, OrderResultStatus.SUCCESS, OrderResultCode.PAYMENT_READY,
+                .containsExactly(orderId, 1L, OrderEventStatus.SUCCESS, OrderEventCode.PAYMENT_READY,
                         "상품1 외 1건", 28600L);
     }
 
@@ -180,7 +180,7 @@ public class OrderApplicationServiceTest {
         assertThat(orderResultCaptor.getValue())
                 .extracting(OrderResultEvent::getOrderId, OrderResultEvent::getUserId, OrderResultEvent::getStatus,
                         OrderResultEvent::getCode, OrderResultEvent::getOrderName, OrderResultEvent::getFinalPaymentAmount)
-                .containsExactly(orderId, 1L, OrderResultStatus.FAILURE, OrderResultCode.OUT_OF_STOCK,
+                .containsExactly(orderId, 1L, OrderEventStatus.FAILURE, OrderEventCode.OUT_OF_STOCK,
                         "상품1 외 1건", null);
     }
 

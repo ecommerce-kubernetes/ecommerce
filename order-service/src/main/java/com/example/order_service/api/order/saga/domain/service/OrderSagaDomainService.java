@@ -30,10 +30,15 @@ public class OrderSagaDomainService {
     }
 
     @Transactional(readOnly = true)
-    public SagaInstanceDto getSaga(Long sagaId){
+    public SagaInstanceDto getSagaBySagaId(Long sagaId){
         OrderSagaInstance sagaInstance = orderSagaInstanceRepository.findById(sagaId)
                 .orElseThrow(() -> new NotFoundException("주문 SAGA 인스턴스를 찾을 수 없습니다"));
         return SagaInstanceDto.from(sagaInstance);
+    }
+
+    @Transactional(readOnly = true)
+    public SagaInstanceDto getSagaByOrderId(Long orderId) {
+        return null;
     }
 
     public SagaInstanceDto proceedTo(Long sagaId, SagaStep sagaStep) {

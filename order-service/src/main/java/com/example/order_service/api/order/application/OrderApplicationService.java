@@ -5,9 +5,9 @@ import com.example.order_service.api.order.application.dto.command.CreateOrderDt
 import com.example.order_service.api.order.application.dto.result.CreateOrderResponse;
 import com.example.order_service.api.order.application.dto.result.OrderResponse;
 import com.example.order_service.api.order.application.event.OrderCreatedEvent;
-import com.example.order_service.api.order.application.event.OrderResultCode;
+import com.example.order_service.api.order.application.event.OrderEventCode;
 import com.example.order_service.api.order.application.event.OrderResultEvent;
-import com.example.order_service.api.order.application.event.OrderResultStatus;
+import com.example.order_service.api.order.application.event.OrderEventStatus;
 import com.example.order_service.api.order.domain.model.OrderFailureCode;
 import com.example.order_service.api.order.domain.model.OrderStatus;
 import com.example.order_service.api.order.domain.model.vo.PriceCalculateResult;
@@ -63,7 +63,7 @@ public class OrderApplicationService {
         OrderDto orderDto = orderDomainService.changeOrderStatus(orderId, OrderStatus.PAYMENT_WAITING);
         eventPublisher.publishEvent(OrderResultEvent.of(
                 orderDto.getOrderId(), orderDto.getUserId(),
-                OrderResultStatus.SUCCESS, OrderResultCode.PAYMENT_READY,
+                OrderEventStatus.SUCCESS, OrderEventCode.PAYMENT_READY,
                 orderDto.getOrderName(), orderDto.getPaymentInfo().getFinalPaymentAmount(),
                 "결제 대기중입니다"
         ));
@@ -73,7 +73,7 @@ public class OrderApplicationService {
         OrderDto orderDto = orderDomainService.changeCanceled(orderId, orderFailureCode);
         eventPublisher.publishEvent(OrderResultEvent.of(
                 orderDto.getOrderId(), orderDto.getUserId(),
-                OrderResultStatus.FAILURE, OrderResultCode.from(orderDto.getOrderFailureCode()),
+                OrderEventStatus.FAILURE, OrderEventCode.from(orderDto.getOrderFailureCode()),
                 orderDto.getOrderName(), null,
                 orderDto.getOrderFailureCode().name()
         ));

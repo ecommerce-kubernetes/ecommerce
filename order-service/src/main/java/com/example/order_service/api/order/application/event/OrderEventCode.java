@@ -4,17 +4,19 @@ import com.example.order_service.api.order.domain.model.OrderFailureCode;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-public enum OrderResultCode {
+public enum OrderEventCode {
     PAYMENT_READY("결제 대기"),
+    PAYMENT_AUTHORIZED("결제 승인"),
     OUT_OF_STOCK("재고 부족"),
     INVALID_COUPON("유효하지 않은 쿠폰"),
     TIMEOUT("주문 시간 초과"),
     COUPON_EXPIRED("만료된 쿠폰"),
+    PAYMENT_AUTHORIZED_FAILED("결제 승인 실패"),
     SYSTEM_ERROR("시스템 에러");
 
     private final String name;
 
-    public static OrderResultCode from(OrderFailureCode orderFailureCode) {
+    public static OrderEventCode from(OrderFailureCode orderFailureCode) {
         return switch (orderFailureCode) {
             case OUT_OF_STOCK -> OUT_OF_STOCK;
             case INVALID_COUPON -> INVALID_COUPON;

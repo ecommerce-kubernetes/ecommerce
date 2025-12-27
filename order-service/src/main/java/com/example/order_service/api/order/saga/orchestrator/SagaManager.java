@@ -2,6 +2,7 @@ package com.example.order_service.api.order.saga.orchestrator;
 
 import com.example.common.result.SagaEventStatus;
 import com.example.common.result.SagaProcessResult;
+import com.example.order_service.api.order.application.event.OrderEventStatus;
 import com.example.order_service.api.order.domain.model.OrderFailureCode;
 import com.example.order_service.api.order.saga.domain.model.SagaStatus;
 import com.example.order_service.api.order.saga.domain.model.SagaStep;
@@ -9,6 +10,7 @@ import com.example.order_service.api.order.saga.domain.model.vo.Payload;
 import com.example.order_service.api.order.saga.domain.service.OrderSagaDomainService;
 import com.example.order_service.api.order.saga.domain.service.dto.SagaInstanceDto;
 import com.example.order_service.api.order.saga.infrastructure.kafka.producer.SagaEventProducer;
+import com.example.order_service.api.order.saga.orchestrator.dto.command.SagaPaymentCommand;
 import com.example.order_service.api.order.saga.orchestrator.dto.command.SagaStartCommand;
 import com.example.order_service.api.order.saga.orchestrator.event.SagaAbortEvent;
 import com.example.order_service.api.order.saga.orchestrator.event.SagaResourceSecuredEvent;
@@ -37,19 +39,27 @@ public class SagaManager {
     }
 
     public void processProductResult(SagaProcessResult result) {
-        evaluateResult(result, SagaStep.PRODUCT);
+        SagaInstanceDto saga = orderSagaDomainService.getSagaBySagaId(result.getSagaId());
+        applyStepResult(saga, SagaStep.PRODUCT, result.getStatus() == SagaEventStatus.SUCCESS,
+                result.getErrorCode(), result.getFailureReason());
     }
 
     public void processCouponResult(SagaProcessResult result) {
-        evaluateResult(result, SagaStep.COUPON);
+        SagaInstanceDto saga = orderSagaDomainService.getSagaBySagaId(result.getSagaId());
+        applyStepResult(saga, SagaStep.COUPON, result.getStatus() == SagaEventStatus.SUCCESS,
+                result.getErrorCode(), result.getFailureReason());
     }
 
     public void processUserResult(SagaProcessResult result) {
-        evaluateResult(result, SagaStep.USER);
+        SagaInstanceDto saga = orderSagaDomainService.getSagaBySagaId(result.getSagaId());
+        applyStepResult(saga, SagaStep.USER, result.getStatus() == SagaEventStatus.SUCCESS,
+                result.getErrorCode(), result.getFailureReason());
     }
 
-    public void processPaymentResult(Long orderId) {
-
+    public void processPaymentResult(SagaPaymentCommand command) {
+        SagaInstanceDto saga = orderSagaDomainService.getSagaByOrderId(command.getOrderId());
+        applyStepResult(saga, SagaStep.PAYMENT, command.getStatus() == OrderEventStatus.SUCCESS,
+                command.getCode().name(), command.getFailureReason());
     }
 
     public void processTimeouts() {
@@ -66,8 +76,7 @@ public class SagaManager {
         }
     }
 
-    private void evaluateResult(SagaProcessResult result, SagaStep expectedStep) {
-        SagaInstanceDto saga = orderSagaDomainService.getSaga(result.getSagaId());
+    private void applyStepResult(SagaInstanceDto saga, SagaStep expectedStep, boolean isSuccess, String errorCode, String failureReason) {
 
         // 메시지 재전송과 같은 문제로 메시지가 두번 이상 발행되었을때 이미 SAGA가 진행되었으면 무시함
         if (saga.getSagaStep() != expectedStep) {
@@ -76,14 +85,14 @@ public class SagaManager {
         }
 
         if (saga.getSagaStatus() == SagaStatus.STARTED) { // SAGA 가 진행중인 경우
-            if (result.getStatus() == SagaEventStatus.SUCCESS) {
+            if (isSuccess) {
                 proceedSequence(saga);
             } else {
                 // 응답받은 메시지가 실패라면 보상을 시작함
-                startCompensationSequence(saga, result.getErrorCode(), result.getFailureReason());
+                startCompensationSequence(saga, errorCode, failureReason);
             }
         } else if (saga.getSagaStatus() == SagaStatus.COMPENSATING) { // 보상이 진행중인 경우
-            if (result.getStatus() == SagaEventStatus.SUCCESS) {
+            if (isSuccess) {
                 // 다음 보상을 진행함
                 continueCompensationSequence(saga);
             } else {

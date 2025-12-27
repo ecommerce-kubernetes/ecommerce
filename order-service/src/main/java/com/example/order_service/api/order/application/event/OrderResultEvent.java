@@ -7,14 +7,14 @@ import lombok.Getter;
 public class OrderResultEvent {
     private Long orderId;
     private Long userId;
-    private OrderResultStatus status;
-    private OrderResultCode code;
+    private OrderEventStatus status;
+    private OrderEventCode code;
     private String orderName;
     private Long finalPaymentAmount;
     private String message;
 
     @Builder
-    private OrderResultEvent(Long orderId, Long userId, OrderResultStatus status, OrderResultCode code, String orderName,
+    private OrderResultEvent(Long orderId, Long userId, OrderEventStatus status, OrderEventCode code, String orderName,
                              Long finalPaymentAmount, String message) {
         this.orderId = orderId;
         this.userId = userId;
@@ -25,7 +25,7 @@ public class OrderResultEvent {
         this.message = message;
     }
 
-    public static OrderResultEvent of(Long orderId, Long userId, OrderResultStatus status, OrderResultCode code,
+    public static OrderResultEvent of(Long orderId, Long userId, OrderEventStatus status, OrderEventCode code,
                                       String orderName, Long finalPaymentAmount, String message) {
         return OrderResultEvent.builder()
                 .orderId(orderId)

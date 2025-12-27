@@ -1,6 +1,8 @@
 package com.example.order_service.api.order.saga.orchestrator;
 
 import com.example.common.result.SagaProcessResult;
+import com.example.order_service.api.order.application.event.OrderEventCode;
+import com.example.order_service.api.order.application.event.OrderEventStatus;
 import com.example.order_service.api.order.domain.model.OrderFailureCode;
 import com.example.order_service.api.order.saga.domain.model.SagaStatus;
 import com.example.order_service.api.order.saga.domain.model.SagaStep;
@@ -8,6 +10,7 @@ import com.example.order_service.api.order.saga.domain.model.vo.Payload;
 import com.example.order_service.api.order.saga.domain.service.OrderSagaDomainService;
 import com.example.order_service.api.order.saga.domain.service.dto.SagaInstanceDto;
 import com.example.order_service.api.order.saga.infrastructure.kafka.producer.SagaEventProducer;
+import com.example.order_service.api.order.saga.orchestrator.dto.command.SagaPaymentCommand;
 import com.example.order_service.api.order.saga.orchestrator.dto.command.SagaStartCommand;
 import com.example.order_service.api.order.saga.orchestrator.event.SagaAbortEvent;
 import com.example.order_service.api.order.saga.orchestrator.event.SagaResourceSecuredEvent;
@@ -119,7 +122,7 @@ public class SagaManagerTest {
                 .build();
         SagaInstanceDto initInstanceDto = createSagaInstanceDto(sagaId, orderId, SagaStatus.STARTED, SagaStep.PRODUCT, payload);
         SagaInstanceDto couponInstanceDto = createSagaInstanceDto(sagaId, orderId,SagaStatus.STARTED, SagaStep.COUPON, payload);
-        given(orderSagaDomainService.getSaga(anyLong()))
+        given(orderSagaDomainService.getSagaBySagaId(anyLong()))
                 .willReturn(initInstanceDto);
         given(orderSagaDomainService.proceedTo(anyLong(), any(SagaStep.class)))
                 .willReturn(couponInstanceDto);
@@ -156,7 +159,7 @@ public class SagaManagerTest {
                 .build();
         SagaInstanceDto initInstanceDto = createSagaInstanceDto(sagaId, orderId, SagaStatus.STARTED, SagaStep.PRODUCT, payload);
         SagaInstanceDto pointInstanceDto = createSagaInstanceDto(sagaId, orderId, SagaStatus.STARTED, SagaStep.USER, payload);
-        given(orderSagaDomainService.getSaga(anyLong()))
+        given(orderSagaDomainService.getSagaBySagaId(anyLong()))
                 .willReturn(initInstanceDto);
         given(orderSagaDomainService.proceedTo(anyLong(), any(SagaStep.class)))
                 .willReturn(pointInstanceDto);
@@ -193,7 +196,7 @@ public class SagaManagerTest {
                 .build();
         SagaInstanceDto initInstanceDto = createSagaInstanceDto(sagaId, orderId, SagaStatus.STARTED, SagaStep.PRODUCT, payload);
         SagaInstanceDto paymentInstanceDto = createSagaInstanceDto(sagaId, orderId, SagaStatus.STARTED, SagaStep.PAYMENT, payload);
-        given(orderSagaDomainService.getSaga(anyLong()))
+        given(orderSagaDomainService.getSagaBySagaId(anyLong()))
                 .willReturn(initInstanceDto);
         given(orderSagaDomainService.proceedTo(anyLong(), any(SagaStep.class)))
                 .willReturn(paymentInstanceDto);
@@ -234,7 +237,7 @@ public class SagaManagerTest {
                 .build();
         SagaInstanceDto initInstanceDto = createSagaInstanceDto(sagaId, orderId, SagaStatus.STARTED, SagaStep.COUPON, payload);
         SagaInstanceDto pointInstanceDto = createSagaInstanceDto(sagaId, orderId, SagaStatus.STARTED, SagaStep.USER, payload);
-        given(orderSagaDomainService.getSaga(anyLong()))
+        given(orderSagaDomainService.getSagaBySagaId(anyLong()))
                 .willReturn(initInstanceDto);
         given(orderSagaDomainService.proceedTo(anyLong(), any(SagaStep.class)))
                 .willReturn(pointInstanceDto);
@@ -271,7 +274,7 @@ public class SagaManagerTest {
                 .build();
         SagaInstanceDto initInstanceDto = createSagaInstanceDto(sagaId, orderId, SagaStatus.STARTED, SagaStep.COUPON, payload);
         SagaInstanceDto completeInstanceDto = createSagaInstanceDto(sagaId, orderId, SagaStatus.STARTED, SagaStep.PAYMENT, payload);
-        given(orderSagaDomainService.getSaga(anyLong()))
+        given(orderSagaDomainService.getSagaBySagaId(anyLong()))
                 .willReturn(initInstanceDto);
         given(orderSagaDomainService.proceedTo(anyLong(), any(SagaStep.class)))
                 .willReturn(completeInstanceDto);
@@ -312,7 +315,7 @@ public class SagaManagerTest {
                 .build();
         SagaInstanceDto initInstanceDto = createSagaInstanceDto(sagaId, orderId, SagaStatus.STARTED, SagaStep.USER, payload);
         SagaInstanceDto paymentInstanceDto = createSagaInstanceDto(sagaId, orderId, SagaStatus.STARTED, SagaStep.PAYMENT, payload);
-        given(orderSagaDomainService.getSaga(anyLong()))
+        given(orderSagaDomainService.getSagaBySagaId(anyLong()))
                 .willReturn(initInstanceDto);
         given(orderSagaDomainService.proceedTo(anyLong(), any(SagaStep.class)))
                 .willReturn(paymentInstanceDto);
@@ -354,7 +357,7 @@ public class SagaManagerTest {
 
         SagaInstanceDto initInstanceDto = createSagaInstanceDto(sagaId, orderId, SagaStatus.STARTED, SagaStep.USER, payload);
         SagaInstanceDto compensateInstanceDto = createSagaInstanceDto(sagaId, orderId, SagaStatus.COMPENSATING, SagaStep.COUPON, payload);
-        given(orderSagaDomainService.getSaga(any()))
+        given(orderSagaDomainService.getSagaBySagaId(any()))
                 .willReturn(initInstanceDto);
         given(orderSagaDomainService.startCompensation(anyLong(), any(SagaStep.class), anyString()))
                 .willReturn(compensateInstanceDto);
@@ -395,7 +398,7 @@ public class SagaManagerTest {
         SagaProcessResult fail = SagaProcessResult.fail(sagaId, orderId, "INSUFFICIENT_POINT", "포인트가 부족합니다");
         SagaInstanceDto initInstanceDto = createSagaInstanceDto(sagaId, orderId, SagaStatus.STARTED, SagaStep.USER, payload);
         SagaInstanceDto compensateInstanceDto = createSagaInstanceDto(sagaId, orderId, SagaStatus.COMPENSATING, SagaStep.PRODUCT, payload);
-        given(orderSagaDomainService.getSaga(any()))
+        given(orderSagaDomainService.getSagaBySagaId(any()))
                 .willReturn(initInstanceDto);
         given(orderSagaDomainService.startCompensation(anyLong(), any(SagaStep.class), anyString()))
                 .willReturn(compensateInstanceDto);
@@ -437,7 +440,7 @@ public class SagaManagerTest {
         SagaProcessResult fail = SagaProcessResult.fail(sagaId, orderId, "INVALID_COUPON", "유효하지 않은 쿠폰");
         SagaInstanceDto initInstanceDto = createSagaInstanceDto(sagaId, orderId, SagaStatus.STARTED, SagaStep.COUPON, payload);
         SagaInstanceDto compensateInstanceDto = createSagaInstanceDto(sagaId, orderId, SagaStatus.COMPENSATING, SagaStep.PRODUCT, payload);
-        given(orderSagaDomainService.getSaga(anyLong()))
+        given(orderSagaDomainService.getSagaBySagaId(anyLong()))
                 .willReturn(initInstanceDto);
         given(orderSagaDomainService.startCompensation(anyLong(), any(SagaStep.class), anyString()))
                 .willReturn(compensateInstanceDto);
@@ -476,7 +479,7 @@ public class SagaManagerTest {
         SagaProcessResult fail = SagaProcessResult.fail(sagaId, orderId, "OUT_OF_STOCK", "재고 부족");
         SagaInstanceDto initInstanceDto = createSagaInstanceDto(sagaId, orderId, SagaStatus.STARTED, SagaStep.PRODUCT, payload);
         SagaInstanceDto failInstanceDto = createSagaInstanceDto(sagaId, orderId, SagaStatus.FAILED, SagaStep.PRODUCT, payload);
-        given(orderSagaDomainService.getSaga(anyLong()))
+        given(orderSagaDomainService.getSagaBySagaId(anyLong()))
                 .willReturn(initInstanceDto);
         given(orderSagaDomainService.fail(anyLong(), anyString()))
                 .willReturn(failInstanceDto);
@@ -513,7 +516,7 @@ public class SagaManagerTest {
         SagaProcessResult success = SagaProcessResult.success(sagaId, orderId);
         SagaInstanceDto currentInstanceDto = createSagaInstanceDto(sagaId, orderId, SagaStatus.COMPENSATING, SagaStep.COUPON, payload);
         SagaInstanceDto compensateInstanceDto = createSagaInstanceDto(sagaId, orderId, SagaStatus.COMPENSATING, SagaStep.PRODUCT, payload);
-        given(orderSagaDomainService.getSaga(anyLong()))
+        given(orderSagaDomainService.getSagaBySagaId(anyLong()))
                 .willReturn(currentInstanceDto);
         given(orderSagaDomainService.continueCompensation(anyLong(), any(SagaStep.class)))
                 .willReturn(compensateInstanceDto);
@@ -549,7 +552,7 @@ public class SagaManagerTest {
         SagaProcessResult success = SagaProcessResult.success(sagaId, orderId);
         SagaInstanceDto currentInstanceDto = createSagaInstanceDto(sagaId, orderId, SagaStatus.COMPENSATING, SagaStep.PRODUCT, payload);
         SagaInstanceDto failInstanceDto = createSagaInstanceDto(sagaId, orderId, SagaStatus.FAILED, SagaStep.PRODUCT, payload);
-        given(orderSagaDomainService.getSaga(anyLong()))
+        given(orderSagaDomainService.getSagaBySagaId(anyLong()))
                 .willReturn(currentInstanceDto);
         given(orderSagaDomainService.fail(anyLong(), nullable(String.class)))
                 .willReturn(failInstanceDto);
@@ -594,6 +597,152 @@ public class SagaManagerTest {
         verify(orderSagaDomainService).startCompensation(eq(1L), any(), eq("주문 처리 지연"));
         verify(orderSagaDomainService).startCompensation(eq(2L), any(), eq("주문 처리 지연"));
         verify(sagaEventProducer, times(2)).requestInventoryCompensate(any(), any(), any());
+    }
+
+    @Test
+    @DisplayName("결제 승인 완료시 Saga 종료")
+    void processPaymentResult(){
+        //given
+        Long sagaId = 1L;
+        Long orderId = 1L;
+        Long couponId = 1L;
+        Long userId = 1L;
+        Long usedPoint = 0L;
+        SagaPaymentCommand paymentCommand = SagaPaymentCommand.builder()
+                .orderId(orderId)
+                .status(OrderEventStatus.SUCCESS)
+                .code(OrderEventCode.PAYMENT_AUTHORIZED)
+                .failureReason(null)
+                .build();
+        Payload payload = Payload.builder()
+                .userId(userId)
+                .sagaItems(List.of(Payload.SagaItem.builder().productVariantId(1L).quantity(3).build()))
+                .couponId(couponId)
+                .useToPoint(usedPoint)
+                .build();
+        SagaInstanceDto initInstanceDto = createSagaInstanceDto(sagaId, orderId, SagaStatus.STARTED, SagaStep.PAYMENT, payload);
+        SagaInstanceDto finishedInstanceDto = createSagaInstanceDto(sagaId, orderId, SagaStatus.FINISHED, SagaStep.PAYMENT, payload);
+        given(orderSagaDomainService.getSagaByOrderId(anyLong()))
+                .willReturn(initInstanceDto);
+        given(orderSagaDomainService.finish(anyLong()))
+                .willReturn(finishedInstanceDto);
+        //when
+        sagaManager.processPaymentResult(paymentCommand);
+        //then
+        verify(orderSagaDomainService, times(1)).finish(sagaId);
+
+        verify(orderSagaDomainService, never()).fail(anyLong(), anyString());
+    }
+
+    @Test
+    @DisplayName("결제 승인실패시 포인트를 사용한 경우 포인트 보상을 진행한다")
+    void processPaymentResult_paymentFail_with_usedPoint(){
+        //given
+        Long sagaId = 1L;
+        Long orderId = 1L;
+        Long couponId = 1L;
+        Long userId = 1L;
+        Long usedPoint = 1000L;
+        SagaPaymentCommand paymentCommand = SagaPaymentCommand.builder()
+                .orderId(orderId)
+                .status(OrderEventStatus.FAILURE)
+                .code(OrderEventCode.PAYMENT_AUTHORIZED_FAILED)
+                .failureReason("결제 승인 실패")
+                .build();
+        Payload payload = Payload.builder()
+                .userId(userId)
+                .sagaItems(List.of(Payload.SagaItem.builder().productVariantId(1L).quantity(3).build()))
+                .couponId(couponId)
+                .useToPoint(usedPoint)
+                .build();
+
+        SagaInstanceDto initInstanceDto = createSagaInstanceDto(sagaId, orderId, SagaStatus.STARTED, SagaStep.PAYMENT, payload);
+        SagaInstanceDto compensateDto = createSagaInstanceDto(sagaId, orderId, SagaStatus.COMPENSATING, SagaStep.USER, payload);
+        given(orderSagaDomainService.getSagaByOrderId(anyLong()))
+                .willReturn(initInstanceDto);
+        given(orderSagaDomainService.startCompensation(anyLong(), any(SagaStep.class), anyString()))
+                .willReturn(compensateDto);
+        //when
+        sagaManager.processPaymentResult(paymentCommand);
+        //then
+        verify(orderSagaDomainService, times(1)).startCompensation(sagaId, SagaStep.USER, "결제 승인 실패");
+        verify(sagaEventProducer, times(1)).requestUserPointCompensate(sagaId, orderId, payload);
+
+        verify(sagaEventProducer, never()).requestCouponUse(sagaId, orderId, payload);
+    }
+
+    @Test
+    @DisplayName("결제 승인 실패시 포인트를 사용하지 않고 쿠폰을 사용했다면 포인트 보상을 건너뛰고 쿠폰 보상을 진행한다")
+    void processPaymentResult_paymentFail_skip_user(){
+        //given
+        Long sagaId = 1L;
+        Long orderId = 1L;
+        Long couponId = 1L;
+        Long userId = 1L;
+        Long usedPoint = 0L;
+        SagaPaymentCommand paymentCommand = SagaPaymentCommand.builder()
+                .orderId(orderId)
+                .status(OrderEventStatus.FAILURE)
+                .code(OrderEventCode.PAYMENT_AUTHORIZED_FAILED)
+                .failureReason("결제 승인 실패")
+                .build();
+        Payload payload = Payload.builder()
+                .userId(userId)
+                .sagaItems(List.of(Payload.SagaItem.builder().productVariantId(1L).quantity(3).build()))
+                .couponId(couponId)
+                .useToPoint(usedPoint)
+                .build();
+
+        SagaInstanceDto initInstanceDto = createSagaInstanceDto(sagaId, orderId, SagaStatus.STARTED, SagaStep.PAYMENT, payload);
+        SagaInstanceDto compensateDto = createSagaInstanceDto(sagaId, orderId, SagaStatus.COMPENSATING, SagaStep.COUPON, payload);
+        given(orderSagaDomainService.getSagaByOrderId(anyLong()))
+                .willReturn(initInstanceDto);
+        given(orderSagaDomainService.startCompensation(anyLong(), any(SagaStep.class), anyString()))
+                .willReturn(compensateDto);
+        //when
+        sagaManager.processPaymentResult(paymentCommand);
+        //then
+        verify(orderSagaDomainService, times(1)).startCompensation(sagaId, SagaStep.COUPON, "결제 승인 실패");
+        verify(sagaEventProducer, times(1)).requestCouponCompensate(sagaId, orderId, payload);
+
+        verify(sagaEventProducer, never()).requestUserPointCompensate(sagaId, orderId, payload);
+    }
+
+    @Test
+    @DisplayName("결제 승인 실패시 포인트를 사용하지 않고 쿠폰도 사용하지 않았다면 포인트 보상과 쿠폰 보상을 건너뛰고 상품 보상을 진행한다")
+    void processPaymentResult_paymentFail_skip_user_and_coupon(){
+        //given
+        Long sagaId = 1L;
+        Long orderId = 1L;
+        Long userId = 1L;
+        Long usedPoint = 0L;
+        SagaPaymentCommand paymentCommand = SagaPaymentCommand.builder()
+                .orderId(orderId)
+                .status(OrderEventStatus.FAILURE)
+                .code(OrderEventCode.PAYMENT_AUTHORIZED_FAILED)
+                .failureReason("결제 승인 실패")
+                .build();
+        Payload payload = Payload.builder()
+                .userId(userId)
+                .sagaItems(List.of(Payload.SagaItem.builder().productVariantId(1L).quantity(3).build()))
+                .couponId(null)
+                .useToPoint(usedPoint)
+                .build();
+
+        SagaInstanceDto initInstanceDto = createSagaInstanceDto(sagaId, orderId, SagaStatus.STARTED, SagaStep.PAYMENT, payload);
+        SagaInstanceDto compensateDto = createSagaInstanceDto(sagaId, orderId, SagaStatus.COMPENSATING, SagaStep.PRODUCT, payload);
+        given(orderSagaDomainService.getSagaByOrderId(anyLong()))
+                .willReturn(initInstanceDto);
+        given(orderSagaDomainService.startCompensation(anyLong(), any(SagaStep.class), anyString()))
+                .willReturn(compensateDto);
+        //when
+        sagaManager.processPaymentResult(paymentCommand);
+        //then
+        verify(orderSagaDomainService, times(1)).startCompensation(sagaId, SagaStep.PRODUCT, "결제 승인 실패");
+        verify(sagaEventProducer, times(1)).requestInventoryCompensate(sagaId, orderId, payload);
+
+        verify(sagaEventProducer, never()).requestUserPointCompensate(sagaId, orderId, payload);
+        verify(sagaEventProducer, never()).requestCouponCompensate(sagaId, orderId, payload);
     }
 
     private SagaInstanceDto createSagaInstanceDto(Long sagaId, Long orderId,
