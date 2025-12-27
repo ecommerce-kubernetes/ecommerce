@@ -250,8 +250,8 @@ public class OrderControllerDocsTest extends RestDocSupport {
                 .orderStatus("COMPLETED")
                 .orderName("상품1")
                 .deliveryAddress("서울시 테헤란로 123")
-                .paymentInfo(
-                        OrderResponse.PaymentInfo.builder()
+                .paymentResponse(
+                        OrderResponse.PaymentResponse.builder()
                                 .totalOriginPrice(30000L)
                                 .totalProductDiscount(3000L)
                                 .couponDiscount(1000L)
@@ -259,8 +259,8 @@ public class OrderControllerDocsTest extends RestDocSupport {
                                 .finalPaymentAmount(25000L)
                                 .build()
                 )
-                .couponInfo(
-                        OrderResponse.CouponInfo.builder()
+                .couponResponse(
+                        OrderResponse.CouponResponse.builder()
                                 .couponId(1L)
                                 .couponName("1000원 할인 쿠폰")
                                 .couponDiscount(1000L)

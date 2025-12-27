@@ -1,13 +1,11 @@
 package com.example.order_service.api.order.application;
 
+import com.example.order_service.api.common.exception.PaymentErrorCode;
 import com.example.order_service.api.common.exception.PaymentException;
 import com.example.order_service.api.order.application.dto.command.CreateOrderDto;
 import com.example.order_service.api.order.application.dto.result.CreateOrderResponse;
 import com.example.order_service.api.order.application.dto.result.OrderResponse;
-import com.example.order_service.api.order.application.event.OrderCreatedEvent;
-import com.example.order_service.api.order.application.event.OrderEventCode;
-import com.example.order_service.api.order.application.event.OrderResultEvent;
-import com.example.order_service.api.order.application.event.OrderEventStatus;
+import com.example.order_service.api.order.application.event.*;
 import com.example.order_service.api.order.domain.model.OrderFailureCode;
 import com.example.order_service.api.order.domain.model.OrderStatus;
 import com.example.order_service.api.order.domain.model.vo.PriceCalculateResult;
@@ -82,11 +80,22 @@ public class OrderApplicationService {
     public OrderResponse confirmOrder(Long orderId, String paymentKey) {
         OrderDto order = orderDomainService.getOrder(orderId);
         if (!order.getStatus().equals(OrderStatus.PAYMENT_WAITING)) {
-            throw new PaymentException("주문이 결제 가능한 상태가 아닙니다");
+            throw new PaymentException("주문이 결제 가능한 상태가 아닙니다", PaymentErrorCode.INVALID_STATUS);
         }
-        TossPaymentConfirmResponse paymentConfirm =
-                orderIntegrationService.confirmOrderPayment(order.getOrderId(), paymentKey, order.getPaymentInfo().getFinalPaymentAmount());
-        return null;
+
+        try {
+            //TODO 결제 정보 저장
+            TossPaymentConfirmResponse paymentConfirm =
+                    orderIntegrationService.confirmOrderPayment(order.getOrderId(), paymentKey, order.getPaymentInfo().getFinalPaymentAmount());
+            OrderDto completeOrder = orderDomainService.changeOrderStatus(order.getOrderId(), OrderStatus.COMPLETED);
+            eventPublisher.publishEvent(PaymentResultEvent.of(order.getOrderId(), OrderEventStatus.SUCCESS,
+                    OrderEventCode.PAYMENT_AUTHORIZED, null));
+            return OrderResponse.from(completeOrder);
+        } catch (PaymentException e) {
+            eventPublisher.publishEvent(PaymentResultEvent.of(order.getOrderId(), OrderEventStatus.FAILURE,
+                    OrderEventCode.from(e.getErrorCode()) , e.getMessage()));
+            throw e;
+        }
     }
 
     private OrderCreationContext createCreationContext(CreateOrderDto dto,

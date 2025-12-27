@@ -1,5 +1,6 @@
 package com.example.order_service.api.order.controller;
 
+import com.example.order_service.api.common.exception.PaymentErrorCode;
 import com.example.order_service.api.common.exception.PaymentException;
 import com.example.order_service.api.common.security.model.UserRole;
 import com.example.order_service.api.order.application.dto.command.CreateOrderDto;
@@ -423,7 +424,7 @@ class OrderControllerTest extends ControllerTestSupport {
                 .paymentKey("paymentKey")
                 .build();
 
-        willThrow(new PaymentException("결제 오류"))
+        willThrow(new PaymentException("결제 오류", PaymentErrorCode.APPROVAL_FAIL))
                 .given(orderApplicationService).confirmOrder(anyLong(), anyString());
         //when
         //then
@@ -445,8 +446,8 @@ class OrderControllerTest extends ControllerTestSupport {
                 .orderStatus("COMPLETED")
                 .orderName("상품1")
                 .deliveryAddress("서울시 테헤란로 123")
-                .paymentInfo(
-                        OrderResponse.PaymentInfo.builder()
+                .paymentResponse(
+                        OrderResponse.PaymentResponse.builder()
                                 .totalOriginPrice(30000L)
                                 .totalProductDiscount(3000L)
                                 .couponDiscount(1000L)
@@ -454,8 +455,8 @@ class OrderControllerTest extends ControllerTestSupport {
                                 .finalPaymentAmount(25000L)
                                 .build()
                 )
-                .couponInfo(
-                        OrderResponse.CouponInfo.builder()
+                .couponResponse(
+                        OrderResponse.CouponResponse.builder()
                                 .couponId(1L)
                                 .couponName("1000원 할인 쿠폰")
                                 .couponDiscount(1000L)

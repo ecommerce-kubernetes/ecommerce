@@ -7,6 +7,8 @@ import com.example.order_service.api.common.security.principal.UserPrincipal;
 import com.example.order_service.api.order.application.dto.command.CreateOrderItemDto;
 import com.example.order_service.api.order.infrastructure.client.coupon.OrderCouponClientService;
 import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponCalcResponse;
+import com.example.order_service.api.order.infrastructure.client.payment.TossPaymentClientService;
+import com.example.order_service.api.order.infrastructure.client.payment.dto.TossPaymentConfirmResponse;
 import com.example.order_service.api.order.infrastructure.client.product.OrderProductClientService;
 import com.example.order_service.api.order.infrastructure.client.product.dto.OrderProductResponse;
 import com.example.order_service.api.order.infrastructure.client.user.OrderUserClientService;
@@ -37,6 +39,8 @@ public class OrderIntegrationServiceTest {
     private OrderCouponClientService orderCouponClientService;
     @Mock
     private OrderUserClientService orderUserClientService;
+    @Mock
+    private TossPaymentClientService tossPaymentClientService;
 
     @Test
     @DisplayName("유저 정보를 가져온다")
@@ -245,6 +249,28 @@ public class OrderIntegrationServiceTest {
         assertThatThrownBy(() -> orderIntegrationService.getOrderProducts(List.of(orderItem1, orderItem2)))
                 .isInstanceOf(InsufficientException.class)
                 .hasMessage("재고가 부족합니다 (ProductVariantId : 2 | 현재 재고: 3 | 요청 수량: 5)");
+    }
+
+    @Test
+    @DisplayName("토스에 결제 승인을 요청한다")
+    void confirmOrderPayment(){
+        //given
+        TossPaymentConfirmResponse response = TossPaymentConfirmResponse
+                .builder()
+                .paymentKey("paymentKey")
+                .orderId(1L)
+                .totalAmount(1000L)
+                .status("DONE")
+                .build();
+        given(tossPaymentClientService.confirmPayment(anyLong(), anyString(), anyLong()))
+                .willReturn(response);
+        //when
+        TossPaymentConfirmResponse tossPaymentConfirmResponse = orderIntegrationService.confirmOrderPayment(1L, "paymentKey", 1000L);
+        //then
+        assertThat(tossPaymentConfirmResponse)
+                .extracting(TossPaymentConfirmResponse::getPaymentKey, TossPaymentConfirmResponse::getOrderId,
+                        TossPaymentConfirmResponse::getTotalAmount, TossPaymentConfirmResponse::getStatus)
+                .containsExactly("paymentKey", 1L, 1000L, "DONE");
     }
 
     private OrderProductResponse createProductResponse(Long productId, Long productVariantId,

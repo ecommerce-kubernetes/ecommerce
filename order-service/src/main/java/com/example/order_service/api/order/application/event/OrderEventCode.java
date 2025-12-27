@@ -1,5 +1,6 @@
 package com.example.order_service.api.order.application.event;
 
+import com.example.order_service.api.common.exception.PaymentErrorCode;
 import com.example.order_service.api.order.domain.model.OrderFailureCode;
 import lombok.RequiredArgsConstructor;
 
@@ -12,6 +13,8 @@ public enum OrderEventCode {
     TIMEOUT("주문 시간 초과"),
     COUPON_EXPIRED("만료된 쿠폰"),
     PAYMENT_AUTHORIZED_FAILED("결제 승인 실패"),
+    INVALID_ORDER_STATUS("주문 상태 불일치"),
+    INSUFFICIENT_BALANCE("결제 금액 부족"),
     SYSTEM_ERROR("시스템 에러");
 
     private final String name;
@@ -23,6 +26,14 @@ public enum OrderEventCode {
             case COUPON_EXPIRED -> COUPON_EXPIRED;
             case TIMEOUT -> TIMEOUT;
             default -> SYSTEM_ERROR;
+        };
+    }
+
+    public static OrderEventCode from(PaymentErrorCode paymentErrorCode) {
+        return switch (paymentErrorCode) {
+            case INVALID_STATUS -> INVALID_ORDER_STATUS;
+            case APPROVAL_FAIL -> PAYMENT_AUTHORIZED_FAILED;
+            case INSUFFICIENT_BALANCE -> INSUFFICIENT_BALANCE;
         };
     }
 }

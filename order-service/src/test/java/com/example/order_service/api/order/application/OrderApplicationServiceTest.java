@@ -1,15 +1,14 @@
 package com.example.order_service.api.order.application;
 
+import com.example.order_service.api.common.exception.PaymentErrorCode;
 import com.example.order_service.api.common.exception.PaymentException;
 import com.example.order_service.api.common.security.model.UserRole;
 import com.example.order_service.api.common.security.principal.UserPrincipal;
 import com.example.order_service.api.order.application.dto.command.CreateOrderDto;
 import com.example.order_service.api.order.application.dto.command.CreateOrderItemDto;
 import com.example.order_service.api.order.application.dto.result.CreateOrderResponse;
-import com.example.order_service.api.order.application.event.OrderCreatedEvent;
-import com.example.order_service.api.order.application.event.OrderEventCode;
-import com.example.order_service.api.order.application.event.OrderResultEvent;
-import com.example.order_service.api.order.application.event.OrderEventStatus;
+import com.example.order_service.api.order.application.dto.result.OrderResponse;
+import com.example.order_service.api.order.application.event.*;
 import com.example.order_service.api.order.domain.model.OrderFailureCode;
 import com.example.order_service.api.order.domain.model.OrderStatus;
 import com.example.order_service.api.order.domain.model.vo.AppliedCoupon;
@@ -21,6 +20,7 @@ import com.example.order_service.api.order.domain.service.dto.result.OrderDto;
 import com.example.order_service.api.order.domain.service.dto.result.OrderItemDto;
 import com.example.order_service.api.order.infrastructure.OrderIntegrationService;
 import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponCalcResponse;
+import com.example.order_service.api.order.infrastructure.client.payment.dto.TossPaymentConfirmResponse;
 import com.example.order_service.api.order.infrastructure.client.product.dto.OrderProductResponse;
 import com.example.order_service.api.order.infrastructure.client.user.dto.OrderUserResponse;
 import org.junit.jupiter.api.DisplayName;
@@ -39,6 +39,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -185,7 +186,7 @@ public class OrderApplicationServiceTest {
     }
 
     @Test
-    @DisplayName("")
+    @DisplayName("결제가 승인되면 결제 승인 이벤트를 발행하고 응답을 반환한다")
     void confirmOrder(){
         //given
         OrderItemDto savedProduct1 = createOrderItemDto(1L, 1L, "상품1", "http://thumbnail1.jpg", 3, 3000L, 10,
@@ -196,8 +197,37 @@ public class OrderApplicationServiceTest {
         PaymentInfo paymentInfo = createPaymentInfo(34000, 3400, 1000, 1000, 28600);
         OrderDto orderDto = createOrderDto(1L, OrderStatus.PAYMENT_WAITING, "상품1 외 1건", "서울시 테헤란로 123", paymentInfo, List.of(savedProduct1, savedProduct2), appliedCoupon,
                 null);
+        OrderDto completeOrderDto = createOrderDto(1L, OrderStatus.COMPLETED, "상품1 외 1건", "서울시 테헤란로 123", paymentInfo, List.of(savedProduct1, savedProduct2), appliedCoupon,
+                null);
+        TossPaymentConfirmResponse paymentConfirmResponse = TossPaymentConfirmResponse.builder()
+                .paymentKey("paymentKey")
+                .orderId(1L)
+                .totalAmount(28600L)
+                .status("DONE").build();
+
+        given(orderDomainService.getOrder(anyLong()))
+                .willReturn(orderDto);
+        given(orderIntegrationService.confirmOrderPayment(anyLong(), anyString(), anyLong()))
+                .willReturn(paymentConfirmResponse);
+        given(orderDomainService.changeOrderStatus(anyLong(), any(OrderStatus.class)))
+                .willReturn(completeOrderDto);
         //when
+        OrderResponse orderResponse = orderApplicationService.confirmOrder(1L, "paymentKey");
         //then
+        assertThat(orderResponse)
+                .extracting(OrderResponse::getOrderId, OrderResponse::getUserId, OrderResponse::getOrderStatus, OrderResponse::getOrderName,
+                        OrderResponse::getDeliveryAddress)
+                .containsExactly(1L, 1L, "COMPLETED", "상품1 외 1건", "서울시 테헤란로 123");
+
+        assertThat(orderResponse.getOrderItems()).isNotEmpty();
+
+        ArgumentCaptor<PaymentResultEvent> paymentCaptor = ArgumentCaptor.forClass(PaymentResultEvent.class);
+        verify(eventPublisher, times(1)).publishEvent(paymentCaptor.capture());
+
+        assertThat(paymentCaptor.getValue())
+                .extracting(PaymentResultEvent::getOrderId, PaymentResultEvent::getStatus, PaymentResultEvent::getCode)
+                .containsExactly(1L, OrderEventStatus.SUCCESS, OrderEventCode.PAYMENT_AUTHORIZED);
+        assertThat(paymentCaptor.getValue().getFailureReason()).isNull();
     }
 
     @Test
@@ -220,6 +250,35 @@ public class OrderApplicationServiceTest {
         assertThatThrownBy(() -> orderApplicationService.confirmOrder(1L, "paymentKey"))
                 .isInstanceOf(PaymentException.class)
                 .hasMessage("주문이 결제 가능한 상태가 아닙니다");
+    }
+
+    @Test
+    @DisplayName("결제를 승인할때 결제 승인이 실패한 경우 이벤트를 발행하고 예외를 그대로 던진다")
+    void confirmOrder_when_payment_fail(){
+        //given
+        OrderItemDto savedProduct1 = createOrderItemDto(1L, 1L, "상품1", "http://thumbnail1.jpg", 3, 3000L, 10,
+                List.of(OrderItemDto.ItemOptionDto.builder().optionTypeName("사이즈").optionValueName("XL").build()));
+        OrderItemDto savedProduct2 = createOrderItemDto(2L, 2L, "상품2", "http://thumbnail1.jpg", 5, 5000L, 10,
+                List.of(OrderItemDto.ItemOptionDto.builder().optionTypeName("용량").optionValueName("256GB").build()));
+        AppliedCoupon appliedCoupon = createAppliedCoupon(1L, "1000원 할인 쿠폰");
+        PaymentInfo paymentInfo = createPaymentInfo(34000, 3400, 1000, 1000, 28600);
+        OrderDto orderDto = createOrderDto(1L, OrderStatus.PAYMENT_WAITING, "상품1 외 1건", "서울시 테헤란로 123", paymentInfo, List.of(savedProduct1, savedProduct2), appliedCoupon,
+                null);
+        given(orderDomainService.getOrder(anyLong()))
+                .willReturn(orderDto);
+        willThrow(new PaymentException("결제 승인이 실패했습니다", PaymentErrorCode.APPROVAL_FAIL))
+                .given(orderIntegrationService).confirmOrderPayment(anyLong(), anyString(), anyLong());
+        //when
+        //then
+        assertThatThrownBy(() -> orderApplicationService.confirmOrder(1L, "paymentKey"))
+                .isInstanceOf(PaymentException.class)
+                .hasMessage("결제 승인이 실패했습니다");
+
+        ArgumentCaptor<PaymentResultEvent> paymentCaptor = ArgumentCaptor.forClass(PaymentResultEvent.class);
+        verify(eventPublisher, times(1)).publishEvent(paymentCaptor.capture());
+        assertThat(paymentCaptor.getValue())
+                .extracting(PaymentResultEvent::getOrderId, PaymentResultEvent::getStatus, PaymentResultEvent::getCode, PaymentResultEvent::getFailureReason)
+                .containsExactly(1L, OrderEventStatus.FAILURE, OrderEventCode.PAYMENT_AUTHORIZED_FAILED, "결제 승인이 실패했습니다");
     }
 
     private CreateOrderDto createOrderDto(UserPrincipal userPrincipal, String deliveryAddress, Long couponId, Long pointToUse,
