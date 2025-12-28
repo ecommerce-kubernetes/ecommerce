@@ -33,6 +33,11 @@ swagger:
   allowed-origins:
     - "http://localhost:8000"
 
+payment:
+  toss:
+    url: https://api.tosspayments.com
+    secret-key: secretKey
+
 order:
   topics:
     # 발행

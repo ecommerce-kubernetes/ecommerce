@@ -8,10 +8,14 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface OrderSagaInstanceRepository extends JpaRepository<OrderSagaInstance, Long> {
 
     @Query("select os from OrderSagaInstance os where os.startedAt < :startedAt and os.sagaStatus = :sagaStatus")
     List<OrderSagaInstance> findByStartedAtBeforeAndSagaStatus(@Param("startedAt") LocalDateTime startedAt,
                                                                @Param("sagaStatus") SagaStatus status);
+
+    @Query("select os from OrderSagaInstance os where os.orderId = :orderId")
+    Optional<OrderSagaInstance> findByOrderId(@Param("orderId") Long orderId);
 }

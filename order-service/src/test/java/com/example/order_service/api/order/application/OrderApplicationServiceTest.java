@@ -1,5 +1,6 @@
 package com.example.order_service.api.order.application;
 
+import com.example.order_service.api.common.exception.OrderVerificationException;
 import com.example.order_service.api.common.exception.PaymentErrorCode;
 import com.example.order_service.api.common.exception.PaymentException;
 import com.example.order_service.api.common.security.model.UserRole;
@@ -186,7 +187,7 @@ public class OrderApplicationServiceTest {
     }
 
     @Test
-    @DisplayName("결제가 승인되면 결제 승인 이벤트를 발행하고 응답을 반환한다")
+    @DisplayName("결제가 승인되면 주문상태를 성공으로 변경, 결제 승인 이벤트를 발행하고 응답을 반환한다")
     void confirmOrder(){
         //given
         OrderItemDto savedProduct1 = createOrderItemDto(1L, 1L, "상품1", "http://thumbnail1.jpg", 3, 3000L, 10,
@@ -214,6 +215,7 @@ public class OrderApplicationServiceTest {
         //when
         OrderResponse orderResponse = orderApplicationService.confirmOrder(1L, "paymentKey");
         //then
+        verify(orderDomainService, times(1)).changeOrderStatus(1L, OrderStatus.COMPLETED);
         assertThat(orderResponse)
                 .extracting(OrderResponse::getOrderId, OrderResponse::getUserId, OrderResponse::getOrderStatus, OrderResponse::getOrderName,
                         OrderResponse::getDeliveryAddress)
@@ -248,12 +250,12 @@ public class OrderApplicationServiceTest {
         //when
         //then
         assertThatThrownBy(() -> orderApplicationService.confirmOrder(1L, "paymentKey"))
-                .isInstanceOf(PaymentException.class)
-                .hasMessage("주문이 결제 가능한 상태가 아닙니다");
+                .isInstanceOf(OrderVerificationException.class)
+                .hasMessage("결제 가능한 주문이 아닙니다");
     }
 
     @Test
-    @DisplayName("결제를 승인할때 결제 승인이 실패한 경우 이벤트를 발행하고 예외를 그대로 던진다")
+    @DisplayName("결제를 승인할때 결제 승인이 실패한 경우 주문을 실패 처리, 주문 실패 이벤트를 발행하고 예외를 그대로 던진다")
     void confirmOrder_when_payment_fail(){
         //given
         OrderItemDto savedProduct1 = createOrderItemDto(1L, 1L, "상품1", "http://thumbnail1.jpg", 3, 3000L, 10,
@@ -262,17 +264,23 @@ public class OrderApplicationServiceTest {
                 List.of(OrderItemDto.ItemOptionDto.builder().optionTypeName("용량").optionValueName("256GB").build()));
         AppliedCoupon appliedCoupon = createAppliedCoupon(1L, "1000원 할인 쿠폰");
         PaymentInfo paymentInfo = createPaymentInfo(34000, 3400, 1000, 1000, 28600);
-        OrderDto orderDto = createOrderDto(1L, OrderStatus.PAYMENT_WAITING, "상품1 외 1건", "서울시 테헤란로 123", paymentInfo, List.of(savedProduct1, savedProduct2), appliedCoupon,
+        OrderDto paymentWaitingOrder = createOrderDto(1L, OrderStatus.PAYMENT_WAITING, "상품1 외 1건", "서울시 테헤란로 123", paymentInfo, List.of(savedProduct1, savedProduct2), appliedCoupon,
                 null);
+        OrderDto failureOrder = createOrderDto(1L, OrderStatus.CANCELED, "상품1 외 1건", "서울시 테헤란로 123",
+                paymentInfo, List.of(savedProduct1, savedProduct2), appliedCoupon, OrderFailureCode.PAYMENT_FAILED);
         given(orderDomainService.getOrder(anyLong()))
-                .willReturn(orderDto);
+                .willReturn(paymentWaitingOrder);
         willThrow(new PaymentException("결제 승인이 실패했습니다", PaymentErrorCode.APPROVAL_FAIL))
                 .given(orderIntegrationService).confirmOrderPayment(anyLong(), anyString(), anyLong());
+        given(orderDomainService.changeCanceled(anyLong(), any(OrderFailureCode.class)))
+                .willReturn(failureOrder);
         //when
         //then
         assertThatThrownBy(() -> orderApplicationService.confirmOrder(1L, "paymentKey"))
                 .isInstanceOf(PaymentException.class)
                 .hasMessage("결제 승인이 실패했습니다");
+
+        verify(orderDomainService, times(1)).changeCanceled(1L, OrderFailureCode.PAYMENT_FAILED);
 
         ArgumentCaptor<PaymentResultEvent> paymentCaptor = ArgumentCaptor.forClass(PaymentResultEvent.class);
         verify(eventPublisher, times(1)).publishEvent(paymentCaptor.capture());

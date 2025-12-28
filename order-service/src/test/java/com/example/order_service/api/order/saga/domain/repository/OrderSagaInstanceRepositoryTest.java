@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
@@ -50,5 +51,29 @@ public class OrderSagaInstanceRepositoryTest extends ExcludeInfraTest {
                 .containsExactly(
                         tuple(save1.getId(), save1.getSagaStatus())
                 );
+    }
+
+    @Test
+    @DisplayName("주문 아이디로 사가 인스턴스를 조회한다")
+    void findByOrderId(){
+        //given
+        Long orderId = 1L;
+        Payload payload = Payload.builder()
+                .userId(1L)
+                .sagaItems(List.of(Payload.SagaItem.builder().productVariantId(1L).quantity(3).build()))
+                .couponId(1L)
+                .useToPoint(1000L)
+                .build();
+        OrderSagaInstance sagaInstance = OrderSagaInstance.create(orderId, payload, SagaStep.PRODUCT);
+        OrderSagaInstance save = orderSagaInstanceRepository.save(sagaInstance);
+        //when
+        Optional<OrderSagaInstance> findSaga = orderSagaInstanceRepository.findByOrderId(orderId);
+        //then
+        assertThat(findSaga).isNotEmpty();
+        assertThat(findSaga.get())
+                .extracting(OrderSagaInstance::getId, OrderSagaInstance::getOrderId, OrderSagaInstance::getSagaStatus,
+                        OrderSagaInstance::getSagaStep)
+                .containsExactly(save.getId(), 1L, SagaStatus.STARTED,
+                        SagaStep.PRODUCT);
     }
 }

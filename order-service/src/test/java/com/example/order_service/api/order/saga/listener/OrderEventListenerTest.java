@@ -2,8 +2,12 @@ package com.example.order_service.api.order.saga.listener;
 
 import com.example.order_service.api.order.application.OrderApplicationService;
 import com.example.order_service.api.order.application.event.OrderCreatedEvent;
+import com.example.order_service.api.order.application.event.OrderEventCode;
+import com.example.order_service.api.order.application.event.OrderEventStatus;
+import com.example.order_service.api.order.application.event.PaymentResultEvent;
 import com.example.order_service.api.order.domain.model.OrderFailureCode;
 import com.example.order_service.api.order.saga.orchestrator.SagaManager;
+import com.example.order_service.api.order.saga.orchestrator.dto.command.SagaPaymentCommand;
 import com.example.order_service.api.order.saga.orchestrator.dto.command.SagaStartCommand;
 import com.example.order_service.api.order.saga.orchestrator.event.SagaAbortEvent;
 import com.example.order_service.api.order.saga.orchestrator.event.SagaResourceSecuredEvent;
@@ -93,5 +97,22 @@ public class OrderEventListenerTest {
         orderEventListener.handleSagaAborted(sagaAbortEvent);
         //then
         verify(orderApplicationService, times(1)).changeCanceled(orderId, OrderFailureCode.OUT_OF_STOCK);
+    }
+
+    @Test
+    @DisplayName("결제 처리 후 Saga를 완료하기 위해 sagaManager를 호출한다")
+    void handlePaymentResult(){
+        //given
+        PaymentResultEvent paymentResultEvent = PaymentResultEvent.of(1L, OrderEventStatus.SUCCESS, OrderEventCode.PAYMENT_AUTHORIZED, null);
+        //when
+        orderEventListener.handlePaymentResult(paymentResultEvent);
+        //then
+        ArgumentCaptor<SagaPaymentCommand> captor = ArgumentCaptor.forClass(SagaPaymentCommand.class);
+        verify(sagaManager, times(1)).processPaymentResult(captor.capture());
+
+        assertThat(captor.getValue())
+                .extracting(SagaPaymentCommand::getOrderId, SagaPaymentCommand::getStatus, SagaPaymentCommand::getCode,
+                        SagaPaymentCommand::getFailureReason)
+                .containsExactly(1L, OrderEventStatus.SUCCESS, OrderEventCode.PAYMENT_AUTHORIZED, null);
     }
 }

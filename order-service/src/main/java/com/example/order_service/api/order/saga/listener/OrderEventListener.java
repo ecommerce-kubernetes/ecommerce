@@ -2,7 +2,9 @@ package com.example.order_service.api.order.saga.listener;
 
 import com.example.order_service.api.order.application.OrderApplicationService;
 import com.example.order_service.api.order.application.event.OrderCreatedEvent;
+import com.example.order_service.api.order.application.event.PaymentResultEvent;
 import com.example.order_service.api.order.saga.orchestrator.SagaManager;
+import com.example.order_service.api.order.saga.orchestrator.dto.command.SagaPaymentCommand;
 import com.example.order_service.api.order.saga.orchestrator.dto.command.SagaStartCommand;
 import com.example.order_service.api.order.saga.orchestrator.event.SagaAbortEvent;
 import com.example.order_service.api.order.saga.orchestrator.event.SagaResourceSecuredEvent;
@@ -21,6 +23,12 @@ public class OrderEventListener {
     public void handleOrderCreated(OrderCreatedEvent event) {
         SagaStartCommand command = SagaStartCommand.from(event);
         sagaManager.startSaga(command);
+    }
+
+    @EventListener
+    public void handlePaymentResult(PaymentResultEvent event) {
+        SagaPaymentCommand command = SagaPaymentCommand.from(event);
+        sagaManager.processPaymentResult(command);
     }
 
     @EventListener

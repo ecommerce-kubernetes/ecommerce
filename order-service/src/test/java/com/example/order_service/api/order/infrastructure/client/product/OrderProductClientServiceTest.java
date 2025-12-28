@@ -18,7 +18,7 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
 
-public class OrderProductClientTest extends ExcludeInfraTest {
+public class OrderProductClientServiceTest extends ExcludeInfraTest {
 
     @Autowired
     private OrderProductClientService orderProductClientService;

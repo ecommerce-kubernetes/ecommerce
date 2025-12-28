@@ -38,7 +38,9 @@ public class OrderSagaDomainService {
 
     @Transactional(readOnly = true)
     public SagaInstanceDto getSagaByOrderId(Long orderId) {
-        return null;
+        OrderSagaInstance sagaInstance = orderSagaInstanceRepository.findByOrderId(orderId)
+                .orElseThrow(() -> new NotFoundException("주문 SAGA 인스턴스를 찾을 수 없습니다"));
+        return SagaInstanceDto.from(sagaInstance);
     }
 
     public SagaInstanceDto proceedTo(Long sagaId, SagaStep sagaStep) {

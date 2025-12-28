@@ -1,89 +1,49 @@
 package com.example.order_service.api.order.infrastructure.client.payment;
 
-import com.example.order_service.api.common.exception.PaymentException;
-import com.example.order_service.api.common.exception.server.InternalServerException;
-import com.example.order_service.api.common.exception.server.UnavailableServiceException;
 import com.example.order_service.api.order.infrastructure.client.payment.dto.TossPaymentConfirmRequest;
-import com.example.order_service.api.order.infrastructure.client.payment.dto.TossPaymentConfirmResponse;
 import com.example.order_service.api.support.ExcludeInfraTest;
-import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.willThrow;
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 
+@AutoConfigureWireMock(port = 0)
 public class TossPaymentClientTest extends ExcludeInfraTest {
 
     @Autowired
-    private TossPaymentClientService tossPaymentClientService;
-    @MockitoBean
-    private TossPaymentClient tossPaymentClient;
+    private TossPaymentClient client;
+
+    @DynamicPropertySource
+    static void configureProperties (DynamicPropertyRegistry registry) {
+        registry.add("payment.toss.url", () -> "http://localhost:${wiremock.server.port}");
+    }
 
     @Test
-    @DisplayName("토스페이먼츠로 결제 승인을 요청한다")
-    void confirmPayment(){
+    @DisplayName("토스 페이먼츠에 결제 승인을 요청할때 헤더에 시크릿 키를 추가해야한다")
+    void confirmPayment_interceptor(){
         //given
-        TossPaymentConfirmResponse response = TossPaymentConfirmResponse.builder()
-                .paymentKey("paymentKey")
+        stubFor(post(urlMatching("/v1/payments/confirm"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("""
+                                { "status": "DONE", "method": "CARD" }
+                                """)));
+        TossPaymentConfirmRequest request = TossPaymentConfirmRequest
+                .builder()
                 .orderId(1L)
-                .totalAmount(10000L)
-                .status("DONE")
+                .paymentKey("paymentKey")
+                .amount(3000L)
                 .build();
-        given(tossPaymentClient.confirmPayment(any(TossPaymentConfirmRequest.class)))
-                .willReturn(response);
         //when
-        TossPaymentConfirmResponse result = tossPaymentClientService.confirmPayment(1L, "paymentKey", 10000L);
+        client.confirmPayment(request);
         //then
-        assertThat(result)
-                .extracting(TossPaymentConfirmResponse::getPaymentKey, TossPaymentConfirmResponse::getOrderId, TossPaymentConfirmResponse::getTotalAmount,
-                        TossPaymentConfirmResponse::getStatus)
-                .containsExactly("paymentKey", 1L, 10000L, "DONE");
-    }
 
-    @Test
-    @DisplayName("서킷브레이커가 열렸을때 결제 승인을 요청하면 예외를 던진다")
-    void confirmPayment_when_open_circuitbreaker(){
-        //given
-        willThrow(CallNotPermittedException.class)
-                .given(tossPaymentClient)
-                .confirmPayment(any(TossPaymentConfirmRequest.class));
-        //when
-        //then
-        assertThatThrownBy(() -> tossPaymentClientService.confirmPayment(1L, "paymentKey", 10000L))
-                .isInstanceOf(UnavailableServiceException.class)
-                .hasMessage("토스 페이먼츠 서비스가 응답하지 않습니다");
-    }
-
-    @Test
-    @DisplayName("결제 승인중 예외가 발생하면 그대로 예외를 던진다")
-    void confirmPayment_when_PaymentException(){
-        //given
-        willThrow(PaymentException.class)
-                .given(tossPaymentClient)
-                .confirmPayment(any(TossPaymentConfirmRequest.class));
-        //when
-        //then
-        assertThatThrownBy(() -> tossPaymentClientService.confirmPayment(1L, "paymentKey", 10000L))
-                .isInstanceOf(PaymentException.class);
-    }
-
-    @Test
-    @DisplayName("결제 승인중 알 수 없는 예외가 발생하면 예외를 던진다")
-    void confirmPayment_when_InternalServerError(){
-        //given
-        willThrow(new RuntimeException("쿠폰 서비스 오류 발생"))
-                .given(tossPaymentClient)
-                .confirmPayment(any(TossPaymentConfirmRequest.class));
-        //when
-        //then
-        assertThatThrownBy(() -> tossPaymentClientService.confirmPayment(1L, "paymentKey", 1000L))
-                .isInstanceOf(InternalServerException.class)
-                .hasMessage("토스 페이먼츠 서비스에서 오류가 발생했습니다");
+        verify(postRequestedFor(urlMatching("/v1/payments/confirm"))
+                .withHeader("Authorization", matching("Basic .*")));
     }
 }

@@ -1,6 +1,6 @@
 package com.example.order_service.api.order.application;
 
-import com.example.order_service.api.common.exception.PaymentErrorCode;
+import com.example.order_service.api.common.exception.OrderVerificationException;
 import com.example.order_service.api.common.exception.PaymentException;
 import com.example.order_service.api.order.application.dto.command.CreateOrderDto;
 import com.example.order_service.api.order.application.dto.result.CreateOrderResponse;
@@ -80,7 +80,7 @@ public class OrderApplicationService {
     public OrderResponse confirmOrder(Long orderId, String paymentKey) {
         OrderDto order = orderDomainService.getOrder(orderId);
         if (!order.getStatus().equals(OrderStatus.PAYMENT_WAITING)) {
-            throw new PaymentException("주문이 결제 가능한 상태가 아닙니다", PaymentErrorCode.INVALID_STATUS);
+            throw new OrderVerificationException("결제 가능한 주문이 아닙니다");
         }
 
         try {
@@ -88,12 +88,13 @@ public class OrderApplicationService {
             TossPaymentConfirmResponse paymentConfirm =
                     orderIntegrationService.confirmOrderPayment(order.getOrderId(), paymentKey, order.getPaymentInfo().getFinalPaymentAmount());
             OrderDto completeOrder = orderDomainService.changeOrderStatus(order.getOrderId(), OrderStatus.COMPLETED);
-            eventPublisher.publishEvent(PaymentResultEvent.of(order.getOrderId(), OrderEventStatus.SUCCESS,
+            eventPublisher.publishEvent(PaymentResultEvent.of(completeOrder.getOrderId(), OrderEventStatus.SUCCESS,
                     OrderEventCode.PAYMENT_AUTHORIZED, null));
             return OrderResponse.from(completeOrder);
         } catch (PaymentException e) {
-            eventPublisher.publishEvent(PaymentResultEvent.of(order.getOrderId(), OrderEventStatus.FAILURE,
-                    OrderEventCode.from(e.getErrorCode()) , e.getMessage()));
+            OrderDto canceledOrder = orderDomainService.changeCanceled(order.getOrderId(), OrderFailureCode.from(e.getErrorCode()));
+            eventPublisher.publishEvent(PaymentResultEvent.of(canceledOrder.getOrderId(), OrderEventStatus.FAILURE,
+                    OrderEventCode.from(canceledOrder.getOrderFailureCode()), e.getMessage()));
             throw e;
         }
     }

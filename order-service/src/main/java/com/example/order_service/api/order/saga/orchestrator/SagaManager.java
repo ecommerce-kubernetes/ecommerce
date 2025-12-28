@@ -164,7 +164,7 @@ public class SagaManager {
     }
 
     private SagaStep getNextStep(SagaStep currentStep, Payload payload) {
-        // 진행 흐름 : 재고 차감 -> 쿠폰 사용 -> 포인트 차감
+        // 진행 흐름 : 재고 차감 -> 쿠폰 사용 -> 포인트 차감 -> 결제
 
         // 현재 Step 이 null 이면 처음 단계인 재고 차감을 진행
         if (currentStep == null) return SagaStep.PRODUCT;
@@ -181,7 +181,7 @@ public class SagaManager {
                 if (payload.getUseToPoint() != null && payload.getUseToPoint() > 0) return SagaStep.USER;
                 return SagaStep.PAYMENT;
             case USER:
-                // 포인트 사용 다음 단계는 SAGA 완료
+                // 포인트 사용 다음 단계는 결제
                 return SagaStep.PAYMENT;
             case PAYMENT:
                 return null;
@@ -210,8 +210,9 @@ public class SagaManager {
     private void dispatchCompensationMessage(SagaInstanceDto saga) {
         switch (saga.getSagaStep()) {
             case USER:
-            // Step 이 USEr -> 유저 포인트 복구 메시지 발행
+            // Step 이 USER -> 유저 포인트 복구 메시지 발행
                 sagaEventProducer.requestUserPointCompensate(saga.getId(), saga.getOrderId(), saga.getPayload());
+                break;
             // Step 이 COUPON -> 쿠폰 복구 메시지 발행
             case COUPON:
                 sagaEventProducer.requestCouponCompensate(saga.getId(), saga.getOrderId(), saga.getPayload());

@@ -312,4 +312,37 @@ public class OrderSagaDomainServiceTest extends ExcludeInfraTest {
                         tuple(save1.getId(), save1.getSagaStatus())
                 );
     }
+
+    @Test
+    @DisplayName("주문 아이디로 사가 인스턴스를 조회한다")
+    void getSagaByOrderId(){
+        //given
+        Long orderId = 1L;
+        Payload payload = Payload.builder()
+                .userId(1L)
+                .sagaItems(List.of(Payload.SagaItem.builder().productVariantId(1L).quantity(3).build()))
+                .couponId(1L)
+                .useToPoint(1000L)
+                .build();
+        OrderSagaInstance sagaInstance = OrderSagaInstance.create(orderId, payload, SagaStep.PRODUCT);
+        OrderSagaInstance save = orderSagaInstanceRepository.save(sagaInstance);
+        //when
+        SagaInstanceDto result = orderSagaDomainService.getSagaByOrderId(orderId);
+        //then
+        assertThat(result)
+                .extracting(SagaInstanceDto::getId, SagaInstanceDto::getOrderId,
+                        SagaInstanceDto::getSagaStatus, SagaInstanceDto::getSagaStep)
+                .containsExactly(save.getId(), orderId, SagaStatus.STARTED, SagaStep.PRODUCT);
+    }
+
+    @Test
+    @DisplayName("주문 아이디로 사가 인스턴스를 조회할때 찾을 수 없는 경우 예외를 던진다")
+    void getSagaByOrderId_notFound(){
+        //given
+        //when
+        //then
+        assertThatThrownBy(() -> orderSagaDomainService.getSagaByOrderId(999L))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage("주문 SAGA 인스턴스를 찾을 수 없습니다");
+    }
 }

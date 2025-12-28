@@ -1,7 +1,8 @@
 package com.example.order_service.api.order.saga.orchestrator.dto.command;
 
-import com.example.order_service.api.order.application.event.OrderEventStatus;
 import com.example.order_service.api.order.application.event.OrderEventCode;
+import com.example.order_service.api.order.application.event.OrderEventStatus;
+import com.example.order_service.api.order.application.event.PaymentResultEvent;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -18,5 +19,14 @@ public class SagaPaymentCommand {
         this.status = status;
         this.code = code;
         this.failureReason = failureReason;
+    }
+
+    public static SagaPaymentCommand from(PaymentResultEvent event) {
+        return SagaPaymentCommand.builder()
+                .orderId(event.getOrderId())
+                .status(event.getStatus())
+                .code(event.getCode())
+                .failureReason(event.getFailureReason())
+                .build();
     }
 }

@@ -18,7 +18,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
 
-public class OrderCouponClientTest extends ExcludeInfraTest {
+public class OrderCouponClientServiceTest extends ExcludeInfraTest {
 
     @Autowired
     private OrderCouponClientService orderCouponClientService;
