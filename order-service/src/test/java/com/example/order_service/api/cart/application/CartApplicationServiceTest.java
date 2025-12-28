@@ -371,6 +371,18 @@ public class CartApplicationServiceTest {
                         .contains(null, null, "정보를 불러올 수 없거나 판매 중지된 상품입니다", null, 1, 0L, false, null, null);
     }
 
+    @Test
+    @DisplayName("결제가 완료하면 주문한 상품을 장바구니에서 지운다")
+    void cleanUpCartAfterOrder(){
+        //given
+        Long userId = 1L;
+        List<Long> productVariantIds = List.of(1L, 2L);
+        //when
+        cartApplicationService.cleanUpCartAfterOrder(userId, productVariantIds);
+        //then
+        verify(cartDomainService, times(1)).deleteByProductVariantIds(userId, productVariantIds);
+    }
+
     private UserPrincipal createUserPrincipal(Long userId, UserRole userRole){
         return UserPrincipal.builder()
                 .userId(userId)

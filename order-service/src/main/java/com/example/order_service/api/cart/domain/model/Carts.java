@@ -57,9 +57,11 @@ public class Carts extends BaseEntity {
         }
     }
 
-    public void removeCartItem(CartItems cartItem){
-        cartItems.remove(cartItem);
-        cartItem.setCart(null);
+    public void deleteItemByProductVariantIds(List<Long> productVariantIds) {
+        List<CartItems> items = cartItems.stream()
+                .filter(item -> productVariantIds.contains(item.getProductVariantId())).toList();
+        items.forEach(item -> item.setCart(null));
+        this.cartItems.removeAll(items);
     }
 
     public static Carts of(Long userId){

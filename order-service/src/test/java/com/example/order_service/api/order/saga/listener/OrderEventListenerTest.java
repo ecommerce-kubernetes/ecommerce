@@ -103,7 +103,8 @@ public class OrderEventListenerTest {
     @DisplayName("결제 처리 후 Saga를 완료하기 위해 sagaManager를 호출한다")
     void handlePaymentResult(){
         //given
-        PaymentResultEvent paymentResultEvent = PaymentResultEvent.of(1L, OrderEventStatus.SUCCESS, OrderEventCode.PAYMENT_AUTHORIZED, null);
+        PaymentResultEvent paymentResultEvent = PaymentResultEvent.of(1L, 1L, OrderEventStatus.SUCCESS, OrderEventCode.PAYMENT_AUTHORIZED,
+                List.of(1L, 2L), null);
         //when
         orderEventListener.handlePaymentResult(paymentResultEvent);
         //then

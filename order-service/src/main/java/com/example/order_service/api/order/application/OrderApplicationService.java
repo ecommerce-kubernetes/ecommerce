@@ -15,6 +15,7 @@ import com.example.order_service.api.order.domain.service.dto.command.OrderCreat
 import com.example.order_service.api.order.domain.service.dto.command.OrderItemSpec;
 import com.example.order_service.api.order.domain.service.dto.result.ItemCalculationResult;
 import com.example.order_service.api.order.domain.service.dto.result.OrderDto;
+import com.example.order_service.api.order.domain.service.dto.result.OrderItemDto;
 import com.example.order_service.api.order.infrastructure.OrderIntegrationService;
 import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponCalcResponse;
 import com.example.order_service.api.order.infrastructure.client.payment.dto.TossPaymentConfirmResponse;
@@ -88,13 +89,14 @@ public class OrderApplicationService {
             TossPaymentConfirmResponse paymentConfirm =
                     orderIntegrationService.confirmOrderPayment(order.getOrderId(), paymentKey, order.getPaymentInfo().getFinalPaymentAmount());
             OrderDto completeOrder = orderDomainService.changeOrderStatus(order.getOrderId(), OrderStatus.COMPLETED);
-            eventPublisher.publishEvent(PaymentResultEvent.of(completeOrder.getOrderId(), OrderEventStatus.SUCCESS,
-                    OrderEventCode.PAYMENT_AUTHORIZED, null));
+            List<Long> productVariantIds = completeOrder.getOrderItemDtoList().stream().map(OrderItemDto::getProductVariantId).toList();
+            eventPublisher.publishEvent(PaymentResultEvent.of(completeOrder.getOrderId(), completeOrder.getUserId(), OrderEventStatus.SUCCESS,
+                    OrderEventCode.PAYMENT_AUTHORIZED, productVariantIds, null));
             return OrderResponse.from(completeOrder);
         } catch (PaymentException e) {
             OrderDto canceledOrder = orderDomainService.changeCanceled(order.getOrderId(), OrderFailureCode.from(e.getErrorCode()));
-            eventPublisher.publishEvent(PaymentResultEvent.of(canceledOrder.getOrderId(), OrderEventStatus.FAILURE,
-                    OrderEventCode.from(canceledOrder.getOrderFailureCode()), e.getMessage()));
+            eventPublisher.publishEvent(PaymentResultEvent.of(canceledOrder.getOrderId(), canceledOrder.getUserId(), OrderEventStatus.FAILURE,
+                    OrderEventCode.from(canceledOrder.getOrderFailureCode()), null, e.getMessage()));
             throw e;
         }
     }

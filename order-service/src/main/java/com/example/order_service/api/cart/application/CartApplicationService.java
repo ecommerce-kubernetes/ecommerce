@@ -63,6 +63,10 @@ public class CartApplicationService {
         }
     }
 
+    public void cleanUpCartAfterOrder(Long userId, List<Long> productVariantIds) {
+        cartDomainService.deleteByProductVariantIds(userId, productVariantIds);
+    }
+
     private CartResponse fetchInfoAndMapToCartResponse(List<CartItemDto> cartItems){
         List<Long> productVariantIds = getProductVariantId(cartItems);
         List<CartProductResponse> products = cartProductClientService.getProducts(productVariantIds);

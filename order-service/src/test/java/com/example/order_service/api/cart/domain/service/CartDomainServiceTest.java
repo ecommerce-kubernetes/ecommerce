@@ -288,4 +288,36 @@ class CartDomainServiceTest extends ExcludeInfraTest {
         assertThat(cartItemDto.getId()).isEqualTo(item.getId());
         assertThat(cartItemDto.getQuantity()).isEqualTo(5);
     }
+
+    @Test
+    @DisplayName("상품 변형 Id로 장바구니에 있는 상품을 삭제한다")
+    void deleteByProductVariantIds(){
+        //given
+        Carts cart = Carts.builder()
+                .userId(1L)
+                .build();
+
+        CartItems item1 = CartItems.builder()
+                .productVariantId(1L)
+                .quantity(3)
+                .build();
+
+        CartItems item2 = CartItems.builder()
+                .productVariantId(2L)
+                .quantity(5)
+                .build();
+
+        cart.addCartItem(item1);
+        cart.addCartItem(item2);
+        cartsRepository.save(cart);
+        //when
+        cartDomainService.deleteByProductVariantIds(1L, List.of(1L));
+        //then
+        Optional<Carts> findCart = cartsRepository.findWithItemsByUserId(1L);
+        assertThat(findCart).isNotEmpty();
+        assertThat(findCart.get().getCartItems()).hasSize(1);
+        assertThat(findCart.get().getCartItems())
+                .extracting(CartItems::getProductVariantId)
+                .containsExactly(2L);
+    }
 }
