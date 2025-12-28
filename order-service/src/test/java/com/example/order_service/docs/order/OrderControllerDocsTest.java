@@ -1,5 +1,7 @@
 package com.example.order_service.docs.order;
 
+import com.example.order_service.api.common.security.model.UserRole;
+import com.example.order_service.api.common.security.principal.UserPrincipal;
 import com.example.order_service.api.common.util.DomainType;
 import com.example.order_service.api.common.util.validator.OrderPageableValidator;
 import com.example.order_service.api.common.util.validator.PageableValidatorFactory;
@@ -30,6 +32,7 @@ import static org.springframework.restdocs.headers.HeaderDocumentation.requestHe
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
 import static org.springframework.restdocs.payload.PayloadDocumentation.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -181,6 +184,65 @@ public class OrderControllerDocsTest extends RestDocSupport {
     }
 
     @Test
+    @DisplayName("주문 정보를 조회한다")
+    void getOrder() throws Exception {
+        //given
+        Long orderId = 1L;
+        OrderResponse orderResponse = createOrderResponse(orderId);
+        HttpHeaders roleUser = createUserHeader("ROLE_USER");
+        given(orderApplicationService.getOrder(any(UserPrincipal.class), anyLong()))
+                .willReturn(orderResponse);
+        //when
+        //then
+        mockMvc.perform(get("/orders/{orderId}", 1L)
+                .contentType(MediaType.APPLICATION_JSON)
+                .headers(roleUser))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(
+                        document("get-order",
+                                preprocessResponse(prettyPrint()),
+                                requestHeaders(
+                                        headerWithName("X-User-Id").description(USER_ID_HEADER_DESCRIPTION).optional(),
+                                        headerWithName("X-User-Role").description(USER_ROLE_HEADER_DESCRIPTION).optional()
+                                ),
+                                responseFields(
+                                        fieldWithPath("orderId").description("주문 ID"),
+                                        fieldWithPath("userId").description("유저 ID"),
+                                        fieldWithPath("orderStatus").description("주문 상태"),
+                                        fieldWithPath("orderName").description("주문 이름"),
+                                        fieldWithPath("deliveryAddress").description("배송지"),
+                                        fieldWithPath("createdAt").description("주문 시각"),
+
+                                        fieldWithPath("paymentResponse.totalOriginPrice").description("할인 전 주문 금액"),
+                                        fieldWithPath("paymentResponse.totalProductDiscount").description("상품 총 할인 금액"),
+                                        fieldWithPath("paymentResponse.couponDiscount").description("쿠폰 할인 금액"),
+                                        fieldWithPath("paymentResponse.pointDiscount").description("포인트 할인 금액"),
+                                        fieldWithPath("paymentResponse.finalPaymentAmount").description("최종 주문 금액"),
+
+                                        fieldWithPath("couponResponse.couponId").description("사용 쿠폰 ID"),
+                                        fieldWithPath("couponResponse.couponName").description("쿠폰 이름"),
+                                        fieldWithPath("couponResponse.couponDiscount").description("쿠폰 할인 금액"),
+
+                                        fieldWithPath("orderItems[].productId").description("주문 상품 ID(상품(Product) 식별자)"),
+                                        fieldWithPath("orderItems[].productVariantId").description("주문 상품 변형 ID"),
+                                        fieldWithPath("orderItems[].productName").description("주문 상품 이름"),
+                                        fieldWithPath("orderItems[].thumbNailUrl").description("주문 상품 썸네일"),
+                                        fieldWithPath("orderItems[].quantity").description("주문 수량"),
+                                        fieldWithPath("orderItems[].unitPrice.originalPrice").description("주문 상품 원본 가격"),
+                                        fieldWithPath("orderItems[].unitPrice.discountRate").description("상품 할인율"),
+                                        fieldWithPath("orderItems[].unitPrice.discountAmount").description("상품 할인 금액"),
+                                        fieldWithPath("orderItems[].unitPrice.discountedPrice").description("할인된 가격"),
+                                        fieldWithPath("orderItems[].lineTotal").description("주문 항목 총액"),
+                                        fieldWithPath("orderItems[].options[].optionTypeName").description("주문 상품 옵션 타입 (예: 사이즈)"),
+                                        fieldWithPath("orderItems[].options[].optionValueName").description("주문 상품 옵션 값 (예: XL)")
+                                )
+                        )
+                );
+
+    }
+
+    @Test
     @DisplayName("주문 목록 조회 API")
     void getOrders() throws Exception {
         //given
@@ -291,7 +353,9 @@ public class OrderControllerDocsTest extends RestDocSupport {
                                         )
                                         .build()
                         )
-                ).build();
+                )
+                .createdAt(LocalDateTime.now())
+                .build();
 
     }
 

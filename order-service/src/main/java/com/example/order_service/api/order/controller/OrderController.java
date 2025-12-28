@@ -40,6 +40,12 @@ public class OrderController {
         return ResponseEntity.status(HttpStatus.SC_ACCEPTED).body(response);
     }
 
+    @GetMapping("/{orderId}")
+    public ResponseEntity<OrderResponse> getOrder(@AuthenticationPrincipal UserPrincipal userPrincipal, @PathVariable("orderId") Long orderId) {
+        OrderResponse response = orderApplicationService.getOrder(userPrincipal, orderId);
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping
     public ResponseEntity<PageDto<OrderResponse>> getOrders(@RequestHeader("X-User-Id") Long userId,
                                                                        @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.ASC) Pageable pageable,

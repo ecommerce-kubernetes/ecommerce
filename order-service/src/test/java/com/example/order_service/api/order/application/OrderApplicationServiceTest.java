@@ -1,5 +1,6 @@
 package com.example.order_service.api.order.application;
 
+import com.example.order_service.api.common.exception.NoPermissionException;
 import com.example.order_service.api.common.exception.OrderVerificationException;
 import com.example.order_service.api.common.exception.PaymentErrorCode;
 import com.example.order_service.api.common.exception.PaymentException;
@@ -8,6 +9,7 @@ import com.example.order_service.api.common.security.principal.UserPrincipal;
 import com.example.order_service.api.order.application.dto.command.CreateOrderDto;
 import com.example.order_service.api.order.application.dto.command.CreateOrderItemDto;
 import com.example.order_service.api.order.application.dto.result.CreateOrderResponse;
+import com.example.order_service.api.order.application.dto.result.OrderItemResponse;
 import com.example.order_service.api.order.application.dto.result.OrderResponse;
 import com.example.order_service.api.order.application.event.*;
 import com.example.order_service.api.order.domain.model.OrderFailureCode;
@@ -88,7 +90,7 @@ public class OrderApplicationServiceTest {
                 List.of(OrderItemDto.ItemOptionDto.builder().optionTypeName("사이즈").optionValueName("XL").build()));
         OrderItemDto savedProduct2 = createOrderItemDto(2L, 2L, "상품2", "http://thumbnail1.jpg", 5, 5000L, 10,
                 List.of(OrderItemDto.ItemOptionDto.builder().optionTypeName("용량").optionValueName("256GB").build()));
-        AppliedCoupon appliedCoupon = createAppliedCoupon(1L, "1000원 할인 쿠폰");
+        AppliedCoupon appliedCoupon = createAppliedCoupon(1L, "1000원 할인 쿠폰", 1000L);
         PaymentInfo paymentInfo = createPaymentInfo(34000, 3400, 1000, 1000, 28600);
         OrderDto orderDto = createOrderDto(1L, OrderStatus.PENDING, "상품1 외 1건", "서울시 테헤란로 123", paymentInfo, List.of(savedProduct1, savedProduct2), appliedCoupon,
                 null);
@@ -105,7 +107,7 @@ public class OrderApplicationServiceTest {
         //then
         assertThat(response.getOrderId()).isNotNull();
         assertThat(response)
-                .extracting("status", "orderName", "finalPaymentAmount")
+                .extracting(CreateOrderResponse::getStatus, CreateOrderResponse::getOrderName, CreateOrderResponse::getFinalPaymentAmount)
                 .contains("PENDING", "상품1 외 1건", 28600L);
         assertThat(response.getCreateAt()).isNotNull();
 
@@ -114,7 +116,7 @@ public class OrderApplicationServiceTest {
 
         OrderCreatedEvent publishedEvent = captor.getValue();
         assertThat(publishedEvent)
-                .extracting("orderId", "userId", "couponId", "usedPoint")
+                .extracting(OrderCreatedEvent::getOrderId, OrderCreatedEvent::getUsedPoint, OrderCreatedEvent::getCouponId, OrderCreatedEvent::getUsedPoint)
                 .containsExactly(1L, 1L, 1L, 1000L);
 
         assertThat(publishedEvent.getOrderedItems())
@@ -135,7 +137,7 @@ public class OrderApplicationServiceTest {
                 List.of(OrderItemDto.ItemOptionDto.builder().optionTypeName("사이즈").optionValueName("XL").build()));
         OrderItemDto savedProduct2 = createOrderItemDto(2L, 2L, "상품2", "http://thumbnail1.jpg", 5, 5000L, 10,
                 List.of(OrderItemDto.ItemOptionDto.builder().optionTypeName("용량").optionValueName("256GB").build()));
-        AppliedCoupon appliedCoupon = createAppliedCoupon(1L, "1000원 할인 쿠폰");
+        AppliedCoupon appliedCoupon = createAppliedCoupon(1L, "1000원 할인 쿠폰", 1000L);
         PaymentInfo paymentInfo = createPaymentInfo(34000, 3400, 1000, 1000, 28600);
         OrderDto orderDto = createOrderDto(1L, OrderStatus.PAYMENT_WAITING, "상품1 외 1건", "서울시 테헤란로 123", paymentInfo, List.of(savedProduct1, savedProduct2), appliedCoupon,
                 null);
@@ -165,7 +167,7 @@ public class OrderApplicationServiceTest {
                 List.of(OrderItemDto.ItemOptionDto.builder().optionTypeName("사이즈").optionValueName("XL").build()));
         OrderItemDto savedProduct2 = createOrderItemDto(2L, 2L, "상품2", "http://thumbnail1.jpg", 5, 5000L, 10,
                 List.of(OrderItemDto.ItemOptionDto.builder().optionTypeName("용량").optionValueName("256GB").build()));
-        AppliedCoupon appliedCoupon = createAppliedCoupon(1L, "1000원 할인 쿠폰");
+        AppliedCoupon appliedCoupon = createAppliedCoupon(1L, "1000원 할인 쿠폰", 1000L);
         PaymentInfo paymentInfo = createPaymentInfo(34000, 3400, 1000, 1000, 28600);
         OrderDto orderDto = createOrderDto(1L, OrderStatus.CANCELED, "상품1 외 1건", "서울시 테헤란로 123", paymentInfo, List.of(savedProduct1, savedProduct2), appliedCoupon,
                 code);
@@ -194,7 +196,7 @@ public class OrderApplicationServiceTest {
                 List.of(OrderItemDto.ItemOptionDto.builder().optionTypeName("사이즈").optionValueName("XL").build()));
         OrderItemDto savedProduct2 = createOrderItemDto(2L, 2L, "상품2", "http://thumbnail1.jpg", 5, 5000L, 10,
                 List.of(OrderItemDto.ItemOptionDto.builder().optionTypeName("용량").optionValueName("256GB").build()));
-        AppliedCoupon appliedCoupon = createAppliedCoupon(1L, "1000원 할인 쿠폰");
+        AppliedCoupon appliedCoupon = createAppliedCoupon(1L, "1000원 할인 쿠폰", 1000L);
         PaymentInfo paymentInfo = createPaymentInfo(34000, 3400, 1000, 1000, 28600);
         OrderDto orderDto = createOrderDto(1L, OrderStatus.PAYMENT_WAITING, "상품1 외 1건", "서울시 테헤란로 123", paymentInfo, List.of(savedProduct1, savedProduct2), appliedCoupon,
                 null);
@@ -240,7 +242,7 @@ public class OrderApplicationServiceTest {
                 List.of(OrderItemDto.ItemOptionDto.builder().optionTypeName("사이즈").optionValueName("XL").build()));
         OrderItemDto savedProduct2 = createOrderItemDto(2L, 2L, "상품2", "http://thumbnail1.jpg", 5, 5000L, 10,
                 List.of(OrderItemDto.ItemOptionDto.builder().optionTypeName("용량").optionValueName("256GB").build()));
-        AppliedCoupon appliedCoupon = createAppliedCoupon(1L, "1000원 할인 쿠폰");
+        AppliedCoupon appliedCoupon = createAppliedCoupon(1L, "1000원 할인 쿠폰", 1000L);
         PaymentInfo paymentInfo = createPaymentInfo(34000, 3400, 1000, 1000, 28600);
         OrderDto orderDto = createOrderDto(1L, OrderStatus.PENDING, "상품1 외 1건", "서울시 테헤란로 123", paymentInfo, List.of(savedProduct1, savedProduct2), appliedCoupon,
                 null);
@@ -262,7 +264,7 @@ public class OrderApplicationServiceTest {
                 List.of(OrderItemDto.ItemOptionDto.builder().optionTypeName("사이즈").optionValueName("XL").build()));
         OrderItemDto savedProduct2 = createOrderItemDto(2L, 2L, "상품2", "http://thumbnail1.jpg", 5, 5000L, 10,
                 List.of(OrderItemDto.ItemOptionDto.builder().optionTypeName("용량").optionValueName("256GB").build()));
-        AppliedCoupon appliedCoupon = createAppliedCoupon(1L, "1000원 할인 쿠폰");
+        AppliedCoupon appliedCoupon = createAppliedCoupon(1L, "1000원 할인 쿠폰", 1000L);
         PaymentInfo paymentInfo = createPaymentInfo(34000, 3400, 1000, 1000, 28600);
         OrderDto paymentWaitingOrder = createOrderDto(1L, OrderStatus.PAYMENT_WAITING, "상품1 외 1건", "서울시 테헤란로 123", paymentInfo, List.of(savedProduct1, savedProduct2), appliedCoupon,
                 null);
@@ -287,6 +289,119 @@ public class OrderApplicationServiceTest {
         assertThat(paymentCaptor.getValue())
                 .extracting(PaymentResultEvent::getOrderId, PaymentResultEvent::getStatus, PaymentResultEvent::getCode, PaymentResultEvent::getFailureReason)
                 .containsExactly(1L, OrderEventStatus.FAILURE, OrderEventCode.PAYMENT_AUTHORIZED_FAILED, "결제 승인이 실패했습니다");
+    }
+
+    @Test
+    @DisplayName("주문을 조회한다")
+    void getOrder(){
+        //given
+        Long orderId = 1L;
+        Long userId = 1L;
+        UserPrincipal userPrincipal = UserPrincipal.of(userId, UserRole.ROLE_USER);
+        OrderItemDto savedProduct1 = createOrderItemDto(1L, 1L, "상품1", "http://thumbnail1.jpg", 3, 3000L, 10,
+                List.of(OrderItemDto.ItemOptionDto.builder().optionTypeName("사이즈").optionValueName("XL").build()));
+        OrderItemDto savedProduct2 = createOrderItemDto(2L, 2L, "상품2", "http://thumbnail2.jpg", 5, 5000L, 10,
+                List.of(OrderItemDto.ItemOptionDto.builder().optionTypeName("용량").optionValueName("256GB").build()));
+        AppliedCoupon appliedCoupon = createAppliedCoupon(1L, "1000원 할인 쿠폰", 1000L);
+        PaymentInfo paymentInfo = createPaymentInfo(34000, 3400, 1000, 1000, 28600);
+        OrderDto orderDto = createOrderDto(userId, OrderStatus.COMPLETED, "상품1 외 1건", "서울시 테헤란로 123", paymentInfo, List.of(savedProduct1, savedProduct2), appliedCoupon,
+                null);        given(orderDomainService.getOrder(anyLong()))
+                .willReturn(orderDto);
+        //when
+        OrderResponse result = orderApplicationService.getOrder(userPrincipal, orderId);
+        //then
+        assertThat(result)
+                .extracting(OrderResponse::getOrderId, OrderResponse::getUserId, OrderResponse::getOrderStatus, OrderResponse::getOrderName,
+                        OrderResponse::getDeliveryAddress)
+                .containsExactly(1L, 1L, "COMPLETED", "상품1 외 1건", "서울시 테헤란로 123");
+
+        assertThat(result.getCreatedAt()).isNotNull();
+        assertThat(result.getPaymentResponse())
+                .extracting(OrderResponse.PaymentResponse::getTotalOriginPrice,
+                        OrderResponse.PaymentResponse::getTotalProductDiscount,
+                        OrderResponse.PaymentResponse::getCouponDiscount,
+                        OrderResponse.PaymentResponse::getPointDiscount,
+                        OrderResponse.PaymentResponse::getFinalPaymentAmount)
+                .containsExactly(34000L, 3400L, 1000L, 1000L, 28600L);
+
+        assertThat(result.getCouponResponse())
+                .extracting(OrderResponse.CouponResponse::getCouponId,
+                        OrderResponse.CouponResponse::getCouponName,
+                        OrderResponse.CouponResponse::getCouponDiscount)
+                .containsExactly(1L, "1000원 할인 쿠폰", 1000L);
+
+        assertThat(result.getOrderItems()).hasSize(2)
+                .extracting(OrderItemResponse::getProductId,
+                        OrderItemResponse::getProductVariantId,
+                        OrderItemResponse::getProductName,
+                        OrderItemResponse::getThumbNailUrl,
+                        OrderItemResponse::getQuantity,
+                        OrderItemResponse::getLineTotal)
+                .contains(
+                        tuple(1L, 1L, "상품1", "http://thumbnail1.jpg", 3, 8100L),
+                        tuple(2L, 2L, "상품2", "http://thumbnail2.jpg", 5, 22500L)
+                );
+
+        assertThat(result.getOrderItems())
+                .satisfiesExactlyInAnyOrder(
+                        item1 -> {
+                            assertThat(item1.getProductId()).isEqualTo(1L);
+                            assertThat(item1.getProductVariantId()).isEqualTo(1L);
+                            assertThat(item1.getProductName()).isEqualTo("상품1");
+                            assertThat(item1.getThumbNailUrl()).isEqualTo("http://thumbnail1.jpg");
+                            assertThat(item1.getQuantity()).isEqualTo(3);
+                            assertThat(item1.getLineTotal()).isEqualTo(8100L);
+                            assertThat(item1.getUnitPrice())
+                                    .extracting(OrderItemResponse.OrderItemPrice::getOriginalPrice, OrderItemResponse.OrderItemPrice::getDiscountRate,
+                                            OrderItemResponse.OrderItemPrice::getDiscountAmount, OrderItemResponse.OrderItemPrice::getDiscountedPrice)
+                                    .contains(3000L, 10, 300L, 2700L);
+                            assertThat(item1.getOptions())
+                                    .extracting(OrderItemResponse.OrderItemOption::getOptionTypeName, OrderItemResponse.OrderItemOption::getOptionValueName)
+                                    .containsExactlyInAnyOrder(
+                                            tuple("사이즈", "XL")
+                                    );
+                        },
+                        item2 -> {
+                            assertThat(item2.getProductId()).isEqualTo(2L);
+                            assertThat(item2.getProductVariantId()).isEqualTo(2L);
+                            assertThat(item2.getProductName()).isEqualTo("상품2");
+                            assertThat(item2.getThumbNailUrl()).isEqualTo("http://thumbnail2.jpg");
+                            assertThat(item2.getQuantity()).isEqualTo(5);
+                            assertThat(item2.getLineTotal()).isEqualTo(22500L);
+                            assertThat(item2.getUnitPrice())
+                                    .extracting(OrderItemResponse.OrderItemPrice::getOriginalPrice, OrderItemResponse.OrderItemPrice::getDiscountRate,
+                                            OrderItemResponse.OrderItemPrice::getDiscountAmount, OrderItemResponse.OrderItemPrice::getDiscountedPrice)
+                                    .contains(5000L, 10, 500L, 4500L);
+                            assertThat(item2.getOptions())
+                                    .extracting(OrderItemResponse.OrderItemOption::getOptionTypeName, OrderItemResponse.OrderItemOption::getOptionValueName)
+                                    .containsExactlyInAnyOrder(
+                                            tuple("용량", "256GB")
+                                    );
+                        }
+                );
+    }
+
+    @Test
+    @DisplayName("주문의 유저 아이디와 요청한 유저아이디가 일치하지 않는 경우 예외를 던진다")
+    void getOrder_not_match_userId(){
+        //given
+        Long orderId = 1L;
+        Long userId = 1L;
+        UserPrincipal userPrincipal = UserPrincipal.of(2L, UserRole.ROLE_USER);
+        OrderItemDto savedProduct1 = createOrderItemDto(1L, 1L, "상품1", "http://thumbnail1.jpg", 3, 3000L, 10,
+                List.of(OrderItemDto.ItemOptionDto.builder().optionTypeName("사이즈").optionValueName("XL").build()));
+        OrderItemDto savedProduct2 = createOrderItemDto(2L, 2L, "상품2", "http://thumbnail2.jpg", 5, 5000L, 10,
+                List.of(OrderItemDto.ItemOptionDto.builder().optionTypeName("용량").optionValueName("256GB").build()));
+        AppliedCoupon appliedCoupon = createAppliedCoupon(1L, "1000원 할인 쿠폰", 1000L);
+        PaymentInfo paymentInfo = createPaymentInfo(34000, 3400, 1000, 1000, 28600);
+        OrderDto orderDto = createOrderDto(userId, OrderStatus.COMPLETED, "상품1 외 1건", "서울시 테헤란로 123", paymentInfo, List.of(savedProduct1, savedProduct2), appliedCoupon,
+                null);        given(orderDomainService.getOrder(anyLong()))
+                .willReturn(orderDto);
+        //when
+        //then
+        assertThatThrownBy(() -> orderApplicationService.getOrder(userPrincipal, orderId))
+                .isInstanceOf(NoPermissionException.class)
+                .hasMessage("주문을 조회할 권한이 없습니다");
     }
 
     private CreateOrderDto createOrderDto(UserPrincipal userPrincipal, String deliveryAddress, Long couponId, Long pointToUse,
@@ -364,10 +479,11 @@ public class OrderApplicationServiceTest {
                 .build();
     }
 
-    private AppliedCoupon createAppliedCoupon(Long couponId, String couponName){
+    private AppliedCoupon createAppliedCoupon(Long couponId, String couponName, Long discountAmount){
         return AppliedCoupon.builder()
                 .couponId(couponId)
                 .couponName(couponName)
+                .discountAmount(discountAmount)
                 .build();
     }
 
@@ -389,6 +505,7 @@ public class OrderApplicationServiceTest {
                                 .discountedPrice(originPrice - discountAmount)
                                 .build())
                 .itemOptionDtos(itemOptionDtos)
+                .lineTotal((originPrice - discountAmount)*quantity)
                 .build();
     }
 }

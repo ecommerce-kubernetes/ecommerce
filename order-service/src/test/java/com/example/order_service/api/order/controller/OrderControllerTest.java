@@ -3,6 +3,7 @@ package com.example.order_service.api.order.controller;
 import com.example.order_service.api.common.exception.PaymentErrorCode;
 import com.example.order_service.api.common.exception.PaymentException;
 import com.example.order_service.api.common.security.model.UserRole;
+import com.example.order_service.api.common.security.principal.UserPrincipal;
 import com.example.order_service.api.order.application.dto.command.CreateOrderDto;
 import com.example.order_service.api.order.application.dto.result.CreateOrderResponse;
 import com.example.order_service.api.order.application.dto.result.OrderItemResponse;
@@ -27,6 +28,7 @@ import java.util.List;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -347,7 +349,7 @@ class OrderControllerTest extends ControllerTestSupport {
     }
 
     @Test
-    @DisplayName("주문 확정시 해당 주문의 정보를 반환한다")
+    @DisplayName("결제 승인시 해당 주문의 정보를 반환한다")
     @WithCustomMockUser
     void confirm() throws Exception {
         //given
@@ -373,7 +375,7 @@ class OrderControllerTest extends ControllerTestSupport {
     }
 
     @Test
-    @DisplayName("주문 확정시 주문 ID는 필수이다")
+    @DisplayName("결제 승인시 주문 ID는 필수이다")
     @WithCustomMockUser
     void confirm_without_no_orderId() throws Exception {
         //given
@@ -394,7 +396,7 @@ class OrderControllerTest extends ControllerTestSupport {
     }
 
     @Test
-    @DisplayName("주문 확정시 결제 키는 필수이다")
+    @DisplayName("결제 승인시 결제 키는 필수이다")
     @WithCustomMockUser
     void confirm_without_no_paymentKey() throws Exception {
         //given
@@ -437,6 +439,51 @@ class OrderControllerTest extends ControllerTestSupport {
                 .andExpect(jsonPath("$.message").value("결제 오류"))
                 .andExpect(jsonPath("$.timestamp").exists())
                 .andExpect(jsonPath("$.path").value("/orders/confirm"));
+    }
+
+    @Test
+    @DisplayName("주문 정보를 조회한다")
+    @WithCustomMockUser
+    void getOrder() throws Exception {
+        //given
+        OrderResponse orderResponse = createOrderResponse(1L);
+
+        given(orderApplicationService.getOrder(any(UserPrincipal.class),anyLong()))
+                .willReturn(orderResponse);
+        //when
+        //then
+        mockMvc.perform(get("/orders/{orderId}", 1L)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.orderId").value(1L))
+                .andExpect(jsonPath("$.userId").value(1L))
+                .andExpect(jsonPath("$.orderName").value("상품1"))
+                .andExpect(jsonPath("$.deliveryAddress").value("서울시 테헤란로 123"))
+
+                .andExpect(jsonPath("$.paymentResponse.totalOriginPrice").value(30000L))
+                .andExpect(jsonPath("$.paymentResponse.totalProductDiscount").value(3000L))
+                .andExpect(jsonPath("$.paymentResponse.couponDiscount").value(1000L))
+                .andExpect(jsonPath("$.paymentResponse.pointDiscount").value(1000L))
+                .andExpect(jsonPath("$.paymentResponse.finalPaymentAmount").value(25000L))
+
+                .andExpect(jsonPath("$.couponResponse.couponId").value(1L))
+                .andExpect(jsonPath("$.couponResponse.couponName").value("1000원 할인 쿠폰"))
+                .andExpect(jsonPath("$.couponResponse.couponDiscount").value(1000L))
+
+                .andExpect(jsonPath("$.orderItems[0].productId").value(1L))
+                .andExpect(jsonPath("$.orderItems[0].productVariantId").value(1L))
+                .andExpect(jsonPath("$.orderItems[0].productName").value("상품1"))
+                .andExpect(jsonPath("$.orderItems[0].thumbNailUrl").value("http://thumbanil.jpg"))
+                .andExpect(jsonPath("$.orderItems[0].quantity").value(1))
+                .andExpect(jsonPath("$.orderItems[0].unitPrice.originalPrice").value(30000L))
+                .andExpect(jsonPath("$.orderItems[0].unitPrice.discountAmount").value(3000L))
+                .andExpect(jsonPath("$.orderItems[0].unitPrice.discountRate").value(10))
+                .andExpect(jsonPath("$.orderItems[0].unitPrice.discountedPrice").value(27000L))
+                .andExpect(jsonPath("$.orderItems[0].lineTotal").value(27000L))
+                .andExpect(jsonPath("$.orderItems[0].options[0].optionTypeName").value("사이즈"))
+                .andExpect(jsonPath("$.orderItems[0].options[0].optionValueName").value("XL"));
+
     }
 
     private OrderResponse createOrderResponse(Long orderId) {

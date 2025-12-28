@@ -1,7 +1,9 @@
 package com.example.order_service.api.order.application;
 
+import com.example.order_service.api.common.exception.NoPermissionException;
 import com.example.order_service.api.common.exception.OrderVerificationException;
 import com.example.order_service.api.common.exception.PaymentException;
+import com.example.order_service.api.common.security.principal.UserPrincipal;
 import com.example.order_service.api.order.application.dto.command.CreateOrderDto;
 import com.example.order_service.api.order.application.dto.result.CreateOrderResponse;
 import com.example.order_service.api.order.application.dto.result.OrderResponse;
@@ -99,6 +101,15 @@ public class OrderApplicationService {
                     OrderEventCode.from(canceledOrder.getOrderFailureCode()), null, e.getMessage()));
             throw e;
         }
+    }
+
+    public OrderResponse getOrder(UserPrincipal userPrincipal, Long orderId) {
+        Long userId = userPrincipal.getUserId();
+        OrderDto order = orderDomainService.getOrder(orderId);
+        if (!userId.equals(order.getUserId())) {
+            throw new NoPermissionException("주문을 조회할 권한이 없습니다");
+        }
+        return OrderResponse.from(order);
     }
 
     private OrderCreationContext createCreationContext(CreateOrderDto dto,
