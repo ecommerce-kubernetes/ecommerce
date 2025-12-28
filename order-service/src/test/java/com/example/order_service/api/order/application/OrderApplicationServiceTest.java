@@ -116,7 +116,7 @@ public class OrderApplicationServiceTest {
 
         OrderCreatedEvent publishedEvent = captor.getValue();
         assertThat(publishedEvent)
-                .extracting(OrderCreatedEvent::getOrderId, OrderCreatedEvent::getUsedPoint, OrderCreatedEvent::getCouponId, OrderCreatedEvent::getUsedPoint)
+                .extracting(OrderCreatedEvent::getOrderId, OrderCreatedEvent::getUserId, OrderCreatedEvent::getCouponId, OrderCreatedEvent::getUsedPoint)
                 .containsExactly(1L, 1L, 1L, 1000L);
 
         assertThat(publishedEvent.getOrderedItems())
