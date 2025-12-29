@@ -29,13 +29,11 @@ import com.example.order_service.api.order.infrastructure.client.coupon.dto.Orde
 import com.example.order_service.api.order.infrastructure.client.payment.dto.TossPaymentConfirmResponse;
 import com.example.order_service.api.order.infrastructure.client.product.dto.OrderProductResponse;
 import com.example.order_service.api.order.infrastructure.client.user.dto.OrderUserResponse;
+import com.example.order_service.api.support.fixture.OrderTestFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Spy;
+import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.*;
@@ -43,6 +41,7 @@ import org.springframework.data.domain.*;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static com.example.order_service.api.support.fixture.OrderTestFixture.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
@@ -64,66 +63,44 @@ public class OrderApplicationServiceTest {
     @Spy
     private OrderPriceCalculator calculator;
 
+    @Captor
+    private ArgumentCaptor<OrderCreatedEvent> orderCreatedEventCaptor;
+
     @Test
     @DisplayName("주문을 생성한다")
     void createOrder(){
         //given
-        UserPrincipal userPrincipal = createUserPrincipal(1L, UserRole.ROLE_USER);
-        CreateOrderItemDto orderItem1 = createOrderItemDto(1L, 3);
-        CreateOrderItemDto orderItem2 = createOrderItemDto(2L, 5);
+        CreateOrderDto orderRequest = createOrderRequest(USER_ID,
+                createRequestItem(1L, 3), createRequestItem(2L, 5));
 
-        CreateOrderDto createOrderDto = createCreateOrderDto(userPrincipal, "서울시 테헤란로 123", 1L, 1000L,
-                28600L, orderItem1, orderItem2);
+        Long expectedAmount = 28600L;
+        String expectedOrderName = "상품1 외 1건";
 
-        OrderUserResponse user = OrderUserResponse.builder()
-                .userId(1L).pointBalance(3000L).build();
-        OrderProductResponse product1 = createProductResponse(1L, 1L, "상품1", 3000L, 10,
-                "http://thumbnail1.jpg", 100,
-                List.of(OrderProductResponse.ItemOption.builder().optionTypeName("사이즈").optionValueName("XL").build()));
-        OrderProductResponse product2 = createProductResponse(2L, 2L, "상품2", 5000L, 10,
-                "http://thumbnail2.jpg", 100,
-                List.of(OrderProductResponse.ItemOption.builder().optionTypeName("용량").optionValueName("256GB").build()));
-        OrderCouponCalcResponse coupon = OrderCouponCalcResponse.builder()
-                .couponId(1L)
-                .couponName("1000원 할인 쿠폰")
-                .discountAmount(1000L)
-                .build();
-
-
-        OrderItemDto savedProduct1 = createOrderItemDto(1L, 1L, "상품1", "http://thumbnail1.jpg", 3, 3000L, 10,
-                List.of(OrderItemDto.ItemOptionDto.builder().optionTypeName("사이즈").optionValueName("XL").build()));
-        OrderItemDto savedProduct2 = createOrderItemDto(2L, 2L, "상품2", "http://thumbnail1.jpg", 5, 5000L, 10,
-                List.of(OrderItemDto.ItemOptionDto.builder().optionTypeName("용량").optionValueName("256GB").build()));
-        AppliedCoupon appliedCoupon = createAppliedCoupon(1L, "1000원 할인 쿠폰", 1000L);
-        PaymentInfo paymentInfo = createPaymentInfo(34000, 3400, 1000, 1000, 28600);
-        OrderDto orderDto = createOrderDto(1L, OrderStatus.PENDING, "상품1 외 1건", "서울시 테헤란로 123", paymentInfo, List.of(savedProduct1, savedProduct2), appliedCoupon,
-                null);
-
-        given(orderIntegrationService.getOrderUser(any(UserPrincipal.class))).willReturn(user);
-        given(orderIntegrationService.getOrderProducts(anyList()))
-                .willReturn(List.of(product1, product2));
-        given(orderIntegrationService.getCoupon(any(UserPrincipal.class), anyLong(), anyLong()))
-                .willReturn(coupon);
+        given(orderIntegrationService.getOrderUser(any())).willReturn(mockUserResponse());
+        given(orderIntegrationService.getOrderProducts(anyList())).willReturn(List.of(
+                mockProductResponse(1L, 3000L),
+                mockProductResponse(2L, 5000L)
+        ));
+        given(orderIntegrationService.getCoupon(any(), anyLong(), anyLong())).willReturn(mockCouponResponse());
         given(orderDomainService.saveOrder(any(OrderCreationContext.class)))
-                .willReturn(orderDto);
+                .willReturn(mockSavedOrder(OrderStatus.PENDING, expectedAmount));
         //when
-        CreateOrderResponse response = orderApplicationService.createOrder(createOrderDto);
+        CreateOrderResponse response = orderApplicationService.createOrder(orderRequest);
         //then
         assertThat(response.getOrderId()).isNotNull();
         assertThat(response)
                 .extracting(CreateOrderResponse::getStatus, CreateOrderResponse::getOrderName, CreateOrderResponse::getFinalPaymentAmount)
-                .contains("PENDING", "상품1 외 1건", 28600L);
+                .contains("PENDING", expectedOrderName, expectedAmount);
         assertThat(response.getCreatedAt()).isNotNull();
 
-        ArgumentCaptor<OrderCreatedEvent> captor = ArgumentCaptor.forClass(OrderCreatedEvent.class);
-        verify(eventPublisher, times(1)).publishEvent(captor.capture());
+        verify(eventPublisher, times(1)).publishEvent(orderCreatedEventCaptor.capture());
+        OrderCreatedEvent event = orderCreatedEventCaptor.getValue();
 
-        OrderCreatedEvent publishedEvent = captor.getValue();
-        assertThat(publishedEvent)
+        assertThat(event)
                 .extracting(OrderCreatedEvent::getOrderId, OrderCreatedEvent::getUserId, OrderCreatedEvent::getCouponId, OrderCreatedEvent::getUsedPoint)
                 .containsExactly(1L, 1L, 1L, 1000L);
 
-        assertThat(publishedEvent.getOrderedItems())
+        assertThat(event.getOrderedItems())
                 .hasSize(2)
                 .extracting("productVariantId", "quantity")
                 .containsExactlyInAnyOrder(
