@@ -72,6 +72,9 @@ public class OrderTestFixture {
     }
 
     public static OrderDto mockSavedOrder(OrderStatus status, Long finalAmount) {
+
+        long totalOrigin = (PROD_1_PRICE * 3) + (PROD_2_PRICE * 5);
+        long totalProdDisc = (totalOrigin * DISCOUNT_RATE) / 100;
         return OrderDto.builder()
                 .orderId(1L)
                 .userId(USER_ID)
@@ -80,8 +83,11 @@ public class OrderTestFixture {
                 .status(status)
                 .paymentInfo(
                         PaymentInfo.builder()
+                                .totalOriginPrice(totalOrigin)
+                                .totalProductDiscount(totalProdDisc)
+                                .couponDiscount(COUPON_DISCOUNT)
                                 .usedPoint(USE_POINT)
-                                .finalPaymentAmount(finalAmount) // 보통 FIXED_FINAL_PRICE가 들어옴
+                                .finalPaymentAmount(finalAmount)
                                 .build()
                 )
                 .orderItemDtoList(List.of(
