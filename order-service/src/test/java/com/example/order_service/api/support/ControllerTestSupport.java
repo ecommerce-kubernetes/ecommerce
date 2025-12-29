@@ -2,8 +2,6 @@ package com.example.order_service.api.support;
 
 import com.example.order_service.api.cart.application.CartApplicationService;
 import com.example.order_service.api.cart.controller.CartController;
-import com.example.order_service.api.common.util.MessageSourceUtil;
-import com.example.order_service.api.common.util.validator.PageableValidatorFactory;
 import com.example.order_service.api.notification.controller.NotificationController;
 import com.example.order_service.api.notification.service.NotificationService;
 import com.example.order_service.api.order.application.OrderApplicationService;
@@ -21,13 +19,9 @@ public abstract class ControllerTestSupport {
     @Autowired
     protected ObjectMapper objectMapper;
     @MockitoBean
-    protected PageableValidatorFactory pageableValidatorFactory;
-    @MockitoBean
     protected CartApplicationService cartApplicationService;
     @MockitoBean
     protected OrderApplicationService orderApplicationService;
     @MockitoBean
     protected NotificationService notificationService;
-    @MockitoBean
-    protected MessageSourceUtil ms;
 }

@@ -1,10 +1,6 @@
 package com.example.order_service.docs.order;
 
-import com.example.order_service.api.common.security.model.UserRole;
 import com.example.order_service.api.common.security.principal.UserPrincipal;
-import com.example.order_service.api.common.util.DomainType;
-import com.example.order_service.api.common.util.validator.OrderPageableValidator;
-import com.example.order_service.api.common.util.validator.PageableValidatorFactory;
 import com.example.order_service.api.order.application.OrderApplicationService;
 import com.example.order_service.api.order.application.dto.command.CreateOrderDto;
 import com.example.order_service.api.order.application.dto.result.CreateOrderResponse;
@@ -39,17 +35,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 public class OrderControllerDocsTest extends RestDocSupport {
     private OrderApplicationService orderApplicationService = mock(OrderApplicationService.class);
-    private PageableValidatorFactory factory = mock(PageableValidatorFactory.class);
-
-    @BeforeEach
-    void validatorSetUp(){
-        given(factory.getValidator(DomainType.ORDER))
-                .willReturn(new OrderPageableValidator());
-    }
 
     @Override
     protected Object initController() {
-        return new OrderController(orderApplicationService, factory);
+        return new OrderController(orderApplicationService);
     }
 
     @Test

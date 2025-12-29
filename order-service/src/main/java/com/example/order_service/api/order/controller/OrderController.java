@@ -2,9 +2,6 @@ package com.example.order_service.api.order.controller;
 
 import com.example.order_service.api.common.dto.PageDto;
 import com.example.order_service.api.common.security.principal.UserPrincipal;
-import com.example.order_service.api.common.util.DomainType;
-import com.example.order_service.api.common.util.validator.PageableValidator;
-import com.example.order_service.api.common.util.validator.PageableValidatorFactory;
 import com.example.order_service.api.order.application.OrderApplicationService;
 import com.example.order_service.api.order.application.dto.command.CreateOrderDto;
 import com.example.order_service.api.order.application.dto.result.CreateOrderResponse;
@@ -29,7 +26,6 @@ import org.springframework.web.bind.annotation.*;
 public class OrderController {
 
     private final OrderApplicationService orderApplicationService;
-    private final PageableValidatorFactory factory;
 
     @PostMapping
     public ResponseEntity<CreateOrderResponse> createOrder(@RequestBody @Validated CreateOrderRequest createOrderRequest,
@@ -51,8 +47,6 @@ public class OrderController {
                                                                        @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.ASC) Pageable pageable,
                                                                        @RequestParam(value = "year",required = false) String year,
                                                                        @RequestParam(value = "keyword", required = false) String keyword){
-        PageableValidator validator = factory.getValidator(DomainType.ORDER);
-        Pageable validatedPageable = validator.validate(pageable);
         return ResponseEntity.noContent().build();
     }
 
