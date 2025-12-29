@@ -18,7 +18,7 @@ import com.example.order_service.api.order.infrastructure.client.user.dto.OrderU
 import java.time.LocalDateTime;
 import java.util.List;
 
-public class OrderTestFixture {
+public class OrderApplicationServiceTestFixture {
     public static final Long USER_ID = 1L;
     public static final String ADDRESS = "서울시 테헤란로 123";
 

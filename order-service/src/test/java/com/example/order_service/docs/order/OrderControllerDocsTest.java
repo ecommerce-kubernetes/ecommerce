@@ -241,9 +241,14 @@ public class OrderControllerDocsTest extends RestDocSupport {
         //given
         HttpHeaders roleUser = createUserHeader("ROLE_USER");
         OrderListResponse orderListResponse = createOrderListResponse(1L);
-        PageDto<OrderListResponse> pageResponse = PageDto.of(List.of(orderListResponse), 0, 10, 10, 100);
+        PageDto<OrderListResponse> response = PageDto.<OrderListResponse>builder().content(List.of(orderListResponse))
+                .currentPage(1)
+                .totalPage(10)
+                .pageSize(10)
+                .totalElement(100)
+                .build();
         given(orderApplicationService.getOrders(any(UserPrincipal.class), any(OrderSearchCondition.class)))
-                .willReturn(pageResponse);
+                .willReturn(response);
         //when
         //then
         mockMvc.perform(get("/orders")

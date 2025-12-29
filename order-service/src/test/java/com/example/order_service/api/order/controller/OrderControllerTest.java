@@ -87,7 +87,7 @@ class OrderControllerTest extends ControllerTestSupport {
                 .andExpect(jsonPath("$.status").value("PENDING"))
                 .andExpect(jsonPath("$.orderName").value("상품1 외 1건"))
                 .andExpect(jsonPath("$.finalPaymentAmount").value(2400L))
-                .andExpect(jsonPath("$.createAt").exists());
+                .andExpect(jsonPath("$.createdAt").exists());
     }
 
     @Test
@@ -500,7 +500,12 @@ class OrderControllerTest extends ControllerTestSupport {
     void getOrders() throws Exception {
         //given
         OrderListResponse orderListResponse = createOrderListResponse(1L);
-        PageDto<OrderListResponse> response = PageDto.of(List.of(orderListResponse), 1, 10, 10, 100);
+        PageDto<OrderListResponse> response = PageDto.<OrderListResponse>builder().content(List.of(orderListResponse))
+                .currentPage(1)
+                .totalPage(10)
+                .pageSize(10)
+                .totalElement(100)
+                .build();
         MultiValueMap<String, String> paramMap = new LinkedMultiValueMap<>();
 
         paramMap.add("page", "1");
@@ -542,7 +547,12 @@ class OrderControllerTest extends ControllerTestSupport {
     void getOrders_default() throws Exception {
         //given
         OrderListResponse orderListResponse = createOrderListResponse(1L);
-        PageDto<OrderListResponse> response = PageDto.of(List.of(orderListResponse), 1, 10, 10, 100);
+        PageDto<OrderListResponse> response = PageDto.<OrderListResponse>builder().content(List.of(orderListResponse))
+                .currentPage(1)
+                .totalPage(10)
+                .pageSize(10)
+                .totalElement(100)
+                .build();
 
         given(orderApplicationService.getOrders(any(UserPrincipal.class), any(OrderSearchCondition.class)))
                 .willReturn(response);
@@ -568,7 +578,12 @@ class OrderControllerTest extends ControllerTestSupport {
     void getOrder_page_less_than_0() throws Exception {
         //given
         OrderListResponse orderListResponse = createOrderListResponse(1L);
-        PageDto<OrderListResponse> response = PageDto.of(List.of(orderListResponse), 1, 10, 10, 100);
+        PageDto<OrderListResponse> response = PageDto.<OrderListResponse>builder().content(List.of(orderListResponse))
+                .currentPage(1)
+                .totalPage(10)
+                .pageSize(10)
+                .totalElement(100)
+                .build();
 
         given(orderApplicationService.getOrders(any(UserPrincipal.class), any(OrderSearchCondition.class)))
                 .willReturn(response);
@@ -595,7 +610,12 @@ class OrderControllerTest extends ControllerTestSupport {
     void getOrder_size_greater_than_100() throws Exception {
         //given
         OrderListResponse orderListResponse = createOrderListResponse(1L);
-        PageDto<OrderListResponse> response = PageDto.of(List.of(orderListResponse), 1, 10, 10, 100);
+        PageDto<OrderListResponse> response = PageDto.<OrderListResponse>builder().content(List.of(orderListResponse))
+                .currentPage(1)
+                .totalPage(10)
+                .pageSize(10)
+                .totalElement(100)
+                .build();
 
         given(orderApplicationService.getOrders(any(UserPrincipal.class), any(OrderSearchCondition.class)))
                 .willReturn(response);

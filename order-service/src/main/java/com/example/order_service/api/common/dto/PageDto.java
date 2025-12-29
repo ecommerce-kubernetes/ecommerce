@@ -3,6 +3,7 @@ package com.example.order_service.api.common.dto;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 
@@ -24,13 +25,13 @@ public class PageDto<T> {
         this.totalElement = totalElement;
     }
 
-    public static <T> PageDto<T> of(List<T> content, int currentPage, long totalPage, int pageSize, long totalElement){
+    public static <T> PageDto<T> of(Page<?> page, List<T> content){
         return PageDto.<T>builder()
                 .content(content)
-                .currentPage(currentPage + 1)
-                .totalPage(totalPage)
-                .pageSize(pageSize)
-                .totalElement(totalElement)
+                .currentPage(page.getNumber() + 1)
+                .totalPage(page.getTotalPages())
+                .pageSize(page.getSize())
+                .totalElement(page.getTotalElements())
                 .build();
     }
 

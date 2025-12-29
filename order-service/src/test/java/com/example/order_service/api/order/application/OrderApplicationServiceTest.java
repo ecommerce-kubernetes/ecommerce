@@ -34,7 +34,7 @@ import org.springframework.data.domain.PageRequest;
 
 import java.util.List;
 
-import static com.example.order_service.api.support.fixture.OrderTestFixture.*;
+import static com.example.order_service.api.support.fixture.OrderApplicationServiceTestFixture.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;

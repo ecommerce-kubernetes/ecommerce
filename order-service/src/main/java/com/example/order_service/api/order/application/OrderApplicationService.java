@@ -120,7 +120,7 @@ public class OrderApplicationService {
         Page<OrderDto> orders = orderDomainService.getOrders(userPrincipal.getUserId(), condition);
 
         List<OrderListResponse> content = orders.getContent().stream().map(OrderListResponse::from).toList();
-        return PageDto.of(content, orders.getNumber(), orders.getTotalPages(), orders.getSize(), orders.getTotalElements());
+        return PageDto.of(orders, content);
     }
 
     private OrderCreationContext createCreationContext(CreateOrderDto dto,
