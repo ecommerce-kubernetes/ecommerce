@@ -65,6 +65,10 @@ public class OrderApplicationServiceTest {
 
     @Captor
     private ArgumentCaptor<OrderCreatedEvent> orderCreatedEventCaptor;
+    @Captor
+    private ArgumentCaptor<OrderResultEvent> orderResultEventCaptor;
+    @Captor
+    private ArgumentCaptor<PaymentResultEvent> paymentResultEventCaptor;
 
     @Test
     @DisplayName("주문을 생성한다")
@@ -114,58 +118,44 @@ public class OrderApplicationServiceTest {
     void changePaymentWaiting() {
         //given
         Long orderId = 1L;
-        OrderItemDto savedProduct1 = createOrderItemDto(1L, 1L, "상품1", "http://thumbnail1.jpg", 3, 3000L, 10,
-                List.of(OrderItemDto.ItemOptionDto.builder().optionTypeName("사이즈").optionValueName("XL").build()));
-        OrderItemDto savedProduct2 = createOrderItemDto(2L, 2L, "상품2", "http://thumbnail1.jpg", 5, 5000L, 10,
-                List.of(OrderItemDto.ItemOptionDto.builder().optionTypeName("용량").optionValueName("256GB").build()));
-        AppliedCoupon appliedCoupon = createAppliedCoupon(1L, "1000원 할인 쿠폰", 1000L);
-        PaymentInfo paymentInfo = createPaymentInfo(34000, 3400, 1000, 1000, 28600);
-        OrderDto orderDto = createOrderDto(1L, OrderStatus.PAYMENT_WAITING, "상품1 외 1건", "서울시 테헤란로 123", paymentInfo, List.of(savedProduct1, savedProduct2), appliedCoupon,
-                null);
+        Long expectedAmount = 28600L;
+        OrderDto orderDto = mockSavedOrder(OrderStatus.PAYMENT_WAITING, expectedAmount);
         given(orderDomainService.changeOrderStatus(orderId, OrderStatus.PAYMENT_WAITING))
                 .willReturn(orderDto);
         //when
         orderApplicationService.changePaymentWaiting(orderId);
         //then
-        ArgumentCaptor<OrderResultEvent> orderResultCaptor = ArgumentCaptor.forClass(OrderResultEvent.class);
         verify(orderDomainService, times(1)).changeOrderStatus(orderId, OrderStatus.PAYMENT_WAITING);
-        verify(eventPublisher, times(1)).publishEvent(orderResultCaptor.capture());
+        verify(eventPublisher, times(1)).publishEvent(orderResultEventCaptor.capture());
 
-        assertThat(orderResultCaptor.getValue())
+        assertThat(orderResultEventCaptor.getValue())
                 .extracting(OrderResultEvent::getOrderId, OrderResultEvent::getUserId, OrderResultEvent::getStatus,
                         OrderResultEvent::getCode, OrderResultEvent::getOrderName, OrderResultEvent::getFinalPaymentAmount)
-                .containsExactly(orderId, 1L, OrderEventStatus.SUCCESS, OrderEventCode.PAYMENT_READY,
-                        "상품1 외 1건", 28600L);
+                .containsExactly(orderId, USER_ID, OrderEventStatus.SUCCESS, OrderEventCode.PAYMENT_READY,
+                        "상품1 외 1건", expectedAmount);
     }
 
     @Test
-    @DisplayName("주문의 상태를 주문 취소로 변경하고 실패 코드를 추가한다")
+    @DisplayName("주문의 상태 취소로 변경, 실패 코드 추가 후 주문 결과 이벤트 발행")
     void changeCanceled() {
         //given
         Long orderId = 1L;
-        OrderFailureCode code = OrderFailureCode.OUT_OF_STOCK;
-        OrderItemDto savedProduct1 = createOrderItemDto(1L, 1L, "상품1", "http://thumbnail1.jpg", 3, 3000L, 10,
-                List.of(OrderItemDto.ItemOptionDto.builder().optionTypeName("사이즈").optionValueName("XL").build()));
-        OrderItemDto savedProduct2 = createOrderItemDto(2L, 2L, "상품2", "http://thumbnail1.jpg", 5, 5000L, 10,
-                List.of(OrderItemDto.ItemOptionDto.builder().optionTypeName("용량").optionValueName("256GB").build()));
-        AppliedCoupon appliedCoupon = createAppliedCoupon(1L, "1000원 할인 쿠폰", 1000L);
-        PaymentInfo paymentInfo = createPaymentInfo(34000, 3400, 1000, 1000, 28600);
-        OrderDto orderDto = createOrderDto(1L, OrderStatus.CANCELED, "상품1 외 1건", "서울시 테헤란로 123", paymentInfo, List.of(savedProduct1, savedProduct2), appliedCoupon,
-                code);
-        given(orderDomainService.changeCanceled(orderId, code))
-                .willReturn(orderDto);
+        OrderFailureCode failureCode = OrderFailureCode.OUT_OF_STOCK;
+        OrderDto canceledOrder = mockCanceledOrder(failureCode);
+        given(orderDomainService.changeCanceled(orderId, failureCode))
+                .willReturn(canceledOrder);
         //when
-        orderApplicationService.changeCanceled(orderId, code);
+        orderApplicationService.changeCanceled(orderId, failureCode);
         //then
-        ArgumentCaptor<OrderResultEvent> orderResultCaptor = ArgumentCaptor.forClass(OrderResultEvent.class);
-        verify(orderDomainService, times(1)).changeCanceled(orderId, code);
-        verify(eventPublisher, times(1))
-                .publishEvent(orderResultCaptor.capture());
+        verify(orderDomainService, times(1)).changeCanceled(orderId, failureCode);
 
-        assertThat(orderResultCaptor.getValue())
+        verify(eventPublisher, times(1))
+                .publishEvent(orderResultEventCaptor.capture());
+
+        assertThat(orderResultEventCaptor.getValue())
                 .extracting(OrderResultEvent::getOrderId, OrderResultEvent::getUserId, OrderResultEvent::getStatus,
                         OrderResultEvent::getCode, OrderResultEvent::getOrderName, OrderResultEvent::getFinalPaymentAmount)
-                .containsExactly(orderId, 1L, OrderEventStatus.FAILURE, OrderEventCode.OUT_OF_STOCK,
+                .containsExactly(orderId, USER_ID, OrderEventStatus.FAILURE, OrderEventCode.OUT_OF_STOCK,
                         "상품1 외 1건", null);
     }
 
@@ -173,46 +163,34 @@ public class OrderApplicationServiceTest {
     @DisplayName("결제가 승인되면 주문상태를 성공으로 변경, 결제 승인 이벤트를 발행하고 응답을 반환한다")
     void confirmOrder(){
         //given
-        OrderItemDto savedProduct1 = createOrderItemDto(1L, 1L, "상품1", "http://thumbnail1.jpg", 3, 3000L, 10,
-                List.of(OrderItemDto.ItemOptionDto.builder().optionTypeName("사이즈").optionValueName("XL").build()));
-        OrderItemDto savedProduct2 = createOrderItemDto(2L, 2L, "상품2", "http://thumbnail1.jpg", 5, 5000L, 10,
-                List.of(OrderItemDto.ItemOptionDto.builder().optionTypeName("용량").optionValueName("256GB").build()));
-        AppliedCoupon appliedCoupon = createAppliedCoupon(1L, "1000원 할인 쿠폰", 1000L);
-        PaymentInfo paymentInfo = createPaymentInfo(34000, 3400, 1000, 1000, 28600);
-        OrderDto orderDto = createOrderDto(1L, OrderStatus.PAYMENT_WAITING, "상품1 외 1건", "서울시 테헤란로 123", paymentInfo, List.of(savedProduct1, savedProduct2), appliedCoupon,
-                null);
-        OrderDto completeOrderDto = createOrderDto(1L, OrderStatus.COMPLETED, "상품1 외 1건", "서울시 테헤란로 123", paymentInfo, List.of(savedProduct1, savedProduct2), appliedCoupon,
-                null);
-        TossPaymentConfirmResponse paymentConfirmResponse = TossPaymentConfirmResponse.builder()
-                .paymentKey("paymentKey")
-                .orderId(1L)
-                .totalAmount(28600L)
-                .status("DONE").build();
-
-        given(orderDomainService.getOrder(anyLong()))
-                .willReturn(orderDto);
+        Long orderId = 1L;
+        String paymentKey = "paymentKey";
+        Long amount = 28600L;
+        OrderDto waitingOrder = mockSavedOrder(OrderStatus.PAYMENT_WAITING, amount);
+        TossPaymentConfirmResponse paymentResponse = mockPaymentResponse(paymentKey, amount);
+        OrderDto completedOrder = mockSavedOrder(OrderStatus.COMPLETED, amount);
+        given(orderDomainService.getOrder(orderId))
+                .willReturn(waitingOrder);
         given(orderIntegrationService.confirmOrderPayment(anyLong(), anyString(), anyLong()))
-                .willReturn(paymentConfirmResponse);
-        given(orderDomainService.changeOrderStatus(anyLong(), any(OrderStatus.class)))
-                .willReturn(completeOrderDto);
+                .willReturn(paymentResponse);
+        given(orderDomainService.changeOrderStatus(orderId, OrderStatus.COMPLETED))
+                .willReturn(completedOrder);
         //when
-        OrderDetailResponse orderDetailResponse = orderApplicationService.confirmOrder(1L, "paymentKey");
+        OrderDetailResponse result = orderApplicationService.confirmOrder(orderId, paymentKey);
         //then
-        verify(orderDomainService, times(1)).changeOrderStatus(1L, OrderStatus.COMPLETED);
-        assertThat(orderDetailResponse)
+        verify(orderDomainService, times(1)).changeOrderStatus(orderId, OrderStatus.COMPLETED);
+        assertThat(result)
                 .extracting(OrderDetailResponse::getOrderId, OrderDetailResponse::getUserId, OrderDetailResponse::getOrderStatus, OrderDetailResponse::getOrderName,
                         OrderDetailResponse::getDeliveryAddress)
-                .containsExactly(1L, 1L, "COMPLETED", "상품1 외 1건", "서울시 테헤란로 123");
+                .containsExactly(orderId, USER_ID, "COMPLETED", "상품1 외 1건", ADDRESS);
+        assertThat(result.getOrderItems()).isNotEmpty();
 
-        assertThat(orderDetailResponse.getOrderItems()).isNotEmpty();
+        verify(eventPublisher, times(1)).publishEvent(paymentResultEventCaptor.capture());
 
-        ArgumentCaptor<PaymentResultEvent> paymentCaptor = ArgumentCaptor.forClass(PaymentResultEvent.class);
-        verify(eventPublisher, times(1)).publishEvent(paymentCaptor.capture());
-
-        assertThat(paymentCaptor.getValue())
+        assertThat(paymentResultEventCaptor.getValue())
                 .extracting(PaymentResultEvent::getOrderId, PaymentResultEvent::getStatus, PaymentResultEvent::getCode)
-                .containsExactly(1L, OrderEventStatus.SUCCESS, OrderEventCode.PAYMENT_AUTHORIZED);
-        assertThat(paymentCaptor.getValue().getFailureReason()).isNull();
+                .containsExactly(orderId, OrderEventStatus.SUCCESS, OrderEventCode.PAYMENT_AUTHORIZED);
+        assertThat(paymentResultEventCaptor.getValue().getFailureReason()).isNull();
     }
 
     @Test
@@ -434,25 +412,6 @@ public class OrderApplicationServiceTest {
 
     }
 
-    private CreateOrderDto createCreateOrderDto(UserPrincipal userPrincipal, String deliveryAddress, Long couponId, Long pointToUse,
-                                          Long expectedPrice, CreateOrderItemDto... orderItems){
-        return CreateOrderDto.builder()
-                .userPrincipal(userPrincipal)
-                .deliveryAddress(deliveryAddress)
-                .couponId(couponId)
-                .pointToUse(pointToUse)
-                .expectedPrice(expectedPrice)
-                .orderItemDtoList(List.of(orderItems))
-                .build();
-    }
-
-    private CreateOrderItemDto createOrderItemDto(Long productVariantId, int quantity){
-        return CreateOrderItemDto.builder()
-                .productVariantId(productVariantId)
-                .quantity(quantity)
-                .build();
-    }
-
     private UserPrincipal createUserPrincipal(Long userId, UserRole userRole){
         return UserPrincipal.builder()
                 .userId(userId)
@@ -460,26 +419,6 @@ public class OrderApplicationServiceTest {
                 .build();
     }
 
-    private OrderProductResponse createProductResponse(Long productId, Long productVariantId,
-                                                      String productName, Long originalPrice, int discountRate,
-                                                      String thumbnail, int stockQuantity, List<OrderProductResponse.ItemOption> options){
-        long discountAmount = originalPrice * discountRate / 100;
-        return OrderProductResponse.builder()
-                .productId(productId)
-                .productVariantId(productVariantId)
-                .productName(productName)
-                .unitPrice(
-                        OrderProductResponse.UnitPrice.builder()
-                                .originalPrice(originalPrice)
-                                .discountRate(discountRate)
-                                .discountAmount(discountAmount)
-                                .discountedPrice(originalPrice - discountAmount)
-                                .build())
-                .thumbnailUrl(thumbnail)
-                .stockQuantity(stockQuantity)
-                .itemOptions(options)
-                .build();
-    }
 
     private OrderDto createOrderDto(Long userId, OrderStatus status, String orderName, String deliveryAddress,
                                     PaymentInfo paymentInfo, List<OrderItemDto> orderItemDtoList, AppliedCoupon appliedCoupon,
