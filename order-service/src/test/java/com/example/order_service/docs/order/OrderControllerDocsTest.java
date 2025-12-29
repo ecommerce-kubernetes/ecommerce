@@ -1,13 +1,12 @@
 package com.example.order_service.docs.order;
 
 import com.example.order_service.api.common.dto.PageDto;
-import com.example.order_service.api.common.security.model.UserRole;
 import com.example.order_service.api.common.security.principal.UserPrincipal;
 import com.example.order_service.api.order.application.OrderApplicationService;
 import com.example.order_service.api.order.application.dto.command.CreateOrderDto;
 import com.example.order_service.api.order.application.dto.result.CreateOrderResponse;
-import com.example.order_service.api.order.application.dto.result.OrderItemResponse;
 import com.example.order_service.api.order.application.dto.result.OrderDetailResponse;
+import com.example.order_service.api.order.application.dto.result.OrderItemResponse;
 import com.example.order_service.api.order.application.dto.result.OrderListResponse;
 import com.example.order_service.api.order.controller.OrderController;
 import com.example.order_service.api.order.controller.dto.request.CreateOrderItemRequest;
@@ -31,6 +30,8 @@ import static org.springframework.restdocs.headers.HeaderDocumentation.requestHe
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
 import static org.springframework.restdocs.payload.PayloadDocumentation.*;
+import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
+import static org.springframework.restdocs.request.RequestDocumentation.queryParameters;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -65,7 +66,7 @@ public class OrderControllerDocsTest extends RestDocSupport {
                 .status("PENDING")
                 .orderName("상품1 외 1건")
                 .finalPaymentAmount(5400L)
-                .createAt(LocalDateTime.now())
+                .createdAt(LocalDateTime.now().toString())
                 .build();
 
         HttpHeaders roleUser = createUserHeader("ROLE_USER");
@@ -101,7 +102,7 @@ public class OrderControllerDocsTest extends RestDocSupport {
                                 responseFields(
                                         fieldWithPath("orderId").description("주문 ID(주문 식별자)"),
                                         fieldWithPath("status").description("주문 상태"),
-                                        fieldWithPath("createAt").description("주문 일시"),
+                                        fieldWithPath("createdAt").description("주문 일시"),
                                         fieldWithPath("orderName").description("주문 설명"),
                                         fieldWithPath("finalPaymentAmount").description("최종 결제 금액")
                                 )
@@ -247,7 +248,12 @@ public class OrderControllerDocsTest extends RestDocSupport {
         //then
         mockMvc.perform(get("/orders")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .headers(roleUser))
+                        .headers(roleUser)
+                        .param("page", "1")
+                        .param("size", "10")
+                        .param("sort", "latest")
+                        .param("year", "2023")
+                        .param("productName", "나이키"))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andDo(
@@ -256,6 +262,13 @@ public class OrderControllerDocsTest extends RestDocSupport {
                                 requestHeaders(
                                         headerWithName("X-User-Id").description(USER_ID_HEADER_DESCRIPTION).optional(),
                                         headerWithName("X-User-Role").description(USER_ROLE_HEADER_DESCRIPTION).optional()
+                                ),
+                                queryParameters(
+                                        parameterWithName("page").description("페이지 번호 (기본값: 1)"),
+                                        parameterWithName("size").description("페이지 크기 (기본값: 20, 최대: 100)"),
+                                        parameterWithName("sort").description("정렬 기준 (latest: 최신순, price_high: 높은가격순 등)"),
+                                        parameterWithName("year").description("조회 연도 필터"),
+                                        parameterWithName("productName").description("상품명 검색 키워드")
                                 ),
                                 responseFields(
                                         fieldWithPath("content[].orderId").description("주문 ID"),
@@ -291,7 +304,7 @@ public class OrderControllerDocsTest extends RestDocSupport {
                 .userId(1L)
                 .orderStatus("COMPLETED")
                 .orderItems(createOrderItems())
-                .createdAt(LocalDateTime.now())
+                .createdAt(LocalDateTime.now().toString())
                 .build();
     }
 
@@ -319,7 +332,7 @@ public class OrderControllerDocsTest extends RestDocSupport {
                                 .build()
                 )
                 .orderItems(createOrderItems())
-                .createdAt(LocalDateTime.now())
+                .createdAt(LocalDateTime.now().toString())
                 .build();
 
     }

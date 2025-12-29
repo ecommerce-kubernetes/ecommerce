@@ -28,6 +28,7 @@ import com.example.order_service.api.order.infrastructure.client.product.dto.Ord
 import com.example.order_service.api.order.infrastructure.client.user.dto.OrderUserResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -116,7 +117,10 @@ public class OrderApplicationService {
     }
 
     public PageDto<OrderListResponse> getOrders(UserPrincipal userPrincipal, OrderSearchCondition condition){
-        return null;
+        Page<OrderDto> orders = orderDomainService.getOrders(userPrincipal.getUserId(), condition);
+
+        List<OrderListResponse> content = orders.getContent().stream().map(OrderListResponse::from).toList();
+        return PageDto.of(content, orders.getNumber(), orders.getTotalPages(), orders.getSize(), orders.getTotalElements());
     }
 
     private OrderCreationContext createCreationContext(CreateOrderDto dto,

@@ -5,8 +5,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
-
 @Getter
 @Setter
 public class CreateOrderResponse {
@@ -14,15 +12,15 @@ public class CreateOrderResponse {
     private String status;
     private String orderName;
     private Long finalPaymentAmount;
-    private LocalDateTime createAt;
+    private String createdAt;
 
     @Builder
-    private CreateOrderResponse(Long orderId, String status, String orderName, LocalDateTime createAt, Long finalPaymentAmount){
+    private CreateOrderResponse(Long orderId, String status, String orderName, String createdAt, Long finalPaymentAmount){
         this.orderId = orderId;
         this.status = status;
         this.orderName = orderName;
         this.finalPaymentAmount = finalPaymentAmount;
-        this.createAt = createAt;
+        this.createdAt = createdAt;
     }
 
     public static CreateOrderResponse of(OrderDto result) {
@@ -31,7 +29,7 @@ public class CreateOrderResponse {
                 .status(result.getStatus().name())
                 .orderName(result.getOrderName())
                 .finalPaymentAmount(result.getPaymentInfo().getFinalPaymentAmount())
-                .createAt(result.getOrderedAt())
+                .createdAt(result.getOrderedAt().toString())
                 .build();
     }
 }

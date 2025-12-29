@@ -7,7 +7,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
@@ -21,12 +20,12 @@ public class OrderDetailResponse {
     private PaymentResponse paymentResponse;
     private CouponResponse couponResponse;
     private List<OrderItemResponse> orderItems;
-    private LocalDateTime createdAt;
+    private String createdAt;
 
     @Builder
     private OrderDetailResponse(Long orderId, Long userId, String orderStatus, String orderName, String deliveryAddress,
                                 PaymentResponse paymentResponse, CouponResponse couponResponse, List<OrderItemResponse> orderItems,
-                                LocalDateTime createdAt) {
+                                String createdAt) {
         this.orderId = orderId;
         this.userId = userId;
         this.orderStatus = orderStatus;
@@ -101,7 +100,7 @@ public class OrderDetailResponse {
                 .paymentResponse(PaymentResponse.from(orderDto.getPaymentInfo()))
                 .couponResponse(CouponResponse.from(orderDto.getAppliedCoupon()))
                 .orderItems(items)
-                .createdAt(orderDto.getOrderedAt())
+                .createdAt(orderDto.getOrderedAt().toString())
                 .build();
     }
 }

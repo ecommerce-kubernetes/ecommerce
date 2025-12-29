@@ -27,7 +27,7 @@ public class PageDto<T> {
     public static <T> PageDto<T> of(List<T> content, int currentPage, long totalPage, int pageSize, long totalElement){
         return PageDto.<T>builder()
                 .content(content)
-                .currentPage(currentPage)
+                .currentPage(currentPage + 1)
                 .totalPage(totalPage)
                 .pageSize(pageSize)
                 .totalElement(totalElement)

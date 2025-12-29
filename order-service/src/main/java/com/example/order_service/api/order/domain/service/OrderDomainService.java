@@ -1,6 +1,7 @@
 package com.example.order_service.api.order.domain.service;
 
 import com.example.order_service.api.common.exception.NotFoundException;
+import com.example.order_service.api.order.controller.dto.request.OrderSearchCondition;
 import com.example.order_service.api.order.domain.model.Order;
 import com.example.order_service.api.order.domain.model.OrderFailureCode;
 import com.example.order_service.api.order.domain.model.OrderStatus;
@@ -9,6 +10,7 @@ import com.example.order_service.api.order.domain.service.dto.command.OrderCreat
 import com.example.order_service.api.order.domain.service.dto.result.OrderDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,6 +31,11 @@ public class OrderDomainService {
     public OrderDto getOrder(Long orderId) {
         Order order = orderRepository.findById(orderId).orElseThrow(() -> new NotFoundException("주문을 찾을 수 없습니다"));
         return OrderDto.from(order);
+    }
+
+    @Transactional
+    public Page<OrderDto> getOrders(Long userId, OrderSearchCondition condition) {
+        return null;
     }
 
     public OrderDto changeOrderStatus(Long orderId, OrderStatus orderStatus){

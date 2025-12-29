@@ -1,5 +1,6 @@
 package com.example.order_service.api.order.application;
 
+import com.example.order_service.api.common.dto.PageDto;
 import com.example.order_service.api.common.exception.NoPermissionException;
 import com.example.order_service.api.common.exception.OrderVerificationException;
 import com.example.order_service.api.common.exception.PaymentErrorCode;
@@ -9,9 +10,11 @@ import com.example.order_service.api.common.security.principal.UserPrincipal;
 import com.example.order_service.api.order.application.dto.command.CreateOrderDto;
 import com.example.order_service.api.order.application.dto.command.CreateOrderItemDto;
 import com.example.order_service.api.order.application.dto.result.CreateOrderResponse;
-import com.example.order_service.api.order.application.dto.result.OrderItemResponse;
 import com.example.order_service.api.order.application.dto.result.OrderDetailResponse;
+import com.example.order_service.api.order.application.dto.result.OrderItemResponse;
+import com.example.order_service.api.order.application.dto.result.OrderListResponse;
 import com.example.order_service.api.order.application.event.*;
+import com.example.order_service.api.order.controller.dto.request.OrderSearchCondition;
 import com.example.order_service.api.order.domain.model.OrderFailureCode;
 import com.example.order_service.api.order.domain.model.OrderStatus;
 import com.example.order_service.api.order.domain.model.vo.AppliedCoupon;
@@ -35,6 +38,7 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -68,7 +72,7 @@ public class OrderApplicationServiceTest {
         CreateOrderItemDto orderItem1 = createOrderItemDto(1L, 3);
         CreateOrderItemDto orderItem2 = createOrderItemDto(2L, 5);
 
-        CreateOrderDto createOrderDto = createOrderDto(userPrincipal, "서울시 테헤란로 123", 1L, 1000L,
+        CreateOrderDto createOrderDto = createCreateOrderDto(userPrincipal, "서울시 테헤란로 123", 1L, 1000L,
                 28600L, orderItem1, orderItem2);
 
         OrderUserResponse user = OrderUserResponse.builder()
@@ -109,7 +113,7 @@ public class OrderApplicationServiceTest {
         assertThat(response)
                 .extracting(CreateOrderResponse::getStatus, CreateOrderResponse::getOrderName, CreateOrderResponse::getFinalPaymentAmount)
                 .contains("PENDING", "상품1 외 1건", 28600L);
-        assertThat(response.getCreateAt()).isNotNull();
+        assertThat(response.getCreatedAt()).isNotNull();
 
         ArgumentCaptor<OrderCreatedEvent> captor = ArgumentCaptor.forClass(OrderCreatedEvent.class);
         verify(eventPublisher, times(1)).publishEvent(captor.capture());
@@ -305,7 +309,8 @@ public class OrderApplicationServiceTest {
         AppliedCoupon appliedCoupon = createAppliedCoupon(1L, "1000원 할인 쿠폰", 1000L);
         PaymentInfo paymentInfo = createPaymentInfo(34000, 3400, 1000, 1000, 28600);
         OrderDto orderDto = createOrderDto(userId, OrderStatus.COMPLETED, "상품1 외 1건", "서울시 테헤란로 123", paymentInfo, List.of(savedProduct1, savedProduct2), appliedCoupon,
-                null);        given(orderDomainService.getOrder(anyLong()))
+                null);
+        given(orderDomainService.getOrder(anyLong()))
                 .willReturn(orderDto);
         //when
         OrderDetailResponse result = orderApplicationService.getOrder(userPrincipal, orderId);
@@ -404,7 +409,55 @@ public class OrderApplicationServiceTest {
                 .hasMessage("주문을 조회할 권한이 없습니다");
     }
 
-    private CreateOrderDto createOrderDto(UserPrincipal userPrincipal, String deliveryAddress, Long couponId, Long pointToUse,
+    @Test
+    @DisplayName("주문 목록을 조회한다")
+    void getOrders() {
+        //given
+        Long userId = 1L;
+        UserPrincipal userPrincipal = createUserPrincipal(userId, UserRole.ROLE_USER);
+        OrderSearchCondition condition = OrderSearchCondition.builder()
+                .page(1)
+                .size(10)
+                .sort("latest")
+                .build();
+        OrderItemDto savedProduct1 = createOrderItemDto(1L, 1L, "상품1", "http://thumbnail1.jpg", 3, 3000L, 10,
+                List.of(OrderItemDto.ItemOptionDto.builder().optionTypeName("사이즈").optionValueName("XL").build()));
+        OrderItemDto savedProduct2 = createOrderItemDto(2L, 2L, "상품2", "http://thumbnail2.jpg", 5, 5000L, 10,
+                List.of(OrderItemDto.ItemOptionDto.builder().optionTypeName("용량").optionValueName("256GB").build()));
+        AppliedCoupon appliedCoupon1 = createAppliedCoupon(1L, "1000원 할인 쿠폰", 1000L);
+        AppliedCoupon appliedCoupon2 = createAppliedCoupon(2L, "1000원 할인 쿠폰", 1000L);
+        PaymentInfo paymentInfo = createPaymentInfo(34000, 3400, 1000, 1000, 28600);
+        OrderDto orderDto1 = createOrderDto(userId, OrderStatus.COMPLETED, "상품1 외 1건", "서울시 테헤란로 123", paymentInfo, List.of(savedProduct1, savedProduct2), appliedCoupon1,
+                null);
+        OrderDto orderDto2 = createOrderDto(userId, OrderStatus.COMPLETED, "상품1 외 1건", "서울시 테헤란로 123", paymentInfo, List.of(savedProduct1, savedProduct2), appliedCoupon2,
+                null);
+        Pageable pageable = PageRequest.of(0, 10, Sort.Direction.DESC, "createdAt");
+        Page<OrderDto> pageOrderDto = new PageImpl<>(
+                List.of(orderDto1, orderDto2),
+                pageable,
+                100
+        );
+        given(orderDomainService.getOrders(anyLong(), any(OrderSearchCondition.class)))
+                .willReturn(pageOrderDto);
+        OrderListResponse orderListResponse1 = createOrderListResponse(orderDto1);
+        OrderListResponse orderListResponse2 = createOrderListResponse(orderDto2);
+        List<OrderListResponse> expected = List.of(orderListResponse1, orderListResponse2);
+
+        //when
+        PageDto<OrderListResponse> result = orderApplicationService.getOrders(userPrincipal, condition);
+        //then
+        assertThat(result)
+                .extracting(PageDto::getCurrentPage, PageDto::getTotalPage, PageDto::getPageSize, PageDto::getTotalElement)
+                .containsExactly(1, 10L, 10, 100L);
+
+        assertThat(result.getContent())
+                .usingRecursiveComparison()
+                .ignoringFields("createdAt")
+                .isEqualTo(expected);
+
+    }
+
+    private CreateOrderDto createCreateOrderDto(UserPrincipal userPrincipal, String deliveryAddress, Long couponId, Long pointToUse,
                                           Long expectedPrice, CreateOrderItemDto... orderItems){
         return CreateOrderDto.builder()
                 .userPrincipal(userPrincipal)
@@ -506,6 +559,17 @@ public class OrderApplicationServiceTest {
                                 .build())
                 .itemOptionDtos(itemOptionDtos)
                 .lineTotal((originPrice - discountAmount)*quantity)
+                .build();
+    }
+
+    private OrderListResponse createOrderListResponse(OrderDto orderDto){
+        List<OrderItemResponse> list = orderDto.getOrderItemDtoList().stream().map(OrderItemResponse::from).toList();
+        return OrderListResponse.builder()
+                .orderId(orderDto.getOrderId())
+                .userId(orderDto.getUserId())
+                .orderStatus(orderDto.getStatus().name())
+                .orderItems(list)
+                .createdAt(orderDto.getOrderedAt().toString())
                 .build();
     }
 }
