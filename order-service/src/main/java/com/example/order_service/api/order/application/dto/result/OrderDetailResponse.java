@@ -12,7 +12,7 @@ import java.util.List;
 
 @Getter
 @NoArgsConstructor
-public class OrderResponse {
+public class OrderDetailResponse {
     private Long orderId;
     private Long userId;
     private String orderStatus;
@@ -24,9 +24,9 @@ public class OrderResponse {
     private LocalDateTime createdAt;
 
     @Builder
-    private OrderResponse(Long orderId, Long userId, String orderStatus, String orderName, String deliveryAddress,
-                          PaymentResponse paymentResponse, CouponResponse couponResponse, List<OrderItemResponse> orderItems,
-                          LocalDateTime createdAt) {
+    private OrderDetailResponse(Long orderId, Long userId, String orderStatus, String orderName, String deliveryAddress,
+                                PaymentResponse paymentResponse, CouponResponse couponResponse, List<OrderItemResponse> orderItems,
+                                LocalDateTime createdAt) {
         this.orderId = orderId;
         this.userId = userId;
         this.orderStatus = orderStatus;
@@ -90,9 +90,9 @@ public class OrderResponse {
         }
     }
 
-    public static OrderResponse from(OrderDto orderDto) {
+    public static OrderDetailResponse from(OrderDto orderDto) {
         List<OrderItemResponse> items = orderDto.getOrderItemDtoList().stream().map(OrderItemResponse::from).toList();
-        return OrderResponse.builder()
+        return OrderDetailResponse.builder()
                 .orderId(orderDto.getOrderId())
                 .userId(orderDto.getUserId())
                 .orderStatus(orderDto.getStatus().name())

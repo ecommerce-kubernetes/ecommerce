@@ -7,7 +7,7 @@ import com.example.order_service.api.common.security.principal.UserPrincipal;
 import com.example.order_service.api.order.application.dto.command.CreateOrderDto;
 import com.example.order_service.api.order.application.dto.result.CreateOrderResponse;
 import com.example.order_service.api.order.application.dto.result.OrderItemResponse;
-import com.example.order_service.api.order.application.dto.result.OrderResponse;
+import com.example.order_service.api.order.application.dto.result.OrderDetailResponse;
 import com.example.order_service.api.order.controller.dto.request.CreateOrderItemRequest;
 import com.example.order_service.api.order.controller.dto.request.CreateOrderRequest;
 import com.example.order_service.api.order.controller.dto.request.OrderConfirmRequest;
@@ -358,10 +358,10 @@ class OrderControllerTest extends ControllerTestSupport {
                 .orderId(orderId)
                 .paymentKey("paymentKey")
                 .build();
-        OrderResponse orderResponse = createOrderResponse(orderId);
+        OrderDetailResponse orderDetailResponse = createOrderResponse(orderId);
 
         given(orderApplicationService.confirmOrder(anyLong(), anyString()))
-                .willReturn(orderResponse);
+                .willReturn(orderDetailResponse);
         //when
         //then
         mockMvc.perform(post("/orders/confirm")
@@ -446,10 +446,10 @@ class OrderControllerTest extends ControllerTestSupport {
     @WithCustomMockUser
     void getOrder() throws Exception {
         //given
-        OrderResponse orderResponse = createOrderResponse(1L);
+        OrderDetailResponse orderDetailResponse = createOrderResponse(1L);
 
         given(orderApplicationService.getOrder(any(UserPrincipal.class),anyLong()))
-                .willReturn(orderResponse);
+                .willReturn(orderDetailResponse);
         //when
         //then
         mockMvc.perform(get("/orders/{orderId}", 1L)
@@ -486,15 +486,15 @@ class OrderControllerTest extends ControllerTestSupport {
 
     }
 
-    private OrderResponse createOrderResponse(Long orderId) {
-        return OrderResponse.builder()
+    private OrderDetailResponse createOrderResponse(Long orderId) {
+        return OrderDetailResponse.builder()
                 .orderId(orderId)
                 .userId(1L)
                 .orderStatus("COMPLETED")
                 .orderName("상품1")
                 .deliveryAddress("서울시 테헤란로 123")
                 .paymentResponse(
-                        OrderResponse.PaymentResponse.builder()
+                        OrderDetailResponse.PaymentResponse.builder()
                                 .totalOriginPrice(30000L)
                                 .totalProductDiscount(3000L)
                                 .couponDiscount(1000L)
@@ -503,7 +503,7 @@ class OrderControllerTest extends ControllerTestSupport {
                                 .build()
                 )
                 .couponResponse(
-                        OrderResponse.CouponResponse.builder()
+                        OrderDetailResponse.CouponResponse.builder()
                                 .couponId(1L)
                                 .couponName("1000원 할인 쿠폰")
                                 .couponDiscount(1000L)

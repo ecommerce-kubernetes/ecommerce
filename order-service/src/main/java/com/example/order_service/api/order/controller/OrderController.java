@@ -5,14 +5,13 @@ import com.example.order_service.api.common.security.principal.UserPrincipal;
 import com.example.order_service.api.order.application.OrderApplicationService;
 import com.example.order_service.api.order.application.dto.command.CreateOrderDto;
 import com.example.order_service.api.order.application.dto.result.CreateOrderResponse;
-import com.example.order_service.api.order.application.dto.result.OrderResponse;
+import com.example.order_service.api.order.application.dto.result.OrderDetailResponse;
+import com.example.order_service.api.order.application.dto.result.OrderListResponse;
 import com.example.order_service.api.order.controller.dto.request.CreateOrderRequest;
 import com.example.order_service.api.order.controller.dto.request.OrderConfirmRequest;
+import com.example.order_service.api.order.controller.dto.request.OrderSearchCondition;
 import lombok.RequiredArgsConstructor;
 import org.apache.http.HttpStatus;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -37,23 +36,22 @@ public class OrderController {
     }
 
     @GetMapping("/{orderId}")
-    public ResponseEntity<OrderResponse> getOrder(@AuthenticationPrincipal UserPrincipal userPrincipal, @PathVariable("orderId") Long orderId) {
-        OrderResponse response = orderApplicationService.getOrder(userPrincipal, orderId);
+    public ResponseEntity<OrderDetailResponse> getOrder(@AuthenticationPrincipal UserPrincipal userPrincipal, @PathVariable("orderId") Long orderId) {
+        OrderDetailResponse response = orderApplicationService.getOrder(userPrincipal, orderId);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping
-    public ResponseEntity<PageDto<OrderResponse>> getOrders(@RequestHeader("X-User-Id") Long userId,
-                                                                       @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.ASC) Pageable pageable,
-                                                                       @RequestParam(value = "year",required = false) String year,
-                                                                       @RequestParam(value = "keyword", required = false) String keyword){
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<PageDto<OrderListResponse>> getOrders(@AuthenticationPrincipal UserPrincipal userPrincipal,
+                                                                @ModelAttribute OrderSearchCondition condition) {
+        PageDto<OrderListResponse> orders = orderApplicationService.getOrders(userPrincipal, condition);
+        return ResponseEntity.ok(orders);
     }
 
     @PostMapping("/confirm")
-    public ResponseEntity<OrderResponse> confirm(@RequestBody @Validated OrderConfirmRequest request) {
-        OrderResponse orderResponse = orderApplicationService.confirmOrder(request.getOrderId(), request.getPaymentKey());
-        return ResponseEntity.ok(orderResponse);
+    public ResponseEntity<OrderDetailResponse> confirm(@RequestBody @Validated OrderConfirmRequest request) {
+        OrderDetailResponse orderDetailResponse = orderApplicationService.confirmOrder(request.getOrderId(), request.getPaymentKey());
+        return ResponseEntity.ok(orderDetailResponse);
     }
 
 }

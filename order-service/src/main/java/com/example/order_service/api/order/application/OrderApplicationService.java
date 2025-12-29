@@ -1,13 +1,16 @@
 package com.example.order_service.api.order.application;
 
+import com.example.order_service.api.common.dto.PageDto;
 import com.example.order_service.api.common.exception.NoPermissionException;
 import com.example.order_service.api.common.exception.OrderVerificationException;
 import com.example.order_service.api.common.exception.PaymentException;
 import com.example.order_service.api.common.security.principal.UserPrincipal;
 import com.example.order_service.api.order.application.dto.command.CreateOrderDto;
 import com.example.order_service.api.order.application.dto.result.CreateOrderResponse;
-import com.example.order_service.api.order.application.dto.result.OrderResponse;
+import com.example.order_service.api.order.application.dto.result.OrderDetailResponse;
+import com.example.order_service.api.order.application.dto.result.OrderListResponse;
 import com.example.order_service.api.order.application.event.*;
+import com.example.order_service.api.order.controller.dto.request.OrderSearchCondition;
 import com.example.order_service.api.order.domain.model.OrderFailureCode;
 import com.example.order_service.api.order.domain.model.OrderStatus;
 import com.example.order_service.api.order.domain.model.vo.PriceCalculateResult;
@@ -80,7 +83,7 @@ public class OrderApplicationService {
         ));
     }
 
-    public OrderResponse confirmOrder(Long orderId, String paymentKey) {
+    public OrderDetailResponse confirmOrder(Long orderId, String paymentKey) {
         OrderDto order = orderDomainService.getOrder(orderId);
         if (!order.getStatus().equals(OrderStatus.PAYMENT_WAITING)) {
             throw new OrderVerificationException("결제 가능한 주문이 아닙니다");
@@ -94,7 +97,7 @@ public class OrderApplicationService {
             List<Long> productVariantIds = completeOrder.getOrderItemDtoList().stream().map(OrderItemDto::getProductVariantId).toList();
             eventPublisher.publishEvent(PaymentResultEvent.of(completeOrder.getOrderId(), completeOrder.getUserId(), OrderEventStatus.SUCCESS,
                     OrderEventCode.PAYMENT_AUTHORIZED, productVariantIds, null));
-            return OrderResponse.from(completeOrder);
+            return OrderDetailResponse.from(completeOrder);
         } catch (PaymentException e) {
             OrderDto canceledOrder = orderDomainService.changeCanceled(order.getOrderId(), OrderFailureCode.from(e.getErrorCode()));
             eventPublisher.publishEvent(PaymentResultEvent.of(canceledOrder.getOrderId(), canceledOrder.getUserId(), OrderEventStatus.FAILURE,
@@ -103,13 +106,17 @@ public class OrderApplicationService {
         }
     }
 
-    public OrderResponse getOrder(UserPrincipal userPrincipal, Long orderId) {
+    public OrderDetailResponse getOrder(UserPrincipal userPrincipal, Long orderId) {
         Long userId = userPrincipal.getUserId();
         OrderDto order = orderDomainService.getOrder(orderId);
         if (!userId.equals(order.getUserId())) {
             throw new NoPermissionException("주문을 조회할 권한이 없습니다");
         }
-        return OrderResponse.from(order);
+        return OrderDetailResponse.from(order);
+    }
+
+    public PageDto<OrderListResponse> getOrders(UserPrincipal userPrincipal, OrderSearchCondition condition){
+        return null;
     }
 
     private OrderCreationContext createCreationContext(CreateOrderDto dto,

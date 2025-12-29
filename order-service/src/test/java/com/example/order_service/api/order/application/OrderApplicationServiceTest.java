@@ -10,7 +10,7 @@ import com.example.order_service.api.order.application.dto.command.CreateOrderDt
 import com.example.order_service.api.order.application.dto.command.CreateOrderItemDto;
 import com.example.order_service.api.order.application.dto.result.CreateOrderResponse;
 import com.example.order_service.api.order.application.dto.result.OrderItemResponse;
-import com.example.order_service.api.order.application.dto.result.OrderResponse;
+import com.example.order_service.api.order.application.dto.result.OrderDetailResponse;
 import com.example.order_service.api.order.application.event.*;
 import com.example.order_service.api.order.domain.model.OrderFailureCode;
 import com.example.order_service.api.order.domain.model.OrderStatus;
@@ -215,15 +215,15 @@ public class OrderApplicationServiceTest {
         given(orderDomainService.changeOrderStatus(anyLong(), any(OrderStatus.class)))
                 .willReturn(completeOrderDto);
         //when
-        OrderResponse orderResponse = orderApplicationService.confirmOrder(1L, "paymentKey");
+        OrderDetailResponse orderDetailResponse = orderApplicationService.confirmOrder(1L, "paymentKey");
         //then
         verify(orderDomainService, times(1)).changeOrderStatus(1L, OrderStatus.COMPLETED);
-        assertThat(orderResponse)
-                .extracting(OrderResponse::getOrderId, OrderResponse::getUserId, OrderResponse::getOrderStatus, OrderResponse::getOrderName,
-                        OrderResponse::getDeliveryAddress)
+        assertThat(orderDetailResponse)
+                .extracting(OrderDetailResponse::getOrderId, OrderDetailResponse::getUserId, OrderDetailResponse::getOrderStatus, OrderDetailResponse::getOrderName,
+                        OrderDetailResponse::getDeliveryAddress)
                 .containsExactly(1L, 1L, "COMPLETED", "상품1 외 1건", "서울시 테헤란로 123");
 
-        assertThat(orderResponse.getOrderItems()).isNotEmpty();
+        assertThat(orderDetailResponse.getOrderItems()).isNotEmpty();
 
         ArgumentCaptor<PaymentResultEvent> paymentCaptor = ArgumentCaptor.forClass(PaymentResultEvent.class);
         verify(eventPublisher, times(1)).publishEvent(paymentCaptor.capture());
@@ -308,26 +308,26 @@ public class OrderApplicationServiceTest {
                 null);        given(orderDomainService.getOrder(anyLong()))
                 .willReturn(orderDto);
         //when
-        OrderResponse result = orderApplicationService.getOrder(userPrincipal, orderId);
+        OrderDetailResponse result = orderApplicationService.getOrder(userPrincipal, orderId);
         //then
         assertThat(result)
-                .extracting(OrderResponse::getOrderId, OrderResponse::getUserId, OrderResponse::getOrderStatus, OrderResponse::getOrderName,
-                        OrderResponse::getDeliveryAddress)
+                .extracting(OrderDetailResponse::getOrderId, OrderDetailResponse::getUserId, OrderDetailResponse::getOrderStatus, OrderDetailResponse::getOrderName,
+                        OrderDetailResponse::getDeliveryAddress)
                 .containsExactly(1L, 1L, "COMPLETED", "상품1 외 1건", "서울시 테헤란로 123");
 
         assertThat(result.getCreatedAt()).isNotNull();
         assertThat(result.getPaymentResponse())
-                .extracting(OrderResponse.PaymentResponse::getTotalOriginPrice,
-                        OrderResponse.PaymentResponse::getTotalProductDiscount,
-                        OrderResponse.PaymentResponse::getCouponDiscount,
-                        OrderResponse.PaymentResponse::getPointDiscount,
-                        OrderResponse.PaymentResponse::getFinalPaymentAmount)
+                .extracting(OrderDetailResponse.PaymentResponse::getTotalOriginPrice,
+                        OrderDetailResponse.PaymentResponse::getTotalProductDiscount,
+                        OrderDetailResponse.PaymentResponse::getCouponDiscount,
+                        OrderDetailResponse.PaymentResponse::getPointDiscount,
+                        OrderDetailResponse.PaymentResponse::getFinalPaymentAmount)
                 .containsExactly(34000L, 3400L, 1000L, 1000L, 28600L);
 
         assertThat(result.getCouponResponse())
-                .extracting(OrderResponse.CouponResponse::getCouponId,
-                        OrderResponse.CouponResponse::getCouponName,
-                        OrderResponse.CouponResponse::getCouponDiscount)
+                .extracting(OrderDetailResponse.CouponResponse::getCouponId,
+                        OrderDetailResponse.CouponResponse::getCouponName,
+                        OrderDetailResponse.CouponResponse::getCouponDiscount)
                 .containsExactly(1L, "1000원 할인 쿠폰", 1000L);
 
         assertThat(result.getOrderItems()).hasSize(2)
