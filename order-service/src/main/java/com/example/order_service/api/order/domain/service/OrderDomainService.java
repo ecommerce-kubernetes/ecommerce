@@ -11,8 +11,11 @@ import com.example.order_service.api.order.domain.service.dto.result.OrderDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -33,9 +36,11 @@ public class OrderDomainService {
         return OrderDto.from(order);
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public Page<OrderDto> getOrders(Long userId, OrderSearchCondition condition) {
-        return null;
+        Page<Order> orders = orderRepository.findByUserIdAndCondition(userId, condition);
+        List<OrderDto> orderDtoList = orders.getContent().stream().map(OrderDto::from).toList();
+        return new PageImpl<>(orderDtoList, orders.getPageable(), orders.getTotalElements());
     }
 
     public OrderDto changeOrderStatus(Long orderId, OrderStatus orderStatus){

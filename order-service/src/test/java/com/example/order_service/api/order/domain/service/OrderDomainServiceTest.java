@@ -1,6 +1,7 @@
 package com.example.order_service.api.order.domain.service;
 
 import com.example.order_service.api.common.exception.NotFoundException;
+import com.example.order_service.api.order.controller.dto.request.OrderSearchCondition;
 import com.example.order_service.api.order.domain.model.Order;
 import com.example.order_service.api.order.domain.model.OrderFailureCode;
 import com.example.order_service.api.order.domain.model.OrderStatus;
@@ -14,6 +15,7 @@ import com.example.order_service.api.support.ExcludeInfraTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.transaction.annotation.Transactional;
 
 import static com.example.order_service.api.support.fixture.OrderDomainServiceTestFixture.*;
@@ -171,5 +173,41 @@ public class OrderDomainServiceTest extends ExcludeInfraTest {
         assertThatThrownBy(() -> orderDomainService.changeCanceled(999L, OrderFailureCode.OUT_OF_STOCK))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage("주문을 찾을 수 없습니다");
+    }
+
+    @Test
+    @DisplayName("유저 ID 와 조회 커맨드로 주문 목록을 조회한다")
+    void getOrders(){
+        //given
+        OrderCreationContext context = createDefaultContext();
+        Order savedOrder1 = orderRepository.save(Order.create(context));
+        Order savedOrder2 = orderRepository.save(Order.create(context));
+        OrderSearchCondition condition = OrderSearchCondition.builder()
+                .page(1)
+                .size(10)
+                .sort("latest").build();
+        //when
+        Page<OrderDto> result = orderDomainService.getOrders(USER_ID, condition);
+        //then
+
+        assertThat(result.getTotalElements()).isEqualTo(2);
+        assertThat(result.getTotalPages()).isEqualTo(1);
+        assertThat(result.getContent()).hasSize(2);
+        assertThat(result.getNumber()).isEqualTo(0);
+
+        assertThat(result.getContent())
+                .extracting(
+                        OrderDto::getUserId,
+                        OrderDto::getStatus,
+                        o -> o.getPaymentInfo().getFinalPaymentAmount()
+                )
+                .contains(
+                        tuple(USER_ID, OrderStatus.PENDING, FINAL_PRICE),
+                        tuple(USER_ID, OrderStatus.PENDING, FINAL_PRICE)
+                );
+
+        assertThat(result.getContent())
+                .extracting(OrderDto::getOrderId)
+                .containsExactly(savedOrder2.getId(), savedOrder1.getId());
     }
 }

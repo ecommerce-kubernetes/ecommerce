@@ -4,6 +4,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 @Getter
 @NoArgsConstructor
@@ -45,5 +47,9 @@ public class OrderSearchCondition {
         if (sort != null && !sort.isBlank()){
             this.sort = sort;
         }
+    }
+
+    public Pageable getPageable(){
+        return PageRequest.of(this.page - 1, this.size);
     }
 }
