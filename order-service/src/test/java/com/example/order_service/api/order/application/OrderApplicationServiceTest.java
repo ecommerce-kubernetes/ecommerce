@@ -248,13 +248,13 @@ public class OrderApplicationServiceTest {
                         OrderDetailResponse::getDeliveryAddress)
                 .containsExactly(orderId, USER_ID, "COMPLETED", "상품1 외 1건", ADDRESS);
 
-        assertThat(result.getPaymentResponse())
+        assertThat(result.getOrderPriceResponse())
                 .extracting(
-                        OrderDetailResponse.PaymentResponse::getTotalOriginPrice,
-                        OrderDetailResponse.PaymentResponse::getTotalProductDiscount,
-                        OrderDetailResponse.PaymentResponse::getCouponDiscount,
-                        OrderDetailResponse.PaymentResponse::getPointDiscount,
-                        OrderDetailResponse.PaymentResponse::getFinalPaymentAmount
+                        OrderDetailResponse.OrderPriceResponse::getTotalOriginPrice,
+                        OrderDetailResponse.OrderPriceResponse::getTotalProductDiscount,
+                        OrderDetailResponse.OrderPriceResponse::getCouponDiscount,
+                        OrderDetailResponse.OrderPriceResponse::getPointDiscount,
+                        OrderDetailResponse.OrderPriceResponse::getFinalPaymentAmount
                 )
                         .containsExactly(
                                 34000L,

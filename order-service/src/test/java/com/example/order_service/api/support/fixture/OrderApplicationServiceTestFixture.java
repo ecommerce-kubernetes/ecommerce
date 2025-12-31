@@ -8,6 +8,7 @@ import com.example.order_service.api.order.domain.model.OrderFailureCode;
 import com.example.order_service.api.order.domain.model.OrderStatus;
 import com.example.order_service.api.order.domain.model.vo.AppliedCoupon;
 import com.example.order_service.api.order.domain.model.vo.OrderPriceInfo;
+import com.example.order_service.api.order.domain.model.vo.PaymentInfo;
 import com.example.order_service.api.order.domain.service.dto.result.OrderDto;
 import com.example.order_service.api.order.domain.service.dto.result.OrderItemDto;
 import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponCalcResponse;
@@ -103,6 +104,15 @@ public class OrderApplicationServiceTestFixture {
                         .couponName("1000원 할인 쿠폰")
                         .discountAmount(1000L)
                         .build())
+                .paymentInfo(
+                        PaymentInfo.builder()
+                                .id(1L)
+                                .paymentKey("paymentKey")
+                                .amount(FIXED_FINAL_PRICE)
+                                .method("CARD")
+                                .approvedAt(LocalDateTime.now())
+                                .build()
+                )
                 .orderedAt(LocalDateTime.now())
                 .build();
     }

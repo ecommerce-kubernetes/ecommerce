@@ -150,11 +150,17 @@ public class OrderControllerDocsTest extends RestDocSupport {
                                 fieldWithPath("deliveryAddress").description("배송지"),
                                 fieldWithPath("createdAt").description("주문 시각"),
 
-                                fieldWithPath("paymentResponse.totalOriginPrice").description("할인 전 주문 금액"),
-                                fieldWithPath("paymentResponse.totalProductDiscount").description("상품 총 할인 금액"),
-                                fieldWithPath("paymentResponse.couponDiscount").description("쿠폰 할인 금액"),
-                                fieldWithPath("paymentResponse.pointDiscount").description("포인트 할인 금액"),
-                                fieldWithPath("paymentResponse.finalPaymentAmount").description("최종 주문 금액"),
+                                fieldWithPath("orderPriceResponse.totalOriginPrice").description("할인 전 주문 금액"),
+                                fieldWithPath("orderPriceResponse.totalProductDiscount").description("상품 총 할인 금액"),
+                                fieldWithPath("orderPriceResponse.couponDiscount").description("쿠폰 할인 금액"),
+                                fieldWithPath("orderPriceResponse.pointDiscount").description("포인트 할인 금액"),
+                                fieldWithPath("orderPriceResponse.finalPaymentAmount").description("최종 주문 금액"),
+
+                                fieldWithPath("paymentResponse.paymentId").description("결제 ID"),
+                                fieldWithPath("paymentResponse.paymentKey").description("결제 키"),
+                                fieldWithPath("paymentResponse.amount").description("결제 금액"),
+                                fieldWithPath("paymentResponse.method").description("결제 방법"),
+                                fieldWithPath("paymentResponse.approvedAt").description("결제 시각"),
 
                                 fieldWithPath("couponResponse.couponId").description("사용 쿠폰 ID"),
                                 fieldWithPath("couponResponse.couponName").description("쿠폰 이름"),
@@ -207,11 +213,17 @@ public class OrderControllerDocsTest extends RestDocSupport {
                                         fieldWithPath("deliveryAddress").description("배송지"),
                                         fieldWithPath("createdAt").description("주문 시각"),
 
-                                        fieldWithPath("paymentResponse.totalOriginPrice").description("할인 전 주문 금액"),
-                                        fieldWithPath("paymentResponse.totalProductDiscount").description("상품 총 할인 금액"),
-                                        fieldWithPath("paymentResponse.couponDiscount").description("쿠폰 할인 금액"),
-                                        fieldWithPath("paymentResponse.pointDiscount").description("포인트 할인 금액"),
-                                        fieldWithPath("paymentResponse.finalPaymentAmount").description("최종 주문 금액"),
+                                        fieldWithPath("orderPriceResponse.totalOriginPrice").description("할인 전 주문 금액"),
+                                        fieldWithPath("orderPriceResponse.totalProductDiscount").description("상품 총 할인 금액"),
+                                        fieldWithPath("orderPriceResponse.couponDiscount").description("쿠폰 할인 금액"),
+                                        fieldWithPath("orderPriceResponse.pointDiscount").description("포인트 할인 금액"),
+                                        fieldWithPath("orderPriceResponse.finalPaymentAmount").description("최종 주문 금액"),
+
+                                        fieldWithPath("paymentResponse.paymentId").description("결제 ID"),
+                                        fieldWithPath("paymentResponse.paymentKey").description("결제 키"),
+                                        fieldWithPath("paymentResponse.amount").description("결제 금액"),
+                                        fieldWithPath("paymentResponse.method").description("결제 방법"),
+                                        fieldWithPath("paymentResponse.approvedAt").description("결제 시각"),
 
                                         fieldWithPath("couponResponse.couponId").description("사용 쿠폰 ID"),
                                         fieldWithPath("couponResponse.couponName").description("쿠폰 이름"),
@@ -320,8 +332,8 @@ public class OrderControllerDocsTest extends RestDocSupport {
                 .orderStatus("COMPLETED")
                 .orderName("상품1")
                 .deliveryAddress("서울시 테헤란로 123")
-                .paymentResponse(
-                        OrderDetailResponse.PaymentResponse.builder()
+                .orderPriceResponse(
+                        OrderDetailResponse.OrderPriceResponse.builder()
                                 .totalOriginPrice(30000L)
                                 .totalProductDiscount(3000L)
                                 .couponDiscount(1000L)
@@ -334,6 +346,15 @@ public class OrderControllerDocsTest extends RestDocSupport {
                                 .couponId(1L)
                                 .couponName("1000원 할인 쿠폰")
                                 .couponDiscount(1000L)
+                                .build()
+                )
+                .paymentResponse(
+                        OrderDetailResponse.PaymentResponse.builder()
+                                .paymentId(1L)
+                                .paymentKey("paymentKey")
+                                .amount(25000L)
+                                .method("CARD")
+                                .approvedAt(LocalDateTime.now().toString())
                                 .build()
                 )
                 .orderItems(createOrderItems())

@@ -470,11 +470,11 @@ class OrderControllerTest extends ControllerTestSupport {
                 .andExpect(jsonPath("$.orderName").value("상품1"))
                 .andExpect(jsonPath("$.deliveryAddress").value("서울시 테헤란로 123"))
 
-                .andExpect(jsonPath("$.paymentResponse.totalOriginPrice").value(30000L))
-                .andExpect(jsonPath("$.paymentResponse.totalProductDiscount").value(3000L))
-                .andExpect(jsonPath("$.paymentResponse.couponDiscount").value(1000L))
-                .andExpect(jsonPath("$.paymentResponse.pointDiscount").value(1000L))
-                .andExpect(jsonPath("$.paymentResponse.finalPaymentAmount").value(25000L))
+                .andExpect(jsonPath("$.orderPriceResponse.totalOriginPrice").value(30000L))
+                .andExpect(jsonPath("$.orderPriceResponse.totalProductDiscount").value(3000L))
+                .andExpect(jsonPath("$.orderPriceResponse.couponDiscount").value(1000L))
+                .andExpect(jsonPath("$.orderPriceResponse.pointDiscount").value(1000L))
+                .andExpect(jsonPath("$.orderPriceResponse.finalPaymentAmount").value(25000L))
 
                 .andExpect(jsonPath("$.couponResponse.couponId").value(1L))
                 .andExpect(jsonPath("$.couponResponse.couponName").value("1000원 할인 쿠폰"))
@@ -643,8 +643,8 @@ class OrderControllerTest extends ControllerTestSupport {
                 .orderStatus("COMPLETED")
                 .orderName("상품1")
                 .deliveryAddress("서울시 테헤란로 123")
-                .paymentResponse(
-                        OrderDetailResponse.PaymentResponse.builder()
+                .orderPriceResponse(
+                        OrderDetailResponse.OrderPriceResponse.builder()
                                 .totalOriginPrice(30000L)
                                 .totalProductDiscount(3000L)
                                 .couponDiscount(1000L)

@@ -2,6 +2,7 @@ package com.example.order_service.api.order.application.dto.result;
 
 import com.example.order_service.api.order.domain.model.vo.AppliedCoupon;
 import com.example.order_service.api.order.domain.model.vo.OrderPriceInfo;
+import com.example.order_service.api.order.domain.model.vo.PaymentInfo;
 import com.example.order_service.api.order.domain.service.dto.result.OrderDto;
 import lombok.Builder;
 import lombok.Getter;
@@ -17,6 +18,7 @@ public class OrderDetailResponse {
     private String orderStatus;
     private String orderName;
     private String deliveryAddress;
+    private OrderPriceResponse orderPriceResponse;
     private PaymentResponse paymentResponse;
     private CouponResponse couponResponse;
     private List<OrderItemResponse> orderItems;
@@ -24,22 +26,23 @@ public class OrderDetailResponse {
 
     @Builder
     private OrderDetailResponse(Long orderId, Long userId, String orderStatus, String orderName, String deliveryAddress,
-                                PaymentResponse paymentResponse, CouponResponse couponResponse, List<OrderItemResponse> orderItems,
+                                OrderPriceResponse orderPriceResponse, CouponResponse couponResponse, PaymentResponse paymentResponse, List<OrderItemResponse> orderItems,
                                 String createdAt) {
         this.orderId = orderId;
         this.userId = userId;
         this.orderStatus = orderStatus;
         this.orderName = orderName;
         this.deliveryAddress = deliveryAddress;
-        this.paymentResponse = paymentResponse;
+        this.orderPriceResponse = orderPriceResponse;
         this.couponResponse = couponResponse;
+        this.paymentResponse = paymentResponse;
         this.orderItems = orderItems;
         this.createdAt = createdAt;
     }
 
     @Getter
     @NoArgsConstructor
-    public static class PaymentResponse {
+    public static class OrderPriceResponse {
         private Long totalOriginPrice;
         private Long totalProductDiscount;
         private Long couponDiscount;
@@ -47,7 +50,7 @@ public class OrderDetailResponse {
         private Long finalPaymentAmount;
 
         @Builder
-        private PaymentResponse(Long totalOriginPrice, Long totalProductDiscount, Long couponDiscount, Long pointDiscount, Long finalPaymentAmount) {
+        private OrderPriceResponse(Long totalOriginPrice, Long totalProductDiscount, Long couponDiscount, Long pointDiscount, Long finalPaymentAmount) {
             this.totalOriginPrice = totalOriginPrice;
             this.totalProductDiscount = totalProductDiscount;
             this.couponDiscount = couponDiscount;
@@ -55,8 +58,8 @@ public class OrderDetailResponse {
             this.finalPaymentAmount = finalPaymentAmount;
         }
 
-        public static PaymentResponse from(OrderPriceInfo orderPriceInfo) {
-            return PaymentResponse.builder()
+        public static OrderPriceResponse from(OrderPriceInfo orderPriceInfo) {
+            return OrderPriceResponse.builder()
                     .totalOriginPrice(orderPriceInfo.getTotalOriginPrice())
                     .totalProductDiscount(orderPriceInfo.getTotalProductDiscount())
                     .couponDiscount(orderPriceInfo.getCouponDiscount())
@@ -89,6 +92,35 @@ public class OrderDetailResponse {
         }
     }
 
+    @Getter
+    @NoArgsConstructor
+    public static class PaymentResponse {
+        private Long paymentId;
+        private String paymentKey;
+        private Long amount;
+        private String method;
+        private String approvedAt;
+
+        @Builder
+        private PaymentResponse(Long paymentId, String paymentKey, Long amount, String method, String approvedAt) {
+            this.paymentId = paymentId;
+            this.paymentKey = paymentKey;
+            this.amount = amount;
+            this.method = method;
+            this.approvedAt = approvedAt;
+        }
+
+        public static PaymentResponse from(PaymentInfo paymentInfo) {
+            return PaymentResponse.builder()
+                    .paymentId(paymentInfo.getId())
+                    .paymentKey(paymentInfo.getPaymentKey())
+                    .amount(paymentInfo.getAmount())
+                    .method(paymentInfo.getMethod())
+                    .approvedAt(paymentInfo.getApprovedAt().toString())
+                    .build();
+        }
+    }
+
     public static OrderDetailResponse from(OrderDto orderDto) {
         List<OrderItemResponse> items = orderDto.getOrderItemDtoList().stream().map(OrderItemResponse::from).toList();
         return OrderDetailResponse.builder()
@@ -97,9 +129,10 @@ public class OrderDetailResponse {
                 .orderStatus(orderDto.getStatus().name())
                 .orderName(orderDto.getOrderName())
                 .deliveryAddress(orderDto.getDeliveryAddress())
-                .paymentResponse(PaymentResponse.from(orderDto.getOrderPriceInfo()))
+                .orderPriceResponse(OrderPriceResponse.from(orderDto.getOrderPriceInfo()))
                 .couponResponse(CouponResponse.from(orderDto.getAppliedCoupon()))
                 .orderItems(items)
+                .paymentResponse(PaymentResponse.from(orderDto.getPaymentInfo()))
                 .createdAt(orderDto.getOrderedAt().toString())
                 .build();
     }

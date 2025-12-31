@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
-import static com.example.order_service.api.support.fixture.OrderRepositoryTestFixture.*;
+import static com.example.order_service.api.support.fixture.OrderRepositoryTestFixture.testOrderBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Transactional
