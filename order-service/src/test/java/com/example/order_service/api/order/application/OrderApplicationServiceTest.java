@@ -19,6 +19,7 @@ import com.example.order_service.api.order.domain.model.OrderStatus;
 import com.example.order_service.api.order.domain.service.OrderDomainService;
 import com.example.order_service.api.order.domain.service.OrderPriceCalculator;
 import com.example.order_service.api.order.domain.service.dto.command.OrderCreationContext;
+import com.example.order_service.api.order.domain.service.dto.command.PaymentCreationCommand;
 import com.example.order_service.api.order.domain.service.dto.result.OrderDto;
 import com.example.order_service.api.order.infrastructure.OrderIntegrationService;
 import com.example.order_service.api.order.infrastructure.client.payment.dto.TossPaymentConfirmResponse;
@@ -135,12 +136,12 @@ public class OrderApplicationServiceTest {
         Long orderId = 1L;
         OrderFailureCode failureCode = OrderFailureCode.OUT_OF_STOCK;
         OrderDto canceledOrder = mockCanceledOrder(failureCode);
-        given(orderDomainService.changeCanceled(orderId, failureCode))
+        given(orderDomainService.canceledOrder(orderId, failureCode))
                 .willReturn(canceledOrder);
         //when
         orderApplicationService.changeCanceled(orderId, failureCode);
         //then
-        verify(orderDomainService, times(1)).changeCanceled(orderId, failureCode);
+        verify(orderDomainService, times(1)).canceledOrder(orderId, failureCode);
 
         verify(eventPublisher, times(1))
                 .publishEvent(orderResultEventCaptor.capture());
@@ -166,12 +167,11 @@ public class OrderApplicationServiceTest {
                 .willReturn(waitingOrder);
         given(orderIntegrationService.confirmOrderPayment(anyLong(), anyString(), anyLong()))
                 .willReturn(paymentResponse);
-        given(orderDomainService.changeOrderStatus(orderId, OrderStatus.COMPLETED))
+        given(orderDomainService.completedOrder(any(PaymentCreationCommand.class)))
                 .willReturn(completedOrder);
         //when
         OrderDetailResponse result = orderApplicationService.confirmOrder(orderId, paymentKey);
         //then
-        verify(orderDomainService, times(1)).changeOrderStatus(orderId, OrderStatus.COMPLETED);
         assertThat(result)
                 .extracting(OrderDetailResponse::getOrderId, OrderDetailResponse::getUserId, OrderDetailResponse::getOrderStatus, OrderDetailResponse::getOrderName,
                         OrderDetailResponse::getDeliveryAddress)
@@ -215,7 +215,7 @@ public class OrderApplicationServiceTest {
                 .willReturn(waitingOrder);
         willThrow(new PaymentException(failureMessage, PaymentErrorCode.APPROVAL_FAIL))
                 .given(orderIntegrationService).confirmOrderPayment(anyLong(), anyString(), anyLong());
-        given(orderDomainService.changeCanceled(anyLong(), any(OrderFailureCode.class)))
+        given(orderDomainService.canceledOrder(anyLong(), any(OrderFailureCode.class)))
                 .willReturn(failureOrder);
         //when
         //then
@@ -223,7 +223,7 @@ public class OrderApplicationServiceTest {
                 .isInstanceOf(PaymentException.class)
                 .hasMessage(failureMessage);
 
-        verify(orderDomainService, times(1)).changeCanceled(orderId, OrderFailureCode.PAYMENT_FAILED);
+        verify(orderDomainService, times(1)).canceledOrder(orderId, OrderFailureCode.PAYMENT_FAILED);
 
         verify(eventPublisher, times(1)).publishEvent(paymentResultEventCaptor.capture());
         assertThat(paymentResultEventCaptor.getValue())

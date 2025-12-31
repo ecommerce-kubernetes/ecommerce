@@ -46,7 +46,7 @@ public class PriceCalculateResultTest {
         assertThat(priceCalculateResult.getAppliedCoupon())
                 .extracting("couponId", "couponName", "discountAmount")
                         .containsExactly(1L, "1000원 할인 쿠폰", 1000L);
-        assertThat(priceCalculateResult.getPaymentInfo())
+        assertThat(priceCalculateResult.getOrderPriceInfo())
                 .extracting("totalOriginPrice", "totalProductDiscount", "couponDiscount", "usedPoint", "finalPaymentAmount")
                 .containsExactly(34000L, 3400L, 1000L, 1000L, 28600L);
     }
@@ -73,7 +73,7 @@ public class PriceCalculateResultTest {
         PriceCalculateResult priceCalculateResult = PriceCalculateResult.of(itemCalculationResult, null, 1000L, 29600L);
         //then
         assertThat(priceCalculateResult.getAppliedCoupon()).isNull();
-        assertThat(priceCalculateResult.getPaymentInfo())
+        assertThat(priceCalculateResult.getOrderPriceInfo())
                 .extracting("totalOriginPrice", "totalProductDiscount", "couponDiscount", "usedPoint", "finalPaymentAmount")
                 .containsExactly(34000L, 3400L, 0L, 1000L, 29600L);
     }

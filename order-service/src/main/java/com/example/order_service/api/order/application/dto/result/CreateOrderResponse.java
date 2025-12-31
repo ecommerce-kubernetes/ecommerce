@@ -28,7 +28,7 @@ public class CreateOrderResponse {
                 .orderId(result.getOrderId())
                 .status(result.getStatus().name())
                 .orderName(result.getOrderName())
-                .finalPaymentAmount(result.getPaymentInfo().getFinalPaymentAmount())
+                .finalPaymentAmount(result.getOrderPriceInfo().getFinalPaymentAmount())
                 .createdAt(result.getOrderedAt().toString())
                 .build();
     }

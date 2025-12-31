@@ -6,9 +6,11 @@ import com.example.order_service.api.order.domain.model.Order;
 import com.example.order_service.api.order.domain.model.OrderFailureCode;
 import com.example.order_service.api.order.domain.model.OrderStatus;
 import com.example.order_service.api.order.domain.model.vo.AppliedCoupon;
+import com.example.order_service.api.order.domain.model.vo.OrderPriceInfo;
 import com.example.order_service.api.order.domain.model.vo.PaymentInfo;
 import com.example.order_service.api.order.domain.repository.OrderRepository;
 import com.example.order_service.api.order.domain.service.dto.command.OrderCreationContext;
+import com.example.order_service.api.order.domain.service.dto.command.PaymentCreationCommand;
 import com.example.order_service.api.order.domain.service.dto.result.OrderDto;
 import com.example.order_service.api.order.domain.service.dto.result.OrderItemDto;
 import com.example.order_service.api.support.ExcludeInfraTest;
@@ -17,6 +19,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
 
 import static com.example.order_service.api.support.fixture.OrderDomainServiceTestFixture.*;
 import static org.assertj.core.api.Assertions.*;
@@ -43,13 +47,13 @@ public class OrderDomainServiceTest extends ExcludeInfraTest {
                 .contains(OrderStatus.PENDING, "상품1 외 1건", null);
         assertThat(orderDto.getOrderedAt()).isNotNull();
 
-        assertThat(orderDto.getPaymentInfo())
+        assertThat(orderDto.getOrderPriceInfo())
                 .extracting(
-                        PaymentInfo::getTotalOriginPrice,
-                        PaymentInfo::getTotalProductDiscount,
-                        PaymentInfo::getCouponDiscount,
-                        PaymentInfo::getUsedPoint,
-                        PaymentInfo::getFinalPaymentAmount
+                        OrderPriceInfo::getTotalOriginPrice,
+                        OrderPriceInfo::getTotalProductDiscount,
+                        OrderPriceInfo::getCouponDiscount,
+                        OrderPriceInfo::getUsedPoint,
+                        OrderPriceInfo::getFinalPaymentAmount
                 )
                 .contains(
                         TOTAL_ORIGIN_PRICE,
@@ -115,9 +119,9 @@ public class OrderDomainServiceTest extends ExcludeInfraTest {
         assertThat(result.getOrderId()).isEqualTo(savedOrder.getId());
         assertThat(result.getStatus()).isEqualTo(OrderStatus.PENDING);
 
-        assertThat(result.getPaymentInfo())
-                .extracting(PaymentInfo::getTotalOriginPrice, PaymentInfo::getTotalProductDiscount,
-                        PaymentInfo::getCouponDiscount, PaymentInfo::getUsedPoint, PaymentInfo::getFinalPaymentAmount)
+        assertThat(result.getOrderPriceInfo())
+                .extracting(OrderPriceInfo::getTotalOriginPrice, OrderPriceInfo::getTotalProductDiscount,
+                        OrderPriceInfo::getCouponDiscount, OrderPriceInfo::getUsedPoint, OrderPriceInfo::getFinalPaymentAmount)
                 .contains(TOTAL_ORIGIN_PRICE, TOTAL_PROD_DISCOUNT, COUPON_DISCOUNT, USE_POINT, FINAL_PRICE);
 
         assertThat(result.getOrderItemDtoList())
@@ -151,13 +155,13 @@ public class OrderDomainServiceTest extends ExcludeInfraTest {
 
     @Test
     @DisplayName("주문을 실패 상태로 변경한다")
-    void changeCanceled() {
+    void canceledOrder() {
         //given
         OrderCreationContext context = createDefaultContext();
         Order savedOrder = orderRepository.save(Order.create(context));
         OrderFailureCode failureCode = OrderFailureCode.OUT_OF_STOCK;
         //when
-        OrderDto result = orderDomainService.changeCanceled(savedOrder.getId(), failureCode);
+        OrderDto result = orderDomainService.canceledOrder(savedOrder.getId(), failureCode);
         //then
         assertThat(result.getStatus()).isEqualTo(OrderStatus.CANCELED);
         assertThat(result.getOrderFailureCode()).isEqualTo(OrderFailureCode.OUT_OF_STOCK);
@@ -166,11 +170,11 @@ public class OrderDomainServiceTest extends ExcludeInfraTest {
 
     @Test
     @DisplayName("주문을 실패 상태로 변경할때 주문을 찾을 수 없으면 예외를 던진다")
-    void changeCanceled_notFound() {
+    void canceledOrder_notFound() {
         //given
         //when
         //then
-        assertThatThrownBy(() -> orderDomainService.changeCanceled(999L, OrderFailureCode.OUT_OF_STOCK))
+        assertThatThrownBy(() -> orderDomainService.canceledOrder(999L, OrderFailureCode.OUT_OF_STOCK))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage("주문을 찾을 수 없습니다");
     }
@@ -199,7 +203,7 @@ public class OrderDomainServiceTest extends ExcludeInfraTest {
                 .extracting(
                         OrderDto::getUserId,
                         OrderDto::getStatus,
-                        o -> o.getPaymentInfo().getFinalPaymentAmount()
+                        o -> o.getOrderPriceInfo().getFinalPaymentAmount()
                 )
                 .contains(
                         tuple(USER_ID, OrderStatus.PENDING, FINAL_PRICE),
@@ -209,5 +213,31 @@ public class OrderDomainServiceTest extends ExcludeInfraTest {
         assertThat(result.getContent())
                 .extracting(OrderDto::getOrderId)
                 .containsExactly(savedOrder2.getId(), savedOrder1.getId());
+    }
+
+    @Test
+    @DisplayName("주문에 결제 정보를 저장한다")
+    void completedOrder(){
+        //given
+        String paymentKey = "paymentKey";
+        OrderCreationContext context = createDefaultContext();
+        Order order = Order.create(context);
+        order.changeStatus(OrderStatus.PAYMENT_WAITING);
+        Order savedOrder = orderRepository.save(order);
+        PaymentCreationCommand command = PaymentCreationCommand.builder()
+                .orderId(savedOrder.getId())
+                .paymentKey(paymentKey)
+                .amount(order.getFinalPaymentAmount())
+                .method("CARD")
+                .approvedAt(LocalDateTime.now())
+                .build();
+        //when
+        OrderDto orderDto = orderDomainService.completedOrder(command);
+        //then
+        assertThat(orderDto.getStatus()).isEqualTo(OrderStatus.COMPLETED);
+        assertThat(orderDto.getPaymentInfo().getId()).isNotNull();
+        assertThat(orderDto.getPaymentInfo())
+                .extracting(PaymentInfo::getPaymentKey, PaymentInfo::getAmount, PaymentInfo::getMethod)
+                .containsExactly(paymentKey, order.getFinalPaymentAmount(), "CARD");
     }
 }

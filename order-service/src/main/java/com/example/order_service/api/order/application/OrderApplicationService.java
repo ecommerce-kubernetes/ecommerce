@@ -18,6 +18,7 @@ import com.example.order_service.api.order.domain.service.OrderDomainService;
 import com.example.order_service.api.order.domain.service.OrderPriceCalculator;
 import com.example.order_service.api.order.domain.service.dto.command.OrderCreationContext;
 import com.example.order_service.api.order.domain.service.dto.command.OrderItemSpec;
+import com.example.order_service.api.order.domain.service.dto.command.PaymentCreationCommand;
 import com.example.order_service.api.order.domain.service.dto.result.ItemCalculationResult;
 import com.example.order_service.api.order.domain.service.dto.result.OrderDto;
 import com.example.order_service.api.order.domain.service.dto.result.OrderItemDto;
@@ -69,13 +70,13 @@ public class OrderApplicationService {
         eventPublisher.publishEvent(OrderResultEvent.of(
                 orderDto.getOrderId(), orderDto.getUserId(),
                 OrderEventStatus.SUCCESS, OrderEventCode.PAYMENT_READY,
-                orderDto.getOrderName(), orderDto.getPaymentInfo().getFinalPaymentAmount(),
+                orderDto.getOrderName(), orderDto.getOrderPriceInfo().getFinalPaymentAmount(),
                 "결제 대기중입니다"
         ));
     }
 
     public void changeCanceled(Long orderId, OrderFailureCode orderFailureCode){
-        OrderDto orderDto = orderDomainService.changeCanceled(orderId, orderFailureCode);
+        OrderDto orderDto = orderDomainService.canceledOrder(orderId, orderFailureCode);
         eventPublisher.publishEvent(OrderResultEvent.of(
                 orderDto.getOrderId(), orderDto.getUserId(),
                 OrderEventStatus.FAILURE, OrderEventCode.from(orderDto.getOrderFailureCode()),
@@ -91,16 +92,15 @@ public class OrderApplicationService {
         }
 
         try {
-            //TODO 결제 정보 저장
             TossPaymentConfirmResponse paymentConfirm =
-                    orderIntegrationService.confirmOrderPayment(order.getOrderId(), paymentKey, order.getPaymentInfo().getFinalPaymentAmount());
-            OrderDto completeOrder = orderDomainService.changeOrderStatus(order.getOrderId(), OrderStatus.COMPLETED);
+                    orderIntegrationService.confirmOrderPayment(order.getOrderId(), paymentKey, order.getOrderPriceInfo().getFinalPaymentAmount());
+            OrderDto completeOrder = orderDomainService.completedOrder(PaymentCreationCommand.from(paymentConfirm));
             List<Long> productVariantIds = completeOrder.getOrderItemDtoList().stream().map(OrderItemDto::getProductVariantId).toList();
             eventPublisher.publishEvent(PaymentResultEvent.of(completeOrder.getOrderId(), completeOrder.getUserId(), OrderEventStatus.SUCCESS,
                     OrderEventCode.PAYMENT_AUTHORIZED, productVariantIds, null));
             return OrderDetailResponse.from(completeOrder);
         } catch (PaymentException e) {
-            OrderDto canceledOrder = orderDomainService.changeCanceled(order.getOrderId(), OrderFailureCode.from(e.getErrorCode()));
+            OrderDto canceledOrder = orderDomainService.canceledOrder(order.getOrderId(), OrderFailureCode.from(e.getErrorCode()));
             eventPublisher.publishEvent(PaymentResultEvent.of(canceledOrder.getOrderId(), canceledOrder.getUserId(), OrderEventStatus.FAILURE,
                     OrderEventCode.from(canceledOrder.getOrderFailureCode()), null, e.getMessage()));
             throw e;

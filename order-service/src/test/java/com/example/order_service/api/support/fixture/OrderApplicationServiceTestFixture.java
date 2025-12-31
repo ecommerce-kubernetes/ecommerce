@@ -7,7 +7,7 @@ import com.example.order_service.api.order.application.dto.command.CreateOrderIt
 import com.example.order_service.api.order.domain.model.OrderFailureCode;
 import com.example.order_service.api.order.domain.model.OrderStatus;
 import com.example.order_service.api.order.domain.model.vo.AppliedCoupon;
-import com.example.order_service.api.order.domain.model.vo.PaymentInfo;
+import com.example.order_service.api.order.domain.model.vo.OrderPriceInfo;
 import com.example.order_service.api.order.domain.service.dto.result.OrderDto;
 import com.example.order_service.api.order.domain.service.dto.result.OrderItemDto;
 import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponCalcResponse;
@@ -84,8 +84,8 @@ public class OrderApplicationServiceTestFixture {
                 .orderName("상품1 외 1건")
                 .deliveryAddress(ADDRESS)
                 .status(status)
-                .paymentInfo(
-                        PaymentInfo.builder()
+                .orderPriceInfo(
+                        OrderPriceInfo.builder()
                                 .totalOriginPrice(totalOrigin)
                                 .totalProductDiscount(totalProdDisc)
                                 .couponDiscount(COUPON_DISCOUNT)
@@ -114,7 +114,7 @@ public class OrderApplicationServiceTestFixture {
                 .userId(order.getUserId())
                 .orderName(order.getOrderName())
                 .status(OrderStatus.CANCELED)
-                .paymentInfo(order.getPaymentInfo())
+                .orderPriceInfo(order.getOrderPriceInfo())
                 .orderItemDtoList(order.getOrderItemDtoList())
                 .appliedCoupon(order.getAppliedCoupon())
                 .orderedAt(order.getOrderedAt())

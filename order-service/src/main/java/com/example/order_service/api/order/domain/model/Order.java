@@ -69,6 +69,11 @@ public class Order extends BaseEntity {
         coupon.setOrder(this);
     }
 
+    public void addPayment(Payment payment) {
+        this.payment = payment;
+        payment.setOrder(this);
+    }
+
     private static String generateOrderName(List<OrderItemSpec> itemSpecs){
         if (itemSpecs.isEmpty()){
             throw new OrderVerificationException("주문 상품은 1개 이상이여야 합니다");
@@ -112,11 +117,11 @@ public class Order extends BaseEntity {
                 .status(OrderStatus.PENDING)
                 .orderName(orderName)
                 .deliveryAddress(context.getDeliveryAddress())
-                .totalOriginPrice(context.getPriceResult().getPaymentInfo().getTotalOriginPrice())
-                .totalProductDiscount(context.getPriceResult().getPaymentInfo().getTotalProductDiscount())
-                .couponDiscount(context.getPriceResult().getPaymentInfo().getCouponDiscount())
-                .pointDiscount(context.getPriceResult().getPaymentInfo().getUsedPoint())
-                .finalPaymentAmount(context.getPriceResult().getPaymentInfo().getFinalPaymentAmount())
+                .totalOriginPrice(context.getPriceResult().getOrderPriceInfo().getTotalOriginPrice())
+                .totalProductDiscount(context.getPriceResult().getOrderPriceInfo().getTotalProductDiscount())
+                .couponDiscount(context.getPriceResult().getOrderPriceInfo().getCouponDiscount())
+                .pointDiscount(context.getPriceResult().getOrderPriceInfo().getUsedPoint())
+                .finalPaymentAmount(context.getPriceResult().getOrderPriceInfo().getFinalPaymentAmount())
                 .failureCode(null)
                 .build();
     }

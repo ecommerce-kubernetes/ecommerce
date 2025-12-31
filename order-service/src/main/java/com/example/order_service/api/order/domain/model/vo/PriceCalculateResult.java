@@ -9,18 +9,18 @@ import lombok.Getter;
 
 @Getter
 public class PriceCalculateResult {
-    private PaymentInfo paymentInfo;
+    private OrderPriceInfo orderPriceInfo;
     private AppliedCoupon appliedCoupon;
 
     @Builder(access = AccessLevel.PRIVATE)
-    private PriceCalculateResult(PaymentInfo paymentInfo, AppliedCoupon appliedCoupon){
-        this.paymentInfo = paymentInfo;
+    private PriceCalculateResult(OrderPriceInfo orderPriceInfo, AppliedCoupon appliedCoupon){
+        this.orderPriceInfo = orderPriceInfo;
         this.appliedCoupon = appliedCoupon;
     }
 
-    private static PriceCalculateResult of(PaymentInfo paymentInfo, AppliedCoupon appliedCoupon){
+    private static PriceCalculateResult of(OrderPriceInfo orderPriceInfo, AppliedCoupon appliedCoupon){
         return PriceCalculateResult.builder()
-                .paymentInfo(paymentInfo)
+                .orderPriceInfo(orderPriceInfo)
                 .appliedCoupon(appliedCoupon)
                 .build();
     }
@@ -34,6 +34,6 @@ public class PriceCalculateResult {
             throw new OrderVerificationException("주문 금액이 변동되었습니다");
         }
 
-        return PriceCalculateResult.of(PaymentInfo.from(itemCalculationResult, couponDiscount, useToPoint, finalPaymentPrice), AppliedCoupon.from(coupon));
+        return PriceCalculateResult.of(OrderPriceInfo.from(itemCalculationResult, couponDiscount, useToPoint, finalPaymentPrice), AppliedCoupon.from(coupon));
     }
 }

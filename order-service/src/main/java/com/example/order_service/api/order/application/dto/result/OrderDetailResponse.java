@@ -1,7 +1,7 @@
 package com.example.order_service.api.order.application.dto.result;
 
 import com.example.order_service.api.order.domain.model.vo.AppliedCoupon;
-import com.example.order_service.api.order.domain.model.vo.PaymentInfo;
+import com.example.order_service.api.order.domain.model.vo.OrderPriceInfo;
 import com.example.order_service.api.order.domain.service.dto.result.OrderDto;
 import lombok.Builder;
 import lombok.Getter;
@@ -55,13 +55,13 @@ public class OrderDetailResponse {
             this.finalPaymentAmount = finalPaymentAmount;
         }
 
-        public static PaymentResponse from(PaymentInfo paymentInfo) {
+        public static PaymentResponse from(OrderPriceInfo orderPriceInfo) {
             return PaymentResponse.builder()
-                    .totalOriginPrice(paymentInfo.getTotalOriginPrice())
-                    .totalProductDiscount(paymentInfo.getTotalProductDiscount())
-                    .couponDiscount(paymentInfo.getCouponDiscount())
-                    .pointDiscount(paymentInfo.getUsedPoint())
-                    .finalPaymentAmount(paymentInfo.getFinalPaymentAmount())
+                    .totalOriginPrice(orderPriceInfo.getTotalOriginPrice())
+                    .totalProductDiscount(orderPriceInfo.getTotalProductDiscount())
+                    .couponDiscount(orderPriceInfo.getCouponDiscount())
+                    .pointDiscount(orderPriceInfo.getUsedPoint())
+                    .finalPaymentAmount(orderPriceInfo.getFinalPaymentAmount())
                     .build();
         }
     }
@@ -97,7 +97,7 @@ public class OrderDetailResponse {
                 .orderStatus(orderDto.getStatus().name())
                 .orderName(orderDto.getOrderName())
                 .deliveryAddress(orderDto.getDeliveryAddress())
-                .paymentResponse(PaymentResponse.from(orderDto.getPaymentInfo()))
+                .paymentResponse(PaymentResponse.from(orderDto.getOrderPriceInfo()))
                 .couponResponse(CouponResponse.from(orderDto.getAppliedCoupon()))
                 .orderItems(items)
                 .createdAt(orderDto.getOrderedAt().toString())

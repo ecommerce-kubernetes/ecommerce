@@ -5,8 +5,10 @@ import com.example.order_service.api.order.controller.dto.request.OrderSearchCon
 import com.example.order_service.api.order.domain.model.Order;
 import com.example.order_service.api.order.domain.model.OrderFailureCode;
 import com.example.order_service.api.order.domain.model.OrderStatus;
+import com.example.order_service.api.order.domain.model.Payment;
 import com.example.order_service.api.order.domain.repository.OrderRepository;
 import com.example.order_service.api.order.domain.service.dto.command.OrderCreationContext;
+import com.example.order_service.api.order.domain.service.dto.command.PaymentCreationCommand;
 import com.example.order_service.api.order.domain.service.dto.result.OrderDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -50,10 +52,21 @@ public class OrderDomainService {
         return OrderDto.from(order);
     }
 
-    public OrderDto changeCanceled(Long orderId, OrderFailureCode code){
+    public OrderDto canceledOrder(Long orderId, OrderFailureCode code){
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new NotFoundException("주문을 찾을 수 없습니다"));
         order.canceled(code);
         return OrderDto.from(order);
+    }
+
+    @Transactional
+    public OrderDto completedOrder(PaymentCreationCommand command) {
+        Order order = orderRepository.findById(command.getOrderId())
+                .orElseThrow(() -> new NotFoundException("주문을 찾을 수 없습니다"));
+        order.changeStatus(OrderStatus.COMPLETED);
+        Payment payment = Payment.create(command.getAmount(), command.getPaymentKey(), command.getMethod(), command.getApprovedAt());
+        order.addPayment(payment);
+        Order savedOrder = orderRepository.saveAndFlush(order);
+        return OrderDto.from(savedOrder);
     }
 }

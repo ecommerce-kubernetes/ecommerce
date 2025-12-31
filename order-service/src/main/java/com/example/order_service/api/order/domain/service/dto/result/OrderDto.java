@@ -5,6 +5,7 @@ import com.example.order_service.api.order.domain.model.OrderFailureCode;
 import com.example.order_service.api.order.domain.model.OrderItem;
 import com.example.order_service.api.order.domain.model.OrderStatus;
 import com.example.order_service.api.order.domain.model.vo.AppliedCoupon;
+import com.example.order_service.api.order.domain.model.vo.OrderPriceInfo;
 import com.example.order_service.api.order.domain.model.vo.PaymentInfo;
 import lombok.Builder;
 import lombok.Getter;
@@ -20,23 +21,25 @@ public class OrderDto {
     private String orderName;
     private String deliveryAddress;
     private LocalDateTime orderedAt;
-    private PaymentInfo paymentInfo;
+    private OrderPriceInfo orderPriceInfo;
     private List<OrderItemDto> orderItemDtoList;
     private AppliedCoupon appliedCoupon;
+    private PaymentInfo paymentInfo;
     private OrderFailureCode orderFailureCode;
 
     @Builder
     private OrderDto(Long orderId, Long userId, OrderStatus status, String orderName, String deliveryAddress, LocalDateTime orderedAt,
-                     PaymentInfo paymentInfo, List<OrderItemDto> orderItemDtoList, AppliedCoupon appliedCoupon, OrderFailureCode orderFailureCode){
+                     OrderPriceInfo orderPriceInfo, List<OrderItemDto> orderItemDtoList, AppliedCoupon appliedCoupon, PaymentInfo paymentInfo, OrderFailureCode orderFailureCode){
         this.orderId = orderId;
         this.userId = userId;
         this.status = status;
         this.orderName = orderName;
         this.deliveryAddress = deliveryAddress;
         this.orderedAt = orderedAt;
-        this.paymentInfo = paymentInfo;
+        this.orderPriceInfo = orderPriceInfo;
         this.orderItemDtoList = orderItemDtoList;
         this.appliedCoupon = appliedCoupon;
+        this.paymentInfo = paymentInfo;
         this.orderFailureCode = orderFailureCode;
     }
 
@@ -48,15 +51,16 @@ public class OrderDto {
                 order.getOrderName(),
                 order.getDeliveryAddress(),
                 order.getCreatedAt(),
-                PaymentInfo.from(order),
+                OrderPriceInfo.from(order),
                 createOrderItemDto(order.getOrderItems()),
                 AppliedCoupon.from(order.getCoupon()),
+                PaymentInfo.from(order.getPayment()),
                 order.getFailureCode()
                 );
     }
 
-    public static OrderDto of(Long orderId, Long userId, OrderStatus status, String orderName, String deliveryAddress, LocalDateTime orderedAt, PaymentInfo paymentInfo,
-                              List<OrderItemDto> orderItemDtoList, AppliedCoupon appliedCoupon, OrderFailureCode orderFailureCode){
+    public static OrderDto of(Long orderId, Long userId, OrderStatus status, String orderName, String deliveryAddress, LocalDateTime orderedAt, OrderPriceInfo orderPriceInfo,
+                              List<OrderItemDto> orderItemDtoList, AppliedCoupon appliedCoupon, PaymentInfo paymentInfo, OrderFailureCode orderFailureCode){
         return OrderDto.builder()
                 .orderId(orderId)
                 .userId(userId)
@@ -64,9 +68,10 @@ public class OrderDto {
                 .orderName(orderName)
                 .deliveryAddress(deliveryAddress)
                 .orderedAt(orderedAt)
-                .paymentInfo(paymentInfo)
+                .orderPriceInfo(orderPriceInfo)
                 .orderItemDtoList(orderItemDtoList)
                 .appliedCoupon(appliedCoupon)
+                .paymentInfo(paymentInfo)
                 .orderFailureCode(orderFailureCode)
                 .build();
     }
