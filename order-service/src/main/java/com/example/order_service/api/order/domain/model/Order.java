@@ -41,6 +41,9 @@ public class Order extends BaseEntity {
     @OneToOne(mappedBy = "order", cascade = CascadeType.PERSIST, orphanRemoval = true)
     private Coupon coupon;
 
+    @OneToOne(mappedBy = "order", cascade = CascadeType.PERSIST, orphanRemoval = true)
+    private Payment payment;
+
     @Builder(access = AccessLevel.PRIVATE)
     private Order(Long userId, OrderStatus status, String orderName, String deliveryAddress, Long totalOriginPrice,
                  Long totalProductDiscount, Long couponDiscount, Long pointDiscount, Long finalPaymentAmount, OrderFailureCode failureCode) {

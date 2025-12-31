@@ -16,6 +16,9 @@ import com.example.order_service.api.order.infrastructure.client.product.dto.Ord
 import com.example.order_service.api.order.infrastructure.client.user.dto.OrderUserResponse;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 public class OrderApplicationServiceTestFixture {
@@ -128,11 +131,16 @@ public class OrderApplicationServiceTestFixture {
     }
 
     public static TossPaymentConfirmResponse mockPaymentResponse(String paymentKey, Long amount) {
+        LocalDateTime now = LocalDateTime.now();
+        OffsetDateTime offsetDateTime = now.atZone(ZoneId.of("Asia/Seoul"))
+                .toOffsetDateTime();
+        String approvedAt = offsetDateTime.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
         return TossPaymentConfirmResponse.builder()
                 .paymentKey(paymentKey)
                 .orderId(1L)
                 .totalAmount(amount)
                 .status("DONE")
+                .approvedAt(approvedAt)
                 .build();
     }
 
