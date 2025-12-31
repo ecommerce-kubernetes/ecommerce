@@ -29,6 +29,7 @@ public class CreateOrderRequest {
     @Min(value = 0, message = "사용할 포인트는 0원 이상이여야 합니다")
     private Long pointToUse;
     @NotNull(message = "예상 결제 금액은 필수입니다")
+    @Min(value = 0, message = "예상 결제 금액은 0원 이상이여야 합니다")
     private Long expectedPrice;
 
     public Map<Long, Integer> toQuantityMap(){

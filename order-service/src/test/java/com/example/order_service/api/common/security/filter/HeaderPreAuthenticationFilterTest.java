@@ -1,6 +1,5 @@
 package com.example.order_service.api.common.security.filter;
 
-import com.example.order_service.api.common.config.CorsConfig;
 import com.example.order_service.api.common.error.ControllerAdvice;
 import com.example.order_service.api.common.security.config.SecurityConfig;
 import com.example.order_service.api.support.security.DummyController;
@@ -33,7 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         controllers = DummyController.class, //더미 컨트롤러
         excludeFilters = @ComponentScan.Filter(
                 type = FilterType.ASSIGNABLE_TYPE,
-                classes = {ControllerAdvice.class, CorsConfig.class} //ControllerAdvice 제외 (필터 작동 테스트)
+                classes = {ControllerAdvice.class} //ControllerAdvice 제외 (필터 작동 테스트)
         )
 )
 public class HeaderPreAuthenticationFilterTest {

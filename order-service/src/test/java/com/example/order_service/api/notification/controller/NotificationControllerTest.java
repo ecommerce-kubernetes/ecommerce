@@ -4,7 +4,6 @@ import com.example.order_service.api.notification.listener.dto.OrderNotification
 import com.example.order_service.api.support.ControllerTestSupport;
 import com.example.order_service.api.support.security.annotation.WithCustomMockUser;
 import com.example.order_service.api.support.security.config.TestSecurityConfig;
-import com.example.order_service.config.TestConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -25,7 +24,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@Import({TestConfig.class, TestSecurityConfig.class})
+@Import(TestSecurityConfig.class)
 public class NotificationControllerTest extends ControllerTestSupport {
 
     @BeforeEach

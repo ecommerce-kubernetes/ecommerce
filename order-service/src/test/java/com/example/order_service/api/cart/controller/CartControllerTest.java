@@ -14,7 +14,6 @@ import com.example.order_service.api.common.security.principal.UserPrincipal;
 import com.example.order_service.api.support.ControllerTestSupport;
 import com.example.order_service.api.support.security.annotation.WithCustomMockUser;
 import com.example.order_service.api.support.security.config.TestSecurityConfig;
-import com.example.order_service.config.TestConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -31,7 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Slf4j
-@Import({TestConfig.class, TestSecurityConfig.class})
+@Import(TestSecurityConfig.class)
 class CartControllerTest extends ControllerTestSupport {
 
     @Test

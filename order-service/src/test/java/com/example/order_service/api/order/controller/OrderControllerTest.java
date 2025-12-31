@@ -17,7 +17,6 @@ import com.example.order_service.api.order.controller.dto.request.OrderSearchCon
 import com.example.order_service.api.support.ControllerTestSupport;
 import com.example.order_service.api.support.security.annotation.WithCustomMockUser;
 import com.example.order_service.api.support.security.config.TestSecurityConfig;
-import com.example.order_service.config.TestConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -40,11 +39,10 @@ import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @Slf4j
-@Import({TestConfig.class, TestSecurityConfig.class})
+@Import(TestSecurityConfig.class)
 class OrderControllerTest extends ControllerTestSupport {
 
     @Test
@@ -52,40 +50,19 @@ class OrderControllerTest extends ControllerTestSupport {
     @WithCustomMockUser
     void createOrder() throws Exception {
         //given
-        CreateOrderItemRequest createOrderItemRequest = CreateOrderItemRequest.builder()
-                .productVariantId(1L)
-                .quantity(2)
-                .build();
-
-        CreateOrderRequest createOrderRequest = CreateOrderRequest.builder()
-                .items(List.of(createOrderItemRequest))
-                .deliveryAddress("서울시 테헤란로 123")
-                .couponId(1L)
-                .pointToUse(300L)
-                .expectedPrice(2400L)
-                .build();
-
-        CreateOrderResponse response = CreateOrderResponse.builder()
-                .orderId(1L)
-                .status("PENDING")
-                .orderName("상품1 외 1건")
-                .createdAt(LocalDateTime.now().toString())
-                .finalPaymentAmount(2400L)
-                .build();
-
+        CreateOrderRequest request = createBaseRequest().build();
         given(orderApplicationService.createOrder(any(CreateOrderDto.class)))
-                .willReturn(response);
-
+                .willReturn(createCreateOrderResponse(1L));
         //when
         //then
         mockMvc.perform(post("/orders")
                 .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(createOrderRequest)))
+                        .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("$.orderId").value(1L))
                 .andExpect(jsonPath("$.status").value("PENDING"))
-                .andExpect(jsonPath("$.orderName").value("상품1 외 1건"))
+                .andExpect(jsonPath("$.orderName").value("상품1"))
                 .andExpect(jsonPath("$.finalPaymentAmount").value(2400L))
                 .andExpect(jsonPath("$.createdAt").exists());
     }
@@ -95,24 +72,12 @@ class OrderControllerTest extends ControllerTestSupport {
     @WithCustomMockUser(userRole = UserRole.ROLE_ADMIN)
     void createOrderWithAdminPrincipal() throws Exception {
         //given
-        CreateOrderItemRequest createOrderItemRequest = CreateOrderItemRequest.builder()
-                .productVariantId(1L)
-                .quantity(2)
-                .build();
-
-        CreateOrderRequest createOrderRequest = CreateOrderRequest.builder()
-                .items(List.of(createOrderItemRequest))
-                .deliveryAddress("서울시 테헤란로 123")
-                .couponId(1L)
-                .pointToUse(300L)
-                .expectedPrice(2400L)
-                .build();
-
+        CreateOrderRequest request = createBaseRequest().build();
         //when
         //then
         mockMvc.perform(post("/orders")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(createOrderRequest)))
+                .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.error").value("FORBIDDEN"))
@@ -121,24 +86,17 @@ class OrderControllerTest extends ControllerTestSupport {
                 .andExpect(jsonPath("$.path").value("/orders"));
     }
 
-
     @Test
     @DisplayName("주문 요청시 주문 상품은 필수이다")
     @WithCustomMockUser
     void createOrderWithEmptyItems() throws Exception {
         //given
-        CreateOrderRequest createOrderRequest = CreateOrderRequest.builder()
-                .deliveryAddress("서울시 테헤란로 123")
-                .couponId(1L)
-                .pointToUse(300L)
-                .expectedPrice(2400L)
-                .build();
-
+        CreateOrderRequest request = createBaseRequest().items(null).build();
         //when
         //then
         mockMvc.perform(post("/orders")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(createOrderRequest)))
+                .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("BAD_REQUEST"))
@@ -152,22 +110,15 @@ class OrderControllerTest extends ControllerTestSupport {
     @WithCustomMockUser
     void createOrderWithoutProductVariantId() throws Exception {
         //given
-        CreateOrderItemRequest createOrderItemRequest = CreateOrderItemRequest.builder()
-                .quantity(3)
-                .build();
-
-        CreateOrderRequest createOrderRequest = CreateOrderRequest.builder()
-                .items(List.of(createOrderItemRequest))
-                .deliveryAddress("서울시 테헤란로 123")
-                .couponId(1L)
-                .pointToUse(300L)
-                .expectedPrice(2400L)
-                .build();
+        CreateOrderRequest request = createBaseRequest()
+                .items(
+                        List.of(CreateOrderItemRequest.builder().productVariantId(null).quantity(1).build())
+                ).build();
         //when
         //then
         mockMvc.perform(post("/orders")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(createOrderRequest)))
+                .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("BAD_REQUEST"))
@@ -181,23 +132,16 @@ class OrderControllerTest extends ControllerTestSupport {
     @WithCustomMockUser
     void createOrderWithoutQuantity() throws Exception {
         //given
-        CreateOrderItemRequest createOrderItemRequest = CreateOrderItemRequest.builder()
-                .productVariantId(1L)
-                .build();
-
-        CreateOrderRequest createOrderRequest = CreateOrderRequest.builder()
-                .items(List.of(createOrderItemRequest))
-                .deliveryAddress("서울시 테헤란로 123")
-                .couponId(1L)
-                .pointToUse(300L)
-                .expectedPrice(2400L)
-                .build();
+        CreateOrderRequest request = createBaseRequest()
+                .items(
+                        List.of(CreateOrderItemRequest.builder().productVariantId(1L).quantity(null).build()
+                        )
+                ).build();
         //when
         //then
-
         mockMvc.perform(post("/orders")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(createOrderRequest)))
+                        .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("BAD_REQUEST"))
@@ -211,23 +155,16 @@ class OrderControllerTest extends ControllerTestSupport {
     @WithCustomMockUser
     void createOrderWithQuantityLessThan1() throws Exception {
         //given
-        CreateOrderItemRequest createOrderItemRequest = CreateOrderItemRequest.builder()
-                .productVariantId(1L)
-                .quantity(0)
-                .build();
-
-        CreateOrderRequest createOrderRequest = CreateOrderRequest.builder()
-                .items(List.of(createOrderItemRequest))
-                .deliveryAddress("서울시 테헤란로 123")
-                .couponId(1L)
-                .pointToUse(300L)
-                .expectedPrice(2400L)
-                .build();
+        CreateOrderRequest request = createBaseRequest()
+                .items(
+                        List.of(CreateOrderItemRequest.builder().productVariantId(1L).quantity(0).build()
+                        )
+                ).build();
         //when
         //then
         mockMvc.perform(post("/orders")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(createOrderRequest))
+                        .content(objectMapper.writeValueAsString(request))
                         .with(SecurityMockMvcRequestPostProcessors.csrf()))
                 .andDo(print())
                 .andExpect(status().isBadRequest())
@@ -242,22 +179,12 @@ class OrderControllerTest extends ControllerTestSupport {
     @WithCustomMockUser
     void createOrderWithoutDeliveryAddress() throws Exception {
         //given
-        CreateOrderItemRequest createOrderItemRequest = CreateOrderItemRequest.builder()
-                .productVariantId(1L)
-                .quantity(1)
-                .build();
-
-        CreateOrderRequest createOrderRequest = CreateOrderRequest.builder()
-                .items(List.of(createOrderItemRequest))
-                .couponId(1L)
-                .pointToUse(300L)
-                .expectedPrice(2400L)
-                .build();
+        CreateOrderRequest request = createBaseRequest().deliveryAddress(null).build();
         //when
         //then
         mockMvc.perform(post("/orders")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(createOrderRequest))
+                        .content(objectMapper.writeValueAsString(request))
                         .with(SecurityMockMvcRequestPostProcessors.csrf()))
                 .andDo(print())
                 .andExpect(status().isBadRequest())
@@ -272,22 +199,12 @@ class OrderControllerTest extends ControllerTestSupport {
     @WithCustomMockUser
     void createOrderWithoutUseToPoint() throws Exception {
         //given
-        CreateOrderItemRequest createOrderItemRequest = CreateOrderItemRequest.builder()
-                .productVariantId(1L)
-                .quantity(1)
-                .build();
-
-        CreateOrderRequest createOrderRequest = CreateOrderRequest.builder()
-                .items(List.of(createOrderItemRequest))
-                .deliveryAddress("서울시 테헤란로 123")
-                .couponId(1L)
-                .expectedPrice(2400L)
-                .build();
+        CreateOrderRequest request = createBaseRequest().pointToUse(null).build();
         //when
         //then
         mockMvc.perform(post("/orders")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(createOrderRequest))
+                        .content(objectMapper.writeValueAsString(request))
                         .with(SecurityMockMvcRequestPostProcessors.csrf()))
                 .andDo(print())
                 .andExpect(status().isBadRequest())
@@ -302,23 +219,12 @@ class OrderControllerTest extends ControllerTestSupport {
     @WithCustomMockUser
     void createOrderWithUseToPointLessThan0() throws Exception {
         //given
-        CreateOrderItemRequest createOrderItemRequest = CreateOrderItemRequest.builder()
-                .productVariantId(1L)
-                .quantity(1)
-                .build();
-
-        CreateOrderRequest createOrderRequest = CreateOrderRequest.builder()
-                .items(List.of(createOrderItemRequest))
-                .couponId(1L)
-                .deliveryAddress("서울시 테헤란로 123")
-                .pointToUse(-1L)
-                .expectedPrice(2400L)
-                .build();
+        CreateOrderRequest request = createBaseRequest().pointToUse(-1L).build();
         //when
         //then
         mockMvc.perform(post("/orders")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(createOrderRequest))
+                        .content(objectMapper.writeValueAsString(request))
                         .with(SecurityMockMvcRequestPostProcessors.csrf()))
                 .andDo(print())
                 .andExpect(status().isBadRequest())
@@ -333,22 +239,12 @@ class OrderControllerTest extends ControllerTestSupport {
     @WithCustomMockUser
     void createOrderWithoutExpectedPrice() throws Exception {
         //given
-        CreateOrderItemRequest createOrderItemRequest = CreateOrderItemRequest.builder()
-                .productVariantId(1L)
-                .quantity(1)
-                .build();
-
-        CreateOrderRequest createOrderRequest = CreateOrderRequest.builder()
-                .items(List.of(createOrderItemRequest))
-                .couponId(1L)
-                .deliveryAddress("서울시 테헤란로 123")
-                .pointToUse(0L)
-                .build();
+        CreateOrderRequest request = createBaseRequest().expectedPrice(null).build();
         //when
         //then
         mockMvc.perform(post("/orders")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(createOrderRequest)))
+                        .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("BAD_REQUEST"))
@@ -358,16 +254,30 @@ class OrderControllerTest extends ControllerTestSupport {
     }
 
     @Test
+    @DisplayName("주문 요청시 예상 결제 금액은 0원 이상이여야 한다")
+    void createOrderWithExpectedPriceLessThan0() throws Exception {
+        //given
+        CreateOrderRequest request = createBaseRequest().expectedPrice(-1L).build();
+        //when
+        //then
+        mockMvc.perform(post("/orders")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("BAD_REQUEST"))
+                .andExpect(jsonPath("$.message").value("예상 결제 금액은 0원 이상이여야 합니다"))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/orders"));
+    }
+
+    @Test
     @DisplayName("결제 승인시 해당 주문의 정보를 반환한다")
     @WithCustomMockUser
     void confirm() throws Exception {
         //given
-        Long orderId = 1L;
-        OrderConfirmRequest request = OrderConfirmRequest.builder()
-                .orderId(orderId)
-                .paymentKey("paymentKey")
-                .build();
-        OrderDetailResponse orderDetailResponse = createOrderResponse(orderId);
+        OrderConfirmRequest request = confirmBaseRequest().build();
+        OrderDetailResponse orderDetailResponse = createOrderDetailResponse();
 
         given(orderApplicationService.confirmOrder(anyLong(), anyString()))
                 .willReturn(orderDetailResponse);
@@ -388,9 +298,7 @@ class OrderControllerTest extends ControllerTestSupport {
     @WithCustomMockUser
     void confirm_without_no_orderId() throws Exception {
         //given
-        OrderConfirmRequest request = OrderConfirmRequest.builder()
-                .paymentKey("paymentKey")
-                .build();
+        OrderConfirmRequest request = confirmBaseRequest().orderId(null).build();
         //when
         //then
         mockMvc.perform(post("/orders/confirm")
@@ -409,9 +317,7 @@ class OrderControllerTest extends ControllerTestSupport {
     @WithCustomMockUser
     void confirm_without_no_paymentKey() throws Exception {
         //given
-        OrderConfirmRequest request = OrderConfirmRequest.builder()
-                .orderId(1L)
-                .build();
+        OrderConfirmRequest request = confirmBaseRequest().paymentKey(null).build();
         //when
         //then
         mockMvc.perform(post("/orders/confirm")
@@ -430,10 +336,7 @@ class OrderControllerTest extends ControllerTestSupport {
     @WithCustomMockUser
     void confirm_exception_payment() throws Exception {
         //given
-        OrderConfirmRequest request = OrderConfirmRequest.builder()
-                .orderId(1L)
-                .paymentKey("paymentKey")
-                .build();
+        OrderConfirmRequest request = confirmBaseRequest().build();
 
         willThrow(new PaymentException("결제 오류", PaymentErrorCode.APPROVAL_FAIL))
                 .given(orderApplicationService).confirmOrder(anyLong(), anyString());
@@ -455,43 +358,17 @@ class OrderControllerTest extends ControllerTestSupport {
     @WithCustomMockUser
     void getOrder() throws Exception {
         //given
-        OrderDetailResponse orderDetailResponse = createOrderResponse(1L);
+        OrderDetailResponse response = createOrderDetailResponse();
 
         given(orderApplicationService.getOrder(any(UserPrincipal.class),anyLong()))
-                .willReturn(orderDetailResponse);
+                .willReturn(response);
         //when
         //then
         mockMvc.perform(get("/orders/{orderId}", 1L)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.orderId").value(1L))
-                .andExpect(jsonPath("$.userId").value(1L))
-                .andExpect(jsonPath("$.orderName").value("상품1"))
-                .andExpect(jsonPath("$.deliveryAddress").value("서울시 테헤란로 123"))
-
-                .andExpect(jsonPath("$.orderPriceResponse.totalOriginPrice").value(30000L))
-                .andExpect(jsonPath("$.orderPriceResponse.totalProductDiscount").value(3000L))
-                .andExpect(jsonPath("$.orderPriceResponse.couponDiscount").value(1000L))
-                .andExpect(jsonPath("$.orderPriceResponse.pointDiscount").value(1000L))
-                .andExpect(jsonPath("$.orderPriceResponse.finalPaymentAmount").value(25000L))
-
-                .andExpect(jsonPath("$.couponResponse.couponId").value(1L))
-                .andExpect(jsonPath("$.couponResponse.couponName").value("1000원 할인 쿠폰"))
-                .andExpect(jsonPath("$.couponResponse.couponDiscount").value(1000L))
-
-                .andExpect(jsonPath("$.orderItems[0].productId").value(1L))
-                .andExpect(jsonPath("$.orderItems[0].productVariantId").value(1L))
-                .andExpect(jsonPath("$.orderItems[0].productName").value("상품1"))
-                .andExpect(jsonPath("$.orderItems[0].thumbNailUrl").value("http://thumbanil.jpg"))
-                .andExpect(jsonPath("$.orderItems[0].quantity").value(1))
-                .andExpect(jsonPath("$.orderItems[0].unitPrice.originalPrice").value(30000L))
-                .andExpect(jsonPath("$.orderItems[0].unitPrice.discountAmount").value(3000L))
-                .andExpect(jsonPath("$.orderItems[0].unitPrice.discountRate").value(10))
-                .andExpect(jsonPath("$.orderItems[0].unitPrice.discountedPrice").value(27000L))
-                .andExpect(jsonPath("$.orderItems[0].lineTotal").value(27000L))
-                .andExpect(jsonPath("$.orderItems[0].options[0].optionTypeName").value("사이즈"))
-                .andExpect(jsonPath("$.orderItems[0].options[0].optionValueName").value("XL"));
+                .andExpect(content().json(objectMapper.writeValueAsString(response)));
     }
 
     @Test
@@ -499,7 +376,7 @@ class OrderControllerTest extends ControllerTestSupport {
     @WithCustomMockUser
     void getOrders() throws Exception {
         //given
-        OrderListResponse orderListResponse = createOrderListResponse(1L);
+        OrderListResponse orderListResponse = createOrderListResponse();
         PageDto<OrderListResponse> response = PageDto.<OrderListResponse>builder().content(List.of(orderListResponse))
                 .currentPage(1)
                 .totalPage(10)
@@ -522,15 +399,7 @@ class OrderControllerTest extends ControllerTestSupport {
                 .params(paramMap))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content").isNotEmpty())
-                .andExpect(jsonPath("$.content[0].orderId").value(1L))
-                .andExpect(jsonPath("$.content[0].userId").value(1L))
-                .andExpect(jsonPath("$.content[0].orderStatus").value("COMPLETED"))
-                .andExpect(jsonPath("$.content[0].orderItems").isNotEmpty())
-                .andExpect(jsonPath("$.currentPage").value(1))
-                .andExpect(jsonPath("$.totalPage").value(10))
-                .andExpect(jsonPath("$.pageSize").value(10))
-                .andExpect(jsonPath("$.totalElement").value(100));
+                .andExpect(content().json(objectMapper.writeValueAsString(response)));
 
         ArgumentCaptor<OrderSearchCondition> captor = ArgumentCaptor.forClass(OrderSearchCondition.class);
         verify(orderApplicationService, times(1)).getOrders(any(UserPrincipal.class), captor.capture());
@@ -546,7 +415,7 @@ class OrderControllerTest extends ControllerTestSupport {
     @WithCustomMockUser
     void getOrders_default() throws Exception {
         //given
-        OrderListResponse orderListResponse = createOrderListResponse(1L);
+        OrderListResponse orderListResponse = createOrderListResponse();
         PageDto<OrderListResponse> response = PageDto.<OrderListResponse>builder().content(List.of(orderListResponse))
                 .currentPage(1)
                 .totalPage(10)
@@ -577,7 +446,7 @@ class OrderControllerTest extends ControllerTestSupport {
     @WithCustomMockUser
     void getOrder_page_less_than_0() throws Exception {
         //given
-        OrderListResponse orderListResponse = createOrderListResponse(1L);
+        OrderListResponse orderListResponse = createOrderListResponse();
         PageDto<OrderListResponse> response = PageDto.<OrderListResponse>builder().content(List.of(orderListResponse))
                 .currentPage(1)
                 .totalPage(10)
@@ -609,7 +478,7 @@ class OrderControllerTest extends ControllerTestSupport {
     @WithCustomMockUser
     void getOrder_size_greater_than_100() throws Exception {
         //given
-        OrderListResponse orderListResponse = createOrderListResponse(1L);
+        OrderListResponse orderListResponse = createOrderListResponse();
         PageDto<OrderListResponse> response = PageDto.<OrderListResponse>builder().content(List.of(orderListResponse))
                 .currentPage(1)
                 .totalPage(10)
@@ -636,9 +505,9 @@ class OrderControllerTest extends ControllerTestSupport {
                 .containsExactly(1, 100, "latest", null, null);
     }
 
-    private OrderDetailResponse createOrderResponse(Long orderId) {
+    private OrderDetailResponse createOrderDetailResponse() {
         return OrderDetailResponse.builder()
-                .orderId(orderId)
+                .orderId(1L)
                 .userId(1L)
                 .orderStatus("COMPLETED")
                 .orderName("상품1")
@@ -659,13 +528,32 @@ class OrderControllerTest extends ControllerTestSupport {
                                 .couponDiscount(1000L)
                                 .build()
                 )
+                .paymentResponse(
+                        OrderDetailResponse.PaymentResponse.builder()
+                                .paymentId(1L)
+                                .paymentKey("paymentKey")
+                                .amount(25000L)
+                                .method("CARD")
+                                .approvedAt(LocalDateTime.now().toString())
+                                .build()
+                )
                 .orderItems(createOrderItemResponse())
                 .build();
     }
 
-    private OrderListResponse createOrderListResponse(Long orderId){
-        return OrderListResponse.builder()
+    private CreateOrderResponse createCreateOrderResponse(Long orderId){
+        return CreateOrderResponse.builder()
                 .orderId(orderId)
+                .status("PENDING")
+                .orderName("상품1")
+                .finalPaymentAmount(2400L)
+                .createdAt(LocalDateTime.now().toString())
+                .build();
+    }
+
+    private OrderListResponse createOrderListResponse(){
+        return OrderListResponse.builder()
+                .orderId(1L)
                 .userId(1L)
                 .orderStatus("COMPLETED")
                 .orderItems(createOrderItemResponse())
@@ -696,5 +584,20 @@ class OrderControllerTest extends ControllerTestSupport {
                                         .build())
                         )
                         .build());
+    }
+
+    private CreateOrderRequest.CreateOrderRequestBuilder createBaseRequest() {
+        return CreateOrderRequest.builder()
+                .items(List.of(CreateOrderItemRequest.builder().productVariantId(1L).quantity(1).build()))
+                .deliveryAddress("서울시 테헤란로 123")
+                .couponId(1L)
+                .pointToUse(300L)
+                .expectedPrice(2400L);
+    }
+
+    private OrderConfirmRequest.OrderConfirmRequestBuilder confirmBaseRequest() {
+        return OrderConfirmRequest.builder()
+                .orderId(1L)
+                .paymentKey("paymentKey");
     }
 }
