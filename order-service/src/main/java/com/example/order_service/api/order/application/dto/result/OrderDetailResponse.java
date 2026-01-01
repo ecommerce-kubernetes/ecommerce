@@ -63,7 +63,7 @@ public class OrderDetailResponse {
                     .totalOriginPrice(orderPriceInfo.getTotalOriginPrice())
                     .totalProductDiscount(orderPriceInfo.getTotalProductDiscount())
                     .couponDiscount(orderPriceInfo.getCouponDiscount())
-                    .pointDiscount(orderPriceInfo.getUsedPoint())
+                    .pointDiscount(orderPriceInfo.getPointDiscount())
                     .finalPaymentAmount(orderPriceInfo.getFinalPaymentAmount())
                     .build();
         }

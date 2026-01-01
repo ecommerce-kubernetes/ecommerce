@@ -51,7 +51,7 @@ public class OrderDto {
                 order.getOrderName(),
                 order.getDeliveryAddress(),
                 order.getCreatedAt(),
-                OrderPriceInfo.from(order),
+                order.getPriceInfo(),
                 createOrderItemDto(order.getOrderItems()),
                 AppliedCoupon.from(order.getCoupon()),
                 PaymentInfo.from(order.getPayment()),

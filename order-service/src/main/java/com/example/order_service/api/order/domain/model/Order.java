@@ -2,6 +2,7 @@ package com.example.order_service.api.order.domain.model;
 
 import com.example.order_service.api.common.entity.BaseEntity;
 import com.example.order_service.api.common.exception.OrderVerificationException;
+import com.example.order_service.api.order.domain.model.vo.OrderPriceInfo;
 import com.example.order_service.api.order.domain.service.dto.command.OrderCreationContext;
 import com.example.order_service.api.order.domain.service.dto.command.OrderItemSpec;
 import jakarta.persistence.*;
@@ -26,11 +27,8 @@ public class Order extends BaseEntity {
     private OrderStatus status;
     private String orderName;
     private String deliveryAddress;
-    private Long totalOriginPrice;
-    private Long totalProductDiscount;
-    private Long couponDiscount;
-    private Long pointDiscount;
-    private Long finalPaymentAmount;
+    @Embedded
+    private OrderPriceInfo priceInfo;
 
     @Enumerated(EnumType.STRING)
     private OrderFailureCode failureCode;
@@ -45,17 +43,12 @@ public class Order extends BaseEntity {
     private Payment payment;
 
     @Builder(access = AccessLevel.PRIVATE)
-    private Order(Long userId, OrderStatus status, String orderName, String deliveryAddress, Long totalOriginPrice,
-                 Long totalProductDiscount, Long couponDiscount, Long pointDiscount, Long finalPaymentAmount, OrderFailureCode failureCode) {
+    private Order(Long userId, OrderStatus status, String orderName, String deliveryAddress, OrderPriceInfo priceInfo, OrderFailureCode failureCode) {
         this.userId = userId;
         this.status = status;
         this.orderName = orderName;
         this.deliveryAddress = deliveryAddress;
-        this.totalOriginPrice = totalOriginPrice;
-        this.totalProductDiscount = totalProductDiscount;
-        this.couponDiscount = couponDiscount;
-        this.pointDiscount = pointDiscount;
-        this.finalPaymentAmount = finalPaymentAmount;
+        this.priceInfo = priceInfo;
         this.failureCode = failureCode;
     }
 
@@ -117,11 +110,7 @@ public class Order extends BaseEntity {
                 .status(OrderStatus.PENDING)
                 .orderName(orderName)
                 .deliveryAddress(context.getDeliveryAddress())
-                .totalOriginPrice(context.getPriceResult().getOrderPriceInfo().getTotalOriginPrice())
-                .totalProductDiscount(context.getPriceResult().getOrderPriceInfo().getTotalProductDiscount())
-                .couponDiscount(context.getPriceResult().getOrderPriceInfo().getCouponDiscount())
-                .pointDiscount(context.getPriceResult().getOrderPriceInfo().getUsedPoint())
-                .finalPaymentAmount(context.getPriceResult().getOrderPriceInfo().getFinalPaymentAmount())
+                .priceInfo(context.getPriceResult().getOrderPriceInfo())
                 .failureCode(null)
                 .build();
     }

@@ -1,7 +1,5 @@
 package com.example.order_service.api.support.fixture;
 
-import com.example.order_service.api.common.security.model.UserRole;
-import com.example.order_service.api.common.security.principal.UserPrincipal;
 import com.example.order_service.api.order.application.dto.command.CreateOrderDto;
 import com.example.order_service.api.order.application.dto.command.CreateOrderItemDto;
 import com.example.order_service.api.order.domain.model.OrderFailureCode;
@@ -90,7 +88,7 @@ public class OrderApplicationServiceTestFixture {
                                 .totalOriginPrice(totalOrigin)
                                 .totalProductDiscount(totalProdDisc)
                                 .couponDiscount(COUPON_DISCOUNT)
-                                .usedPoint(USE_POINT)
+                                .pointDiscount(USE_POINT)
                                 .finalPaymentAmount(finalAmount)
                                 .build()
                 )

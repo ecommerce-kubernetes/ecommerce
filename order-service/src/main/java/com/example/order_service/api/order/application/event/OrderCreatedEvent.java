@@ -51,6 +51,6 @@ public class OrderCreatedEvent {
 
     public static OrderCreatedEvent from(OrderDto result) {
         List<OrderedItem> orderedItems = result.getOrderItemDtoList().stream().map(OrderedItem::from).toList();
-        return of(result.getOrderId(), result.getUserId(), result.getAppliedCoupon().getCouponId(), orderedItems, result.getOrderPriceInfo().getUsedPoint());
+        return of(result.getOrderId(), result.getUserId(), result.getAppliedCoupon().getCouponId(), orderedItems, result.getOrderPriceInfo().getPointDiscount());
     }
 }

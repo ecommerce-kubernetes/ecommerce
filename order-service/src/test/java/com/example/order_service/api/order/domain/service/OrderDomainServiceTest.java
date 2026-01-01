@@ -52,7 +52,7 @@ public class OrderDomainServiceTest extends ExcludeInfraTest {
                         OrderPriceInfo::getTotalOriginPrice,
                         OrderPriceInfo::getTotalProductDiscount,
                         OrderPriceInfo::getCouponDiscount,
-                        OrderPriceInfo::getUsedPoint,
+                        OrderPriceInfo::getPointDiscount,
                         OrderPriceInfo::getFinalPaymentAmount
                 )
                 .contains(
@@ -121,7 +121,7 @@ public class OrderDomainServiceTest extends ExcludeInfraTest {
 
         assertThat(result.getOrderPriceInfo())
                 .extracting(OrderPriceInfo::getTotalOriginPrice, OrderPriceInfo::getTotalProductDiscount,
-                        OrderPriceInfo::getCouponDiscount, OrderPriceInfo::getUsedPoint, OrderPriceInfo::getFinalPaymentAmount)
+                        OrderPriceInfo::getCouponDiscount, OrderPriceInfo::getPointDiscount, OrderPriceInfo::getFinalPaymentAmount)
                 .contains(TOTAL_ORIGIN_PRICE, TOTAL_PROD_DISCOUNT, COUPON_DISCOUNT, USE_POINT, FINAL_PRICE);
 
         assertThat(result.getOrderItemDtoList())
@@ -227,7 +227,7 @@ public class OrderDomainServiceTest extends ExcludeInfraTest {
         PaymentCreationCommand command = PaymentCreationCommand.builder()
                 .orderId(savedOrder.getId())
                 .paymentKey(paymentKey)
-                .amount(order.getFinalPaymentAmount())
+                .amount(order.getPriceInfo().getFinalPaymentAmount())
                 .method("CARD")
                 .approvedAt(LocalDateTime.now())
                 .build();
@@ -238,6 +238,6 @@ public class OrderDomainServiceTest extends ExcludeInfraTest {
         assertThat(orderDto.getPaymentInfo().getId()).isNotNull();
         assertThat(orderDto.getPaymentInfo())
                 .extracting(PaymentInfo::getPaymentKey, PaymentInfo::getAmount, PaymentInfo::getMethod)
-                .containsExactly(paymentKey, order.getFinalPaymentAmount(), "CARD");
+                .containsExactly(paymentKey, order.getPriceInfo().getFinalPaymentAmount(), "CARD");
     }
 }

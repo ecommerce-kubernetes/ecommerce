@@ -1,6 +1,5 @@
 package com.example.order_service.api.order.domain.model.vo;
 
-import com.example.order_service.api.common.exception.OrderVerificationException;
 import com.example.order_service.api.order.domain.service.dto.result.ItemCalculationResult;
 import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponCalcResponse;
 import lombok.AccessLevel;

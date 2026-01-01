@@ -1,5 +1,6 @@
 package com.example.order_service.api.order.domain.model;
 
+import com.example.order_service.api.order.domain.model.vo.OrderPriceInfo;
 import com.example.order_service.api.order.domain.model.vo.PriceCalculateResult;
 import com.example.order_service.api.order.domain.service.dto.command.OrderCreationContext;
 import com.example.order_service.api.order.domain.service.dto.command.OrderItemSpec;
@@ -44,9 +45,14 @@ public class OrderTest {
         Order order = Order.create(creationContext);
         //then
         assertThat(order)
-                .extracting("userId", "status", "orderName", "deliveryAddress", "totalOriginPrice", "totalProductDiscount", "couponDiscount",
-                        "pointDiscount", "finalPaymentAmount", "failureCode")
-                .contains(1L, OrderStatus.PENDING, "상품1 외 1건", "서울시 테헤란로 123", 34000L, 3400L, 1000L, 1000L, 28600L, null);
+                .extracting(
+                        Order::getUserId, Order::getStatus, Order::getOrderName, Order::getDeliveryAddress, Order::getFailureCode)
+                .contains(1L, OrderStatus.PENDING, "상품1 외 1건", "서울시 테헤란로 123", null);
+
+        assertThat(order.getPriceInfo())
+                .extracting(OrderPriceInfo::getTotalOriginPrice, OrderPriceInfo::getTotalProductDiscount, OrderPriceInfo::getCouponDiscount,
+                        OrderPriceInfo::getPointDiscount, OrderPriceInfo::getFinalPaymentAmount)
+                .containsExactly(34000L, 3400L, 1000L, 1000L, 28600L);
 
         assertThat(order.getCoupon()).isNotNull();
         assertThat(order.getCoupon().getOrder()).isEqualTo(order);
@@ -78,12 +84,17 @@ public class OrderTest {
         //when
         Order order = Order.create(creationContext);
         //then
-        assertThat(order).
-                extracting("userId", "status", "orderName", "deliveryAddress", "totalOriginPrice", "totalProductDiscount", "couponDiscount",
-                        "pointDiscount", "finalPaymentAmount", "failureCode")
-                .containsExactly(1L, OrderStatus.PENDING, "상품1 외 1건", "서울시 테헤란로 123", 34000L, 3400L, 0L, 1000L, 29600L, null);
-        assertThat(order.getCoupon()).isNull();
+        assertThat(order)
+                .extracting(
+                        Order::getUserId, Order::getStatus, Order::getOrderName, Order::getDeliveryAddress, Order::getFailureCode)
+                .contains(1L, OrderStatus.PENDING, "상품1 외 1건", "서울시 테헤란로 123", null);
 
+        assertThat(order.getPriceInfo())
+                .extracting(OrderPriceInfo::getTotalOriginPrice, OrderPriceInfo::getTotalProductDiscount, OrderPriceInfo::getCouponDiscount,
+                        OrderPriceInfo::getPointDiscount, OrderPriceInfo::getFinalPaymentAmount)
+                .containsExactly(34000L, 3400L, 0L, 1000L, 29600L);
+
+        assertThat(order.getCoupon()).isNull();
 
         assertThat(order.getOrderItems())
                 .allSatisfy(orderItem -> assertThat(orderItem.getOrder()).isEqualTo(order));
