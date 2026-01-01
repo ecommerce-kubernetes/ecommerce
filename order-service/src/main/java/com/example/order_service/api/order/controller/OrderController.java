@@ -4,6 +4,7 @@ import com.example.order_service.api.common.dto.PageDto;
 import com.example.order_service.api.common.security.principal.UserPrincipal;
 import com.example.order_service.api.order.application.OrderApplicationService;
 import com.example.order_service.api.order.application.dto.command.CreateOrderDto;
+import com.example.order_service.api.order.application.dto.command.CreateOrderItemDto;
 import com.example.order_service.api.order.application.dto.result.CreateOrderResponse;
 import com.example.order_service.api.order.application.dto.result.OrderDetailResponse;
 import com.example.order_service.api.order.application.dto.result.OrderListResponse;
@@ -18,6 +19,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/orders")
@@ -27,11 +30,19 @@ public class OrderController {
     private final OrderApplicationService orderApplicationService;
 
     @PostMapping
-    public ResponseEntity<CreateOrderResponse> createOrder(@RequestBody @Validated CreateOrderRequest createOrderRequest,
+    public ResponseEntity<CreateOrderResponse> createOrder(@RequestBody @Validated CreateOrderRequest request,
                                                            @AuthenticationPrincipal UserPrincipal userPrincipal){
+        List<CreateOrderItemDto> orderItems = mappingCreateOrderItemDto(request);
+        CreateOrderDto command = CreateOrderDto.builder()
+                .userId(userPrincipal.getUserId())
+                .orderItemDtoList(orderItems)
+                .deliveryAddress(request.getDeliveryAddress())
+                .couponId(request.getCouponId())
+                .pointToUse(request.getPointToUse())
+                .expectedPrice(request.getExpectedPrice())
+                .build();
 
-        CreateOrderDto createOrderDto = CreateOrderDto.of(userPrincipal, createOrderRequest);
-        CreateOrderResponse response = orderApplicationService.createOrder(createOrderDto);
+        CreateOrderResponse response = orderApplicationService.createOrder(command);
         return ResponseEntity.status(HttpStatus.SC_ACCEPTED).body(response);
     }
 
@@ -54,4 +65,8 @@ public class OrderController {
         return ResponseEntity.ok(orderDetailResponse);
     }
 
+    private List<CreateOrderItemDto> mappingCreateOrderItemDto(CreateOrderRequest request){
+        return request.getItems().stream().map(item -> CreateOrderItemDto.of(item.getProductVariantId(), item.getQuantity()))
+                .toList();
+    }
 }

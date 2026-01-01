@@ -1,6 +1,5 @@
 package com.example.order_service.api.order.controller.dto.request;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -12,8 +11,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -26,20 +23,11 @@ public class CreateOrderRequest {
     private String deliveryAddress;
     private Long couponId;
     @NotNull(message = "사용할 포인트는 필수입니다")
-    @Min(value = 0, message = "사용할 포인트는 0원 이상이여야 합니다")
+    @Min(value = 0, message = "사용할 포인트는 0 이상이여야 합니다")
     private Long pointToUse;
     @NotNull(message = "예상 결제 금액은 필수입니다")
-    @Min(value = 0, message = "예상 결제 금액은 0원 이상이여야 합니다")
+    @Min(value = 1, message = "예상 결제 금액은 1 이상이여야 합니다")
     private Long expectedPrice;
-
-    public Map<Long, Integer> toQuantityMap(){
-        return items.stream().collect(
-                Collectors.toMap(
-                    CreateOrderItemRequest::getProductVariantId,
-                    CreateOrderItemRequest::getQuantity
-                )
-        );
-    }
 
     @Builder
     private CreateOrderRequest(List<CreateOrderItemRequest> items, String deliveryAddress, Long couponId, Long pointToUse, Long expectedPrice){
@@ -48,10 +36,5 @@ public class CreateOrderRequest {
         this.couponId = couponId;
         this.pointToUse = pointToUse;
         this.expectedPrice = expectedPrice;
-    }
-
-    @JsonIgnore
-    public List<Long> getItemsVariantId(){
-        return items.stream().map(CreateOrderItemRequest::getProductVariantId).toList();
     }
 }

@@ -17,18 +17,24 @@ import com.example.order_service.api.order.controller.dto.request.OrderSearchCon
 import com.example.order_service.api.support.ControllerTestSupport;
 import com.example.order_service.api.support.security.annotation.WithCustomMockUser;
 import com.example.order_service.api.support.security.config.TestSecurityConfig;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
+import org.springframework.test.web.servlet.ResultMatcher;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.*;
@@ -51,8 +57,9 @@ class OrderControllerTest extends ControllerTestSupport {
     void createOrder() throws Exception {
         //given
         CreateOrderRequest request = createBaseRequest().build();
+        CreateOrderResponse response = createCreateOrderResponse();
         given(orderApplicationService.createOrder(any(CreateOrderDto.class)))
-                .willReturn(createCreateOrderResponse(1L));
+                .willReturn(response);
         //when
         //then
         mockMvc.perform(post("/orders")
@@ -60,11 +67,7 @@ class OrderControllerTest extends ControllerTestSupport {
                         .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
                 .andExpect(status().isAccepted())
-                .andExpect(jsonPath("$.orderId").value(1L))
-                .andExpect(jsonPath("$.status").value("PENDING"))
-                .andExpect(jsonPath("$.orderName").value("상품1"))
-                .andExpect(jsonPath("$.finalPaymentAmount").value(2400L))
-                .andExpect(jsonPath("$.createdAt").exists());
+                .andExpect(content().json(objectMapper.writeValueAsString(response)));
     }
 
     @Test
@@ -86,187 +89,20 @@ class OrderControllerTest extends ControllerTestSupport {
                 .andExpect(jsonPath("$.path").value("/orders"));
     }
 
-    @Test
-    @DisplayName("주문 요청시 주문 상품은 필수이다")
+    @ParameterizedTest(name = "{0}")
+    @DisplayName("주문 요청시 유효성 검증에 실패하면 400 에러를 반환한다")
+    @MethodSource("provideInvalidCreateOrderRequest")
     @WithCustomMockUser
-    void createOrderWithEmptyItems() throws Exception {
+    void createOrder_validation(String description, CreateOrderRequest request, String errorMessage) throws Exception {
         //given
-        CreateOrderRequest request = createBaseRequest().items(null).build();
-        //when
-        //then
-        mockMvc.perform(post("/orders")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
-                .andDo(print())
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("BAD_REQUEST"))
-                .andExpect(jsonPath("$.message").value("주문 상품은 필수입니다"))
-                .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.path").value("/orders"));
-    }
-
-    @Test
-    @DisplayName("주문 요청시 주문 상품의 productVariantId는 필수이다")
-    @WithCustomMockUser
-    void createOrderWithoutProductVariantId() throws Exception {
-        //given
-        CreateOrderRequest request = createBaseRequest()
-                .items(
-                        List.of(CreateOrderItemRequest.builder().productVariantId(null).quantity(1).build())
-                ).build();
-        //when
-        //then
-        mockMvc.perform(post("/orders")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
-                .andDo(print())
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("BAD_REQUEST"))
-                .andExpect(jsonPath("$.message").value("productVariantId는 필수입니다"))
-                .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.path").value("/orders"));
-    }
-
-    @Test
-    @DisplayName("주문 요청시 상품 수량은 필수이다")
-    @WithCustomMockUser
-    void createOrderWithoutQuantity() throws Exception {
-        //given
-        CreateOrderRequest request = createBaseRequest()
-                .items(
-                        List.of(CreateOrderItemRequest.builder().productVariantId(1L).quantity(null).build()
-                        )
-                ).build();
-        //when
-        //then
+        //when, then
         mockMvc.perform(post("/orders")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("BAD_REQUEST"))
-                .andExpect(jsonPath("$.message").value("수량은 필수입니다"))
-                .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.path").value("/orders"));
-    }
-
-    @Test
-    @DisplayName("주문 요청시 수량은 1이상이여야 한다")
-    @WithCustomMockUser
-    void createOrderWithQuantityLessThan1() throws Exception {
-        //given
-        CreateOrderRequest request = createBaseRequest()
-                .items(
-                        List.of(CreateOrderItemRequest.builder().productVariantId(1L).quantity(0).build()
-                        )
-                ).build();
-        //when
-        //then
-        mockMvc.perform(post("/orders")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request))
-                        .with(SecurityMockMvcRequestPostProcessors.csrf()))
-                .andDo(print())
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("BAD_REQUEST"))
-                .andExpect(jsonPath("$.message").value("수량은 1이상이여야 합니다"))
-                .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.path").value("/orders"));
-    }
-
-    @Test
-    @DisplayName("주문 요청시 배송지는 필수이다")
-    @WithCustomMockUser
-    void createOrderWithoutDeliveryAddress() throws Exception {
-        //given
-        CreateOrderRequest request = createBaseRequest().deliveryAddress(null).build();
-        //when
-        //then
-        mockMvc.perform(post("/orders")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request))
-                        .with(SecurityMockMvcRequestPostProcessors.csrf()))
-                .andDo(print())
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("BAD_REQUEST"))
-                .andExpect(jsonPath("$.message").value("배송지는 필수입니다"))
-                .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.path").value("/orders"));
-    }
-
-    @Test
-    @DisplayName("주문 요청시 사용할 포인트는 필수이다")
-    @WithCustomMockUser
-    void createOrderWithoutUseToPoint() throws Exception {
-        //given
-        CreateOrderRequest request = createBaseRequest().pointToUse(null).build();
-        //when
-        //then
-        mockMvc.perform(post("/orders")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request))
-                        .with(SecurityMockMvcRequestPostProcessors.csrf()))
-                .andDo(print())
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("BAD_REQUEST"))
-                .andExpect(jsonPath("$.message").value("사용할 포인트는 필수입니다"))
-                .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.path").value("/orders"));
-    }
-
-    @Test
-    @DisplayName("주문 요청시 사용할 포인트는 0이상이여야 한다")
-    @WithCustomMockUser
-    void createOrderWithUseToPointLessThan0() throws Exception {
-        //given
-        CreateOrderRequest request = createBaseRequest().pointToUse(-1L).build();
-        //when
-        //then
-        mockMvc.perform(post("/orders")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request))
-                        .with(SecurityMockMvcRequestPostProcessors.csrf()))
-                .andDo(print())
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("BAD_REQUEST"))
-                .andExpect(jsonPath("$.message").value("사용할 포인트는 0원 이상이여야 합니다"))
-                .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.path").value("/orders"));
-    }
-
-    @Test
-    @DisplayName("주문 요청시 예상 결제 금액은 필수입니다")
-    @WithCustomMockUser
-    void createOrderWithoutExpectedPrice() throws Exception {
-        //given
-        CreateOrderRequest request = createBaseRequest().expectedPrice(null).build();
-        //when
-        //then
-        mockMvc.perform(post("/orders")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andDo(print())
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("BAD_REQUEST"))
-                .andExpect(jsonPath("$.message").value("예상 결제 금액은 필수입니다"))
-                .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.path").value("/orders"));
-    }
-
-    @Test
-    @DisplayName("주문 요청시 예상 결제 금액은 0원 이상이여야 한다")
-    void createOrderWithExpectedPriceLessThan0() throws Exception {
-        //given
-        CreateOrderRequest request = createBaseRequest().expectedPrice(-1L).build();
-        //when
-        //then
-        mockMvc.perform(post("/orders")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andDo(print())
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("BAD_REQUEST"))
-                .andExpect(jsonPath("$.message").value("예상 결제 금액은 0원 이상이여야 합니다"))
+                .andExpect(jsonPath("$.message").value(errorMessage))
                 .andExpect(jsonPath("$.timestamp").exists())
                 .andExpect(jsonPath("$.path").value("/orders"));
     }
@@ -277,10 +113,10 @@ class OrderControllerTest extends ControllerTestSupport {
     void confirm() throws Exception {
         //given
         OrderConfirmRequest request = confirmBaseRequest().build();
-        OrderDetailResponse orderDetailResponse = createOrderDetailResponse();
+        OrderDetailResponse response = createOrderDetailResponse();
 
         given(orderApplicationService.confirmOrder(anyLong(), anyString()))
-                .willReturn(orderDetailResponse);
+                .willReturn(response);
         //when
         //then
         mockMvc.perform(post("/orders/confirm")
@@ -288,45 +124,21 @@ class OrderControllerTest extends ControllerTestSupport {
                 .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.orderId").value(1L))
-                .andExpect(jsonPath("$.orderStatus").value("COMPLETED"))
-                .andExpect(jsonPath("$.orderItems").isNotEmpty());
+                .andExpect(content().json(objectMapper.writeValueAsString(response)));
     }
 
-    @Test
-    @DisplayName("결제 승인시 주문 ID는 필수이다")
+    @ParameterizedTest(name = "{0}")
+    @DisplayName("결제 승인 요청시 유효성 검증에 실패하면 400 에러를 반환한다")
+    @MethodSource("provideInvalidConfirmRequest")
     @WithCustomMockUser
-    void confirm_without_no_orderId() throws Exception {
-        //given
-        OrderConfirmRequest request = confirmBaseRequest().orderId(null).build();
-        //when
-        //then
+    void confirm_validation(String description, OrderConfirmRequest request, String errorMessage) throws Exception {
         mockMvc.perform(post("/orders/confirm")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("BAD_REQUEST"))
-                .andExpect(jsonPath("$.message").value("주문 Id는 필수 입니다"))
-                .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.path").value("/orders/confirm"));
-    }
-
-    @Test
-    @DisplayName("결제 승인시 결제 키는 필수이다")
-    @WithCustomMockUser
-    void confirm_without_no_paymentKey() throws Exception {
-        //given
-        OrderConfirmRequest request = confirmBaseRequest().paymentKey(null).build();
-        //when
-        //then
-        mockMvc.perform(post("/orders/confirm")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andDo(print())
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("BAD_REQUEST"))
-                .andExpect(jsonPath("$.message").value("결제 키는 필수 입니다"))
+                .andExpect(jsonPath("$.message").value(errorMessage))
                 .andExpect(jsonPath("$.timestamp").exists())
                 .andExpect(jsonPath("$.path").value("/orders/confirm"));
     }
@@ -505,6 +317,44 @@ class OrderControllerTest extends ControllerTestSupport {
                 .containsExactly(1, 100, "latest", null, null);
     }
 
+    private static Stream<Arguments> provideInvalidCreateOrderRequest() {
+        return Stream.of(
+                Arguments.of("주문 상품 null", createBaseRequest().items(null).build(), "주문 상품은 필수입니다"),
+                Arguments.of("상품 VariantId null",
+                        createBaseRequest().items(List.of(CreateOrderItemRequest.builder().productVariantId(null).quantity(3).build())).build(),
+                        "productVariantId는 필수입니다"
+                ),
+                Arguments.of("주문 수량 null",
+                        createBaseRequest().items(List.of(CreateOrderItemRequest.builder().productVariantId(1L).quantity(null).build())).build(),
+                        "수량은 필수입니다"),
+                Arguments.of("주문 수량 1미만",
+                        createBaseRequest().items(List.of(CreateOrderItemRequest.builder().productVariantId(1L).quantity(0).build())).build(),
+                        "수량은 1이상이여야 합니다"),
+                Arguments.of("배송지 null",
+                        createBaseRequest().deliveryAddress(null).build(),
+                        "배송지는 필수입니다"),
+                Arguments.of("사용 포인트 null",
+                        createBaseRequest().pointToUse(null).build(),
+                        "사용할 포인트는 필수입니다"),
+                Arguments.of("사용 포인트 0미만",
+                        createBaseRequest().pointToUse(-1L).build(),
+                        "사용할 포인트는 0 이상이여야 합니다"),
+                Arguments.of("예상 결제 금액 null",
+                        createBaseRequest().expectedPrice(null).build(),
+                        "예상 결제 금액은 필수입니다"),
+                Arguments.of("예상 결제 금액 1 미만",
+                        createBaseRequest().expectedPrice(0L).build(),
+                        "예상 결제 금액은 1 이상이여야 합니다")
+        );
+    }
+
+    private static Stream<Arguments> provideInvalidConfirmRequest(){
+        return Stream.of(
+                Arguments.of("주문 ID null", confirmBaseRequest().orderId(null).build(), "주문 Id는 필수 입니다"),
+                Arguments.of("결제 키 null", confirmBaseRequest().paymentKey(null).build(), "결제 키는 필수 입니다")
+        );
+    }
+
     private OrderDetailResponse createOrderDetailResponse() {
         return OrderDetailResponse.builder()
                 .orderId(1L)
@@ -541,9 +391,9 @@ class OrderControllerTest extends ControllerTestSupport {
                 .build();
     }
 
-    private CreateOrderResponse createCreateOrderResponse(Long orderId){
+    private CreateOrderResponse createCreateOrderResponse(){
         return CreateOrderResponse.builder()
-                .orderId(orderId)
+                .orderId(1L)
                 .status("PENDING")
                 .orderName("상품1")
                 .finalPaymentAmount(2400L)
@@ -586,7 +436,7 @@ class OrderControllerTest extends ControllerTestSupport {
                         .build());
     }
 
-    private CreateOrderRequest.CreateOrderRequestBuilder createBaseRequest() {
+    private static CreateOrderRequest.CreateOrderRequestBuilder createBaseRequest() {
         return CreateOrderRequest.builder()
                 .items(List.of(CreateOrderItemRequest.builder().productVariantId(1L).quantity(1).build()))
                 .deliveryAddress("서울시 테헤란로 123")
@@ -595,7 +445,7 @@ class OrderControllerTest extends ControllerTestSupport {
                 .expectedPrice(2400L);
     }
 
-    private OrderConfirmRequest.OrderConfirmRequestBuilder confirmBaseRequest() {
+    private static OrderConfirmRequest.OrderConfirmRequestBuilder confirmBaseRequest() {
         return OrderConfirmRequest.builder()
                 .orderId(1L)
                 .paymentKey("paymentKey");

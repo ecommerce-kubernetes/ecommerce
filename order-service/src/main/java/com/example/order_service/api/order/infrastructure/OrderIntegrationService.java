@@ -33,6 +33,11 @@ public class OrderIntegrationService {
         return orderUserClientService.getUserForOrder(userPrincipal.getUserId());
     }
 
+    //TODO
+    public OrderUserResponse getOrderUser(Long userId) {
+        return null;
+    }
+
     public TossPaymentConfirmResponse confirmOrderPayment(Long orderId, String paymentKey, Long amount) {
         return tossPaymentClientService.confirmPayment(orderId, paymentKey, amount);
     }
@@ -46,6 +51,11 @@ public class OrderIntegrationService {
                         )
                 )
                 .orElse(null);
+    }
+
+    //TODO
+    public OrderCouponCalcResponse getCoupon(Long userId, Long couponId, Long subTotalPrice) {
+        return null;
     }
 
     public List<OrderProductResponse> getOrderProducts(List<CreateOrderItemDto> dtoList){

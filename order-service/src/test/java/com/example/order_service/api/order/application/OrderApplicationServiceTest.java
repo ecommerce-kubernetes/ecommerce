@@ -74,12 +74,12 @@ public class OrderApplicationServiceTest {
         Long expectedAmount = 28600L;
         String expectedOrderName = "상품1 외 1건";
 
-        given(orderIntegrationService.getOrderUser(any())).willReturn(mockUserResponse());
+        given(orderIntegrationService.getOrderUser(anyLong())).willReturn(mockUserResponse());
         given(orderIntegrationService.getOrderProducts(anyList())).willReturn(List.of(
                 mockProductResponse(1L, 3000L),
                 mockProductResponse(2L, 5000L)
         ));
-        given(orderIntegrationService.getCoupon(any(), anyLong(), anyLong())).willReturn(mockCouponResponse());
+        given(orderIntegrationService.getCoupon(anyLong(), anyLong(), anyLong())).willReturn(mockCouponResponse());
         given(orderDomainService.saveOrder(any(OrderCreationContext.class)))
                 .willReturn(mockSavedOrder(OrderStatus.PENDING, expectedAmount));
         //when

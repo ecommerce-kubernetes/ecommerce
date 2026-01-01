@@ -48,12 +48,12 @@ public class OrderApplicationService {
 
     public CreateOrderResponse createOrder(CreateOrderDto dto){
         //주문 유저 조회
-        OrderUserResponse user = orderIntegrationService.getOrderUser(dto.getUserPrincipal());
+        OrderUserResponse user = orderIntegrationService.getOrderUser(dto.getUserId());
         //주문 상품 목록 조회
         List<OrderProductResponse> products = orderIntegrationService.getOrderProducts(dto.getOrderItemDtoList());
         //주문 상품 가격 정보 계산
         ItemCalculationResult itemResult = calculator.calculateItemAmounts(dto.getOrderItemDtoList(), products);
-        OrderCouponCalcResponse coupon = orderIntegrationService.getCoupon(dto.getUserPrincipal(), dto.getCouponId(), itemResult.getSubTotalPrice());
+        OrderCouponCalcResponse coupon = orderIntegrationService.getCoupon(dto.getUserId(), dto.getCouponId(), itemResult.getSubTotalPrice());
         //할인 적용 최종 금액 계산
         PriceCalculateResult priceResult = calculator
                 .calculateFinalPrice(dto.getPointToUse(), itemResult, dto.getExpectedPrice(), user, coupon);

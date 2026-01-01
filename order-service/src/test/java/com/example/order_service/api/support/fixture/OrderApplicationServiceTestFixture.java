@@ -47,7 +47,7 @@ public class OrderApplicationServiceTestFixture {
         }
 
         return CreateOrderDto.builder()
-                .userPrincipal(UserPrincipal.of(userId, UserRole.ROLE_USER))
+                .userId(USER_ID)
                 .deliveryAddress(ADDRESS)
                 .couponId(1L)
                 .pointToUse(USE_POINT)
