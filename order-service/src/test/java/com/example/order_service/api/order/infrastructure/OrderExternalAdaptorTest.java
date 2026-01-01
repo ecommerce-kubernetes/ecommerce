@@ -2,8 +2,6 @@ package com.example.order_service.api.order.infrastructure;
 
 import com.example.order_service.api.common.exception.InsufficientException;
 import com.example.order_service.api.common.exception.NotFoundException;
-import com.example.order_service.api.common.security.model.UserRole;
-import com.example.order_service.api.common.security.principal.UserPrincipal;
 import com.example.order_service.api.order.application.dto.command.CreateOrderItemDto;
 import com.example.order_service.api.order.infrastructure.client.coupon.OrderCouponClientService;
 import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponCalcResponse;
@@ -28,10 +26,10 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class OrderIntegrationServiceTest {
+public class OrderExternalAdaptorTest {
 
     @InjectMocks
-    private OrderIntegrationService orderIntegrationService;
+    private OrderExternalAdaptor orderExternalAdaptor;
 
     @Mock
     private OrderProductClientService orderProductClientService;
@@ -46,10 +44,6 @@ public class OrderIntegrationServiceTest {
     @DisplayName("유저 정보를 가져온다")
     void getOrderUser() {
         //given
-        UserPrincipal userPrincipal = UserPrincipal.builder().userId(1L)
-                .userRole(UserRole.ROLE_USER)
-                .build();
-
         OrderUserResponse user = OrderUserResponse.builder()
                 .userId(1L)
                 .pointBalance(1000L)
@@ -58,7 +52,7 @@ public class OrderIntegrationServiceTest {
         given(orderUserClientService.getUserForOrder(anyLong()))
                 .willReturn(user);
         //when
-        OrderUserResponse orderUser = orderIntegrationService.getOrderUser(userPrincipal);
+        OrderUserResponse orderUser = orderExternalAdaptor.getOrderUser(1L);
         //then
         assertThat(orderUser)
                 .extracting("userId", "pointBalance")
@@ -69,11 +63,6 @@ public class OrderIntegrationServiceTest {
     @DisplayName("쿠폰 Id가 null 이 아니면 쿠폰 정보를 가져온다")
     void getCoupon() {
         //given
-        UserPrincipal userPrincipal = UserPrincipal.builder()
-                .userId(1L)
-                .userRole(UserRole.ROLE_USER)
-                .build();
-
         OrderCouponCalcResponse coupon = OrderCouponCalcResponse.builder()
                 .couponId(1L)
                 .couponName("1000원 할인 쿠폰")
@@ -84,7 +73,7 @@ public class OrderIntegrationServiceTest {
                 .willReturn(coupon);
 
         //when
-        OrderCouponCalcResponse result = orderIntegrationService.getCoupon(userPrincipal, 1L, 30000L);
+        OrderCouponCalcResponse result = orderExternalAdaptor.getCoupon(1L, 1L, 30000L);
         //then
         assertThat(result)
                 .extracting("couponId", "couponName", "discountAmount")
@@ -95,12 +84,8 @@ public class OrderIntegrationServiceTest {
     @DisplayName("쿠폰 id 가 null 이면 null을 반환한다")
     void getCoupon_When_CouponId_Is_Null() {
         //given
-        UserPrincipal userPrincipal = UserPrincipal.builder()
-                .userId(1L)
-                .userRole(UserRole.ROLE_USER)
-                .build();
         //when
-        OrderCouponCalcResponse coupon = orderIntegrationService.getCoupon(userPrincipal, null, 3000L);
+        OrderCouponCalcResponse coupon = orderExternalAdaptor.getCoupon(1L, null, 3000L);
         //then
         assertThat(coupon).isNull();
         verify(orderCouponClientService, never())
@@ -142,7 +127,7 @@ public class OrderIntegrationServiceTest {
         given(orderProductClientService.getProducts(anyList()))
                 .willReturn(products);
         //when
-        List<OrderProductResponse> result = orderIntegrationService.getOrderProducts(orderItems);
+        List<OrderProductResponse> result = orderExternalAdaptor.getOrderProducts(orderItems);
         //then
         assertThat(result).hasSize(2)
                 .satisfiesExactlyInAnyOrder(
@@ -207,7 +192,7 @@ public class OrderIntegrationServiceTest {
                 .willReturn(products);
         //when
         //then
-        assertThatThrownBy(() -> orderIntegrationService.getOrderProducts(orderItems))
+        assertThatThrownBy(() -> orderExternalAdaptor.getOrderProducts(orderItems))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage("주문 상품중 존재하지 않은 상품이 있습니다. missingIds=[2]");
     }
@@ -246,7 +231,7 @@ public class OrderIntegrationServiceTest {
                 .willReturn(List.of(product1, product2));
         //when
         //then
-        assertThatThrownBy(() -> orderIntegrationService.getOrderProducts(List.of(orderItem1, orderItem2)))
+        assertThatThrownBy(() -> orderExternalAdaptor.getOrderProducts(List.of(orderItem1, orderItem2)))
                 .isInstanceOf(InsufficientException.class)
                 .hasMessage("재고가 부족합니다 (ProductVariantId : 2 | 현재 재고: 3 | 요청 수량: 5)");
     }
@@ -265,7 +250,7 @@ public class OrderIntegrationServiceTest {
         given(tossPaymentClientService.confirmPayment(anyLong(), anyString(), anyLong()))
                 .willReturn(response);
         //when
-        TossPaymentConfirmResponse tossPaymentConfirmResponse = orderIntegrationService.confirmOrderPayment(1L, "paymentKey", 1000L);
+        TossPaymentConfirmResponse tossPaymentConfirmResponse = orderExternalAdaptor.confirmOrderPayment(1L, "paymentKey", 1000L);
         //then
         assertThat(tossPaymentConfirmResponse)
                 .extracting(TossPaymentConfirmResponse::getPaymentKey, TossPaymentConfirmResponse::getOrderId,

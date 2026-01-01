@@ -2,7 +2,6 @@ package com.example.order_service.api.order.infrastructure;
 
 import com.example.order_service.api.common.exception.InsufficientException;
 import com.example.order_service.api.common.exception.NotFoundException;
-import com.example.order_service.api.common.security.principal.UserPrincipal;
 import com.example.order_service.api.order.application.dto.command.CreateOrderItemDto;
 import com.example.order_service.api.order.infrastructure.client.coupon.OrderCouponClientService;
 import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponCalcResponse;
@@ -23,39 +22,28 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class OrderIntegrationService {
+public class OrderExternalAdaptor {
     private final OrderProductClientService orderProductClientService;
     private final OrderUserClientService orderUserClientService;
     private final OrderCouponClientService orderCouponClientService;
     private final TossPaymentClientService tossPaymentClientService;
 
-    public OrderUserResponse getOrderUser(UserPrincipal userPrincipal){
-        return orderUserClientService.getUserForOrder(userPrincipal.getUserId());
-    }
-
-    //TODO
     public OrderUserResponse getOrderUser(Long userId) {
-        return null;
+        return orderUserClientService.getUserForOrder(userId);
     }
 
     public TossPaymentConfirmResponse confirmOrderPayment(Long orderId, String paymentKey, Long amount) {
         return tossPaymentClientService.confirmPayment(orderId, paymentKey, amount);
     }
 
-    public OrderCouponCalcResponse getCoupon(UserPrincipal userPrincipal, Long couponId, long subTotalPrice) {
+    public OrderCouponCalcResponse getCoupon(Long userId, Long couponId, Long subTotalPrice) {
         return Optional.ofNullable(couponId)
                 .map(id -> orderCouponClientService.calculateDiscount(
-                                userPrincipal.getUserId(),
-                                id,
-                                subTotalPrice
-                        )
-                )
+                        userId,
+                        id,
+                        subTotalPrice
+                ))
                 .orElse(null);
-    }
-
-    //TODO
-    public OrderCouponCalcResponse getCoupon(Long userId, Long couponId, Long subTotalPrice) {
-        return null;
     }
 
     public List<OrderProductResponse> getOrderProducts(List<CreateOrderItemDto> dtoList){

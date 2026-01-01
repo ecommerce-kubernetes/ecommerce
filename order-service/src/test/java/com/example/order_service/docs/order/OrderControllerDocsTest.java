@@ -1,7 +1,6 @@
 package com.example.order_service.docs.order;
 
 import com.example.order_service.api.common.dto.PageDto;
-import com.example.order_service.api.common.security.principal.UserPrincipal;
 import com.example.order_service.api.order.application.OrderApplicationService;
 import com.example.order_service.api.order.application.dto.command.CreateOrderDto;
 import com.example.order_service.api.order.application.dto.result.CreateOrderResponse;
@@ -70,7 +69,7 @@ public class OrderControllerDocsTest extends RestDocSupport {
                 .build();
 
         HttpHeaders roleUser = createUserHeader("ROLE_USER");
-        given(orderApplicationService.createOrder(any(CreateOrderDto.class)))
+        given(orderApplicationService.placeOrder(any(CreateOrderDto.class)))
                 .willReturn(response);
 
         //when
@@ -121,7 +120,7 @@ public class OrderControllerDocsTest extends RestDocSupport {
                 .build();
         HttpHeaders roleUser = createUserHeader("ROLE_USER");
         OrderDetailResponse orderDetailResponse = createOrderResponse(orderId);
-        given(orderApplicationService.confirmOrder(anyLong(), anyString()))
+        given(orderApplicationService.finalizeOrder(anyLong(), anyString()))
                 .willReturn(orderDetailResponse);
         //when
         //then
@@ -189,7 +188,7 @@ public class OrderControllerDocsTest extends RestDocSupport {
         Long orderId = 1L;
         OrderDetailResponse orderDetailResponse = createOrderResponse(orderId);
         HttpHeaders roleUser = createUserHeader("ROLE_USER");
-        given(orderApplicationService.getOrder(any(UserPrincipal.class), anyLong()))
+        given(orderApplicationService.getOrder(anyLong(), anyLong()))
                 .willReturn(orderDetailResponse);
         //when
         //then
@@ -259,7 +258,7 @@ public class OrderControllerDocsTest extends RestDocSupport {
                 .pageSize(10)
                 .totalElement(100)
                 .build();
-        given(orderApplicationService.getOrders(any(UserPrincipal.class), any(OrderSearchCondition.class)))
+        given(orderApplicationService.getOrders(anyLong(), any(OrderSearchCondition.class)))
                 .willReturn(response);
         //when
         //then

@@ -84,7 +84,7 @@ public class OrderEventListenerTest {
         //when
         orderEventListener.handleSagaCompleted(sagaResourceSecuredEvent);
         //then
-        verify(orderApplicationService, times(1)).changePaymentWaiting(orderId);
+        verify(orderApplicationService, times(1)).preparePayment(orderId);
     }
 
     @Test
@@ -96,7 +96,7 @@ public class OrderEventListenerTest {
         //when
         orderEventListener.handleSagaAborted(sagaAbortEvent);
         //then
-        verify(orderApplicationService, times(1)).changeCanceled(orderId, OrderFailureCode.OUT_OF_STOCK);
+        verify(orderApplicationService, times(1)).processOrderFailure(orderId, OrderFailureCode.OUT_OF_STOCK);
     }
 
     @Test

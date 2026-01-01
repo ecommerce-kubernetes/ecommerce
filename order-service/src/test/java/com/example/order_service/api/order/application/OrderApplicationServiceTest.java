@@ -5,8 +5,6 @@ import com.example.order_service.api.common.exception.NoPermissionException;
 import com.example.order_service.api.common.exception.OrderVerificationException;
 import com.example.order_service.api.common.exception.PaymentErrorCode;
 import com.example.order_service.api.common.exception.PaymentException;
-import com.example.order_service.api.common.security.model.UserRole;
-import com.example.order_service.api.common.security.principal.UserPrincipal;
 import com.example.order_service.api.order.application.dto.command.CreateOrderDto;
 import com.example.order_service.api.order.application.dto.result.CreateOrderResponse;
 import com.example.order_service.api.order.application.dto.result.OrderDetailResponse;
@@ -21,7 +19,7 @@ import com.example.order_service.api.order.domain.service.OrderPriceCalculator;
 import com.example.order_service.api.order.domain.service.dto.command.OrderCreationContext;
 import com.example.order_service.api.order.domain.service.dto.command.PaymentCreationCommand;
 import com.example.order_service.api.order.domain.service.dto.result.OrderDto;
-import com.example.order_service.api.order.infrastructure.OrderIntegrationService;
+import com.example.order_service.api.order.infrastructure.OrderExternalAdaptor;
 import com.example.order_service.api.order.infrastructure.client.payment.dto.TossPaymentConfirmResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -49,7 +47,7 @@ public class OrderApplicationServiceTest {
     @InjectMocks
     private OrderApplicationService orderApplicationService;
     @Mock
-    private OrderIntegrationService orderIntegrationService;
+    private OrderExternalAdaptor orderExternalAdaptor;
     @Mock
     private OrderDomainService orderDomainService;
     @Mock
@@ -66,7 +64,7 @@ public class OrderApplicationServiceTest {
 
     @Test
     @DisplayName("주문을 생성한다")
-    void createOrder(){
+    void placeOrder(){
         //given
         CreateOrderDto orderRequest = createOrderRequest(USER_ID,
                 createRequestItem(1L, 3), createRequestItem(2L, 5));
@@ -74,16 +72,16 @@ public class OrderApplicationServiceTest {
         Long expectedAmount = 28600L;
         String expectedOrderName = "상품1 외 1건";
 
-        given(orderIntegrationService.getOrderUser(anyLong())).willReturn(mockUserResponse());
-        given(orderIntegrationService.getOrderProducts(anyList())).willReturn(List.of(
+        given(orderExternalAdaptor.getOrderUser(anyLong())).willReturn(mockUserResponse());
+        given(orderExternalAdaptor.getOrderProducts(anyList())).willReturn(List.of(
                 mockProductResponse(1L, 3000L),
                 mockProductResponse(2L, 5000L)
         ));
-        given(orderIntegrationService.getCoupon(anyLong(), anyLong(), anyLong())).willReturn(mockCouponResponse());
+        given(orderExternalAdaptor.getCoupon(anyLong(), anyLong(), anyLong())).willReturn(mockCouponResponse());
         given(orderDomainService.saveOrder(any(OrderCreationContext.class)))
                 .willReturn(mockSavedOrder(OrderStatus.PENDING, expectedAmount));
         //when
-        CreateOrderResponse response = orderApplicationService.createOrder(orderRequest);
+        CreateOrderResponse response = orderApplicationService.placeOrder(orderRequest);
         //then
         assertThat(response.getOrderId()).isNotNull();
         assertThat(response)
@@ -109,7 +107,7 @@ public class OrderApplicationServiceTest {
 
     @Test
     @DisplayName("주문의 상태를 결제 대기로 변경한다")
-    void changePaymentWaiting() {
+    void preparePayment() {
         //given
         Long orderId = 1L;
         Long expectedAmount = 28600L;
@@ -117,7 +115,7 @@ public class OrderApplicationServiceTest {
         given(orderDomainService.changeOrderStatus(orderId, OrderStatus.PAYMENT_WAITING))
                 .willReturn(orderDto);
         //when
-        orderApplicationService.changePaymentWaiting(orderId);
+        orderApplicationService.preparePayment(orderId);
         //then
         verify(orderDomainService, times(1)).changeOrderStatus(orderId, OrderStatus.PAYMENT_WAITING);
         verify(eventPublisher, times(1)).publishEvent(orderResultEventCaptor.capture());
@@ -131,7 +129,7 @@ public class OrderApplicationServiceTest {
 
     @Test
     @DisplayName("주문의 상태 취소로 변경, 실패 코드 추가 후 주문 결과 이벤트 발행")
-    void changeCanceled() {
+    void processOrderFailure() {
         //given
         Long orderId = 1L;
         OrderFailureCode failureCode = OrderFailureCode.OUT_OF_STOCK;
@@ -139,7 +137,7 @@ public class OrderApplicationServiceTest {
         given(orderDomainService.canceledOrder(orderId, failureCode))
                 .willReturn(canceledOrder);
         //when
-        orderApplicationService.changeCanceled(orderId, failureCode);
+        orderApplicationService.processOrderFailure(orderId, failureCode);
         //then
         verify(orderDomainService, times(1)).canceledOrder(orderId, failureCode);
 
@@ -155,7 +153,7 @@ public class OrderApplicationServiceTest {
 
     @Test
     @DisplayName("결제가 승인되면 주문상태를 성공으로 변경, 결제 승인 이벤트를 발행하고 응답을 반환한다")
-    void confirmOrder(){
+    void finalizeOrder(){
         //given
         Long orderId = 1L;
         String paymentKey = "paymentKey";
@@ -165,12 +163,12 @@ public class OrderApplicationServiceTest {
         OrderDto completedOrder = mockSavedOrder(OrderStatus.COMPLETED, amount);
         given(orderDomainService.getOrder(orderId))
                 .willReturn(waitingOrder);
-        given(orderIntegrationService.confirmOrderPayment(anyLong(), anyString(), anyLong()))
+        given(orderExternalAdaptor.confirmOrderPayment(anyLong(), anyString(), anyLong()))
                 .willReturn(paymentResponse);
         given(orderDomainService.completedOrder(any(PaymentCreationCommand.class)))
                 .willReturn(completedOrder);
         //when
-        OrderDetailResponse result = orderApplicationService.confirmOrder(orderId, paymentKey);
+        OrderDetailResponse result = orderApplicationService.finalizeOrder(orderId, paymentKey);
         //then
         assertThat(result)
                 .extracting(OrderDetailResponse::getOrderId, OrderDetailResponse::getUserId, OrderDetailResponse::getOrderStatus, OrderDetailResponse::getOrderName,
@@ -188,7 +186,7 @@ public class OrderApplicationServiceTest {
 
     @Test
     @DisplayName("결제를 승인할때 주문 상태가 결제 대기 상태가 아니면 예외를 던진다")
-    void confirmOrder_with_notPaymentWaiting(){
+    void finalizeOrder_with_notPaymentWaiting(){
         //given
         Long orderId = 1L;
         OrderDto invalidStatusOrder = mockSavedOrder(OrderStatus.PENDING, FIXED_FINAL_PRICE);
@@ -196,14 +194,14 @@ public class OrderApplicationServiceTest {
                 .willReturn(invalidStatusOrder);
         //when
         //then
-        assertThatThrownBy(() -> orderApplicationService.confirmOrder(orderId, "paymentKey"))
+        assertThatThrownBy(() -> orderApplicationService.finalizeOrder(orderId, "paymentKey"))
                 .isInstanceOf(OrderVerificationException.class)
                 .hasMessage("결제 가능한 주문이 아닙니다");
     }
 
     @Test
     @DisplayName("결제를 승인할때 결제 승인이 실패한 경우 주문을 실패 처리, 주문 실패 이벤트를 발행하고 예외를 그대로 던진다")
-    void confirmOrder_when_payment_fail(){
+    void finalizeOrder_when_payment_fail(){
         //given
         Long orderId = 1L;
         String paymentKey = "paymentKey";
@@ -214,12 +212,12 @@ public class OrderApplicationServiceTest {
         given(orderDomainService.getOrder(anyLong()))
                 .willReturn(waitingOrder);
         willThrow(new PaymentException(failureMessage, PaymentErrorCode.APPROVAL_FAIL))
-                .given(orderIntegrationService).confirmOrderPayment(anyLong(), anyString(), anyLong());
+                .given(orderExternalAdaptor).confirmOrderPayment(anyLong(), anyString(), anyLong());
         given(orderDomainService.canceledOrder(anyLong(), any(OrderFailureCode.class)))
                 .willReturn(failureOrder);
         //when
         //then
-        assertThatThrownBy(() -> orderApplicationService.confirmOrder(orderId, paymentKey))
+        assertThatThrownBy(() -> orderApplicationService.finalizeOrder(orderId, paymentKey))
                 .isInstanceOf(PaymentException.class)
                 .hasMessage(failureMessage);
 
@@ -236,12 +234,11 @@ public class OrderApplicationServiceTest {
     void getOrder(){
         //given
         Long orderId = 1L;
-        UserPrincipal userPrincipal = UserPrincipal.of(USER_ID, UserRole.ROLE_USER);
         OrderDto orderDto = mockSavedOrder(OrderStatus.COMPLETED, FIXED_FINAL_PRICE);
         given(orderDomainService.getOrder(orderId))
                 .willReturn(orderDto);
         //when
-        OrderDetailResponse result = orderApplicationService.getOrder(userPrincipal, orderId);
+        OrderDetailResponse result = orderApplicationService.getOrder(USER_ID, orderId);
         //then
         assertThat(result)
                 .extracting(OrderDetailResponse::getOrderId, OrderDetailResponse::getUserId, OrderDetailResponse::getOrderStatus, OrderDetailResponse::getOrderName,
@@ -291,13 +288,12 @@ public class OrderApplicationServiceTest {
         Long orderId = 1L;
         Long otherUserId = 999L;
         OrderDto orderDto = mockSavedOrder(OrderStatus.COMPLETED, FIXED_FINAL_PRICE);
-        UserPrincipal stranger = UserPrincipal.of(otherUserId, UserRole.ROLE_USER);
 
         given(orderDomainService.getOrder(orderId))
                 .willReturn(orderDto);
         //when
         //then
-        assertThatThrownBy(() -> orderApplicationService.getOrder(stranger, orderId))
+        assertThatThrownBy(() -> orderApplicationService.getOrder(otherUserId, orderId))
                 .isInstanceOf(NoPermissionException.class)
                 .hasMessage("주문을 조회할 권한이 없습니다");
     }
@@ -321,7 +317,7 @@ public class OrderApplicationServiceTest {
         given(orderDomainService.getOrders(anyLong(), any(OrderSearchCondition.class)))
                 .willReturn(pageOrderDto);
         //when
-        PageDto<OrderListResponse> result = orderApplicationService.getOrders(UserPrincipal.of(USER_ID, UserRole.ROLE_USER), condition);
+        PageDto<OrderListResponse> result = orderApplicationService.getOrders(USER_ID, condition);
         //then
         assertThat(result)
                 .extracting(

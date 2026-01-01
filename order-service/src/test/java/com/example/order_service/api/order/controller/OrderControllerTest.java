@@ -4,7 +4,6 @@ import com.example.order_service.api.common.dto.PageDto;
 import com.example.order_service.api.common.exception.PaymentErrorCode;
 import com.example.order_service.api.common.exception.PaymentException;
 import com.example.order_service.api.common.security.model.UserRole;
-import com.example.order_service.api.common.security.principal.UserPrincipal;
 import com.example.order_service.api.order.application.dto.command.CreateOrderDto;
 import com.example.order_service.api.order.application.dto.result.CreateOrderResponse;
 import com.example.order_service.api.order.application.dto.result.OrderDetailResponse;
@@ -17,7 +16,6 @@ import com.example.order_service.api.order.controller.dto.request.OrderSearchCon
 import com.example.order_service.api.support.ControllerTestSupport;
 import com.example.order_service.api.support.security.annotation.WithCustomMockUser;
 import com.example.order_service.api.support.security.config.TestSecurityConfig;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -27,8 +25,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
-import org.springframework.test.web.servlet.ResultMatcher;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
@@ -58,7 +54,7 @@ class OrderControllerTest extends ControllerTestSupport {
         //given
         CreateOrderRequest request = createBaseRequest().build();
         CreateOrderResponse response = createCreateOrderResponse();
-        given(orderApplicationService.createOrder(any(CreateOrderDto.class)))
+        given(orderApplicationService.placeOrder(any(CreateOrderDto.class)))
                 .willReturn(response);
         //when
         //then
@@ -115,7 +111,7 @@ class OrderControllerTest extends ControllerTestSupport {
         OrderConfirmRequest request = confirmBaseRequest().build();
         OrderDetailResponse response = createOrderDetailResponse();
 
-        given(orderApplicationService.confirmOrder(anyLong(), anyString()))
+        given(orderApplicationService.finalizeOrder(anyLong(), anyString()))
                 .willReturn(response);
         //when
         //then
@@ -151,7 +147,7 @@ class OrderControllerTest extends ControllerTestSupport {
         OrderConfirmRequest request = confirmBaseRequest().build();
 
         willThrow(new PaymentException("결제 오류", PaymentErrorCode.APPROVAL_FAIL))
-                .given(orderApplicationService).confirmOrder(anyLong(), anyString());
+                .given(orderApplicationService).finalizeOrder(anyLong(), anyString());
         //when
         //then
         mockMvc.perform(post("/orders/confirm")
@@ -172,7 +168,7 @@ class OrderControllerTest extends ControllerTestSupport {
         //given
         OrderDetailResponse response = createOrderDetailResponse();
 
-        given(orderApplicationService.getOrder(any(UserPrincipal.class),anyLong()))
+        given(orderApplicationService.getOrder(anyLong(), anyLong()))
                 .willReturn(response);
         //when
         //then
@@ -201,7 +197,7 @@ class OrderControllerTest extends ControllerTestSupport {
         paramMap.add("size", "10");
         paramMap.add("sort", "latest");
 
-        given(orderApplicationService.getOrders(any(UserPrincipal.class), any(OrderSearchCondition.class)))
+        given(orderApplicationService.getOrders(anyLong(), any(OrderSearchCondition.class)))
                 .willReturn(response);
 
         //when
@@ -214,7 +210,7 @@ class OrderControllerTest extends ControllerTestSupport {
                 .andExpect(content().json(objectMapper.writeValueAsString(response)));
 
         ArgumentCaptor<OrderSearchCondition> captor = ArgumentCaptor.forClass(OrderSearchCondition.class);
-        verify(orderApplicationService, times(1)).getOrders(any(UserPrincipal.class), captor.capture());
+        verify(orderApplicationService, times(1)).getOrders(anyLong(), captor.capture());
 
         assertThat(captor.getValue())
                 .extracting(OrderSearchCondition::getPage, OrderSearchCondition::getSize, OrderSearchCondition::getSort, OrderSearchCondition::getYear,
@@ -235,7 +231,7 @@ class OrderControllerTest extends ControllerTestSupport {
                 .totalElement(100)
                 .build();
 
-        given(orderApplicationService.getOrders(any(UserPrincipal.class), any(OrderSearchCondition.class)))
+        given(orderApplicationService.getOrders(anyLong(), any(OrderSearchCondition.class)))
                 .willReturn(response);
         //when
         //then
@@ -245,7 +241,7 @@ class OrderControllerTest extends ControllerTestSupport {
                 .andExpect(status().isOk());
 
         ArgumentCaptor<OrderSearchCondition> captor = ArgumentCaptor.forClass(OrderSearchCondition.class);
-        verify(orderApplicationService, times(1)).getOrders(any(UserPrincipal.class), captor.capture());
+        verify(orderApplicationService, times(1)).getOrders(anyLong(), captor.capture());
 
         assertThat(captor.getValue())
                 .extracting(OrderSearchCondition::getPage, OrderSearchCondition::getSize, OrderSearchCondition::getSort, OrderSearchCondition::getYear,
@@ -266,7 +262,7 @@ class OrderControllerTest extends ControllerTestSupport {
                 .totalElement(100)
                 .build();
 
-        given(orderApplicationService.getOrders(any(UserPrincipal.class), any(OrderSearchCondition.class)))
+        given(orderApplicationService.getOrders(anyLong(), any(OrderSearchCondition.class)))
                 .willReturn(response);
         //when
         //then
@@ -277,7 +273,7 @@ class OrderControllerTest extends ControllerTestSupport {
                 .andExpect(status().isOk());
 
         ArgumentCaptor<OrderSearchCondition> captor = ArgumentCaptor.forClass(OrderSearchCondition.class);
-        verify(orderApplicationService, times(1)).getOrders(any(UserPrincipal.class), captor.capture());
+        verify(orderApplicationService, times(1)).getOrders(anyLong(), captor.capture());
 
         assertThat(captor.getValue())
                 .extracting(OrderSearchCondition::getPage, OrderSearchCondition::getSize, OrderSearchCondition::getSort, OrderSearchCondition::getYear,
@@ -298,7 +294,7 @@ class OrderControllerTest extends ControllerTestSupport {
                 .totalElement(100)
                 .build();
 
-        given(orderApplicationService.getOrders(any(UserPrincipal.class), any(OrderSearchCondition.class)))
+        given(orderApplicationService.getOrders(anyLong(), any(OrderSearchCondition.class)))
                 .willReturn(response);
         //when
         //then
@@ -309,7 +305,7 @@ class OrderControllerTest extends ControllerTestSupport {
                 .andExpect(status().isOk());
 
         ArgumentCaptor<OrderSearchCondition> captor = ArgumentCaptor.forClass(OrderSearchCondition.class);
-        verify(orderApplicationService, times(1)).getOrders(any(UserPrincipal.class), captor.capture());
+        verify(orderApplicationService, times(1)).getOrders(anyLong(), captor.capture());
 
         assertThat(captor.getValue())
                 .extracting(OrderSearchCondition::getPage, OrderSearchCondition::getSize, OrderSearchCondition::getSort, OrderSearchCondition::getYear,

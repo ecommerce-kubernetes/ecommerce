@@ -4,7 +4,6 @@ import com.example.order_service.api.common.dto.PageDto;
 import com.example.order_service.api.common.exception.NoPermissionException;
 import com.example.order_service.api.common.exception.OrderVerificationException;
 import com.example.order_service.api.common.exception.PaymentException;
-import com.example.order_service.api.common.security.principal.UserPrincipal;
 import com.example.order_service.api.order.application.dto.command.CreateOrderDto;
 import com.example.order_service.api.order.application.dto.result.CreateOrderResponse;
 import com.example.order_service.api.order.application.dto.result.OrderDetailResponse;
@@ -22,7 +21,7 @@ import com.example.order_service.api.order.domain.service.dto.command.PaymentCre
 import com.example.order_service.api.order.domain.service.dto.result.ItemCalculationResult;
 import com.example.order_service.api.order.domain.service.dto.result.OrderDto;
 import com.example.order_service.api.order.domain.service.dto.result.OrderItemDto;
-import com.example.order_service.api.order.infrastructure.OrderIntegrationService;
+import com.example.order_service.api.order.infrastructure.OrderExternalAdaptor;
 import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponCalcResponse;
 import com.example.order_service.api.order.infrastructure.client.payment.dto.TossPaymentConfirmResponse;
 import com.example.order_service.api.order.infrastructure.client.product.dto.OrderProductResponse;
@@ -41,31 +40,31 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class OrderApplicationService {
 
-    private final OrderIntegrationService orderIntegrationService;
+    private final OrderExternalAdaptor orderExternalAdaptor;
     private final OrderPriceCalculator calculator;
     private final OrderDomainService orderDomainService;
     private final ApplicationEventPublisher eventPublisher;
 
-    public CreateOrderResponse createOrder(CreateOrderDto dto){
+    public CreateOrderResponse placeOrder(CreateOrderDto dto){
         //주문 유저 조회
-        OrderUserResponse user = orderIntegrationService.getOrderUser(dto.getUserId());
+        OrderUserResponse user = orderExternalAdaptor.getOrderUser(dto.getUserId());
         //주문 상품 목록 조회
-        List<OrderProductResponse> products = orderIntegrationService.getOrderProducts(dto.getOrderItemDtoList());
+        List<OrderProductResponse> products = orderExternalAdaptor.getOrderProducts(dto.getOrderItemDtoList());
         //주문 상품 가격 정보 계산
         ItemCalculationResult itemResult = calculator.calculateItemAmounts(dto.getOrderItemDtoList(), products);
-        OrderCouponCalcResponse coupon = orderIntegrationService.getCoupon(dto.getUserId(), dto.getCouponId(), itemResult.getSubTotalPrice());
+        OrderCouponCalcResponse coupon = orderExternalAdaptor.getCoupon(dto.getUserId(), dto.getCouponId(), itemResult.getSubTotalPrice());
         //할인 적용 최종 금액 계산
         PriceCalculateResult priceResult = calculator
                 .calculateFinalPrice(dto.getPointToUse(), itemResult, dto.getExpectedPrice(), user, coupon);
 
         OrderCreationContext creationContext =
-                createCreationContext(dto, user, products, priceResult);
+                assembleOrderContext(dto, user, products, priceResult);
         OrderDto orderDto = orderDomainService.saveOrder(creationContext);
         eventPublisher.publishEvent(OrderCreatedEvent.from(orderDto));
         return CreateOrderResponse.of(orderDto);
     }
 
-    public void changePaymentWaiting(Long orderId) {
+    public void preparePayment(Long orderId) {
         OrderDto orderDto = orderDomainService.changeOrderStatus(orderId, OrderStatus.PAYMENT_WAITING);
         eventPublisher.publishEvent(OrderResultEvent.of(
                 orderDto.getOrderId(), orderDto.getUserId(),
@@ -75,7 +74,7 @@ public class OrderApplicationService {
         ));
     }
 
-    public void changeCanceled(Long orderId, OrderFailureCode orderFailureCode){
+    public void processOrderFailure(Long orderId, OrderFailureCode orderFailureCode){
         OrderDto orderDto = orderDomainService.canceledOrder(orderId, orderFailureCode);
         eventPublisher.publishEvent(OrderResultEvent.of(
                 orderDto.getOrderId(), orderDto.getUserId(),
@@ -85,7 +84,7 @@ public class OrderApplicationService {
         ));
     }
 
-    public OrderDetailResponse confirmOrder(Long orderId, String paymentKey) {
+    public OrderDetailResponse finalizeOrder(Long orderId, String paymentKey) {
         OrderDto order = orderDomainService.getOrder(orderId);
         if (!order.getStatus().equals(OrderStatus.PAYMENT_WAITING)) {
             throw new OrderVerificationException("결제 가능한 주문이 아닙니다");
@@ -93,7 +92,7 @@ public class OrderApplicationService {
 
         try {
             TossPaymentConfirmResponse paymentConfirm =
-                    orderIntegrationService.confirmOrderPayment(order.getOrderId(), paymentKey, order.getOrderPriceInfo().getFinalPaymentAmount());
+                    orderExternalAdaptor.confirmOrderPayment(order.getOrderId(), paymentKey, order.getOrderPriceInfo().getFinalPaymentAmount());
             OrderDto completeOrder = orderDomainService.completedOrder(PaymentCreationCommand.from(paymentConfirm));
             List<Long> productVariantIds = completeOrder.getOrderItemDtoList().stream().map(OrderItemDto::getProductVariantId).toList();
             eventPublisher.publishEvent(PaymentResultEvent.of(completeOrder.getOrderId(), completeOrder.getUserId(), OrderEventStatus.SUCCESS,
@@ -107,8 +106,7 @@ public class OrderApplicationService {
         }
     }
 
-    public OrderDetailResponse getOrder(UserPrincipal userPrincipal, Long orderId) {
-        Long userId = userPrincipal.getUserId();
+    public OrderDetailResponse getOrder(Long userId, Long orderId) {
         OrderDto order = orderDomainService.getOrder(orderId);
         if (!userId.equals(order.getUserId())) {
             throw new NoPermissionException("주문을 조회할 권한이 없습니다");
@@ -116,17 +114,17 @@ public class OrderApplicationService {
         return OrderDetailResponse.from(order);
     }
 
-    public PageDto<OrderListResponse> getOrders(UserPrincipal userPrincipal, OrderSearchCondition condition){
-        Page<OrderDto> orders = orderDomainService.getOrders(userPrincipal.getUserId(), condition);
+    public PageDto<OrderListResponse> getOrders(Long userId, OrderSearchCondition condition){
+        Page<OrderDto> orders = orderDomainService.getOrders(userId, condition);
 
         List<OrderListResponse> content = orders.getContent().stream().map(OrderListResponse::from).toList();
         return PageDto.of(orders, content);
     }
 
-    private OrderCreationContext createCreationContext(CreateOrderDto dto,
-                                                       OrderUserResponse user,
-                                                       List<OrderProductResponse> products,
-                                                       PriceCalculateResult priceResult){
+    private OrderCreationContext assembleOrderContext(CreateOrderDto dto,
+                                                      OrderUserResponse user,
+                                                      List<OrderProductResponse> products,
+                                                      PriceCalculateResult priceResult){
         Map<Long, OrderProductResponse> productMap = products.stream()
                 .collect(Collectors.toMap(OrderProductResponse::getProductVariantId, Function.identity()));
 

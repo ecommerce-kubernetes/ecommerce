@@ -42,26 +42,26 @@ public class OrderController {
                 .expectedPrice(request.getExpectedPrice())
                 .build();
 
-        CreateOrderResponse response = orderApplicationService.createOrder(command);
+        CreateOrderResponse response = orderApplicationService.placeOrder(command);
         return ResponseEntity.status(HttpStatus.SC_ACCEPTED).body(response);
     }
 
     @GetMapping("/{orderId}")
     public ResponseEntity<OrderDetailResponse> getOrder(@AuthenticationPrincipal UserPrincipal userPrincipal, @PathVariable("orderId") Long orderId) {
-        OrderDetailResponse response = orderApplicationService.getOrder(userPrincipal, orderId);
+        OrderDetailResponse response = orderApplicationService.getOrder(userPrincipal.getUserId(), orderId);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping
     public ResponseEntity<PageDto<OrderListResponse>> getOrders(@AuthenticationPrincipal UserPrincipal userPrincipal,
                                                                 @ModelAttribute OrderSearchCondition condition) {
-        PageDto<OrderListResponse> orders = orderApplicationService.getOrders(userPrincipal, condition);
+        PageDto<OrderListResponse> orders = orderApplicationService.getOrders(userPrincipal.getUserId(), condition);
         return ResponseEntity.ok(orders);
     }
 
     @PostMapping("/confirm")
     public ResponseEntity<OrderDetailResponse> confirm(@RequestBody @Validated OrderConfirmRequest request) {
-        OrderDetailResponse orderDetailResponse = orderApplicationService.confirmOrder(request.getOrderId(), request.getPaymentKey());
+        OrderDetailResponse orderDetailResponse = orderApplicationService.finalizeOrder(request.getOrderId(), request.getPaymentKey());
         return ResponseEntity.ok(orderDetailResponse);
     }
 
