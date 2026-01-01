@@ -18,22 +18,11 @@ public class PriceCalculateResult {
         this.appliedCoupon = appliedCoupon;
     }
 
-    private static PriceCalculateResult of(OrderPriceInfo orderPriceInfo, AppliedCoupon appliedCoupon){
+    public static PriceCalculateResult of(ItemCalculationResult itemCalculationResult, OrderCouponCalcResponse coupon,
+                                          Long couponDiscount, Long useToPoint, Long finalPaymentAmount) {
         return PriceCalculateResult.builder()
-                .orderPriceInfo(orderPriceInfo)
-                .appliedCoupon(appliedCoupon)
+                .orderPriceInfo(OrderPriceInfo.from(itemCalculationResult, couponDiscount, useToPoint, finalPaymentAmount))
+                .appliedCoupon(AppliedCoupon.from(coupon))
                 .build();
-    }
-    public static PriceCalculateResult of(ItemCalculationResult itemCalculationResult, OrderCouponCalcResponse coupon, long useToPoint,
-                                          long expectedPrice) {
-        long couponDiscount = coupon != null ? coupon.getDiscountAmount() : 0L;
-        long priceAfterCoupon = itemCalculationResult.getSubTotalPrice() - couponDiscount;
-        long finalPaymentPrice = priceAfterCoupon - useToPoint;
-
-        if(finalPaymentPrice != expectedPrice) {
-            throw new OrderVerificationException("주문 금액이 변동되었습니다");
-        }
-
-        return PriceCalculateResult.of(OrderPriceInfo.from(itemCalculationResult, couponDiscount, useToPoint, finalPaymentPrice), AppliedCoupon.from(coupon));
     }
 }

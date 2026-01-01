@@ -1,6 +1,7 @@
 package com.example.order_service.api.order.domain.service;
 
 import com.example.order_service.api.common.exception.InsufficientException;
+import com.example.order_service.api.common.exception.OrderVerificationException;
 import com.example.order_service.api.order.application.dto.command.CreateOrderItemDto;
 import com.example.order_service.api.order.domain.model.vo.PriceCalculateResult;
 import com.example.order_service.api.order.domain.service.dto.result.ItemCalculationResult;
@@ -25,7 +26,15 @@ public class OrderPriceCalculator {
     public PriceCalculateResult calculateFinalPrice(long useToPoint, ItemCalculationResult itemCalculationResult, long expectedPrice,
                                                     OrderUserResponse user, OrderCouponCalcResponse coupon) {
         verifyEnoughPoints(useToPoint, user);
-        return PriceCalculateResult.of(itemCalculationResult, coupon, useToPoint, expectedPrice);
+        long couponDiscount = coupon != null ? coupon.getDiscountAmount() : 0L;
+        long priceAfterCoupon = itemCalculationResult.getSubTotalPrice() - couponDiscount;
+        long finalPaymentAmount = priceAfterCoupon - useToPoint;
+
+        if(finalPaymentAmount != expectedPrice) {
+            throw new OrderVerificationException("주문 금액이 변동되었습니다");
+        }
+
+        return PriceCalculateResult.of(itemCalculationResult, coupon, couponDiscount, useToPoint, finalPaymentAmount);
     }
 
     private Map<Long, OrderProductResponse.UnitPrice> mapToUnitPriceByVariantId(List<OrderProductResponse> products) {

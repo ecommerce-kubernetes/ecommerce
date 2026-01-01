@@ -47,7 +47,7 @@ public class OrderDomainServiceTestFixture {
         OrderCouponCalcResponse coupon = OrderCouponCalcResponse.builder()
                 .couponId(1L).couponName("1000원 할인 쿠폰").discountAmount(1000L).build();
 
-        PriceCalculateResult priceResult = PriceCalculateResult.of(itemCalc, coupon, USE_POINT, FINAL_PRICE);
+        PriceCalculateResult priceResult = PriceCalculateResult.of(itemCalc, coupon, coupon.getDiscountAmount(), USE_POINT, FINAL_PRICE);
         return OrderCreationContext.builder()
                 .userId(USER_ID)
                 .itemSpecs(specs)

@@ -32,7 +32,7 @@ public class OrderTest {
                 .build();
         List<OrderItemSpec> orderItemSpec = createOrderItemSpec(List.of(product1, product2), Map.of(1L, 3, 2L, 5));
         ItemCalculationResult itemCalculationResult = createItemCalculationResult(Map.of(1L, 3, 2L, 5), List.of(product1, product2));
-        PriceCalculateResult priceCalculateResult = PriceCalculateResult.of(itemCalculationResult, coupon, 1000L, 28600L);
+        PriceCalculateResult priceCalculateResult = PriceCalculateResult.of(itemCalculationResult, coupon, coupon.getDiscountAmount(), 1000L, 28600L);
         OrderCreationContext creationContext = OrderCreationContext.builder()
                 .userId(1L)
                 .itemSpecs(orderItemSpec)
@@ -68,7 +68,7 @@ public class OrderTest {
                 Map.of("용량", "256GB"));
         List<OrderItemSpec> orderItemSpec = createOrderItemSpec(List.of(product1, product2), Map.of(1L, 3, 2L, 5));
         ItemCalculationResult itemCalculationResult = createItemCalculationResult(Map.of(1L, 3, 2L, 5), List.of(product1, product2));
-        PriceCalculateResult priceCalculateResult = PriceCalculateResult.of(itemCalculationResult, null, 1000L, 29600L);
+        PriceCalculateResult priceCalculateResult = PriceCalculateResult.of(itemCalculationResult, null, 0L, 1000L, 29600L);
         OrderCreationContext creationContext = OrderCreationContext.builder()
                 .userId(1L)
                 .itemSpecs(orderItemSpec)
@@ -99,7 +99,7 @@ public class OrderTest {
                 Map.of("용량", "256GB"));
         List<OrderItemSpec> orderItemSpec = createOrderItemSpec(List.of(product1, product2), Map.of(1L, 3, 2L, 5));
         ItemCalculationResult itemCalculationResult = createItemCalculationResult(Map.of(1L, 3, 2L, 5), List.of(product1, product2));
-        PriceCalculateResult priceCalculateResult = PriceCalculateResult.of(itemCalculationResult, null, 1000L, 29600L);
+        PriceCalculateResult priceCalculateResult = PriceCalculateResult.of(itemCalculationResult, null, 0L, 1000L, 29600L);
         OrderCreationContext creationContext = OrderCreationContext.builder()
                 .userId(1L)
                 .itemSpecs(orderItemSpec)
@@ -123,7 +123,7 @@ public class OrderTest {
                 Map.of("용량", "256GB"));
         List<OrderItemSpec> orderItemSpec = createOrderItemSpec(List.of(product1, product2), Map.of(1L, 3, 2L, 5));
         ItemCalculationResult itemCalculationResult = createItemCalculationResult(Map.of(1L, 3, 2L, 5), List.of(product1, product2));
-        PriceCalculateResult priceCalculateResult = PriceCalculateResult.of(itemCalculationResult, null, 1000L, 29600L);
+        PriceCalculateResult priceCalculateResult = PriceCalculateResult.of(itemCalculationResult, null, 0L, 1000L, 29600L);
         OrderCreationContext creationContext = OrderCreationContext.builder()
                 .userId(1L)
                 .itemSpecs(orderItemSpec)
