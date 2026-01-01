@@ -1,0 +1,90 @@
+package com.example.order_service.api.support.fixture;
+
+import com.example.order_service.api.order.application.event.OrderEventCode;
+import com.example.order_service.api.order.application.event.OrderEventStatus;
+import com.example.order_service.api.order.saga.domain.model.SagaStatus;
+import com.example.order_service.api.order.saga.domain.model.SagaStep;
+import com.example.order_service.api.order.saga.domain.model.vo.Payload;
+import com.example.order_service.api.order.saga.domain.service.dto.SagaInstanceDto;
+import com.example.order_service.api.order.saga.orchestrator.dto.command.SagaPaymentCommand;
+import com.example.order_service.api.order.saga.orchestrator.dto.command.SagaStartCommand;
+
+import java.util.List;
+
+public class SagaManagerTestFixture {
+    public static final Long SAGA_ID = 1L;
+    public static final Long ORDER_ID = 1L;
+    public static final Long USER_ID = 1L;
+    public static final Long PRODUCT_VARIANT_ID_1 = 10L;
+    public static final Long PRODUCT_VARIANT_ID_2 = 20L;
+    public static final Long COUPON_ID = 100L;
+    public static final Long USE_POINT = 1000L;
+    public static final Long NO_POINT = 0L;
+
+    public static SagaStartCommand createStartCommand(){
+        SagaStartCommand.DeductProduct item1 = SagaStartCommand.DeductProduct.builder()
+                .productVariantId(PRODUCT_VARIANT_ID_1).quantity(3).build();
+        SagaStartCommand.DeductProduct item2 = SagaStartCommand.DeductProduct.builder()
+                .productVariantId(PRODUCT_VARIANT_ID_2).quantity(5).build();
+
+        return SagaStartCommand.builder()
+                .orderId(ORDER_ID)
+                .userId(USER_ID)
+                .couponId(COUPON_ID)
+                .deductProductList(List.of(item1, item2))
+                .usedPoint(USE_POINT)
+                .build();
+    }
+
+    public static Payload createPayload(Long couponId, Long usedPoint) {
+        return Payload.builder()
+                .userId(USER_ID)
+                .sagaItems(
+                        List.of(Payload.SagaItem.builder().productVariantId(PRODUCT_VARIANT_ID_1).quantity(3).build())
+                )
+                .couponId(couponId)
+                .useToPoint(usedPoint)
+                .build();
+    }
+
+    public static Payload createDefaultPayload() {
+        return createPayload(COUPON_ID, USE_POINT);
+    }
+
+    public static SagaInstanceDto createSagaInstance(SagaStep step, SagaStatus status, Payload payload) {
+        return SagaInstanceDto.builder()
+                .id(SAGA_ID)
+                .orderId(ORDER_ID)
+                .sagaStatus(status)
+                .sagaStep(step)
+                .payload(payload)
+                .build();
+    }
+
+    public static SagaInstanceDto createSagaInstanceWithId(Long id, SagaStep step, SagaStatus status, Payload payload) {
+        return SagaInstanceDto.builder()
+                .id(id)
+                .orderId(ORDER_ID)
+                .sagaStatus(status)
+                .sagaStep(step)
+                .payload(payload)
+                .build();
+    }
+
+    public static SagaPaymentCommand createPaymentSuccessCommand() {
+        return SagaPaymentCommand.builder()
+                .orderId(ORDER_ID)
+                .status(OrderEventStatus.SUCCESS)
+                .code(OrderEventCode.PAYMENT_AUTHORIZED)
+                .build();
+    }
+
+    public static SagaPaymentCommand createPaymentFailCommand(String failureReason) {
+        return SagaPaymentCommand.builder()
+                .orderId(ORDER_ID)
+                .status(OrderEventStatus.FAILURE)
+                .code(OrderEventCode.PAYMENT_AUTHORIZED_FAILED)
+                .failureReason(failureReason)
+                .build();
+    }
+}

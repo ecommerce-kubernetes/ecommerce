@@ -113,6 +113,7 @@ public class SagaManager {
         SagaInstanceDto updateSaga = orderSagaDomainService.proceedTo(saga.getId(), nextStep);
         dispatchProceedMessage(updateSaga);
     }
+
     private void startCompensationSequence(SagaInstanceDto saga, String errorCode, String failureReason) {
         applicationEventPublisher.publishEvent(createSagaAbortEvent(saga.getId(), saga.getOrderId(), saga.getPayload().getUserId(),
                 errorCode));

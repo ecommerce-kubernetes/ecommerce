@@ -45,6 +45,7 @@ public class OrderApplicationService {
     private final OrderDomainService orderDomainService;
     private final ApplicationEventPublisher eventPublisher;
 
+    //CompletableFuture 을 사용한 비동기 호출 고려
     public CreateOrderResponse placeOrder(CreateOrderDto dto){
         //주문 유저 조회
         OrderUserResponse user = orderExternalAdaptor.getOrderUser(dto.getUserId());
