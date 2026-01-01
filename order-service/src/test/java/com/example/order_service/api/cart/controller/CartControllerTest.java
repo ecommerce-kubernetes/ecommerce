@@ -14,20 +14,26 @@ import com.example.order_service.api.common.security.principal.UserPrincipal;
 import com.example.order_service.api.support.ControllerTestSupport;
 import com.example.order_service.api.support.security.annotation.WithCustomMockUser;
 import com.example.order_service.api.support.security.config.TestSecurityConfig;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.test.web.client.RequestMatcher;
+import org.springframework.test.web.servlet.ResultMatcher;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @Slf4j
 @Import(TestSecurityConfig.class)
@@ -37,37 +43,15 @@ class CartControllerTest extends ControllerTestSupport {
     @DisplayName("장바구니에 상품을 추가한다")
     @WithCustomMockUser
     void addCartItem() throws Exception {
-        Long productVariantId = 1L;
-        int quantity = 2;
         //given
         CartItemRequest request = CartItemRequest.builder()
-                .productVariantId(productVariantId)
-                .quantity(quantity)
-                .build();
-
-        CartItemResponse.CartItemPrice cartItemPrice = createCartItemPrice(3000, 10);
-
-        CartItemResponse.CartItemOption cartItemOption = CartItemResponse.CartItemOption.builder()
-                .optionTypeName("사이즈")
-                .optionValueName("XL")
-                .build();
-
-        CartItemResponse response = CartItemResponse.builder()
-                .id(1L)
-                .productId(1L)
                 .productVariantId(1L)
-                .productName("상품1")
-                .thumbnailUrl("http://thumbNail.jpg")
-                .quantity(quantity)
-                .price(cartItemPrice)
-                .lineTotal(cartItemPrice.getDiscountedPrice() * quantity)
-                .options(List.of(cartItemOption))
-                .isAvailable(true)
+                .quantity(1)
                 .build();
 
+        CartItemResponse response = createCartItemResponse().build();
         given(cartApplicationService.addItem(any(AddCartItemDto.class)))
                 .willReturn(response);
-
         //when
         //then
         mockMvc.perform(post("/carts")
@@ -75,17 +59,7 @@ class CartControllerTest extends ControllerTestSupport {
                 .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").value(response.getId()))
-                .andExpect(jsonPath("$.productId").value(response.getProductId()))
-                .andExpect(jsonPath("$.productVariantId").value(response.getProductVariantId()))
-                .andExpect(jsonPath("$.productName").value(response.getProductName()))
-                .andExpect(jsonPath("$.thumbnailUrl").value(response.getThumbnailUrl()))
-                .andExpect(jsonPath("$.quantity").value(response.getQuantity()))
-                .andExpect(jsonPath("$.price.originalPrice").value(response.getPrice().getOriginalPrice()))
-                .andExpect(jsonPath("$.price.discountRate").value(response.getPrice().getDiscountRate()))
-                .andExpect(jsonPath("$.price.discountAmount").value(response.getPrice().getDiscountAmount()))
-                .andExpect(jsonPath("$.price.discountedPrice").value(response.getPrice().getDiscountedPrice()))
-                .andExpect(jsonPath("$.available").value(response.isAvailable()));
+                .andExpect(content().json(objectMapper.writeValueAsString(response)));
     }
 
     @Test
@@ -110,137 +84,42 @@ class CartControllerTest extends ControllerTestSupport {
                 .andExpect(jsonPath("$.path").value("/carts"));
     }
 
-    @Test
-    @DisplayName("장바구니에 상품을 추가할때 productVariantId는 필수값이다")
+    @ParameterizedTest(name = "{0}")
+    @DisplayName("장바구니에 상품 추가시 유효성 검증에 실패하면 400 에러를 반환한다")
+    @MethodSource("provideInvalidAddRequest")
     @WithCustomMockUser
-    void addCartItemWithNoProductVariantId() throws Exception {
-        //given
-        CartItemRequest request = CartItemRequest.builder()
-                .quantity(1).build();
-        //when
-        //then
-        mockMvc.perform(post("/carts")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
-                .andDo(print())
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("BAD_REQUEST"))
-                .andExpect(jsonPath("$.message").value("productVariantId는 필수값입니다"))
-                .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.path").value("/carts"));
-    }
-
-    @Test
-    @DisplayName("장바구니에 상품을 추가할때 quantity는 필수값이다")
-    @WithCustomMockUser
-    void addCartItemWithNoQuantity() throws Exception {
-        //given
-        CartItemRequest request = CartItemRequest.builder()
-                .productVariantId(1L)
-                .build();
-        //when
-        //then
+    void addCartItem_Validation(String description, CartItemRequest request, String errorMessage) throws Exception {
         mockMvc.perform(post("/carts")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("BAD_REQUEST"))
-                .andExpect(jsonPath("$.message").value("quantity는 필수값입니다"))
+                .andExpect(jsonPath("$.message").value(errorMessage))
                 .andExpect(jsonPath("$.timestamp").exists())
                 .andExpect(jsonPath("$.path").value("/carts"));
     }
 
-    @Test
-    @DisplayName("장바구니에 상품을 추가할때 수량은 1이상 이여야 한다")
+    @ParameterizedTest(name = "{0}")
+    @DisplayName("장바구니 상품 추가 중 서비스 예외 발생시 에러 응답을 반환한다")
+    @MethodSource("provideServiceExceptions")
     @WithCustomMockUser
-    void addCartItemWithQuantityLessThan1() throws Exception {
-        //given
-        CartItemRequest request = CartItemRequest.builder()
-                .productVariantId(1L)
-                .quantity(0)
-                .build();
-        //when
-        //then
-        mockMvc.perform(post("/carts")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andDo(print())
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("BAD_REQUEST"))
-                .andExpect(jsonPath("$.message").value("quantity는 1이상 이여야 합니다"))
-                .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.path").value("/carts"));
-    }
-
-    @Test
-    @DisplayName("장바구니에 상품을 추가할때 CartApplicationService 에서 NotFoundException이 던져지면 404 에러 응답을 반환한다")
-    @WithCustomMockUser
-    void addCartItem_When_NotFoundException_Thrown_In_CartApplicationService() throws Exception {
+    void addCartItem_exceptions(String description, Exception e, ResultMatcher expectedStatus, String errorCode, String expectedMessage) throws Exception {
         //given
         CartItemRequest request = CartItemRequest.builder()
                 .productVariantId(1L)
                 .quantity(1)
                 .build();
-        willThrow(new NotFoundException("해당 상품을 찾을 수 없습니다"))
+        willThrow(e)
                 .given(cartApplicationService).addItem(any(AddCartItemDto.class));
-        //when
-        //then
-        mockMvc.perform(post("/carts")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
-                .andDo(print())
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.error").value("NOT_FOUND"))
-                .andExpect(jsonPath("$.message").value("해당 상품을 찾을 수 없습니다"))
-                .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.path").value("/carts"));
-    }
-    
-    @Test
-    @DisplayName("장바구니에 상품을 추가할때 CartApplicationService 에서 UnavailableServiceException이 던져지면 503 에러 응답을 반환한다")
-    @WithCustomMockUser
-    void addCartItem_When_UnavailableServiceException_Thrown_In_CartApplicationService() throws Exception {
-        //given
-        CartItemRequest request = CartItemRequest.builder()
-                .productVariantId(1L)
-                .quantity(1)
-                .build();
-        willThrow(new UnavailableServiceException("상품을 불러올 수 없습니다 잠시 후 다시 시도해 주세요"))
-                .given(cartApplicationService).addItem(any(AddCartItemDto.class));
-        //when
-        //then
+        //when, then
         mockMvc.perform(post("/carts")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
-                .andExpect(status().isServiceUnavailable())
-                .andExpect(jsonPath("$.error").value("SERVICE_UNAVAILABLE"))
-                .andExpect(jsonPath("$.message").value("상품을 불러올 수 없습니다 잠시 후 다시 시도해 주세요"))
-                .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.path").value("/carts"));
-    }
-
-    @Test
-    @DisplayName("장바구니에 상품을 추가할때 CartApplicationService 에서 InternalServerException이 던져지면 500 에러 응답을 반환한다")
-    @WithCustomMockUser
-    void addCartItem_When_InternalServerException_Thrown_In_CartApplicationService() throws Exception {
-        //given
-        CartItemRequest request = CartItemRequest.builder()
-                .productVariantId(1L)
-                .quantity(1)
-                .build();
-        willThrow(new InternalServerException("장바구니 상품 추가중 서버에 오류가 발생했습니다"))
-                .given(cartApplicationService).addItem(any(AddCartItemDto.class));
-        //when
-        //then
-        mockMvc.perform(post("/carts")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andDo(print())
-                .andExpect(status().isInternalServerError())
-                .andExpect(jsonPath("$.error").value("INTERNAL_SERVER_ERROR"))
-                .andExpect(jsonPath("$.message").value("장바구니 상품 추가중 서버에 오류가 발생했습니다"))
+                .andExpect(expectedStatus)
+                .andExpect(jsonPath("$.error").value(errorCode))
+                .andExpect(jsonPath("$.message").value(expectedMessage))
                 .andExpect(jsonPath("$.timestamp").exists())
                 .andExpect(jsonPath("$.path").value("/carts"));
     }
@@ -250,27 +129,10 @@ class CartControllerTest extends ControllerTestSupport {
     @WithCustomMockUser
     void getAllCartItem() throws Exception {
         //given
-        CartItemResponse.CartItemPrice cartItemPrice = createCartItemPrice(3000, 10);
-        CartItemResponse.CartItemOption cartItemOption = CartItemResponse.CartItemOption.builder()
-                .optionTypeName("사이즈")
-                .optionValueName("XL")
-                .build();
-
-        CartItemResponse cartItem = CartItemResponse.builder()
-                .id(1L)
-                .productId(1L)
-                .productName("상품1")
-                .thumbnailUrl("http://thumbnail.jpg")
-                .quantity(2)
-                .price(cartItemPrice)
-                .lineTotal(cartItemPrice.getDiscountedPrice() * 2)
-                .options(List.of(cartItemOption))
-                .isAvailable(true)
-                .build();
-
+        CartItemResponse cartItemResponse = createCartItemResponse().build();
         CartResponse response = CartResponse.builder()
-                .cartItems(List.of(cartItem))
-                .cartTotalPrice(cartItem.getLineTotal())
+                .cartItems(List.of(cartItemResponse))
+                .cartTotalPrice(cartItemResponse.getLineTotal())
                 .build();
 
         given(cartApplicationService.getCartDetails(any(UserPrincipal.class)))
@@ -280,19 +142,7 @@ class CartControllerTest extends ControllerTestSupport {
         mockMvc.perform(get("/carts")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.cartItems[0].id").value(1L))
-                .andExpect(jsonPath("$.cartItems[0].productId").value(1L))
-                .andExpect(jsonPath("$.cartItems[0].productName").value("상품1"))
-                .andExpect(jsonPath("$.cartItems[0].thumbnailUrl").value("http://thumbnail.jpg"))
-                .andExpect(jsonPath("$.cartItems[0].quantity").value(2))
-                .andExpect(jsonPath("$.cartItems[0].price.originalPrice").value(3000))
-                .andExpect(jsonPath("$.cartItems[0].price.discountRate").value(10))
-                .andExpect(jsonPath("$.cartItems[0].price.discountAmount").value(300))
-                .andExpect(jsonPath("$.cartItems[0].price.discountedPrice").value(2700))
-                .andExpect(jsonPath("$.cartItems[0].lineTotal").value(5400))
-                .andExpect(jsonPath("$.cartItems[0].available").value(true))
-                .andExpect(jsonPath("$.cartItems.length()").value(1))
-                .andExpect(jsonPath("$.cartTotalPrice").value(5400));
+                .andExpect(content().json(objectMapper.writeValueAsString(response)));
     }
 
     @Test
@@ -384,23 +234,8 @@ class CartControllerTest extends ControllerTestSupport {
                 .quantity(3)
                 .build();
 
-        CartItemResponse.CartItemPrice cartItemPrice = createCartItemPrice(3000, 10);
-        CartItemResponse.CartItemOption cartItemOption = CartItemResponse.CartItemOption.builder()
-                .optionTypeName("사이즈")
-                .optionValueName("XL")
-                .build();
-
-        CartItemResponse response = CartItemResponse.builder()
-                .id(1L)
-                .productId(1L)
-                .productName("상품1")
-                .thumbnailUrl("http://thumbNail.jpg")
-                .quantity(3)
-                .price(cartItemPrice)
-                .lineTotal(cartItemPrice.getDiscountedPrice() * 3)
-                .options(List.of(cartItemOption))
-                .isAvailable(true)
-                .build();
+        CartItemResponse response = createCartItemResponse()
+                .quantity(3).lineTotal(2700L * 3).build();
         given(cartApplicationService.updateCartItemQuantity(any(UpdateQuantityDto.class)))
                 .willReturn(response);
         //when
@@ -410,16 +245,7 @@ class CartControllerTest extends ControllerTestSupport {
                         .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(response.getId()))
-                .andExpect(jsonPath("$.productId").value(response.getProductId()))
-                .andExpect(jsonPath("$.productName").value(response.getProductName()))
-                .andExpect(jsonPath("$.thumbnailUrl").value(response.getThumbnailUrl()))
-                .andExpect(jsonPath("$.quantity").value(response.getQuantity()))
-                .andExpect(jsonPath("$.price.originalPrice").value(response.getPrice().getOriginalPrice()))
-                .andExpect(jsonPath("$.price.discountRate").value(response.getPrice().getDiscountRate()))
-                .andExpect(jsonPath("$.price.discountAmount").value(response.getPrice().getDiscountAmount()))
-                .andExpect(jsonPath("$.price.discountedPrice").value(response.getPrice().getDiscountedPrice()))
-                .andExpect(jsonPath("$.available").value(true));
+                .andExpect(content().json(objectMapper.writeValueAsString(response)));
     }
 
     @Test
@@ -466,20 +292,56 @@ class CartControllerTest extends ControllerTestSupport {
                 .andExpect(jsonPath("$.message").value("장바구니에 해당 상품을 찾을 수 없습니다"))
                 .andExpect(jsonPath("$.timestamp").exists())
                 .andExpect(jsonPath("$.path").value("/carts/1"));
-
     }
 
-    private CartItemResponse.CartItemPrice createCartItemPrice(long originalPrice, int discountRate){
-        long discountAmount = calcDiscountAmount(originalPrice, discountRate);
-        return CartItemResponse.CartItemPrice.builder()
-                .originalPrice(originalPrice)
-                .discountRate(discountRate)
-                .discountAmount(discountAmount)
-                .discountedPrice(originalPrice - discountAmount)
-                .build();
+    private CartItemResponse.CartItemResponseBuilder createCartItemResponse() {
+        return CartItemResponse
+                .builder()
+                .id(1L)
+                .productId(1L)
+                .productVariantId(1L)
+                .productName("상품1")
+                .thumbnailUrl("http://thumbnail.jpg")
+                .quantity(1)
+                .price(
+                        CartItemResponse.CartItemPrice.builder()
+                                .originalPrice(3000L)
+                                .discountRate(10)
+                                .discountAmount(300L)
+                                .discountedPrice(2700L)
+                                .build()
+                )
+                .lineTotal(2700L)
+                .options(
+                        List.of(CartItemResponse.CartItemOption
+                                .builder()
+                                .optionTypeName("사이즈")
+                                .optionValueName("XL")
+                                .build()
+                        )
+                )
+                .isAvailable(true);
     }
 
-    private long calcDiscountAmount(long originalPrice, int discountRate){
-        return originalPrice * discountRate / 100;
+    private static Stream<Arguments> provideInvalidAddRequest() {
+        return Stream.of(
+                Arguments.of("상품 Id null",
+                        CartItemRequest.builder().productVariantId(null).quantity(1).build(), "productVariantId는 필수값입니다"),
+                Arguments.of("수량 null",
+                        CartItemRequest.builder().productVariantId(1L).quantity(null).build(), "quantity는 필수값입니다"),
+                Arguments.of("요청 수량 0이하",
+                        CartItemRequest.builder().productVariantId(1L).quantity(0).build(), "quantity는 1이상 이여야 합니다")
+        );
+    }
+
+    private static Stream<Arguments> provideServiceExceptions() {
+        return Stream.of(
+                Arguments.of("존재하지 않는 상품", new NotFoundException("해당 상품을 찾을 수 없습니다"),
+                        status().isNotFound(), "NOT_FOUND", "해당 상품을 찾을 수 없습니다"),
+                Arguments.of("상품 서비스 미응답", new UnavailableServiceException("상품을 불러올 수 없습니다 잠시 후 다시 시도해 주세요"),
+                        status().isServiceUnavailable(), "SERVICE_UNAVAILABLE", "상품을 불러올 수 없습니다 잠시 후 다시 시도해 주세요"),
+                Arguments.of("상품 서비스 오류", new InternalServerException("장바구니 상품 추가중 서버에 오류가 발생했습니다"),
+                        status().isInternalServerError(), "INTERNAL_SERVER_ERROR", "장바구니 상품 추가중 서버에 오류가 발생했습니다")
+        );
     }
 }
