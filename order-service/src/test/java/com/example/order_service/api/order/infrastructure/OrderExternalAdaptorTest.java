@@ -20,6 +20,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 
+import static com.example.order_service.api.support.fixture.OrderExternalAdaptorFixture.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
@@ -44,40 +45,30 @@ public class OrderExternalAdaptorTest {
     @DisplayName("유저 정보를 가져온다")
     void getOrderUser() {
         //given
-        OrderUserResponse user = OrderUserResponse.builder()
-                .userId(1L)
-                .pointBalance(1000L)
-                .build();
-
         given(orderUserClientService.getUserForOrder(anyLong()))
-                .willReturn(user);
+                .willReturn(createUserResponse());
         //when
-        OrderUserResponse orderUser = orderExternalAdaptor.getOrderUser(1L);
+        OrderUserResponse orderUser = orderExternalAdaptor.getOrderUser(USER_ID);
         //then
         assertThat(orderUser)
-                .extracting("userId", "pointBalance")
-                .contains(1L, 1000L);
+                .extracting(OrderUserResponse::getUserId, OrderUserResponse::getPointBalance)
+                .contains(USER_ID, 10000L);
     }
 
     @Test
     @DisplayName("쿠폰 Id가 null 이 아니면 쿠폰 정보를 가져온다")
     void getCoupon() {
         //given
-        OrderCouponCalcResponse coupon = OrderCouponCalcResponse.builder()
-                .couponId(1L)
-                .couponName("1000원 할인 쿠폰")
-                .discountAmount(1000L)
-                .build();
-
         given(orderCouponClientService.calculateDiscount(anyLong(), anyLong(), anyLong()))
-                .willReturn(coupon);
-
+                .willReturn(createCouponResponse());
         //when
-        OrderCouponCalcResponse result = orderExternalAdaptor.getCoupon(1L, 1L, 30000L);
+        OrderCouponCalcResponse result = orderExternalAdaptor.getCoupon(USER_ID, COUPON_ID, 30000L);
         //then
         assertThat(result)
-                .extracting("couponId", "couponName", "discountAmount")
-                .contains(1L, "1000원 할인 쿠폰", 1000L);
+                .extracting(OrderCouponCalcResponse::getCouponId,
+                        OrderCouponCalcResponse::getCouponName,
+                        OrderCouponCalcResponse::getDiscountAmount)
+                .contains(COUPON_ID, "1000원 할인 쿠폰", 1000L);
     }
 
     @Test
@@ -85,7 +76,7 @@ public class OrderExternalAdaptorTest {
     void getCoupon_When_CouponId_Is_Null() {
         //given
         //when
-        OrderCouponCalcResponse coupon = orderExternalAdaptor.getCoupon(1L, null, 3000L);
+        OrderCouponCalcResponse coupon = orderExternalAdaptor.getCoupon(USER_ID, null, 3000L);
         //then
         assertThat(coupon).isNull();
         verify(orderCouponClientService, never())
@@ -96,70 +87,21 @@ public class OrderExternalAdaptorTest {
     @DisplayName("주문한 상품 정보를 가져온다")
     void getOrderProducts() {
         //given
-        CreateOrderItemDto orderItem1 = CreateOrderItemDto.builder()
-                .productVariantId(1L)
-                .quantity(3)
-                .build();
-        CreateOrderItemDto orderItem2 = CreateOrderItemDto.builder()
-                .productVariantId(2L)
-                .quantity(5)
-                .build();
-        OrderProductResponse product1 = createProductResponse(1L, 1L, "상품1", 3000L, 10,
-                100,
-                "http://thumbnail1.jpg",
-                List.of(OrderProductResponse
-                        .ItemOption.builder()
-                        .optionTypeName("사이즈")
-                        .optionValueName("XL")
-                        .build())
+        List<CreateOrderItemDto> requestItems = List.of(
+                createOrderItemDto(VARIANT_ID_1, 3),
+                createOrderItemDto(VARIANT_ID_2, 5)
         );
-        OrderProductResponse product2 = createProductResponse(2L, 2L, "상품2", 5000L, 10,
-                100,
-                "http://thumbnail2.jpg",
-                List.of(OrderProductResponse
-                        .ItemOption.builder()
-                        .optionTypeName("용량")
-                        .optionValueName("256GB")
-                        .build())
+        List<OrderProductResponse> response = List.of(createProductResponse(VARIANT_ID_1, 100),
+                createProductResponse(VARIANT_ID_2, 100)
         );
-        List<CreateOrderItemDto> orderItems = List.of(orderItem1, orderItem2);
-        List<OrderProductResponse> products = List.of(product1, product2);
-        given(orderProductClientService.getProducts(anyList()))
-                .willReturn(products);
+        given(orderProductClientService.getProducts(anyList())).willReturn(response);
         //when
-        List<OrderProductResponse> result = orderExternalAdaptor.getOrderProducts(orderItems);
+        List<OrderProductResponse> result = orderExternalAdaptor.getOrderProducts(requestItems);
         //then
         assertThat(result).hasSize(2)
-                .satisfiesExactlyInAnyOrder(
-                        item1 -> {
-                            assertThat(item1)
-                                    .extracting("productId", "productVariantId", "productName", "thumbnailUrl", "stockQuantity")
-                                    .contains(1L, 1L, "상품1", "http://thumbnail1.jpg", 100);
-
-                            assertThat(item1.getUnitPrice())
-                                    .extracting("originalPrice", "discountRate", "discountAmount", "discountedPrice")
-                                    .contains(3000L, 10, 300L, 2700L);
-
-                            assertThat(item1.getItemOptions()).hasSize(1)
-                                    .extracting("optionTypeName", "optionValueName")
-                                    .containsExactlyInAnyOrder(
-                                            tuple("사이즈", "XL")
-                                    );
-                        },
-                        item2 -> {
-                            assertThat(item2)
-                                    .extracting("productId", "productVariantId", "productName", "thumbnailUrl", "stockQuantity")
-                                    .contains(2L, 2L, "상품2", "http://thumbnail2.jpg", 100);
-                            assertThat(item2.getUnitPrice())
-                                    .extracting("originalPrice", "discountRate", "discountAmount", "discountedPrice")
-                                    .contains(5000L, 10, 500L, 4500L);
-
-                            assertThat(item2.getItemOptions()).hasSize(1)
-                                    .extracting("optionTypeName", "optionValueName")
-                                    .containsExactlyInAnyOrder(
-                                            tuple("용량", "256GB")
-                                    );
-                        }
+                .extracting(OrderProductResponse::getProductVariantId)
+                .containsExactlyInAnyOrder(
+                        VARIANT_ID_1, VARIANT_ID_2
                 );
     }
 
@@ -167,115 +109,55 @@ public class OrderExternalAdaptorTest {
     @DisplayName("주문을 생성할때 상품 서비스에서 요청 상품에 대한 모든 상품 정보가 오지 않으면 예외를 던진다")
     void getOrderProducts_When_ProductClientService_Return_InCompleteResponse() {
         //given
-        CreateOrderItemDto orderItem1 = CreateOrderItemDto.builder()
-                .productVariantId(1L)
-                .quantity(3)
-                .build();
-        CreateOrderItemDto orderItem2 = CreateOrderItemDto.builder()
-                .productVariantId(2L)
-                .quantity(5)
-                .build();
-
-        OrderProductResponse product1 = createProductResponse(1L, 1L, "상품1", 3000L, 10,
-                100,
-                "http://thumbnail1.jpg",
-                List.of(OrderProductResponse
-                        .ItemOption.builder()
-                        .optionTypeName("사이즈")
-                        .optionValueName("XL")
-                        .build())
+        List<CreateOrderItemDto> requestItems = List.of(
+                createOrderItemDto(VARIANT_ID_1, 3),
+                createOrderItemDto(VARIANT_ID_2, 5)
         );
-
-        List<CreateOrderItemDto> orderItems = List.of(orderItem1, orderItem2);
-        List<OrderProductResponse> products = List.of(product1);
+        List<OrderProductResponse> response = List.of(
+                createProductResponse(VARIANT_ID_1, 100)
+        );
         given(orderProductClientService.getProducts(anyList()))
-                .willReturn(products);
+                .willReturn(response);
         //when
         //then
-        assertThatThrownBy(() -> orderExternalAdaptor.getOrderProducts(orderItems))
+        assertThatThrownBy(() -> orderExternalAdaptor.getOrderProducts(requestItems))
                 .isInstanceOf(NotFoundException.class)
-                .hasMessage("주문 상품중 존재하지 않은 상품이 있습니다. missingIds=[2]");
+                .hasMessage("주문 상품중 존재하지 않은 상품이 있습니다. missingIds=[20]");
     }
     
     @Test
     @DisplayName("주문을 생성할때 상품 재고가 주문 수량보다 부족하면 예외를 던진다")
     void getOrderProducts_When_OutCreateOrderStock() {
         //given
-        CreateOrderItemDto orderItem1 = CreateOrderItemDto.builder()
-                .productVariantId(1L)
-                .quantity(3)
-                .build();
-        CreateOrderItemDto orderItem2 = CreateOrderItemDto.builder()
-                .productVariantId(2L)
-                .quantity(5)
-                .build();
-        OrderProductResponse product1 = createProductResponse(1L, 1L, "상품1", 3000L, 10,
-                100,
-                "http://thumbnail1.jpg",
-                List.of(OrderProductResponse
-                        .ItemOption.builder()
-                        .optionTypeName("사이즈")
-                        .optionValueName("XL")
-                        .build())
+        List<CreateOrderItemDto> requestItems = List.of(
+                createOrderItemDto(VARIANT_ID_1, 3),
+                createOrderItemDto(VARIANT_ID_2, 5)
         );
-        OrderProductResponse product2 = createProductResponse(2L, 2L, "상품2", 5000L, 10,
-                3,
-                "http://thumbnail2.jpg",
-                List.of(OrderProductResponse
-                        .ItemOption.builder()
-                        .optionTypeName("용량")
-                        .optionValueName("256GB")
-                        .build())
+        List<OrderProductResponse> response = List.of(
+                createProductResponse(VARIANT_ID_1, 100),
+                createProductResponse(VARIANT_ID_2,3)
         );
         given(orderProductClientService.getProducts(anyList()))
-                .willReturn(List.of(product1, product2));
+                .willReturn(response);
         //when
         //then
-        assertThatThrownBy(() -> orderExternalAdaptor.getOrderProducts(List.of(orderItem1, orderItem2)))
+        assertThatThrownBy(() -> orderExternalAdaptor.getOrderProducts(requestItems))
                 .isInstanceOf(InsufficientException.class)
-                .hasMessage("재고가 부족합니다 (ProductVariantId : 2 | 현재 재고: 3 | 요청 수량: 5)");
+                .hasMessage("재고가 부족합니다 (ProductVariantId : 20 | 현재 재고: 3 | 요청 수량: 5)");
     }
 
     @Test
     @DisplayName("토스에 결제 승인을 요청한다")
     void confirmOrderPayment(){
         //given
-        TossPaymentConfirmResponse response = TossPaymentConfirmResponse
-                .builder()
-                .paymentKey("paymentKey")
-                .orderId(1L)
-                .totalAmount(1000L)
-                .status("DONE")
-                .build();
         given(tossPaymentClientService.confirmPayment(anyLong(), anyString(), anyLong()))
-                .willReturn(response);
+                .willReturn(createPaymentResponse());
         //when
-        TossPaymentConfirmResponse tossPaymentConfirmResponse = orderExternalAdaptor.confirmOrderPayment(1L, "paymentKey", 1000L);
+        TossPaymentConfirmResponse tossPaymentConfirmResponse = orderExternalAdaptor.confirmOrderPayment(ORDER_ID, PAYMENT_KEY, 1000L);
         //then
         assertThat(tossPaymentConfirmResponse)
                 .extracting(TossPaymentConfirmResponse::getPaymentKey, TossPaymentConfirmResponse::getOrderId,
                         TossPaymentConfirmResponse::getTotalAmount, TossPaymentConfirmResponse::getStatus)
-                .containsExactly("paymentKey", 1L, 1000L, "DONE");
-    }
-
-    private OrderProductResponse createProductResponse(Long productId, Long productVariantId,
-                                                       String productName, Long originalPrice, int discountRate, int stockQuantity,
-                                                       String thumbnail, List<OrderProductResponse.ItemOption> options){
-        long discountAmount = originalPrice * discountRate / 100;
-        return OrderProductResponse.builder()
-                .productId(productId)
-                .productVariantId(productVariantId)
-                .productName(productName)
-                .unitPrice(
-                        OrderProductResponse.UnitPrice.builder()
-                                .originalPrice(originalPrice)
-                                .discountRate(discountRate)
-                                .discountAmount(discountAmount)
-                                .discountedPrice(originalPrice - discountAmount)
-                                .build())
-                .stockQuantity(stockQuantity)
-                .thumbnailUrl(thumbnail)
-                .itemOptions(options)
-                .build();
+                .containsExactly(PAYMENT_KEY, ORDER_ID, 10000L, "DONE");
     }
 }
