@@ -1,5 +1,7 @@
-package com.example.order_service.api.support.security;
+package com.example.order_service.api.support;
 
+import com.example.order_service.api.common.exception.BusinessException;
+import com.example.order_service.api.common.exception.OrderErrorCode;
 import com.example.order_service.api.common.security.model.UserRole;
 import com.example.order_service.api.common.security.principal.UserPrincipal;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -15,5 +17,10 @@ public class DummyController {
         Long userId = userPrincipal.getUserId();
         UserRole userRole = userPrincipal.getUserRole();
         return "userId=" + userId + ",userRole="+userRole.name();
+    }
+
+    @GetMapping("/exception")
+    public String throwBusinessException(){
+        throw new BusinessException(OrderErrorCode.ORDER_NOT_FOUND);
     }
 }

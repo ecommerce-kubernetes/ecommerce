@@ -101,4 +101,17 @@ public class ControllerAdvice {
         ErrorResponse response = ErrorResponse.toBadRequest(e.getMessage(), now.toString(), request.getRequestURI());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
+
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity<ErrorResponse> businessExceptionHandler(HttpServletRequest request, BusinessException e) {
+        LocalDateTime now = LocalDateTime.now();
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .code(e.getErrorCode().getCode())
+                .message(e.getErrorCode().getMessage())
+                .timestamp(now.toString())
+                .path(request.getRequestURI())
+                .build();
+        return ResponseEntity.status(e.getErrorCode().getStatus()).body(errorResponse);
+    }
+
 }

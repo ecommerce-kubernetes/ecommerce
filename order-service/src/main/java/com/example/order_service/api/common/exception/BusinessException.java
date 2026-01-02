@@ -1,7 +1,6 @@
 package com.example.order_service.api.common.exception;
 
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 @Getter
 public class BusinessException extends RuntimeException {

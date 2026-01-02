@@ -12,7 +12,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-@WebMvcTest(controllers = {CartController.class, OrderController.class, NotificationController.class})
+@WebMvcTest(controllers = {CartController.class, OrderController.class, NotificationController.class, DummyController.class})
 public abstract class ControllerTestSupport {
     @Autowired
     protected MockMvc mockMvc;

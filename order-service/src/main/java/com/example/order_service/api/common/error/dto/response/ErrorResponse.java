@@ -10,14 +10,14 @@ import org.springframework.http.HttpStatus;
 @Setter
 @NoArgsConstructor
 public class ErrorResponse {
-    private String error;
+    private String code;
     private String message;
     private String timestamp;
     private String path;
 
     @Builder
-    public ErrorResponse(String error, String message, String timestamp, String path) {
-        this.error = error;
+    public ErrorResponse(String code, String message, String timestamp, String path) {
+        this.code = code;
         this.message = message;
         this.timestamp = timestamp;
         this.path = path;
@@ -53,7 +53,7 @@ public class ErrorResponse {
 
     public static ErrorResponse of(String error, String message, String timestamp, String path) {
         return ErrorResponse.builder()
-                .error(error)
+                .code(error)
                 .message(message)
                 .timestamp(timestamp)
                 .path(path)
