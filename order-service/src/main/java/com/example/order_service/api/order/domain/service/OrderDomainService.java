@@ -1,6 +1,8 @@
 package com.example.order_service.api.order.domain.service;
 
+import com.example.order_service.api.common.exception.BusinessException;
 import com.example.order_service.api.common.exception.NotFoundException;
+import com.example.order_service.api.common.exception.OrderErrorCode;
 import com.example.order_service.api.order.controller.dto.request.OrderSearchCondition;
 import com.example.order_service.api.order.domain.model.Order;
 import com.example.order_service.api.order.domain.model.OrderFailureCode;
@@ -34,7 +36,7 @@ public class OrderDomainService {
 
     @Transactional(readOnly = true)
     public OrderDto getOrder(Long orderId) {
-        Order order = orderRepository.findById(orderId).orElseThrow(() -> new NotFoundException("주문을 찾을 수 없습니다"));
+        Order order = getByOrderId(orderId);
         return OrderDto.from(order);
     }
 
@@ -46,27 +48,29 @@ public class OrderDomainService {
     }
 
     public OrderDto changeOrderStatus(Long orderId, OrderStatus orderStatus){
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new NotFoundException("주문을 찾을 수 없습니다"));
+        Order order = getByOrderId(orderId);
         order.changeStatus(orderStatus);
         return OrderDto.from(order);
     }
 
     public OrderDto canceledOrder(Long orderId, OrderFailureCode code){
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new NotFoundException("주문을 찾을 수 없습니다"));
+        Order order = getByOrderId(orderId);
         order.canceled(code);
         return OrderDto.from(order);
     }
 
     @Transactional
     public OrderDto completedOrder(PaymentCreationCommand command) {
-        Order order = orderRepository.findById(command.getOrderId())
-                .orElseThrow(() -> new NotFoundException("주문을 찾을 수 없습니다"));
+        Order order = getByOrderId(command.getOrderId());
         order.changeStatus(OrderStatus.COMPLETED);
         Payment payment = Payment.create(command.getAmount(), command.getPaymentKey(), command.getMethod(), command.getApprovedAt());
         order.addPayment(payment);
         Order savedOrder = orderRepository.saveAndFlush(order);
         return OrderDto.from(savedOrder);
+    }
+
+    private Order getByOrderId(Long orderId) {
+        return orderRepository.findById(orderId)
+                .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_NOT_FOUND));
     }
 }
