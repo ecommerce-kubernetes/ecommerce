@@ -6,7 +6,7 @@ import com.example.order_service.api.order.application.dto.command.CreateOrderIt
 import com.example.order_service.api.order.domain.model.vo.OrderPriceInfo;
 import com.example.order_service.api.order.domain.model.vo.PriceCalculateResult;
 import com.example.order_service.api.order.domain.service.dto.result.ItemCalculationResult;
-import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponCalcResponse;
+import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponDiscountResponse;
 import com.example.order_service.api.order.infrastructure.client.product.dto.OrderProductResponse;
 import com.example.order_service.api.order.infrastructure.client.user.dto.OrderUserResponse;
 import org.junit.jupiter.api.DisplayName;
@@ -62,7 +62,7 @@ public class OrderPriceCalculatorTest {
                 .pointBalance(4000L)
                 .build();
 
-        OrderCouponCalcResponse coupon = OrderCouponCalcResponse.builder()
+        OrderCouponDiscountResponse coupon = OrderCouponDiscountResponse.builder()
                 .couponId(1L)
                 .couponName("1000원 할인 쿠폰")
                 .discountAmount(1000L)

@@ -4,7 +4,7 @@ import com.example.order_service.api.order.domain.model.vo.PriceCalculateResult;
 import com.example.order_service.api.order.domain.service.dto.command.OrderCreationContext;
 import com.example.order_service.api.order.domain.service.dto.command.OrderItemSpec;
 import com.example.order_service.api.order.domain.service.dto.result.ItemCalculationResult;
-import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponCalcResponse;
+import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponDiscountResponse;
 import com.example.order_service.api.order.infrastructure.client.product.dto.OrderProductResponse;
 
 import java.util.List;
@@ -44,7 +44,7 @@ public class OrderDomainServiceTestFixture {
         Map<Long, Integer> quantityMap = Map.of(PROD1_ID, PROD1_QTY, PROD2_ID, PROD2_QTY);
         List<OrderItemSpec> specs = createOrderItemSpec(products, quantityMap);
         ItemCalculationResult itemCalc = createItemCalculationResult(quantityMap, products);
-        OrderCouponCalcResponse coupon = OrderCouponCalcResponse.builder()
+        OrderCouponDiscountResponse coupon = OrderCouponDiscountResponse.builder()
                 .couponId(1L).couponName("1000원 할인 쿠폰").discountAmount(1000L).build();
 
         PriceCalculateResult priceResult = PriceCalculateResult.of(itemCalc, coupon, coupon.getDiscountAmount(), USE_POINT, FINAL_PRICE);

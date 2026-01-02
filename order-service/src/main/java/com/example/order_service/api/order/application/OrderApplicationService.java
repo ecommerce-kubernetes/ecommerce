@@ -22,7 +22,7 @@ import com.example.order_service.api.order.domain.service.dto.result.ItemCalcula
 import com.example.order_service.api.order.domain.service.dto.result.OrderDto;
 import com.example.order_service.api.order.domain.service.dto.result.OrderItemDto;
 import com.example.order_service.api.order.infrastructure.OrderExternalAdaptor;
-import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponCalcResponse;
+import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponDiscountResponse;
 import com.example.order_service.api.order.infrastructure.client.payment.dto.TossPaymentConfirmResponse;
 import com.example.order_service.api.order.infrastructure.client.product.dto.OrderProductResponse;
 import com.example.order_service.api.order.infrastructure.client.user.dto.OrderUserResponse;
@@ -53,7 +53,7 @@ public class OrderApplicationService {
         List<OrderProductResponse> products = orderExternalAdaptor.getOrderProducts(dto.getOrderItemDtoList());
         //주문 상품 가격 정보 계산
         ItemCalculationResult itemResult = calculator.calculateItemAmounts(dto.getOrderItemDtoList(), products);
-        OrderCouponCalcResponse coupon = orderExternalAdaptor.getCoupon(dto.getUserId(), dto.getCouponId(), itemResult.getSubTotalPrice());
+        OrderCouponDiscountResponse coupon = orderExternalAdaptor.getCoupon(dto.getUserId(), dto.getCouponId(), itemResult.getSubTotalPrice());
         //할인 적용 최종 금액 계산
         PriceCalculateResult priceResult = calculator
                 .calculateFinalPrice(dto.getPointToUse(), itemResult, dto.getExpectedPrice(), user, coupon);

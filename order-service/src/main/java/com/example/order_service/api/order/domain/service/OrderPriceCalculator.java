@@ -5,7 +5,7 @@ import com.example.order_service.api.common.exception.OrderVerificationException
 import com.example.order_service.api.order.application.dto.command.CreateOrderItemDto;
 import com.example.order_service.api.order.domain.model.vo.PriceCalculateResult;
 import com.example.order_service.api.order.domain.service.dto.result.ItemCalculationResult;
-import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponCalcResponse;
+import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponDiscountResponse;
 import com.example.order_service.api.order.infrastructure.client.product.dto.OrderProductResponse;
 import com.example.order_service.api.order.infrastructure.client.user.dto.OrderUserResponse;
 import org.springframework.stereotype.Component;
@@ -24,7 +24,7 @@ public class OrderPriceCalculator {
     }
 
     public PriceCalculateResult calculateFinalPrice(long useToPoint, ItemCalculationResult itemCalculationResult, long expectedPrice,
-                                                    OrderUserResponse user, OrderCouponCalcResponse coupon) {
+                                                    OrderUserResponse user, OrderCouponDiscountResponse coupon) {
         verifyEnoughPoints(useToPoint, user);
         long couponDiscount = coupon != null ? coupon.getDiscountAmount() : 0L;
         long priceAfterCoupon = itemCalculationResult.getSubTotalPrice() - couponDiscount;

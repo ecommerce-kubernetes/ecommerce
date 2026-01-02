@@ -1,7 +1,7 @@
 package com.example.order_service.api.support.fixture;
 
 import com.example.order_service.api.order.application.dto.command.CreateOrderItemDto;
-import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponCalcResponse;
+import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponDiscountResponse;
 import com.example.order_service.api.order.infrastructure.client.payment.dto.TossPaymentConfirmResponse;
 import com.example.order_service.api.order.infrastructure.client.product.dto.OrderProductResponse;
 import com.example.order_service.api.order.infrastructure.client.user.dto.OrderUserResponse;
@@ -23,8 +23,8 @@ public class OrderExternalAdaptorFixture {
                 .build();
     }
 
-    public static OrderCouponCalcResponse createCouponResponse() {
-        return OrderCouponCalcResponse.builder()
+    public static OrderCouponDiscountResponse createCouponResponse() {
+        return OrderCouponDiscountResponse.builder()
                 .couponId(COUPON_ID)
                 .couponName("1000원 할인 쿠폰")
                 .discountAmount(1000L)

@@ -19,11 +19,11 @@ public class OrderProductClientService {
     private final OrderProductClient orderProductClient;
 
     @CircuitBreaker(name = "productService", fallbackMethod = "getProductsFallback")
-    public List<OrderProductResponse> getProducts(List<Long> productVariantIds) {
-        return orderProductClient.getProductVariantByIds(productVariantIds);
+    public List<OrderProductResponse> getProducts(List<Long> variantIds) {
+        return orderProductClient.getProductVariantByIds(variantIds);
     }
 
-    private List<OrderProductResponse> getProductsFallback(List<Long> productVariantIds, Throwable throwable){
+    private List<OrderProductResponse> getProductsFallback(List<Long> variantIds, Throwable throwable){
         if(throwable instanceof CallNotPermittedException) {
             log.error("상품 서비스 장애로 서킷브레이커 열림");
             throw new UnavailableServiceException("상품 서비스가 응답하지 않습니다");

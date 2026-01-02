@@ -4,7 +4,7 @@ import com.example.order_service.api.common.exception.NotFoundException;
 import com.example.order_service.api.common.exception.server.InternalServerException;
 import com.example.order_service.api.common.exception.server.UnavailableServiceException;
 import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponCalcRequest;
-import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponCalcResponse;
+import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponDiscountResponse;
 import com.example.order_service.api.support.ExcludeInfraTest;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import org.junit.jupiter.api.DisplayName;
@@ -29,7 +29,7 @@ public class OrderCouponClientServiceTest extends ExcludeInfraTest {
     @DisplayName("쿠폰서비스에서 할인 금액 정보를 조회한다")
     void calculateDiscount(){
         //given
-        OrderCouponCalcResponse calcResponse = OrderCouponCalcResponse.builder()
+        OrderCouponDiscountResponse calcResponse = OrderCouponDiscountResponse.builder()
                 .couponId(1L)
                 .couponName("1000원 할인 쿠폰")
                 .discountAmount(1000L)
@@ -38,7 +38,7 @@ public class OrderCouponClientServiceTest extends ExcludeInfraTest {
         given(orderCouponClient.calculate(any(OrderCouponCalcRequest.class)))
                 .willReturn(calcResponse);
         //when
-        OrderCouponCalcResponse result = orderCouponClientService.calculateDiscount(1L, 1L, 3100L);
+        OrderCouponDiscountResponse result = orderCouponClientService.calculateDiscount(1L, 1L, 3100L);
         //then
         assertThat(result)
                 .extracting("couponId", "couponName", "discountAmount")

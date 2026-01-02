@@ -4,7 +4,7 @@ import com.example.order_service.api.common.exception.InsufficientException;
 import com.example.order_service.api.common.exception.NotFoundException;
 import com.example.order_service.api.order.application.dto.command.CreateOrderItemDto;
 import com.example.order_service.api.order.infrastructure.client.coupon.OrderCouponClientService;
-import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponCalcResponse;
+import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponDiscountResponse;
 import com.example.order_service.api.order.infrastructure.client.payment.TossPaymentClientService;
 import com.example.order_service.api.order.infrastructure.client.payment.dto.TossPaymentConfirmResponse;
 import com.example.order_service.api.order.infrastructure.client.product.OrderProductClientService;
@@ -62,12 +62,12 @@ public class OrderExternalAdaptorTest {
         given(orderCouponClientService.calculateDiscount(anyLong(), anyLong(), anyLong()))
                 .willReturn(createCouponResponse());
         //when
-        OrderCouponCalcResponse result = orderExternalAdaptor.getCoupon(USER_ID, COUPON_ID, 30000L);
+        OrderCouponDiscountResponse result = orderExternalAdaptor.getCoupon(USER_ID, COUPON_ID, 30000L);
         //then
         assertThat(result)
-                .extracting(OrderCouponCalcResponse::getCouponId,
-                        OrderCouponCalcResponse::getCouponName,
-                        OrderCouponCalcResponse::getDiscountAmount)
+                .extracting(OrderCouponDiscountResponse::getCouponId,
+                        OrderCouponDiscountResponse::getCouponName,
+                        OrderCouponDiscountResponse::getDiscountAmount)
                 .contains(COUPON_ID, "1000원 할인 쿠폰", 1000L);
     }
 
@@ -76,7 +76,7 @@ public class OrderExternalAdaptorTest {
     void getCoupon_When_CouponId_Is_Null() {
         //given
         //when
-        OrderCouponCalcResponse coupon = orderExternalAdaptor.getCoupon(USER_ID, null, 3000L);
+        OrderCouponDiscountResponse coupon = orderExternalAdaptor.getCoupon(USER_ID, null, 3000L);
         //then
         assertThat(coupon).isNull();
         verify(orderCouponClientService, never())
@@ -143,7 +143,7 @@ public class OrderExternalAdaptorTest {
         //then
         assertThatThrownBy(() -> orderExternalAdaptor.getOrderProducts(requestItems))
                 .isInstanceOf(InsufficientException.class)
-                .hasMessage("재고가 부족합니다 (ProductVariantId : 20 | 현재 재고: 3 | 요청 수량: 5)");
+                .hasMessage("재고가 부족합니다 (ProductVariantId: 20 | 현재 재고: 3 | 요청 수량: 5)");
     }
 
     @Test

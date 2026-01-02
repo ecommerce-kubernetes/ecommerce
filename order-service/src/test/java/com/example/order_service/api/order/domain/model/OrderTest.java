@@ -5,7 +5,7 @@ import com.example.order_service.api.order.domain.model.vo.PriceCalculateResult;
 import com.example.order_service.api.order.domain.service.dto.command.OrderCreationContext;
 import com.example.order_service.api.order.domain.service.dto.command.OrderItemSpec;
 import com.example.order_service.api.order.domain.service.dto.result.ItemCalculationResult;
-import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponCalcResponse;
+import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponDiscountResponse;
 import com.example.order_service.api.order.infrastructure.client.product.dto.OrderProductResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -26,7 +26,7 @@ public class OrderTest {
                 Map.of("사이즈", "XL"));
         OrderProductResponse product2 = createProductResponse(2L, 2L, "상품2", 5000L, 10, "http://thumbnail2.jpg",
                 Map.of("용량", "256GB"));
-        OrderCouponCalcResponse coupon = OrderCouponCalcResponse.builder()
+        OrderCouponDiscountResponse coupon = OrderCouponDiscountResponse.builder()
                 .couponId(1L)
                 .couponName("1000원 할인 쿠폰")
                 .discountAmount(1000L)

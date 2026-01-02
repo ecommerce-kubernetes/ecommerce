@@ -9,7 +9,7 @@ import com.example.order_service.api.order.domain.model.vo.OrderPriceInfo;
 import com.example.order_service.api.order.domain.model.vo.PaymentInfo;
 import com.example.order_service.api.order.domain.service.dto.result.OrderDto;
 import com.example.order_service.api.order.domain.service.dto.result.OrderItemDto;
-import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponCalcResponse;
+import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponDiscountResponse;
 import com.example.order_service.api.order.infrastructure.client.payment.dto.TossPaymentConfirmResponse;
 import com.example.order_service.api.order.infrastructure.client.product.dto.OrderProductResponse;
 import com.example.order_service.api.order.infrastructure.client.user.dto.OrderUserResponse;
@@ -134,8 +134,8 @@ public class OrderApplicationServiceTestFixture {
         return OrderUserResponse.builder().userId(USER_ID).pointBalance(3000L).build();
     }
 
-    public static OrderCouponCalcResponse mockCouponResponse() {
-        return OrderCouponCalcResponse.builder().couponId(1L).discountAmount(COUPON_DISCOUNT).build();
+    public static OrderCouponDiscountResponse mockCouponResponse() {
+        return OrderCouponDiscountResponse.builder().couponId(1L).discountAmount(COUPON_DISCOUNT).build();
     }
 
     public static TossPaymentConfirmResponse mockPaymentResponse(String paymentKey, Long amount) {

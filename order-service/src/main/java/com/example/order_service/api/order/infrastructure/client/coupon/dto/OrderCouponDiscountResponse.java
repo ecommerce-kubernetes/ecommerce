@@ -7,13 +7,13 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class OrderCouponCalcResponse {
+public class OrderCouponDiscountResponse {
     private Long couponId;
     private String couponName;
     private Long discountAmount;
 
     @Builder
-    private OrderCouponCalcResponse(Long couponId, String couponName, Long discountAmount) {
+    private OrderCouponDiscountResponse(Long couponId, String couponName, Long discountAmount) {
         this.couponId = couponId;
         this.couponName = couponName;
         this.discountAmount = discountAmount;

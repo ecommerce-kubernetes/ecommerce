@@ -1,7 +1,7 @@
 package com.example.order_service.api.order.domain.model.vo;
 
 import com.example.order_service.api.order.domain.service.dto.result.ItemCalculationResult;
-import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponCalcResponse;
+import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponDiscountResponse;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -17,7 +17,7 @@ public class PriceCalculateResult {
         this.appliedCoupon = appliedCoupon;
     }
 
-    public static PriceCalculateResult of(ItemCalculationResult itemCalculationResult, OrderCouponCalcResponse coupon,
+    public static PriceCalculateResult of(ItemCalculationResult itemCalculationResult, OrderCouponDiscountResponse coupon,
                                           Long couponDiscount, Long useToPoint, Long finalPaymentAmount) {
         return PriceCalculateResult.builder()
                 .orderPriceInfo(OrderPriceInfo.from(itemCalculationResult, couponDiscount, useToPoint, finalPaymentAmount))

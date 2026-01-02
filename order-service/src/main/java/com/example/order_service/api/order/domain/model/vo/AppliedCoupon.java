@@ -1,7 +1,7 @@
 package com.example.order_service.api.order.domain.model.vo;
 
 import com.example.order_service.api.order.domain.model.Coupon;
-import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponCalcResponse;
+import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponDiscountResponse;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -26,7 +26,7 @@ public class AppliedCoupon {
                 .build();
     }
 
-    public static AppliedCoupon from(OrderCouponCalcResponse coupon) {
+    public static AppliedCoupon from(OrderCouponDiscountResponse coupon) {
         if (coupon == null) {
             return null;
         }
