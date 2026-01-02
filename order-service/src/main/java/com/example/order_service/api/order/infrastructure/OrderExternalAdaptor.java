@@ -1,7 +1,7 @@
 package com.example.order_service.api.order.infrastructure;
 
-import com.example.order_service.api.common.exception.InsufficientException;
-import com.example.order_service.api.common.exception.NotFoundException;
+import com.example.order_service.api.common.exception.BusinessException;
+import com.example.order_service.api.common.exception.OrderErrorCode;
 import com.example.order_service.api.order.application.dto.command.CreateOrderItemDto;
 import com.example.order_service.api.order.infrastructure.client.coupon.OrderCouponClientService;
 import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponDiscountResponse;
@@ -63,7 +63,7 @@ public class OrderExternalAdaptor {
                 .collect(Collectors.toSet());
         List<Long> missingIds = requestIds.stream().filter(id -> !foundIds.contains(id))
                 .toList();
-        throw new NotFoundException("주문 상품중 존재하지 않은 상품이 있습니다. missingIds=" + missingIds);
+        throw new BusinessException(OrderErrorCode.ORDER_PRODUCT_NOT_FOUND, "missing variantIds : " + missingIds);
     }
 
     private void verifyStockAvailability(List<CreateOrderItemDto> requestItems, List<OrderProductResponse> products) {
@@ -73,10 +73,9 @@ public class OrderExternalAdaptor {
         for (CreateOrderItemDto item : requestItems) {
             Integer currentStock = stockMap.get(item.getProductVariantId());
             if(item.getQuantity() > currentStock) {
-                throw new InsufficientException(String.format(
-                        "재고가 부족합니다 (ProductVariantId: %d | 현재 재고: %d | 요청 수량: %d)",
-                        item.getProductVariantId(), currentStock, item.getQuantity()
-                ));
+                throw new BusinessException(OrderErrorCode.ORDER_PRODUCT_OUT_OF_STOCK,
+                        String.format("(ProductVariantId: %d | 현재 재고: %d | 요청 수량: %d)",
+                                item.getProductVariantId(), currentStock, item.getQuantity()));
             }
         }
     }

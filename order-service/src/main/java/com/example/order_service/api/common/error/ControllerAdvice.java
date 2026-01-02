@@ -27,7 +27,12 @@ public class ControllerAdvice {
         LocalDateTime now = LocalDateTime.now();
         List<FieldError> fieldErrors = e.getBindingResult().getFieldErrors();
         String message = fieldErrors.get(0).getDefaultMessage();
-        ErrorResponse response = ErrorResponse.toBadRequest(message, now.toString(), request.getRequestURI());
+        ErrorResponse response = ErrorResponse.builder()
+                .code("VALIDATION")
+                .message(message)
+                .timestamp(now.toString())
+                .path(request.getRequestURI())
+                .build();
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 

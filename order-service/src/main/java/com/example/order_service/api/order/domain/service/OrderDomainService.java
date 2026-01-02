@@ -1,7 +1,6 @@
 package com.example.order_service.api.order.domain.service;
 
 import com.example.order_service.api.common.exception.BusinessException;
-import com.example.order_service.api.common.exception.NotFoundException;
 import com.example.order_service.api.common.exception.OrderErrorCode;
 import com.example.order_service.api.order.controller.dto.request.OrderSearchCondition;
 import com.example.order_service.api.order.domain.model.Order;

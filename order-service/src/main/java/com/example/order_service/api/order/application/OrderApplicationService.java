@@ -1,9 +1,7 @@
 package com.example.order_service.api.order.application;
 
 import com.example.order_service.api.common.dto.PageDto;
-import com.example.order_service.api.common.exception.NoPermissionException;
-import com.example.order_service.api.common.exception.OrderVerificationException;
-import com.example.order_service.api.common.exception.PaymentException;
+import com.example.order_service.api.common.exception.*;
 import com.example.order_service.api.order.application.dto.command.CreateOrderDto;
 import com.example.order_service.api.order.application.dto.result.CreateOrderResponse;
 import com.example.order_service.api.order.application.dto.result.OrderDetailResponse;
@@ -88,7 +86,7 @@ public class OrderApplicationService {
     public OrderDetailResponse finalizeOrder(Long orderId, String paymentKey) {
         OrderDto order = orderDomainService.getOrder(orderId);
         if (!order.getStatus().equals(OrderStatus.PAYMENT_WAITING)) {
-            throw new OrderVerificationException("결제 가능한 주문이 아닙니다");
+            throw new BusinessException(OrderErrorCode.ORDER_NOT_PAYABLE);
         }
 
         try {
@@ -110,7 +108,7 @@ public class OrderApplicationService {
     public OrderDetailResponse getOrder(Long userId, Long orderId) {
         OrderDto order = orderDomainService.getOrder(orderId);
         if (!userId.equals(order.getUserId())) {
-            throw new NoPermissionException("주문을 조회할 권한이 없습니다");
+            throw new BusinessException(OrderErrorCode.ORDER_NO_PERMISSION);
         }
         return OrderDetailResponse.from(order);
     }

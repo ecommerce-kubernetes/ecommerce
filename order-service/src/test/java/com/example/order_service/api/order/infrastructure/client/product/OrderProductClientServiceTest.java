@@ -1,7 +1,8 @@
 package com.example.order_service.api.order.infrastructure.client.product;
 
+import com.example.order_service.api.common.exception.BusinessException;
+import com.example.order_service.api.common.exception.CommonErrorCode;
 import com.example.order_service.api.common.exception.server.InternalServerException;
-import com.example.order_service.api.common.exception.server.UnavailableServiceException;
 import com.example.order_service.api.order.infrastructure.client.product.dto.OrderProductResponse;
 import com.example.order_service.api.support.ExcludeInfraTest;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
@@ -78,15 +79,16 @@ public class OrderProductClientServiceTest extends ExcludeInfraTest {
     }
 
     @Test
-    @DisplayName("서킷브레이커가 열렸을때 상품 목록 정보를 조회하면 UnavailableServiceException을 던진다")
+    @DisplayName("서킷브레이커가 열렸을때 상품 목록 정보를 조회하면 예외를 던진다")
     void getProducts_When_OpenCircuitBreaker(){
         //given
         willThrow(CallNotPermittedException.class).given(orderProductClient).getProductVariantByIds(anyList());
         //when
         //then
         assertThatThrownBy(() -> orderProductClientService.getProducts(List.of(1L, 2L)))
-                .isInstanceOf(UnavailableServiceException.class)
-                .hasMessage("상품 서비스가 응답하지 않습니다");
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(CommonErrorCode.SERVICE_UNAVAILABLE);
     }
 
     @Test

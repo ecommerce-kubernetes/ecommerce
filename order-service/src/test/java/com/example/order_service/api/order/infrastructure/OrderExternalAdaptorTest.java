@@ -1,7 +1,7 @@
 package com.example.order_service.api.order.infrastructure;
 
-import com.example.order_service.api.common.exception.InsufficientException;
-import com.example.order_service.api.common.exception.NotFoundException;
+import com.example.order_service.api.common.exception.BusinessException;
+import com.example.order_service.api.common.exception.OrderErrorCode;
 import com.example.order_service.api.order.application.dto.command.CreateOrderItemDto;
 import com.example.order_service.api.order.infrastructure.client.coupon.OrderCouponClientService;
 import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponDiscountResponse;
@@ -121,8 +121,10 @@ public class OrderExternalAdaptorTest {
         //when
         //then
         assertThatThrownBy(() -> orderExternalAdaptor.getOrderProducts(requestItems))
-                .isInstanceOf(NotFoundException.class)
-                .hasMessage("주문 상품중 존재하지 않은 상품이 있습니다. missingIds=[20]");
+                .isInstanceOf(BusinessException.class)
+                .hasMessage("주문 상품을 찾을 수 없습니다 missing variantIds : [20]")
+                .extracting("errorCode")
+                .isEqualTo(OrderErrorCode.ORDER_PRODUCT_NOT_FOUND);
     }
     
     @Test
@@ -142,8 +144,10 @@ public class OrderExternalAdaptorTest {
         //when
         //then
         assertThatThrownBy(() -> orderExternalAdaptor.getOrderProducts(requestItems))
-                .isInstanceOf(InsufficientException.class)
-                .hasMessage("재고가 부족합니다 (ProductVariantId: 20 | 현재 재고: 3 | 요청 수량: 5)");
+                .isInstanceOf(BusinessException.class)
+                .hasMessage("상품 재고가 부족합니다 (ProductVariantId: 20 | 현재 재고: 3 | 요청 수량: 5)")
+                .extracting("errorCode")
+                .isEqualTo(OrderErrorCode.ORDER_PRODUCT_OUT_OF_STOCK);
     }
 
     @Test

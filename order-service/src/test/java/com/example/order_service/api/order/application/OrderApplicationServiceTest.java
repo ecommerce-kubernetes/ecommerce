@@ -1,10 +1,7 @@
 package com.example.order_service.api.order.application;
 
 import com.example.order_service.api.common.dto.PageDto;
-import com.example.order_service.api.common.exception.NoPermissionException;
-import com.example.order_service.api.common.exception.OrderVerificationException;
-import com.example.order_service.api.common.exception.PaymentErrorCode;
-import com.example.order_service.api.common.exception.PaymentException;
+import com.example.order_service.api.common.exception.*;
 import com.example.order_service.api.order.application.dto.command.CreateOrderDto;
 import com.example.order_service.api.order.application.dto.result.CreateOrderResponse;
 import com.example.order_service.api.order.application.dto.result.OrderDetailResponse;
@@ -195,8 +192,9 @@ public class OrderApplicationServiceTest {
         //when
         //then
         assertThatThrownBy(() -> orderApplicationService.finalizeOrder(orderId, "paymentKey"))
-                .isInstanceOf(OrderVerificationException.class)
-                .hasMessage("결제 가능한 주문이 아닙니다");
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(OrderErrorCode.ORDER_NOT_PAYABLE);
     }
 
     @Test
@@ -294,8 +292,9 @@ public class OrderApplicationServiceTest {
         //when
         //then
         assertThatThrownBy(() -> orderApplicationService.getOrder(otherUserId, orderId))
-                .isInstanceOf(NoPermissionException.class)
-                .hasMessage("주문을 조회할 권한이 없습니다");
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(OrderErrorCode.ORDER_NO_PERMISSION);
     }
 
     @Test
