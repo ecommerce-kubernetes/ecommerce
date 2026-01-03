@@ -1,7 +1,7 @@
 package com.example.order_service.api.order.domain.service;
 
-import com.example.order_service.api.common.exception.InsufficientException;
-import com.example.order_service.api.common.exception.OrderVerificationException;
+import com.example.order_service.api.common.exception.BusinessException;
+import com.example.order_service.api.common.exception.OrderErrorCode;
 import com.example.order_service.api.order.application.dto.command.CreateOrderItemDto;
 import com.example.order_service.api.order.domain.model.vo.PriceCalculateResult;
 import com.example.order_service.api.order.domain.service.dto.result.ItemCalculationResult;
@@ -31,7 +31,7 @@ public class OrderPriceCalculator {
         long finalPaymentAmount = priceAfterCoupon - useToPoint;
 
         if(finalPaymentAmount != expectedPrice) {
-            throw new OrderVerificationException("주문 금액이 변동되었습니다");
+            throw new BusinessException(OrderErrorCode.ORDER_PRICE_MISMATCH);
         }
 
         return PriceCalculateResult.of(itemCalculationResult, coupon, couponDiscount, useToPoint, finalPaymentAmount);
@@ -47,7 +47,7 @@ public class OrderPriceCalculator {
 
     private void verifyEnoughPoints(Long useToPoint, OrderUserResponse user){
         if(useToPoint > 0 && !user.hasEnoughPoints(useToPoint)) {
-            throw new InsufficientException("포인트가 부족합니다");
+            throw new BusinessException(OrderErrorCode.ORDER_INSUFFICIENT_POINT_BALANCE);
         }
     }
 

@@ -1,8 +1,7 @@
 package com.example.order_service.api.order.infrastructure.client.coupon;
 
-import com.example.order_service.api.common.exception.NotFoundException;
-import com.example.order_service.api.common.exception.server.InternalServerException;
-import com.example.order_service.api.common.exception.server.UnavailableServiceException;
+import com.example.order_service.api.common.exception.BusinessException;
+import com.example.order_service.api.common.exception.ExternalServiceErrorCode;
 import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponCalcRequest;
 import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponDiscountResponse;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
@@ -25,14 +24,15 @@ public class OrderCouponClientService {
 
     private OrderCouponDiscountResponse calculateDiscountFallback(Long userId, Long couponId, Long totalPrice, Throwable throwable){
         if (throwable instanceof CallNotPermittedException) {
-            throw new UnavailableServiceException("쿠폰 서비스가 응답하지 않습니다");
+            log.warn("쿠폰 서비스 서킷 브레이커 열림");
+            throw new BusinessException(ExternalServiceErrorCode.UNAVAILABLE);
         }
 
-        if (throwable instanceof NotFoundException) {
-            throw (NotFoundException) throwable;
+        if (throwable instanceof BusinessException) {
+            throw (BusinessException) throwable;
         }
 
-        throw new InternalServerException("쿠폰 서비스에서 오류가 발생했습니다");
+        throw new BusinessException(ExternalServiceErrorCode.SYSTEM_ERROR);
     }
 
 }

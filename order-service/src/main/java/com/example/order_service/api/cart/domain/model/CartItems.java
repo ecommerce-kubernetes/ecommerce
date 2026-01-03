@@ -1,6 +1,7 @@
 package com.example.order_service.api.cart.domain.model;
 
-import com.example.order_service.api.common.exception.InvalidQuantityException;
+import com.example.order_service.api.common.exception.BusinessException;
+import com.example.order_service.api.common.exception.CartErrorCode;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -41,7 +42,7 @@ public class CartItems {
 
     public void updateQuantity(int quantity) {
         if(quantity <= 0){
-            throw new InvalidQuantityException("상품 수량은 1 이상이여야 합니다");
+            throw new BusinessException(CartErrorCode.ORDER_ITEM_MINIMUM_ONE_REQUIRED);
         }
         this.quantity = quantity;
     }

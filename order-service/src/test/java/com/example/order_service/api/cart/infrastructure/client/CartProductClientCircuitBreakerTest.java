@@ -1,6 +1,7 @@
 package com.example.order_service.api.cart.infrastructure.client;
 
-import com.example.order_service.api.common.exception.server.UnavailableServiceException;
+import com.example.order_service.api.common.exception.BusinessException;
+import com.example.order_service.api.common.exception.ExternalServiceErrorCode;
 import com.example.order_service.api.support.ExcludeInfraTest;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
@@ -86,7 +87,8 @@ public class CartProductClientCircuitBreakerTest extends ExcludeInfraTest {
         assertThat(breaker.getState()).isEqualTo(CircuitBreaker.State.OPEN);
 
         assertThatThrownBy(() -> cartProductClientService.getProduct(1L))
-                .isInstanceOf(UnavailableServiceException.class)
-                .hasMessage("상품 서비스가 응답하지 않습니다");
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ExternalServiceErrorCode.UNAVAILABLE);
     }
 }

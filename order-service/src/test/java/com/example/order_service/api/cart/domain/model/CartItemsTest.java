@@ -1,6 +1,7 @@
 package com.example.order_service.api.cart.domain.model;
 
-import com.example.order_service.api.common.exception.InvalidQuantityException;
+import com.example.order_service.api.common.exception.BusinessException;
+import com.example.order_service.api.common.exception.CartErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -24,7 +25,7 @@ public class CartItemsTest {
     }
 
     @Test
-    @DisplayName("상품 수량을 1 이하로 변경하려 시도하면 InvalidQuantityException을 발생시킨다")
+    @DisplayName("상품 수량을 1 이하로 변경하려 시도하면 예외를 던진다")
     void updateQuantityWhenQuantityLessThan1(){
         //given
         CartItems cartItem = CartItems.builder()
@@ -34,7 +35,8 @@ public class CartItemsTest {
         //when
         //then
         assertThatThrownBy(() -> cartItem.updateQuantity(0))
-                .isInstanceOf(InvalidQuantityException.class)
-                .hasMessage("상품 수량은 1 이상이여야 합니다");
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(CartErrorCode.ORDER_ITEM_MINIMUM_ONE_REQUIRED);
     }
 }

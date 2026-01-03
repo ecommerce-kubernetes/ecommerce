@@ -1,7 +1,7 @@
 package com.example.order_service.api.order.domain.service;
 
-import com.example.order_service.api.common.exception.InsufficientException;
-import com.example.order_service.api.common.exception.OrderVerificationException;
+import com.example.order_service.api.common.exception.BusinessException;
+import com.example.order_service.api.common.exception.OrderErrorCode;
 import com.example.order_service.api.order.application.dto.command.CreateOrderItemDto;
 import com.example.order_service.api.order.domain.model.vo.OrderPriceInfo;
 import com.example.order_service.api.order.domain.model.vo.PriceCalculateResult;
@@ -162,8 +162,9 @@ public class OrderPriceCalculatorTest {
         //when
         //then
         assertThatThrownBy(() -> calculator.calculateFinalPrice(1000, itemCalculationResult, 29600L, user, null))
-                .isInstanceOf(InsufficientException.class)
-                .hasMessage("포인트가 부족합니다");
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(OrderErrorCode.ORDER_INSUFFICIENT_POINT_BALANCE);
     }
 
     @Test
@@ -191,8 +192,9 @@ public class OrderPriceCalculatorTest {
         //when
         //then
         assertThatThrownBy(() -> calculator.calculateFinalPrice(1000, itemCalculationResult, 28600L, user, null))
-                .isInstanceOf(OrderVerificationException.class)
-                .hasMessage("주문 금액이 변동되었습니다");
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(OrderErrorCode.ORDER_PRICE_MISMATCH);
     }
 
     private OrderProductResponse createProductResponse(Long productId, Long productVariantId,

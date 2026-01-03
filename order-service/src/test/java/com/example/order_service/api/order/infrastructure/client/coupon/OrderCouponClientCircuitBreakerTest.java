@@ -1,6 +1,7 @@
 package com.example.order_service.api.order.infrastructure.client.coupon;
 
-import com.example.order_service.api.common.exception.server.UnavailableServiceException;
+import com.example.order_service.api.common.exception.BusinessException;
+import com.example.order_service.api.common.exception.ExternalServiceErrorCode;
 import com.example.order_service.api.support.ExcludeInfraTest;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
@@ -35,13 +36,12 @@ public class OrderCouponClientCircuitBreakerTest extends ExcludeInfraTest {
 
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {
+        registry.add("resilience4j.circuitbreaker.configs.default.recordFailurePredicate",
+                () -> "com.example.order_service.api.common.config.CircuitBreakerFailurePredicate");
+        registry.add("resilience4j.circuitbreaker.configs.default.failureRateThreshold", () -> 50);
+        registry.add("resilience4j.circuitbreaker.configs.default.slidingWindowSize", () -> 100);
+        registry.add("resilience4j.circuitbreaker.instances.couponService.baseConfig", () -> "default");
         registry.add("resilience4j.circuitbreaker.instances.couponService.slidingWindowSize", () -> 10);
-        registry.add("resilience4j.circuitbreaker.instances.couponService.failureRateThreshold", () -> 50);
-        registry.add("resilience4j.circuitbreaker.instances.couponService.recordExceptions[0]",
-                () -> "com.example.order_service.api.common.exception.server.InternalServerException");
-
-        registry.add("resilience4j.circuitbreaker.instances.couponService.ignoreExceptions[0]",
-                () -> "com.example.order_service.api.common.exception.NotFoundException");
     }
 
     @Test
@@ -84,7 +84,8 @@ public class OrderCouponClientCircuitBreakerTest extends ExcludeInfraTest {
         assertThat(breaker.getState()).isEqualTo(CircuitBreaker.State.OPEN);
 
         assertThatThrownBy(() -> orderCouponClientService.calculateDiscount(1L, 1L, 3000L))
-                .isInstanceOf(UnavailableServiceException.class)
-                .hasMessage("쿠폰 서비스가 응답하지 않습니다");
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ExternalServiceErrorCode.UNAVAILABLE);
     }
 }

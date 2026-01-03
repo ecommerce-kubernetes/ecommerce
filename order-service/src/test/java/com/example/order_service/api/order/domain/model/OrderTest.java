@@ -1,5 +1,7 @@
 package com.example.order_service.api.order.domain.model;
 
+import com.example.order_service.api.common.exception.BusinessException;
+import com.example.order_service.api.common.exception.OrderErrorCode;
 import com.example.order_service.api.order.domain.model.vo.OrderPriceInfo;
 import com.example.order_service.api.order.domain.model.vo.PriceCalculateResult;
 import com.example.order_service.api.order.domain.service.dto.command.OrderCreationContext;
@@ -15,6 +17,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class OrderTest {
 
@@ -98,6 +101,31 @@ public class OrderTest {
 
         assertThat(order.getOrderItems())
                 .allSatisfy(orderItem -> assertThat(orderItem.getOrder()).isEqualTo(order));
+    }
+
+    @Test
+    @DisplayName("주문 상품이 비어있으면 예외를 던진다")
+    void createOrder_items_less_than_1(){
+        //given
+        OrderProductResponse product1 = createProductResponse(1L, 1L, "상품1", 3000L, 10, "http://thumbnail1.jpg",
+                Map.of("사이즈", "XL"));
+        OrderProductResponse product2 = createProductResponse(2L, 2L, "상품2", 5000L, 10, "http://thumbnail2.jpg",
+                Map.of("용량", "256GB"));
+        List<OrderItemSpec> orderItemSpec = createOrderItemSpec(List.of(product1, product2), Map.of(1L, 3, 2L, 5));
+        ItemCalculationResult itemCalculationResult = createItemCalculationResult(Map.of(1L, 3, 2L, 5), List.of(product1, product2));
+        PriceCalculateResult priceCalculateResult = PriceCalculateResult.of(itemCalculationResult, null, 0L, 1000L, 29600L);
+        OrderCreationContext creationContext = OrderCreationContext.builder()
+                .userId(1L)
+                .itemSpecs(List.of())
+                .priceResult(priceCalculateResult)
+                .deliveryAddress("서울시 테헤란로 123")
+                .build();
+        //when
+        //then
+        assertThatThrownBy(() -> Order.create(creationContext))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(OrderErrorCode.ORDER_ITEM_MINIMUM_ONE_REQUIRED);
     }
 
     @Test

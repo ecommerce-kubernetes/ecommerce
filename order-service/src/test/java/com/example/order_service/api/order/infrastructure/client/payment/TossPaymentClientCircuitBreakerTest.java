@@ -1,6 +1,7 @@
 package com.example.order_service.api.order.infrastructure.client.payment;
 
-import com.example.order_service.api.common.exception.server.UnavailableServiceException;
+import com.example.order_service.api.common.exception.BusinessException;
+import com.example.order_service.api.common.exception.ExternalServiceErrorCode;
 import com.example.order_service.api.support.ExcludeInfraTest;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
@@ -34,19 +35,18 @@ public class TossPaymentClientCircuitBreakerTest extends ExcludeInfraTest {
 
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {
+        registry.add("resilience4j.circuitbreaker.configs.default.recordFailurePredicate",
+                () -> "com.example.order_service.api.common.config.CircuitBreakerFailurePredicate");
+        registry.add("resilience4j.circuitbreaker.configs.default.failureRateThreshold", () -> 50);
+        registry.add("resilience4j.circuitbreaker.configs.default.slidingWindowSize", () -> 100);
+        registry.add("resilience4j.circuitbreaker.instances.tossPaymentService.baseConfig", () -> "default");
         registry.add("resilience4j.circuitbreaker.instances.tossPaymentService.slidingWindowSize", () -> 10);
-        registry.add("resilience4j.circuitbreaker.instances.tossPaymentService.failureRateThreshold", () -> 50);
-        registry.add("resilience4j.circuitbreaker.instances.tossPaymentService.recordExceptions[0]",
-                () -> "com.example.order_service.api.common.exception.server.InternalServerException");
-
-        registry.add("resilience4j.circuitbreaker.instances.tossPaymentService.ignoreExceptions[0]",
-                () -> "com.example.order_service.api.common.exception.PaymentException");
 
         registry.add("payment.toss.url", () -> "http://localhost:${wiremock.server.port}");
     }
 
     @Test
-    @DisplayName("couponService 서킷 브레이커는 404에러가 여러번 발생해도 서킷브레이커가 닫혀있어야 한다")
+    @DisplayName("서킷 브레이커는 404에러가 여러번 발생해도 서킷브레이커가 닫혀있어야 한다")
     void circuitBreakerClosedWhen404(){
         //given
         stubFor(post(urlMatching("/v1/payments/confirm"))
@@ -85,7 +85,8 @@ public class TossPaymentClientCircuitBreakerTest extends ExcludeInfraTest {
         assertThat(breaker.getState()).isEqualTo(CircuitBreaker.State.OPEN);
 
         assertThatThrownBy(() -> paymentClientService.confirmPayment(1L, "paymentKey", 3000L))
-                .isInstanceOf(UnavailableServiceException.class)
-                .hasMessage("토스 페이먼츠 서비스가 응답하지 않습니다");
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ExternalServiceErrorCode.UNAVAILABLE);
     }
 }

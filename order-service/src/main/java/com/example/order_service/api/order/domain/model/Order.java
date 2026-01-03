@@ -1,7 +1,8 @@
 package com.example.order_service.api.order.domain.model;
 
 import com.example.order_service.api.common.entity.BaseEntity;
-import com.example.order_service.api.common.exception.OrderVerificationException;
+import com.example.order_service.api.common.exception.BusinessException;
+import com.example.order_service.api.common.exception.OrderErrorCode;
 import com.example.order_service.api.order.domain.model.vo.OrderPriceInfo;
 import com.example.order_service.api.order.domain.service.dto.command.OrderCreationContext;
 import com.example.order_service.api.order.domain.service.dto.command.OrderItemSpec;
@@ -68,10 +69,6 @@ public class Order extends BaseEntity {
     }
 
     private static String generateOrderName(List<OrderItemSpec> itemSpecs){
-        if (itemSpecs.isEmpty()){
-            throw new OrderVerificationException("주문 상품은 1개 이상이여야 합니다");
-        }
-
         String firstProductName = itemSpecs.get(0).getProductName();
         int size = itemSpecs.size();
 
@@ -92,6 +89,7 @@ public class Order extends BaseEntity {
     }
 
     public static Order create(OrderCreationContext context) {
+        validateOrderItems(context.getItemSpecs());
         String generatedOrderName = generateOrderName(context.getItemSpecs());
         Order order = createOrder(context, generatedOrderName);
         for (OrderItemSpec item : context.getItemSpecs()) {
@@ -104,6 +102,12 @@ public class Order extends BaseEntity {
         return order;
     }
 
+    private static void validateOrderItems(List<OrderItemSpec> itemSpecs) {
+        if (itemSpecs == null || itemSpecs.isEmpty()) {
+            throw new BusinessException(OrderErrorCode.ORDER_ITEM_MINIMUM_ONE_REQUIRED);
+        }
+    }
+
     private static Order createOrder(OrderCreationContext context, String orderName){
         return Order.builder()
                 .userId(context.getUserId())
@@ -114,5 +118,4 @@ public class Order extends BaseEntity {
                 .failureCode(null)
                 .build();
     }
-
 }

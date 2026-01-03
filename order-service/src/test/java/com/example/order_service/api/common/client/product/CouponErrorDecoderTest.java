@@ -1,8 +1,8 @@
 package com.example.order_service.api.common.client.product;
 
 import com.example.order_service.api.common.client.coupon.CouponErrorDecoder;
-import com.example.order_service.api.common.exception.NotFoundException;
-import com.example.order_service.api.common.exception.server.InternalServerException;
+import com.example.order_service.api.common.exception.BusinessException;
+import com.example.order_service.api.common.exception.ExternalServiceErrorCode;
 import feign.Request;
 import feign.Response;
 import feign.Util;
@@ -18,27 +18,42 @@ public class CouponErrorDecoderTest {
     private final CouponErrorDecoder decoder = new CouponErrorDecoder();
 
     @Test
-    @DisplayName("404 응답이 오면 NotFoundException을 반환한다")
+    @DisplayName("404 응답이 오면 쿠폰 없음 예외를 던진다")
     void decodeWhen404Code(){
         //given
         Response response = createResponse(404, "Not Found");
         //when
         Exception exception = decoder.decode("key", response);
         //then
-        assertThat(exception).isInstanceOf(NotFoundException.class)
-                .hasMessage("쿠폰을 찾을 수 없습니다");
+        assertThat(exception).isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ExternalServiceErrorCode.COUPON_NOT_FOUND);
     }
 
     @Test
-    @DisplayName("500 응답이 오면 InternalServerException을 반환한다")
+    @DisplayName("409 응답이 오면 유효하지 않은 쿠폰 예외를 던진다")
+    void decodeWhen409Code(){
+        //given
+        Response response = createResponse(409, "Invalid");
+        //when
+        Exception exception = decoder.decode("key", response);
+        //then
+        assertThat(exception).isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ExternalServiceErrorCode.COUPON_INVALID);
+    }
+
+    @Test
+    @DisplayName("500 응답이 오면 SYSTEM_ERROR 예외를 던진다")
     void decodeWhen500Code(){
         //given
         Response response = createResponse(500, "Server Error");
         //when
         Exception exception = decoder.decode("key", response);
         //then
-        assertThat(exception).isInstanceOf(InternalServerException.class)
-                .hasMessage("쿠폰 서비스 장애 발생");
+        assertThat(exception).isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ExternalServiceErrorCode.SYSTEM_ERROR);
     }
 
     private Response createResponse(int status, String message){

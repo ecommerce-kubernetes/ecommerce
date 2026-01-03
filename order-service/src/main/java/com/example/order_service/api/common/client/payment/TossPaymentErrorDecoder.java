@@ -1,8 +1,9 @@
 package com.example.order_service.api.common.client.payment;
 
+import com.example.order_service.api.common.exception.BusinessException;
+import com.example.order_service.api.common.exception.ExternalServiceErrorCode;
 import com.example.order_service.api.common.exception.PaymentErrorCode;
 import com.example.order_service.api.common.exception.PaymentException;
-import com.example.order_service.api.common.exception.server.InternalServerException;
 import feign.Response;
 import feign.codec.ErrorDecoder;
 
@@ -17,6 +18,10 @@ public class TossPaymentErrorDecoder implements ErrorDecoder {
             return new PaymentException("결제 가능 시간이 만료되었습니다", PaymentErrorCode.EXPIRED);
         }
 
-        return new InternalServerException("토스 페이먼츠 서비스 에러");
+        if (response.status() >= 500) {
+            return new BusinessException(ExternalServiceErrorCode.SYSTEM_ERROR);
+        }
+
+        return new Exception("알 수 없는 에러");
     }
 }

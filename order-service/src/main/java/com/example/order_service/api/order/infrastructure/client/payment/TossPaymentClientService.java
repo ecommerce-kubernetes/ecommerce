@@ -1,8 +1,8 @@
 package com.example.order_service.api.order.infrastructure.client.payment;
 
+import com.example.order_service.api.common.exception.BusinessException;
+import com.example.order_service.api.common.exception.ExternalServiceErrorCode;
 import com.example.order_service.api.common.exception.PaymentException;
-import com.example.order_service.api.common.exception.server.InternalServerException;
-import com.example.order_service.api.common.exception.server.UnavailableServiceException;
 import com.example.order_service.api.order.infrastructure.client.payment.dto.TossPaymentConfirmRequest;
 import com.example.order_service.api.order.infrastructure.client.payment.dto.TossPaymentConfirmResponse;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
@@ -25,12 +25,13 @@ public class TossPaymentClientService {
 
     private TossPaymentConfirmResponse confirmPaymentFallback(Long orderId, String paymentKey, Long amount, Throwable throwable) {
         if (throwable instanceof CallNotPermittedException) {
-            throw new UnavailableServiceException("토스 페이먼츠 서비스가 응답하지 않습니다");
+            log.warn("토스 서킷 브레이커 열림");
+            throw new BusinessException(ExternalServiceErrorCode.UNAVAILABLE);
         }
 
         if (throwable instanceof PaymentException) {
             throw (PaymentException) throwable;
         }
-        throw new InternalServerException("토스 페이먼츠 서비스에서 오류가 발생했습니다");
+        throw new BusinessException(ExternalServiceErrorCode.SYSTEM_ERROR);
     }
 }

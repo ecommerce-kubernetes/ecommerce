@@ -7,8 +7,6 @@ import com.example.order_service.api.cart.application.dto.result.CartResponse;
 import com.example.order_service.api.cart.controller.dto.request.CartItemRequest;
 import com.example.order_service.api.cart.controller.dto.request.UpdateQuantityRequest;
 import com.example.order_service.api.common.exception.NotFoundException;
-import com.example.order_service.api.common.exception.server.InternalServerException;
-import com.example.order_service.api.common.exception.server.UnavailableServiceException;
 import com.example.order_service.api.common.security.model.UserRole;
 import com.example.order_service.api.common.security.principal.UserPrincipal;
 import com.example.order_service.api.support.ControllerTestSupport;
@@ -22,7 +20,6 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.ResultMatcher;
 
 import java.util.List;
 import java.util.stream.Stream;
@@ -94,30 +91,6 @@ class CartControllerTest extends ControllerTestSupport {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("VALIDATION"))
                 .andExpect(jsonPath("$.message").value(errorMessage))
-                .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.path").value("/carts"));
-    }
-
-    @ParameterizedTest(name = "{0}")
-    @DisplayName("장바구니 상품 추가 중 서비스 예외 발생시 에러 응답을 반환한다")
-    @MethodSource("provideServiceExceptions")
-    @WithCustomMockUser
-    void addCartItem_exceptions(String description, Exception e, ResultMatcher expectedStatus, String errorCode, String expectedMessage) throws Exception {
-        //given
-        CartItemRequest request = CartItemRequest.builder()
-                .productVariantId(1L)
-                .quantity(1)
-                .build();
-        willThrow(e)
-                .given(cartApplicationService).addItem(any(AddCartItemDto.class));
-        //when, then
-        mockMvc.perform(post("/carts")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andDo(print())
-                .andExpect(expectedStatus)
-                .andExpect(jsonPath("$.code").value(errorCode))
-                .andExpect(jsonPath("$.message").value(expectedMessage))
                 .andExpect(jsonPath("$.timestamp").exists())
                 .andExpect(jsonPath("$.path").value("/carts"));
     }
@@ -332,14 +305,4 @@ class CartControllerTest extends ControllerTestSupport {
         );
     }
 
-    private static Stream<Arguments> provideServiceExceptions() {
-        return Stream.of(
-                Arguments.of("존재하지 않는 상품", new NotFoundException("해당 상품을 찾을 수 없습니다"),
-                        status().isNotFound(), "NOT_FOUND", "해당 상품을 찾을 수 없습니다"),
-                Arguments.of("상품 서비스 미응답", new UnavailableServiceException("상품을 불러올 수 없습니다 잠시 후 다시 시도해 주세요"),
-                        status().isServiceUnavailable(), "SERVICE_UNAVAILABLE", "상품을 불러올 수 없습니다 잠시 후 다시 시도해 주세요"),
-                Arguments.of("상품 서비스 오류", new InternalServerException("장바구니 상품 추가중 서버에 오류가 발생했습니다"),
-                        status().isInternalServerError(), "INTERNAL_SERVER_ERROR", "장바구니 상품 추가중 서버에 오류가 발생했습니다")
-        );
-    }
 }

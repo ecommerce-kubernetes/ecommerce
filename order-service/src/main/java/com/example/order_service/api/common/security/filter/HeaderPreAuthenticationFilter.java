@@ -59,6 +59,7 @@ public class HeaderPreAuthenticationFilter extends OncePerRequestFilter {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType(MediaType.APPLICATION_JSON);
 
+        //TODO 에러 코드로 변경
         ErrorResponse errorResponse = ErrorResponse.toUnAuthorized(message, requestAt.toString(), requestUrl);
         response.getWriter()
                 .write(objectMapper.writeValueAsString(errorResponse));

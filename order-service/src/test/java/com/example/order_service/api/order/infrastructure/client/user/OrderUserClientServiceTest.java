@@ -57,21 +57,19 @@ public class OrderUserClientServiceTest extends ExcludeInfraTest {
     }
 
     @Test
-    @DisplayName("유저 정보를 조회할때 유저를 찾을 수 없는 경우 받은 예외를 그대로 던진다")
-    void getUserForOrder_When_NotFound_Exception() {
+    @DisplayName("유저 정보를 조회할때 비지니스 예외가 발생하면 그대로 던진다")
+    void getUserForOrder_When_BusinessException() {
         //given
-        willThrow(new BusinessException(ExternalServiceErrorCode.USER_NOT_FOUND))
+        willThrow(BusinessException.class)
                 .given(orderUserClient).getOrderInfo(anyLong());
         //when
         //then
         assertThatThrownBy(() -> orderUserClientService.getUserForOrder(1L))
-                .isInstanceOf(BusinessException.class)
-                .extracting("errorCode")
-                .isEqualTo(ExternalServiceErrorCode.USER_NOT_FOUND);
+                .isInstanceOf(BusinessException.class);
     }
 
     @Test
-    @DisplayName("서버 에러 응답이 온 경우 예외를 던진다")
+    @DisplayName("알 수 없는 예외를 받은 경우 서버 예외로 변환해 던진다")
     void getUserForOrder_When_Unknown_Exception() {
         //given
         willThrow(new RuntimeException("유저 서비스 오류 발생"))

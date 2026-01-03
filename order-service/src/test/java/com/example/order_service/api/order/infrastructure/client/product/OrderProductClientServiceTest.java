@@ -57,6 +57,17 @@ public class OrderProductClientServiceTest extends ExcludeInfraTest {
     }
 
     @Test
+    @DisplayName("상품 목록 조회시 비지니스 예외가 발생한 경우 그대로 던진다")
+    void getProducts_when_businessException(){
+        //given
+        willThrow(BusinessException.class).given(orderProductClient).getProductVariantByIds(anyList());
+        //when
+        //then
+        assertThatThrownBy(() -> orderProductClientService.getProducts(List.of(1L, 2L)))
+                .isInstanceOf(BusinessException.class);
+    }
+
+    @Test
     @DisplayName("상품 목록을 조회할때 알 수 없는 에러가 발생한 경우 서비스 장애 예외를 던진다")
     void getProducts_When_Unknown_Exception() {
         //given

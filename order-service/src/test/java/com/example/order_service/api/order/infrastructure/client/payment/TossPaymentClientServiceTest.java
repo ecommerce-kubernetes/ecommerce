@@ -1,8 +1,8 @@
 package com.example.order_service.api.order.infrastructure.client.payment;
 
+import com.example.order_service.api.common.exception.BusinessException;
+import com.example.order_service.api.common.exception.ExternalServiceErrorCode;
 import com.example.order_service.api.common.exception.PaymentException;
-import com.example.order_service.api.common.exception.server.InternalServerException;
-import com.example.order_service.api.common.exception.server.UnavailableServiceException;
 import com.example.order_service.api.order.infrastructure.client.payment.dto.TossPaymentConfirmRequest;
 import com.example.order_service.api.order.infrastructure.client.payment.dto.TossPaymentConfirmResponse;
 import com.example.order_service.api.support.ExcludeInfraTest;
@@ -56,8 +56,9 @@ public class TossPaymentClientServiceTest extends ExcludeInfraTest {
         //when
         //then
         assertThatThrownBy(() -> tossPaymentClientService.confirmPayment(1L, "paymentKey", 10000L))
-                .isInstanceOf(UnavailableServiceException.class)
-                .hasMessage("토스 페이먼츠 서비스가 응답하지 않습니다");
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ExternalServiceErrorCode.UNAVAILABLE);
     }
 
     @Test
@@ -83,7 +84,8 @@ public class TossPaymentClientServiceTest extends ExcludeInfraTest {
         //when
         //then
         assertThatThrownBy(() -> tossPaymentClientService.confirmPayment(1L, "paymentKey", 1000L))
-                .isInstanceOf(InternalServerException.class)
-                .hasMessage("토스 페이먼츠 서비스에서 오류가 발생했습니다");
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ExternalServiceErrorCode.SYSTEM_ERROR);
     }
 }
