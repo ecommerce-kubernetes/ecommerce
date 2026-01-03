@@ -37,13 +37,12 @@ public class CartProductClientCircuitBreakerTest extends ExcludeInfraTest {
 
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {
+        registry.add("resilience4j.circuitbreaker.configs.default.recordFailurePredicate",
+                () -> "com.example.order_service.api.common.config.CircuitBreakerFailurePredicate");
+        registry.add("resilience4j.circuitbreaker.configs.default.failureRateThreshold", () -> 50);
+        registry.add("resilience4j.circuitbreaker.configs.default.slidingWindowSize", () -> 100);
+        registry.add("resilience4j.circuitbreaker.instances.productService.baseConfig", () -> "default");
         registry.add("resilience4j.circuitbreaker.instances.productService.slidingWindowSize", () -> 10);
-        registry.add("resilience4j.circuitbreaker.instances.productService.failureRateThreshold", () -> 50);
-        registry.add("resilience4j.circuitbreaker.instances.productService.recordExceptions[0]",
-                () -> "com.example.order_service.api.common.exception.server.InternalServerException");
-
-        registry.add("resilience4j.circuitbreaker.instances.productService.ignoreExceptions[0]",
-                () -> "com.example.order_service.api.common.exception.NotFoundException");
     }
 
     @Test

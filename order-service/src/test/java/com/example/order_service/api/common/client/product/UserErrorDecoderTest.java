@@ -1,8 +1,8 @@
 package com.example.order_service.api.common.client.product;
 
 import com.example.order_service.api.common.client.user.UserErrorDecoder;
-import com.example.order_service.api.common.exception.NotFoundException;
-import com.example.order_service.api.common.exception.server.InternalServerException;
+import com.example.order_service.api.common.exception.BusinessException;
+import com.example.order_service.api.common.exception.ExternalServiceErrorCode;
 import feign.Request;
 import feign.Response;
 import feign.Util;
@@ -26,8 +26,9 @@ public class UserErrorDecoderTest {
         //when
         Exception exception = decoder.decode("key", response);
         //then
-        assertThat(exception).isInstanceOf(NotFoundException.class)
-                .hasMessage("유저를 찾을 수 없습니다");
+        assertThat(exception).isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ExternalServiceErrorCode.USER_NOT_FOUND);
     }
 
     @Test
@@ -38,8 +39,9 @@ public class UserErrorDecoderTest {
         //when
         Exception exception = decoder.decode("key", response);
         //then
-        assertThat(exception).isInstanceOf(InternalServerException.class)
-                .hasMessage("유저 서비스 장애 발생");
+        assertThat(exception).isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ExternalServiceErrorCode.SYSTEM_ERROR);
     }
 
     private Response createResponse(int status, String message){

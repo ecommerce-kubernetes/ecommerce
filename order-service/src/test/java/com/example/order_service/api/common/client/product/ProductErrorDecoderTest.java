@@ -1,7 +1,7 @@
 package com.example.order_service.api.common.client.product;
 
-import com.example.order_service.api.common.exception.NotFoundException;
-import com.example.order_service.api.common.exception.server.InternalServerException;
+import com.example.order_service.api.common.exception.BusinessException;
+import com.example.order_service.api.common.exception.ExternalServiceErrorCode;
 import feign.Request;
 import feign.Response;
 import feign.Util;
@@ -18,27 +18,29 @@ public class ProductErrorDecoderTest {
     private final ProductErrorDecoder decoder = new ProductErrorDecoder();
 
     @Test
-    @DisplayName("404 응답이 오면 NotFoundException을 반환한다")
+    @DisplayName("404 응답이 오면 not Found 예외를 던진다")
     void decodeWhen404Code(){
         //given
         Response response = createResponse(404, "Not Found");
         //when
         Exception exception = decoder.decode("key", response);
         //then
-        assertThat(exception).isInstanceOf(NotFoundException.class)
-                .hasMessage("상품을 찾을 수 없습니다");
+        assertThat(exception).isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ExternalServiceErrorCode.PRODUCT_NOT_FOUND);
     }
 
     @Test
-    @DisplayName("500 응답이 오면 InternalServerException을 반환한다")
+    @DisplayName("500 응답이 오면 서버 장애 예외를 던진다")
     void decodeWhen500Code(){
         //given
         Response response = createResponse(500, "Server Error");
         //when
         Exception exception = decoder.decode("key", response);
         //then
-        assertThat(exception).isInstanceOf(InternalServerException.class)
-                .hasMessage("상품 서비스 장애 발생");
+        assertThat(exception).isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ExternalServiceErrorCode.SYSTEM_ERROR);
     }
 
     private Response createResponse(int status, String message){

@@ -1,46 +1,19 @@
 resilience4j:
   circuitbreaker:
+    configs:
+      default:
+        slidingWindowSize: 100
+        failureRateThreshold: 50
+        recordFailurePredicate: com.example.order_service.api.common.config.CircuitBreakerFailurePredicate
     instances:
       productService:
         baseConfig: default
-        slidingWindowSize: 10
-        failureRateThreshold: 50
-        recordExceptions:
-          - java.io.IOException
-          - java.util.concurrent.TimeoutException
-          - com.example.order_service.api.common.exception.server.InternalServerException
-        ignoreExceptions:
-          - com.example.order_service.api.common.exception.NotFoundException
       userService:
         baseConfig: default
-        slidingWindowSize: 10
-        failureRateThreshold: 50
-        recordExceptions:
-          - java.io.IOException
-          - java.util.concurrent.TimeoutException
-          - com.example.order_service.api.common.exception.server.InternalServerException
-        ignoreExceptions:
-          - com.example.order_service.api.common.exception.NotFoundException
       couponService:
         baseConfig: default
-        slidingWindowSize: 10
-        failureRateThreshold: 50
-        recordExceptions:
-          - java.io.IOException
-          - java.util.concurrent.TimeoutException
-          - com.example.order_service.api.common.exception.server.InternalServerException
-        ignoreExceptions:
-          - com.example.order_service.api.common.exception.NotFoundException
       tossPaymentService:
         baseConfig: default
-        slidingWindowSize: 10
-        failureRateThreshold: 50
-        recordExceptions:
-          - java.io.IOException
-          - java.util.concurrent.TimeoutException
-          - com.example.order_service.api.common.exception.server.InternalServerException
-        ignoreExceptions:
-          - com.example.order_service.api.common.exception.PaymentException
 
 payment:
   toss:

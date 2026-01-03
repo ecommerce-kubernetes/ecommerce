@@ -1,8 +1,7 @@
 package com.example.order_service.api.order.infrastructure.client.user;
 
-import com.example.order_service.api.common.exception.NotFoundException;
-import com.example.order_service.api.common.exception.server.InternalServerException;
-import com.example.order_service.api.common.exception.server.UnavailableServiceException;
+import com.example.order_service.api.common.exception.BusinessException;
+import com.example.order_service.api.common.exception.ExternalServiceErrorCode;
 import com.example.order_service.api.order.infrastructure.client.user.dto.OrderUserResponse;
 import com.example.order_service.api.support.ExcludeInfraTest;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
@@ -17,7 +16,7 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
 
-public class OrderUserClientTest extends ExcludeInfraTest {
+public class OrderUserClientServiceTest extends ExcludeInfraTest {
 
     @Autowired
     private OrderUserClientService orderUserClientService;
@@ -39,12 +38,12 @@ public class OrderUserClientTest extends ExcludeInfraTest {
         OrderUserResponse result = orderUserClientService.getUserForOrder(1L);
         //then
         assertThat(result)
-                .extracting("userId", "pointBalance")
+                .extracting(OrderUserResponse::getUserId, OrderUserResponse::getPointBalance)
                 .contains(1L, 2000L);
     }
 
     @Test
-    @DisplayName("서킷브레이커가 열렸을때 유저 정보를 조회하면 UnavailableServiceException을 반환한다")
+    @DisplayName("서킷브레이커가 열렸을때 유저 정보를 조회하면 예외를 던진다")
     void getUserForOrder_When_OpenCircuitBreaker() {
         //given
         willThrow(CallNotPermittedException.class)
@@ -52,21 +51,23 @@ public class OrderUserClientTest extends ExcludeInfraTest {
         //when
         //then
         assertThatThrownBy(() -> orderUserClientService.getUserForOrder(1L))
-                .isInstanceOf(UnavailableServiceException.class)
-                .hasMessage("유저 서비스가 응답하지 않습니다");
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ExternalServiceErrorCode.UNAVAILABLE);
     }
 
     @Test
     @DisplayName("유저 정보를 조회할때 유저를 찾을 수 없는 경우 받은 예외를 그대로 던진다")
     void getUserForOrder_When_NotFound_Exception() {
         //given
-        willThrow(new NotFoundException("유저를 찾을 수 없습니다"))
+        willThrow(new BusinessException(ExternalServiceErrorCode.USER_NOT_FOUND))
                 .given(orderUserClient).getOrderInfo(anyLong());
         //when
         //then
         assertThatThrownBy(() -> orderUserClientService.getUserForOrder(1L))
-                .isInstanceOf(NotFoundException.class)
-                .hasMessage("유저를 찾을 수 없습니다");
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ExternalServiceErrorCode.USER_NOT_FOUND);
     }
 
     @Test
@@ -78,7 +79,8 @@ public class OrderUserClientTest extends ExcludeInfraTest {
         //when
         //then
         assertThatThrownBy(() -> orderUserClientService.getUserForOrder(1L))
-                .isInstanceOf(InternalServerException.class)
-                .hasMessage("유저 서비스에서 오류가 발생했습니다");
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ExternalServiceErrorCode.SYSTEM_ERROR);
     }
 }

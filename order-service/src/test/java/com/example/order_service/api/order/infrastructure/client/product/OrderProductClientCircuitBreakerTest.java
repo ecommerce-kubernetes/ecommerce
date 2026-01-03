@@ -1,6 +1,7 @@
 package com.example.order_service.api.order.infrastructure.client.product;
 
-import com.example.order_service.api.common.exception.server.UnavailableServiceException;
+import com.example.order_service.api.common.exception.BusinessException;
+import com.example.order_service.api.common.exception.ExternalServiceErrorCode;
 import com.example.order_service.api.support.ExcludeInfraTest;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
@@ -29,21 +30,19 @@ public class OrderProductClientCircuitBreakerTest extends ExcludeInfraTest {
 
     @BeforeEach
     void setUp(){
-        WireMock.reset();;
-
+        WireMock.reset();
         CircuitBreaker circuitBreaker = circuitBreakerRegistry.circuitBreaker("productService");
         circuitBreaker.reset();
     }
 
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {
+        registry.add("resilience4j.circuitbreaker.configs.default.recordFailurePredicate",
+                () -> "com.example.order_service.api.common.config.CircuitBreakerFailurePredicate");
+        registry.add("resilience4j.circuitbreaker.configs.default.failureRateThreshold", () -> 50);
+        registry.add("resilience4j.circuitbreaker.configs.default.slidingWindowSize", () -> 100);
+        registry.add("resilience4j.circuitbreaker.instances.productService.baseConfig", () -> "default");
         registry.add("resilience4j.circuitbreaker.instances.productService.slidingWindowSize", () -> 10);
-        registry.add("resilience4j.circuitbreaker.instances.productService.failureRateThreshold", () -> 50);
-        registry.add("resilience4j.circuitbreaker.instances.productService.recordExceptions[0]",
-                () -> "com.example.order_service.api.common.exception.server.InternalServerException");
-
-        registry.add("resilience4j.circuitbreaker.instances.productService.ignoreExceptions[0]",
-                () -> "com.example.order_service.api.common.exception.NotFoundException");
     }
 
     @Test
@@ -86,7 +85,8 @@ public class OrderProductClientCircuitBreakerTest extends ExcludeInfraTest {
         assertThat(breaker.getState()).isEqualTo(CircuitBreaker.State.OPEN);
 
         assertThatThrownBy(() -> orderProductClientService.getProducts(List.of(1L, 2L)))
-                .isInstanceOf(UnavailableServiceException.class)
-                .hasMessage("상품 서비스가 응답하지 않습니다");
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ExternalServiceErrorCode.UNAVAILABLE);
     }
 }

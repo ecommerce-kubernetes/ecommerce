@@ -51,9 +51,9 @@ public class ErrorResponse {
         return of(HttpStatus.CONFLICT.name(), message, timestamp, path);
     }
 
-    public static ErrorResponse of(String error, String message, String timestamp, String path) {
+    public static ErrorResponse of(String code, String message, String timestamp, String path) {
         return ErrorResponse.builder()
-                .code(error)
+                .code(code)
                 .message(message)
                 .timestamp(timestamp)
                 .path(path)

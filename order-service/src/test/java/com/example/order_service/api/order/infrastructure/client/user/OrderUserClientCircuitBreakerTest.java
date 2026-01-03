@@ -1,6 +1,7 @@
 package com.example.order_service.api.order.infrastructure.client.user;
 
-import com.example.order_service.api.common.exception.server.UnavailableServiceException;
+import com.example.order_service.api.common.exception.BusinessException;
+import com.example.order_service.api.common.exception.ExternalServiceErrorCode;
 import com.example.order_service.api.support.ExcludeInfraTest;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
@@ -34,13 +35,12 @@ public class OrderUserClientCircuitBreakerTest extends ExcludeInfraTest {
 
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {
+        registry.add("resilience4j.circuitbreaker.configs.default.recordFailurePredicate",
+                () -> "com.example.order_service.api.common.config.CircuitBreakerFailurePredicate");
+        registry.add("resilience4j.circuitbreaker.configs.default.failureRateThreshold", () -> 50);
+        registry.add("resilience4j.circuitbreaker.configs.default.slidingWindowSize", () -> 100);
+        registry.add("resilience4j.circuitbreaker.instances.userService.baseConfig", () -> "default");
         registry.add("resilience4j.circuitbreaker.instances.userService.slidingWindowSize", () -> 10);
-        registry.add("resilience4j.circuitbreaker.instances.userService.failureRateThreshold", () -> 50);
-        registry.add("resilience4j.circuitbreaker.instances.userService.recordExceptions[0]",
-                () -> "com.example.order_service.api.common.exception.server.InternalServerException");
-
-        registry.add("resilience4j.circuitbreaker.instances.userService.ignoreExceptions[0]",
-                () -> "com.example.order_service.api.common.exception.NotFoundException");
     }
 
     @Test
@@ -64,7 +64,7 @@ public class OrderUserClientCircuitBreakerTest extends ExcludeInfraTest {
     }
 
     @Test
-    @DisplayName("productService 서킷 브레이커는 5xx에러가 여러번 발생하면 서킷브레이커가 열려야 한다")
+    @DisplayName("userService 서킷 브레이커는 5xx에러가 여러번 발생하면 서킷브레이커가 열려야 한다")
     void circuitBreakerOpenWhen5xx() {
         //given
         stubFor(get(urlMatching("/internal/users/.*"))
@@ -83,8 +83,9 @@ public class OrderUserClientCircuitBreakerTest extends ExcludeInfraTest {
         assertThat(breaker.getState()).isEqualTo(CircuitBreaker.State.OPEN);
 
         assertThatThrownBy(() -> orderUserClientService.getUserForOrder(1L))
-                .isInstanceOf(UnavailableServiceException.class)
-                .hasMessage("유저 서비스가 응답하지 않습니다");
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ExternalServiceErrorCode.UNAVAILABLE);
     }
 
 }

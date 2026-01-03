@@ -1,6 +1,7 @@
 package com.example.order_service.api.order.domain.service;
 
-import com.example.order_service.api.common.exception.NotFoundException;
+import com.example.order_service.api.common.exception.BusinessException;
+import com.example.order_service.api.common.exception.OrderErrorCode;
 import com.example.order_service.api.order.controller.dto.request.OrderSearchCondition;
 import com.example.order_service.api.order.domain.model.Order;
 import com.example.order_service.api.order.domain.model.OrderFailureCode;
@@ -103,8 +104,9 @@ public class OrderDomainServiceTest extends ExcludeInfraTest {
         //when
         //then
         assertThatThrownBy(() -> orderDomainService.changeOrderStatus(999L, OrderStatus.PAYMENT_WAITING))
-                .isInstanceOf(NotFoundException.class)
-                .hasMessage("주문을 찾을 수 없습니다");
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(OrderErrorCode.ORDER_NOT_FOUND);
     }
 
     @Test
@@ -149,8 +151,9 @@ public class OrderDomainServiceTest extends ExcludeInfraTest {
         //when
         //then
         assertThatThrownBy(() -> orderDomainService.getOrder(999L))
-                .isInstanceOf(NotFoundException.class)
-                .hasMessage("주문을 찾을 수 없습니다");
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(OrderErrorCode.ORDER_NOT_FOUND);
     }
 
     @Test
@@ -175,8 +178,9 @@ public class OrderDomainServiceTest extends ExcludeInfraTest {
         //when
         //then
         assertThatThrownBy(() -> orderDomainService.canceledOrder(999L, OrderFailureCode.OUT_OF_STOCK))
-                .isInstanceOf(NotFoundException.class)
-                .hasMessage("주문을 찾을 수 없습니다");
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(OrderErrorCode.ORDER_NOT_FOUND);
     }
 
     @Test

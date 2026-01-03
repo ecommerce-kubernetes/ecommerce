@@ -31,10 +31,6 @@ public class OrderExternalAdaptor {
         return orderUserClientService.getUserForOrder(userId);
     }
 
-    public TossPaymentConfirmResponse confirmOrderPayment(Long orderId, String paymentKey, Long amount) {
-        return tossPaymentClientService.confirmPayment(orderId, paymentKey, amount);
-    }
-
     public OrderCouponDiscountResponse getCoupon(Long userId, Long couponId, Long subTotalPrice) {
         if (couponId == null) {
             return null;
@@ -48,6 +44,10 @@ public class OrderExternalAdaptor {
         verifyMissingProducts(variantId, products);
         verifyStockAvailability(dtoList, products);
         return products;
+    }
+
+    public TossPaymentConfirmResponse confirmOrderPayment(Long orderId, String paymentKey, Long amount) {
+        return tossPaymentClientService.confirmPayment(orderId, paymentKey, amount);
     }
 
     private List<Long> extractVariantIds(List<CreateOrderItemDto> dtoList){
