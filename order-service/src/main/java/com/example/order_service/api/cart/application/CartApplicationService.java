@@ -8,7 +8,7 @@ import com.example.order_service.api.cart.domain.service.CartDomainService;
 import com.example.order_service.api.cart.domain.service.dto.CartItemDto;
 import com.example.order_service.api.cart.infrastructure.client.CartProductClientService;
 import com.example.order_service.api.cart.infrastructure.client.dto.CartProductResponse;
-import com.example.order_service.api.common.exception.NotFoundException;
+import com.example.order_service.api.common.exception.BusinessException;
 import com.example.order_service.api.common.security.principal.UserPrincipal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -58,7 +58,7 @@ public class CartApplicationService {
             CartProductResponse product = cartProductClientService.getProduct(cartItem.getProductVariantId());
             CartItemDto cartItemDto = cartDomainService.updateQuantity(cartItem.getId(), dto.getQuantity());
             return CartItemResponse.of(cartItemDto, product);
-        } catch (NotFoundException e){
+        } catch (BusinessException e){
             return CartItemResponse.ofUnavailable(cartItem.getId(), cartItem.getQuantity());
         }
     }

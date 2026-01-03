@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-public class CartItems {
+public class CartItem {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -19,18 +19,18 @@ public class CartItems {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cart_id")
-    private Carts cart;
+    private Cart cart;
     private Long productVariantId;
     private int quantity;
 
     @Builder
-    public CartItems(Long productVariantId, int quantity){
+    public CartItem(Long productVariantId, int quantity){
         this.productVariantId = productVariantId;
         this.quantity = quantity;
     }
 
-    public static CartItems of(Long productVariantId, int quantity){
-        return CartItems.builder()
+    public static CartItem of(Long productVariantId, int quantity){
+        return CartItem.builder()
                 .productVariantId(productVariantId)
                 .quantity(quantity)
                 .build();
@@ -42,7 +42,7 @@ public class CartItems {
 
     public void updateQuantity(int quantity) {
         if(quantity <= 0){
-            throw new BusinessException(CartErrorCode.ORDER_ITEM_MINIMUM_ONE_REQUIRED);
+            throw new BusinessException(CartErrorCode.CART_ITEM_MINIMUM_ONE_REQUIRED);
         }
         this.quantity = quantity;
     }
@@ -52,7 +52,7 @@ public class CartItems {
         this.cart = null;
     }
 
-    protected void setCart(Carts cart){
+    protected void setCart(Cart cart){
         this.cart = cart;
     }
 }

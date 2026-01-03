@@ -1,6 +1,6 @@
 package com.example.order_service.api.cart.domain.service.dto;
 
-import com.example.order_service.api.cart.domain.model.CartItems;
+import com.example.order_service.api.cart.domain.model.CartItem;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -17,7 +17,7 @@ public class CartItemDto {
         this.quantity = quantity;
     }
 
-    public static CartItemDto of(CartItems cartItem){
+    public static CartItemDto of(CartItem cartItem){
         return of(cartItem.getId(), cartItem.getProductVariantId(), cartItem.getQuantity());
     }
 

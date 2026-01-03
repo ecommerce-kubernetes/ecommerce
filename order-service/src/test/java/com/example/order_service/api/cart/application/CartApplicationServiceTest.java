@@ -8,7 +8,8 @@ import com.example.order_service.api.cart.domain.service.CartDomainService;
 import com.example.order_service.api.cart.domain.service.dto.CartItemDto;
 import com.example.order_service.api.cart.infrastructure.client.CartProductClientService;
 import com.example.order_service.api.cart.infrastructure.client.dto.CartProductResponse;
-import com.example.order_service.api.common.exception.NotFoundException;
+import com.example.order_service.api.common.exception.BusinessException;
+import com.example.order_service.api.common.exception.CartErrorCode;
 import com.example.order_service.api.common.security.model.UserRole;
 import com.example.order_service.api.common.security.principal.UserPrincipal;
 import org.junit.jupiter.api.DisplayName;
@@ -350,7 +351,7 @@ public class CartApplicationServiceTest {
                                 .quantity(1)
                                 .build()
                 );
-        willThrow(new NotFoundException("상품을 찾을 수 없습니다"))
+        willThrow(new BusinessException(CartErrorCode.CART_ITEM_NOT_FOUND))
                 .given(cartProductClientService)
                 .getProduct(anyLong());
         //when

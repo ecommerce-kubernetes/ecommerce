@@ -1,6 +1,7 @@
 package com.example.order_service.api.order.saga.domain.service;
 
-import com.example.order_service.api.common.exception.NotFoundException;
+import com.example.order_service.api.common.exception.BusinessException;
+import com.example.order_service.api.common.exception.SagaErrorCode;
 import com.example.order_service.api.order.saga.domain.model.OrderSagaInstance;
 import com.example.order_service.api.order.saga.domain.model.SagaStatus;
 import com.example.order_service.api.order.saga.domain.model.SagaStep;
@@ -31,43 +32,37 @@ public class OrderSagaDomainService {
 
     @Transactional(readOnly = true)
     public SagaInstanceDto getSagaBySagaId(Long sagaId){
-        OrderSagaInstance sagaInstance = orderSagaInstanceRepository.findById(sagaId)
-                .orElseThrow(() -> new NotFoundException("주문 SAGA 인스턴스를 찾을 수 없습니다"));
+        OrderSagaInstance sagaInstance = findSagaBySagaId(sagaId);
         return SagaInstanceDto.from(sagaInstance);
     }
 
     @Transactional(readOnly = true)
     public SagaInstanceDto getSagaByOrderId(Long orderId) {
-        OrderSagaInstance sagaInstance = orderSagaInstanceRepository.findByOrderId(orderId)
-                .orElseThrow(() -> new NotFoundException("주문 SAGA 인스턴스를 찾을 수 없습니다"));
+        OrderSagaInstance sagaInstance = findSagaByOrderId(orderId);
         return SagaInstanceDto.from(sagaInstance);
     }
 
     public SagaInstanceDto proceedTo(Long sagaId, SagaStep sagaStep) {
-        OrderSagaInstance sagaInstance = orderSagaInstanceRepository.findById(sagaId)
-                .orElseThrow(() -> new NotFoundException("주문 SAGA 인스턴스를 찾을 수 없습니다"));
+        OrderSagaInstance sagaInstance = findSagaBySagaId(sagaId);
 
         sagaInstance.proceedTo(sagaStep);
         return SagaInstanceDto.from(sagaInstance);
     }
 
     public SagaInstanceDto finish(Long sagaId) {
-        OrderSagaInstance sagaInstance = orderSagaInstanceRepository.findById(sagaId)
-                .orElseThrow(() -> new NotFoundException("주문 SAGA 인스턴스를 찾을 수 없습니다"));
+        OrderSagaInstance sagaInstance = findSagaBySagaId(sagaId);
         sagaInstance.changeStatus(SagaStatus.FINISHED);
         return SagaInstanceDto.from(sagaInstance);
     }
 
     public SagaInstanceDto fail(Long sagaId, String failureReason) {
-        OrderSagaInstance sagaInstance = orderSagaInstanceRepository.findById(sagaId)
-                .orElseThrow(() -> new NotFoundException("주문 SAGA 인스턴스를 찾을 수 없습니다"));
+        OrderSagaInstance sagaInstance = findSagaBySagaId(sagaId);
         sagaInstance.fail(failureReason);
         return SagaInstanceDto.from(sagaInstance);
     }
 
     public SagaInstanceDto startCompensation(Long sagaId, SagaStep nextStep, String failureReason) {
-        OrderSagaInstance sagaInstance = orderSagaInstanceRepository.findById(sagaId)
-                .orElseThrow(() -> new NotFoundException("주문 SAGA 인스턴스를 찾을 수 없습니다"));
+        OrderSagaInstance sagaInstance = findSagaBySagaId(sagaId);
 
         if (sagaInstance.getSagaStatus() != SagaStatus.STARTED) {
             log.info("이미 처리된 Saga 인스턴스");
@@ -79,8 +74,7 @@ public class OrderSagaDomainService {
     }
 
     public SagaInstanceDto continueCompensation(Long sagaId, SagaStep nextStep) {
-        OrderSagaInstance sagaInstance = orderSagaInstanceRepository.findById(sagaId)
-                .orElseThrow(() -> new NotFoundException("주문 SAGA 인스턴스를 찾을 수 없습니다"));
+        OrderSagaInstance sagaInstance = findSagaBySagaId(sagaId);
         sagaInstance.continueCompensation(nextStep);
         return SagaInstanceDto.from(sagaInstance);
     }
@@ -89,5 +83,15 @@ public class OrderSagaDomainService {
     public List<SagaInstanceDto> getTimeouts(LocalDateTime timeout) {
         return orderSagaInstanceRepository.findByStartedAtBeforeAndSagaStatus(timeout, SagaStatus.STARTED)
                 .stream().map(SagaInstanceDto::from).toList();
+    }
+
+    private OrderSagaInstance findSagaBySagaId(Long sagaId) {
+        return orderSagaInstanceRepository.findById(sagaId)
+                .orElseThrow(() -> new BusinessException(SagaErrorCode.SAGA_NOT_FOUND));
+    }
+
+    private OrderSagaInstance findSagaByOrderId(Long orderId) {
+        return orderSagaInstanceRepository.findByOrderId(orderId)
+                .orElseThrow(() -> new BusinessException(SagaErrorCode.SAGA_NOT_FOUND));
     }
 }

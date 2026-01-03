@@ -30,8 +30,8 @@ public class OrderController {
     private final OrderApplicationService orderApplicationService;
 
     @PostMapping
-    public ResponseEntity<CreateOrderResponse> createOrder(@RequestBody @Validated CreateOrderRequest request,
-                                                           @AuthenticationPrincipal UserPrincipal userPrincipal){
+    public ResponseEntity<CreateOrderResponse> createOrder(@AuthenticationPrincipal UserPrincipal userPrincipal,
+                                                           @RequestBody @Validated CreateOrderRequest request){
         List<CreateOrderItemDto> orderItems = mappingCreateOrderItemDto(request);
         CreateOrderDto command = CreateOrderDto.builder()
                 .userId(userPrincipal.getUserId())
@@ -47,7 +47,8 @@ public class OrderController {
     }
 
     @GetMapping("/{orderId}")
-    public ResponseEntity<OrderDetailResponse> getOrder(@AuthenticationPrincipal UserPrincipal userPrincipal, @PathVariable("orderId") Long orderId) {
+    public ResponseEntity<OrderDetailResponse> getOrder(@AuthenticationPrincipal UserPrincipal userPrincipal,
+                                                        @PathVariable("orderId") Long orderId) {
         OrderDetailResponse response = orderApplicationService.getOrder(userPrincipal.getUserId(), orderId);
         return ResponseEntity.ok(response);
     }
@@ -60,9 +61,10 @@ public class OrderController {
     }
 
     @PostMapping("/confirm")
-    public ResponseEntity<OrderDetailResponse> confirm(@RequestBody @Validated OrderConfirmRequest request) {
-        OrderDetailResponse orderDetailResponse = orderApplicationService.finalizeOrder(request.getOrderId(), request.getPaymentKey());
-        return ResponseEntity.ok(orderDetailResponse);
+    public ResponseEntity<OrderDetailResponse> confirm(@AuthenticationPrincipal UserPrincipal userPrincipal,
+                                                       @RequestBody @Validated OrderConfirmRequest request) {
+        OrderDetailResponse response = orderApplicationService.finalizeOrder(request.getOrderId(), userPrincipal.getUserId(), request.getPaymentKey());
+        return ResponseEntity.ok(response);
     }
 
     private List<CreateOrderItemDto> mappingCreateOrderItemDto(CreateOrderRequest request){

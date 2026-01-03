@@ -14,7 +14,7 @@ import java.util.Optional;
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-public class Carts extends BaseEntity {
+public class Cart extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -22,27 +22,32 @@ public class Carts extends BaseEntity {
 
     private Long userId;
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "cart", cascade = CascadeType.PERSIST, orphanRemoval = true)
-    List<CartItems> cartItems = new ArrayList<>();
+    List<CartItem> cartItems = new ArrayList<>();
 
     @Builder
-    public Carts(Long userId){
+    public Cart(Long userId){
         this.userId = userId;
     }
 
-    public void addCartItem(CartItems cartItem){
+    public void addCartItem(CartItem cartItem){
         cartItems.add(cartItem);
         cartItem.setCart(this);
     }
 
     public void clearItems(){
-        for (CartItems cartItem : cartItems) {
+        for (CartItem cartItem : cartItems) {
             cartItem.setCart(null);
         }
         cartItems.clear();
     }
 
-    public CartItems addItem(Long productVariantId, int quantity){
-        Optional<CartItems> existCartItem = this.cartItems.stream()
+
+    public boolean isOwner(Long accessUserId) {
+        return this.userId.equals(accessUserId);
+    }
+
+    public CartItem addItem(Long productVariantId, int quantity){
+        Optional<CartItem> existCartItem = this.cartItems.stream()
                 .filter(item -> item.getProductVariantId().equals(productVariantId))
                 .findFirst();
 
@@ -50,7 +55,7 @@ public class Carts extends BaseEntity {
             existCartItem.get().addQuantity(quantity);
             return  existCartItem.get();
         } else {
-            CartItems cartItem = CartItems.of(productVariantId, quantity);
+            CartItem cartItem = CartItem.of(productVariantId, quantity);
             this.cartItems.add(cartItem);
             cartItem.setCart(this);
             return cartItem;
@@ -58,14 +63,14 @@ public class Carts extends BaseEntity {
     }
 
     public void deleteItemByProductVariantIds(List<Long> productVariantIds) {
-        List<CartItems> items = cartItems.stream()
+        List<CartItem> items = cartItems.stream()
                 .filter(item -> productVariantIds.contains(item.getProductVariantId())).toList();
         items.forEach(item -> item.setCart(null));
         this.cartItems.removeAll(items);
     }
 
-    public static Carts of(Long userId){
-        return Carts.builder()
+    public static Cart of(Long userId){
+        return Cart.builder()
                 .userId(userId)
                 .build();
     }

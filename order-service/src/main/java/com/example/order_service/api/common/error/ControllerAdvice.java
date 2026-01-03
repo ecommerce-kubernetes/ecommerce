@@ -2,8 +2,6 @@ package com.example.order_service.api.common.error;
 
 import com.example.order_service.api.common.error.dto.response.ErrorResponse;
 import com.example.order_service.api.common.exception.BusinessException;
-import com.example.order_service.api.common.exception.NoPermissionException;
-import com.example.order_service.api.common.exception.NotFoundException;
 import com.example.order_service.api.common.exception.PaymentException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -35,22 +33,6 @@ public class ControllerAdvice {
                 .path(request.getRequestURI())
                 .build();
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-    }
-
-    @ExceptionHandler(NotFoundException.class)
-    public ResponseEntity<ErrorResponse> notFoundExceptionHandler(HttpServletRequest request, NotFoundException e){
-        LocalDateTime now = LocalDateTime.now();
-        String message = e.getMessage();
-        ErrorResponse response = ErrorResponse.toNotFound(message, now.toString(), request.getRequestURI());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-    }
-
-    @ExceptionHandler(NoPermissionException.class)
-    public ResponseEntity<ErrorResponse> noPermissionExceptionHandler(HttpServletRequest request, NoPermissionException e){
-        LocalDateTime now = LocalDateTime.now();
-        String message = e.getMessage();
-        ErrorResponse response = ErrorResponse.toNoPermission(message, now.toString(), request.getRequestURI());
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
     }
 
     @ExceptionHandler(AccessDeniedException.class)

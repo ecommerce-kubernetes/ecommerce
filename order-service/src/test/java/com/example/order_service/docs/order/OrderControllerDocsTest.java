@@ -120,7 +120,7 @@ public class OrderControllerDocsTest extends RestDocSupport {
                 .build();
         HttpHeaders roleUser = createUserHeader("ROLE_USER");
         OrderDetailResponse orderDetailResponse = createOrderResponse(orderId);
-        given(orderApplicationService.finalizeOrder(anyLong(), anyString()))
+        given(orderApplicationService.finalizeOrder(anyLong(), anyLong(), anyString()))
                 .willReturn(orderDetailResponse);
         //when
         //then

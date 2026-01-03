@@ -85,8 +85,8 @@ public class OrderApplicationService {
         ));
     }
 
-    public OrderDetailResponse finalizeOrder(Long orderId, String paymentKey) {
-        OrderDto order = orderDomainService.getOrder(orderId);
+    public OrderDetailResponse finalizeOrder(Long orderId, Long userId, String paymentKey) {
+        OrderDto order = orderDomainService.getOrder(orderId, userId);
         if (!order.getStatus().equals(OrderStatus.PAYMENT_WAITING)) {
             throw new BusinessException(OrderErrorCode.ORDER_NOT_PAYABLE);
         }
@@ -108,10 +108,7 @@ public class OrderApplicationService {
     }
 
     public OrderDetailResponse getOrder(Long userId, Long orderId) {
-        OrderDto order = orderDomainService.getOrder(orderId);
-        if (!userId.equals(order.getUserId())) {
-            throw new BusinessException(OrderErrorCode.ORDER_NO_PERMISSION);
-        }
+        OrderDto order = orderDomainService.getOrder(orderId, userId);
         return OrderDetailResponse.from(order);
     }
 

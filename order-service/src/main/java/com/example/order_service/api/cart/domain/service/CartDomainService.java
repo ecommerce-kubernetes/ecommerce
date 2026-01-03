@@ -1,12 +1,12 @@
 package com.example.order_service.api.cart.domain.service;
 
-import com.example.order_service.api.cart.domain.model.CartItems;
-import com.example.order_service.api.cart.domain.model.Carts;
+import com.example.order_service.api.cart.domain.model.Cart;
+import com.example.order_service.api.cart.domain.model.CartItem;
 import com.example.order_service.api.cart.domain.repository.CartItemsRepository;
 import com.example.order_service.api.cart.domain.repository.CartsRepository;
 import com.example.order_service.api.cart.domain.service.dto.CartItemDto;
-import com.example.order_service.api.common.exception.NoPermissionException;
-import com.example.order_service.api.common.exception.NotFoundException;
+import com.example.order_service.api.common.exception.BusinessException;
+import com.example.order_service.api.common.exception.CartErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -23,17 +23,16 @@ public class CartDomainService {
     private final CartItemsRepository cartItemsRepository;
 
     public CartItemDto addItemToCart(Long userId, Long productVariantId, int quantity){
-        Carts cart = cartsRepository.findWithItemsByUserId(userId)
-                .orElseGet(() -> cartsRepository.save(Carts.of(userId)));
-        CartItems cartItem = cart.addItem(productVariantId, quantity);
-        CartItems savedItem = cartItemsRepository.save(cartItem);
+        Cart cart = cartsRepository.findWithItemsByUserId(userId)
+                .orElseGet(() -> cartsRepository.save(Cart.of(userId)));
+        CartItem cartItem = cart.addItem(productVariantId, quantity);
+        CartItem savedItem = cartItemsRepository.save(cartItem);
         return CartItemDto.of(savedItem);
     }
 
     @Transactional(readOnly = true)
     public CartItemDto getCartItem(Long cartItemId){
-        CartItems cartItem = cartItemsRepository.findWithCartById(cartItemId)
-                .orElseThrow(() -> new NotFoundException("장바구니에서 해당 상품을 찾을 수 없습니다"));
+        CartItem cartItem = getCartItemByCartItemId(cartItemId);
         return CartItemDto.of(cartItem);
     }
 
@@ -45,12 +44,10 @@ public class CartDomainService {
     }
 
     public void deleteCartItem(Long userId, Long cartItemId){
-        CartItems cartItem = cartItemsRepository.findWithCartById(cartItemId)
-                .orElseThrow(() -> new NotFoundException("장바구니에서 해당 상품을 찾을 수 없습니다"));
+        CartItem cartItem = getCartItemByCartItemId(cartItemId);
 
-        Long cartUserId = cartItem.getCart().getUserId();
-        if(!userId.equals(cartUserId)){
-            throw new NoPermissionException("장바구니의 상품을 삭제할 권한이 없습니다");
+        if(!cartItem.getCart().isOwner(userId)){
+            throw new BusinessException(CartErrorCode.CART_NO_PERMISSION);
         }
         cartItem.removeFromCart();
         cartItemsRepository.delete(cartItem);
@@ -58,26 +55,33 @@ public class CartDomainService {
 
     public void clearCart(Long userId){
         cartsRepository.findWithItemsByUserId(userId)
-                .ifPresent(Carts::clearItems);
+                .ifPresent(Cart::clearItems);
     }
 
     public CartItemDto updateQuantity(Long cartItemId, int quantity){
-        CartItems cartItem = cartItemsRepository.findById(cartItemId)
-                .orElseThrow(() -> new NotFoundException("장바구니에서 해당 상품을 찾을 수 없습니다"));
-
+        CartItem cartItem = getCartItemByCartItemId(cartItemId);
         cartItem.updateQuantity(quantity);
         return CartItemDto.of(cartItem);
     }
 
     public void deleteByProductVariantIds(Long userId, List<Long> productVariantIds) {
-        Carts cart = cartsRepository.findWithItemsByUserId(userId)
-                .orElseThrow(() -> new NotFoundException("해당 유저의 장바구니를 찾을 수 없습니다"));
+        Cart cart = getCartWithItemsByUserId(userId);
 
         cart.deleteItemByProductVariantIds(productVariantIds);
     }
 
-    private List<CartItemDto> createCartItemDtoList(Carts cart){
+    private List<CartItemDto> createCartItemDtoList(Cart cart){
         return cart.getCartItems().stream().map(CartItemDto::of)
                 .toList();
+    }
+
+    private Cart getCartWithItemsByUserId(Long userId) {
+        return cartsRepository.findWithItemsByUserId(userId)
+                .orElseThrow(() -> new BusinessException(CartErrorCode.CART_NOT_FOUND));
+    }
+
+    private CartItem getCartItemByCartItemId(Long cartItemId) {
+        return cartItemsRepository.findById(cartItemId)
+                .orElseThrow(() -> new BusinessException(CartErrorCode.CART_ITEM_NOT_FOUND));
     }
 }

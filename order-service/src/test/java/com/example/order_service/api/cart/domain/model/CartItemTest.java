@@ -8,13 +8,13 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-public class CartItemsTest {
+public class CartItemTest {
 
     @Test
     @DisplayName("장바구니 상품의 수량을 변경한다")
     void updateQuantity(){
         //given
-        CartItems cartItem = CartItems.builder()
+        CartItem cartItem = CartItem.builder()
                 .productVariantId(1L)
                 .quantity(3)
                 .build();
@@ -28,7 +28,7 @@ public class CartItemsTest {
     @DisplayName("상품 수량을 1 이하로 변경하려 시도하면 예외를 던진다")
     void updateQuantityWhenQuantityLessThan1(){
         //given
-        CartItems cartItem = CartItems.builder()
+        CartItem cartItem = CartItem.builder()
                 .productVariantId(1L)
                 .quantity(3)
                 .build();
@@ -37,6 +37,6 @@ public class CartItemsTest {
         assertThatThrownBy(() -> cartItem.updateQuantity(0))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
-                .isEqualTo(CartErrorCode.ORDER_ITEM_MINIMUM_ONE_REQUIRED);
+                .isEqualTo(CartErrorCode.CART_ITEM_MINIMUM_ONE_REQUIRED);
     }
 }

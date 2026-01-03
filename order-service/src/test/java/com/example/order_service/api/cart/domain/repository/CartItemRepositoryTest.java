@@ -1,7 +1,7 @@
 package com.example.order_service.api.cart.domain.repository;
 
-import com.example.order_service.api.cart.domain.model.CartItems;
-import com.example.order_service.api.cart.domain.model.Carts;
+import com.example.order_service.api.cart.domain.model.Cart;
+import com.example.order_service.api.cart.domain.model.CartItem;
 import com.example.order_service.api.support.ExcludeInfraTest;
 import jakarta.persistence.EntityManager;
 import org.hibernate.Hibernate;
@@ -31,10 +31,10 @@ public class CartItemRepositoryTest extends ExcludeInfraTest {
     @DisplayName("cartItemId로 상품을 조회할때 Cart도 함께 가져온다")
     void findWithCartById(){
         //given
-        Carts cart = Carts.builder()
+        Cart cart = Cart.builder()
                 .userId(1L)
                 .build();
-        CartItems item = CartItems.builder()
+        CartItem item = CartItem.builder()
                 .productVariantId(1L)
                 .quantity(3)
                 .build();
@@ -47,7 +47,7 @@ public class CartItemRepositoryTest extends ExcludeInfraTest {
         session.getSessionFactory().getStatistics().clear();
         em.clear();
         //when
-        Optional<CartItems> cartItem = cartItemsRepository.findWithCartById(item.getId());
+        Optional<CartItem> cartItem = cartItemsRepository.findWithCartById(item.getId());
         //then
         assertThat(cartItem).isNotEmpty();
         long queryCount = session.getSessionFactory().getStatistics().getPrepareStatementCount();

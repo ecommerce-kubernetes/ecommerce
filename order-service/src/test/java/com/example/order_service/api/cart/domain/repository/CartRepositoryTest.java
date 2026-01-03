@@ -1,7 +1,7 @@
 package com.example.order_service.api.cart.domain.repository;
 
-import com.example.order_service.api.cart.domain.model.CartItems;
-import com.example.order_service.api.cart.domain.model.Carts;
+import com.example.order_service.api.cart.domain.model.Cart;
+import com.example.order_service.api.cart.domain.model.CartItem;
 import com.example.order_service.api.support.ExcludeInfraTest;
 import jakarta.persistence.EntityManager;
 import org.hibernate.Hibernate;
@@ -27,7 +27,7 @@ public class CartRepositoryTest extends ExcludeInfraTest {
     void findByUserId(){
         //given
         //when
-        Optional<Carts> find = cartsRepository.findByUserId(1L);
+        Optional<Cart> find = cartsRepository.findByUserId(1L);
         //then
         assertThat(find).isEmpty();
     }
@@ -36,13 +36,13 @@ public class CartRepositoryTest extends ExcludeInfraTest {
     @DisplayName("UserId로 장바구니를 조회할때 해당 UserId의 장바구니가 있는 경우 Optional에 Carts를 담아 반환한다")
     void findByUserIdWithExistCarts(){
         //given
-        Carts cart = Carts.builder()
+        Cart cart = Cart.builder()
                 .userId(1L)
                 .build();
 
         cartsRepository.save(cart);
         //when
-        Optional<Carts> find = cartsRepository.findByUserId(1L);
+        Optional<Cart> find = cartsRepository.findByUserId(1L);
         //then
         assertThat(find).isNotEmpty();
         assertThat(find.get().getUserId()).isEqualTo(1L);
@@ -52,10 +52,10 @@ public class CartRepositoryTest extends ExcludeInfraTest {
     @DisplayName("UserId로 장바구니를 조회할때 장바구니의 CartItem을 함께 가져온다")
     void findWithItemsByUserId(){
         //given
-        Carts carts = Carts.builder()
+        Cart carts = Cart.builder()
                 .userId(1L)
                 .build();
-        CartItems cartItem = CartItems.builder()
+        CartItem cartItem = CartItem.builder()
                 .productVariantId(1L)
                 .quantity(1)
                 .build();
@@ -67,7 +67,7 @@ public class CartRepositoryTest extends ExcludeInfraTest {
         session.getSessionFactory().getStatistics().clear();
         em.clear();
         //when
-        Optional<Carts> cart = cartsRepository.findWithItemsByUserId(1L);
+        Optional<Cart> cart = cartsRepository.findWithItemsByUserId(1L);
         //then
         assertThat(cart).isNotEmpty();
         long queryCount = session.getSessionFactory().getStatistics().getPrepareStatementCount();

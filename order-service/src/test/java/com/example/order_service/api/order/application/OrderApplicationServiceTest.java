@@ -161,14 +161,14 @@ public class OrderApplicationServiceTest {
         OrderDto waitingOrder = mockSavedOrder(OrderStatus.PAYMENT_WAITING, amount);
         TossPaymentConfirmResponse paymentResponse = mockPaymentResponse(paymentKey, amount);
         OrderDto completedOrder = mockSavedOrder(OrderStatus.COMPLETED, amount);
-        given(orderDomainService.getOrder(orderId))
+        given(orderDomainService.getOrder(orderId, USER_ID))
                 .willReturn(waitingOrder);
         given(orderExternalAdaptor.confirmOrderPayment(anyLong(), anyString(), anyLong()))
                 .willReturn(paymentResponse);
         given(orderDomainService.completedOrder(any(PaymentCreationCommand.class)))
                 .willReturn(completedOrder);
         //when
-        OrderDetailResponse result = orderApplicationService.finalizeOrder(orderId, paymentKey);
+        OrderDetailResponse result = orderApplicationService.finalizeOrder(orderId, USER_ID, paymentKey);
         //then
         assertThat(result)
                 .extracting(OrderDetailResponse::getOrderId, OrderDetailResponse::getUserId, OrderDetailResponse::getOrderStatus, OrderDetailResponse::getOrderName,
@@ -190,11 +190,11 @@ public class OrderApplicationServiceTest {
         //given
         Long orderId = 1L;
         OrderDto invalidStatusOrder = mockSavedOrder(OrderStatus.PENDING, FIXED_FINAL_PRICE);
-        given(orderDomainService.getOrder(anyLong()))
+        given(orderDomainService.getOrder(anyLong(), anyLong()))
                 .willReturn(invalidStatusOrder);
         //when
         //then
-        assertThatThrownBy(() -> orderApplicationService.finalizeOrder(orderId, "paymentKey"))
+        assertThatThrownBy(() -> orderApplicationService.finalizeOrder(orderId, USER_ID, "paymentKey"))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(OrderErrorCode.ORDER_NOT_PAYABLE);
@@ -210,7 +210,7 @@ public class OrderApplicationServiceTest {
 
         OrderDto waitingOrder = mockSavedOrder(OrderStatus.PAYMENT_WAITING, FIXED_FINAL_PRICE);
         OrderDto failureOrder = mockCanceledOrder(OrderFailureCode.PAYMENT_FAILED);
-        given(orderDomainService.getOrder(anyLong()))
+        given(orderDomainService.getOrder(anyLong(), anyLong()))
                 .willReturn(waitingOrder);
         willThrow(new PaymentException(failureMessage, PaymentErrorCode.APPROVAL_FAIL))
                 .given(orderExternalAdaptor).confirmOrderPayment(anyLong(), anyString(), anyLong());
@@ -218,7 +218,7 @@ public class OrderApplicationServiceTest {
                 .willReturn(failureOrder);
         //when
         //then
-        assertThatThrownBy(() -> orderApplicationService.finalizeOrder(orderId, paymentKey))
+        assertThatThrownBy(() -> orderApplicationService.finalizeOrder(orderId, USER_ID, paymentKey))
                 .isInstanceOf(PaymentException.class)
                 .hasMessage(failureMessage);
 
@@ -236,7 +236,7 @@ public class OrderApplicationServiceTest {
         //given
         Long orderId = 1L;
         OrderDto orderDto = mockSavedOrder(OrderStatus.COMPLETED, FIXED_FINAL_PRICE);
-        given(orderDomainService.getOrder(orderId))
+        given(orderDomainService.getOrder(anyLong(), anyLong()))
                 .willReturn(orderDto);
         //when
         OrderDetailResponse result = orderApplicationService.getOrder(USER_ID, orderId);
@@ -280,24 +280,6 @@ public class OrderApplicationServiceTest {
                         tuple(PROD_1_ID, "상품1", 3, 8100L),
                         tuple(PROD_2_ID, "상품2", 5, 22500L)
                 );
-    }
-
-    @Test
-    @DisplayName("주문의 유저 아이디와 요청한 유저아이디가 일치하지 않는 경우 예외를 던진다")
-    void getOrder_not_match_userId(){
-        //given
-        Long orderId = 1L;
-        Long otherUserId = 999L;
-        OrderDto orderDto = mockSavedOrder(OrderStatus.COMPLETED, FIXED_FINAL_PRICE);
-
-        given(orderDomainService.getOrder(orderId))
-                .willReturn(orderDto);
-        //when
-        //then
-        assertThatThrownBy(() -> orderApplicationService.getOrder(otherUserId, orderId))
-                .isInstanceOf(BusinessException.class)
-                .extracting("errorCode")
-                .isEqualTo(OrderErrorCode.ORDER_NO_PERMISSION);
     }
 
     @Test

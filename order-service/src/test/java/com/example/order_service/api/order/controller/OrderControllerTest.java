@@ -111,7 +111,7 @@ class OrderControllerTest extends ControllerTestSupport {
         OrderConfirmRequest request = confirmBaseRequest().build();
         OrderDetailResponse response = createOrderDetailResponse();
 
-        given(orderApplicationService.finalizeOrder(anyLong(), anyString()))
+        given(orderApplicationService.finalizeOrder(anyLong(), anyLong(), anyString()))
                 .willReturn(response);
         //when
         //then
@@ -147,7 +147,7 @@ class OrderControllerTest extends ControllerTestSupport {
         OrderConfirmRequest request = confirmBaseRequest().build();
 
         willThrow(new PaymentException("결제 오류", PaymentErrorCode.APPROVAL_FAIL))
-                .given(orderApplicationService).finalizeOrder(anyLong(), anyString());
+                .given(orderApplicationService).finalizeOrder(anyLong(), anyLong(), anyString());
         //when
         //then
         mockMvc.perform(post("/orders/confirm")

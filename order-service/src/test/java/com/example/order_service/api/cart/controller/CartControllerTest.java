@@ -6,7 +6,6 @@ import com.example.order_service.api.cart.application.dto.result.CartItemRespons
 import com.example.order_service.api.cart.application.dto.result.CartResponse;
 import com.example.order_service.api.cart.controller.dto.request.CartItemRequest;
 import com.example.order_service.api.cart.controller.dto.request.UpdateQuantityRequest;
-import com.example.order_service.api.common.exception.NotFoundException;
 import com.example.order_service.api.common.security.model.UserRole;
 import com.example.order_service.api.common.security.principal.UserPrincipal;
 import com.example.order_service.api.support.ControllerTestSupport;
@@ -164,25 +163,6 @@ class CartControllerTest extends ControllerTestSupport {
     }
 
     @Test
-    @DisplayName("장바구니에 없는 상품을 삭제하려 시도하면 404 예외 응답을 반환한다")
-    @WithCustomMockUser
-    void deleteCartItemThrowNotFound() throws Exception {
-        //given
-        willThrow(new NotFoundException("장바구니에 해당 상품을 찾을 수 없습니다"))
-                .given(cartApplicationService).removeCartItem(any(UserPrincipal.class), anyLong());
-        //when
-        //then
-        mockMvc.perform(delete("/carts/{cartItemId}", 1)
-                .contentType(MediaType.APPLICATION_JSON))
-                .andDo(print())
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.code").value("NOT_FOUND"))
-                .andExpect(jsonPath("$.message").value("장바구니에 해당 상품을 찾을 수 없습니다"))
-                .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.path").value("/carts/1"));
-    }
-
-    @Test
     @DisplayName("장바구니 상품 전체를 삭제한다")
     @WithCustomMockUser
     void clearCart() throws Exception {
@@ -236,31 +216,6 @@ class CartControllerTest extends ControllerTestSupport {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("VALIDATION"))
                 .andExpect(jsonPath("$.message").value("quantity는 1이상 이여야 합니다"))
-                .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.path").value("/carts/1"));
-    }
-
-    @Test
-    @DisplayName("장바구니 상품 수량을 변경할때 장바구니에서 상품을 찾을 수 없는 경우 404 예외 응답을 반환한다")
-    @WithCustomMockUser
-    void updateQuantityThrowNotFound() throws Exception {
-        //given
-        UpdateQuantityRequest request = UpdateQuantityRequest.builder()
-                .quantity(5)
-                .build();
-
-        willThrow(new NotFoundException("장바구니에 해당 상품을 찾을 수 없습니다"))
-                .given(cartApplicationService).updateCartItemQuantity(any(UpdateQuantityDto.class));
-
-        //when
-        //then
-        mockMvc.perform(patch("/carts/{cartItemId}", 1)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andDo(print())
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.code").value("NOT_FOUND"))
-                .andExpect(jsonPath("$.message").value("장바구니에 해당 상품을 찾을 수 없습니다"))
                 .andExpect(jsonPath("$.timestamp").exists())
                 .andExpect(jsonPath("$.path").value("/carts/1"));
     }

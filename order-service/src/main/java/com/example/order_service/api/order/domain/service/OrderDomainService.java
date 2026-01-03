@@ -34,8 +34,11 @@ public class OrderDomainService {
     }
 
     @Transactional(readOnly = true)
-    public OrderDto getOrder(Long orderId) {
+    public OrderDto getOrder(Long orderId, Long userId) {
         Order order = getByOrderId(orderId);
+        if (!order.isOwner(userId)) {
+            throw new BusinessException(OrderErrorCode.ORDER_NO_PERMISSION);
+        }
         return OrderDto.from(order);
     }
 

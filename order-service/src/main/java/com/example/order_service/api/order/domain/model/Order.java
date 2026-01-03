@@ -83,6 +83,10 @@ public class Order extends BaseEntity {
         this.status = orderStatus;
     }
 
+    public boolean isOwner(Long accessUserId) {
+        return this.userId.equals(accessUserId);
+    }
+
     public void canceled(OrderFailureCode code) {
         this.status = OrderStatus.CANCELED;
         this.failureCode = code;

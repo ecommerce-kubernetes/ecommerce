@@ -116,7 +116,7 @@ public class OrderDomainServiceTest extends ExcludeInfraTest {
         OrderCreationContext context = createDefaultContext();
         Order savedOrder = orderRepository.save(Order.create(context));
         //when
-        OrderDto result = orderDomainService.getOrder(savedOrder.getId());
+        OrderDto result = orderDomainService.getOrder(savedOrder.getId(), USER_ID);
         //then
         assertThat(result.getOrderId()).isEqualTo(savedOrder.getId());
         assertThat(result.getStatus()).isEqualTo(OrderStatus.PENDING);
@@ -150,10 +150,25 @@ public class OrderDomainServiceTest extends ExcludeInfraTest {
         //given
         //when
         //then
-        assertThatThrownBy(() -> orderDomainService.getOrder(999L))
+        assertThatThrownBy(() -> orderDomainService.getOrder(999L, USER_ID))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(OrderErrorCode.ORDER_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("주문을 조회할때 주문의 사용자 Id 가 요청 사용자 Id와 다른 경우 예외를 던진다")
+    void getOrder_noPermission() {
+        //given
+        Long otherUserId = 20L;
+        OrderCreationContext context = createDefaultContext();
+        Order savedOrder = orderRepository.save(Order.create(context));
+        //when
+        //then
+        assertThatThrownBy(() -> orderDomainService.getOrder(savedOrder.getId(), otherUserId))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(OrderErrorCode.ORDER_NO_PERMISSION);
     }
 
     @Test

@@ -1,6 +1,7 @@
 package com.example.order_service.api.order.saga.domain.service;
 
-import com.example.order_service.api.common.exception.NotFoundException;
+import com.example.order_service.api.common.exception.BusinessException;
+import com.example.order_service.api.common.exception.SagaErrorCode;
 import com.example.order_service.api.order.saga.domain.model.OrderSagaInstance;
 import com.example.order_service.api.order.saga.domain.model.SagaStatus;
 import com.example.order_service.api.order.saga.domain.model.SagaStep;
@@ -110,8 +111,9 @@ public class OrderSagaDomainServiceTest extends ExcludeInfraTest {
         //when
         //then
         assertThatThrownBy(() -> orderSagaDomainService.proceedTo(999L, SagaStep.COUPON))
-                .isInstanceOf(NotFoundException.class)
-                .hasMessage("주문 SAGA 인스턴스를 찾을 수 없습니다");
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(SagaErrorCode.SAGA_NOT_FOUND);
     }
 
     @Test
@@ -121,8 +123,9 @@ public class OrderSagaDomainServiceTest extends ExcludeInfraTest {
         //when
         //then
         assertThatThrownBy(() -> orderSagaDomainService.getSagaBySagaId(999L))
-                .isInstanceOf(NotFoundException.class)
-                .hasMessage("주문 SAGA 인스턴스를 찾을 수 없습니다");
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(SagaErrorCode.SAGA_NOT_FOUND);
     }
 
     @Test
@@ -154,8 +157,9 @@ public class OrderSagaDomainServiceTest extends ExcludeInfraTest {
         //when
         //then
         assertThatThrownBy(() -> orderSagaDomainService.finish(999L))
-                .isInstanceOf(NotFoundException.class)
-                .hasMessage("주문 SAGA 인스턴스를 찾을 수 없습니다");
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(SagaErrorCode.SAGA_NOT_FOUND);
     }
 
     @Test
@@ -187,8 +191,9 @@ public class OrderSagaDomainServiceTest extends ExcludeInfraTest {
         //when
         //then
         assertThatThrownBy(() -> orderSagaDomainService.fail(999L, null))
-                .isInstanceOf(NotFoundException.class)
-                .hasMessage("주문 SAGA 인스턴스를 찾을 수 없습니다");
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(SagaErrorCode.SAGA_NOT_FOUND);
     }
 
     @Test
@@ -244,8 +249,9 @@ public class OrderSagaDomainServiceTest extends ExcludeInfraTest {
         //when
         //then
         assertThatThrownBy(() -> orderSagaDomainService.startCompensation(1L, SagaStep.PRODUCT, "유효하지 않은 쿠폰"))
-                .isInstanceOf(NotFoundException.class)
-                .hasMessage("주문 SAGA 인스턴스를 찾을 수 없습니다");
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(SagaErrorCode.SAGA_NOT_FOUND);
     }
 
     @Test
@@ -279,8 +285,9 @@ public class OrderSagaDomainServiceTest extends ExcludeInfraTest {
         //when
         //then
         assertThatThrownBy(() -> orderSagaDomainService.continueCompensation(1L, SagaStep.PRODUCT))
-                .isInstanceOf(NotFoundException.class)
-                .hasMessage("주문 SAGA 인스턴스를 찾을 수 없습니다");
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(SagaErrorCode.SAGA_NOT_FOUND);
     }
 
     @Test
@@ -342,7 +349,8 @@ public class OrderSagaDomainServiceTest extends ExcludeInfraTest {
         //when
         //then
         assertThatThrownBy(() -> orderSagaDomainService.getSagaByOrderId(999L))
-                .isInstanceOf(NotFoundException.class)
-                .hasMessage("주문 SAGA 인스턴스를 찾을 수 없습니다");
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(SagaErrorCode.SAGA_NOT_FOUND);
     }
 }
