@@ -18,7 +18,7 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class NotificationServiceTest {
-
+    public static final String ORDER_NO = "ORD-20260101-AB12FVC";
     @InjectMocks
     private NotificationService notificationService;
 
@@ -44,7 +44,7 @@ public class NotificationServiceTest {
         ReflectionTestUtils.setField(notificationService, "emitters", emitters);
 
         OrderNotificationDto dto = OrderNotificationDto.builder()
-                .orderId(1L)
+                .orderNo(ORDER_NO)
                 .userId(1L)
                 .status("SUCCESS")
                 .code("PAYMENT_READY")
@@ -62,7 +62,7 @@ public class NotificationServiceTest {
     void sendMessageWithoutEmitter() {
         //given
         OrderNotificationDto dto = OrderNotificationDto.builder()
-                .orderId(1L)
+                .orderNo(ORDER_NO)
                 .userId(1L)
                 .status("SUCCESS")
                 .code("PAYMENT_READY")

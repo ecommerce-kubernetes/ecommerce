@@ -8,24 +8,24 @@ import java.util.List;
 
 @Getter
 public class PaymentResultEvent {
-    private Long orderId;
+    private String orderNo;
     private Long userId;
     private OrderEventStatus status;
     private OrderFailureCode code;
     private List<Long> productVariantIds;
 
     @Builder
-    private PaymentResultEvent(Long orderId, Long userId, OrderEventStatus status, List<Long> productVariantIds, OrderFailureCode code) {
-        this.orderId = orderId;
+    private PaymentResultEvent(String orderNo, Long userId, OrderEventStatus status, List<Long> productVariantIds, OrderFailureCode code) {
+        this.orderNo = orderNo;
         this.userId = userId;
         this.status = status;
         this.productVariantIds = productVariantIds;
         this.code = code;
     }
 
-    public static PaymentResultEvent of(Long orderId, Long userId, OrderEventStatus status, OrderFailureCode code, List<Long> productVariantIds) {
+    public static PaymentResultEvent of(String orderNo, Long userId, OrderEventStatus status, OrderFailureCode code, List<Long> productVariantIds) {
         return PaymentResultEvent.builder()
-                .orderId(orderId)
+                .orderNo(orderNo)
                 .userId(userId)
                 .status(status)
                 .code(code)

@@ -28,6 +28,7 @@ public class SagaEventProducerTest extends IncludeInfraTest {
     @Autowired
     private SagaEventProducer sagaEventProducer;
 
+    public static final String ORDER_NO = "ORD-20260101-AB12FVC";
     @Test
     @DisplayName("재고 차감 요청 메시지를 발행한다")
     void requestInventoryDeduction() throws IOException {
@@ -41,14 +42,14 @@ public class SagaEventProducerTest extends IncludeInfraTest {
 
         Consumer<String, String> consumer = createTestConsumer(PRODUCT_REQUEST_TOPIC_NAME);
         //when
-        sagaEventProducer.requestInventoryDeduction(sagaId, orderId, payload);
+        sagaEventProducer.requestInventoryDeduction(sagaId, ORDER_NO, payload);
         //then
         ConsumerRecord<String, String> record = getRecordByKey(consumer, PRODUCT_REQUEST_TOPIC_NAME, String.valueOf(sagaId));
         assertThat(record.key()).isEqualTo(String.valueOf(sagaId));
         ProductSagaCommand message = objectMapper.readValue(record.value(), ProductSagaCommand.class);
         assertThat(message)
-                .extracting(ProductSagaCommand::getType, ProductSagaCommand::getSagaId, ProductSagaCommand::getOrderId, ProductSagaCommand::getUserId)
-                        .containsExactly(ProductCommandType.DEDUCT_STOCK, sagaId, 1L, 1L);
+                .extracting(ProductSagaCommand::getType, ProductSagaCommand::getSagaId, ProductSagaCommand::getOrderNo, ProductSagaCommand::getUserId)
+                        .containsExactly(ProductCommandType.DEDUCT_STOCK, sagaId, ORDER_NO, 1L);
         assertThat(message.getItems()).hasSize(1);
         assertThat(message.getItems())
                 .extracting(Item::getProductVariantId, Item::getQuantity)
@@ -71,14 +72,14 @@ public class SagaEventProducerTest extends IncludeInfraTest {
 
         Consumer<String, String> consumer = createTestConsumer(PRODUCT_REQUEST_TOPIC_NAME);
         //when
-        sagaEventProducer.requestInventoryCompensate(sagaId, orderId, payload);
+        sagaEventProducer.requestInventoryCompensate(sagaId, ORDER_NO, payload);
         //then
         ConsumerRecord<String, String> record = getRecordByKey(consumer, PRODUCT_REQUEST_TOPIC_NAME, String.valueOf(sagaId));
         assertThat(record.key()).isEqualTo(String.valueOf(sagaId));
         ProductSagaCommand message = objectMapper.readValue(record.value(), ProductSagaCommand.class);
         assertThat(message)
-                .extracting(ProductSagaCommand::getType, ProductSagaCommand::getSagaId, ProductSagaCommand::getOrderId, ProductSagaCommand::getUserId)
-                .containsExactly(ProductCommandType.RESTORE_STOCK, sagaId, 1L, 1L);
+                .extracting(ProductSagaCommand::getType, ProductSagaCommand::getSagaId, ProductSagaCommand::getOrderNo, ProductSagaCommand::getUserId)
+                .containsExactly(ProductCommandType.RESTORE_STOCK, sagaId, ORDER_NO, 1L);
         assertThat(message.getItems()).hasSize(1);
         assertThat(message.getItems())
                 .extracting(Item::getProductVariantId, Item::getQuantity)
@@ -93,7 +94,6 @@ public class SagaEventProducerTest extends IncludeInfraTest {
     void requestCouponUse() throws JsonProcessingException {
         //given
         Long sagaId = System.nanoTime();
-        Long orderId = 1L;
         Payload payload = Payload.builder()
                 .userId(1L)
                 .sagaItems(List.of(Payload.SagaItem.builder().productVariantId(1L).quantity(3).build()))
@@ -101,14 +101,14 @@ public class SagaEventProducerTest extends IncludeInfraTest {
                 .build();
         Consumer<String, String> consumer = createTestConsumer(COUPON_REQUEST_TOPIC_NAME);
         //when
-        sagaEventProducer.requestCouponUse(sagaId, orderId, payload);
+        sagaEventProducer.requestCouponUse(sagaId, ORDER_NO, payload);
         //then
         ConsumerRecord<String, String> record = getRecordByKey(consumer, COUPON_REQUEST_TOPIC_NAME, String.valueOf(sagaId));
         assertThat(record.key()).isEqualTo(String.valueOf(sagaId));
         CouponSagaCommand message = objectMapper.readValue(record.value(), CouponSagaCommand.class);
         assertThat(message)
-                .extracting(CouponSagaCommand::getType, CouponSagaCommand::getSagaId, CouponSagaCommand::getOrderId, CouponSagaCommand::getUserId, CouponSagaCommand::getCouponId)
-                .containsExactly(CouponCommandType.USE_COUPON, sagaId, 1L, 1L, 1L);
+                .extracting(CouponSagaCommand::getType, CouponSagaCommand::getSagaId, CouponSagaCommand::getOrderNo, CouponSagaCommand::getUserId, CouponSagaCommand::getCouponId)
+                .containsExactly(CouponCommandType.USE_COUPON, sagaId, ORDER_NO, 1L, 1L);
         assertThat(message.getTimestamp()).isNotNull();
     }
 
@@ -117,7 +117,6 @@ public class SagaEventProducerTest extends IncludeInfraTest {
     void requestCouponCompensate() throws JsonProcessingException {
         //given
         Long sagaId = System.nanoTime();
-        Long orderId = 1L;
         Payload payload = Payload.builder()
                 .userId(1L)
                 .sagaItems(List.of(Payload.SagaItem.builder().productVariantId(1L).quantity(3).build()))
@@ -125,14 +124,14 @@ public class SagaEventProducerTest extends IncludeInfraTest {
                 .build();
         Consumer<String, String> consumer = createTestConsumer(COUPON_REQUEST_TOPIC_NAME);
         //when
-        sagaEventProducer.requestCouponCompensate(sagaId, orderId, payload);
+        sagaEventProducer.requestCouponCompensate(sagaId, ORDER_NO, payload);
         //then
         ConsumerRecord<String, String> record = getRecordByKey(consumer, COUPON_REQUEST_TOPIC_NAME, String.valueOf(sagaId));
         assertThat(record.key()).isEqualTo(String.valueOf(sagaId));
         CouponSagaCommand message = objectMapper.readValue(record.value(), CouponSagaCommand.class);
         assertThat(message)
-                .extracting(CouponSagaCommand::getType, CouponSagaCommand::getSagaId, CouponSagaCommand::getOrderId, CouponSagaCommand::getUserId, CouponSagaCommand::getCouponId)
-                .containsExactly(CouponCommandType.CANCEL_USE, sagaId, 1L, 1L, 1L);
+                .extracting(CouponSagaCommand::getType, CouponSagaCommand::getSagaId, CouponSagaCommand::getOrderNo, CouponSagaCommand::getUserId, CouponSagaCommand::getCouponId)
+                .containsExactly(CouponCommandType.CANCEL_USE, sagaId, ORDER_NO, 1L, 1L);
         assertThat(message.getTimestamp()).isNotNull();
     }
 
@@ -150,14 +149,14 @@ public class SagaEventProducerTest extends IncludeInfraTest {
                 .build();
         Consumer<String, String> consumer = createTestConsumer(USER_REQUEST_TOPIC_NAME);
         //when
-        sagaEventProducer.requestUserPointUse(sagaId, orderId, payload);
+        sagaEventProducer.requestUserPointUse(sagaId, ORDER_NO, payload);
         //then
-        ConsumerRecord<String, String> record = getRecordByKey(consumer, USER_REQUEST_TOPIC_NAME, String.valueOf(sagaId));;
+        ConsumerRecord<String, String> record = getRecordByKey(consumer, USER_REQUEST_TOPIC_NAME, String.valueOf(sagaId));
         assertThat(record.key()).isEqualTo(String.valueOf(sagaId));
         UserSagaCommand message = objectMapper.readValue(record.value(), UserSagaCommand.class);
         assertThat(message)
-                .extracting(UserSagaCommand::getType, UserSagaCommand::getSagaId, UserSagaCommand::getOrderId, UserSagaCommand::getUserId, UserSagaCommand::getUsedPoint)
-                .containsExactly(UserCommandType.USE_POINT, sagaId, 1L, 1L, 1000L);
+                .extracting(UserSagaCommand::getType, UserSagaCommand::getSagaId, UserSagaCommand::getOrderNo, UserSagaCommand::getUserId, UserSagaCommand::getUsedPoint)
+                .containsExactly(UserCommandType.USE_POINT, sagaId, ORDER_NO, 1L, 1000L);
     }
 
     @Test
@@ -165,7 +164,6 @@ public class SagaEventProducerTest extends IncludeInfraTest {
     void requestUserPointCompensate() throws JsonProcessingException {
         //given
         Long sagaId = System.nanoTime();
-        Long orderId = 1L;
         Payload payload = Payload.builder()
                 .userId(1L)
                 .sagaItems(List.of(Payload.SagaItem.builder().productVariantId(1L).quantity(3).build()))
@@ -174,13 +172,13 @@ public class SagaEventProducerTest extends IncludeInfraTest {
                 .build();
         Consumer<String, String> consumer = createTestConsumer(USER_REQUEST_TOPIC_NAME);
         //when
-        sagaEventProducer.requestUserPointCompensate(sagaId, orderId, payload);
+        sagaEventProducer.requestUserPointCompensate(sagaId, ORDER_NO, payload);
         //then
         ConsumerRecord<String, String> record = getRecordByKey(consumer, USER_REQUEST_TOPIC_NAME, String.valueOf(sagaId));
         assertThat(record.key()).isEqualTo(String.valueOf(sagaId));
         UserSagaCommand message = objectMapper.readValue(record.value(), UserSagaCommand.class);
         assertThat(message)
-                .extracting(UserSagaCommand::getType, UserSagaCommand::getSagaId, UserSagaCommand::getOrderId, UserSagaCommand::getUserId, UserSagaCommand::getUsedPoint)
-                .containsExactly(UserCommandType.REFUND_POINT, sagaId, 1L, 1L, 1000L);
+                .extracting(UserSagaCommand::getType, UserSagaCommand::getSagaId, UserSagaCommand::getOrderNo, UserSagaCommand::getUserId, UserSagaCommand::getUsedPoint)
+                .containsExactly(UserCommandType.REFUND_POINT, sagaId, ORDER_NO, 1L, 1000L);
     }
 }

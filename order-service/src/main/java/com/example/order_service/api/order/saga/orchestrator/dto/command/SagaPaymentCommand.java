@@ -8,14 +8,14 @@ import lombok.Getter;
 
 @Getter
 public class SagaPaymentCommand {
-    private Long orderId;
+    private String orderNo;
     private OrderEventStatus status;
     private OrderFailureCode code;
     private String failureReason;
 
     @Builder
-    private SagaPaymentCommand(Long orderId, OrderEventStatus status, OrderFailureCode code, String failureReason) {
-        this.orderId = orderId;
+    private SagaPaymentCommand(String orderNo, OrderEventStatus status, OrderFailureCode code, String failureReason) {
+        this.orderNo = orderNo;
         this.status = status;
         this.code = code;
         this.failureReason = failureReason;
@@ -23,7 +23,7 @@ public class SagaPaymentCommand {
 
     public static SagaPaymentCommand from(PaymentResultEvent event) {
         SagaPaymentCommandBuilder builder = SagaPaymentCommand.builder()
-                .orderId(event.getOrderId())
+                .orderNo(event.getOrderNo())
                 .status(event.getStatus());
         if (event.getCode() != null) {
             builder.code(event.getCode())

@@ -6,20 +6,20 @@ import lombok.Getter;
 @Getter
 public class SagaResourceSecuredEvent {
     private Long sagaId;
-    private Long orderId;
+    private String orderNo;
     private Long userId;
 
     @Builder
-    private SagaResourceSecuredEvent(Long sagaId, Long orderId, Long userId) {
+    private SagaResourceSecuredEvent(Long sagaId, String orderNo, Long userId) {
         this.sagaId = sagaId;
-        this.orderId = orderId;
+        this.orderNo = orderNo;
         this.userId = userId;
     }
 
-    public static SagaResourceSecuredEvent of(Long sagaId, Long orderId, Long userId) {
+    public static SagaResourceSecuredEvent of(Long sagaId, String orderNo, Long userId) {
         return SagaResourceSecuredEvent.builder()
                 .sagaId(sagaId)
-                .orderId(orderId)
+                .orderNo(orderNo)
                 .userId(userId)
                 .build();
     }

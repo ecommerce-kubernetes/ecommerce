@@ -68,13 +68,13 @@ public class OrderApplicationService {
         return CreateOrderResponse.of(orderDto);
     }
 
-    public void preparePayment(Long orderId) {
-        OrderDto orderDto = orderDomainService.changeOrderStatus(orderId, OrderStatus.PAYMENT_WAITING);
+    public void preparePayment(String orderNo) {
+        OrderDto orderDto = orderDomainService.changeOrderStatus(orderNo, OrderStatus.PAYMENT_WAITING);
         eventPublisher.publishEvent(OrderResultEvent.paymentReady(orderDto));
     }
 
-    public void processOrderFailure(Long orderId, OrderFailureCode orderFailureCode){
-        OrderDto orderDto = orderDomainService.canceledOrder(orderId, orderFailureCode);
+    public void processOrderFailure(String orderNo, OrderFailureCode orderFailureCode){
+        OrderDto orderDto = orderDomainService.canceledOrder(orderNo, orderFailureCode);
         eventPublisher.publishEvent(OrderResultEvent.failure(orderDto));
     }
 
@@ -115,10 +115,10 @@ public class OrderApplicationService {
     // 토스 결제 승인 실행
     private TossPaymentConfirmResponse executePaymentConfirmRequest(OrderDto orderDto, String paymentKey) {
         try {
-            return orderExternalAdaptor.confirmOrderPayment(orderDto.getOrderId(), paymentKey, orderDto.getOrderPriceInfo().getFinalPaymentAmount());
+            return orderExternalAdaptor.confirmOrderPayment(orderDto.getOrderNo(), paymentKey, orderDto.getOrderPriceInfo().getFinalPaymentAmount());
         } catch (BusinessException e) {
             // 결제 중 예외가 발생한 경우 주문 상태 변경 후 Saga 보상 로직 실행
-            handlePaymentFailure(orderDto.getOrderId(), e.getErrorCode());
+            handlePaymentFailure(orderDto.getOrderNo(), e.getErrorCode());
             throw e;
         }
     }
@@ -130,7 +130,7 @@ public class OrderApplicationService {
         } catch (Exception e) {
             // 주문 완료 DB 상태 변경중 예외 발생시 결제는 완료되었으므로 결제 환불 요청 후 SAGA 환불 실행
             compensatePayment(paymentKey);
-            handlePaymentFailure(orderDto.getOrderId(), CommonErrorCode.INTERNAL_ERROR);
+            handlePaymentFailure(orderDto.getOrderNo(), CommonErrorCode.INTERNAL_ERROR);
             throw new BusinessException(CommonErrorCode.INTERNAL_ERROR);
         }
     }
@@ -149,7 +149,7 @@ public class OrderApplicationService {
         OrderDto completedOrder = orderDomainService.completedOrder(PaymentCreationCommand.from(response));
         List<Long> productVariantIds = completedOrder.getOrderItemDtoList().stream()
                 .map(OrderItemDto::getProductVariantId).toList();
-        eventPublisher.publishEvent(PaymentResultEvent.of(completedOrder.getOrderId(), completedOrder.getUserId(), OrderEventStatus.SUCCESS, null,
+        eventPublisher.publishEvent(PaymentResultEvent.of(completedOrder.getOrderNo(), completedOrder.getUserId(), OrderEventStatus.SUCCESS, null,
                 productVariantIds));
         return OrderDetailResponse.from(completedOrder);
     }
@@ -162,10 +162,10 @@ public class OrderApplicationService {
         }
     }
 
-    private void handlePaymentFailure(Long orderId, ErrorCode errorCode) {
+    private void handlePaymentFailure(String orderNo, ErrorCode errorCode) {
         OrderFailureCode failureCode = mapToOrderFailureCode(errorCode);
-        OrderDto canceledOrder = orderDomainService.canceledOrder(orderId, failureCode);
-        eventPublisher.publishEvent(PaymentResultEvent.of(canceledOrder.getOrderId(), canceledOrder.getUserId(), OrderEventStatus.FAILURE,
+        OrderDto canceledOrder = orderDomainService.canceledOrder(orderNo, failureCode);
+        eventPublisher.publishEvent(PaymentResultEvent.of(canceledOrder.getOrderNo(), canceledOrder.getUserId(), OrderEventStatus.FAILURE,
                 failureCode, null));
     }
 

@@ -23,6 +23,7 @@ public class TossPaymentClientServiceTest extends ExcludeInfraTest {
     private TossPaymentClientService tossPaymentClientService;
     @MockitoBean
     private TossPaymentClient tossPaymentClient;
+    public static final String ORDER_NO = "ORD-20260101-AB12FVC";
 
     @Test
     @DisplayName("토스페이먼츠로 결제 승인을 요청한다")
@@ -30,19 +31,19 @@ public class TossPaymentClientServiceTest extends ExcludeInfraTest {
         //given
         TossPaymentConfirmResponse response = TossPaymentConfirmResponse.builder()
                 .paymentKey("paymentKey")
-                .orderId(1L)
+                .orderNo(ORDER_NO)
                 .totalAmount(10000L)
                 .status("DONE")
                 .build();
         given(tossPaymentClient.confirmPayment(any(TossPaymentConfirmRequest.class)))
                 .willReturn(response);
         //when
-        TossPaymentConfirmResponse result = tossPaymentClientService.confirmPayment(1L, "paymentKey", 10000L);
+        TossPaymentConfirmResponse result = tossPaymentClientService.confirmPayment(ORDER_NO, "paymentKey", 10000L);
         //then
         assertThat(result)
-                .extracting(TossPaymentConfirmResponse::getPaymentKey, TossPaymentConfirmResponse::getOrderId, TossPaymentConfirmResponse::getTotalAmount,
+                .extracting(TossPaymentConfirmResponse::getPaymentKey, TossPaymentConfirmResponse::getOrderNo, TossPaymentConfirmResponse::getTotalAmount,
                         TossPaymentConfirmResponse::getStatus)
-                .containsExactly("paymentKey", 1L, 10000L, "DONE");
+                .containsExactly("paymentKey", ORDER_NO, 10000L, "DONE");
     }
 
     @Test
@@ -54,7 +55,7 @@ public class TossPaymentClientServiceTest extends ExcludeInfraTest {
                 .confirmPayment(any(TossPaymentConfirmRequest.class));
         //when
         //then
-        assertThatThrownBy(() -> tossPaymentClientService.confirmPayment(1L, "paymentKey", 10000L))
+        assertThatThrownBy(() -> tossPaymentClientService.confirmPayment(ORDER_NO, "paymentKey", 10000L))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(ExternalServiceErrorCode.UNAVAILABLE);
@@ -69,7 +70,7 @@ public class TossPaymentClientServiceTest extends ExcludeInfraTest {
                 .confirmPayment(any(TossPaymentConfirmRequest.class));
         //when
         //then
-        assertThatThrownBy(() -> tossPaymentClientService.confirmPayment(1L, "paymentKey", 10000L))
+        assertThatThrownBy(() -> tossPaymentClientService.confirmPayment(ORDER_NO, "paymentKey", 10000L))
                 .isInstanceOf(BusinessException.class);
     }
 
@@ -82,7 +83,7 @@ public class TossPaymentClientServiceTest extends ExcludeInfraTest {
                 .confirmPayment(any(TossPaymentConfirmRequest.class));
         //when
         //then
-        assertThatThrownBy(() -> tossPaymentClientService.confirmPayment(1L, "paymentKey", 1000L))
+        assertThatThrownBy(() -> tossPaymentClientService.confirmPayment(ORDER_NO, "paymentKey", 1000L))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(ExternalServiceErrorCode.SYSTEM_ERROR);

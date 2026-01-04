@@ -148,7 +148,7 @@ public class OrderApplicationServiceTestFixture {
         String approvedAt = offsetDateTime.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
         return TossPaymentConfirmResponse.builder()
                 .paymentKey(paymentKey)
-                .orderId(1L)
+                .orderNo(ORDER_NO)
                 .totalAmount(amount)
                 .status("DONE")
                 .approvedAt(approvedAt)

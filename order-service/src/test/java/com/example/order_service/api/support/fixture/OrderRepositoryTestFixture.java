@@ -15,6 +15,7 @@ public class OrderRepositoryTestFixture {
     private static final Long DEFAULT_USER_ID = 1L;
     private static final String DEFAULT_ORDER_NAME = "테스트 주문";
     private static final String DEFAULT_ADDRESS = "서울시 테헤란로 123";
+    private static final String ORDER_NO = "ORD-20260101-AB12FVC";
 
     public static TestOrderBuilder testOrderBuilder() {
         return new  TestOrderBuilder();
@@ -30,6 +31,7 @@ public class OrderRepositoryTestFixture {
 
     public static class TestOrderBuilder {
         private Long userId = DEFAULT_USER_ID;
+        private String orderNo = ORDER_NO;
         private OrderStatus status = OrderStatus.COMPLETED;
         private String orderName = DEFAULT_ORDER_NAME;
         private String deliveryAddress = DEFAULT_ADDRESS;
@@ -42,14 +44,23 @@ public class OrderRepositoryTestFixture {
             this.userId = userId;
             return this;
         }
+
+        public TestOrderBuilder orderNo(String orderNo) {
+            this.orderNo = orderNo;
+            return this;
+        }
+
         public TestOrderBuilder status(OrderStatus status) {
-            this.status = status; return this;
+            this.status = status;
+            return this;
         }
         public TestOrderBuilder orderName(String orderName) {
-            this.orderName = orderName; return this;
+            this.orderName = orderName;
+            return this;
         }
         public TestOrderBuilder failureCode(OrderFailureCode code) {
-            this.failureCode = code; return this;
+            this.failureCode = code;
+            return this;
         }
 
         public TestOrderBuilder addItem(String productName) {
@@ -59,7 +70,7 @@ public class OrderRepositoryTestFixture {
 
         public Order build() {
             Order order = newInstance(Order.class);
-
+            ReflectionTestUtils.setField(order, "orderNo", orderNo);
             ReflectionTestUtils.setField(order, "userId", userId);
             ReflectionTestUtils.setField(order, "status", status);
             ReflectionTestUtils.setField(order, "orderName", orderName);

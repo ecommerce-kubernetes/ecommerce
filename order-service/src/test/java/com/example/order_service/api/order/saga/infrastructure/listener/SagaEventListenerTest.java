@@ -16,12 +16,14 @@ public class SagaEventListenerTest extends IncludeInfraTest {
     @MockitoBean
     private SagaManager sagaManager;
 
+    private static final String ORDER_NO = "ORD-20260101-AB12FVC";
+
     @Test
     @DisplayName("상품 서비스 응답을 수신하면 sagaManager를 통해 Saga를 진행한다")
     void handleProductResult() {
         //given
         Long sagaId = 1L;
-        SagaProcessResult result = SagaProcessResult.success(sagaId, 1L);
+        SagaProcessResult result = SagaProcessResult.success(sagaId, ORDER_NO);
         //when
         kafkaTemplate.send(PRODUCT_RESULT_TOPIC_NAME, String.valueOf(result.getSagaId()), result);
         //then
@@ -33,7 +35,7 @@ public class SagaEventListenerTest extends IncludeInfraTest {
     void handleCouponResult() {
         //given
         Long sagaId = 1L;
-        SagaProcessResult result = SagaProcessResult.success(sagaId, 1L);
+        SagaProcessResult result = SagaProcessResult.success(sagaId, ORDER_NO);
         //when
         kafkaTemplate.send(COUPON_RESULT_TOPIC_NAME, String.valueOf(result.getSagaId()), result);
         //then
@@ -45,7 +47,7 @@ public class SagaEventListenerTest extends IncludeInfraTest {
     void handleUserResult(){
         //given
         Long sagaId = 1L;
-        SagaProcessResult result = SagaProcessResult.success(sagaId, 1L);
+        SagaProcessResult result = SagaProcessResult.success(sagaId, ORDER_NO);
         //when
         kafkaTemplate.send(USER_RESULT_TOPIC_NAME, String.valueOf(result.getSagaId()), result);
         //then

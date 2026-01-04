@@ -34,6 +34,7 @@ public class OrderEventListenerTest {
     private SagaManager sagaManager;
     @Mock
     private OrderApplicationService orderApplicationService;
+    public static final String ORDER_NO = "ORD-20260101-AB12FVC";
 
     @Test
     @DisplayName("주문 생성 이벤트를 수신하면 SAGA 를 수행한다")
@@ -48,7 +49,7 @@ public class OrderEventListenerTest {
                 .quantity(5)
                 .build();
         OrderCreatedEvent orderCreatedEvent = OrderCreatedEvent.builder()
-                .orderId(1L)
+                .orderNo(ORDER_NO)
                 .userId(1L)
                 .couponId(1L)
                 .orderedItems(List.of(item1, item2))
@@ -63,11 +64,11 @@ public class OrderEventListenerTest {
         SagaStartCommand command = captor.getValue();
 
         assertThat(command)
-                .extracting("orderId", "userId", "couponId", "usedPoint")
-                .containsExactly(1L, 1L, 1L, 1000L);
+                .extracting(SagaStartCommand::getOrderNo, SagaStartCommand::getUserId, SagaStartCommand::getCouponId, SagaStartCommand::getUsedPoint)
+                .containsExactly(ORDER_NO, 1L, 1L, 1000L);
         assertThat(command.getDeductProductList())
                 .hasSize(2)
-                .extracting("productVariantId", "quantity")
+                .extracting(SagaStartCommand.DeductProduct::getProductVariantId, SagaStartCommand.DeductProduct::getQuantity)
                 .containsExactlyInAnyOrder(
                         tuple(1L, 3),
                         tuple(2L, 5)
@@ -78,31 +79,29 @@ public class OrderEventListenerTest {
     @DisplayName("Saga가 결제 대기 상태가 되면 주문의 상태를 변경하기 위해 orderApplicationService를 호출한다")
     void handleSagaCompleted() {
         //given
-        Long orderId = 1L;
-        SagaResourceSecuredEvent sagaResourceSecuredEvent = SagaResourceSecuredEvent.of(1L, orderId, 1L);
+        SagaResourceSecuredEvent sagaResourceSecuredEvent = SagaResourceSecuredEvent.of(1L, ORDER_NO, 1L);
         //when
         orderEventListener.handleSagaCompleted(sagaResourceSecuredEvent);
         //then
-        verify(orderApplicationService, times(1)).preparePayment(orderId);
+        verify(orderApplicationService, times(1)).preparePayment(ORDER_NO);
     }
 
     @Test
     @DisplayName("Saga가 실패되면 주문 상태를 변경하기 위해 orderApplicationService를 호출한다")
     void handleSagaAborted() {
         //given
-        Long orderId = 1L;
-        SagaAbortEvent sagaAbortEvent = SagaAbortEvent.of(1L, orderId, 1L, OrderFailureCode.OUT_OF_STOCK);
+        SagaAbortEvent sagaAbortEvent = SagaAbortEvent.of(1L, ORDER_NO, 1L, OrderFailureCode.OUT_OF_STOCK);
         //when
         orderEventListener.handleSagaAborted(sagaAbortEvent);
         //then
-        verify(orderApplicationService, times(1)).processOrderFailure(orderId, OrderFailureCode.OUT_OF_STOCK);
+        verify(orderApplicationService, times(1)).processOrderFailure(ORDER_NO, OrderFailureCode.OUT_OF_STOCK);
     }
 
     @Test
     @DisplayName("결제 처리 후 Saga를 완료하기 위해 sagaManager를 호출한다")
     void handlePaymentResult(){
         //given
-        PaymentResultEvent paymentResultEvent = PaymentResultEvent.of(1L, 1L, OrderEventStatus.SUCCESS, null,
+        PaymentResultEvent paymentResultEvent = PaymentResultEvent.of(ORDER_NO, 1L, OrderEventStatus.SUCCESS, null,
                 List.of(1L, 2L));
         //when
         orderEventListener.handlePaymentResult(paymentResultEvent);
@@ -111,8 +110,8 @@ public class OrderEventListenerTest {
         verify(sagaManager, times(1)).processPaymentResult(captor.capture());
 
         assertThat(captor.getValue())
-                .extracting(SagaPaymentCommand::getOrderId, SagaPaymentCommand::getStatus, SagaPaymentCommand::getCode,
+                .extracting(SagaPaymentCommand::getOrderNo, SagaPaymentCommand::getStatus, SagaPaymentCommand::getCode,
                         SagaPaymentCommand::getFailureReason)
-                .containsExactly(1L, OrderEventStatus.SUCCESS, null, null);
+                .containsExactly(ORDER_NO, OrderEventStatus.SUCCESS, null, null);
     }
 }

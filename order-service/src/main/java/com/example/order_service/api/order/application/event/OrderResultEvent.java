@@ -6,7 +6,7 @@ import lombok.Getter;
 
 @Getter
 public class OrderResultEvent {
-    private Long orderId;
+    private String orderNo;
     private Long userId;
     private OrderEventStatus status;
     private String code;
@@ -15,9 +15,9 @@ public class OrderResultEvent {
     private String message;
 
     @Builder
-    private OrderResultEvent(Long orderId, Long userId, OrderEventStatus status, String code, String orderName,
+    private OrderResultEvent(String orderNo, Long userId, OrderEventStatus status, String code, String orderName,
                              Long finalPaymentAmount, String message) {
-        this.orderId = orderId;
+        this.orderNo = orderNo;
         this.userId = userId;
         this.status = status;
         this.code = code;
@@ -26,10 +26,10 @@ public class OrderResultEvent {
         this.message = message;
     }
 
-    public static OrderResultEvent of(Long orderId, Long userId, OrderEventStatus status, String code,
+    public static OrderResultEvent of(String orderNo, Long userId, OrderEventStatus status, String code,
                                       String orderName, Long finalPaymentAmount, String message) {
         return OrderResultEvent.builder()
-                .orderId(orderId)
+                .orderNo(orderNo)
                 .userId(userId)
                 .status(status)
                 .code(code)
@@ -41,7 +41,7 @@ public class OrderResultEvent {
 
     public static OrderResultEvent failure(OrderDto orderDto) {
         return OrderResultEvent.builder()
-                .orderId(orderDto.getOrderId())
+                .orderNo(orderDto.getOrderNo())
                 .userId(orderDto.getUserId())
                 .status(OrderEventStatus.FAILURE)
                 .code(orderDto.getOrderFailureCode().name())
@@ -53,7 +53,7 @@ public class OrderResultEvent {
 
     public static OrderResultEvent paymentReady(OrderDto orderDto) {
         return OrderResultEvent.builder()
-                .orderId(orderDto.getOrderId())
+                .orderNo(orderDto.getOrderNo())
                 .userId(orderDto.getUserId())
                 .status(OrderEventStatus.SUCCESS)
                 .code("PAYMENT_READY")

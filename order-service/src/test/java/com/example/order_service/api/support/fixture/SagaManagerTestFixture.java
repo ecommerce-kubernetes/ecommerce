@@ -13,7 +13,7 @@ import java.util.List;
 
 public class SagaManagerTestFixture {
     public static final Long SAGA_ID = 1L;
-    public static final Long ORDER_ID = 1L;
+    public static final String ORDER_NO = "ORD-20260101-AB12FVC";
     public static final Long USER_ID = 1L;
     public static final Long PRODUCT_VARIANT_ID_1 = 10L;
     public static final Long PRODUCT_VARIANT_ID_2 = 20L;
@@ -28,7 +28,7 @@ public class SagaManagerTestFixture {
                 .productVariantId(PRODUCT_VARIANT_ID_2).quantity(5).build();
 
         return SagaStartCommand.builder()
-                .orderId(ORDER_ID)
+                .orderNo(ORDER_NO)
                 .userId(USER_ID)
                 .couponId(COUPON_ID)
                 .deductProductList(List.of(item1, item2))
@@ -54,7 +54,7 @@ public class SagaManagerTestFixture {
     public static SagaInstanceDto createSagaInstance(SagaStep step, SagaStatus status, Payload payload) {
         return SagaInstanceDto.builder()
                 .id(SAGA_ID)
-                .orderId(ORDER_ID)
+                .orderNo(ORDER_NO)
                 .sagaStatus(status)
                 .sagaStep(step)
                 .payload(payload)
@@ -64,7 +64,7 @@ public class SagaManagerTestFixture {
     public static SagaInstanceDto createSagaInstanceWithId(Long id, SagaStep step, SagaStatus status, Payload payload) {
         return SagaInstanceDto.builder()
                 .id(id)
-                .orderId(ORDER_ID)
+                .orderNo(ORDER_NO)
                 .sagaStatus(status)
                 .sagaStep(step)
                 .payload(payload)
@@ -73,7 +73,7 @@ public class SagaManagerTestFixture {
 
     public static SagaPaymentCommand createPaymentSuccessCommand() {
         return SagaPaymentCommand.builder()
-                .orderId(ORDER_ID)
+                .orderNo(ORDER_NO)
                 .status(OrderEventStatus.SUCCESS)
                 .code(null)
                 .build();
@@ -81,7 +81,7 @@ public class SagaManagerTestFixture {
 
     public static SagaPaymentCommand createPaymentFailCommand(String failureReason) {
         return SagaPaymentCommand.builder()
-                .orderId(ORDER_ID)
+                .orderNo(ORDER_NO)
                 .status(OrderEventStatus.FAILURE)
                 .code(OrderFailureCode.PAYMENT_FAILED)
                 .failureReason(failureReason)

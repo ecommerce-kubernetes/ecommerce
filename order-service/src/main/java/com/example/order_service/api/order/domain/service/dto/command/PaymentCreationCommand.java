@@ -9,15 +9,15 @@ import java.time.OffsetDateTime;
 
 @Getter
 public class PaymentCreationCommand {
-    private Long orderId;
+    private String orderNo;
     private String paymentKey;
     private Long amount;
     private String method;
     private LocalDateTime approvedAt;
 
     @Builder
-    private PaymentCreationCommand(Long orderId, String paymentKey, Long amount, String method, LocalDateTime approvedAt) {
-        this.orderId = orderId;
+    private PaymentCreationCommand(String orderNo, String paymentKey, Long amount, String method, LocalDateTime approvedAt) {
+        this.orderNo = orderNo;
         this.paymentKey = paymentKey;
         this.amount = amount;
         this.method = method;
@@ -27,7 +27,7 @@ public class PaymentCreationCommand {
     public static PaymentCreationCommand from(TossPaymentConfirmResponse response) {
         OffsetDateTime offsetDateTime = OffsetDateTime.parse(response.getApprovedAt());
         return PaymentCreationCommand.builder()
-                .orderId(response.getOrderId())
+                .orderNo(response.getOrderNo())
                 .paymentKey(response.getPaymentKey())
                 .amount(response.getTotalAmount())
                 .method(response.getMethod())

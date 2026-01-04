@@ -65,6 +65,7 @@ public class OrderApplicationServiceTest {
     @Captor
     private ArgumentCaptor<PaymentResultEvent> paymentResultEventCaptor;
 
+    public static final String ORDER_NO = "ORD-20260101-AB12FVC";
     @Test
     @DisplayName("주문을 생성한다")
     void placeOrder(){
@@ -96,8 +97,8 @@ public class OrderApplicationServiceTest {
         OrderCreatedEvent event = orderCreatedEventCaptor.getValue();
 
         assertThat(event)
-                .extracting(OrderCreatedEvent::getOrderId, OrderCreatedEvent::getUserId, OrderCreatedEvent::getCouponId, OrderCreatedEvent::getUsedPoint)
-                .containsExactly(1L, 1L, 1L, 1000L);
+                .extracting(OrderCreatedEvent::getOrderNo, OrderCreatedEvent::getUserId, OrderCreatedEvent::getCouponId, OrderCreatedEvent::getUsedPoint)
+                .containsExactly(ORDER_NO, 1L, 1L, 1000L);
 
         assertThat(event.getOrderedItems())
                 .hasSize(2)
@@ -115,18 +116,18 @@ public class OrderApplicationServiceTest {
         Long orderId = 1L;
         Long expectedAmount = 28600L;
         OrderDto orderDto = mockSavedOrder(OrderStatus.PAYMENT_WAITING, expectedAmount);
-        given(orderDomainService.changeOrderStatus(orderId, OrderStatus.PAYMENT_WAITING))
+        given(orderDomainService.changeOrderStatus(ORDER_NO, OrderStatus.PAYMENT_WAITING))
                 .willReturn(orderDto);
         //when
-        orderApplicationService.preparePayment(orderId);
+        orderApplicationService.preparePayment(ORDER_NO);
         //then
-        verify(orderDomainService, times(1)).changeOrderStatus(orderId, OrderStatus.PAYMENT_WAITING);
+        verify(orderDomainService, times(1)).changeOrderStatus(ORDER_NO, OrderStatus.PAYMENT_WAITING);
         verify(eventPublisher, times(1)).publishEvent(orderResultEventCaptor.capture());
 
         assertThat(orderResultEventCaptor.getValue())
-                .extracting(OrderResultEvent::getOrderId, OrderResultEvent::getUserId, OrderResultEvent::getStatus,
+                .extracting(OrderResultEvent::getOrderNo, OrderResultEvent::getUserId, OrderResultEvent::getStatus,
                         OrderResultEvent::getCode, OrderResultEvent::getOrderName, OrderResultEvent::getFinalPaymentAmount)
-                .containsExactly(orderId, USER_ID, OrderEventStatus.SUCCESS, "PAYMENT_READY",
+                .containsExactly(ORDER_NO, USER_ID, OrderEventStatus.SUCCESS, "PAYMENT_READY",
                         "상품1 외 1건", expectedAmount);
     }
 
@@ -137,20 +138,20 @@ public class OrderApplicationServiceTest {
         Long orderId = 1L;
         OrderFailureCode failureCode = OrderFailureCode.OUT_OF_STOCK;
         OrderDto canceledOrder = mockCanceledOrder(failureCode);
-        given(orderDomainService.canceledOrder(orderId, failureCode))
+        given(orderDomainService.canceledOrder(ORDER_NO, failureCode))
                 .willReturn(canceledOrder);
         //when
-        orderApplicationService.processOrderFailure(orderId, failureCode);
+        orderApplicationService.processOrderFailure(ORDER_NO, failureCode);
         //then
-        verify(orderDomainService, times(1)).canceledOrder(orderId, failureCode);
+        verify(orderDomainService, times(1)).canceledOrder(ORDER_NO, failureCode);
 
         verify(eventPublisher, times(1))
                 .publishEvent(orderResultEventCaptor.capture());
 
         assertThat(orderResultEventCaptor.getValue())
-                .extracting(OrderResultEvent::getOrderId, OrderResultEvent::getUserId, OrderResultEvent::getStatus,
+                .extracting(OrderResultEvent::getOrderNo, OrderResultEvent::getUserId, OrderResultEvent::getStatus,
                         OrderResultEvent::getCode, OrderResultEvent::getOrderName, OrderResultEvent::getFinalPaymentAmount)
-                .containsExactly(orderId, USER_ID, OrderEventStatus.FAILURE, "OUT_OF_STOCK",
+                .containsExactly(ORDER_NO, USER_ID, OrderEventStatus.FAILURE, "OUT_OF_STOCK",
                         "상품1 외 1건", 28600L);
     }
 
@@ -166,7 +167,7 @@ public class OrderApplicationServiceTest {
         OrderDto completedOrder = mockSavedOrder(OrderStatus.COMPLETED, amount);
         given(orderDomainService.getOrder(ORDER_NO, USER_ID))
                 .willReturn(waitingOrder);
-        given(orderExternalAdaptor.confirmOrderPayment(anyLong(), anyString(), anyLong()))
+        given(orderExternalAdaptor.confirmOrderPayment(anyString(), anyString(), anyLong()))
                 .willReturn(paymentResponse);
         given(orderDomainService.completedOrder(any(PaymentCreationCommand.class)))
                 .willReturn(completedOrder);
@@ -182,8 +183,8 @@ public class OrderApplicationServiceTest {
         verify(eventPublisher, times(1)).publishEvent(paymentResultEventCaptor.capture());
 
         assertThat(paymentResultEventCaptor.getValue())
-                .extracting(PaymentResultEvent::getOrderId, PaymentResultEvent::getStatus, PaymentResultEvent::getCode)
-                .containsExactly(orderId, OrderEventStatus.SUCCESS, null);
+                .extracting(PaymentResultEvent::getOrderNo, PaymentResultEvent::getStatus, PaymentResultEvent::getCode)
+                .containsExactly(ORDER_NO, OrderEventStatus.SUCCESS, null);
     }
 
     @Test
@@ -232,8 +233,8 @@ public class OrderApplicationServiceTest {
         given(orderDomainService.getOrder(anyString(), anyLong()))
                 .willReturn(waitingOrder);
         willThrow(new BusinessException(PaymentErrorCode.PAYMENT_APPROVAL_FAIL))
-                .given(orderExternalAdaptor).confirmOrderPayment(anyLong(), anyString(), anyLong());
-        given(orderDomainService.canceledOrder(anyLong(), any(OrderFailureCode.class)))
+                .given(orderExternalAdaptor).confirmOrderPayment(anyString(), anyString(), anyLong());
+        given(orderDomainService.canceledOrder(anyString(), any(OrderFailureCode.class)))
                 .willReturn(failureOrder);
         //when
         //then
@@ -241,12 +242,12 @@ public class OrderApplicationServiceTest {
                 .isInstanceOf(BusinessException.class)
                 .hasMessage(failureMessage);
 
-        verify(orderDomainService, times(1)).canceledOrder(orderId, OrderFailureCode.PAYMENT_FAILED);
+        verify(orderDomainService, times(1)).canceledOrder(ORDER_NO, OrderFailureCode.PAYMENT_FAILED);
 
         verify(eventPublisher, times(1)).publishEvent(paymentResultEventCaptor.capture());
         assertThat(paymentResultEventCaptor.getValue())
-                .extracting(PaymentResultEvent::getOrderId, PaymentResultEvent::getStatus, PaymentResultEvent::getCode)
-                .containsExactly(orderId, OrderEventStatus.FAILURE, OrderFailureCode.PAYMENT_FAILED);
+                .extracting(PaymentResultEvent::getOrderNo, PaymentResultEvent::getStatus, PaymentResultEvent::getCode)
+                .containsExactly(ORDER_NO, OrderEventStatus.FAILURE, OrderFailureCode.PAYMENT_FAILED);
     }
 
     @Test
@@ -260,11 +261,11 @@ public class OrderApplicationServiceTest {
         given(orderDomainService.getOrder(anyString(), anyLong()))
                 .willReturn(waitingOrder);
         TossPaymentConfirmResponse paymentResponse = mockPaymentResponse(paymentKey, FIXED_FINAL_PRICE);
-        given(orderExternalAdaptor.confirmOrderPayment(anyLong(), anyString(), anyLong()))
+        given(orderExternalAdaptor.confirmOrderPayment(anyString(), anyString(), anyLong()))
                 .willReturn(paymentResponse);
         willThrow(RuntimeException.class)
                 .given(orderDomainService).completedOrder(any());
-        given(orderDomainService.canceledOrder(anyLong(), any()))
+        given(orderDomainService.canceledOrder(anyString(), any()))
                 .willReturn(canceledOrder);
         //when
         //then
@@ -273,11 +274,11 @@ public class OrderApplicationServiceTest {
                 .extracting("errorCode")
                 .isEqualTo(CommonErrorCode.INTERNAL_ERROR);
 
-        verify(orderDomainService).canceledOrder(orderId, OrderFailureCode.SYSTEM_ERROR);
+        verify(orderDomainService).canceledOrder(ORDER_NO, OrderFailureCode.SYSTEM_ERROR);
         verify(eventPublisher, times(1)).publishEvent(paymentResultEventCaptor.capture());
         assertThat(paymentResultEventCaptor.getValue())
-                .extracting(PaymentResultEvent::getOrderId, PaymentResultEvent::getStatus, PaymentResultEvent::getCode)
-                .containsExactly(orderId, OrderEventStatus.FAILURE, OrderFailureCode.SYSTEM_ERROR);
+                .extracting(PaymentResultEvent::getOrderNo, PaymentResultEvent::getStatus, PaymentResultEvent::getCode)
+                .containsExactly(ORDER_NO, OrderEventStatus.FAILURE, OrderFailureCode.SYSTEM_ERROR);
     }
 
     @Test

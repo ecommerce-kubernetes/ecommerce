@@ -24,6 +24,7 @@ public class TossPaymentClientCircuitBreakerTest extends ExcludeInfraTest {
     private TossPaymentClientService paymentClientService;
     @Autowired
     private CircuitBreakerRegistry circuitBreakerRegistry;
+    public static final String ORDER_NO = "ORD-20260101-AB12FVC";
 
     @BeforeEach
     void setUp(){
@@ -56,7 +57,7 @@ public class TossPaymentClientCircuitBreakerTest extends ExcludeInfraTest {
         //when
         for (int i = 0; i < 10; i++) {
             try {
-                paymentClientService.confirmPayment(1L, "paymentKey", 3000L);
+                paymentClientService.confirmPayment(ORDER_NO, "paymentKey", 3000L);
             } catch (Exception e) {}
         }
         //then
@@ -76,7 +77,7 @@ public class TossPaymentClientCircuitBreakerTest extends ExcludeInfraTest {
         //when
         for (int i = 0; i < 10; i++) {
             try {
-                paymentClientService.confirmPayment(1L, "paymentKey", 3000L);
+                paymentClientService.confirmPayment(ORDER_NO, "paymentKey", 3000L);
             } catch (Exception e) {}
         }
         //then
@@ -84,7 +85,7 @@ public class TossPaymentClientCircuitBreakerTest extends ExcludeInfraTest {
         CircuitBreaker breaker = circuitBreakerRegistry.circuitBreaker("tossPaymentService");
         assertThat(breaker.getState()).isEqualTo(CircuitBreaker.State.OPEN);
 
-        assertThatThrownBy(() -> paymentClientService.confirmPayment(1L, "paymentKey", 3000L))
+        assertThatThrownBy(() -> paymentClientService.confirmPayment(ORDER_NO, "paymentKey", 3000L))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(ExternalServiceErrorCode.UNAVAILABLE);

@@ -14,6 +14,8 @@ import static com.github.tomakehurst.wiremock.client.WireMock.*;
 @AutoConfigureWireMock(port = 0)
 public class TossPaymentClientTest extends ExcludeInfraTest {
 
+    public static final String ORDER_NO = "ORD-20260101-AB12FVC";
+
     @Autowired
     private TossPaymentClient client;
 
@@ -35,7 +37,7 @@ public class TossPaymentClientTest extends ExcludeInfraTest {
                                 """)));
         TossPaymentConfirmRequest request = TossPaymentConfirmRequest
                 .builder()
-                .orderId(1L)
+                .orderNo(ORDER_NO)
                 .paymentKey("paymentKey")
                 .amount(3000L)
                 .build();

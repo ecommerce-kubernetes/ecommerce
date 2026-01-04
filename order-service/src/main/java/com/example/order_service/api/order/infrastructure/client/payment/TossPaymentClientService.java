@@ -17,12 +17,12 @@ public class TossPaymentClientService {
     private final TossPaymentClient tossPaymentClient;
 
     @CircuitBreaker(name = "tossPaymentService", fallbackMethod = "confirmPaymentFallback")
-    public TossPaymentConfirmResponse confirmPayment(Long orderId, String paymentKey, Long amount){
-        TossPaymentConfirmRequest request = TossPaymentConfirmRequest.of(orderId, paymentKey, amount);
+    public TossPaymentConfirmResponse confirmPayment(String orderNo, String paymentKey, Long amount){
+        TossPaymentConfirmRequest request = TossPaymentConfirmRequest.of(orderNo, paymentKey, amount);
         return tossPaymentClient.confirmPayment(request);
     }
 
-    private TossPaymentConfirmResponse confirmPaymentFallback(Long orderId, String paymentKey, Long amount, Throwable throwable) {
+    private TossPaymentConfirmResponse confirmPaymentFallback(String orderNo, String paymentKey, Long amount, Throwable throwable) {
         if (throwable instanceof CallNotPermittedException) {
             log.warn("토스 서킷 브레이커 열림");
             throw new BusinessException(ExternalServiceErrorCode.UNAVAILABLE);

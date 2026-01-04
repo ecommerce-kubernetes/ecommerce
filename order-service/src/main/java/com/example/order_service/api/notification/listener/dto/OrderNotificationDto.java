@@ -6,7 +6,7 @@ import lombok.Getter;
 
 @Getter
 public class OrderNotificationDto {
-    private Long orderId;
+    private String orderNo;
     private Long userId;
     private String status;
     private String code;
@@ -15,8 +15,8 @@ public class OrderNotificationDto {
     private String message;
 
     @Builder
-    private OrderNotificationDto(Long orderId, Long userId, String status, String code, String orderName, Long amount, String message) {
-        this.orderId = orderId;
+    private OrderNotificationDto(String orderNo, Long userId, String status, String code, String orderName, Long amount, String message) {
+        this.orderNo = orderNo;
         this.userId = userId;
         this.status = status;
         this.code = code;
@@ -27,7 +27,7 @@ public class OrderNotificationDto {
 
     public static OrderNotificationDto from(OrderResultEvent event) {
         return OrderNotificationDto.builder()
-                .orderId(event.getOrderId())
+                .orderNo(event.getOrderNo())
                 .userId(event.getUserId())
                 .status(event.getStatus().name())
                 .code(event.getCode())

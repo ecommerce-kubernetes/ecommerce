@@ -7,22 +7,22 @@ import lombok.Getter;
 @Getter
 public class SagaAbortEvent {
     private Long sagaId;
-    private Long orderId;
+    private String orderNo;
     private Long userId;
     private OrderFailureCode orderFailureCode;
 
     @Builder
-    private SagaAbortEvent(Long sagaId, Long orderId, Long userId, OrderFailureCode orderFailureCode) {
+    private SagaAbortEvent(Long sagaId, String orderNo, Long userId, OrderFailureCode orderFailureCode) {
         this.sagaId = sagaId;
-        this.orderId = orderId;
+        this.orderNo = orderNo;
         this.userId = userId;
         this.orderFailureCode = orderFailureCode;
     }
 
-    public static SagaAbortEvent of(Long sagaId, Long orderId, Long userId, OrderFailureCode failureCode){
+    public static SagaAbortEvent of(Long sagaId, String orderNo, Long userId, OrderFailureCode failureCode){
         return SagaAbortEvent.builder()
                 .sagaId(sagaId)
-                .orderId(orderId)
+                .orderNo(orderNo)
                 .userId(userId)
                 .orderFailureCode(failureCode)
                 .build();

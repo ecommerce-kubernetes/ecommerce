@@ -33,11 +33,11 @@ public class OrderEventListener {
 
     @EventListener
     public void handleSagaCompleted(SagaResourceSecuredEvent event){
-        orderApplicationService.preparePayment(event.getOrderId());
+        orderApplicationService.preparePayment(event.getOrderNo());
     }
 
     @EventListener
     public void handleSagaAborted(SagaAbortEvent event) {
-        orderApplicationService.processOrderFailure(event.getOrderId(), event.getOrderFailureCode());
+        orderApplicationService.processOrderFailure(event.getOrderNo(), event.getOrderFailureCode());
     }
 }

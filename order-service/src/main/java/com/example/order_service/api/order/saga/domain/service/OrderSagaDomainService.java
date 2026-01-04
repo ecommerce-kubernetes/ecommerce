@@ -24,8 +24,8 @@ public class OrderSagaDomainService {
 
     private final OrderSagaInstanceRepository orderSagaInstanceRepository;
 
-    public SagaInstanceDto create(Long orderId, Payload payload, SagaStep firstStep){
-        OrderSagaInstance sagaInstance = OrderSagaInstance.create(orderId, payload, firstStep);
+    public SagaInstanceDto create(String orderNo, Payload payload, SagaStep firstStep){
+        OrderSagaInstance sagaInstance = OrderSagaInstance.create(orderNo, payload, firstStep);
         OrderSagaInstance savedSagaInstance = orderSagaInstanceRepository.save(sagaInstance);
         return SagaInstanceDto.from(savedSagaInstance);
     }
@@ -37,8 +37,8 @@ public class OrderSagaDomainService {
     }
 
     @Transactional(readOnly = true)
-    public SagaInstanceDto getSagaByOrderId(Long orderId) {
-        OrderSagaInstance sagaInstance = findSagaByOrderId(orderId);
+    public SagaInstanceDto getSagaByOrderNo(String orderNo) {
+        OrderSagaInstance sagaInstance = findSagaByOrderNo(orderNo);
         return SagaInstanceDto.from(sagaInstance);
     }
 
@@ -90,8 +90,8 @@ public class OrderSagaDomainService {
                 .orElseThrow(() -> new BusinessException(SagaErrorCode.SAGA_NOT_FOUND));
     }
 
-    private OrderSagaInstance findSagaByOrderId(Long orderId) {
-        return orderSagaInstanceRepository.findByOrderId(orderId)
+    private OrderSagaInstance findSagaByOrderNo(String orderNo) {
+        return orderSagaInstanceRepository.findByOrderId(orderNo)
                 .orElseThrow(() -> new BusinessException(SagaErrorCode.SAGA_NOT_FOUND));
     }
 }

@@ -10,7 +10,7 @@ import java.util.List;
 
 public class OrderExternalAdaptorFixture {
     public static final Long USER_ID = 1L;
-    public static final Long ORDER_ID = 1L;
+    public static final String ORDER_NO = "ORD-20260101-AB12FVC";
     public static final Long COUPON_ID = 1L;
     public static final Long VARIANT_ID_1 = 10L;
     public static final Long VARIANT_ID_2 = 20L;
@@ -58,7 +58,7 @@ public class OrderExternalAdaptorFixture {
     public static TossPaymentConfirmResponse createPaymentResponse() {
         return TossPaymentConfirmResponse.builder()
                 .paymentKey(PAYMENT_KEY)
-                .orderId(ORDER_ID)
+                .orderNo(ORDER_NO)
                 .totalAmount(10000L)
                 .status("DONE")
                 .build();

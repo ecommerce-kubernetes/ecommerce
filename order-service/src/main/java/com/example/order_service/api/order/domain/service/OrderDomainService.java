@@ -49,21 +49,21 @@ public class OrderDomainService {
         return new PageImpl<>(orderDtoList, orders.getPageable(), orders.getTotalElements());
     }
 
-    public OrderDto changeOrderStatus(Long orderId, OrderStatus orderStatus){
-        Order order = getByOrderId(orderId);
+    public OrderDto changeOrderStatus(String orderNo, OrderStatus orderStatus){
+        Order order = getByOrderNo(orderNo);
         order.changeStatus(orderStatus);
         return OrderDto.from(order);
     }
 
-    public OrderDto canceledOrder(Long orderId, OrderFailureCode code){
-        Order order = getByOrderId(orderId);
+    public OrderDto canceledOrder(String orderNo, OrderFailureCode code){
+        Order order = getByOrderNo(orderNo);
         order.canceled(code);
         return OrderDto.from(order);
     }
 
     @Transactional
     public OrderDto completedOrder(PaymentCreationCommand command) {
-        Order order = getByOrderId(command.getOrderId());
+        Order order = getByOrderNo(command.getOrderNo());
         order.changeStatus(OrderStatus.COMPLETED);
         Payment payment = Payment.create(command.getAmount(), command.getPaymentKey(), command.getMethod(), command.getApprovedAt());
         order.addPayment(payment);

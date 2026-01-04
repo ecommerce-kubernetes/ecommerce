@@ -24,11 +24,13 @@ class NotificationListenerTest {
     @Mock
     private NotificationService notificationService;
 
+    public static final String ORDER_NO = "ORD-20260101-AB12FVC";
+
     @Test
     @DisplayName("주문 결정 이벤트를 수신하면 알림을 발송한다")
     void handleOrderResult() {
         //given
-        OrderResultEvent event = OrderResultEvent.of(1L, 1L, OrderEventStatus.SUCCESS, "PAYMENT_READY",
+        OrderResultEvent event = OrderResultEvent.of(ORDER_NO, 1L, OrderEventStatus.SUCCESS, "PAYMENT_READY",
                 "상품1 외 1건", 30000L,"결제 준비 완료");
         //when
         notificationListener.handleOrderResult(event);
@@ -37,9 +39,9 @@ class NotificationListenerTest {
         verify(notificationService, times(1)).sendMessage(listenerCaptor.capture());
 
         assertThat(listenerCaptor.getValue())
-                .extracting(OrderNotificationDto::getOrderId, OrderNotificationDto::getUserId,
+                .extracting(OrderNotificationDto::getOrderNo, OrderNotificationDto::getUserId,
                         OrderNotificationDto::getStatus, OrderNotificationDto::getCode,
                         OrderNotificationDto::getOrderName, OrderNotificationDto::getAmount, OrderNotificationDto::getMessage)
-                .containsExactly(1L, 1L, "SUCCESS", "PAYMENT_READY", "상품1 외 1건", 30000L, "결제 준비 완료");
+                .containsExactly(ORDER_NO, 1L, "SUCCESS", "PAYMENT_READY", "상품1 외 1건", 30000L, "결제 준비 완료");
     }
 }

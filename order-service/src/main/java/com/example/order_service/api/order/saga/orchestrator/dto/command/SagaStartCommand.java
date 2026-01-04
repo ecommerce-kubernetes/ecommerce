@@ -12,7 +12,7 @@ import java.util.List;
 @Builder
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class SagaStartCommand {
-    private Long orderId;
+    private String orderNo;
     private Long userId;
     private Long couponId;
     private List<DeductProduct> deductProductList;
@@ -25,21 +25,17 @@ public class SagaStartCommand {
         private Long productVariantId;
         private Integer quantity;
 
-        private static DeductProduct of(Long productVariantId, Integer quantity){
-            return DeductProduct.builder()
-                    .productVariantId(productVariantId)
-                    .quantity(quantity)
-                    .build();
-        }
-
         private static DeductProduct from(OrderCreatedEvent.OrderedItem item){
-            return of(item.getProductVariantId(), item.getQuantity());
+            return DeductProduct.builder()
+                    .productVariantId(item.getProductVariantId())
+                    .quantity(item.getQuantity())
+                    .build();
         }
     }
 
     public static SagaStartCommand from(OrderCreatedEvent event) {
         return SagaStartCommand.builder()
-                .orderId(event.getOrderId())
+                .orderNo(event.getOrderNo())
                 .userId(event.getUserId())
                 .couponId(event.getCouponId())
                 .deductProductList(event.getOrderedItems().stream()

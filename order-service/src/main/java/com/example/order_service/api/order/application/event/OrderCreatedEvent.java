@@ -9,15 +9,15 @@ import java.util.List;
 
 @Getter
 public class OrderCreatedEvent {
-    private Long orderId;
+    private String orderNo;
     private Long userId;
     private Long couponId;
     private List<OrderedItem> orderedItems;
     private Long usedPoint;
 
     @Builder
-    private OrderCreatedEvent(Long orderId, Long userId, Long couponId, List<OrderedItem> orderedItems, Long usedPoint) {
-        this.orderId = orderId;
+    private OrderCreatedEvent(String orderNo, Long userId, Long couponId, List<OrderedItem> orderedItems, Long usedPoint) {
+        this.orderNo = orderNo;
         this.userId = userId;
         this.couponId = couponId;
         this.orderedItems = orderedItems;
@@ -38,19 +38,14 @@ public class OrderCreatedEvent {
         }
     }
 
-    private static OrderCreatedEvent of(Long orderId, Long userId, Long couponId, List<OrderedItem> orderedItems,
-                                        Long usedPoint) {
+    public static OrderCreatedEvent from(OrderDto orderDto) {
+        List<OrderedItem> orderedItems = orderDto.getOrderItemDtoList().stream().map(OrderedItem::from).toList();
         return OrderCreatedEvent.builder()
-                .orderId(orderId)
-                .userId(userId)
-                .couponId(couponId)
+                .orderNo(orderDto.getOrderNo())
+                .userId(orderDto.getUserId())
+                .couponId(orderDto.getAppliedCoupon().getCouponId())
                 .orderedItems(orderedItems)
-                .usedPoint(usedPoint)
+                .usedPoint(orderDto.getOrderPriceInfo().getPointDiscount())
                 .build();
-    }
-
-    public static OrderCreatedEvent from(OrderDto result) {
-        List<OrderedItem> orderedItems = result.getOrderItemDtoList().stream().map(OrderedItem::from).toList();
-        return of(result.getOrderId(), result.getUserId(), result.getAppliedCoupon().getCouponId(), orderedItems, result.getOrderPriceInfo().getPointDiscount());
     }
 }

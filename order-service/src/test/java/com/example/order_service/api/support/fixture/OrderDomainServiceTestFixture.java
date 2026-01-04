@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 public class OrderDomainServiceTestFixture {
     public static final Long USER_ID = 1L;
     public static final String ADDRESS = "서울시 테헤란로 123";
+    public static final String ORDER_NO = "ORD-20260101-AB12FVC";
 
     public static final Long PROD1_ID = 1L;
     public static final String PROD1_NAME = "상품1";

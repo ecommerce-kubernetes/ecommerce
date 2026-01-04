@@ -11,6 +11,8 @@ import static org.assertj.core.api.Assertions.tuple;
 
 public class OrderSagaInstanceTest {
 
+    public static final String ORDER_NO = "ORD-20260101-AB12FVC";
+
     @Test
     @DisplayName("인스턴스 생성시 초기상태는 STARTED 인 초기 SAGA 인스턴스이다")
     void create(){
@@ -26,11 +28,11 @@ public class OrderSagaInstanceTest {
                 .useToPoint(1000L)
                 .build();
         //when
-        OrderSagaInstance sagaInstance = OrderSagaInstance.create(1L, payload, SagaStep.PRODUCT);
+        OrderSagaInstance sagaInstance = OrderSagaInstance.create(ORDER_NO, payload, SagaStep.PRODUCT);
         //then
         assertThat(sagaInstance)
-                .extracting(OrderSagaInstance::getOrderId, OrderSagaInstance::getSagaStep, OrderSagaInstance::getSagaStatus, OrderSagaInstance::getFailureReason)
-                .containsExactly(1L, SagaStep.PRODUCT, SagaStatus.STARTED, null);
+                .extracting(OrderSagaInstance::getOrderNo, OrderSagaInstance::getSagaStep, OrderSagaInstance::getSagaStatus, OrderSagaInstance::getFailureReason)
+                .containsExactly(ORDER_NO, SagaStep.PRODUCT, SagaStatus.STARTED, null);
         assertThat(sagaInstance.getStartedAt())
                 .isNotNull();
         assertThat(sagaInstance.getFinishedAt())
@@ -56,13 +58,13 @@ public class OrderSagaInstanceTest {
                 .couponId(1L)
                 .useToPoint(1000L)
                 .build();
-        OrderSagaInstance sagaInstance = OrderSagaInstance.create(1L, payload, SagaStep.PRODUCT);
+        OrderSagaInstance sagaInstance = OrderSagaInstance.create(ORDER_NO, payload, SagaStep.PRODUCT);
         //when
         sagaInstance.changeStep(SagaStep.COUPON);
         //then
         assertThat(sagaInstance)
-                .extracting(OrderSagaInstance::getOrderId, OrderSagaInstance::getSagaStep, OrderSagaInstance::getSagaStatus, OrderSagaInstance::getFailureReason)
-                .containsExactly(1L, SagaStep.COUPON, SagaStatus.STARTED, null);
+                .extracting(OrderSagaInstance::getOrderNo, OrderSagaInstance::getSagaStep, OrderSagaInstance::getSagaStatus, OrderSagaInstance::getFailureReason)
+                .containsExactly(ORDER_NO, SagaStep.COUPON, SagaStatus.STARTED, null);
         assertThat(sagaInstance.getStartedAt())
                 .isNotNull();
         assertThat(sagaInstance.getFinishedAt())
@@ -87,13 +89,13 @@ public class OrderSagaInstanceTest {
                 .couponId(1L)
                 .useToPoint(1000L)
                 .build();
-        OrderSagaInstance sagaInstance = OrderSagaInstance.create(1L, payload, SagaStep.PRODUCT);
+        OrderSagaInstance sagaInstance = OrderSagaInstance.create(ORDER_NO, payload, SagaStep.PRODUCT);
         //when
         sagaInstance.changeStatus(SagaStatus.FINISHED);
         //then
         assertThat(sagaInstance)
-                .extracting(OrderSagaInstance::getOrderId, OrderSagaInstance::getSagaStep, OrderSagaInstance::getSagaStatus, OrderSagaInstance::getFailureReason)
-                .containsExactly(1L, SagaStep.PRODUCT, SagaStatus.FINISHED, null);
+                .extracting(OrderSagaInstance::getOrderNo, OrderSagaInstance::getSagaStep, OrderSagaInstance::getSagaStatus, OrderSagaInstance::getFailureReason)
+                .containsExactly(ORDER_NO, SagaStep.PRODUCT, SagaStatus.FINISHED, null);
         assertThat(sagaInstance.getStartedAt())
                 .isNotNull();
         assertThat(sagaInstance.getFinishedAt())
@@ -118,7 +120,7 @@ public class OrderSagaInstanceTest {
                 .couponId(1L)
                 .useToPoint(1000L)
                 .build();
-        OrderSagaInstance sagaInstance = OrderSagaInstance.create(1L, payload, SagaStep.PRODUCT);
+        OrderSagaInstance sagaInstance = OrderSagaInstance.create(ORDER_NO, payload, SagaStep.PRODUCT);
         sagaInstance.changeStep(SagaStep.COUPON);
         //when
         sagaInstance.startCompensation(SagaStep.PRODUCT, "유효하지 않은 쿠폰");
@@ -138,7 +140,7 @@ public class OrderSagaInstanceTest {
                 .couponId(1L)
                 .useToPoint(1000L)
                 .build();
-        OrderSagaInstance sagaInstance = OrderSagaInstance.create(1L, payload, SagaStep.PRODUCT);
+        OrderSagaInstance sagaInstance = OrderSagaInstance.create(ORDER_NO, payload, SagaStep.PRODUCT);
         sagaInstance.startCompensation(SagaStep.COUPON, "포인트가 부족합니다");
         //when
         sagaInstance.continueCompensation(SagaStep.PRODUCT);
@@ -158,7 +160,7 @@ public class OrderSagaInstanceTest {
                 .couponId(1L)
                 .useToPoint(1000L)
                 .build();
-        OrderSagaInstance sagaInstance = OrderSagaInstance.create(1L, payload, SagaStep.PRODUCT);
+        OrderSagaInstance sagaInstance = OrderSagaInstance.create(ORDER_NO, payload, SagaStep.PRODUCT);
         //when
         sagaInstance.fail("재고감소 실패");
         //then
@@ -178,7 +180,7 @@ public class OrderSagaInstanceTest {
                 .couponId(1L)
                 .useToPoint(1000L)
                 .build();
-        OrderSagaInstance sagaInstance = OrderSagaInstance.create(1L, payload, SagaStep.PRODUCT);
+        OrderSagaInstance sagaInstance = OrderSagaInstance.create(ORDER_NO, payload, SagaStep.PRODUCT);
         sagaInstance.startCompensation(SagaStep.COUPON, "포인트가 부족합니다");
         //when
         sagaInstance.fail(null);
@@ -199,7 +201,7 @@ public class OrderSagaInstanceTest {
                 .couponId(1L)
                 .useToPoint(1000L)
                 .build();
-        OrderSagaInstance sagaInstance = OrderSagaInstance.create(1L, payload, SagaStep.PRODUCT);
+        OrderSagaInstance sagaInstance = OrderSagaInstance.create(ORDER_NO, payload, SagaStep.PRODUCT);
         //when
         sagaInstance.proceedTo(SagaStep.COUPON);
         //then

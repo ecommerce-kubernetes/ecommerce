@@ -8,16 +8,16 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class TossPaymentConfirmResponse {
     private String paymentKey;
-    private Long orderId;
+    private String orderNo;
     private Long totalAmount;
     private String status;
     private String method;
     private String approvedAt;
 
     @Builder
-    private TossPaymentConfirmResponse(String paymentKey, Long orderId, Long totalAmount, String status, String method, String approvedAt) {
+    private TossPaymentConfirmResponse(String paymentKey, String orderNo, Long totalAmount, String status, String method, String approvedAt) {
         this.paymentKey = paymentKey;
-        this.orderId = orderId;
+        this.orderNo = orderNo;
         this.totalAmount = totalAmount;
         this.status = status;
         this.method = method;

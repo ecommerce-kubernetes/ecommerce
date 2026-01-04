@@ -12,18 +12,39 @@ import org.springframework.data.domain.Page;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 import static com.example.order_service.api.support.fixture.OrderRepositoryTestFixture.testOrderBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Transactional
-public class OrderQueryDslRepositoryTest extends ExcludeInfraTest {
+public class OrderRepositoryTest extends ExcludeInfraTest {
 
     @Autowired
     private EntityManager em;
 
     @Autowired
     private OrderRepository repository;
+
+    @Test
+    @DisplayName("주문 번호로 주문을 조회한다")
+    void findByOrderNoTest(){
+        //given
+        Long userId = 1L;
+        Order order = testOrderBuilder()
+                .userId(userId)
+                .addItem("상품1").addItem("상품2")
+                .build();
+
+        Order savedOrder = repository.save(order);
+        //when
+        Optional<Order> find = repository.findByOrderNo(savedOrder.getOrderNo());
+        //then
+        assertThat(find).isNotEmpty();
+
+        assertThat(find.get().getUserId()).isEqualTo(userId);
+        assertThat(find.get().getOrderNo()).isNotNull();
+    }
 
     @Test
     @DisplayName("특정 유저의 주문을 최신순으로 조회한다")

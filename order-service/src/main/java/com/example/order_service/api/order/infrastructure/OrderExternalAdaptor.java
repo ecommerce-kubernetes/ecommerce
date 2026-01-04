@@ -46,8 +46,8 @@ public class OrderExternalAdaptor {
         return products;
     }
 
-    public TossPaymentConfirmResponse confirmOrderPayment(Long orderId, String paymentKey, Long amount) {
-        return tossPaymentClientService.confirmPayment(orderId, paymentKey, amount);
+    public TossPaymentConfirmResponse confirmOrderPayment(String orderNo, String paymentKey, Long amount) {
+        return tossPaymentClientService.confirmPayment(orderNo, paymentKey, amount);
     }
 
     public void cancelPayment(String paymentKey) {

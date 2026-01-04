@@ -22,13 +22,13 @@ public class CartEventListenerTest {
     private CartEventListener cartEventListener;
     @Mock
     private CartApplicationService cartApplicationService;
-
+    public static final String ORDER_NO = "ORD-20260101-AB12FVC";
     @Test
     @DisplayName("결제 완료시 장바구니에 주문한 상품을 삭제한다")
     void handlePaymentResult(){
         //given
         PaymentResultEvent event = PaymentResultEvent.builder()
-                .orderId(1L)
+                .orderNo(ORDER_NO)
                 .userId(1L)
                 .status(OrderEventStatus.SUCCESS)
                 .code(null)
@@ -45,7 +45,7 @@ public class CartEventListenerTest {
     void handlePaymentResult_fail(){
         //given
         PaymentResultEvent event = PaymentResultEvent.builder()
-                .orderId(1L)
+                .orderNo(ORDER_NO)
                 .userId(1L)
                 .status(OrderEventStatus.FAILURE)
                 .code(OrderFailureCode.PAYMENT_FAILED)

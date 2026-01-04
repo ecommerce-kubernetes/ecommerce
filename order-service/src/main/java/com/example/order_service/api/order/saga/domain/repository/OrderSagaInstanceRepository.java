@@ -16,6 +16,6 @@ public interface OrderSagaInstanceRepository extends JpaRepository<OrderSagaInst
     List<OrderSagaInstance> findByStartedAtBeforeAndSagaStatus(@Param("startedAt") LocalDateTime startedAt,
                                                                @Param("sagaStatus") SagaStatus status);
 
-    @Query("select os from OrderSagaInstance os where os.orderId = :orderId")
-    Optional<OrderSagaInstance> findByOrderId(@Param("orderId") Long orderId);
+    @Query("select os from OrderSagaInstance os where os.orderNo = :orderNo")
+    Optional<OrderSagaInstance> findByOrderId(@Param("orderNo") String orderNo);
 }

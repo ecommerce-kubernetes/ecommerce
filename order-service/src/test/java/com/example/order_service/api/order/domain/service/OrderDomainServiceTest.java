@@ -90,7 +90,7 @@ public class OrderDomainServiceTest extends ExcludeInfraTest {
         Order order = Order.create(context);
         Order savedOrder = orderRepository.save(order);
         //when
-        OrderDto result = orderDomainService.changeOrderStatus(savedOrder.getId(), OrderStatus.PAYMENT_WAITING);
+        OrderDto result = orderDomainService.changeOrderStatus(savedOrder.getOrderNo(), OrderStatus.PAYMENT_WAITING);
         //then
         assertThat(result.getStatus()).isEqualTo(OrderStatus.PAYMENT_WAITING);
         assertThat(result.getOrderId()).isEqualTo(savedOrder.getId());
@@ -103,7 +103,7 @@ public class OrderDomainServiceTest extends ExcludeInfraTest {
         //given
         //when
         //then
-        assertThatThrownBy(() -> orderDomainService.changeOrderStatus(999L, OrderStatus.PAYMENT_WAITING))
+        assertThatThrownBy(() -> orderDomainService.changeOrderStatus(ORDER_NO, OrderStatus.PAYMENT_WAITING))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(OrderErrorCode.ORDER_NOT_FOUND);
@@ -179,7 +179,7 @@ public class OrderDomainServiceTest extends ExcludeInfraTest {
         Order savedOrder = orderRepository.save(Order.create(context));
         OrderFailureCode failureCode = OrderFailureCode.OUT_OF_STOCK;
         //when
-        OrderDto result = orderDomainService.canceledOrder(savedOrder.getId(), failureCode);
+        OrderDto result = orderDomainService.canceledOrder(savedOrder.getOrderNo(), failureCode);
         //then
         assertThat(result.getStatus()).isEqualTo(OrderStatus.CANCELED);
         assertThat(result.getOrderFailureCode()).isEqualTo(OrderFailureCode.OUT_OF_STOCK);
@@ -192,7 +192,7 @@ public class OrderDomainServiceTest extends ExcludeInfraTest {
         //given
         //when
         //then
-        assertThatThrownBy(() -> orderDomainService.canceledOrder(999L, OrderFailureCode.OUT_OF_STOCK))
+        assertThatThrownBy(() -> orderDomainService.canceledOrder(ORDER_NO, OrderFailureCode.OUT_OF_STOCK))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(OrderErrorCode.ORDER_NOT_FOUND);
@@ -244,7 +244,7 @@ public class OrderDomainServiceTest extends ExcludeInfraTest {
         order.changeStatus(OrderStatus.PAYMENT_WAITING);
         Order savedOrder = orderRepository.save(order);
         PaymentCreationCommand command = PaymentCreationCommand.builder()
-                .orderId(savedOrder.getId())
+                .orderNo(savedOrder.getOrderNo())
                 .paymentKey(paymentKey)
                 .amount(order.getPriceInfo().getFinalPaymentAmount())
                 .method("CARD")

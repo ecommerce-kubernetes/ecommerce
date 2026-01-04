@@ -19,7 +19,7 @@ public class OrderSagaInstance {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private Long orderId;
+    private String orderNo;
     @Enumerated(EnumType.STRING)
     private SagaStatus sagaStatus;
     @Enumerated(EnumType.STRING)
@@ -32,9 +32,9 @@ public class OrderSagaInstance {
     private LocalDateTime finishedAt;
 
     @Builder(access = AccessLevel.PRIVATE)
-    private OrderSagaInstance(Long orderId,SagaStatus sagaStatus, SagaStep sagaStep, Payload payload, String failureReason,
+    private OrderSagaInstance(String orderNo, SagaStatus sagaStatus, SagaStep sagaStep, Payload payload, String failureReason,
                               LocalDateTime startedAt, LocalDateTime finishedAt) {
-        this.orderId = orderId;
+        this.orderNo = orderNo;
         this.sagaStatus = sagaStatus;
         this.sagaStep = sagaStep;
         this.payload = payload;
@@ -76,20 +76,15 @@ public class OrderSagaInstance {
         }
     }
 
-    public static OrderSagaInstance create(Long orderId, Payload payload, SagaStep firstStep) {
-        return of(orderId, SagaStatus.STARTED, firstStep, payload, null, LocalDateTime.now(), null);
-    }
-
-    private static OrderSagaInstance of(Long orderId, SagaStatus sagaStatus, SagaStep sagaStep, Payload payload, String failureReason,
-                                        LocalDateTime startedAt, LocalDateTime finishedAt) {
+    public static OrderSagaInstance create(String orderNo, Payload payload, SagaStep firstStep) {
         return OrderSagaInstance.builder()
-                .orderId(orderId)
-                .sagaStatus(sagaStatus)
-                .sagaStep(sagaStep)
+                .orderNo(orderNo)
+                .sagaStatus(SagaStatus.STARTED)
+                .sagaStep(firstStep)
                 .payload(payload)
-                .failureReason(failureReason)
-                .startedAt(startedAt)
-                .finishedAt(finishedAt)
+                .failureReason(null)
+                .startedAt(LocalDateTime.now())
+                .finishedAt(null)
                 .build();
     }
 }

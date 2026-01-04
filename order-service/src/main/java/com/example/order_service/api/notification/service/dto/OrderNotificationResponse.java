@@ -10,7 +10,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class OrderNotificationResponse {
-    private Long orderId;
+    private String orderNo;
     private Long userId;
     private String status;
     private String code;
@@ -19,8 +19,8 @@ public class OrderNotificationResponse {
     private String message;
 
     @Builder
-    private OrderNotificationResponse(Long orderId, Long userId, String status, String code, String orderName, Long amount, String message) {
-        this.orderId = orderId;
+    private OrderNotificationResponse(String orderNo, Long userId, String status, String code, String orderName, Long amount, String message) {
+        this.orderNo = orderNo;
         this.userId = userId;
         this.status = status;
         this.code = code;
@@ -31,7 +31,7 @@ public class OrderNotificationResponse {
 
     public static OrderNotificationResponse from(OrderNotificationDto dto) {
         return OrderNotificationResponse.builder()
-                .orderId(dto.getOrderId())
+                .orderNo(dto.getOrderNo())
                 .userId(dto.getUserId())
                 .status(dto.getStatus())
                 .code(dto.getCode())

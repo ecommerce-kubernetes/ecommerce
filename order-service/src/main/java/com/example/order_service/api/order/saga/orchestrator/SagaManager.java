@@ -34,7 +34,7 @@ public class SagaManager {
     public void startSaga(SagaStartCommand command) {
         Payload payload = Payload.from(command);
         SagaStep firstStep = getNextStep(null, payload);
-        SagaInstanceDto sagaInstanceDto = orderSagaDomainService.create(command.getOrderId(), payload, firstStep);
+        SagaInstanceDto sagaInstanceDto = orderSagaDomainService.create(command.getOrderNo(), payload, firstStep);
         dispatchProceedMessage(sagaInstanceDto);
     }
 
@@ -57,7 +57,7 @@ public class SagaManager {
     }
 
     public void processPaymentResult(SagaPaymentCommand command) {
-        SagaInstanceDto saga = orderSagaDomainService.getSagaByOrderId(command.getOrderId());
+        SagaInstanceDto saga = orderSagaDomainService.getSagaByOrderNo(command.getOrderNo());
         String errorCode = command.getCode() != null ? command.getCode().name() : null;
         String failureReason = command.getFailureReason() != null ? command.getFailureReason() : null;
         applyStepResult(saga, SagaStep.PAYMENT, command.getStatus() == OrderEventStatus.SUCCESS,
@@ -117,7 +117,7 @@ public class SagaManager {
     }
 
     private void startCompensationSequence(SagaInstanceDto saga, String errorCode, String failureReason) {
-        applicationEventPublisher.publishEvent(createSagaAbortEvent(saga.getId(), saga.getOrderId(), saga.getPayload().getUserId(),
+        applicationEventPublisher.publishEvent(createSagaAbortEvent(saga.getId(), saga.getOrderNo(), saga.getPayload().getUserId(),
                 errorCode));
 
         // 다음 보상 단계
@@ -195,17 +195,17 @@ public class SagaManager {
     private void dispatchProceedMessage(SagaInstanceDto saga) {
         switch (saga.getSagaStep()) {
             case PRODUCT:
-                sagaEventProducer.requestInventoryDeduction(saga.getId(), saga.getOrderId(), saga.getPayload());
+                sagaEventProducer.requestInventoryDeduction(saga.getId(), saga.getOrderNo(), saga.getPayload());
                 break;
             case COUPON:
-                sagaEventProducer.requestCouponUse(saga.getId(), saga.getOrderId(), saga.getPayload());
+                sagaEventProducer.requestCouponUse(saga.getId(), saga.getOrderNo(), saga.getPayload());
                 break;
             case USER:
-                sagaEventProducer.requestUserPointUse(saga.getId(), saga.getOrderId(), saga.getPayload());
+                sagaEventProducer.requestUserPointUse(saga.getId(), saga.getOrderNo(), saga.getPayload());
                 break;
             case PAYMENT:
                 SagaResourceSecuredEvent paymentWaitingEvent =
-                        SagaResourceSecuredEvent.of(saga.getId(), saga.getOrderId(), saga.getPayload().getUserId());
+                        SagaResourceSecuredEvent.of(saga.getId(), saga.getOrderNo(), saga.getPayload().getUserId());
                 applicationEventPublisher.publishEvent(paymentWaitingEvent);
         }
     }
@@ -214,20 +214,20 @@ public class SagaManager {
         switch (saga.getSagaStep()) {
             case USER:
             // Step 이 USER -> 유저 포인트 복구 메시지 발행
-                sagaEventProducer.requestUserPointCompensate(saga.getId(), saga.getOrderId(), saga.getPayload());
+                sagaEventProducer.requestUserPointCompensate(saga.getId(), saga.getOrderNo(), saga.getPayload());
                 break;
             // Step 이 COUPON -> 쿠폰 복구 메시지 발행
             case COUPON:
-                sagaEventProducer.requestCouponCompensate(saga.getId(), saga.getOrderId(), saga.getPayload());
+                sagaEventProducer.requestCouponCompensate(saga.getId(), saga.getOrderNo(), saga.getPayload());
                 break;
             // Step 이 PRODUCT -> 상품 재고 복구 메시지 발행
             case PRODUCT:
-                sagaEventProducer.requestInventoryCompensate(saga.getId(), saga.getOrderId(), saga.getPayload());
+                sagaEventProducer.requestInventoryCompensate(saga.getId(), saga.getOrderNo(), saga.getPayload());
                 break;
         }
     }
 
-    private SagaAbortEvent createSagaAbortEvent(Long sagaId, Long orderId, Long userId, String errorCode) {
+    private SagaAbortEvent createSagaAbortEvent(Long sagaId, String orderNo, Long userId, String errorCode) {
 
         OrderFailureCode failureCode = OrderFailureCode.UNKNOWN;
         if(errorCode.equals("OUT_OF_STOCK")) {
@@ -240,6 +240,6 @@ public class SagaManager {
             failureCode = OrderFailureCode.TIMEOUT;
         }
 
-        return SagaAbortEvent.of(sagaId, orderId, userId, failureCode);
+        return SagaAbortEvent.of(sagaId, orderNo, userId, failureCode);
     }
 }
