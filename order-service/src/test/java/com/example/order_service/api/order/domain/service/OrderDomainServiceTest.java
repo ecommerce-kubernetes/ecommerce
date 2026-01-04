@@ -116,7 +116,7 @@ public class OrderDomainServiceTest extends ExcludeInfraTest {
         OrderCreationContext context = createDefaultContext();
         Order savedOrder = orderRepository.save(Order.create(context));
         //when
-        OrderDto result = orderDomainService.getOrder(savedOrder.getId(), USER_ID);
+        OrderDto result = orderDomainService.getOrder(savedOrder.getOrderNo(), USER_ID);
         //then
         assertThat(result.getOrderId()).isEqualTo(savedOrder.getId());
         assertThat(result.getStatus()).isEqualTo(OrderStatus.PENDING);
@@ -150,7 +150,7 @@ public class OrderDomainServiceTest extends ExcludeInfraTest {
         //given
         //when
         //then
-        assertThatThrownBy(() -> orderDomainService.getOrder(999L, USER_ID))
+        assertThatThrownBy(() -> orderDomainService.getOrder("NOT_EXIST_ORDER_NO", USER_ID))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(OrderErrorCode.ORDER_NOT_FOUND);
@@ -165,7 +165,7 @@ public class OrderDomainServiceTest extends ExcludeInfraTest {
         Order savedOrder = orderRepository.save(Order.create(context));
         //when
         //then
-        assertThatThrownBy(() -> orderDomainService.getOrder(savedOrder.getId(), otherUserId))
+        assertThatThrownBy(() -> orderDomainService.getOrder(savedOrder.getOrderNo(), otherUserId))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(OrderErrorCode.ORDER_NO_PERMISSION);

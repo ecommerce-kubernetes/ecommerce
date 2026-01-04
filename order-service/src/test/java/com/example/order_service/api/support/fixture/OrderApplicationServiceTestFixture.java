@@ -21,6 +21,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 public class OrderApplicationServiceTestFixture {
+    public static final String ORDER_NO = "ORD-20260101-AB12FVC";
     public static final Long USER_ID = 1L;
     public static final String ADDRESS = "서울시 테헤란로 123";
 
@@ -79,6 +80,7 @@ public class OrderApplicationServiceTestFixture {
         long totalProdDisc = (totalOrigin * DISCOUNT_RATE) / 100;
         return OrderDto.builder()
                 .orderId(1L)
+                .orderNo(ORDER_NO)
                 .userId(USER_ID)
                 .orderName("상품1 외 1건")
                 .deliveryAddress(ADDRESS)
@@ -119,6 +121,7 @@ public class OrderApplicationServiceTestFixture {
         OrderDto order = mockSavedOrder(OrderStatus.CANCELED, FIXED_FINAL_PRICE);
         return OrderDto.builder()
                 .orderId(order.getOrderId())
+                .orderNo(ORDER_NO)
                 .userId(order.getUserId())
                 .orderName(order.getOrderName())
                 .status(OrderStatus.CANCELED)

@@ -10,15 +10,15 @@ import java.util.List;
 @Getter
 @NoArgsConstructor
 public class OrderListResponse {
-    private Long orderId;
+    private String orderNo;
     private Long userId;
     private String orderStatus;
     private List<OrderItemResponse> orderItems;
     private String createdAt;
 
     @Builder
-    private OrderListResponse(Long orderId, Long userId, String orderStatus, List<OrderItemResponse> orderItems, String createdAt) {
-        this.orderId = orderId;
+    private OrderListResponse(String orderNo, Long userId, String orderStatus, List<OrderItemResponse> orderItems, String createdAt) {
+        this.orderNo = orderNo;
         this.userId = userId;
         this.orderStatus = orderStatus;
         this.orderItems = orderItems;
@@ -28,7 +28,7 @@ public class OrderListResponse {
     public static OrderListResponse from(OrderDto orderDto){
         List<OrderItemResponse> orderItemResponses = orderDto.getOrderItemDtoList().stream().map(OrderItemResponse::from).toList();
         return OrderListResponse.builder()
-                .orderId(orderDto.getOrderId())
+                .orderNo(orderDto.getOrderNo())
                 .userId(orderDto.getUserId())
                 .orderStatus(orderDto.getStatus().name())
                 .orderItems(orderItemResponses)

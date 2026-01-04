@@ -44,6 +44,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import(TestSecurityConfig.class)
 class OrderControllerTest extends ControllerTestSupport {
 
+    private static final String ORDER_NO = "ORD-20260101-AB12FVC";
+
     @Test
     @DisplayName("주문을 생성한다")
     @WithCustomMockUser
@@ -108,7 +110,7 @@ class OrderControllerTest extends ControllerTestSupport {
         OrderConfirmRequest request = confirmBaseRequest().build();
         OrderDetailResponse response = createOrderDetailResponse();
 
-        given(orderApplicationService.finalizeOrder(anyLong(), anyLong(), anyString(), anyLong()))
+        given(orderApplicationService.finalizeOrder(anyString(), anyLong(), anyString(), anyLong()))
                 .willReturn(response);
         //when
         //then
@@ -143,7 +145,7 @@ class OrderControllerTest extends ControllerTestSupport {
         //given
         OrderDetailResponse response = createOrderDetailResponse();
 
-        given(orderApplicationService.getOrder(anyLong(), anyLong()))
+        given(orderApplicationService.getOrder(anyLong(), anyString()))
                 .willReturn(response);
         //when
         //then
@@ -321,7 +323,7 @@ class OrderControllerTest extends ControllerTestSupport {
 
     private static Stream<Arguments> provideInvalidConfirmRequest(){
         return Stream.of(
-                Arguments.of("주문 ID null", confirmBaseRequest().orderId(null).build(), "주문 Id는 필수 입니다"),
+                Arguments.of("주문 ID null", confirmBaseRequest().orderNo(null).build(), "주문 번호는 필수 입니다"),
                 Arguments.of("결제 키 null", confirmBaseRequest().paymentKey(null).build(), "결제 키는 필수 입니다"),
                 Arguments.of("결제 가격 null", confirmBaseRequest().amount(null).build(), "결제 가격은 필수 입니다")
         );
@@ -329,7 +331,7 @@ class OrderControllerTest extends ControllerTestSupport {
 
     private OrderDetailResponse createOrderDetailResponse() {
         return OrderDetailResponse.builder()
-                .orderId(1L)
+                .orderNo(ORDER_NO)
                 .userId(1L)
                 .orderStatus("COMPLETED")
                 .orderName("상품1")
@@ -365,7 +367,7 @@ class OrderControllerTest extends ControllerTestSupport {
 
     private CreateOrderResponse createCreateOrderResponse(){
         return CreateOrderResponse.builder()
-                .orderId(1L)
+                .orderNo(ORDER_NO)
                 .status("PENDING")
                 .orderName("상품1")
                 .finalPaymentAmount(2400L)
@@ -375,7 +377,7 @@ class OrderControllerTest extends ControllerTestSupport {
 
     private OrderListResponse createOrderListResponse(){
         return OrderListResponse.builder()
-                .orderId(1L)
+                .orderNo(ORDER_NO)
                 .userId(1L)
                 .orderStatus("COMPLETED")
                 .orderItems(createOrderItemResponse())
@@ -419,7 +421,7 @@ class OrderControllerTest extends ControllerTestSupport {
 
     private static OrderConfirmRequest.OrderConfirmRequestBuilder confirmBaseRequest() {
         return OrderConfirmRequest.builder()
-                .orderId(1L)
+                .orderNo(ORDER_NO)
                 .paymentKey("paymentKey")
                 .amount(10000L);
     }

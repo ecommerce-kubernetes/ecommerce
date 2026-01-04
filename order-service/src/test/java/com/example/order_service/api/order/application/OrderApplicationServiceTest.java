@@ -86,7 +86,7 @@ public class OrderApplicationServiceTest {
         //when
         CreateOrderResponse response = orderApplicationService.placeOrder(orderRequest);
         //then
-        assertThat(response.getOrderId()).isNotNull();
+        assertThat(response.getOrderNo()).isNotNull();
         assertThat(response)
                 .extracting(CreateOrderResponse::getStatus, CreateOrderResponse::getOrderName, CreateOrderResponse::getFinalPaymentAmount)
                 .contains("PENDING", expectedOrderName, expectedAmount);
@@ -164,19 +164,19 @@ public class OrderApplicationServiceTest {
         OrderDto waitingOrder = mockSavedOrder(OrderStatus.PAYMENT_WAITING, amount);
         TossPaymentConfirmResponse paymentResponse = mockPaymentResponse(paymentKey, amount);
         OrderDto completedOrder = mockSavedOrder(OrderStatus.COMPLETED, amount);
-        given(orderDomainService.getOrder(orderId, USER_ID))
+        given(orderDomainService.getOrder(ORDER_NO, USER_ID))
                 .willReturn(waitingOrder);
         given(orderExternalAdaptor.confirmOrderPayment(anyLong(), anyString(), anyLong()))
                 .willReturn(paymentResponse);
         given(orderDomainService.completedOrder(any(PaymentCreationCommand.class)))
                 .willReturn(completedOrder);
         //when
-        OrderDetailResponse result = orderApplicationService.finalizeOrder(orderId, USER_ID, paymentKey, amount);
+        OrderDetailResponse result = orderApplicationService.finalizeOrder(ORDER_NO, USER_ID, paymentKey, amount);
         //then
         assertThat(result)
-                .extracting(OrderDetailResponse::getOrderId, OrderDetailResponse::getUserId, OrderDetailResponse::getOrderStatus, OrderDetailResponse::getOrderName,
+                .extracting(OrderDetailResponse::getOrderNo, OrderDetailResponse::getUserId, OrderDetailResponse::getOrderStatus, OrderDetailResponse::getOrderName,
                         OrderDetailResponse::getDeliveryAddress)
-                .containsExactly(orderId, USER_ID, "COMPLETED", "상품1 외 1건", ADDRESS);
+                .containsExactly(ORDER_NO, USER_ID, "COMPLETED", "상품1 외 1건", ADDRESS);
         assertThat(result.getOrderItems()).isNotEmpty();
 
         verify(eventPublisher, times(1)).publishEvent(paymentResultEventCaptor.capture());
@@ -192,11 +192,11 @@ public class OrderApplicationServiceTest {
         //given
         Long orderId = 1L;
         OrderDto invalidStatusOrder = mockSavedOrder(OrderStatus.PENDING, FIXED_FINAL_PRICE);
-        given(orderDomainService.getOrder(anyLong(), anyLong()))
+        given(orderDomainService.getOrder(anyString(), anyLong()))
                 .willReturn(invalidStatusOrder);
         //when
         //then
-        assertThatThrownBy(() -> orderApplicationService.finalizeOrder(orderId, USER_ID, "paymentKey", FIXED_FINAL_PRICE))
+        assertThatThrownBy(() -> orderApplicationService.finalizeOrder(ORDER_NO, USER_ID, "paymentKey", FIXED_FINAL_PRICE))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(OrderErrorCode.ORDER_NOT_PAYABLE);
@@ -209,11 +209,11 @@ public class OrderApplicationServiceTest {
         Long orderId = 1L;
         Long requestedAmount = 30000L;
         OrderDto orderDto = mockSavedOrder(OrderStatus.PAYMENT_WAITING, FIXED_FINAL_PRICE);
-        given(orderDomainService.getOrder(anyLong(), anyLong()))
+        given(orderDomainService.getOrder(anyString(), anyLong()))
                 .willReturn(orderDto);
         //when
         //then
-        assertThatThrownBy(() -> orderApplicationService.finalizeOrder(orderId, USER_ID, "paymentKey", requestedAmount))
+        assertThatThrownBy(() -> orderApplicationService.finalizeOrder(ORDER_NO, USER_ID, "paymentKey", requestedAmount))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(OrderErrorCode.ORDER_PRICE_MISMATCH);
@@ -229,7 +229,7 @@ public class OrderApplicationServiceTest {
 
         OrderDto waitingOrder = mockSavedOrder(OrderStatus.PAYMENT_WAITING, FIXED_FINAL_PRICE);
         OrderDto failureOrder = mockCanceledOrder(OrderFailureCode.PAYMENT_FAILED);
-        given(orderDomainService.getOrder(anyLong(), anyLong()))
+        given(orderDomainService.getOrder(anyString(), anyLong()))
                 .willReturn(waitingOrder);
         willThrow(new BusinessException(PaymentErrorCode.PAYMENT_APPROVAL_FAIL))
                 .given(orderExternalAdaptor).confirmOrderPayment(anyLong(), anyString(), anyLong());
@@ -237,7 +237,7 @@ public class OrderApplicationServiceTest {
                 .willReturn(failureOrder);
         //when
         //then
-        assertThatThrownBy(() -> orderApplicationService.finalizeOrder(orderId, USER_ID, paymentKey, FIXED_FINAL_PRICE))
+        assertThatThrownBy(() -> orderApplicationService.finalizeOrder(ORDER_NO, USER_ID, paymentKey, FIXED_FINAL_PRICE))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage(failureMessage);
 
@@ -257,7 +257,7 @@ public class OrderApplicationServiceTest {
         String paymentKey = "paymentKey";
         OrderDto waitingOrder = mockSavedOrder(OrderStatus.PAYMENT_WAITING, FIXED_FINAL_PRICE);
         OrderDto canceledOrder = mockSavedOrder(OrderStatus.CANCELED, FIXED_FINAL_PRICE);
-        given(orderDomainService.getOrder(anyLong(), anyLong()))
+        given(orderDomainService.getOrder(anyString(), anyLong()))
                 .willReturn(waitingOrder);
         TossPaymentConfirmResponse paymentResponse = mockPaymentResponse(paymentKey, FIXED_FINAL_PRICE);
         given(orderExternalAdaptor.confirmOrderPayment(anyLong(), anyString(), anyLong()))
@@ -268,7 +268,7 @@ public class OrderApplicationServiceTest {
                 .willReturn(canceledOrder);
         //when
         //then
-        assertThatThrownBy(() -> orderApplicationService.finalizeOrder(orderId, USER_ID, paymentKey, FIXED_FINAL_PRICE))
+        assertThatThrownBy(() -> orderApplicationService.finalizeOrder(ORDER_NO, USER_ID, paymentKey, FIXED_FINAL_PRICE))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(CommonErrorCode.INTERNAL_ERROR);
@@ -284,17 +284,16 @@ public class OrderApplicationServiceTest {
     @DisplayName("주문을 조회한다")
     void getOrder(){
         //given
-        Long orderId = 1L;
         OrderDto orderDto = mockSavedOrder(OrderStatus.COMPLETED, FIXED_FINAL_PRICE);
-        given(orderDomainService.getOrder(anyLong(), anyLong()))
+        given(orderDomainService.getOrder(anyString(), anyLong()))
                 .willReturn(orderDto);
         //when
-        OrderDetailResponse result = orderApplicationService.getOrder(USER_ID, orderId);
+        OrderDetailResponse result = orderApplicationService.getOrder(USER_ID, ORDER_NO);
         //then
         assertThat(result)
-                .extracting(OrderDetailResponse::getOrderId, OrderDetailResponse::getUserId, OrderDetailResponse::getOrderStatus, OrderDetailResponse::getOrderName,
+                .extracting(OrderDetailResponse::getOrderNo, OrderDetailResponse::getUserId, OrderDetailResponse::getOrderStatus, OrderDetailResponse::getOrderName,
                         OrderDetailResponse::getDeliveryAddress)
-                .containsExactly(orderId, USER_ID, "COMPLETED", "상품1 외 1건", ADDRESS);
+                .containsExactly(ORDER_NO, USER_ID, "COMPLETED", "상품1 외 1건", ADDRESS);
 
         assertThat(result.getOrderPriceResponse())
                 .extracting(
@@ -365,13 +364,13 @@ public class OrderApplicationServiceTest {
         assertThat(result.getContent())
                 .hasSize(2)
                 .extracting(
-                        OrderListResponse::getOrderId,
+                        OrderListResponse::getOrderNo,
                         OrderListResponse::getOrderStatus,
                         OrderListResponse::getUserId
                 )
                 .containsExactly(
-                        tuple(1L, "COMPLETED", USER_ID),
-                        tuple(1L, "COMPLETED", USER_ID)
+                        tuple(ORDER_NO, "COMPLETED", USER_ID),
+                        tuple(ORDER_NO, "COMPLETED", USER_ID)
                 );
 
         assertThat(result.getContent().get(0).getOrderItems())

@@ -46,10 +46,10 @@ public class OrderController {
         return ResponseEntity.status(HttpStatus.SC_ACCEPTED).body(response);
     }
 
-    @GetMapping("/{orderId}")
+    @GetMapping("/{orderNo}")
     public ResponseEntity<OrderDetailResponse> getOrder(@AuthenticationPrincipal UserPrincipal userPrincipal,
-                                                        @PathVariable("orderId") Long orderId) {
-        OrderDetailResponse response = orderApplicationService.getOrder(userPrincipal.getUserId(), orderId);
+                                                        @PathVariable("orderNo") String orderNo) {
+        OrderDetailResponse response = orderApplicationService.getOrder(userPrincipal.getUserId(), orderNo);
         return ResponseEntity.ok(response);
     }
 
@@ -63,7 +63,7 @@ public class OrderController {
     @PostMapping("/confirm")
     public ResponseEntity<OrderDetailResponse> confirm(@AuthenticationPrincipal UserPrincipal userPrincipal,
                                                        @RequestBody @Validated OrderConfirmRequest request) {
-        OrderDetailResponse response = orderApplicationService.finalizeOrder(request.getOrderId(),
+        OrderDetailResponse response = orderApplicationService.finalizeOrder(request.getOrderNo(),
                 userPrincipal.getUserId(), request.getPaymentKey(), request.getAmount());
         return ResponseEntity.ok(response);
     }

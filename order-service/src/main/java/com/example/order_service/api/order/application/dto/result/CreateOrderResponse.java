@@ -8,15 +8,15 @@ import lombok.Setter;
 @Getter
 @Setter
 public class CreateOrderResponse {
-    private Long orderId;
+    private String orderNo;
     private String status;
     private String orderName;
     private Long finalPaymentAmount;
     private String createdAt;
 
     @Builder
-    private CreateOrderResponse(Long orderId, String status, String orderName, String createdAt, Long finalPaymentAmount){
-        this.orderId = orderId;
+    private CreateOrderResponse(String orderNo, String status, String orderName, String createdAt, Long finalPaymentAmount){
+        this.orderNo = orderNo;
         this.status = status;
         this.orderName = orderName;
         this.finalPaymentAmount = finalPaymentAmount;
@@ -25,7 +25,7 @@ public class CreateOrderResponse {
 
     public static CreateOrderResponse of(OrderDto result) {
         return CreateOrderResponse.builder()
-                .orderId(result.getOrderId())
+                .orderNo(result.getOrderNo())
                 .status(result.getStatus().name())
                 .orderName(result.getOrderName())
                 .finalPaymentAmount(result.getOrderPriceInfo().getFinalPaymentAmount())

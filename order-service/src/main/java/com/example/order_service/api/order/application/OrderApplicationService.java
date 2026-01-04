@@ -78,15 +78,15 @@ public class OrderApplicationService {
         eventPublisher.publishEvent(OrderResultEvent.failure(orderDto));
     }
 
-    public OrderDetailResponse finalizeOrder(Long orderId, Long userId, String paymentKey, Long amount) {
-        OrderDto order = orderDomainService.getOrder(orderId, userId);
+    public OrderDetailResponse finalizeOrder(String orderNo, Long userId, String paymentKey, Long amount) {
+        OrderDto order = orderDomainService.getOrder(orderNo, userId);
         validBeforePayment(order, amount);
         TossPaymentConfirmResponse confirmResponse = executePaymentConfirmRequest(order, paymentKey);
         return completeOrderWithCompensation(order, confirmResponse, paymentKey);
     }
 
-    public OrderDetailResponse getOrder(Long userId, Long orderId) {
-        OrderDto order = orderDomainService.getOrder(orderId, userId);
+    public OrderDetailResponse getOrder(Long userId, String orderNo) {
+        OrderDto order = orderDomainService.getOrder(orderNo, userId);
         return OrderDetailResponse.from(order);
     }
 

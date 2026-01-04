@@ -34,8 +34,8 @@ public class OrderDomainService {
     }
 
     @Transactional(readOnly = true)
-    public OrderDto getOrder(Long orderId, Long userId) {
-        Order order = getByOrderId(orderId);
+    public OrderDto getOrder(String orderNo, Long userId) {
+        Order order = getByOrderNo(orderNo);
         if (!order.isOwner(userId)) {
             throw new BusinessException(OrderErrorCode.ORDER_NO_PERMISSION);
         }
@@ -73,6 +73,11 @@ public class OrderDomainService {
 
     private Order getByOrderId(Long orderId) {
         return orderRepository.findById(orderId)
+                .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_NOT_FOUND));
+    }
+
+    private Order getByOrderNo(String orderNo) {
+        return orderRepository.findByOrderNo(orderNo)
                 .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_NOT_FOUND));
     }
 }

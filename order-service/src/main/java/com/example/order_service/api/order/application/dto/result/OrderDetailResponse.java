@@ -13,7 +13,7 @@ import java.util.List;
 @Getter
 @NoArgsConstructor
 public class OrderDetailResponse {
-    private Long orderId;
+    private String orderNo;
     private Long userId;
     private String orderStatus;
     private String orderName;
@@ -25,10 +25,10 @@ public class OrderDetailResponse {
     private String createdAt;
 
     @Builder
-    private OrderDetailResponse(Long orderId, Long userId, String orderStatus, String orderName, String deliveryAddress,
+    private OrderDetailResponse(String orderNo, Long userId, String orderStatus, String orderName, String deliveryAddress,
                                 OrderPriceResponse orderPriceResponse, CouponResponse couponResponse, PaymentResponse paymentResponse, List<OrderItemResponse> orderItems,
                                 String createdAt) {
-        this.orderId = orderId;
+        this.orderNo = orderNo;
         this.userId = userId;
         this.orderStatus = orderStatus;
         this.orderName = orderName;
@@ -124,7 +124,7 @@ public class OrderDetailResponse {
     public static OrderDetailResponse from(OrderDto orderDto) {
         List<OrderItemResponse> items = orderDto.getOrderItemDtoList().stream().map(OrderItemResponse::from).toList();
         return OrderDetailResponse.builder()
-                .orderId(orderDto.getOrderId())
+                .orderNo(orderDto.getOrderNo())
                 .userId(orderDto.getUserId())
                 .orderStatus(orderDto.getStatus().name())
                 .orderName(orderDto.getOrderName())

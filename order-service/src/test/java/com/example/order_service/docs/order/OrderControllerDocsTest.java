@@ -37,6 +37,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class OrderControllerDocsTest extends RestDocSupport {
+    private static final String ORDER_NO = "ORD-20260101-AB12FVC";
     private OrderApplicationService orderApplicationService = mock(OrderApplicationService.class);
 
     @Override
@@ -61,7 +62,7 @@ public class OrderControllerDocsTest extends RestDocSupport {
                 .build();
 
         CreateOrderResponse response = CreateOrderResponse.builder()
-                .orderId(1L)
+                .orderNo(ORDER_NO)
                 .status("PENDING")
                 .orderName("상품1 외 1건")
                 .finalPaymentAmount(5400L)
@@ -99,7 +100,7 @@ public class OrderControllerDocsTest extends RestDocSupport {
                                         fieldWithPath("expectedPrice").description("예상 결제 금액").optional()
                                 ),
                                 responseFields(
-                                        fieldWithPath("orderId").description("주문 ID(주문 식별자)"),
+                                        fieldWithPath("orderNo").description("주문 번호"),
                                         fieldWithPath("status").description("주문 상태"),
                                         fieldWithPath("createdAt").description("주문 일시"),
                                         fieldWithPath("orderName").description("주문 설명"),
@@ -113,15 +114,14 @@ public class OrderControllerDocsTest extends RestDocSupport {
     @DisplayName("주문 결제 검증 API")
     void confirm() throws Exception {
         //given
-        Long orderId = 1L;
         OrderConfirmRequest request = OrderConfirmRequest.builder()
-                .orderId(orderId)
+                .orderNo(ORDER_NO)
                 .paymentKey("paymentKey")
                 .amount(1000L)
                 .build();
         HttpHeaders roleUser = createUserHeader("ROLE_USER");
-        OrderDetailResponse orderDetailResponse = createOrderResponse(orderId);
-        given(orderApplicationService.finalizeOrder(anyLong(), anyLong(), anyString(), anyLong()))
+        OrderDetailResponse orderDetailResponse = createOrderResponse();
+        given(orderApplicationService.finalizeOrder(anyString(), anyLong(), anyString(), anyLong()))
                 .willReturn(orderDetailResponse);
         //when
         //then
@@ -139,12 +139,12 @@ public class OrderControllerDocsTest extends RestDocSupport {
                                 headerWithName("X-User-Role").description(USER_ROLE_HEADER_DESCRIPTION).optional()
                         ),
                         requestFields(
-                                fieldWithPath("orderId").description("주문 ID").optional(),
+                                fieldWithPath("orderNo").description("주문 번호").optional(),
                                 fieldWithPath("paymentKey").description("결제 키").optional(),
                                 fieldWithPath("amount").description("결제 금액").optional()
                         ),
                         responseFields(
-                                fieldWithPath("orderId").description("주문 ID"),
+                                fieldWithPath("orderNo").description("주문 번호"),
                                 fieldWithPath("userId").description("유저 ID"),
                                 fieldWithPath("orderStatus").description("주문 상태"),
                                 fieldWithPath("orderName").description("주문 이름"),
@@ -187,14 +187,13 @@ public class OrderControllerDocsTest extends RestDocSupport {
     @DisplayName("주문 정보를 조회한다")
     void getOrder() throws Exception {
         //given
-        Long orderId = 1L;
-        OrderDetailResponse orderDetailResponse = createOrderResponse(orderId);
+        OrderDetailResponse orderDetailResponse = createOrderResponse();
         HttpHeaders roleUser = createUserHeader("ROLE_USER");
-        given(orderApplicationService.getOrder(anyLong(), anyLong()))
+        given(orderApplicationService.getOrder(anyLong(), anyString()))
                 .willReturn(orderDetailResponse);
         //when
         //then
-        mockMvc.perform(get("/orders/{orderId}", 1L)
+        mockMvc.perform(get("/orders/{orderNo}", ORDER_NO)
                 .contentType(MediaType.APPLICATION_JSON)
                 .headers(roleUser))
                 .andDo(print())
@@ -207,7 +206,7 @@ public class OrderControllerDocsTest extends RestDocSupport {
                                         headerWithName("X-User-Role").description(USER_ROLE_HEADER_DESCRIPTION).optional()
                                 ),
                                 responseFields(
-                                        fieldWithPath("orderId").description("주문 ID"),
+                                        fieldWithPath("orderNo").description("주문 번호"),
                                         fieldWithPath("userId").description("유저 ID"),
                                         fieldWithPath("orderStatus").description("주문 상태"),
                                         fieldWithPath("orderName").description("주문 이름"),
@@ -253,7 +252,7 @@ public class OrderControllerDocsTest extends RestDocSupport {
     void getOrders() throws Exception {
         //given
         HttpHeaders roleUser = createUserHeader("ROLE_USER");
-        OrderListResponse orderListResponse = createOrderListResponse(1L);
+        OrderListResponse orderListResponse = createOrderListResponse();
         PageDto<OrderListResponse> response = PageDto.<OrderListResponse>builder().content(List.of(orderListResponse))
                 .currentPage(1)
                 .totalPage(10)
@@ -289,7 +288,7 @@ public class OrderControllerDocsTest extends RestDocSupport {
                                         parameterWithName("productName").description("상품명 검색 키워드")
                                 ),
                                 responseFields(
-                                        fieldWithPath("content[].orderId").description("주문 ID"),
+                                        fieldWithPath("content[].orderNo").description("주문 번호"),
                                         fieldWithPath("content[].userId").description("유저 ID"),
                                         fieldWithPath("content[].orderStatus").description("주문 상태"),
                                         fieldWithPath("content[].createdAt").description("주문 시각"),
@@ -316,9 +315,9 @@ public class OrderControllerDocsTest extends RestDocSupport {
                 );
     }
 
-    private OrderListResponse createOrderListResponse(Long orderId) {
+    private OrderListResponse createOrderListResponse() {
         return OrderListResponse.builder()
-                .orderId(orderId)
+                .orderNo(ORDER_NO)
                 .userId(1L)
                 .orderStatus("COMPLETED")
                 .orderItems(createOrderItems())
@@ -326,9 +325,9 @@ public class OrderControllerDocsTest extends RestDocSupport {
                 .build();
     }
 
-    private OrderDetailResponse createOrderResponse(Long orderId) {
+    private OrderDetailResponse createOrderResponse() {
         return OrderDetailResponse.builder()
-                .orderId(orderId)
+                .orderNo(ORDER_NO)
                 .userId(1L)
                 .orderStatus("COMPLETED")
                 .orderName("상품1")

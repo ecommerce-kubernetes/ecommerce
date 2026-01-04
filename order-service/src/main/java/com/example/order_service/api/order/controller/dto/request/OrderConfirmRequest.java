@@ -11,16 +11,16 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class OrderConfirmRequest {
-    @NotNull(message = "주문 Id는 필수 입니다")
-    private Long orderId;
+    @NotNull(message = "주문 번호는 필수 입니다")
+    private String orderNo;
     @NotEmpty(message = "결제 키는 필수 입니다")
     private String paymentKey;
     @NotNull(message = "결제 가격은 필수 입니다")
     private Long amount;
 
     @Builder
-    private OrderConfirmRequest(Long orderId, String paymentKey, Long amount) {
-        this.orderId = orderId;
+    private OrderConfirmRequest(String orderNo, String paymentKey, Long amount) {
+        this.orderNo = orderNo;
         this.paymentKey = paymentKey;
         this.amount = amount;
     }

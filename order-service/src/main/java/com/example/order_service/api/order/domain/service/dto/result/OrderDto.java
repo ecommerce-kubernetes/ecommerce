@@ -16,6 +16,7 @@ import java.util.List;
 @Getter
 public class OrderDto {
     private Long orderId;
+    private String orderNo;
     private Long userId;
     private OrderStatus status;
     private String orderName;
@@ -28,9 +29,10 @@ public class OrderDto {
     private OrderFailureCode orderFailureCode;
 
     @Builder
-    private OrderDto(Long orderId, Long userId, OrderStatus status, String orderName, String deliveryAddress, LocalDateTime orderedAt,
+    private OrderDto(Long orderId, String orderNo, Long userId, OrderStatus status, String orderName, String deliveryAddress, LocalDateTime orderedAt,
                      OrderPriceInfo orderPriceInfo, List<OrderItemDto> orderItemDtoList, AppliedCoupon appliedCoupon, PaymentInfo paymentInfo, OrderFailureCode orderFailureCode){
         this.orderId = orderId;
+        this.orderNo = orderNo;
         this.userId = userId;
         this.status = status;
         this.orderName = orderName;
@@ -44,35 +46,19 @@ public class OrderDto {
     }
 
     public static OrderDto from(Order order) {
-        return of(
-                order.getId(),
-                order.getUserId(),
-                order.getStatus(),
-                order.getOrderName(),
-                order.getDeliveryAddress(),
-                order.getCreatedAt(),
-                order.getPriceInfo(),
-                createOrderItemDto(order.getOrderItems()),
-                AppliedCoupon.from(order.getCoupon()),
-                PaymentInfo.from(order.getPayment()),
-                order.getFailureCode()
-                );
-    }
-
-    public static OrderDto of(Long orderId, Long userId, OrderStatus status, String orderName, String deliveryAddress, LocalDateTime orderedAt, OrderPriceInfo orderPriceInfo,
-                              List<OrderItemDto> orderItemDtoList, AppliedCoupon appliedCoupon, PaymentInfo paymentInfo, OrderFailureCode orderFailureCode){
         return OrderDto.builder()
-                .orderId(orderId)
-                .userId(userId)
-                .status(status)
-                .orderName(orderName)
-                .deliveryAddress(deliveryAddress)
-                .orderedAt(orderedAt)
-                .orderPriceInfo(orderPriceInfo)
-                .orderItemDtoList(orderItemDtoList)
-                .appliedCoupon(appliedCoupon)
-                .paymentInfo(paymentInfo)
-                .orderFailureCode(orderFailureCode)
+                .orderId(order.getId())
+                .orderNo(order.getOrderNo())
+                .userId(order.getUserId())
+                .status(order.getStatus())
+                .orderName(order.getOrderName())
+                .deliveryAddress(order.getDeliveryAddress())
+                .orderedAt(order.getCreatedAt())
+                .orderPriceInfo(order.getPriceInfo())
+                .orderItemDtoList(createOrderItemDto(order.getOrderItems()))
+                .appliedCoupon(AppliedCoupon.from(order.getCoupon()))
+                .paymentInfo(PaymentInfo.from(order.getPayment()))
+                .orderFailureCode(order.getFailureCode())
                 .build();
     }
 

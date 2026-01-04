@@ -12,8 +12,11 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -23,6 +26,7 @@ public class Order extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    private String orderNo;
     private Long userId;
     @Enumerated(EnumType.STRING)
     private OrderStatus status;
@@ -44,7 +48,8 @@ public class Order extends BaseEntity {
     private Payment payment;
 
     @Builder(access = AccessLevel.PRIVATE)
-    private Order(Long userId, OrderStatus status, String orderName, String deliveryAddress, OrderPriceInfo priceInfo, OrderFailureCode failureCode) {
+    private Order(String orderNo, Long userId, OrderStatus status, String orderName, String deliveryAddress, OrderPriceInfo priceInfo, OrderFailureCode failureCode) {
+        this.orderNo = orderNo;
         this.userId = userId;
         this.status = status;
         this.orderName = orderName;
@@ -94,8 +99,9 @@ public class Order extends BaseEntity {
 
     public static Order create(OrderCreationContext context) {
         validateOrderItems(context.getItemSpecs());
+        String orderNo = generatedOrderNo();
         String generatedOrderName = generateOrderName(context.getItemSpecs());
-        Order order = createOrder(context, generatedOrderName);
+        Order order = createOrder(context, orderNo, generatedOrderName);
         for (OrderItemSpec item : context.getItemSpecs()) {
             order.addOrderItem(OrderItem.create(item));
         }
@@ -112,8 +118,15 @@ public class Order extends BaseEntity {
         }
     }
 
-    private static Order createOrder(OrderCreationContext context, String orderName){
+    private static String generatedOrderNo() {
+        String date = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        String randomStr = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+        return "ORD-" + date + "-" + randomStr;
+    }
+
+    private static Order createOrder(OrderCreationContext context, String orderNo, String orderName){
         return Order.builder()
+                .orderNo(orderNo)
                 .userId(context.getUserId())
                 .status(OrderStatus.PENDING)
                 .orderName(orderName)
