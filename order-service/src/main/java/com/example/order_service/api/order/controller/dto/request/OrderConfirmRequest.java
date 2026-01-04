@@ -15,10 +15,13 @@ public class OrderConfirmRequest {
     private Long orderId;
     @NotEmpty(message = "결제 키는 필수 입니다")
     private String paymentKey;
+    @NotNull(message = "결제 가격은 필수 입니다")
+    private Long amount;
 
     @Builder
-    private OrderConfirmRequest(Long orderId, String paymentKey) {
+    private OrderConfirmRequest(Long orderId, String paymentKey, Long amount) {
         this.orderId = orderId;
         this.paymentKey = paymentKey;
+        this.amount = amount;
     }
 }

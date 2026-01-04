@@ -63,7 +63,8 @@ public class OrderController {
     @PostMapping("/confirm")
     public ResponseEntity<OrderDetailResponse> confirm(@AuthenticationPrincipal UserPrincipal userPrincipal,
                                                        @RequestBody @Validated OrderConfirmRequest request) {
-        OrderDetailResponse response = orderApplicationService.finalizeOrder(request.getOrderId(), userPrincipal.getUserId(), request.getPaymentKey());
+        OrderDetailResponse response = orderApplicationService.finalizeOrder(request.getOrderId(),
+                userPrincipal.getUserId(), request.getPaymentKey(), request.getAmount());
         return ResponseEntity.ok(response);
     }
 

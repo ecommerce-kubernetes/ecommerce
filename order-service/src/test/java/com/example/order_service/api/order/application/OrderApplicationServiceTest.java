@@ -9,7 +9,10 @@ import com.example.order_service.api.order.application.dto.result.CreateOrderRes
 import com.example.order_service.api.order.application.dto.result.OrderDetailResponse;
 import com.example.order_service.api.order.application.dto.result.OrderItemResponse;
 import com.example.order_service.api.order.application.dto.result.OrderListResponse;
-import com.example.order_service.api.order.application.event.*;
+import com.example.order_service.api.order.application.event.OrderCreatedEvent;
+import com.example.order_service.api.order.application.event.OrderEventStatus;
+import com.example.order_service.api.order.application.event.OrderResultEvent;
+import com.example.order_service.api.order.application.event.PaymentResultEvent;
 import com.example.order_service.api.order.controller.dto.request.OrderSearchCondition;
 import com.example.order_service.api.order.domain.model.OrderFailureCode;
 import com.example.order_service.api.order.domain.model.OrderStatus;
@@ -122,7 +125,7 @@ public class OrderApplicationServiceTest {
         assertThat(orderResultEventCaptor.getValue())
                 .extracting(OrderResultEvent::getOrderId, OrderResultEvent::getUserId, OrderResultEvent::getStatus,
                         OrderResultEvent::getCode, OrderResultEvent::getOrderName, OrderResultEvent::getFinalPaymentAmount)
-                .containsExactly(orderId, USER_ID, OrderEventStatus.SUCCESS, OrderEventCode.PAYMENT_READY,
+                .containsExactly(orderId, USER_ID, OrderEventStatus.SUCCESS, "PAYMENT_READY",
                         "상품1 외 1건", expectedAmount);
     }
 
@@ -146,8 +149,8 @@ public class OrderApplicationServiceTest {
         assertThat(orderResultEventCaptor.getValue())
                 .extracting(OrderResultEvent::getOrderId, OrderResultEvent::getUserId, OrderResultEvent::getStatus,
                         OrderResultEvent::getCode, OrderResultEvent::getOrderName, OrderResultEvent::getFinalPaymentAmount)
-                .containsExactly(orderId, USER_ID, OrderEventStatus.FAILURE, OrderEventCode.OUT_OF_STOCK,
-                        "상품1 외 1건", null);
+                .containsExactly(orderId, USER_ID, OrderEventStatus.FAILURE, "OUT_OF_STOCK",
+                        "상품1 외 1건", 28600L);
     }
 
     @Test
@@ -167,7 +170,7 @@ public class OrderApplicationServiceTest {
         given(orderDomainService.completedOrder(any(PaymentCreationCommand.class)))
                 .willReturn(completedOrder);
         //when
-        OrderDetailResponse result = orderApplicationService.finalizeOrder(orderId, USER_ID, paymentKey);
+        OrderDetailResponse result = orderApplicationService.finalizeOrder(orderId, USER_ID, paymentKey, amount);
         //then
         assertThat(result)
                 .extracting(OrderDetailResponse::getOrderId, OrderDetailResponse::getUserId, OrderDetailResponse::getOrderStatus, OrderDetailResponse::getOrderName,
@@ -192,7 +195,7 @@ public class OrderApplicationServiceTest {
                 .willReturn(invalidStatusOrder);
         //when
         //then
-        assertThatThrownBy(() -> orderApplicationService.finalizeOrder(orderId, USER_ID, "paymentKey"))
+        assertThatThrownBy(() -> orderApplicationService.finalizeOrder(orderId, USER_ID, "paymentKey", FIXED_FINAL_PRICE))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(OrderErrorCode.ORDER_NOT_PAYABLE);
@@ -216,7 +219,7 @@ public class OrderApplicationServiceTest {
                 .willReturn(failureOrder);
         //when
         //then
-        assertThatThrownBy(() -> orderApplicationService.finalizeOrder(orderId, USER_ID, paymentKey))
+        assertThatThrownBy(() -> orderApplicationService.finalizeOrder(orderId, USER_ID, paymentKey, FIXED_FINAL_PRICE))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage(failureMessage);
 

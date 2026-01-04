@@ -33,7 +33,6 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -109,7 +108,7 @@ class OrderControllerTest extends ControllerTestSupport {
         OrderConfirmRequest request = confirmBaseRequest().build();
         OrderDetailResponse response = createOrderDetailResponse();
 
-        given(orderApplicationService.finalizeOrder(anyLong(), anyLong(), anyString()))
+        given(orderApplicationService.finalizeOrder(anyLong(), anyLong(), anyString(), anyLong()))
                 .willReturn(response);
         //when
         //then
@@ -323,7 +322,8 @@ class OrderControllerTest extends ControllerTestSupport {
     private static Stream<Arguments> provideInvalidConfirmRequest(){
         return Stream.of(
                 Arguments.of("주문 ID null", confirmBaseRequest().orderId(null).build(), "주문 Id는 필수 입니다"),
-                Arguments.of("결제 키 null", confirmBaseRequest().paymentKey(null).build(), "결제 키는 필수 입니다")
+                Arguments.of("결제 키 null", confirmBaseRequest().paymentKey(null).build(), "결제 키는 필수 입니다"),
+                Arguments.of("결제 가격 null", confirmBaseRequest().amount(null).build(), "결제 가격은 필수 입니다")
         );
     }
 
@@ -420,6 +420,7 @@ class OrderControllerTest extends ControllerTestSupport {
     private static OrderConfirmRequest.OrderConfirmRequestBuilder confirmBaseRequest() {
         return OrderConfirmRequest.builder()
                 .orderId(1L)
-                .paymentKey("paymentKey");
+                .paymentKey("paymentKey")
+                .amount(10000L);
     }
 }

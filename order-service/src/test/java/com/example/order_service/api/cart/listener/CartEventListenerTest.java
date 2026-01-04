@@ -2,7 +2,6 @@ package com.example.order_service.api.cart.listener;
 
 import com.example.order_service.api.cart.application.CartApplicationService;
 import com.example.order_service.api.cart.listener.event.CartEventListener;
-import com.example.order_service.api.order.application.event.OrderEventCode;
 import com.example.order_service.api.order.application.event.OrderEventStatus;
 import com.example.order_service.api.order.application.event.PaymentResultEvent;
 import com.example.order_service.api.order.domain.model.OrderFailureCode;

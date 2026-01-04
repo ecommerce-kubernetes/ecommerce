@@ -117,10 +117,11 @@ public class OrderControllerDocsTest extends RestDocSupport {
         OrderConfirmRequest request = OrderConfirmRequest.builder()
                 .orderId(orderId)
                 .paymentKey("paymentKey")
+                .amount(1000L)
                 .build();
         HttpHeaders roleUser = createUserHeader("ROLE_USER");
         OrderDetailResponse orderDetailResponse = createOrderResponse(orderId);
-        given(orderApplicationService.finalizeOrder(anyLong(), anyLong(), anyString()))
+        given(orderApplicationService.finalizeOrder(anyLong(), anyLong(), anyString(), anyLong()))
                 .willReturn(orderDetailResponse);
         //when
         //then
@@ -139,7 +140,8 @@ public class OrderControllerDocsTest extends RestDocSupport {
                         ),
                         requestFields(
                                 fieldWithPath("orderId").description("주문 ID").optional(),
-                                fieldWithPath("paymentKey").description("결제 키").optional()
+                                fieldWithPath("paymentKey").description("결제 키").optional(),
+                                fieldWithPath("amount").description("결제 금액").optional()
                         ),
                         responseFields(
                                 fieldWithPath("orderId").description("주문 ID"),

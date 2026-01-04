@@ -1,6 +1,5 @@
 package com.example.order_service.api.support.fixture;
 
-import com.example.order_service.api.order.application.event.OrderEventCode;
 import com.example.order_service.api.order.application.event.OrderEventStatus;
 import com.example.order_service.api.order.domain.model.OrderFailureCode;
 import com.example.order_service.api.order.saga.domain.model.SagaStatus;

@@ -9,7 +9,10 @@ import com.example.order_service.api.order.application.dto.command.CreateOrderDt
 import com.example.order_service.api.order.application.dto.result.CreateOrderResponse;
 import com.example.order_service.api.order.application.dto.result.OrderDetailResponse;
 import com.example.order_service.api.order.application.dto.result.OrderListResponse;
-import com.example.order_service.api.order.application.event.*;
+import com.example.order_service.api.order.application.event.OrderCreatedEvent;
+import com.example.order_service.api.order.application.event.OrderEventStatus;
+import com.example.order_service.api.order.application.event.OrderResultEvent;
+import com.example.order_service.api.order.application.event.PaymentResultEvent;
 import com.example.order_service.api.order.controller.dto.request.OrderSearchCondition;
 import com.example.order_service.api.order.domain.model.OrderFailureCode;
 import com.example.order_service.api.order.domain.model.OrderStatus;
@@ -68,30 +71,17 @@ public class OrderApplicationService {
 
     public void preparePayment(Long orderId) {
         OrderDto orderDto = orderDomainService.changeOrderStatus(orderId, OrderStatus.PAYMENT_WAITING);
-        eventPublisher.publishEvent(OrderResultEvent.of(
-                orderDto.getOrderId(), orderDto.getUserId(),
-                OrderEventStatus.SUCCESS, OrderEventCode.PAYMENT_READY,
-                orderDto.getOrderName(), orderDto.getOrderPriceInfo().getFinalPaymentAmount(),
-                "결제 대기중입니다"
-        ));
+        eventPublisher.publishEvent(OrderResultEvent.paymentReady(orderDto));
     }
 
     public void processOrderFailure(Long orderId, OrderFailureCode orderFailureCode){
         OrderDto orderDto = orderDomainService.canceledOrder(orderId, orderFailureCode);
-        eventPublisher.publishEvent(OrderResultEvent.of(
-                orderDto.getOrderId(), orderDto.getUserId(),
-                OrderEventStatus.FAILURE, OrderEventCode.from(orderDto.getOrderFailureCode()),
-                orderDto.getOrderName(), null,
-                orderDto.getOrderFailureCode().name()
-        ));
+        eventPublisher.publishEvent(OrderResultEvent.failure(orderDto));
     }
 
-    public OrderDetailResponse finalizeOrder(Long orderId, Long userId, String paymentKey) {
+    public OrderDetailResponse finalizeOrder(Long orderId, Long userId, String paymentKey, Long amount) {
         OrderDto order = orderDomainService.getOrder(orderId, userId);
-        if (!order.getStatus().equals(OrderStatus.PAYMENT_WAITING)) {
-            throw new BusinessException(OrderErrorCode.ORDER_NOT_PAYABLE);
-        }
-
+        validBeforePayment(order, amount);
         try {
             TossPaymentConfirmResponse paymentConfirm =
                     orderExternalAdaptor.confirmOrderPayment(order.getOrderId(), paymentKey, order.getOrderPriceInfo().getFinalPaymentAmount());
@@ -101,10 +91,7 @@ public class OrderApplicationService {
                     null, productVariantIds));
             return OrderDetailResponse.from(completeOrder);
         } catch (BusinessException e) {
-            OrderFailureCode code = mapToOrderFailureCode(e.getErrorCode());
-            OrderDto canceledOrder = orderDomainService.canceledOrder(order.getOrderId(), OrderFailureCode.PAYMENT_FAILED);
-            eventPublisher.publishEvent(PaymentResultEvent.of(canceledOrder.getOrderId(), canceledOrder.getUserId(), OrderEventStatus.FAILURE,
-                    code, null));
+            handlePaymentFailure(order.getOrderId(), e.getErrorCode());
             throw e;
         }
     }
@@ -134,6 +121,23 @@ public class OrderApplicationService {
                     return OrderItemSpec.of(product, item.getQuantity());
                 }).toList();
         return OrderCreationContext.of(user.getUserId(), itemSpecs, priceResult, dto.getDeliveryAddress());
+    }
+
+    private void validBeforePayment(OrderDto order, Long amount) {
+        if (!order.getStatus().equals(OrderStatus.PAYMENT_WAITING)) {
+            throw new BusinessException(OrderErrorCode.ORDER_NOT_PAYABLE);
+        }
+
+        if (order.getOrderPriceInfo().getFinalPaymentAmount() != amount) {
+            throw new BusinessException(OrderErrorCode.ORDER_PRICE_MISMATCH);
+        }
+    }
+
+    private void handlePaymentFailure(Long orderId, ErrorCode errorCode) {
+        OrderFailureCode failureCode = mapToOrderFailureCode(errorCode);
+        OrderDto canceledOrder = orderDomainService.canceledOrder(orderId, failureCode);
+        eventPublisher.publishEvent(PaymentResultEvent.of(canceledOrder.getOrderId(), canceledOrder.getUserId(), OrderEventStatus.FAILURE,
+                failureCode, null));
     }
 
     private OrderFailureCode mapToOrderFailureCode(ErrorCode errorCode) {

@@ -30,7 +30,7 @@ public class OrderNotificationDto {
                 .orderId(event.getOrderId())
                 .userId(event.getUserId())
                 .status(event.getStatus().name())
-                .code(event.getCode().name())
+                .code(event.getCode())
                 .orderName(event.getOrderName())
                 .amount(event.getFinalPaymentAmount())
                 .message(event.getMessage())
