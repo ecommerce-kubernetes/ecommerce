@@ -113,7 +113,6 @@ public class OrderApplicationServiceTest {
     @DisplayName("주문의 상태를 결제 대기로 변경한다")
     void preparePayment() {
         //given
-        Long orderId = 1L;
         Long expectedAmount = 28600L;
         OrderDto orderDto = mockSavedOrder(OrderStatus.PAYMENT_WAITING, expectedAmount);
         given(orderDomainService.changeOrderStatus(ORDER_NO, OrderStatus.PAYMENT_WAITING))
@@ -135,7 +134,6 @@ public class OrderApplicationServiceTest {
     @DisplayName("주문의 상태 취소로 변경, 실패 코드 추가 후 주문 결과 이벤트 발행")
     void processOrderFailure() {
         //given
-        Long orderId = 1L;
         OrderFailureCode failureCode = OrderFailureCode.OUT_OF_STOCK;
         OrderDto canceledOrder = mockCanceledOrder(failureCode);
         given(orderDomainService.canceledOrder(ORDER_NO, failureCode))
@@ -159,7 +157,6 @@ public class OrderApplicationServiceTest {
     @DisplayName("결제가 승인되면 주문상태를 성공으로 변경, 결제 승인 이벤트를 발행하고 응답을 반환한다")
     void finalizeOrder(){
         //given
-        Long orderId = 1L;
         String paymentKey = "paymentKey";
         Long amount = 28600L;
         OrderDto waitingOrder = mockSavedOrder(OrderStatus.PAYMENT_WAITING, amount);
@@ -191,7 +188,6 @@ public class OrderApplicationServiceTest {
     @DisplayName("결제를 승인할때 주문 상태가 결제 대기 상태가 아니면 예외를 던진다")
     void finalizeOrder_with_notPaymentWaiting(){
         //given
-        Long orderId = 1L;
         OrderDto invalidStatusOrder = mockSavedOrder(OrderStatus.PENDING, FIXED_FINAL_PRICE);
         given(orderDomainService.getOrder(anyString(), anyLong()))
                 .willReturn(invalidStatusOrder);
@@ -207,7 +203,6 @@ public class OrderApplicationServiceTest {
     @DisplayName("결제를 승인할때 요청의 amount 와 실제 최종 주문 금액이 다르면 예외를 던진다")
     void finalizeOrder_with_missMatch_Price(){
         //given
-        Long orderId = 1L;
         Long requestedAmount = 30000L;
         OrderDto orderDto = mockSavedOrder(OrderStatus.PAYMENT_WAITING, FIXED_FINAL_PRICE);
         given(orderDomainService.getOrder(anyString(), anyLong()))
@@ -224,7 +219,6 @@ public class OrderApplicationServiceTest {
     @DisplayName("결제를 승인할때 결제 승인이 실패한 경우 주문을 실패 처리, 주문 실패 이벤트를 발행하고 예외를 그대로 던진다")
     void finalizeOrder_when_payment_fail(){
         //given
-        Long orderId = 1L;
         String paymentKey = "paymentKey";
         String failureMessage = "결제 승인이 거절되었습니다";
 
@@ -254,7 +248,6 @@ public class OrderApplicationServiceTest {
     @DisplayName("결제 승인 요청시 결제는 승인되었지만 주문 상태 변경이 실패한 경우 주문을 실패 처리, SAGA 보상을 진행하고 예외를 던진다")
     void finalizeOrder_when_DB_Exception(){
         //given
-        Long orderId = 1L;
         String paymentKey = "paymentKey";
         OrderDto waitingOrder = mockSavedOrder(OrderStatus.PAYMENT_WAITING, FIXED_FINAL_PRICE);
         OrderDto canceledOrder = mockSavedOrder(OrderStatus.CANCELED, FIXED_FINAL_PRICE);

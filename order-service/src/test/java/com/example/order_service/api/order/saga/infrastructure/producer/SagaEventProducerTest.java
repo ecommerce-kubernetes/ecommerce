@@ -34,7 +34,6 @@ public class SagaEventProducerTest extends IncludeInfraTest {
     void requestInventoryDeduction() throws IOException {
         //given
         Long sagaId = System.nanoTime();
-        Long orderId = 1L;
         Payload payload = Payload.builder()
                 .userId(1L)
                 .sagaItems(List.of(Payload.SagaItem.builder().productVariantId(1L).quantity(3).build()))
@@ -64,7 +63,6 @@ public class SagaEventProducerTest extends IncludeInfraTest {
     void requestInventoryCompensate() throws JsonProcessingException {
         //given
         Long sagaId = System.nanoTime();
-        Long orderId = 1L;
         Payload payload = Payload.builder()
                 .userId(1L)
                 .sagaItems(List.of(Payload.SagaItem.builder().productVariantId(1L).quantity(3).build()))
@@ -140,7 +138,6 @@ public class SagaEventProducerTest extends IncludeInfraTest {
     void requestPointUse() throws JsonProcessingException {
         //given
         Long sagaId = System.nanoTime();
-        Long orderId = 1L;
         Payload payload = Payload.builder()
                 .userId(1L)
                 .sagaItems(List.of(Payload.SagaItem.builder().productVariantId(1L).quantity(3).build()))
