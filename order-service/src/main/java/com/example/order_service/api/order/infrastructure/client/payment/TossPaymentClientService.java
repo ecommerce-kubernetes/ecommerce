@@ -2,7 +2,6 @@ package com.example.order_service.api.order.infrastructure.client.payment;
 
 import com.example.order_service.api.common.exception.BusinessException;
 import com.example.order_service.api.common.exception.ExternalServiceErrorCode;
-import com.example.order_service.api.common.exception.PaymentException;
 import com.example.order_service.api.order.infrastructure.client.payment.dto.TossPaymentConfirmRequest;
 import com.example.order_service.api.order.infrastructure.client.payment.dto.TossPaymentConfirmResponse;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
@@ -29,8 +28,8 @@ public class TossPaymentClientService {
             throw new BusinessException(ExternalServiceErrorCode.UNAVAILABLE);
         }
 
-        if (throwable instanceof PaymentException) {
-            throw (PaymentException) throwable;
+        if (throwable instanceof BusinessException) {
+            throw (BusinessException) throwable;
         }
         throw new BusinessException(ExternalServiceErrorCode.SYSTEM_ERROR);
     }

@@ -3,7 +3,6 @@ package com.example.order_service.api.order.application;
 import com.example.order_service.api.common.dto.PageDto;
 import com.example.order_service.api.common.exception.BusinessException;
 import com.example.order_service.api.common.exception.OrderErrorCode;
-import com.example.order_service.api.common.exception.PaymentException;
 import com.example.order_service.api.order.application.dto.command.CreateOrderDto;
 import com.example.order_service.api.order.application.dto.result.CreateOrderResponse;
 import com.example.order_service.api.order.application.dto.result.OrderDetailResponse;
@@ -99,8 +98,8 @@ public class OrderApplicationService {
             eventPublisher.publishEvent(PaymentResultEvent.of(completeOrder.getOrderId(), completeOrder.getUserId(), OrderEventStatus.SUCCESS,
                     OrderEventCode.PAYMENT_AUTHORIZED, productVariantIds, null));
             return OrderDetailResponse.from(completeOrder);
-        } catch (PaymentException e) {
-            OrderDto canceledOrder = orderDomainService.canceledOrder(order.getOrderId(), OrderFailureCode.from(e.getErrorCode()));
+        } catch (BusinessException e) {
+            OrderDto canceledOrder = orderDomainService.canceledOrder(order.getOrderId(), OrderFailureCode.PAYMENT_FAILED);
             eventPublisher.publishEvent(PaymentResultEvent.of(canceledOrder.getOrderId(), canceledOrder.getUserId(), OrderEventStatus.FAILURE,
                     OrderEventCode.from(canceledOrder.getOrderFailureCode()), null, e.getMessage()));
             throw e;

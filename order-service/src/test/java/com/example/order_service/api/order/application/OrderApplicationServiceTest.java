@@ -4,7 +4,6 @@ import com.example.order_service.api.common.dto.PageDto;
 import com.example.order_service.api.common.exception.BusinessException;
 import com.example.order_service.api.common.exception.OrderErrorCode;
 import com.example.order_service.api.common.exception.PaymentErrorCode;
-import com.example.order_service.api.common.exception.PaymentException;
 import com.example.order_service.api.order.application.dto.command.CreateOrderDto;
 import com.example.order_service.api.order.application.dto.result.CreateOrderResponse;
 import com.example.order_service.api.order.application.dto.result.OrderDetailResponse;
@@ -212,14 +211,14 @@ public class OrderApplicationServiceTest {
         OrderDto failureOrder = mockCanceledOrder(OrderFailureCode.PAYMENT_FAILED);
         given(orderDomainService.getOrder(anyLong(), anyLong()))
                 .willReturn(waitingOrder);
-        willThrow(new PaymentException(failureMessage, PaymentErrorCode.APPROVAL_FAIL))
+        willThrow(new BusinessException(PaymentErrorCode.PAYMENT_APPROVAL_FAIL))
                 .given(orderExternalAdaptor).confirmOrderPayment(anyLong(), anyString(), anyLong());
         given(orderDomainService.canceledOrder(anyLong(), any(OrderFailureCode.class)))
                 .willReturn(failureOrder);
         //when
         //then
         assertThatThrownBy(() -> orderApplicationService.finalizeOrder(orderId, USER_ID, paymentKey))
-                .isInstanceOf(PaymentException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessage(failureMessage);
 
         verify(orderDomainService, times(1)).canceledOrder(orderId, OrderFailureCode.PAYMENT_FAILED);

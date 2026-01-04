@@ -2,7 +2,6 @@ package com.example.order_service.api.common.error;
 
 import com.example.order_service.api.common.error.dto.response.ErrorResponse;
 import com.example.order_service.api.common.exception.BusinessException;
-import com.example.order_service.api.common.exception.PaymentException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -41,13 +40,6 @@ public class ControllerAdvice {
         String message = "권한이 부족합니다";
         ErrorResponse response = ErrorResponse.toNoPermission(message, now.toString(), request.getRequestURI());
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
-    }
-
-    @ExceptionHandler(PaymentException.class)
-    public ResponseEntity<ErrorResponse> paymentExceptionHandler(HttpServletRequest request, PaymentException e) {
-        LocalDateTime now = LocalDateTime.now();
-        ErrorResponse response = ErrorResponse.toBadRequest(e.getMessage(), now.toString(), request.getRequestURI());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
     @ExceptionHandler(BusinessException.class)

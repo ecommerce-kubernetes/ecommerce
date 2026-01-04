@@ -2,7 +2,6 @@ package com.example.order_service.api.order.infrastructure.client.payment;
 
 import com.example.order_service.api.common.exception.BusinessException;
 import com.example.order_service.api.common.exception.ExternalServiceErrorCode;
-import com.example.order_service.api.common.exception.PaymentException;
 import com.example.order_service.api.order.infrastructure.client.payment.dto.TossPaymentConfirmRequest;
 import com.example.order_service.api.order.infrastructure.client.payment.dto.TossPaymentConfirmResponse;
 import com.example.order_service.api.support.ExcludeInfraTest;
@@ -65,13 +64,13 @@ public class TossPaymentClientServiceTest extends ExcludeInfraTest {
     @DisplayName("결제 승인중 예외가 발생하면 그대로 예외를 던진다")
     void confirmPayment_when_PaymentException(){
         //given
-        willThrow(PaymentException.class)
+        willThrow(BusinessException.class)
                 .given(tossPaymentClient)
                 .confirmPayment(any(TossPaymentConfirmRequest.class));
         //when
         //then
         assertThatThrownBy(() -> tossPaymentClientService.confirmPayment(1L, "paymentKey", 10000L))
-                .isInstanceOf(PaymentException.class);
+                .isInstanceOf(BusinessException.class);
     }
 
     @Test

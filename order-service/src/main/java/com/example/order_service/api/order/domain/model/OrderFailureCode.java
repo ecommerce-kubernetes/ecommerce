@@ -12,16 +12,19 @@ public enum OrderFailureCode {
     PAYMENT_FAILED("결제 승인 거절"),
     PAYMENT_INSUFFICIENT_BALANCE("결제 잔액 부족"),
     PAYMENT_TIMEOUT("결제 가능 시간 초과"),
+    PAYMENT_NOT_FOUND("존재하지 않는 결제 정보"),
     TIMEOUT("SAGA 타임아웃"),
-    UNKNOWN("알 수 없는 오류");
+    UNKNOWN("알 수 없는 오류"),
+    SYSTEM_ERROR("시스템 에러"),
+    ALREADY_PROCEED_PAYMENT("이미 결제된 주문");
 
     private final String name;
 
     public static OrderFailureCode from (PaymentErrorCode code) {
         return switch (code) {
-            case APPROVAL_FAIL -> PAYMENT_FAILED;
-            case INSUFFICIENT_BALANCE -> PAYMENT_INSUFFICIENT_BALANCE;
-            case EXPIRED -> PAYMENT_TIMEOUT;
+            case PAYMENT_APPROVAL_FAIL -> PAYMENT_FAILED;
+            case PAYMENT_INSUFFICIENT_BALANCE -> PAYMENT_INSUFFICIENT_BALANCE;
+            case PAYMENT_TIMEOUT -> PAYMENT_TIMEOUT;
             default -> PAYMENT_FAILED;
         };
     }

@@ -1,6 +1,7 @@
 package com.example.order_service.api.common.client.coupon;
 
 import com.example.order_service.api.common.exception.BusinessException;
+import com.example.order_service.api.common.exception.CommonErrorCode;
 import com.example.order_service.api.common.exception.ExternalServiceErrorCode;
 import feign.Response;
 import feign.codec.ErrorDecoder;
@@ -20,6 +21,6 @@ public class CouponErrorDecoder implements ErrorDecoder {
             return new BusinessException(ExternalServiceErrorCode.SYSTEM_ERROR);
         }
 
-        return new Exception("알 수 없는 에러");
+        return new BusinessException(CommonErrorCode.UNKNOWN_ERROR);
     }
 }

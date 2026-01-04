@@ -1,8 +1,6 @@
 package com.example.order_service.api.order.controller;
 
 import com.example.order_service.api.common.dto.PageDto;
-import com.example.order_service.api.common.exception.PaymentErrorCode;
-import com.example.order_service.api.common.exception.PaymentException;
 import com.example.order_service.api.common.security.model.UserRole;
 import com.example.order_service.api.order.application.dto.command.CreateOrderDto;
 import com.example.order_service.api.order.application.dto.result.CreateOrderResponse;
@@ -135,28 +133,6 @@ class OrderControllerTest extends ControllerTestSupport {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("VALIDATION"))
                 .andExpect(jsonPath("$.message").value(errorMessage))
-                .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.path").value("/orders/confirm"));
-    }
-
-    @Test
-    @DisplayName("결제 오류 발생시 에러 응답을 반환한다")
-    @WithCustomMockUser
-    void confirm_exception_payment() throws Exception {
-        //given
-        OrderConfirmRequest request = confirmBaseRequest().build();
-
-        willThrow(new PaymentException("결제 오류", PaymentErrorCode.APPROVAL_FAIL))
-                .given(orderApplicationService).finalizeOrder(anyLong(), anyLong(), anyString());
-        //when
-        //then
-        mockMvc.perform(post("/orders/confirm")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andDo(print())
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value("BAD_REQUEST"))
-                .andExpect(jsonPath("$.message").value("결제 오류"))
                 .andExpect(jsonPath("$.timestamp").exists())
                 .andExpect(jsonPath("$.path").value("/orders/confirm"));
     }

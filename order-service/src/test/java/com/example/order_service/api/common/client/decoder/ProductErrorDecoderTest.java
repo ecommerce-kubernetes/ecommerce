@@ -1,6 +1,8 @@
-package com.example.order_service.api.common.client.product;
+package com.example.order_service.api.common.client.decoder;
 
+import com.example.order_service.api.common.client.product.ProductErrorDecoder;
 import com.example.order_service.api.common.exception.BusinessException;
+import com.example.order_service.api.common.exception.CommonErrorCode;
 import com.example.order_service.api.common.exception.ExternalServiceErrorCode;
 import feign.Request;
 import feign.Response;
@@ -41,6 +43,19 @@ public class ProductErrorDecoderTest {
         assertThat(exception).isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(ExternalServiceErrorCode.SYSTEM_ERROR);
+    }
+
+    @Test
+    @DisplayName("알 수 없는 에러 발생시 UNKNOWN_ERROR 예외를 던진다")
+    void decodeWhenUnKnownError(){
+        //given
+        Response response = createResponse(401, "Server Error");
+        //when
+        Exception exception = decoder.decode("key", response);
+        //then
+        assertThat(exception).isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(CommonErrorCode.UNKNOWN_ERROR);
     }
 
     private Response createResponse(int status, String message){

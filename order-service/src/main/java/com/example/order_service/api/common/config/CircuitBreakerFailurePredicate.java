@@ -24,6 +24,6 @@ public class CircuitBreakerFailurePredicate implements Predicate<Throwable> {
             return false;
         }
 
-        return false;
+        return true;
     }
 }
