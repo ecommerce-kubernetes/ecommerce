@@ -2,6 +2,7 @@ package com.example.order_service.api.support.fixture;
 
 import com.example.order_service.api.order.application.event.OrderEventCode;
 import com.example.order_service.api.order.application.event.OrderEventStatus;
+import com.example.order_service.api.order.domain.model.OrderFailureCode;
 import com.example.order_service.api.order.saga.domain.model.SagaStatus;
 import com.example.order_service.api.order.saga.domain.model.SagaStep;
 import com.example.order_service.api.order.saga.domain.model.vo.Payload;
@@ -75,7 +76,7 @@ public class SagaManagerTestFixture {
         return SagaPaymentCommand.builder()
                 .orderId(ORDER_ID)
                 .status(OrderEventStatus.SUCCESS)
-                .code(OrderEventCode.PAYMENT_AUTHORIZED)
+                .code(null)
                 .build();
     }
 
@@ -83,7 +84,7 @@ public class SagaManagerTestFixture {
         return SagaPaymentCommand.builder()
                 .orderId(ORDER_ID)
                 .status(OrderEventStatus.FAILURE)
-                .code(OrderEventCode.PAYMENT_AUTHORIZED_FAILED)
+                .code(OrderFailureCode.PAYMENT_FAILED)
                 .failureReason(failureReason)
                 .build();
     }

@@ -46,7 +46,7 @@ public class TossPaymentClientCircuitBreakerTest extends ExcludeInfraTest {
     }
 
     @Test
-    @DisplayName("서킷 브레이커는 404에러가 여러번 발생해도 서킷브레이커가 닫혀있어야 한다")
+    @DisplayName("서킷 브레이커는 4xx 에러가 여러번 발생해도 서킷브레이커가 닫혀있어야 한다")
     void circuitBreakerClosedWhen404(){
         //given
         stubFor(post(urlMatching("/v1/payments/confirm"))

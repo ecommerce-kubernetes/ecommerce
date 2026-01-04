@@ -94,7 +94,7 @@ public class TossPaymentErrorDecoderTest {
                         PaymentErrorCode.PAYMENT_SYSTEM_ERROR),
                 Arguments.of("이외의 403 에러",
                         createResponse(403, createErrorResponse("ANOTHER", "다른 403 번 에러")),
-                        PaymentErrorCode.PAYMENT_SYSTEM_ERROR),
+                        PaymentErrorCode.PAYMENT_APPROVAL_FAIL),
                 Arguments.of("결제 정보 찾을 수 없음",
                         createResponse(404, createErrorResponse("NOT_FOUND_PAYMENT", "존재하지 않는 결제 정보 입니다.")),
                         PaymentErrorCode.PAYMENT_NOT_FOUND),

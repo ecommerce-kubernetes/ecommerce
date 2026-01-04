@@ -103,8 +103,8 @@ public class OrderEventListenerTest {
     @DisplayName("결제 처리 후 Saga를 완료하기 위해 sagaManager를 호출한다")
     void handlePaymentResult(){
         //given
-        PaymentResultEvent paymentResultEvent = PaymentResultEvent.of(1L, 1L, OrderEventStatus.SUCCESS, OrderEventCode.PAYMENT_AUTHORIZED,
-                List.of(1L, 2L), null);
+        PaymentResultEvent paymentResultEvent = PaymentResultEvent.of(1L, 1L, OrderEventStatus.SUCCESS, null,
+                List.of(1L, 2L));
         //when
         orderEventListener.handlePaymentResult(paymentResultEvent);
         //then
@@ -114,6 +114,6 @@ public class OrderEventListenerTest {
         assertThat(captor.getValue())
                 .extracting(SagaPaymentCommand::getOrderId, SagaPaymentCommand::getStatus, SagaPaymentCommand::getCode,
                         SagaPaymentCommand::getFailureReason)
-                .containsExactly(1L, OrderEventStatus.SUCCESS, OrderEventCode.PAYMENT_AUTHORIZED, null);
+                .containsExactly(1L, OrderEventStatus.SUCCESS, null, null);
     }
 }

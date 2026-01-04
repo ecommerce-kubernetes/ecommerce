@@ -70,7 +70,7 @@ public class TossPaymentErrorDecoder implements ErrorDecoder {
             }
             default -> {
                 log.error("Unknown 403 Error {}", code);
-                yield new BusinessException(PaymentErrorCode.PAYMENT_SYSTEM_ERROR);
+                yield new BusinessException(PaymentErrorCode.PAYMENT_APPROVAL_FAIL);
             }
         };
     }

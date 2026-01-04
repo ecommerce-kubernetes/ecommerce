@@ -179,8 +179,7 @@ public class OrderApplicationServiceTest {
 
         assertThat(paymentResultEventCaptor.getValue())
                 .extracting(PaymentResultEvent::getOrderId, PaymentResultEvent::getStatus, PaymentResultEvent::getCode)
-                .containsExactly(orderId, OrderEventStatus.SUCCESS, OrderEventCode.PAYMENT_AUTHORIZED);
-        assertThat(paymentResultEventCaptor.getValue().getFailureReason()).isNull();
+                .containsExactly(orderId, OrderEventStatus.SUCCESS, null);
     }
 
     @Test
@@ -205,7 +204,7 @@ public class OrderApplicationServiceTest {
         //given
         Long orderId = 1L;
         String paymentKey = "paymentKey";
-        String failureMessage = "결제 승인이 실패했습니다";
+        String failureMessage = "결제 승인이 거절되었습니다";
 
         OrderDto waitingOrder = mockSavedOrder(OrderStatus.PAYMENT_WAITING, FIXED_FINAL_PRICE);
         OrderDto failureOrder = mockCanceledOrder(OrderFailureCode.PAYMENT_FAILED);
@@ -225,8 +224,8 @@ public class OrderApplicationServiceTest {
 
         verify(eventPublisher, times(1)).publishEvent(paymentResultEventCaptor.capture());
         assertThat(paymentResultEventCaptor.getValue())
-                .extracting(PaymentResultEvent::getOrderId, PaymentResultEvent::getStatus, PaymentResultEvent::getCode, PaymentResultEvent::getFailureReason)
-                .containsExactly(orderId, OrderEventStatus.FAILURE, OrderEventCode.PAYMENT_AUTHORIZED_FAILED, failureMessage);
+                .extracting(PaymentResultEvent::getOrderId, PaymentResultEvent::getStatus, PaymentResultEvent::getCode)
+                .containsExactly(orderId, OrderEventStatus.FAILURE, OrderFailureCode.PAYMENT_FAILED);
     }
 
     @Test

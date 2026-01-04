@@ -2,7 +2,9 @@ package com.example.order_service.api.order.application;
 
 import com.example.order_service.api.common.dto.PageDto;
 import com.example.order_service.api.common.exception.BusinessException;
+import com.example.order_service.api.common.exception.ErrorCode;
 import com.example.order_service.api.common.exception.OrderErrorCode;
+import com.example.order_service.api.common.exception.PaymentErrorCode;
 import com.example.order_service.api.order.application.dto.command.CreateOrderDto;
 import com.example.order_service.api.order.application.dto.result.CreateOrderResponse;
 import com.example.order_service.api.order.application.dto.result.OrderDetailResponse;
@@ -96,12 +98,13 @@ public class OrderApplicationService {
             OrderDto completeOrder = orderDomainService.completedOrder(PaymentCreationCommand.from(paymentConfirm));
             List<Long> productVariantIds = completeOrder.getOrderItemDtoList().stream().map(OrderItemDto::getProductVariantId).toList();
             eventPublisher.publishEvent(PaymentResultEvent.of(completeOrder.getOrderId(), completeOrder.getUserId(), OrderEventStatus.SUCCESS,
-                    OrderEventCode.PAYMENT_AUTHORIZED, productVariantIds, null));
+                    null, productVariantIds));
             return OrderDetailResponse.from(completeOrder);
         } catch (BusinessException e) {
+            OrderFailureCode code = mapToOrderFailureCode(e.getErrorCode());
             OrderDto canceledOrder = orderDomainService.canceledOrder(order.getOrderId(), OrderFailureCode.PAYMENT_FAILED);
             eventPublisher.publishEvent(PaymentResultEvent.of(canceledOrder.getOrderId(), canceledOrder.getUserId(), OrderEventStatus.FAILURE,
-                    OrderEventCode.from(canceledOrder.getOrderFailureCode()), null, e.getMessage()));
+                    code, null));
             throw e;
         }
     }
@@ -133,4 +136,17 @@ public class OrderApplicationService {
         return OrderCreationContext.of(user.getUserId(), itemSpecs, priceResult, dto.getDeliveryAddress());
     }
 
+    private OrderFailureCode mapToOrderFailureCode(ErrorCode errorCode) {
+        if (errorCode instanceof PaymentErrorCode paymentErrorCode) {
+            return switch (paymentErrorCode) {
+                case PAYMENT_INSUFFICIENT_BALANCE -> OrderFailureCode.PAYMENT_INSUFFICIENT_BALANCE;
+                case PAYMENT_TIMEOUT -> OrderFailureCode.PAYMENT_TIMEOUT;
+                case PAYMENT_ALREADY_PROCEED_PAYMENT -> OrderFailureCode.ALREADY_PROCEED_PAYMENT;
+                case PAYMENT_NOT_FOUND -> OrderFailureCode.PAYMENT_NOT_FOUND;
+
+                default -> OrderFailureCode.PAYMENT_FAILED;
+            };
+        }
+        return OrderFailureCode.SYSTEM_ERROR;
+    }
 }

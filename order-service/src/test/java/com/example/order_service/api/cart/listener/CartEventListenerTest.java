@@ -5,6 +5,7 @@ import com.example.order_service.api.cart.listener.event.CartEventListener;
 import com.example.order_service.api.order.application.event.OrderEventCode;
 import com.example.order_service.api.order.application.event.OrderEventStatus;
 import com.example.order_service.api.order.application.event.PaymentResultEvent;
+import com.example.order_service.api.order.domain.model.OrderFailureCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,9 +32,8 @@ public class CartEventListenerTest {
                 .orderId(1L)
                 .userId(1L)
                 .status(OrderEventStatus.SUCCESS)
-                .code(OrderEventCode.PAYMENT_AUTHORIZED)
+                .code(null)
                 .productVariantIds(List.of(1L, 2L))
-                .failureReason(null)
                 .build();
         //when
         cartEventListener.handlePaymentResult(event);
@@ -49,9 +49,8 @@ public class CartEventListenerTest {
                 .orderId(1L)
                 .userId(1L)
                 .status(OrderEventStatus.FAILURE)
-                .code(OrderEventCode.PAYMENT_AUTHORIZED_FAILED)
+                .code(OrderFailureCode.PAYMENT_FAILED)
                 .productVariantIds(List.of(1L, 2L))
-                .failureReason("결제 승인 실패")
                 .build();
         //when
         cartEventListener.handlePaymentResult(event);

@@ -1,8 +1,10 @@
 package com.example.order_service.api.order.domain.model;
 
 import com.example.order_service.api.common.exception.PaymentErrorCode;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+@Getter
 @RequiredArgsConstructor
 public enum OrderFailureCode {
     OUT_OF_STOCK("재고 부족"),

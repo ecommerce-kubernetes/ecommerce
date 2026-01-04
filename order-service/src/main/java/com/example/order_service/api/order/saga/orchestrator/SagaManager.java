@@ -58,8 +58,10 @@ public class SagaManager {
 
     public void processPaymentResult(SagaPaymentCommand command) {
         SagaInstanceDto saga = orderSagaDomainService.getSagaByOrderId(command.getOrderId());
+        String errorCode = command.getCode() != null ? command.getCode().name() : null;
+        String failureReason = command.getFailureReason() != null ? command.getFailureReason() : null;
         applyStepResult(saga, SagaStep.PAYMENT, command.getStatus() == OrderEventStatus.SUCCESS,
-                command.getCode().name(), command.getFailureReason());
+                errorCode, failureReason);
     }
 
     public void processTimeouts() {
