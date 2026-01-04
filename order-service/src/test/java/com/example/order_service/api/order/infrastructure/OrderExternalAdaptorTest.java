@@ -155,14 +155,24 @@ public class OrderExternalAdaptorTest {
     @DisplayName("토스에 결제 승인을 요청한다")
     void confirmOrderPayment(){
         //given
-        given(tossPaymentClientService.confirmPayment(anyString() , anyString(), anyLong()))
+        given(tossPaymentClientService.confirmPayment(anyString(), anyString(), anyLong()))
                 .willReturn(createPaymentResponse());
         //when
         TossPaymentConfirmResponse tossPaymentConfirmResponse = orderExternalAdaptor.confirmOrderPayment(ORDER_NO, PAYMENT_KEY, 1000L);
         //then
         assertThat(tossPaymentConfirmResponse)
-                .extracting(TossPaymentConfirmResponse::getPaymentKey, TossPaymentConfirmResponse::getOrderNo,
+                .extracting(TossPaymentConfirmResponse::getPaymentKey, TossPaymentConfirmResponse::getOrderId,
                         TossPaymentConfirmResponse::getTotalAmount, TossPaymentConfirmResponse::getStatus)
                 .containsExactly(PAYMENT_KEY, ORDER_NO, 10000L, "DONE");
+    }
+
+    @Test
+    @DisplayName("토스에 결제 취소를 요청한다")
+    void cancelPayment(){
+        //given
+        //when
+        orderExternalAdaptor.cancelPayment("paymentKey", "시스템 에러", null);
+        //then
+        verify(tossPaymentClientService).cancelPayment("paymentKey", "시스템 에러", null);
     }
 }

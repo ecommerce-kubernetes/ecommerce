@@ -50,8 +50,8 @@ public class OrderExternalAdaptor {
         return tossPaymentClientService.confirmPayment(orderNo, paymentKey, amount);
     }
 
-    public void cancelPayment(String paymentKey) {
-
+    public void cancelPayment(String paymentKey, String cancelReason, Long cancelAmount) {
+        tossPaymentClientService.cancelPayment(paymentKey, cancelReason, cancelAmount);
     }
 
     private List<Long> extractVariantIds(List<CreateOrderItemDto> dtoList){

@@ -3,6 +3,7 @@ package com.example.order_service.api.order.infrastructure.client.payment;
 import com.example.order_service.api.common.exception.BusinessException;
 import com.example.order_service.api.common.exception.ExternalServiceErrorCode;
 import com.example.order_service.api.order.infrastructure.client.payment.dto.request.TossPaymentConfirmRequest;
+import com.example.order_service.api.order.infrastructure.client.payment.dto.response.TossPaymentCancelResponse;
 import com.example.order_service.api.order.infrastructure.client.payment.dto.response.TossPaymentConfirmResponse;
 import com.example.order_service.api.support.ExcludeInfraTest;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
@@ -14,6 +15,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
 
@@ -31,7 +33,7 @@ public class TossPaymentClientServiceTest extends ExcludeInfraTest {
         //given
         TossPaymentConfirmResponse response = TossPaymentConfirmResponse.builder()
                 .paymentKey("paymentKey")
-                .orderNo(ORDER_NO)
+                .orderId(ORDER_NO)
                 .totalAmount(10000L)
                 .status("DONE")
                 .build();
@@ -41,7 +43,7 @@ public class TossPaymentClientServiceTest extends ExcludeInfraTest {
         TossPaymentConfirmResponse result = tossPaymentClientService.confirmPayment(ORDER_NO, "paymentKey", 10000L);
         //then
         assertThat(result)
-                .extracting(TossPaymentConfirmResponse::getPaymentKey, TossPaymentConfirmResponse::getOrderNo, TossPaymentConfirmResponse::getTotalAmount,
+                .extracting(TossPaymentConfirmResponse::getPaymentKey, TossPaymentConfirmResponse::getOrderId, TossPaymentConfirmResponse::getTotalAmount,
                         TossPaymentConfirmResponse::getStatus)
                 .containsExactly("paymentKey", ORDER_NO, 10000L, "DONE");
     }
@@ -88,4 +90,70 @@ public class TossPaymentClientServiceTest extends ExcludeInfraTest {
                 .extracting("errorCode")
                 .isEqualTo(ExternalServiceErrorCode.SYSTEM_ERROR);
     }
+
+    @Test
+    @DisplayName("토스 페이먼츠에 환불을 요청한다")
+    void cancelPayment(){
+        //given
+        TossPaymentCancelResponse response = TossPaymentCancelResponse.builder()
+                .paymentKey("paymentKey")
+                .orderId(ORDER_NO)
+                .totalAmount(10000L)
+                .status("CANCELED")
+                .build();
+
+        given(tossPaymentClient.cancelPayment(anyString(), any()))
+                .willReturn(response);
+        //when
+        TossPaymentCancelResponse result = tossPaymentClientService.cancelPayment("paymentKey", "시스템 에러", null);
+        //then
+        assertThat(result)
+                .extracting(TossPaymentCancelResponse::getPaymentKey, TossPaymentCancelResponse::getOrderId, TossPaymentCancelResponse::getTotalAmount,
+                        TossPaymentCancelResponse::getStatus)
+                .containsExactly("paymentKey", ORDER_NO, 10000L, "CANCEL");
+    }
+
+    @Test
+    @DisplayName("서킷브레이커가 열렸을때 환불을 요청하면 예외를 던진다")
+    void cancelPayment_when_open_circuitbreaker(){
+        //given
+        willThrow(CallNotPermittedException.class)
+                .given(tossPaymentClient)
+                .cancelPayment(anyString(), any());
+        //when
+        //then
+        assertThatThrownBy(() -> tossPaymentClientService.cancelPayment("paymentKey", "시스템 에러", null))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ExternalServiceErrorCode.UNAVAILABLE);
+    }
+
+    @Test
+    @DisplayName("결제 승인중 예외가 발생하면 그대로 예외를 던진다")
+    void cancelPayment_when_PaymentException(){
+        //given
+        willThrow(BusinessException.class)
+                .given(tossPaymentClient)
+                .cancelPayment(anyString(), any());
+        //when
+        //then
+        assertThatThrownBy(() -> tossPaymentClientService.cancelPayment("paymentKey", "시스템 에러", null))
+                .isInstanceOf(BusinessException.class);
+    }
+
+    @Test
+    @DisplayName("결제 승인중 알 수 없는 예외가 발생하면 예외를 던진다")
+    void cancelPayment_when_InternalServerError(){
+        //given
+        willThrow(new RuntimeException("쿠폰 서비스 오류 발생"))
+                .given(tossPaymentClient)
+                .cancelPayment(anyString(), any());
+        //when
+        //then
+        assertThatThrownBy(() -> tossPaymentClientService.cancelPayment("paymentKey", "시스템 에러", null))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ExternalServiceErrorCode.SYSTEM_ERROR);
+    }
+
 }

@@ -58,7 +58,7 @@ public class OrderExternalAdaptorFixture {
     public static TossPaymentConfirmResponse createPaymentResponse() {
         return TossPaymentConfirmResponse.builder()
                 .paymentKey(PAYMENT_KEY)
-                .orderNo(ORDER_NO)
+                .orderId(ORDER_NO)
                 .totalAmount(10000L)
                 .status("DONE")
                 .build();

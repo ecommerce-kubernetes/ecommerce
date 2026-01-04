@@ -15,4 +15,11 @@ public class TossPaymentCancelRequest {
         this.cancelReason = cancelReason;
         this.cancelAmount = cancelAmount;
     }
+
+    public static TossPaymentCancelRequest of(String cancelReason, Long cancelAmount) {
+        return TossPaymentCancelRequest.builder()
+                .cancelReason(cancelReason)
+                .cancelAmount(cancelAmount)
+                .build();
+    }
 }

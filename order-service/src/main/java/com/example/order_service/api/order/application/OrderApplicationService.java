@@ -128,8 +128,8 @@ public class OrderApplicationService {
         try {
             return processOrderCompletion(response);
         } catch (Exception e) {
-            // 주문 완료 DB 상태 변경중 예외 발생시 결제는 완료되었으므로 결제 환불 요청 후 SAGA 환불 실행
-            compensatePayment(paymentKey);
+            // 주문 완료 DB 상태 변경중 예외 발생시 결제는 완료되었으므로 결제 환불 요청 후 SAGA 보상 실행
+            compensatePayment(paymentKey, "시스템 에러");
             handlePaymentFailure(orderDto.getOrderNo(), CommonErrorCode.INTERNAL_ERROR);
             throw new BusinessException(CommonErrorCode.INTERNAL_ERROR);
         }
@@ -154,9 +154,9 @@ public class OrderApplicationService {
         return OrderDetailResponse.from(completedOrder);
     }
 
-    private void compensatePayment(String paymentKey) {
+    private void compensatePayment(String paymentKey, String cancelReason) {
         try {
-            orderExternalAdaptor.cancelPayment(paymentKey);
+            orderExternalAdaptor.cancelPayment(paymentKey, cancelReason, null);
         } catch (Exception e) {
             log.error("결제 : [치명적 오류] 시스템 오류로 발생한 결제 환불 실패");
         }

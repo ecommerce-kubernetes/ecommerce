@@ -27,7 +27,7 @@ public class PaymentCreationCommand {
     public static PaymentCreationCommand from(TossPaymentConfirmResponse response) {
         OffsetDateTime offsetDateTime = OffsetDateTime.parse(response.getApprovedAt());
         return PaymentCreationCommand.builder()
-                .orderNo(response.getOrderNo())
+                .orderNo(response.getOrderId())
                 .paymentKey(response.getPaymentKey())
                 .amount(response.getTotalAmount())
                 .method(response.getMethod())
