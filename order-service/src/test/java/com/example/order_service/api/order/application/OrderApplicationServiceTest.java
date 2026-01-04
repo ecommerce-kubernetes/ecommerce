@@ -2,6 +2,7 @@ package com.example.order_service.api.order.application;
 
 import com.example.order_service.api.common.dto.PageDto;
 import com.example.order_service.api.common.exception.BusinessException;
+import com.example.order_service.api.common.exception.CommonErrorCode;
 import com.example.order_service.api.common.exception.OrderErrorCode;
 import com.example.order_service.api.common.exception.PaymentErrorCode;
 import com.example.order_service.api.order.application.dto.command.CreateOrderDto;
@@ -22,7 +23,7 @@ import com.example.order_service.api.order.domain.service.dto.command.OrderCreat
 import com.example.order_service.api.order.domain.service.dto.command.PaymentCreationCommand;
 import com.example.order_service.api.order.domain.service.dto.result.OrderDto;
 import com.example.order_service.api.order.infrastructure.OrderExternalAdaptor;
-import com.example.order_service.api.order.infrastructure.client.payment.dto.TossPaymentConfirmResponse;
+import com.example.order_service.api.order.infrastructure.client.payment.dto.response.TossPaymentConfirmResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -202,6 +203,23 @@ public class OrderApplicationServiceTest {
     }
 
     @Test
+    @DisplayName("결제를 승인할때 요청의 amount 와 실제 최종 주문 금액이 다르면 예외를 던진다")
+    void finalizeOrder_with_missMatch_Price(){
+        //given
+        Long orderId = 1L;
+        Long requestedAmount = 30000L;
+        OrderDto orderDto = mockSavedOrder(OrderStatus.PAYMENT_WAITING, FIXED_FINAL_PRICE);
+        given(orderDomainService.getOrder(anyLong(), anyLong()))
+                .willReturn(orderDto);
+        //when
+        //then
+        assertThatThrownBy(() -> orderApplicationService.finalizeOrder(orderId, USER_ID, "paymentKey", requestedAmount))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(OrderErrorCode.ORDER_PRICE_MISMATCH);
+    }
+
+    @Test
     @DisplayName("결제를 승인할때 결제 승인이 실패한 경우 주문을 실패 처리, 주문 실패 이벤트를 발행하고 예외를 그대로 던진다")
     void finalizeOrder_when_payment_fail(){
         //given
@@ -229,6 +247,37 @@ public class OrderApplicationServiceTest {
         assertThat(paymentResultEventCaptor.getValue())
                 .extracting(PaymentResultEvent::getOrderId, PaymentResultEvent::getStatus, PaymentResultEvent::getCode)
                 .containsExactly(orderId, OrderEventStatus.FAILURE, OrderFailureCode.PAYMENT_FAILED);
+    }
+
+    @Test
+    @DisplayName("결제 승인 요청시 결제는 승인되었지만 주문 상태 변경이 실패한 경우 주문을 실패 처리, SAGA 보상을 진행하고 예외를 던진다")
+    void finalizeOrder_when_DB_Exception(){
+        //given
+        Long orderId = 1L;
+        String paymentKey = "paymentKey";
+        OrderDto waitingOrder = mockSavedOrder(OrderStatus.PAYMENT_WAITING, FIXED_FINAL_PRICE);
+        OrderDto canceledOrder = mockSavedOrder(OrderStatus.CANCELED, FIXED_FINAL_PRICE);
+        given(orderDomainService.getOrder(anyLong(), anyLong()))
+                .willReturn(waitingOrder);
+        TossPaymentConfirmResponse paymentResponse = mockPaymentResponse(paymentKey, FIXED_FINAL_PRICE);
+        given(orderExternalAdaptor.confirmOrderPayment(anyLong(), anyString(), anyLong()))
+                .willReturn(paymentResponse);
+        willThrow(RuntimeException.class)
+                .given(orderDomainService).completedOrder(any());
+        given(orderDomainService.canceledOrder(anyLong(), any()))
+                .willReturn(canceledOrder);
+        //when
+        //then
+        assertThatThrownBy(() -> orderApplicationService.finalizeOrder(orderId, USER_ID, paymentKey, FIXED_FINAL_PRICE))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(CommonErrorCode.INTERNAL_ERROR);
+
+        verify(orderDomainService).canceledOrder(orderId, OrderFailureCode.SYSTEM_ERROR);
+        verify(eventPublisher, times(1)).publishEvent(paymentResultEventCaptor.capture());
+        assertThat(paymentResultEventCaptor.getValue())
+                .extracting(PaymentResultEvent::getOrderId, PaymentResultEvent::getStatus, PaymentResultEvent::getCode)
+                .containsExactly(orderId, OrderEventStatus.FAILURE, OrderFailureCode.SYSTEM_ERROR);
     }
 
     @Test

@@ -1,8 +1,8 @@
 package com.example.order_service.api.order.infrastructure.client.payment;
 
 import com.example.order_service.api.common.client.payment.TossPaymentFeignConfig;
-import com.example.order_service.api.order.infrastructure.client.payment.dto.TossPaymentConfirmRequest;
-import com.example.order_service.api.order.infrastructure.client.payment.dto.TossPaymentConfirmResponse;
+import com.example.order_service.api.order.infrastructure.client.payment.dto.request.TossPaymentConfirmRequest;
+import com.example.order_service.api.order.infrastructure.client.payment.dto.response.TossPaymentConfirmResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;

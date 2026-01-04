@@ -1,10 +1,7 @@
 package com.example.order_service.api.order.application;
 
 import com.example.order_service.api.common.dto.PageDto;
-import com.example.order_service.api.common.exception.BusinessException;
-import com.example.order_service.api.common.exception.ErrorCode;
-import com.example.order_service.api.common.exception.OrderErrorCode;
-import com.example.order_service.api.common.exception.PaymentErrorCode;
+import com.example.order_service.api.common.exception.*;
 import com.example.order_service.api.order.application.dto.command.CreateOrderDto;
 import com.example.order_service.api.order.application.dto.result.CreateOrderResponse;
 import com.example.order_service.api.order.application.dto.result.OrderDetailResponse;
@@ -27,10 +24,11 @@ import com.example.order_service.api.order.domain.service.dto.result.OrderDto;
 import com.example.order_service.api.order.domain.service.dto.result.OrderItemDto;
 import com.example.order_service.api.order.infrastructure.OrderExternalAdaptor;
 import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponDiscountResponse;
-import com.example.order_service.api.order.infrastructure.client.payment.dto.TossPaymentConfirmResponse;
+import com.example.order_service.api.order.infrastructure.client.payment.dto.response.TossPaymentConfirmResponse;
 import com.example.order_service.api.order.infrastructure.client.product.dto.OrderProductResponse;
 import com.example.order_service.api.order.infrastructure.client.user.dto.OrderUserResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
@@ -40,6 +38,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class OrderApplicationService {
@@ -82,18 +81,8 @@ public class OrderApplicationService {
     public OrderDetailResponse finalizeOrder(Long orderId, Long userId, String paymentKey, Long amount) {
         OrderDto order = orderDomainService.getOrder(orderId, userId);
         validBeforePayment(order, amount);
-        try {
-            TossPaymentConfirmResponse paymentConfirm =
-                    orderExternalAdaptor.confirmOrderPayment(order.getOrderId(), paymentKey, order.getOrderPriceInfo().getFinalPaymentAmount());
-            OrderDto completeOrder = orderDomainService.completedOrder(PaymentCreationCommand.from(paymentConfirm));
-            List<Long> productVariantIds = completeOrder.getOrderItemDtoList().stream().map(OrderItemDto::getProductVariantId).toList();
-            eventPublisher.publishEvent(PaymentResultEvent.of(completeOrder.getOrderId(), completeOrder.getUserId(), OrderEventStatus.SUCCESS,
-                    null, productVariantIds));
-            return OrderDetailResponse.from(completeOrder);
-        } catch (BusinessException e) {
-            handlePaymentFailure(order.getOrderId(), e.getErrorCode());
-            throw e;
-        }
+        TossPaymentConfirmResponse confirmResponse = executePaymentConfirmRequest(order, paymentKey);
+        return completeOrderWithCompensation(order, confirmResponse, paymentKey);
     }
 
     public OrderDetailResponse getOrder(Long userId, Long orderId) {
@@ -123,6 +112,29 @@ public class OrderApplicationService {
         return OrderCreationContext.of(user.getUserId(), itemSpecs, priceResult, dto.getDeliveryAddress());
     }
 
+    // 토스 결제 승인 실행
+    private TossPaymentConfirmResponse executePaymentConfirmRequest(OrderDto orderDto, String paymentKey) {
+        try {
+            return orderExternalAdaptor.confirmOrderPayment(orderDto.getOrderId(), paymentKey, orderDto.getOrderPriceInfo().getFinalPaymentAmount());
+        } catch (BusinessException e) {
+            // 결제 중 예외가 발생한 경우 주문 상태 변경 후 Saga 보상 로직 실행
+            handlePaymentFailure(orderDto.getOrderId(), e.getErrorCode());
+            throw e;
+        }
+    }
+
+    // 결제 후 주문 완료 실행
+    private OrderDetailResponse completeOrderWithCompensation(OrderDto orderDto, TossPaymentConfirmResponse response, String paymentKey) {
+        try {
+            return processOrderCompletion(response);
+        } catch (Exception e) {
+            // 주문 완료 DB 상태 변경중 예외 발생시 결제는 완료되었으므로 결제 환불 요청 후 SAGA 환불 실행
+            compensatePayment(paymentKey);
+            handlePaymentFailure(orderDto.getOrderId(), CommonErrorCode.INTERNAL_ERROR);
+            throw new BusinessException(CommonErrorCode.INTERNAL_ERROR);
+        }
+    }
+
     private void validBeforePayment(OrderDto order, Long amount) {
         if (!order.getStatus().equals(OrderStatus.PAYMENT_WAITING)) {
             throw new BusinessException(OrderErrorCode.ORDER_NOT_PAYABLE);
@@ -130,6 +142,23 @@ public class OrderApplicationService {
 
         if (order.getOrderPriceInfo().getFinalPaymentAmount() != amount) {
             throw new BusinessException(OrderErrorCode.ORDER_PRICE_MISMATCH);
+        }
+    }
+
+    private OrderDetailResponse processOrderCompletion(TossPaymentConfirmResponse response) {
+        OrderDto completedOrder = orderDomainService.completedOrder(PaymentCreationCommand.from(response));
+        List<Long> productVariantIds = completedOrder.getOrderItemDtoList().stream()
+                .map(OrderItemDto::getProductVariantId).toList();
+        eventPublisher.publishEvent(PaymentResultEvent.of(completedOrder.getOrderId(), completedOrder.getUserId(), OrderEventStatus.SUCCESS, null,
+                productVariantIds));
+        return OrderDetailResponse.from(completedOrder);
+    }
+
+    private void compensatePayment(String paymentKey) {
+        try {
+            orderExternalAdaptor.cancelPayment(paymentKey);
+        } catch (Exception e) {
+            log.error("결제 : [치명적 오류] 시스템 오류로 발생한 결제 환불 실패");
         }
     }
 
@@ -147,7 +176,6 @@ public class OrderApplicationService {
                 case PAYMENT_TIMEOUT -> OrderFailureCode.PAYMENT_TIMEOUT;
                 case PAYMENT_ALREADY_PROCEED_PAYMENT -> OrderFailureCode.ALREADY_PROCEED_PAYMENT;
                 case PAYMENT_NOT_FOUND -> OrderFailureCode.PAYMENT_NOT_FOUND;
-
                 default -> OrderFailureCode.PAYMENT_FAILED;
             };
         }

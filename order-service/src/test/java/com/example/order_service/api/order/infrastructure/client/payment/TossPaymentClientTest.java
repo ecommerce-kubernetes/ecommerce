@@ -1,6 +1,6 @@
 package com.example.order_service.api.order.infrastructure.client.payment;
 
-import com.example.order_service.api.order.infrastructure.client.payment.dto.TossPaymentConfirmRequest;
+import com.example.order_service.api.order.infrastructure.client.payment.dto.request.TossPaymentConfirmRequest;
 import com.example.order_service.api.support.ExcludeInfraTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
