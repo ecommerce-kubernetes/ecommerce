@@ -1,6 +1,6 @@
 package com.example.order_service.api.order.domain.model;
 
-import com.example.order_service.api.order.domain.service.dto.command.OrderItemSpec;
+import com.example.order_service.api.order.domain.service.dto.command.CreateOrderItemCommand;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -14,17 +14,17 @@ public class OrderItemTest {
     @DisplayName("주문 상품 생성시 상품 옵션이 있는 경우 매핑되어 생성된다")
     void createOrderItem(){
         //given
-        OrderItemSpec.ItemOption itemOption = OrderItemSpec.ItemOption.builder()
+        CreateOrderItemCommand.ItemOption itemOption = CreateOrderItemCommand.ItemOption.builder()
                 .optionTypeName("사이즈")
                 .optionValueName("XL")
                 .build();
 
-        OrderItemSpec item = OrderItemSpec.builder()
+        CreateOrderItemCommand item = CreateOrderItemCommand.builder()
                 .productId(1L)
                 .productVariantId(1L)
                 .productName("상품1")
                 .thumbnailUrl("http://thumbnail.jpg")
-                .unitPrice(OrderItemSpec.UnitPrice.builder()
+                .unitPrice(CreateOrderItemCommand.UnitPrice.builder()
                         .originalPrice(3000L)
                         .discountRate(10)
                         .discountAmount(300L)
@@ -53,12 +53,12 @@ public class OrderItemTest {
     @DisplayName("주문 상품 생성시 상품 옵션이 없는 경우 매핑하지 않은 객체를 생성한다")
     void createOrderItem_withoutOptions(){
         //given
-        OrderItemSpec item = OrderItemSpec.builder()
+        CreateOrderItemCommand item = CreateOrderItemCommand.builder()
                 .productId(1L)
                 .productVariantId(1L)
                 .productName("상품1")
                 .thumbnailUrl("http://thumbnail.jpg")
-                .unitPrice(OrderItemSpec.UnitPrice.builder()
+                .unitPrice(CreateOrderItemCommand.UnitPrice.builder()
                         .originalPrice(3000L)
                         .discountRate(10)
                         .discountAmount(300L)

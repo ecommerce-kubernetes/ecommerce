@@ -1,6 +1,6 @@
 package com.example.order_service.api.order.domain.model;
 
-import com.example.order_service.api.order.domain.service.dto.command.OrderItemSpec;
+import com.example.order_service.api.order.domain.service.dto.command.CreateOrderItemCommand;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -31,7 +31,7 @@ public class ItemOption {
         this.orderItem = orderItem;
     }
 
-    public static ItemOption create(OrderItemSpec.ItemOption itemOption) {
+    public static ItemOption create(CreateOrderItemCommand.ItemOption itemOption) {
         return ItemOption.builder()
                 .optionTypeName(itemOption.getOptionTypeName())
                 .optionValueName(itemOption.getOptionValueName())

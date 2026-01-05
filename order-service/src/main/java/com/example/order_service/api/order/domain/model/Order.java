@@ -4,8 +4,8 @@ import com.example.order_service.api.common.entity.BaseEntity;
 import com.example.order_service.api.common.exception.BusinessException;
 import com.example.order_service.api.common.exception.OrderErrorCode;
 import com.example.order_service.api.order.domain.model.vo.OrderPriceInfo;
-import com.example.order_service.api.order.domain.service.dto.command.OrderCreationContext;
-import com.example.order_service.api.order.domain.service.dto.command.OrderItemSpec;
+import com.example.order_service.api.order.domain.service.dto.command.CreateOrderCommand;
+import com.example.order_service.api.order.domain.service.dto.command.CreateOrderItemCommand;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -86,28 +86,28 @@ public class Order extends BaseEntity {
         this.failureCode = code;
     }
 
-    public static Order create(OrderCreationContext context) {
-        validateOrderItems(context.getItemSpecs());
+    public static Order create(CreateOrderCommand context) {
+        validateOrderItems(context.getItemCommands());
         String orderNo = generatedOrderNo();
-        String generatedOrderName = generateOrderName(context.getItemSpecs());
+        String generatedOrderName = generateOrderName(context.getItemCommands());
         Order order = createOrder(context, orderNo, generatedOrderName);
-        for (OrderItemSpec item : context.getItemSpecs()) {
+        for (CreateOrderItemCommand item : context.getItemCommands()) {
             order.addOrderItem(OrderItem.create(item));
         }
-        if (context.getPriceResult().getAppliedCoupon() != null) {
-            order.addCoupon(Coupon.create(context.getPriceResult().getAppliedCoupon()));
+        if (context.getAppliedCoupon() != null) {
+            order.addCoupon(Coupon.create(context.getAppliedCoupon()));
         }
 
         return order;
     }
 
-    private static void validateOrderItems(List<OrderItemSpec> itemSpecs) {
+    private static void validateOrderItems(List<CreateOrderItemCommand> itemSpecs) {
         if (itemSpecs == null || itemSpecs.isEmpty()) {
             throw new BusinessException(OrderErrorCode.ORDER_ITEM_MINIMUM_ONE_REQUIRED);
         }
     }
 
-    private static String generateOrderName(List<OrderItemSpec> itemSpecs){
+    private static String generateOrderName(List<CreateOrderItemCommand> itemSpecs){
         String firstProductName = itemSpecs.get(0).getProductName();
         int size = itemSpecs.size();
 
@@ -124,14 +124,14 @@ public class Order extends BaseEntity {
         return "ORD-" + date + "-" + randomStr;
     }
 
-    private static Order createOrder(OrderCreationContext context, String orderNo, String orderName){
+    private static Order createOrder(CreateOrderCommand context, String orderNo, String orderName){
         return Order.builder()
                 .orderNo(orderNo)
                 .userId(context.getUserId())
                 .status(OrderStatus.PENDING)
                 .orderName(orderName)
                 .deliveryAddress(context.getDeliveryAddress())
-                .priceInfo(context.getPriceResult().getOrderPriceInfo())
+                .priceInfo(context.getOrderPriceInfo())
                 .failureCode(null)
                 .build();
     }

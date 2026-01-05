@@ -19,7 +19,7 @@ import com.example.order_service.api.order.domain.model.OrderFailureCode;
 import com.example.order_service.api.order.domain.model.OrderStatus;
 import com.example.order_service.api.order.domain.service.OrderDomainService;
 import com.example.order_service.api.order.domain.service.OrderPriceCalculator;
-import com.example.order_service.api.order.domain.service.dto.command.OrderCreationContext;
+import com.example.order_service.api.order.domain.service.dto.command.CreateOrderCommand;
 import com.example.order_service.api.order.domain.service.dto.command.PaymentCreationCommand;
 import com.example.order_service.api.order.domain.service.dto.result.OrderDto;
 import com.example.order_service.api.order.infrastructure.OrderExternalAdaptor;
@@ -56,6 +56,8 @@ public class OrderApplicationServiceTest {
     @Mock
     private ApplicationEventPublisher eventPublisher;
     @Spy
+    private OrderDtoMapper mapper;
+    @Spy
     private OrderPriceCalculator calculator;
 
     @Captor
@@ -65,7 +67,6 @@ public class OrderApplicationServiceTest {
     @Captor
     private ArgumentCaptor<PaymentResultEvent> paymentResultEventCaptor;
 
-    public static final String ORDER_NO = "ORD-20260101-AB12FVC";
     @Test
     @DisplayName("주문을 생성한다")
     void placeOrder(){
@@ -82,7 +83,7 @@ public class OrderApplicationServiceTest {
                 mockProductResponse(2L, 5000L)
         ));
         given(orderExternalAdaptor.getCoupon(anyLong(), anyLong(), anyLong())).willReturn(mockCouponResponse());
-        given(orderDomainService.saveOrder(any(OrderCreationContext.class)))
+        given(orderDomainService.saveOrder(any(CreateOrderCommand.class)))
                 .willReturn(mockSavedOrder(OrderStatus.PENDING, expectedAmount));
         //when
         CreateOrderResponse response = orderApplicationService.placeOrder(orderRequest);

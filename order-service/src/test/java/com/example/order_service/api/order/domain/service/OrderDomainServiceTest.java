@@ -10,7 +10,7 @@ import com.example.order_service.api.order.domain.model.vo.AppliedCoupon;
 import com.example.order_service.api.order.domain.model.vo.OrderPriceInfo;
 import com.example.order_service.api.order.domain.model.vo.PaymentInfo;
 import com.example.order_service.api.order.domain.repository.OrderRepository;
-import com.example.order_service.api.order.domain.service.dto.command.OrderCreationContext;
+import com.example.order_service.api.order.domain.service.dto.command.CreateOrderCommand;
 import com.example.order_service.api.order.domain.service.dto.command.PaymentCreationCommand;
 import com.example.order_service.api.order.domain.service.dto.result.OrderDto;
 import com.example.order_service.api.order.domain.service.dto.result.OrderItemDto;
@@ -38,7 +38,7 @@ public class OrderDomainServiceTest extends ExcludeInfraTest {
     @DisplayName("주문을 저장한다")
     void saveOrder(){
         //given
-        OrderCreationContext creationContext = createDefaultContext();
+        CreateOrderCommand creationContext = createDefaultContext();
         //when
         OrderDto orderDto = orderDomainService.saveOrder(creationContext);
         //then
@@ -86,7 +86,7 @@ public class OrderDomainServiceTest extends ExcludeInfraTest {
     @DisplayName("주문 상태를 변경한다")
     void changeOrderStatus() {
         //given
-        OrderCreationContext context = createDefaultContext();
+        CreateOrderCommand context = createDefaultContext();
         Order order = Order.create(context);
         Order savedOrder = orderRepository.save(order);
         //when
@@ -113,7 +113,7 @@ public class OrderDomainServiceTest extends ExcludeInfraTest {
     @DisplayName("주문을 조회한다")
     void getOrder(){
         //given
-        OrderCreationContext context = createDefaultContext();
+        CreateOrderCommand context = createDefaultContext();
         Order savedOrder = orderRepository.save(Order.create(context));
         //when
         OrderDto result = orderDomainService.getOrder(savedOrder.getOrderNo(), USER_ID);
@@ -161,7 +161,7 @@ public class OrderDomainServiceTest extends ExcludeInfraTest {
     void getOrder_noPermission() {
         //given
         Long otherUserId = 20L;
-        OrderCreationContext context = createDefaultContext();
+        CreateOrderCommand context = createDefaultContext();
         Order savedOrder = orderRepository.save(Order.create(context));
         //when
         //then
@@ -175,7 +175,7 @@ public class OrderDomainServiceTest extends ExcludeInfraTest {
     @DisplayName("주문을 실패 상태로 변경한다")
     void canceledOrder() {
         //given
-        OrderCreationContext context = createDefaultContext();
+        CreateOrderCommand context = createDefaultContext();
         Order savedOrder = orderRepository.save(Order.create(context));
         OrderFailureCode failureCode = OrderFailureCode.OUT_OF_STOCK;
         //when
@@ -202,7 +202,7 @@ public class OrderDomainServiceTest extends ExcludeInfraTest {
     @DisplayName("유저 ID 와 조회 커맨드로 주문 목록을 조회한다")
     void getOrders(){
         //given
-        OrderCreationContext context = createDefaultContext();
+        CreateOrderCommand context = createDefaultContext();
         Order savedOrder1 = orderRepository.save(Order.create(context));
         Order savedOrder2 = orderRepository.save(Order.create(context));
         OrderSearchCondition condition = OrderSearchCondition.builder()
@@ -239,7 +239,7 @@ public class OrderDomainServiceTest extends ExcludeInfraTest {
     void completedOrder(){
         //given
         String paymentKey = "paymentKey";
-        OrderCreationContext context = createDefaultContext();
+        CreateOrderCommand context = createDefaultContext();
         Order order = Order.create(context);
         order.changeStatus(OrderStatus.PAYMENT_WAITING);
         Order savedOrder = orderRepository.save(order);

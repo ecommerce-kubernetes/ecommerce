@@ -1,7 +1,7 @@
 package com.example.order_service.api.order.domain.model;
 
 import com.example.order_service.api.common.entity.BaseEntity;
-import com.example.order_service.api.order.domain.service.dto.command.OrderItemSpec;
+import com.example.order_service.api.order.domain.service.dto.command.CreateOrderItemCommand;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -63,10 +63,10 @@ public class OrderItem extends BaseEntity {
         itemOption.setOrderItem(this);
     }
 
-    public static OrderItem create(OrderItemSpec orderItemSpec){
-        OrderItem orderItem = of(orderItemSpec);
-        if(orderItemSpec.getItemOptions() != null && !orderItemSpec.getItemOptions().isEmpty()) {
-            for (OrderItemSpec.ItemOption itemOption : orderItemSpec.getItemOptions()) {
+    public static OrderItem create(CreateOrderItemCommand createOrderItemCommand){
+        OrderItem orderItem = of(createOrderItemCommand);
+        if(createOrderItemCommand.getItemOptions() != null && !createOrderItemCommand.getItemOptions().isEmpty()) {
+            for (CreateOrderItemCommand.ItemOption itemOption : createOrderItemCommand.getItemOptions()) {
                 orderItem.addItemOption(ItemOption.create(itemOption));
             }
         }
@@ -74,18 +74,18 @@ public class OrderItem extends BaseEntity {
         return orderItem;
     }
 
-    public static OrderItem of(OrderItemSpec orderItemSpec){
+    public static OrderItem of(CreateOrderItemCommand createOrderItemCommand){
         return OrderItem.builder()
-                .productId(orderItemSpec.getProductId())
-                .productVariantId(orderItemSpec.getProductVariantId())
-                .productName(orderItemSpec.getProductName())
-                .originPrice(orderItemSpec.getUnitPrice().getOriginalPrice())
-                .discountRate(orderItemSpec.getUnitPrice().getDiscountRate())
-                .discountAmount(orderItemSpec.getUnitPrice().getDiscountAmount())
-                .discountedPrice(orderItemSpec.getUnitPrice().getDiscountedPrice())
-                .lineTotal(orderItemSpec.getLineTotal())
-                .quantity(orderItemSpec.getQuantity())
-                .thumbnail(orderItemSpec.getThumbnailUrl())
+                .productId(createOrderItemCommand.getProductId())
+                .productVariantId(createOrderItemCommand.getProductVariantId())
+                .productName(createOrderItemCommand.getProductName())
+                .originPrice(createOrderItemCommand.getUnitPrice().getOriginalPrice())
+                .discountRate(createOrderItemCommand.getUnitPrice().getDiscountRate())
+                .discountAmount(createOrderItemCommand.getUnitPrice().getDiscountAmount())
+                .discountedPrice(createOrderItemCommand.getUnitPrice().getDiscountedPrice())
+                .lineTotal(createOrderItemCommand.getLineTotal())
+                .quantity(createOrderItemCommand.getQuantity())
+                .thumbnail(createOrderItemCommand.getThumbnailUrl())
                 .build();
     }
 }

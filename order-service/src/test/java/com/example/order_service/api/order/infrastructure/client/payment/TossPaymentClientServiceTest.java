@@ -110,7 +110,7 @@ public class TossPaymentClientServiceTest extends ExcludeInfraTest {
         assertThat(result)
                 .extracting(TossPaymentCancelResponse::getPaymentKey, TossPaymentCancelResponse::getOrderId, TossPaymentCancelResponse::getTotalAmount,
                         TossPaymentCancelResponse::getStatus)
-                .containsExactly("paymentKey", ORDER_NO, 10000L, "CANCEL");
+                .containsExactly("paymentKey", ORDER_NO, 10000L, "CANCELED");
     }
 
     @Test

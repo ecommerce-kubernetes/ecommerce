@@ -1,7 +1,11 @@
 package com.example.order_service.api.order.application;
 
 import com.example.order_service.api.common.dto.PageDto;
-import com.example.order_service.api.common.exception.*;
+import com.example.order_service.api.common.exception.BusinessException;
+import com.example.order_service.api.common.exception.CommonErrorCode;
+import com.example.order_service.api.common.exception.ErrorCode;
+import com.example.order_service.api.common.exception.OrderErrorCode;
+import com.example.order_service.api.common.util.AsyncUtil;
 import com.example.order_service.api.order.application.dto.command.CreateOrderDto;
 import com.example.order_service.api.order.application.dto.result.CreateOrderResponse;
 import com.example.order_service.api.order.application.dto.result.OrderDetailResponse;
@@ -16,7 +20,7 @@ import com.example.order_service.api.order.domain.model.OrderStatus;
 import com.example.order_service.api.order.domain.model.vo.PriceCalculateResult;
 import com.example.order_service.api.order.domain.service.OrderDomainService;
 import com.example.order_service.api.order.domain.service.OrderPriceCalculator;
-import com.example.order_service.api.order.domain.service.dto.command.OrderCreationContext;
+import com.example.order_service.api.order.domain.service.dto.command.CreateOrderCommand;
 import com.example.order_service.api.order.domain.service.dto.command.PaymentCreationCommand;
 import com.example.order_service.api.order.domain.service.dto.result.ItemCalculationResult;
 import com.example.order_service.api.order.domain.service.dto.result.OrderDto;
@@ -33,6 +37,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @Service
@@ -41,22 +46,24 @@ public class OrderApplicationService {
 
     private final OrderExternalAdaptor orderExternalAdaptor;
     private final OrderPriceCalculator calculator;
+    private final OrderDtoMapper mapper;
     private final OrderDomainService orderDomainService;
     private final ApplicationEventPublisher eventPublisher;
 
-    //CompletableFuture 을 사용한 비동기 호출 고려
     public CreateOrderResponse placeOrder(CreateOrderDto dto){
-        //주문 유저 조회
-        OrderUserResponse user = orderExternalAdaptor.getOrderUser(dto.getUserId());
-        //주문 상품 목록 조회
-        List<OrderProductResponse> products = orderExternalAdaptor.getOrderProducts(dto.getOrderItemDtoList());
+        //CompletableFuture 을 사용해서 상품, 유저 요청을 비동기로 동시에 조회
+        CompletableFuture<OrderUserResponse> userFuture = CompletableFuture.supplyAsync(() -> orderExternalAdaptor.getOrderUser(dto.getUserId()));
+        CompletableFuture<List<OrderProductResponse>> productFuture = CompletableFuture.supplyAsync(() -> orderExternalAdaptor.getOrderProducts(dto.getOrderItemDtoList()));
+        CompletableFuture.allOf(userFuture, productFuture).join();
+        OrderUserResponse user = AsyncUtil.join(userFuture);
+        List<OrderProductResponse> products = AsyncUtil.join(productFuture);
         //주문 상품 가격 정보 계산
         ItemCalculationResult itemResult = calculator.calculateItemAmounts(dto.getOrderItemDtoList(), products);
         OrderCouponDiscountResponse coupon = orderExternalAdaptor.getCoupon(dto.getUserId(), dto.getCouponId(), itemResult.getSubTotalPrice());
         //할인 적용 최종 금액 계산
         PriceCalculateResult priceResult = calculator
                 .calculateFinalPrice(dto.getPointToUse(), itemResult, dto.getExpectedPrice(), user, coupon);
-        OrderCreationContext creationContext = OrderCreationContext.from(dto, user, products, priceResult);
+        CreateOrderCommand creationContext = mapper.assembleOrderCommand(dto, user, products, priceResult);
         OrderDto orderDto = orderDomainService.saveOrder(creationContext);
         eventPublisher.publishEvent(OrderCreatedEvent.from(orderDto));
         return CreateOrderResponse.of(orderDto);
