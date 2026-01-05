@@ -105,7 +105,7 @@ class CartControllerTest extends ControllerTestSupport {
                 .cartTotalPrice(cartItemResponse.getLineTotal())
                 .build();
 
-        given(cartApplicationService.getCartDetails(any(UserPrincipal.class)))
+        given(cartApplicationService.getCartDetails(anyLong()))
                 .willReturn(response);
         //when
         //then
@@ -137,7 +137,7 @@ class CartControllerTest extends ControllerTestSupport {
     @WithCustomMockUser
     void deleteCartItem() throws Exception {
         //given
-        willDoNothing().given(cartApplicationService).removeCartItem(any(UserPrincipal.class), anyLong());
+        willDoNothing().given(cartApplicationService).removeCartItem(anyLong(), anyLong());
         //when
         //then
         mockMvc.perform(delete("/carts/{cartItemId}", 1)
@@ -167,7 +167,7 @@ class CartControllerTest extends ControllerTestSupport {
     @WithCustomMockUser
     void clearCart() throws Exception {
         //given
-        willDoNothing().given(cartApplicationService).clearCart(any(UserPrincipal.class));
+        willDoNothing().given(cartApplicationService).clearCart(anyLong());
         //when
         //then
         mockMvc.perform(delete("/carts")

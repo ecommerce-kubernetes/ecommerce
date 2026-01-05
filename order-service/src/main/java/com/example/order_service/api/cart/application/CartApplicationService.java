@@ -9,7 +9,6 @@ import com.example.order_service.api.cart.domain.service.dto.CartItemDto;
 import com.example.order_service.api.cart.infrastructure.client.CartProductClientService;
 import com.example.order_service.api.cart.infrastructure.client.dto.CartProductResponse;
 import com.example.order_service.api.common.exception.BusinessException;
-import com.example.order_service.api.common.security.principal.UserPrincipal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -27,13 +26,12 @@ public class CartApplicationService {
 
     public CartItemResponse addItem(AddCartItemDto dto) {
         CartProductResponse product = cartProductClientService.getProduct(dto.getProductVariantId());
-        Long userId = dto.getUserPrincipal().getUserId();
+        Long userId = dto.getUserId();
         CartItemDto result = cartDomainService.addItemToCart(userId, dto.getProductVariantId(), dto.getQuantity());
         return CartItemResponse.of(result, product);
     }
 
-    public CartResponse getCartDetails(UserPrincipal userPrincipal){
-        Long userId = userPrincipal.getUserId();
+    public CartResponse getCartDetails(Long userId){
         List<CartItemDto> cartItems = cartDomainService.getCartItems(userId);
 
         return Optional.of(cartItems)
@@ -42,13 +40,11 @@ public class CartApplicationService {
                 .orElseGet(CartResponse::ofEmpty);
     }
 
-    public void removeCartItem(UserPrincipal userPrincipal, Long cartItemId){
-        Long userId = userPrincipal.getUserId();
+    public void removeCartItem(Long userId, Long cartItemId){
         cartDomainService.deleteCartItem(userId, cartItemId);
     }
 
-    public void clearCart(UserPrincipal userPrincipal){
-        Long userId = userPrincipal.getUserId();
+    public void clearCart(Long userId){
         cartDomainService.clearCart(userId);
     }
 

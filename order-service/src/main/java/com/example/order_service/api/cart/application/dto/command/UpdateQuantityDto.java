@@ -9,20 +9,20 @@ import lombok.Setter;
 @Getter
 @Setter
 public class UpdateQuantityDto {
-    private UserPrincipal userPrincipal;
+    private Long userId;
     private Long cartItemId;
     private int quantity;
 
     @Builder
-    private UpdateQuantityDto(UserPrincipal userPrincipal, Long cartItemId, int quantity){
-        this.userPrincipal = userPrincipal;
+    private UpdateQuantityDto(Long userId, Long cartItemId, int quantity){
+        this.userId = userId;
         this.cartItemId = cartItemId;
         this.quantity = quantity;
     }
 
-    public static UpdateQuantityDto of(UserPrincipal userPrincipal, Long cartItemId, UpdateQuantityRequest request){
+    public static UpdateQuantityDto of(Long userId, Long cartItemId, UpdateQuantityRequest request){
         return UpdateQuantityDto.builder()
-                .userPrincipal(userPrincipal)
+                .userId(userId)
                 .cartItemId(cartItemId)
                 .quantity(request.getQuantity())
                 .build();

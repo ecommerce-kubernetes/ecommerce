@@ -9,30 +9,22 @@ import lombok.Setter;
 @Getter
 @Setter
 public class AddCartItemDto {
-    private UserPrincipal userPrincipal;
+    private Long userId;
     private Long productVariantId;
     private int quantity;
 
     @Builder
-    private AddCartItemDto(UserPrincipal userPrincipal, Long productVariantId, int quantity){
-        this.userPrincipal = userPrincipal;
+    private AddCartItemDto(Long userId, Long productVariantId, int quantity){
+        this.userId = userId;
         this.productVariantId = productVariantId;
         this.quantity = quantity;
     }
 
-    public static AddCartItemDto of(UserPrincipal userPrincipal, Long productVariantId, int quantity){
+    public static AddCartItemDto of(Long userId, Long productVariantId, int quantity){
         return AddCartItemDto.builder()
-                .userPrincipal(userPrincipal)
+                .userId(userId)
                 .productVariantId(productVariantId)
                 .quantity(quantity)
-                .build();
-    }
-
-    public static AddCartItemDto of(UserPrincipal userPrincipal, CartItemRequest request){
-        return AddCartItemDto.builder()
-                .userPrincipal(userPrincipal)
-                .productVariantId(request.getProductVariantId())
-                .quantity(request.getQuantity())
                 .build();
     }
 }

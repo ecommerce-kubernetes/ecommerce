@@ -10,8 +10,6 @@ import com.example.order_service.api.cart.infrastructure.client.CartProductClien
 import com.example.order_service.api.cart.infrastructure.client.dto.CartProductResponse;
 import com.example.order_service.api.common.exception.BusinessException;
 import com.example.order_service.api.common.exception.CartErrorCode;
-import com.example.order_service.api.common.security.model.UserRole;
-import com.example.order_service.api.common.security.principal.UserPrincipal;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -40,9 +38,8 @@ public class CartApplicationServiceTest {
     @DisplayName("장바구니에 상품이 추가되면 상품 정보가 포함된 응답값을 반환한다")
     void addItem(){
         //given
-        UserPrincipal userPrincipal = createUserPrincipal(1L, UserRole.ROLE_USER);
         AddCartItemDto command = AddCartItemDto.builder()
-                .userPrincipal(userPrincipal)
+                .userId(1L)
                 .productVariantId(1L)
                 .quantity(3)
                 .build();
@@ -94,7 +91,6 @@ public class CartApplicationServiceTest {
     @DisplayName("장바구니에 담긴 상품 목록을 조회해 상품정보가 포함된 응답값을 반환한다")
     void getCartDetails(){
         //given
-        UserPrincipal userPrincipal = createUserPrincipal(1L, UserRole.ROLE_USER);
         CartItemDto item1 = CartItemDto.builder()
                 .id(1L)
                 .productVariantId(1L)
@@ -120,7 +116,7 @@ public class CartApplicationServiceTest {
         given(cartProductClientService.getProducts(anyList()))
                 .willReturn(List.of(product1, product2));
         //when
-        CartResponse response = cartApplicationService.getCartDetails(userPrincipal);
+        CartResponse response = cartApplicationService.getCartDetails(1L);
         //then
         assertThat(response.getCartItems()).hasSize(2)
                         .satisfiesExactlyInAnyOrder(
@@ -166,11 +162,10 @@ public class CartApplicationServiceTest {
     @DisplayName("장바구니에 담긴 상품을 조회할때 장바구니에 상품이 없는 경우 빈 응답을 반환한다")
     void getCartDetails_When_Empty_CartItems(){
         //given
-        UserPrincipal userPrincipal = createUserPrincipal(1L, UserRole.ROLE_USER);
         given(cartDomainService.getCartItems(anyLong()))
                 .willReturn(List.of());
         //when
-        CartResponse response = cartApplicationService.getCartDetails(userPrincipal);
+        CartResponse response = cartApplicationService.getCartDetails(1L);
         //then
         assertThat(response.getCartItems()).isEmpty();
         assertThat(response.getCartTotalPrice()).isEqualTo(0L);
@@ -180,7 +175,6 @@ public class CartApplicationServiceTest {
     @DisplayName("장바구니에 담긴 상품을 조회할때 해당 상품이 상품서비스에서 찾을 수 없는 경우 해당 상품은 실패 응답으로 채워 반환한다")
     void getCartDetails_When_ProductInfoEmpty(){
         //given
-        UserPrincipal userPrincipal = createUserPrincipal(1L, UserRole.ROLE_USER);
         CartItemDto item1 = CartItemDto.builder()
                 .id(1L)
                 .productVariantId(1L)
@@ -203,7 +197,7 @@ public class CartApplicationServiceTest {
         given(cartProductClientService.getProducts(anyList()))
                 .willReturn(List.of(product1));
         //when
-        CartResponse cartDetails = cartApplicationService.getCartDetails(userPrincipal);
+        CartResponse cartDetails = cartApplicationService.getCartDetails(1L);
         //then
         assertThat(cartDetails.getCartItems()).hasSize(2)
                 .satisfiesExactlyInAnyOrder(
@@ -245,10 +239,9 @@ public class CartApplicationServiceTest {
         //given
         Long userId = 1L;
         Long cartItemId = 1L;
-        UserPrincipal userPrincipal = createUserPrincipal(userId, UserRole.ROLE_USER);
         willDoNothing().given(cartDomainService).deleteCartItem(anyLong(), anyLong());
         //when
-        cartApplicationService.removeCartItem(userPrincipal, cartItemId);
+        cartApplicationService.removeCartItem(userId, cartItemId);
         //then
         verify(cartDomainService, times(1)).deleteCartItem(userId, cartItemId);
     }
@@ -257,10 +250,9 @@ public class CartApplicationServiceTest {
     @DisplayName("장바구니에 담긴 상품을 모두 삭제")
     void clearCart() {
         //given
-        UserPrincipal userPrincipal = createUserPrincipal(1L, UserRole.ROLE_USER);
         willDoNothing().given(cartDomainService).clearCart(anyLong());
         //when
-        cartApplicationService.clearCart(userPrincipal);
+        cartApplicationService.clearCart(1L);
         //then
         verify(cartDomainService, times(1))
                 .clearCart(1L);
@@ -270,9 +262,8 @@ public class CartApplicationServiceTest {
     @DisplayName("장바구니에 상품 수량을 수정하고 수정된 상품 정보가 포함된 응답을 반환한다")
     void updateCartItemQuantity() {
         //given
-        UserPrincipal userPrincipal = createUserPrincipal(1L, UserRole.ROLE_USER);
         UpdateQuantityDto dto = UpdateQuantityDto.builder()
-                .userPrincipal(userPrincipal)
+                .userId(1L)
                 .cartItemId(1L)
                 .quantity(3)
                 .build();
@@ -337,9 +328,8 @@ public class CartApplicationServiceTest {
     @DisplayName("장바구니의 상품 수량을 수정할때 상품 서비스에서 상품을 찾을 수 없는 경우 수량을 변경하지 않고 실패 응답으로 채워 반환한다")
     void updateCartItemQuantity_When_ProductService_NotFound_Exception(){
         //given
-        UserPrincipal userPrincipal = createUserPrincipal(1L, UserRole.ROLE_USER);
         UpdateQuantityDto dto = UpdateQuantityDto.builder()
-                .userPrincipal(userPrincipal)
+                .userId(1L)
                 .cartItemId(1L)
                 .quantity(3)
                 .build();
@@ -382,13 +372,6 @@ public class CartApplicationServiceTest {
         cartApplicationService.cleanUpCartAfterOrder(userId, productVariantIds);
         //then
         verify(cartDomainService, times(1)).deleteByProductVariantIds(userId, productVariantIds);
-    }
-
-    private UserPrincipal createUserPrincipal(Long userId, UserRole userRole){
-        return UserPrincipal.builder()
-                .userId(userId)
-                .userRole(userRole)
-                .build();
     }
 
     private CartProductResponse createProductResponse(Long productId, Long productVariantId,

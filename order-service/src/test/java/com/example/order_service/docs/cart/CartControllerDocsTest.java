@@ -107,7 +107,7 @@ public class CartControllerDocsTest extends RestDocSupport {
                 .cartItems(List.of(cartItem))
                 .cartTotalPrice(5700)
                 .build();
-        given(cartApplicationService.getCartDetails(any(UserPrincipal.class)))
+        given(cartApplicationService.getCartDetails(anyLong()))
                 .willReturn(response);
         //when
         //then
@@ -152,7 +152,7 @@ public class CartControllerDocsTest extends RestDocSupport {
     void removeCartItem() throws Exception {
         //given
         HttpHeaders roleUser = createUserHeader("ROLE_USER");
-        willDoNothing().given(cartApplicationService).removeCartItem(any(UserPrincipal.class), anyLong());
+        willDoNothing().given(cartApplicationService).removeCartItem(anyLong(), anyLong());
         //when
         //then
         mockMvc.perform(delete("/carts/{cartItemId}", 1)
@@ -176,7 +176,7 @@ public class CartControllerDocsTest extends RestDocSupport {
     void clearCart() throws Exception {
         //given
         HttpHeaders roleUser = createUserHeader("ROLE_USER");
-        willDoNothing().given(cartApplicationService).clearCart(any(UserPrincipal.class));
+        willDoNothing().given(cartApplicationService).clearCart(anyLong());
         //when
         //then
         mockMvc.perform(delete("/carts")
