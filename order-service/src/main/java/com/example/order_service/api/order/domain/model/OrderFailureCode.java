@@ -1,5 +1,6 @@
 package com.example.order_service.api.order.domain.model;
 
+import com.example.order_service.api.common.exception.ErrorCode;
 import com.example.order_service.api.common.exception.PaymentErrorCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -22,12 +23,16 @@ public enum OrderFailureCode {
 
     private final String name;
 
-    public static OrderFailureCode from (PaymentErrorCode code) {
-        return switch (code) {
-            case PAYMENT_APPROVAL_FAIL -> PAYMENT_FAILED;
-            case PAYMENT_INSUFFICIENT_BALANCE -> PAYMENT_INSUFFICIENT_BALANCE;
-            case PAYMENT_TIMEOUT -> PAYMENT_TIMEOUT;
-            default -> PAYMENT_FAILED;
-        };
+    public static OrderFailureCode fromErrorCode(ErrorCode errorCode) {
+        if (errorCode instanceof PaymentErrorCode paymentErrorCode) {
+            return switch (paymentErrorCode) {
+                case PAYMENT_INSUFFICIENT_BALANCE -> OrderFailureCode.PAYMENT_INSUFFICIENT_BALANCE;
+                case PAYMENT_TIMEOUT -> OrderFailureCode.PAYMENT_TIMEOUT;
+                case PAYMENT_ALREADY_PROCEED_PAYMENT -> OrderFailureCode.ALREADY_PROCEED_PAYMENT;
+                case PAYMENT_NOT_FOUND -> OrderFailureCode.PAYMENT_NOT_FOUND;
+                default -> OrderFailureCode.PAYMENT_FAILED;
+            };
+        }
+        return SYSTEM_ERROR;
     }
 }

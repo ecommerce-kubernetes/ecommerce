@@ -73,17 +73,6 @@ public class Order extends BaseEntity {
         payment.setOrder(this);
     }
 
-    private static String generateOrderName(List<OrderItemSpec> itemSpecs){
-        String firstProductName = itemSpecs.get(0).getProductName();
-        int size = itemSpecs.size();
-
-        if(size == 1){
-            return firstProductName;
-        } else {
-            return firstProductName + " 외 " + (size - 1) + "건";
-        }
-    }
-
     public void changeStatus(OrderStatus orderStatus){
         this.status = orderStatus;
     }
@@ -115,6 +104,17 @@ public class Order extends BaseEntity {
     private static void validateOrderItems(List<OrderItemSpec> itemSpecs) {
         if (itemSpecs == null || itemSpecs.isEmpty()) {
             throw new BusinessException(OrderErrorCode.ORDER_ITEM_MINIMUM_ONE_REQUIRED);
+        }
+    }
+
+    private static String generateOrderName(List<OrderItemSpec> itemSpecs){
+        String firstProductName = itemSpecs.get(0).getProductName();
+        int size = itemSpecs.size();
+
+        if(size == 1){
+            return firstProductName;
+        } else {
+            return firstProductName + " 외 " + (size - 1) + "건";
         }
     }
 

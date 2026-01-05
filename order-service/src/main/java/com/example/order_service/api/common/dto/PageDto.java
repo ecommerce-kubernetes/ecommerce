@@ -6,6 +6,7 @@ import lombok.Setter;
 import org.springframework.data.domain.Page;
 
 import java.util.List;
+import java.util.function.Function;
 
 @Getter
 @Setter
@@ -25,14 +26,13 @@ public class PageDto<T> {
         this.totalElement = totalElement;
     }
 
-    public static <T> PageDto<T> of(Page<?> page, List<T> content){
+    public static <E, T> PageDto<T> of(Page<E> page, Function<E, T> mapper) {
         return PageDto.<T>builder()
-                .content(content)
+                .content(page.map(mapper).getContent())
                 .currentPage(page.getNumber() + 1)
                 .totalPage(page.getTotalPages())
                 .pageSize(page.getSize())
                 .totalElement(page.getTotalElements())
                 .build();
     }
-
 }

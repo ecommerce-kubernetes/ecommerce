@@ -17,7 +17,6 @@ import com.example.order_service.api.order.domain.model.vo.PriceCalculateResult;
 import com.example.order_service.api.order.domain.service.OrderDomainService;
 import com.example.order_service.api.order.domain.service.OrderPriceCalculator;
 import com.example.order_service.api.order.domain.service.dto.command.OrderCreationContext;
-import com.example.order_service.api.order.domain.service.dto.command.OrderItemSpec;
 import com.example.order_service.api.order.domain.service.dto.command.PaymentCreationCommand;
 import com.example.order_service.api.order.domain.service.dto.result.ItemCalculationResult;
 import com.example.order_service.api.order.domain.service.dto.result.OrderDto;
@@ -34,9 +33,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -60,9 +56,7 @@ public class OrderApplicationService {
         //할인 적용 최종 금액 계산
         PriceCalculateResult priceResult = calculator
                 .calculateFinalPrice(dto.getPointToUse(), itemResult, dto.getExpectedPrice(), user, coupon);
-
-        OrderCreationContext creationContext =
-                assembleOrderContext(dto, user, products, priceResult);
+        OrderCreationContext creationContext = OrderCreationContext.from(dto, user, products, priceResult);
         OrderDto orderDto = orderDomainService.saveOrder(creationContext);
         eventPublisher.publishEvent(OrderCreatedEvent.from(orderDto));
         return CreateOrderResponse.of(orderDto);
@@ -92,24 +86,7 @@ public class OrderApplicationService {
 
     public PageDto<OrderListResponse> getOrders(Long userId, OrderSearchCondition condition){
         Page<OrderDto> orders = orderDomainService.getOrders(userId, condition);
-
-        List<OrderListResponse> content = orders.getContent().stream().map(OrderListResponse::from).toList();
-        return PageDto.of(orders, content);
-    }
-
-    private OrderCreationContext assembleOrderContext(CreateOrderDto dto,
-                                                      OrderUserResponse user,
-                                                      List<OrderProductResponse> products,
-                                                      PriceCalculateResult priceResult){
-        Map<Long, OrderProductResponse> productMap = products.stream()
-                .collect(Collectors.toMap(OrderProductResponse::getProductVariantId, Function.identity()));
-
-        List<OrderItemSpec> itemSpecs = dto.getOrderItemDtoList().stream()
-                .map(item -> {
-                    OrderProductResponse product = productMap.get(item.getProductVariantId());
-                    return OrderItemSpec.of(product, item.getQuantity());
-                }).toList();
-        return OrderCreationContext.of(user.getUserId(), itemSpecs, priceResult, dto.getDeliveryAddress());
+        return PageDto.of(orders, OrderListResponse::from);
     }
 
     // 토스 결제 승인 실행
@@ -163,22 +140,9 @@ public class OrderApplicationService {
     }
 
     private void handlePaymentFailure(String orderNo, ErrorCode errorCode) {
-        OrderFailureCode failureCode = mapToOrderFailureCode(errorCode);
+        OrderFailureCode failureCode = OrderFailureCode.fromErrorCode(errorCode);
         OrderDto canceledOrder = orderDomainService.canceledOrder(orderNo, failureCode);
         eventPublisher.publishEvent(PaymentResultEvent.of(canceledOrder.getOrderNo(), canceledOrder.getUserId(), OrderEventStatus.FAILURE,
                 failureCode, null));
-    }
-
-    private OrderFailureCode mapToOrderFailureCode(ErrorCode errorCode) {
-        if (errorCode instanceof PaymentErrorCode paymentErrorCode) {
-            return switch (paymentErrorCode) {
-                case PAYMENT_INSUFFICIENT_BALANCE -> OrderFailureCode.PAYMENT_INSUFFICIENT_BALANCE;
-                case PAYMENT_TIMEOUT -> OrderFailureCode.PAYMENT_TIMEOUT;
-                case PAYMENT_ALREADY_PROCEED_PAYMENT -> OrderFailureCode.ALREADY_PROCEED_PAYMENT;
-                case PAYMENT_NOT_FOUND -> OrderFailureCode.PAYMENT_NOT_FOUND;
-                default -> OrderFailureCode.PAYMENT_FAILED;
-            };
-        }
-        return OrderFailureCode.SYSTEM_ERROR;
     }
 }
