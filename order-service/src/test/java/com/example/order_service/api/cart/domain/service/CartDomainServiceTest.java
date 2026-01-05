@@ -85,7 +85,7 @@ class CartDomainServiceTest extends ExcludeInfraTest {
         cart.addCartItem(item);
         cartRepository.save(cart);
         //when
-        CartItemDto cartItem = cartDomainService.getCartItem(item.getId());
+        CartItemDto cartItem = cartDomainService.getCartItem(1L, item.getId());
         //then
         assertThat(cartItem.getId()).isEqualTo(item.getId());
         assertThat(cartItem.getProductVariantId()).isEqualTo(1L);
@@ -98,10 +98,26 @@ class CartDomainServiceTest extends ExcludeInfraTest {
         //given
         //when
         //then
-        assertThatThrownBy(() -> cartDomainService.getCartItem(1L))
+        assertThatThrownBy(() -> cartDomainService.getCartItem(1L, 999L))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(CartErrorCode.CART_ITEM_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("장바구니를 조회할 권한이 없으면 예외를 던진다")
+    void getCartItemWhenNoPermission(){
+        //given
+        Cart cart = Cart.create(1L);
+        CartItem item = CartItem.create(1L, 3);
+        cart.addCartItem(item);
+        cartRepository.save(cart);
+        //when
+        //then
+        assertThatThrownBy(() -> cartDomainService.getCartItem(999L, item.getId()))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(CartErrorCode.CART_NO_PERMISSION);
     }
 
     @Test
@@ -232,10 +248,26 @@ class CartDomainServiceTest extends ExcludeInfraTest {
         cart.addCartItem(item);
         cartRepository.save(cart);
         //when
-        CartItemDto cartItemDto = cartDomainService.updateQuantity(item.getId(), 5);
+        CartItemDto cartItemDto = cartDomainService.updateQuantity(1L, item.getId(), 5);
         //then
         assertThat(cartItemDto.getId()).isEqualTo(item.getId());
         assertThat(cartItemDto.getQuantity()).isEqualTo(5);
+    }
+
+    @Test
+    @DisplayName("장바구니 수량을 변경할 권한이 없으면 예외를 던진다")
+    void updateQuantityWhenNoPermission(){
+        //given
+        Cart cart = Cart.create(1L);
+        CartItem item = CartItem.create(1L, 3);
+        cart.addCartItem(item);
+        cartRepository.save(cart);
+        //when
+        //then
+        assertThatThrownBy(() -> cartDomainService.updateQuantity(999L, item.getId(), 5))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(CartErrorCode.CART_NO_PERMISSION);
     }
 
     @Test

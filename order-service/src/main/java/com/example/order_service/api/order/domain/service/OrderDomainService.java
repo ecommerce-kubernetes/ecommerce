@@ -71,11 +71,6 @@ public class OrderDomainService {
         return OrderDto.from(savedOrder);
     }
 
-    private Order getByOrderId(Long orderId) {
-        return orderRepository.findById(orderId)
-                .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_NOT_FOUND));
-    }
-
     private Order getByOrderNo(String orderNo) {
         return orderRepository.findByOrderNo(orderNo)
                 .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_NOT_FOUND));

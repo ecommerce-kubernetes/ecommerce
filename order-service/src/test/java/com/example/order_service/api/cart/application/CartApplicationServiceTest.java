@@ -195,7 +195,7 @@ public class CartApplicationServiceTest {
                 .cartItemId(1L)
                 .quantity(3)
                 .build();
-        given(cartDomainService.getCartItem(anyLong()))
+        given(cartDomainService.getCartItem(anyLong(), anyLong()))
                 .willReturn(
                         CartItemDto.builder()
                                 .id(1L)
@@ -214,7 +214,7 @@ public class CartApplicationServiceTest {
         given(cartProductClientService.getProduct(anyLong()))
                 .willReturn(product);
 
-        given(cartDomainService.updateQuantity(anyLong(), anyInt()))
+        given(cartDomainService.updateQuantity(anyLong(), anyLong(), anyInt()))
                 .willReturn(
                         CartItemDto.builder()
                                 .id(1L)

@@ -31,8 +31,11 @@ public class CartDomainService {
     }
 
     @Transactional(readOnly = true)
-    public CartItemDto getCartItem(Long cartItemId){
+    public CartItemDto getCartItem(Long userId, Long cartItemId){
         CartItem cartItem = getCartItemByCartItemId(cartItemId);
+        if (!cartItem.getCart().isOwner(userId)){
+            throw new BusinessException(CartErrorCode.CART_NO_PERMISSION);
+        }
         return CartItemDto.from(cartItem);
     }
 
@@ -58,8 +61,11 @@ public class CartDomainService {
                 .ifPresent(Cart::clearItems);
     }
 
-    public CartItemDto updateQuantity(Long cartItemId, int quantity){
+    public CartItemDto updateQuantity(Long userId, Long cartItemId, int quantity){
         CartItem cartItem = getCartItemByCartItemId(cartItemId);
+        if (!cartItem.getCart().isOwner(userId)) {
+            throw new BusinessException(CartErrorCode.CART_NO_PERMISSION);
+        }
         cartItem.updateQuantity(quantity);
         return CartItemDto.from(cartItem);
     }

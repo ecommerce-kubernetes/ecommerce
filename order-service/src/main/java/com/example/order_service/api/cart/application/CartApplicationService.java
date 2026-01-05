@@ -42,9 +42,9 @@ public class CartApplicationService {
     }
 
     public CartItemResponse updateCartItemQuantity(UpdateQuantityDto dto){
-        CartItemDto cartItem = cartDomainService.getCartItem(dto.getCartItemId());
+        CartItemDto cartItem = cartDomainService.getCartItem(dto.getUserId(), dto.getCartItemId());
         CartProductResponse product = cartProductClientService.getProduct(cartItem.getProductVariantId());
-        CartItemDto cartItemDto = cartDomainService.updateQuantity(cartItem.getId(), dto.getQuantity());
+        CartItemDto cartItemDto = cartDomainService.updateQuantity(dto.getUserId(), cartItem.getId(), dto.getQuantity());
         return CartItemResponse.available(cartItemDto, product);
     }
 
