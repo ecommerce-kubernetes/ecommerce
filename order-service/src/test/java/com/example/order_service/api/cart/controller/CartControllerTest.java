@@ -7,7 +7,6 @@ import com.example.order_service.api.cart.application.dto.result.CartResponse;
 import com.example.order_service.api.cart.controller.dto.request.CartItemRequest;
 import com.example.order_service.api.cart.controller.dto.request.UpdateQuantityRequest;
 import com.example.order_service.api.common.security.model.UserRole;
-import com.example.order_service.api.common.security.principal.UserPrincipal;
 import com.example.order_service.api.support.ControllerTestSupport;
 import com.example.order_service.api.support.security.annotation.WithCustomMockUser;
 import com.example.order_service.api.support.security.config.TestSecurityConfig;

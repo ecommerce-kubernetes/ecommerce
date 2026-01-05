@@ -53,7 +53,7 @@ public class CartItemResponse {
         this.isAvailable = isAvailable;
     }
 
-    public static CartItemResponse of(CartItemDto cartItemDto, CartProductResponse product){
+    public static CartItemResponse available(CartItemDto cartItemDto, CartProductResponse product){
         return CartItemResponse.builder()
                 .id(cartItemDto.getId())
                 .productId(product.getProductId())
@@ -65,6 +65,22 @@ public class CartItemResponse {
                 .lineTotal(product.getUnitPrice().getDiscountedPrice() * cartItemDto.getQuantity())
                 .options(mapToOptions(product.getItemOptions()))
                 .isAvailable(true)
+                .build();
+    }
+
+    public static CartItemResponse unAvailable(Long id, Long productVariantId, int quantity){
+        return CartItemResponse
+                .builder()
+                .id(id)
+                .productId(null)
+                .productVariantId(productVariantId)
+                .productName("정보를 불러올 수 없거나 판매 중지된 상품입니다")
+                .thumbnailUrl(null)
+                .quantity(quantity)
+                .price(null)
+                .lineTotal(0)
+                .options(null)
+                .isAvailable(false)
                 .build();
     }
 
@@ -81,22 +97,6 @@ public class CartItemResponse {
                 .discountRate(unitPrice.getDiscountRate())
                 .discountAmount(unitPrice.getDiscountAmount())
                 .discountedPrice(unitPrice.getDiscountedPrice())
-                .build();
-    }
-
-    public static CartItemResponse ofUnavailable(Long id, int quantity){
-        return CartItemResponse
-                .builder()
-                .id(id)
-                .productId(null)
-                .productVariantId(null)
-                .productName("정보를 불러올 수 없거나 판매 중지된 상품입니다")
-                .thumbnailUrl(null)
-                .quantity(quantity)
-                .price(null)
-                .lineTotal(0)
-                .options(null)
-                .isAvailable(false)
                 .build();
     }
 }

@@ -8,13 +8,11 @@ import com.example.order_service.api.cart.domain.service.CartDomainService;
 import com.example.order_service.api.cart.domain.service.dto.CartItemDto;
 import com.example.order_service.api.cart.infrastructure.client.CartProductClientService;
 import com.example.order_service.api.cart.infrastructure.client.dto.CartProductResponse;
-import com.example.order_service.api.common.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -26,18 +24,28 @@ public class CartApplicationService {
 
     public CartItemResponse addItem(AddCartItemDto dto) {
         CartProductResponse product = cartProductClientService.getProduct(dto.getProductVariantId());
-        Long userId = dto.getUserId();
-        CartItemDto result = cartDomainService.addItemToCart(userId, dto.getProductVariantId(), dto.getQuantity());
-        return CartItemResponse.of(result, product);
+        CartItemDto result = cartDomainService.addItemToCart(dto.getUserId(), dto.getProductVariantId(), dto.getQuantity());
+        return CartItemResponse.available(result, product);
     }
 
     public CartResponse getCartDetails(Long userId){
         List<CartItemDto> cartItems = cartDomainService.getCartItems(userId);
+        //장바구니에 상품이 없는 경우 빈 장바구니 반환
+        if(cartItems.isEmpty()) {
+            return CartResponse.empty();
+        }
+        List<Long> variantIds = getProductVariantId(cartItems);
+        List<CartProductResponse> products = cartProductClientService.getProducts(variantIds);
 
-        return Optional.of(cartItems)
-                .filter(items -> !items.isEmpty())
-                .map(this::fetchInfoAndMapToCartResponse)
-                .orElseGet(CartResponse::ofEmpty);
+        List<CartItemResponse> cartItemResponses = mapToCartItemResponse(cartItems, products);
+        return CartResponse.from(cartItemResponses);
+    }
+
+    public CartItemResponse updateCartItemQuantity(UpdateQuantityDto dto){
+        CartItemDto cartItem = cartDomainService.getCartItem(dto.getCartItemId());
+        CartProductResponse product = cartProductClientService.getProduct(cartItem.getProductVariantId());
+        CartItemDto cartItemDto = cartDomainService.updateQuantity(cartItem.getId(), dto.getQuantity());
+        return CartItemResponse.available(cartItemDto, product);
     }
 
     public void removeCartItem(Long userId, Long cartItemId){
@@ -48,26 +56,8 @@ public class CartApplicationService {
         cartDomainService.clearCart(userId);
     }
 
-    public CartItemResponse updateCartItemQuantity(UpdateQuantityDto dto){
-        CartItemDto cartItem = cartDomainService.getCartItem(dto.getCartItemId());
-        try {
-            CartProductResponse product = cartProductClientService.getProduct(cartItem.getProductVariantId());
-            CartItemDto cartItemDto = cartDomainService.updateQuantity(cartItem.getId(), dto.getQuantity());
-            return CartItemResponse.of(cartItemDto, product);
-        } catch (BusinessException e){
-            return CartItemResponse.ofUnavailable(cartItem.getId(), cartItem.getQuantity());
-        }
-    }
-
     public void cleanUpCartAfterOrder(Long userId, List<Long> productVariantIds) {
         cartDomainService.deleteByProductVariantIds(userId, productVariantIds);
-    }
-
-    private CartResponse fetchInfoAndMapToCartResponse(List<CartItemDto> cartItems){
-        List<Long> productVariantIds = getProductVariantId(cartItems);
-        List<CartProductResponse> products = cartProductClientService.getProducts(productVariantIds);
-        List<CartItemResponse> cartItemResponses = mapToCartItemResponse(cartItems, products);
-        return CartResponse.from(cartItemResponses);
     }
 
     private List<Long> getProductVariantId(List<CartItemDto> cartItems){
@@ -77,19 +67,22 @@ public class CartApplicationService {
     private List<CartItemResponse> mapToCartItemResponse(List<CartItemDto> cartItems, List<CartProductResponse> products){
         Map<Long, CartProductResponse> productMap = products.stream().collect(Collectors.toMap(
                 CartProductResponse::getProductVariantId,
-                Function.identity(),
-                (p1, p2) -> p1
+                Function.identity()
         ));
 
         return cartItems.stream()
-                .map(item -> createCartItemResponse(item, productMap.get(item.getProductVariantId())))
-                .toList();
+                .map(item -> {
+                    CartProductResponse product = productMap.get(item.getProductVariantId());
+                    return createCartItemResponse(item, product);
+                }).toList();
     }
 
     private CartItemResponse createCartItemResponse(CartItemDto item, CartProductResponse product){
+        //상품서비스에서 응답이 오지 않은 상품이라면 오류 응답
         if(product == null){
-            return CartItemResponse.ofUnavailable(item.getId(), item.getQuantity());
+            return CartItemResponse.unAvailable(item.getId(), item.getProductVariantId(), item.getQuantity());
         }
-        return CartItemResponse.of(item, product);
+        //정상적으로 응답이 온 경우 정상 응답
+        return CartItemResponse.available(item, product);
     }
 }

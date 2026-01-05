@@ -20,7 +20,7 @@ public class CartResponse {
         this.cartTotalPrice = cartTotalPrice;
     }
 
-    public static CartResponse ofEmpty(){
+    public static CartResponse empty(){
         return CartResponse.builder()
                 .cartItems(List.of())
                 .cartTotalPrice(0)
@@ -32,13 +32,9 @@ public class CartResponse {
                 .mapToLong(CartItemResponse::getLineTotal)
                 .sum();
 
-        return of(cartItems, total);
-    }
-
-    public static CartResponse of(List<CartItemResponse> cartItems, long cartTotalPrice){
         return CartResponse.builder()
                 .cartItems(cartItems)
-                .cartTotalPrice(cartTotalPrice)
+                .cartTotalPrice(total)
                 .build();
     }
 }

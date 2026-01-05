@@ -1,7 +1,6 @@
 package com.example.order_service.api.cart.application.dto.command;
 
 import com.example.order_service.api.cart.controller.dto.request.UpdateQuantityRequest;
-import com.example.order_service.api.common.security.principal.UserPrincipal;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;

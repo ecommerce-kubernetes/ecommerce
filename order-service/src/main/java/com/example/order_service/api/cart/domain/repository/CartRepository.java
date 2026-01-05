@@ -7,7 +7,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
 
-public interface CartsRepository extends JpaRepository<Cart, Long> {
+public interface CartRepository extends JpaRepository<Cart, Long> {
     @Query("SELECT c FROM Cart c LEFT JOIN FETCH c.cartItems WHERE c.userId = :userId")
     Optional<Cart> findWithItemsByUserId(@Param("userId") Long userId);
     Optional<Cart> findByUserId(Long userId);

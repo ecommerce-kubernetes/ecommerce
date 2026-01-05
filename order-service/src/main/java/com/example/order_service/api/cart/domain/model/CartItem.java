@@ -23,13 +23,13 @@ public class CartItem {
     private Long productVariantId;
     private int quantity;
 
-    @Builder
+    @Builder(access = AccessLevel.PRIVATE)
     public CartItem(Long productVariantId, int quantity){
         this.productVariantId = productVariantId;
         this.quantity = quantity;
     }
 
-    public static CartItem of(Long productVariantId, int quantity){
+    public static CartItem create(Long productVariantId, int quantity){
         return CartItem.builder()
                 .productVariantId(productVariantId)
                 .quantity(quantity)

@@ -17,15 +17,11 @@ public class CartItemDto {
         this.quantity = quantity;
     }
 
-    public static CartItemDto of(CartItem cartItem){
-        return of(cartItem.getId(), cartItem.getProductVariantId(), cartItem.getQuantity());
-    }
-
-    public static CartItemDto of(Long id, Long productVariantId, int quantity){
+    public static CartItemDto from(CartItem cartItem){
         return CartItemDto.builder()
-                .id(id)
-                .productVariantId(productVariantId)
-                .quantity(quantity)
+                .id(cartItem.getId())
+                .productVariantId(cartItem.getProductVariantId())
+                .quantity(cartItem.getQuantity())
                 .build();
     }
 }

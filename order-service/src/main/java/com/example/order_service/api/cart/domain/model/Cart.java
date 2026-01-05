@@ -24,7 +24,7 @@ public class Cart extends BaseEntity {
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "cart", cascade = CascadeType.PERSIST, orphanRemoval = true)
     List<CartItem> cartItems = new ArrayList<>();
 
-    @Builder
+    @Builder(access = AccessLevel.PRIVATE)
     public Cart(Long userId){
         this.userId = userId;
     }
@@ -53,9 +53,9 @@ public class Cart extends BaseEntity {
 
         if(existCartItem.isPresent()){
             existCartItem.get().addQuantity(quantity);
-            return  existCartItem.get();
+            return existCartItem.get();
         } else {
-            CartItem cartItem = CartItem.of(productVariantId, quantity);
+            CartItem cartItem = CartItem.create(productVariantId, quantity);
             this.cartItems.add(cartItem);
             cartItem.setCart(this);
             return cartItem;
@@ -69,7 +69,7 @@ public class Cart extends BaseEntity {
         this.cartItems.removeAll(items);
     }
 
-    public static Cart of(Long userId){
+    public static Cart create(Long userId){
         return Cart.builder()
                 .userId(userId)
                 .build();

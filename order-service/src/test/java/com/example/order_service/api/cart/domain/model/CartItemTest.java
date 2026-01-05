@@ -14,10 +14,7 @@ public class CartItemTest {
     @DisplayName("장바구니 상품의 수량을 변경한다")
     void updateQuantity(){
         //given
-        CartItem cartItem = CartItem.builder()
-                .productVariantId(1L)
-                .quantity(3)
-                .build();
+        CartItem cartItem = CartItem.create(1L, 3);
         //when
         cartItem.updateQuantity(5);
         //then
@@ -28,10 +25,7 @@ public class CartItemTest {
     @DisplayName("상품 수량을 1 이하로 변경하려 시도하면 예외를 던진다")
     void updateQuantityWhenQuantityLessThan1(){
         //given
-        CartItem cartItem = CartItem.builder()
-                .productVariantId(1L)
-                .quantity(3)
-                .build();
+        CartItem cartItem = CartItem.create(1L, 3);
         //when
         //then
         assertThatThrownBy(() -> cartItem.updateQuantity(0))

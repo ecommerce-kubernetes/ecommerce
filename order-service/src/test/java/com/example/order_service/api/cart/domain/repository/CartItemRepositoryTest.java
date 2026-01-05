@@ -19,10 +19,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class CartItemRepositoryTest extends ExcludeInfraTest {
 
     @Autowired
-    private CartsRepository cartsRepository;
+    private CartRepository cartRepository;
 
     @Autowired
-    private CartItemsRepository cartItemsRepository;
+    private CartItemRepository cartItemRepository;
 
     @Autowired
     private EntityManager em;
@@ -31,23 +31,18 @@ public class CartItemRepositoryTest extends ExcludeInfraTest {
     @DisplayName("cartItemId로 상품을 조회할때 Cart도 함께 가져온다")
     void findWithCartById(){
         //given
-        Cart cart = Cart.builder()
-                .userId(1L)
-                .build();
-        CartItem item = CartItem.builder()
-                .productVariantId(1L)
-                .quantity(3)
-                .build();
+        Cart cart = Cart.create(1L);
+        CartItem item = CartItem.create(1L,3);
 
         cart.addCartItem(item);
-        cartsRepository.save(cart);
+        cartRepository.save(cart);
 
         Session session = em.unwrap(Session.class);
         session.getSessionFactory().getStatistics().setStatisticsEnabled(true);
         session.getSessionFactory().getStatistics().clear();
         em.clear();
         //when
-        Optional<CartItem> cartItem = cartItemsRepository.findWithCartById(item.getId());
+        Optional<CartItem> cartItem = cartItemRepository.findWithCartById(item.getId());
         //then
         assertThat(cartItem).isNotEmpty();
         long queryCount = session.getSessionFactory().getStatistics().getPrepareStatementCount();

@@ -2,8 +2,8 @@ package com.example.order_service.api.cart.domain.service;
 
 import com.example.order_service.api.cart.domain.model.Cart;
 import com.example.order_service.api.cart.domain.model.CartItem;
-import com.example.order_service.api.cart.domain.repository.CartItemsRepository;
-import com.example.order_service.api.cart.domain.repository.CartsRepository;
+import com.example.order_service.api.cart.domain.repository.CartItemRepository;
+import com.example.order_service.api.cart.domain.repository.CartRepository;
 import com.example.order_service.api.cart.domain.service.dto.CartItemDto;
 import com.example.order_service.api.common.exception.BusinessException;
 import com.example.order_service.api.common.exception.CartErrorCode;
@@ -19,26 +19,26 @@ import java.util.List;
 @Slf4j
 @Transactional
 public class CartDomainService {
-    private final CartsRepository cartsRepository;
-    private final CartItemsRepository cartItemsRepository;
+    private final CartRepository cartRepository;
+    private final CartItemRepository cartItemRepository;
 
     public CartItemDto addItemToCart(Long userId, Long productVariantId, int quantity){
-        Cart cart = cartsRepository.findWithItemsByUserId(userId)
-                .orElseGet(() -> cartsRepository.save(Cart.of(userId)));
+        Cart cart = cartRepository.findWithItemsByUserId(userId)
+                .orElseGet(() -> cartRepository.save(Cart.create(userId)));
         CartItem cartItem = cart.addItem(productVariantId, quantity);
-        CartItem savedItem = cartItemsRepository.save(cartItem);
-        return CartItemDto.of(savedItem);
+        CartItem savedItem = cartItemRepository.save(cartItem);
+        return CartItemDto.from(savedItem);
     }
 
     @Transactional(readOnly = true)
     public CartItemDto getCartItem(Long cartItemId){
         CartItem cartItem = getCartItemByCartItemId(cartItemId);
-        return CartItemDto.of(cartItem);
+        return CartItemDto.from(cartItem);
     }
 
     @Transactional(readOnly = true)
     public List<CartItemDto> getCartItems(Long userId){
-        return cartsRepository.findWithItemsByUserId(userId)
+        return cartRepository.findWithItemsByUserId(userId)
                 .map(this::createCartItemDtoList)
                 .orElseGet(List::of);
     }
@@ -50,38 +50,37 @@ public class CartDomainService {
             throw new BusinessException(CartErrorCode.CART_NO_PERMISSION);
         }
         cartItem.removeFromCart();
-        cartItemsRepository.delete(cartItem);
+        cartItemRepository.delete(cartItem);
     }
 
     public void clearCart(Long userId){
-        cartsRepository.findWithItemsByUserId(userId)
+        cartRepository.findWithItemsByUserId(userId)
                 .ifPresent(Cart::clearItems);
     }
 
     public CartItemDto updateQuantity(Long cartItemId, int quantity){
         CartItem cartItem = getCartItemByCartItemId(cartItemId);
         cartItem.updateQuantity(quantity);
-        return CartItemDto.of(cartItem);
+        return CartItemDto.from(cartItem);
     }
 
     public void deleteByProductVariantIds(Long userId, List<Long> productVariantIds) {
         Cart cart = getCartWithItemsByUserId(userId);
-
         cart.deleteItemByProductVariantIds(productVariantIds);
     }
 
     private List<CartItemDto> createCartItemDtoList(Cart cart){
-        return cart.getCartItems().stream().map(CartItemDto::of)
+        return cart.getCartItems().stream().map(CartItemDto::from)
                 .toList();
     }
 
     private Cart getCartWithItemsByUserId(Long userId) {
-        return cartsRepository.findWithItemsByUserId(userId)
+        return cartRepository.findWithItemsByUserId(userId)
                 .orElseThrow(() -> new BusinessException(CartErrorCode.CART_NOT_FOUND));
     }
 
     private CartItem getCartItemByCartItemId(Long cartItemId) {
-        return cartItemsRepository.findById(cartItemId)
+        return cartItemRepository.findById(cartItemId)
                 .orElseThrow(() -> new BusinessException(CartErrorCode.CART_ITEM_NOT_FOUND));
     }
 }
