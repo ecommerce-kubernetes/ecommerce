@@ -47,6 +47,14 @@ public class Payload {
                 .build();
     }
 
+    public boolean hasCoupon() {
+        return this.couponId != null;
+    }
+
+    public boolean hasPoints() {
+        return this.useToPoint != null && this.useToPoint > 0;
+    }
+
     private static List<SagaItem> convert(List<SagaStartCommand.DeductProduct> items){
         return items.stream().map(SagaItem::from).toList();
     }

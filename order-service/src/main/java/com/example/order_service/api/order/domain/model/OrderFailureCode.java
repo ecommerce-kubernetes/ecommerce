@@ -16,7 +16,7 @@ public enum OrderFailureCode {
     PAYMENT_INSUFFICIENT_BALANCE("결제 잔액 부족"),
     PAYMENT_TIMEOUT("결제 가능 시간 초과"),
     PAYMENT_NOT_FOUND("존재하지 않는 결제 정보"),
-    TIMEOUT("SAGA 타임아웃"),
+    SAGA_TIMEOUT("SAGA 타임아웃"),
     UNKNOWN("알 수 없는 오류"),
     SYSTEM_ERROR("시스템 에러"),
     ALREADY_PROCEED_PAYMENT("이미 결제된 주문");
@@ -34,5 +34,15 @@ public enum OrderFailureCode {
             };
         }
         return SYSTEM_ERROR;
+    }
+
+    public static OrderFailureCode fromSagaErrorCode(String errorCode) {
+        return switch (errorCode) {
+            case "OUT_OF_STOCK" -> OrderFailureCode.OUT_OF_STOCK;
+            case "INVALID_COUPON" -> OrderFailureCode.INVALID_COUPON;
+            case "INSUFFICIENT_POINT" -> OrderFailureCode.POINT_SHORTAGE;
+            case "TIMEOUT" -> OrderFailureCode.SAGA_TIMEOUT;
+            default -> UNKNOWN;
+        };
     }
 }
