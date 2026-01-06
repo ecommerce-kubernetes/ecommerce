@@ -17,18 +17,46 @@ spring:
           instances:
             product-service:
               - uri: http://localhost:${wiremock.server.port}
-  data:
-    redis:
-      host: testhost
-      port: 9123
+            user-service:
+              - uri: http://localhost:${wiremock.server.port}
+            coupon-service:
+              - uri: http://localhost:${wiremock.server.port}
   jpa:
     hibernate:
       ddl-auto: create-drop
-  kafka:
-    bootstrap_servers: localhost:9092
   flyway:
     enabled: false
-
+  output:
+    ansi:
+      enabled: always
 swagger:
   allowed-origins:
     - "http://localhost:8000"
+
+payment:
+  toss:
+    url: https://api.tosspayments.com
+    secret-key: secretKey
+
+order:
+  topics:
+    # 발행
+    product-request: "order.saga.product.request"
+    coupon-request: "order.saga.coupon.request"
+    user-request: "order.saga.user.request"
+    # 수신
+    product-result: "product.saga.result"
+    coupon-result: "coupon.saga.result"
+    user-result: "user.saga.result"
+---
+spring:
+  config:
+    activate:
+      on-profile: test-mock
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+  cloud:
+    bus:
+      enabled: false

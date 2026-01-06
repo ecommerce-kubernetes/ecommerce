@@ -1,0 +1,78 @@
+package com.example.order_service.api.order.domain.service;
+
+import com.example.order_service.api.common.exception.BusinessException;
+import com.example.order_service.api.common.exception.OrderErrorCode;
+import com.example.order_service.api.order.controller.dto.request.OrderSearchCondition;
+import com.example.order_service.api.order.domain.model.Order;
+import com.example.order_service.api.order.domain.model.OrderFailureCode;
+import com.example.order_service.api.order.domain.model.OrderStatus;
+import com.example.order_service.api.order.domain.model.Payment;
+import com.example.order_service.api.order.domain.repository.OrderRepository;
+import com.example.order_service.api.order.domain.service.dto.command.CreateOrderCommand;
+import com.example.order_service.api.order.domain.service.dto.command.PaymentCreationCommand;
+import com.example.order_service.api.order.domain.service.dto.result.OrderDto;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+@Slf4j
+@Transactional
+public class OrderDomainService {
+    private final OrderRepository orderRepository;
+
+    public OrderDto saveOrder(CreateOrderCommand context){
+        Order order = Order.create(context);
+        Order savedOrder = orderRepository.save(order);
+        return OrderDto.from(savedOrder);
+    }
+
+    @Transactional(readOnly = true)
+    public OrderDto getOrder(String orderNo, Long userId) {
+        Order order = getByOrderNo(orderNo);
+        if (!order.isOwner(userId)) {
+            throw new BusinessException(OrderErrorCode.ORDER_NO_PERMISSION);
+        }
+        return OrderDto.from(order);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<OrderDto> getOrders(Long userId, OrderSearchCondition condition) {
+        Page<Order> orders = orderRepository.findByUserIdAndCondition(userId, condition);
+        List<OrderDto> orderDtoList = orders.getContent().stream().map(OrderDto::from).toList();
+        return new PageImpl<>(orderDtoList, orders.getPageable(), orders.getTotalElements());
+    }
+
+    public OrderDto changeOrderStatus(String orderNo, OrderStatus orderStatus){
+        Order order = getByOrderNo(orderNo);
+        order.changeStatus(orderStatus);
+        return OrderDto.from(order);
+    }
+
+    public OrderDto canceledOrder(String orderNo, OrderFailureCode code){
+        Order order = getByOrderNo(orderNo);
+        order.canceled(code);
+        return OrderDto.from(order);
+    }
+
+    @Transactional
+    public OrderDto completedOrder(PaymentCreationCommand command) {
+        Order order = getByOrderNo(command.getOrderNo());
+        order.changeStatus(OrderStatus.COMPLETED);
+        Payment payment = Payment.create(command.getAmount(), command.getPaymentKey(), command.getMethod(), command.getApprovedAt());
+        order.addPayment(payment);
+        Order savedOrder = orderRepository.saveAndFlush(order);
+        return OrderDto.from(savedOrder);
+    }
+
+    private Order getByOrderNo(String orderNo) {
+        return orderRepository.findByOrderNo(orderNo)
+                .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_NOT_FOUND));
+    }
+}
