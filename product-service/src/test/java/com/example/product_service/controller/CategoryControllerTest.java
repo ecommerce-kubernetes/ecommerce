@@ -4,7 +4,6 @@ import com.example.product_service.common.MessageSourceUtil;
 import com.example.product_service.common.advice.ErrorResponseEntityFactory;
 import com.example.product_service.config.TestConfig;
 import com.example.product_service.api.category.controller.dto.CategoryRequest;
-import com.example.product_service.dto.request.category.UpdateCategoryRequest;
 import com.example.product_service.dto.response.category.CategoryHierarchyResponse;
 import com.example.product_service.dto.response.category.CategoryResponse;
 import com.example.product_service.exception.BadRequestException;

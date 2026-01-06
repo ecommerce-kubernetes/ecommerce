@@ -1,4 +1,4 @@
-package com.example.product_service.dto.request.category;
+package com.example.product_service.controller;
 
 import com.example.product_service.dto.validation.AtLeastOneFieldNotNull;
 import jakarta.validation.constraints.Pattern;

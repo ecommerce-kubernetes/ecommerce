@@ -1,6 +1,6 @@
 package com.example.product_service.controller.validation;
 
-import com.example.product_service.dto.request.category.UpdateCategoryRequest;
+import com.example.product_service.controller.UpdateCategoryRequest;
 import jakarta.validation.ConstraintViolation;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

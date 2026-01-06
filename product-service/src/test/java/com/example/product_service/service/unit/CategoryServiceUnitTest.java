@@ -2,7 +2,7 @@ package com.example.product_service.service.unit;
 
 import com.example.product_service.common.MessageSourceUtil;
 import com.example.product_service.api.category.controller.dto.CategoryRequest;
-import com.example.product_service.dto.request.category.UpdateCategoryRequest;
+import com.example.product_service.controller.UpdateCategoryRequest;
 import com.example.product_service.dto.response.category.CategoryHierarchyResponse;
 import com.example.product_service.dto.response.category.CategoryResponse;
 import com.example.product_service.entity.Category;
@@ -61,7 +61,7 @@ public class CategoryServiceUnitTest {
 
         assertThat(response).isNotNull();
         assertThat(response.getName()).isEqualTo("name");
-        assertThat(response.getIconUrl()).isEqualTo("http://test.jpg");
+        assertThat(response.getImageUrl()).isEqualTo("http://test.jpg");
         assertThat(response.getParentId()).isNull();
     }
 
@@ -86,7 +86,7 @@ public class CategoryServiceUnitTest {
 
         assertThat(response).isNotNull();
         assertThat(response.getName()).isEqualTo("name");
-        assertThat(response.getIconUrl()).isEqualTo("http://test.jpg");
+        assertThat(response.getImageUrl()).isEqualTo("http://test.jpg");
         assertThat(response.getParentId()).isEqualTo(1L);
     }
 
@@ -189,19 +189,19 @@ public class CategoryServiceUnitTest {
                         tuple(level3_2.getName(), level2_1.getId(), level3_2.getIconUrl()));
 
         assertThat(itemsByLevel(response.getSiblingsByLevel(), 1))
-                .extracting(CategoryResponse::getId, CategoryResponse::getName, CategoryResponse::getParentId, CategoryResponse::getIconUrl)
+                .extracting(CategoryResponse::getId, CategoryResponse::getName, CategoryResponse::getParentId, CategoryResponse::getImageUrl)
                 .containsExactlyInAnyOrder(
                         tuple(level1_1.getId(), level1_1.getName(), level1_1.getParent(), level1_1.getIconUrl()),
                         tuple(level1_2.getId(), level1_2.getName(), level1_2.getParent(), level1_2.getIconUrl()));
 
         assertThat(itemsByLevel(response.getSiblingsByLevel(), 2))
-                .extracting(CategoryResponse::getId, CategoryResponse::getName, CategoryResponse::getParentId, CategoryResponse::getIconUrl)
+                .extracting(CategoryResponse::getId, CategoryResponse::getName, CategoryResponse::getParentId, CategoryResponse::getImageUrl)
                 .containsExactlyInAnyOrder(
                         tuple(level2_1.getId(), level2_1.getName(), level2_1.getParent().getId(), level2_1.getIconUrl()),
                         tuple(level2_2.getId(), level2_2.getName(), level2_2.getParent().getId(), level2_2.getIconUrl()));
 
         assertThat(itemsByLevel(response.getSiblingsByLevel(), 3))
-                .extracting(CategoryResponse::getId, CategoryResponse::getName, CategoryResponse::getParentId, CategoryResponse::getIconUrl)
+                .extracting(CategoryResponse::getId, CategoryResponse::getName, CategoryResponse::getParentId, CategoryResponse::getImageUrl)
                 .containsExactlyInAnyOrder(
                         tuple(level3_1.getId(), level3_1.getName(), level3_1.getParent().getId(), level3_1.getIconUrl()),
                         tuple(level3_2.getId(), level3_2.getName(), level3_2.getParent().getId(), level3_2.getIconUrl()));
@@ -230,7 +230,7 @@ public class CategoryServiceUnitTest {
         CategoryResponse response = categoryService.updateCategoryById(2L, request);
 
         assertThat(response.getName()).isEqualTo("updated");
-        assertThat(response.getIconUrl()).isEqualTo("http://before.jpg");
+        assertThat(response.getImageUrl()).isEqualTo("http://before.jpg");
         assertThat(response.getParentId()).isEqualTo(1L);
 
         verify(categoryRepository).findById(1L);
@@ -254,7 +254,7 @@ public class CategoryServiceUnitTest {
         CategoryResponse response = categoryService.updateCategoryById(2L, request);
 
         assertThat(response.getName()).isEqualTo("updated");
-        assertThat(response.getIconUrl()).isEqualTo("http://before.jpg");
+        assertThat(response.getImageUrl()).isEqualTo("http://before.jpg");
         assertThat(response.getParentId()).isEqualTo(1L);
 
         verify(categoryRepository).findById(2L);

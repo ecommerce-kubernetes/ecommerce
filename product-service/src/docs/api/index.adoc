@@ -12,4 +12,4 @@ endif::[]
 [[PRODUCT-SERVICE-API]]
 == ProductService API
 = Category
-include::api/category/category.adoc[]
+include::category/category.adoc[]

@@ -1,24 +1,22 @@
 package com.example.product_service.api.category.controller.dto;
 
-import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import org.hibernate.validator.constraints.URL;
 
 @Getter
-@Setter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class CategoryRequest {
     @NotBlank(message = "{NotBlank}")
     private String name;
     private Long parentId;
     @URL(message = "{InvalidUrl}")
-    private String iconUrl;
+    private String imageUrl;
 
     @Builder
-    public CategoryRequest(String name, Long parentId, String iconUrl) {
+    public CategoryRequest(String name, Long parentId, String imageUrl) {
         this.name = name;
         this.parentId = parentId;
-        this.iconUrl = iconUrl;
+        this.imageUrl = imageUrl;
     }
 }

@@ -2,7 +2,7 @@ package com.example.product_service.service;
 
 import com.example.product_service.common.MessageSourceUtil;
 import com.example.product_service.api.category.controller.dto.CategoryRequest;
-import com.example.product_service.dto.request.category.UpdateCategoryRequest;
+import com.example.product_service.controller.UpdateCategoryRequest;
 import com.example.product_service.dto.response.category.CategoryHierarchyResponse;
 import com.example.product_service.dto.response.category.CategoryResponse;
 import com.example.product_service.entity.Category;
@@ -26,11 +26,19 @@ public class CategoryService {
 
     private final CategoryRepository categoryRepository;
     private final MessageSourceUtil ms;
-    
+
+    public CategoryResponse updateCategory(Long categoryId, String name, String imageUrl) {
+        return null;
+    }
+
+    public CategoryResponse moveParent(Long categoryId, Long parentId) {
+        return null;
+    }
+
     @Transactional
     public CategoryResponse saveCategory(CategoryRequest request) {
         checkConflictName(request.getName());
-        Category category = new Category(request.getName(), request.getIconUrl());
+        Category category = new Category(request.getName(), request.getImageUrl());
         if(request.getParentId() != null){
             Category parent = findByIdOrThrow(request.getParentId());
             parent.addChild(category);
