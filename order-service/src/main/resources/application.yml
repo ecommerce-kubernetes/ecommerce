@@ -1,0 +1,31 @@
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        slidingWindowSize: 100
+        failureRateThreshold: 50
+        recordFailurePredicate: com.example.order_service.api.common.config.CircuitBreakerFailurePredicate
+    instances:
+      productService:
+        baseConfig: default
+      userService:
+        baseConfig: default
+      couponService:
+        baseConfig: default
+      tossPaymentService:
+        baseConfig: default
+
+payment:
+  toss:
+    url: https://api.tosspayments.com
+
+order:
+  topics:
+    # 발행
+    product-request: "order.saga.product.request"
+    coupon-request: "order.saga.coupon.request"
+    user-request: "order.saga.user.request"
+    # 수신
+    product-result: "product.saga.result"
+    coupon-result: "coupon.saga.result"
+    user-result: "user.saga.result"

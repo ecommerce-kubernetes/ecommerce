@@ -1,18 +1,3 @@
-[[getOrderList]]
-=== 주문 내역 조회
-
-==== HTTP Request
-include::{snippets}/getOrderList/http-request.adoc[]
-===== Request Header
-include::{snippets}/getOrderList/request-headers.adoc[]
-===== Request Parameter
-include::{snippets}/getOrderList/query-parameters.adoc[]
-
-==== HTTP Response
-include::{snippets}/getOrderList/http-response.adoc[]
-===== Response Fields
-include::{snippets}/getOrderList/response-fields.adoc[]
-
 [[order-create]]
 === 주문 생성
 
@@ -26,3 +11,42 @@ include::{snippets}/order-create/request-fields.adoc[]
 include::{snippets}/order-create/http-response.adoc[]
 ===== Response Fields
 include::{snippets}/order-create/response-fields.adoc[]
+
+[[order-confirm]]
+=== 주문 검증
+
+==== HTTP Request
+include::{snippets}/order-confirm/http-request.adoc[]
+===== Request Header
+include::{snippets}/order-confirm/request-headers.adoc[]
+===== Request Fields
+include::{snippets}/order-confirm/request-fields.adoc[]
+==== HTTP Response
+include::{snippets}/order-confirm/http-response.adoc[]
+===== Response Fields
+include::{snippets}/order-confirm/response-fields.adoc[]
+
+[[get-order]]
+=== 주문 조회
+
+==== HTTP Request
+include::{snippets}/get-order/http-request.adoc[]
+===== Request Header
+include::{snippets}/get-order/request-headers.adoc[]
+==== HTTP Response
+include::{snippets}/get-order/http-response.adoc[]
+===== Response Fields
+include::{snippets}/get-order/response-fields.adoc[]
+
+[[get-orders]]
+=== 주문 목록 조회
+==== HTTP Request
+include::{snippets}/get-orders/http-request.adoc[]
+===== Request Header
+include::{snippets}/get-orders/request-headers.adoc[]
+===== Request Params
+include::{snippets}/get-orders/query-parameters.adoc[]
+==== HTTP Response
+include::{snippets}/get-orders/http-response.adoc[]
+===== Response Fields
+include::{snippets}/get-orders/response-fields.adoc[]

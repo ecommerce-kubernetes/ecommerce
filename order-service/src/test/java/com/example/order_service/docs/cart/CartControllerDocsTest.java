@@ -1,23 +1,19 @@
 package com.example.order_service.docs.cart;
 
-import com.example.order_service.common.security.UserPrincipal;
-import com.example.order_service.controller.CartController;
-import com.example.order_service.controller.dto.UpdateQuantityRequest;
+import com.example.order_service.api.cart.application.CartApplicationService;
+import com.example.order_service.api.cart.application.dto.command.AddCartItemDto;
+import com.example.order_service.api.cart.application.dto.command.UpdateQuantityDto;
+import com.example.order_service.api.cart.application.dto.result.CartItemResponse;
+import com.example.order_service.api.cart.application.dto.result.CartResponse;
+import com.example.order_service.api.cart.controller.CartController;
+import com.example.order_service.api.cart.controller.dto.request.CartItemRequest;
+import com.example.order_service.api.cart.controller.dto.request.UpdateQuantityRequest;
 import com.example.order_service.docs.RestDocSupport;
-import com.example.order_service.controller.dto.CartItemRequest;
-import com.example.order_service.dto.response.CartItemResponse;
-import com.example.order_service.dto.response.CartResponse;
-import com.example.order_service.dto.response.ItemOptionResponse;
-import com.example.order_service.dto.response.UnitPrice;
-import com.example.order_service.service.CartService;
-import com.example.order_service.service.dto.AddCartItemDto;
-import com.example.order_service.service.dto.UpdateQuantityDto;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-
 
 import java.util.List;
 
@@ -32,18 +28,16 @@ import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
 import static org.springframework.restdocs.payload.PayloadDocumentation.*;
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
 import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 
 public class CartControllerDocsTest extends RestDocSupport {
 
-    private CartService cartService = Mockito.mock(CartService.class);
-
+    private CartApplicationService cartApplicationService = Mockito.mock(CartApplicationService.class);
     @Override
     protected Object initController() {
-        return new CartController(cartService);
+        return new CartController(cartApplicationService);
     }
 
     @Test
@@ -57,7 +51,7 @@ public class CartControllerDocsTest extends RestDocSupport {
 
         HttpHeaders roleUser = createUserHeader("ROLE_USER");
         CartItemResponse cartItemResponse = createCartItemResponse();
-        given(cartService.addItem(any(AddCartItemDto.class)))
+        given(cartApplicationService.addItem(any(AddCartItemDto.class)))
                 .willReturn(cartItemResponse);
         //when
         //then
@@ -83,13 +77,14 @@ public class CartControllerDocsTest extends RestDocSupport {
                                 responseFields(
                                         fieldWithPath("id").description("장바구니 상품 ID(장바구니 상품 식별자)"),
                                         fieldWithPath("productId").description("상품 ID(상품 식별자)"),
+                                        fieldWithPath("productVariantId").description("상품 변형 ID"),
                                         fieldWithPath("productName").description("상품 이름"),
-                                        fieldWithPath("thumbNailUrl").description("상품 썸네일"),
+                                        fieldWithPath("thumbnailUrl").description("상품 썸네일"),
                                         fieldWithPath("quantity").description("수량"),
-                                        fieldWithPath("unitPrice.originalPrice").description("상품 원본 가격"),
-                                        fieldWithPath("unitPrice.discountRate").description("상품 할인율"),
-                                        fieldWithPath("unitPrice.discountAmount").description("상품 할인 금액"),
-                                        fieldWithPath("unitPrice.discountedPrice").description("할인된 가격"),
+                                        fieldWithPath("price.originalPrice").description("상품 원본 가격"),
+                                        fieldWithPath("price.discountRate").description("상품 할인율"),
+                                        fieldWithPath("price.discountAmount").description("상품 할인 금액"),
+                                        fieldWithPath("price.discountedPrice").description("할인된 가격"),
                                         fieldWithPath("lineTotal").description("항목 총액 (상품 할인 가격 X 수량)"),
                                         fieldWithPath("options[].optionTypeName").description("상품 옵션 타입 (예: 사이즈)"),
                                         fieldWithPath("options[].optionValueName").description("상품 옵션 값 (예: XL)"),
@@ -99,7 +94,7 @@ public class CartControllerDocsTest extends RestDocSupport {
                 );
 
     }
-    
+
     @Test
     @DisplayName("장바구니 목록 조회")
     void addAllCartItem() throws Exception {
@@ -111,7 +106,7 @@ public class CartControllerDocsTest extends RestDocSupport {
                 .cartItems(List.of(cartItem))
                 .cartTotalPrice(5700)
                 .build();
-        given(cartService.getCartItemList(any(UserPrincipal.class)))
+        given(cartApplicationService.getCartDetails(anyLong()))
                 .willReturn(response);
         //when
         //then
@@ -133,13 +128,14 @@ public class CartControllerDocsTest extends RestDocSupport {
                                 responseFields(
                                         fieldWithPath("cartItems[].id").description("장바구니 상품 ID(장바구니 상품 식별자)"),
                                         fieldWithPath("cartItems[].productId").description("상품 ID(상품 식별자)"),
+                                        fieldWithPath("cartItems[].productVariantId").description("상품 변형 ID"),
                                         fieldWithPath("cartItems[].productName").description("상품 이름"),
-                                        fieldWithPath("cartItems[].thumbNailUrl").description("상품 썸네일"),
+                                        fieldWithPath("cartItems[].thumbnailUrl").description("상품 썸네일"),
                                         fieldWithPath("cartItems[].quantity").description("수량"),
-                                        fieldWithPath("cartItems[].unitPrice.originalPrice").description("상품 원본 가격"),
-                                        fieldWithPath("cartItems[].unitPrice.discountRate").description("상품 할인율"),
-                                        fieldWithPath("cartItems[].unitPrice.discountAmount").description("상품 할인 금액"),
-                                        fieldWithPath("cartItems[].unitPrice.discountedPrice").description("할인된 가격"),
+                                        fieldWithPath("cartItems[].price.originalPrice").description("상품 원본 가격"),
+                                        fieldWithPath("cartItems[].price.discountRate").description("상품 할인율"),
+                                        fieldWithPath("cartItems[].price.discountAmount").description("상품 할인 금액"),
+                                        fieldWithPath("cartItems[].price.discountedPrice").description("할인된 가격"),
                                         fieldWithPath("cartItems[].lineTotal").description("항목 총액 (상품 할인 가격 X 수량)"),
                                         fieldWithPath("cartItems[].options[].optionTypeName").description("상품 옵션 타입 (예: 사이즈)"),
                                         fieldWithPath("cartItems[].options[].optionValueName").description("상품 옵션 값 (예: XL)"),
@@ -155,7 +151,7 @@ public class CartControllerDocsTest extends RestDocSupport {
     void removeCartItem() throws Exception {
         //given
         HttpHeaders roleUser = createUserHeader("ROLE_USER");
-        willDoNothing().given(cartService).deleteCartItemById(anyLong(), anyLong());
+        willDoNothing().given(cartApplicationService).removeCartItem(anyLong(), anyLong());
         //when
         //then
         mockMvc.perform(delete("/carts/{cartItemId}", 1)
@@ -179,7 +175,7 @@ public class CartControllerDocsTest extends RestDocSupport {
     void clearCart() throws Exception {
         //given
         HttpHeaders roleUser = createUserHeader("ROLE_USER");
-        willDoNothing().given(cartService).clearAllCartItems(anyLong());
+        willDoNothing().given(cartApplicationService).clearCart(anyLong());
         //when
         //then
         mockMvc.perform(delete("/carts")
@@ -204,7 +200,7 @@ public class CartControllerDocsTest extends RestDocSupport {
                 .quantity(3)
                 .build();
         CartItemResponse cartItemResponse = createCartItemResponse();
-        given(cartService.updateCartItemQuantity(any(UpdateQuantityDto.class)))
+        given(cartApplicationService.updateCartItemQuantity(any(UpdateQuantityDto.class)))
                 .willReturn(cartItemResponse);
         //when
         //then
@@ -228,13 +224,14 @@ public class CartControllerDocsTest extends RestDocSupport {
                                 responseFields(
                                         fieldWithPath("id").description("장바구니 상품 ID(장바구니 상품 식별자)"),
                                         fieldWithPath("productId").description("상품 ID(상품 식별자)"),
+                                        fieldWithPath("productVariantId").description("상품 변형 ID"),
                                         fieldWithPath("productName").description("상품 이름"),
-                                        fieldWithPath("thumbNailUrl").description("상품 썸네일"),
+                                        fieldWithPath("thumbnailUrl").description("상품 썸네일"),
                                         fieldWithPath("quantity").description("수량"),
-                                        fieldWithPath("unitPrice.originalPrice").description("상품 원본 가격"),
-                                        fieldWithPath("unitPrice.discountRate").description("상품 할인율"),
-                                        fieldWithPath("unitPrice.discountAmount").description("상품 할인 금액"),
-                                        fieldWithPath("unitPrice.discountedPrice").description("할인된 가격"),
+                                        fieldWithPath("price.originalPrice").description("상품 원본 가격"),
+                                        fieldWithPath("price.discountRate").description("상품 할인율"),
+                                        fieldWithPath("price.discountAmount").description("상품 할인 금액"),
+                                        fieldWithPath("price.discountedPrice").description("할인된 가격"),
                                         fieldWithPath("lineTotal").description("항목 총액 (상품 할인 가격 X 수량)"),
                                         fieldWithPath("options[].optionTypeName").description("상품 옵션 타입 (예: 사이즈)"),
                                         fieldWithPath("options[].optionValueName").description("상품 옵션 값 (예: XL)"),
@@ -255,20 +252,21 @@ public class CartControllerDocsTest extends RestDocSupport {
         return CartItemResponse.builder()
                 .id(1L)
                 .productId(1L)
+                .productVariantId(1L)
                 .productName("상품1")
-                .thumbNailUrl("http://thumbnail.jpg")
+                .thumbnailUrl("http://thumbnail.jpg")
                 .quantity(2)
-                .unitPrice(
-                        UnitPrice.builder()
+                .price(
+                        CartItemResponse.CartItemPrice.builder()
                                 .originalPrice(3000)
                                 .discountRate(10)
                                 .discountAmount(300)
                                 .discountedPrice(2700)
                                 .build()
                 )
-                .lineTotal(5700)
+                .lineTotal(5400)
                 .options(List.of(
-                        ItemOptionResponse.builder()
+                        CartItemResponse.CartItemOption.builder()
                                 .optionTypeName("사이즈")
                                 .optionValueName("XL")
                                 .build()
