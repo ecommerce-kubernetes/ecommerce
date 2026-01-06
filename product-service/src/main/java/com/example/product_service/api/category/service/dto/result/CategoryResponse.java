@@ -1,15 +1,15 @@
-package com.example.product_service.dto.response.category;
+package com.example.product_service.api.category.service.dto.result;
 
 import com.example.product_service.entity.Category;
 import lombok.*;
 
 @Getter
-@Setter
 @NoArgsConstructor
 public class CategoryResponse {
     private Long id;
     private String name;
     private Long parentId;
+    private Integer depth;
     private String imageUrl;
 
     public CategoryResponse(Category category){
@@ -20,10 +20,11 @@ public class CategoryResponse {
     }
 
     @Builder
-    public CategoryResponse(Long id, String name, Long parentId, String imageUrl) {
+    public CategoryResponse(Long id, String name, Long parentId, Integer depth, String imageUrl) {
         this.id = id;
         this.name = name;
         this.parentId = parentId;
+        this.depth = depth;
         this.imageUrl = imageUrl;
     }
 }

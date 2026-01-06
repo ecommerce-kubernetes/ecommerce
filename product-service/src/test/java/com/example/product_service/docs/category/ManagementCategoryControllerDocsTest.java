@@ -5,7 +5,7 @@ import com.example.product_service.api.category.controller.dto.CategoryRequest;
 import com.example.product_service.api.category.controller.dto.MoveCategoryRequest;
 import com.example.product_service.api.category.controller.dto.UpdateCategoryRequest;
 import com.example.product_service.docs.RestDocsSupport;
-import com.example.product_service.dto.response.category.CategoryResponse;
+import com.example.product_service.api.category.service.dto.result.CategoryResponse;
 import com.example.product_service.service.CategoryService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -69,6 +69,7 @@ public class ManagementCategoryControllerDocsTest extends RestDocsSupport {
                                         fieldWithPath("id").description("카테고리 ID"),
                                         fieldWithPath("name").description("카테고리 이름"),
                                         fieldWithPath("parentId").description("부모 카테고리 ID").type("Number"),
+                                        fieldWithPath("depth").description("카테고리 깊이"),
                                         fieldWithPath("imageUrl").description("카테고리 아이콘 URL")
                                 )
                         )
@@ -108,6 +109,7 @@ public class ManagementCategoryControllerDocsTest extends RestDocsSupport {
                                         fieldWithPath("id").description("카테고리 ID"),
                                         fieldWithPath("name").description("카테고리 이름"),
                                         fieldWithPath("parentId").description("부모 카테고리 ID").type("Number"),
+                                        fieldWithPath("depth").description("카테고리 깊이"),
                                         fieldWithPath("imageUrl").description("카테고리 아이콘 URL")
                                 )
                         )
@@ -146,6 +148,7 @@ public class ManagementCategoryControllerDocsTest extends RestDocsSupport {
                                         fieldWithPath("id").description("카테고리 ID"),
                                         fieldWithPath("name").description("카테고리 이름"),
                                         fieldWithPath("parentId").description("부모 카테고리 ID").type("Number"),
+                                        fieldWithPath("depth").description("카테고리 깊이"),
                                         fieldWithPath("imageUrl").description("카테고리 아이콘 URL")
                                 )
                         )
@@ -203,6 +206,7 @@ public class ManagementCategoryControllerDocsTest extends RestDocsSupport {
                 .id(1L)
                 .name("카테고리")
                 .parentId(null)
+                .depth(1)
                 .imageUrl("http://category.jpg");
     }
 

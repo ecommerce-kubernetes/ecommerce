@@ -5,7 +5,7 @@ import com.example.product_service.common.advice.ErrorResponseEntityFactory;
 import com.example.product_service.config.TestConfig;
 import com.example.product_service.api.category.controller.dto.CategoryRequest;
 import com.example.product_service.dto.response.category.CategoryHierarchyResponse;
-import com.example.product_service.dto.response.category.CategoryResponse;
+import com.example.product_service.api.category.service.dto.result.CategoryResponse;
 import com.example.product_service.exception.BadRequestException;
 import com.example.product_service.exception.DuplicateResourceException;
 import com.example.product_service.exception.NotFoundException;
@@ -69,7 +69,7 @@ class CategoryControllerTest {
     @DisplayName("카테고리 생성 테스트-성공")
     void createCategoryTest_success() throws Exception {
         CategoryRequest request = new CategoryRequest("category", 1L, ICON_URL);
-        CategoryResponse response = new CategoryResponse(1L, "category", 1L, ICON_URL);
+        CategoryResponse response = new CategoryResponse(1L, "category", 1L, 1, ICON_URL);
         when(service.saveCategory(any(CategoryRequest.class)))
                 .thenReturn(response);
 
@@ -121,8 +121,8 @@ class CategoryControllerTest {
     @Test
     @DisplayName("카테고리 루트 조회 테스트-성공")
     void getRootCategoriesTest_success() throws Exception {
-        List<CategoryResponse> response = List.of(new CategoryResponse(1L, "category1", null, ICON_URL),
-                new CategoryResponse(2L, "category2", null, ICON_URL));
+        List<CategoryResponse> response = List.of(new CategoryResponse(1L, "category1", null, 1, ICON_URL),
+                new CategoryResponse(2L, "category2", null,1,  ICON_URL));
         when(service.getRootCategories()).thenReturn(response);
 
         ResultActions perform = performWithBody(mockMvc, get(ROOT_CATEGORY_PATH), null);
@@ -132,8 +132,8 @@ class CategoryControllerTest {
     @Test
     @DisplayName("카테고리 자식 조회 테스트-성공")
     void getChildrenCategoriesTest_success() throws Exception {
-        List<CategoryResponse> response = List.of(new CategoryResponse(2L, "childCategory1", 1L, ICON_URL),
-                new CategoryResponse(3L, "childCategory2", 1L, ICON_URL));
+        List<CategoryResponse> response = List.of(new CategoryResponse(2L, "childCategory1", 1L, 1, ICON_URL),
+                new CategoryResponse(3L, "childCategory2", 1L, 1, ICON_URL));
         when(service.getChildrenCategoriesById(anyLong()))
                 .thenReturn(response);
 
@@ -179,7 +179,7 @@ class CategoryControllerTest {
     @DisplayName("카테고리 수정 테스트-성공")
     void updateCategoryTest_success() throws Exception {
         UpdateCategoryRequest request = new UpdateCategoryRequest("updated", 1L, ICON_URL);
-        CategoryResponse response = new CategoryResponse(2L, "updated", 1L, ICON_URL);
+        CategoryResponse response = new CategoryResponse(2L, "updated", 1L, 1, ICON_URL);
         when(service.updateCategoryById(anyLong(), any(UpdateCategoryRequest.class)))
                 .thenReturn(response);
 
@@ -251,22 +251,22 @@ class CategoryControllerTest {
     }
 
     private List<CategoryResponse> createAncestors(){
-        return List.of(new CategoryResponse(1L, "depth-1 Category1", null, ICON_URL),
-                new CategoryResponse(3L, "depth-2 Category1", 1L, ICON_URL),
-                new CategoryResponse(5L, "depth-3 Category1", 3L, ICON_URL));
+        return List.of(new CategoryResponse(1L, "depth-1 Category1", null,1, ICON_URL),
+                new CategoryResponse(3L, "depth-2 Category1", 1L,1, ICON_URL),
+                new CategoryResponse(5L, "depth-3 Category1", 3L,1, ICON_URL));
     }
 
     private List<CategoryHierarchyResponse.LevelItem> createLevelItems(){
         return List.of(
                 new CategoryHierarchyResponse.LevelItem(1,
-                        List.of(new CategoryResponse(1L, "depth-1 Category1", null, ICON_URL),
-                                new CategoryResponse(2L, "depth-1 Category1", null, ICON_URL))),
+                        List.of(new CategoryResponse(1L, "depth-1 Category1", null,1, ICON_URL),
+                                new CategoryResponse(2L, "depth-1 Category1", null, 1,ICON_URL))),
                 new CategoryHierarchyResponse.LevelItem(2,
-                        List.of(new CategoryResponse(3L, "depth-2 Category1", 1L, ICON_URL),
-                                new CategoryResponse(4L, "depth-2 Category2", 1L, ICON_URL))),
+                        List.of(new CategoryResponse(3L, "depth-2 Category1", 1L,1, ICON_URL),
+                                new CategoryResponse(4L, "depth-2 Category2", 1L,1, ICON_URL))),
                 new CategoryHierarchyResponse.LevelItem(3,
-                        List.of(new CategoryResponse(5L, "depth-3 Category1", 3L, ICON_URL),
-                                new CategoryResponse(6L, "depth-3 Category2", 3L, ICON_URL)))
+                        List.of(new CategoryResponse(5L, "depth-3 Category1", 3L,1, ICON_URL),
+                                new CategoryResponse(6L, "depth-3 Category2", 3L,1, ICON_URL)))
         );
     }
 

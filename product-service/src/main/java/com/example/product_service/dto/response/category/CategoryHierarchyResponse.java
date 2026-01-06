@@ -1,5 +1,6 @@
 package com.example.product_service.dto.response.category;
 
+import com.example.product_service.api.category.service.dto.result.CategoryResponse;
 import lombok.*;
 
 import java.util.ArrayList;

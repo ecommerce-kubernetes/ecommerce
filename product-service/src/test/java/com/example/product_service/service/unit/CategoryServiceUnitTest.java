@@ -4,7 +4,7 @@ import com.example.product_service.common.MessageSourceUtil;
 import com.example.product_service.api.category.controller.dto.CategoryRequest;
 import com.example.product_service.controller.UpdateCategoryRequest;
 import com.example.product_service.dto.response.category.CategoryHierarchyResponse;
-import com.example.product_service.dto.response.category.CategoryResponse;
+import com.example.product_service.api.category.service.dto.result.CategoryResponse;
 import com.example.product_service.entity.Category;
 import com.example.product_service.exception.BadRequestException;
 import com.example.product_service.exception.DuplicateResourceException;

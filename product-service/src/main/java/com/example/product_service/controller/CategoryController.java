@@ -3,7 +3,7 @@ package com.example.product_service.controller;
 import com.example.product_service.controller.util.specification.annotation.*;
 import com.example.product_service.api.category.controller.dto.CategoryRequest;
 import com.example.product_service.dto.response.category.CategoryHierarchyResponse;
-import com.example.product_service.dto.response.category.CategoryResponse;
+import com.example.product_service.api.category.service.dto.result.CategoryResponse;
 import com.example.product_service.service.CategoryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
