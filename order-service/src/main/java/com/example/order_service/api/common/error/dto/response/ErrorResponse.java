@@ -23,34 +23,6 @@ public class ErrorResponse {
         this.path = path;
     }
 
-    public static ErrorResponse toBadRequest(String message, String timestamp, String path) {
-        return of(HttpStatus.BAD_REQUEST.name(), message, timestamp, path);
-    }
-
-    public static ErrorResponse toNotFound(String message, String timestamp, String path){
-        return of(HttpStatus.NOT_FOUND.name(), message, timestamp, path);
-    }
-
-    public static ErrorResponse toUnavailableServer(String message, String timestamp, String path){
-        return of(HttpStatus.SERVICE_UNAVAILABLE.name(), message, timestamp, path);
-    }
-
-    public static ErrorResponse toInternalServerError(String message, String timestamp, String path){
-        return of(HttpStatus.INTERNAL_SERVER_ERROR.name(), message, timestamp, path);
-    }
-
-    public static ErrorResponse toNoPermission(String message, String timestamp, String path){
-        return of(HttpStatus.FORBIDDEN.name(), message, timestamp, path);
-    }
-
-    public static ErrorResponse toUnAuthorized(String message, String timestamp, String path){
-        return of(HttpStatus.UNAUTHORIZED.name(), message, timestamp, path);
-    }
-
-    public static ErrorResponse toConflict(String message, String timestamp, String path){
-        return of(HttpStatus.CONFLICT.name(), message, timestamp, path);
-    }
-
     public static ErrorResponse of(String code, String message, String timestamp, String path) {
         return ErrorResponse.builder()
                 .code(code)

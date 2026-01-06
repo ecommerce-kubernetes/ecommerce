@@ -1,6 +1,6 @@
 package com.example.order_service.api.notification.controller;
 
-import com.example.order_service.api.common.security.principal.UserPrincipal;
+import com.example.order_service.api.common.security.model.UserPrincipal;
 import com.example.order_service.api.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
