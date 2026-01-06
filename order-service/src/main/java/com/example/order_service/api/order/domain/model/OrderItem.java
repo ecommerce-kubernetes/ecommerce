@@ -26,6 +26,7 @@ public class OrderItem extends BaseEntity {
 
     private Long productId;
     private Long productVariantId;
+    private String sku;
     private String productName;
     private Long originPrice;
     private Integer discountRate;
@@ -39,11 +40,12 @@ public class OrderItem extends BaseEntity {
     private List<ItemOption> itemOptions = new ArrayList<>();
 
     @Builder(access = AccessLevel.PRIVATE)
-    private OrderItem(Order order, Long productId, Long productVariantId, String productName, Long originPrice,
+    private OrderItem(Order order, Long productId, Long productVariantId, String sku, String productName, Long originPrice,
                      Integer discountRate, Long discountAmount, Long discountedPrice, Long lineTotal, Integer quantity, String thumbnail) {
         this.order = order;
         this.productId = productId;
         this.productVariantId = productVariantId;
+        this.sku = sku;
         this.productName = productName;
         this.originPrice = originPrice;
         this.discountRate = discountRate;
@@ -78,6 +80,7 @@ public class OrderItem extends BaseEntity {
         return OrderItem.builder()
                 .productId(createOrderItemCommand.getProductId())
                 .productVariantId(createOrderItemCommand.getProductVariantId())
+                .sku(createOrderItemCommand.getSku())
                 .productName(createOrderItemCommand.getProductName())
                 .originPrice(createOrderItemCommand.getUnitPrice().getOriginalPrice())
                 .discountRate(createOrderItemCommand.getUnitPrice().getDiscountRate())

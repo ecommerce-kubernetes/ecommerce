@@ -12,6 +12,7 @@ import java.util.List;
 public class OrderProductResponse {
     private Long productId;
     private Long productVariantId;
+    private String sku;
     private String productName;
     private UnitPrice unitPrice;
     private Integer stockQuantity;
@@ -19,10 +20,11 @@ public class OrderProductResponse {
     private List<ItemOption> itemOptions;
 
     @Builder
-    private OrderProductResponse(Long productId, Long productVariantId, String productName, UnitPrice unitPrice, Integer stockQuantity,
+    private OrderProductResponse(Long productId, Long productVariantId, String sku, String productName, UnitPrice unitPrice, Integer stockQuantity,
                                  String thumbnailUrl, List<ItemOption> itemOptions){
         this.productId = productId;
         this.productVariantId = productVariantId;
+        this.sku = sku;
         this.productName = productName;
         this.unitPrice = unitPrice;
         this.stockQuantity = stockQuantity;

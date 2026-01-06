@@ -9,6 +9,7 @@ import java.util.List;
 public class CreateOrderItemCommand {
     private Long productId;
     private Long productVariantId;
+    private String sku;
     private String productName;
     private String thumbnailUrl;
     private UnitPrice unitPrice;
@@ -17,10 +18,11 @@ public class CreateOrderItemCommand {
     private List<ItemOption> itemOptions;
 
     @Builder
-    private CreateOrderItemCommand(Long productId, Long productVariantId, String productName, String thumbnailUrl,
+    private CreateOrderItemCommand(Long productId, Long productVariantId, String sku, String productName, String thumbnailUrl,
                                    UnitPrice unitPrice, int quantity, Long lineTotal, List<ItemOption> itemOptions){
         this.productId = productId;
         this.productVariantId = productVariantId;
+        this.sku = sku;
         this.productName = productName;
         this.thumbnailUrl = thumbnailUrl;
         this.unitPrice = unitPrice;

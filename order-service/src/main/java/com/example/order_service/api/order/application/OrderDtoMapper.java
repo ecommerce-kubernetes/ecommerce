@@ -57,6 +57,7 @@ public class OrderDtoMapper {
                     return CreateOrderItemCommand.builder()
                             .productId(product.getProductId())
                             .productVariantId(product.getProductVariantId())
+                            .sku(product.getSku())
                             .productName(product.getProductName())
                             .thumbnailUrl(product.getThumbnailUrl())
                             .unitPrice(commandPrice)

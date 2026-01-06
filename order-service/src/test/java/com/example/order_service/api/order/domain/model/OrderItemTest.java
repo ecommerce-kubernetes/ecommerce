@@ -22,6 +22,7 @@ public class OrderItemTest {
         CreateOrderItemCommand item = CreateOrderItemCommand.builder()
                 .productId(1L)
                 .productVariantId(1L)
+                .sku("TS-NK-WH-XL")
                 .productName("상품1")
                 .thumbnailUrl("http://thumbnail.jpg")
                 .unitPrice(CreateOrderItemCommand.UnitPrice.builder()
@@ -38,9 +39,9 @@ public class OrderItemTest {
         OrderItem orderItem = OrderItem.create(item);
         //then
         assertThat(orderItem)
-                .extracting("productId", "productVariantId", "productName", "originPrice", "discountRate",
+                .extracting("productId", "productVariantId", "sku", "productName", "originPrice", "discountRate",
                         "discountAmount", "discountedPrice", "lineTotal", "quantity", "thumbnail")
-                        .contains(1L, 1L, "상품1", 3000L, 10, 300L, 2700L, 8100L, 3, "http://thumbnail.jpg");
+                        .contains(1L, 1L, "TS-NK-WH-XL", "상품1", 3000L, 10, 300L, 2700L, 8100L, 3, "http://thumbnail.jpg");
         assertThat(orderItem.getItemOptions()).hasSize(1);
         assertThat(orderItem.getItemOptions().get(0))
                 .extracting("optionTypeName", "optionValueName")
@@ -56,6 +57,7 @@ public class OrderItemTest {
         CreateOrderItemCommand item = CreateOrderItemCommand.builder()
                 .productId(1L)
                 .productVariantId(1L)
+                .sku("TS-NK-WH-XL")
                 .productName("상품1")
                 .thumbnailUrl("http://thumbnail.jpg")
                 .unitPrice(CreateOrderItemCommand.UnitPrice.builder()
@@ -72,9 +74,9 @@ public class OrderItemTest {
         OrderItem orderItem = OrderItem.create(item);
         //then
         assertThat(orderItem)
-                .extracting("productId", "productVariantId", "productName", "originPrice", "discountRate",
+                .extracting("productId", "productVariantId", "sku", "productName", "originPrice", "discountRate",
                         "discountAmount", "discountedPrice", "lineTotal", "quantity", "thumbnail")
-                .containsExactly(1L, 1L, "상품1", 3000L, 10, 300L, 2700L, 8100L, 3, "http://thumbnail.jpg");
+                .containsExactly(1L, 1L, "TS-NK-WH-XL", "상품1", 3000L, 10, 300L, 2700L, 8100L, 3, "http://thumbnail.jpg");
         assertThat(orderItem.getItemOptions()).isEmpty();
     }
 }
