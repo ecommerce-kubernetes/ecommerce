@@ -2,7 +2,7 @@ package com.example.order_service.api.common.security.filter;
 
 import com.example.order_service.api.common.error.dto.response.ErrorResponse;
 import com.example.order_service.api.common.security.model.UserRole;
-import com.example.order_service.api.common.security.principal.UserPrincipal;
+import com.example.order_service.api.common.security.model.UserPrincipal;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -59,8 +59,12 @@ public class HeaderPreAuthenticationFilter extends OncePerRequestFilter {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType(MediaType.APPLICATION_JSON);
 
-        //TODO 에러 코드로 변경
-        ErrorResponse errorResponse = ErrorResponse.toUnAuthorized(message, requestAt.toString(), requestUrl);
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .code("UNAUTHORIZED")
+                .message(message)
+                .timestamp(requestAt.toString())
+                .path(requestUrl)
+                .build();
         response.getWriter()
                 .write(objectMapper.writeValueAsString(errorResponse));
     }

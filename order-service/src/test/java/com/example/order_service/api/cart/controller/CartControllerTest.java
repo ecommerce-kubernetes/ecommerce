@@ -72,7 +72,7 @@ class CartControllerTest extends ControllerTestSupport {
                 .andDo(print())
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.code").value("FORBIDDEN"))
-                .andExpect(jsonPath("$.message").value("권한이 부족합니다"))
+                .andExpect(jsonPath("$.message").value("요청 권한이 없습니다"))
                 .andExpect(jsonPath("$.timestamp").exists())
                 .andExpect(jsonPath("$.path").value("/carts"));
     }
@@ -126,7 +126,7 @@ class CartControllerTest extends ControllerTestSupport {
                 .andDo(print())
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.code").value("FORBIDDEN"))
-                .andExpect(jsonPath("$.message").value("권한이 부족합니다"))
+                .andExpect(jsonPath("$.message").value("요청 권한이 없습니다"))
                 .andExpect(jsonPath("$.timestamp").exists())
                 .andExpect(jsonPath("$.path").value("/carts"));
     }
@@ -156,7 +156,7 @@ class CartControllerTest extends ControllerTestSupport {
                 .andDo(print())
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.code").value("FORBIDDEN"))
-                .andExpect(jsonPath("$.message").value("권한이 부족합니다"))
+                .andExpect(jsonPath("$.message").value("요청 권한이 없습니다"))
                 .andExpect(jsonPath("$.timestamp").exists())
                 .andExpect(jsonPath("$.path").value("/carts/1"));
     }

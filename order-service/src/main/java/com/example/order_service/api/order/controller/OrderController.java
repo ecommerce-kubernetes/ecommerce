@@ -1,7 +1,7 @@
 package com.example.order_service.api.order.controller;
 
 import com.example.order_service.api.common.dto.PageDto;
-import com.example.order_service.api.common.security.principal.UserPrincipal;
+import com.example.order_service.api.common.security.model.UserPrincipal;
 import com.example.order_service.api.order.application.OrderApplicationService;
 import com.example.order_service.api.order.application.dto.command.CreateOrderDto;
 import com.example.order_service.api.order.application.dto.command.CreateOrderItemDto;
