@@ -5,7 +5,6 @@ import lombok.*;
 
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
 public class CategoryResponse {
     private Long id;
@@ -18,5 +17,13 @@ public class CategoryResponse {
         this.name = category.getName();
         this.parentId = category.getParent() == null ? null : category.getParent().getId();
         this.iconUrl = category.getIconUrl();
+    }
+
+    @Builder
+    public CategoryResponse(Long id, String name, Long parentId, String iconUrl) {
+        this.id = id;
+        this.name = name;
+        this.parentId = parentId;
+        this.iconUrl = iconUrl;
     }
 }

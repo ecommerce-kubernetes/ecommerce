@@ -3,6 +3,7 @@ package com.example.product_service.docs;
 import com.example.product_service.api.common.security.model.UserPrincipal;
 import com.example.product_service.api.common.security.model.UserRole;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.core.MethodParameter;
@@ -52,7 +53,15 @@ public abstract class RestDocsSupport {
 
         @Override
         public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer, NativeWebRequest webRequest, WebDataBinderFactory binderFactory) throws Exception {
-            return UserPrincipal.of(1L, UserRole.ROLE_USER);
+            HttpServletRequest request = (HttpServletRequest) webRequest.getNativeRequest();
+            String userId = request.getHeader("X-User-Id");
+            String userRole = request.getHeader("X-User-Role");
+
+            if (userId == null) {
+                return null;
+            }
+
+            return UserPrincipal.of(Long.parseLong(userId), UserRole.valueOf(userRole));
         }
     }
 }

@@ -31,7 +31,6 @@ public class HeaderPreAuthenticationFilter extends OncePerRequestFilter {
         LocalDateTime requestAt = LocalDateTime.now();
 
         if(userIdHeader == null || userRoleHeader == null){
-            writeErrorResponse(response, "인증 헤더가 존재하지 않습니다", requestAt, request.getRequestURI());
             return;
         }
 
