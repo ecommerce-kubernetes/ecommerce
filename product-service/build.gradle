@@ -2,6 +2,8 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.4.4'
 	id 'io.spring.dependency-management' version '1.1.7'
+    // api 명세 restdocs 플러그인
+    id "org.asciidoctor.jvm.convert" version "3.3.2"
 }
 
 group = 'com.example'
@@ -17,6 +19,7 @@ configurations {
 	compileOnly {
 		extendsFrom annotationProcessor
 	}
+    asciidoctorExt
 }
 
 repositories {
@@ -25,8 +28,31 @@ repositories {
 }
 
 ext {
+    snippetsDir = file('build/generated-snippets')
 	set('springCloudVersion', "2024.0.1")
 }
+
+test {
+    outputs.dir snippetsDir
+}
+
+asciidoctor {
+    inputs.dir snippetsDir
+    configurations 'asciidoctorExt'
+    dependsOn test
+    sources {
+        include("**/index.adoc")
+    }
+    baseDirFollowsSourceFile()
+}
+
+bootJar {
+    dependsOn asciidoctor
+    from("${asciidoctor.outputDir}"){
+        into 'static/docs'
+    }
+}
+
 
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
@@ -59,6 +85,10 @@ dependencies {
 
     //kafka dto
     implementation 'com.github.ecommerce-kubernetes:common-dto:2.0.6'
+
+    //API 명세
+    asciidoctorExt 'org.springframework.restdocs:spring-restdocs-asciidoctor'
+    testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
 
     //Test
     testImplementation 'org.springframework.kafka:spring-kafka-test'
