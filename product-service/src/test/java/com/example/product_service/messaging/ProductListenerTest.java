@@ -1,48 +1,22 @@
 package com.example.product_service.messaging;
 
-import com.example.common.OrderCreatedEvent;
-import com.example.common.ProductStockDeductedEvent;
-import com.example.product_service.common.MessageSourceUtil;
-import com.example.product_service.common.advice.CustomAccessDeniedHandler;
-import com.example.product_service.common.advice.CustomAuthenticationEntryPoint;
-import com.example.product_service.config.TestConfig;
-import com.example.product_service.config.WebSecurity;
-import com.example.product_service.exception.InsufficientStockException;
 import com.example.product_service.service.ProductVariantService;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.kafka.clients.consumer.Consumer;
-import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.apache.kafka.clients.consumer.ConsumerRecords;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.apache.kafka.common.serialization.StringDeserializer;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.config.KafkaListenerEndpointRegistry;
 import org.springframework.kafka.core.KafkaTemplate;;
-import org.springframework.kafka.listener.MessageListenerContainer;
 import org.springframework.kafka.test.EmbeddedKafkaBroker;
 import org.springframework.kafka.test.context.EmbeddedKafka;
-import org.springframework.kafka.test.utils.ContainerTestUtils;
-import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
-import java.time.Duration;
-import java.util.List;
-import java.util.Map;
-
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
 import static org.awaitility.Awaitility.await;
-import static org.mockito.Mockito.*;
 
 @SpringBootTest
 @EnableKafka
