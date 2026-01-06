@@ -37,8 +37,12 @@ public class ControllerAdvice {
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorResponse> accessDeniedExceptionHandler(HttpServletRequest request, AccessDeniedException e){
         LocalDateTime now = LocalDateTime.now();
-        String message = "권한이 부족합니다";
-        ErrorResponse response = ErrorResponse.toNoPermission(message, now.toString(), request.getRequestURI());
+        ErrorResponse response = ErrorResponse.builder()
+                .code("FORBIDDEN")
+                .message("요청 권한이 없습니다")
+                .timestamp(now.toString())
+                .path(request.getRequestURI())
+                .build();
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
     }
 
