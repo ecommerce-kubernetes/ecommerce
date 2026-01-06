@@ -53,7 +53,7 @@ public class HeaderPreAuthenticationFilterTest {
                 .andDo(print())
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
-                .andExpect(jsonPath("$.message").value("인증 헤더가 존재하지 않습니다"))
+                .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다"))
                 .andExpect(jsonPath("$.timestamp").exists())
                 .andExpect(jsonPath("$.path").value("/security"));
     }
@@ -72,7 +72,7 @@ public class HeaderPreAuthenticationFilterTest {
                 .andDo(print())
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
-                .andExpect(jsonPath("$.message").value("X-User-Id 헤더가 유효하지 않습니다"))
+                .andExpect(jsonPath("$.message").value("인증 헤더 형식이 올바르지 않습니다"))
                 .andExpect(jsonPath("$.timestamp").exists())
                 .andExpect(jsonPath("$.path").value("/security"));
 
@@ -93,7 +93,7 @@ public class HeaderPreAuthenticationFilterTest {
                 .andDo(print())
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
-                .andExpect(jsonPath("$.message").value("X-User-Role 헤더가 유효하지 않습니다"))
+                .andExpect(jsonPath("$.message").value("인증 헤더 형식이 올바르지 않습니다"))
                 .andExpect(jsonPath("$.timestamp").exists())
                 .andExpect(jsonPath("$.path").value("/security"));
     }
