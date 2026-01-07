@@ -2,11 +2,13 @@ package com.example.product_service.api.category.controller.dto;
 
 import jakarta.validation.constraints.AssertTrue;
 import lombok.*;
+import org.hibernate.validator.constraints.URL;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class UpdateCategoryRequest {
     private String name;
+    @URL(message = "imageUrl 형식은 URL 형식이여야합니다")
     private String imageUrl;
 
     @Builder

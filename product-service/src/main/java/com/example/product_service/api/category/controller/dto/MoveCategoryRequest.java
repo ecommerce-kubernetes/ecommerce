@@ -6,7 +6,7 @@ import lombok.*;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class MoveCategoryRequest {
-    @NotNull(message = "parentId 는 필수입니다")
+    @NotNull(message = "parentId는 필수입니다")
     private Long parentId;
 
     @Builder
