@@ -45,6 +45,10 @@ public class CategoryService {
         return null;
     }
 
+    public CategoryResponse saveCategory(String name, Long parentId, String imageUrl){
+        return null;
+    }
+
     public CategoryResponse getCategory(Long categoryId) {
         return null;
     }

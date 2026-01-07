@@ -1,8 +1,8 @@
 package com.example.product_service.common.advice;
 
+import com.example.product_service.api.common.error.dto.response.ErrorResponse;
 import com.example.product_service.common.MessageSourceUtil;
 import com.example.product_service.common.advice.dto.DetailError;
-import com.example.product_service.common.advice.dto.ErrorResponse;
 import com.example.product_service.common.advice.dto.ValidationErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;

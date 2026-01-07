@@ -7,10 +7,10 @@ import org.hibernate.validator.constraints.URL;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class CategoryRequest {
-    @NotBlank(message = "{NotBlank}")
+    @NotBlank(message = "name은 필수값입니다")
     private String name;
     private Long parentId;
-    @URL(message = "{InvalidUrl}")
+    @URL(message = "imageUrl 형식은 URL 형식이여야합니다")
     private String imageUrl;
 
     @Builder

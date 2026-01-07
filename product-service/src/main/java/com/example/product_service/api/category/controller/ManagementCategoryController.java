@@ -22,7 +22,7 @@ public class ManagementCategoryController {
 
     @PostMapping
     public ResponseEntity<CategoryResponse> saveCategory(@RequestBody @Validated CategoryRequest request) {
-        CategoryResponse response = categoryService.saveCategory(request);
+        CategoryResponse response = categoryService.saveCategory(request.getName(), request.getParentId(), request.getImageUrl());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
