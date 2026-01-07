@@ -1,5 +1,5 @@
+## 관리자 전용
 === 카테고리 생성
-
 ==== HTTP Request
 include::{snippets}/create-category/http-request.adoc[]
 ===== Request Header
@@ -16,6 +16,8 @@ include::{snippets}/create-category/response-fields.adoc[]
 include::{snippets}/update-category/http-request.adoc[]
 ===== Request Header
 include::{snippets}/update-category/request-headers.adoc[]
+===== Request PathParam
+include::{snippets}/update-category/path-parameters.adoc[]
 ===== Request Fields
 include::{snippets}/update-category/request-fields.adoc[]
 ==== HTTP Response
@@ -28,6 +30,8 @@ include::{snippets}/update-category/response-fields.adoc[]
 include::{snippets}/moveParent-category/http-request.adoc[]
 ===== Request Header
 include::{snippets}/moveParent-category/request-headers.adoc[]
+===== Request PathParam
+include::{snippets}/moveParent-category/path-parameters.adoc[]
 ===== Request Fields
 include::{snippets}/moveParent-category/request-fields.adoc[]
 ==== HTTP Response
@@ -40,7 +44,36 @@ include::{snippets}/moveParent-category/response-fields.adoc[]
 include::{snippets}/delete-category/http-request.adoc[]
 ===== Request Header
 include::{snippets}/delete-category/request-headers.adoc[]
+===== Request PathParam
+include::{snippets}/delete-category/path-parameters.adoc[]
 ==== HTTP Response
 include::{snippets}/delete-category/http-response.adoc[]
 
+## 일반
+=== 카테고리 트리 구조 조회
+==== HTTP Request
+include::{snippets}/category-get-tree/http-request.adoc[]
+==== HTTP Response
+include::{snippets}/category-get-tree/http-response.adoc[]
+===== ResponseFields
+include::{snippets}/category-get-tree/response-fields.adoc[]
 
+=== 카테고리 네비게이션 조회
+==== HTTP Request
+include::{snippets}/category-get-navigation/http-request.adoc[]
+===== HTTP PathParam
+include::{snippets}/category-get-navigation/path-parameters.adoc[]
+==== HTTP Response
+include::{snippets}/category-get-navigation/http-response.adoc[]
+===== Response Fields
+include::{snippets}/category-get-navigation/response-fields.adoc[]
+
+=== 카테고리 조회
+==== HTTP Request
+include::{snippets}/category-get/http-request.adoc[]
+===== HTTP PathParam
+include::{snippets}/category-get/path-parameters.adoc[]
+==== HTTP Response
+include::{snippets}/category-get/http-response.adoc[]
+===== Response Fields
+include::{snippets}/category-get/response-fields.adoc[]

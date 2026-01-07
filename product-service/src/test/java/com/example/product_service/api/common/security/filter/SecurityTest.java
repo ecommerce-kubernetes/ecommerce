@@ -37,7 +37,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
                 classes = {ControllerAdvice.class}
         )
 )
-public class HeaderPreAuthenticationFilterTest {
+public class SecurityTest {
     @Autowired
     private MockMvc mockMvc;
 
@@ -80,13 +80,12 @@ public class HeaderPreAuthenticationFilterTest {
 
     @Test
     @DisplayName("X-User-Role 이 잘못된 문자열이면 401 에러 응답을 반환한다")
-    void test() throws Exception {
+    void validHeader_InvalidUserRoleHeader() throws Exception {
         //given
         HttpHeaders invalidUserRoleHeader = new HttpHeaders(MultiValueMap
                 .fromSingleValue(Map.of("X-User-Id", "1", "X-User-Role", "ROLE_INVALID")));
         //when
         //then
-
         mockMvc.perform(get("/security")
                         .contentType(MediaType.APPLICATION_JSON)
                         .headers(invalidUserRoleHeader))

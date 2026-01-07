@@ -37,11 +37,15 @@ public class CategoryService {
         return null;
     }
 
-    public CategoryTreeResponse getTree() {
+    public List<CategoryTreeResponse> getTree() {
         return null;
     }
 
-    public CategoryNavigationResponse getNavigation() {
+    public CategoryNavigationResponse getNavigation(Long categoryId) {
+        return null;
+    }
+
+    public CategoryResponse getCategory(Long categoryId) {
         return null;
     }
 

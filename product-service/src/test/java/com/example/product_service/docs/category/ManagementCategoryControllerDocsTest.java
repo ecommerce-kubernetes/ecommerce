@@ -21,6 +21,8 @@ import static org.springframework.restdocs.headers.HeaderDocumentation.requestHe
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
 import static org.springframework.restdocs.payload.PayloadDocumentation.*;
+import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
+import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -101,6 +103,9 @@ public class ManagementCategoryControllerDocsTest extends RestDocsSupport {
                                         headerWithName("X-User-Id").description(USER_ID_HEADER_DESCRIPTION).optional(),
                                         headerWithName("X-User-Role").description(USER_ROLE_HEADER_DESCRIPTION).optional()
                                 ),
+                                pathParameters(
+                                        parameterWithName("categoryId").description("수정할 카테고리 ID")
+                                ),
                                 requestFields(
                                         fieldWithPath("name").description("변경할 카테고리 이름"),
                                         fieldWithPath("imageUrl").description("변경할 카테고리 아이콘 URL")
@@ -141,6 +146,9 @@ public class ManagementCategoryControllerDocsTest extends RestDocsSupport {
                                         headerWithName("X-User-Id").description(USER_ID_HEADER_DESCRIPTION).optional(),
                                         headerWithName("X-User-Role").description(USER_ROLE_HEADER_DESCRIPTION).optional()
                                 ),
+                                pathParameters(
+                                        parameterWithName("categoryId").description("수정할 카테고리 ID")
+                                ),
                                 requestFields(
                                         fieldWithPath("parentId").description("이동할 부모 카테고리 ID").optional()
                                 ),
@@ -174,6 +182,9 @@ public class ManagementCategoryControllerDocsTest extends RestDocsSupport {
                                 requestHeaders(
                                         headerWithName("X-User-Id").description(USER_ID_HEADER_DESCRIPTION).optional(),
                                         headerWithName("X-User-Role").description(USER_ROLE_HEADER_DESCRIPTION).optional()
+                                ),
+                                pathParameters(
+                                        parameterWithName("categoryId").description("삭제할 카테고리 ID")
                                 )
                         )
                 );

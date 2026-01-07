@@ -8,17 +8,17 @@ import java.util.List;
 
 @Getter
 public class CategoryTreeResponse {
-    private Long categoryId;
+    private Long id;
     private String name;
     private Long parentId;
-    private String imageUrl;
     private Integer depth;
+    private String imageUrl;
 
     private List<CategoryTreeResponse> children;
 
     @Builder
-    public CategoryTreeResponse(Long categoryId, String name, Long parentId, String imageUrl, Integer depth) {
-        this.categoryId = categoryId;
+    public CategoryTreeResponse(Long id, String name, Long parentId, String imageUrl, Integer depth) {
+        this.id = id;
         this.name = name;
         this.parentId = parentId;
         this.imageUrl = imageUrl;
