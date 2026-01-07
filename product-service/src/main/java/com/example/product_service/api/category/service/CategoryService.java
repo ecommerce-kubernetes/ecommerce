@@ -1,17 +1,19 @@
-package com.example.product_service.service;
+package com.example.product_service.api.category.service;
 
 import com.example.product_service.api.category.service.dto.result.CategoryNavigationResponse;
 import com.example.product_service.api.category.service.dto.result.CategoryTreeResponse;
+import com.example.product_service.api.common.exception.BusinessException;
+import com.example.product_service.api.common.exception.CategoryErrorCode;
 import com.example.product_service.common.MessageSourceUtil;
-import com.example.product_service.api.category.controller.dto.CategoryRequest;
 import com.example.product_service.controller.UpdateCategoryRequest;
 import com.example.product_service.dto.response.category.CategoryHierarchyResponse;
 import com.example.product_service.api.category.service.dto.result.CategoryResponse;
-import com.example.product_service.entity.Category;
+import com.example.product_service.api.category.domain.model.Category;
 import com.example.product_service.exception.BadRequestException;
 import com.example.product_service.exception.DuplicateResourceException;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.repository.CategoryRepository;
+import com.example.product_service.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,20 +22,28 @@ import java.util.*;
 
 import static com.example.product_service.common.MessagePath.*;
 
-
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class CategoryService {
 
     private final CategoryRepository categoryRepository;
+    private final ProductRepository productRepository;
     private final MessageSourceUtil ms;
 
-    public CategoryResponse updateCategory(Long categoryId, String name, String imageUrl) {
-        return null;
+    @Transactional
+    public CategoryResponse saveCategory(String name, Long parentId, String imageUrl) {
+        Category parent = findParentByCategory(parentId);
+        if (productRepository.existsByCategoryId(parentId)){
+            throw new BusinessException(CategoryErrorCode.HAS_PRODUCT);
+        }
+        Category category = Category.create(name, parent, imageUrl);
+        categoryRepository.save(category);
+        category.generatePath();
+        return CategoryResponse.from(category);
     }
 
-    public CategoryResponse moveParent(Long categoryId, Long parentId) {
+    public CategoryResponse getCategory(Long categoryId) {
         return null;
     }
 
@@ -45,24 +55,12 @@ public class CategoryService {
         return null;
     }
 
-    public CategoryResponse saveCategory(String name, Long parentId, String imageUrl){
+    public CategoryResponse moveParent(Long categoryId, Long parentId) {
         return null;
     }
 
-    public CategoryResponse getCategory(Long categoryId) {
+    public CategoryResponse updateCategory(Long categoryId, String name, String imageUrl) {
         return null;
-    }
-
-    @Transactional
-    public CategoryResponse saveCategory(CategoryRequest request) {
-        checkConflictName(request.getName());
-        Category category = new Category(request.getName(), request.getImageUrl());
-        if(request.getParentId() != null){
-            Category parent = findByIdOrThrow(request.getParentId());
-            parent.addChild(category);
-        }
-        Category saved = categoryRepository.save(category);
-        return new CategoryResponse(saved);
     }
 
     public List<CategoryResponse> getRootCategories() {
@@ -96,18 +94,6 @@ public class CategoryService {
     @Transactional
     public CategoryResponse updateCategoryById(Long categoryId, UpdateCategoryRequest request) {
         Category target = findByIdOrThrow(categoryId);
-        if (request.getName() != null){
-            checkConflictName(request.getName());
-            target.setName(request.getName());
-        }
-        if (request.getIconUrl() != null){
-            target.setIconUrl(request.getIconUrl());
-        }
-        if (request.getParentId() != null){
-            checkParentIsNotSelf(target.getId(), request.getParentId());
-            Category parent = findByIdOrThrow(request.getParentId());
-            target.modifyParent(parent);
-        }
         return new CategoryResponse(target);
     }
 
@@ -155,5 +141,17 @@ public class CategoryService {
     private void setAncestors(CategoryHierarchyResponse response, List<Category> ancestors){
         response.setAncestors(ancestors.stream()
                 .map(CategoryResponse::new).toList());
+    }
+
+    private Category findParentByCategory(Long parentId) {
+        if (parentId == null) {
+            return null;
+        }
+        return findCategoryOrThrow(parentId);
+    }
+
+    private Category findCategoryOrThrow(Long categoryId) {
+        return categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new BusinessException(CategoryErrorCode.CATEGORY_NOT_FOUND));
     }
 }

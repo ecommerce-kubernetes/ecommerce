@@ -21,7 +21,14 @@ spring:
       hibernate.default_batch_fetch_size: 1000
   flyway:
     enabled: false
-
-swagger:
-  allowed-origins:
-    - "http://localhost:8000"
+---
+spring:
+  config:
+    activate:
+      on-profile: test-mock
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration
+  cloud:
+    bus:
+      enabled: false

@@ -6,7 +6,7 @@ import com.example.product_service.api.category.controller.dto.MoveCategoryReque
 import com.example.product_service.api.category.controller.dto.UpdateCategoryRequest;
 import com.example.product_service.docs.RestDocsSupport;
 import com.example.product_service.api.category.service.dto.result.CategoryResponse;
-import com.example.product_service.service.CategoryService;
+import com.example.product_service.api.category.service.CategoryService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -28,7 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
-public class ManagementCategoryControllerDocsTest extends RestDocsSupport {
+public class ManagementDeprecatedCategoryControllerDocsTest extends RestDocsSupport {
 
     private CategoryService categoryService = Mockito.mock(CategoryService.class);
 
@@ -44,7 +44,7 @@ public class ManagementCategoryControllerDocsTest extends RestDocsSupport {
         CategoryRequest request = createCategoryRequest();
         CategoryResponse response = createCategoryResponse().build();
         HttpHeaders adminHeader = createAdminHeader();
-        given(categoryService.saveCategory(any()))
+        given(categoryService.saveCategory(anyString(), nullable(Long.class), anyString()))
                 .willReturn(response);
         //when
         //then

@@ -4,7 +4,7 @@ import com.example.product_service.api.category.controller.dto.CategoryRequest;
 import com.example.product_service.api.category.controller.dto.MoveCategoryRequest;
 import com.example.product_service.api.category.controller.dto.UpdateCategoryRequest;
 import com.example.product_service.api.category.service.dto.result.CategoryResponse;
-import com.example.product_service.service.CategoryService;
+import com.example.product_service.api.category.service.CategoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

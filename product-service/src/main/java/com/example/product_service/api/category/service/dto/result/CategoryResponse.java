@@ -1,6 +1,6 @@
 package com.example.product_service.api.category.service.dto.result;
 
-import com.example.product_service.entity.Category;
+import com.example.product_service.api.category.domain.model.Category;
 import lombok.*;
 
 @Getter
@@ -16,7 +16,7 @@ public class CategoryResponse {
         this.id = category.getId();
         this.name = category.getName();
         this.parentId = category.getParent() == null ? null : category.getParent().getId();
-        this.imageUrl = category.getIconUrl();
+        this.imageUrl = category.getImageUrl();
     }
 
     @Builder
@@ -26,5 +26,15 @@ public class CategoryResponse {
         this.parentId = parentId;
         this.depth = depth;
         this.imageUrl = imageUrl;
+    }
+
+    public static CategoryResponse from(Category category) {
+        return CategoryResponse.builder()
+                .id(category.getId())
+                .name(category.getName())
+                .parentId(category.getParent() == null ? null : category.getParent().getId())
+                .depth(category.getDepth())
+                .imageUrl(category.getImageUrl())
+                .build();
     }
 }

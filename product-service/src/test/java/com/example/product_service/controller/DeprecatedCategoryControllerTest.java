@@ -9,7 +9,7 @@ import com.example.product_service.api.category.service.dto.result.CategoryRespo
 import com.example.product_service.exception.BadRequestException;
 import com.example.product_service.exception.DuplicateResourceException;
 import com.example.product_service.exception.NotFoundException;
-import com.example.product_service.service.CategoryService;
+import com.example.product_service.api.category.service.CategoryService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -37,10 +37,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(CategoryController.class)
+@WebMvcTest(DeprecatedCategoryController.class)
 @AutoConfigureMockMvc(addFilters = false)
 @Import({ErrorResponseEntityFactory.class, TestConfig.class})
-class CategoryControllerTest {
+class DeprecatedCategoryControllerTest {
 
     private static final String ICON_URL = "http://test.jpg";
     private static final String BASE_PATH = "/categories";
@@ -65,17 +65,6 @@ class CategoryControllerTest {
         when(ms.getMessage(CONFLICT)).thenReturn("Conflict");
     }
 
-    @Test
-    @DisplayName("카테고리 생성 테스트-성공")
-    void createCategoryTest_success() throws Exception {
-        CategoryRequest request = new CategoryRequest("category", 1L, ICON_URL);
-        CategoryResponse response = new CategoryResponse(1L, "category", 1L, 1, ICON_URL);
-        when(service.saveCategory(any(CategoryRequest.class)))
-                .thenReturn(response);
-
-        ResultActions perform = performWithBody(mockMvc, post(BASE_PATH), request);
-        verifySuccessResponse(perform, status().isCreated(), response);
-    }
 
     @Test
     @DisplayName("카테고리 생성 테스트-실패(검증)")
@@ -92,30 +81,6 @@ class CategoryControllerTest {
                 .andExpect(jsonPath("$.errors[*].fieldName", containsInAnyOrder("name", "iconUrl")))
                 .andExpect(jsonPath("$.errors[*].message",
                         containsInAnyOrder(getMessage(NOT_BLANK), getMessage(INVALID_URL_MESSAGE))));
-    }
-
-    @Test
-    @DisplayName("카테고리 생성 테스트-실패(부모 카테고리 없음)")
-    void createCategoryTest_notFound() throws Exception {
-        CategoryRequest request = new CategoryRequest("childCategory", 1L, ICON_URL);
-        when(service.saveCategory(any(CategoryRequest.class)))
-                .thenThrow(new NotFoundException(getMessage(CATEGORY_NOT_FOUND)));
-        ResultActions perform = performWithBody(mockMvc, post(BASE_PATH), request);
-        verifyErrorResponse(perform, status().isNotFound(), getMessage(NOT_FOUND),
-                getMessage(CATEGORY_NOT_FOUND), BASE_PATH);
-
-    }
-
-    @Test
-    @DisplayName("카테고리 생성 테스트-실패(중복)")
-    void createCategoryTest_conflict() throws Exception {
-        CategoryRequest request = new CategoryRequest("duplicated", 1L, ICON_URL);
-
-        when(service.saveCategory(any(CategoryRequest.class)))
-                .thenThrow(new DuplicateResourceException(getMessage(CATEGORY_CONFLICT)));
-        ResultActions perform = performWithBody(mockMvc, post(BASE_PATH), request);
-        verifyErrorResponse(perform, status().isConflict(), getMessage(CONFLICT),
-                getMessage(CATEGORY_CONFLICT), BASE_PATH);
     }
 
     @Test

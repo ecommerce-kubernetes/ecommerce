@@ -7,9 +7,12 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
 
-public interface ProductsRepository extends JpaRepository<Product, Long>{
+public interface ProductRepository extends JpaRepository<Product, Long>{
 
     @Query("SELECT p FROM Product p LEFT JOIN FETCH p.category WHERE p.id = :productId")
     Optional<Product> findWithCategoryById(@Param("productId") Long productId);
+
+    @Query("select count(p) > 0 from Product p where p.category.id = :categoryId")
+    boolean existsByCategoryId(@Param("categoryId") Long categoryId);
 
 }

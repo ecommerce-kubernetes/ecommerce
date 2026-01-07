@@ -13,7 +13,7 @@ import com.example.product_service.entity.Product;
 import com.example.product_service.entity.ProductImage;
 import com.example.product_service.entity.ProductVariant;
 import com.example.product_service.exception.NotFoundException;
-import com.example.product_service.repository.ProductsRepository;
+import com.example.product_service.repository.ProductRepository;
 import com.example.product_service.service.dto.*;
 import com.example.product_service.service.util.factory.ProductFactory;
 import com.example.product_service.service.util.validator.ProductReferenceService;
@@ -31,7 +31,7 @@ import static com.example.product_service.common.MessagePath.PRODUCT_NOT_FOUND;
 @Transactional
 public class ProductApplicationService {
 
-    private final ProductsRepository productsRepository;
+    private final ProductRepository productRepository;
     private final RequestValidator requestValidator;
     private final ProductReferenceService productReferenceService;
     private final ProductFactory factory;
@@ -44,7 +44,7 @@ public class ProductApplicationService {
         ProductCreationData creationData = productReferenceService.buildCreationData(request);
         Product product = factory.createProducts(productCreationCommand, creationData);
 
-        Product saved = productsRepository.save(product);
+        Product saved = productRepository.save(product);
         return new ProductResponse(saved);
     }
 
@@ -69,7 +69,7 @@ public class ProductApplicationService {
 
     public void deleteProductById(Long productId){
         Product target = findProductByIdOrThrow(productId);
-        productsRepository.delete(target);
+        productRepository.delete(target);
     }
 
     public List<ImageResponse> addImages(Long productId, AddImageRequest request){
@@ -90,7 +90,7 @@ public class ProductApplicationService {
     }
 
     private Product findProductByIdOrThrow(Long productId){
-        return productsRepository.findById(productId)
+        return productRepository.findById(productId)
                 .orElseThrow(() -> new NotFoundException(ms.getMessage(PRODUCT_NOT_FOUND)));
     }
 }

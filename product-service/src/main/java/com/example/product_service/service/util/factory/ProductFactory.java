@@ -30,7 +30,8 @@ public class ProductFactory {
 
 
     private Product createBasicInfoProduct(ProductCreationCommand command, ProductCreationData data){
-        return new Product(command.getName(), command.getDescription(), data.getCategory());
+        return null;
+//        return new Product(command.getName(), command.getDescription(), data.getCategory());
     }
 
     private ProductVariant createBasicInfoProductVariant(ProductVariantCommand command){

@@ -1,4 +1,4 @@
-package com.example.product_service.api.category;
+package com.example.product_service.api.category.controller;
 
 import com.example.product_service.api.category.controller.dto.CategoryRequest;
 import com.example.product_service.api.category.controller.dto.MoveCategoryRequest;
@@ -21,13 +21,12 @@ import java.util.stream.Stream;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @Import({TestConfig.class, TestSecurityConfig.class})
-public class ManagementCategoryControllerTest extends ControllerTestSupport {
+public class ManagementDeprecatedCategoryControllerTest extends ControllerTestSupport {
 
     @Test
     @DisplayName("카테고리를 생성한다")
@@ -197,6 +196,34 @@ public class ManagementCategoryControllerTest extends ControllerTestSupport {
                 .andExpect(jsonPath("message").value("parentId는 필수입니다"))
                 .andExpect(jsonPath("timestamp").exists())
                 .andExpect(jsonPath("path").value("/management/categories/1/move"));
+    }
+
+    @Test
+    @DisplayName("카테고리를 삭제한다")
+    @WithCustomMockUser
+    void deleteCategory() throws Exception {
+        //given
+        //when
+        //then
+        mockMvc.perform(delete("/management/categories/{categoryId}", 1L)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @DisplayName("카테고리를 삭제하려면 관리자 권한이여야 한다")
+    @WithCustomMockUser(userRole = UserRole.ROLE_USER)
+    void deleteCategoryWhenUserRole() throws Exception {
+        //given
+        //when
+        //then
+        mockMvc.perform(delete("/management/categories/{categoryId}", 1L))
+                .andDo(print())
+                .andExpect(jsonPath("code").value("FORBIDDEN"))
+                .andExpect(jsonPath("message").value("요청 권한이 없습니다"))
+                .andExpect(jsonPath("timestamp").exists())
+                .andExpect(jsonPath("path").value("/management/categories/1"));
     }
 
     private static CategoryRequest.CategoryRequestBuilder createCategoryRequest() {

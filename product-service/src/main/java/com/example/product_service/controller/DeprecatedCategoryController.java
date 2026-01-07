@@ -1,15 +1,13 @@
 package com.example.product_service.controller;
 
 import com.example.product_service.controller.util.specification.annotation.*;
-import com.example.product_service.api.category.controller.dto.CategoryRequest;
 import com.example.product_service.dto.response.category.CategoryHierarchyResponse;
 import com.example.product_service.api.category.service.dto.result.CategoryResponse;
-import com.example.product_service.service.CategoryService;
+import com.example.product_service.api.category.service.CategoryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
@@ -21,20 +19,9 @@ import java.util.List;
 @RequiredArgsConstructor
 @Tag(name = "Category", description = "카테고리 관련 API")
 @RequestMapping("/categories")
-public class CategoryController {
+public class DeprecatedCategoryController {
 
     private final CategoryService categoryService;
-
-    @AdminApi
-    @Operation(summary = "카테고리 생성")
-    @ApiResponse(responseCode = "201", description = "생성 성공")
-    @BadRequestApiResponse @ForbiddenApiResponse @ConflictApiResponse @NotFoundApiResponse
-    @PostMapping
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<CategoryResponse> createCategory(@RequestBody @Validated CategoryRequest request){
-        CategoryResponse response = categoryService.saveCategory(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
-    }
 
     @Operation(summary = "루트 카테고리 리스트 조회")
     @ApiResponse(responseCode = "200", description = "조회 성공")

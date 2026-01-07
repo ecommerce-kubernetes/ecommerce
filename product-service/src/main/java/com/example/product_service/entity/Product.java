@@ -1,12 +1,10 @@
 package com.example.product_service.entity;
 
-import com.example.product_service.entity.base.BaseEntity;
+import com.example.product_service.api.category.domain.model.Category;
+import com.example.product_service.api.common.entity.BaseEntity;
 import com.example.product_service.exception.BadRequestException;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,10 +37,19 @@ public class Product extends BaseEntity {
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProductVariant> productVariants = new ArrayList<>();
 
-    public Product(String name, String description, Category category){
+    @Builder(access = AccessLevel.PRIVATE)
+    private Product(String name, String description, Category category){
         this.name = name;
         this.description = description;
         this.category = category;
+    }
+
+    public static Product create(String name, String description, Category category) {
+        return Product.builder()
+                .name(name)
+                .description(description)
+                .category(category)
+                .build();
     }
 
     public void addImages(List<ProductImage> images){

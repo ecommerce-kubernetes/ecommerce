@@ -5,7 +5,7 @@ import com.example.product_service.api.category.service.dto.result.CategoryNavig
 import com.example.product_service.api.category.service.dto.result.CategoryResponse;
 import com.example.product_service.api.category.service.dto.result.CategoryTreeResponse;
 import com.example.product_service.docs.RestDocsSupport;
-import com.example.product_service.service.CategoryService;
+import com.example.product_service.api.category.service.CategoryService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -24,7 +24,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-public class CategoryControllerDocsTest extends RestDocsSupport {
+public class DeprecatedCategoryControllerDocsTest extends RestDocsSupport {
 
     CategoryService categoryService = mock(CategoryService.class);
 

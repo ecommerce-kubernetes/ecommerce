@@ -34,7 +34,7 @@ public class ProductQueryService {
     private final ProductVariantsRepository productVariantsRepository;
     private final ProductImagesRepository productImagesRepository;
     private final ReviewsRepository reviewsRepository;
-    private final ProductsRepository productsRepository;
+    private final ProductRepository productRepository;
     private final MessageSourceUtil ms;
 
     public PageDto<ProductSummaryResponse> getProducts(ProductSearch search, Pageable pageable) {
@@ -66,7 +66,7 @@ public class ProductQueryService {
     }
 
     public PageDto<ReviewResponse> getReviewsByProductId(Long productId, Pageable pageable){
-        boolean isExists = productsRepository.existsById(productId);
+        boolean isExists = productRepository.existsById(productId);
         if(!isExists){
             throw new NotFoundException(ms.getMessage(PRODUCT_NOT_FOUND));
         }
@@ -107,7 +107,7 @@ public class ProductQueryService {
     }
 
     private Product findWithCategoryByIdOrThrow(Long productId){
-        return productsRepository.findWithCategoryById(productId)
+        return productRepository.findWithCategoryById(productId)
                 .orElseThrow(() -> new NotFoundException(ms.getMessage(PRODUCT_NOT_FOUND)));
     }
 }

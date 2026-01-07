@@ -1,4 +1,4 @@
-package com.example.product_service.api.category;
+package com.example.product_service.api.category.controller;
 
 import com.example.product_service.api.category.service.dto.result.CategoryNavigationResponse;
 import com.example.product_service.api.category.service.dto.result.CategoryResponse;
@@ -20,7 +20,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Import({TestConfig.class, TestSecurityConfig.class})
-public class CategoryControllerTest extends ControllerTestSupport {
+public class DeprecatedCategoryControllerTest extends ControllerTestSupport {
 
     @Test
     @DisplayName("카테고리 트리를 조회한다")
