@@ -17,7 +17,7 @@ public class TestSecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(
                         auth -> auth
-                                .requestMatchers("/categories/*").permitAll()
+                                .requestMatchers("/categories/**").permitAll()
                                 .requestMatchers("/test").permitAll()
                                 .anyRequest().authenticated()
                 );
