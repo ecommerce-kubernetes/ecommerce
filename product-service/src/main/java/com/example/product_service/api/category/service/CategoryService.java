@@ -4,6 +4,7 @@ import com.example.product_service.api.category.service.dto.result.CategoryNavig
 import com.example.product_service.api.category.service.dto.result.CategoryTreeResponse;
 import com.example.product_service.api.common.exception.BusinessException;
 import com.example.product_service.api.common.exception.CategoryErrorCode;
+import com.example.product_service.api.common.exception.CommonErrorCode;
 import com.example.product_service.common.MessageSourceUtil;
 import com.example.product_service.controller.UpdateCategoryRequest;
 import com.example.product_service.dto.response.category.CategoryHierarchyResponse;
@@ -17,6 +18,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static com.example.product_service.common.MessagePath.*;
 
@@ -47,7 +50,8 @@ public class CategoryService {
     }
 
     public List<CategoryTreeResponse> getTree() {
-        return null;
+        List<Category> allCategories = categoryRepository.findAll();
+        return mappingCategoryTreeResponse(allCategories);
     }
 
     public CategoryNavigationResponse getNavigation(Long categoryId) {
@@ -160,4 +164,22 @@ public class CategoryService {
         return categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new BusinessException(CategoryErrorCode.CATEGORY_NOT_FOUND));
     }
+
+    private List<CategoryTreeResponse> mappingCategoryTreeResponse(List<Category> allCategories) {
+        List<CategoryTreeResponse> allDtoList = allCategories.stream().map(CategoryTreeResponse::from).toList();
+        Map<Long, CategoryTreeResponse> dtoMap = allDtoList.stream().collect(Collectors.toMap(CategoryTreeResponse::getId, Function.identity()));
+        List<CategoryTreeResponse> rootCategories = new ArrayList<>();
+        for (CategoryTreeResponse category : allDtoList) {
+            // depth 가 1 이면 최상위 카테고리
+            if (category.getDepth() == 1) {
+                rootCategories.add(category);
+            } else {
+                // depth 가 1 이상이면 map에서 부모 카테고리를 찾아 addChild() 메서드 호출
+                CategoryTreeResponse parent = dtoMap.get(category.getParentId());
+                parent.addChild(category);
+            }
+        }
+        return rootCategories;
+    }
+
 }

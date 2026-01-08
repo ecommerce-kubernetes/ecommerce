@@ -168,38 +168,62 @@ public class CategoryServiceTest extends ExcludeInfraTest {
     @DisplayName("전체 카테고리 트리구조를 조회한다")
     void getTree(){
         //given
-        Category electron = createCategoryTree("전자기기", "노트북", "핸드폰");
-        Category food = createCategoryTree("식품", "음료", "육류");
-        categoryRepository.saveAll(List.of(electron, food));
+        //depth 1
+        Category electronics = Category.create("전자기기", null, "http://image.jpg");
+        Category food = Category.create("식품", null, "http://image.jpg");
+        categoryRepository.saveAll(List.of(electronics, food));
+
+        //depth 2
+        Category laptop = Category.create("노트북", electronics, "http://image.jpg");
+        Category mobile = Category.create("핸드폰", electronics, "http://image.jpg");
+        categoryRepository.saveAll(List.of(laptop, mobile));
+
+        //depth 3
+        Category macbook = Category.create("맥북", laptop, "http://image.jpg");
+        Category gram = Category.create("그램", laptop, "http://image.jpg");
+        categoryRepository.saveAll(List.of(macbook, gram));
         //when
         List<CategoryTreeResponse> result = categoryService.getTree();
         //then
+        //depth 1 검증
         assertThat(result).hasSize(2)
-                .extracting(CategoryTreeResponse::getName, CategoryTreeResponse::getParentId, CategoryTreeResponse::getDepth)
+                        .extracting(CategoryTreeResponse::getName, CategoryTreeResponse::getDepth)
+                                .containsExactlyInAnyOrder(
+                                        tuple("전자기기", 1),
+                                        tuple("식품",1)
+                                );
+
+        CategoryTreeResponse electronicsResponse = findNodeByName(result, "전자기기");
+
+        //depth 2 검증
+        assertThat(electronicsResponse.getChildren()).hasSize(2)
+                .extracting(CategoryTreeResponse::getName, CategoryTreeResponse::getDepth)
                 .containsExactlyInAnyOrder(
-                        tuple("전자기기", null, 1),
-                        tuple("식품", null, 1)
+                        tuple("노트북", 2),
+                        tuple("핸드폰",2)
                 );
 
-        assertThat(result.get(0).getChildren()).hasSize(2)
-                .extracting(CategoryTreeResponse::getName, CategoryTreeResponse::getParentId, CategoryTreeResponse::getDepth)
+        CategoryTreeResponse laptopResponse = findNodeByName(electronicsResponse.getChildren(), "노트북");
+
+        //depth 3 검증
+        assertThat(laptopResponse.getChildren()).hasSize(2)
+                .extracting("name", "depth")
                 .containsExactlyInAnyOrder(
-                        tuple("노트북", electron.getId(), 2),
-                        tuple("핸드폰", electron.getId(), 2)
+                        tuple("맥북", 3),
+                        tuple("그램", 3)
                 );
+    }
+
+    private CategoryTreeResponse findNodeByName(List<CategoryTreeResponse> nodes, String name) {
+        return nodes.stream()
+                .filter(node -> node.getName().equals(name))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError(name + " 카테고리를 찾을 수 없습니다."));
     }
 
     private Category exceedDepthDCategory(){
         Category category = Category.create("카테고리", null, "http://image.jpg");
         ReflectionTestUtils.setField(category, "depth", 5);
         return category;
-    }
-
-    private Category createCategoryTree(String name, String... childNames){
-        Category parent = Category.create(name, null, "http://parent.jpg");
-        for (String childName : childNames) {
-            Category.create(childName, parent, "http://image.jpg");
-        }
-        return parent;
     }
 }

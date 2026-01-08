@@ -1,5 +1,6 @@
 package com.example.product_service.api.category.service.dto.result;
 
+import com.example.product_service.api.category.domain.model.Category;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -28,5 +29,15 @@ public class CategoryTreeResponse {
 
     public void addChild(CategoryTreeResponse child) {
         children.add(child);
+    }
+
+    public static CategoryTreeResponse from(Category category) {
+        return CategoryTreeResponse
+                .builder()
+                .id(category.getId())
+                .name(category.getName())
+                .parentId((category.getParent() == null) ? null : category.getParent().getId())
+                .depth(category.getDepth())
+                .build();
     }
 }
