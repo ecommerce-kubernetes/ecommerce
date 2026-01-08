@@ -4,7 +4,6 @@ import com.example.product_service.api.category.service.dto.result.CategoryNavig
 import com.example.product_service.api.category.service.dto.result.CategoryTreeResponse;
 import com.example.product_service.api.common.exception.BusinessException;
 import com.example.product_service.api.common.exception.CategoryErrorCode;
-import com.example.product_service.api.common.exception.CommonErrorCode;
 import com.example.product_service.common.MessageSourceUtil;
 import com.example.product_service.controller.UpdateCategoryRequest;
 import com.example.product_service.dto.response.category.CategoryHierarchyResponse;
@@ -14,8 +13,10 @@ import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.api.category.domain.repository.CategoryRepository;
 import com.example.product_service.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.util.*;
 import java.util.function.Function;
@@ -63,11 +64,21 @@ public class CategoryService {
         return CategoryNavigationResponse.of(current, ancestors, siblings, children);
     }
 
-    public CategoryResponse moveParent(Long categoryId, Long parentId) {
-        return null;
+    @Transactional
+    public CategoryResponse updateCategory(Long categoryId, String name, String imageUrl) {
+        Category category = findCategoryOrThrow(categoryId);
+        if (StringUtils.hasText(name) && !category.getName().equals(name)) {
+            validationDuplicateName(category.getParent(), name);
+            category.rename(name);
+        }
+
+        if (StringUtils.hasText(imageUrl)) {
+            category.changeImage(imageUrl);
+        }
+        return CategoryResponse.from(category);
     }
 
-    public CategoryResponse updateCategory(Long categoryId, String name, String imageUrl) {
+    public CategoryResponse moveParent(Long categoryId, Long parentId) {
         return null;
     }
 
@@ -123,9 +134,13 @@ public class CategoryService {
             }
         }
 
+        validationDuplicateName(parent, name);
+    }
+
+    // 형제중 같은 이름이 존재하면 예외를 던짐
+    private void validationDuplicateName(Category parent, String name) {
         Long parentId = (parent == null) ? null : parent.getId();
-        // 형제중 같은 이름이 존재하면 예외를 던짐
-        if (categoryRepository.existsDuplicateName(parentId, name)){
+        if (categoryRepository.existsDuplicateName(parentId, name)) {
             throw new BusinessException(CategoryErrorCode.DUPLICATE_NAME);
         }
     }
@@ -193,23 +208,23 @@ public class CategoryService {
         }
         List<Long> ancestorIds = current.getAncestorsIds();
         List<Category> ancestors = categoryRepository.findByInOrderDepth(ancestorIds);
-        return createCategoryResponse(ancestors);
+        return createCategoryResponses(ancestors);
     }
 
     private List<CategoryResponse> findSiblings(Category current) {
         if (current.isRoot()) {
             List<Category> siblings = categoryRepository.findByParentIsNull();
-            return createCategoryResponse(siblings);
+            return createCategoryResponses(siblings);
         }
         List<Category> siblings = categoryRepository.findByParentId(current.getParent().getId());
-        return createCategoryResponse(siblings);
+        return createCategoryResponses(siblings);
     }
 
     private List<CategoryResponse> findChildren(Category current) {
         List<Category> children = categoryRepository.findByParentId(current.getId());
-        return createCategoryResponse(children);
+        return createCategoryResponses(children);
     }
-    private List<CategoryResponse> createCategoryResponse(List<Category> categories) {
+    private List<CategoryResponse> createCategoryResponses(List<Category> categories) {
         return categories.stream().map(CategoryResponse::from).toList();
     }
 }

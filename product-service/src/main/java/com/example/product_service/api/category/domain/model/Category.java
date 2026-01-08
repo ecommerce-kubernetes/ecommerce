@@ -3,6 +3,7 @@ package com.example.product_service.api.category.domain.model;
 import ch.qos.logback.core.util.StringUtil;
 import com.example.product_service.api.common.entity.BaseEntity;
 import com.example.product_service.api.common.exception.BusinessException;
+import com.example.product_service.api.common.exception.CategoryErrorCode;
 import com.example.product_service.api.common.exception.CommonErrorCode;
 import jakarta.persistence.*;
 import lombok.*;
@@ -48,6 +49,20 @@ public class Category extends BaseEntity {
             category.linkParent(parent);
         }
         return category;
+    }
+
+    public void rename(String newName) {
+        if (!StringUtils.hasText(newName)) {
+            throw new BusinessException(CategoryErrorCode.INVALID_INPUT_VALUE);
+        }
+        this.name = newName;
+    }
+
+    public void changeImage(String newImage) {
+        if (!StringUtils.hasText(newImage)) {
+            throw new BusinessException(CategoryErrorCode.INVALID_INPUT_VALUE);
+        }
+        this.imageUrl = newImage;
     }
 
     private void linkParent(Category parent) {

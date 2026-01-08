@@ -258,6 +258,70 @@ public class CategoryServiceTest extends ExcludeInfraTest {
                 );
     }
 
+    @Test
+    @DisplayName("카테고리를 수정한다")
+    void updateCategory() {
+        //given
+        Category category = Category.create("카테고리", null, "http://image.jpg");
+        Category savedCategory = categoryRepository.save(category);
+        //when
+        CategoryResponse result = categoryService
+                .updateCategory(savedCategory.getId(), "새 카테고리", "http://category.jpg");
+        //then
+        assertThat(result)
+                .extracting(CategoryResponse::getId, CategoryResponse::getName, CategoryResponse::getImageUrl,
+                        CategoryResponse::getDepth)
+                .containsExactly(category.getId(), "새 카테고리", "http://category.jpg", 1);
+    }
+
+    @Test
+    @DisplayName("카테고리를 수정할때 형제 카테고리에 같은 이름의 카테고리가 존재하면 예외를 던진다[최상위 카테고리 변경시]")
+    void updateCategory_when_duplicate_name_root() {
+        //given
+        Category electronics = Category.create("전자기기", null, "http://image.jpg");
+        Category food = Category.create("식품", null, "http://image.jpg");
+        categoryRepository.saveAll(List.of(electronics, food));
+        //when
+        //then
+        assertThatThrownBy(() -> categoryService.updateCategory(food.getId(), "전자기기", "http://image.jpg"))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(CategoryErrorCode.DUPLICATE_NAME);
+    }
+
+    @Test
+    @DisplayName("카테고리를 수정할때 형제 카테고리에 같은 이름의 카테고리가 존재하면 예외를 던진다[자식 카테고리 변경시]")
+    void updateCategory_when_duplicate_name_child() {
+        //given
+        Category electronics = Category.create("전자기기", null, "http//image.jpg");
+        Category laptop = Category.create("노트북", electronics, "http://image.jpg");
+        Category cellphone = Category.create("핸드폰", electronics, "http://image.jpg");
+        categoryRepository.saveAll(List.of(electronics, laptop, cellphone));
+        //when
+        //then
+        assertThatThrownBy(() -> categoryService.updateCategory(laptop.getId(), "핸드폰", "http://image.jpg"))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(CategoryErrorCode.DUPLICATE_NAME);
+    }
+
+    @Test
+    @DisplayName("")
+    void moveParent() {
+        //given
+        //when
+        //then
+        // depth 와 path 모두 변경되는지 검증
+    }
+
+    @Test
+    @DisplayName("")
+    void moveParent_product_in_parentCategory() {
+        //given
+        //when
+        //then
+    }
+
     private CategoryTreeResponse findNodeByName(List<CategoryTreeResponse> nodes, String name) {
         return nodes.stream()
                 .filter(node -> node.getName().equals(name))
