@@ -2,20 +2,24 @@ package com.example.product_service.api.category.service;
 
 import com.example.product_service.api.category.domain.model.Category;
 import com.example.product_service.api.category.service.dto.result.CategoryResponse;
+import com.example.product_service.api.category.service.dto.result.CategoryTreeResponse;
 import com.example.product_service.api.common.exception.BusinessException;
 import com.example.product_service.api.common.exception.CategoryErrorCode;
 import com.example.product_service.api.support.ExcludeInfraTest;
 import com.example.product_service.entity.Product;
 import com.example.product_service.api.category.domain.repository.CategoryRepository;
 import com.example.product_service.repository.ProductRepository;
+import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Transactional;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import java.util.List;
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.*;
 
 @Transactional
 public class CategoryServiceTest extends ExcludeInfraTest {
@@ -123,7 +127,7 @@ public class CategoryServiceTest extends ExcludeInfraTest {
     void saveCategory_when_duplicate_name_siblings_child(){
         //given
         Category parent = Category.create("부모", null, "http://parent.jpg");
-        Category sibling = Category.create("동일한 이름", parent, "http://child.jpg");
+        Category.create("동일한 이름", parent, "http://child.jpg");
         Category savedParent = categoryRepository.save(parent);
         //when
         //then
@@ -160,9 +164,42 @@ public class CategoryServiceTest extends ExcludeInfraTest {
                 .isEqualTo(CategoryErrorCode.CATEGORY_NOT_FOUND);
     }
 
+    @Test
+    @DisplayName("전체 카테고리 트리구조를 조회한다")
+    void getTree(){
+        //given
+        Category electron = createCategoryTree("전자기기", "노트북", "핸드폰");
+        Category food = createCategoryTree("식품", "음료", "육류");
+        categoryRepository.saveAll(List.of(electron, food));
+        //when
+        List<CategoryTreeResponse> result = categoryService.getTree();
+        //then
+        assertThat(result).hasSize(2)
+                .extracting(CategoryTreeResponse::getName, CategoryTreeResponse::getParentId, CategoryTreeResponse::getDepth)
+                .containsExactlyInAnyOrder(
+                        tuple("전자기기", null, 1),
+                        tuple("식품", null, 1)
+                );
+
+        assertThat(result.get(0).getChildren()).hasSize(2)
+                .extracting(CategoryTreeResponse::getName, CategoryTreeResponse::getParentId, CategoryTreeResponse::getDepth)
+                .containsExactlyInAnyOrder(
+                        tuple("노트북", electron.getId(), 2),
+                        tuple("핸드폰", electron.getId(), 2)
+                );
+    }
+
     private Category exceedDepthDCategory(){
         Category category = Category.create("카테고리", null, "http://image.jpg");
         ReflectionTestUtils.setField(category, "depth", 5);
         return category;
+    }
+
+    private Category createCategoryTree(String name, String... childNames){
+        Category parent = Category.create(name, null, "http://parent.jpg");
+        for (String childName : childNames) {
+            Category.create(childName, parent, "http://image.jpg");
+        }
+        return parent;
     }
 }
