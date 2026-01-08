@@ -36,7 +36,7 @@ public class ManagementCategoryController {
     @PostMapping("/{categoryId}/move")
     public ResponseEntity<CategoryResponse> moveParent(@PathVariable("categoryId") Long categoryId,
                                                        @RequestBody @Validated MoveCategoryRequest request) {
-        CategoryResponse response = categoryService.moveParent(categoryId, request.getParentId());
+        CategoryResponse response = categoryService.moveParent(categoryId, request.getParentId(), request.getIsRoot());
         return ResponseEntity.ok(response);
     }
 

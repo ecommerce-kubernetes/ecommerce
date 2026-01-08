@@ -78,7 +78,7 @@ public class CategoryService {
         return CategoryResponse.from(category);
     }
 
-    public CategoryResponse moveParent(Long categoryId, Long parentId) {
+    public CategoryResponse moveParent(Long categoryId, Long parentId, Boolean isRoot) {
         return null;
     }
 

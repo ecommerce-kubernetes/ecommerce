@@ -149,7 +149,7 @@ public class ManagementCategoryControllerTest extends ControllerTestSupport {
         //given
         MoveCategoryRequest request = createMoveCategoryRequest().build();
         CategoryResponse response = createCategoryResponse().parentId(2L).build();
-        given(categoryService.moveParent(anyLong(), anyLong()))
+        given(categoryService.moveParent(anyLong(), anyLong(), anyBoolean()))
                 .willReturn(response);
         //when
         //then
@@ -180,12 +180,12 @@ public class ManagementCategoryControllerTest extends ControllerTestSupport {
                 .andExpect(jsonPath("path").value("/management/categories/1/move"));
     }
 
-    @Test
-    @DisplayName("카테고리 부모를 변경할때 parentId는 필수이다")
+    @ParameterizedTest(name = "{0}")
+    @DisplayName("카테고리 부모 변경 요청 검증")
+    @MethodSource("provideInvalidMoveRequest")
     @WithCustomMockUser(userRole = UserRole.ROLE_USER)
-    void moveParentValidation() throws Exception {
+    void moveParentValidation(String description, MoveCategoryRequest request, String message) throws Exception {
         //given
-        MoveCategoryRequest request = createMoveCategoryRequest().parentId(null).build();
         //when
         //then
         mockMvc.perform(post("/management/categories/{categoryId}/move", 1L)
@@ -193,7 +193,7 @@ public class ManagementCategoryControllerTest extends ControllerTestSupport {
                 .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
                 .andExpect(jsonPath("code").value("VALIDATION"))
-                .andExpect(jsonPath("message").value("parentId는 필수입니다"))
+                .andExpect(jsonPath("message").value(message))
                 .andExpect(jsonPath("timestamp").exists())
                 .andExpect(jsonPath("path").value("/management/categories/1/move"));
     }
@@ -273,6 +273,20 @@ public class ManagementCategoryControllerTest extends ControllerTestSupport {
                 Arguments.of("필드는 최소 하나는 존재해야한다",
                         createUpdateCategoryRequest().name(null).imageUrl(null).build(),
                         "수정할 값이 하나는 존재해야합니다")
+        );
+    }
+
+    private static Stream<Arguments> provideInvalidMoveRequest() {
+        return Stream.of(
+                Arguments.of("parentId 가 있는데 isRoot가 true",
+                        MoveCategoryRequest.builder().parentId(1L).isRoot(true).build(),
+                        "parentId 와 isRoot 를 명확히 지정해야합니다"),
+                Arguments.of("parentId 가 없는데 isRoot가 false",
+                        MoveCategoryRequest.builder().parentId(null).isRoot(false).build(),
+                        "parentId 와 isRoot 를 명확히 지정해야합니다"),
+                Arguments.of("parentId 와 isRoot가 둘다 없음",
+                        MoveCategoryRequest.builder().build(),
+                        "parentId 와 isRoot 를 명확히 지정해야합니다")
         );
     }
 }

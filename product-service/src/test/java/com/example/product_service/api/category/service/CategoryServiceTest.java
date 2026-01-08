@@ -306,20 +306,95 @@ public class CategoryServiceTest extends ExcludeInfraTest {
     }
 
     @Test
-    @DisplayName("")
-    void moveParent() {
+    @DisplayName("카테고리를 최상위 루트로 변경")
+    void moveParent_move_root() {
         //given
+        Category electronics = Category.create("전자기기", null, "http://image.jpg");
+        Category savedElectronics = categoryRepository.save(electronics);
+        savedElectronics.generatePath();
+        Category cellphone = Category.create("핸드폰", savedElectronics, "http://image.jpg");
+        Category savedCellphone = categoryRepository.save(cellphone);
+        savedCellphone.generatePath();
         //when
+        CategoryResponse result = categoryService.moveParent(savedCellphone.getId(), null, true);
         //then
-        // depth 와 path 모두 변경되는지 검증
+        //depth 변경 확인
+        assertThat(result)
+                .extracting(CategoryResponse::getName, CategoryResponse::getParentId, CategoryResponse::getDepth)
+                .containsExactly("핸드폰", null, 1);
+        //path 변경 확인
+        Category find = categoryRepository.findById(savedCellphone.getId()).get();
+        assertThat(find.getPath()).isEqualTo(String.valueOf(savedCellphone.getId()));
+    }
+
+    @Test
+    @DisplayName("카테고리의 부모를 변경")
+    void moveParent_move_child() {
+        //given
+        Category electronics = Category.create("전자기기", null, "http://image.jpg");
+        Category savedElectronics = categoryRepository.save(electronics);
+        savedElectronics.generatePath();
+        Category food = Category.create("식품", null, "http://image.jpg");
+        Category savedFood = categoryRepository.save(food);
+        savedFood.generatePath();
+        Category cellphone = Category.create("핸드폰", savedElectronics, "http://image.jpg");
+        Category savedCellphone = categoryRepository.save(cellphone);
+        savedCellphone.generatePath();
+        //when
+        CategoryResponse result = categoryService.moveParent(savedCellphone.getId(), savedFood.getId(), false);
+        //then
+        assertThat(result)
+                .extracting(CategoryResponse::getName, CategoryResponse::getParentId, CategoryResponse::getDepth)
+                .containsExactly("핸드폰", savedFood.getId(), savedFood.getId() + "/" + savedCellphone.getId());
     }
 
     @Test
     @DisplayName("")
-    void moveParent_product_in_parentCategory() {
+    void moveParent_duplicateName() {
         //given
+        Category electronics = Category.create("전자기기", null, "http://image.jpg");
+        Category savedElectronics = categoryRepository.save(electronics);
+        savedElectronics.generatePath();
+        Category food = Category.create("식품", null, "http://image.jpg");
+        Category savedFood = categoryRepository.save(food);
+        savedFood.generatePath();
+        Category existCategory = Category.create("동일한 이름", savedElectronics, "http://image.jpg");
+        Category savedExistCategory = categoryRepository.save(existCategory);
+        savedExistCategory.generatePath();
+        Category targetCategory = Category.create("동일한 이름", savedFood, "http://image.jpg");
+        Category savedTargetCategory = categoryRepository.save(targetCategory);
+        savedTargetCategory.generatePath();
         //when
         //then
+        assertThatThrownBy(() -> categoryService.moveParent(savedTargetCategory.getId(), savedElectronics.getId(), false))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCdoe")
+                .isEqualTo(CategoryErrorCode.DUPLICATE_NAME);
+    }
+
+    @Test
+    @DisplayName("카테고리의 부모를 변경할때 부모 카테고리에 속한 상품이 존재하는 경우 예외를 던진다")
+    void moveParent_product_in_parentCategory() {
+        //given
+        Category electronics = Category.create("전자기기", null, "http://image.jpg");
+        Category savedElectronics = categoryRepository.save(electronics);
+        savedElectronics.generatePath();
+        Category food = Category.create("식품", null, "http://image.jpg");
+        Category savedFood = categoryRepository.save(food);
+        savedFood.generatePath();
+        Category cellphone = Category.create("핸드폰", savedElectronics, "http://image.jpg");
+        Category savedCellphone = categoryRepository.save(cellphone);
+        savedCellphone.generatePath();
+
+        // 식품 카테고리에 상품이 존재
+        Product product = Product.create("식품", "상품 설명", savedFood);
+        productRepository.save(product);
+        //when
+        //then
+        assertThatThrownBy(() -> categoryService.moveParent(savedCellphone.getId(), savedFood.getId(), false))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(CategoryErrorCode.HAS_PRODUCT);
     }
 
     private CategoryTreeResponse findNodeByName(List<CategoryTreeResponse> nodes, String name) {

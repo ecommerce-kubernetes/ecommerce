@@ -128,7 +128,7 @@ public class ManagementCategoryControllerDocsTest extends RestDocsSupport {
         MoveCategoryRequest request = createMoveCategoryRequest();
         CategoryResponse response = createCategoryResponse().parentId(2L).build();
         HttpHeaders adminHeader = createAdminHeader();
-        given(categoryService.moveParent(anyLong(), anyLong()))
+        given(categoryService.moveParent(anyLong(), anyLong(), anyBoolean()))
                 .willReturn(response);
         //when
         //then
@@ -150,7 +150,9 @@ public class ManagementCategoryControllerDocsTest extends RestDocsSupport {
                                         parameterWithName("categoryId").description("수정할 카테고리 ID")
                                 ),
                                 requestFields(
-                                        fieldWithPath("parentId").description("이동할 부모 카테고리 ID").optional()
+                                        fieldWithPath("parentId").description("이동할 부모 카테고리 ID"),
+                                        fieldWithPath("isRoot").description("최상위로 변경 여부")
+
                                 ),
                                 responseFields(
                                         fieldWithPath("id").description("카테고리 ID"),
