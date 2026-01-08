@@ -6,11 +6,12 @@ import com.example.product_service.api.common.exception.BusinessException;
 import com.example.product_service.api.common.exception.CategoryErrorCode;
 import com.example.product_service.api.support.ExcludeInfraTest;
 import com.example.product_service.entity.Product;
-import com.example.product_service.repository.CategoryRepository;
+import com.example.product_service.api.category.domain.repository.CategoryRepository;
 import com.example.product_service.repository.ProductRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -74,6 +75,20 @@ public class CategoryServiceTest extends ExcludeInfraTest {
     }
 
     @Test
+    @DisplayName("부모 카테고리에 더이상 자식 카테고리를 생성할 수 없는 경우 예외를 던짐")
+    void saveCategory_when_exceed_max_depth(){
+        //given
+        Category parent = exceedDepthDCategory();
+        Category savedParent = categoryRepository.save(parent);
+        //when
+        //then
+        assertThatThrownBy(() -> categoryService.saveCategory("자식", savedParent.getId(), "http://image.jpg"))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(CategoryErrorCode.EXCEED_MAX_DEPTH);
+    }
+
+    @Test
     @DisplayName("자식 카테고리를 생성할때 부모 카테고리에 속한 상품이 존재하는 경우 예외를 던진다")
     void saveCategory_when_product_in_parentCategory(){
         //given
@@ -87,5 +102,67 @@ public class CategoryServiceTest extends ExcludeInfraTest {
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(CategoryErrorCode.HAS_PRODUCT);
+    }
+
+    @Test
+    @DisplayName("형제 카테고리에 동일한 이름이 존재하는 경우 예외를 던진다[최상위 카테고리 생성시]")
+    void saveCategory_when_duplicate_name_siblings_root(){
+        //given
+        Category category = Category.create("동일한 이름", null, "http://image.jpg");
+        categoryRepository.save(category);
+        //when
+        //then
+        assertThatThrownBy(() -> categoryService.saveCategory("동일한 이름", null, "http://image.jpg"))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(CategoryErrorCode.DUPLICATE_NAME);
+    }
+
+    @Test
+    @DisplayName("형제 카테고리에 동일한 이름이 존재하는 경우 예외를 던진다[자식 카테고리 생성시]")
+    void saveCategory_when_duplicate_name_siblings_child(){
+        //given
+        Category parent = Category.create("부모", null, "http://parent.jpg");
+        Category sibling = Category.create("동일한 이름", parent, "http://child.jpg");
+        Category savedParent = categoryRepository.save(parent);
+        //when
+        //then
+        assertThatThrownBy(() -> categoryService.saveCategory("동일한 이름", savedParent.getId(), "http://child.jpg"))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(CategoryErrorCode.DUPLICATE_NAME);
+    }
+
+    @Test
+    @DisplayName("카테고리를 조회한다")
+    void getCategory(){
+        //given
+        Category category = Category.create("카테고리", null, "http://image.jpg");
+        Category savedCategory = categoryRepository.save(category);
+        //when
+        CategoryResponse result = categoryService.getCategory(savedCategory.getId());
+        //then
+        assertThat(result.getId()).isEqualTo(savedCategory.getId());
+        assertThat(result)
+                .extracting(CategoryResponse::getName, CategoryResponse::getDepth, CategoryResponse::getParentId, CategoryResponse::getImageUrl)
+                .containsExactly("카테고리", 1, null, "http://image.jpg");
+    }
+
+    @Test
+    @DisplayName("카테고리를 조회할때 해당 카테고리를 찾을 수 없는 경우 예외를 던진다")
+    void getCategory_when_notFound(){
+        //given
+        //when
+        //then
+        assertThatThrownBy(() -> categoryService.getCategory(999L))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(CategoryErrorCode.CATEGORY_NOT_FOUND);
+    }
+
+    private Category exceedDepthDCategory(){
+        Category category = Category.create("카테고리", null, "http://image.jpg");
+        ReflectionTestUtils.setField(category, "depth", 5);
+        return category;
     }
 }

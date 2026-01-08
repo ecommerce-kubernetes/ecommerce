@@ -9,10 +9,8 @@ import com.example.product_service.controller.UpdateCategoryRequest;
 import com.example.product_service.dto.response.category.CategoryHierarchyResponse;
 import com.example.product_service.api.category.service.dto.result.CategoryResponse;
 import com.example.product_service.api.category.domain.model.Category;
-import com.example.product_service.exception.BadRequestException;
-import com.example.product_service.exception.DuplicateResourceException;
 import com.example.product_service.exception.NotFoundException;
-import com.example.product_service.repository.CategoryRepository;
+import com.example.product_service.api.category.domain.repository.CategoryRepository;
 import com.example.product_service.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -27,6 +25,8 @@ import static com.example.product_service.common.MessagePath.*;
 @Transactional(readOnly = true)
 public class CategoryService {
 
+    private static final int MAX_DEPTH = 5;
+
     private final CategoryRepository categoryRepository;
     private final ProductRepository productRepository;
     private final MessageSourceUtil ms;
@@ -34,9 +34,7 @@ public class CategoryService {
     @Transactional
     public CategoryResponse saveCategory(String name, Long parentId, String imageUrl) {
         Category parent = findParentByCategory(parentId);
-        if (productRepository.existsByCategoryId(parentId)){
-            throw new BusinessException(CategoryErrorCode.HAS_PRODUCT);
-        }
+        validationCreateCondition(parent, name);
         Category category = Category.create(name, parent, imageUrl);
         categoryRepository.save(category);
         category.generatePath();
@@ -44,7 +42,8 @@ public class CategoryService {
     }
 
     public CategoryResponse getCategory(Long categoryId) {
-        return null;
+        Category category = findCategoryOrThrow(categoryId);
+        return CategoryResponse.from(category);
     }
 
     public List<CategoryTreeResponse> getTree() {
@@ -103,9 +102,22 @@ public class CategoryService {
         categoryRepository.delete(target);
     }
 
-    private void checkConflictName(String name) {
-        if(categoryRepository.existsByName(name)){
-            throw new DuplicateResourceException(ms.getMessage(CATEGORY_CONFLICT));
+    private void validationCreateCondition(Category parent, String name) {
+        if (parent != null) {
+            // 더이상 자식 카테고리를 추가할 수 없는 경우 예외를 던짐
+            if (parent.getDepth() >= MAX_DEPTH){
+                throw new BusinessException(CategoryErrorCode.EXCEED_MAX_DEPTH);
+            }
+            // 부모 카테고리에 속한 상품이 존재하는 경우 예외를 던짐
+            if (productRepository.existsByCategoryId(parent.getId())){
+                throw new BusinessException(CategoryErrorCode.HAS_PRODUCT);
+            }
+        }
+
+        Long parentId = (parent == null) ? null : parent.getId();
+        // 형제중 같은 이름이 존재하면 예외를 던짐
+        if (categoryRepository.existsDuplicateName(parentId, name)){
+            throw new BusinessException(CategoryErrorCode.DUPLICATE_NAME);
         }
     }
 
@@ -117,12 +129,6 @@ public class CategoryService {
     private Category findWithParentByIdOrThrow(Long categoryId){
         return categoryRepository.findWithParentById(categoryId)
                 .orElseThrow(() -> new NotFoundException(ms.getMessage(CATEGORY_NOT_FOUND)));
-    }
-
-    private void checkParentIsNotSelf(Long targetId, Long parentId){
-        if(Objects.equals(targetId, parentId)){
-            throw new BadRequestException(ms.getMessage(CATEGORY_BAD_REQUEST));
-        }
     }
 
     private List<Category> buildAncestorPath(Category category) {

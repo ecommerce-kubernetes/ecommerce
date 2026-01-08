@@ -1,5 +1,6 @@
 package com.example.product_service.service;
 
+import com.example.product_service.api.category.domain.repository.CategoryRepository;
 import com.example.product_service.common.MessageSourceUtil;
 import com.example.product_service.dto.ProductSearch;
 import com.example.product_service.dto.response.PageDto;
