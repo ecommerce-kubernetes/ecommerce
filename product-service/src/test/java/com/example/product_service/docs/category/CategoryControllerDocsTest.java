@@ -24,7 +24,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-public class DeprecatedCategoryControllerDocsTest extends RestDocsSupport {
+public class CategoryControllerDocsTest extends RestDocsSupport {
 
     CategoryService categoryService = mock(CategoryService.class);
 
@@ -81,9 +81,9 @@ public class DeprecatedCategoryControllerDocsTest extends RestDocsSupport {
                                 ),
                                 responseFields(
                                         subsectionWithPath("current").description("요청 카테고리"),
-                                        subsectionWithPath("path").description("직계 카테고리"),
+                                        subsectionWithPath("ancestors").description("직계 카테고리"),
                                         subsectionWithPath("siblings").description("형제 카테고리"),
-                                        subsectionWithPath("child").description("자식 카테고리")
+                                        subsectionWithPath("children").description("자식 카테고리")
                                 )
 
                         )
@@ -130,9 +130,9 @@ public class DeprecatedCategoryControllerDocsTest extends RestDocsSupport {
 
         return  CategoryNavigationResponse.builder()
                 .current(laptop)
-                .path(List.of(electron, laptop))
+                .ancestors(List.of(electron, laptop))
                 .siblings(List.of(desktop))
-                .child(List.of(light, gaming))
+                .children(List.of(light, gaming))
                 .build();
     }
 

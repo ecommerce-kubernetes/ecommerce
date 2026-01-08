@@ -14,6 +14,11 @@ public interface CategoryRepository extends JpaRepository<Category, Long>, Categ
     boolean existsByName(String name);
     List<Category> findByParentIsNull();
 
+    @Query("select c from Category c where c.id in :categoryIds order by c.depth asc")
+    List<Category> findByInOrderDepth(@Param("categoryIds") List<Long> categoryIds);
+    @Query("select c from Category c where c.parent.id = :parentId")
+    List<Category> findByParentId(@Param("parentId") Long parentId);
+
     @Query("SELECT c FROM Category c LEFT JOIN FETCH c.parent WHERE c.id = :id")
     Optional<Category> findWithParentById(@Param("id") Long id);
 

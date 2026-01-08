@@ -20,7 +20,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Import({TestConfig.class, TestSecurityConfig.class})
-public class DeprecatedCategoryControllerTest extends ControllerTestSupport {
+public class CategoryControllerTest extends ControllerTestSupport {
 
     @Test
     @DisplayName("카테고리 트리를 조회한다")
@@ -115,9 +115,9 @@ public class DeprecatedCategoryControllerTest extends ControllerTestSupport {
 
         return  CategoryNavigationResponse.builder()
                 .current(laptop)
-                .path(List.of(electron, laptop))
+                .ancestors(List.of(electron, laptop))
                 .siblings(List.of(desktop))
-                .child(List.of(light, gaming))
+                .children(List.of(light, gaming))
                 .build();
     }
 }

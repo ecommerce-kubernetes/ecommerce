@@ -1,12 +1,16 @@
 package com.example.product_service.api.category.domain.model;
 
+import ch.qos.logback.core.util.StringUtil;
 import com.example.product_service.api.common.entity.BaseEntity;
 import com.example.product_service.api.common.exception.BusinessException;
 import com.example.product_service.api.common.exception.CommonErrorCode;
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 @Entity
@@ -52,9 +56,17 @@ public class Category extends BaseEntity {
             parent.getChildren().add(this);
         }
     }
+    public boolean isRoot() {
+        return this.parent == null;
+    }
 
-    public boolean isLeaf(){
-        return this.children.isEmpty();
+    public List<Long> getAncestorsIds() {
+        if (!StringUtils.hasText(this.path)) {
+            return Collections.emptyList();
+        }
+        return Arrays.stream(this.path.split("/"))
+                .map(Long::parseLong)
+                .toList();
     }
 
     public void generatePath() {

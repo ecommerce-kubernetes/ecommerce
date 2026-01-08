@@ -28,7 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
-public class ManagementDeprecatedCategoryControllerDocsTest extends RestDocsSupport {
+public class ManagementCategoryControllerDocsTest extends RestDocsSupport {
 
     private CategoryService categoryService = Mockito.mock(CategoryService.class);
 

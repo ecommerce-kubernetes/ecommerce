@@ -55,7 +55,12 @@ public class CategoryService {
     }
 
     public CategoryNavigationResponse getNavigation(Long categoryId) {
-        return null;
+        Category target = findCategoryOrThrow(categoryId);
+        CategoryResponse current = CategoryResponse.from(target);
+        List<CategoryResponse> ancestors = findAncestors(target);
+        List<CategoryResponse> siblings = findSiblings(target);
+        List<CategoryResponse> children = findChildren(target);
+        return CategoryNavigationResponse.of(current, ancestors, siblings, children);
     }
 
     public CategoryResponse moveParent(Long categoryId, Long parentId) {
@@ -182,4 +187,29 @@ public class CategoryService {
         return rootCategories;
     }
 
+    private List<CategoryResponse> findAncestors(Category current) {
+        if (current.isRoot()) {
+            return List.of(CategoryResponse.from(current));
+        }
+        List<Long> ancestorIds = current.getAncestorsIds();
+        List<Category> ancestors = categoryRepository.findByInOrderDepth(ancestorIds);
+        return createCategoryResponse(ancestors);
+    }
+
+    private List<CategoryResponse> findSiblings(Category current) {
+        if (current.isRoot()) {
+            List<Category> siblings = categoryRepository.findByParentIsNull();
+            return createCategoryResponse(siblings);
+        }
+        List<Category> siblings = categoryRepository.findByParentId(current.getParent().getId());
+        return createCategoryResponse(siblings);
+    }
+
+    private List<CategoryResponse> findChildren(Category current) {
+        List<Category> children = categoryRepository.findByParentId(current.getId());
+        return createCategoryResponse(children);
+    }
+    private List<CategoryResponse> createCategoryResponse(List<Category> categories) {
+        return categories.stream().map(CategoryResponse::from).toList();
+    }
 }

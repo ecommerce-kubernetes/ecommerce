@@ -1,6 +1,7 @@
 package com.example.product_service.api.category.service;
 
 import com.example.product_service.api.category.domain.model.Category;
+import com.example.product_service.api.category.service.dto.result.CategoryNavigationResponse;
 import com.example.product_service.api.category.service.dto.result.CategoryResponse;
 import com.example.product_service.api.category.service.dto.result.CategoryTreeResponse;
 import com.example.product_service.api.common.exception.BusinessException;
@@ -9,7 +10,6 @@ import com.example.product_service.api.support.ExcludeInfraTest;
 import com.example.product_service.entity.Product;
 import com.example.product_service.api.category.domain.repository.CategoryRepository;
 import com.example.product_service.repository.ProductRepository;
-import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +17,6 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Map;
 
 import static org.assertj.core.api.Assertions.*;
 
@@ -208,6 +207,51 @@ public class CategoryServiceTest extends ExcludeInfraTest {
         //depth 3 검증
         assertThat(laptopResponse.getChildren()).hasSize(2)
                 .extracting("name", "depth")
+                .containsExactlyInAnyOrder(
+                        tuple("맥북", 3),
+                        tuple("그램", 3)
+                );
+    }
+
+    @Test
+    @DisplayName("카테고리 네비게이션을 조회한다")
+    void getNavigation() {
+        //given
+        // parent
+        Category electronics = Category.create("전자기기", null, "http://image.jpg");
+        categoryRepository.save(electronics);
+        electronics.generatePath();
+
+        // target
+        Category laptop = Category.create("노트북", electronics, "http://image.jpg");
+        Category mobile = Category.create("핸드폰", electronics, "http://image.jpg");
+        categoryRepository.saveAll(List.of(laptop, mobile));
+        laptop.generatePath();
+        mobile.generatePath();
+
+        // child
+        Category macbook = Category.create("맥북", laptop, "http://image.jpg");
+        Category gram = Category.create("그램", laptop, "http://image.jpg");
+        categoryRepository.saveAll(List.of(macbook, gram));
+        macbook.generatePath();
+        gram.generatePath();
+        //when
+        CategoryNavigationResponse result = categoryService.getNavigation(laptop.getId());
+        //then
+        // current 검증
+        assertThat(result.getCurrent())
+                .extracting(CategoryResponse::getName, CategoryResponse::getDepth)
+                .containsExactly("노트북", 2);
+        // path 검증
+        assertThat(result.getAncestors()).hasSize(2)
+                .extracting(CategoryResponse::getName, CategoryResponse::getDepth)
+                .containsExactly(
+                        tuple("전자기기", 1),
+                        tuple("노트북", 2)
+                );
+        // child 검증
+        assertThat(result.getChildren())
+                .extracting(CategoryResponse::getName, CategoryResponse::getDepth)
                 .containsExactlyInAnyOrder(
                         tuple("맥북", 3),
                         tuple("그램", 3)

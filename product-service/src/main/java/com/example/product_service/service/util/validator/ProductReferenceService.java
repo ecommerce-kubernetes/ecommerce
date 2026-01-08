@@ -70,9 +70,6 @@ public class ProductReferenceService {
         Category category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new NotFoundException(ms.getMessage(CATEGORY_NOT_FOUND)));
 
-        if(!category.isLeaf()){
-            throw new BadRequestException(ms.getMessage(PRODUCT_CATEGORY_BAD_REQUEST));
-        }
         return category;
     }
 
