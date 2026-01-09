@@ -6,8 +6,6 @@ import com.example.product_service.config.TestConfig;
 import com.example.product_service.api.category.controller.dto.CategoryRequest;
 import com.example.product_service.dto.response.category.CategoryHierarchyResponse;
 import com.example.product_service.api.category.service.dto.result.CategoryResponse;
-import com.example.product_service.exception.BadRequestException;
-import com.example.product_service.exception.DuplicateResourceException;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.api.category.service.CategoryService;
 import org.junit.jupiter.api.BeforeEach;
@@ -84,75 +82,6 @@ class DeprecatedCategoryControllerTest {
     }
 
     @Test
-    @DisplayName("카테고리 루트 조회 테스트-성공")
-    void getRootCategoriesTest_success() throws Exception {
-        List<CategoryResponse> response = List.of(new CategoryResponse(1L, "category1", null, 1, ICON_URL),
-                new CategoryResponse(2L, "category2", null,1,  ICON_URL));
-        when(service.getRootCategories()).thenReturn(response);
-
-        ResultActions perform = performWithBody(mockMvc, get(ROOT_CATEGORY_PATH), null);
-        verifySuccessResponse(perform, status().isOk(), response);
-    }
-
-    @Test
-    @DisplayName("카테고리 자식 조회 테스트-성공")
-    void getChildrenCategoriesTest_success() throws Exception {
-        List<CategoryResponse> response = List.of(new CategoryResponse(2L, "childCategory1", 1L, 1, ICON_URL),
-                new CategoryResponse(3L, "childCategory2", 1L, 1, ICON_URL));
-        when(service.getChildrenCategoriesById(anyLong()))
-                .thenReturn(response);
-
-        ResultActions perform = performWithBody(mockMvc, get(CHILDREN_CATEGORY_PATH), null);
-        verifySuccessResponse(perform, status().isOk(), response);
-    }
-
-    @Test
-    @DisplayName("카테고리 자식 조회 테스트-실패(부모 카테고리 없음)")
-    void getChildrenCategoriesTest_notFound() throws Exception {
-        when(service.getChildrenCategoriesById(any()))
-                .thenThrow(new NotFoundException(getMessage(CATEGORY_NOT_FOUND)));
-
-        ResultActions perform = performWithBody(mockMvc, get(CHILDREN_CATEGORY_PATH), null);
-        verifyErrorResponse(perform, status().isNotFound(), getMessage(NOT_FOUND),
-                getMessage(CATEGORY_NOT_FOUND), CHILDREN_CATEGORY_PATH);
-    }
-
-    @Test
-    @DisplayName("카테고리 계층 구조 조회 테스트-성공")
-    void getHierarchyTest_success() throws Exception {
-        CategoryHierarchyResponse response = new CategoryHierarchyResponse(createAncestors(), createLevelItems());
-
-        when(service.getHierarchyByCategoryId(anyLong()))
-                .thenReturn(response);
-
-        ResultActions perform = performWithBody(mockMvc, get(HIERARCHY_CATEGORY_PATH), null);
-        verifySuccessResponse(perform, status().isOk(), response);
-    }
-
-    @Test
-    @DisplayName("카테고리 계층 구조 조회 테스트-실패(없음)")
-    void getHierarchyTest_notFound() throws Exception {
-        when(service.getHierarchyByCategoryId(anyLong()))
-                .thenThrow(new NotFoundException(getMessage(CATEGORY_NOT_FOUND)));
-
-        ResultActions perform = performWithBody(mockMvc, get(HIERARCHY_CATEGORY_PATH), null);
-        verifyErrorResponse(perform, status().isNotFound(), getMessage(NOT_FOUND),
-                getMessage(CATEGORY_NOT_FOUND), HIERARCHY_CATEGORY_PATH);
-    }
-
-    @Test
-    @DisplayName("카테고리 수정 테스트-성공")
-    void updateCategoryTest_success() throws Exception {
-        UpdateCategoryRequest request = new UpdateCategoryRequest("updated", 1L, ICON_URL);
-        CategoryResponse response = new CategoryResponse(2L, "updated", 1L, 1, ICON_URL);
-        when(service.updateCategoryById(anyLong(), any(UpdateCategoryRequest.class)))
-                .thenReturn(response);
-
-        ResultActions perform = performWithBody(mockMvc, patch(UPDATE_CATEGORY_PATH), request);
-        verifySuccessResponse(perform, status().isOk(), response);
-    }
-
-    @Test
     @DisplayName("카테고리 수정 테스트-실패(검증)")
     void updateCategoryTest_validation() throws Exception {
         UpdateCategoryRequest request = new UpdateCategoryRequest("", 1L, ICON_URL);
@@ -163,44 +92,9 @@ class DeprecatedCategoryControllerTest {
     }
 
     @Test
-    @DisplayName("카테고리 수정 테스트-실패(없음)")
-    void updateCategoryTest_notFound() throws Exception {
-        UpdateCategoryRequest request = new UpdateCategoryRequest("updated", 1L, ICON_URL);
-        when(service.updateCategoryById(anyLong(), any(UpdateCategoryRequest.class)))
-                .thenThrow(new NotFoundException(getMessage(CATEGORY_NOT_FOUND)));
-
-        ResultActions perform = performWithBody(mockMvc, patch(UPDATE_CATEGORY_PATH), request);
-        verifyErrorResponse(perform, status().isNotFound(), getMessage(NOT_FOUND),
-                getMessage(CATEGORY_NOT_FOUND), UPDATE_CATEGORY_PATH);
-    }
-
-    @Test
-    @DisplayName("카테고리 수정 테스트-실패(중복)")
-    void updateCategoryTest_conflict() throws Exception {
-        UpdateCategoryRequest request = new UpdateCategoryRequest("duplicate", 1L, ICON_URL);
-        when(service.updateCategoryById(anyLong(), any(UpdateCategoryRequest.class)))
-                .thenThrow(new DuplicateResourceException(getMessage(CATEGORY_CONFLICT)));
-
-        ResultActions perform = performWithBody(mockMvc, patch(UPDATE_CATEGORY_PATH), request);
-        verifyErrorResponse(perform, status().isConflict(), getMessage(CONFLICT),
-                getMessage(CATEGORY_CONFLICT), UPDATE_CATEGORY_PATH);
-    }
-
-    @Test
-    @DisplayName("카테고리 수정 테스트-실패(부모 카테고리 ID를 자신으로 할당)")
-    void updateCategoryTest_badRequest() throws Exception {
-        UpdateCategoryRequest request = new UpdateCategoryRequest("updated", 2L, ICON_URL);
-        when(service.updateCategoryById(anyLong(), any(UpdateCategoryRequest.class)))
-                .thenThrow(new BadRequestException(getMessage(CATEGORY_BAD_REQUEST)));
-        ResultActions perform = performWithBody(mockMvc, patch(UPDATE_CATEGORY_PATH), request);
-        verifyErrorResponse(perform, status().isBadRequest(), getMessage(BAD_REQUEST),
-                getMessage(CATEGORY_BAD_REQUEST), UPDATE_CATEGORY_PATH);
-    }
-
-    @Test
     @DisplayName("카테고리 삭제 테스트-성공")
     void deleteCategoryTest_success() throws Exception {
-        doNothing().when(service).deleteCategoryById(anyLong());
+        doNothing().when(service).deleteCategory(anyLong());
         ResultActions perform = performWithBody(mockMvc, delete(DELETE_CATEGORY_PATH), null);
         verifySuccessResponse(perform, status().isNoContent(), null);
     }
@@ -209,7 +103,7 @@ class DeprecatedCategoryControllerTest {
     @DisplayName("카테고리 삭제 테스트-실패(없음)")
     void deleteCategoryTest_notFound() throws Exception {
         doThrow(new NotFoundException(getMessage(CATEGORY_NOT_FOUND)))
-                .when(service).deleteCategoryById(anyLong());
+                .when(service).deleteCategory(anyLong());
         ResultActions perform = performWithBody(mockMvc, delete(DELETE_CATEGORY_PATH), null);
         verifyErrorResponse(perform, status().isNotFound(), getMessage(NOT_FOUND),
                 getMessage(CATEGORY_NOT_FOUND),DELETE_CATEGORY_PATH);

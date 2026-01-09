@@ -1,6 +1,5 @@
 package com.example.product_service.api.category.domain.model;
 
-import ch.qos.logback.core.util.StringUtil;
 import com.example.product_service.api.common.entity.BaseEntity;
 import com.example.product_service.api.common.exception.BusinessException;
 import com.example.product_service.api.common.exception.CategoryErrorCode;
@@ -71,6 +70,19 @@ public class Category extends BaseEntity {
             parent.getChildren().add(this);
         }
     }
+
+    public void moveParent(Category parent){
+        if (this.parent != null) {
+            this.parent.getChildren().remove(this);
+        }
+        this.parent = parent;
+        if (parent != null) {
+            parent.getChildren().add(this);
+        }
+        this.depth = generateDepth(parent);
+        generatePath();
+    }
+
     public boolean isRoot() {
         return this.parent == null;
     }

@@ -170,7 +170,7 @@ public class ManagementCategoryControllerDocsTest extends RestDocsSupport {
     void deleteCategory() throws Exception {
         //given
         HttpHeaders adminHeader = createAdminHeader();
-        willDoNothing().given(categoryService).deleteCategoryById(anyLong());
+        willDoNothing().given(categoryService).deleteCategory(anyLong());
         //when
         //then
         mockMvc.perform(delete("/management/categories/{categoryId}", 1L)

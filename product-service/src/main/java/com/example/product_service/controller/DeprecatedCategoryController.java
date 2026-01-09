@@ -27,8 +27,7 @@ public class DeprecatedCategoryController {
     @ApiResponse(responseCode = "200", description = "조회 성공")
     @GetMapping("/root")
     public ResponseEntity<List<CategoryResponse>> getRootCategories(){
-        List<CategoryResponse> response = categoryService.getRootCategories();
-        return ResponseEntity.ok(response);
+        return null;
     }
 
     @Operation(summary = "자식 카테고리 조회")
@@ -36,8 +35,7 @@ public class DeprecatedCategoryController {
     @NotFoundApiResponse
     @GetMapping("/{categoryId}/children")
     public ResponseEntity<List<CategoryResponse>> getChildrenCategories(@PathVariable("categoryId") Long categoryId){
-        List<CategoryResponse> childCategories = categoryService.getChildrenCategoriesById(categoryId);
-        return ResponseEntity.ok(childCategories);
+        return null;
     }
 
     @Operation(summary = "카테고리 계층 구조 조회")
@@ -45,8 +43,7 @@ public class DeprecatedCategoryController {
     @NotFoundApiResponse
     @GetMapping("/{categoryId}/hierarchy")
     public ResponseEntity<CategoryHierarchyResponse> getHierarchy(@PathVariable("categoryId") Long categoryId){
-        CategoryHierarchyResponse response = categoryService.getHierarchyByCategoryId(categoryId);
-        return ResponseEntity.ok(response);
+        return null;
     }
 
     @AdminApi
@@ -57,8 +54,8 @@ public class DeprecatedCategoryController {
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<CategoryResponse> updateCategory(@PathVariable("categoryId") Long categoryId,
                                                            @RequestBody @Validated UpdateCategoryRequest request){
-        CategoryResponse category = categoryService.updateCategoryById(categoryId, request);
-        return ResponseEntity.ok(category);
+
+        return null;
     }
 
     @AdminApi
@@ -68,7 +65,7 @@ public class DeprecatedCategoryController {
     @DeleteMapping("/{categoryId}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<Void> deleteCategory(@PathVariable("categoryId") Long categoryId){
-        categoryService.deleteCategoryById(categoryId);
+        categoryService.deleteCategory(categoryId);
         return ResponseEntity.noContent().build();
     }
 }

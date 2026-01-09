@@ -5,15 +5,13 @@ import com.example.product_service.api.category.service.dto.result.CategoryTreeR
 import com.example.product_service.api.common.exception.BusinessException;
 import com.example.product_service.api.common.exception.CategoryErrorCode;
 import com.example.product_service.common.MessageSourceUtil;
-import com.example.product_service.controller.UpdateCategoryRequest;
-import com.example.product_service.dto.response.category.CategoryHierarchyResponse;
 import com.example.product_service.api.category.service.dto.result.CategoryResponse;
 import com.example.product_service.api.category.domain.model.Category;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.api.category.domain.repository.CategoryRepository;
 import com.example.product_service.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.parameters.P;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -24,6 +22,7 @@ import java.util.stream.Collectors;
 
 import static com.example.product_service.common.MessagePath.*;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -38,7 +37,7 @@ public class CategoryService {
     @Transactional
     public CategoryResponse saveCategory(String name, Long parentId, String imageUrl) {
         Category parent = findParentByCategory(parentId);
-        validationCreateCondition(parent, name);
+        validationCategory(parent, name);
         Category category = Category.create(name, parent, imageUrl);
         categoryRepository.save(category);
         category.generatePath();
@@ -78,51 +77,32 @@ public class CategoryService {
         return CategoryResponse.from(category);
     }
 
+    @Transactional
     public CategoryResponse moveParent(Long categoryId, Long parentId, Boolean isRoot) {
-        return null;
-    }
-
-    public List<CategoryResponse> getRootCategories() {
-        List<Category> roots = categoryRepository.findByParentIsNull();
-        return roots.stream().map(CategoryResponse::new).toList();
-    }
-
-    public List<CategoryResponse> getChildrenCategoriesById(Long categoryId) {
-        Category target = findByIdOrThrow(categoryId);
-        return target.getChildren().stream().map(CategoryResponse::new).toList();
-    }
-
-    public CategoryHierarchyResponse getHierarchyByCategoryId(Long categoryId) {
-        Category target = findWithParentByIdOrThrow(categoryId);
-        CategoryHierarchyResponse response = new CategoryHierarchyResponse();
-
-        List<Category> ancestorChain = buildAncestorPath(target);
-        setAncestors(response, ancestorChain);
-
-        setSiblingsByLevel(1, response, categoryRepository.findByParentIsNull());
-
-        for(int i=0; i<ancestorChain.size(); i++){
-            Category category = ancestorChain.get(i);
-            if(!category.getChildren().isEmpty()){
-                setSiblingsByLevel(i+2, response, category.getChildren());
-            }
+        Category category = findCategoryOrThrow(categoryId);
+        if (isRoot) {
+            category.moveParent(null);
+        } else {
+            Category parent = findCategoryOrThrow(parentId);
+            validationCategory(parent, category.getName());
+            category.moveParent(parent);
         }
-        return response;
+        return CategoryResponse.from(category);
     }
 
     @Transactional
-    public CategoryResponse updateCategoryById(Long categoryId, UpdateCategoryRequest request) {
-        Category target = findByIdOrThrow(categoryId);
-        return new CategoryResponse(target);
+    public void deleteCategory(Long categoryId) {
+        Category category = findByIdOrThrow(categoryId);
+        if (!category.getChildren().isEmpty()){
+            throw new BusinessException(CategoryErrorCode.HAS_CHILD);
+        }
+        if (productRepository.existsByCategoryId(category.getId())){
+            throw new BusinessException(CategoryErrorCode.HAS_PRODUCT);
+        }
+        categoryRepository.delete(category);
     }
 
-    @Transactional
-    public void deleteCategoryById(Long categoryId) {
-        Category target = findByIdOrThrow(categoryId);
-        categoryRepository.delete(target);
-    }
-
-    private void validationCreateCondition(Category parent, String name) {
+    private void validationCategory(Category parent, String name) {
         if (parent != null) {
             // 더이상 자식 카테고리를 추가할 수 없는 경우 예외를 던짐
             if (parent.getDepth() >= MAX_DEPTH){
@@ -133,7 +113,6 @@ public class CategoryService {
                 throw new BusinessException(CategoryErrorCode.HAS_PRODUCT);
             }
         }
-
         validationDuplicateName(parent, name);
     }
 
@@ -148,29 +127,6 @@ public class CategoryService {
     private Category findByIdOrThrow(Long categoryId){
         return categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new NotFoundException(ms.getMessage(CATEGORY_NOT_FOUND)));
-    }
-
-    private Category findWithParentByIdOrThrow(Long categoryId){
-        return categoryRepository.findWithParentById(categoryId)
-                .orElseThrow(() -> new NotFoundException(ms.getMessage(CATEGORY_NOT_FOUND)));
-    }
-
-    private List<Category> buildAncestorPath(Category category) {
-        if (category == null) {
-            return new ArrayList<>();
-        }
-        List<Category> ancestors = buildAncestorPath(category.getParent());
-        ancestors.add(category);
-        return ancestors;
-    }
-
-    private void setSiblingsByLevel(int level, CategoryHierarchyResponse response, List<Category> categories){
-        response.getSiblingsByLevel().add(new CategoryHierarchyResponse.LevelItem(level, categories.stream().map(CategoryResponse::new).toList()));
-    }
-
-    private void setAncestors(CategoryHierarchyResponse response, List<Category> ancestors){
-        response.setAncestors(ancestors.stream()
-                .map(CategoryResponse::new).toList());
     }
 
     private Category findParentByCategory(Long parentId) {

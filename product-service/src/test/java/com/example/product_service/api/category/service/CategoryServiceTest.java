@@ -17,6 +17,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
 
@@ -345,11 +346,15 @@ public class CategoryServiceTest extends ExcludeInfraTest {
         //then
         assertThat(result)
                 .extracting(CategoryResponse::getName, CategoryResponse::getParentId, CategoryResponse::getDepth)
-                .containsExactly("핸드폰", savedFood.getId(), savedFood.getId() + "/" + savedCellphone.getId());
+                .containsExactly("핸드폰", savedFood.getId(), 2);
+
+        //path 변경 확인
+        Category find = categoryRepository.findById(savedCellphone.getId()).get();
+        assertThat(find.getPath()).isEqualTo(savedFood.getId() + "/" + savedCellphone.getId());
     }
 
     @Test
-    @DisplayName("")
+    @DisplayName("카테고리 부모를 변경할때 변경할 부모의 자식 카테고리중 동일한 이름이 있는 경우 예외를 던진다")
     void moveParent_duplicateName() {
         //given
         Category electronics = Category.create("전자기기", null, "http://image.jpg");
@@ -368,7 +373,7 @@ public class CategoryServiceTest extends ExcludeInfraTest {
         //then
         assertThatThrownBy(() -> categoryService.moveParent(savedTargetCategory.getId(), savedElectronics.getId(), false))
                 .isInstanceOf(BusinessException.class)
-                .extracting("errorCdoe")
+                .extracting("errorCode")
                 .isEqualTo(CategoryErrorCode.DUPLICATE_NAME);
     }
 
@@ -392,6 +397,57 @@ public class CategoryServiceTest extends ExcludeInfraTest {
         //when
         //then
         assertThatThrownBy(() -> categoryService.moveParent(savedCellphone.getId(), savedFood.getId(), false))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(CategoryErrorCode.HAS_PRODUCT);
+    }
+
+    @Test
+    @DisplayName("카테고리를 삭제한다")
+    void deleteCategory(){
+        //given
+        Category electronics = Category.create("전자기기", null, "http://image.jpg");
+        Category savedElectronics = categoryRepository.save(electronics);
+        Category cellphone = Category.create("핸드폰", savedElectronics, "http://image.jpg");
+        Category savedCellphone = categoryRepository.save(cellphone);
+        //when
+        categoryService.deleteCategory(savedCellphone.getId());
+        //then
+        Optional<Category> deletedCategory = categoryRepository.findById(savedCellphone.getId());
+        assertThat(deletedCategory).isEmpty();
+    }
+
+    @Test
+    @DisplayName("카테고리를 삭제할때 자식 카테고리가 있으면 예외를 던진다")
+    void deleteCategory_when_category_have_child(){
+        //given
+        Category electronics = Category.create("전자기기", null, "http://image.jpg");
+        Category savedElectronics = categoryRepository.save(electronics);
+        Category cellphone = Category.create("핸드폰", savedElectronics, "http://image.jpg");
+        Category savedCellphone = categoryRepository.save(cellphone);
+        //when
+        //then
+        assertThatThrownBy(() -> categoryService.deleteCategory(savedElectronics.getId()))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(CategoryErrorCode.HAS_CHILD);
+    }
+
+    @Test
+    @DisplayName("카테고리를 삭제할때 해당 카테고리에 속한 상품이 존재하면 예외를 던진다")
+    void deleteCategory_when_product_in_category(){
+        //given
+        Category electronics = Category.create("전자기기", null, "http://image.jpg");
+        Category savedElectronics = categoryRepository.save(electronics);
+        Category cellphone = Category.create("핸드폰", savedElectronics, "http://image.jpg");
+        Category savedCellphone = categoryRepository.save(cellphone);
+
+        // 식품 카테고리에 상품이 존재
+        Product product = Product.create("핸드폰", "상품 설명", savedCellphone);
+        productRepository.save(product);
+        //when
+        //then
+        assertThatThrownBy(() -> categoryService.deleteCategory(savedCellphone.getId()))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(CategoryErrorCode.HAS_PRODUCT);
