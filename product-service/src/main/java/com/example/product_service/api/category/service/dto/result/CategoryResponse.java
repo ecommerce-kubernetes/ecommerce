@@ -4,7 +4,6 @@ import com.example.product_service.api.category.domain.model.Category;
 import lombok.*;
 
 @Getter
-@NoArgsConstructor
 public class CategoryResponse {
     private Long id;
     private String name;
