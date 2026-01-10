@@ -6,6 +6,9 @@ import lombok.Getter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Getter
 public class CategoryTreeResponse {
@@ -39,5 +42,22 @@ public class CategoryTreeResponse {
                 .parentId((category.getParent() == null) ? null : category.getParent().getId())
                 .depth(category.getDepth())
                 .build();
+    }
+
+    public static List<CategoryTreeResponse> convertTree(List<Category> allCategories) {
+        List<CategoryTreeResponse> allDtoList = allCategories.stream().map(CategoryTreeResponse::from).toList();
+        Map<Long, CategoryTreeResponse> dtoMap = allDtoList.stream().collect(Collectors.toMap(CategoryTreeResponse::getId, Function.identity()));
+        List<CategoryTreeResponse> rootCategories = new ArrayList<>();
+        for (CategoryTreeResponse category : allDtoList) {
+            // depth 가 1 이면 최상위 카테고리
+            if (category.getDepth() == 1) {
+                rootCategories.add(category);
+            } else {
+                // depth 가 1 이상이면 map에서 부모 카테고리를 찾아 addChild() 메서드 호출
+                CategoryTreeResponse parent = dtoMap.get(category.getParentId());
+                parent.addChild(category);
+            }
+        }
+        return rootCategories;
     }
 }

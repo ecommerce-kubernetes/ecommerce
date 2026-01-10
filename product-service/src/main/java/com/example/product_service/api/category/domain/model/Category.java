@@ -30,7 +30,7 @@ public class Category extends BaseEntity {
     @JoinColumn(name = "parent_id")
     private Category parent;
 
-    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "parent", fetch = FetchType.LAZY)
     private List<Category> children = new ArrayList<>();
 
     @Builder(access = AccessLevel.PRIVATE)
@@ -81,6 +81,21 @@ public class Category extends BaseEntity {
         }
         this.depth = generateDepth(parent);
         generatePath();
+
+        updateChildrenPath(this.children);
+    }
+
+    private void updateChildrenPath(List<Category> children) {
+        if (children == null || children.isEmpty()) {
+            return;
+        }
+
+        for (Category child : children) {
+            child.depth = generateDepth(child.getParent());
+            child.generatePath();
+
+            updateChildrenPath(child.getChildren());
+        }
     }
 
     public boolean isRoot() {

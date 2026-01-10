@@ -329,6 +329,27 @@ public class CategoryServiceTest extends ExcludeInfraTest {
     }
 
     @Test
+    @DisplayName("카테고리를 최상위로 이동할 때 이미 같은 이름의 루트 카테고리가 있으면 예외를 던진다")
+    void moveParent_duplicateName_when_move_to_root() {
+        //given
+        Category root1 = Category.create("가전", null, "http://image.jpg");
+        Category savedRoot1 = categoryRepository.save(root1);
+
+        Category root2 = Category.create("식품", null, "http://image.jpg");
+        Category savedRoot2 = categoryRepository.save(root2);
+
+        Category child = Category.create("가전", savedRoot2, "http://image.jpg");
+        Category savedChild = categoryRepository.save(child);
+
+        //when
+        //then
+        assertThatThrownBy(() -> categoryService.moveParent(savedChild.getId(), null, true))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(CategoryErrorCode.DUPLICATE_NAME);
+    }
+
+    @Test
     @DisplayName("카테고리의 부모를 변경")
     void moveParent_move_child() {
         //given
@@ -341,6 +362,9 @@ public class CategoryServiceTest extends ExcludeInfraTest {
         Category cellphone = Category.create("핸드폰", savedElectronics, "http://image.jpg");
         Category savedCellphone = categoryRepository.save(cellphone);
         savedCellphone.generatePath();
+        Category iphone = Category.create("아이폰", savedCellphone, "http://image.jpg");
+        Category savedIphone = categoryRepository.save(iphone);
+        savedIphone.generatePath();
         //when
         CategoryResponse result = categoryService.moveParent(savedCellphone.getId(), savedFood.getId(), false);
         //then
@@ -351,6 +375,61 @@ public class CategoryServiceTest extends ExcludeInfraTest {
         //path 변경 확인
         Category find = categoryRepository.findById(savedCellphone.getId()).get();
         assertThat(find.getPath()).isEqualTo(savedFood.getId() + "/" + savedCellphone.getId());
+
+        Category findChild = categoryRepository.findById(savedIphone.getId()).get();
+        assertThat(findChild.getPath()).isEqualTo(savedFood.getId() + "/" + savedCellphone.getId() + "/" + savedIphone.getId());
+    }
+
+    @Test
+    @DisplayName("카테고리를 이동할 때, 이동하려는 부모 카테고리가 이미 최대 Depth라면 예외를 던진다")
+    void moveParent_when_parent_exceed_max_depth() {
+        //given
+        Category maxDepthParent = exceedDepthDCategory();
+        Category savedParent = categoryRepository.save(maxDepthParent);
+        savedParent.generatePath();
+        Category child = Category.create("이동할 녀석", null, "http://image.jpg");
+        Category savedChild = categoryRepository.save(child);
+        savedChild.generatePath();
+        //when
+        //then
+        assertThatThrownBy(() -> categoryService.moveParent(savedChild.getId(), savedParent.getId(), false))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(CategoryErrorCode.EXCEED_MAX_DEPTH);
+    }
+
+    @Test
+    @DisplayName("카테고리 부모를 자기자신으로 변경하려는 경우 예외를 던진다")
+    void moveParent_parent_change_itself(){
+        //given
+        Category electronics = Category.create("전자기기", null, "http://image.jpg");
+        Category savedElectronics = categoryRepository.save(electronics);
+        savedElectronics.generatePath();
+        //when
+        //then
+        assertThatThrownBy(() -> categoryService.moveParent(savedElectronics.getId(), savedElectronics.getId(), false))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(CategoryErrorCode.INVALID_HIERARCHY);
+    }
+
+    @Test
+    @DisplayName("카테고리 부모를 자신의 자식으로 변경하려는 경우 예외를 던진다")
+    void moveParent_parent_change_own_child(){
+        //given
+        Category electronics = Category.create("전자기기", null, "http://image.jpg");
+        Category savedElectronics = categoryRepository.save(electronics);
+        savedElectronics.generatePath();
+
+        Category cellphone = Category.create("핸드폰", savedElectronics, "http://image.jpg");
+        Category savedCellphone = categoryRepository.save(cellphone);
+        savedCellphone.generatePath();
+        //when
+        //then
+        assertThatThrownBy(() -> categoryService.moveParent(electronics.getId(), cellphone.getId(), false))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(CategoryErrorCode.INVALID_HIERARCHY);
     }
 
     @Test
