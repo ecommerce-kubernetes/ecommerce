@@ -39,12 +39,7 @@ public class ProductQueryService {
     private final MessageSourceUtil ms;
 
     public PageDto<ProductSummaryResponse> getProducts(ProductSearch search, Pageable pageable) {
-        List<Long> descendantIds = getDescendantIds(search.getCategoryId());
-        Page<ProductSummary> result = productSummaryRepository
-                .findAllProductSummary(search.getName(), descendantIds, search.getRating(), pageable);
-
-
-        return parseProductSummaryResponse(result, pageable);
+        return null;
     }
 
     public ProductResponse getProductById(Long productId) {
@@ -57,13 +52,7 @@ public class ProductQueryService {
     }
 
     public PageDto<ProductSummaryResponse> getPopularProducts(int page, int size, Long categoryId){
-        Double C = productSummaryRepository.findAvgRating(); // 상품 전체 평균 평점
-        List<Long> categoryIds = getDescendantIds(categoryId);
-        Pageable pageable = PageRequest.of(page, size);
-        Page<ProductSummary> result =
-                productSummaryRepository.findPopularProductSummary(categoryIds, C, MINIMUM_REVIEW, pageable);
-
-        return parseProductSummaryResponse(result, pageable);
+        return null;
     }
 
     public PageDto<ReviewResponse> getReviewsByProductId(Long productId, Pageable pageable){
@@ -98,13 +87,6 @@ public class ProductQueryService {
                 pageable.getPageSize(),
                 result.getTotalElements()
         );
-    }
-
-    private List<Long> getDescendantIds(Long categoryId){
-        if(categoryId == null){
-            return List.of();
-        }
-        return categoryRepository.findDescendantIds(categoryId);
     }
 
     private Product findWithCategoryByIdOrThrow(Long productId){

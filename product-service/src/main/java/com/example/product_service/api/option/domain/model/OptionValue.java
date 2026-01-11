@@ -1,4 +1,4 @@
-package com.example.product_service.api.option.domain;
+package com.example.product_service.api.option.domain.model;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -15,7 +15,6 @@ public class OptionValue {
     @JoinColumn(name = "option_type_id")
     private OptionType optionType;
 
-    @Setter
     private String name;
 
     void setOptionType(OptionType optionType){

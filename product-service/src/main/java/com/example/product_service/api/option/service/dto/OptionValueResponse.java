@@ -1,6 +1,6 @@
 package com.example.product_service.api.option.service.dto;
 
-import com.example.product_service.api.option.domain.OptionValue;
+import com.example.product_service.api.option.domain.model.OptionValue;
 import lombok.Builder;
 import lombok.Getter;
 

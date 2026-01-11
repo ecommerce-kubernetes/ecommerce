@@ -1,4 +1,4 @@
-package com.example.product_service.api.option.domain;
+package com.example.product_service.api.option.domain.model;
 
 import jakarta.persistence.*;
 import lombok.*;

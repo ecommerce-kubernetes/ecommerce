@@ -67,11 +67,8 @@ public class Category extends BaseEntity {
         this.imageUrl = newImage;
     }
 
-    private void linkParent(Category parent) {
-        this.parent = parent;
-        if (!parent.getChildren().contains(this)){
-            parent.getChildren().add(this);
-        }
+    public boolean isRoot() {
+        return this.parent == null;
     }
 
     public void moveParent(Category parent){
@@ -86,23 +83,6 @@ public class Category extends BaseEntity {
         generatePath();
 
         updateChildrenPath(this.children);
-    }
-
-    private void updateChildrenPath(List<Category> children) {
-        if (children == null || children.isEmpty()) {
-            return;
-        }
-
-        for (Category child : children) {
-            child.depth = generateDepth(child.getParent());
-            child.generatePath();
-
-            updateChildrenPath(child.getChildren());
-        }
-    }
-
-    public boolean isRoot() {
-        return this.parent == null;
     }
 
     public List<Long> getAncestorsIds() {
@@ -124,6 +104,26 @@ public class Category extends BaseEntity {
             this.path = String.valueOf(this.id);
         } else {
             this.path = parent.getPath() + "/" + this.id;
+        }
+    }
+
+    private void linkParent(Category parent) {
+        this.parent = parent;
+        if (!parent.getChildren().contains(this)){
+            parent.getChildren().add(this);
+        }
+    }
+
+    private void updateChildrenPath(List<Category> children) {
+        if (children == null || children.isEmpty()) {
+            return;
+        }
+
+        for (Category child : children) {
+            child.depth = generateDepth(child.getParent());
+            child.generatePath();
+
+            updateChildrenPath(child.getChildren());
         }
     }
 

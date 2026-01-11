@@ -1,7 +1,7 @@
 package com.example.product_service.service.util.factory;
 
-import com.example.product_service.api.option.domain.OptionType;
-import com.example.product_service.api.option.domain.OptionValue;
+import com.example.product_service.api.option.domain.model.OptionType;
+import com.example.product_service.api.option.domain.model.OptionValue;
 import com.example.product_service.entity.*;
 import com.example.product_service.service.dto.*;
 import org.springframework.stereotype.Component;

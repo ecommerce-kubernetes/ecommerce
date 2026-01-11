@@ -40,7 +40,7 @@ import java.util.List;
 @RequestMapping("/products")
 @Tag(name = "Product" , description = "상품 관련 API")
 @RequiredArgsConstructor
-public class ProductController {
+public class DeprecatedProductController {
 
     private final ProductApplicationService productApplicationService;
     private final ProductQueryService productQueryService;

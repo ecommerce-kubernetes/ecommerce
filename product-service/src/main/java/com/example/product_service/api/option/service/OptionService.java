@@ -2,9 +2,9 @@ package com.example.product_service.api.option.service;
 
 import com.example.product_service.api.common.exception.BusinessException;
 import com.example.product_service.api.common.exception.OptionErrorCode;
-import com.example.product_service.api.option.domain.OptionType;
+import com.example.product_service.api.option.domain.model.OptionType;
 import com.example.product_service.api.option.service.dto.OptionResponse;
-import com.example.product_service.repository.OptionTypeRepository;
+import com.example.product_service.api.option.domain.repository.OptionTypeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

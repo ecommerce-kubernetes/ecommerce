@@ -54,10 +54,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(ProductController.class)
+@WebMvcTest(DeprecatedProductController.class)
 @AutoConfigureMockMvc(addFilters = false)
 @Import({ErrorResponseEntityFactory.class, TestConfig.class})
-class ProductControllerTest {
+class DeprecatedProductControllerTest {
 
     private static final String BASE_PATH = "/products";
     private static final String ID_PATH = BASE_PATH + "/1";

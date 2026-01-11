@@ -1,7 +1,7 @@
 package com.example.product_service.entity;
 
 import com.example.product_service.api.common.entity.BaseEntity;
-import com.example.product_service.api.option.domain.OptionType;
+import com.example.product_service.api.option.domain.model.OptionType;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;

@@ -1,6 +1,6 @@
 package com.example.product_service.dto.response.options;
 
-import com.example.product_service.api.option.domain.OptionValue;
+import com.example.product_service.api.option.domain.model.OptionValue;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
