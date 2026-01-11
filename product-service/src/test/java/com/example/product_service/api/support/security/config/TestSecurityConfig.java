@@ -19,6 +19,7 @@ public class TestSecurityConfig {
                 .authorizeHttpRequests(
                         auth -> auth
                                 .requestMatchers("/categories/**").permitAll()
+                                .requestMatchers("/options/**").permitAll()
                                 .requestMatchers("/test").permitAll()
                                 .anyRequest().authenticated()
                 );
