@@ -1,4 +1,5 @@
 package com.example.product_service.controller.validation;
+
 import com.example.product_service.dto.request.options.ProductOptionTypeRequest;
 import com.example.product_service.dto.request.product.ProductRequest;
 import com.example.product_service.dto.request.variant.ProductVariantRequest;
@@ -17,8 +18,9 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import static com.example.product_service.common.MessagePath.*;
-import static com.example.product_service.util.TestMessageUtil.*;
-import static com.example.product_service.util.ValidationTestHelper.*;
+import static com.example.product_service.util.TestMessageUtil.getMessage;
+import static com.example.product_service.util.ValidationTestHelper.assertFieldViolation;
+import static com.example.product_service.util.ValidationTestHelper.validateField;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(MockitoExtension.class)

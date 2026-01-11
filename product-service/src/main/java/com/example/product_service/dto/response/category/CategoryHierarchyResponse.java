@@ -1,7 +1,10 @@
 package com.example.product_service.dto.response.category;
 
 import com.example.product_service.api.category.service.dto.result.CategoryResponse;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;

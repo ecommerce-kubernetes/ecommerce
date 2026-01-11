@@ -1,8 +1,8 @@
 package com.example.product_service.service.dto;
 
 import com.example.product_service.api.category.domain.model.Category;
-import com.example.product_service.entity.OptionType;
-import com.example.product_service.entity.OptionValue;
+import com.example.product_service.api.option.domain.OptionType;
+import com.example.product_service.api.option.domain.OptionValue;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 

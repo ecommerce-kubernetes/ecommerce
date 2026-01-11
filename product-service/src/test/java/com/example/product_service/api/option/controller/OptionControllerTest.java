@@ -10,10 +10,14 @@ import com.example.product_service.api.support.security.config.TestSecurityConfi
 import com.example.product_service.config.TestConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
@@ -24,6 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @Import({TestConfig.class, TestSecurityConfig.class})
 public class OptionControllerTest extends ControllerTestSupport {
+
 
     @Test
     @DisplayName("옵션을 저장한다")
@@ -37,8 +42,8 @@ public class OptionControllerTest extends ControllerTestSupport {
         //when
         //then
         mockMvc.perform(post("/options")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andExpect(content().json(objectMapper.writeValueAsString(response)));
     }
@@ -52,8 +57,8 @@ public class OptionControllerTest extends ControllerTestSupport {
         //when
         //then
         mockMvc.perform(post("/options")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("code").value("FORBIDDEN"))
                 .andExpect(jsonPath("message").value("요청 권한이 없습니다"))
@@ -78,12 +83,12 @@ public class OptionControllerTest extends ControllerTestSupport {
                 .andExpect(jsonPath("path").value("/options"));
     }
 
-    @Test
-    @DisplayName("옵션을 저장할때 이름은 필수이다")
+    @ParameterizedTest(name = "{0}")
+    @DisplayName("옵션 저장 요청 검증")
+    @MethodSource("provideInvalidRequest")
     @WithCustomMockUser
-    void saveOption_validation() throws Exception {
+    void saveOption_validation(String description, OptionRequest request, String message) throws Exception {
         //given
-        OptionRequest request = createOptionRequest().name(null).build();
         //when
         //then
         mockMvc.perform(post("/options")
@@ -92,7 +97,7 @@ public class OptionControllerTest extends ControllerTestSupport {
                 .andExpect(status().isBadRequest())
                 .andDo(print())
                 .andExpect(jsonPath("code").value("VALIDATION"))
-                .andExpect(jsonPath("message").value("옵션 이름은 필수 입니다"))
+                .andExpect(jsonPath("message").value(message))
                 .andExpect(jsonPath("timestamp").exists())
                 .andExpect(jsonPath("path").value("/options"));
     }
@@ -183,6 +188,25 @@ public class OptionControllerTest extends ControllerTestSupport {
                 .andExpect(jsonPath("path").value("/options/1"));
     }
 
+    @ParameterizedTest(name = "{0}")
+    @DisplayName("옵션 저장 요청 검증")
+    @MethodSource("provideInvalidRequest")
+    @WithCustomMockUser
+    void updateOption_validation(String description, OptionRequest request, String message) throws Exception {
+        //given
+        //when
+        //then
+        mockMvc.perform(put("/options/{optionId}", 1L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andDo(print())
+                .andExpect(jsonPath("code").value("VALIDATION"))
+                .andExpect(jsonPath("message").value(message))
+                .andExpect(jsonPath("timestamp").exists())
+                .andExpect(jsonPath("path").value("/options/1"));
+    }
+
     @Test
     @DisplayName("옵션을 삭제한다")
     @WithCustomMockUser
@@ -230,22 +254,29 @@ public class OptionControllerTest extends ControllerTestSupport {
                 .andExpect(jsonPath("path").value("/options/1"));
     }
 
-    private OptionRequest.OptionRequestBuilder createOptionRequest() {
+    private static OptionRequest.OptionRequestBuilder createOptionRequest() {
         return OptionRequest.builder().name("사이즈").values(
                 List.of("XL", "L", "M", "S")
         );
     }
 
-    private OptionResponse.OptionResponseBuilder createOptionResponse() {
+    private static OptionResponse.OptionResponseBuilder createOptionResponse() {
         return OptionResponse.builder()
                 .id(1L)
                 .name("사이즈")
                 .values(
                         List.of(
-                                OptionValueResponse.builder().id(1L).value("XL").build(),
-                                OptionValueResponse.builder().id(2L).value("L").build(),
-                                OptionValueResponse.builder().id(3L).value("M").build(),
-                                OptionValueResponse.builder().id(4L).value("S").build()
+                                OptionValueResponse.builder().id(1L).name("XL").build(),
+                                OptionValueResponse.builder().id(2L).name("L").build(),
+                                OptionValueResponse.builder().id(3L).name("M").build(),
+                                OptionValueResponse.builder().id(4L).name("S").build()
                         ));
+    }
+
+    private static Stream<Arguments> provideInvalidRequest() {
+        return Stream.of(
+                Arguments.of("name 이 null", createOptionRequest().name(null).build(), "옵션 이름은 필수 입니다"),
+                Arguments.of("중복된 value", createOptionRequest().values(List.of("중복", "중복")).build(), "옵션값은 중복될 수 없습니다")
+        );
     }
 }

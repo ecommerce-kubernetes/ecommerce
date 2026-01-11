@@ -66,7 +66,7 @@ public class OptionControllerDocsTest extends RestDocsSupport {
                                         fieldWithPath("id").description("옵션 ID"),
                                         fieldWithPath("name").description("옵션 이름"),
                                         fieldWithPath("values[].id").description("옵션 값 ID"),
-                                        fieldWithPath("values[].value").description("옵션 값")
+                                        fieldWithPath("values[].name").description("옵션 값")
                                 )
 
                         )
@@ -96,7 +96,7 @@ public class OptionControllerDocsTest extends RestDocsSupport {
                                         fieldWithPath("id").description("옵션 ID"),
                                         fieldWithPath("name").description("옵션 이름"),
                                         fieldWithPath("values[].id").description("옵션 값 ID"),
-                                        fieldWithPath("values[].value").description("옵션 값")
+                                        fieldWithPath("values[].name").description("옵션 값")
                                 )
                         )
                 );
@@ -122,7 +122,7 @@ public class OptionControllerDocsTest extends RestDocsSupport {
                                         fieldWithPath("[].id").description("옵션 ID"),
                                         fieldWithPath("[].name").description("옵션 이름"),
                                         fieldWithPath("[].values[].id").description("옵션 값 ID"),
-                                        fieldWithPath("[].values[].value").description("옵션 값")
+                                        fieldWithPath("[].values[].name").description("옵션 값")
                                 )
                         )
                 );
@@ -162,7 +162,7 @@ public class OptionControllerDocsTest extends RestDocsSupport {
                                         fieldWithPath("id").description("옵션 ID"),
                                         fieldWithPath("name").description("옵션 이름"),
                                         fieldWithPath("values[].id").description("옵션 값 ID"),
-                                        fieldWithPath("values[].value").description("옵션 값")
+                                        fieldWithPath("values[].name").description("옵션 값")
                                 )
 
                         )
@@ -206,10 +206,10 @@ public class OptionControllerDocsTest extends RestDocsSupport {
                 .name("사이즈")
                 .values(
                         List.of(
-                                OptionValueResponse.builder().id(1L).value("XL").build(),
-                                OptionValueResponse.builder().id(2L).value("L").build(),
-                                OptionValueResponse.builder().id(3L).value("M").build(),
-                                OptionValueResponse.builder().id(4L).value("S").build()
+                                OptionValueResponse.builder().id(1L).name("XL").build(),
+                                OptionValueResponse.builder().id(2L).name("L").build(),
+                                OptionValueResponse.builder().id(3L).name("M").build(),
+                                OptionValueResponse.builder().id(4L).name("S").build()
                         ));
     }
 }

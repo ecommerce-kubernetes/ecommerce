@@ -1,6 +1,9 @@
 package com.example.product_service.messaging;
 
-import com.example.common.*;
+import com.example.common.DeductedProduct;
+import com.example.common.FailedEvent;
+import com.example.common.OrderCreatedEvent;
+import com.example.common.ProductStockDeductedEvent;
 import com.example.product_service.service.ProductVariantService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

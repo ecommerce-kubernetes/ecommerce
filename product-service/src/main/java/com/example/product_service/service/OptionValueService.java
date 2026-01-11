@@ -1,10 +1,10 @@
 package com.example.product_service.service;
 
+import com.example.product_service.api.option.domain.OptionType;
+import com.example.product_service.api.option.domain.OptionValue;
 import com.example.product_service.common.MessageSourceUtil;
 import com.example.product_service.dto.request.options.OptionValueRequest;
 import com.example.product_service.dto.response.options.OptionValueResponse;
-import com.example.product_service.entity.OptionType;
-import com.example.product_service.entity.OptionValue;
 import com.example.product_service.exception.DuplicateResourceException;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.repository.OptionValueRepository;
@@ -32,7 +32,7 @@ public class OptionValueService {
     public OptionValueResponse updateOptionValueById(Long optionValueId, OptionValueRequest request) {
         OptionValue target = findByIdOrThrow(optionValueId);
         checkConflictValueName(target.getOptionType(), request.getValueName());
-        target.setOptionValue(request.getValueName());
+        target.setName(request.getValueName());
         return new OptionValueResponse(target);
     }
 
@@ -41,7 +41,6 @@ public class OptionValueService {
         OptionValue target = findByIdOrThrow(optionValueId);
         OptionType optionType = target.getOptionType();
 
-        optionType.removeOptionValue(target);
     }
 
     private OptionValue findByIdOrThrow(Long optionValueId) {
@@ -51,7 +50,7 @@ public class OptionValueService {
 
     private void checkConflictValueName(OptionType optionType, String name){
         boolean isConflict = optionType.getOptionValues().stream()
-                .anyMatch(v -> v.getOptionValue().equals(name));
+                .anyMatch(v -> v.getName().equals(name));
         if(isConflict){
             throw new DuplicateResourceException(ms.getMessage(OPTION_VALUE_CONFLICT));
         }

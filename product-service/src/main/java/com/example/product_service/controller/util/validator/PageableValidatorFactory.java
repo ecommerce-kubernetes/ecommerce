@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-import static com.example.product_service.common.MessagePath.*;
+import static com.example.product_service.common.MessagePath.NOT_SUPPORTED_DOMAIN;
 
 @Component
 @RequiredArgsConstructor

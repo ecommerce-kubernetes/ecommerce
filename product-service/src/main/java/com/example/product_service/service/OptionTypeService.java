@@ -1,12 +1,11 @@
 package com.example.product_service.service;
 
+import com.example.product_service.api.option.domain.OptionType;
 import com.example.product_service.common.MessageSourceUtil;
 import com.example.product_service.dto.request.options.OptionTypeRequest;
 import com.example.product_service.dto.request.options.OptionValueRequest;
 import com.example.product_service.dto.response.options.OptionTypeResponse;
 import com.example.product_service.dto.response.options.OptionValueResponse;
-import com.example.product_service.entity.OptionType;
-import com.example.product_service.entity.OptionValue;
 import com.example.product_service.exception.DuplicateResourceException;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.repository.OptionTypeRepository;
@@ -33,18 +32,14 @@ public class OptionTypeService {
     @Transactional
     public OptionTypeResponse saveOptionType(OptionTypeRequest request) {
         checkConflictTypeName(request.getName());
-        OptionType save = optionTypeRepository.save(new OptionType(request.getName()));
-        return new OptionTypeResponse(save);
+        return null;
     }
 
     @Transactional
     public OptionValueResponse saveOptionValue(Long optionTypeId, OptionValueRequest request) {
         OptionType optionType = findByIdOrThrow(optionTypeId);
         checkConflictValueName(optionType, request.getValueName());
-        OptionValue optionValue = new OptionValue(request.getValueName());
-        optionType.addOptionValue(optionValue);
-        OptionValue saved = optionValueRepository.save(optionValue);
-        return new OptionValueResponse(saved);
+        return null;
     }
 
     public List<OptionTypeResponse> getOptionTypes() {
@@ -81,7 +76,7 @@ public class OptionTypeService {
 
     private void checkConflictValueName(OptionType optionType, String name){
         boolean isConflict = optionType.getOptionValues().stream()
-                .anyMatch(v -> v.getOptionValue().equals(name));
+                .anyMatch(v -> v.getName().equals(name));
         if(isConflict){
             throw new DuplicateResourceException(ms.getMessage(OPTION_VALUE_CONFLICT));
         }

@@ -1,12 +1,12 @@
 package com.example.product_service.api.category.service;
 
+import com.example.product_service.api.category.domain.model.Category;
+import com.example.product_service.api.category.domain.repository.CategoryRepository;
 import com.example.product_service.api.category.service.dto.result.CategoryNavigationResponse;
+import com.example.product_service.api.category.service.dto.result.CategoryResponse;
 import com.example.product_service.api.category.service.dto.result.CategoryTreeResponse;
 import com.example.product_service.api.common.exception.BusinessException;
 import com.example.product_service.api.common.exception.CategoryErrorCode;
-import com.example.product_service.api.category.service.dto.result.CategoryResponse;
-import com.example.product_service.api.category.domain.model.Category;
-import com.example.product_service.api.category.domain.repository.CategoryRepository;
 import com.example.product_service.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import java.util.*;
+import java.util.List;
 
 @Slf4j
 @Service

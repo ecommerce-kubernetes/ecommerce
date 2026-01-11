@@ -5,7 +5,6 @@ import com.example.product_service.dto.request.review.ReviewRequest;
 import com.example.product_service.dto.request.variant.UpdateProductVariantRequest;
 import com.example.product_service.dto.response.ReviewResponse;
 import com.example.product_service.dto.response.variant.OrderProductVariantResponse;
-import com.example.product_service.dto.response.variant.ProductPrice;
 import com.example.product_service.dto.response.variant.ProductVariantResponse;
 import com.example.product_service.entity.ProductVariant;
 import com.example.product_service.exception.NotFoundException;
@@ -15,7 +14,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static com.example.product_service.common.MessagePath.PRODUCT_VARIANT_NOT_FOUND;
 

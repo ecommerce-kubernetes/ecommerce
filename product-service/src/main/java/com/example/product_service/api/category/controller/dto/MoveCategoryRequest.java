@@ -1,8 +1,10 @@
 package com.example.product_service.api.category.controller.dto;
 
 import jakarta.validation.constraints.AssertTrue;
-import jakarta.validation.constraints.NotNull;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PRIVATE)

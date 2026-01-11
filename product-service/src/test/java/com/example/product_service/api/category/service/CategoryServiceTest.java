@@ -1,6 +1,7 @@
 package com.example.product_service.api.category.service;
 
 import com.example.product_service.api.category.domain.model.Category;
+import com.example.product_service.api.category.domain.repository.CategoryRepository;
 import com.example.product_service.api.category.service.dto.result.CategoryNavigationResponse;
 import com.example.product_service.api.category.service.dto.result.CategoryResponse;
 import com.example.product_service.api.category.service.dto.result.CategoryTreeResponse;
@@ -8,7 +9,6 @@ import com.example.product_service.api.common.exception.BusinessException;
 import com.example.product_service.api.common.exception.CategoryErrorCode;
 import com.example.product_service.api.support.ExcludeInfraTest;
 import com.example.product_service.entity.Product;
-import com.example.product_service.api.category.domain.repository.CategoryRepository;
 import com.example.product_service.repository.ProductRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;

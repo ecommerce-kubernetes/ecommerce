@@ -5,7 +5,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import org.springframework.stereotype.Repository;
 
-import static com.example.product_service.api.category.domain.model.QCategory.*;
+import static com.example.product_service.api.category.domain.model.QCategory.category;
 
 @Repository
 public class CategoryQueryDslRepositoryImpl implements CategoryQueryDslRepository{

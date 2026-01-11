@@ -1,7 +1,8 @@
 package com.example.product_service.api.category.service.dto.result;
 
 import com.example.product_service.api.category.domain.model.Category;
-import lombok.*;
+import lombok.Builder;
+import lombok.Getter;
 
 @Getter
 public class CategoryResponse {

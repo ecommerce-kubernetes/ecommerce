@@ -1,7 +1,10 @@
 package com.example.product_service.api.category.controller.dto;
 
 import jakarta.validation.constraints.AssertTrue;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.hibernate.validator.constraints.URL;
 
 @Getter

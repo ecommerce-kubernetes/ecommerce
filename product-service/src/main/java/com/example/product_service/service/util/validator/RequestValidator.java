@@ -11,7 +11,9 @@ import com.example.product_service.service.dto.ProductVariantCommand;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.example.product_service.common.MessagePath.*;

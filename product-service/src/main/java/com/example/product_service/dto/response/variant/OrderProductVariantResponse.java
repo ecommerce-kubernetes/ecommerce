@@ -28,6 +28,6 @@ public class OrderProductVariantResponse {
         this.thumbnailUrl = productVariant.getProduct().getImages().stream().filter(i -> i.getSortOrder() == 0)
                 .findFirst().get().getImageUrl();
         this.itemOptions = productVariant.getProductVariantOptions().stream().map(pvo ->
-                new ItemOptionResponse(pvo.getOptionValue().getOptionValue(), pvo.getOptionValue().getOptionType().getName())).toList();
+                new ItemOptionResponse(pvo.getOptionValue().getName(), pvo.getOptionValue().getOptionType().getName())).toList();
     }
 }

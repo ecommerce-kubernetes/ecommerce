@@ -1,6 +1,6 @@
 package com.example.product_service.dto.response.options;
 
-import com.example.product_service.entity.OptionValue;
+import com.example.product_service.api.option.domain.OptionValue;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,6 +18,6 @@ public class OptionValueResponse {
     public OptionValueResponse(OptionValue optionValue){
         this.valueId = optionValue.getId();
         this.typeId = optionValue.getOptionType().getId();
-        this.valueName = optionValue.getOptionValue();
+        this.valueName = optionValue.getName();
     }
 }

@@ -1,6 +1,6 @@
 package com.example.product_service.repository;
 
-import com.example.product_service.entity.OptionType;
+import com.example.product_service.api.option.domain.OptionType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

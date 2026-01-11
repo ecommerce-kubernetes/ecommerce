@@ -1,10 +1,7 @@
-package com.example.product_service.entity;
+package com.example.product_service.api.option.domain;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -19,13 +16,18 @@ public class OptionValue {
     private OptionType optionType;
 
     @Setter
-    private String optionValue;
+    private String name;
 
-    protected void setOptionType(OptionType optionType){
+    void setOptionType(OptionType optionType){
         this.optionType = optionType;
     }
 
-    public OptionValue(String optionValue){
-        this.optionValue = optionValue;
+    @Builder(access = AccessLevel.PRIVATE)
+    private OptionValue(String name){
+        this.name = name;
+    }
+
+    public static OptionValue create(String name) {
+        return OptionValue.builder().name(name).build();
     }
 }

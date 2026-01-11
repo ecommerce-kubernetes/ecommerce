@@ -1,17 +1,17 @@
 package com.example.product_service.service.util.validator;
 
 import com.example.product_service.api.category.domain.model.Category;
+import com.example.product_service.api.category.domain.repository.CategoryRepository;
+import com.example.product_service.api.option.domain.OptionType;
+import com.example.product_service.api.option.domain.OptionValue;
 import com.example.product_service.common.MessageSourceUtil;
 import com.example.product_service.dto.request.options.ProductOptionTypeRequest;
 import com.example.product_service.dto.request.product.ProductRequest;
 import com.example.product_service.dto.request.product.UpdateProductBasicRequest;
 import com.example.product_service.dto.request.variant.ProductVariantRequest;
 import com.example.product_service.dto.request.variant.VariantOptionValueRequest;
-import com.example.product_service.entity.*;
-import com.example.product_service.exception.BadRequestException;
 import com.example.product_service.exception.DuplicateResourceException;
 import com.example.product_service.exception.NotFoundException;
-import com.example.product_service.api.category.domain.repository.CategoryRepository;
 import com.example.product_service.repository.OptionTypeRepository;
 import com.example.product_service.repository.OptionValueRepository;
 import com.example.product_service.repository.ProductVariantsRepository;

@@ -1,7 +1,6 @@
 package com.example.product_service.common.advice.dto;
 
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter

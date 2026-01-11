@@ -1,6 +1,6 @@
 package com.example.product_service.repository;
 
-import com.example.product_service.entity.OptionValue;
+import com.example.product_service.api.option.domain.OptionValue;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
