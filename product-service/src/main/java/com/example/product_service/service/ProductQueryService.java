@@ -55,39 +55,8 @@ public class ProductQueryService {
         return null;
     }
 
-    public PageDto<ReviewResponse> getReviewsByProductId(Long productId, Pageable pageable){
-        boolean isExists = productRepository.existsById(productId);
-        if(!isExists){
-            throw new NotFoundException(ms.getMessage(PRODUCT_NOT_FOUND));
-        }
 
-        Page<Review> result = reviewsRepository.findAllByProductId(productId, pageable);
-        return parseReviewResponse(result, pageable);
-    }
 
-    private PageDto<ProductSummaryResponse> parseProductSummaryResponse(Page<ProductSummary> result, Pageable pageable){
-        List<ProductSummaryResponse> content = result.getContent().stream().map(ProductSummaryResponse::new).toList();
-
-        return new PageDto<>(
-                content,
-                pageable.getPageNumber(),
-                result.getTotalPages(),
-                pageable.getPageSize(),
-                result.getTotalElements()
-        );
-    }
-
-    private PageDto<ReviewResponse> parseReviewResponse(Page<Review> result, Pageable pageable){
-        List<ReviewResponse> content = result.getContent().stream().map(ReviewResponse::new).toList();
-
-        return new PageDto<>(
-                content,
-                pageable.getPageNumber(),
-                result.getTotalPages(),
-                pageable.getPageSize(),
-                result.getTotalElements()
-        );
-    }
 
     private Product findWithCategoryByIdOrThrow(Long productId){
         return productRepository.findWithCategoryById(productId)

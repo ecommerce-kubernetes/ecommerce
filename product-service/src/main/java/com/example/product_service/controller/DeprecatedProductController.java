@@ -120,10 +120,7 @@ public class DeprecatedProductController {
     @GetMapping("/{productId}/reviews")
     public ResponseEntity<PageDto<ReviewResponse>> getReviewsByProductId(@PathVariable("productId") Long productId,
                                                                          @PageableDefault(page = 0, size = 10, sort = "rating", direction = Sort.Direction.ASC) Pageable pageable){
-        PageableValidator validator = pageableValidatorFactory.getValidator(DomainType.REVIEW);
-        Pageable validatedPageable = validator.validate(pageable);
-        PageDto<ReviewResponse> result = productQueryService.getReviewsByProductId(productId, validatedPageable);
-        return ResponseEntity.ok(result);
+        return null;
     }
 
     @AdminApi

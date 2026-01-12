@@ -3,6 +3,7 @@ package com.example.product_service.api.product.controller.dto;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -25,4 +26,13 @@ public class ProductSearchCondition {
     @Max(value = 5, message = "최대 평점은 5점입니다")
     private Integer rating;
 
+    @Builder
+    private ProductSearchCondition(Integer page, Integer size, String sort, Long categoryId, String name, Integer rating) {
+        this.page = page;
+        this.size = size;
+        this.sort = sort;
+        this.categoryId = categoryId;
+        this.name = name;
+        this.rating = rating;
+    }
 }

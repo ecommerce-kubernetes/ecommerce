@@ -6,19 +6,8 @@ import lombok.Getter;
 @Getter
 public class ProductCreateResponse {
     private Long productId;
-    private String name;
-    private Long categoryId;
-    private Long price;
-    private String status;
-    private String createdAt;
-
     @Builder
-    private ProductCreateResponse(Long productId, String name, Long categoryId, Long price, String status, String createdAt) {
+    private ProductCreateResponse(Long productId) {
         this.productId = productId;
-        this.name = name;
-        this.categoryId = categoryId;
-        this.price = price;
-        this.status = status;
-        this.createdAt = createdAt;
     }
 }

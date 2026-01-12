@@ -6,13 +6,13 @@ import lombok.Getter;
 import java.util.List;
 
 @Getter
-public class VariantCreateResponse {
+public class ProductImageCreateResponse {
     private Long productId;
-    private List<VariantResponse> variants;
+    private List<ProductImageResponse> images;
 
     @Builder
-    private VariantCreateResponse(Long productId, List<VariantResponse> variants) {
+    private ProductImageCreateResponse(List<ProductImageResponse> images, Long productId) {
+        this.images = images;
         this.productId = productId;
-        this.variants = variants;
     }
 }

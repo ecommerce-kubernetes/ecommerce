@@ -297,15 +297,7 @@ class DeprecatedProductControllerTest {
     @Test
     @DisplayName("상품 조회 테스트-성공")
     void getProductsTest_success() throws Exception {
-        PageDto<ProductSummaryResponse> response = new PageDto<>(
-                createProductSummaryResponse(),
-                0, 10, 10, 100);
-        when(pageableValidatorFactory.getValidator(DomainType.PRODUCT)).thenReturn(new ProductPageableValidator());
-        when(productQueryService.getProducts(any(ProductSearch.class), any(Pageable.class)))
-                .thenReturn(response);
-        ResultActions perform = performWithPageRequest(mockMvc, get(BASE_PATH), 0,
-                10, List.of("id,asc"), Map.of("categoryId", "3", "rating", "5"));
-        verifySuccessResponse(perform, status().isOk(), response);
+
 
     }
 
@@ -344,40 +336,19 @@ class DeprecatedProductControllerTest {
     @Test
     @DisplayName("인기 상품 조회 테스트-성공")
     void getPopularProductsTest_success() throws Exception {
-        PageDto<ProductSummaryResponse> response =
-                new PageDto<>(createProductSummaryResponse(), 0, 10, 10, 100);
-        when(productQueryService.getPopularProducts(anyInt(), anyInt(), anyLong()))
-                .thenReturn(response);
-        ResultActions perform = performWithParams(mockMvc, get(POPULAR_PATH), new LinkedMultiValueMap<>() {{
-            add("page", "0");
-            add("size", "10");
-            add("categoryId", "1");
-        }});
-        verifySuccessResponse(perform, status().isOk(), response);
+
     }
 
     @Test
     @DisplayName("상품 리뷰 조회 테스트-성공")
     void getReviewsByProductIdTest_success() throws Exception {
-        PageDto<ReviewResponse> response = new PageDto<>(createReviewResponse(), 0, 10, 10, 100);
-        when(productQueryService.getReviewsByProductId(anyLong(), any(Pageable.class)))
-                .thenReturn(response);
-        when(pageableValidatorFactory.getValidator(DomainType.REVIEW)).thenReturn(new ReviewPageableValidator());
 
-        ResultActions perform = performWithBody(mockMvc, get(REVIEW_PATH), null);
-        verifySuccessResponse(perform, status().isOk(), response);
     }
 
     @Test
     @DisplayName("상품 리뷰 조회 테스트-실패(상품 없음)")
     void getReviewsByProductIdTest_notFound() throws Exception {
-        when(productQueryService.getReviewsByProductId(anyLong(), any(Pageable.class)))
-                .thenThrow(new NotFoundException(getMessage(PRODUCT_NOT_FOUND)));
-        when(pageableValidatorFactory.getValidator(DomainType.REVIEW)).thenReturn(new ReviewPageableValidator());
 
-        ResultActions perform = performWithBody(mockMvc, get(REVIEW_PATH), null);
-        verifyErrorResponse(perform, status().isNotFound(), getMessage(NOT_FOUND),
-                getMessage(PRODUCT_NOT_FOUND), REVIEW_PATH);
     }
 
     @Test

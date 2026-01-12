@@ -28,13 +28,4 @@ public class ProductCreateRequest {
         this.description = description;
         this.price = price;
     }
-
-    public ProductCreateCommand toCommand(){
-        return ProductCreateCommand.builder()
-                .name(name)
-                .categoryId(categoryId)
-                .description(description)
-                .basePrice(price)
-                .build();
-    }
 }

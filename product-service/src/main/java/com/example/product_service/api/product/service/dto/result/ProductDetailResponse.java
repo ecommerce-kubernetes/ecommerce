@@ -1,5 +1,6 @@
 package com.example.product_service.api.product.service.dto.result;
 
+import lombok.Builder;
 import lombok.Getter;
 
 import java.util.List;
@@ -10,44 +11,56 @@ public class ProductDetailResponse {
     private String name;
     private String status;
     private Long categoryId;
-
     private Long displayPrice;
     private Long originalPrice;
-    private Integer discountRate;
-
+    private Integer maxDiscountRate;
     private Double rating;
     private Long reviewCount;
     private List<OptionGroup> optionGroups;
-
     private List<ProductImageResponse> images;
+    private List<VariantResponse> variants;
 
-    private List<VariantResponse> variantResponse;
-
-    public static class ProductImageResponse {
-        private Long imageId;
-        private String imageUrl;
-        private Integer order;
-        private boolean isThumbnail;
-    }
-
+    @Getter
     public static class OptionGroup {
         private Long optionTypeId;
         private String name;
         private List<OptionValueResponse> values;
 
-        public static class OptionValueResponse {
-            private Long optionValueId;
-            private String name;
+        @Builder
+        private OptionGroup(Long optionTypeId, String name, List<OptionValueResponse> values) {
+            this.optionTypeId = optionTypeId;
+            this.name = name;
+            this.values = values;
         }
     }
 
-    public static class VariantResponse {
-        private Long variantId;
-        private String sku;
-        private Long originalPrice;
-        private Long discountedPrice;
-        private Long discountRate;
-        private Integer stockQuantity;
-        private List<Long> combination;
+    @Getter
+    public static class OptionValueResponse {
+        private Long optionValueId;
+        private String name;
+
+        @Builder
+        private OptionValueResponse(Long optionValueId, String name) {
+            this.optionValueId = optionValueId;
+            this.name = name;
+        }
+    }
+
+    @Builder
+    public ProductDetailResponse(Long productId, String name, String status, Long categoryId, Long displayPrice,
+                                 Long originalPrice, Integer maxDiscountRate, Double rating, Long reviewCount, List<OptionGroup> optionGroups,
+                                 List<ProductImageResponse> images, List<VariantResponse> variants) {
+        this.productId = productId;
+        this.name = name;
+        this.status = status;
+        this.categoryId = categoryId;
+        this.displayPrice = displayPrice;
+        this.originalPrice = originalPrice;
+        this.maxDiscountRate = maxDiscountRate;
+        this.rating = rating;
+        this.reviewCount = reviewCount;
+        this.optionGroups = optionGroups;
+        this.images = images;
+        this.variants = variants;
     }
 }
