@@ -1,4 +1,4 @@
-package com.example.product_service.api.product.service.dto;
+package com.example.product_service.api.product.service.dto.result;
 
 import lombok.Getter;
 
