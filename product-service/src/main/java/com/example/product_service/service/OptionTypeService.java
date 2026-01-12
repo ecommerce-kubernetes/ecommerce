@@ -1,6 +1,7 @@
 package com.example.product_service.service;
 
 import com.example.product_service.api.option.domain.model.OptionType;
+import com.example.product_service.api.option.domain.repository.OptionTypeRepository;
 import com.example.product_service.common.MessageSourceUtil;
 import com.example.product_service.dto.request.options.OptionTypeRequest;
 import com.example.product_service.dto.request.options.OptionValueRequest;
@@ -8,7 +9,6 @@ import com.example.product_service.dto.response.options.OptionTypeResponse;
 import com.example.product_service.dto.response.options.OptionValueResponse;
 import com.example.product_service.exception.DuplicateResourceException;
 import com.example.product_service.exception.NotFoundException;
-import com.example.product_service.api.option.domain.repository.OptionTypeRepository;
 import com.example.product_service.repository.OptionValueRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

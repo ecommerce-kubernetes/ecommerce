@@ -8,13 +8,10 @@ import com.example.product_service.api.product.service.dto.command.ProductCreate
 import com.example.product_service.api.product.service.dto.result.*;
 import com.example.product_service.docs.RestDocsSupport;
 import com.example.product_service.dto.response.PageDto;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.BDDMockito;
 import org.mockito.Mockito;
 import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import java.time.LocalDateTime;
 import java.util.List;
