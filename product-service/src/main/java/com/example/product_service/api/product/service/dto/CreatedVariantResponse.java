@@ -1,0 +1,21 @@
+package com.example.product_service.api.product.service.dto;
+
+import lombok.Getter;
+
+import java.util.List;
+
+@Getter
+public class CreatedVariantResponse {
+    private Long productVariantId;
+    private String sku;
+    private List<VariantOptionResponse> options;
+    private Long originalPrice;
+    private Long discountedPrice;
+    private Integer discountRate;
+    private Integer stockQuantity;
+
+    public static class VariantOptionResponse {
+        private String name;
+        private String value;
+    }
+}
