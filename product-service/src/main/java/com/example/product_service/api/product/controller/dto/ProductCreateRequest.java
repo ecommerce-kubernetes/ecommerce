@@ -17,5 +17,5 @@ public class ProductCreateRequest {
     private String description;
     @NotNull(message = "가격은 필수 입니다")
     @Min(value = 0, message = "가격은 0 이상이여야 합니다")
-    private Integer basePrice;
+    private Long basePrice;
 }

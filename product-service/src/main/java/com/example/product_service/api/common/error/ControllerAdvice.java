@@ -1,6 +1,7 @@
-package com.example.product_service.common.advice;
+package com.example.product_service.api.common.error;
 
 import com.example.product_service.api.common.error.dto.response.ErrorResponse;
+import com.example.product_service.common.advice.ErrorResponseEntityFactory;
 import com.example.product_service.exception.BadRequestException;
 import com.example.product_service.exception.DuplicateResourceException;
 import com.example.product_service.exception.NoPermissionException;

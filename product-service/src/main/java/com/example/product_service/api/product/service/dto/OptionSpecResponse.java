@@ -8,4 +8,10 @@ import java.util.List;
 public class OptionSpecResponse {
     private Long productId;
     private List<ProductOptionSpecResponse> optionNames;
+
+    public static class ProductOptionSpecResponse {
+        private Long optionTypeId;
+        private String name;
+        private Integer priority;
+    }
 }

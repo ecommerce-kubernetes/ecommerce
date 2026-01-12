@@ -1,12 +1,9 @@
 package com.example.product_service.api.product.controller;
 
-import com.example.product_service.api.product.controller.dto.OptionSpecRequest;
-import com.example.product_service.api.product.controller.dto.ProductCreateRequest;
-import com.example.product_service.api.product.controller.dto.VariantCreateRequest;
-import com.example.product_service.api.product.service.dto.OptionSpecResponse;
-import com.example.product_service.api.product.service.dto.ProductCreateResponse;
+import com.example.product_service.api.product.controller.dto.*;
+import com.example.product_service.api.product.service.dto.*;
 import com.example.product_service.api.product.service.ProductService;
-import com.example.product_service.api.product.service.dto.VariantCreateResponse;
+import com.example.product_service.dto.response.PageDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -40,5 +37,26 @@ public class ProductController {
         return null;
     }
 
+    @PostMapping("/{productId}/images")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ImageCreateResponse> addImage(@PathVariable("productId") Long productId,
+                                                        @RequestBody @Validated ProductImageCreateRequest request) {
+        return null;
+    }
 
+    @PatchMapping("/{productId}/publish")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ProductPublishResponse> publish(@PathVariable("productId") Long productId) {
+        return null;
+    }
+
+    @GetMapping
+    public ResponseEntity<PageDto<ProductSummaryResponse>> getProducts(@ModelAttribute @Validated ProductSearchCondition condition) {
+        return null;
+    }
+
+    @GetMapping("/{productId}")
+    public ResponseEntity<ProductDetailResponse> getProduct(@PathVariable("productId") Long productId) {
+        return null;
+    }
 }

@@ -19,7 +19,7 @@ public class VariantCreateRequest {
         private String sku;
         private Long price;
         private Integer discountRate;
-        private Integer StockQuantity;
+        private Integer stockQuantity;
         private List<Long> optionValueIds;
     }
 }

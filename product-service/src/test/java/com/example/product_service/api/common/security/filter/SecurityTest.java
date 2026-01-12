@@ -2,7 +2,7 @@ package com.example.product_service.api.common.security.filter;
 
 import com.example.product_service.api.common.security.config.SecurityConfig;
 import com.example.product_service.api.support.DummyController;
-import com.example.product_service.common.advice.ControllerAdvice;
+import com.example.product_service.api.common.error.ControllerAdvice;
 import com.example.product_service.config.TestConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

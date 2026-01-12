@@ -1,6 +1,5 @@
 package com.example.product_service.api.product.controller.dto;
 
-import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -9,7 +8,6 @@ import java.util.List;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class OptionSpecRequest {
-    @NotNull(message = "옵션 Id 리스트는 필수 입니다")
-    private List<Long> optionTypeIds;
+public class ProductImageCreateRequest {
+    List<String> images;
 }
