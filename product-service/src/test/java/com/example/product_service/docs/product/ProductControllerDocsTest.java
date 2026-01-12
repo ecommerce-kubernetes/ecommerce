@@ -82,7 +82,7 @@ public class ProductControllerDocsTest extends RestDocsSupport {
                 .name("상품")
                 .categoryId(1L)
                 .description("상품 설명")
-                .displayPrice(3000L);
+                .price(3000L);
     }
 
     private ProductCreateResponse.ProductCreateResponseBuilder createProductCreateResponse(){
@@ -90,7 +90,7 @@ public class ProductControllerDocsTest extends RestDocsSupport {
                 .productId(1L)
                 .name("상품")
                 .categoryId(1L)
-                .basePrice(3000L)
+                .price(3000L)
                 .status("PREPARING")
                 .createdAt(LocalDateTime.now().toString());
     }
