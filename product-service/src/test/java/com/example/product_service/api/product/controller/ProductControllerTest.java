@@ -1,13 +1,12 @@
 package com.example.product_service.api.product.controller;
 
 import com.example.product_service.api.common.security.model.UserRole;
-import com.example.product_service.api.product.controller.dto.ProductCreateRequest;
-import com.example.product_service.api.product.controller.dto.ProductImageCreateRequest;
-import com.example.product_service.api.product.controller.dto.ProductOptionSpecRequest;
-import com.example.product_service.api.product.controller.dto.VariantCreateRequest;
+import com.example.product_service.api.product.controller.dto.*;
 import com.example.product_service.api.product.service.dto.command.AddVariantCommand;
 import com.example.product_service.api.product.service.dto.command.ProductCreateCommand;
+import com.example.product_service.api.product.service.dto.command.ProductUpdateCommand;
 import com.example.product_service.api.product.service.dto.result.*;
+import com.example.product_service.dto.response.PageDto;
 import com.example.product_service.support.ControllerTestSupport;
 import com.example.product_service.support.security.annotation.WithCustomMockUser;
 import com.example.product_service.support.security.config.TestSecurityConfig;
@@ -19,6 +18,8 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
 import java.util.List;
 import java.util.stream.Stream;
@@ -379,6 +380,199 @@ public class ProductControllerTest extends ControllerTestSupport {
                 .andExpect(jsonPath("$.path").value("/products/1/publish"));
     }
 
+    @Test
+    @DisplayName("상품 목록을 조회한다")
+    void getProducts() throws Exception {
+        //given
+        ProductSummaryResponse summary = mockSummaryResponse().build();
+        PageDto<ProductSummaryResponse> response = PageDto.<ProductSummaryResponse>builder().content(List.of(summary))
+                .currentPage(1)
+                .totalPage(10)
+                .pageSize(10)
+                .totalElement(100)
+                .build();
+
+        MultiValueMap<String, String> paramMap = new LinkedMultiValueMap<>();
+        paramMap.add("page", "1");
+        paramMap.add("size", "10");
+        paramMap.add("sort", "latest");
+        paramMap.add("categoryId", "1");
+        paramMap.add("name", "상품");
+        paramMap.add("rating", "3");
+        given(productService.getProducts(any(ProductSearchCondition.class)))
+                .willReturn(response);
+        //when
+        //then
+        mockMvc.perform(get("/products")
+                .contentType(MediaType.APPLICATION_JSON)
+                .params(paramMap))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(response)));
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @DisplayName("상품 목록을 조회한다")
+    @MethodSource("provideInvalidCondition")
+    void getProducts_invalidCondition(String description, MultiValueMap<String, String> parameters, String message) throws Exception {
+        //given
+        ProductSummaryResponse summary = mockSummaryResponse().build();
+        PageDto<ProductSummaryResponse> response = PageDto.<ProductSummaryResponse>builder().content(List.of(summary))
+                .currentPage(1)
+                .totalPage(10)
+                .pageSize(10)
+                .totalElement(100)
+                .build();
+        given(productService.getProducts(any(ProductSearchCondition.class)))
+                .willReturn(response);
+        //when
+        //then
+        mockMvc.perform(get("/products")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .params(parameters))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION"))
+                .andExpect(jsonPath("$.message").value(message))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/products"));
+    }
+
+    @Test
+    @DisplayName("상품을 조회한다")
+    void getProductDetail() throws Exception {
+        //given
+        ProductDetailResponse response = mockDetailResponse().build();
+        given(productService.getProduct(anyLong())).willReturn(response);
+        //when
+        //then
+        mockMvc.perform(get("/products/{productId}", 1L)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(response)));
+    }
+
+    @Test
+    @DisplayName("상품을 수정한다")
+    @WithCustomMockUser
+    void updateProduct() throws Exception {
+        //given
+        ProductUpdateRequest request = mockUpdateRequest().build();
+        ProductUpdateResponse response = mockUpdateResponse().build();
+        given(productService.updateProduct(any(ProductUpdateCommand.class)))
+                .willReturn(response);
+        //when
+        //then
+        mockMvc.perform(put("/products/{productId}", 1L)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(response)));
+    }
+
+    @Test
+    @DisplayName("상품을 수정하려면 관리자 권한이여야 한다")
+    @WithCustomMockUser(userRole = UserRole.ROLE_USER)
+    void updateProduct_user_role() throws Exception {
+        //given
+        ProductUpdateRequest request = mockUpdateRequest().build();
+        //when
+        //then
+        mockMvc.perform(put("/products/{productId}", 1L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value("FORBIDDEN"))
+                .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다"))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/products/1"));
+    }
+
+    @Test
+    @DisplayName("로그인 하지 않은 사용자는 상품을 수정할 수 없다")
+    void updateProduct_unAuthorized() throws Exception {
+        //given
+        ProductUpdateRequest request = mockUpdateRequest().build();
+        //when
+        //then
+        mockMvc.perform(put("/products/{productId}", 1L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
+                .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다"))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/products/1"));
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("provideInvalidUpdateRequest")
+    @WithCustomMockUser
+    @DisplayName("상품 수정 요청 검증")
+    void updateProduct_validation(String description, ProductUpdateRequest request, String message) throws Exception {
+        //given
+        //when
+        //then
+        mockMvc.perform(put("/products/{productId}", 1L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION"))
+                .andExpect(jsonPath("$.message").value(message))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/products/1"));
+    }
+
+    @Test
+    @DisplayName("상품을 삭제한다")
+    @WithCustomMockUser
+    void deleteProduct() throws Exception {
+        //given
+        //when
+        //then
+        mockMvc.perform(delete("/products/{productId}", 1L)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @DisplayName("상품을 삭제하려면 관리자 권한이여야 한다")
+    @WithCustomMockUser(userRole = UserRole.ROLE_USER)
+    void deleteProduct_user_role() throws Exception {
+        //given
+        //when
+        //then
+        mockMvc.perform(delete("/products/{productId}", 1L)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value("FORBIDDEN"))
+                .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다"))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/products/1"));
+    }
+
+    @Test
+    @DisplayName("로그인 하지 않은 사용자는 상품을 삭제할 수 없다")
+    void deleteProduct_unAuthorized() throws Exception {
+        //given
+        //when
+        //then
+        mockMvc.perform(delete("/products/{productId}", 1L)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
+                .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다"))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/products/1"));
+    }
+
     private static Stream<Arguments> provideInvalidProductCreateRequest() {
         return Stream.of(
                 Arguments.of("상품 이름이 공백", mockCreateRequest().name(null).build(), "상품 이름은 필수 입니다"),
@@ -414,5 +608,26 @@ public class ProductControllerTest extends ControllerTestSupport {
                         List.of(VariantCreateRequest.VariantRequest.builder().price(100L).discountRate(10).stockQuantity(100).optionValueIds(null).build())
                 ).build(), "상품 변형 옵션은 필수 입니다")
         );
+    }
+
+    private static Stream<Arguments> provideInvalidCondition() {
+        return Stream.of(
+                Arguments.of("categoryId 가 0", invalidCondition("categoryId", "0"), "카테고리 Id는 0 또는 음수일 수 없습니다"),
+                Arguments.of("rating 이 음수", invalidCondition("rating", "-1"), "평점은 음수일 수 없습니다"),
+                Arguments.of("rating 이 5 이상", invalidCondition("rating", "6"), "최대 평점은 5점입니다")
+        );
+    }
+
+    private static Stream<Arguments> provideInvalidUpdateRequest(){
+        return Stream.of(
+                Arguments.of("빈 이름", mockUpdateRequest().name(null).build(), "상품 이름은 필수 입니다"),
+                Arguments.of("카테고리 id 가 null", mockUpdateRequest().categoryId(null).build(), "카테고리 id는 필수 입니다")
+        );
+    }
+
+    private static LinkedMultiValueMap<String, String> invalidCondition(String key, String value){
+        LinkedMultiValueMap<String, String> parameterMap = new LinkedMultiValueMap<>();
+        parameterMap.add(key, value);
+        return parameterMap;
     }
 }

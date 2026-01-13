@@ -10,9 +10,9 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ProductUpdateRequest {
-    @NotBlank(message = "상품 이름은 필수입니다")
+    @NotBlank(message = "상품 이름은 필수 입니다")
     private String name;
-    @NotNull(message = "카테고리 Id는 필수입니다")
+    @NotNull(message = "카테고리 id는 필수 입니다")
     private Long categoryId;
     private String description;
 

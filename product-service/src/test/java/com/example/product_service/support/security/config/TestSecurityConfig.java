@@ -22,6 +22,7 @@ public class TestSecurityConfig {
                         auth -> auth
                                 .requestMatchers("/categories/**").permitAll()
                                 .requestMatchers("/options/**").permitAll()
+                                .requestMatchers("/products/**").permitAll()
                                 .requestMatchers("/test").permitAll()
                                 .anyRequest().authenticated())
                 .exceptionHandling(handler -> handler
