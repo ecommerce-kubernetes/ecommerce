@@ -1,7 +1,7 @@
 package com.example.order_service.api.common.security.filter;
 
-import com.example.order_service.api.common.security.model.UserRole;
 import com.example.order_service.api.common.security.model.UserPrincipal;
+import com.example.order_service.api.common.security.model.UserRole;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

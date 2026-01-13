@@ -1,7 +1,7 @@
 package com.example.order_service.docs;
 
-import com.example.order_service.api.common.security.model.UserRole;
 import com.example.order_service.api.common.security.model.UserPrincipal;
+import com.example.order_service.api.common.security.model.UserRole;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;

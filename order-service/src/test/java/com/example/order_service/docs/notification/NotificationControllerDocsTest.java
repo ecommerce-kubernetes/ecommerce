@@ -1,7 +1,7 @@
 package com.example.order_service.docs.notification;
 
-import com.example.order_service.api.common.security.model.UserRole;
 import com.example.order_service.api.common.security.model.UserPrincipal;
+import com.example.order_service.api.common.security.model.UserRole;
 import com.example.order_service.api.notification.controller.NotificationController;
 import com.example.order_service.api.notification.service.NotificationService;
 import com.example.order_service.docs.RestDocSupport;
