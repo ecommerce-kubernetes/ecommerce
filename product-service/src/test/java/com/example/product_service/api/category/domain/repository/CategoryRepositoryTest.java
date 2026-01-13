@@ -1,7 +1,7 @@
 package com.example.product_service.api.category.domain.repository;
 
 import com.example.product_service.api.category.domain.model.Category;
-import com.example.product_service.api.support.ExcludeInfraTest;
+import com.example.product_service.support.ExcludeInfraTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

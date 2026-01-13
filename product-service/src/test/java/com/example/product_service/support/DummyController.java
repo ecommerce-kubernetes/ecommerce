@@ -1,4 +1,4 @@
-package com.example.product_service.api.support;
+package com.example.product_service.support;
 
 import com.example.product_service.api.common.security.model.UserPrincipal;
 import com.example.product_service.api.common.security.model.UserRole;

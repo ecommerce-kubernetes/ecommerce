@@ -11,6 +11,7 @@ public class ProductDetailResponse {
     private String name;
     private String status;
     private Long categoryId;
+    private String description;
     private Long displayPrice;
     private Long originalPrice;
     private Integer maxDiscountRate;
@@ -47,13 +48,14 @@ public class ProductDetailResponse {
     }
 
     @Builder
-    public ProductDetailResponse(Long productId, String name, String status, Long categoryId, Long displayPrice,
+    private ProductDetailResponse(Long productId, String name, String status, Long categoryId, String description, Long displayPrice,
                                  Long originalPrice, Integer maxDiscountRate, Double rating, Long reviewCount, List<OptionGroup> optionGroups,
                                  List<ProductImageResponse> images, List<VariantResponse> variants) {
         this.productId = productId;
         this.name = name;
         this.status = status;
         this.categoryId = categoryId;
+        this.description = description;
         this.displayPrice = displayPrice;
         this.originalPrice = originalPrice;
         this.maxDiscountRate = maxDiscountRate;

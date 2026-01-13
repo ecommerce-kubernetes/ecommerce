@@ -7,7 +7,7 @@ import com.example.product_service.api.category.service.dto.result.CategoryRespo
 import com.example.product_service.api.category.service.dto.result.CategoryTreeResponse;
 import com.example.product_service.api.common.exception.BusinessException;
 import com.example.product_service.api.common.exception.CategoryErrorCode;
-import com.example.product_service.api.support.ExcludeInfraTest;
+import com.example.product_service.support.ExcludeInfraTest;
 import com.example.product_service.entity.Product;
 import com.example.product_service.repository.ProductRepository;
 import org.junit.jupiter.api.DisplayName;

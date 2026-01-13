@@ -4,10 +4,9 @@ import com.example.product_service.api.common.security.model.UserRole;
 import com.example.product_service.api.option.controller.dto.OptionRequest;
 import com.example.product_service.api.option.service.dto.OptionResponse;
 import com.example.product_service.api.option.service.dto.OptionValueResponse;
-import com.example.product_service.api.support.ControllerTestSupport;
-import com.example.product_service.api.support.security.annotation.WithCustomMockUser;
-import com.example.product_service.api.support.security.config.TestSecurityConfig;
-import com.example.product_service.config.TestConfig;
+import com.example.product_service.support.ControllerTestSupport;
+import com.example.product_service.support.security.annotation.WithCustomMockUser;
+import com.example.product_service.support.security.config.TestSecurityConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -26,7 +25,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@Import({TestConfig.class, TestSecurityConfig.class})
+@Import(TestSecurityConfig.class)
 public class OptionControllerTest extends ControllerTestSupport {
 
 

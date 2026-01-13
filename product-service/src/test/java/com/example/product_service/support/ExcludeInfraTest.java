@@ -1,4 +1,4 @@
-package com.example.product_service.api.support;
+package com.example.product_service.support;
 
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.kafka.core.KafkaTemplate;

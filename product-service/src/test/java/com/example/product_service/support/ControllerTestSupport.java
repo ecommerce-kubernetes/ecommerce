@@ -1,4 +1,4 @@
-package com.example.product_service.api.support;
+package com.example.product_service.support;
 
 import com.example.product_service.api.category.controller.CategoryController;
 import com.example.product_service.api.category.service.CategoryService;

@@ -347,7 +347,6 @@ public class CategoryControllerDocsTest extends RestDocsSupport {
                 .imageUrl("http://category.jpg");
     }
 
-
     private HttpHeaders createAdminHeader(){
         HttpHeaders headers = new HttpHeaders();
         headers.add("X-User-Id", "1");

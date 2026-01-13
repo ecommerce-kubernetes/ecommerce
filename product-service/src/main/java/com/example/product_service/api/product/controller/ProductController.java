@@ -4,6 +4,7 @@ import com.example.product_service.api.product.controller.dto.*;
 import com.example.product_service.api.product.service.ProductService;
 import com.example.product_service.api.product.service.dto.command.AddVariantCommand;
 import com.example.product_service.api.product.service.dto.command.ProductCreateCommand;
+import com.example.product_service.api.product.service.dto.command.ProductUpdateCommand;
 import com.example.product_service.api.product.service.dto.result.*;
 import com.example.product_service.dto.response.PageDto;
 import lombok.RequiredArgsConstructor;
@@ -64,7 +65,7 @@ public class ProductController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/{productId}/images")
+    @PutMapping("/{productId}/images")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ProductImageCreateResponse> addImages(@PathVariable("productId") Long productId,
                                                                @RequestBody @Validated ProductImageCreateRequest request) {
@@ -89,5 +90,27 @@ public class ProductController {
     public ResponseEntity<ProductDetailResponse> getProductDetail(@PathVariable("productId") Long productId) {
         ProductDetailResponse response = productService.getProduct(productId);
         return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/{productId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ProductUpdateResponse> updateProduct(@PathVariable("productId") Long productId,
+                                                               @RequestBody @Validated ProductUpdateRequest request) {
+        ProductUpdateCommand command = ProductUpdateCommand.builder()
+                .productId(productId)
+                .name(request.getName())
+                .categoryId(request.getCategoryId())
+                .description(request.getDescription())
+                .build();
+
+        ProductUpdateResponse response = productService.updateProduct(command);
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/{productId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> deleteProduct(@PathVariable("productId") Long productId) {
+        productService.deleteProduct(productId);
+        return ResponseEntity.noContent().build();
     }
 }

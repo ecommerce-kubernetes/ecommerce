@@ -1,10 +1,9 @@
 package com.example.product_service.api.common.util;
 
 import com.example.product_service.api.common.config.JacksonConfig;
-import com.example.product_service.api.support.ControllerTestSupport;
-import com.example.product_service.api.support.DummyController;
-import com.example.product_service.api.support.security.config.TestSecurityConfig;
-import com.example.product_service.config.TestConfig;
+import com.example.product_service.support.ControllerTestSupport;
+import com.example.product_service.support.DummyController;
+import com.example.product_service.support.security.config.TestSecurityConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.Import;
@@ -15,7 +14,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
-@Import({TestConfig.class, TestSecurityConfig.class, JacksonConfig.class})
+@Import({TestSecurityConfig.class, JacksonConfig.class})
 public class StringTrimmerTest extends ControllerTestSupport {
     @Test
     @DisplayName("")

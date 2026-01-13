@@ -5,19 +5,22 @@ import com.example.product_service.api.product.controller.dto.*;
 import com.example.product_service.api.product.service.ProductService;
 import com.example.product_service.api.product.service.dto.command.AddVariantCommand;
 import com.example.product_service.api.product.service.dto.command.ProductCreateCommand;
+import com.example.product_service.api.product.service.dto.command.ProductUpdateCommand;
 import com.example.product_service.api.product.service.dto.result.*;
 import com.example.product_service.docs.RestDocsSupport;
 import com.example.product_service.dto.response.PageDto;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
+import static com.example.product_service.support.fixture.ProductControllerFixture.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willDoNothing;
 import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
 import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
@@ -39,15 +42,17 @@ public class ProductControllerDocsTest extends RestDocsSupport {
     @DisplayName("상품을 생성한다")
     void createProduct() throws Exception {
         //given
-        ProductCreateRequest request = createProductCreateRequest().build();
-        ProductCreateResponse response = createProductCreateResponse().build();
+        ProductCreateRequest request = mockCreateRequest().build();
+        ProductCreateResponse response = mockCreateResponse().build();
+        HttpHeaders adminHeader = createAdminHeader();
         given(productService.createProduct(any(ProductCreateCommand.class)))
                 .willReturn(response);
         //when
         //then
         mockMvc.perform(post("/products")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+                .content(objectMapper.writeValueAsString(request))
+                        .headers(adminHeader))
                 .andExpect(status().isCreated())
                 .andDo(print())
                 .andDo(
@@ -78,15 +83,17 @@ public class ProductControllerDocsTest extends RestDocsSupport {
     @DisplayName("상품 옵션 정의")
     void addOptionSpec() throws Exception {
         //given
-        ProductOptionSpecRequest request = createProductOptionSpecRequest().build();
-        ProductOptionSpecResponse response = createProductOptionSpecResponse().build();
+        ProductOptionSpecRequest request = mockOptionSpecRequest().build();
+        ProductOptionSpecResponse response = mockOptionSpecResponse().build();
+        HttpHeaders adminHeader = createAdminHeader();
         given(productService.addOptionSpec(anyLong(), anyList()))
                 .willReturn(response);
         //when
         //then
         mockMvc.perform(post("/products/{productId}/option-specs", 1L)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+                .content(objectMapper.writeValueAsString(request))
+                        .headers(adminHeader))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andDo(
@@ -123,15 +130,17 @@ public class ProductControllerDocsTest extends RestDocsSupport {
     @DisplayName("상품 변형 추가")
     void addVariant() throws Exception {
         //given
-        VariantCreateRequest request = createVariantCreateRequest().build();
-        VariantCreateResponse response = createVariantCreateResponse().build();
+        VariantCreateRequest request = mockCreateVariantRequest().build();
+        VariantCreateResponse response = mockCreateVariantResponse().build();
+        HttpHeaders adminHeader = createAdminHeader();
         given(productService.addVariants(any(AddVariantCommand.class)))
                 .willReturn(response);
         //when
         //then
         mockMvc.perform(post("/products/{productId}/variants", 1L)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                        .content(objectMapper.writeValueAsString(request))
+                        .headers(adminHeader))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andDo(
@@ -173,15 +182,17 @@ public class ProductControllerDocsTest extends RestDocsSupport {
     @DisplayName("상품 이미지 추가")
     void addImages() throws Exception {
         //given
-        ProductImageCreateRequest request = createProductImageRequest().build();
-        ProductImageCreateResponse response = createProductImageCreateResponse().build();
+        ProductImageCreateRequest request = mockImageRequest().build();
+        ProductImageCreateResponse response = mockImageResponse().build();
+        HttpHeaders adminHeader = createAdminHeader();
         given(productService.addImages(anyLong(), anyList()))
                 .willReturn(response);
         //when
         //then
-        mockMvc.perform(post("/products/{productId}/images", 1L)
+        mockMvc.perform(put("/products/{productId}/images", 1L)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                        .content(objectMapper.writeValueAsString(request))
+                        .headers(adminHeader))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andDo(
@@ -217,13 +228,15 @@ public class ProductControllerDocsTest extends RestDocsSupport {
     @DisplayName("상품을 게시한다")
     void publishProduct() throws Exception {
         //given
-        ProductPublishResponse response = createPublishResponse().build();
+        ProductPublishResponse response = mockPublishResponse().build();
+        HttpHeaders adminHeader = createAdminHeader();
         given(productService.publish(anyLong()))
                 .willReturn(response);
         //when
         //then
         mockMvc.perform(patch("/products/{productId}/publish", 1L)
-                        .contentType(MediaType.APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .headers(adminHeader))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andDo(
@@ -253,7 +266,7 @@ public class ProductControllerDocsTest extends RestDocsSupport {
     @DisplayName("상품 목록을 조회한다")
     void getProducts() throws Exception {
         //given
-        ProductSummaryResponse summary = createProductSummaryResponse().build();
+        ProductSummaryResponse summary = mockSummaryResponse().build();
         PageDto<ProductSummaryResponse> response = PageDto.<ProductSummaryResponse>builder().content(List.of(summary))
                 .currentPage(1)
                 .totalPage(10)
@@ -315,7 +328,7 @@ public class ProductControllerDocsTest extends RestDocsSupport {
     @DisplayName("상품을 조회한다")
     void getProduct() throws Exception {
         //given
-        ProductDetailResponse response = createProductDetailResponse().build();
+        ProductDetailResponse response = mockDetailResponse().build();
         given(productService.getProduct(anyLong()))
                 .willReturn(response);
         //when
@@ -336,6 +349,7 @@ public class ProductControllerDocsTest extends RestDocsSupport {
                                     fieldWithPath("name").description("상품 이름"),
                                     fieldWithPath("status").description("상품 상태"),
                                     fieldWithPath("categoryId").description("카테고리 Id"),
+                                    fieldWithPath("description").description("상품 설명"),
                                     fieldWithPath("displayPrice").description("대표 상품 판매 가격"),
                                     fieldWithPath("originalPrice").description("대표 상품 원본 가격"),
                                     fieldWithPath("maxDiscountRate").description("최대 할인율"),
@@ -361,158 +375,84 @@ public class ProductControllerDocsTest extends RestDocsSupport {
                 );
     }
 
-    private ProductCreateRequest.ProductCreateRequestBuilder createProductCreateRequest(){
-        return ProductCreateRequest.builder()
-                .name("상품")
-                .categoryId(1L)
-                .description("상품 설명")
-                .price(3000L);
-    }
+    @Test
+    @DisplayName("상품 정보를 수정한다")
+    void updateProduct() throws Exception {
+        //given
+        ProductUpdateRequest request = mockUpdateRequest().build();
+        ProductUpdateResponse response = mockUpdateResponse().build();
+        HttpHeaders adminHeader = createAdminHeader();
+        given(productService.updateProduct(any(ProductUpdateCommand.class)))
+                .willReturn(response);
+        //when
+        //then
+        mockMvc.perform(put("/products/{productId}", 1L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
+                        .headers(adminHeader))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(
+                        document("update-product",
+                                preprocessRequest(prettyPrint()),
+                                preprocessResponse(prettyPrint()),
 
-    private ProductOptionSpecRequest.ProductOptionSpecRequestBuilder createProductOptionSpecRequest(){
-        return ProductOptionSpecRequest.builder()
-                .optionTypeIds(
-                        List.of(1L, 2L)
-                );
-    }
+                                requestHeaders(
+                                        headerWithName("X-User-Id").description(USER_ID_HEADER_DESCRIPTION).optional(),
+                                        headerWithName("X-User-Role").description(USER_ROLE_HEADER_DESCRIPTION).optional()
+                                ),
 
-    private VariantCreateRequest.VariantCreateRequestBuilder createVariantCreateRequest() {
-        return VariantCreateRequest.builder()
-                .variants(
-                        List.of(
-                                VariantCreateRequest.VariantRequest.builder()
-                                        .price(3000L)
-                                        .discountRate(10)
-                                        .stockQuantity(100)
-                                        .optionValueIds(List.of(1L, 2L))
-                                        .build()
+                                pathParameters(
+                                        parameterWithName("productId").description("수정할 상품 ID")
+                                ),
+                                requestFields(
+                                        fieldWithPath("name").description("변경할 상품 이름"),
+                                        fieldWithPath("categoryId").description("변경할 카테고리 Id"),
+                                        fieldWithPath("description").description("변경할 상품 설명")
+                                ),
+                                responseFields(
+                                        fieldWithPath("productId").description("상품 ID"),
+                                        fieldWithPath("name").description("상품 이름"),
+                                        fieldWithPath("categoryId").description("카테고리 Id"),
+                                        fieldWithPath("description").description("상품 설명")
+                                )
                         )
                 );
     }
 
-    private ProductImageCreateRequest.ProductImageCreateRequestBuilder createProductImageRequest(){
-        return ProductImageCreateRequest.builder()
-                .images(List.of("http://image1.jpg", "http://image2.jpg"));
-    }
+    @Test
+    @DisplayName("상품을 삭제한다")
+    void deleteProduct() throws Exception {
+        //given
+        willDoNothing().given(productService).deleteProduct(anyLong());
+        HttpHeaders adminHeader = createAdminHeader();
+        //when
+        //then
+        mockMvc.perform(delete("/products/{productId}", 1L)
+                .contentType(MediaType.APPLICATION_JSON)
+                        .headers(adminHeader))
+                .andDo(print())
+                .andExpect(status().isNoContent())
+                .andDo(
+                        document("delete-product",
+                                preprocessResponse(prettyPrint()),
 
-    private ProductCreateResponse.ProductCreateResponseBuilder createProductCreateResponse(){
-        return ProductCreateResponse.builder()
-                .productId(1L);
-    }
+                                requestHeaders(
+                                        headerWithName("X-User-Id").description(USER_ID_HEADER_DESCRIPTION).optional(),
+                                        headerWithName("X-User-Role").description(USER_ROLE_HEADER_DESCRIPTION).optional()
+                                ),
 
-    private VariantCreateResponse.VariantCreateResponseBuilder createVariantCreateResponse() {
-        return VariantCreateResponse.builder()
-                .productId(1L)
-                .variants(
-                        List.of(
-                                VariantResponse.builder()
-                                        .variantId(1L)
-                                        .sku("PROD-XL")
-                                        .optionValueIds(List.of(1L, 2L))
-                                        .originalPrice(3000L)
-                                        .discountedPrice(2700L)
-                                        .discountRate(10)
-                                        .stockQuantity(100)
-                                        .build()
+                                pathParameters(
+                                        parameterWithName("productId").description("수정할 상품 ID")
+                                )
                         )
                 );
     }
 
-    private ProductOptionSpecResponse.ProductOptionSpecResponseBuilder createProductOptionSpecResponse() {
-        return ProductOptionSpecResponse.builder()
-                .productId(1L)
-                .options(
-                        List.of(
-                                ProductOptionSpecResponse.ProductOptionSpec.builder()
-                                        .productOptionId(1L)
-                                        .optionTypeId(1L)
-                                        .name("사이즈")
-                                        .priority(1)
-                                        .build()
-                        )
-                );
-    }
-
-    private ProductImageCreateResponse.ProductImageCreateResponseBuilder createProductImageCreateResponse() {
-        return ProductImageCreateResponse
-                .builder()
-                .productId(1L)
-                .images(
-                        List.of(
-                                ProductImageResponse.builder()
-                                        .productImageId(1L)
-                                        .imageUrl("http://image1.jpg")
-                                        .order(1)
-                                        .isThumbnail(true)
-                                        .build()
-                        ));
-    }
-
-    private ProductPublishResponse.ProductPublishResponseBuilder createPublishResponse() {
-        return ProductPublishResponse.builder()
-                .productId(1L)
-                .status("ON_SALE")
-                .publishedAt(LocalDateTime.now().toString());
-    }
-
-    private ProductSummaryResponse.ProductSummaryResponseBuilder createProductSummaryResponse() {
-        return ProductSummaryResponse.builder()
-                .productId(1L)
-                .name("상품")
-                .thumbnail("http://image.jpg")
-                .displayPrice(2700L)
-                .originalPrice(3000L)
-                .maxDiscountRate(10)
-                .categoryId(1L)
-                .publishedAt(LocalDateTime.now().toString())
-                .rating(3D)
-                .reviewCount(100L)
-                .status("ON_SALE");
-    }
-
-    private ProductDetailResponse.ProductDetailResponseBuilder createProductDetailResponse() {
-        return ProductDetailResponse.builder()
-                .productId(1L)
-                .name("상품")
-                .status("ON_SALE")
-                .categoryId(1L)
-                .displayPrice(2700L)
-                .originalPrice(3000L)
-                .maxDiscountRate(10)
-                .rating(3D)
-                .reviewCount(100L)
-                .optionGroups(
-                        List.of(
-                                ProductDetailResponse.OptionGroup.builder()
-                                        .optionTypeId(1L)
-                                        .name("사이즈")
-                                        .values(
-                                                List.of(
-                                                        ProductDetailResponse.OptionValueResponse.builder()
-                                                                .optionValueId(1L)
-                                                                .name("XL").build()
-                                                )
-                                        )
-                                        .build()))
-                .images(
-                        List.of(
-                                ProductImageResponse.builder()
-                                        .productImageId(1L)
-                                        .imageUrl("http://image.jpg")
-                                        .order(1)
-                                        .isThumbnail(true)
-                                        .build()))
-                .variants(
-                        List.of(
-                                VariantResponse.builder()
-                                        .variantId(1L)
-                                        .sku("PROD-XL")
-                                        .optionValueIds(List.of(1L))
-                                        .originalPrice(3000L)
-                                        .discountedPrice(2700L)
-                                        .discountRate(10)
-                                        .stockQuantity(100).build()
-                        )
-                );
+    private HttpHeaders createAdminHeader(){
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("X-User-Id", "1");
+        headers.add("X-User-Role", "ROLE_ADMIN");
+        return headers;
     }
 }

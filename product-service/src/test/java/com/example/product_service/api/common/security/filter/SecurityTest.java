@@ -2,8 +2,7 @@ package com.example.product_service.api.common.security.filter;
 
 import com.example.product_service.api.common.error.ControllerAdvice;
 import com.example.product_service.api.common.security.config.SecurityConfig;
-import com.example.product_service.api.support.DummyController;
-import com.example.product_service.config.TestConfig;
+import com.example.product_service.support.DummyController;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -28,8 +27,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-//TODO TestConfig 삭제
-@Import({SecurityConfig.class, TestConfig.class})
+@Import(SecurityConfig.class)
 @WebMvcTest(
         controllers = DummyController.class,
         excludeFilters = @ComponentScan.Filter(

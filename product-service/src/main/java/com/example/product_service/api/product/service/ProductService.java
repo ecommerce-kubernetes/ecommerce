@@ -3,6 +3,7 @@ package com.example.product_service.api.product.service;
 import com.example.product_service.api.product.controller.dto.ProductSearchCondition;
 import com.example.product_service.api.product.service.dto.command.AddVariantCommand;
 import com.example.product_service.api.product.service.dto.command.ProductCreateCommand;
+import com.example.product_service.api.product.service.dto.command.ProductUpdateCommand;
 import com.example.product_service.api.product.service.dto.result.*;
 import com.example.product_service.dto.response.PageDto;
 import lombok.RequiredArgsConstructor;
@@ -40,5 +41,13 @@ public class ProductService {
 
     public ProductDetailResponse getProduct(Long productId){
         return null;
+    }
+
+    public ProductUpdateResponse updateProduct(ProductUpdateCommand command) {
+        return null;
+    }
+
+    public void deleteProduct(Long productId) {
+
     }
 }

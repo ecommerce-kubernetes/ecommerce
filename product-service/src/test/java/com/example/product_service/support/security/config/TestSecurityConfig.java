@@ -1,4 +1,4 @@
-package com.example.product_service.api.support.security.config;
+package com.example.product_service.support.security.config;
 
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
