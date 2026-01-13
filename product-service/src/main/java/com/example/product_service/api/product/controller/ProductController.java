@@ -30,7 +30,6 @@ public class ProductController {
                 .name(request.getName())
                 .categoryId(request.getCategoryId())
                 .description(request.getDescription())
-                .price(request.getPrice())
                 .build();
 
         ProductCreateResponse response = productService.createProduct(command);

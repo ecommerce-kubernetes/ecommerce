@@ -11,7 +11,7 @@ import java.util.List;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ProductOptionSpecRequest {
-    @NotNull(message = "옵션 Id 리스트는 필수 입니다")
+    @NotNull(message = "옵션 id 리스트는 필수 입니다")
     private List<Long> optionTypeIds;
 
     @Builder

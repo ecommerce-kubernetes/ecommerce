@@ -16,15 +16,11 @@ public class ProductCreateRequest {
     @NotNull(message = "카테고리 id는 필수 입니다")
     private Long categoryId;
     private String description;
-    @NotNull(message = "가격은 필수 입니다")
-    @Min(value = 0, message = "가격은 0 이상이여야 합니다")
-    private Long price;
 
     @Builder
-    private ProductCreateRequest(String name, Long categoryId, String description, Long price) {
+    private ProductCreateRequest(String name, Long categoryId, String description) {
         this.name = name;
         this.categoryId = categoryId;
         this.description = description;
-        this.price = price;
     }
 }

@@ -68,8 +68,7 @@ public class ProductControllerDocsTest extends RestDocsSupport {
                                 requestFields(
                                         fieldWithPath("name").description("상품 이름").optional(),
                                         fieldWithPath("categoryId").description("카테고리 Id").optional(),
-                                        fieldWithPath("description").description("상품 설명"),
-                                        fieldWithPath("price").description("임시 가격").optional()
+                                        fieldWithPath("description").description("상품 설명")
                                 ),
 
                                 responseFields(

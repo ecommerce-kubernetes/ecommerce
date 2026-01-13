@@ -8,13 +8,11 @@ public class ProductCreateCommand {
     private String name;
     private Long categoryId;
     private String description;
-    private Long price;
 
     @Builder
-    private ProductCreateCommand(String name, Long categoryId, String description, Long price) {
+    private ProductCreateCommand(String name, Long categoryId, String description) {
         this.name = name;
         this.categoryId = categoryId;
         this.description = description;
-        this.price = price;
     }
 }

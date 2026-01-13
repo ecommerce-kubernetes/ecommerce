@@ -31,8 +31,7 @@ public class ProductControllerFixture {
         return ProductCreateRequest.builder()
                 .name("상품")
                 .categoryId(1L)
-                .description("상품 설명")
-                .price(PRICE);
+                .description("상품 설명");
     }
 
     public static ProductCreateResponse.ProductCreateResponseBuilder mockCreateResponse(){
