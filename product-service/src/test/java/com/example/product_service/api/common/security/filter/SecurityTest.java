@@ -114,6 +114,45 @@ public class SecurityTest {
                 .andExpect(content().string("userId=" + userId + ",userRole=" + userRole));
     }
 
+    @Test
+    @DisplayName("관리자 권한 요청 성공")
+    void permission() throws Exception {
+        //given
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("X-User-Id", "1");
+        headers.add("X-User-Role", "ROLE_ADMIN");
+        //when
+        //then
+        mockMvc.perform(get("/security/permission")
+                .headers(headers)
+                .with(SecurityMockMvcRequestPostProcessors.csrf())
+                .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().string("ok"));
+    }
+
+    @Test
+    @DisplayName("권한이 부족하면 권한 부족 에러 응답을 반환한다")
+    void lack_of_permission() throws Exception {
+        //given
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("X-User-Id", "1");
+        headers.add("X-User-Role", "ROLE_USER");
+        //when
+        //then
+        mockMvc.perform(get("/security/permission")
+                        .headers(headers)
+                        .with(SecurityMockMvcRequestPostProcessors.csrf())
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value("FORBIDDEN"))
+                .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다"))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/security/permission"));
+    }
+
     private static Stream<Arguments> provideInvalidHeader() {
         HttpHeaders noUserIdHeader = new HttpHeaders(MultiValueMap.fromSingleValue(Map.of("X-User-Role", "ROLE_USER")));
         HttpHeaders noUserRoleHeader = new HttpHeaders(MultiValueMap.fromSingleValue(Map.of("X-User-Id", "1")));

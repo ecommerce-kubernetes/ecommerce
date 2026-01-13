@@ -60,7 +60,7 @@ public class OptionControllerTest extends ControllerTestSupport {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("code").value("FORBIDDEN"))
-                .andExpect(jsonPath("message").value("요청 권한이 없습니다"))
+                .andExpect(jsonPath("message").value("요청 권한이 부족합니다"))
                 .andExpect(jsonPath("timestamp").exists())
                 .andExpect(jsonPath("path").value("/options"));
     }
@@ -75,9 +75,9 @@ public class OptionControllerTest extends ControllerTestSupport {
         mockMvc.perform(post("/options")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isForbidden())
-                .andExpect(jsonPath("code").value("FORBIDDEN"))
-                .andExpect(jsonPath("message").value("요청 권한이 없습니다"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("code").value("UNAUTHORIZED"))
+                .andExpect(jsonPath("message").value("인증이 필요한 접근입니다"))
                 .andExpect(jsonPath("timestamp").exists())
                 .andExpect(jsonPath("path").value("/options"));
     }
@@ -165,7 +165,7 @@ public class OptionControllerTest extends ControllerTestSupport {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("code").value("FORBIDDEN"))
-                .andExpect(jsonPath("message").value("요청 권한이 없습니다"))
+                .andExpect(jsonPath("message").value("요청 권한이 부족합니다"))
                 .andExpect(jsonPath("timestamp").exists())
                 .andExpect(jsonPath("path").value("/options/1"));
     }
@@ -180,9 +180,9 @@ public class OptionControllerTest extends ControllerTestSupport {
         mockMvc.perform(put("/options/{optionId}", 1L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isForbidden())
-                .andExpect(jsonPath("code").value("FORBIDDEN"))
-                .andExpect(jsonPath("message").value("요청 권한이 없습니다"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("code").value("UNAUTHORIZED"))
+                .andExpect(jsonPath("message").value("인증이 필요한 접근입니다"))
                 .andExpect(jsonPath("timestamp").exists())
                 .andExpect(jsonPath("path").value("/options/1"));
     }
@@ -221,7 +221,7 @@ public class OptionControllerTest extends ControllerTestSupport {
     }
 
     @Test
-    @DisplayName("옵션을 삭제하려면 유저 권한이여야 한다")
+    @DisplayName("옵션을 삭제하려면 관리자 권한이여야 한다")
     @WithCustomMockUser(userRole = UserRole.ROLE_USER)
     void deleteOptionWithUserRole() throws Exception {
         //given
@@ -232,7 +232,7 @@ public class OptionControllerTest extends ControllerTestSupport {
                 .andDo(print())
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("code").value("FORBIDDEN"))
-                .andExpect(jsonPath("message").value("요청 권한이 없습니다"))
+                .andExpect(jsonPath("message").value("요청 권한이 부족합니다"))
                 .andExpect(jsonPath("timestamp").exists())
                 .andExpect(jsonPath("path").value("/options/1"));
     }
@@ -246,9 +246,9 @@ public class OptionControllerTest extends ControllerTestSupport {
         mockMvc.perform(delete("/options/{optionId}", 1L)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
-                .andExpect(status().isForbidden())
-                .andExpect(jsonPath("code").value("FORBIDDEN"))
-                .andExpect(jsonPath("message").value("요청 권한이 없습니다"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("code").value("UNAUTHORIZED"))
+                .andExpect(jsonPath("message").value("인증이 필요한 접근입니다"))
                 .andExpect(jsonPath("timestamp").exists())
                 .andExpect(jsonPath("path").value("/options/1"));
     }

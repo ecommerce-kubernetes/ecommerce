@@ -6,30 +6,25 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.ws.rs.core.MediaType;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.web.access.AccessDeniedHandler;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
 
-public class HeaderAuthenticationEntryPoint implements AuthenticationEntryPoint {
+public class CustomAccessDeniedHandler implements AccessDeniedHandler {
     private final ObjectMapper objectMapper = new ObjectMapper();
-
     @Override
-    public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
-        String message = (String) request.getAttribute("authError");
+    public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException) throws IOException, ServletException {
         LocalDateTime now = LocalDateTime.now();
-        if (message == null) {
-            message = "인증이 필요한 접근입니다";
-        }
-        writeErrorResponse(response, message, now, request.getRequestURI());
+        writeErrorResponse(response, "요청 권한이 부족합니다", now, request.getRequestURI());
     }
 
     private void writeErrorResponse(HttpServletResponse response, String message, LocalDateTime requestAt, String requestUrl) throws IOException {
-        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
         response.setContentType(MediaType.APPLICATION_JSON);
         ErrorResponse errorResponse = ErrorResponse.builder()
-                .code("UNAUTHORIZED")
+                .code("FORBIDDEN")
                 .message(message)
                 .timestamp(requestAt.toString())
                 .path(requestUrl)

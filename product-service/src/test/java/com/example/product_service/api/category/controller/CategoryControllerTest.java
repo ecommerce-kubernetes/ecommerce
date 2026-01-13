@@ -63,7 +63,7 @@ public class CategoryControllerTest extends ControllerTestSupport {
                 .andDo(print())
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("code").value("FORBIDDEN"))
-                .andExpect(jsonPath("message").value("요청 권한이 없습니다"))
+                .andExpect(jsonPath("message").value("요청 권한이 부족합니다"))
                 .andExpect(jsonPath("timestamp").exists())
                 .andExpect(jsonPath("path").value("/categories"));
     }
@@ -79,9 +79,9 @@ public class CategoryControllerTest extends ControllerTestSupport {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
-                .andExpect(status().isForbidden())
-                .andExpect(jsonPath("code").value("FORBIDDEN"))
-                .andExpect(jsonPath("message").value("요청 권한이 없습니다"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("code").value("UNAUTHORIZED"))
+                .andExpect(jsonPath("message").value("인증이 필요한 접근입니다"))
                 .andExpect(jsonPath("timestamp").exists())
                 .andExpect(jsonPath("path").value("/categories"));
     }
@@ -138,7 +138,7 @@ public class CategoryControllerTest extends ControllerTestSupport {
                 .andDo(print())
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("code").value("FORBIDDEN"))
-                .andExpect(jsonPath("message").value("요청 권한이 없습니다"))
+                .andExpect(jsonPath("message").value("요청 권한이 부족합니다"))
                 .andExpect(jsonPath("timestamp").exists())
                 .andExpect(jsonPath("path").value("/categories/1"));
     }
@@ -154,9 +154,9 @@ public class CategoryControllerTest extends ControllerTestSupport {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
-                .andExpect(status().isForbidden())
-                .andExpect(jsonPath("code").value("FORBIDDEN"))
-                .andExpect(jsonPath("message").value("요청 권한이 없습니다"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("code").value("UNAUTHORIZED"))
+                .andExpect(jsonPath("message").value("인증이 필요한 접근입니다"))
                 .andExpect(jsonPath("timestamp").exists())
                 .andExpect(jsonPath("path").value("/categories/1"));
     }
@@ -213,7 +213,7 @@ public class CategoryControllerTest extends ControllerTestSupport {
                 .andDo(print())
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("code").value("FORBIDDEN"))
-                .andExpect(jsonPath("message").value("요청 권한이 없습니다"))
+                .andExpect(jsonPath("message").value("요청 권한이 부족합니다"))
                 .andExpect(jsonPath("timestamp").exists())
                 .andExpect(jsonPath("path").value("/categories/1/move"));
     }
@@ -229,9 +229,9 @@ public class CategoryControllerTest extends ControllerTestSupport {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
-                .andExpect(status().isForbidden())
-                .andExpect(jsonPath("code").value("FORBIDDEN"))
-                .andExpect(jsonPath("message").value("요청 권한이 없습니다"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("code").value("UNAUTHORIZED"))
+                .andExpect(jsonPath("message").value("인증이 필요한 접근입니다"))
                 .andExpect(jsonPath("timestamp").exists())
                 .andExpect(jsonPath("path").value("/categories/1/move"));
     }
@@ -277,7 +277,7 @@ public class CategoryControllerTest extends ControllerTestSupport {
         mockMvc.perform(delete("/categories/{categoryId}", 1L))
                 .andDo(print())
                 .andExpect(jsonPath("code").value("FORBIDDEN"))
-                .andExpect(jsonPath("message").value("요청 권한이 없습니다"))
+                .andExpect(jsonPath("message").value("요청 권한이 부족합니다"))
                 .andExpect(jsonPath("timestamp").exists())
                 .andExpect(jsonPath("path").value("/categories/1"));
     }
@@ -290,8 +290,9 @@ public class CategoryControllerTest extends ControllerTestSupport {
         //then
         mockMvc.perform(delete("/categories/{categoryId}", 1L))
                 .andDo(print())
-                .andExpect(jsonPath("code").value("FORBIDDEN"))
-                .andExpect(jsonPath("message").value("요청 권한이 없습니다"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("code").value("UNAUTHORIZED"))
+                .andExpect(jsonPath("message").value("인증이 필요한 접근입니다"))
                 .andExpect(jsonPath("timestamp").exists())
                 .andExpect(jsonPath("path").value("/categories/1"));
     }
