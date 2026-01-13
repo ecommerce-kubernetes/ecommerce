@@ -1,6 +1,7 @@
 package com.example.order_service.api.common.security.config;
 
-import com.example.order_service.api.common.security.filter.HeaderAuthenticationEntryPoint;
+import com.example.order_service.api.common.security.filter.CustomAccessDeniedHandler;
+import com.example.order_service.api.common.security.filter.CustomAuthenticationEntryPoint;
 import com.example.order_service.api.common.security.filter.HeaderPreAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -31,7 +32,8 @@ public class SecurityConfig {
                 )
                 .addFilterBefore(headerPreAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling(exception -> exception
-                        .authenticationEntryPoint(headerAuthenticationEntryPoint()));
+                        .authenticationEntryPoint(customAuthenticationEntryPoint())
+                        .accessDeniedHandler(customAccessDeniedHandler()));
         return http.build();
     }
 
@@ -41,7 +43,12 @@ public class SecurityConfig {
     }
 
     @Bean
-    public HeaderAuthenticationEntryPoint headerAuthenticationEntryPoint() {
-        return new HeaderAuthenticationEntryPoint();
+    public CustomAuthenticationEntryPoint customAuthenticationEntryPoint() {
+        return new CustomAuthenticationEntryPoint();
+    }
+
+    @Bean
+    public CustomAccessDeniedHandler customAccessDeniedHandler() {
+        return new CustomAccessDeniedHandler();
     }
 }

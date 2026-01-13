@@ -14,6 +14,7 @@ import com.example.order_service.api.order.controller.dto.request.OrderSearchCon
 import com.example.order_service.api.support.ControllerTestSupport;
 import com.example.order_service.api.support.security.annotation.WithCustomMockUser;
 import com.example.order_service.api.support.security.config.TestSecurityConfig;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -79,7 +80,25 @@ class OrderControllerTest extends ControllerTestSupport {
                 .andDo(print())
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.code").value("FORBIDDEN"))
-                .andExpect(jsonPath("$.message").value("요청 권한이 없습니다"))
+                .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다"))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/orders"));
+    }
+
+    @Test
+    @DisplayName("로그인 하지 않은 사용자는 주문을 생성할 수 없다")
+    void createOrder_unAuthorized() throws Exception {
+        //given
+        CreateOrderRequest request = createBaseRequest().build();
+        //when
+        //then
+        mockMvc.perform(post("/orders")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
+                .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다"))
                 .andExpect(jsonPath("$.timestamp").exists())
                 .andExpect(jsonPath("$.path").value("/orders"));
     }
@@ -122,6 +141,43 @@ class OrderControllerTest extends ControllerTestSupport {
                 .andExpect(content().json(objectMapper.writeValueAsString(response)));
     }
 
+    @Test
+    @DisplayName("결제 승인시 권한은 유저 권한이여야 한다")
+    @WithCustomMockUser(userRole = UserRole.ROLE_ADMIN)
+    void confirm_Admin_role() throws Exception {
+        //given
+        OrderConfirmRequest request = confirmBaseRequest().build();
+        //when
+        //then
+        mockMvc.perform(post("/orders/confirm")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value("FORBIDDEN"))
+                .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다"))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/orders/confirm"));
+    }
+
+    @Test
+    @DisplayName("로그인 하지 않은 사용자는 결제 승인을 요청할 수 없다")
+    void confirm_unAuthorized() throws Exception {
+        //given
+        OrderConfirmRequest request = confirmBaseRequest().build();
+        //when
+        //then
+        mockMvc.perform(post("/orders/confirm")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
+                .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다"))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/orders/confirm"));
+    }
+
     @ParameterizedTest(name = "{0}")
     @DisplayName("결제 승인 요청시 유효성 검증에 실패하면 400 에러를 반환한다")
     @MethodSource("provideInvalidConfirmRequest")
@@ -154,6 +210,39 @@ class OrderControllerTest extends ControllerTestSupport {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().json(objectMapper.writeValueAsString(response)));
+    }
+
+    @Test
+    @DisplayName("주문 정보를 조회할때는 유저 권한이여야 한다")
+    @WithCustomMockUser(userRole = UserRole.ROLE_ADMIN)
+    void getOrder_Admin_role() throws Exception {
+        //given
+        //when
+        //then
+        mockMvc.perform(get("/orders/{orderId}", 1L)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value("FORBIDDEN"))
+                .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다"))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/orders/1"));
+    }
+
+    @Test
+    @DisplayName("로그인 하지 않은 사용자는 주문 정보를 조회할 수 없다")
+    void getOrder_unAuthorized() throws Exception {
+        //given
+        //when
+        //then
+        mockMvc.perform(get("/orders/{orderId}", 1L)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
+                .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다"))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/orders/1"));
     }
 
     @Test
@@ -193,6 +282,49 @@ class OrderControllerTest extends ControllerTestSupport {
                 .extracting(OrderSearchCondition::getPage, OrderSearchCondition::getSize, OrderSearchCondition::getSort, OrderSearchCondition::getYear,
                         OrderSearchCondition::getProductName)
                 .containsExactly(1, 10, "latest", null, null);
+    }
+
+    @Test
+    @DisplayName("주문 목록 조회시 권한은 유저여야 한다")
+    @WithCustomMockUser(userRole = UserRole.ROLE_ADMIN)
+    void getOrders_Admin_role() throws Exception {
+        //given
+        MultiValueMap<String, String> paramMap = new LinkedMultiValueMap<>();
+        paramMap.add("page", "1");
+        paramMap.add("size", "10");
+        paramMap.add("sort", "latest");
+        //when
+        //then
+        mockMvc.perform(get("/orders")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .params(paramMap))
+                .andDo(print())
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value("FORBIDDEN"))
+                .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다"))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/orders"));
+    }
+
+    @Test
+    @DisplayName("로그인 하지 않은 사용자는 주문 목록을 조회할 수 없다")
+    void getOrders_unAuthorized() throws Exception {
+        //given
+        MultiValueMap<String, String> paramMap = new LinkedMultiValueMap<>();
+        paramMap.add("page", "1");
+        paramMap.add("size", "10");
+        paramMap.add("sort", "latest");
+        //when
+        //then
+        mockMvc.perform(get("/orders")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .params(paramMap))
+                .andDo(print())
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
+                .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다"))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/orders"));
     }
 
     @Test

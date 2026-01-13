@@ -27,7 +27,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@Import({SecurityConfig.class})
+@Import(SecurityConfig.class)
 @WebMvcTest(
         controllers = DummyController.class, //더미 컨트롤러
         excludeFilters = @ComponentScan.Filter(
@@ -35,7 +35,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
                 classes = {ControllerAdvice.class} //ControllerAdvice 제외 (필터 작동 테스트)
         )
 )
-public class HeaderPreAuthenticationFilterTest {
+public class SecurityTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -115,6 +115,45 @@ public class HeaderPreAuthenticationFilterTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().string("userId=" + userId + ",userRole=" + userRole));
+    }
+
+    @Test
+    @DisplayName("권한 요청 성공")
+    void permission() throws Exception {
+        //given
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("X-User-Id", "1");
+        headers.add("X-User-Role", "ROLE_ADMIN");
+        //when
+        //then
+        mockMvc.perform(get("/security/permission")
+                        .headers(headers)
+                        .with(SecurityMockMvcRequestPostProcessors.csrf())
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().string("ok"));
+    }
+
+    @Test
+    @DisplayName("요청 권한이 부족하면 에러 응답을 반환한다")
+    void lack_of_permission() throws Exception {
+        //given
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("X-User-Id", "1");
+        headers.add("X-User-Role", "ROLE_USER");
+        //when
+        //then
+        mockMvc.perform(get("/security/permission")
+                        .headers(headers)
+                        .with(SecurityMockMvcRequestPostProcessors.csrf())
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value("FORBIDDEN"))
+                .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다"))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/security/permission"));
     }
 
     static Stream<Arguments> provideInvalidHeader(){

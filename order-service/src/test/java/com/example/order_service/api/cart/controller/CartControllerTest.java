@@ -10,6 +10,7 @@ import com.example.order_service.api.common.security.model.UserRole;
 import com.example.order_service.api.support.ControllerTestSupport;
 import com.example.order_service.api.support.security.annotation.WithCustomMockUser;
 import com.example.order_service.api.support.security.config.TestSecurityConfig;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -72,7 +73,28 @@ class CartControllerTest extends ControllerTestSupport {
                 .andDo(print())
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.code").value("FORBIDDEN"))
-                .andExpect(jsonPath("$.message").value("요청 권한이 없습니다"))
+                .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다"))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/carts"));
+    }
+
+    @Test
+    @DisplayName("로그인 하지 않은 사용자는 장바구니에 상품을 추가할 수 없다")
+    void addCartItem_unAuthorized() throws Exception {
+        //given
+        CartItemRequest request = CartItemRequest.builder()
+                .productVariantId(1L)
+                .quantity(1)
+                .build();
+        //when
+        //then
+        mockMvc.perform(post("/carts")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
+                .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다"))
                 .andExpect(jsonPath("$.timestamp").exists())
                 .andExpect(jsonPath("$.path").value("/carts"));
     }
@@ -126,7 +148,23 @@ class CartControllerTest extends ControllerTestSupport {
                 .andDo(print())
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.code").value("FORBIDDEN"))
-                .andExpect(jsonPath("$.message").value("요청 권한이 없습니다"))
+                .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다"))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/carts"));
+    }
+
+    @Test
+    @DisplayName("로그인 하지 않은 회원은 장바구니를 조회할 수 없다")
+    void getAllCartItem_unAuthorized() throws Exception {
+        //given
+        //when
+        //then
+        mockMvc.perform(get("/carts")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
+                .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다"))
                 .andExpect(jsonPath("$.timestamp").exists())
                 .andExpect(jsonPath("$.path").value("/carts"));
     }
@@ -147,6 +185,7 @@ class CartControllerTest extends ControllerTestSupport {
 
     @Test
     @DisplayName("장바구에서 상품을 삭제할때는 유저 권한이여야 한다")
+    @WithCustomMockUser(userRole = UserRole.ROLE_ADMIN)
     void deleteCartItemWithAdminPrincipal() throws Exception {
         //given
         //when
@@ -156,7 +195,23 @@ class CartControllerTest extends ControllerTestSupport {
                 .andDo(print())
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.code").value("FORBIDDEN"))
-                .andExpect(jsonPath("$.message").value("요청 권한이 없습니다"))
+                .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다"))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/carts/1"));
+    }
+
+    @Test
+    @DisplayName("로그인 하지 않은 사용자는 장바구니에 상품을 삭제할 수 없다")
+    void deleteCartItem_unAuthorized() throws Exception {
+        //given
+        //when
+        //then
+        mockMvc.perform(delete("/carts/{cartItemId}", 1)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
+                .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다"))
                 .andExpect(jsonPath("$.timestamp").exists())
                 .andExpect(jsonPath("$.path").value("/carts/1"));
     }
@@ -173,6 +228,39 @@ class CartControllerTest extends ControllerTestSupport {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @DisplayName("장바구니 비우기는 유저 권한이여야 한다")
+    @WithCustomMockUser(userRole = UserRole.ROLE_ADMIN)
+    void clearCart_Admin_Role() throws Exception {
+        //given
+        //when
+        //then
+        mockMvc.perform(delete("/carts")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value("FORBIDDEN"))
+                .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다"))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/carts"));
+    }
+
+    @Test
+    @DisplayName("로그인 하지 않은 사용자는 장바구니를 비울 수 없다")
+    void clearCart_unAuthorized() throws Exception {
+        //given
+        //when
+        //then
+        mockMvc.perform(delete("/carts")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
+                .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다"))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/carts"));
     }
 
     @Test
@@ -197,6 +285,48 @@ class CartControllerTest extends ControllerTestSupport {
                 .andExpect(status().isOk())
                 .andExpect(content().json(objectMapper.writeValueAsString(response)));
     }
+
+    @Test
+    @DisplayName("장바구니 상품 수량 수정은 유저 권한이여야 한다")
+    @WithCustomMockUser(userRole = UserRole.ROLE_ADMIN)
+    void updateQuantity_Admin_role() throws Exception {
+        //given
+        UpdateQuantityRequest request = UpdateQuantityRequest.builder()
+                .quantity(3)
+                .build();
+        //when
+        //then
+        mockMvc.perform(patch("/carts/{cartItemId}", 1)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value("FORBIDDEN"))
+                .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다"))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/carts/1"));
+    }
+
+    @Test
+    @DisplayName("로그인 하지 않은 사용자는 장바구니 상품의 수량을 수정할 수 없다")
+    void updateQuantity_unAuthorized() throws Exception {
+        //given
+        UpdateQuantityRequest request = UpdateQuantityRequest.builder()
+                .quantity(3)
+                .build();
+        //when
+        //then
+        mockMvc.perform(patch("/carts/{cartItemId}", 1)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
+                .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다"))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/carts/1"));
+    }
+
 
     @Test
     @DisplayName("장바구니 상품 수량을 변경할때 수량은 1이상 이여야 한다")

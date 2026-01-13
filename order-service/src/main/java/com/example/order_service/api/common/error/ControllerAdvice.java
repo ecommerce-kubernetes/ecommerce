@@ -34,18 +34,6 @@ public class ControllerAdvice {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
-    @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<ErrorResponse> accessDeniedExceptionHandler(HttpServletRequest request, AccessDeniedException e){
-        LocalDateTime now = LocalDateTime.now();
-        ErrorResponse response = ErrorResponse.builder()
-                .code("FORBIDDEN")
-                .message("요청 권한이 없습니다")
-                .timestamp(now.toString())
-                .path(request.getRequestURI())
-                .build();
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
-    }
-
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ErrorResponse> businessExceptionHandler(HttpServletRequest request, BusinessException e) {
         LocalDateTime now = LocalDateTime.now();
