@@ -10,7 +10,6 @@ import com.example.product_service.dto.response.PageDto;
 import com.example.product_service.support.ControllerTestSupport;
 import com.example.product_service.support.security.annotation.WithCustomMockUser;
 import com.example.product_service.support.security.config.TestSecurityConfig;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -338,7 +337,7 @@ public class ProductControllerTest extends ControllerTestSupport {
     @WithCustomMockUser
     void publishProduct() throws Exception {
         //given
-        ProductPublishResponse response = mockPublishResponse().build();
+        ProductStatusResponse response = mockStatusResponse().build();
         given(productService.publish(anyLong()))
                 .willReturn(response);
         //when

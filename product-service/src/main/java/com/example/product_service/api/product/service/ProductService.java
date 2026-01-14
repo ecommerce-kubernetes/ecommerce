@@ -31,7 +31,7 @@ public class ProductService {
         return null;
     }
 
-    public ProductPublishResponse publish(Long productId) {
+    public ProductStatusResponse publish(Long productId) {
         return null;
     }
 
@@ -50,4 +50,9 @@ public class ProductService {
     public void deleteProduct(Long productId) {
 
     }
+
+    public ProductStatusResponse closedProduct(Long productId) {
+        return null;
+    }
+
 }

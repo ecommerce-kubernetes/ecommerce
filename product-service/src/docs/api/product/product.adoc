@@ -55,15 +55,27 @@ include::{snippets}/add-images/response-fields.adoc[]
 
 === 상품 게시
 ==== HTTP Request
-include::{snippets}/add-images/http-request.adoc[]
+include::{snippets}/product-publish/http-request.adoc[]
 ===== Request Header
-include::{snippets}/add-images/request-headers.adoc[]
+include::{snippets}/product-publish/request-headers.adoc[]
 ===== Request PathParam
-include::{snippets}/add-images/path-parameters.adoc[]
+include::{snippets}/product-publish/path-parameters.adoc[]
 ==== HTTP Response
-include::{snippets}/add-images/http-response.adoc[]
+include::{snippets}/product-publish/http-response.adoc[]
 ===== Response Fields
-include::{snippets}/add-images/response-fields.adoc[]
+include::{snippets}/product-publish/response-fields.adoc[]
+
+=== 상품 판매 중지
+==== HTTP Request
+include::{snippets}/product-close/http-request.adoc[]
+===== Request Header
+include::{snippets}/product-close/request-headers.adoc[]
+===== Request PathParam
+include::{snippets}/product-close/path-parameters.adoc[]
+==== HTTP Response
+include::{snippets}/product-close/http-response.adoc[]
+===== Response Fields
+include::{snippets}/product-close/response-fields.adoc[]
 
 === 상품 수정
 ==== HTTP Request

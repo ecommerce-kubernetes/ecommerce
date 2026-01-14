@@ -74,8 +74,8 @@ public class ProductController {
 
     @PatchMapping("/{productId}/publish")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ProductPublishResponse> publishProduct(@PathVariable("productId") Long productId) {
-        ProductPublishResponse response = productService.publish(productId);
+    public ResponseEntity<ProductStatusResponse> publishProduct(@PathVariable("productId") Long productId) {
+        ProductStatusResponse response = productService.publish(productId);
         return ResponseEntity.ok(response);
     }
 
@@ -103,6 +103,13 @@ public class ProductController {
                 .build();
 
         ProductUpdateResponse response = productService.updateProduct(command);
+        return ResponseEntity.ok(response);
+    }
+
+    @PatchMapping("/{productId}/close")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ProductStatusResponse> closeProduct(@PathVariable("productId") Long productId) {
+        ProductStatusResponse response = productService.closedProduct(productId);
         return ResponseEntity.ok(response);
     }
 

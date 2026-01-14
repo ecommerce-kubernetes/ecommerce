@@ -205,7 +205,7 @@ public class ProductControllerDocsTest extends RestDocsSupport {
                                 ),
 
                                 pathParameters(
-                                        parameterWithName("productId").description("상품 변형을 추가할 상품 ID")
+                                        parameterWithName("productId").description("이미지를 추가할 상품 ID")
                                 ),
 
                                 requestFields(
@@ -227,7 +227,7 @@ public class ProductControllerDocsTest extends RestDocsSupport {
     @DisplayName("상품을 게시한다")
     void publishProduct() throws Exception {
         //given
-        ProductPublishResponse response = mockPublishResponse().build();
+        ProductStatusResponse response = mockStatusResponse().build();
         HttpHeaders adminHeader = createAdminHeader();
         given(productService.publish(anyLong()))
                 .willReturn(response);
@@ -239,7 +239,7 @@ public class ProductControllerDocsTest extends RestDocsSupport {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andDo(
-                        document("add-images",
+                        document("product-publish",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint()),
 
@@ -249,13 +249,13 @@ public class ProductControllerDocsTest extends RestDocsSupport {
                                 ),
 
                                 pathParameters(
-                                        parameterWithName("productId").description("상품 변형을 추가할 상품 ID")
+                                        parameterWithName("productId").description("게시할 상품 상품 ID")
                                 ),
 
                                 responseFields(
                                         fieldWithPath("productId").description("상품 Id"),
                                         fieldWithPath("status").description("상품 상태"),
-                                        fieldWithPath("publishedAt").description("게시일")
+                                        fieldWithPath("changedAt").description("게시일")
                                 )
                         )
                 );
@@ -443,6 +443,43 @@ public class ProductControllerDocsTest extends RestDocsSupport {
 
                                 pathParameters(
                                         parameterWithName("productId").description("수정할 상품 ID")
+                                )
+                        )
+                );
+    }
+
+    @Test
+    @DisplayName("상품을 판매 중지로 변경한다")
+    void closeProduct() throws Exception {
+        //given
+        ProductStatusResponse response = mockStatusResponse().status("STOP_SELLING").build();
+        HttpHeaders adminHeader = createAdminHeader();
+        given(productService.closedProduct(anyLong()))
+                .willReturn(response);
+        //when
+        //then
+        mockMvc.perform(patch("/products/{productId}/close", 1L)
+                .contentType(MediaType.APPLICATION_JSON)
+                .headers(adminHeader))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(
+                        document("product-close",
+                                preprocessResponse(prettyPrint()),
+
+                                requestHeaders(
+                                        headerWithName("X-User-Id").description(USER_ID_HEADER_DESCRIPTION).optional(),
+                                        headerWithName("X-User-Role").description(USER_ROLE_HEADER_DESCRIPTION).optional()
+                                ),
+
+                                pathParameters(
+                                        parameterWithName("productId").description("수정할 상품 ID")
+                                ),
+
+                                responseFields(
+                                        fieldWithPath("productId").description("상품 Id"),
+                                        fieldWithPath("status").description("상품 상태"),
+                                        fieldWithPath("changedAt").description("게시일")
                                 )
                         )
                 );
