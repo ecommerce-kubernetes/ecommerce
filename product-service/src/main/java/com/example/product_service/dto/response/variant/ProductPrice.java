@@ -1,6 +1,6 @@
 package com.example.product_service.dto.response.variant;
 
-import com.example.product_service.entity.ProductVariant;
+import com.example.product_service.api.product.domain.model.ProductVariant;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,8 +16,6 @@ public class ProductPrice {
 
     public ProductPrice(ProductVariant productVariant){
         this.unitPrice = productVariant.getPrice();
-        this.discountRate = productVariant.getDiscountValue();
-        this.discountAmount = productVariant.getDiscountPrice();
-        this.discountedPrice = productVariant.getDiscountPrice();
+        this.discountRate = productVariant.getDiscountRate();
     }
 }

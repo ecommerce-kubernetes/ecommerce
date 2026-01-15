@@ -1,6 +1,6 @@
 package com.example.product_service.dto.response.product;
 
-import com.example.product_service.entity.Product;
+import com.example.product_service.api.product.domain.model.Product;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

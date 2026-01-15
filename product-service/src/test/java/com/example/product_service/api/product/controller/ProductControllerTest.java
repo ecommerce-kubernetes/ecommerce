@@ -111,11 +111,11 @@ public class ProductControllerTest extends ControllerTestSupport {
     @Test
     @DisplayName("상품 옵션을 정의한다")
     @WithCustomMockUser
-    void addOptionSpec() throws Exception {
+    void registerOptionSpec() throws Exception {
         //given
         ProductOptionSpecRequest request = mockOptionSpecRequest().build();
         ProductOptionSpecResponse response = mockOptionSpecResponse().build();
-        given(productService.addOptionSpec(anyLong(), anyList()))
+        given(productService.registerOptionSpec(anyLong(), anyList()))
                 .willReturn(response);
         //when
         //then
@@ -130,7 +130,7 @@ public class ProductControllerTest extends ControllerTestSupport {
     @Test
     @DisplayName("상품 옵션을 정의하려면 관리자 권한이여야 한다")
     @WithCustomMockUser(userRole = UserRole.ROLE_USER)
-    void addOptionSpec_user_role() throws Exception {
+    void registerOptionSpec_user_role() throws Exception {
         //given
         ProductOptionSpecRequest request = mockOptionSpecRequest().build();
         //when
@@ -147,7 +147,7 @@ public class ProductControllerTest extends ControllerTestSupport {
 
     @Test
     @DisplayName("로그인 하지 않은 사용자는 상품 옵션을 정의할 수 없다")
-    void addOptionSpec_unAuthorized() throws Exception {
+    void registerOptionSpec_unAuthorized() throws Exception {
         //given
         ProductOptionSpecRequest request = mockOptionSpecRequest().build();
         //when
@@ -166,7 +166,7 @@ public class ProductControllerTest extends ControllerTestSupport {
     @Test
     @DisplayName("상품 옵션 정의시 옵션 Id 리스트는 필수이다")
     @WithCustomMockUser
-    void addOptionSpec_invalidRequest() throws Exception {
+    void registerOptionSpec_invalidRequest() throws Exception {
         //given
         ProductOptionSpecRequest request = mockOptionSpecRequest().optionTypeIds(null).build();
         //when

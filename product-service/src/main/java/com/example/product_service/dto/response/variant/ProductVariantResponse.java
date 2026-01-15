@@ -1,7 +1,7 @@
 package com.example.product_service.dto.response.variant;
 
 import com.example.product_service.dto.response.options.OptionValueResponse;
-import com.example.product_service.entity.ProductVariant;
+import com.example.product_service.api.product.domain.model.ProductVariant;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -24,9 +24,8 @@ public class ProductVariantResponse {
     public ProductVariantResponse(ProductVariant productVariant){
         this.id = productVariant.getId();
         this.sku = productVariant.getSku();
-        this.price = productVariant.getPrice();
         this.stockQuantity = productVariant.getStockQuantity();
-        this.discountRate = productVariant.getDiscountValue();
+        this.discountRate = productVariant.getDiscountRate();
         this.optionValues = productVariant.getProductVariantOptions().stream()
                 .map(ov -> new OptionValueResponse(ov.getOptionValue())).toList();
     }

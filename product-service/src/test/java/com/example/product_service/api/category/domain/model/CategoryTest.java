@@ -179,6 +179,17 @@ public class CategoryTest {
         assertThat(grandson.getPath()).isEqualTo(newParent.getId() + "/" + child.getId() + "/" + grandson.getId());
     }
 
+    @Test
+    @DisplayName("최하위 카테고리인 경우 true를 반환한다")
+    void isLeaf(){
+        //given
+        Category root = Category.create("루트", null, "http://image.jpg");
+        //when
+        boolean isLeaf = root.isLeaf();
+        //then
+        assertThat(isLeaf).isTrue();
+    }
+
     private void setId(Category category, Long id) {
         ReflectionTestUtils.setField(category, "id", id);
     }

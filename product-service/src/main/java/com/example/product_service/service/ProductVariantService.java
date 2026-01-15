@@ -6,7 +6,7 @@ import com.example.product_service.dto.request.variant.UpdateProductVariantReque
 import com.example.product_service.dto.response.ReviewResponse;
 import com.example.product_service.dto.response.variant.OrderProductVariantResponse;
 import com.example.product_service.dto.response.variant.ProductVariantResponse;
-import com.example.product_service.entity.ProductVariant;
+import com.example.product_service.api.product.domain.model.ProductVariant;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.repository.ProductVariantsRepository;
 import lombok.RequiredArgsConstructor;
@@ -28,32 +28,6 @@ import static com.example.product_service.common.MessagePath.PRODUCT_VARIANT_NOT
 public class ProductVariantService{
     private final ProductVariantsRepository productVariantsRepository;
     private final MessageSourceUtil ms;
-
-    public ReviewResponse addReview(Long variantId, Long userId, ReviewRequest request) {
-        return null;
-    }
-
-    public ProductVariantResponse updateVariantById(Long variantId, UpdateProductVariantRequest request) {
-        ProductVariant productVariant = findWithProductById(variantId);
-        if(request.getPrice() != null){
-            productVariant.setPrice(request.getPrice());
-        }
-
-        if(request.getStockQuantity() != null){
-            productVariant.setStockQuantity(request.getStockQuantity());
-        }
-
-        if(request.getDiscountRate() != null){
-            productVariant.setDiscountValue(request.getDiscountRate());
-        }
-
-        return new ProductVariantResponse(productVariant);
-    }
-
-    public void deleteVariantById(Long variantId) {
-        ProductVariant productVariant = findWithProductById(variantId);
-        productVariant.getProduct().deleteVariant(productVariant);
-    }
 
     public Map<Long, Integer> inventoryReductionById(Map<Long, Integer> reductionMap){
         Set<Long> productVariantIds = reductionMap.keySet();

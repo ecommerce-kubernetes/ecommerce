@@ -38,9 +38,9 @@ public class ProductController {
 
     @PostMapping("/{productId}/option-specs")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ProductOptionSpecResponse> addOptionSpec(@PathVariable("productId") Long productId,
-                                                                   @RequestBody @Validated ProductOptionSpecRequest request) {
-        ProductOptionSpecResponse response = productService.addOptionSpec(productId, request.getOptionTypeIds());
+    public ResponseEntity<ProductOptionSpecResponse> registerOptionSpec(@PathVariable("productId") Long productId,
+                                                                        @RequestBody @Validated ProductOptionSpecRequest request) {
+        ProductOptionSpecResponse response = productService.registerOptionSpec(productId, request.getOptionTypeIds());
         return ResponseEntity.ok(response);
     }
 

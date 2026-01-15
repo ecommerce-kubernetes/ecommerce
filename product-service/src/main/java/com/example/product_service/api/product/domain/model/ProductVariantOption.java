@@ -1,4 +1,4 @@
-package com.example.product_service.entity;
+package com.example.product_service.api.product.domain.model;
 
 import com.example.product_service.api.common.entity.BaseEntity;
 import com.example.product_service.api.option.domain.model.OptionValue;

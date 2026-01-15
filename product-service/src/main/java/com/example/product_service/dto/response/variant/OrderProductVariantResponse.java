@@ -1,6 +1,6 @@
 package com.example.product_service.dto.response.variant;
 
-import com.example.product_service.entity.ProductVariant;
+import com.example.product_service.api.product.domain.model.ProductVariant;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -24,9 +24,6 @@ public class OrderProductVariantResponse {
         this.productId = productVariant.getProduct().getId();
         this.productVariantId = productVariant.getId();
         this.productName = productVariant.getProduct().getName();
-        this.productPrice = new ProductPrice(productVariant);
-        this.thumbnailUrl = productVariant.getProduct().getImages().stream().filter(i -> i.getSortOrder() == 0)
-                .findFirst().get().getImageUrl();
         this.itemOptions = productVariant.getProductVariantOptions().stream().map(pvo ->
                 new ItemOptionResponse(pvo.getOptionValue().getName(), pvo.getOptionValue().getOptionType().getName())).toList();
     }

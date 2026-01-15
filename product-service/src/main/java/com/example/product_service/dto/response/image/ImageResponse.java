@@ -1,6 +1,6 @@
 package com.example.product_service.dto.response.image;
 
-import com.example.product_service.entity.ProductImage;
+import com.example.product_service.api.product.domain.model.ProductImage;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

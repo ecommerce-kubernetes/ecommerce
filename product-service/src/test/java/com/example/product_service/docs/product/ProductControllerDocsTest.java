@@ -80,12 +80,12 @@ public class ProductControllerDocsTest extends RestDocsSupport {
 
     @Test
     @DisplayName("상품 옵션 정의")
-    void addOptionSpec() throws Exception {
+    void registerOptionSpec() throws Exception {
         //given
         ProductOptionSpecRequest request = mockOptionSpecRequest().build();
         ProductOptionSpecResponse response = mockOptionSpecResponse().build();
         HttpHeaders adminHeader = createAdminHeader();
-        given(productService.addOptionSpec(anyLong(), anyList()))
+        given(productService.registerOptionSpec(anyLong(), anyList()))
                 .willReturn(response);
         //when
         //then

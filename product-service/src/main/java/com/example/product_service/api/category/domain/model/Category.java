@@ -107,6 +107,10 @@ public class Category extends BaseEntity {
         }
     }
 
+    public boolean isLeaf() {
+        return this.children.isEmpty();
+    }
+
     private void linkParent(Category parent) {
         this.parent = parent;
         if (!parent.getChildren().contains(this)){

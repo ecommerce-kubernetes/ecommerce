@@ -88,8 +88,8 @@ public class ProductControllerFixture {
                 .productId(PRODUCT_ID)
                 .options(
                         List.of(
-                                ProductOptionSpecResponse.ProductOptionSpec.builder()
-                                        .productOptionId(1L)
+                                ProductOptionSpecResponse.OptionSpec.builder()
+                                        .productOptionSpecId(1L)
                                         .optionTypeId(1L)
                                         .name("사이즈")
                                         .priority(1)

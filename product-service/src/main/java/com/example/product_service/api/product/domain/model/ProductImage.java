@@ -1,16 +1,16 @@
-package com.example.product_service.entity;
+package com.example.product_service.api.product.domain.model;
 
 import com.example.product_service.api.common.entity.BaseEntity;
-import com.example.product_service.api.option.domain.model.OptionType;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-public class ProductOptionType extends BaseEntity {
+public class ProductImage extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -19,21 +19,25 @@ public class ProductOptionType extends BaseEntity {
     @JoinColumn(name = "product_id")
     private Product product;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "option_type_id")
-    private OptionType optionType;
+    @Setter
+    private String imageUrl;
+    private Integer sortOrder;
 
-    private int priority;
+    public ProductImage(String imageUrl, int sortOrder){
+        this.imageUrl = imageUrl;
+        this.sortOrder = sortOrder;
+    }
 
-    private boolean active;
+    public ProductImage(String imageUrl){
+        this.imageUrl = imageUrl;
+    }
 
-    public ProductOptionType(OptionType optionType, int priority, boolean active){
-        this.optionType = optionType;
-        this.priority = priority;
-        this.active = active;
+    protected void setSortOrder(int sortOrder){
+        this.sortOrder = sortOrder;
     }
 
     protected void setProduct(Product product){
         this.product = product;
     }
+
 }
