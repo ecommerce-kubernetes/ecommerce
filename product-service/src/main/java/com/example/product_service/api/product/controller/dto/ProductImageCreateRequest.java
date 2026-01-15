@@ -1,6 +1,5 @@
 package com.example.product_service.api.product.controller.dto;
 
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.Builder;

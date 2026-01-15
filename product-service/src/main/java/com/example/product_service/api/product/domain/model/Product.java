@@ -5,16 +5,17 @@ import com.example.product_service.api.common.entity.BaseEntity;
 import com.example.product_service.api.common.exception.BusinessException;
 import com.example.product_service.api.common.exception.ProductErrorCode;
 import com.example.product_service.api.option.domain.model.OptionType;
-import com.example.product_service.exception.BadRequestException;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -65,6 +66,9 @@ public class Product extends BaseEntity {
     }
 
     public static Product create(String name, String description, Category category) {
+        if (!category.isLeaf()) {
+            throw new BusinessException(ProductErrorCode.CATEGORY_NOT_LEAF);
+        }
         return Product.builder()
                 .name(name)
                 .category(category)
@@ -90,11 +94,10 @@ public class Product extends BaseEntity {
             throw new BusinessException(ProductErrorCode.DUPLICATE_OPTION_TYPE);
         }
         optionSpecs.clear();
-
         for (int i = 0; i < newOptionTypes.size(); i++) {
-            ProductOptionSpec optionSpec = ProductOptionSpec.create(newOptionTypes.get(i), i + 1);
-            this.optionSpecs.add(optionSpec);
-            optionSpec.setProduct(this);
+            this.optionSpecs.add(
+                    ProductOptionSpec.create(this, newOptionTypes.get(i), i+1)
+            );
         }
     }
 }

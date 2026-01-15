@@ -89,7 +89,7 @@ public class ProductControllerDocsTest extends RestDocsSupport {
                 .willReturn(response);
         //when
         //then
-        mockMvc.perform(post("/products/{productId}/option-specs", 1L)
+        mockMvc.perform(put("/products/{productId}/option-specs", 1L)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
                         .headers(adminHeader))
@@ -115,10 +115,10 @@ public class ProductControllerDocsTest extends RestDocsSupport {
 
                                 responseFields(
                                         fieldWithPath("productId").description("상품 Id"),
-                                        fieldWithPath("options[].productOptionId").description("상품 옵션 Id"),
-                                        fieldWithPath("options[].optionTypeId").description("옵션 타입 Id"),
-                                        fieldWithPath("options[].name").description("옵션 타입 이름"),
-                                        fieldWithPath("options[].priority").description("상품 옵션 순서")
+                                        fieldWithPath("specs[].id").description("상품 옵션 Id"),
+                                        fieldWithPath("specs[].optionTypeId").description("옵션 타입 Id"),
+                                        fieldWithPath("specs[].optionTypeName").description("옵션 타입 이름"),
+                                        fieldWithPath("specs[].priority").description("상품 옵션 순서")
                                 )
 
                         )

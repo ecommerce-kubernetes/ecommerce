@@ -7,7 +7,7 @@ import com.example.product_service.api.category.service.dto.result.CategoryRespo
 import com.example.product_service.api.category.service.dto.result.CategoryTreeResponse;
 import com.example.product_service.api.common.exception.BusinessException;
 import com.example.product_service.api.common.exception.CategoryErrorCode;
-import com.example.product_service.repository.ProductRepository;
+import com.example.product_service.api.product.domain.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Sort;

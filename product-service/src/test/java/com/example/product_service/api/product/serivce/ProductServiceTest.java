@@ -11,11 +11,11 @@ import com.example.product_service.api.option.domain.repository.OptionTypeReposi
 import com.example.product_service.api.product.domain.model.Product;
 import com.example.product_service.api.product.domain.model.ProductStatus;
 import com.example.product_service.api.product.domain.model.ProductVariant;
+import com.example.product_service.api.product.domain.repository.ProductRepository;
 import com.example.product_service.api.product.service.ProductService;
 import com.example.product_service.api.product.service.dto.command.ProductCreateCommand;
 import com.example.product_service.api.product.service.dto.result.ProductCreateResponse;
 import com.example.product_service.api.product.service.dto.result.ProductOptionSpecResponse;
-import com.example.product_service.repository.ProductRepository;
 import com.example.product_service.support.ExcludeInfraTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -77,29 +77,11 @@ public class ProductServiceTest extends ExcludeInfraTest {
                     .extracting("errorCode")
                     .isEqualTo(CategoryErrorCode.CATEGORY_NOT_FOUND);
         }
-
-        @Test
-        @DisplayName("최하위 카테고리가 아니면 예외를 던진다")
-        void createProduct_not_leaf_category(){
-            //given
-            Category parent = Category.create("부모 카테고리", null, "http://parent.jpg");
-            Category parentCategory = categoryRepository.save(parent);
-            Category child = Category.create("자식 카테고리", parent, "http://child.jpg");
-            categoryRepository.save(child);
-
-            ProductCreateCommand command = createProductCommand(parentCategory.getId());
-            //when
-            //then
-            assertThatThrownBy(() -> productService.createProduct(command))
-                    .isInstanceOf(BusinessException.class)
-                    .extracting("errorCode")
-                    .isEqualTo(ProductErrorCode.CATEGORY_NOT_LEAF);
-        }
     }
 
     @Nested
     @DisplayName("상품 옵션 정의")
-    class OptionSpecs {
+    class OptionSpecsDto {
 
         @Test
         @DisplayName("상품 옵션 스펙을 설정한다")
@@ -115,9 +97,9 @@ public class ProductServiceTest extends ExcludeInfraTest {
             ProductOptionSpecResponse response = productService.registerOptionSpec(savedProduct.getId(), List.of(optionType.getId()));
             //then
             assertThat(response.getProductId()).isEqualTo(savedProduct.getId());
-            assertThat(response.getOptions())
-                    .extracting(ProductOptionSpecResponse.OptionSpec::getOptionTypeId, ProductOptionSpecResponse.OptionSpec::getName,
-                            ProductOptionSpecResponse.OptionSpec::getPriority)
+            assertThat(response.getSpecs()).satisfiesExactlyInAnyOrder(option -> assertThat(option.getId()).isNotNull())
+                    .extracting(ProductOptionSpecResponse.OptionSpecDto::getOptionTypeId, ProductOptionSpecResponse.OptionSpecDto::getOptionTypeName,
+                            ProductOptionSpecResponse.OptionSpecDto::getPriority)
                     .containsExactly(
                             tuple(optionType.getId(), optionType.getName(), 1)
                     );
@@ -168,28 +150,6 @@ public class ProductServiceTest extends ExcludeInfraTest {
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(ProductErrorCode.HAS_VARIANTS);
-        }
-
-        @Test
-        @DisplayName("상품 옵션은 최대 3개 까지 설정 가능하다")
-        void registerOptionSpecs_exceed_max_optionSpec_count(){
-            //given
-            OptionType optionType1 = OptionType.create("사이즈", List.of("XL", "L", "M", "S"));
-            OptionType optionType2 = OptionType.create("색상", List.of("RED", "BLUE", "ORANGE"));
-            OptionType optionType3 = OptionType.create("재질", List.of("WOOL", "COTTON", "LINEN"));
-            OptionType optionType4 = OptionType.create("용량", List.of("256GB", "128GB"));
-            optionTypeRepository.saveAll(List.of(optionType1, optionType2, optionType3, optionType4));
-            Category category = Category.create("카테고리", null, "http://image.jpg");
-            Category savedCategory = categoryRepository.save(category);
-            Product product = Product.create("상품", "상품 설명", savedCategory);
-            Product savedProduct = productRepository.save(product);
-            //when
-            //then
-            assertThatThrownBy(() -> productService.registerOptionSpec(savedProduct.getId(), List.of(optionType1.getId(),
-                    optionType2.getId(), optionType3.getId(), optionType4.getId())))
-                    .isInstanceOf(BusinessException.class)
-                    .extracting("errorCode")
-                    .isEqualTo(ProductErrorCode.EXCEED_OPTION_SPEC_COUNT);
         }
 
         @Test

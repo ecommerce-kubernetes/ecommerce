@@ -36,7 +36,7 @@ public class ProductController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @PostMapping("/{productId}/option-specs")
+    @PutMapping("/{productId}/option-specs")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ProductOptionSpecResponse> registerOptionSpec(@PathVariable("productId") Long productId,
                                                                         @RequestBody @Validated ProductOptionSpecRequest request) {

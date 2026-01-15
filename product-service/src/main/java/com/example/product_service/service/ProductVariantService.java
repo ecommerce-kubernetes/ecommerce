@@ -1,12 +1,8 @@
 package com.example.product_service.service;
 
-import com.example.product_service.common.MessageSourceUtil;
-import com.example.product_service.dto.request.review.ReviewRequest;
-import com.example.product_service.dto.request.variant.UpdateProductVariantRequest;
-import com.example.product_service.dto.response.ReviewResponse;
-import com.example.product_service.dto.response.variant.OrderProductVariantResponse;
-import com.example.product_service.dto.response.variant.ProductVariantResponse;
 import com.example.product_service.api.product.domain.model.ProductVariant;
+import com.example.product_service.common.MessageSourceUtil;
+import com.example.product_service.dto.response.variant.OrderProductVariantResponse;
 import com.example.product_service.exception.NotFoundException;
 import com.example.product_service.repository.ProductVariantsRepository;
 import lombok.RequiredArgsConstructor;

@@ -119,7 +119,7 @@ public class ProductControllerTest extends ControllerTestSupport {
                 .willReturn(response);
         //when
         //then
-        mockMvc.perform(post("/products/{productId}/option-specs", 1L)
+        mockMvc.perform(put("/products/{productId}/option-specs", 1L)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
@@ -135,7 +135,7 @@ public class ProductControllerTest extends ControllerTestSupport {
         ProductOptionSpecRequest request = mockOptionSpecRequest().build();
         //when
         //then
-        mockMvc.perform(post("/products/{productId}/option-specs", 1L)
+        mockMvc.perform(put("/products/{productId}/option-specs", 1L)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isForbidden())
@@ -152,7 +152,7 @@ public class ProductControllerTest extends ControllerTestSupport {
         ProductOptionSpecRequest request = mockOptionSpecRequest().build();
         //when
         //then
-        mockMvc.perform(post("/products/{productId}/option-specs", 1L)
+        mockMvc.perform(put("/products/{productId}/option-specs", 1L)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
@@ -171,7 +171,7 @@ public class ProductControllerTest extends ControllerTestSupport {
         ProductOptionSpecRequest request = mockOptionSpecRequest().optionTypeIds(null).build();
         //when
         //then
-        mockMvc.perform(post("/products/{productId}/option-specs", 1L)
+        mockMvc.perform(put("/products/{productId}/option-specs", 1L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())

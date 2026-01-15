@@ -1,4 +1,4 @@
-package com.example.product_service.config;
+package com.example.product_service.api.common.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;

@@ -2,7 +2,10 @@ package com.example.product_service.api.product.domain.model;
 
 import com.example.product_service.exception.InsufficientStockException;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -86,12 +86,12 @@ public class ProductControllerFixture {
     public static ProductOptionSpecResponse.ProductOptionSpecResponseBuilder mockOptionSpecResponse() {
         return ProductOptionSpecResponse.builder()
                 .productId(PRODUCT_ID)
-                .options(
+                .specs(
                         List.of(
-                                ProductOptionSpecResponse.OptionSpec.builder()
-                                        .productOptionSpecId(1L)
+                                ProductOptionSpecResponse.OptionSpecDto.builder()
+                                        .id(1L)
                                         .optionTypeId(1L)
-                                        .name("사이즈")
+                                        .optionTypeName("사이즈")
                                         .priority(1)
                                         .build()
                         )

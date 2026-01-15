@@ -11,12 +11,12 @@ import com.example.product_service.api.option.domain.repository.OptionTypeReposi
 import com.example.product_service.api.product.controller.dto.ProductSearchCondition;
 import com.example.product_service.api.product.domain.model.Product;
 import com.example.product_service.api.product.domain.model.ProductStatus;
+import com.example.product_service.api.product.domain.repository.ProductRepository;
 import com.example.product_service.api.product.service.dto.command.AddVariantCommand;
 import com.example.product_service.api.product.service.dto.command.ProductCreateCommand;
 import com.example.product_service.api.product.service.dto.command.ProductUpdateCommand;
 import com.example.product_service.api.product.service.dto.result.*;
 import com.example.product_service.dto.response.PageDto;
-import com.example.product_service.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,9 +37,6 @@ public class ProductService {
 
     public ProductCreateResponse createProduct(ProductCreateCommand command) {
         Category category = findCategoryByIdOrThrow(command.getCategoryId());
-        if (!category.isLeaf()) {
-            throw new BusinessException(ProductErrorCode.CATEGORY_NOT_LEAF);
-        }
         Product product = Product.create(command.getName(), command.getDescription(), category);
         Product savedProduct = productRepository.save(product);
         return ProductCreateResponse.from(savedProduct);
@@ -47,21 +44,11 @@ public class ProductService {
 
     public ProductOptionSpecResponse registerOptionSpec(Long productId, List<Long> optionTypeIds) {
         Product product = findProductByIdOrThrow(productId);
-        if (product.getStatus().equals(ProductStatus.ON_SALE)){
-            throw new BusinessException(ProductErrorCode.CANNOT_MODIFY_ON_SALE);
-        }
-        if (!product.getVariants().isEmpty()) {
-            throw new BusinessException(ProductErrorCode.HAS_VARIANTS);
-        }
-        List<OptionType> findTypes = optionTypeRepository.findByIdIn(optionTypeIds);
-        if (findTypes.size() != optionTypeIds.size()) {
-            throw new BusinessException(OptionErrorCode.OPTION_NOT_FOUND);
-        }
-
-        Map<Long, OptionType> typeMap = findTypes.stream().collect(Collectors.toMap(OptionType::getId, Function.identity()));
-        List<OptionType> sortedOptionType = optionTypeIds.stream().map(typeMap::get).toList();
-        product.updateOptionSpecs(sortedOptionType);
-        return ProductOptionSpecResponse.from(product);
+        validateRegisterOptionSpec(product);
+        List<OptionType> sortedOptionTypes = findSortedOptionTypes(optionTypeIds);
+        product.updateOptionSpecs(sortedOptionTypes);
+        productRepository.saveAndFlush(product);
+        return ProductOptionSpecResponse.of(product.getId(), product.getOptionSpecs());
     }
 
     public VariantCreateResponse addVariants(AddVariantCommand command) {
@@ -94,6 +81,25 @@ public class ProductService {
 
     public ProductStatusResponse closedProduct(Long productId) {
         return null;
+    }
+
+    private void validateRegisterOptionSpec(Product product) {
+        if (product.getStatus().equals(ProductStatus.ON_SALE)){
+            throw new BusinessException(ProductErrorCode.CANNOT_MODIFY_ON_SALE);
+        }
+        if (!product.getVariants().isEmpty()) {
+            throw new BusinessException(ProductErrorCode.HAS_VARIANTS);
+        }
+    }
+
+    private List<OptionType> findSortedOptionTypes(List<Long> optionTypeIds) {
+        List<OptionType> optionTypes = optionTypeRepository.findByIdIn(optionTypeIds);
+        if (optionTypes.size() != optionTypeIds.size()) {
+            throw new BusinessException(OptionErrorCode.OPTION_NOT_FOUND);
+        }
+
+        Map<Long, OptionType> typeMap = optionTypes.stream().collect(Collectors.toMap(OptionType::getId, Function.identity()));
+        return optionTypeIds.stream().map(typeMap::get).toList();
     }
 
     private Category findCategoryByIdOrThrow(Long categoryId) {

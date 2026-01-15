@@ -32,11 +32,13 @@ public class ProductOptionSpec extends BaseEntity {
         this.priority = priority;
     }
 
-    public static ProductOptionSpec create(OptionType optionType, int priority) {
-        return ProductOptionSpec.builder()
+    public static ProductOptionSpec create(Product product, OptionType optionType, int priority) {
+        ProductOptionSpec optionSpec = ProductOptionSpec.builder()
                 .optionType(optionType)
                 .priority(priority)
                 .build();
+        optionSpec.setProduct(product);
+        return optionSpec;
     }
 
     protected void setProduct(Product product){
