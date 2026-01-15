@@ -163,12 +163,12 @@ public class ProductControllerTest extends ControllerTestSupport {
                 .andExpect(jsonPath("$.path").value("/products/1/option-specs"));
     }
 
-    @Test
-    @DisplayName("상품 옵션 정의시 옵션 Id 리스트는 필수이다")
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("provideInvalidOptionSpecRequest")
+    @DisplayName("상품 옵션 정의 요청 검증")
     @WithCustomMockUser
-    void registerOptionSpec_invalidRequest() throws Exception {
+    void registerOptionSpec_invalidRequest(String description, ProductOptionSpecRequest request, String message) throws Exception {
         //given
-        ProductOptionSpecRequest request = mockOptionSpecRequest().optionTypeIds(null).build();
         //when
         //then
         mockMvc.perform(put("/products/{productId}/option-specs", 1L)
@@ -177,7 +177,7 @@ public class ProductControllerTest extends ControllerTestSupport {
                 .andDo(print())
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("VALIDATION"))
-                .andExpect(jsonPath("$.message").value("옵션 id 리스트는 필수 입니다"))
+                .andExpect(jsonPath("$.message").value(message))
                 .andExpect(jsonPath("$.timestamp").exists())
                 .andExpect(jsonPath("$.path").value("/products/1/option-specs"));
     }
@@ -621,6 +621,14 @@ public class ProductControllerTest extends ControllerTestSupport {
         return Stream.of(
                 Arguments.of("빈 이름", mockUpdateRequest().name(null).build(), "상품 이름은 필수 입니다"),
                 Arguments.of("카테고리 id 가 null", mockUpdateRequest().categoryId(null).build(), "카테고리 id는 필수 입니다")
+        );
+    }
+
+    private static Stream<Arguments> provideInvalidOptionSpecRequest() {
+        return Stream.of(
+                Arguments.of("옵션 id 리스트가 null", mockOptionSpecRequest().optionTypeIds(null).build(), "옵션 id 리스트는 필수 입니다"),
+                Arguments.of("옵션 id 리스트가 null", mockOptionSpecRequest().optionTypeIds(List.of(1L, 2L, 3L, 4L)).build(), "옵션은 최대 3개까지만 설정 가능합니다"),
+                Arguments.of("옵션 id 리스트가 null", mockOptionSpecRequest().optionTypeIds(List.of(1L, 1L)).build(), "중복된 옵션 종류가 포함되어 있습니다")
         );
     }
 
