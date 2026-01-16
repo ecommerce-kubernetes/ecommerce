@@ -4,6 +4,7 @@ import com.example.product_service.api.category.domain.model.Category;
 import com.example.product_service.api.common.exception.BusinessException;
 import com.example.product_service.api.common.exception.ProductErrorCode;
 import com.example.product_service.api.option.domain.model.OptionType;
+import com.example.product_service.api.option.domain.model.OptionValue;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -100,9 +101,74 @@ public class ProductTest {
                 .isEqualTo(ProductErrorCode.DUPLICATE_OPTION_TYPE);
     }
 
+    @Test
+    @DisplayName("상품 상태가 삭제 상태라면 상품 변형을 추가할 수 없다")
+    void validateCreatableVariantStatus(){
+        //given
+        Category category = Category.create("카테고리", null, "http://image.jpg");
+        Product product = Product.create("상품", "상품 설명", category);
+        product.deleted();
+        //when
+        //then
+        assertThatThrownBy(product::validateCreatableVariantStatus)
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ProductErrorCode.PRODUCT_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("상품의 옵션 스펙 개수와 요청 옵션 값의 개수가 서로 다르면 예외를 던진다")
+    void validateAndSortOptionValues_not_match_optionSpec_size(){
+        //given
+        OptionType size = createOptionType(1L, "사이즈", List.of("XL", "L"));
+        OptionType color = createOptionType(2L, "색상", List.of("RED", "BLUE"));
+        OptionType texture = createOptionType(3L, "재질", List.of("WOOL", "COTTON"));
+        OptionValue xl = findOptionValueByName(size, "XL");
+        OptionValue blue = findOptionValueByName(color, "BLUE");
+        OptionValue cotton = findOptionValueByName(texture, "COTTON");
+
+        Category category = Category.create("카테고리", null, "http://image.jpg");
+        Product product = Product.create("상품", "상품 설명", category);
+        product.updateOptionSpecs(List.of(size, color));
+        //when
+        //then
+        assertThatThrownBy(() -> product.validateAndSortOptionValues(List.of(xl, blue, cotton)))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ProductErrorCode.NOT_MATCH_PRODUCT_OPTION_SPEC);
+    }
+
+    @Test
+    @DisplayName("요청 옵션 값이 상품 옵션 스펙의 옵션 타입에 맞지 않으면 예외를 던진다")
+    void validateAndSortOptionValues_illegalOptionValue_optionSpec_optionType(){
+        //given
+        OptionType size = createOptionType(1L, "사이즈", List.of("XL", "L"));
+        OptionType color = createOptionType(2L, "색상", List.of("RED", "BLUE"));
+        OptionType texture = createOptionType(3L, "재질", List.of("WOOL", "COTTON"));
+        OptionValue xl = findOptionValueByName(size, "XL");
+        OptionValue cotton = findOptionValueByName(texture, "COTTON");
+
+        Category category = Category.create("카테고리", null, "http://image.jpg");
+        Product product = Product.create("상품", "상품 설명", category);
+        product.updateOptionSpecs(List.of(size, color));
+        //when
+        //then
+        assertThatThrownBy(() -> product.validateAndSortOptionValues(List.of(xl, cotton)))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ProductErrorCode.NOT_MATCH_PRODUCT_OPTION_SPEC);
+    }
+
     private OptionType createOptionType(Long id, String name, List<String> values) {
         OptionType optionType = OptionType.create(name, values);
         ReflectionTestUtils.setField(optionType, "id", id);
         return optionType;
+    }
+    
+    private OptionValue findOptionValueByName(OptionType optionType, String name) {
+        return optionType.getOptionValues().stream()
+                .filter(optionValue -> optionValue.getName().equals(name))
+                .findFirst()
+                .orElseThrow(IllegalArgumentException::new);
     }
 }

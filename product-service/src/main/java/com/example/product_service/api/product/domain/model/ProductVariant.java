@@ -10,6 +10,8 @@ import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -50,6 +52,13 @@ public class ProductVariant {
                 .stockQuantity(stockQuantity)
                 .discountRate(discountRate)
                 .build();
+    }
+
+    public boolean hasSameOptions(Set<Long> targetOptionIds) {
+        Set<Long> optionIds = this.productVariantOptions.stream()
+                .map(o -> o.getOptionValue().getId())
+                .collect(Collectors.toSet());
+        return optionIds.equals(targetOptionIds);
     }
 
     public void addProductVariantOptions(List<OptionValue> optionValues) {

@@ -220,7 +220,7 @@ public class ProductServiceTest extends ExcludeInfraTest {
         }
 
         @Test
-        @DisplayName("동일한 옵션의 상품 변형을 여러개 생성할 수 없다")
+        @DisplayName("동일한 옵션 조합의 상품 변형을 여러개 생성할 수 없다")
         void createVariants_duplicate_variant_request(){
             //given
             ProductVariantsCreateCommand command = createVariantCommand().variants(
@@ -255,60 +255,6 @@ public class ProductServiceTest extends ExcludeInfraTest {
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(ProductErrorCode.PRODUCT_NOT_FOUND);
-        }
-
-        @Test
-        @DisplayName("삭제된 상품에는 상품 변형을 추가할 수 없다")
-        void createVariants_deleted_product(){
-            //given
-            Category category = Category.create("카테고리", null, "http://image.jpg");
-            categoryRepository.save(category);
-            Product product = Product.create("상품", "상품 설명", category);
-            product.deleted();
-            productRepository.save(product);
-            ProductVariantsCreateCommand command = createVariantCommand()
-                    .productId(product.getId())
-                    .variants(List.of(
-                            ProductVariantsCreateCommand.VariantDetail.builder()
-                                    .originalPrice(3000L)
-                                    .discountRate(10)
-                                    .stockQuantity(100)
-                                    .optionValueIds(List.of()).build()))
-                    .build();
-            //when
-            //then
-            assertThatThrownBy(() -> productService.createVariants(command))
-                    .isInstanceOf(BusinessException.class)
-                    .extracting("errorCode")
-                    .isEqualTo(ProductErrorCode.PRODUCT_NOT_FOUND);
-        }
-
-        @Test
-        @DisplayName("상품 옵션과 상품 변형 옵션 id의 사이즈가 다르면 예외를 던진다")
-        void createVariants_not_match_product_option_spec_size(){
-            //given
-            OptionType optionType = OptionType.create("사이즈", List.of("XL", "L", "M", "S"));
-            optionTypeRepository.save(optionType);
-            Category category = Category.create("카테고리", null, "http://image.jpg");
-            categoryRepository.save(category);
-            Product product = Product.create("상품", "상품 설명", category);
-            product.updateOptionSpecs(List.of(optionType));
-            productRepository.save(product);
-            ProductVariantsCreateCommand command = createVariantCommand()
-                    .productId(product.getId())
-                    .variants(List.of(
-                            ProductVariantsCreateCommand.VariantDetail.builder()
-                                    .originalPrice(3000L)
-                                    .discountRate(10)
-                                    .stockQuantity(100)
-                                    .optionValueIds(List.of()).build()))
-                    .build();
-            //when
-            //then
-            assertThatThrownBy(() -> productService.createVariants(command))
-                    .isInstanceOf(BusinessException.class)
-                    .extracting("errorCode")
-                    .isEqualTo(ProductErrorCode.NOT_MATCH_PRODUCT_OPTION_SPEC);
         }
 
         @Test

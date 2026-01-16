@@ -5,6 +5,7 @@ import com.example.product_service.api.common.entity.BaseEntity;
 import com.example.product_service.api.common.exception.BusinessException;
 import com.example.product_service.api.common.exception.ProductErrorCode;
 import com.example.product_service.api.option.domain.model.OptionType;
+import com.example.product_service.api.option.domain.model.OptionValue;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -16,6 +17,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -83,7 +85,40 @@ public class Product extends BaseEntity {
         this.status = ProductStatus.DELETED;
     }
 
+    public void validateCreatableVariantStatus() {
+        if (this.status == ProductStatus.DELETED) {
+            throw new BusinessException(ProductErrorCode.PRODUCT_NOT_FOUND);
+        }
+    }
+
+    public List<OptionValue> validateAndSortOptionValues(List<OptionValue> inputValues) {
+        if (inputValues.size() != this.optionSpecs.size()) {
+            throw new BusinessException(ProductErrorCode.NOT_MATCH_PRODUCT_OPTION_SPEC);
+        }
+        List<OptionValue> sortedValues = new ArrayList<>();
+        for (ProductOptionSpec spec : optionSpecs) {
+            OptionValue matchedValue = inputValues.stream()
+                    .filter(val -> val.getOptionType().equals(spec.getOptionType()))
+                    .findFirst()
+                    .orElseThrow(() -> new BusinessException(ProductErrorCode.NOT_MATCH_PRODUCT_OPTION_SPEC));
+            sortedValues.add(matchedValue);
+        }
+        return sortedValues;
+    }
+
+    private void validateDuplicateVariant(List<OptionValue> optionValues) {
+        Set<Long> targetIds = optionValues.stream()
+                .map(OptionValue::getId)
+                .collect(Collectors.toSet());
+        for (ProductVariant variant : variants) {
+            if (variant.hasSameOptions(targetIds)) {
+                throw new BusinessException(ProductErrorCode.PRODUCT_HAS_DUPLICATE_VARIANT);
+            }
+        }
+    }
+
     public void addVariant(ProductVariant productVariant) {
+        validateDuplicateVariant(productVariant.getProductVariantOptions().stream().map(ProductVariantOption::getOptionValue).toList());
         this.variants.add(productVariant);
         productVariant.setProduct(this);
     }
