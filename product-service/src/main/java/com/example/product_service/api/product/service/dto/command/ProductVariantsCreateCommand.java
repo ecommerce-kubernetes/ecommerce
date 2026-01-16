@@ -6,26 +6,26 @@ import lombok.Getter;
 import java.util.List;
 
 @Getter
-public class AddVariantCommand {
+public class ProductVariantsCreateCommand {
     private Long productId;
-    private List<VariantCommand> variants;
+    private List<VariantDetail> variants;
 
     @Builder
-    private AddVariantCommand(Long productId, List<VariantCommand> variants) {
+    private ProductVariantsCreateCommand(Long productId, List<VariantDetail> variants) {
         this.productId = productId;
         this.variants = variants;
     }
 
     @Getter
-    public static class VariantCommand {
-        private Long price;
+    public static class VariantDetail {
+        private Long originalPrice;
         private Integer discountRate;
         private Integer stockQuantity;
         private List<Long> optionValueIds;
 
         @Builder
-        private VariantCommand(Long price, Integer discountRate, Integer stockQuantity, List<Long> optionValueIds) {
-            this.price = price;
+        private VariantDetail(Long originalPrice, Integer discountRate, Integer stockQuantity, List<Long> optionValueIds) {
+            this.originalPrice = originalPrice;
             this.discountRate = discountRate;
             this.stockQuantity = stockQuantity;
             this.optionValueIds = optionValueIds;

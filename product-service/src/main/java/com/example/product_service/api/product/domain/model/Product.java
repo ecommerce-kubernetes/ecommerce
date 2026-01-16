@@ -79,6 +79,10 @@ public class Product extends BaseEntity {
                 .build();
     }
 
+    public void deleted() {
+        this.status = ProductStatus.DELETED;
+    }
+
     public void addVariant(ProductVariant productVariant) {
         this.variants.add(productVariant);
         productVariant.setProduct(this);

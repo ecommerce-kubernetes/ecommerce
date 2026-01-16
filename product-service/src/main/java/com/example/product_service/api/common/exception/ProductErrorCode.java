@@ -11,7 +11,10 @@ public enum ProductErrorCode implements ErrorCode {
     PRODUCT_NOT_FOUND(404, "PRODUCT_003", "상품을 찾을 수 없습니다"),
     HAS_VARIANTS(409, "PRODUCT_004", "상품에 속한 상품 변형이 존재합니다"),
     EXCEED_OPTION_SPEC_COUNT(409, "PRODUCT_005", "상품에 설정할 수 있는 옵션의 개수는 최대 3개 입니다"),
-    DUPLICATE_OPTION_TYPE(409, "PRODUCT_006", "동일한 상품 옵션은 설정할 수 없습니다");
+    DUPLICATE_OPTION_TYPE(409, "PRODUCT_006", "동일한 상품 옵션은 설정할 수 없습니다"),
+    NOT_MATCH_PRODUCT_OPTION_SPEC(409, "PRODUCT_007", "상품 옵션에 맞지 않는 옵션 값 Id 가 존재합니다"),
+    PRODUCT_HAS_DUPLICATE_VARIANT(409, "PRODUCT_008", "동일한 옵션의 상품 변형이 존재합니다"),
+    DUPLICATE_VARIANT_IN_REQUEST(400, "PRODUCT_009", "동일한 옵션의 상품 변형을 여러개 생성할 수 없습니다");
     private final int status;
     private final String code;
     private final String message;

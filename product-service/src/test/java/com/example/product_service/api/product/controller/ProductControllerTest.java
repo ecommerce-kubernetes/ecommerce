@@ -2,7 +2,7 @@ package com.example.product_service.api.product.controller;
 
 import com.example.product_service.api.common.security.model.UserRole;
 import com.example.product_service.api.product.controller.dto.*;
-import com.example.product_service.api.product.service.dto.command.AddVariantCommand;
+import com.example.product_service.api.product.service.dto.command.ProductVariantsCreateCommand;
 import com.example.product_service.api.product.service.dto.command.ProductCreateCommand;
 import com.example.product_service.api.product.service.dto.command.ProductUpdateCommand;
 import com.example.product_service.api.product.service.dto.result.*;
@@ -185,11 +185,11 @@ public class ProductControllerTest extends ControllerTestSupport {
     @Test
     @DisplayName("상품 변형을 추가한다")
     @WithCustomMockUser
-    void addVariant() throws Exception {
+    void createVariants() throws Exception {
         //given
         VariantCreateRequest request = mockCreateVariantRequest().build();
         VariantCreateResponse response = mockCreateVariantResponse().build();
-        given(productService.addVariants(any(AddVariantCommand.class)))
+        given(productService.createVariants(any(ProductVariantsCreateCommand.class)))
                 .willReturn(response);
         //when
         //then
@@ -204,7 +204,7 @@ public class ProductControllerTest extends ControllerTestSupport {
     @Test
     @DisplayName("상품 변형을 추가하려면 관리자 권한이여야 한다")
     @WithCustomMockUser(userRole = UserRole.ROLE_USER)
-    void addVariant_user_role() throws Exception {
+    void createVariants_user_role() throws Exception {
         //given
         VariantCreateRequest request = mockCreateVariantRequest().build();
         //when
@@ -222,7 +222,7 @@ public class ProductControllerTest extends ControllerTestSupport {
 
     @Test
     @DisplayName("로그인 하지 않은 사용자는 상품 변형을 추가할 수 없다")
-    void addVariant_unAuthorized() throws Exception {
+    void createVariants_unAuthorized() throws Exception {
         //given
         VariantCreateRequest request = mockCreateVariantRequest().build();
         //when
@@ -239,10 +239,10 @@ public class ProductControllerTest extends ControllerTestSupport {
     }
 
     @ParameterizedTest(name = "{0}")
-    @MethodSource("provideInvalidAddVariantRequest")
+    @MethodSource("provideInvalidCreateVariantsRequest")
     @DisplayName("상품 변형 추가 요청 검증")
     @WithCustomMockUser
-    void addVariant_validation(String description, VariantCreateRequest request, String message) throws Exception {
+    void createVariants_validation(String description, VariantCreateRequest request, String message) throws Exception {
         //given
         //when
         //then
@@ -579,33 +579,36 @@ public class ProductControllerTest extends ControllerTestSupport {
         );
     }
 
-    private static Stream<Arguments> provideInvalidAddVariantRequest() {
+    private static Stream<Arguments> provideInvalidCreateVariantsRequest() {
         return Stream.of(
                 Arguments.of("상품 변형 리스트가 null", mockCreateVariantRequest().variants(null).build(), "상품 변형 리스트는 필수입니다"),
                 Arguments.of("상품 변형 가격이 null", mockCreateVariantRequest().variants(
-                        List.of(VariantCreateRequest.VariantRequest.builder().price(null).discountRate(10).stockQuantity(100).optionValueIds(List.of()).build())
+                        List.of(VariantCreateRequest.VariantRequest.builder().originalPrice(null).discountRate(10).stockQuantity(100).optionValueIds(List.of()).build())
                 ).build(), "가격은 필수 입니다"),
                 Arguments.of("상품 변형 가격이 100 미만", mockCreateVariantRequest().variants(
-                        List.of(VariantCreateRequest.VariantRequest.builder().price(99L).discountRate(10).stockQuantity(100).optionValueIds(List.of()).build())
+                        List.of(VariantCreateRequest.VariantRequest.builder().originalPrice(99L).discountRate(10).stockQuantity(100).optionValueIds(List.of()).build())
                 ).build(), "가격은 100 이상이여야 합니다"),
                 Arguments.of("상품 변형 할인율이 null", mockCreateVariantRequest().variants(
-                        List.of(VariantCreateRequest.VariantRequest.builder().price(100L).discountRate(null).stockQuantity(100).optionValueIds(List.of()).build())
+                        List.of(VariantCreateRequest.VariantRequest.builder().originalPrice(100L).discountRate(null).stockQuantity(100).optionValueIds(List.of()).build())
                 ).build(), "할인율은 필수 입니다"),
                 Arguments.of("상품 변형 할인율이 0 미만", mockCreateVariantRequest().variants(
-                        List.of(VariantCreateRequest.VariantRequest.builder().price(100L).discountRate(-1).stockQuantity(100).optionValueIds(List.of()).build())
+                        List.of(VariantCreateRequest.VariantRequest.builder().originalPrice(100L).discountRate(-1).stockQuantity(100).optionValueIds(List.of()).build())
                 ).build(), "할인율은 0 이상이여야 합니다"),
                 Arguments.of("상품 변형 할인율이 100 이상", mockCreateVariantRequest().variants(
-                        List.of(VariantCreateRequest.VariantRequest.builder().price(100L).discountRate(101).stockQuantity(100).optionValueIds(List.of()).build())
+                        List.of(VariantCreateRequest.VariantRequest.builder().originalPrice(100L).discountRate(101).stockQuantity(100).optionValueIds(List.of()).build())
                 ).build(), "할인율은 100 이하여야 합니다"),
                 Arguments.of("재고 수량이 null", mockCreateVariantRequest().variants(
-                        List.of(VariantCreateRequest.VariantRequest.builder().price(100L).discountRate(10).stockQuantity(null).optionValueIds(List.of()).build())
+                        List.of(VariantCreateRequest.VariantRequest.builder().originalPrice(100L).discountRate(10).stockQuantity(null).optionValueIds(List.of()).build())
                 ).build(), "재고 수량은 필수 입니다"),
                 Arguments.of("재고 수량이 0", mockCreateVariantRequest().variants(
-                        List.of(VariantCreateRequest.VariantRequest.builder().price(100L).discountRate(10).stockQuantity(0).optionValueIds(List.of()).build())
+                        List.of(VariantCreateRequest.VariantRequest.builder().originalPrice(100L).discountRate(10).stockQuantity(0).optionValueIds(List.of()).build())
                 ).build(), "재고 수량은 1 이상이여야 합니다"),
                 Arguments.of("상품 변형 옵션이 null", mockCreateVariantRequest().variants(
-                        List.of(VariantCreateRequest.VariantRequest.builder().price(100L).discountRate(10).stockQuantity(100).optionValueIds(null).build())
-                ).build(), "상품 변형 옵션은 필수 입니다")
+                        List.of(VariantCreateRequest.VariantRequest.builder().originalPrice(100L).discountRate(10).stockQuantity(100).optionValueIds(null).build())
+                ).build(), "상품 변형 옵션은 필수 입니다"),
+                Arguments.of("중복된 상품 변형 옵션", mockCreateVariantRequest().variants(
+                        List.of(VariantCreateRequest.VariantRequest.builder().originalPrice(100L).discountRate(10).stockQuantity(100).optionValueIds(List.of(1L, 1L)).build())
+                ).build(), "중복된 옵션 종류가 포함되어 있습니다")
         );
     }
 

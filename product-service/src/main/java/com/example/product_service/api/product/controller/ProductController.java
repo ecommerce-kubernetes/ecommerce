@@ -2,7 +2,7 @@ package com.example.product_service.api.product.controller;
 
 import com.example.product_service.api.product.controller.dto.*;
 import com.example.product_service.api.product.service.ProductService;
-import com.example.product_service.api.product.service.dto.command.AddVariantCommand;
+import com.example.product_service.api.product.service.dto.command.ProductVariantsCreateCommand;
 import com.example.product_service.api.product.service.dto.command.ProductCreateCommand;
 import com.example.product_service.api.product.service.dto.command.ProductUpdateCommand;
 import com.example.product_service.api.product.service.dto.result.*;
@@ -46,21 +46,21 @@ public class ProductController {
 
     @PostMapping("/{productId}/variants")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<VariantCreateResponse> addVariant(@PathVariable("productId") Long productId,
-                                                            @RequestBody @Validated VariantCreateRequest request) {
-        List<AddVariantCommand.VariantCommand> variantCommands = request.getVariants().stream().map(v -> AddVariantCommand.VariantCommand.builder()
-                .price(v.getPrice())
+    public ResponseEntity<VariantCreateResponse> createVariants(@PathVariable("productId") Long productId,
+                                                                @RequestBody @Validated VariantCreateRequest request) {
+        List<ProductVariantsCreateCommand.VariantDetail> variantDetails = request.getVariants().stream().map(v -> ProductVariantsCreateCommand.VariantDetail.builder()
+                .originalPrice(v.getOriginalPrice())
                 .discountRate(v.getDiscountRate())
                 .stockQuantity(v.getStockQuantity())
                 .optionValueIds(v.getOptionValueIds())
                 .build()).toList();
 
-        AddVariantCommand command = AddVariantCommand.builder()
+        ProductVariantsCreateCommand command = ProductVariantsCreateCommand.builder()
                 .productId(productId)
-                .variants(variantCommands)
+                .variants(variantDetails)
                 .build();
 
-        VariantCreateResponse response = productService.addVariants(command);
+        VariantCreateResponse response = productService.createVariants(command);
         return ResponseEntity.ok(response);
     }
 

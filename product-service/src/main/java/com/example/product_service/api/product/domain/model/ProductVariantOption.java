@@ -4,6 +4,7 @@ import com.example.product_service.api.common.entity.BaseEntity;
 import com.example.product_service.api.option.domain.model.OptionValue;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -23,8 +24,18 @@ public class ProductVariantOption extends BaseEntity {
     @JoinColumn(name = "option_value_id")
     private OptionValue optionValue;
 
-    public ProductVariantOption(OptionValue optionValue){
+    @Builder(access = AccessLevel.PRIVATE)
+    private ProductVariantOption(OptionValue optionValue){
         this.optionValue = optionValue;
+    }
+
+    public static ProductVariantOption create(ProductVariant variant, OptionValue optionValue) {
+        ProductVariantOption productVariantOption = ProductVariantOption.builder()
+                .optionValue(optionValue)
+                .build();
+
+        productVariantOption.setProductVariant(variant);
+        return productVariantOption;
     }
 
     protected void setProductVariant(ProductVariant productVariant){

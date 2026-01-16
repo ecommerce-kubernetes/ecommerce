@@ -1,4 +1,4 @@
-package com.example.product_service.repository;
+package com.example.product_service.api.option.domain.repository;
 
 import com.example.product_service.api.option.domain.model.OptionValue;
 import org.springframework.data.jpa.repository.JpaRepository;

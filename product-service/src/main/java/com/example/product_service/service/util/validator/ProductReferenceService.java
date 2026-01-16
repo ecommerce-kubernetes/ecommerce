@@ -11,7 +11,7 @@ import com.example.product_service.dto.request.variant.ProductVariantRequest;
 import com.example.product_service.dto.request.variant.VariantOptionValueRequest;
 import com.example.product_service.exception.DuplicateResourceException;
 import com.example.product_service.exception.NotFoundException;
-import com.example.product_service.repository.OptionValueRepository;
+import com.example.product_service.api.option.domain.repository.OptionValueRepository;
 import com.example.product_service.repository.ProductVariantsRepository;
 import com.example.product_service.service.dto.ProductCreationData;
 import com.example.product_service.service.dto.ProductUpdateData;

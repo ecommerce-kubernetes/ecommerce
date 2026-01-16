@@ -3,7 +3,7 @@ package com.example.product_service.docs.product;
 import com.example.product_service.api.product.controller.ProductController;
 import com.example.product_service.api.product.controller.dto.*;
 import com.example.product_service.api.product.service.ProductService;
-import com.example.product_service.api.product.service.dto.command.AddVariantCommand;
+import com.example.product_service.api.product.service.dto.command.ProductVariantsCreateCommand;
 import com.example.product_service.api.product.service.dto.command.ProductCreateCommand;
 import com.example.product_service.api.product.service.dto.command.ProductUpdateCommand;
 import com.example.product_service.api.product.service.dto.result.*;
@@ -127,12 +127,12 @@ public class ProductControllerDocsTest extends RestDocsSupport {
 
     @Test
     @DisplayName("상품 변형 추가")
-    void addVariant() throws Exception {
+    void createVariants() throws Exception {
         //given
         VariantCreateRequest request = mockCreateVariantRequest().build();
         VariantCreateResponse response = mockCreateVariantResponse().build();
         HttpHeaders adminHeader = createAdminHeader();
-        given(productService.addVariants(any(AddVariantCommand.class)))
+        given(productService.createVariants(any(ProductVariantsCreateCommand.class)))
                 .willReturn(response);
         //when
         //then

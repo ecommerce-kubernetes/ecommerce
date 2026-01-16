@@ -51,7 +51,7 @@ public class ProductControllerFixture {
                 .variants(
                         List.of(
                                 VariantCreateRequest.VariantRequest.builder()
-                                        .price(PRICE)
+                                        .originalPrice(PRICE)
                                         .discountRate(DISCOUNT_RATE)
                                         .stockQuantity(100)
                                         .optionValueIds(List.of(1L, 2L))

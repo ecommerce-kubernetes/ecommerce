@@ -1,5 +1,6 @@
 package com.example.product_service.api.product.domain.model;
 
+import com.example.product_service.api.option.domain.model.OptionValue;
 import com.example.product_service.exception.InsufficientStockException;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -49,6 +50,11 @@ public class ProductVariant {
                 .stockQuantity(stockQuantity)
                 .discountRate(discountRate)
                 .build();
+    }
+
+    public void addProductVariantOptions(List<OptionValue> optionValues) {
+        List<ProductVariantOption> productVariantOptionList = optionValues.stream().map(optionValue -> ProductVariantOption.create(this, optionValue)).toList();
+        this.productVariantOptions.addAll(productVariantOptionList);
     }
 
     private static Long calculatePrice(Long originalPrice, Integer discountRate) {
