@@ -82,21 +82,21 @@ public class ProductControllerDocsTest extends RestDocsSupport {
     @DisplayName("상품 옵션 정의")
     void registerOptionSpec() throws Exception {
         //given
-        ProductOptionSpecRequest request = mockOptionSpecRequest().build();
-        ProductOptionSpecResponse response = mockOptionSpecResponse().build();
+        ProductOptionRequest request = mockOptionSpecRequest().build();
+        ProductOptionResponse response = mockOptionSpecResponse().build();
         HttpHeaders adminHeader = createAdminHeader();
         given(productService.registerOptionSpec(anyLong(), anyList()))
                 .willReturn(response);
         //when
         //then
-        mockMvc.perform(put("/products/{productId}/option-specs", 1L)
+        mockMvc.perform(put("/products/{productId}/option", 1L)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
                         .headers(adminHeader))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andDo(
-                        document("add-option-specs",
+                        document("add-option",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint()),
 
@@ -115,10 +115,10 @@ public class ProductControllerDocsTest extends RestDocsSupport {
 
                                 responseFields(
                                         fieldWithPath("productId").description("상품 Id"),
-                                        fieldWithPath("specs[].id").description("상품 옵션 Id"),
-                                        fieldWithPath("specs[].optionTypeId").description("옵션 타입 Id"),
-                                        fieldWithPath("specs[].optionTypeName").description("옵션 타입 이름"),
-                                        fieldWithPath("specs[].priority").description("상품 옵션 순서")
+                                        fieldWithPath("options[].id").description("상품 옵션 Id"),
+                                        fieldWithPath("options[].optionTypeId").description("옵션 타입 Id"),
+                                        fieldWithPath("options[].optionTypeName").description("옵션 타입 이름"),
+                                        fieldWithPath("options[].priority").description("상품 옵션 순서")
                                 )
 
                         )
@@ -157,7 +157,7 @@ public class ProductControllerDocsTest extends RestDocsSupport {
                                 ),
 
                                 requestFields(
-                                        fieldWithPath("variants[].price").description("상품 변형 가격"),
+                                        fieldWithPath("variants[].originalPrice").description("상품 변형 가격"),
                                         fieldWithPath("variants[].discountRate").description("할인율"),
                                         fieldWithPath("variants[].stockQuantity").description("재고 수량"),
                                         fieldWithPath("variants[].optionValueIds").description("옵션 값 Id 리스트")

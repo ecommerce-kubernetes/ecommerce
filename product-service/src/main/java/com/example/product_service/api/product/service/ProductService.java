@@ -47,13 +47,12 @@ public class ProductService {
         return ProductCreateResponse.from(savedProduct);
     }
 
-    public ProductOptionSpecResponse registerOptionSpec(Long productId, List<Long> optionTypeIds) {
+    public ProductOptionResponse registerOptionSpec(Long productId, List<Long> optionTypeIds) {
         Product product = findProductByIdOrThrow(productId);
-        validateRegisterOptionSpec(product);
-        List<OptionType> sortedOptionTypes = findSortedOptionTypes(optionTypeIds);
-        product.updateOptionSpecs(sortedOptionTypes);
+        List<OptionType> optionTypes = findOptionTypes(optionTypeIds);
+        product.updateOptions(optionTypes);
         productRepository.saveAndFlush(product);
-        return ProductOptionSpecResponse.of(product.getId(), product.getOptionSpecs());
+        return ProductOptionResponse.of(product.getId(), product.getOptions());
     }
 
     public VariantCreateResponse createVariants(ProductVariantsCreateCommand command) {
@@ -107,14 +106,14 @@ public class ProductService {
 
     private void validateRegisterOptionSpec(Product product) {
         if (product.getStatus().equals(ProductStatus.ON_SALE)){
-            throw new BusinessException(ProductErrorCode.CANNOT_MODIFY_ON_SALE);
+            throw new BusinessException(ProductErrorCode.CANNOT_MODIFY_PRODUCT_OPTION_ON_SALE);
         }
         if (!product.getVariants().isEmpty()) {
-            throw new BusinessException(ProductErrorCode.HAS_VARIANTS);
+            throw new BusinessException(ProductErrorCode.CANNOT_MODIFY_PRODUCT_OPTION_HAS_VARIANTS);
         }
     }
 
-    private List<OptionType> findSortedOptionTypes(List<Long> optionTypeIds) {
+    private List<OptionType> findOptionTypes(List<Long> optionTypeIds) {
         List<OptionType> optionTypes = optionTypeRepository.findByIdIn(optionTypeIds);
         if (optionTypes.size() != optionTypeIds.size()) {
             throw new BusinessException(OptionErrorCode.OPTION_NOT_FOUND);

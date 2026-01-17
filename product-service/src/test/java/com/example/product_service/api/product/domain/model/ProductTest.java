@@ -5,8 +5,11 @@ import com.example.product_service.api.common.exception.BusinessException;
 import com.example.product_service.api.common.exception.ProductErrorCode;
 import com.example.product_service.api.option.domain.model.OptionType;
 import com.example.product_service.api.option.domain.model.OptionValue;
+import com.example.product_service.support.fixture.builder.ProductTestBuilder;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.List;
@@ -17,88 +20,139 @@ import static org.assertj.core.api.BDDAssertions.tuple;
 
 public class ProductTest {
 
-    @Test
+    @Nested
     @DisplayName("상품을 생성한다")
-    void create(){
-        //given
-        Category category = Category.create("카테고리", null, "http://image.jpg");
-        //when
-        Product product = Product.create("상품", "상품설명", category);
-        //then
-        assertThat(product)
-                .extracting(
-                        Product::getName, Product::getCategory, Product::getStatus, Product::getDescription, Product::getPublishedAt,
-                        Product::getThumbnail, Product::getRating, Product::getReviewCount, Product::getDisplayPrice, Product::getOriginalPrice,
-                        Product::getMaxDiscountRate)
-                .containsExactly(
-                        "상품", category, ProductStatus.PREPARING, "상품설명", null,
-                        null, 0.0, 0L, null, null, null
-                );
+    class Create {
+        @Test
+        @DisplayName("상품을 생성한다")
+        void create(){
+            //given
+            Category category = Category.create("카테고리", null, "http://image.jpg");
+            //when
+            Product product = Product.create("상품", "상품 설명", category);
+            //then
+            assertThat(product)
+                    .extracting(Product::getName, Product::getCategory, Product::getStatus, Product::getDescription,
+                            Product::getPublishedAt, Product::getThumbnail, Product::getRating, Product::getReviewCount, Product::getPopularityScore,
+                            Product::getLowestPrice, Product::getOriginalPrice, Product::getMaxDiscountRate)
+                    .containsExactly(
+                            "상품", category, ProductStatus.PREPARING, "상품 설명",
+                            null, null, 0.0, 0L, 0.0,
+                            null, null, null
+                    );
+        }
 
+        @Test
+        @DisplayName("상품은 반드시 하나의 카테고리에 속해야 한다")
+        void create_category_null(){
+            //given
+            //when
+            //then
+            assertThatThrownBy(() -> Product.create("상품", "상품 설명", null))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(ProductErrorCode.PRODUCT_CATEGORY_REQUIRED);
+        }
+
+        @Test
+        @DisplayName("상품은 최하위 카테고리에 속해야 한다")
+        void create_category_not_leaf(){
+            //given
+            Category electronics = Category.create("전자기기", null, "http://electronics.jpg");
+            Category.create("핸드폰", electronics, "http://cellPhone.jpg");
+            //when
+            //then
+            assertThatThrownBy(() -> Product.create("상품", "상품 설명", electronics))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(ProductErrorCode.CATEGORY_NOT_LEAF);
+        }
     }
 
-    @Test
-    @DisplayName("상품을 생성할때 카테고리는 최하위 카테고리여야 한다")
-    void create_category_null(){
-        //given
-        Category parent = Category.create("카테고리", null, "http://image.jpg");
-        Category child = Category.create("카테고리", parent, "http://image.jpg");
-        //when
-        //then
-        assertThatThrownBy(() -> Product.create("상품", "상품 설명", parent))
-                .isInstanceOf(BusinessException.class)
-                .extracting("errorCode")
-                .isEqualTo(ProductErrorCode.CATEGORY_NOT_LEAF);
-    }
+    @Nested
+    @DisplayName("상품 옵션 설정")
+    class UpdateOptions {
 
-    @Test
-    @DisplayName("상품 옵션은 최대 3개까지 설정 가능하다")
-    void updateOptionSpecs_exceed_option_type(){
-        //given
-        OptionType optionType1 = createOptionType(1L, "사이즈", List.of("XL", "L"));
-        OptionType optionType2 = createOptionType(2L, "색상", List.of("RED", "BLUE"));
-        OptionType optionType3 = createOptionType(3L, "재질", List.of("WOOL", "COTTON"));
-        OptionType optionType4 = createOptionType(4L, "용량", List.of("256GB", "128GB"));
-        Category category = Category.create("카테고리", null, "http://image.jpg");
-        Product product = Product.create("상품", "상품 설명", category);
-        //when
-        //then
-        assertThatThrownBy(() -> product.updateOptionSpecs(List.of(optionType1, optionType2, optionType3, optionType4)))
-                .isInstanceOf(BusinessException.class)
-                .extracting("errorCode")
-                .isEqualTo(ProductErrorCode.EXCEED_OPTION_SPEC_COUNT);
-    }
+        @Test
+        @DisplayName("상품 옵션을 설정한다")
+        void updateOptions(){
+            //given
+            OptionType size = createOptionType(1L, "사이즈", List.of("XL", "L"));
+            OptionType color = createOptionType(2L, "색상", List.of("RED", "BLUE"));
+            Product product = ProductTestBuilder.aProduct().build();
+            //when
+            product.updateOptions(List.of(size, color));
+            //then
+            assertThat(product.getOptions()).hasSize(2)
+                    .extracting(ProductOption::getOptionType, ProductOption::getPriority)
+                    .containsExactly(
+                            tuple(size, 1),
+                            tuple(color, 2)
+                    );
+        }
 
-    @Test
-    @DisplayName("상품 옵션을 설정한다")
-    void updateOptionSpecs(){
-        //given
-        OptionType optionType = createOptionType(1L, "사이즈", List.of("XL", "L"));
-        Category category = Category.create("카테고리", null, "http://image.jpg");
-        Product product = Product.create("상품", "상품 설명", category);
-        //when
-        product.updateOptionSpecs(List.of(optionType));
-        //then
-        assertThat(product.getOptionSpecs()).hasSize(1)
-                .extracting(ProductOptionSpec::getOptionType, ProductOptionSpec::getPriority)
-                .containsExactly(
-                        tuple(optionType, 1)
-                );
-    }
+        @Test
+        @DisplayName("판매중인 상품에 상품 옵션을 설정할 수 없다")
+        void updateOptions_on_sale(){
+            //given
+            OptionType size = createOptionType(1L, "사이즈", List.of("XL", "L"));
+            Product product = ProductTestBuilder.aProduct().withStatus(ProductStatus.ON_SALE).build();
+            //when
+            //then
+            assertThatThrownBy(() -> product.updateOptions(List.of(size)))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(ProductErrorCode.CANNOT_MODIFY_PRODUCT_OPTION_ON_SALE);
+        }
 
-    @Test
-    @DisplayName("상품 옵션은 중복될 수 없다")
-    void updateOptionSpecs_duplicate_optionType(){
-        //given
-        OptionType optionType = createOptionType(1L, "사이즈", List.of("XL", "L"));
-        Category category = Category.create("카테고리", null, "http://image.jpg");
-        Product product = Product.create("상품", "상품 설명", category);
-        //when
-        //then
-        assertThatThrownBy(() -> product.updateOptionSpecs(List.of(optionType, optionType)))
-                .isInstanceOf(BusinessException.class)
-                .extracting("errorCode")
-                .isEqualTo(ProductErrorCode.DUPLICATE_OPTION_TYPE);
+        @Test
+        @DisplayName("상품에 상품 변형이 존재하면 옵션을 설정할 수 없다")
+        void updateOptions_has_variants(){
+            //given
+            OptionType size = createOptionType(1L, "사이즈", List.of("XL", "L"));
+            ProductVariant mockVariant = Mockito.mock(ProductVariant.class);
+            Product product = ProductTestBuilder.aProduct()
+                    .withVariants(List.of(mockVariant))
+                    .build();
+            //when
+            //then
+            assertThatThrownBy(() -> product.updateOptions(List.of(size)))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(ProductErrorCode.CANNOT_MODIFY_PRODUCT_OPTION_HAS_VARIANTS);
+        }
+
+        @Test
+        @DisplayName("옵션은 최대 3개까지 설정 가능하다")
+        void updateOptions_exceed_options_count(){
+            //given
+            OptionType size = createOptionType(1L, "사이즈", List.of("XL", "L"));
+            OptionType color = createOptionType(2L, "색상", List.of("RED", "BLUE"));
+            OptionType texture = createOptionType(3L, "재질", List.of("WOOL", "COTTON"));
+            OptionType storage = createOptionType(4L, "용량", List.of("256GB", "128GB"));
+            Product product = ProductTestBuilder.aProduct().build();
+            //when
+            //then
+            assertThatThrownBy(() -> product.updateOptions(List.of(size, color, texture, storage)))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(ProductErrorCode.EXCEED_PRODUCT_OPTION_COUNT);
+        }
+
+        @Test
+        @DisplayName("상품 옵션은 중복될 수 없다")
+        void updateOptions_duplicate_options(){
+            //given
+            OptionType size = createOptionType(1L, "사이즈", List.of("XL", "L"));
+            Category category = Category.create("카테고리", null, "http://image.jpg");
+            Product product = Product.create("상품", "상품 설명", category);
+            //when
+            //then
+            assertThatThrownBy(() -> product.updateOptions(List.of(size, size)))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(ProductErrorCode.DUPLICATE_OPTION_TYPE);
+        }
     }
 
     @Test
@@ -129,7 +183,7 @@ public class ProductTest {
 
         Category category = Category.create("카테고리", null, "http://image.jpg");
         Product product = Product.create("상품", "상품 설명", category);
-        product.updateOptionSpecs(List.of(size, color));
+        product.updateOptions(List.of(size, color));
         //when
         //then
         assertThatThrownBy(() -> product.validateAndSortOptionValues(List.of(xl, blue, cotton)))
@@ -150,7 +204,7 @@ public class ProductTest {
 
         Category category = Category.create("카테고리", null, "http://image.jpg");
         Product product = Product.create("상품", "상품 설명", category);
-        product.updateOptionSpecs(List.of(size, color));
+        product.updateOptions(List.of(size, color));
         //when
         //then
         assertThatThrownBy(() -> product.validateAndSortOptionValues(List.of(xl, cotton)))
@@ -167,7 +221,7 @@ public class ProductTest {
         OptionValue xl = findOptionValueByName(size, "XL");
         Category category = Category.create("카테고리", null, "http://image.jpg");
         Product product = Product.create("상품", "상품 설명", category);
-        product.updateOptionSpecs(List.of(size));
+        product.updateOptions(List.of(size));
         ProductVariant variant = ProductVariant.create("TEST", 3000L, 100, 10);
         variant.addProductVariantOptions(List.of(xl));
         product.addVariant(variant);

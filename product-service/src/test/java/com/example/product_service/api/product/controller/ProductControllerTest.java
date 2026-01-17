@@ -109,17 +109,17 @@ public class ProductControllerTest extends ControllerTestSupport {
     }
 
     @Test
-    @DisplayName("상품 옵션을 정의한다")
+    @DisplayName("상품 옵션을 설정한다")
     @WithCustomMockUser
     void registerOptionSpec() throws Exception {
         //given
-        ProductOptionSpecRequest request = mockOptionSpecRequest().build();
-        ProductOptionSpecResponse response = mockOptionSpecResponse().build();
+        ProductOptionRequest request = mockOptionSpecRequest().build();
+        ProductOptionResponse response = mockOptionSpecResponse().build();
         given(productService.registerOptionSpec(anyLong(), anyList()))
                 .willReturn(response);
         //when
         //then
-        mockMvc.perform(put("/products/{productId}/option-specs", 1L)
+        mockMvc.perform(put("/products/{productId}/option", 1L)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
@@ -132,27 +132,27 @@ public class ProductControllerTest extends ControllerTestSupport {
     @WithCustomMockUser(userRole = UserRole.ROLE_USER)
     void registerOptionSpec_user_role() throws Exception {
         //given
-        ProductOptionSpecRequest request = mockOptionSpecRequest().build();
+        ProductOptionRequest request = mockOptionSpecRequest().build();
         //when
         //then
-        mockMvc.perform(put("/products/{productId}/option-specs", 1L)
+        mockMvc.perform(put("/products/{productId}/option", 1L)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.code").value("FORBIDDEN"))
                 .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다"))
                 .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.path").value("/products/1/option-specs"));
+                .andExpect(jsonPath("$.path").value("/products/1/option"));
     }
 
     @Test
     @DisplayName("로그인 하지 않은 사용자는 상품 옵션을 정의할 수 없다")
     void registerOptionSpec_unAuthorized() throws Exception {
         //given
-        ProductOptionSpecRequest request = mockOptionSpecRequest().build();
+        ProductOptionRequest request = mockOptionSpecRequest().build();
         //when
         //then
-        mockMvc.perform(put("/products/{productId}/option-specs", 1L)
+        mockMvc.perform(put("/products/{productId}/option", 1L)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
@@ -160,18 +160,18 @@ public class ProductControllerTest extends ControllerTestSupport {
                 .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
                 .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다"))
                 .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.path").value("/products/1/option-specs"));
+                .andExpect(jsonPath("$.path").value("/products/1/option"));
     }
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("provideInvalidOptionSpecRequest")
-    @DisplayName("상품 옵션 정의 요청 검증")
+    @DisplayName("상품 옵션 설정 요청 검증")
     @WithCustomMockUser
-    void registerOptionSpec_invalidRequest(String description, ProductOptionSpecRequest request, String message) throws Exception {
+    void registerOptionSpec_invalidRequest(String description, ProductOptionRequest request, String message) throws Exception {
         //given
         //when
         //then
-        mockMvc.perform(put("/products/{productId}/option-specs", 1L)
+        mockMvc.perform(put("/products/{productId}/option", 1L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
@@ -179,7 +179,7 @@ public class ProductControllerTest extends ControllerTestSupport {
                 .andExpect(jsonPath("$.code").value("VALIDATION"))
                 .andExpect(jsonPath("$.message").value(message))
                 .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.path").value("/products/1/option-specs"));
+                .andExpect(jsonPath("$.path").value("/products/1/option"));
     }
 
     @Test

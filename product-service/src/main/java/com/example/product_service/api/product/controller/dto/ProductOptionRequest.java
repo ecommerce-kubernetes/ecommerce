@@ -12,14 +12,14 @@ import java.util.List;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class ProductOptionSpecRequest {
+public class ProductOptionRequest {
     @NotNull(message = "옵션 id 리스트는 필수 입니다")
     @Size(max = 3, message = "옵션은 최대 3개까지만 설정 가능합니다")
     @UniqueElements(message = "중복된 옵션 종류가 포함되어 있습니다")
     private List<Long> optionTypeIds;
 
     @Builder
-    private ProductOptionSpecRequest(List<Long> optionTypeIds) {
+    private ProductOptionRequest(List<Long> optionTypeIds) {
         this.optionTypeIds = optionTypeIds;
     }
 }

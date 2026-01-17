@@ -1,25 +1,25 @@
 package com.example.product_service.api.product.service.dto.result;
 
-import com.example.product_service.api.product.domain.model.ProductOptionSpec;
+import com.example.product_service.api.product.domain.model.ProductOption;
 import lombok.Builder;
 import lombok.Getter;
 
 import java.util.List;
 
 @Getter
-public class ProductOptionSpecResponse {
+public class ProductOptionResponse {
     private Long productId;
-    private List<OptionSpecDto> specs;
+    private List<OptionDto> options;
 
     @Getter
-    public static class OptionSpecDto {
+    public static class OptionDto {
         private Long id;
         private Long optionTypeId;
         private String optionTypeName;
         private Integer priority;
 
         @Builder
-        private OptionSpecDto(Long id, Long optionTypeId, String optionTypeName, Integer priority) {
+        private OptionDto(Long id, Long optionTypeId, String optionTypeName, Integer priority) {
             this.id = id;
             this.optionTypeId = optionTypeId;
             this.optionTypeName = optionTypeName;
@@ -28,18 +28,18 @@ public class ProductOptionSpecResponse {
     }
 
     @Builder
-    private ProductOptionSpecResponse(Long productId, List<OptionSpecDto> specs) {
+    private ProductOptionResponse(Long productId, List<OptionDto> options) {
         this.productId = productId;
-        this.specs = specs;
+        this.options = options;
     }
 
-    public static ProductOptionSpecResponse of(Long productId, List<ProductOptionSpec> optionSpecs) {
-        List<OptionSpecDto> specs = optionSpecs.stream().map(optionSpec -> OptionSpecDto.builder().id(optionSpec.getId())
+    public static ProductOptionResponse of(Long productId, List<ProductOption> optionSpecs) {
+        List<OptionDto> specs = optionSpecs.stream().map(optionSpec -> OptionDto.builder().id(optionSpec.getId())
                 .optionTypeId(optionSpec.getOptionType().getId())
                 .optionTypeName(optionSpec.getOptionType().getName())
                 .priority(optionSpec.getPriority())
                 .build()).toList();
-        return ProductOptionSpecResponse.builder().productId(productId).specs(specs)
+        return ProductOptionResponse.builder().productId(productId).options(specs)
                 .build();
     }
 }

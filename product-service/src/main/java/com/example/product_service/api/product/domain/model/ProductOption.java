@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-public class ProductOptionSpec extends BaseEntity {
+public class ProductOption extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -27,13 +27,13 @@ public class ProductOptionSpec extends BaseEntity {
     private int priority;
 
     @Builder(access = AccessLevel.PRIVATE)
-    private ProductOptionSpec(OptionType optionType, int priority){
+    private ProductOption(OptionType optionType, int priority){
         this.optionType = optionType;
         this.priority = priority;
     }
 
-    public static ProductOptionSpec create(Product product, OptionType optionType, int priority) {
-        ProductOptionSpec optionSpec = ProductOptionSpec.builder()
+    public static ProductOption create(Product product, OptionType optionType, int priority) {
+        ProductOption optionSpec = ProductOption.builder()
                 .optionType(optionType)
                 .priority(priority)
                 .build();

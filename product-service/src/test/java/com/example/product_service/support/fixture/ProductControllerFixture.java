@@ -39,8 +39,8 @@ public class ProductControllerFixture {
                 .productId(PRODUCT_ID);
     }
 
-    public static ProductOptionSpecRequest.ProductOptionSpecRequestBuilder mockOptionSpecRequest(){
-        return ProductOptionSpecRequest.builder()
+    public static ProductOptionRequest.ProductOptionRequestBuilder mockOptionSpecRequest(){
+        return ProductOptionRequest.builder()
                 .optionTypeIds(
                         List.of(1L, 2L)
                 );
@@ -83,12 +83,12 @@ public class ProductControllerFixture {
                 .images(List.of("http://image1.jpg", "http://image2.jpg"));
     }
 
-    public static ProductOptionSpecResponse.ProductOptionSpecResponseBuilder mockOptionSpecResponse() {
-        return ProductOptionSpecResponse.builder()
+    public static ProductOptionResponse.ProductOptionResponseBuilder mockOptionSpecResponse() {
+        return ProductOptionResponse.builder()
                 .productId(PRODUCT_ID)
-                .specs(
+                .options(
                         List.of(
-                                ProductOptionSpecResponse.OptionSpecDto.builder()
+                                ProductOptionResponse.OptionDto.builder()
                                         .id(1L)
                                         .optionTypeId(1L)
                                         .optionTypeName("사이즈")

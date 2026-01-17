@@ -36,11 +36,11 @@ public class ProductController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @PutMapping("/{productId}/option-specs")
+    @PutMapping("/{productId}/option")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ProductOptionSpecResponse> registerOptionSpec(@PathVariable("productId") Long productId,
-                                                                        @RequestBody @Validated ProductOptionSpecRequest request) {
-        ProductOptionSpecResponse response = productService.registerOptionSpec(productId, request.getOptionTypeIds());
+    public ResponseEntity<ProductOptionResponse> registerOptionSpec(@PathVariable("productId") Long productId,
+                                                                    @RequestBody @Validated ProductOptionRequest request) {
+        ProductOptionResponse response = productService.registerOptionSpec(productId, request.getOptionTypeIds());
         return ResponseEntity.ok(response);
     }
 

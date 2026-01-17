@@ -10,7 +10,6 @@ import com.example.product_service.api.option.domain.model.OptionType;
 import com.example.product_service.api.option.domain.model.OptionValue;
 import com.example.product_service.api.option.domain.repository.OptionTypeRepository;
 import com.example.product_service.api.product.domain.model.Product;
-import com.example.product_service.api.product.domain.model.ProductStatus;
 import com.example.product_service.api.product.domain.model.ProductVariant;
 import com.example.product_service.api.product.domain.repository.ProductRepository;
 import com.example.product_service.api.product.service.ProductService;
@@ -22,7 +21,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -49,6 +47,18 @@ public class ProductServiceTest extends ExcludeInfraTest {
                 .build();
     }
 
+    private Category saveCategory() {
+        return categoryRepository.save(Category.create("카테고리", null, "http://image.jpg"));
+    }
+
+    private Product saveProduct(Category category) {
+        return productRepository.save(Product.create("상품", "설명", category));
+    }
+
+    private OptionType saveOptionType(String name, List<String> valueNames) {
+        return optionTypeRepository.save(OptionType.create(name, List.of("XL", "L", "M", "S")));
+    }
+
     @Nested
     @DisplayName("상품 생성")
     class Create {
@@ -57,9 +67,8 @@ public class ProductServiceTest extends ExcludeInfraTest {
         @DisplayName("상품을 생성한다")
         void createProduct(){
             //given
-            Category category = Category.create("카테고리", null, "http://image.jpg");
-            Category savedCategory = categoryRepository.save(category);
-            ProductCreateCommand command = createProductCommand(savedCategory.getId());
+            Category category = saveCategory();
+            ProductCreateCommand command = createProductCommand(category.getId());
             //when
             ProductCreateResponse result = productService.createProduct(command);
             //then
@@ -81,28 +90,29 @@ public class ProductServiceTest extends ExcludeInfraTest {
     }
 
     @Nested
-    @DisplayName("상품 옵션 정의")
+    @DisplayName("상품 옵션 설정")
     class OptionSpecs {
 
         @Test
-        @DisplayName("상품 옵션 스펙을 설정한다")
+        @DisplayName("상품 옵션을 설정한다")
         void registerOptionSpecs(){
             //given
-            OptionType optionType = OptionType.create("사이즈", List.of("XL", "L", "M", "S"));
-            optionTypeRepository.save(optionType);
-            Category category = Category.create("카테고리", null, "http://image.jpg");
-            Category savedCategory = categoryRepository.save(category);
-            Product product = Product.create("상품", "상품 설명", savedCategory);
+            OptionType size = saveOptionType("사이즈", List.of("XL", "L", "M", "S"));
+            OptionType color = saveOptionType("색상", List.of("RED", "BLUE"));
+            Category category = saveCategory();
+            Product product = Product.create("상품", "상품 설명", category);
             Product savedProduct = productRepository.save(product);
             //when
-            ProductOptionSpecResponse response = productService.registerOptionSpec(savedProduct.getId(), List.of(optionType.getId()));
+            ProductOptionResponse response = productService.registerOptionSpec(savedProduct.getId(), List.of(size.getId(), color.getId()));
             //then
             assertThat(response.getProductId()).isEqualTo(savedProduct.getId());
-            assertThat(response.getSpecs()).satisfiesExactlyInAnyOrder(option -> assertThat(option.getId()).isNotNull())
-                    .extracting(ProductOptionSpecResponse.OptionSpecDto::getOptionTypeId, ProductOptionSpecResponse.OptionSpecDto::getOptionTypeName,
-                            ProductOptionSpecResponse.OptionSpecDto::getPriority)
+            assertThat(response.getOptions()).allSatisfy(option -> assertThat(option.getId()).isNotNull());
+            assertThat(response.getOptions())
+                    .extracting(ProductOptionResponse.OptionDto::getOptionTypeId, ProductOptionResponse.OptionDto::getOptionTypeName,
+                            ProductOptionResponse.OptionDto::getPriority)
                     .containsExactly(
-                            tuple(optionType.getId(), optionType.getName(), 1)
+                            tuple(size.getId(), size.getName(), 1),
+                            tuple(color.getId(), color.getName(), 2)
                     );
         }
 
@@ -119,53 +129,18 @@ public class ProductServiceTest extends ExcludeInfraTest {
         }
 
         @Test
-        @DisplayName("상품이 판매중이라면 옵션 스펙을 정할 수 없다")
-        void registerOptionSpecs_on_sale(){
-            //given
-            Category category = Category.create("카테고리", null, "http://image.jpg");
-            Category savedCategory = categoryRepository.save(category);
-            Product product = Product.create("상품", "상품 설명", savedCategory);
-            ReflectionTestUtils.setField(product, "status", ProductStatus.ON_SALE);
-            Product savedProduct = productRepository.save(product);
-            //when
-            //then
-            assertThatThrownBy(() -> productService.registerOptionSpec(savedProduct.getId(), List.of(999L)))
-                    .isInstanceOf(BusinessException.class)
-                    .extracting("errorCode")
-                    .isEqualTo(ProductErrorCode.CANNOT_MODIFY_ON_SALE);
-        }
-
-        @Test
-        @DisplayName("상품이 상품 변형을 가지고 있는 경우 옵션 스펙을 정할 수 없다")
-        void registerOptionSpecs_has_variants(){
-            //given
-            Category category = Category.create("카테고리", null, "http://image.jpg");
-            Category savedCategory = categoryRepository.save(category);
-            Product product = Product.create("상품", "상품 설명", savedCategory);
-            ProductVariant variant = ProductVariant.create("PROD", 3000L, 100, 10);
-            product.addVariant(variant);
-            Product savedProduct = productRepository.save(product);
-            //when
-            //then
-            assertThatThrownBy(() -> productService.registerOptionSpec(savedProduct.getId(), List.of(1L)))
-                    .isInstanceOf(BusinessException.class)
-                    .extracting("errorCode")
-                    .isEqualTo(ProductErrorCode.HAS_VARIANTS);
-        }
-
-        @Test
         @DisplayName("옵션 타입을 찾을 수 없는 경우 예외를 던진다")
         void registerOptionSpecs_not_found_optionType(){
             //given
             OptionType optionType = OptionType.create("사이즈", List.of("XL", "L", "M", "S"));
-            OptionType savedOptionType = optionTypeRepository.save(optionType);
+            optionTypeRepository.save(optionType);
             Category category = Category.create("카테고리", null, "http://image.jpg");
-            Category savedCategory = categoryRepository.save(category);
-            Product product = Product.create("상품", "상품 설명", savedCategory);
+            categoryRepository.save(category);
+            Product product = Product.create("상품", "상품 설명", category);
             Product savedProduct = productRepository.save(product);
             //when
             //then
-            assertThatThrownBy(() -> productService.registerOptionSpec(savedProduct.getId(), List.of(savedOptionType.getId(), 999L)))
+            assertThatThrownBy(() -> productService.registerOptionSpec(savedProduct.getId(), List.of(optionType.getId(), 999L)))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(OptionErrorCode.OPTION_NOT_FOUND);
@@ -185,7 +160,7 @@ public class ProductServiceTest extends ExcludeInfraTest {
             Category category = Category.create("카테고리", null, "http://image.jpg");
             categoryRepository.save(category);
             Product product = Product.create("상품", "상품 설명", category);
-            product.updateOptionSpecs(List.of(optionType));
+            product.updateOptions(List.of(optionType));
             OptionValue xl = findOptionValueByName(optionType, "XL");
             productRepository.save(product);
 
@@ -216,7 +191,7 @@ public class ProductServiceTest extends ExcludeInfraTest {
                     .containsExactly(xl.getId());
 
             assertThat(product)
-                    .extracting(Product::getDisplayPrice, Product::getOriginalPrice, Product::getMaxDiscountRate)
+                    .extracting(Product::getLowestPrice, Product::getOriginalPrice, Product::getMaxDiscountRate)
                     .containsExactly(2700L, 3000L, 10);
         }
 
@@ -294,7 +269,7 @@ public class ProductServiceTest extends ExcludeInfraTest {
             Category category = Category.create("카테고리", null, "http://image.jpg");
             categoryRepository.save(category);
             Product product = Product.create("상품", "상품 설명", category);
-            product.updateOptionSpecs(List.of(optionType1));
+            product.updateOptions(List.of(optionType1));
             productRepository.save(product);
             ProductVariantsCreateCommand command = createVariantCommand()
                     .productId(product.getId())
@@ -322,7 +297,7 @@ public class ProductServiceTest extends ExcludeInfraTest {
             Category category = Category.create("카테고리", null, "http://image.jpg");
             categoryRepository.save(category);
             Product product = Product.create("상품", "상품 설명", category);
-            product.updateOptionSpecs(List.of(optionType));
+            product.updateOptions(List.of(optionType));
             OptionValue xl = optionType.getOptionValues().stream().filter(v -> v.getName().equals("XL")).findFirst().get();
             ProductVariant variant = ProductVariant.create("PROD_XL", 3000L, 100, 10);
             variant.addProductVariantOptions(List.of(xl));
