@@ -16,10 +16,7 @@ import com.example.product_service.api.product.domain.repository.ProductReposito
 import com.example.product_service.api.product.service.ProductService;
 import com.example.product_service.api.product.service.dto.command.ProductCreateCommand;
 import com.example.product_service.api.product.service.dto.command.ProductVariantsCreateCommand;
-import com.example.product_service.api.product.service.dto.result.ProductCreateResponse;
-import com.example.product_service.api.product.service.dto.result.ProductOptionSpecResponse;
-import com.example.product_service.api.product.service.dto.result.VariantCreateResponse;
-import com.example.product_service.api.product.service.dto.result.VariantResponse;
+import com.example.product_service.api.product.service.dto.result.*;
 import com.example.product_service.support.ExcludeInfraTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -189,7 +186,7 @@ public class ProductServiceTest extends ExcludeInfraTest {
             categoryRepository.save(category);
             Product product = Product.create("상품", "상품 설명", category);
             product.updateOptionSpecs(List.of(optionType));
-            OptionValue xl = optionType.getOptionValues().stream().filter(v -> v.getName().equals("XL")).findFirst().get();
+            OptionValue xl = findOptionValueByName(optionType, "XL");
             productRepository.save(product);
 
             ProductVariantsCreateCommand command = createVariantCommand().variants(
@@ -217,6 +214,10 @@ public class ProductServiceTest extends ExcludeInfraTest {
                     );
             assertThat(result.getVariants().get(0).getOptionValueIds())
                     .containsExactly(xl.getId());
+
+            assertThat(product)
+                    .extracting(Product::getDisplayPrice, Product::getOriginalPrice, Product::getMaxDiscountRate)
+                    .containsExactly(2700L, 3000L, 10);
         }
 
         @Test
@@ -229,12 +230,12 @@ public class ProductServiceTest extends ExcludeInfraTest {
                                     .originalPrice(3000L)
                                     .discountRate(10)
                                     .stockQuantity(100)
-                                    .optionValueIds(List.of(1L)).build(),
+                                    .optionValueIds(List.of(1L, 2L)).build(),
                             ProductVariantsCreateCommand.VariantDetail.builder()
                                     .originalPrice(3000L)
                                     .discountRate(10)
                                     .stockQuantity(100)
-                                    .optionValueIds(List.of(1L)).build()))
+                                    .optionValueIds(List.of(1L, 2L)).build()))
                     .build();
             //when
             //then
@@ -242,6 +243,31 @@ public class ProductServiceTest extends ExcludeInfraTest {
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(ProductErrorCode.DUPLICATE_VARIANT_IN_REQUEST);
+        }
+
+        @Test
+        @DisplayName("상품 옵션을 찾을 수 없으면 예외를 던진다")
+        void createVariants_notFound_optionValue(){
+            //given
+            Category category = Category.create("카테고리", null, "http://image.jpg");
+            categoryRepository.save(category);
+            Product product = Product.create("상품", "상품 설명", category);
+            productRepository.save(product);
+            ProductVariantsCreateCommand command = createVariantCommand()
+                    .productId(product.getId()).variants(
+                            List.of(
+                                    ProductVariantsCreateCommand.VariantDetail.builder()
+                                            .originalPrice(3000L)
+                                            .discountRate(10)
+                                            .stockQuantity(100)
+                                            .optionValueIds(List.of(999L)).build()))
+                    .build();
+            //when
+            //then
+            assertThatThrownBy(() -> productService.createVariants(command))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(OptionErrorCode.OPTION_NOT_FOUND);
         }
 
         @Test
@@ -321,6 +347,81 @@ public class ProductServiceTest extends ExcludeInfraTest {
         }
     }
 
+    @Nested
+    @DisplayName("상품 이미지 추가")
+    class AddImage {
+        @Test
+        @DisplayName("상품을 찾을 수 없으면 예외를 던진다")
+        void addImages_notFound_product(){
+            //given
+            //when
+            //then
+            assertThatThrownBy(() -> productService.addImages(999L, List.of("http://image1.jpg", "http://image2.jpg")))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(ProductErrorCode.PRODUCT_NOT_FOUND);
+        }
+
+        @Test
+        @DisplayName("상품 이미지를 추가한다")
+        void addImages(){
+            //given
+            Category category = Category.create("카테고리", null, "http://image.jpg");
+            categoryRepository.save(category);
+            Product product = Product.create("상품", "상품 설명", category);
+            productRepository.save(product);
+            //when
+            ProductImageCreateResponse result = productService.addImages(product.getId(), List.of("http://prod1.jpg", "http://prod2.jpg"));
+            //then
+            assertThat(result.getProductId()).isEqualTo(product.getId());
+            assertThat(result.getImages())
+                    .allSatisfy(image ->
+                            assertThat(image.getProductImageId()).isNotNull()
+                    );
+            assertThat(result.getImages())
+                    .extracting(ProductImageResponse::getImageUrl, ProductImageResponse::getOrder, ProductImageResponse::isThumbnail)
+                    .containsExactlyInAnyOrder(
+                            tuple("http://prod1.jpg", 1, true),
+                            tuple("http://prod2.jpg", 2, false)
+                    );
+        }
+    }
+
+    @Nested
+    @DisplayName("상품 게시")
+    class Publish {
+        @Test
+        @DisplayName("상품을 찾을 수 없는 경우 예외를 던진다")
+        void publish_notFound_product(){
+            //given
+            //when
+            //then
+            assertThatThrownBy(() -> productService.publish(999L))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(ProductErrorCode.PRODUCT_NOT_FOUND);
+        }
+
+        @Test
+        @DisplayName("상품을 게시한다")
+        void publish(){
+            //given
+            Category category = Category.create("카테고리", null, "http://image.jpg");
+            categoryRepository.save(category);
+            Product product = Product.create("상품", "상품 설명", category);
+            ProductVariant variant = ProductVariant.create("TEST", 3000L, 100, 10);
+            product.addVariant(variant);
+            product.addImages(List.of("http://image.jpg"));
+            productRepository.save(product);
+            //when
+            ProductStatusResponse result = productService.publish(product.getId());
+            //then
+            assertThat(result.getProductId()).isEqualTo(product.getId());
+            assertThat(result.getStatus()).isEqualTo("ON_SALE");
+            assertThat(result.getChangedAt()).isNotNull();
+        }
+    }
+
     private ProductVariantsCreateCommand.ProductVariantsCreateCommandBuilder createVariantCommand() {
         return ProductVariantsCreateCommand.builder()
                 .productId(1L)
@@ -331,5 +432,12 @@ public class ProductServiceTest extends ExcludeInfraTest {
                                 .stockQuantity(100)
                                 .optionValueIds(List.of(1L, 2L)).build())
                 );
+    }
+
+    private OptionValue findOptionValueByName(OptionType optionType, String name) {
+        return optionType.getOptionValues().stream()
+                .filter(optionValue -> optionValue.getName().equals(name))
+                .findFirst()
+                .orElseThrow(IllegalArgumentException::new);
     }
 }

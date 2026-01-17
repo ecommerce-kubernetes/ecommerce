@@ -159,6 +159,26 @@ public class ProductTest {
                 .isEqualTo(ProductErrorCode.NOT_MATCH_PRODUCT_OPTION_SPEC);
     }
 
+    @Test
+    @DisplayName("동일한 옵션조합의 상품 변형을 추가할 수 없다")
+    void addVariant_duplicateVariant(){
+        //given
+        OptionType size = OptionType.create("사이즈", List.of("XL", "L"));
+        OptionValue xl = findOptionValueByName(size, "XL");
+        Category category = Category.create("카테고리", null, "http://image.jpg");
+        Product product = Product.create("상품", "상품 설명", category);
+        product.updateOptionSpecs(List.of(size));
+        ProductVariant variant = ProductVariant.create("TEST", 3000L, 100, 10);
+        variant.addProductVariantOptions(List.of(xl));
+        product.addVariant(variant);
+        //when
+        //then
+        assertThatThrownBy(() -> product.addVariant(variant))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ProductErrorCode.PRODUCT_HAS_DUPLICATE_VARIANT);
+    }
+
     private OptionType createOptionType(Long id, String name, List<String> values) {
         OptionType optionType = OptionType.create(name, values);
         ReflectionTestUtils.setField(optionType, "id", id);

@@ -9,23 +9,21 @@ import com.example.product_service.api.common.exception.ProductErrorCode;
 import com.example.product_service.api.option.domain.model.OptionType;
 import com.example.product_service.api.option.domain.model.OptionValue;
 import com.example.product_service.api.option.domain.repository.OptionTypeRepository;
+import com.example.product_service.api.option.domain.repository.OptionValueRepository;
 import com.example.product_service.api.product.controller.dto.ProductSearchCondition;
 import com.example.product_service.api.product.domain.model.Product;
-import com.example.product_service.api.product.domain.model.ProductOptionSpec;
 import com.example.product_service.api.product.domain.model.ProductStatus;
 import com.example.product_service.api.product.domain.model.ProductVariant;
 import com.example.product_service.api.product.domain.repository.ProductRepository;
-import com.example.product_service.api.product.service.dto.command.ProductVariantsCreateCommand;
 import com.example.product_service.api.product.service.dto.command.ProductCreateCommand;
 import com.example.product_service.api.product.service.dto.command.ProductUpdateCommand;
+import com.example.product_service.api.product.service.dto.command.ProductVariantsCreateCommand;
 import com.example.product_service.api.product.service.dto.result.*;
 import com.example.product_service.dto.response.PageDto;
-import com.example.product_service.api.option.domain.repository.OptionValueRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -66,53 +64,31 @@ public class ProductService {
         for (ProductVariantsCreateCommand.VariantDetail variantReq : command.getVariants()) {
             List<OptionValue> optionValues = mapToOptionValues(variantReq.getOptionValueIds(), variantOptionMap);
             List<OptionValue> sortedOptionValues = product.validateAndSortOptionValues(optionValues);
-            ProductVariant variant = ProductVariant.create("PROD", variantReq.getOriginalPrice(), variantReq.getStockQuantity(), variantReq.getDiscountRate());
-            variant.addProductVariantOptions(sortedOptionValues);
-            product.addVariant(variant);
+            linkProductVariant(product, variantReq, sortedOptionValues);
         }
         productRepository.saveAndFlush(product);
         return VariantCreateResponse.of(product.getId(), product.getVariants());
     }
 
-    private List<OptionValue> mapToOptionValues(List<Long> ids, Map<Long, OptionValue> map) {
-        return ids.stream()
-                .map(id -> {
-                    OptionValue value = map.get(id);
-                    if (value == null)
-                        throw new BusinessException(OptionErrorCode.OPTION_NOT_FOUND);
-                    return value;
-                }).toList();
-    }
-
-    // 동일한 옵션 조합을 가진 상품 변형이 있는지 검증
-    private void validateRequestUniqueCombination(List<ProductVariantsCreateCommand.VariantDetail> variants){
-        long distinctRequestCount = variants.stream()
-                .map(v -> new HashSet<>(v.getOptionValueIds()))
-                .distinct()
-                .count();
-        if (distinctRequestCount != variants.size()) {
-            throw new BusinessException(ProductErrorCode.DUPLICATE_VARIANT_IN_REQUEST);
-        }
-    }
-
-    private Map<Long, OptionValue> findAndMapOptionValues(List<ProductVariantsCreateCommand.VariantDetail> variants) {
-        List<Long> optionValueIds = variants.stream().flatMap(v -> v.getOptionValueIds().stream()).toList();
-        List<OptionValue> optionValues = optionValueRepository.findByIdIn(optionValueIds);
-        return optionValues.stream().collect(Collectors.toMap(OptionValue::getId, Function.identity()));
-    }
-
     public ProductImageCreateResponse addImages(Long productId, List<String> images) {
-        return null;
+        Product product = findProductByIdOrThrow(productId);
+        product.addImages(images);
+        productRepository.saveAndFlush(product);
+        return ProductImageCreateResponse.of(product.getId(), product.getImages());
     }
 
     public ProductStatusResponse publish(Long productId) {
-        return null;
+        Product product = findProductByIdOrThrow(productId);
+        product.publish();
+        return ProductStatusResponse.publish(product);
     }
 
+    @Transactional(readOnly = true)
     public PageDto<ProductSummaryResponse> getProducts(ProductSearchCondition condition){
         return null;
     }
 
+    @Transactional(readOnly = true)
     public ProductDetailResponse getProduct(Long productId){
         return null;
     }
@@ -156,5 +132,38 @@ public class ProductService {
     private Product findProductByIdOrThrow(Long productId) {
         return productRepository.findById(productId)
                 .orElseThrow(() -> new BusinessException(ProductErrorCode.PRODUCT_NOT_FOUND));
+    }
+
+    private void linkProductVariant(Product product, ProductVariantsCreateCommand.VariantDetail variantReq, List<OptionValue> optionValues) {
+        ProductVariant variant = ProductVariant.create("PROD", variantReq.getOriginalPrice(), variantReq.getStockQuantity(), variantReq.getDiscountRate());
+        variant.addProductVariantOptions(optionValues);
+        product.addVariant(variant);
+    }
+
+    private List<OptionValue> mapToOptionValues(List<Long> ids, Map<Long, OptionValue> map) {
+        return ids.stream()
+                .map(id -> {
+                    OptionValue value = map.get(id);
+                    if (value == null)
+                        throw new BusinessException(OptionErrorCode.OPTION_NOT_FOUND);
+                    return value;
+                }).toList();
+    }
+
+    // 동일한 옵션 조합을 가진 상품 변형이 있는지 검증
+    private void validateRequestUniqueCombination(List<ProductVariantsCreateCommand.VariantDetail> variants){
+        long distinctRequestCount = variants.stream()
+                .map(v -> new HashSet<>(v.getOptionValueIds()))
+                .distinct()
+                .count();
+        if (distinctRequestCount != variants.size()) {
+            throw new BusinessException(ProductErrorCode.DUPLICATE_VARIANT_IN_REQUEST);
+        }
+    }
+
+    private Map<Long, OptionValue> findAndMapOptionValues(List<ProductVariantsCreateCommand.VariantDetail> variants) {
+        List<Long> optionValueIds = variants.stream().flatMap(v -> v.getOptionValueIds().stream()).toList();
+        List<OptionValue> optionValues = optionValueRepository.findByIdIn(optionValueIds);
+        return optionValues.stream().collect(Collectors.toMap(OptionValue::getId, Function.identity()));
     }
 }

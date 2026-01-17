@@ -1,5 +1,6 @@
 package com.example.product_service.api.product.service.dto.result;
 
+import com.example.product_service.api.product.domain.model.ProductImage;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -16,5 +17,14 @@ public class ProductImageResponse {
         this.imageUrl = imageUrl;
         this.order = order;
         this.isThumbnail = isThumbnail;
+    }
+
+    public static ProductImageResponse from(ProductImage productImage) {
+        return ProductImageResponse.builder()
+                .productImageId(productImage.getId())
+                .imageUrl(productImage.getImageUrl())
+                .order(productImage.getSortOrder())
+                .isThumbnail(productImage.isThumbnail())
+                .build();
     }
 }

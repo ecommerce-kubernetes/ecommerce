@@ -2,10 +2,7 @@ package com.example.product_service.api.product.domain.model;
 
 import com.example.product_service.api.common.entity.BaseEntity;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -19,25 +16,29 @@ public class ProductImage extends BaseEntity {
     @JoinColumn(name = "product_id")
     private Product product;
 
-    @Setter
     private String imageUrl;
     private Integer sortOrder;
 
-    public ProductImage(String imageUrl, int sortOrder){
+    @Builder(access = AccessLevel.PRIVATE)
+    private ProductImage(String imageUrl, int sortOrder){
         this.imageUrl = imageUrl;
         this.sortOrder = sortOrder;
     }
 
-    public ProductImage(String imageUrl){
-        this.imageUrl = imageUrl;
+    public static ProductImage create(Product product, String imageUrl, int sortOrder) {
+        ProductImage image = ProductImage.builder()
+                .imageUrl(imageUrl)
+                .sortOrder(sortOrder)
+                .build();
+        image.setProduct(product);
+        return image;
     }
 
-    protected void setSortOrder(int sortOrder){
-        this.sortOrder = sortOrder;
+    public boolean isThumbnail() {
+        return this.sortOrder == 1;
     }
 
-    protected void setProduct(Product product){
+    protected void setProduct(Product product) {
         this.product = product;
     }
-
 }

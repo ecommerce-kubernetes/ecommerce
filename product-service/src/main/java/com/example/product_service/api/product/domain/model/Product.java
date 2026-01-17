@@ -13,10 +13,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Entity
@@ -52,6 +49,9 @@ public class Product extends BaseEntity {
     @OneToMany(mappedBy = "product", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProductOptionSpec> optionSpecs = new ArrayList<>();
 
+    @OneToMany(mappedBy = "product", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ProductImage> images = new ArrayList<>();
+
     @Builder(access = AccessLevel.PRIVATE)
     private Product(String name, Category category, ProductStatus status, String description, LocalDateTime publishedAt, String thumbnail, Double rating, Long reviewCount, Long displayPrice, Long originalPrice, Integer maxDiscountRate) {
         this.name = name;
@@ -85,6 +85,30 @@ public class Product extends BaseEntity {
         this.status = ProductStatus.DELETED;
     }
 
+    public void publish() {
+        validatePublishable();
+        this.status = ProductStatus.ON_SALE;
+        this.publishedAt = LocalDateTime.now();
+    }
+
+    private void validatePublishable() {
+        if (this.status == ProductStatus.DELETED) {
+            throw new BusinessException(ProductErrorCode.CANNOT_PUBLISH_DELETED_PRODUCT);
+        }
+
+        if (this.variants == null || this.variants.isEmpty()) {
+            throw new BusinessException(ProductErrorCode.NO_VARIANTS_TO_PUBLISH);
+        }
+
+        if (this.thumbnail == null || this.thumbnail.isBlank()) {
+            throw new BusinessException(ProductErrorCode.NO_THUMBNAIL_IMAGE);
+        }
+
+        if (this.displayPrice == null || this.displayPrice <= 0) {
+            throw new BusinessException(ProductErrorCode.INVALID_DISPLAY_PRICE);
+        }
+    }
+
     public void validateCreatableVariantStatus() {
         if (this.status == ProductStatus.DELETED) {
             throw new BusinessException(ProductErrorCode.PRODUCT_NOT_FOUND);
@@ -98,7 +122,7 @@ public class Product extends BaseEntity {
         List<OptionValue> sortedValues = new ArrayList<>();
         for (ProductOptionSpec spec : optionSpecs) {
             OptionValue matchedValue = inputValues.stream()
-                    .filter(val -> val.getOptionType().equals(spec.getOptionType()))
+                    .filter(val -> val.getOptionType().getId().equals(spec.getOptionType().getId()))
                     .findFirst()
                     .orElseThrow(() -> new BusinessException(ProductErrorCode.NOT_MATCH_PRODUCT_OPTION_SPEC));
             sortedValues.add(matchedValue);
@@ -121,6 +145,7 @@ public class Product extends BaseEntity {
         validateDuplicateVariant(productVariant.getProductVariantOptions().stream().map(ProductVariantOption::getOptionValue).toList());
         this.variants.add(productVariant);
         productVariant.setProduct(this);
+        updatePrice();
     }
 
     public void updateOptionSpecs(List<OptionType> newOptionTypes) {
@@ -138,5 +163,32 @@ public class Product extends BaseEntity {
                     ProductOptionSpec.create(this, newOptionTypes.get(i), i+1)
             );
         }
+    }
+
+    public void addImages(List<String> imageUrls) {
+        images.clear();
+        for(int i=0; i<imageUrls.size(); i++) {
+            this.images.add(ProductImage.create(this, imageUrls.get(i), i + 1));
+        }
+
+        updateThumbnail();
+    }
+
+    private void updatePrice() {
+        this.variants.stream().min(Comparator.comparingLong(ProductVariant::getPrice))
+                .ifPresent(cheapestVariant -> {
+                    this.displayPrice = cheapestVariant.getPrice();
+                    this.originalPrice = cheapestVariant.getOriginalPrice();
+                });
+        this.variants.stream().max(Comparator.comparingInt(ProductVariant::getDiscountRate))
+                .ifPresent(p -> this.maxDiscountRate = p.getDiscountRate());
+    }
+
+    private void updateThumbnail() {
+        this.thumbnail = this.images.stream()
+                .filter(image -> image.getSortOrder() == 1)
+                .findFirst()
+                .map(ProductImage::getImageUrl)
+                .orElse(null);
     }
 }
