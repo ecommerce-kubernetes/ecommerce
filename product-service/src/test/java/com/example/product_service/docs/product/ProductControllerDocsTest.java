@@ -80,7 +80,7 @@ public class ProductControllerDocsTest extends RestDocsSupport {
 
     @Test
     @DisplayName("상품 옵션 정의")
-    void registerOptionSpec() throws Exception {
+    void registerProductOption() throws Exception {
         //given
         ProductOptionRequest request = mockOptionSpecRequest().build();
         ProductOptionResponse response = mockOptionSpecResponse().build();
@@ -178,12 +178,12 @@ public class ProductControllerDocsTest extends RestDocsSupport {
 
     @Test
     @DisplayName("상품 이미지 추가")
-    void addImages() throws Exception {
+    void replaceImages() throws Exception {
         //given
         ProductImageCreateRequest request = mockImageRequest().build();
         ProductImageCreateResponse response = mockImageResponse().build();
         HttpHeaders adminHeader = createAdminHeader();
-        given(productService.addImages(anyLong(), anyList()))
+        given(productService.updateImages(anyLong(), anyList()))
                 .willReturn(response);
         //when
         //then
@@ -213,7 +213,6 @@ public class ProductControllerDocsTest extends RestDocsSupport {
 
                                 responseFields(
                                         fieldWithPath("productId").description("상품 Id"),
-                                        fieldWithPath("images[].productImageId").description("상품 이미지 Id"),
                                         fieldWithPath("images[].imageUrl").description("상품 이미지 URL"),
                                         fieldWithPath("images[].order").description("상품 이미지 순서"),
                                         fieldWithPath("images[].thumbnail").description("썸네일 여부")
@@ -357,7 +356,6 @@ public class ProductControllerDocsTest extends RestDocsSupport {
                                     fieldWithPath("optionGroups[].name").description("상품 옵션 타입 이름"),
                                     fieldWithPath("optionGroups[].values[].optionValueId").description("상품 옵션 값 ID"),
                                     fieldWithPath("optionGroups[].values[].name").description("상품 옵션 값 이름"),
-                                    fieldWithPath("images[].productImageId").description("상품 이미지 Id"),
                                     fieldWithPath("images[].imageUrl").description("상품 이미지 URL"),
                                     fieldWithPath("images[].order").description("상품 이미지 순서"),
                                     fieldWithPath("images[].thumbnail").description("썸네일 여부"),

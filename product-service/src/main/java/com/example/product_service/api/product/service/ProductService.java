@@ -66,7 +66,7 @@ public class ProductService {
         for (ProductVariantsCreateCommand.VariantDetail variantReq : command.getVariants()) {
             // 요청 variant 의 optionValue를 찾음
             List<OptionValue> optionValues = mapToOptionValues(variantReq.getOptionValueIds(), variantOptionMap);
-            //ProductVariant 생성
+            // ProductVariant 생성
             String sku = skuGenerator.generate(product, optionValues);
             ProductVariant variant = ProductVariant.create(sku, variantReq.getOriginalPrice(), variantReq.getStockQuantity(), variantReq.getDiscountRate());
             variant.addProductVariantOptions(optionValues);
@@ -77,10 +77,9 @@ public class ProductService {
         return VariantCreateResponse.of(product.getId(), newlyCreatedVariants);
     }
 
-    public ProductImageCreateResponse addImages(Long productId, List<String> images) {
+    public ProductImageCreateResponse updateImages(Long productId, List<String> images) {
         Product product = findProductByIdOrThrow(productId);
-        product.addImages(images);
-        productRepository.saveAndFlush(product);
+        product.replaceImages(images);
         return ProductImageCreateResponse.of(product.getId(), product.getImages());
     }
 

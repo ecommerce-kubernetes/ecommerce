@@ -1,6 +1,5 @@
 package com.example.product_service.api.product.service;
 
-import com.example.product_service.api.option.domain.model.OptionType;
 import com.example.product_service.api.option.domain.model.OptionValue;
 import com.example.product_service.api.product.domain.model.Product;
 import com.example.product_service.api.product.domain.model.ProductOption;

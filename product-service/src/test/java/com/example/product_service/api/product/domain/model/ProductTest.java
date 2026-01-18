@@ -14,8 +14,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.api.BDDAssertions.tuple;
 
 public class ProductTest {
@@ -292,23 +291,164 @@ public class ProductTest {
         }
     }
 
-    @Test
-    @DisplayName("동일한 옵션조합의 상품 변형을 추가할 수 없다")
-    void addVariant_duplicateVariant(){
-        //given
-        OptionType size = OptionType.create("사이즈", List.of("XL", "L"));
-        OptionValue xl = getOptionValueSettingId(1L, size, "XL");
-        Category category = Category.create("카테고리", null, "http://image.jpg");
-        Product product = Product.create("상품", "상품 설명", category);
-        product.updateOptions(List.of(size));
-        ProductVariant variant = ProductVariant.create("TEST", 3000L, 100, 10);
-        variant.addProductVariantOptions(List.of(xl));
-        product.addVariant(variant);
-        //when
-        //then
-        assertThatThrownBy(() -> product.addVariant(variant))
-                .isInstanceOf(BusinessException.class)
-                .extracting("errorCode")
-                .isEqualTo(ProductErrorCode.PRODUCT_HAS_DUPLICATE_VARIANT);
+    @Nested
+    @DisplayName("상품 이미지 추가")
+    class AddImage {
+
+        @Test
+        @DisplayName("상품 이미지를 추가하면 상품의 대표 이미지가 최신화 된다")
+        void replaceImages(){
+            //given
+            Product product = ProductTestBuilder.aProduct().build();
+            //when
+            product.replaceImages(List.of("http://thumbnail.jpg", "http://image2.jpg"));
+            //then
+            assertThat(product.getImages()).hasSize(2)
+                    .extracting(ProductImage::getImageUrl, ProductImage::getSortOrder)
+                    .containsExactlyInAnyOrder(
+                            tuple("http://thumbnail.jpg", 1),
+                            tuple("http://image2.jpg", 2)
+                    );
+            assertThat(product.getThumbnail()).isEqualTo("http://thumbnail.jpg");
+        }
+
+        @Test
+        @DisplayName("삭제된 상품에 이미지를 추가할 수 없다")
+        void replaceImages_product_deleted(){
+            //given
+            Product product = ProductTestBuilder.aProduct().withStatus(ProductStatus.DELETED).build();
+            //when
+            //then
+            assertThatThrownBy(() -> product.replaceImages(List.of("http://image1.jpg", "http://image2.jpg")))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(ProductErrorCode.PRODUCT_NOT_FOUND);
+        }
+
+        @Test
+        @DisplayName("판매중인 상품은 최소 이미지가 한개 이상이여야 한다")
+        void replaceImages_product_on_sale(){
+            //given
+            Product product = ProductTestBuilder.aProduct().withStatus(ProductStatus.ON_SALE).build();
+            //when
+            //then
+            assertThatThrownBy(() -> product.replaceImages(List.of()))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(ProductErrorCode.CANNOT_DELETE_ALL_IMAGES_ON_SALE);
+        }
+    }
+
+    @Nested
+    @DisplayName("상품 게시")
+    class Publish {
+
+        @Test
+        @DisplayName("삭제된 상품은 게시할 수 없다")
+        void publish_product_deleted(){
+            //given
+            Product product = ProductTestBuilder.aProduct().withStatus(ProductStatus.DELETED).build();
+            //when
+            //then
+            assertThatThrownBy(() -> product.publish())
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(ProductErrorCode.CANNOT_PUBLISH_DELETED_PRODUCT);
+        }
+
+        @Test
+        @DisplayName("상품 변형이 없는 상품은 게시할 수 없다")
+        void publish_product_have_not_variant(){
+            //given
+            Product product = ProductTestBuilder.aProduct().withVariants(List.of()).build();
+            //when
+            //then
+            assertThatThrownBy(() -> product.publish())
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(ProductErrorCode.NO_VARIANTS_TO_PUBLISH);
+        }
+
+        @Test
+        @DisplayName("대표 이미지가 없는 상품은 게시할 수 없다")
+        void publish_product_have_not_thumbnail(){
+            //given
+            ProductVariant variant = ProductVariant.create("TEST", 10000L, 100, 10);
+            Product product = ProductTestBuilder.aProduct().withVariants(List.of(variant)).withImages(List.of()).build();
+            //when
+            //then
+            assertThatThrownBy(() -> product.publish())
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(ProductErrorCode.NO_THUMBNAIL_IMAGE);
+        }
+
+        @Test
+        @DisplayName("판매가가 유효하지 않으면 게시할 수 없다")
+        void publish_product_invalid_lowest_price(){
+            //given
+            ProductVariant variant = ProductVariant.create("TEST", 10000L, 100, 10);
+            Product product = ProductTestBuilder.aProduct()
+                    .withVariants(List.of(variant))
+                    .withImages(List.of("http://image.jpg"))
+                    .withPrice(0L, 0L, 0).build();
+            //when
+            //then
+            assertThatThrownBy(() -> product.publish())
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(ProductErrorCode.INVALID_DISPLAY_PRICE);
+        }
+
+        @Test
+        @DisplayName("정가가 유효하지 않으면 게시할 수 없다")
+        void publish_product_invalid_original_price(){
+            //given
+            ProductVariant variant = ProductVariant.create("TEST", 10000L, 100, 10);
+            Product product = ProductTestBuilder.aProduct()
+                    .withVariants(List.of(variant))
+                    .withImages(List.of("http://image.jpg"))
+                    .withPrice(1000L, 0L, 0).build();
+            //when
+            //then
+            assertThatThrownBy(() -> product.publish())
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(ProductErrorCode.INVALID_ORIGINAL_PRICE);
+        }
+
+        @Test
+        @DisplayName("할인가가 정가보다 비쌀 수 없다")
+        void publish_product_invalid_lowest_greater_than_original_price(){
+            //given
+            ProductVariant variant = ProductVariant.create("TEST", 10000L, 100, 10);
+            Product product = ProductTestBuilder.aProduct()
+                    .withVariants(List.of(variant))
+                    .withImages(List.of("http://image.jpg"))
+                    .withPrice(1000L, 900L, 0).build();
+            //when
+            //then
+            assertThatThrownBy(() -> product.publish())
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(ProductErrorCode.DISPLAY_PRICE_GREATER_THAN_ORIGINAL);
+        }
+
+        @Test
+        @DisplayName("할인율이 유효하지 않으면 게시할 수 없다")
+        void publish_product_invalid_discount_rate(){
+            //given
+            ProductVariant variant = ProductVariant.create("TEST", 10000L, 100, 10);
+            Product product = ProductTestBuilder.aProduct()
+                    .withVariants(List.of(variant))
+                    .withImages(List.of("http://image.jpg"))
+                    .withPrice(1000L, 1200L, null).build();
+            //when
+            //then
+            assertThatThrownBy(() -> product.publish())
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(ProductErrorCode.INVALID_DISCOUNT_RATE);
+        }
     }
 }

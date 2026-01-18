@@ -38,8 +38,8 @@ public class ProductController {
 
     @PutMapping("/{productId}/option")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ProductOptionResponse> registerOptionSpec(@PathVariable("productId") Long productId,
-                                                                    @RequestBody @Validated ProductOptionRequest request) {
+    public ResponseEntity<ProductOptionResponse> registerProductOption(@PathVariable("productId") Long productId,
+                                                                       @RequestBody @Validated ProductOptionRequest request) {
         ProductOptionResponse response = productService.defineOptions(productId, request.getOptionTypeIds());
         return ResponseEntity.ok(response);
     }
@@ -66,9 +66,9 @@ public class ProductController {
 
     @PutMapping("/{productId}/images")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ProductImageCreateResponse> addImages(@PathVariable("productId") Long productId,
-                                                               @RequestBody @Validated ProductImageCreateRequest request) {
-        ProductImageCreateResponse response = productService.addImages(productId, request.getImages());
+    public ResponseEntity<ProductImageCreateResponse> updateImages(@PathVariable("productId") Long productId,
+                                                                   @RequestBody @Validated ProductImageCreateRequest request) {
+        ProductImageCreateResponse response = productService.updateImages(productId, request.getImages());
         return ResponseEntity.ok(response);
     }
 

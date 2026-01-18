@@ -104,7 +104,6 @@ public class ProductControllerFixture {
                 .images(
                         List.of(
                                 ProductImageResponse.builder()
-                                        .productImageId(1L)
                                         .imageUrl("http://image1.jpg")
                                         .order(1)
                                         .isThumbnail(true)
@@ -161,7 +160,6 @@ public class ProductControllerFixture {
                 .images(
                         List.of(
                                 ProductImageResponse.builder()
-                                        .productImageId(1L)
                                         .imageUrl("http://image.jpg")
                                         .order(1)
                                         .isThumbnail(true)

@@ -7,6 +7,7 @@ import org.mockito.Mockito;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +26,7 @@ public class ProductTestBuilder {
     private Long originalPrice = 10000L;
     private Integer maxDiscountRate = 0;
     private List<ProductVariant> variants = new ArrayList<>();
-    private List<ProductImage> images = new ArrayList<>();
+    private List<String> imageUrls = new ArrayList<>();
     private List<OptionType> optionTypes = new ArrayList<>();
 
     public static ProductTestBuilder aProduct() {
@@ -51,7 +52,7 @@ public class ProductTestBuilder {
         return this;
     }
 
-    public ProductTestBuilder withPrice(Double rating, Long reviewCount, Double popularityScore) {
+    public ProductTestBuilder withScore(Double rating, Long reviewCount, Double popularityScore) {
         this.rating = rating;
         this.reviewCount = reviewCount;
         this.popularityScore = popularityScore;
@@ -76,8 +77,8 @@ public class ProductTestBuilder {
     }
 
     // [핵심] 이미지를 강제로 주입
-    public ProductTestBuilder withImages(List<ProductImage> images) {
-        this.images = images;
+    public ProductTestBuilder withImages(List<String> imageUrls) {
+        this.imageUrls = imageUrls;
         return this;
     }
 
@@ -107,11 +108,15 @@ public class ProductTestBuilder {
             ReflectionTestUtils.setField(product, "variants", new ArrayList<>(variants));
         }
 
-        if (!images.isEmpty()) {
-            ReflectionTestUtils.setField(product, "images", new ArrayList<>(images));
-
-            if (!this.images.isEmpty()) {
-                ReflectionTestUtils.setField(product, "thumbnail", this.images.get(0).getImageUrl());
+        if (!imageUrls.isEmpty()) {
+            List<ProductImage> productImages = new ArrayList<>();
+            for (int i = 0; i < imageUrls.size(); i++) {
+                ProductImage image = createProductImageByReflection(product, imageUrls.get(i), i + 1);
+                productImages.add(image);
+            }
+            ReflectionTestUtils.setField(product, "images", productImages);
+            if (!this.imageUrls.isEmpty()) {
+                ReflectionTestUtils.setField(product, "thumbnail", this.imageUrls.get(0));
             }
         }
 
@@ -131,6 +136,18 @@ public class ProductTestBuilder {
             return option;
         } catch (Exception e) {
             throw new RuntimeException("테스트용 ProductOption 생성 실패", e);
+        }
+    }
+
+    private ProductImage createProductImageByReflection(Product product, String imageUrl, int sortOrder) {
+        try {
+            Constructor<ProductImage> constructor = ProductImage.class.getDeclaredConstructor(String.class, int.class);
+            constructor.setAccessible(true);
+            ProductImage productImage = constructor.newInstance(imageUrl, sortOrder);
+            ReflectionTestUtils.setField(productImage, "product", product);
+            return productImage;
+        } catch (Exception e) {
+            throw new RuntimeException("테스트용 ProductImage 생성 실패", e);
         }
     }
 

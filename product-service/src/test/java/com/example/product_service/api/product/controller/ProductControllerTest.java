@@ -111,7 +111,7 @@ public class ProductControllerTest extends ControllerTestSupport {
     @Test
     @DisplayName("상품 옵션을 설정한다")
     @WithCustomMockUser
-    void registerOptionSpec() throws Exception {
+    void registerProductOption() throws Exception {
         //given
         ProductOptionRequest request = mockOptionSpecRequest().build();
         ProductOptionResponse response = mockOptionSpecResponse().build();
@@ -130,7 +130,7 @@ public class ProductControllerTest extends ControllerTestSupport {
     @Test
     @DisplayName("상품 옵션을 정의하려면 관리자 권한이여야 한다")
     @WithCustomMockUser(userRole = UserRole.ROLE_USER)
-    void registerOptionSpec_user_role() throws Exception {
+    void registerProductOption_user_role() throws Exception {
         //given
         ProductOptionRequest request = mockOptionSpecRequest().build();
         //when
@@ -147,7 +147,7 @@ public class ProductControllerTest extends ControllerTestSupport {
 
     @Test
     @DisplayName("로그인 하지 않은 사용자는 상품 옵션을 정의할 수 없다")
-    void registerOptionSpec_unAuthorized() throws Exception {
+    void registerProductOption_unAuthorized() throws Exception {
         //given
         ProductOptionRequest request = mockOptionSpecRequest().build();
         //when
@@ -167,7 +167,7 @@ public class ProductControllerTest extends ControllerTestSupport {
     @MethodSource("provideInvalidOptionSpecRequest")
     @DisplayName("상품 옵션 설정 요청 검증")
     @WithCustomMockUser
-    void registerOptionSpec_invalidRequest(String description, ProductOptionRequest request, String message) throws Exception {
+    void registerProductOption_invalidRequest(String description, ProductOptionRequest request, String message) throws Exception {
         //given
         //when
         //then
@@ -264,7 +264,7 @@ public class ProductControllerTest extends ControllerTestSupport {
         //given
         ProductImageCreateRequest request = mockImageRequest().build();
         ProductImageCreateResponse response = mockImageResponse().build();
-        given(productService.addImages(anyLong(), anyList()))
+        given(productService.updateImages(anyLong(), anyList()))
                 .willReturn(response);
         //when
         //then

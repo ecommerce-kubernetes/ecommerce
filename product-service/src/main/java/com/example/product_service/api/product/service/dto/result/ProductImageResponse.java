@@ -6,14 +6,12 @@ import lombok.Getter;
 
 @Getter
 public class ProductImageResponse {
-    private Long productImageId;
     private String imageUrl;
     private Integer order;
     private boolean isThumbnail;
 
     @Builder
-    private ProductImageResponse(Long productImageId, String imageUrl, Integer order, boolean isThumbnail) {
-        this.productImageId = productImageId;
+    private ProductImageResponse(String imageUrl, Integer order, boolean isThumbnail) {
         this.imageUrl = imageUrl;
         this.order = order;
         this.isThumbnail = isThumbnail;
@@ -21,7 +19,6 @@ public class ProductImageResponse {
 
     public static ProductImageResponse from(ProductImage productImage) {
         return ProductImageResponse.builder()
-                .productImageId(productImage.getId())
                 .imageUrl(productImage.getImageUrl())
                 .order(productImage.getSortOrder())
                 .isThumbnail(productImage.isThumbnail())

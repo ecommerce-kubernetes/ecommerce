@@ -304,7 +304,7 @@ public class ProductServiceTest extends ExcludeInfraTest {
             //given
             //when
             //then
-            assertThatThrownBy(() -> productService.addImages(999L, List.of("http://image1.jpg", "http://image2.jpg")))
+            assertThatThrownBy(() -> productService.updateImages(999L, List.of("http://image1.jpg", "http://image2.jpg")))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(ProductErrorCode.PRODUCT_NOT_FOUND);
@@ -314,18 +314,13 @@ public class ProductServiceTest extends ExcludeInfraTest {
         @DisplayName("상품 이미지를 추가한다")
         void addImages(){
             //given
-            Category category = Category.create("카테고리", null, "http://image.jpg");
-            categoryRepository.save(category);
+            Category category = saveCategory();
             Product product = Product.create("상품", "상품 설명", category);
             productRepository.save(product);
             //when
-            ProductImageCreateResponse result = productService.addImages(product.getId(), List.of("http://prod1.jpg", "http://prod2.jpg"));
+            ProductImageCreateResponse result = productService.updateImages(product.getId(), List.of("http://prod1.jpg", "http://prod2.jpg"));
             //then
             assertThat(result.getProductId()).isEqualTo(product.getId());
-            assertThat(result.getImages())
-                    .allSatisfy(image ->
-                            assertThat(image.getProductImageId()).isNotNull()
-                    );
             assertThat(result.getImages())
                     .extracting(ProductImageResponse::getImageUrl, ProductImageResponse::getOrder, ProductImageResponse::isThumbnail)
                     .containsExactlyInAnyOrder(
@@ -338,6 +333,25 @@ public class ProductServiceTest extends ExcludeInfraTest {
     @Nested
     @DisplayName("상품 게시")
     class Publish {
+
+        @Test
+        @DisplayName("상품을 게시한다")
+        void publish(){
+            //given
+            Category category = saveCategory();
+            Product product = Product.create("상품", "상품 설명", category);
+            ProductVariant variant = ProductVariant.create("TEST", 3000L, 100, 10);
+            product.addVariant(variant);
+            product.replaceImages(List.of("http://image.jpg"));
+            productRepository.save(product);
+            //when
+            ProductStatusResponse result = productService.publish(product.getId());
+            //then
+            assertThat(result.getProductId()).isEqualTo(product.getId());
+            assertThat(result.getStatus()).isEqualTo("ON_SALE");
+            assertThat(result.getChangedAt()).isNotNull();
+        }
+
         @Test
         @DisplayName("상품을 찾을 수 없는 경우 예외를 던진다")
         void publish_notFound_product(){
@@ -348,25 +362,6 @@ public class ProductServiceTest extends ExcludeInfraTest {
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(ProductErrorCode.PRODUCT_NOT_FOUND);
-        }
-
-        @Test
-        @DisplayName("상품을 게시한다")
-        void publish(){
-            //given
-            Category category = Category.create("카테고리", null, "http://image.jpg");
-            categoryRepository.save(category);
-            Product product = Product.create("상품", "상품 설명", category);
-            ProductVariant variant = ProductVariant.create("TEST", 3000L, 100, 10);
-            product.addVariant(variant);
-            product.addImages(List.of("http://image.jpg"));
-            productRepository.save(product);
-            //when
-            ProductStatusResponse result = productService.publish(product.getId());
-            //then
-            assertThat(result.getProductId()).isEqualTo(product.getId());
-            assertThat(result.getStatus()).isEqualTo("ON_SALE");
-            assertThat(result.getChangedAt()).isNotNull();
         }
     }
 }

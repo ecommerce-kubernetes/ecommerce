@@ -12,7 +12,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Entity
@@ -97,24 +100,6 @@ public class Product extends BaseEntity {
         this.publishedAt = LocalDateTime.now();
     }
 
-    private void validatePublishable() {
-        if (this.status == ProductStatus.DELETED) {
-            throw new BusinessException(ProductErrorCode.CANNOT_PUBLISH_DELETED_PRODUCT);
-        }
-
-        if (this.variants == null || this.variants.isEmpty()) {
-            throw new BusinessException(ProductErrorCode.NO_VARIANTS_TO_PUBLISH);
-        }
-
-        if (this.thumbnail == null || this.thumbnail.isBlank()) {
-            throw new BusinessException(ProductErrorCode.NO_THUMBNAIL_IMAGE);
-        }
-
-        if (this.lowestPrice == null || this.lowestPrice <= 0) {
-            throw new BusinessException(ProductErrorCode.INVALID_DISPLAY_PRICE);
-        }
-    }
-
     public void addVariant(ProductVariant productVariant) {
         validateAddableVariant(productVariant);
         this.variants.add(productVariant);
@@ -127,12 +112,21 @@ public class Product extends BaseEntity {
         replaceOptions(newOptionTypes);
     }
 
-    public void addImages(List<String> imageUrls) {
+    public void replaceImages(List<String> imageUrls) {
+        if (this.status == ProductStatus.DELETED) {
+            throw new BusinessException(ProductErrorCode.PRODUCT_NOT_FOUND);
+        }
+
+        if (this.status == ProductStatus.ON_SALE) {
+            if (imageUrls == null || imageUrls.isEmpty()) {
+                throw new BusinessException(ProductErrorCode.CANNOT_DELETE_ALL_IMAGES_ON_SALE);
+            }
+        }
+
         images.clear();
         for(int i=0; i<imageUrls.size(); i++) {
             this.images.add(ProductImage.create(this, imageUrls.get(i), i + 1));
         }
-
         updateThumbnail();
     }
 
@@ -207,6 +201,36 @@ public class Product extends BaseEntity {
         long uniqueCount = optionTypes.stream().distinct().count();
         if (uniqueCount != optionTypes.size()) {
             throw new BusinessException(ProductErrorCode.DUPLICATE_OPTION_TYPE);
+        }
+    }
+
+    private void validatePublishable() {
+        if (this.status == ProductStatus.DELETED) {
+            throw new BusinessException(ProductErrorCode.CANNOT_PUBLISH_DELETED_PRODUCT);
+        }
+
+        if (this.variants == null || this.variants.isEmpty()) {
+            throw new BusinessException(ProductErrorCode.NO_VARIANTS_TO_PUBLISH);
+        }
+
+        if (this.thumbnail == null || this.thumbnail.isBlank()) {
+            throw new BusinessException(ProductErrorCode.NO_THUMBNAIL_IMAGE);
+        }
+
+        if (this.lowestPrice == null || this.lowestPrice <= 0) {
+            throw new BusinessException(ProductErrorCode.INVALID_DISPLAY_PRICE);
+        }
+
+        if (this.originalPrice == null || this.originalPrice <= 0) {
+            throw new BusinessException(ProductErrorCode.INVALID_ORIGINAL_PRICE);
+        }
+
+        if (this.lowestPrice > this.originalPrice) {
+            throw new BusinessException(ProductErrorCode.DISPLAY_PRICE_GREATER_THAN_ORIGINAL);
+        }
+
+        if (this.maxDiscountRate == null || this.maxDiscountRate < 0) {
+            throw new BusinessException(ProductErrorCode.INVALID_DISCOUNT_RATE);
         }
     }
 

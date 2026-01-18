@@ -21,7 +21,11 @@ public enum ProductErrorCode implements ErrorCode {
     INVALID_DISPLAY_PRICE(409, "PRODUCT_013", "대표 가격이 유효하지 않은 상품은 게시할 수 없습니다"),
     PRODUCT_CATEGORY_REQUIRED(409, "PRODUCT_014", "상품은 반드시 하나의 카테고리에 속해야 합니다"),
     PRODUCT_VARIANT_DUPLICATE_OPTION(409, "PRODUCT_015", "동일한 옵션 값의 상품 변형을 생성할 수 없습니다"),
-    NOT_MATCH_PRODUCT_OPTION_SPEC(409, "PRODUCT_016", "상품 옵션과 다른 옵션 값이 존재합니다");
+    NOT_MATCH_PRODUCT_OPTION_SPEC(409, "PRODUCT_016", "상품 옵션과 다른 옵션 값이 존재합니다"),
+    CANNOT_DELETE_ALL_IMAGES_ON_SALE(409, "PRODUCT_017", "판매중인 상품은 이미지가 최소 한개 이상이여야 합니다"),
+    INVALID_ORIGINAL_PRICE(409, "PRODUCT_018", "정가가 유효하지 않은 상품은 게시할 수 없습니다"),
+    INVALID_DISCOUNT_RATE(409, "PRODUCT_019", "최대 할인율이 유효햐지 않은 상품은 게시할 수 없습니다"),
+    DISPLAY_PRICE_GREATER_THAN_ORIGINAL(409, "PRODUCT_020", "판매가는 정가보다 비쌀 수 없습니다");
     private final int status;
     private final String code;
     private final String message;
