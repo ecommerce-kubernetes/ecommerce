@@ -72,7 +72,7 @@ public class ProductVariant {
     private void validateDuplicateOptions(List<OptionValue> optionValues){
         Set<Long> distinctIds = optionValues.stream().map(OptionValue::getId).collect(Collectors.toSet());
         if (distinctIds.size() != optionValues.size()) {
-            throw new BusinessException(ProductErrorCode.PRODUCT_VARIANT_DUPLICATE_OPTION);
+            throw new BusinessException(ProductErrorCode.VARIANT_DUPLICATE_OPTION);
         }
     }
 

@@ -119,7 +119,7 @@ public class Product extends BaseEntity {
 
         if (this.status == ProductStatus.ON_SALE) {
             if (imageUrls == null || imageUrls.isEmpty()) {
-                throw new BusinessException(ProductErrorCode.CANNOT_DELETE_ALL_IMAGES_ON_SALE);
+                throw new BusinessException(ProductErrorCode.IMAGE_REQUIRED_ON_SALE);
             }
         }
 
@@ -154,7 +154,7 @@ public class Product extends BaseEntity {
         }
 
         if (productVariant.getProductVariantOptions().size() != this.options.size()) {
-            throw new BusinessException(ProductErrorCode.NOT_MATCH_PRODUCT_OPTION_SIZE);
+            throw new BusinessException(ProductErrorCode.VARIANT_OPTION_SIZE_MISMATCH);
         }
         validateVariantOptionSpec(productVariant);
         validateHasDuplicateVariant(productVariant);
@@ -165,7 +165,7 @@ public class Product extends BaseEntity {
         for (ProductVariantOption variantOption : productVariant.getProductVariantOptions()) {
             Long variantOptionTypeId = variantOption.getOptionValue().getOptionType().getId();
             if (!productOptionTypeIds.contains(variantOptionTypeId)){
-                throw new BusinessException(ProductErrorCode.NOT_MATCH_PRODUCT_OPTION_SPEC);
+                throw new BusinessException(ProductErrorCode.VARIANT_OPTION_SPEC_MISMATCH);
             }
         }
     }
@@ -176,7 +176,7 @@ public class Product extends BaseEntity {
         for (ProductVariant variant : this.variants) {
             boolean isDuplicate = variant.hasSameOptions(variantOptions);
             if (isDuplicate) {
-                throw new BusinessException(ProductErrorCode.PRODUCT_HAS_DUPLICATE_VARIANT);
+                throw new BusinessException(ProductErrorCode.VARIANT_ALREADY_EXISTS);
             }
         }
     }
@@ -184,53 +184,53 @@ public class Product extends BaseEntity {
     private void validateUpdatableOptions(List<OptionType> optionTypes){
         // 판매중인 상품은 상품 옵션을 설정할 수 없음
         if (this.status == ProductStatus.ON_SALE) {
-            throw new BusinessException(ProductErrorCode.CANNOT_MODIFY_PRODUCT_OPTION_ON_SALE);
+            throw new BusinessException(ProductErrorCode.OPTION_MODIFICATION_NOT_ALLOWED_ON_SALE);
         }
 
         // 상품에 상품 변형이 존재하면 상품 옵션을 설정할 수 없음
         if (!this.variants.isEmpty()) {
-            throw new BusinessException(ProductErrorCode.CANNOT_MODIFY_PRODUCT_OPTION_HAS_VARIANTS);
+            throw new BusinessException(ProductErrorCode.OPTION_MODIFICATION_NOT_ALLOWED_WITH_VARIANT);
         }
 
         // 상품에 설정할 수 있는 옵션의 최대 개수는 3개
         if (optionTypes.size() > MAX_PRODUCT_OPTION_COUNT) {
-            throw new BusinessException(ProductErrorCode.EXCEED_PRODUCT_OPTION_COUNT);
+            throw new BusinessException(ProductErrorCode.OPTION_COUNT_LIMIT_EXCEEDED);
         }
 
         // 상품에 동일한 옵션을 설정할 수 없음
         long uniqueCount = optionTypes.stream().distinct().count();
         if (uniqueCount != optionTypes.size()) {
-            throw new BusinessException(ProductErrorCode.DUPLICATE_OPTION_TYPE);
+            throw new BusinessException(ProductErrorCode.OPTION_TYPE_DUPLICATED);
         }
     }
 
     private void validatePublishable() {
         if (this.status == ProductStatus.DELETED) {
-            throw new BusinessException(ProductErrorCode.CANNOT_PUBLISH_DELETED_PRODUCT);
+            throw new BusinessException(ProductErrorCode.DELETED_PRODUCT_CANNOT_PUBLISH);
         }
 
         if (this.variants == null || this.variants.isEmpty()) {
-            throw new BusinessException(ProductErrorCode.NO_VARIANTS_TO_PUBLISH);
+            throw new BusinessException(ProductErrorCode.VARIANT_REQUIRED_FOR_PUBLISH);
         }
 
         if (this.thumbnail == null || this.thumbnail.isBlank()) {
-            throw new BusinessException(ProductErrorCode.NO_THUMBNAIL_IMAGE);
+            throw new BusinessException(ProductErrorCode.THUMBNAIL_IMAGE_REQUIRED);
         }
 
         if (this.lowestPrice == null || this.lowestPrice <= 0) {
-            throw new BusinessException(ProductErrorCode.INVALID_DISPLAY_PRICE);
+            throw new BusinessException(ProductErrorCode.DISPLAY_PRICE_INVALID);
         }
 
         if (this.originalPrice == null || this.originalPrice <= 0) {
-            throw new BusinessException(ProductErrorCode.INVALID_ORIGINAL_PRICE);
+            throw new BusinessException(ProductErrorCode.ORIGINAL_PRICE_INVALID);
         }
 
         if (this.lowestPrice > this.originalPrice) {
-            throw new BusinessException(ProductErrorCode.DISPLAY_PRICE_GREATER_THAN_ORIGINAL);
+            throw new BusinessException(ProductErrorCode.DISPLAY_PRICE_EXCEEDS_ORIGINAL);
         }
 
         if (this.maxDiscountRate == null || this.maxDiscountRate < 0) {
-            throw new BusinessException(ProductErrorCode.INVALID_DISCOUNT_RATE);
+            throw new BusinessException(ProductErrorCode.DISCOUNT_RATE_INVALID);
         }
     }
 

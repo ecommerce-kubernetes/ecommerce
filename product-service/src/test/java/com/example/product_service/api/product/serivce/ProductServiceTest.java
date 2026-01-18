@@ -231,7 +231,7 @@ public class ProductServiceTest extends ExcludeInfraTest {
             assertThatThrownBy(() -> productService.createVariants(command))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
-                    .isEqualTo(ProductErrorCode.DUPLICATE_VARIANT_IN_REQUEST);
+                    .isEqualTo(ProductErrorCode.VARIANT_DUPLICATED_IN_REQUEST);
         }
 
         @Test
@@ -256,7 +256,7 @@ public class ProductServiceTest extends ExcludeInfraTest {
             assertThatThrownBy(() -> productService.createVariants(command))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
-                    .isEqualTo(ProductErrorCode.DUPLICATE_VARIANT_IN_REQUEST);        }
+                    .isEqualTo(ProductErrorCode.VARIANT_DUPLICATED_IN_REQUEST);        }
 
         @Test
         @DisplayName("상품을 찾을 수 없으면 예외를 던진다")
@@ -359,6 +359,87 @@ public class ProductServiceTest extends ExcludeInfraTest {
             //when
             //then
             assertThatThrownBy(() -> productService.publish(999L))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(ProductErrorCode.PRODUCT_NOT_FOUND);
+        }
+    }
+
+    @Nested
+    @DisplayName("상품 조회")
+    class GetProduct {
+
+        @Test
+        @DisplayName("상품 상세 정보를 조회한다")
+        void getProduct(){
+            //given
+            OptionType size = saveOptionType("사이즈", List.of("XL", "L", "M", "S"));
+            OptionType color = saveOptionType("색상", List.of("RED", "BLUE"));
+            OptionValue xl = findOptionValue(size, "XL");
+            OptionValue blue = findOptionValue(color, "BLUE");
+            OptionValue red = findOptionValue(color, "RED");
+            Category category = saveCategory();
+            ProductVariant xl_blue = ProductVariant.create("TEST-XL-BLUE", 10000L, 100, 20);
+            ProductVariant xl_red = ProductVariant.create("TEST-XL-RED", 5000L, 100, 10);
+            xl_blue.addProductVariantOptions(List.of(xl, blue));
+            xl_red.addProductVariantOptions(List.of(xl, red));
+            Product product = Product.create("상품", "상품 설명", category);
+            product.updateOptions(List.of(size, color));
+            product.addVariant(xl_blue);
+            product.addVariant(xl_red);
+            product.replaceImages(List.of("http://thumbnail.jpg", "http://image.jpg"));
+            product.publish();
+            productRepository.save(product);
+            //when
+            ProductDetailResponse result = productService.getProduct(product.getId());
+            //then
+            assertThat(result)
+                    .extracting(ProductDetailResponse::getProductId, ProductDetailResponse::getName, ProductDetailResponse::getStatus,
+                            ProductDetailResponse::getDisplayPrice, ProductDetailResponse::getOriginalPrice, ProductDetailResponse::getMaxDiscountRate)
+                    .containsExactly(product.getId(), "상품", "ON_SALE",
+                            4500L, 5000L, 20);
+            assertThat(result.getOptionGroups())
+                    .extracting(ProductDetailResponse.OptionGroup::getOptionTypeId, ProductDetailResponse.OptionGroup::getName, ProductDetailResponse.OptionGroup::getPriority)
+                    .containsExactlyInAnyOrder(
+                            tuple(size.getId(), size.getName(), 1),
+                            tuple(color.getId(), color.getName(), 2)
+                    );
+            assertThat(result.getImages())
+                    .extracting(ProductImageResponse::getImageUrl, ProductImageResponse::getOrder, ProductImageResponse::isThumbnail)
+                    .containsExactlyInAnyOrder(
+                            tuple("http://thumbnail.jpg", 1, true),
+                            tuple("http://image.jpg", 2, false)
+                    );
+
+            assertThat(result.getVariants())
+                    .hasSize(2)
+                    .satisfiesExactlyInAnyOrder(
+                            variantResp1 -> {
+                                assertThat(variantResp1.getVariantId()).isNotNull();
+                                assertThat(variantResp1.getSku()).isEqualTo("TEST-XL-BLUE");
+                                assertThat(variantResp1.getOriginalPrice()).isEqualTo(10000L);
+                                assertThat(variantResp1.getDiscountRate()).isEqualTo(20);
+                                assertThat(variantResp1.getOptionValueIds())
+                                        .containsExactlyInAnyOrder(xl.getId(), blue.getId());
+                            },
+                            variantResp2 -> {
+                                assertThat(variantResp2.getVariantId()).isNotNull();
+                                assertThat(variantResp2.getSku()).isEqualTo("TEST-XL-RED");
+                                assertThat(variantResp2.getOriginalPrice()).isEqualTo(5000L);
+                                assertThat(variantResp2.getDiscountRate()).isEqualTo(10);
+                                assertThat(variantResp2.getOptionValueIds())
+                                        .containsExactlyInAnyOrder(xl.getId(), red.getId());
+                            }
+                    );
+        }
+
+        @Test
+        @DisplayName("상품이 존재하지 않으면 예외를 던진다")
+        void getProduct_not_found_product(){
+            //given
+            //when
+            //then
+            assertThatThrownBy(() -> productService.getProduct(999L))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(ProductErrorCode.PRODUCT_NOT_FOUND);

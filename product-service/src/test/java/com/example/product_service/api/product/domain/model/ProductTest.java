@@ -118,7 +118,7 @@ public class ProductTest {
             assertThatThrownBy(() -> product.updateOptions(List.of(size)))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
-                    .isEqualTo(ProductErrorCode.CANNOT_MODIFY_PRODUCT_OPTION_ON_SALE);
+                    .isEqualTo(ProductErrorCode.OPTION_MODIFICATION_NOT_ALLOWED_ON_SALE);
         }
 
         @Test
@@ -135,7 +135,7 @@ public class ProductTest {
             assertThatThrownBy(() -> product.updateOptions(List.of(size)))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
-                    .isEqualTo(ProductErrorCode.CANNOT_MODIFY_PRODUCT_OPTION_HAS_VARIANTS);
+                    .isEqualTo(ProductErrorCode.OPTION_MODIFICATION_NOT_ALLOWED_WITH_VARIANT);
         }
 
         @Test
@@ -152,7 +152,7 @@ public class ProductTest {
             assertThatThrownBy(() -> product.updateOptions(List.of(size, color, texture, storage)))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
-                    .isEqualTo(ProductErrorCode.EXCEED_PRODUCT_OPTION_COUNT);
+                    .isEqualTo(ProductErrorCode.OPTION_COUNT_LIMIT_EXCEEDED);
         }
         @Test
         @DisplayName("상품 옵션은 중복될 수 없다")
@@ -165,7 +165,7 @@ public class ProductTest {
             assertThatThrownBy(() -> product.updateOptions(List.of(size, size)))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
-                    .isEqualTo(ProductErrorCode.DUPLICATE_OPTION_TYPE);
+                    .isEqualTo(ProductErrorCode.OPTION_TYPE_DUPLICATED);
         }
     }
 
@@ -245,7 +245,7 @@ public class ProductTest {
             assertThatThrownBy(() -> product.addVariant(variant))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
-                    .isEqualTo(ProductErrorCode.NOT_MATCH_PRODUCT_OPTION_SIZE);
+                    .isEqualTo(ProductErrorCode.VARIANT_OPTION_SIZE_MISMATCH);
         }
 
         @Test
@@ -263,7 +263,7 @@ public class ProductTest {
             assertThatThrownBy(() -> product.addVariant(variant))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
-                    .isEqualTo(ProductErrorCode.NOT_MATCH_PRODUCT_OPTION_SPEC);
+                    .isEqualTo(ProductErrorCode.VARIANT_OPTION_SPEC_MISMATCH);
         }
 
         @Test
@@ -287,7 +287,7 @@ public class ProductTest {
             assertThatThrownBy(() -> product.addVariant(addVariant))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
-                    .isEqualTo(ProductErrorCode.PRODUCT_HAS_DUPLICATE_VARIANT);
+                    .isEqualTo(ProductErrorCode.VARIANT_ALREADY_EXISTS);
         }
     }
 
@@ -335,7 +335,7 @@ public class ProductTest {
             assertThatThrownBy(() -> product.replaceImages(List.of()))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
-                    .isEqualTo(ProductErrorCode.CANNOT_DELETE_ALL_IMAGES_ON_SALE);
+                    .isEqualTo(ProductErrorCode.IMAGE_REQUIRED_ON_SALE);
         }
     }
 
@@ -353,7 +353,7 @@ public class ProductTest {
             assertThatThrownBy(() -> product.publish())
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
-                    .isEqualTo(ProductErrorCode.CANNOT_PUBLISH_DELETED_PRODUCT);
+                    .isEqualTo(ProductErrorCode.DELETED_PRODUCT_CANNOT_PUBLISH);
         }
 
         @Test
@@ -366,7 +366,7 @@ public class ProductTest {
             assertThatThrownBy(() -> product.publish())
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
-                    .isEqualTo(ProductErrorCode.NO_VARIANTS_TO_PUBLISH);
+                    .isEqualTo(ProductErrorCode.VARIANT_REQUIRED_FOR_PUBLISH);
         }
 
         @Test
@@ -380,7 +380,7 @@ public class ProductTest {
             assertThatThrownBy(() -> product.publish())
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
-                    .isEqualTo(ProductErrorCode.NO_THUMBNAIL_IMAGE);
+                    .isEqualTo(ProductErrorCode.THUMBNAIL_IMAGE_REQUIRED);
         }
 
         @Test
@@ -397,7 +397,7 @@ public class ProductTest {
             assertThatThrownBy(() -> product.publish())
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
-                    .isEqualTo(ProductErrorCode.INVALID_DISPLAY_PRICE);
+                    .isEqualTo(ProductErrorCode.DISPLAY_PRICE_INVALID);
         }
 
         @Test
@@ -414,7 +414,7 @@ public class ProductTest {
             assertThatThrownBy(() -> product.publish())
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
-                    .isEqualTo(ProductErrorCode.INVALID_ORIGINAL_PRICE);
+                    .isEqualTo(ProductErrorCode.ORIGINAL_PRICE_INVALID);
         }
 
         @Test
@@ -431,7 +431,7 @@ public class ProductTest {
             assertThatThrownBy(() -> product.publish())
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
-                    .isEqualTo(ProductErrorCode.DISPLAY_PRICE_GREATER_THAN_ORIGINAL);
+                    .isEqualTo(ProductErrorCode.DISPLAY_PRICE_EXCEEDS_ORIGINAL);
         }
 
         @Test
@@ -448,7 +448,7 @@ public class ProductTest {
             assertThatThrownBy(() -> product.publish())
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
-                    .isEqualTo(ProductErrorCode.INVALID_DISCOUNT_RATE);
+                    .isEqualTo(ProductErrorCode.DISCOUNT_RATE_INVALID);
         }
     }
 }

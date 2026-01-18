@@ -35,7 +35,7 @@ public class ProductVariantTest {
             assertThatThrownBy(() -> variant.addProductVariantOptions(List.of(xl, xl)))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
-                    .isEqualTo(ProductErrorCode.PRODUCT_VARIANT_DUPLICATE_OPTION);
+                    .isEqualTo(ProductErrorCode.VARIANT_DUPLICATE_OPTION);
         }
     }
 }

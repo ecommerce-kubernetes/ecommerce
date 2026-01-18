@@ -90,12 +90,13 @@ public class ProductService {
     }
 
     @Transactional(readOnly = true)
-    public PageDto<ProductSummaryResponse> getProducts(ProductSearchCondition condition){
-        return null;
+    public ProductDetailResponse getProduct(Long productId){
+        Product product = findProductByIdOrThrow(productId);
+        return ProductDetailResponse.from(product);
     }
 
     @Transactional(readOnly = true)
-    public ProductDetailResponse getProduct(Long productId){
+    public PageDto<ProductSummaryResponse> getProducts(ProductSearchCondition condition){
         return null;
     }
 
@@ -148,7 +149,7 @@ public class ProductService {
                 .distinct()
                 .count();
         if (distinctRequestCount != variants.size()) {
-            throw new BusinessException(ProductErrorCode.DUPLICATE_VARIANT_IN_REQUEST);
+            throw new BusinessException(ProductErrorCode.VARIANT_DUPLICATED_IN_REQUEST);
         }
     }
 
