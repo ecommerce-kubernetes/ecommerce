@@ -5,7 +5,6 @@ import com.example.product_service.api.common.entity.BaseEntity;
 import com.example.product_service.api.common.exception.BusinessException;
 import com.example.product_service.api.common.exception.ProductErrorCode;
 import com.example.product_service.api.option.domain.model.OptionType;
-import com.example.product_service.api.option.domain.model.OptionValue;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -116,40 +115,8 @@ public class Product extends BaseEntity {
         }
     }
 
-    public void validateCreatableVariantStatus() {
-        if (this.status == ProductStatus.DELETED) {
-            throw new BusinessException(ProductErrorCode.PRODUCT_NOT_FOUND);
-        }
-    }
-
-    public List<OptionValue> validateAndSortOptionValues(List<OptionValue> inputValues) {
-        if (inputValues.size() != this.options.size()) {
-            throw new BusinessException(ProductErrorCode.NOT_MATCH_PRODUCT_OPTION_SPEC);
-        }
-        List<OptionValue> sortedValues = new ArrayList<>();
-        for (ProductOption spec : options) {
-            OptionValue matchedValue = inputValues.stream()
-                    .filter(val -> val.getOptionType().getId().equals(spec.getOptionType().getId()))
-                    .findFirst()
-                    .orElseThrow(() -> new BusinessException(ProductErrorCode.NOT_MATCH_PRODUCT_OPTION_SPEC));
-            sortedValues.add(matchedValue);
-        }
-        return sortedValues;
-    }
-
-    private void validateDuplicateVariant(List<OptionValue> optionValues) {
-        Set<Long> targetIds = optionValues.stream()
-                .map(OptionValue::getId)
-                .collect(Collectors.toSet());
-        for (ProductVariant variant : variants) {
-            if (variant.hasSameOptions(targetIds)) {
-                throw new BusinessException(ProductErrorCode.PRODUCT_HAS_DUPLICATE_VARIANT);
-            }
-        }
-    }
-
     public void addVariant(ProductVariant productVariant) {
-        validateDuplicateVariant(productVariant.getProductVariantOptions().stream().map(ProductVariantOption::getOptionValue).toList());
+        validateAddableVariant(productVariant);
         this.variants.add(productVariant);
         productVariant.setProduct(this);
         updatePrice();
@@ -185,6 +152,39 @@ public class Product extends BaseEntity {
                 .findFirst()
                 .map(ProductImage::getImageUrl)
                 .orElse(null);
+    }
+
+    private void validateAddableVariant(ProductVariant productVariant) {
+        if (this.status == ProductStatus.DELETED) {
+            throw new BusinessException(ProductErrorCode.PRODUCT_NOT_FOUND);
+        }
+
+        if (productVariant.getProductVariantOptions().size() != this.options.size()) {
+            throw new BusinessException(ProductErrorCode.NOT_MATCH_PRODUCT_OPTION_SIZE);
+        }
+        validateVariantOptionSpec(productVariant);
+        validateHasDuplicateVariant(productVariant);
+    }
+
+    private void validateVariantOptionSpec(ProductVariant productVariant) {
+        Set<Long> productOptionTypeIds = this.options.stream().map(po -> po.getOptionType().getId()).collect(Collectors.toSet());
+        for (ProductVariantOption variantOption : productVariant.getProductVariantOptions()) {
+            Long variantOptionTypeId = variantOption.getOptionValue().getOptionType().getId();
+            if (!productOptionTypeIds.contains(variantOptionTypeId)){
+                throw new BusinessException(ProductErrorCode.NOT_MATCH_PRODUCT_OPTION_SPEC);
+            }
+        }
+    }
+
+    private void validateHasDuplicateVariant(ProductVariant productVariant) {
+        Set<Long> variantOptions = productVariant.getProductVariantOptions().stream()
+                .map(pvo -> pvo.getOptionValue().getId()).collect(Collectors.toSet());
+        for (ProductVariant variant : this.variants) {
+            boolean isDuplicate = variant.hasSameOptions(variantOptions);
+            if (isDuplicate) {
+                throw new BusinessException(ProductErrorCode.PRODUCT_HAS_DUPLICATE_VARIANT);
+            }
+        }
     }
 
     private void validateUpdatableOptions(List<OptionType> optionTypes){

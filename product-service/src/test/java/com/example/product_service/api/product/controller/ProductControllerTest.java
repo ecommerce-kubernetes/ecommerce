@@ -115,7 +115,7 @@ public class ProductControllerTest extends ControllerTestSupport {
         //given
         ProductOptionRequest request = mockOptionSpecRequest().build();
         ProductOptionResponse response = mockOptionSpecResponse().build();
-        given(productService.registerOptionSpec(anyLong(), anyList()))
+        given(productService.defineOptions(anyLong(), anyList()))
                 .willReturn(response);
         //when
         //then

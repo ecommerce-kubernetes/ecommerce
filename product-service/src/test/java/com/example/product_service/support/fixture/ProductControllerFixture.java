@@ -89,7 +89,6 @@ public class ProductControllerFixture {
                 .options(
                         List.of(
                                 ProductOptionResponse.OptionDto.builder()
-                                        .id(1L)
                                         .optionTypeId(1L)
                                         .optionTypeName("사이즈")
                                         .priority(1)

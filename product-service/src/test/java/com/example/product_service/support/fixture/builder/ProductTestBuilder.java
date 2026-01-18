@@ -1,10 +1,12 @@
 package com.example.product_service.support.fixture.builder;
 
 import com.example.product_service.api.category.domain.model.Category;
+import com.example.product_service.api.option.domain.model.OptionType;
 import com.example.product_service.api.product.domain.model.*;
 import org.mockito.Mockito;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.lang.reflect.Constructor;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,9 +24,9 @@ public class ProductTestBuilder {
     private Long lowestPrice = 10000L;
     private Long originalPrice = 10000L;
     private Integer maxDiscountRate = 0;
-    private List<ProductOption> options = new ArrayList<>();
     private List<ProductVariant> variants = new ArrayList<>();
     private List<ProductImage> images = new ArrayList<>();
+    private List<OptionType> optionTypes = new ArrayList<>();
 
     public static ProductTestBuilder aProduct() {
         return new ProductTestBuilder();
@@ -63,8 +65,8 @@ public class ProductTestBuilder {
         return this;
     }
 
-    public ProductTestBuilder withOptions(List<ProductOption> options) {
-        this.options = options;
+    public ProductTestBuilder withOptions(List<OptionType> optionTypes) {
+        this.optionTypes = optionTypes;
         return this;
     }
 
@@ -92,8 +94,13 @@ public class ProductTestBuilder {
         ReflectionTestUtils.setField(product, "originalPrice", originalPrice);
         ReflectionTestUtils.setField(product, "maxDiscountRate", maxDiscountRate);
 
-        if (!options.isEmpty()) {
-            ReflectionTestUtils.setField(product, "options", new ArrayList<>(options));
+        if (!optionTypes.isEmpty()) {
+            List<ProductOption> productOptions = new ArrayList<>();
+            for (int i = 0; i < optionTypes.size(); i++) {
+                ProductOption option = createProductOptionByReflection(product, optionTypes.get(i), i + 1);
+                productOptions.add(option);
+            }
+            ReflectionTestUtils.setField(product, "options", new ArrayList<>(productOptions));
         }
 
         if (!variants.isEmpty()) {
@@ -113,6 +120,18 @@ public class ProductTestBuilder {
         }
 
         return product;
+    }
+
+    private ProductOption createProductOptionByReflection(Product product, OptionType optionType, int priority) {
+        try {
+            Constructor<ProductOption> constructor = ProductOption.class.getDeclaredConstructor(OptionType.class, int.class);
+            constructor.setAccessible(true);
+            ProductOption option = constructor.newInstance(optionType, priority);
+            ReflectionTestUtils.setField(option, "product", product);
+            return option;
+        } catch (Exception e) {
+            throw new RuntimeException("테스트용 ProductOption 생성 실패", e);
+        }
     }
 
     private Category createMockLeafCategory() {

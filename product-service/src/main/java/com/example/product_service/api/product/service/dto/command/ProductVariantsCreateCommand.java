@@ -3,32 +3,24 @@ package com.example.product_service.api.product.service.dto.command;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
+@Builder
 public class ProductVariantsCreateCommand {
     private Long productId;
-    private List<VariantDetail> variants;
-
-    @Builder
-    private ProductVariantsCreateCommand(Long productId, List<VariantDetail> variants) {
-        this.productId = productId;
-        this.variants = variants;
-    }
+    @Builder.Default
+    private List<VariantDetail> variants = new ArrayList<>();
 
     @Getter
+    @Builder
     public static class VariantDetail {
         private Long originalPrice;
         private Integer discountRate;
         private Integer stockQuantity;
-        private List<Long> optionValueIds;
+        @Builder.Default
+        private List<Long> optionValueIds = new ArrayList<>();
 
-        @Builder
-        private VariantDetail(Long originalPrice, Integer discountRate, Integer stockQuantity, List<Long> optionValueIds) {
-            this.originalPrice = originalPrice;
-            this.discountRate = discountRate;
-            this.stockQuantity = stockQuantity;
-            this.optionValueIds = optionValueIds;
-        }
     }
 }

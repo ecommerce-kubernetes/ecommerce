@@ -85,7 +85,7 @@ public class ProductControllerDocsTest extends RestDocsSupport {
         ProductOptionRequest request = mockOptionSpecRequest().build();
         ProductOptionResponse response = mockOptionSpecResponse().build();
         HttpHeaders adminHeader = createAdminHeader();
-        given(productService.registerOptionSpec(anyLong(), anyList()))
+        given(productService.defineOptions(anyLong(), anyList()))
                 .willReturn(response);
         //when
         //then
@@ -115,7 +115,6 @@ public class ProductControllerDocsTest extends RestDocsSupport {
 
                                 responseFields(
                                         fieldWithPath("productId").description("상품 Id"),
-                                        fieldWithPath("options[].id").description("상품 옵션 Id"),
                                         fieldWithPath("options[].optionTypeId").description("옵션 타입 Id"),
                                         fieldWithPath("options[].optionTypeName").description("옵션 타입 이름"),
                                         fieldWithPath("options[].priority").description("상품 옵션 순서")

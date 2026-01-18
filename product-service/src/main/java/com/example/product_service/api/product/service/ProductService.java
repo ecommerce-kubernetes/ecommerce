@@ -12,7 +12,6 @@ import com.example.product_service.api.option.domain.repository.OptionTypeReposi
 import com.example.product_service.api.option.domain.repository.OptionValueRepository;
 import com.example.product_service.api.product.controller.dto.ProductSearchCondition;
 import com.example.product_service.api.product.domain.model.Product;
-import com.example.product_service.api.product.domain.model.ProductStatus;
 import com.example.product_service.api.product.domain.model.ProductVariant;
 import com.example.product_service.api.product.domain.repository.ProductRepository;
 import com.example.product_service.api.product.service.dto.command.ProductCreateCommand;
@@ -24,6 +23,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -39,6 +39,7 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final OptionTypeRepository optionTypeRepository;
     private final OptionValueRepository optionValueRepository;
+    private final SkuGenerator skuGenerator;
 
     public ProductCreateResponse createProduct(ProductCreateCommand command) {
         Category category = findCategoryByIdOrThrow(command.getCategoryId());
@@ -47,26 +48,33 @@ public class ProductService {
         return ProductCreateResponse.from(savedProduct);
     }
 
-    public ProductOptionResponse registerOptionSpec(Long productId, List<Long> optionTypeIds) {
+    public ProductOptionResponse defineOptions(Long productId, List<Long> optionTypeIds) {
         Product product = findProductByIdOrThrow(productId);
         List<OptionType> optionTypes = findOptionTypes(optionTypeIds);
         product.updateOptions(optionTypes);
-        productRepository.saveAndFlush(product);
         return ProductOptionResponse.of(product.getId(), product.getOptions());
     }
 
     public VariantCreateResponse createVariants(ProductVariantsCreateCommand command) {
+        // 동일한 옵션 조합의 상품 변형이 존재하는지 검증
         validateRequestUniqueCombination(command.getVariants());
         Product product = findProductByIdOrThrow(command.getProductId());
-        product.validateCreatableVariantStatus();
         Map<Long, OptionValue> variantOptionMap = findAndMapOptionValues(command.getVariants());
+
+        //새로 추가되는 상품 변형
+        List<ProductVariant> newlyCreatedVariants = new ArrayList<>();
         for (ProductVariantsCreateCommand.VariantDetail variantReq : command.getVariants()) {
+            // 요청 variant 의 optionValue를 찾음
             List<OptionValue> optionValues = mapToOptionValues(variantReq.getOptionValueIds(), variantOptionMap);
-            List<OptionValue> sortedOptionValues = product.validateAndSortOptionValues(optionValues);
-            linkProductVariant(product, variantReq, sortedOptionValues);
+            //ProductVariant 생성
+            String sku = skuGenerator.generate(product, optionValues);
+            ProductVariant variant = ProductVariant.create(sku, variantReq.getOriginalPrice(), variantReq.getStockQuantity(), variantReq.getDiscountRate());
+            variant.addProductVariantOptions(optionValues);
+            product.addVariant(variant);
+            newlyCreatedVariants.add(variant);
         }
-        productRepository.saveAndFlush(product);
-        return VariantCreateResponse.of(product.getId(), product.getVariants());
+        productRepository.flush();
+        return VariantCreateResponse.of(product.getId(), newlyCreatedVariants);
     }
 
     public ProductImageCreateResponse addImages(Long productId, List<String> images) {
@@ -104,15 +112,6 @@ public class ProductService {
         return null;
     }
 
-    private void validateRegisterOptionSpec(Product product) {
-        if (product.getStatus().equals(ProductStatus.ON_SALE)){
-            throw new BusinessException(ProductErrorCode.CANNOT_MODIFY_PRODUCT_OPTION_ON_SALE);
-        }
-        if (!product.getVariants().isEmpty()) {
-            throw new BusinessException(ProductErrorCode.CANNOT_MODIFY_PRODUCT_OPTION_HAS_VARIANTS);
-        }
-    }
-
     private List<OptionType> findOptionTypes(List<Long> optionTypeIds) {
         List<OptionType> optionTypes = optionTypeRepository.findByIdIn(optionTypeIds);
         if (optionTypes.size() != optionTypeIds.size()) {
@@ -131,12 +130,6 @@ public class ProductService {
     private Product findProductByIdOrThrow(Long productId) {
         return productRepository.findById(productId)
                 .orElseThrow(() -> new BusinessException(ProductErrorCode.PRODUCT_NOT_FOUND));
-    }
-
-    private void linkProductVariant(Product product, ProductVariantsCreateCommand.VariantDetail variantReq, List<OptionValue> optionValues) {
-        ProductVariant variant = ProductVariant.create("PROD", variantReq.getOriginalPrice(), variantReq.getStockQuantity(), variantReq.getDiscountRate());
-        variant.addProductVariantOptions(optionValues);
-        product.addVariant(variant);
     }
 
     private List<OptionValue> mapToOptionValues(List<Long> ids, Map<Long, OptionValue> map) {

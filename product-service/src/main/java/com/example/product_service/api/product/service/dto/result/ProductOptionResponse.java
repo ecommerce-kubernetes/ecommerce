@@ -13,14 +13,12 @@ public class ProductOptionResponse {
 
     @Getter
     public static class OptionDto {
-        private Long id;
         private Long optionTypeId;
         private String optionTypeName;
         private Integer priority;
 
         @Builder
-        private OptionDto(Long id, Long optionTypeId, String optionTypeName, Integer priority) {
-            this.id = id;
+        private OptionDto(Long optionTypeId, String optionTypeName, Integer priority) {
             this.optionTypeId = optionTypeId;
             this.optionTypeName = optionTypeName;
             this.priority = priority;
@@ -34,7 +32,7 @@ public class ProductOptionResponse {
     }
 
     public static ProductOptionResponse of(Long productId, List<ProductOption> optionSpecs) {
-        List<OptionDto> specs = optionSpecs.stream().map(optionSpec -> OptionDto.builder().id(optionSpec.getId())
+        List<OptionDto> specs = optionSpecs.stream().map(optionSpec -> OptionDto.builder()
                 .optionTypeId(optionSpec.getOptionType().getId())
                 .optionTypeName(optionSpec.getOptionType().getName())
                 .priority(optionSpec.getPriority())

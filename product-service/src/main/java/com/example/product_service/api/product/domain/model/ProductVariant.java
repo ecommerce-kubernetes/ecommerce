@@ -1,5 +1,7 @@
 package com.example.product_service.api.product.domain.model;
 
+import com.example.product_service.api.common.exception.BusinessException;
+import com.example.product_service.api.common.exception.ProductErrorCode;
 import com.example.product_service.api.option.domain.model.OptionValue;
 import com.example.product_service.exception.InsufficientStockException;
 import jakarta.persistence.*;
@@ -9,6 +11,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -62,8 +65,16 @@ public class ProductVariant {
     }
 
     public void addProductVariantOptions(List<OptionValue> optionValues) {
+        validateDuplicateOptions(optionValues);
         List<ProductVariantOption> productVariantOptionList = optionValues.stream().map(optionValue -> ProductVariantOption.create(this, optionValue)).toList();
         this.productVariantOptions.addAll(productVariantOptionList);
+    }
+
+    private void validateDuplicateOptions(List<OptionValue> optionValues){
+        Set<Long> distinctIds = optionValues.stream().map(OptionValue::getId).collect(Collectors.toSet());
+        if (distinctIds.size() != optionValues.size()) {
+            throw new BusinessException(ProductErrorCode.PRODUCT_VARIANT_DUPLICATE_OPTION);
+        }
     }
 
     private static Long calculatePrice(Long originalPrice, Integer discountRate) {

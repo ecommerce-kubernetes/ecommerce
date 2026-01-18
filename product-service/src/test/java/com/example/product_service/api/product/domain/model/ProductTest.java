@@ -20,9 +20,25 @@ import static org.assertj.core.api.BDDAssertions.tuple;
 
 public class ProductTest {
 
+    private OptionType createOptionType(Long id, String name, List<String> values) {
+        OptionType optionType = OptionType.create(name, values);
+        ReflectionTestUtils.setField(optionType, "id", id);
+        return optionType;
+    }
+
+    private OptionValue getOptionValueSettingId(Long id, OptionType optionType, String name) {
+        OptionValue optionValue = optionType.getOptionValues().stream()
+                .filter(v -> v.getName().equals(name))
+                .findFirst()
+                .orElseThrow(IllegalArgumentException::new);
+        ReflectionTestUtils.setField(optionValue, "id", id);
+        return optionValue;
+    }
+
     @Nested
     @DisplayName("상품을 생성한다")
     class Create {
+
         @Test
         @DisplayName("상품을 생성한다")
         void create(){
@@ -67,11 +83,12 @@ public class ProductTest {
                     .extracting("errorCode")
                     .isEqualTo(ProductErrorCode.CATEGORY_NOT_LEAF);
         }
-    }
 
+    }
     @Nested
     @DisplayName("상품 옵션 설정")
     class UpdateOptions {
+
 
         @Test
         @DisplayName("상품 옵션을 설정한다")
@@ -138,14 +155,12 @@ public class ProductTest {
                     .extracting("errorCode")
                     .isEqualTo(ProductErrorCode.EXCEED_PRODUCT_OPTION_COUNT);
         }
-
         @Test
         @DisplayName("상품 옵션은 중복될 수 없다")
         void updateOptions_duplicate_options(){
             //given
             OptionType size = createOptionType(1L, "사이즈", List.of("XL", "L"));
-            Category category = Category.create("카테고리", null, "http://image.jpg");
-            Product product = Product.create("상품", "상품 설명", category);
+            Product product = ProductTestBuilder.aProduct().build();
             //when
             //then
             assertThatThrownBy(() -> product.updateOptions(List.of(size, size)))
@@ -155,62 +170,126 @@ public class ProductTest {
         }
     }
 
-    @Test
-    @DisplayName("상품 상태가 삭제 상태라면 상품 변형을 추가할 수 없다")
-    void validateCreatableVariantStatus(){
-        //given
-        Category category = Category.create("카테고리", null, "http://image.jpg");
-        Product product = Product.create("상품", "상품 설명", category);
-        product.deleted();
-        //when
-        //then
-        assertThatThrownBy(product::validateCreatableVariantStatus)
-                .isInstanceOf(BusinessException.class)
-                .extracting("errorCode")
-                .isEqualTo(ProductErrorCode.PRODUCT_NOT_FOUND);
-    }
+    @Nested
+    @DisplayName("상품 변형 추가")
+    class AddVariant {
 
-    @Test
-    @DisplayName("상품의 옵션 스펙 개수와 요청 옵션 값의 개수가 서로 다르면 예외를 던진다")
-    void validateAndSortOptionValues_not_match_optionSpec_size(){
-        //given
-        OptionType size = createOptionType(1L, "사이즈", List.of("XL", "L"));
-        OptionType color = createOptionType(2L, "색상", List.of("RED", "BLUE"));
-        OptionType texture = createOptionType(3L, "재질", List.of("WOOL", "COTTON"));
-        OptionValue xl = findOptionValueByName(size, "XL");
-        OptionValue blue = findOptionValueByName(color, "BLUE");
-        OptionValue cotton = findOptionValueByName(texture, "COTTON");
+        @Test
+        @DisplayName("상품 변형을 추가한다")
+        void addVariant(){
+            //given
+            OptionType size = createOptionType(1L, "사이즈", List.of("XL", "L"));
+            OptionValue xl = getOptionValueSettingId(1L, size, "XL");
+            OptionValue l = getOptionValueSettingId(2L, size, "L");
+            ProductVariant existVariant = ProductVariant.create("TEST", 3000L, 100, 40);
+            existVariant.addProductVariantOptions(List.of(xl));
+            ProductVariant addVariant = ProductVariant.create("TEST", 1000L, 100, 10);
+            addVariant.addProductVariantOptions(List.of(l));
+            Product product = ProductTestBuilder.aProduct().withOptions(List.of(size)).build();
+            product.addVariant(existVariant);
+            //when
+            product.addVariant(addVariant);
+            //then
+            assertThat(product.getVariants()).hasSize(2)
+                    .extracting(ProductVariant::getOriginalPrice, ProductVariant::getDiscountRate)
+                    .containsExactlyInAnyOrder(
+                            tuple(3000L, 40),
+                            tuple(1000L, 10)
+                    );
 
-        Category category = Category.create("카테고리", null, "http://image.jpg");
-        Product product = Product.create("상품", "상품 설명", category);
-        product.updateOptions(List.of(size, color));
-        //when
-        //then
-        assertThatThrownBy(() -> product.validateAndSortOptionValues(List.of(xl, blue, cotton)))
-                .isInstanceOf(BusinessException.class)
-                .extracting("errorCode")
-                .isEqualTo(ProductErrorCode.NOT_MATCH_PRODUCT_OPTION_SPEC);
-    }
+            assertThat(product)
+                    .extracting(Product::getLowestPrice, Product::getOriginalPrice, Product::getMaxDiscountRate)
+                    .containsExactly(900L, 1000L, 40);
+        }
 
-    @Test
-    @DisplayName("요청 옵션 값이 상품 옵션 스펙의 옵션 타입에 맞지 않으면 예외를 던진다")
-    void validateAndSortOptionValues_illegalOptionValue_optionSpec_optionType(){
-        //given
-        OptionType size = createOptionType(1L, "사이즈", List.of("XL", "L"));
-        OptionType color = createOptionType(2L, "색상", List.of("RED", "BLUE"));
-        OptionType texture = createOptionType(3L, "재질", List.of("WOOL", "COTTON"));
-        OptionValue xl = findOptionValueByName(size, "XL");
-        OptionValue cotton = findOptionValueByName(texture, "COTTON");
+        @Test
+        @DisplayName("상품 변형이 추가되면 상품의 가격정보[최저 금액, 원본 금액, 최대 할인율]가 최신화 된다")
+        void addVariant_price_update(){
+            //given
+            ProductVariant variant = ProductVariant.create("TEST", 3000L, 100, 10);
+            Product product = ProductTestBuilder.aProduct().build();
+            //when
+            product.addVariant(variant);
+            //then
+            assertThat(product)
+                    .extracting(Product::getLowestPrice, Product::getOriginalPrice, Product::getMaxDiscountRate)
+                    .containsExactly(2700L, 3000L, 10);
+        }
 
-        Category category = Category.create("카테고리", null, "http://image.jpg");
-        Product product = Product.create("상품", "상품 설명", category);
-        product.updateOptions(List.of(size, color));
-        //when
-        //then
-        assertThatThrownBy(() -> product.validateAndSortOptionValues(List.of(xl, cotton)))
-                .isInstanceOf(BusinessException.class)
-                .extracting("errorCode")
-                .isEqualTo(ProductErrorCode.NOT_MATCH_PRODUCT_OPTION_SPEC);
+        @Test
+        @DisplayName("삭제된 상품은 상품 변형을 추가할 수 없다")
+        void addVariant_product_deleted(){
+            //given
+            ProductVariant variant = ProductVariant.create("TEST", 3000L, 100, 10);
+            Product product = ProductTestBuilder.aProduct().withStatus(ProductStatus.DELETED).build();
+            //when
+            //then
+            assertThatThrownBy(() -> product.addVariant(variant))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(ProductErrorCode.PRODUCT_NOT_FOUND);
+        }
+
+        @Test
+        @DisplayName("상품 옵션과 상품 변형 옵션의 개수는 동일해야한다")
+        void addVariant_product_option_size_not_match_variant_option_size(){
+            //given
+            OptionType size = createOptionType(1L, "사이즈", List.of("XL", "L"));
+            OptionType color = createOptionType(2L, "색상", List.of("RED", "BLUE"));
+            OptionValue xl = getOptionValueSettingId(1L, size, "XL");
+            OptionValue blue = getOptionValueSettingId(2L, color, "BLUE");
+            ProductVariant variant = ProductVariant.create("TEST", 3000L, 100, 10);
+            variant.addProductVariantOptions(List.of(xl, blue));
+            Product product = ProductTestBuilder.aProduct().withOptions(List.of(size)).build();
+            //when
+            //then
+            assertThatThrownBy(() -> product.addVariant(variant))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(ProductErrorCode.NOT_MATCH_PRODUCT_OPTION_SIZE);
+        }
+
+        @Test
+        @DisplayName("상품 변형 옵션은 상품 옵션의 값이여야 한다")
+        void addVariant_product_option_not_match_variant_option(){
+            //given
+            OptionType size = createOptionType(1L, "사이즈", List.of("XL", "L"));
+            OptionType color = createOptionType(2L, "색상", List.of("RED", "BLUE"));
+            OptionValue blue = getOptionValueSettingId(2L, color, "BLUE");
+            ProductVariant variant = ProductVariant.create("TEST", 3000L, 100, 10);
+            variant.addProductVariantOptions(List.of(blue));
+            Product product = ProductTestBuilder.aProduct().withOptions(List.of(size)).build();
+            //when
+            //then
+            assertThatThrownBy(() -> product.addVariant(variant))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(ProductErrorCode.NOT_MATCH_PRODUCT_OPTION_SPEC);
+        }
+
+        @Test
+        @DisplayName("상품은 유일한 옵션 조합의 상품 변형만 가질 수 있다")
+        void addVariant_product_has_duplicate_variant(){
+            //given
+            OptionType size = createOptionType(1L, "사이즈", List.of("XL", "L"));
+            OptionType color = createOptionType(2L, "색상", List.of("RED", "BLUE"));
+            OptionValue xl = getOptionValueSettingId(1L, size, "XL");
+            OptionValue blue = getOptionValueSettingId(2L, color, "BLUE");
+
+            ProductVariant existVariant = ProductVariant.create("TEST", 3000L, 100, 10);
+            existVariant.addProductVariantOptions(List.of(xl, blue));
+
+            ProductVariant addVariant = ProductVariant.create("TEST", 3000L, 100, 10);
+            addVariant.addProductVariantOptions(List.of(blue, xl));
+
+            Product product = ProductTestBuilder.aProduct().withOptions(List.of(size, color)).withVariants(List.of(existVariant)).build();
+            //when
+            //then
+            assertThatThrownBy(() -> product.addVariant(addVariant))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(ProductErrorCode.PRODUCT_HAS_DUPLICATE_VARIANT);
+        }
     }
 
     @Test
@@ -218,7 +297,7 @@ public class ProductTest {
     void addVariant_duplicateVariant(){
         //given
         OptionType size = OptionType.create("사이즈", List.of("XL", "L"));
-        OptionValue xl = findOptionValueByName(size, "XL");
+        OptionValue xl = getOptionValueSettingId(1L, size, "XL");
         Category category = Category.create("카테고리", null, "http://image.jpg");
         Product product = Product.create("상품", "상품 설명", category);
         product.updateOptions(List.of(size));
@@ -231,18 +310,5 @@ public class ProductTest {
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(ProductErrorCode.PRODUCT_HAS_DUPLICATE_VARIANT);
-    }
-
-    private OptionType createOptionType(Long id, String name, List<String> values) {
-        OptionType optionType = OptionType.create(name, values);
-        ReflectionTestUtils.setField(optionType, "id", id);
-        return optionType;
-    }
-    
-    private OptionValue findOptionValueByName(OptionType optionType, String name) {
-        return optionType.getOptionValues().stream()
-                .filter(optionValue -> optionValue.getName().equals(name))
-                .findFirst()
-                .orElseThrow(IllegalArgumentException::new);
     }
 }

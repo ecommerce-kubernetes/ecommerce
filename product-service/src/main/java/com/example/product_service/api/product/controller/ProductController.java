@@ -40,7 +40,7 @@ public class ProductController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ProductOptionResponse> registerOptionSpec(@PathVariable("productId") Long productId,
                                                                     @RequestBody @Validated ProductOptionRequest request) {
-        ProductOptionResponse response = productService.registerOptionSpec(productId, request.getOptionTypeIds());
+        ProductOptionResponse response = productService.defineOptions(productId, request.getOptionTypeIds());
         return ResponseEntity.ok(response);
     }
 
