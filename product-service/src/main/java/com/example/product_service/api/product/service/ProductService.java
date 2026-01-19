@@ -110,10 +110,12 @@ public class ProductService {
     }
 
     public void deleteProduct(Long productId) {
-
+        Product product = findProductByIdOrThrow(productId);
+        product.deleted();
     }
 
     public ProductStatusResponse closedProduct(Long productId) {
+        Product product = findProductByIdOrThrow(productId);
         return null;
     }
 

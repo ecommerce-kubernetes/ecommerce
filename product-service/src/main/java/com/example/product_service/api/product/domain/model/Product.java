@@ -36,6 +36,7 @@ public class Product extends BaseEntity {
     private ProductStatus status;
     private String description;
     private LocalDateTime publishedAt;
+    private LocalDateTime saleStoppedAt;
 
     private String thumbnail;
     private Double rating;
@@ -56,12 +57,13 @@ public class Product extends BaseEntity {
     private List<ProductImage> images = new ArrayList<>();
 
     @Builder(access = AccessLevel.PRIVATE)
-    private Product(String name, Category category, ProductStatus status, String description, LocalDateTime publishedAt, String thumbnail, Double rating, Long reviewCount, Double popularityScore, Long lowestPrice, Long originalPrice, Integer maxDiscountRate) {
+    private Product(String name, Category category, ProductStatus status, String description, LocalDateTime publishedAt, LocalDateTime saleStoppedAt, String thumbnail, Double rating, Long reviewCount, Double popularityScore, Long lowestPrice, Long originalPrice, Integer maxDiscountRate) {
         this.name = name;
         this.category = category;
         this.status = status;
         this.description = description;
         this.publishedAt = publishedAt;
+        this.saleStoppedAt = saleStoppedAt;
         this.thumbnail = thumbnail;
         this.rating = rating;
         this.reviewCount = reviewCount;
@@ -97,7 +99,10 @@ public class Product extends BaseEntity {
     public void publish() {
         validatePublishable();
         this.status = ProductStatus.ON_SALE;
-        this.publishedAt = LocalDateTime.now();
+        if (this.publishedAt == null) {
+            this.publishedAt = LocalDateTime.now();
+        }
+        this.saleStoppedAt = null;
     }
 
     public void addVariant(ProductVariant productVariant) {
@@ -217,6 +222,14 @@ public class Product extends BaseEntity {
         if (uniqueCount != optionTypes.size()) {
             throw new BusinessException(ProductErrorCode.OPTION_TYPE_DUPLICATED);
         }
+    }
+
+    public void closed() {
+        if (this.status != ProductStatus.ON_SALE) {
+            throw new BusinessException(ProductErrorCode.INVALID_STATUS_FOR_STOP_SALE);
+        }
+        this.status = ProductStatus.STOP_SALE;
+        this.saleStoppedAt = LocalDateTime.now();
     }
 
     private void validatePublishable() {

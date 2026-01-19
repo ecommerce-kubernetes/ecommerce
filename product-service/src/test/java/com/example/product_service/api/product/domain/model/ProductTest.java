@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -343,6 +344,43 @@ public class ProductTest {
     @Nested
     @DisplayName("상품 게시")
     class Publish {
+        
+        @Test
+        @DisplayName("상품을 게시한다 [준비중인 상품을 게시]")
+        void publish_from_preparing() {
+            //given
+            ProductVariant variant = ProductVariant.create("TEST", 10000L, 100, 10);
+            Product product = ProductTestBuilder.aProduct()
+                    .withStatus(ProductStatus.PREPARING)
+                    .withVariants(List.of(variant))
+                    .withImages(List.of("http://image.jpg"))
+                    .withPrice(1000L, 1200L, 10).build();
+            //when
+            product.publish();
+            //then
+            assertThat(product.getStatus()).isEqualTo(ProductStatus.ON_SALE);
+            assertThat(product.getPublishedAt()).isNotNull();
+        }
+
+        @Test
+        @DisplayName("상품을 게시한다 [판매 중지가 된 상품을 게시]")
+        void publish_from_stop_sale() {
+            //given
+            ProductVariant variant = ProductVariant.create("TEST", 10000L, 100, 10);
+            Product product = ProductTestBuilder.aProduct()
+                    .withStatus(ProductStatus.STOP_SALE)
+                    .withVariants(List.of(variant))
+                    .withImages(List.of("http://image.jpg"))
+                    .withPrice(1000L, 1200L, 10).build();
+            ReflectionTestUtils.setField(product, "publishedAt", LocalDateTime.of(2026, 1, 1, 10, 10, 20));
+            ReflectionTestUtils.setField(product, "saleStoppedAt", LocalDateTime.of(2026, 1, 2, 10, 10, 20));
+            //when
+            product.publish();
+            //then
+            assertThat(product.getStatus()).isEqualTo(ProductStatus.ON_SALE);
+            assertThat(product.getPublishedAt()).isEqualTo(LocalDateTime.of(2026, 1, 1, 10, 10, 20));
+            assertThat(product.getSaleStoppedAt()).isNull();
+        }
 
         @Test
         @DisplayName("삭제된 상품은 게시할 수 없다")
@@ -518,6 +556,50 @@ public class ProductTest {
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(ProductErrorCode.CATEGORY_NOT_LEAF);
+        }
+    }
+
+    @Nested
+    @DisplayName("상품 삭제")
+    class Delete {
+        @Test
+        @DisplayName("상품을 삭제한다")
+        void deleted() {
+            //given
+            Product product = ProductTestBuilder.aProduct().build();
+            //when
+            product.deleted();
+            //then
+            assertThat(product.getStatus()).isEqualTo(ProductStatus.DELETED);
+        }
+    }
+
+    @Nested
+    @DisplayName("상품 판매 중지")
+    class Close {
+        @Test
+        @DisplayName("상품을 판매 중지 한다")
+        void closed() {
+            //given
+            Product product = ProductTestBuilder.aProduct().withStatus(ProductStatus.ON_SALE).build();
+            //when
+            product.closed();
+            //then
+            assertThat(product.getStatus()).isEqualTo(ProductStatus.STOP_SALE);
+            assertThat(product.getSaleStoppedAt()).isNotNull();
+        }
+
+        @Test
+        @DisplayName("판매중인 상품이 아니면 판매 중지 할 수 없다")
+        void closed_not_on_sale() {
+            //given
+            Product product = ProductTestBuilder.aProduct().withStatus(ProductStatus.PREPARING).build();
+            //when
+            //then
+            assertThatThrownBy(() -> product.closed())
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(ProductErrorCode.INVALID_STATUS_FOR_STOP_SALE);
         }
     }
 }

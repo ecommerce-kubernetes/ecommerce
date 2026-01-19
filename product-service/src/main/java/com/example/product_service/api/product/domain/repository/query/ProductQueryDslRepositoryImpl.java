@@ -2,6 +2,7 @@ package com.example.product_service.api.product.domain.repository.query;
 
 import com.example.product_service.api.product.controller.dto.ProductSearchCondition;
 import com.example.product_service.api.product.domain.model.Product;
+import com.example.product_service.api.product.domain.model.ProductStatus;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -32,7 +33,10 @@ public class ProductQueryDslRepositoryImpl implements ProductQueryDslRepository{
         List<Product> result = factory.select(product)
                 .from(product)
                 .join(product.category, category).fetchJoin()
-                .where(eqCategory(condition.getCategoryId()), containName(condition.getName()), filterRating(condition.getRating()))
+                .where(eqCategory(condition.getCategoryId()),
+                        containName(condition.getName()),
+                        filterRating(condition.getRating()),
+                        product.status.eq(ProductStatus.ON_SALE))
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .orderBy(sortOrder)
@@ -41,7 +45,10 @@ public class ProductQueryDslRepositoryImpl implements ProductQueryDslRepository{
         Long totalElement = factory.select(product.countDistinct())
                 .from(product)
                 .join(product.category, category)
-                .where(eqCategory(condition.getCategoryId()), containName(condition.getName()), filterRating(condition.getRating()))
+                .where(eqCategory(condition.getCategoryId()),
+                        containName(condition.getName()),
+                        filterRating(condition.getRating()),
+                        product.status.eq(ProductStatus.ON_SALE))
                 .fetchOne();
 
         return new PageImpl<>(

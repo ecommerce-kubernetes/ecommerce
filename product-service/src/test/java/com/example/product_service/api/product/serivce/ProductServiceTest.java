@@ -12,6 +12,7 @@ import com.example.product_service.api.option.domain.model.OptionValue;
 import com.example.product_service.api.option.domain.repository.OptionTypeRepository;
 import com.example.product_service.api.product.controller.dto.ProductSearchCondition;
 import com.example.product_service.api.product.domain.model.Product;
+import com.example.product_service.api.product.domain.model.ProductStatus;
 import com.example.product_service.api.product.domain.model.ProductVariant;
 import com.example.product_service.api.product.domain.repository.ProductRepository;
 import com.example.product_service.api.product.service.ProductService;
@@ -551,6 +552,51 @@ public class ProductServiceTest extends ExcludeInfraTest {
             assertThat(result.getCategoryId()).isEqualTo(newCategory.getId());
             assertThat(result.getName()).isEqualTo("새 이름");
             assertThat(result.getDescription()).isEqualTo("새 설명");
+        }
+    }
+
+    @Nested
+    @DisplayName("상품 삭제")
+    class Delete {
+
+        @Test
+        @DisplayName("상품을 삭제한다")
+        void deleteProduct() {
+            //given
+            Category category = saveCategory();
+            Product product = saveProduct(category);
+            //when
+            product.deleted();
+            //then
+            assertThat(product.getStatus()).isEqualTo(ProductStatus.DELETED);
+        }
+
+        @Test
+        @DisplayName("삭제할 상품을 찾을 수 없으면 예외를 던진다")
+        void deleteProduct_product_not_found() {
+            //given
+            //when
+            //then
+            assertThatThrownBy(() -> productService.deleteProduct(999L))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(ProductErrorCode.PRODUCT_NOT_FOUND);
+        }
+    }
+
+    @Nested
+    @DisplayName("상품 판매 중지")
+    class Close {
+
+        @Test
+        @DisplayName("상품을 판매 중지로 변경한다")
+        void closeProduct() {
+            //given
+            Category category = saveCategory();
+            Product product = saveProduct(category);
+            //when
+            ProductStatusResponse result = productService.closedProduct(product.getId());
+            //then
         }
     }
 }
