@@ -14,8 +14,8 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-import static com.example.product_service.api.product.domain.model.QProduct.product;
 import static com.example.product_service.api.category.domain.model.QCategory.category;
+import static com.example.product_service.api.product.domain.model.QProduct.product;
 
 @Repository
 public class ProductQueryDslRepositoryImpl implements ProductQueryDslRepository{

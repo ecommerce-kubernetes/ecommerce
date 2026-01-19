@@ -111,11 +111,11 @@ public class ProductControllerFixture {
                         ));
     }
 
-    public static ProductStatusResponse.ProductStatusResponseBuilder mockStatusResponse() {
+    public static ProductStatusResponse.ProductStatusResponseBuilder mockProductStatusResponse() {
         return ProductStatusResponse.builder()
                 .productId(PRODUCT_ID)
                 .status("ON_SALE")
-                .changedAt(LocalDateTime.now().toString());
+                .publishedAt(LocalDateTime.now().toString());
     }
 
     public static ProductSummaryResponse.ProductSummaryResponseBuilder mockSummaryResponse() {

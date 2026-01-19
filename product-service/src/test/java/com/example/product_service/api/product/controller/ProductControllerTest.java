@@ -1,12 +1,12 @@
 package com.example.product_service.api.product.controller;
 
+import com.example.product_service.api.common.dto.PageDto;
 import com.example.product_service.api.common.security.model.UserRole;
 import com.example.product_service.api.product.controller.dto.*;
 import com.example.product_service.api.product.service.dto.command.ProductCreateCommand;
 import com.example.product_service.api.product.service.dto.command.ProductUpdateCommand;
 import com.example.product_service.api.product.service.dto.command.ProductVariantsCreateCommand;
 import com.example.product_service.api.product.service.dto.result.*;
-import com.example.product_service.api.common.dto.PageDto;
 import com.example.product_service.support.ControllerTestSupport;
 import com.example.product_service.support.security.annotation.WithCustomMockUser;
 import com.example.product_service.support.security.config.TestSecurityConfig;
@@ -20,6 +20,7 @@ import org.springframework.http.MediaType;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -337,7 +338,8 @@ public class ProductControllerTest extends ControllerTestSupport {
     @WithCustomMockUser
     void publishProduct() throws Exception {
         //given
-        ProductStatusResponse response = mockStatusResponse().build();
+        ProductStatusResponse response = mockProductStatusResponse()
+                .saleStoppedAt(null).build();
         given(productService.publish(anyLong()))
                 .willReturn(response);
         //when
@@ -570,6 +572,59 @@ public class ProductControllerTest extends ControllerTestSupport {
                 .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다"))
                 .andExpect(jsonPath("$.timestamp").exists())
                 .andExpect(jsonPath("$.path").value("/products/1"));
+    }
+
+    @Test
+    @DisplayName("상품을 판매 중지한다")
+    @WithCustomMockUser
+    void closeProduct() throws Exception {
+        //given
+        ProductStatusResponse response = mockProductStatusResponse()
+                .status("STOP_SALE")
+                .publishedAt(null)
+                .saleStoppedAt(LocalDateTime.now().toString())
+                .build();
+        given(productService.closedProduct(anyLong()))
+                .willReturn(response);
+        //when
+        //then
+        mockMvc.perform(patch("/products/{productId}/close", 1L)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(content().json(objectMapper.writeValueAsString(response)));
+    }
+
+    @Test
+    @DisplayName("상품을 판매 중지 하려면 관리자 권한이여야 한다")
+    @WithCustomMockUser(userRole = UserRole.ROLE_USER)
+    void closeProduct_user_role() throws Exception {
+        //given
+        //when
+        //then
+        mockMvc.perform(patch("/products/{productId}/close", 1L)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value("FORBIDDEN"))
+                .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다"))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/products/1/close"));
+    }
+
+    @Test
+    @DisplayName("로그인 하지 않은 사용자는 상품을 판매 중지 할 수 없다")
+    void closeProduct_unAuthorized() throws Exception {
+        //given
+        //when
+        //then
+        mockMvc.perform(patch("/products/{productId}/close", 1L)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
+                .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다"))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/products/1/close"));
     }
 
     private static Stream<Arguments> provideInvalidProductCreateRequest() {

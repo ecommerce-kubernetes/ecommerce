@@ -1,5 +1,6 @@
 package com.example.product_service.docs.product;
 
+import com.example.product_service.api.common.dto.PageDto;
 import com.example.product_service.api.product.controller.ProductController;
 import com.example.product_service.api.product.controller.dto.*;
 import com.example.product_service.api.product.service.ProductService;
@@ -8,13 +9,13 @@ import com.example.product_service.api.product.service.dto.command.ProductUpdate
 import com.example.product_service.api.product.service.dto.command.ProductVariantsCreateCommand;
 import com.example.product_service.api.product.service.dto.result.*;
 import com.example.product_service.docs.RestDocsSupport;
-import com.example.product_service.api.common.dto.PageDto;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static com.example.product_service.support.fixture.ProductControllerFixture.*;
@@ -225,7 +226,7 @@ public class ProductControllerDocsTest extends RestDocsSupport {
     @DisplayName("상품을 게시한다")
     void publishProduct() throws Exception {
         //given
-        ProductStatusResponse response = mockStatusResponse().build();
+        ProductStatusResponse response = mockProductStatusResponse().build();
         HttpHeaders adminHeader = createAdminHeader();
         given(productService.publish(anyLong()))
                 .willReturn(response);
@@ -253,7 +254,7 @@ public class ProductControllerDocsTest extends RestDocsSupport {
                                 responseFields(
                                         fieldWithPath("productId").description("상품 Id"),
                                         fieldWithPath("status").description("상품 상태"),
-                                        fieldWithPath("changedAt").description("게시일")
+                                        fieldWithPath("publishedAt").description("게시일")
                                 )
                         )
                 );
@@ -451,7 +452,9 @@ public class ProductControllerDocsTest extends RestDocsSupport {
     @DisplayName("상품을 판매 중지로 변경한다")
     void closeProduct() throws Exception {
         //given
-        ProductStatusResponse response = mockStatusResponse().status("STOP_SELLING").build();
+        ProductStatusResponse response = mockProductStatusResponse().status("STOP_SELLING")
+                .publishedAt(null)
+                .saleStoppedAt(LocalDateTime.now().toString()).build();
         HttpHeaders adminHeader = createAdminHeader();
         given(productService.closedProduct(anyLong()))
                 .willReturn(response);
@@ -478,7 +481,7 @@ public class ProductControllerDocsTest extends RestDocsSupport {
                                 responseFields(
                                         fieldWithPath("productId").description("상품 Id"),
                                         fieldWithPath("status").description("상품 상태"),
-                                        fieldWithPath("changedAt").description("게시일")
+                                        fieldWithPath("saleStoppedAt").description("판매 중지일")
                                 )
                         )
                 );

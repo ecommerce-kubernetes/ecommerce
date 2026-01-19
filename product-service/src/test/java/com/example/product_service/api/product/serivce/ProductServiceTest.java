@@ -362,7 +362,7 @@ public class ProductServiceTest extends ExcludeInfraTest {
             //then
             assertThat(result.getProductId()).isEqualTo(product.getId());
             assertThat(result.getStatus()).isEqualTo("ON_SALE");
-            assertThat(result.getChangedAt()).isNotNull();
+            assertThat(result.getPublishedAt()).isNotNull();
         }
 
         @Test
@@ -597,6 +597,9 @@ public class ProductServiceTest extends ExcludeInfraTest {
             //when
             ProductStatusResponse result = productService.closedProduct(product.getId());
             //then
+            assertThat(result.getProductId()).isEqualTo(product.getId());
+            assertThat(result.getStatus()).isEqualTo("STOP_SALE");
+            assertThat(result.getSaleStoppedAt()).isNotNull();
         }
     }
 }

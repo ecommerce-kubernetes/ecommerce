@@ -2,6 +2,7 @@ package com.example.product_service.api.product.service;
 
 import com.example.product_service.api.category.domain.model.Category;
 import com.example.product_service.api.category.domain.repository.CategoryRepository;
+import com.example.product_service.api.common.dto.PageDto;
 import com.example.product_service.api.common.exception.BusinessException;
 import com.example.product_service.api.common.exception.CategoryErrorCode;
 import com.example.product_service.api.common.exception.OptionErrorCode;
@@ -18,7 +19,6 @@ import com.example.product_service.api.product.service.dto.command.ProductCreate
 import com.example.product_service.api.product.service.dto.command.ProductUpdateCommand;
 import com.example.product_service.api.product.service.dto.command.ProductVariantsCreateCommand;
 import com.example.product_service.api.product.service.dto.result.*;
-import com.example.product_service.api.common.dto.PageDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
@@ -116,7 +116,7 @@ public class ProductService {
 
     public ProductStatusResponse closedProduct(Long productId) {
         Product product = findProductByIdOrThrow(productId);
-        return null;
+        return ProductStatusResponse.closed(product);
     }
 
     private List<OptionType> findOptionTypes(List<Long> optionTypeIds) {

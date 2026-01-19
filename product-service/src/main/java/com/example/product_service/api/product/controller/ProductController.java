@@ -1,12 +1,12 @@
 package com.example.product_service.api.product.controller;
 
+import com.example.product_service.api.common.dto.PageDto;
 import com.example.product_service.api.product.controller.dto.*;
 import com.example.product_service.api.product.service.ProductService;
 import com.example.product_service.api.product.service.dto.command.ProductCreateCommand;
 import com.example.product_service.api.product.service.dto.command.ProductUpdateCommand;
 import com.example.product_service.api.product.service.dto.command.ProductVariantsCreateCommand;
 import com.example.product_service.api.product.service.dto.result.*;
-import com.example.product_service.api.common.dto.PageDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
