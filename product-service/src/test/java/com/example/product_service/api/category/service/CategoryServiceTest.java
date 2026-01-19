@@ -43,17 +43,62 @@ public class CategoryServiceTest extends ExcludeInfraTest {
         return productRepository.save(product);
     }
 
-    private Category setupMaxDepthCategory() {
-        Category root = setupCategory("루트", null);
-        Category depth2 = setupCategory("depth2", root);
-        Category depth3 = setupCategory("depth3", depth2);
-        Category depth4 = setupCategory("depth4", depth3);
-        return setupCategory("depth5", depth4);
-    }
-
     @Nested
     @DisplayName("카테고리 생성시")
     class Create {
+
+        @Test
+        @DisplayName("부모 카테고리를 찾을 수 없는 경우 카테고리를 생성할 수 없다")
+        void save_parent_not_found(){
+            //given
+            //when
+            //then
+            assertThatThrownBy(() -> categoryService.saveCategory("자식", 999L, "http://child.jpg"))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(CategoryErrorCode.CATEGORY_NOT_FOUND);
+        }
+
+        @Test
+        @DisplayName("부모 카테고리에 상품이 속해있다면 카테고리를 생성할 수 없다")
+        void save_product_in_parent(){
+            //given
+            Category food = setupCategory("식품", null);
+            setupProduct("카레", food);
+            //when
+            //then
+            assertThatThrownBy(() -> categoryService.saveCategory("육류", food.getId(), "http://image.jpg"))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(CategoryErrorCode.HAS_PRODUCT);
+        }
+
+        @Test
+        @DisplayName("동일한 이름의 최상위 카테고리를 생성할 수 없다")
+        void save_duplicate_name_root(){
+            //given
+            setupCategory("가전", null);
+            //when
+            //then
+            assertThatThrownBy(() -> categoryService.saveCategory("가전", null, "http://image.jpg"))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(CategoryErrorCode.DUPLICATE_NAME);
+        }
+
+        @Test
+        @DisplayName("부모가 같은 동일한 이름의 카테고리를 생성할 수 없다")
+        void save_duplicate_name_child(){
+            //given
+            Category food = setupCategory("식품", null);
+            setupCategory("육류", food);
+            //when
+            //then
+            assertThatThrownBy(() -> categoryService.saveCategory("육류", food.getId(), "http://test.jpg"))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(CategoryErrorCode.DUPLICATE_NAME);
+        }
 
         @Test
         @DisplayName("최상위 카테고리를 생성한다")
@@ -70,85 +115,19 @@ public class CategoryServiceTest extends ExcludeInfraTest {
         }
 
         @Test
-        @DisplayName("")
+        @DisplayName("자식 카테고리를 생성한다")
         void save_child(){
             //given
-            Category parent = setupCategory("가전", null);
+            Category food = setupCategory("식품", null);
             //when
-            CategoryResponse result = categoryService.saveCategory("노트북", parent.getId(), "http://image.jpg");
+            CategoryResponse result = categoryService.saveCategory("육류", food.getId(), "http://test.jpg");
             //then
             assertThat(result)
                     .extracting(CategoryResponse::getName, CategoryResponse::getParentId, CategoryResponse::getDepth)
-                    .containsExactly("노트북", parent.getId(), 2);
+                    .containsExactly("육류", food.getId(), 2);
 
             Category saved = categoryRepository.findById(result.getId()).orElseThrow();
-            assertThat(saved.getPath()).isEqualTo(parent.getId() + "/" + saved.getId());
-        }
-
-        @Test
-        @DisplayName("카테고리를 생성할때 부모 카테고리를 찾을 수 없으면 예외를 던진다")
-        void save_when_notFound_parent(){
-            //given
-            //when
-            //then
-            assertThatThrownBy(() -> categoryService.saveCategory("자식", 999L, "http://child.jpg"))
-                    .isInstanceOf(BusinessException.class)
-                    .extracting("errorCode")
-                    .isEqualTo(CategoryErrorCode.CATEGORY_NOT_FOUND);
-        }
-
-        @Test
-        @DisplayName("부모 카테고리에 더이상 자식 카테고리를 생성할 수 없는 경우 예외를 던짐")
-        void save_when_exceed_max_depth(){
-            //given
-            Category parent = setupMaxDepthCategory();
-            //when
-            //then
-            assertThatThrownBy(() -> categoryService.saveCategory("자식", parent.getId(), "http://image.jpg"))
-                    .isInstanceOf(BusinessException.class)
-                    .extracting("errorCode")
-                    .isEqualTo(CategoryErrorCode.EXCEED_MAX_DEPTH);
-        }
-
-        @Test
-        @DisplayName("형제중 같은 이름이 존재하면 예외를 던진다[최상위 카테고리 생성]")
-        void save_when_duplicate_name_root(){
-            //given
-            setupCategory("가전", null);
-            //when
-            //then
-            assertThatThrownBy(() -> categoryService.saveCategory("가전", null, "http://image.jpg"))
-                    .isInstanceOf(BusinessException.class)
-                    .extracting("errorCode")
-                    .isEqualTo(CategoryErrorCode.DUPLICATE_NAME);
-        }
-
-        @Test
-        @DisplayName("형제중 같은 이름이 존재하면 예외를 던진다[자식 카테고리 생성]")
-        void save_when_duplicate_name_child(){
-            //given
-            Category parent = setupCategory("가전", null);
-            setupCategory("TV", parent);
-            //when
-            //then
-            assertThatThrownBy(() -> categoryService.saveCategory("TV", parent.getId(), "http://image.jpg"))
-                    .isInstanceOf(BusinessException.class)
-                    .extracting("errorCode")
-                    .isEqualTo(CategoryErrorCode.DUPLICATE_NAME);
-        }
-
-        @Test
-        @DisplayName("부모 카테고리에 상품이 존재하면 예외를 던진다")
-        void save_parent_has_product(){
-            //given
-            Category parent = setupCategory("부모", null);
-            setupProduct("상품", parent);
-            //when
-            //then
-            assertThatThrownBy(() -> categoryService.saveCategory("자식", parent.getId(), "http://image.jpg"))
-                    .isInstanceOf(BusinessException.class)
-                    .extracting("errorCode")
-                    .isEqualTo(CategoryErrorCode.HAS_PRODUCT);
+            assertThat(saved.getPath()).isEqualTo(food.getId() + "/" + saved.getId());
         }
     }
 
@@ -223,7 +202,7 @@ public class CategoryServiceTest extends ExcludeInfraTest {
                     .extracting(CategoryResponse::getName, CategoryResponse::getDepth)
                     .containsExactly("노트북", 3);
 
-            assertThat(result.getAncestors())
+            assertThat(result.getPath())
                     .extracting(CategoryResponse::getName, CategoryResponse::getDepth)
                     .containsExactly(
                             tuple("전자", 1),
@@ -378,20 +357,6 @@ public class CategoryServiceTest extends ExcludeInfraTest {
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(CategoryErrorCode.DUPLICATE_NAME);
-        }
-
-        @Test
-        @DisplayName("카테고리를 이동할때 이동할 부모가 이미 최대 깊이라면 예외를 던진다")
-        void move_exceed_max_depth(){
-            //given
-            Category category = setupMaxDepthCategory();
-            Category target = setupCategory("카테고리", null);
-            //when
-            //then
-            assertThatThrownBy(() -> categoryService.moveParent(target.getId(), category.getId(), false))
-                    .isInstanceOf(BusinessException.class)
-                    .extracting("errorCode")
-                    .isEqualTo(CategoryErrorCode.EXCEED_MAX_DEPTH);
         }
 
         @Test

@@ -23,19 +23,15 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class CategoryService {
 
-    private static final int MAX_DEPTH = 5;
-
     private final CategoryRepository categoryRepository;
     private final ProductRepository productRepository;
 
     @Transactional
     public CategoryResponse saveCategory(String name, Long parentId, String imageUrl) {
-        Category parent = (parentId != null) ? findCategoryOrThrow(parentId) : null;
-        if (parent != null) {
-            validateParentConstraint(parent);
-        }
-        validateDuplicateName(parent, name);
-        Category category = Category.create(name, parent, imageUrl);
+        String trimName = name.trim();
+        Category parent = getValidatedParent(parentId);
+        validateDuplicateName(parent, trimName);
+        Category category = Category.create(trimName, parent, imageUrl);
         categoryRepository.save(category);
         category.generatePath();
         return CategoryResponse.from(category);
@@ -55,7 +51,7 @@ public class CategoryService {
     public CategoryNavigationResponse getNavigation(Long categoryId) {
         Category target = findCategoryOrThrow(categoryId);
         CategoryResponse current = CategoryResponse.from(target);
-        List<CategoryResponse> ancestors = findAncestors(target);
+        List<CategoryResponse> ancestors = findCategoryPath(target);
         List<CategoryResponse> siblings = findSiblings(target);
         List<CategoryResponse> children = findChildren(target);
         return CategoryNavigationResponse.of(current, ancestors, siblings, children);
@@ -82,7 +78,7 @@ public class CategoryService {
 
         if (newParent != null) {
             validateHierarchy(category, newParent);
-            validateParentConstraint(newParent);
+            validateParentHasProducts(newParent);
         }
 
         validateDuplicateName(newParent, category.getName());
@@ -120,11 +116,7 @@ public class CategoryService {
     }
 
     // 부모 검증
-    private void validateParentConstraint(Category parent) {
-        // 부모의 depth 가 5 이상일 경우 예외를 던짐
-        if (parent.getDepth() >= MAX_DEPTH) {
-            throw new BusinessException(CategoryErrorCode.EXCEED_MAX_DEPTH);
-        }
+    private void validateParentHasProducts(Category parent) {
         // 부모 카테고리에 속한 상품이 존재하면 예외를 던짐
         if (productRepository.existsByCategoryId(parent.getId())) {
             throw new BusinessException(CategoryErrorCode.HAS_PRODUCT);
@@ -144,11 +136,11 @@ public class CategoryService {
                 .orElseThrow(() -> new BusinessException(CategoryErrorCode.CATEGORY_NOT_FOUND));
     }
 
-    private List<CategoryResponse> findAncestors(Category current) {
+    private List<CategoryResponse> findCategoryPath(Category current) {
         if (current.isRoot()) {
             return List.of(CategoryResponse.from(current));
         }
-        List<Long> ancestorIds = current.getAncestorsIds();
+        List<Long> ancestorIds = current.getPathIds();
         List<Category> ancestors = categoryRepository.findByInOrderDepth(ancestorIds);
         return createCategoryResponses(ancestors);
     }
@@ -163,10 +155,22 @@ public class CategoryService {
     }
 
     private List<CategoryResponse> findChildren(Category current) {
-        List<Category> children = categoryRepository.findByParentId(current.getId());
-        return createCategoryResponses(children);
+        return createCategoryResponses(current.getChildren());
     }
+
     private List<CategoryResponse> createCategoryResponses(List<Category> categories) {
         return categories.stream().map(CategoryResponse::from).toList();
+    }
+
+    // 부모 카테고리를 찾고 부모 카테고리에 속한 상품이 존재하는지 검증
+    private Category getValidatedParent(Long parentId) {
+        if (parentId == null) {
+            return null;
+        }
+        Category parent = findCategoryOrThrow(parentId);
+        if (productRepository.existsByCategoryId(parent.getId())) {
+            throw new BusinessException(CategoryErrorCode.HAS_PRODUCT);
+        }
+        return parent;
     }
 }

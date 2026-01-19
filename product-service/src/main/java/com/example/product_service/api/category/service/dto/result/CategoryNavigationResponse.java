@@ -8,28 +8,28 @@ import java.util.List;
 @Getter
 public class CategoryNavigationResponse {
     private CategoryResponse current;
-    private List<CategoryResponse> ancestors;
+    private List<CategoryResponse> path;
     private List<CategoryResponse> siblings;
     private List<CategoryResponse> children;
 
     @Builder
     private CategoryNavigationResponse(CategoryResponse current,
-                                       List<CategoryResponse> ancestors,
+                                       List<CategoryResponse> path,
                                        List<CategoryResponse> siblings,
                                        List<CategoryResponse> children) {
         this.current = current;
-        this.ancestors = ancestors;
+        this.path = path;
         this.siblings = siblings;
         this.children = children;
     }
 
     public static CategoryNavigationResponse of(CategoryResponse current,
-                                                List<CategoryResponse> ancestors,
+                                                List<CategoryResponse> path,
                                                 List<CategoryResponse> siblings,
                                                 List<CategoryResponse> children) {
         return CategoryNavigationResponse.builder()
                 .current(current)
-                .ancestors(ancestors)
+                .path(path)
                 .siblings(siblings)
                 .children(children)
                 .build();
