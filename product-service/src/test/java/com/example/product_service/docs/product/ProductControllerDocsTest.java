@@ -8,7 +8,7 @@ import com.example.product_service.api.product.service.dto.command.ProductUpdate
 import com.example.product_service.api.product.service.dto.command.ProductVariantsCreateCommand;
 import com.example.product_service.api.product.service.dto.result.*;
 import com.example.product_service.docs.RestDocsSupport;
-import com.example.product_service.dto.response.PageDto;
+import com.example.product_service.api.common.dto.PageDto;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -352,8 +352,10 @@ public class ProductControllerDocsTest extends RestDocsSupport {
                                     fieldWithPath("maxDiscountRate").description("최대 할인율"),
                                     fieldWithPath("rating").description("평점"),
                                     fieldWithPath("reviewCount").description("리뷰 갯수"),
+                                    fieldWithPath("popularityScore").description("인기 점수"),
                                     fieldWithPath("optionGroups[].optionTypeId").description("상품 옵션 타입 Id"),
                                     fieldWithPath("optionGroups[].name").description("상품 옵션 타입 이름"),
+                                    fieldWithPath("optionGroups[].priority").description("상품 옵션 우선순위"),
                                     fieldWithPath("optionGroups[].values[].optionValueId").description("상품 옵션 값 ID"),
                                     fieldWithPath("optionGroups[].values[].name").description("상품 옵션 값 이름"),
                                     fieldWithPath("images[].imageUrl").description("상품 이미지 URL"),

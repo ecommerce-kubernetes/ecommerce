@@ -17,8 +17,9 @@ public class ProductQueryMapper {
         HIGH_RATING("high-rating", product.rating.desc()),
         LOW_RATING("low-rating", product.rating.asc()),
         HIGH_PRICE("high-price", product.lowestPrice.desc()),
-        LOW_PRICE("low-price", product.lowestPrice.asc());
-        //TODO 특가, 인기순
+        LOW_PRICE("low-price", product.lowestPrice.asc()),
+        SPECIAL_SALE("special-sale", product.maxDiscountRate.desc()),
+        POPULARITY("popularity", product.popularityScore.desc());
 
         private final String code;
         @Getter

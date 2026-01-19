@@ -1,5 +1,6 @@
 package com.example.product_service.api.product.service.dto.result;
 
+import com.example.product_service.api.product.domain.model.Product;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -30,5 +31,21 @@ public class ProductSummaryResponse {
         this.rating = rating;
         this.reviewCount = reviewCount;
         this.status = status;
+    }
+
+    public static ProductSummaryResponse from(Product product) {
+        return ProductSummaryResponse.builder()
+                .productId(product.getId())
+                .name(product.getName())
+                .thumbnail(product.getThumbnail())
+                .displayPrice(product.getLowestPrice())
+                .originalPrice(product.getOriginalPrice())
+                .maxDiscountRate(product.getMaxDiscountRate())
+                .categoryId(product.getCategory().getId())
+                .publishedAt(product.getPublishedAt().toString())
+                .rating(product.getRating())
+                .reviewCount(product.getReviewCount())
+                .status(product.getStatus().toString())
+                .build();
     }
 }

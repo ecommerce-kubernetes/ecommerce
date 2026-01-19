@@ -3,7 +3,6 @@ package com.example.product_service.api.product.domain.model;
 import com.example.product_service.api.common.exception.BusinessException;
 import com.example.product_service.api.common.exception.ProductErrorCode;
 import com.example.product_service.api.option.domain.model.OptionValue;
-import com.example.product_service.exception.InsufficientStockException;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -85,16 +84,5 @@ public class ProductVariant {
 
     protected void setProduct(Product product) {
         this.product = product;
-    }
-
-    public void reductionStock(int stock){
-        if(stockQuantity - stock < 0){
-            throw new InsufficientStockException("Out of Stock");
-        }
-        this.stockQuantity = this.stockQuantity - stock;
-    }
-
-    public void restoreStock(int stock){
-        this.stockQuantity = this.stockQuantity + stock;
     }
 }

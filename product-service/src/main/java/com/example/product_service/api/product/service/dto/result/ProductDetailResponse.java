@@ -3,7 +3,6 @@ package com.example.product_service.api.product.service.dto.result;
 import com.example.product_service.api.option.domain.model.OptionValue;
 import com.example.product_service.api.product.domain.model.Product;
 import com.example.product_service.api.product.domain.model.ProductOption;
-import com.example.product_service.dto.response.variant.ProductVariantResponse;
 import lombok.Builder;
 import lombok.Getter;
 
