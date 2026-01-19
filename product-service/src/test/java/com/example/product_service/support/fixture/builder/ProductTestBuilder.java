@@ -36,8 +36,14 @@ public class ProductTestBuilder {
         this.id = id;
         return this;
     }
+
     public ProductTestBuilder withName(String name) {
         this.name = name;
+        return this;
+    }
+
+    public ProductTestBuilder withDescription(String description) {
+        this.description = description;
         return this;
     }
 

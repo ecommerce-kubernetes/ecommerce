@@ -103,7 +103,10 @@ public class ProductService {
     }
 
     public ProductUpdateResponse updateProduct(ProductUpdateCommand command) {
-        return null;
+        Product product = findProductByIdOrThrow(command.getProductId());
+        Category category = findCategoryByIdOrThrow(command.getCategoryId());
+        product.updateProductInfo(command.getName(), command.getDescription(), category);
+        return ProductUpdateResponse.from(product);
     }
 
     public void deleteProduct(Long productId) {

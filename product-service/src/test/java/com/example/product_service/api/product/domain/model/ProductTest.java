@@ -452,4 +452,72 @@ public class ProductTest {
                     .isEqualTo(ProductErrorCode.DISCOUNT_RATE_INVALID);
         }
     }
+
+    @Nested
+    @DisplayName("상품 수정")
+    class Update {
+
+        @Test
+        @DisplayName("상품 정보를 수정")
+        void updateProductInfo() {
+            //given
+            Category category = Category.create("카테고리", null, "http://image.jpg");
+            Category newCategory = Category.create("새 카테고리", null, "http://image.jpg");
+            Product product = ProductTestBuilder.aProduct()
+                    .withCategory(category)
+                    .withName("상품")
+                    .withDescription("상품 설명")
+                    .build();
+            //when
+            product.updateProductInfo("새 이름", "새 설명", newCategory);
+            //then
+            assertThat(product.getCategory()).isEqualTo(newCategory);
+            assertThat(product.getName()).isEqualTo("새 이름");
+            assertThat(product.getDescription()).isEqualTo("새 설명");
+        }
+
+        @Test
+        @DisplayName("상품이 삭제된 상태라면 예외를 던진다")
+        void updateProductInfo_deleted_product() {
+            //given
+            Category category = Category.create("새 카테고리", null, "http://image.jpg");
+            Product product = ProductTestBuilder.aProduct()
+                    .withStatus(ProductStatus.DELETED)
+                    .build();
+            //when
+            //then
+            assertThatThrownBy(() -> product.updateProductInfo("새 이름", "새 설명", category))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(ProductErrorCode.PRODUCT_NOT_FOUND);
+        }
+
+        @Test
+        @DisplayName("변경할 상품 카테고리가 없으면 예외를 던진다")
+        void updateProductInfo_category_null() {
+            //given
+            Product product = ProductTestBuilder.aProduct().build();
+            //when
+            //then
+            assertThatThrownBy(() -> product.updateProductInfo("새 이름", "새 설명", null))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(ProductErrorCode.PRODUCT_CATEGORY_REQUIRED);
+        }
+
+        @Test
+        @DisplayName("변경할 상품 카테고리가 최하위 카테고리가 아니면 예외를 던진다")
+        void updateProductInfo_parent_category() {
+            //given
+            Category parent = Category.create("부모 카테고리", null, "http://image.jpg");
+            Category child = Category.create("자식 카테고리", parent, "http://image.jpg");
+            Product product = ProductTestBuilder.aProduct().build();
+            //when
+            //then
+            assertThatThrownBy(() -> product.updateProductInfo("새 상품", "새 설명", parent))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(ProductErrorCode.CATEGORY_NOT_LEAF);
+        }
+    }
 }

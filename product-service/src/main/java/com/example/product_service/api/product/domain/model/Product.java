@@ -130,6 +130,21 @@ public class Product extends BaseEntity {
         updateThumbnail();
     }
 
+    public void updateProductInfo(String name, String description, Category category) {
+        if (this.status == ProductStatus.DELETED) {
+            throw new BusinessException(ProductErrorCode.PRODUCT_NOT_FOUND);
+        }
+        if (category == null) {
+            throw new BusinessException(ProductErrorCode.PRODUCT_CATEGORY_REQUIRED);
+        }
+        if (!category.isLeaf()) {
+            throw new BusinessException(ProductErrorCode.CATEGORY_NOT_LEAF);
+        }
+        this.name = name;
+        this.description = description;
+        this.category = category;
+    }
+
     private void updatePrice() {
         this.variants.stream().min(Comparator.comparingLong(ProductVariant::getPrice))
                 .ifPresent(cheapestVariant -> {

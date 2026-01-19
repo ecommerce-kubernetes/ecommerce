@@ -2,6 +2,7 @@ package com.example.product_service.api.product.serivce;
 
 import com.example.product_service.api.category.domain.model.Category;
 import com.example.product_service.api.category.domain.repository.CategoryRepository;
+import com.example.product_service.api.common.dto.PageDto;
 import com.example.product_service.api.common.exception.BusinessException;
 import com.example.product_service.api.common.exception.CategoryErrorCode;
 import com.example.product_service.api.common.exception.OptionErrorCode;
@@ -9,11 +10,13 @@ import com.example.product_service.api.common.exception.ProductErrorCode;
 import com.example.product_service.api.option.domain.model.OptionType;
 import com.example.product_service.api.option.domain.model.OptionValue;
 import com.example.product_service.api.option.domain.repository.OptionTypeRepository;
+import com.example.product_service.api.product.controller.dto.ProductSearchCondition;
 import com.example.product_service.api.product.domain.model.Product;
 import com.example.product_service.api.product.domain.model.ProductVariant;
 import com.example.product_service.api.product.domain.repository.ProductRepository;
 import com.example.product_service.api.product.service.ProductService;
 import com.example.product_service.api.product.service.dto.command.ProductCreateCommand;
+import com.example.product_service.api.product.service.dto.command.ProductUpdateCommand;
 import com.example.product_service.api.product.service.dto.command.ProductVariantsCreateCommand;
 import com.example.product_service.api.product.service.dto.result.*;
 import com.example.product_service.support.ExcludeInfraTest;
@@ -73,6 +76,15 @@ public class ProductServiceTest extends ExcludeInfraTest {
 
     private OptionValue findOptionValue(OptionType optionType, String name) {
         return optionType.getOptionValues().stream().filter(v -> v.getName().equals(name)).findFirst().orElseThrow();
+    }
+
+    private Product settingProduct(Category category, String name) {
+        Product product = Product.create(name, "상품 설명", category);
+        ProductVariant variant = ProductVariant.create("TEST", 10000L, 100, 10);
+        product.addVariant(variant);
+        product.replaceImages(List.of("http://image.jpg"));
+        product.publish();
+        return productRepository.save(product);
     }
 
     @Nested
@@ -443,6 +455,102 @@ public class ProductServiceTest extends ExcludeInfraTest {
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(ProductErrorCode.PRODUCT_NOT_FOUND);
+        }
+    }
+
+    @Nested
+    @DisplayName("상품 목록 조회")
+    class GetProducts {
+
+        @Test
+        @DisplayName("상품 목록을 조회한다")
+        void getProducts() {
+            //given
+            Category category = saveCategory();
+            Product product1 = settingProduct(category, "상품1");
+            Product product2 = settingProduct(category, "상품1");
+            ProductSearchCondition condition = ProductSearchCondition.builder()
+                    .page(1)
+                    .size(10)
+                    .build();
+            //when
+            PageDto<ProductSummaryResponse> result = productService.getProducts(condition);
+            //then
+            assertThat(result.getCurrentPage()).isEqualTo(1);
+            assertThat(result.getPageSize()).isEqualTo(10);
+            assertThat(result.getTotalElement()).isEqualTo(2);
+            assertThat(result.getTotalPage()).isEqualTo(1);
+            assertThat(result.getContent())
+                    .extracting(ProductSummaryResponse::getProductId, ProductSummaryResponse::getName)
+                    .containsExactly(
+                            tuple(product2.getId(), product2.getName()),
+                            tuple(product1.getId(), product1.getName())
+                    );
+        }
+    }
+
+    @Nested
+    @DisplayName("상품 정보를 수정한다")
+    class UpdateProduct {
+
+        @Test
+        @DisplayName("상품을 찾을 수 없으면 예외를 던진다")
+        void updateProduct_product_not_found() {
+            //given
+            ProductUpdateCommand command = ProductUpdateCommand.builder()
+                    .productId(999L)
+                    .name("새 이름")
+                    .description("새 설명")
+                    .categoryId(1L)
+                    .build();
+            //when
+            //then
+            assertThatThrownBy(() -> productService.updateProduct(command))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(ProductErrorCode.PRODUCT_NOT_FOUND);
+        }
+
+        @Test
+        @DisplayName("카테고리를 찾을 수 없으면 예외를 던진다")
+        void updateProduct_category_not_found() {
+            //given
+            Category category = saveCategory();
+            Product product = saveProduct(category);
+            ProductUpdateCommand command = ProductUpdateCommand.builder()
+                    .productId(product.getId())
+                    .name("새 이름")
+                    .description("새 설명")
+                    .categoryId(999L)
+                    .build();
+            //when
+            //then
+            assertThatThrownBy(() -> productService.updateProduct(command))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(CategoryErrorCode.CATEGORY_NOT_FOUND);
+        }
+
+        @Test
+        @DisplayName("상품 정보 수정")
+        void updateProduct() {
+            //given
+            Category category = saveCategory();
+            Category newCategory = saveCategory();
+            Product product = saveProduct(category);
+            ProductUpdateCommand command = ProductUpdateCommand.builder()
+                    .productId(product.getId())
+                    .name("새 이름")
+                    .description("새 설명")
+                    .categoryId(newCategory.getId())
+                    .build();
+            //when
+            ProductUpdateResponse result = productService.updateProduct(command);
+            //then
+            assertThat(result.getProductId()).isEqualTo(product.getId());
+            assertThat(result.getCategoryId()).isEqualTo(newCategory.getId());
+            assertThat(result.getName()).isEqualTo("새 이름");
+            assertThat(result.getDescription()).isEqualTo("새 설명");
         }
     }
 }

@@ -1,5 +1,6 @@
 package com.example.product_service.api.product.service.dto.result;
 
+import com.example.product_service.api.product.domain.model.Product;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -16,5 +17,14 @@ public class ProductUpdateResponse {
         this.name = name;
         this.description = description;
         this.categoryId = categoryId;
+    }
+
+    public static ProductUpdateResponse from(Product product) {
+        return ProductUpdateResponse.builder()
+                .productId(product.getId())
+                .name(product.getName())
+                .description(product.getDescription())
+                .categoryId(product.getCategory().getId())
+                .build();
     }
 }
