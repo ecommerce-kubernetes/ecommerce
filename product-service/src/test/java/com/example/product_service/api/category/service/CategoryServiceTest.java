@@ -298,7 +298,7 @@ public class CategoryServiceTest extends ExcludeInfraTest {
 
             Category root2 = setupCategory("식품", null);
             //when
-            CategoryResponse result = categoryService.moveParent(target.getId(), root2.getId(), false);
+            CategoryResponse result = categoryService.moveParent(target.getId(), root2.getId());
             //then
             assertThat(result)
                     .extracting(CategoryResponse::getName, CategoryResponse::getParentId, CategoryResponse::getDepth)
@@ -316,7 +316,7 @@ public class CategoryServiceTest extends ExcludeInfraTest {
             Category root = setupCategory("전자", null);
             Category target = setupCategory("노트북", root);
             //when
-            CategoryResponse result = categoryService.moveParent(target.getId(), null, true);
+            CategoryResponse result = categoryService.moveParent(target.getId(), null);
             //then
             assertThat(result)
                     .extracting(CategoryResponse::getName, CategoryResponse::getParentId, CategoryResponse::getDepth)
@@ -331,12 +331,11 @@ public class CategoryServiceTest extends ExcludeInfraTest {
         void move_duplicateName_root(){
             //given
             setupCategory("동일한 이름", null);
-
             Category root = setupCategory("식품", null);
             Category target = setupCategory("동일한 이름", root);
             //when
             //then
-            assertThatThrownBy(() -> categoryService.moveParent(target.getId(), null, true))
+            assertThatThrownBy(() -> categoryService.moveParent(target.getId(), null))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(CategoryErrorCode.DUPLICATE_NAME);
@@ -353,37 +352,10 @@ public class CategoryServiceTest extends ExcludeInfraTest {
             Category target = setupCategory("동일한 이름", root2);
             //when
             //then
-            assertThatThrownBy(() -> categoryService.moveParent(target.getId(), root1.getId(), false))
+            assertThatThrownBy(() -> categoryService.moveParent(target.getId(), root1.getId()))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(CategoryErrorCode.DUPLICATE_NAME);
-        }
-
-        @Test
-        @DisplayName("자기자신을 부모로 설정하려고 하면 예외를 던진다")
-        void move_parent_change_itself(){
-            //given
-            Category category = setupCategory("자기자신", null);
-            //when
-            //then
-            assertThatThrownBy(() -> categoryService.moveParent(category.getId(), category.getId(), false))
-                    .isInstanceOf(BusinessException.class)
-                    .extracting("errorCode")
-                    .isEqualTo(CategoryErrorCode.INVALID_HIERARCHY);
-        }
-
-        @Test
-        @DisplayName("자신의 자식을 부모로 설정하려 하면 예외를 던진다")
-        void move_parent_change_own_child(){
-            //given
-            Category root = setupCategory("전자기기", null);
-            Category child = setupCategory("노트북", root);
-            //when
-            //then
-            assertThatThrownBy(() -> categoryService.moveParent(root.getId(), child.getId(), false))
-                    .isInstanceOf(BusinessException.class)
-                    .extracting("errorCode")
-                    .isEqualTo(CategoryErrorCode.INVALID_HIERARCHY);
         }
 
         @Test
@@ -397,7 +369,7 @@ public class CategoryServiceTest extends ExcludeInfraTest {
             setupProduct("상품", root2);
             //when
             //then
-            assertThatThrownBy(() -> categoryService.moveParent(target.getId(), root2.getId(), false))
+            assertThatThrownBy(() -> categoryService.moveParent(target.getId(), root2.getId()))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(CategoryErrorCode.HAS_PRODUCT);

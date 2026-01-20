@@ -129,7 +129,7 @@ public class CategoryControllerDocsTest extends RestDocsSupport {
                                 ),
                                 responseFields(
                                         subsectionWithPath("current").description("요청 카테고리"),
-                                        subsectionWithPath("ancestors").description("직계 카테고리"),
+                                        subsectionWithPath("path").description("직계 카테고리"),
                                         subsectionWithPath("siblings").description("형제 카테고리"),
                                         subsectionWithPath("children").description("자식 카테고리")
                                 )
@@ -219,7 +219,7 @@ public class CategoryControllerDocsTest extends RestDocsSupport {
         MoveCategoryRequest request = createMoveCategoryRequest();
         CategoryResponse response = createCategoryResponse().parentId(2L).build();
         HttpHeaders adminHeader = createAdminHeader();
-        given(categoryService.moveParent(anyLong(), anyLong(), any()))
+        given(categoryService.moveParent(anyLong(), anyLong()))
                 .willReturn(response);
         //when
         //then
@@ -241,8 +241,7 @@ public class CategoryControllerDocsTest extends RestDocsSupport {
                                         parameterWithName("categoryId").description("수정할 카테고리 ID")
                                 ),
                                 requestFields(
-                                        fieldWithPath("parentId").description("이동할 부모 카테고리 ID"),
-                                        fieldWithPath("isRoot").description("최상위로 변경 여부")
+                                        fieldWithPath("parentId").description("이동할 부모 카테고리 ID")
 
                                 ),
                                 responseFields(
@@ -292,7 +291,7 @@ public class CategoryControllerDocsTest extends RestDocsSupport {
 
         return  CategoryNavigationResponse.builder()
                 .current(laptop)
-                .ancestors(List.of(electron, laptop))
+                .path(List.of(electron, laptop))
                 .siblings(List.of(desktop))
                 .children(List.of(light, gaming))
                 .build();

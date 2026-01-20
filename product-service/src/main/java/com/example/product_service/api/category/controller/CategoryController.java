@@ -61,7 +61,7 @@ public class CategoryController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CategoryResponse> moveParent(@PathVariable("categoryId") Long categoryId,
                                                        @RequestBody @Validated MoveCategoryRequest request) {
-        CategoryResponse response = categoryService.moveParent(categoryId, request.getParentId(), request.getIsRoot());
+        CategoryResponse response = categoryService.moveParent(categoryId, request.getParentId());
         return ResponseEntity.ok(response);
     }
 

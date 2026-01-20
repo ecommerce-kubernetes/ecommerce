@@ -6,7 +6,6 @@ import com.example.product_service.support.fixture.builder.CategoryTestBuilder;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.List;
 
@@ -205,12 +204,87 @@ public class CategoryTest {
     class MoveParent {
 
         @Test
+        @DisplayName("최상위 카테고리로 변경한다")
+        void moveParent_root() {
+            //given
+            Category oldParent = CategoryTestBuilder.aCategory()
+                    .withId(2L)
+                    .build();
+            Category target = CategoryTestBuilder.aCategory()
+                    .withId(3L)
+                    .withParent(oldParent)
+                    .build();
+            Category targetChild = CategoryTestBuilder.aCategory()
+                    .withId(4L)
+                    .withParent(target)
+                    .build();
+            //when
+            target.moveParent(null);
+            //then
+            assertThat(target.getParent()).isNull();
+            assertThat(target.getDepth()).isEqualTo(1);
+            assertThat(target.getPath()).isEqualTo(String.valueOf(3L));
+
+            assertThat(targetChild)
+                    .extracting(Category::getDepth, Category::getPath)
+                    .containsExactly(2, 3L + "/" + 4L);
+        }
+
+        @Test
+        @DisplayName("부모 카테고리를 변경한다")
+        void moveParent_child() {
+            //given
+            Category oldParent = CategoryTestBuilder.aCategory().withId(2L).build();
+            Category newParent = CategoryTestBuilder.aCategory().withId(3L).build();
+            Category target = CategoryTestBuilder.aCategory().withId(4L).withParent(oldParent).build();
+            Category targetChild = CategoryTestBuilder.aCategory().withId(5L).withParent(target).build();
+            //when
+            target.moveParent(newParent);
+            //then
+            assertThat(target.getParent()).isEqualTo(newParent);
+            assertThat(target.getDepth()).isEqualTo(2);
+            assertThat(target.getPath()).isEqualTo(3L + "/" + 4L);
+
+            assertThat(targetChild)
+                    .extracting(Category::getDepth, Category::getPath)
+                    .containsExactly(3, 3L + "/" + 4L + "/" + 5L);
+        }
+        
+        @Test
+        @DisplayName("자기 자신을 부모로 변경할 수 없다")
+        void moveParent_myself() {
+            //given
+            Category category = CategoryTestBuilder.aCategory().build();
+            //when
+            //then
+            assertThatThrownBy(() -> category.moveParent(category))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(CategoryErrorCode.CANNOT_MOVE_TO_SELF);
+        }
+
+        @Test
+        @DisplayName("자신의 자손을 부모로 변경할 수 없다")
+        void moveParent_descendant() {
+            //given
+            Category target = CategoryTestBuilder.aCategory().withId(1L).build();
+            Category child = CategoryTestBuilder.aCategory().withId(2L).withParent(target).build();
+            Category grandSon = CategoryTestBuilder.aCategory().withId(3L).withParent(child).build();
+            //when
+            //then
+            assertThatThrownBy(() -> target.moveParent(grandSon))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(CategoryErrorCode.CANNOT_MOVE_TO_DESCENDANT);
+        }
+
+        @Test
         @DisplayName("카테고리의 부모를 변경할때 부모의 depth 가 최대인 경우 부모를 변경할 수 없다")
         void moveParent_exceed_max_depth(){
             //given
-            Category parent = CategoryTestBuilder.aCategory()
+            Category parent = CategoryTestBuilder.aCategory().withId(2L)
                     .withDepth(5).build();
-            Category target = CategoryTestBuilder.aCategory()
+            Category target = CategoryTestBuilder.aCategory().withId(3L)
                     .build();
             //when
             //then
@@ -221,184 +295,32 @@ public class CategoryTest {
         }
     }
 
-    @Test
-    @DisplayName("카테고리 생성시 parent 가 null 이면 depth가 1인 카테고리를 생성한다")
-    void create_root(){
-        //given
-        //when
-        Category category = Category.create("카테고리", null, "http://image.jpg");
-        //then
-        assertThat(category)
-                .extracting(Category::getName, Category::getParent, Category::getDepth, Category::getImageUrl)
-                .containsExactly(
-                        "카테고리", null, 1, "http://image.jpg"
-                );
-    }
+    @Nested
+    @DisplayName("최하위 카테고리 여부")
+    class IsLeaf {
 
-    @Test
-    @DisplayName("자식 카테고리 생성시 depth는 부모의 depth + 1 이다")
-    void create_child(){
-        //given
-        Category root = Category.create("루트", null, "http://image.jpg");
-        //when
-        Category category = Category.create("자식", root, "http://image.jpg");
-        //then
-        assertThat(category)
-                .extracting(Category::getName, Category::getParent, Category::getDepth, Category::getImageUrl)
-                .containsExactly("자식", root, 2, "http://image.jpg");
-    }
+        @Test
+        @DisplayName("최하위 카테고리라면 true를 반환한다")
+        void isLeaf_true() {
+            //given
+            Category parent = CategoryTestBuilder.aCategory().build();
+            Category child = CategoryTestBuilder.aCategory().withParent(parent).build();
+            //when
+            boolean isLeaf = child.isLeaf();
+            //then
+            assertThat(isLeaf).isTrue();
+        }
 
-    @Test
-    @DisplayName("카테고리 이름을 변경한다")
-    void rename(){
-        //given
-        Category category = Category.create("카테고리", null, "http://image.jpg");
-        //when
-        category.rename("새 카테고리");
-        //then
-        assertThat(category.getName()).isEqualTo("새 카테고리");
-    }
-
-    @Test
-    @DisplayName("변경할 이름이 유효하지 않으면 예외를 던진다")
-    void rename_invalidName(){
-        //given
-        Category category = Category.create("카테고리", null, "http://image.jpg");
-        //when
-        //then
-        assertThatThrownBy(() -> category.rename(" "))
-                .isInstanceOf(BusinessException.class)
-                .extracting("errorCode")
-                .isEqualTo(CategoryErrorCode.INVALID_INPUT_VALUE);
-    }
-
-    @Test
-    @DisplayName("카테고리 이미지를 변경한다")
-    void changeImage(){
-        //given
-        Category category = Category.create("카테고리", null, "http://image.jpg");
-        //when
-        category.changeImage("http://newImage.jpg");
-        //then
-        assertThat(category.getImageUrl()).isEqualTo("http://newImage.jpg");
-    }
-
-    @Test
-    @DisplayName("변경할 이미지가 유효하지 않으면 예외를 던진다")
-    void changeImage_invalidImage(){
-        //given
-        Category category = Category.create("카테고리", null, "http://image.jpg");
-        //when
-        //then
-        assertThatThrownBy(() -> category.changeImage("  "))
-                .isInstanceOf(BusinessException.class)
-                .extracting("errorCode")
-                .isEqualTo(CategoryErrorCode.INVALID_INPUT_VALUE);
-    }
-
-    @Test
-    @DisplayName("카테고리가 최상위 카테고리면 true를 반환한다")
-    void isRoot_true(){
-        //given
-        Category category = Category.create("카테고리", null, "http://image.jpg");
-        //when
-        boolean isRoot = category.isRoot();
-        //then
-        assertThat(isRoot).isTrue();
-    }
-
-    @Test
-    @DisplayName("카테고리가 최상위 카테고리가 아니면 fals를 반환한다")
-    void isRoot_false(){
-        //given
-        Category root = Category.create("루트", null, "http://image.jpg");
-        Category category = Category.create("자식", root, "http://image.jpg");
-        //when
-        boolean isRoot = category.isRoot();
-        //then
-        assertThat(isRoot).isFalse();
-    }
-
-    @Test
-    @DisplayName("카테고리 경로를 생성한다")
-    void generatePath(){
-        //given
-        Category root = Category.create("루트", null, "http://image.jpg");
-        setId(root, 1L);
-        //when
-        root.generatePath();
-        //then
-        assertThat(root.getPath()).isEqualTo(String.valueOf(1L));
-    }
-
-    @Test
-    @DisplayName("자식 카테고리 경로를 생성한다")
-    void generatePath_child(){
-        //given
-        Category root = Category.create("루트", null, "http://image.jpg");
-        setId(root, 1L);
-        root.generatePath();
-        Category child = Category.create("자식", root, "http://image.jpg");
-        setId(child, 2L);
-        //when
-        child.generatePath();
-        //then
-        assertThat(child.getPath()).isEqualTo(root.getId() + "/" + child.getId());
-    }
-
-    @Test
-    @DisplayName("조상 id를 조회한다")
-    void getPathIds(){
-        //given
-        Category root = Category.create("루트", null, "http://image.jpg");
-        setId(root, 1L);
-        root.generatePath();
-        Category child = Category.create("자식", root, "http://image.jpg");
-        setId(child, 2L);
-        child.generatePath();
-        //when
-        List<Long> ids = child.getPathIds();
-        //then
-        assertThat(ids).contains(1L, 2L);
-    }
-
-    @Test
-    @DisplayName("카테고리 부모를 변경한다")
-    void moveParent(){
-        //given
-        Category root = Category.create("루트", null, "http://image.jpg");
-        setId(root, 1L);
-        root.generatePath();
-        Category child = Category.create("자식", root, "http://image.jpg");
-        setId(child, 2L);
-        child.generatePath();
-        Category grandson = Category.create("손자", child, "http://image.jpg");
-        setId(grandson, 3L);
-        grandson.generatePath();
-
-        Category newParent = Category.create("새 부모", null, "http://image.jpg");
-        setId(newParent, 4L);
-        newParent.generatePath();
-        //when
-        child.moveParent(newParent);
-        //then
-        assertThat(child.getParent()).isEqualTo(newParent);
-        assertThat(child.getPath()).isEqualTo(newParent.getId() + "/" + child.getId());
-        assertThat(grandson.getPath()).isEqualTo(newParent.getId() + "/" + child.getId() + "/" + grandson.getId());
-    }
-
-    @Test
-    @DisplayName("최하위 카테고리인 경우 true를 반환한다")
-    void isLeaf(){
-        //given
-        Category root = Category.create("루트", null, "http://image.jpg");
-        //when
-        boolean isLeaf = root.isLeaf();
-        //then
-        assertThat(isLeaf).isTrue();
-    }
-
-    private void setId(Category category, Long id) {
-        ReflectionTestUtils.setField(category, "id", id);
+        @Test
+        @DisplayName("최하위 카테고리라면 true를 반환한다")
+        void isLeaf_false() {
+            //given
+            Category parent = CategoryTestBuilder.aCategory().build();
+            Category child = CategoryTestBuilder.aCategory().withParent(parent).build();
+            //when
+            boolean isLeaf = parent.isLeaf();
+            //then
+            assertThat(isLeaf).isFalse();
+        }
     }
 }

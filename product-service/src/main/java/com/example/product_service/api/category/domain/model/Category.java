@@ -80,21 +80,25 @@ public class Category extends BaseEntity {
         return this.parent == null;
     }
 
-    public void moveParent(Category parent){
-        // 부모 카테고리의 depth 가 최대라면 예외
-        if (parent != null) {
-            parent.validateCanAddChild();
-        }
-
+    public void moveParent(Category newParent){
+        validateMove(newParent);
+        // 연관관계 매핑
         if (this.parent != null) {
             this.parent.getChildren().remove(this);
         }
-        this.parent = parent;
-        if (parent != null) {
-            parent.getChildren().add(this);
+        this.parent = newParent;
+
+        if (newParent != null) {
+            // depth 최신화
+            newParent.getChildren().add(this);
+            this.depth = newParent.getNextDepth();
+        } else {
+            // 루트라면 depth 는 1
+            this.depth = ROOT_DEPTH;
         }
-        this.depth = parent.getNextDepth();
+        // 자신 경로 최신화
         generatePath();
+        // 자식 경로 최신화
         updateChildrenPath(this.children);
     }
 
@@ -150,5 +154,23 @@ public class Category extends BaseEntity {
 
     private int getNextDepth() {
         return this.depth + 1;
+    }
+
+    private void validateMove(Category newParent) {
+        if (newParent == null) {
+            return;
+        }
+
+        //자기 자신을 부모로 설정할 수 없음
+        if (newParent.getId().equals(this.id)) {
+            throw new BusinessException(CategoryErrorCode.CANNOT_MOVE_TO_SELF);
+        }
+
+        // 자신의 자손을 부모로 설정할 수 없음
+        if (newParent.getPath().startsWith(this.getPath() + "/")){
+            throw new BusinessException(CategoryErrorCode.CANNOT_MOVE_TO_DESCENDANT);
+        }
+        // 부모의 depth가 MAX_DEPTH 라면 변경할 수 없음
+        newParent.validateCanAddChild();
     }
 }

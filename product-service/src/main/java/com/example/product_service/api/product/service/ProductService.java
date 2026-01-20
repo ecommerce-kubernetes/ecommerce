@@ -116,6 +116,7 @@ public class ProductService {
 
     public ProductStatusResponse closedProduct(Long productId) {
         Product product = findProductByIdOrThrow(productId);
+        product.closed();
         return ProductStatusResponse.closed(product);
     }
 

@@ -60,29 +60,25 @@ public class CategoryService {
     @Transactional
     public CategoryResponse updateCategory(Long categoryId, String name, String imageUrl) {
         Category category = findCategoryOrThrow(categoryId);
-        if (StringUtils.hasText(name) && !category.getName().equals(name)) {
-            validateDuplicateName(category.getParent(), name);
+        if (StringUtils.hasText(name)) {
+            String trimName = name.trim();
+            validateDuplicateName(category.getParent(), trimName);
             category.rename(name);
         }
 
-        if (StringUtils.hasText(imageUrl)) {
+        if (imageUrl != null) {
             category.changeImage(imageUrl);
         }
         return CategoryResponse.from(category);
     }
 
     @Transactional
-    public CategoryResponse moveParent(Long categoryId, Long parentId, Boolean isRoot) {
+    public CategoryResponse moveParent(Long categoryId, Long parentId) {
+        // 카테고리 조회
         Category category = findCategoryOrThrow(categoryId);
-        Category newParent = resolveNewParent(parentId, isRoot);
-
-        if (newParent != null) {
-            validateHierarchy(category, newParent);
-            validateParentHasProducts(newParent);
-        }
-
-        validateDuplicateName(newParent, category.getName());
-        category.moveParent(newParent);
+        Category parent = getValidatedParent(parentId);
+        validateDuplicateName(parent, category.getName());
+        category.moveParent(parent);
         return CategoryResponse.from(category);
     }
 
@@ -96,31 +92,6 @@ public class CategoryService {
             throw new BusinessException(CategoryErrorCode.HAS_PRODUCT);
         }
         categoryRepository.delete(category);
-    }
-
-    private Category resolveNewParent(Long parentId, Boolean isRoot) {
-        if (Boolean.TRUE.equals(isRoot)) {
-            return null;
-        }
-        return findCategoryOrThrow(parentId);
-    }
-
-    private void validateHierarchy(Category target, Category newParent) {
-        if (target.getId().equals(newParent.getId())){
-            throw new BusinessException(CategoryErrorCode.INVALID_HIERARCHY);
-        }
-
-        if (newParent.getPath().startsWith(target.getPath() + "/")) {
-            throw new BusinessException(CategoryErrorCode.INVALID_HIERARCHY);
-        }
-    }
-
-    // 부모 검증
-    private void validateParentHasProducts(Category parent) {
-        // 부모 카테고리에 속한 상품이 존재하면 예외를 던짐
-        if (productRepository.existsByCategoryId(parent.getId())) {
-            throw new BusinessException(CategoryErrorCode.HAS_PRODUCT);
-        }
     }
 
     // 형제중 같은 이름이 존재하면 예외를 던짐
