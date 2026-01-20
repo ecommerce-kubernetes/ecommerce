@@ -134,7 +134,7 @@ public class OptionControllerDocsTest extends RestDocsSupport {
         //given
         OptionCreateRequest request = createOptionRequest();
         OptionResponse response = createOptionResponse().build();
-        given(optionService.updateOption(anyLong(), anyString(), anyList()))
+        given(optionService.updateOptionTypeName(anyLong(), anyString()))
                 .willReturn(response);
         //when
         //then
