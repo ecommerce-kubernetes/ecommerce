@@ -1,7 +1,7 @@
 package com.example.product_service.docs.option;
 
 import com.example.product_service.api.option.controller.OptionController;
-import com.example.product_service.api.option.controller.dto.OptionRequest;
+import com.example.product_service.api.option.controller.dto.OptionCreateRequest;
 import com.example.product_service.api.option.service.OptionService;
 import com.example.product_service.api.option.service.dto.OptionResponse;
 import com.example.product_service.api.option.service.dto.OptionValueResponse;
@@ -39,7 +39,7 @@ public class OptionControllerDocsTest extends RestDocsSupport {
     @DisplayName("옵션을 저장한다")
     void saveOption() throws Exception {
         //given
-        OptionRequest request = createOptionRequest();
+        OptionCreateRequest request = createOptionRequest();
         OptionResponse response = createOptionResponse().build();
         given(optionService.saveOption(anyString(), anyList()))
                 .willReturn(response);
@@ -130,9 +130,9 @@ public class OptionControllerDocsTest extends RestDocsSupport {
 
     @Test
     @DisplayName("옵션을 수정한다")
-    void updateOption() throws Exception {
+    void updateOptionType() throws Exception {
         //given
-        OptionRequest request = createOptionRequest();
+        OptionCreateRequest request = createOptionRequest();
         OptionResponse response = createOptionResponse().build();
         given(optionService.updateOption(anyLong(), anyString(), anyList()))
                 .willReturn(response);
@@ -194,8 +194,8 @@ public class OptionControllerDocsTest extends RestDocsSupport {
                 );
     }
 
-    private OptionRequest createOptionRequest() {
-        return OptionRequest.builder().name("사이즈").values(
+    private OptionCreateRequest createOptionRequest() {
+        return OptionCreateRequest.builder().name("사이즈").values(
                 List.of("XL", "L", "M", "S")
         ).build();
     }

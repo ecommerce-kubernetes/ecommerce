@@ -19,6 +19,7 @@ public class OptionService {
     private final OptionTypeRepository optionTypeRepository;
 
     public OptionResponse saveOption(String name, List<String> values) {
+        validateDuplicateTypeName(name);
         OptionType optionType = OptionType.create(name, values);
         OptionType savedOptionType = optionTypeRepository.save(optionType);
         return OptionResponse.from(savedOptionType);
@@ -34,9 +35,11 @@ public class OptionService {
         return optionTypes.stream().map(OptionResponse::from).toList();
     }
 
-    public OptionResponse updateOption(Long optionTypeId, String name, List<String> values) {
+    public OptionResponse updateOptionTypeName(Long optionTypeId, String name) {
+        String trimName = name.trim();
         OptionType optionType = findOptionTypeOrThrow(optionTypeId);
-        optionType.update(name, values);
+        validateDuplicateTypeName(trimName);
+        optionType.rename(trimName);
         return OptionResponse.from(optionType);
     }
 
@@ -48,5 +51,11 @@ public class OptionService {
     private OptionType findOptionTypeOrThrow(Long optionTypeId) {
         return optionTypeRepository.findById(optionTypeId)
                 .orElseThrow(() -> new BusinessException(OptionErrorCode.OPTION_NOT_FOUND));
+    }
+
+    private void validateDuplicateTypeName(String name) {
+        if (optionTypeRepository.existsByName(name)){
+            throw new BusinessException(OptionErrorCode.DUPLICATE_NAME);
+        }
     }
 }

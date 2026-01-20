@@ -45,6 +45,10 @@ public class OptionType {
         }
     }
 
+    public void rename(String newName) {
+        this.name = newName;
+    }
+
     public void addOptionValue(String name) {
         OptionValue optionValue = OptionValue.create(name);
         this.optionValues.add(optionValue);

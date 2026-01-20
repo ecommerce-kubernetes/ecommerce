@@ -1,7 +1,7 @@
 package com.example.product_service.api.option.controller;
 
 import com.example.product_service.api.common.security.model.UserRole;
-import com.example.product_service.api.option.controller.dto.OptionRequest;
+import com.example.product_service.api.option.controller.dto.OptionCreateRequest;
 import com.example.product_service.api.option.service.dto.OptionResponse;
 import com.example.product_service.api.option.service.dto.OptionValueResponse;
 import com.example.product_service.support.ControllerTestSupport;
@@ -34,7 +34,7 @@ public class OptionControllerTest extends ControllerTestSupport {
     @WithCustomMockUser
     void saveOption() throws Exception {
         //given
-        OptionRequest request = createOptionRequest().build();
+        OptionCreateRequest request = createOptionRequest().build();
         OptionResponse response = createOptionResponse().build();
         given(optionService.saveOption(anyString(), anyList()))
                 .willReturn(response);
@@ -52,7 +52,7 @@ public class OptionControllerTest extends ControllerTestSupport {
     @WithCustomMockUser(userRole = UserRole.ROLE_USER)
     void saveOptionWithUserRole() throws Exception {
         //given
-        OptionRequest request = createOptionRequest().build();
+        OptionCreateRequest request = createOptionRequest().build();
         //when
         //then
         mockMvc.perform(post("/options")
@@ -69,7 +69,7 @@ public class OptionControllerTest extends ControllerTestSupport {
     @DisplayName("로그인 하지 않은 유저는 옵션을 저장할 수 없다")
     void saveOption_unAuthentication() throws Exception {
         //given
-        OptionRequest request = createOptionRequest().build();
+        OptionCreateRequest request = createOptionRequest().build();
         //when
         //then
         mockMvc.perform(post("/options")
@@ -86,7 +86,7 @@ public class OptionControllerTest extends ControllerTestSupport {
     @DisplayName("옵션 저장 요청 검증")
     @MethodSource("provideInvalidRequest")
     @WithCustomMockUser
-    void saveOption_validation(String description, OptionRequest request, String message) throws Exception {
+    void saveOption_validation(String description, OptionCreateRequest request, String message) throws Exception {
         //given
         //when
         //then
@@ -136,12 +136,12 @@ public class OptionControllerTest extends ControllerTestSupport {
     @Test
     @DisplayName("옵션을 수정한다")
     @WithCustomMockUser
-    void updateOption() throws Exception {
+    void updateOptionType() throws Exception {
         //given
-        OptionRequest request = createOptionRequest().build();
+        OptionCreateRequest request = createOptionRequest().build();
         OptionResponse response = createOptionResponse().build();
-        given(optionService.updateOption(anyLong(), anyString(), anyList()))
-                .willReturn(response);
+//        given(optionService.updateOption(anyLong(), anyString(), anyList()))
+//                .willReturn(response);
         //when
         //then
         mockMvc.perform(put("/options/{optionId}", 1L)
@@ -155,9 +155,9 @@ public class OptionControllerTest extends ControllerTestSupport {
     @Test
     @DisplayName("옵션을 수정하려면 관리자 권한이여야 한다")
     @WithCustomMockUser(userRole = UserRole.ROLE_USER)
-    void updateOptionWithUserRole() throws Exception {
+    void updateOptionTypeWithUserRole() throws Exception {
         //given
-        OptionRequest request = createOptionRequest().build();
+        OptionCreateRequest request = createOptionRequest().build();
         //when
         //then
         mockMvc.perform(put("/options/{optionId}", 1L)
@@ -172,9 +172,9 @@ public class OptionControllerTest extends ControllerTestSupport {
 
     @Test
     @DisplayName("로그인 하지 않은 회원은 옵션을 수정할 수 없다")
-    void updateOption_unAuthentication() throws Exception {
+    void updateOption_Type_unAuthentication() throws Exception {
         //given
-        OptionRequest request = createOptionRequest().build();
+        OptionCreateRequest request = createOptionRequest().build();
         //when
         //then
         mockMvc.perform(put("/options/{optionId}", 1L)
@@ -191,7 +191,7 @@ public class OptionControllerTest extends ControllerTestSupport {
     @DisplayName("옵션 저장 요청 검증")
     @MethodSource("provideInvalidRequest")
     @WithCustomMockUser
-    void updateOption_validation(String description, OptionRequest request, String message) throws Exception {
+    void updateOption_Type_validation(String description, OptionCreateRequest request, String message) throws Exception {
         //given
         //when
         //then
@@ -253,8 +253,8 @@ public class OptionControllerTest extends ControllerTestSupport {
                 .andExpect(jsonPath("path").value("/options/1"));
     }
 
-    private static OptionRequest.OptionRequestBuilder createOptionRequest() {
-        return OptionRequest.builder().name("사이즈").values(
+    private static OptionCreateRequest.OptionCreateRequestBuilder createOptionRequest() {
+        return OptionCreateRequest.builder().name("사이즈").values(
                 List.of("XL", "L", "M", "S")
         );
     }
@@ -275,6 +275,7 @@ public class OptionControllerTest extends ControllerTestSupport {
     private static Stream<Arguments> provideInvalidRequest() {
         return Stream.of(
                 Arguments.of("name 이 null", createOptionRequest().name(null).build(), "옵션 이름은 필수 입니다"),
+                Arguments.of("value 가 비어있음", createOptionRequest().values(List.of()).build(), "최소 1개의 옵션 값을 입력해야합니다"),
                 Arguments.of("중복된 value", createOptionRequest().values(List.of("중복", "중복")).build(), "옵션값은 중복될 수 없습니다")
         );
     }

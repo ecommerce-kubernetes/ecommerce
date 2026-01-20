@@ -1,6 +1,7 @@
 package com.example.product_service.api.option.controller;
 
-import com.example.product_service.api.option.controller.dto.OptionRequest;
+import com.example.product_service.api.option.controller.dto.OptionCreateRequest;
+import com.example.product_service.api.option.controller.dto.OptionUpdateRequest;
 import com.example.product_service.api.option.service.OptionService;
 import com.example.product_service.api.option.service.dto.OptionResponse;
 import lombok.RequiredArgsConstructor;
@@ -21,14 +22,14 @@ public class OptionController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<OptionResponse> saveOption(@RequestBody @Validated OptionRequest request) {
+    public ResponseEntity<OptionResponse> saveOption(@RequestBody @Validated OptionCreateRequest request) {
         OptionResponse response = optionService.saveOption(request.getName(), request.getValues());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @GetMapping("/{optionId}")
-    public ResponseEntity<OptionResponse> getOption(@PathVariable("optionId") Long optionId) {
-        OptionResponse response = optionService.getOption(optionId);
+    @GetMapping("/{typeId}")
+    public ResponseEntity<OptionResponse> getOption(@PathVariable("typeId") Long typeId) {
+        OptionResponse response = optionService.getOption(typeId);
         return ResponseEntity.ok(response);
     }
 
@@ -38,18 +39,18 @@ public class OptionController {
         return ResponseEntity.ok(response);
     }
 
-    @PutMapping("/{optionId}")
+    @PatchMapping("/{typeId}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<OptionResponse> updateOption(@PathVariable("optionId") Long optionId,
-                                                       @RequestBody @Validated OptionRequest request) {
-        OptionResponse response = optionService.updateOption(optionId, request.getName(), request.getValues());
+    public ResponseEntity<OptionResponse> updateOptionType(@PathVariable("typeId") Long typeId,
+                                                           @RequestBody @Validated OptionUpdateRequest request) {
+        OptionResponse response = optionService.updateOptionTypeName(typeId, request.getName());
         return ResponseEntity.ok(response);
     }
 
-    @DeleteMapping("/{optionId}")
+    @DeleteMapping("/{typeId}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> deleteOption(@PathVariable("optionId") Long optionId) {
-        optionService.deleteOption(optionId);
+    public ResponseEntity<Void> deleteOption(@PathVariable("typeId") Long typeId) {
+        optionService.deleteOption(typeId);
         return ResponseEntity.noContent().build();
     }
 }

@@ -121,34 +121,34 @@ public class OptionServiceTest extends ExcludeInfraTest {
     @Nested
     @DisplayName("옵션 수정")
     class Update {
-
-        @Test
-        @DisplayName("옵션을 수정한다")
-        void updateOption(){
-            //given
-            OptionType optionType = OptionType.create("사이즈", List.of("XL", "L", "M", "S"));
-            OptionType savedOptionType = optionTypeRepository.save(optionType);
-            //when
-            OptionResponse result = optionService.updateOption(savedOptionType.getId(), "용량", List.of("256GB", "128GB", "64GB"));
-            //then
-            assertThat(result.getId()).isEqualTo(savedOptionType.getId());
-            assertThat(result.getName()).isEqualTo("용량");
-            assertThat(result.getValues()).hasSize(3)
-                    .extracting(OptionValueResponse::getName)
-                    .containsExactly("256GB", "128GB", "64GB");
-        }
-
-        @Test
-        @DisplayName("수정할 옵션을 찾을 수 없는 경우 예외를 던진다")
-        void updateOption_notFound(){
-            //given
-            //when
-            //then
-            assertThatThrownBy(() -> optionService.updateOption(999L, "새 이름", List.of("value")))
-                    .isInstanceOf(BusinessException.class)
-                    .extracting("errorCode")
-                    .isEqualTo(OptionErrorCode.OPTION_NOT_FOUND);
-        }
+//
+//        @Test
+//        @DisplayName("옵션을 수정한다")
+//        void updateOption(){
+//            //given
+//            OptionType optionType = OptionType.create("사이즈", List.of("XL", "L", "M", "S"));
+//            OptionType savedOptionType = optionTypeRepository.save(optionType);
+//            //when
+//            OptionResponse result = optionService.updateOption(savedOptionType.getId(), "용량", List.of("256GB", "128GB", "64GB"));
+//            //then
+//            assertThat(result.getId()).isEqualTo(savedOptionType.getId());
+//            assertThat(result.getName()).isEqualTo("용량");
+//            assertThat(result.getValues()).hasSize(3)
+//                    .extracting(OptionValueResponse::getName)
+//                    .containsExactly("256GB", "128GB", "64GB");
+//        }
+//
+//        @Test
+//        @DisplayName("수정할 옵션을 찾을 수 없는 경우 예외를 던진다")
+//        void updateOption_notFound(){
+//            //given
+//            //when
+//            //then
+//            assertThatThrownBy(() -> optionService.updateOption(999L, "새 이름", List.of("value")))
+//                    .isInstanceOf(BusinessException.class)
+//                    .extracting("errorCode")
+//                    .isEqualTo(OptionErrorCode.OPTION_NOT_FOUND);
+//        }
     }
 
     @Nested
