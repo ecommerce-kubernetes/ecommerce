@@ -1,0 +1,49 @@
+package com.example.product_service.support;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeEach;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.kafka.config.KafkaListenerEndpointRegistry;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.listener.MessageListenerContainer;
+import org.springframework.kafka.test.EmbeddedKafkaBroker;
+import org.springframework.kafka.test.context.EmbeddedKafka;
+import org.springframework.kafka.test.utils.ContainerTestUtils;
+import org.springframework.test.context.TestPropertySource;
+
+@SpringBootTest
+@TestPropertySource(properties = {
+        "spring.kafka.consumer.group-id=saga-test-${random.uuid}",
+        "spring.kafka.consumer.auto-offset-reset=earliest"
+})
+@EmbeddedKafka(
+        partitions = 1,
+        brokerProperties = {"listeners=PLAINTEXT://127.0.0.1:0"},
+        topics = {
+                "order.saga.product.request", "product.saga.result"
+        }
+)
+public abstract class IncludeInfraTest {
+    @Value("${product.topics.order-result}")
+    protected String ORDER_REQUEST_TOPIC_NAME;
+    @Value("${product.topics.order-request")
+    protected String ORDER_RESULT_TOPIC_NAME;
+
+    @Autowired
+    protected EmbeddedKafkaBroker embeddedKafkaBroker;
+    @Autowired
+    protected ObjectMapper objectMapper;
+    @Autowired
+    protected KafkaTemplate<String, Object> kafkaTemplate;
+    @Autowired
+    private KafkaListenerEndpointRegistry kafkaListenerEndpointRegistry;
+
+    @BeforeEach
+    void waitForListenerAssignment() {
+        for (MessageListenerContainer container : kafkaListenerEndpointRegistry.getListenerContainers()) {
+            ContainerTestUtils.waitForAssignment(container, embeddedKafkaBroker.getPartitionsPerTopic());
+        }
+    }
+}

@@ -80,7 +80,7 @@ dependencies {
     annotationProcessor 'org.projectlombok:lombok'
 
     //kafka dto
-    implementation 'com.github.ecommerce-kubernetes:common-dto:2.0.6'
+    implementation 'com.github.ecommerce-kubernetes:common-dto:3.0.7'
 
     //API 명세
     asciidoctorExt 'org.springframework.restdocs:spring-restdocs-asciidoctor'
@@ -90,8 +90,6 @@ dependencies {
     testImplementation 'org.springframework.kafka:spring-kafka-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
-    testImplementation 'org.testcontainers:junit-jupiter'
-    testImplementation 'org.testcontainers:mysql'
 	testImplementation 'org.projectlombok:lombok'
     testAnnotationProcessor 'org.projectlombok:lombok'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'

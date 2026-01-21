@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -24,6 +25,10 @@ public class VariantService {
     public List<InternalVariantResponse> getVariants(List<Long> variantIds) {
         List<ProductVariant> variants = productVariantRepository.findByIdInWithProductAndOption(variantIds);
         return variants.stream().map(InternalVariantResponse::from).toList();
+    }
+
+    public void deductVariantStock(Map<Long, Integer> deductMap) {
+
     }
 
     private ProductVariant findVariantOrThrow(Long variantId){
