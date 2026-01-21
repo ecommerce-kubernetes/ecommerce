@@ -13,6 +13,7 @@ import com.example.product_service.api.product.domain.model.Product;
 import com.example.product_service.api.product.domain.model.ProductVariant;
 import com.example.product_service.api.product.domain.repository.ProductRepository;
 import com.example.product_service.support.ExcludeInfraTest;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -36,6 +37,8 @@ public class OptionServiceTest extends ExcludeInfraTest {
     private CategoryRepository categoryRepository;
     @Autowired
     private ProductRepository productRepository;
+    @Autowired
+    private EntityManager em;
 
     private OptionType saveOption(String name, List<String> values) {
         OptionType optionType = OptionType.create(name, values);
@@ -275,6 +278,41 @@ public class OptionServiceTest extends ExcludeInfraTest {
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(OptionErrorCode.OPTION_IN_PRODUCT_OPTION);
+        }
+
+        @Test
+        @DisplayName("옵션 값을 삭제한다")
+        void deleteOptionValue() {
+            //given
+            OptionType optionType = saveOption("사이즈", List.of("XL", "L"));
+            OptionValue xl = findOptionValue(optionType, "XL");
+            OptionValue l = findOptionValue(optionType, "L");
+            em.flush();
+            em.clear();
+            //when
+            optionService.deleteOptionValue(xl.getId());
+            em.flush();
+            em.clear();
+            //then
+            OptionType findOption = optionTypeRepository.findById(optionType.getId()).orElseThrow();
+            assertThat(findOption.getOptionValues()).hasSize(1)
+                    .extracting(OptionValue::getName)
+                    .containsExactly(l.getName());
+        }
+
+        @Test
+        @DisplayName("옵션 값이 상품 변형에 사용중이면 삭제할 수 없다")
+        void deleteOptionValue_used_product_variant_option() {
+            //given
+            OptionType optionType = saveOption("사이즈", List.of("XL", "L"));
+            OptionValue xl = findOptionValue(optionType, "XL");
+            settingProductOption(optionType, xl);
+            //when
+            //then
+            assertThatThrownBy(() -> optionService.deleteOptionValue(xl.getId()))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(OptionErrorCode.OPTION_VALUE_IN_VARIANT);
         }
     }
 }
