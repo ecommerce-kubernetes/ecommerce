@@ -12,9 +12,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.refEq;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 
@@ -26,7 +23,7 @@ public class SagaEventListerTest extends IncludeInfraTest {
     private SagaProcessor sagaProcessor;
 
     @Test
-    @DisplayName("")
+    @DisplayName("주문 사가 이벤트를 수신하면 sagaProcessor를 호출한다")
     void handleOrderEvent(){
         //given
         Long sagaId = 1L;
@@ -34,13 +31,8 @@ public class SagaEventListerTest extends IncludeInfraTest {
         List<Item> items = List.of(item);
         ProductSagaCommand command = ProductSagaCommand.of(ProductCommandType.DEDUCT_STOCK, sagaId, ORDER_NO, 1L, items, LocalDateTime.now());
         //when
-        kafkaTemplate.send(ORDER_REQUEST_TOPIC_NAME, String.valueOf(command.getSagaId()), command);
+        kafkaTemplate.send(ORDER_SAGA_COMMAND_TOPIC, String.valueOf(command.getSagaId()), command);
         //then
-        verify(sagaProcessor, timeout(10000).times(1)).productSagaProcess(argThat(actual -> {
-            assertThat(actual)
-                    .usingRecursiveComparison() // 1. equals가 없어도 필드값끼리 비교합니다.
-                    .isEqualTo(command); // 3. 비교 실행
-            return true; // 에러가 안 나면 통과
-        }));
+        verify(sagaProcessor, timeout(1000).times(1)).productSagaProcess(command);
     }
 }

@@ -22,14 +22,14 @@ import org.springframework.test.context.TestPropertySource;
         partitions = 1,
         brokerProperties = {"listeners=PLAINTEXT://127.0.0.1:0"},
         topics = {
-                "order.saga.product.request", "product.saga.result"
+                "product.saga.command", "product.saga.reply"
         }
 )
 public abstract class IncludeInfraTest {
-    @Value("${product.topics.order-result}")
-    protected String ORDER_REQUEST_TOPIC_NAME;
-    @Value("${product.topics.order-request")
-    protected String ORDER_RESULT_TOPIC_NAME;
+    @Value("${product.topics.saga-command}")
+    protected String ORDER_SAGA_COMMAND_TOPIC;
+    @Value("${product.topics.saga-reply}")
+    protected String ORDER_SAGA_REPLY_TOPIC;
 
     @Autowired
     protected EmbeddedKafkaBroker embeddedKafkaBroker;

@@ -26,6 +26,7 @@ public enum ProductErrorCode implements ErrorCode {
     VARIANT_DUPLICATED_IN_REQUEST(400, "PRODUCT_023", "요청 내에 중복된 옵션 조합이 포함되어있습니다"),
     VARIANT_REQUIRED_FOR_PUBLISH(409, "PRODUCT_024", "상품 변형이 없는 상품은 게시할 수 없습니다"),
     VARIANT_DUPLICATE_OPTION(409, "PRODUCT_025", "중복된 옵션 값의 상품 변형은 생성할 수 없습니다"),
+    VARIANT_OUT_OF_STOCK(409, "PRODUCT_026", "상품 변형 재고가 부족합니다"),
 
     THUMBNAIL_IMAGE_REQUIRED(409, "PRODUCT_030", "대표 이미지가 없는 상품은 게시할 수 없습니다"),
     IMAGE_REQUIRED_ON_SALE(409, "PRODUCT_031", "판매중인 상품은 최소 1개 이상의 이미지가 필요합니다"),

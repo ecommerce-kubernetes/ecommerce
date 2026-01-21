@@ -25,9 +25,9 @@ spring:
 product:
   topics:
     ## 주문 상품 재고 감소 요청 토픽
-    order-result: "order.saga.product.request"
-    ## 주문 상품 재고 감소 성공 토픽
-    order-request: "product.saga.result"
+    saga-command: "product.saga.command"
+    ## 주문 상품 재고 감소 응답 토픽
+    saga-reply: "product.saga.reply"
 ---
 spring:
   config:

@@ -80,7 +80,7 @@ dependencies {
     annotationProcessor 'org.projectlombok:lombok'
 
     //kafka dto
-    implementation 'com.github.ecommerce-kubernetes:common-dto:3.0.7'
+    implementation 'com.github.ecommerce-kubernetes:common-dto:3.0.9'
 
     //API 명세
     asciidoctorExt 'org.springframework.restdocs:spring-restdocs-asciidoctor'

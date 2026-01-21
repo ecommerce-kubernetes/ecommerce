@@ -2,15 +2,14 @@ package com.example.product_service.api.product.service;
 
 import com.example.product_service.api.common.exception.BusinessException;
 import com.example.product_service.api.common.exception.ProductErrorCode;
-import com.example.product_service.api.product.domain.model.ProductStatus;
 import com.example.product_service.api.product.domain.model.ProductVariant;
 import com.example.product_service.api.product.domain.repository.ProductVariantRepository;
+import com.example.product_service.api.product.service.dto.command.VariantStockCommand;
 import com.example.product_service.api.product.service.dto.result.InternalVariantResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -27,8 +26,10 @@ public class VariantService {
         return variants.stream().map(InternalVariantResponse::from).toList();
     }
 
-    public void deductVariantStock(Map<Long, Integer> deductMap) {
+    public void deductVariantsStock(List<VariantStockCommand> commands) {
+    }
 
+    public void restoreVariantsStock(List<VariantStockCommand> commands) {
     }
 
     private ProductVariant findVariantOrThrow(Long variantId){
