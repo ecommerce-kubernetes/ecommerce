@@ -23,9 +23,11 @@ public class SagaProcessor {
         try {
             List<VariantStockCommand> stockCommands = mapToStockCommand(command);
             processStockCommand(command.getType(), stockCommands);
-            sagaEventProducer.sendDeductionSuccess(command.getSagaId(), command.getOrderNo());
+            sagaEventProducer.sendSagaSuccess(command.getSagaId(), command.getOrderNo());
         } catch (BusinessException e) {
-            sagaEventProducer.sendDeductionFailure(command.getSagaId(), command.getOrderNo(), e.getErrorCode().name(), e.getErrorCode().getMessage());
+            handleException(command, e.getErrorCode().name(), e.getMessage());
+        } catch (Exception e) {
+            handleException(command, "SYSTEM_ERROR", "시스템 오류");
         }
     }
 
@@ -39,5 +41,15 @@ public class SagaProcessor {
     private List<VariantStockCommand> mapToStockCommand(ProductSagaCommand command) {
         return command.getItems().stream().map(item -> VariantStockCommand.of(item.getProductVariantId(), item.getQuantity()))
                 .toList();
+    }
+
+    private void handleException(ProductSagaCommand command, String code, String message) {
+        if (command.getType() == ProductCommandType.RESTORE_STOCK) {
+            log.error("🚨 재고 복구 실패! 재시도 필요. SagaID: {}", command.getSagaId());
+            throw new RuntimeException("재고 복구 실패 - 재시도 요망");
+        }
+
+        log.warn("재고 차감 실패. SagaID: {}", command.getSagaId());
+        sagaEventProducer.sendSagaFailure(command.getSagaId(), command.getOrderNo(), code, message);
     }
 }

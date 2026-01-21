@@ -58,6 +58,17 @@ public class ProductVariant {
                 .build();
     }
 
+    public void deductStock(int stock) {
+        if (this.stockQuantity < stock) {
+            throw new BusinessException(ProductErrorCode.VARIANT_OUT_OF_STOCK);
+        }
+        this.stockQuantity -= stock;
+    }
+
+    public void restoreStock(int stock) {
+        this.stockQuantity += stock;
+    }
+
     public boolean hasSameOptions(Set<Long> targetOptionIds) {
         Set<Long> optionIds = this.productVariantOptions.stream()
                 .map(o -> o.getOptionValue().getId())

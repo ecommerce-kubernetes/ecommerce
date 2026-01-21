@@ -11,6 +11,7 @@ import com.example.product_service.api.product.domain.model.Product;
 import com.example.product_service.api.product.domain.model.ProductVariant;
 import com.example.product_service.api.product.domain.repository.ProductRepository;
 import com.example.product_service.api.product.service.VariantService;
+import com.example.product_service.api.product.service.dto.command.VariantStockCommand;
 import com.example.product_service.api.product.service.dto.result.InternalVariantResponse;
 import com.example.product_service.support.ExcludeInfraTest;
 import jakarta.persistence.EntityManager;
@@ -136,6 +137,90 @@ public class VariantServiceTest extends ExcludeInfraTest {
             List<InternalVariantResponse> result = variantService.getVariants(List.of(variant1.getId(), variant2.getId()));
             //then
             assertThat(result).hasSize(2);
+        }
+    }
+
+    @Nested
+    @DisplayName("상품 변형 재고 감소")
+    class DeductStock {
+
+        @Test
+        @DisplayName("상품 변형의 재고를 감소시킨다")
+        void deductVariantsStock(){
+            //given
+            Category category = saveCategory();
+            ProductVariant variant = ProductVariant.create("TEST", 10000L, 100, 10);
+            Product product = saveProduct(category);
+            settingProduct(product, List.of(), List.of(variant));
+            VariantStockCommand command = VariantStockCommand.of(variant.getId(), 3);
+            //when
+            variantService.deductVariantsStock(List.of(command));
+            //then
+            assertThat(variant.getStockQuantity()).isEqualTo(97);
+        }
+
+        @Test
+        @DisplayName("상품 변형 재고가 부족한 경우 재고 감소가 실패한다")
+        void deductVariantsStock_out_of_stock(){
+            //given
+            Category category = saveCategory();
+            ProductVariant variant = ProductVariant.create("TEST", 10000L, 10, 10);
+            Product product = saveProduct(category);
+            settingProduct(product, List.of(), List.of(variant));
+            VariantStockCommand command = VariantStockCommand.of(variant.getId(), 11);
+            //when
+            //then
+            assertThatThrownBy(() -> variantService.deductVariantsStock(List.of(command)))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(ProductErrorCode.VARIANT_OUT_OF_STOCK);
+        }
+
+        @Test
+        @DisplayName("상품 변형을 찾을 수 없는 경우 재고감소가 실패한다")
+        void deductVariantsStock_not_found_variant(){
+            //given
+            VariantStockCommand command = VariantStockCommand.of(999L, 3);
+            //when
+            //then
+            assertThatThrownBy(() -> variantService.deductVariantsStock(List.of(command)))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(ProductErrorCode.PRODUCT_VARIANT_NOT_FOUND);
+        }
+    }
+
+    @Nested
+    @DisplayName("상품 변형 재고 복구")
+    class RestoreStock {
+
+        @Test
+        @DisplayName("상품 변형의 재고를 복구한다")
+        void restoreVariantsStock(){
+            //given
+            Category category = saveCategory();
+            ProductVariant variant = ProductVariant.create("TEST", 10000L, 100, 10);
+            Product product = saveProduct(category);
+            settingProduct(product, List.of(), List.of(variant));
+            VariantStockCommand command = VariantStockCommand.of(variant.getId(), 3);
+            //when
+            variantService.restoreVariantsStock(List.of(command));
+            //then
+            assertThat(variant.getStockQuantity()).isEqualTo(103);
+        }
+
+
+        @Test
+        @DisplayName("상품 변형을 찾을 수 없는 경우 재고 복구가 실패한다")
+        void deductVariantsStock_not_found_variant(){
+            //given
+            VariantStockCommand command = VariantStockCommand.of(999L, 3);
+            //when
+            //then
+            assertThatThrownBy(() -> variantService.restoreVariantsStock(List.of(command)))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(ProductErrorCode.PRODUCT_VARIANT_NOT_FOUND);
         }
     }
 }

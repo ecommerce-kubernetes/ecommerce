@@ -31,4 +31,7 @@ public interface ProductVariantRepository extends JpaRepository<ProductVariant, 
             where pv.id in :ids
             """)
     List<ProductVariant> findByIdInWithProductAndOption(@Param("ids") List<Long> ids);
+
+    @Query("select pv from ProductVariant pv where pv.id in :ids")
+    List<ProductVariant> findByIdIn(@Param("ids") List<Long> ids);
 }

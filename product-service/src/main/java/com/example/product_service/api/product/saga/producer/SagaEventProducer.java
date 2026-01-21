@@ -15,12 +15,12 @@ public class SagaEventProducer {
 
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
-    public void sendDeductionSuccess(Long sagaId, String orderNo) {
+    public void sendSagaSuccess(Long sagaId, String orderNo) {
         SagaProcessResult result = SagaProcessResult.success(sagaId, orderNo);
         kafkaTemplate.send(productResultTopic, String.valueOf(sagaId), result);
     }
 
-    public void sendDeductionFailure(Long sagaId, String orderNo, String errorCode, String failureReason) {
+    public void sendSagaFailure(Long sagaId, String orderNo, String errorCode, String failureReason) {
         SagaProcessResult result = SagaProcessResult.fail(sagaId, orderNo, errorCode, failureReason);
         kafkaTemplate.send(productResultTopic, String.valueOf(sagaId), result);
     }

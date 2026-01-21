@@ -43,11 +43,11 @@ public class SagaProcessorTest {
         sagaProcessor.productSagaProcess(command);
         //then
         verify(variantService, times(1)).deductVariantsStock(anyList());
-        verify(sagaEventProducer, times(1)).sendDeductionSuccess(anyLong(), anyString());
+        verify(sagaEventProducer, times(1)).sendSagaSuccess(anyLong(), anyString());
     }
 
     @Test
-    @DisplayName("재고 감소 메시지 수신후 재고 감소 진행중 예외가 발생한 경우 재고 감소 실패 메시지를 보낸다")
+    @DisplayName("재고 감소 메시지 수신후 재고 감소 진행중 재고감소에 실패한 경우 재고감소 실패 메시지를 보낸다")
     void productSagaProcess_deduct_stock_failure(){
         //given
         willThrow(new BusinessException(ProductErrorCode.VARIANT_OUT_OF_STOCK))
@@ -58,6 +58,33 @@ public class SagaProcessorTest {
         sagaProcessor.productSagaProcess(command);
         //then
         verify(variantService, times(1)).deductVariantsStock(anyList());
-        verify(sagaEventProducer, times(1)).sendDeductionFailure(anyLong(), anyString(), anyString(), anyString());
+        verify(sagaEventProducer, times(1)).sendSagaFailure(anyLong(), anyString(), anyString(), anyString());
+    }
+
+    @Test
+    @DisplayName("재고 감소 메시지 수신후 재고 감소 진행중 예외가 발생한 경우 재고 감소 실패 메시지를 보낸다")
+    void productSagaProcess_deduct_stock_exception(){
+        //given
+        willThrow(new RuntimeException())
+                .given(variantService).deductVariantsStock(anyList());
+        List<Item> items = List.of(Item.builder().productVariantId(1L).quantity(3).build());
+        ProductSagaCommand command = ProductSagaCommand.of(ProductCommandType.DEDUCT_STOCK, 1L, "ORDER_NO", 1L, items, LocalDateTime.now());
+        //when
+        sagaProcessor.productSagaProcess(command);
+        //then
+        verify(variantService, times(1)).deductVariantsStock(anyList());
+        verify(sagaEventProducer, times(1)).sendSagaFailure(anyLong(), anyString(), anyString(), anyString());
+    }
+
+    @Test
+    @DisplayName("재고 복구 메시지 수신후 재고 복구를 진행한다")
+    void productSagaProcess_restore_stock(){
+        //given
+        List<Item> items = List.of(Item.builder().productVariantId(1L).quantity(3).build());
+        ProductSagaCommand command = ProductSagaCommand.of(ProductCommandType.RESTORE_STOCK, 1L, "ORDER_NO", 1L, items, LocalDateTime.now());
+        //when
+        sagaProcessor.productSagaProcess(command);
+        //then
+        verify(variantService, times(1)).restoreVariantsStock(anyList());
     }
 }
