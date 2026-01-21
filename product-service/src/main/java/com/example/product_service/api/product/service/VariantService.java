@@ -8,6 +8,7 @@ import com.example.product_service.api.product.service.dto.command.VariantStockC
 import com.example.product_service.api.product.service.dto.result.InternalVariantResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
@@ -16,14 +17,17 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class VariantService {
     private final ProductVariantRepository productVariantRepository;
 
+    @Transactional(readOnly = true)
     public InternalVariantResponse getVariant(Long variantId){
         ProductVariant variant = findVariantOrThrow(variantId);
         return InternalVariantResponse.from(variant);
     }
 
+    @Transactional(readOnly = true)
     public List<InternalVariantResponse> getVariants(List<Long> variantIds) {
         List<ProductVariant> variants = productVariantRepository.findByIdInWithProductAndOption(variantIds);
         return variants.stream().map(InternalVariantResponse::from).toList();
