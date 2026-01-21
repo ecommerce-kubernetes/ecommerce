@@ -1,5 +1,8 @@
 package com.example.product_service.api.product.service.dto.result;
 
+import com.example.product_service.api.option.domain.model.OptionValue;
+import com.example.product_service.api.product.domain.model.ProductStatus;
+import com.example.product_service.api.product.domain.model.ProductVariant;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -10,6 +13,7 @@ import java.util.List;
 public class InternalVariantResponse {
     private Long productId;
     private Long productVariantId;
+    private ProductStatus status;
     private String sku;
     private String productName;
     private UnitPrice unitPrice;

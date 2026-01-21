@@ -12,6 +12,7 @@ public enum ProductErrorCode implements ErrorCode {
     CATEGORY_NOT_LEAF(400, "PRODUCT_003", "최하위 카테고리만 설정 가능합니다"),
     DELETED_PRODUCT_CANNOT_PUBLISH(409, "PRODUCT_004", "삭제된 상품은 게시할 수 없습니다"),
     INVALID_STATUS_FOR_STOP_SALE(409, "PRODUCT_005", "판매 중지할 수 없는 상품입니다"),
+    PRODUCT_VARIANT_NOT_FOUND(404, "PRODUCT_006", "상품 변형을 찾을 수 없습니다"),
 
     // 상품 옵션 관련 에러
     OPTION_MODIFICATION_NOT_ALLOWED_ON_SALE(409, "PRODUCT_010", "판매중인 상품은 옵션을 수정할 수 없습니다"),
