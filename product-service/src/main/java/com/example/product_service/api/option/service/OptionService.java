@@ -51,7 +51,6 @@ public class OptionService {
         return OptionResponse.from(optionType);
     }
 
-    //TODO 옵션 값이 존재하는지 확인
     public OptionValueResponse updateOptionValueName(Long optionValueId, String name) {
         OptionValue optionValue = findOptionValueOrThrow(optionValueId);
         validateDuplicateValueName(optionValue.getOptionType(), name);
