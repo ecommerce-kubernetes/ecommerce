@@ -24,6 +24,7 @@ public class TestSecurityConfig {
                                 .requestMatchers("/options/**").permitAll()
                                 .requestMatchers("/products/**").permitAll()
                                 .requestMatchers("/test").permitAll()
+                                .requestMatchers("/internal/**").permitAll()
                                 .anyRequest().authenticated())
                 .exceptionHandling(handler -> handler
                         .authenticationEntryPoint(customAuthenticationEntryPoint())

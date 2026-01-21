@@ -13,17 +13,17 @@ include::{snippets}/create-product/response-fields.adoc[]
 
 === 상품 옵션 명세
 ==== HTTP Request
-include::{snippets}/add-option-specs/http-request.adoc[]
+include::{snippets}/add-option/http-request.adoc[]
 ===== Request Header
-include::{snippets}/add-option-specs/request-headers.adoc[]
+include::{snippets}/add-option/request-headers.adoc[]
 ===== Request PathParam
-include::{snippets}/add-option-specs/path-parameters.adoc[]
+include::{snippets}/add-option/path-parameters.adoc[]
 ===== Request Fields
-include::{snippets}/add-option-specs/request-fields.adoc[]
+include::{snippets}/add-option/request-fields.adoc[]
 ==== HTTP Response
-include::{snippets}/add-option-specs/http-response.adoc[]
+include::{snippets}/add-option/http-response.adoc[]
 ===== Response Fields
-include::{snippets}/add-option-specs/response-fields.adoc[]
+include::{snippets}/add-option/response-fields.adoc[]
 
 === 상품 변형 추가
 ==== HTTP Request
