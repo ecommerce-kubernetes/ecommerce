@@ -22,7 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.*;
 
 @Transactional
 public class VariantServiceTest extends ExcludeInfraTest {
@@ -54,6 +54,15 @@ public class VariantServiceTest extends ExcludeInfraTest {
         return optionType.getOptionValues().stream().filter(v -> v.getName().equals(name)).findFirst().orElseThrow();
     }
 
+    private void settingProduct(Product product, List<OptionType> optionTypes, List<ProductVariant> variants) {
+        product.updateOptions(optionTypes);
+        product.replaceImages(List.of("http://image.jpg"));
+        for (ProductVariant variant : variants) {
+            product.addVariant(variant);
+        }
+        em.flush();
+    }
+
     @Nested
     @DisplayName("상품 변형 조회")
     class GetVariant {
@@ -67,6 +76,66 @@ public class VariantServiceTest extends ExcludeInfraTest {
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(ProductErrorCode.PRODUCT_VARIANT_NOT_FOUND);
+        }
+
+        @Test
+        @DisplayName("상품 변형을 조회한다")
+        void getVariant(){
+            //given
+            OptionType size = saveOptionType("사이즈", List.of("XL", "L"));
+            OptionType color = saveOptionType("색상", List.of("RED", "BLUE"));
+            OptionValue xl = findOptionValue(size, "XL");
+            OptionValue blue = findOptionValue(color, "BLUE");
+            ProductVariant variant = ProductVariant.create("TEST", 10000L, 100, 10);
+            variant.addProductVariantOptions(List.of(xl, blue));
+            Category category = saveCategory();
+            Product product = saveProduct(category);
+            settingProduct(product, List.of(size, color), List.of(variant));
+            //when
+            InternalVariantResponse result = variantService.getVariant(variant.getId());
+            //then
+            assertThat(result)
+                    .extracting(InternalVariantResponse::getProductId,
+                            InternalVariantResponse::getProductVariantId,
+                            InternalVariantResponse::getSku,
+                            InternalVariantResponse::getStatus)
+                    .containsExactly(product.getId(), variant.getId(), variant.getSku(), product.getStatus());
+
+            assertThat(result.getUnitPrice())
+                    .extracting(InternalVariantResponse.UnitPrice::getOriginalPrice,
+                            InternalVariantResponse.UnitPrice::getDiscountRate,
+                            InternalVariantResponse.UnitPrice::getDiscountAmount,
+                            InternalVariantResponse.UnitPrice::getDiscountedPrice)
+                    .containsExactly(10000L, 10, 1000L, 9000L);
+
+            assertThat(result.getItemOptions())
+                    .extracting(InternalVariantResponse.ItemOption::getOptionTypeName, InternalVariantResponse.ItemOption::getOptionValueName)
+                    .containsExactlyInAnyOrder(
+                            tuple(size.getName(), xl.getName()),
+                            tuple(color.getName(), blue.getName())
+                    );
+        }
+
+        @Test
+        @DisplayName("상품 변형 목록을 조회한다")
+        void getVariants(){
+            //given
+            OptionType size = saveOptionType("사이즈", List.of("XL", "L"));
+            OptionType color = saveOptionType("색상", List.of("RED", "BLUE"));
+            OptionValue xl = findOptionValue(size, "XL");
+            OptionValue blue = findOptionValue(color, "BLUE");
+            OptionValue red = findOptionValue(color, "RED");
+            Category category = saveCategory();
+            ProductVariant variant1 = ProductVariant.create("TEST1", 10000L, 100, 10);
+            variant1.addProductVariantOptions(List.of(xl, blue));
+            ProductVariant variant2 = ProductVariant.create("TEST2", 20000L, 100, 10);
+            variant2.addProductVariantOptions(List.of(xl, red));
+            Product product = saveProduct(category);
+            settingProduct(product, List.of(size, color), List.of(variant1, variant2));
+            //when
+            List<InternalVariantResponse> result = variantService.getVariants(List.of(variant1.getId(), variant2.getId()));
+            //then
+            assertThat(result).hasSize(2);
         }
     }
 }

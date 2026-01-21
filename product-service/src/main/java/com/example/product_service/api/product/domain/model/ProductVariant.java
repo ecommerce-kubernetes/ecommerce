@@ -32,24 +32,27 @@ public class ProductVariant {
     private String sku;
     private Long price;
     private Long originalPrice;
+    private Long discountAmount;
     private Integer stockQuantity;
     private Integer discountRate;
 
     @Builder(access = AccessLevel.PRIVATE)
-    private ProductVariant(String sku, Long price, Long originalPrice, Integer stockQuantity, Integer discountRate) {
+    private ProductVariant(String sku, Long price, Long originalPrice, Long discountAmount, Integer stockQuantity, Integer discountRate) {
         this.sku = sku;
         this.price = price;
         this.originalPrice = originalPrice;
+        this.discountAmount = discountAmount;
         this.stockQuantity = stockQuantity;
         this.discountRate = discountRate;
     }
 
     public static ProductVariant create(String sku, Long originalPrice, Integer stockQuantity, Integer discountRate) {
-        Long price = calculatePrice(originalPrice, discountRate);
+        Long discountAmount = calculateDiscountAmount(originalPrice, discountRate);
         return ProductVariant.builder()
                 .sku(sku)
                 .originalPrice(originalPrice)
-                .price(price)
+                .price(originalPrice - discountAmount)
+                .discountAmount(discountAmount)
                 .stockQuantity(stockQuantity)
                 .discountRate(discountRate)
                 .build();
@@ -75,11 +78,11 @@ public class ProductVariant {
         }
     }
 
-    private static Long calculatePrice(Long originalPrice, Integer discountRate) {
+    private static Long calculateDiscountAmount(Long originalPrice, Integer discountRate) {
         if (discountRate == null || discountRate == 0 ){
-            return originalPrice;
+            return 0L;
         }
-        return originalPrice * (100 - discountRate)/100;
+        return (long) (originalPrice * (discountRate / 100.0));
     }
 
     protected void setProduct(Product product) {

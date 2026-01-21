@@ -17,15 +17,17 @@ public class VariantService {
     private final ProductVariantRepository productVariantRepository;
 
     public InternalVariantResponse getVariant(Long variantId){
-        return null;
+        ProductVariant variant = findVariantOrThrow(variantId);
+        return InternalVariantResponse.from(variant);
     }
 
     public List<InternalVariantResponse> getVariants(List<Long> variantIds) {
-        return null;
+        List<ProductVariant> variants = productVariantRepository.findByIdInWithProductAndOption(variantIds);
+        return variants.stream().map(InternalVariantResponse::from).toList();
     }
 
     private ProductVariant findVariantOrThrow(Long variantId){
-        return productVariantRepository.findById(variantId)
+        return productVariantRepository.findByIdWithProductAndOption(variantId)
                 .orElseThrow(() -> new BusinessException(ProductErrorCode.PRODUCT_VARIANT_NOT_FOUND));
     }
 }
