@@ -32,4 +32,8 @@ public class OptionValue {
     public static OptionValue create(String name) {
         return OptionValue.builder().name(name).build();
     }
+
+    public void rename(String newName) {
+        this.name = newName;
+    }
 }

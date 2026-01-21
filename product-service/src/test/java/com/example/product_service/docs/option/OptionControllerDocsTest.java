@@ -2,6 +2,7 @@ package com.example.product_service.docs.option;
 
 import com.example.product_service.api.option.controller.OptionController;
 import com.example.product_service.api.option.controller.dto.OptionCreateRequest;
+import com.example.product_service.api.option.controller.dto.OptionUpdateRequest;
 import com.example.product_service.api.option.service.OptionService;
 import com.example.product_service.api.option.service.dto.OptionResponse;
 import com.example.product_service.api.option.service.dto.OptionValueResponse;
@@ -132,13 +133,13 @@ public class OptionControllerDocsTest extends RestDocsSupport {
     @DisplayName("옵션을 수정한다")
     void updateOptionType() throws Exception {
         //given
-        OptionCreateRequest request = createOptionRequest();
-        OptionResponse response = createOptionResponse().build();
+        OptionUpdateRequest request = createOptionUpdateRequest("새 이름");
+        OptionResponse response = createOptionResponse().name("새 이름").build();
         given(optionService.updateOptionTypeName(anyLong(), anyString()))
                 .willReturn(response);
         //when
         //then
-        mockMvc.perform(put("/options/{optionId}", 1L)
+        mockMvc.perform(patch("/options/{optionTypeId}", 1L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
@@ -152,11 +153,10 @@ public class OptionControllerDocsTest extends RestDocsSupport {
                                         headerWithName("X-User-Role").description(USER_ROLE_HEADER_DESCRIPTION).optional()
                                 ),
                                 pathParameters(
-                                        parameterWithName("optionId").description("수정할 옵션 ID")
+                                        parameterWithName("optionTypeId").description("수정할 옵션 ID")
                                 ),
                                 requestFields(
-                                        fieldWithPath("name").description("옵션 이름").optional(),
-                                        fieldWithPath("values").description("옵션 값")
+                                        fieldWithPath("name").description("변경할 이름").optional()
                                 ),
                                 responseFields(
                                         fieldWithPath("id").description("옵션 ID"),
@@ -176,7 +176,7 @@ public class OptionControllerDocsTest extends RestDocsSupport {
         willDoNothing().given(optionService).deleteOption(anyLong());
         //when
         //then
-        mockMvc.perform(delete("/options/{optionId}", 1L))
+        mockMvc.perform(delete("/options/{optionTypeId}", 1L))
                 .andDo(print())
                 .andExpect(status().isNoContent())
                 .andDo(
@@ -188,7 +188,68 @@ public class OptionControllerDocsTest extends RestDocsSupport {
                                         headerWithName("X-User-Role").description(USER_ROLE_HEADER_DESCRIPTION).optional()
                                 ),
                                 pathParameters(
-                                        parameterWithName("optionId").description("삭제할 옵션 ID")
+                                        parameterWithName("optionTypeId").description("삭제할 옵션 ID")
+                                )
+                        )
+                );
+    }
+
+    @Test
+    @DisplayName("옵션 값 수정")
+    void updateOptionValue() throws Exception {
+        //given
+        OptionUpdateRequest request = createOptionUpdateRequest("새 이름");
+        OptionValueResponse response = createOptionValueResponse().name("새 이름").build();
+        given(optionService.updateOptionValueName(anyLong(), anyString()))
+                .willReturn(response);
+        //when
+        //then
+        mockMvc.perform(patch("/option-values/{optionValueId}", 1L)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(
+                        document("update-option-value",
+                                preprocessRequest(prettyPrint()),
+                                preprocessResponse(prettyPrint()),
+                                requestHeaders(
+                                        headerWithName("X-User-Id").description(USER_ID_HEADER_DESCRIPTION).optional(),
+                                        headerWithName("X-User-Role").description(USER_ROLE_HEADER_DESCRIPTION).optional()
+                                ),
+                                pathParameters(
+                                        parameterWithName("optionValueId").description("수정할 옵션 값 ID")
+                                ),
+                                requestFields(
+                                        fieldWithPath("name").description("변경할 이름").optional()
+                                ),
+                                responseFields(
+                                        fieldWithPath("id").description("옵션 값 ID"),
+                                        fieldWithPath("name").description("옵션 값 이름")
+                                )
+                        )
+                );
+    }
+
+    @Test
+    @DisplayName("옵션 값 삭제")
+    void deleteOptionValue() throws Exception {
+        //given
+        willDoNothing().given(optionService).deleteOptionValue(anyLong());
+        //when
+        //then
+        mockMvc.perform(delete("/option-values/{optionValueId}", 1L)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isNoContent())
+                .andDo(
+                        document("delete-option-value",
+                                requestHeaders(
+                                        headerWithName("X-User-Id").description(USER_ID_HEADER_DESCRIPTION).optional(),
+                                        headerWithName("X-User-Role").description(USER_ROLE_HEADER_DESCRIPTION).optional()
+                                ),
+                                pathParameters(
+                                        parameterWithName("optionValueId").description("삭제할 옵션 값 ID")
                                 )
                         )
                 );
@@ -198,6 +259,12 @@ public class OptionControllerDocsTest extends RestDocsSupport {
         return OptionCreateRequest.builder().name("사이즈").values(
                 List.of("XL", "L", "M", "S")
         ).build();
+    }
+
+    private OptionUpdateRequest createOptionUpdateRequest(String name) {
+        return OptionUpdateRequest.builder()
+                .name(name)
+                .build();
     }
 
     private OptionResponse.OptionResponseBuilder createOptionResponse() {
@@ -211,5 +278,11 @@ public class OptionControllerDocsTest extends RestDocsSupport {
                                 OptionValueResponse.builder().id(3L).name("M").build(),
                                 OptionValueResponse.builder().id(4L).name("S").build()
                         ));
+    }
+
+    private OptionValueResponse.OptionValueResponseBuilder createOptionValueResponse() {
+        return OptionValueResponse.builder()
+                .id(1L)
+                .name("XL");
     }
 }

@@ -2,6 +2,7 @@ package com.example.product_service.api.option.controller;
 
 import com.example.product_service.api.common.security.model.UserRole;
 import com.example.product_service.api.option.controller.dto.OptionCreateRequest;
+import com.example.product_service.api.option.controller.dto.OptionUpdateRequest;
 import com.example.product_service.api.option.service.dto.OptionResponse;
 import com.example.product_service.api.option.service.dto.OptionValueResponse;
 import com.example.product_service.support.ControllerTestSupport;
@@ -19,8 +20,7 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.willDoNothing;
+import static org.mockito.BDDMockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -110,7 +110,7 @@ public class OptionControllerTest extends ControllerTestSupport {
                 .willReturn(response);
         //when
         //then
-        mockMvc.perform(get("/options/{optionId}", 1L)
+        mockMvc.perform(get("/options/{optionTypeId}", 1L)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -138,13 +138,13 @@ public class OptionControllerTest extends ControllerTestSupport {
     @WithCustomMockUser
     void updateOptionType() throws Exception {
         //given
-        OptionCreateRequest request = createOptionRequest().build();
+        OptionUpdateRequest request = createOptionUpdateRequest().build();
         OptionResponse response = createOptionResponse().build();
-//        given(optionService.updateOption(anyLong(), anyString(), anyList()))
-//                .willReturn(response);
+        given(optionService.updateOptionTypeName(anyLong(), anyString()))
+                .willReturn(response);
         //when
         //then
-        mockMvc.perform(put("/options/{optionId}", 1L)
+        mockMvc.perform(patch("/options/{optionTypeId}", 1L)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
@@ -160,7 +160,7 @@ public class OptionControllerTest extends ControllerTestSupport {
         OptionCreateRequest request = createOptionRequest().build();
         //when
         //then
-        mockMvc.perform(put("/options/{optionId}", 1L)
+        mockMvc.perform(patch("/options/{optionTypeId}", 1L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isForbidden())
@@ -177,7 +177,7 @@ public class OptionControllerTest extends ControllerTestSupport {
         OptionCreateRequest request = createOptionRequest().build();
         //when
         //then
-        mockMvc.perform(put("/options/{optionId}", 1L)
+        mockMvc.perform(patch("/options/{optionTypeId}", 1L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isUnauthorized())
@@ -187,21 +187,21 @@ public class OptionControllerTest extends ControllerTestSupport {
                 .andExpect(jsonPath("path").value("/options/1"));
     }
 
-    @ParameterizedTest(name = "{0}")
-    @DisplayName("옵션 저장 요청 검증")
-    @MethodSource("provideInvalidRequest")
+    @Test
+    @DisplayName("옵션 수정 요청 검증")
     @WithCustomMockUser
-    void updateOption_Type_validation(String description, OptionCreateRequest request, String message) throws Exception {
+    void updateOption_Type_validation() throws Exception {
         //given
+        OptionUpdateRequest request = createOptionUpdateRequest().name(null).build();
         //when
         //then
-        mockMvc.perform(put("/options/{optionId}", 1L)
+        mockMvc.perform(patch("/options/{optionTypeId}", 1L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
                 .andDo(print())
                 .andExpect(jsonPath("code").value("VALIDATION"))
-                .andExpect(jsonPath("message").value(message))
+                .andExpect(jsonPath("message").value("이름은 필수입니다"))
                 .andExpect(jsonPath("timestamp").exists())
                 .andExpect(jsonPath("path").value("/options/1"));
     }
@@ -214,7 +214,7 @@ public class OptionControllerTest extends ControllerTestSupport {
         willDoNothing().given(optionService).deleteOption(anyLong());
         //when
         //then
-        mockMvc.perform(delete("/options/{optionId}", 1L)
+        mockMvc.perform(delete("/options/{optionTypeId}", 1L)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isNoContent());
@@ -227,7 +227,7 @@ public class OptionControllerTest extends ControllerTestSupport {
         //given
         //when
         //then
-        mockMvc.perform(delete("/options/{optionId}", 1L)
+        mockMvc.perform(delete("/options/{optionTypeId}", 1L)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isForbidden())
@@ -243,7 +243,7 @@ public class OptionControllerTest extends ControllerTestSupport {
         //given
         //when
         //then
-        mockMvc.perform(delete("/options/{optionId}", 1L)
+        mockMvc.perform(delete("/options/{optionTypeId}", 1L)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isUnauthorized())
@@ -253,10 +253,126 @@ public class OptionControllerTest extends ControllerTestSupport {
                 .andExpect(jsonPath("path").value("/options/1"));
     }
 
+    @Test
+    @DisplayName("옵션 값을 수정한다")
+    @WithCustomMockUser
+    void updateOptionValue() throws Exception {
+        //given
+        OptionUpdateRequest request = createOptionUpdateRequest().build();
+        OptionValueResponse response = createOptionValueResponse().build();
+        given(optionService.updateOptionValueName(anyLong(), anyString()))
+                .willReturn(response);
+        //when
+        //then
+        mockMvc.perform(patch("/option-values/{optionValueId}", 1L)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(response)));
+    }
+
+    @Test
+    @DisplayName("옵션 값을 변경하려면 관리자 권한이여야 한다")
+    @WithCustomMockUser(userRole = UserRole.ROLE_USER)
+    void updateOptionValue_user_role() throws Exception {
+        //given
+        OptionUpdateRequest request = createOptionUpdateRequest().build();
+        //when
+        //then
+        mockMvc.perform(patch("/option-values/{optionValueId}", 1L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("code").value("FORBIDDEN"))
+                .andExpect(jsonPath("message").value("요청 권한이 부족합니다"))
+                .andExpect(jsonPath("timestamp").exists())
+                .andExpect(jsonPath("path").value("/option-values/1"));
+    }
+
+    @Test
+    @DisplayName("로그인 하지 않은 사용자는 옵션 값을 변경할 수 없다")
+    void updateOptionValue_unAuthorized() throws Exception {
+        //given
+        OptionUpdateRequest request = createOptionUpdateRequest().build();
+        //when
+        //then
+        mockMvc.perform(patch("/option-values/{optionValueId}", 1L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("code").value("UNAUTHORIZED"))
+                .andExpect(jsonPath("message").value("인증이 필요한 접근입니다"))
+                .andExpect(jsonPath("timestamp").exists())
+                .andExpect(jsonPath("path").value("/option-values/1"));
+    }
+
+    @Test
+    @DisplayName("옵션 값 변경 요청 검증")
+    @WithCustomMockUser
+    void updateOptionValue_validation() throws Exception {
+        //given
+        OptionUpdateRequest request = createOptionUpdateRequest().name(null).build();
+        //when
+        //then
+        mockMvc.perform(patch("/option-values/{optionValueId}", 1L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("code").value("VALIDATION"))
+                .andExpect(jsonPath("message").value("이름은 필수입니다"))
+                .andExpect(jsonPath("timestamp").exists())
+                .andExpect(jsonPath("path").value("/option-values/1"));
+    }
+
+    @Test
+    @DisplayName("옵션 값을 삭제한다")
+    @WithCustomMockUser
+    void deleteOptionValue() throws Exception {
+        //given
+        willDoNothing().given(optionService).deleteOptionValue(anyLong());
+        //when
+        //then
+        mockMvc.perform(delete("/option-values/{optionValueId}", 1L))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @DisplayName("옵션 값을 삭제하려면 관리자 권한이여야 한다")
+    @WithCustomMockUser(userRole = UserRole.ROLE_USER)
+    void deleteOptionValue_user_role() throws Exception {
+        //given
+        //when
+        //then
+        mockMvc.perform(delete("/option-values/{optionValueId}", 1L))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("code").value("FORBIDDEN"))
+                .andExpect(jsonPath("message").value("요청 권한이 부족합니다"))
+                .andExpect(jsonPath("timestamp").exists())
+                .andExpect(jsonPath("path").value("/option-values/1"));
+    }
+
+    @Test
+    @DisplayName("로그인 하지 않은 사용자는 옵션 값을 삭제할 수 없다")
+    void deleteOptionValue_unAuthorized() throws Exception {
+        //given
+        //when
+        //then
+        mockMvc.perform(delete("/option-values/{optionValueId}", 1L))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("code").value("UNAUTHORIZED"))
+                .andExpect(jsonPath("message").value("인증이 필요한 접근입니다"))
+                .andExpect(jsonPath("timestamp").exists())
+                .andExpect(jsonPath("path").value("/option-values/1"));
+    }
+
     private static OptionCreateRequest.OptionCreateRequestBuilder createOptionRequest() {
         return OptionCreateRequest.builder().name("사이즈").values(
                 List.of("XL", "L", "M", "S")
         );
+    }
+
+    private static OptionUpdateRequest.OptionUpdateRequestBuilder createOptionUpdateRequest(){
+        return OptionUpdateRequest.builder().name("새 이름");
     }
 
     private static OptionResponse.OptionResponseBuilder createOptionResponse() {
@@ -270,6 +386,12 @@ public class OptionControllerTest extends ControllerTestSupport {
                                 OptionValueResponse.builder().id(3L).name("M").build(),
                                 OptionValueResponse.builder().id(4L).name("S").build()
                         ));
+    }
+
+    private static OptionValueResponse.OptionValueResponseBuilder createOptionValueResponse() {
+        return OptionValueResponse.builder()
+                .id(1L)
+                .name("새 이름");
     }
 
     private static Stream<Arguments> provideInvalidRequest() {

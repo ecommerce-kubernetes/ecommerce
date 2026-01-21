@@ -35,6 +35,30 @@ include::{snippets}/delete-option/path-parameters.adoc[]
 ==== HTTP Response
 include::{snippets}/delete-option/http-response.adoc[]
 
+=== 옵션 값 수정
+==== HTTP Request
+include::{snippets}/update-option-value/http-request.adoc[]
+===== Request Header
+include::{snippets}/update-option-value/request-headers.adoc[]
+===== Request PathParam
+include::{snippets}/update-option-value/path-parameters.adoc[]
+===== Request Fields
+include::{snippets}/update-option-value/request-fields.adoc[]
+==== HTTP Response
+include::{snippets}/update-option-value/http-response.adoc[]
+===== Response Fields
+include::{snippets}/update-option-value/response-fields.adoc[]
+
+=== 옵션 값 삭제
+==== HTTP Request
+include::{snippets}/delete-option-value/http-request.adoc[]
+===== Request Header
+include::{snippets}/delete-option-value/request-headers.adoc[]
+===== Request PathParam
+include::{snippets}/delete-option-value/path-parameters.adoc[]
+==== HTTP Response
+include::{snippets}/delete-option-value/http-response.adoc[]
+
 ## 일반
 === 옵션 조회
 ==== HTTP Request
