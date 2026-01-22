@@ -1,6 +1,6 @@
 package com.example.order_service.api.cart.listener;
 
-import com.example.order_service.api.cart.application.CartApplicationService;
+import com.example.order_service.api.cart.facade.CartFacade;
 import com.example.order_service.api.cart.listener.event.CartEventListener;
 import com.example.order_service.api.order.application.event.OrderEventStatus;
 import com.example.order_service.api.order.application.event.PaymentResultEvent;
@@ -21,7 +21,7 @@ public class CartEventListenerTest {
     @InjectMocks
     private CartEventListener cartEventListener;
     @Mock
-    private CartApplicationService cartApplicationService;
+    private CartFacade cartFacade;
     public static final String ORDER_NO = "ORD-20260101-AB12FVC";
     @Test
     @DisplayName("결제 완료시 장바구니에 주문한 상품을 삭제한다")
@@ -37,7 +37,7 @@ public class CartEventListenerTest {
         //when
         cartEventListener.handlePaymentResult(event);
         //then
-        verify(cartApplicationService, times(1)).cleanUpCartAfterOrder(1L, List.of(1L, 2L));
+        verify(cartFacade, times(1)).cleanUpCartAfterOrder(1L, List.of(1L, 2L));
     }
 
     @Test
@@ -54,7 +54,7 @@ public class CartEventListenerTest {
         //when
         cartEventListener.handlePaymentResult(event);
         //then
-        verify(cartApplicationService, never()).cleanUpCartAfterOrder(anyLong(), anyList());
+        verify(cartFacade, never()).cleanUpCartAfterOrder(anyLong(), anyList());
     }
 
 

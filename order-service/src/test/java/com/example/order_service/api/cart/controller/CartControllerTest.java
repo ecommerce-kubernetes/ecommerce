@@ -1,9 +1,9 @@
 package com.example.order_service.api.cart.controller;
 
-import com.example.order_service.api.cart.application.dto.command.AddCartItemDto;
-import com.example.order_service.api.cart.application.dto.command.UpdateQuantityDto;
-import com.example.order_service.api.cart.application.dto.result.CartItemResponse;
-import com.example.order_service.api.cart.application.dto.result.CartResponse;
+import com.example.order_service.api.cart.facade.dto.command.AddCartItemCommand;
+import com.example.order_service.api.cart.facade.dto.command.UpdateQuantityCommand;
+import com.example.order_service.api.cart.facade.dto.result.CartItemResponse;
+import com.example.order_service.api.cart.facade.dto.result.CartResponse;
 import com.example.order_service.api.cart.controller.dto.request.CartItemRequest;
 import com.example.order_service.api.cart.controller.dto.request.UpdateQuantityRequest;
 import com.example.order_service.api.common.security.model.UserRole;
@@ -43,7 +43,7 @@ class CartControllerTest extends ControllerTestSupport {
                 .build();
 
         CartItemResponse response = createCartItemResponse().build();
-        given(cartApplicationService.addItem(any(AddCartItemDto.class)))
+        given(cartFacade.addItem(any(AddCartItemCommand.class)))
                 .willReturn(response);
         //when
         //then
@@ -125,7 +125,7 @@ class CartControllerTest extends ControllerTestSupport {
                 .cartTotalPrice(cartItemResponse.getLineTotal())
                 .build();
 
-        given(cartApplicationService.getCartDetails(anyLong()))
+        given(cartFacade.getCartDetails(anyLong()))
                 .willReturn(response);
         //when
         //then
@@ -173,7 +173,7 @@ class CartControllerTest extends ControllerTestSupport {
     @WithCustomMockUser
     void deleteCartItem() throws Exception {
         //given
-        willDoNothing().given(cartApplicationService).removeCartItem(anyLong(), anyLong());
+        willDoNothing().given(cartFacade).removeCartItem(anyLong(), anyLong());
         //when
         //then
         mockMvc.perform(delete("/carts/{cartItemId}", 1)
@@ -220,7 +220,7 @@ class CartControllerTest extends ControllerTestSupport {
     @WithCustomMockUser
     void clearCart() throws Exception {
         //given
-        willDoNothing().given(cartApplicationService).clearCart(anyLong());
+        willDoNothing().given(cartFacade).clearCart(anyLong());
         //when
         //then
         mockMvc.perform(delete("/carts")
@@ -273,7 +273,7 @@ class CartControllerTest extends ControllerTestSupport {
 
         CartItemResponse response = createCartItemResponse()
                 .quantity(3).lineTotal(2700L * 3).build();
-        given(cartApplicationService.updateCartItemQuantity(any(UpdateQuantityDto.class)))
+        given(cartFacade.updateCartItemQuantity(any(UpdateQuantityCommand.class)))
                 .willReturn(response);
         //when
         //then

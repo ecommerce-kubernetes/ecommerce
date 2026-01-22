@@ -21,7 +21,7 @@ public class Cart extends BaseEntity {
     private Long id;
 
     private Long userId;
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "cart", cascade = CascadeType.PERSIST, orphanRemoval = true)
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
     List<CartItem> cartItems = new ArrayList<>();
 
     @Builder(access = AccessLevel.PRIVATE)

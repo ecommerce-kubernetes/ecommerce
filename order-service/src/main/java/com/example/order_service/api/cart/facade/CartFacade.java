@@ -1,13 +1,15 @@
-package com.example.order_service.api.cart.application;
+package com.example.order_service.api.cart.facade;
 
-import com.example.order_service.api.cart.application.dto.command.AddCartItemDto;
-import com.example.order_service.api.cart.application.dto.command.UpdateQuantityDto;
-import com.example.order_service.api.cart.application.dto.result.CartItemResponse;
-import com.example.order_service.api.cart.application.dto.result.CartResponse;
-import com.example.order_service.api.cart.domain.service.CartDomainService;
+import com.example.order_service.api.cart.facade.dto.command.AddCartItemCommand;
+import com.example.order_service.api.cart.facade.dto.command.UpdateQuantityCommand;
+import com.example.order_service.api.cart.facade.dto.result.CartItemResponse;
+import com.example.order_service.api.cart.facade.dto.result.CartResponse;
+import com.example.order_service.api.cart.domain.service.CartService;
 import com.example.order_service.api.cart.domain.service.dto.CartItemDto;
 import com.example.order_service.api.cart.infrastructure.client.CartProductClientService;
 import com.example.order_service.api.cart.infrastructure.client.dto.CartProductResponse;
+import com.example.order_service.api.common.exception.BusinessException;
+import com.example.order_service.api.common.exception.CartErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -18,18 +20,19 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class CartApplicationService {
-    private final CartDomainService cartDomainService;
+public class CartFacade {
+    private final CartService cartService;
     private final CartProductClientService cartProductClientService;
 
-    public CartItemResponse addItem(AddCartItemDto dto) {
+    public CartItemResponse addItem(AddCartItemCommand dto) {
         CartProductResponse product = cartProductClientService.getProduct(dto.getProductVariantId());
-        CartItemDto result = cartDomainService.addItemToCart(dto.getUserId(), dto.getProductVariantId(), dto.getQuantity());
+        validateProductOnSale(product);
+        CartItemDto result = cartService.addItemToCart(dto.getUserId(), dto.getProductVariantId(), dto.getQuantity());
         return CartItemResponse.available(result, product);
     }
 
     public CartResponse getCartDetails(Long userId){
-        List<CartItemDto> cartItems = cartDomainService.getCartItems(userId);
+        List<CartItemDto> cartItems = cartService.getCartItems(userId);
         //장바구니에 상품이 없는 경우 빈 장바구니 반환
         if(cartItems.isEmpty()) {
             return CartResponse.empty();
@@ -41,23 +44,26 @@ public class CartApplicationService {
         return CartResponse.from(cartItemResponses);
     }
 
-    public CartItemResponse updateCartItemQuantity(UpdateQuantityDto dto){
-        CartItemDto cartItem = cartDomainService.getCartItem(dto.getUserId(), dto.getCartItemId());
+    public CartItemResponse updateCartItemQuantity(UpdateQuantityCommand dto){
+        CartItemDto cartItem = cartService.getCartItem(dto.getUserId(), dto.getCartItemId());
         CartProductResponse product = cartProductClientService.getProduct(cartItem.getProductVariantId());
-        CartItemDto cartItemDto = cartDomainService.updateQuantity(dto.getUserId(), cartItem.getId(), dto.getQuantity());
+        if (product == null || !product.isOnSale()) {
+            throw new BusinessException(CartErrorCode.PRODUCT_NOT_ON_SALE);
+        }
+        CartItemDto cartItemDto = cartService.updateQuantity(dto.getUserId(), cartItem.getId(), dto.getQuantity());
         return CartItemResponse.available(cartItemDto, product);
     }
 
     public void removeCartItem(Long userId, Long cartItemId){
-        cartDomainService.deleteCartItem(userId, cartItemId);
+        cartService.deleteCartItem(userId, cartItemId);
     }
 
     public void clearCart(Long userId){
-        cartDomainService.clearCart(userId);
+        cartService.clearCart(userId);
     }
 
     public void cleanUpCartAfterOrder(Long userId, List<Long> productVariantIds) {
-        cartDomainService.deleteByProductVariantIds(userId, productVariantIds);
+        cartService.deleteByProductVariantIds(userId, productVariantIds);
     }
 
     private List<Long> getProductVariantId(List<CartItemDto> cartItems){
@@ -78,11 +84,21 @@ public class CartApplicationService {
     }
 
     private CartItemResponse createCartItemResponse(CartItemDto item, CartProductResponse product){
-        //상품서비스에서 응답이 오지 않은 상품이라면 오류 응답
+        // 상품을 찾을 수 없거나 상품이 판매중이 아닌 상품인 경우 오류 응답
         if(product == null){
             return CartItemResponse.unAvailable(item.getId(), item.getProductVariantId(), item.getQuantity());
         }
-        //정상적으로 응답이 온 경우 정상 응답
-        return CartItemResponse.available(item, product);
+        return switch (product.getStatus()) {
+            case ON_SALE -> CartItemResponse.available(item, product);
+            case PREPARING -> CartItemResponse.preparing(item, product);
+            case STOP_SALE -> CartItemResponse.stop_sale(item, product);
+            case DELETED -> CartItemResponse.deleted(item, product);
+        };
+    }
+
+    private void validateProductOnSale(CartProductResponse product) {
+        if (product == null || !product.isOnSale()) {
+            throw new BusinessException(CartErrorCode.PRODUCT_NOT_ON_SALE);
+        }
     }
 }

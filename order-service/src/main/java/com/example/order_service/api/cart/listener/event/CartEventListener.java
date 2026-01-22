@@ -1,6 +1,6 @@
 package com.example.order_service.api.cart.listener.event;
 
-import com.example.order_service.api.cart.application.CartApplicationService;
+import com.example.order_service.api.cart.facade.CartFacade;
 import com.example.order_service.api.order.application.event.OrderEventStatus;
 import com.example.order_service.api.order.application.event.PaymentResultEvent;
 import lombok.RequiredArgsConstructor;
@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class CartEventListener {
 
-    private final CartApplicationService cartApplicationService;
+    private final CartFacade cartFacade;
 
     @EventListener
     public void handlePaymentResult(PaymentResultEvent event) {
@@ -20,6 +20,6 @@ public class CartEventListener {
             return;
         }
 
-        cartApplicationService.cleanUpCartAfterOrder(event.getUserId(), event.getProductVariantIds());
+        cartFacade.cleanUpCartAfterOrder(event.getUserId(), event.getProductVariantIds());
     }
 }

@@ -1,4 +1,4 @@
-package com.example.order_service.api.cart.application.dto.result;
+package com.example.order_service.api.cart.facade.dto.result;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -29,6 +29,7 @@ public class CartResponse {
 
     public static CartResponse from(List<CartItemResponse> cartItems){
         long total = cartItems.stream()
+                .filter(CartItemResponse::isAvailable)
                 .mapToLong(CartItemResponse::getLineTotal)
                 .sum();
 

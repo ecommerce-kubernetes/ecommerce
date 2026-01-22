@@ -1,6 +1,6 @@
 package com.example.order_service.api.support;
 
-import com.example.order_service.api.cart.application.CartApplicationService;
+import com.example.order_service.api.cart.facade.CartFacade;
 import com.example.order_service.api.cart.controller.CartController;
 import com.example.order_service.api.notification.controller.NotificationController;
 import com.example.order_service.api.notification.service.NotificationService;
@@ -19,7 +19,7 @@ public abstract class ControllerTestSupport {
     @Autowired
     protected ObjectMapper objectMapper;
     @MockitoBean
-    protected CartApplicationService cartApplicationService;
+    protected CartFacade cartFacade;
     @MockitoBean
     protected OrderApplicationService orderApplicationService;
     @MockitoBean

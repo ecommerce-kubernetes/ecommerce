@@ -1,10 +1,10 @@
 package com.example.order_service.docs.cart;
 
-import com.example.order_service.api.cart.application.CartApplicationService;
-import com.example.order_service.api.cart.application.dto.command.AddCartItemDto;
-import com.example.order_service.api.cart.application.dto.command.UpdateQuantityDto;
-import com.example.order_service.api.cart.application.dto.result.CartItemResponse;
-import com.example.order_service.api.cart.application.dto.result.CartResponse;
+import com.example.order_service.api.cart.facade.CartFacade;
+import com.example.order_service.api.cart.facade.dto.command.AddCartItemCommand;
+import com.example.order_service.api.cart.facade.dto.command.UpdateQuantityCommand;
+import com.example.order_service.api.cart.facade.dto.result.CartItemResponse;
+import com.example.order_service.api.cart.facade.dto.result.CartResponse;
 import com.example.order_service.api.cart.controller.CartController;
 import com.example.order_service.api.cart.controller.dto.request.CartItemRequest;
 import com.example.order_service.api.cart.controller.dto.request.UpdateQuantityRequest;
@@ -34,10 +34,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 public class CartControllerDocsTest extends RestDocSupport {
 
-    private CartApplicationService cartApplicationService = Mockito.mock(CartApplicationService.class);
+    private CartFacade cartFacade = Mockito.mock(CartFacade.class);
     @Override
     protected Object initController() {
-        return new CartController(cartApplicationService);
+        return new CartController(cartFacade);
     }
 
     @Test
@@ -51,7 +51,7 @@ public class CartControllerDocsTest extends RestDocSupport {
 
         HttpHeaders roleUser = createUserHeader("ROLE_USER");
         CartItemResponse cartItemResponse = createCartItemResponse();
-        given(cartApplicationService.addItem(any(AddCartItemDto.class)))
+        given(cartFacade.addItem(any(AddCartItemCommand.class)))
                 .willReturn(cartItemResponse);
         //when
         //then
@@ -106,7 +106,7 @@ public class CartControllerDocsTest extends RestDocSupport {
                 .cartItems(List.of(cartItem))
                 .cartTotalPrice(5700)
                 .build();
-        given(cartApplicationService.getCartDetails(anyLong()))
+        given(cartFacade.getCartDetails(anyLong()))
                 .willReturn(response);
         //when
         //then
@@ -151,7 +151,7 @@ public class CartControllerDocsTest extends RestDocSupport {
     void removeCartItem() throws Exception {
         //given
         HttpHeaders roleUser = createUserHeader("ROLE_USER");
-        willDoNothing().given(cartApplicationService).removeCartItem(anyLong(), anyLong());
+        willDoNothing().given(cartFacade).removeCartItem(anyLong(), anyLong());
         //when
         //then
         mockMvc.perform(delete("/carts/{cartItemId}", 1)
@@ -175,7 +175,7 @@ public class CartControllerDocsTest extends RestDocSupport {
     void clearCart() throws Exception {
         //given
         HttpHeaders roleUser = createUserHeader("ROLE_USER");
-        willDoNothing().given(cartApplicationService).clearCart(anyLong());
+        willDoNothing().given(cartFacade).clearCart(anyLong());
         //when
         //then
         mockMvc.perform(delete("/carts")
@@ -200,7 +200,7 @@ public class CartControllerDocsTest extends RestDocSupport {
                 .quantity(3)
                 .build();
         CartItemResponse cartItemResponse = createCartItemResponse();
-        given(cartApplicationService.updateCartItemQuantity(any(UpdateQuantityDto.class)))
+        given(cartFacade.updateCartItemQuantity(any(UpdateQuantityCommand.class)))
                 .willReturn(cartItemResponse);
         //when
         //then

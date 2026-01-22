@@ -9,6 +9,7 @@ import com.example.order_service.api.common.exception.CartErrorCode;
 import com.example.order_service.api.support.ExcludeInfraTest;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,61 +20,66 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.*;
 
 @Transactional
-class CartDomainServiceTest extends ExcludeInfraTest {
+class CartServiceTest extends ExcludeInfraTest {
     @Autowired
-    private CartDomainService cartDomainService;
+    private CartService cartService;
     @Autowired
     private CartRepository cartRepository;
     @Autowired
     private EntityManager em;
 
-    @Test
-    @DisplayName("처음 장바구니에 상품을 추가하면 장바구니를 생성하고 상품을 추가한다")
-    void addItemToCartWhenFirstAdd(){
-        //given
-        //when
-        CartItemDto result = cartDomainService.addItemToCart(1L, 1L, 3);
-        //then
-        assertThat(result.getId()).isNotNull();
-        assertThat(result)
-                .extracting("productVariantId", "quantity")
-                .contains(1L, 3);
+    @Nested
+    @DisplayName("장바구니 상품 추가")
+    class AddItem {
 
-        Optional<Cart> cart = cartRepository.findByUserId(1L);
-        assertThat(cart).isNotNull();
-    }
+        @Test
+        @DisplayName("처음 장바구니에 상품을 추가하면 장바구니를 생성하고 상품을 추가한다")
+        void addItem_first_add(){
+            //given
+            //when
+            CartItemDto result = cartService.addItemToCart(1L, 1L, 3);
+            //then
+            assertThat(result.getId()).isNotNull();
+            assertThat(result)
+                    .extracting(CartItemDto::getProductVariantId, CartItemDto::getQuantity)
+                    .contains(1L, 3);
 
-    @Test
-    @DisplayName("처음 이후 장바구니에 새로운 상품을 추가하면 기존 장바구니에 상품을 추가한다")
-    void addItemToCartWhenAddAfterSecond(){
-        //given
-        Cart cart = Cart.create(1L);
-        cartRepository.save(cart);
-        //when
-        CartItemDto result = cartDomainService.addItemToCart(1L, 1L, 3);
-        //then
-        assertThat(result.getId()).isNotNull();
-        assertThat(result)
-                .extracting("productVariantId", "quantity")
-                .contains(1L, 3);
-    }
+            Optional<Cart> cart = cartRepository.findByUserId(1L);
+            assertThat(cart).isNotNull();
+        }
 
-    @Test
-    @DisplayName("장바구니에 상품을 추가할때 추가하려는 상품이 이미 장바구니에 존재하는 상품이면 수량을 요청 수량만큼 증가시킨다")
-    void addItemToCartWhenExistCartItem() {
-        //given
-        Cart cart = Cart.create(1L);
-        CartItem cartItem = CartItem.create(1L, 3);
-        cart.addCartItem(cartItem);
-        cartRepository.save(cart);
-        //when
-        CartItemDto result = cartDomainService.addItemToCart(1L, 1L, 2);
-        //then
-        assertThat(result.getId()).isNotNull();
+        @Test
+        @DisplayName("처음 이후 장바구니에 새로운 상품을 추가하면 기존 장바구니에 상품을 추가한다")
+        void addItem_after_first_add(){
+            //given
+            Cart cart = Cart.create(1L);
+            cartRepository.save(cart);
+            //when
+            CartItemDto result = cartService.addItemToCart(1L, 1L, 3);
+            //then
+            assertThat(result.getId()).isNotNull();
+            assertThat(result)
+                    .extracting(CartItemDto::getProductVariantId, CartItemDto::getQuantity)
+                    .contains(1L, 3);
+        }
 
-        assertThat(result)
-                .extracting("productVariantId", "quantity")
-                .contains(1L, 5);
+        @Test
+        @DisplayName("장바구니에 상품을 추가할때 추가하려는 상품이 이미 장바구니에 존재하는 상품이면 수량을 요청 수량만큼 증가시킨다")
+        void addItem_exist_cart_item() {
+            //given
+            Cart cart = Cart.create(1L);
+            CartItem cartItem = CartItem.create(1L, 3);
+            cart.addCartItem(cartItem);
+            cartRepository.save(cart);
+            //when
+            CartItemDto result = cartService.addItemToCart(1L, 1L, 2);
+            //then
+            assertThat(result.getId()).isNotNull();
+
+            assertThat(result)
+                    .extracting(CartItemDto::getProductVariantId, CartItemDto::getQuantity)
+                    .contains(1L, 5);
+        }
     }
 
     @Test
@@ -85,7 +91,7 @@ class CartDomainServiceTest extends ExcludeInfraTest {
         cart.addCartItem(item);
         cartRepository.save(cart);
         //when
-        CartItemDto cartItem = cartDomainService.getCartItem(1L, item.getId());
+        CartItemDto cartItem = cartService.getCartItem(1L, item.getId());
         //then
         assertThat(cartItem.getId()).isEqualTo(item.getId());
         assertThat(cartItem.getProductVariantId()).isEqualTo(1L);
@@ -98,7 +104,7 @@ class CartDomainServiceTest extends ExcludeInfraTest {
         //given
         //when
         //then
-        assertThatThrownBy(() -> cartDomainService.getCartItem(1L, 999L))
+        assertThatThrownBy(() -> cartService.getCartItem(1L, 999L))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(CartErrorCode.CART_ITEM_NOT_FOUND);
@@ -114,7 +120,7 @@ class CartDomainServiceTest extends ExcludeInfraTest {
         cartRepository.save(cart);
         //when
         //then
-        assertThatThrownBy(() -> cartDomainService.getCartItem(999L, item.getId()))
+        assertThatThrownBy(() -> cartService.getCartItem(999L, item.getId()))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(CartErrorCode.CART_NO_PERMISSION);
@@ -131,7 +137,7 @@ class CartDomainServiceTest extends ExcludeInfraTest {
         cart.addCartItem(item2);
         cartRepository.save(cart);
         //when
-        List<CartItemDto> cartItems = cartDomainService.getCartItems(1L);
+        List<CartItemDto> cartItems = cartService.getCartItems(1L);
         //then
         assertThat(cartItems).hasSize(2);
         assertThat(cartItems)
@@ -147,7 +153,7 @@ class CartDomainServiceTest extends ExcludeInfraTest {
     void getCartItemsWhenNotFoundCart(){
         //given
         //when
-        List<CartItemDto> cartItems = cartDomainService.getCartItems(1L);
+        List<CartItemDto> cartItems = cartService.getCartItems(1L);
         //then
         assertThat(cartItems).hasSize(0);
     }
@@ -159,7 +165,7 @@ class CartDomainServiceTest extends ExcludeInfraTest {
         Cart cart = Cart.create(1L);
         cartRepository.save(cart);
         //when
-        List<CartItemDto> cartItems = cartDomainService.getCartItems(1L);
+        List<CartItemDto> cartItems = cartService.getCartItems(1L);
         //then
         assertThat(cartItems).hasSize(0);
     }
@@ -175,7 +181,7 @@ class CartDomainServiceTest extends ExcludeInfraTest {
         cart.addCartItem(item2);
         cartRepository.save(cart);
         //when
-        cartDomainService.deleteCartItem(1L, item1.getId());
+        cartService.deleteCartItem(1L, item1.getId());
         em.flush();
         em.clear();
         //then
@@ -195,7 +201,7 @@ class CartDomainServiceTest extends ExcludeInfraTest {
         //given
         //when
         //then
-        assertThatThrownBy(() -> cartDomainService.deleteCartItem(1L, 1L))
+        assertThatThrownBy(() -> cartService.deleteCartItem(1L, 1L))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(CartErrorCode.CART_ITEM_NOT_FOUND);
@@ -213,7 +219,7 @@ class CartDomainServiceTest extends ExcludeInfraTest {
         cartRepository.save(cart);
         //when
         //then
-        assertThatThrownBy(() -> cartDomainService.deleteCartItem(2L, item1.getId()))
+        assertThatThrownBy(() -> cartService.deleteCartItem(2L, item1.getId()))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(CartErrorCode.CART_NO_PERMISSION);
@@ -231,7 +237,7 @@ class CartDomainServiceTest extends ExcludeInfraTest {
         cart.addCartItem(item2);
         cartRepository.save(cart);
         //when
-        cartDomainService.clearCart(1L);
+        cartService.clearCart(1L);
         //then
         Optional<Cart> findCart = cartRepository.findWithItemsByUserId(1L);
         assertThat(findCart).isNotEmpty();
@@ -248,7 +254,7 @@ class CartDomainServiceTest extends ExcludeInfraTest {
         cart.addCartItem(item);
         cartRepository.save(cart);
         //when
-        CartItemDto cartItemDto = cartDomainService.updateQuantity(1L, item.getId(), 5);
+        CartItemDto cartItemDto = cartService.updateQuantity(1L, item.getId(), 5);
         //then
         assertThat(cartItemDto.getId()).isEqualTo(item.getId());
         assertThat(cartItemDto.getQuantity()).isEqualTo(5);
@@ -264,7 +270,7 @@ class CartDomainServiceTest extends ExcludeInfraTest {
         cartRepository.save(cart);
         //when
         //then
-        assertThatThrownBy(() -> cartDomainService.updateQuantity(999L, item.getId(), 5))
+        assertThatThrownBy(() -> cartService.updateQuantity(999L, item.getId(), 5))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(CartErrorCode.CART_NO_PERMISSION);
@@ -282,7 +288,7 @@ class CartDomainServiceTest extends ExcludeInfraTest {
         cart.addCartItem(item2);
         cartRepository.save(cart);
         //when
-        cartDomainService.deleteByProductVariantIds(1L, List.of(1L));
+        cartService.deleteByProductVariantIds(1L, List.of(1L));
         //then
         Optional<Cart> findCart = cartRepository.findWithItemsByUserId(1L);
         assertThat(findCart).isNotEmpty();

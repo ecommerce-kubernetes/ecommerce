@@ -18,7 +18,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 @Transactional
-public class CartDomainService {
+public class CartService {
     private final CartRepository cartRepository;
     private final CartItemRepository cartItemRepository;
 
