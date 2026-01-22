@@ -29,21 +29,10 @@ public class Cart extends BaseEntity {
         this.userId = userId;
     }
 
-    public void addCartItem(CartItem cartItem){
-        cartItems.add(cartItem);
-        cartItem.setCart(this);
-    }
-
-    public void clearItems(){
-        for (CartItem cartItem : cartItems) {
-            cartItem.setCart(null);
-        }
-        cartItems.clear();
-    }
-
-
-    public boolean isOwner(Long accessUserId) {
-        return this.userId.equals(accessUserId);
+    public static Cart create(Long userId){
+        return Cart.builder()
+                .userId(userId)
+                .build();
     }
 
     public CartItem addItem(Long productVariantId, int quantity){
@@ -62,16 +51,24 @@ public class Cart extends BaseEntity {
         return cartItem;
     }
 
-    public void deleteItemByProductVariantIds(List<Long> productVariantIds) {
-        List<CartItem> items = cartItems.stream()
-                .filter(item -> productVariantIds.contains(item.getProductVariantId())).toList();
-        items.forEach(item -> item.setCart(null));
-        this.cartItems.removeAll(items);
+    public void clearItems(){
+        for (CartItem cartItem : cartItems) {
+            cartItem.setCart(null);
+        }
+        cartItems.clear();
     }
 
-    public static Cart create(Long userId){
-        return Cart.builder()
-                .userId(userId)
-                .build();
+    public void removeItemsByVariantIds(List<Long> productVariantIds) {
+        this.cartItems.removeIf(item -> {
+            if (productVariantIds.contains(item.getProductVariantId())){
+                item.setCart(null);
+                return true; //리스트에서 제거
+            }
+            return false;
+        });
+    }
+
+    public boolean isOwner(Long accessUserId) {
+        return this.userId.equals(accessUserId);
     }
 }

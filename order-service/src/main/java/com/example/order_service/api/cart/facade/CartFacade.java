@@ -39,7 +39,6 @@ public class CartFacade {
         }
         List<Long> variantIds = getProductVariantId(cartItems);
         List<CartProductResponse> products = cartProductClientService.getProducts(variantIds);
-
         List<CartItemResponse> cartItemResponses = mapToCartItemResponse(cartItems, products);
         return CartResponse.from(cartItemResponses);
     }
@@ -47,9 +46,7 @@ public class CartFacade {
     public CartItemResponse updateCartItemQuantity(UpdateQuantityCommand dto){
         CartItemDto cartItem = cartService.getCartItem(dto.getUserId(), dto.getCartItemId());
         CartProductResponse product = cartProductClientService.getProduct(cartItem.getProductVariantId());
-        if (product == null || !product.isOnSale()) {
-            throw new BusinessException(CartErrorCode.PRODUCT_NOT_ON_SALE);
-        }
+        validateProductOnSale(product);
         CartItemDto cartItemDto = cartService.updateQuantity(dto.getUserId(), cartItem.getId(), dto.getQuantity());
         return CartItemResponse.available(cartItemDto, product);
     }
@@ -62,7 +59,7 @@ public class CartFacade {
         cartService.clearCart(userId);
     }
 
-    public void cleanUpCartAfterOrder(Long userId, List<Long> productVariantIds) {
+    public void removePurchasedItems(Long userId, List<Long> productVariantIds) {
         cartService.deleteByProductVariantIds(userId, productVariantIds);
     }
 

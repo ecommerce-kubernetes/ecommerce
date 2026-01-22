@@ -20,6 +20,6 @@ public class CartEventListener {
             return;
         }
 
-        cartFacade.cleanUpCartAfterOrder(event.getUserId(), event.getProductVariantIds());
+        cartFacade.removePurchasedItems(event.getUserId(), event.getProductVariantIds());
     }
 }

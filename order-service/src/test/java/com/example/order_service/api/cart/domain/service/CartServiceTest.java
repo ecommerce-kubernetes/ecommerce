@@ -79,219 +79,258 @@ class CartServiceTest extends ExcludeInfraTest {
                     .extracting(CartItemDto::getId, CartItemDto::getProductVariantId, CartItemDto::getQuantity)
                     .contains(existItem.getId(), 1L, 5);
         }
+
+        @Test
+        @DisplayName("상품 수량이 1미만인 상품을 추가할 수 없다")
+        void addItemToCart_quantity_less_than_1(){
+            //given
+            Cart cart = Cart.create(1L);
+            cartRepository.save(cart);
+            //when
+            //then
+            assertThatThrownBy(() -> cartService.addItemToCart(1L, 1L, 0))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(CartErrorCode.CART_ITEM_MINIMUM_ONE_REQUIRED);
+        }
     }
 
-    @Test
-    @DisplayName("장바구니 상품을 조회한다")
-    void getCartItem() {
-        //given
-        Cart cart = Cart.create(1L);
-        CartItem item = cart.addItem(1L, 3);
-        cartRepository.save(cart);
-        //when
-        CartItemDto cartItem = cartService.getCartItem(1L, item.getId());
-        //then
-        assertThat(cartItem.getId()).isEqualTo(item.getId());
-        assertThat(cartItem.getProductVariantId()).isEqualTo(1L);
-        assertThat(cartItem.getQuantity()).isEqualTo(3);
+    @Nested
+    @DisplayName("장바구니 상품 조회")
+    class GetCartItem {
+
+        @Test
+        @DisplayName("장바구니 상품을 조회한다")
+        void getCartItem() {
+            //given
+            Cart cart = Cart.create(1L);
+            CartItem item = cart.addItem(1L, 3);
+            cartRepository.save(cart);
+            //when
+            CartItemDto cartItem = cartService.getCartItem(1L, item.getId());
+            //then
+            assertThat(cartItem.getId()).isEqualTo(item.getId());
+            assertThat(cartItem.getProductVariantId()).isEqualTo(1L);
+            assertThat(cartItem.getQuantity()).isEqualTo(3);
+        }
+
+        @Test
+        @DisplayName("장바구니 상품을 찾을 수 없을때 예외를 던진다")
+        void getCartItem_not_found_cartItem() {
+            //given
+            //when
+            //then
+            assertThatThrownBy(() -> cartService.getCartItem(1L, 999L))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(CartErrorCode.CART_ITEM_NOT_FOUND);
+        }
+
+        @Test
+        @DisplayName("자신의 장바구니가 아닌 경우 장바구니 상품을 조회할 수 없다")
+        void getCartItem_cart_userId_missMatch(){
+            //given
+            Cart cart = Cart.create(1L);
+            CartItem item = cart.addItem(1L, 3);
+            cartRepository.save(cart);
+            //when
+            //then
+            assertThatThrownBy(() -> cartService.getCartItem(999L, item.getId()))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(CartErrorCode.CART_NO_PERMISSION);
+        }
     }
 
-    @Test
-    @DisplayName("장바구니 상품을 찾을 수 없을때 예외를 던진다")
-    void getCartItemWhenNotFoundCartItem() {
-        //given
-        //when
-        //then
-        assertThatThrownBy(() -> cartService.getCartItem(1L, 999L))
-                .isInstanceOf(BusinessException.class)
-                .extracting("errorCode")
-                .isEqualTo(CartErrorCode.CART_ITEM_NOT_FOUND);
+    @Nested
+    @DisplayName("장바구니 상품 목록 조회")
+    class GetCartItems {
+
+        @Test
+        @DisplayName("장바구니 상품 목록을 조회한다")
+        void getCartItems(){
+            //given
+            Cart cart = Cart.create(1L);
+            CartItem item1 = cart.addItem(1L, 3);
+            CartItem item2 = cart.addItem(2L, 2);
+            cartRepository.save(cart);
+            //when
+            List<CartItemDto> cartItems = cartService.getCartItems(1L);
+            //then
+            assertThat(cartItems).hasSize(2);
+            assertThat(cartItems)
+                    .extracting(CartItemDto::getId, CartItemDto::getProductVariantId, CartItemDto::getQuantity)
+                    .containsExactlyInAnyOrder(
+                            tuple(item1.getId(), 1L, 3),
+                            tuple(item2.getId(), 2L, 2)
+                    );
+        }
+
+        @Test
+        @DisplayName("장바구니 상품 목록을 조회할때 해당 유저의 장바구니가 존재하지 않으면 빈 리스트를 반환한다")
+        void getCartItemsWhenNotFoundCart(){
+            //given
+            //when
+            List<CartItemDto> cartItems = cartService.getCartItems(1L);
+            //then
+            assertThat(cartItems).hasSize(0);
+        }
+
+        @Test
+        @DisplayName("장바구니 상품 목록을 조회할때 해당 유저의 장바구니에 상품이 존재하지 않으면 빈 리스트를 반환한다")
+        void getCatItemsWhenCartItemEmpty() {
+            //given
+            Cart cart = Cart.create(1L);
+            cartRepository.save(cart);
+            //when
+            List<CartItemDto> cartItems = cartService.getCartItems(1L);
+            //then
+            assertThat(cartItems).hasSize(0);
+        }
     }
 
-    @Test
-    @DisplayName("장바구니를 조회할 권한이 없으면 예외를 던진다")
-    void getCartItemWhenNoPermission(){
-        //given
-        Cart cart = Cart.create(1L);
-        CartItem item = cart.addItem(1L, 3);
-        cartRepository.save(cart);
-        //when
-        //then
-        assertThatThrownBy(() -> cartService.getCartItem(999L, item.getId()))
-                .isInstanceOf(BusinessException.class)
-                .extracting("errorCode")
-                .isEqualTo(CartErrorCode.CART_NO_PERMISSION);
+    @Nested
+    @DisplayName("장바구니 상품 수량 변경")
+    class UpdateQuantity {
+
+        @Test
+        @DisplayName("장바구니 상품의 수량을 변경한다")
+        void updateQuantity(){
+            //given
+            Cart cart = Cart.create(1L);
+            CartItem item = cart.addItem(1L, 3);
+            cartRepository.save(cart);
+            //when
+            CartItemDto cartItem = cartService.updateQuantity(1L, item.getId(), 5);
+            //then
+            assertThat(cartItem)
+                    .extracting(CartItemDto::getId, CartItemDto::getProductVariantId, CartItemDto::getQuantity)
+                    .containsExactly(item.getId(), 1L, 5);
+        }
+
+        @Test
+        @DisplayName("자신의 장바구니가 아닌 경우 장바구니 상품 수량을 변경할 수 없다")
+        void updateQuantity_cart_userId_miss_match(){
+            //given
+            Cart cart = Cart.create(1L);
+            CartItem item = cart.addItem(1L, 3);
+            cartRepository.save(cart);
+            //when
+            //then
+            assertThatThrownBy(() -> cartService.updateQuantity(999L, item.getId(), 5))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(CartErrorCode.CART_NO_PERMISSION);
+        }
+
+        @Test
+        @DisplayName("상품 수량은 1 미만으로 변경할 수 없다")
+        void updateQuantity_quantity_less_than_1(){
+            //given
+            Cart cart = Cart.create(1L);
+            CartItem item = cart.addItem(1L, 3);
+            cartRepository.save(cart);
+            //when
+            //then
+            assertThatThrownBy(() -> cartService.updateQuantity(1L, item.getId(), 0))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(CartErrorCode.CART_ITEM_MINIMUM_ONE_REQUIRED);
+        }
     }
 
-    @Test
-    @DisplayName("장바구니 상품 목록을 조회한다")
-    void getCartItems(){
-        //given
-        Cart cart = Cart.create(1L);
-        CartItem item1 = CartItem.create(1L, 3);
-        CartItem item2 = CartItem.create(2L, 2);
-        cart.addCartItem(item1);
-        cart.addCartItem(item2);
-        cartRepository.save(cart);
-        //when
-        List<CartItemDto> cartItems = cartService.getCartItems(1L);
-        //then
-        assertThat(cartItems).hasSize(2);
-        assertThat(cartItems)
-                .extracting("id", "productVariantId", "quantity")
-                .containsExactlyInAnyOrder(
-                        tuple(item1.getId(), 1L, 3),
-                        tuple(item2.getId(), 2L, 2)
-                );
+    @Nested
+    @DisplayName("장바구니 상품 삭제")
+    class DeleteCartItem {
+
+        @Test
+        @DisplayName("장바구니 상품을 삭제한다")
+        void deleteCartItem(){
+            //given
+            Cart cart = Cart.create(1L);
+            CartItem item1 = cart.addItem(1L, 3);
+            CartItem item2 = cart.addItem(2L, 2);
+            cartRepository.save(cart);
+            //when
+            cartService.deleteCartItem(1L, item1.getId());
+            em.flush(); em.clear();
+            //then
+            Optional<Cart> findCart = cartRepository.findByUserId(1L);
+            assertThat(findCart).isNotEmpty();
+            assertThat(findCart.get().getCartItems()).hasSize(1)
+                    .extracting(CartItem::getId, CartItem::getProductVariantId, CartItem::getQuantity)
+                    .containsExactly(
+                            tuple(item2.getId(), item2.getProductVariantId(), item2.getQuantity())
+                    );
+        }
+
+        @Test
+        @DisplayName("찾을 수 없는 상품은 삭제할 수 없다")
+        void deleteCartItem_not_found_cartItem(){
+            //given
+            //when
+            //then
+            assertThatThrownBy(() -> cartService.deleteCartItem(1L, 1L))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(CartErrorCode.CART_ITEM_NOT_FOUND);
+        }
+
+        @Test
+        @DisplayName("자신의 장바구니가 아니면 장바구니 상품을 삭제할 수 없다")
+        void deleteCartItem_cart_userId_missMatch(){
+            //given
+            Cart cart = Cart.create(1L);
+            CartItem item = cart.addItem(1L, 3);
+            cartRepository.save(cart);
+            //when
+            //then
+            assertThatThrownBy(() -> cartService.deleteCartItem(999L, item.getId()))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(CartErrorCode.CART_NO_PERMISSION);
+        }
+
+        @Test
+        @DisplayName("상품 변형 Id로 장바구니에 있는 상품을 삭제한다")
+        void deleteByProductVariantIds(){
+            //given
+            Cart cart = Cart.create(1L);
+            cart.addItem(1L, 3);
+            CartItem item2 = cart.addItem(2L, 5);
+            cartRepository.save(cart);
+            //when
+            cartService.deleteByProductVariantIds(1L, List.of(1L));
+            //then
+            Optional<Cart> findCart = cartRepository.findWithItemsByUserId(1L);
+            assertThat(findCart).isNotEmpty();
+            assertThat(findCart.get().getCartItems()).hasSize(1);
+            assertThat(findCart.get().getCartItems())
+                    .extracting(CartItem::getId, CartItem::getProductVariantId, CartItem::getQuantity)
+                    .containsExactly(
+                            tuple(item2.getId(), item2.getProductVariantId(), item2.getQuantity())
+                    );
+        }
     }
 
-    @Test
-    @DisplayName("장바구니 상품 목록을 조회할때 해당 유저의 장바구니가 존재하지 않으면 빈 리스트를 반환한다")
-    void getCartItemsWhenNotFoundCart(){
-        //given
-        //when
-        List<CartItemDto> cartItems = cartService.getCartItems(1L);
-        //then
-        assertThat(cartItems).hasSize(0);
-    }
+    @Nested
+    @DisplayName("장바구니 비우기")
+    class ClearCart {
 
-    @Test
-    @DisplayName("장바구니 상품 목록을 조회할때 해당 유저의 장바구니에 상품이 존재하지 않으면 빈 리스트를 반환한다")
-    void getCatItemsWhenCartItemEmpty() {
-        //given
-        Cart cart = Cart.create(1L);
-        cartRepository.save(cart);
-        //when
-        List<CartItemDto> cartItems = cartService.getCartItems(1L);
-        //then
-        assertThat(cartItems).hasSize(0);
-    }
-    
-    @Test
-    @DisplayName("장바구니에 담긴 상품을 삭제한다")
-    void deleteCartItem() {
-        //given
-        Cart cart = Cart.create(1L);
-        CartItem item1 = CartItem.create(1L, 3);
-        CartItem item2 = CartItem.create(2L, 2);
-        cart.addCartItem(item1);
-        cart.addCartItem(item2);
-        cartRepository.save(cart);
-        //when
-        cartService.deleteCartItem(1L, item1.getId());
-        em.flush();
-        em.clear();
-        //then
-        Optional<Cart> findCart = cartRepository.findWithItemsByUserId(1L);
-        assertThat(findCart).isNotEmpty();
-        assertThat(findCart.get().getCartItems()).hasSize(1);
-        assertThat(findCart.get().getCartItems())
-                .extracting("productVariantId", "quantity")
-                .contains(
-                        tuple(2L, 2)
-                );
-    }
-
-    @Test
-    @DisplayName("없는 상품을 삭제하려는 경우 예외를 던진다")
-    void deleteCartItemWhenCartItemNotFound() {
-        //given
-        //when
-        //then
-        assertThatThrownBy(() -> cartService.deleteCartItem(1L, 1L))
-                .isInstanceOf(BusinessException.class)
-                .extracting("errorCode")
-                .isEqualTo(CartErrorCode.CART_ITEM_NOT_FOUND);
-    }
-
-    @Test
-    @DisplayName("다른 사용자의 장바구니 상품을 삭제하려 하면 예외를 던진다")
-    void deleteCartItemWhenNoPermissionException() {
-        //given
-        Cart cart = Cart.create(1L);
-        CartItem item1 = CartItem.create(1L, 3);
-        CartItem item2 = CartItem.create(2L, 3);
-        cart.addCartItem(item1);
-        cart.addCartItem(item2);
-        cartRepository.save(cart);
-        //when
-        //then
-        assertThatThrownBy(() -> cartService.deleteCartItem(2L, item1.getId()))
-                .isInstanceOf(BusinessException.class)
-                .extracting("errorCode")
-                .isEqualTo(CartErrorCode.CART_NO_PERMISSION);
-    }
-
-    @Test
-    @DisplayName("장바구니에 담긴 상품을 모두 삭제한다")
-    void clearCart() {
-        //given
-        Cart cart = Cart.create(1L);
-        CartItem item1 = CartItem.create(1L, 3);
-        CartItem item2 = CartItem.create(2L, 2);
-
-        cart.addCartItem(item1);
-        cart.addCartItem(item2);
-        cartRepository.save(cart);
-        //when
-        cartService.clearCart(1L);
-        //then
-        Optional<Cart> findCart = cartRepository.findWithItemsByUserId(1L);
-        assertThat(findCart).isNotEmpty();
-        assertThat(findCart.get().getCartItems()).hasSize(0);
-    }
-
-    @Test
-    @DisplayName("장바구니 상품의 수량을 변경한다")
-    void updateQuantity(){
-        //given
-        Cart cart = Cart.create(1L);
-        CartItem item = CartItem.create(1L, 3);
-
-        cart.addCartItem(item);
-        cartRepository.save(cart);
-        //when
-        CartItemDto cartItemDto = cartService.updateQuantity(1L, item.getId(), 5);
-        //then
-        assertThat(cartItemDto.getId()).isEqualTo(item.getId());
-        assertThat(cartItemDto.getQuantity()).isEqualTo(5);
-    }
-
-    @Test
-    @DisplayName("장바구니 수량을 변경할 권한이 없으면 예외를 던진다")
-    void updateQuantityWhenNoPermission(){
-        //given
-        Cart cart = Cart.create(1L);
-        CartItem item = CartItem.create(1L, 3);
-        cart.addCartItem(item);
-        cartRepository.save(cart);
-        //when
-        //then
-        assertThatThrownBy(() -> cartService.updateQuantity(999L, item.getId(), 5))
-                .isInstanceOf(BusinessException.class)
-                .extracting("errorCode")
-                .isEqualTo(CartErrorCode.CART_NO_PERMISSION);
-    }
-
-    @Test
-    @DisplayName("상품 변형 Id로 장바구니에 있는 상품을 삭제한다")
-    void deleteByProductVariantIds(){
-        //given
-        Cart cart = Cart.create(1L);
-        CartItem item1 = CartItem.create(1L, 3);
-        CartItem item2 = CartItem.create(2L, 5);
-
-        cart.addCartItem(item1);
-        cart.addCartItem(item2);
-        cartRepository.save(cart);
-        //when
-        cartService.deleteByProductVariantIds(1L, List.of(1L));
-        //then
-        Optional<Cart> findCart = cartRepository.findWithItemsByUserId(1L);
-        assertThat(findCart).isNotEmpty();
-        assertThat(findCart.get().getCartItems()).hasSize(1);
-        assertThat(findCart.get().getCartItems())
-                .extracting(CartItem::getProductVariantId)
-                .containsExactly(2L);
+        @Test
+        @DisplayName("장바구니를 모두 비운다")
+        void clearCart(){
+            //given
+            Cart cart = Cart.create(1L);
+            cart.addItem(1L, 2);
+            cart.addItem(2L, 2);
+            cartRepository.save(cart);
+            //when
+            cartService.clearCart(1L);
+            //then
+            Optional<Cart> findCart = cartRepository.findWithItemsByUserId(1L);
+            assertThat(findCart).isNotEmpty();
+            assertThat(findCart.get().getCartItems()).hasSize(0);
+        }
     }
 }

@@ -37,7 +37,7 @@ public class CartEventListenerTest {
         //when
         cartEventListener.handlePaymentResult(event);
         //then
-        verify(cartFacade, times(1)).cleanUpCartAfterOrder(1L, List.of(1L, 2L));
+        verify(cartFacade, times(1)).removePurchasedItems(1L, List.of(1L, 2L));
     }
 
     @Test
@@ -54,7 +54,7 @@ public class CartEventListenerTest {
         //when
         cartEventListener.handlePaymentResult(event);
         //then
-        verify(cartFacade, never()).cleanUpCartAfterOrder(anyLong(), anyList());
+        verify(cartFacade, never()).removePurchasedItems(anyLong(), anyList());
     }
 
 

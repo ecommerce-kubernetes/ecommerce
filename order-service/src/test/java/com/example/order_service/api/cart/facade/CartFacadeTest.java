@@ -77,6 +77,7 @@ public class CartFacadeTest {
                 .quantity(quantity)
                 .build();
     }
+
     @Nested
     @DisplayName("장바구니 추가")
     class AddItem {
@@ -118,12 +119,11 @@ public class CartFacadeTest {
                     .extracting("errorCode")
                     .isEqualTo(CartErrorCode.PRODUCT_NOT_ON_SALE);
         }
-
     }
+
     @Nested
     @DisplayName("장바구니 목록 조회")
     class GetCartDetails {
-
 
         @Test
         @DisplayName("장바구니에 담긴 상품이 없는 경우 빈 리스트를 반환한다")
@@ -137,6 +137,7 @@ public class CartFacadeTest {
             assertThat(result.getCartTotalPrice()).isEqualTo(0L);
             assertThat(result.getCartItems()).isEmpty();
         }
+
         @Test
         @DisplayName("장바구니 목록을 조회한다")
         void getCartDetails(){
@@ -178,11 +179,11 @@ public class CartFacadeTest {
                             tuple(6L, 6L, 1, 9000L, false)
                     );
         }
-
     }
     @Nested
     @DisplayName("장바구니 수정")
     class Update {
+
         @Test
         @DisplayName("장바구니에 상품 수량을 수정하고 수정된 상품 정보가 포함된 응답을 반환한다")
         void updateCartItemQuantity() {
@@ -202,11 +203,27 @@ public class CartFacadeTest {
                             .containsExactly(1L, 3, 27000L, CartItemStatus.AVAILABLE);
         }
 
+        @Test
+        @DisplayName("수량을 변경하려는 상품이 판매중이 아니라면 수량을 변경할 수 없다")
+        void updateCartItemQuantity_product_not_on_sale(){
+            //given
+            UpdateQuantityCommand command = mockUpdateQuantityCommand(1L, 1L, 3);
+            CartItemDto cartItem = createCartItemDto(1L, 1L, 1);
+            CartProductResponse product = createProductResponse(1L, 1L, ProductStatus.STOP_SALE);
+            given(cartService.getCartItem(anyLong(), anyLong())).willReturn(cartItem);
+            given(cartProductClientService.getProduct(anyLong())).willReturn(product);
+            //when
+            //then
+            assertThatThrownBy(() -> cartFacade.updateCartItemQuantity(command))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(CartErrorCode.PRODUCT_NOT_ON_SALE);
+        }
     }
+
     @Nested
     @DisplayName("장바구니 상품 삭제")
     class Delete {
-
 
         @Test
         @DisplayName("장바구니에 담긴 상품을 삭제한다")
@@ -218,6 +235,7 @@ public class CartFacadeTest {
             //then
             verify(cartService, times(1)).deleteCartItem(1L, 1L);
         }
+
         @Test
         @DisplayName("장바구니를 비운다")
         void clearCart(){
@@ -230,17 +248,16 @@ public class CartFacadeTest {
                     .clearCart(1L);
         }
 
-    }
-
-    @Test
-    @DisplayName("결제가 완료하면 주문한 상품을 장바구니에서 지운다")
-    void cleanUpCartAfterOrder(){
-        //given
-        Long userId = 1L;
-        List<Long> productVariantIds = List.of(1L, 2L);
-        //when
-        cartFacade.cleanUpCartAfterOrder(userId, productVariantIds);
-        //then
-        verify(cartService, times(1)).deleteByProductVariantIds(userId, productVariantIds);
+        @Test
+        @DisplayName("결제가 완료하면 주문한 상품을 장바구니에서 지운다")
+        void removePurchasedItems(){
+            //given
+            Long userId = 1L;
+            List<Long> productVariantIds = List.of(1L, 2L);
+            //when
+            cartFacade.removePurchasedItems(userId, productVariantIds);
+            //then
+            verify(cartService, times(1)).deleteByProductVariantIds(userId, productVariantIds);
+        }
     }
 }

@@ -46,12 +46,16 @@ public class CartService {
                 .orElseGet(List::of);
     }
 
+    public CartItemDto updateQuantity(Long userId, Long cartItemId, int quantity){
+        CartItem cartItem = getCartItemByCartItemId(cartItemId);
+        validateCartUserId(cartItem, userId);
+        cartItem.updateQuantity(quantity);
+        return CartItemDto.from(cartItem);
+    }
+
     public void deleteCartItem(Long userId, Long cartItemId){
         CartItem cartItem = getCartItemByCartItemId(cartItemId);
-
-        if(!cartItem.getCart().isOwner(userId)){
-            throw new BusinessException(CartErrorCode.CART_NO_PERMISSION);
-        }
+        validateCartUserId(cartItem, userId);
         cartItem.removeFromCart();
         cartItemRepository.delete(cartItem);
     }
@@ -61,18 +65,9 @@ public class CartService {
                 .ifPresent(Cart::clearItems);
     }
 
-    public CartItemDto updateQuantity(Long userId, Long cartItemId, int quantity){
-        CartItem cartItem = getCartItemByCartItemId(cartItemId);
-        if (!cartItem.getCart().isOwner(userId)) {
-            throw new BusinessException(CartErrorCode.CART_NO_PERMISSION);
-        }
-        cartItem.updateQuantity(quantity);
-        return CartItemDto.from(cartItem);
-    }
-
     public void deleteByProductVariantIds(Long userId, List<Long> productVariantIds) {
         Cart cart = getCartWithItemsByUserId(userId);
-        cart.deleteItemByProductVariantIds(productVariantIds);
+        cart.removeItemsByVariantIds(productVariantIds);
     }
 
     private List<CartItemDto> createCartItemDtoList(Cart cart){
@@ -88,5 +83,11 @@ public class CartService {
     private CartItem getCartItemByCartItemId(Long cartItemId) {
         return cartItemRepository.findById(cartItemId)
                 .orElseThrow(() -> new BusinessException(CartErrorCode.CART_ITEM_NOT_FOUND));
+    }
+
+    private void validateCartUserId(CartItem cartItem, Long userId) {
+        if (!cartItem.getCart().isOwner(userId)) {
+            throw new BusinessException(CartErrorCode.CART_NO_PERMISSION);
+        }
     }
 }
