@@ -1,0 +1,102 @@
+package com.example.product_service.api.product.domain.model;
+
+import com.example.product_service.api.common.exception.BusinessException;
+import com.example.product_service.api.common.exception.ProductErrorCode;
+import com.example.product_service.api.option.domain.model.OptionValue;
+import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+@Entity
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Getter
+public class ProductVariant {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_id")
+    private Product product;
+
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "productVariant", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ProductVariantOption> productVariantOptions = new ArrayList<>();
+
+    private String sku;
+    private Long price;
+    private Long originalPrice;
+    private Long discountAmount;
+    private Integer stockQuantity;
+    private Integer discountRate;
+
+    @Builder(access = AccessLevel.PRIVATE)
+    private ProductVariant(String sku, Long price, Long originalPrice, Long discountAmount, Integer stockQuantity, Integer discountRate) {
+        this.sku = sku;
+        this.price = price;
+        this.originalPrice = originalPrice;
+        this.discountAmount = discountAmount;
+        this.stockQuantity = stockQuantity;
+        this.discountRate = discountRate;
+    }
+
+    public static ProductVariant create(String sku, Long originalPrice, Integer stockQuantity, Integer discountRate) {
+        Long discountAmount = calculateDiscountAmount(originalPrice, discountRate);
+        return ProductVariant.builder()
+                .sku(sku)
+                .originalPrice(originalPrice)
+                .price(originalPrice - discountAmount)
+                .discountAmount(discountAmount)
+                .stockQuantity(stockQuantity)
+                .discountRate(discountRate)
+                .build();
+    }
+
+    public void deductStock(int stock) {
+        if (this.stockQuantity < stock) {
+            throw new BusinessException(ProductErrorCode.VARIANT_OUT_OF_STOCK);
+        }
+        this.stockQuantity -= stock;
+    }
+
+    public void restoreStock(int stock) {
+        this.stockQuantity += stock;
+    }
+
+    public boolean hasSameOptions(Set<Long> targetOptionIds) {
+        Set<Long> optionIds = this.productVariantOptions.stream()
+                .map(o -> o.getOptionValue().getId())
+                .collect(Collectors.toSet());
+        return optionIds.equals(targetOptionIds);
+    }
+
+    public void addProductVariantOptions(List<OptionValue> optionValues) {
+        validateDuplicateOptions(optionValues);
+        List<ProductVariantOption> productVariantOptionList = optionValues.stream().map(optionValue -> ProductVariantOption.create(this, optionValue)).toList();
+        this.productVariantOptions.addAll(productVariantOptionList);
+    }
+
+    private void validateDuplicateOptions(List<OptionValue> optionValues){
+        Set<Long> distinctIds = optionValues.stream().map(OptionValue::getId).collect(Collectors.toSet());
+        if (distinctIds.size() != optionValues.size()) {
+            throw new BusinessException(ProductErrorCode.VARIANT_DUPLICATE_OPTION);
+        }
+    }
+
+    private static Long calculateDiscountAmount(Long originalPrice, Integer discountRate) {
+        if (discountRate == null || discountRate == 0 ){
+            return 0L;
+        }
+        return (long) (originalPrice * (discountRate / 100.0));
+    }
+
+    protected void setProduct(Product product) {
+        this.product = product;
+    }
+}

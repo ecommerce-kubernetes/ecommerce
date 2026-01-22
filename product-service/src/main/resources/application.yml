@@ -1,0 +1,12 @@
+spring:
+  jpa:
+    properties:
+      hibernate:
+        default_batch_fetch_size: 100
+
+product:
+  topics:
+    ## 주문 상품 재고 감소 요청 토픽
+    saga-command: "product.saga.command"
+    ## 주문 상품 재고 감소 응답 토픽
+    saga-reply: "product.saga.reply"

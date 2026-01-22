@@ -22,6 +22,20 @@ spring:
   flyway:
     enabled: false
 
-swagger:
-  allowed-origins:
-    - "http://localhost:8000"
+product:
+  topics:
+    ## 주문 상품 재고 감소 요청 토픽
+    saga-command: "product.saga.command"
+    ## 주문 상품 재고 감소 응답 토픽
+    saga-reply: "product.saga.reply"
+---
+spring:
+  config:
+    activate:
+      on-profile: test-mock
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration
+  cloud:
+    bus:
+      enabled: false
