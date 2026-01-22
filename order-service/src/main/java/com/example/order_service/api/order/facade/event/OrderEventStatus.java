@@ -1,4 +1,4 @@
-package com.example.order_service.api.order.application.event;
+package com.example.order_service.api.order.facade.event;
 
 import lombok.RequiredArgsConstructor;
 

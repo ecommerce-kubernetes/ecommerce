@@ -1,7 +1,7 @@
 package com.example.order_service.api.support.fixture;
 
-import com.example.order_service.api.order.application.dto.command.CreateOrderDto;
-import com.example.order_service.api.order.application.dto.command.CreateOrderItemDto;
+import com.example.order_service.api.order.facade.dto.command.CreateOrderDto;
+import com.example.order_service.api.order.facade.dto.command.CreateOrderItemDto;
 import com.example.order_service.api.order.domain.model.OrderFailureCode;
 import com.example.order_service.api.order.domain.model.OrderStatus;
 import com.example.order_service.api.order.domain.model.vo.AppliedCoupon;

@@ -1,8 +1,8 @@
 package com.example.order_service.api.order.saga.listener;
 
-import com.example.order_service.api.order.application.OrderApplicationService;
-import com.example.order_service.api.order.application.event.OrderCreatedEvent;
-import com.example.order_service.api.order.application.event.PaymentResultEvent;
+import com.example.order_service.api.order.facade.OrderFacade;
+import com.example.order_service.api.order.facade.event.OrderCreatedEvent;
+import com.example.order_service.api.order.facade.event.PaymentResultEvent;
 import com.example.order_service.api.order.saga.orchestrator.SagaManager;
 import com.example.order_service.api.order.saga.orchestrator.dto.command.SagaPaymentCommand;
 import com.example.order_service.api.order.saga.orchestrator.dto.command.SagaStartCommand;
@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class OrderEventListener {
 
-    private final OrderApplicationService orderApplicationService;
+    private final OrderFacade orderFacade;
     private final SagaManager sagaManager;
 
     @EventListener
@@ -33,11 +33,11 @@ public class OrderEventListener {
 
     @EventListener
     public void handleSagaCompleted(SagaResourceSecuredEvent event){
-        orderApplicationService.preparePayment(event.getOrderNo());
+        orderFacade.preparePayment(event.getOrderNo());
     }
 
     @EventListener
     public void handleSagaAborted(SagaAbortEvent event) {
-        orderApplicationService.processOrderFailure(event.getOrderNo(), event.getOrderFailureCode());
+        orderFacade.processOrderFailure(event.getOrderNo(), event.getOrderFailureCode());
     }
 }

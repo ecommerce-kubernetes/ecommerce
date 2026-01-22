@@ -1,19 +1,19 @@
-package com.example.order_service.api.order.application;
+package com.example.order_service.api.order.facade;
 
 import com.example.order_service.api.common.dto.PageDto;
 import com.example.order_service.api.common.exception.BusinessException;
 import com.example.order_service.api.common.exception.CommonErrorCode;
 import com.example.order_service.api.common.exception.OrderErrorCode;
 import com.example.order_service.api.common.exception.PaymentErrorCode;
-import com.example.order_service.api.order.application.dto.command.CreateOrderDto;
-import com.example.order_service.api.order.application.dto.result.CreateOrderResponse;
-import com.example.order_service.api.order.application.dto.result.OrderDetailResponse;
-import com.example.order_service.api.order.application.dto.result.OrderItemResponse;
-import com.example.order_service.api.order.application.dto.result.OrderListResponse;
-import com.example.order_service.api.order.application.event.OrderCreatedEvent;
-import com.example.order_service.api.order.application.event.OrderEventStatus;
-import com.example.order_service.api.order.application.event.OrderResultEvent;
-import com.example.order_service.api.order.application.event.PaymentResultEvent;
+import com.example.order_service.api.order.facade.dto.command.CreateOrderDto;
+import com.example.order_service.api.order.facade.dto.result.CreateOrderResponse;
+import com.example.order_service.api.order.facade.dto.result.OrderDetailResponse;
+import com.example.order_service.api.order.facade.dto.result.OrderItemResponse;
+import com.example.order_service.api.order.facade.dto.result.OrderListResponse;
+import com.example.order_service.api.order.facade.event.OrderCreatedEvent;
+import com.example.order_service.api.order.facade.event.OrderEventStatus;
+import com.example.order_service.api.order.facade.event.OrderResultEvent;
+import com.example.order_service.api.order.facade.event.PaymentResultEvent;
 import com.example.order_service.api.order.controller.dto.request.OrderSearchCondition;
 import com.example.order_service.api.order.domain.model.OrderFailureCode;
 import com.example.order_service.api.order.domain.model.OrderStatus;
@@ -45,10 +45,10 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
-public class OrderApplicationServiceTest {
+public class OrderFacadeTest {
 
     @InjectMocks
-    private OrderApplicationService orderApplicationService;
+    private OrderFacade orderFacade;
     @Mock
     private OrderExternalAdaptor orderExternalAdaptor;
     @Mock
@@ -69,7 +69,7 @@ public class OrderApplicationServiceTest {
 
     @Test
     @DisplayName("주문을 생성한다")
-    void placeOrder(){
+    void initialOrder(){
         //given
         CreateOrderDto orderRequest = createOrderRequest(USER_ID,
                 createRequestItem(1L, 3), createRequestItem(2L, 5));
@@ -86,7 +86,7 @@ public class OrderApplicationServiceTest {
         given(orderDomainService.saveOrder(any(CreateOrderCommand.class)))
                 .willReturn(mockSavedOrder(OrderStatus.PENDING, expectedAmount));
         //when
-        CreateOrderResponse response = orderApplicationService.placeOrder(orderRequest);
+        CreateOrderResponse response = orderFacade.initialOrder(orderRequest);
         //then
         assertThat(response.getOrderNo()).isNotNull();
         assertThat(response)
@@ -119,7 +119,7 @@ public class OrderApplicationServiceTest {
         given(orderDomainService.changeOrderStatus(ORDER_NO, OrderStatus.PAYMENT_WAITING))
                 .willReturn(orderDto);
         //when
-        orderApplicationService.preparePayment(ORDER_NO);
+        orderFacade.preparePayment(ORDER_NO);
         //then
         verify(orderDomainService, times(1)).changeOrderStatus(ORDER_NO, OrderStatus.PAYMENT_WAITING);
         verify(eventPublisher, times(1)).publishEvent(orderResultEventCaptor.capture());
@@ -140,7 +140,7 @@ public class OrderApplicationServiceTest {
         given(orderDomainService.canceledOrder(ORDER_NO, failureCode))
                 .willReturn(canceledOrder);
         //when
-        orderApplicationService.processOrderFailure(ORDER_NO, failureCode);
+        orderFacade.processOrderFailure(ORDER_NO, failureCode);
         //then
         verify(orderDomainService, times(1)).canceledOrder(ORDER_NO, failureCode);
 
@@ -170,7 +170,7 @@ public class OrderApplicationServiceTest {
         given(orderDomainService.completedOrder(any(PaymentCreationCommand.class)))
                 .willReturn(completedOrder);
         //when
-        OrderDetailResponse result = orderApplicationService.finalizeOrder(ORDER_NO, USER_ID, paymentKey, amount);
+        OrderDetailResponse result = orderFacade.finalizeOrder(ORDER_NO, USER_ID, paymentKey, amount);
         //then
         assertThat(result)
                 .extracting(OrderDetailResponse::getOrderNo, OrderDetailResponse::getUserId, OrderDetailResponse::getOrderStatus, OrderDetailResponse::getOrderName,
@@ -194,7 +194,7 @@ public class OrderApplicationServiceTest {
                 .willReturn(invalidStatusOrder);
         //when
         //then
-        assertThatThrownBy(() -> orderApplicationService.finalizeOrder(ORDER_NO, USER_ID, "paymentKey", FIXED_FINAL_PRICE))
+        assertThatThrownBy(() -> orderFacade.finalizeOrder(ORDER_NO, USER_ID, "paymentKey", FIXED_FINAL_PRICE))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(OrderErrorCode.ORDER_NOT_PAYABLE);
@@ -210,7 +210,7 @@ public class OrderApplicationServiceTest {
                 .willReturn(orderDto);
         //when
         //then
-        assertThatThrownBy(() -> orderApplicationService.finalizeOrder(ORDER_NO, USER_ID, "paymentKey", requestedAmount))
+        assertThatThrownBy(() -> orderFacade.finalizeOrder(ORDER_NO, USER_ID, "paymentKey", requestedAmount))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(OrderErrorCode.ORDER_PRICE_MISMATCH);
@@ -233,7 +233,7 @@ public class OrderApplicationServiceTest {
                 .willReturn(failureOrder);
         //when
         //then
-        assertThatThrownBy(() -> orderApplicationService.finalizeOrder(ORDER_NO, USER_ID, paymentKey, FIXED_FINAL_PRICE))
+        assertThatThrownBy(() -> orderFacade.finalizeOrder(ORDER_NO, USER_ID, paymentKey, FIXED_FINAL_PRICE))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage(failureMessage);
 
@@ -263,7 +263,7 @@ public class OrderApplicationServiceTest {
                 .willReturn(canceledOrder);
         //when
         //then
-        assertThatThrownBy(() -> orderApplicationService.finalizeOrder(ORDER_NO, USER_ID, paymentKey, FIXED_FINAL_PRICE))
+        assertThatThrownBy(() -> orderFacade.finalizeOrder(ORDER_NO, USER_ID, paymentKey, FIXED_FINAL_PRICE))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(CommonErrorCode.INTERNAL_ERROR);
@@ -283,7 +283,7 @@ public class OrderApplicationServiceTest {
         given(orderDomainService.getOrder(anyString(), anyLong()))
                 .willReturn(orderDto);
         //when
-        OrderDetailResponse result = orderApplicationService.getOrder(USER_ID, ORDER_NO);
+        OrderDetailResponse result = orderFacade.getOrder(USER_ID, ORDER_NO);
         //then
         assertThat(result)
                 .extracting(OrderDetailResponse::getOrderNo, OrderDetailResponse::getUserId, OrderDetailResponse::getOrderStatus, OrderDetailResponse::getOrderName,
@@ -345,7 +345,7 @@ public class OrderApplicationServiceTest {
         given(orderDomainService.getOrders(anyLong(), any(OrderSearchCondition.class)))
                 .willReturn(pageOrderDto);
         //when
-        PageDto<OrderListResponse> result = orderApplicationService.getOrders(USER_ID, condition);
+        PageDto<OrderListResponse> result = orderFacade.getOrders(USER_ID, condition);
         //then
         assertThat(result)
                 .extracting(

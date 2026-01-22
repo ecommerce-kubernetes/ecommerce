@@ -1,6 +1,6 @@
 package com.example.order_service.api.order.saga.orchestrator.dto.command;
 
-import com.example.order_service.api.order.application.event.OrderCreatedEvent;
+import com.example.order_service.api.order.facade.event.OrderCreatedEvent;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

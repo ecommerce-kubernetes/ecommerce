@@ -2,8 +2,8 @@ package com.example.order_service.api.cart.listener;
 
 import com.example.order_service.api.cart.facade.CartFacade;
 import com.example.order_service.api.cart.listener.event.CartEventListener;
-import com.example.order_service.api.order.application.event.OrderEventStatus;
-import com.example.order_service.api.order.application.event.PaymentResultEvent;
+import com.example.order_service.api.order.facade.event.OrderEventStatus;
+import com.example.order_service.api.order.facade.event.PaymentResultEvent;
 import com.example.order_service.api.order.domain.model.OrderFailureCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

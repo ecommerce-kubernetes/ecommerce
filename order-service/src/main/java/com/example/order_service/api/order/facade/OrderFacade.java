@@ -1,4 +1,4 @@
-package com.example.order_service.api.order.application;
+package com.example.order_service.api.order.facade;
 
 import com.example.order_service.api.common.dto.PageDto;
 import com.example.order_service.api.common.exception.BusinessException;
@@ -6,14 +6,14 @@ import com.example.order_service.api.common.exception.CommonErrorCode;
 import com.example.order_service.api.common.exception.ErrorCode;
 import com.example.order_service.api.common.exception.OrderErrorCode;
 import com.example.order_service.api.common.util.AsyncUtil;
-import com.example.order_service.api.order.application.dto.command.CreateOrderDto;
-import com.example.order_service.api.order.application.dto.result.CreateOrderResponse;
-import com.example.order_service.api.order.application.dto.result.OrderDetailResponse;
-import com.example.order_service.api.order.application.dto.result.OrderListResponse;
-import com.example.order_service.api.order.application.event.OrderCreatedEvent;
-import com.example.order_service.api.order.application.event.OrderEventStatus;
-import com.example.order_service.api.order.application.event.OrderResultEvent;
-import com.example.order_service.api.order.application.event.PaymentResultEvent;
+import com.example.order_service.api.order.facade.dto.command.CreateOrderDto;
+import com.example.order_service.api.order.facade.dto.result.CreateOrderResponse;
+import com.example.order_service.api.order.facade.dto.result.OrderDetailResponse;
+import com.example.order_service.api.order.facade.dto.result.OrderListResponse;
+import com.example.order_service.api.order.facade.event.OrderCreatedEvent;
+import com.example.order_service.api.order.facade.event.OrderEventStatus;
+import com.example.order_service.api.order.facade.event.OrderResultEvent;
+import com.example.order_service.api.order.facade.event.PaymentResultEvent;
 import com.example.order_service.api.order.controller.dto.request.OrderSearchCondition;
 import com.example.order_service.api.order.domain.model.OrderFailureCode;
 import com.example.order_service.api.order.domain.model.OrderStatus;
@@ -42,7 +42,7 @@ import java.util.concurrent.CompletableFuture;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class OrderApplicationService {
+public class OrderFacade {
 
     private final OrderExternalAdaptor orderExternalAdaptor;
     private final OrderPriceCalculator calculator;
@@ -50,7 +50,7 @@ public class OrderApplicationService {
     private final OrderDomainService orderDomainService;
     private final ApplicationEventPublisher eventPublisher;
 
-    public CreateOrderResponse placeOrder(CreateOrderDto dto){
+    public CreateOrderResponse initialOrder(CreateOrderDto dto){
         //CompletableFuture 을 사용해서 상품, 유저 요청을 비동기로 동시에 조회
         CompletableFuture<OrderUserResponse> userFuture = CompletableFuture.supplyAsync(() -> orderExternalAdaptor.getOrderUser(dto.getUserId()));
         CompletableFuture<List<OrderProductResponse>> productFuture = CompletableFuture.supplyAsync(() -> orderExternalAdaptor.getOrderProducts(dto.getOrderItemDtoList()));

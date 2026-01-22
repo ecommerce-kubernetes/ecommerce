@@ -1,9 +1,9 @@
 package com.example.order_service.api.order.saga.listener;
 
-import com.example.order_service.api.order.application.OrderApplicationService;
-import com.example.order_service.api.order.application.event.OrderCreatedEvent;
-import com.example.order_service.api.order.application.event.OrderEventStatus;
-import com.example.order_service.api.order.application.event.PaymentResultEvent;
+import com.example.order_service.api.order.facade.OrderFacade;
+import com.example.order_service.api.order.facade.event.OrderCreatedEvent;
+import com.example.order_service.api.order.facade.event.OrderEventStatus;
+import com.example.order_service.api.order.facade.event.PaymentResultEvent;
 import com.example.order_service.api.order.domain.model.OrderFailureCode;
 import com.example.order_service.api.order.saga.orchestrator.SagaManager;
 import com.example.order_service.api.order.saga.orchestrator.dto.command.SagaPaymentCommand;
@@ -33,7 +33,7 @@ public class OrderEventListenerTest {
     @Mock
     private SagaManager sagaManager;
     @Mock
-    private OrderApplicationService orderApplicationService;
+    private OrderFacade orderFacade;
     public static final String ORDER_NO = "ORD-20260101-AB12FVC";
 
     @Test
@@ -83,7 +83,7 @@ public class OrderEventListenerTest {
         //when
         orderEventListener.handleSagaCompleted(sagaResourceSecuredEvent);
         //then
-        verify(orderApplicationService, times(1)).preparePayment(ORDER_NO);
+        verify(orderFacade, times(1)).preparePayment(ORDER_NO);
     }
 
     @Test
@@ -94,7 +94,7 @@ public class OrderEventListenerTest {
         //when
         orderEventListener.handleSagaAborted(sagaAbortEvent);
         //then
-        verify(orderApplicationService, times(1)).processOrderFailure(ORDER_NO, OrderFailureCode.OUT_OF_STOCK);
+        verify(orderFacade, times(1)).processOrderFailure(ORDER_NO, OrderFailureCode.OUT_OF_STOCK);
     }
 
     @Test

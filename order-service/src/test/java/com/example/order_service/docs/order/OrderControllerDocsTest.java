@@ -1,12 +1,12 @@
 package com.example.order_service.docs.order;
 
 import com.example.order_service.api.common.dto.PageDto;
-import com.example.order_service.api.order.application.OrderApplicationService;
-import com.example.order_service.api.order.application.dto.command.CreateOrderDto;
-import com.example.order_service.api.order.application.dto.result.CreateOrderResponse;
-import com.example.order_service.api.order.application.dto.result.OrderDetailResponse;
-import com.example.order_service.api.order.application.dto.result.OrderItemResponse;
-import com.example.order_service.api.order.application.dto.result.OrderListResponse;
+import com.example.order_service.api.order.facade.OrderFacade;
+import com.example.order_service.api.order.facade.dto.command.CreateOrderDto;
+import com.example.order_service.api.order.facade.dto.result.CreateOrderResponse;
+import com.example.order_service.api.order.facade.dto.result.OrderDetailResponse;
+import com.example.order_service.api.order.facade.dto.result.OrderItemResponse;
+import com.example.order_service.api.order.facade.dto.result.OrderListResponse;
 import com.example.order_service.api.order.controller.OrderController;
 import com.example.order_service.api.order.controller.dto.request.CreateOrderItemRequest;
 import com.example.order_service.api.order.controller.dto.request.CreateOrderRequest;
@@ -38,11 +38,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 public class OrderControllerDocsTest extends RestDocSupport {
     private static final String ORDER_NO = "ORD-20260101-AB12FVC";
-    private OrderApplicationService orderApplicationService = mock(OrderApplicationService.class);
+    private OrderFacade orderFacade = mock(OrderFacade.class);
 
     @Override
     protected Object initController() {
-        return new OrderController(orderApplicationService);
+        return new OrderController(orderFacade);
     }
 
     @Test
@@ -70,7 +70,7 @@ public class OrderControllerDocsTest extends RestDocSupport {
                 .build();
 
         HttpHeaders roleUser = createUserHeader("ROLE_USER");
-        given(orderApplicationService.placeOrder(any(CreateOrderDto.class)))
+        given(orderFacade.initialOrder(any(CreateOrderDto.class)))
                 .willReturn(response);
 
         //when
@@ -121,7 +121,7 @@ public class OrderControllerDocsTest extends RestDocSupport {
                 .build();
         HttpHeaders roleUser = createUserHeader("ROLE_USER");
         OrderDetailResponse orderDetailResponse = createOrderResponse();
-        given(orderApplicationService.finalizeOrder(anyString(), anyLong(), anyString(), anyLong()))
+        given(orderFacade.finalizeOrder(anyString(), anyLong(), anyString(), anyLong()))
                 .willReturn(orderDetailResponse);
         //when
         //then
@@ -189,7 +189,7 @@ public class OrderControllerDocsTest extends RestDocSupport {
         //given
         OrderDetailResponse orderDetailResponse = createOrderResponse();
         HttpHeaders roleUser = createUserHeader("ROLE_USER");
-        given(orderApplicationService.getOrder(anyLong(), anyString()))
+        given(orderFacade.getOrder(anyLong(), anyString()))
                 .willReturn(orderDetailResponse);
         //when
         //then
@@ -259,7 +259,7 @@ public class OrderControllerDocsTest extends RestDocSupport {
                 .pageSize(10)
                 .totalElement(100)
                 .build();
-        given(orderApplicationService.getOrders(anyLong(), any(OrderSearchCondition.class)))
+        given(orderFacade.getOrders(anyLong(), any(OrderSearchCondition.class)))
                 .willReturn(response);
         //when
         //then

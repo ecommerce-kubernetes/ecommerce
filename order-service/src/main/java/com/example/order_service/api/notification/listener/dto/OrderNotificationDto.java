@@ -1,6 +1,6 @@
 package com.example.order_service.api.notification.listener.dto;
 
-import com.example.order_service.api.order.application.event.OrderResultEvent;
+import com.example.order_service.api.order.facade.event.OrderResultEvent;
 import lombok.Builder;
 import lombok.Getter;
 

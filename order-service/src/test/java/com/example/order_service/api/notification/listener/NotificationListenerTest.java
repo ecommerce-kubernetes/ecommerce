@@ -2,8 +2,8 @@ package com.example.order_service.api.notification.listener;
 
 import com.example.order_service.api.notification.listener.dto.OrderNotificationDto;
 import com.example.order_service.api.notification.service.NotificationService;
-import com.example.order_service.api.order.application.event.OrderEventStatus;
-import com.example.order_service.api.order.application.event.OrderResultEvent;
+import com.example.order_service.api.order.facade.event.OrderEventStatus;
+import com.example.order_service.api.order.facade.event.OrderResultEvent;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

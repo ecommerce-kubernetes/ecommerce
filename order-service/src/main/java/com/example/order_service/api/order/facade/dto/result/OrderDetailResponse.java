@@ -1,4 +1,4 @@
-package com.example.order_service.api.order.application.dto.result;
+package com.example.order_service.api.order.facade.dto.result;
 
 import com.example.order_service.api.order.domain.model.vo.AppliedCoupon;
 import com.example.order_service.api.order.domain.model.vo.OrderPriceInfo;

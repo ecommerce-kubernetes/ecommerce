@@ -2,12 +2,12 @@ package com.example.order_service.api.order.controller;
 
 import com.example.order_service.api.common.dto.PageDto;
 import com.example.order_service.api.common.security.model.UserPrincipal;
-import com.example.order_service.api.order.application.OrderApplicationService;
-import com.example.order_service.api.order.application.dto.command.CreateOrderDto;
-import com.example.order_service.api.order.application.dto.command.CreateOrderItemDto;
-import com.example.order_service.api.order.application.dto.result.CreateOrderResponse;
-import com.example.order_service.api.order.application.dto.result.OrderDetailResponse;
-import com.example.order_service.api.order.application.dto.result.OrderListResponse;
+import com.example.order_service.api.order.facade.OrderFacade;
+import com.example.order_service.api.order.facade.dto.command.CreateOrderDto;
+import com.example.order_service.api.order.facade.dto.command.CreateOrderItemDto;
+import com.example.order_service.api.order.facade.dto.result.CreateOrderResponse;
+import com.example.order_service.api.order.facade.dto.result.OrderDetailResponse;
+import com.example.order_service.api.order.facade.dto.result.OrderListResponse;
 import com.example.order_service.api.order.controller.dto.request.CreateOrderRequest;
 import com.example.order_service.api.order.controller.dto.request.OrderConfirmRequest;
 import com.example.order_service.api.order.controller.dto.request.OrderSearchCondition;
@@ -27,7 +27,7 @@ import java.util.List;
 @PreAuthorize("hasRole('USER')")
 public class OrderController {
 
-    private final OrderApplicationService orderApplicationService;
+    private final OrderFacade orderFacade;
 
     @PostMapping
     public ResponseEntity<CreateOrderResponse> createOrder(@AuthenticationPrincipal UserPrincipal userPrincipal,
@@ -42,28 +42,28 @@ public class OrderController {
                 .expectedPrice(request.getExpectedPrice())
                 .build();
 
-        CreateOrderResponse response = orderApplicationService.placeOrder(command);
+        CreateOrderResponse response = orderFacade.initialOrder(command);
         return ResponseEntity.status(HttpStatus.SC_ACCEPTED).body(response);
     }
 
     @GetMapping("/{orderNo}")
     public ResponseEntity<OrderDetailResponse> getOrder(@AuthenticationPrincipal UserPrincipal userPrincipal,
                                                         @PathVariable("orderNo") String orderNo) {
-        OrderDetailResponse response = orderApplicationService.getOrder(userPrincipal.getUserId(), orderNo);
+        OrderDetailResponse response = orderFacade.getOrder(userPrincipal.getUserId(), orderNo);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping
     public ResponseEntity<PageDto<OrderListResponse>> getOrders(@AuthenticationPrincipal UserPrincipal userPrincipal,
                                                                 @ModelAttribute OrderSearchCondition condition) {
-        PageDto<OrderListResponse> orders = orderApplicationService.getOrders(userPrincipal.getUserId(), condition);
+        PageDto<OrderListResponse> orders = orderFacade.getOrders(userPrincipal.getUserId(), condition);
         return ResponseEntity.ok(orders);
     }
 
     @PostMapping("/confirm")
     public ResponseEntity<OrderDetailResponse> confirm(@AuthenticationPrincipal UserPrincipal userPrincipal,
                                                        @RequestBody @Validated OrderConfirmRequest request) {
-        OrderDetailResponse response = orderApplicationService.finalizeOrder(request.getOrderNo(),
+        OrderDetailResponse response = orderFacade.finalizeOrder(request.getOrderNo(),
                 userPrincipal.getUserId(), request.getPaymentKey(), request.getAmount());
         return ResponseEntity.ok(response);
     }
