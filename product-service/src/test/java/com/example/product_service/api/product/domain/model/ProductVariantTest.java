@@ -58,4 +58,48 @@ public class ProductVariantTest {
                     .isEqualTo(ProductErrorCode.VARIANT_DUPLICATE_OPTION);
         }
     }
+
+    @Nested
+    @DisplayName("상품 변형 재고 감소")
+    class Deduct {
+
+        @Test
+        @DisplayName("상품 변형 재고를 감소시킨다")
+        void deductStock(){
+            //given
+            ProductVariant variant = ProductVariant.create("TEST", 10000L, 100, 10);
+            //when
+            variant.deductStock(10);
+            //then
+            assertThat(variant.getStockQuantity()).isEqualTo(90);
+        }
+
+        @Test
+        @DisplayName("상품 변형의 재고가 부족한 경우 재고를 감소시킬 수 없다")
+        void deductStock_out_of_stock(){
+            //given
+            ProductVariant variant = ProductVariant.create("TEST", 10000L, 10, 10);
+            //when
+            //then
+            assertThatThrownBy(() -> variant.deductStock(11))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(ProductErrorCode.VARIANT_OUT_OF_STOCK);
+        }
+    }
+
+    @Nested
+    @DisplayName("상품 변형 재고 복구")
+    class Restore {
+        @Test
+        @DisplayName("상품 변형 재고를 복구한다")
+        void restore(){
+            //given
+            ProductVariant variant = ProductVariant.create("TEST", 10000L, 100, 10);
+            //when
+            variant.restoreStock(10);
+            //then
+            assertThat(variant.getStockQuantity()).isEqualTo(110);
+        }
+    }
 }

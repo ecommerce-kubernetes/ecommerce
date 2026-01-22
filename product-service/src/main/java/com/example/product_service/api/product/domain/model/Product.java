@@ -118,10 +118,12 @@ public class Product extends BaseEntity {
     }
 
     public void replaceImages(List<String> imageUrls) {
+        // 상품이 삭제된 경우 상품 이미지를 추가할 수 없다
         if (this.status == ProductStatus.DELETED) {
             throw new BusinessException(ProductErrorCode.PRODUCT_NOT_FOUND);
         }
 
+        // 판매중인 상품이라면 상품 이미지가 존재해야한다
         if (this.status == ProductStatus.ON_SALE) {
             if (imageUrls == null || imageUrls.isEmpty()) {
                 throw new BusinessException(ProductErrorCode.IMAGE_REQUIRED_ON_SALE);
@@ -169,19 +171,24 @@ public class Product extends BaseEntity {
     }
 
     private void validateAddableVariant(ProductVariant productVariant) {
+        // 삭제된 상품이면 상품 변형을 추가할 수 없다
         if (this.status == ProductStatus.DELETED) {
             throw new BusinessException(ProductErrorCode.PRODUCT_NOT_FOUND);
         }
 
+        // 상품의 옵션과 상품 변형의 옵션의 개수가 동일하지 않으면 상품 변형을 추가할 수 없다
         if (productVariant.getProductVariantOptions().size() != this.options.size()) {
             throw new BusinessException(ProductErrorCode.VARIANT_OPTION_SIZE_MISMATCH);
         }
+        // 상품 변형의 옵션 값이 상품 변형의 옵션 값의 옵션과 동일한지 검증
         validateVariantOptionSpec(productVariant);
+        // 동일한 옵션 조합의 상품 변형이 존재하는지 검증
         validateHasDuplicateVariant(productVariant);
     }
 
     private void validateVariantOptionSpec(ProductVariant productVariant) {
         Set<Long> productOptionTypeIds = this.options.stream().map(po -> po.getOptionType().getId()).collect(Collectors.toSet());
+        //
         for (ProductVariantOption variantOption : productVariant.getProductVariantOptions()) {
             Long variantOptionTypeId = variantOption.getOptionValue().getOptionType().getId();
             if (!productOptionTypeIds.contains(variantOptionTypeId)){

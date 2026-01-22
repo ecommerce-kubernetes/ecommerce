@@ -593,7 +593,12 @@ public class ProductServiceTest extends ExcludeInfraTest {
         void closeProduct() {
             //given
             Category category = saveCategory();
-            Product product = saveProduct(category);
+            Product product = Product.create("상품", "상품 설명", category);
+            ProductVariant variant = ProductVariant.create("TEST", 3000L, 100, 10);
+            product.addVariant(variant);
+            product.replaceImages(List.of("http://image.jpg"));
+            product.publish();
+            productRepository.save(product);
             //when
             ProductStatusResponse result = productService.closedProduct(product.getId());
             //then

@@ -53,6 +53,7 @@ public class InternalProductControllerDocsTest extends RestDocsSupport {
                                 responseFields(
                                         fieldWithPath("productId").description("상품 Id"),
                                         fieldWithPath("productVariantId").description("상품 변형 Id"),
+                                        fieldWithPath("status").description("상품 상태"),
                                         fieldWithPath("sku").description("상품 SKU"),
                                         fieldWithPath("productName").description("상품 이름"),
                                         fieldWithPath("unitPrice.originalPrice").description("상품 변형 원본 가격"),
@@ -92,6 +93,7 @@ public class InternalProductControllerDocsTest extends RestDocsSupport {
                                 responseFields(
                                         fieldWithPath("[].productId").description("상품 Id"),
                                         fieldWithPath("[].productVariantId").description("상품 변형 Id"),
+                                        fieldWithPath("[].status").description("상품 상태"),
                                         fieldWithPath("[].sku").description("상품 SKU"),
                                         fieldWithPath("[].productName").description("상품 이름"),
                                         fieldWithPath("[].unitPrice.originalPrice").description("상품 변형 원본 가격"),
