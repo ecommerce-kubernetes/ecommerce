@@ -102,6 +102,7 @@ public class CartFacadeTest {
                             CartItemResponse::isAvailable)
                     .containsExactly(1L, 1L, 3, 9000L * 3, true);
         }
+
         @Test
         @DisplayName("판매중이 아닌 상품은 장바구니에 추가할 수 없다")
         void addItem_cannot_be_added_product(){

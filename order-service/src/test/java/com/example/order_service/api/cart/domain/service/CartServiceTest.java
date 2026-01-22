@@ -30,11 +30,11 @@ class CartServiceTest extends ExcludeInfraTest {
 
     @Nested
     @DisplayName("장바구니 상품 추가")
-    class AddItem {
+    class AddItemToCart {
 
         @Test
         @DisplayName("처음 장바구니에 상품을 추가하면 장바구니를 생성하고 상품을 추가한다")
-        void addItem_first_add(){
+        void AddItemToCart_first_add(){
             //given
             //when
             CartItemDto result = cartService.addItemToCart(1L, 1L, 3);
@@ -50,7 +50,7 @@ class CartServiceTest extends ExcludeInfraTest {
 
         @Test
         @DisplayName("처음 이후 장바구니에 새로운 상품을 추가하면 기존 장바구니에 상품을 추가한다")
-        void addItem_after_first_add(){
+        void AddItemToCart_after_first_add(){
             //given
             Cart cart = Cart.create(1L);
             cartRepository.save(cart);
@@ -65,11 +65,10 @@ class CartServiceTest extends ExcludeInfraTest {
 
         @Test
         @DisplayName("장바구니에 상품을 추가할때 추가하려는 상품이 이미 장바구니에 존재하는 상품이면 수량을 요청 수량만큼 증가시킨다")
-        void addItem_exist_cart_item() {
+        void AddItemToCart_exist_cart_item() {
             //given
             Cart cart = Cart.create(1L);
-            CartItem cartItem = CartItem.create(1L, 3);
-            cart.addCartItem(cartItem);
+            CartItem existItem = cart.addItem(1L, 3);
             cartRepository.save(cart);
             //when
             CartItemDto result = cartService.addItemToCart(1L, 1L, 2);
@@ -77,8 +76,8 @@ class CartServiceTest extends ExcludeInfraTest {
             assertThat(result.getId()).isNotNull();
 
             assertThat(result)
-                    .extracting(CartItemDto::getProductVariantId, CartItemDto::getQuantity)
-                    .contains(1L, 5);
+                    .extracting(CartItemDto::getId, CartItemDto::getProductVariantId, CartItemDto::getQuantity)
+                    .contains(existItem.getId(), 1L, 5);
         }
     }
 
@@ -87,8 +86,7 @@ class CartServiceTest extends ExcludeInfraTest {
     void getCartItem() {
         //given
         Cart cart = Cart.create(1L);
-        CartItem item = CartItem.create(1L, 3);
-        cart.addCartItem(item);
+        CartItem item = cart.addItem(1L, 3);
         cartRepository.save(cart);
         //when
         CartItemDto cartItem = cartService.getCartItem(1L, item.getId());
@@ -115,8 +113,7 @@ class CartServiceTest extends ExcludeInfraTest {
     void getCartItemWhenNoPermission(){
         //given
         Cart cart = Cart.create(1L);
-        CartItem item = CartItem.create(1L, 3);
-        cart.addCartItem(item);
+        CartItem item = cart.addItem(1L, 3);
         cartRepository.save(cart);
         //when
         //then

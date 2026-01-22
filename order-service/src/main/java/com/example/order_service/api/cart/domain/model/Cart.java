@@ -54,12 +54,12 @@ public class Cart extends BaseEntity {
         if(existCartItem.isPresent()){
             existCartItem.get().addQuantity(quantity);
             return existCartItem.get();
-        } else {
-            CartItem cartItem = CartItem.create(productVariantId, quantity);
-            this.cartItems.add(cartItem);
-            cartItem.setCart(this);
-            return cartItem;
         }
+
+        CartItem cartItem = CartItem.create(productVariantId, quantity);
+        this.cartItems.add(cartItem);
+        cartItem.setCart(this);
+        return cartItem;
     }
 
     public void deleteItemByProductVariantIds(List<Long> productVariantIds) {
