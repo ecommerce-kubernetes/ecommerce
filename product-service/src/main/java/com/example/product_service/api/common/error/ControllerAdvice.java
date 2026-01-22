@@ -1,6 +1,7 @@
 package com.example.product_service.api.common.error;
 
 import com.example.product_service.api.common.error.dto.response.ErrorResponse;
+import com.example.product_service.api.common.exception.BusinessException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -25,6 +26,13 @@ public class ControllerAdvice {
         String message = fieldErrors.get(0).getDefaultMessage();
         ErrorResponse errorResponse = createErrorResponse("VALIDATION", message, now.toString(), request.getRequestURI());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
+
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity<ErrorResponse> businessExceptionHandler(HttpServletRequest request, BusinessException e) {
+        LocalDateTime now = LocalDateTime.now();
+        ErrorResponse errorResponse = createErrorResponse(e.getErrorCode().getCode(), e.getErrorCode().getMessage(), now.toString(), request.getRequestURI());
+        return ResponseEntity.status(e.getErrorCode().getStatus()).body(errorResponse);
     }
 
     private ErrorResponse createErrorResponse(String code, String message, String timestamp, String path){
