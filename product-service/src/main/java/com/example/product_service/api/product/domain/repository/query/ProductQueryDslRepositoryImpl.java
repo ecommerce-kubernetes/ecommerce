@@ -39,7 +39,7 @@ public class ProductQueryDslRepositoryImpl implements ProductQueryDslRepository{
                         product.status.eq(ProductStatus.ON_SALE))
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
-                .orderBy(sortOrder)
+                .orderBy(sortOrder, product.id.desc())
                 .fetch();
 
         Long totalElement = factory.select(product.countDistinct())

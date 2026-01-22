@@ -469,7 +469,7 @@ public class ProductServiceTest extends ExcludeInfraTest {
             //given
             Category category = saveCategory();
             Product product1 = settingProduct(category, "상품1");
-            Product product2 = settingProduct(category, "상품1");
+            Product product2 = settingProduct(category, "상품2");
             ProductSearchCondition condition = ProductSearchCondition.builder()
                     .page(1)
                     .size(10)
