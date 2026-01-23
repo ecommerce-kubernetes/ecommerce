@@ -2,7 +2,7 @@ package com.example.order_service.docs.order;
 
 import com.example.order_service.api.common.dto.PageDto;
 import com.example.order_service.api.order.facade.OrderFacade;
-import com.example.order_service.api.order.facade.dto.command.CreateOrderDto;
+import com.example.order_service.api.order.facade.dto.command.CreateOrderCommand;
 import com.example.order_service.api.order.facade.dto.result.CreateOrderResponse;
 import com.example.order_service.api.order.facade.dto.result.OrderDetailResponse;
 import com.example.order_service.api.order.facade.dto.result.OrderItemResponse;
@@ -70,7 +70,7 @@ public class OrderControllerDocsTest extends RestDocSupport {
                 .build();
 
         HttpHeaders roleUser = createUserHeader("ROLE_USER");
-        given(orderFacade.initialOrder(any(CreateOrderDto.class)))
+        given(orderFacade.initialOrder(any(CreateOrderCommand.class)))
                 .willReturn(response);
 
         //when

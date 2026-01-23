@@ -2,7 +2,7 @@ package com.example.order_service.api.order.controller;
 
 import com.example.order_service.api.common.dto.PageDto;
 import com.example.order_service.api.common.security.model.UserRole;
-import com.example.order_service.api.order.facade.dto.command.CreateOrderDto;
+import com.example.order_service.api.order.facade.dto.command.CreateOrderCommand;
 import com.example.order_service.api.order.facade.dto.result.CreateOrderResponse;
 import com.example.order_service.api.order.facade.dto.result.OrderDetailResponse;
 import com.example.order_service.api.order.facade.dto.result.OrderItemResponse;
@@ -53,7 +53,7 @@ class OrderControllerTest extends ControllerTestSupport {
         //given
         CreateOrderRequest request = createBaseRequest().build();
         CreateOrderResponse response = createCreateOrderResponse();
-        given(orderFacade.initialOrder(any(CreateOrderDto.class)))
+        given(orderFacade.initialOrder(any(CreateOrderCommand.class)))
                 .willReturn(response);
         //when
         //then

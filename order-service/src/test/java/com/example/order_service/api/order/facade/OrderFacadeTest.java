@@ -5,7 +5,7 @@ import com.example.order_service.api.common.exception.BusinessException;
 import com.example.order_service.api.common.exception.CommonErrorCode;
 import com.example.order_service.api.common.exception.OrderErrorCode;
 import com.example.order_service.api.common.exception.PaymentErrorCode;
-import com.example.order_service.api.order.facade.dto.command.CreateOrderDto;
+import com.example.order_service.api.order.facade.dto.command.CreateOrderCommand;
 import com.example.order_service.api.order.facade.dto.result.CreateOrderResponse;
 import com.example.order_service.api.order.facade.dto.result.OrderDetailResponse;
 import com.example.order_service.api.order.facade.dto.result.OrderItemResponse;
@@ -19,12 +19,12 @@ import com.example.order_service.api.order.domain.model.OrderFailureCode;
 import com.example.order_service.api.order.domain.model.OrderStatus;
 import com.example.order_service.api.order.domain.service.OrderDomainService;
 import com.example.order_service.api.order.domain.service.OrderPriceCalculator;
-import com.example.order_service.api.order.domain.service.dto.command.CreateOrderCommand;
 import com.example.order_service.api.order.domain.service.dto.command.PaymentCreationCommand;
 import com.example.order_service.api.order.domain.service.dto.result.OrderDto;
 import com.example.order_service.api.order.infrastructure.OrderExternalAdaptor;
 import com.example.order_service.api.order.infrastructure.client.payment.dto.response.TossPaymentConfirmResponse;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
@@ -67,11 +67,29 @@ public class OrderFacadeTest {
     @Captor
     private ArgumentCaptor<PaymentResultEvent> paymentResultEventCaptor;
 
+    @Nested
+    @DisplayName("주문을 생성")
+    class InitialOrder {
+
+        @Test
+        @DisplayName("주문을 생성한다")
+        void initialOrder(){
+            //given
+            CreateOrderCommand command = createOrderRequest(USER_ID, createRequestItem(1L, 3), createRequestItem(1L, 5));
+            //when
+            //then
+            assertThatThrownBy(() -> orderFacade.initialOrder(command))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(OrderErrorCode.ORDER_DUPLICATE_ORDER_PRODUCT);
+        }
+    }
+
     @Test
     @DisplayName("주문을 생성한다")
     void initialOrder(){
         //given
-        CreateOrderDto orderRequest = createOrderRequest(USER_ID,
+        CreateOrderCommand orderRequest = createOrderRequest(USER_ID,
                 createRequestItem(1L, 3), createRequestItem(2L, 5));
 
         Long expectedAmount = 28600L;
@@ -83,7 +101,7 @@ public class OrderFacadeTest {
                 mockProductResponse(2L, 5000L)
         ));
         given(orderExternalAdaptor.getCoupon(anyLong(), anyLong(), anyLong())).willReturn(mockCouponResponse());
-        given(orderDomainService.saveOrder(any(CreateOrderCommand.class)))
+        given(orderDomainService.saveOrder(any(com.example.order_service.api.order.domain.service.dto.command.CreateOrderCommand.class)))
                 .willReturn(mockSavedOrder(OrderStatus.PENDING, expectedAmount));
         //when
         CreateOrderResponse response = orderFacade.initialOrder(orderRequest);

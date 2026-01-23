@@ -1,10 +1,8 @@
 package com.example.order_service.api.order.facade;
 
-import com.example.order_service.api.order.facade.dto.command.CreateOrderDto;
-import com.example.order_service.api.order.facade.dto.command.CreateOrderItemDto;
+import com.example.order_service.api.order.facade.dto.command.CreateOrderCommand;
+import com.example.order_service.api.order.facade.dto.command.CreateOrderItemCommand;
 import com.example.order_service.api.order.domain.model.vo.PriceCalculateResult;
-import com.example.order_service.api.order.domain.service.dto.command.CreateOrderCommand;
-import com.example.order_service.api.order.domain.service.dto.command.CreateOrderItemCommand;
 import com.example.order_service.api.order.infrastructure.client.product.dto.OrderProductResponse;
 import com.example.order_service.api.order.infrastructure.client.user.dto.OrderUserResponse;
 import org.springframework.stereotype.Component;
@@ -16,14 +14,14 @@ import java.util.stream.Collectors;
 
 @Component
 public class OrderDtoMapper {
-    public CreateOrderCommand assembleOrderCommand(CreateOrderDto dto,
-                                                    OrderUserResponse user,
-                                                    List<OrderProductResponse> products,
-                                                    PriceCalculateResult priceResult) {
+    public com.example.order_service.api.order.domain.service.dto.command.CreateOrderCommand assembleOrderCommand(CreateOrderCommand dto,
+                                                                                                                  OrderUserResponse user,
+                                                                                                                  List<OrderProductResponse> products,
+                                                                                                                  PriceCalculateResult priceResult) {
 
-        List<CreateOrderItemCommand> itemCommands = mapToItemCommands(dto.getOrderItemDtoList(), products);
+        List<com.example.order_service.api.order.domain.service.dto.command.CreateOrderItemCommand> itemCommands = mapToItemCommands(dto.getOrderItemDtoList(), products);
 
-        return CreateOrderCommand.builder()
+        return com.example.order_service.api.order.domain.service.dto.command.CreateOrderCommand.builder()
                 .userId(user.getUserId())
                 .itemCommands(itemCommands)
                 .orderPriceInfo(priceResult.getOrderPriceInfo())
@@ -32,29 +30,29 @@ public class OrderDtoMapper {
                 .build();
     }
 
-    public List<CreateOrderItemCommand> mapToItemCommands(List<CreateOrderItemDto> items,
-                                                           List<OrderProductResponse> products) {
+    public List<com.example.order_service.api.order.domain.service.dto.command.CreateOrderItemCommand> mapToItemCommands(List<CreateOrderItemCommand> items,
+                                                                                                                         List<OrderProductResponse> products) {
         Map<Long, OrderProductResponse> productMap = products
                 .stream().collect(Collectors.toMap(OrderProductResponse::getProductVariantId, Function.identity()));
 
         return items.stream()
                 .map(item -> {
                     OrderProductResponse product = productMap.get(item.getProductVariantId());
-                    CreateOrderItemCommand.UnitPrice commandPrice = CreateOrderItemCommand.UnitPrice.builder()
+                    com.example.order_service.api.order.domain.service.dto.command.CreateOrderItemCommand.UnitPrice commandPrice = com.example.order_service.api.order.domain.service.dto.command.CreateOrderItemCommand.UnitPrice.builder()
                             .originalPrice(product.getUnitPrice().getOriginalPrice())
                             .discountRate(product.getUnitPrice().getDiscountRate())
                             .discountAmount(product.getUnitPrice().getDiscountAmount())
                             .discountedPrice(product.getUnitPrice().getDiscountedPrice())
                             .build();
 
-                    List<CreateOrderItemCommand.ItemOption> commandOptions = product.getItemOptions().stream()
-                            .map(option -> CreateOrderItemCommand.ItemOption.builder()
+                    List<com.example.order_service.api.order.domain.service.dto.command.CreateOrderItemCommand.ItemOption> commandOptions = product.getItemOptions().stream()
+                            .map(option -> com.example.order_service.api.order.domain.service.dto.command.CreateOrderItemCommand.ItemOption.builder()
                                     .optionTypeName(option.getOptionTypeName())
                                     .optionValueName(option.getOptionValueName())
                                     .build())
                             .toList();
 
-                    return CreateOrderItemCommand.builder()
+                    return com.example.order_service.api.order.domain.service.dto.command.CreateOrderItemCommand.builder()
                             .productId(product.getProductId())
                             .productVariantId(product.getProductVariantId())
                             .sku(product.getSku())

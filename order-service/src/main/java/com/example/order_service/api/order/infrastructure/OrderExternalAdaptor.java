@@ -2,12 +2,12 @@ package com.example.order_service.api.order.infrastructure;
 
 import com.example.order_service.api.common.exception.BusinessException;
 import com.example.order_service.api.common.exception.OrderErrorCode;
-import com.example.order_service.api.order.facade.dto.command.CreateOrderItemDto;
+import com.example.order_service.api.order.facade.dto.command.CreateOrderItemCommand;
 import com.example.order_service.api.order.infrastructure.client.coupon.OrderCouponClientService;
 import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponDiscountResponse;
 import com.example.order_service.api.order.infrastructure.client.payment.TossPaymentClientService;
 import com.example.order_service.api.order.infrastructure.client.payment.dto.response.TossPaymentConfirmResponse;
-import com.example.order_service.api.order.infrastructure.client.product.OrderProductClientService;
+import com.example.order_service.api.order.infrastructure.client.product.OrderProductAdaptor;
 import com.example.order_service.api.order.infrastructure.client.product.dto.OrderProductResponse;
 import com.example.order_service.api.order.infrastructure.client.user.OrderUserClientService;
 import com.example.order_service.api.order.infrastructure.client.user.dto.OrderUserResponse;
@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class OrderExternalAdaptor {
-    private final OrderProductClientService orderProductClientService;
+    private final OrderProductAdaptor orderProductAdaptor;
     private final OrderUserClientService orderUserClientService;
     private final OrderCouponClientService orderCouponClientService;
     private final TossPaymentClientService tossPaymentClientService;
@@ -38,9 +38,9 @@ public class OrderExternalAdaptor {
         return orderCouponClientService.calculateDiscount(userId, couponId, subTotalPrice);
     }
 
-    public List<OrderProductResponse> getOrderProducts(List<CreateOrderItemDto> dtoList){
+    public List<OrderProductResponse> getOrderProducts(List<CreateOrderItemCommand> dtoList){
         List<Long> variantId = extractVariantIds(dtoList);
-        List<OrderProductResponse> products = orderProductClientService.getProducts(variantId);
+        List<OrderProductResponse> products = orderProductAdaptor.getProducts(variantId);
         verifyMissingProducts(variantId, products);
         verifyStockAvailability(dtoList, products);
         return products;
@@ -54,8 +54,8 @@ public class OrderExternalAdaptor {
         tossPaymentClientService.cancelPayment(paymentKey, cancelReason, cancelAmount);
     }
 
-    private List<Long> extractVariantIds(List<CreateOrderItemDto> dtoList){
-        return dtoList.stream().map(CreateOrderItemDto::getProductVariantId)
+    private List<Long> extractVariantIds(List<CreateOrderItemCommand> dtoList){
+        return dtoList.stream().map(CreateOrderItemCommand::getProductVariantId)
                 .toList();
     }
 
@@ -70,11 +70,11 @@ public class OrderExternalAdaptor {
         throw new BusinessException(OrderErrorCode.ORDER_PRODUCT_NOT_FOUND, "missing variantIds : " + missingIds);
     }
 
-    private void verifyStockAvailability(List<CreateOrderItemDto> requestItems, List<OrderProductResponse> products) {
+    private void verifyStockAvailability(List<CreateOrderItemCommand> requestItems, List<OrderProductResponse> products) {
         Map<Long, Integer> stockMap = products.stream()
                 .collect(Collectors.toMap(OrderProductResponse::getProductVariantId, OrderProductResponse::getStockQuantity));
 
-        for (CreateOrderItemDto item : requestItems) {
+        for (CreateOrderItemCommand item : requestItems) {
             Integer currentStock = stockMap.get(item.getProductVariantId());
             if(item.getQuantity() > currentStock) {
                 throw new BusinessException(OrderErrorCode.ORDER_PRODUCT_OUT_OF_STOCK,

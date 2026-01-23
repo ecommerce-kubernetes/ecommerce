@@ -2,7 +2,7 @@ package com.example.order_service.api.order.domain.service;
 
 import com.example.order_service.api.common.exception.BusinessException;
 import com.example.order_service.api.common.exception.OrderErrorCode;
-import com.example.order_service.api.order.facade.dto.command.CreateOrderItemDto;
+import com.example.order_service.api.order.facade.dto.command.CreateOrderItemCommand;
 import com.example.order_service.api.order.domain.model.vo.OrderPriceInfo;
 import com.example.order_service.api.order.domain.model.vo.PriceCalculateResult;
 import com.example.order_service.api.order.domain.service.dto.result.ItemCalculationResult;
@@ -29,12 +29,12 @@ public class OrderPriceCalculatorTest {
     @DisplayName("주문 상품의 가격 정보를 계산한다")
     void calculateItemAmounts() {
         //given
-        CreateOrderItemDto item1 = CreateOrderItemDto.builder()
+        CreateOrderItemCommand item1 = CreateOrderItemCommand.builder()
                 .productVariantId(1L)
                 .quantity(3)
                 .build();
 
-        CreateOrderItemDto item2 = CreateOrderItemDto.builder()
+        CreateOrderItemCommand item2 = CreateOrderItemCommand.builder()
                 .productVariantId(2L)
                 .quantity(5)
                 .build();
@@ -43,7 +43,7 @@ public class OrderPriceCalculatorTest {
         OrderProductResponse product2 = createProductResponse(2L, 2L, "상품2", 5000L, 10,
                 "http://thumbnail.jpg", List.of());
 
-        List<CreateOrderItemDto> requestItems = List.of(item1, item2);
+        List<CreateOrderItemCommand> requestItems = List.of(item1, item2);
         List<OrderProductResponse> responseItems = List.of(product1, product2);
         //when
         ItemCalculationResult result = calculator.calculateItemAmounts(requestItems, responseItems);

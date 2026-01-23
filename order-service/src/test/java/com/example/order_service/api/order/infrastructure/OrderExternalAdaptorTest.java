@@ -2,12 +2,12 @@ package com.example.order_service.api.order.infrastructure;
 
 import com.example.order_service.api.common.exception.BusinessException;
 import com.example.order_service.api.common.exception.OrderErrorCode;
-import com.example.order_service.api.order.facade.dto.command.CreateOrderItemDto;
+import com.example.order_service.api.order.facade.dto.command.CreateOrderItemCommand;
 import com.example.order_service.api.order.infrastructure.client.coupon.OrderCouponClientService;
 import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponDiscountResponse;
 import com.example.order_service.api.order.infrastructure.client.payment.TossPaymentClientService;
 import com.example.order_service.api.order.infrastructure.client.payment.dto.response.TossPaymentConfirmResponse;
-import com.example.order_service.api.order.infrastructure.client.product.OrderProductClientService;
+import com.example.order_service.api.order.infrastructure.client.product.OrderProductAdaptor;
 import com.example.order_service.api.order.infrastructure.client.product.dto.OrderProductResponse;
 import com.example.order_service.api.order.infrastructure.client.user.OrderUserClientService;
 import com.example.order_service.api.order.infrastructure.client.user.dto.OrderUserResponse;
@@ -34,7 +34,7 @@ public class OrderExternalAdaptorTest {
     private OrderExternalAdaptor orderExternalAdaptor;
 
     @Mock
-    private OrderProductClientService orderProductClientService;
+    private OrderProductAdaptor orderProductAdaptor;
     @Mock
     private OrderCouponClientService orderCouponClientService;
     @Mock
@@ -88,14 +88,14 @@ public class OrderExternalAdaptorTest {
     @DisplayName("주문한 상품 정보를 가져온다")
     void getOrderProducts() {
         //given
-        List<CreateOrderItemDto> requestItems = List.of(
+        List<CreateOrderItemCommand> requestItems = List.of(
                 createOrderItemDto(VARIANT_ID_1, 3),
                 createOrderItemDto(VARIANT_ID_2, 5)
         );
         List<OrderProductResponse> response = List.of(createProductResponse(VARIANT_ID_1, 100),
                 createProductResponse(VARIANT_ID_2, 100)
         );
-        given(orderProductClientService.getProducts(anyList())).willReturn(response);
+        given(orderProductAdaptor.getProducts(anyList())).willReturn(response);
         //when
         List<OrderProductResponse> result = orderExternalAdaptor.getOrderProducts(requestItems);
         //then
@@ -110,14 +110,14 @@ public class OrderExternalAdaptorTest {
     @DisplayName("주문을 생성할때 상품 서비스에서 요청 상품에 대한 모든 상품 정보가 오지 않으면 예외를 던진다")
     void getOrderProducts_When_ProductClientService_Return_InCompleteResponse() {
         //given
-        List<CreateOrderItemDto> requestItems = List.of(
+        List<CreateOrderItemCommand> requestItems = List.of(
                 createOrderItemDto(VARIANT_ID_1, 3),
                 createOrderItemDto(VARIANT_ID_2, 5)
         );
         List<OrderProductResponse> response = List.of(
                 createProductResponse(VARIANT_ID_1, 100)
         );
-        given(orderProductClientService.getProducts(anyList()))
+        given(orderProductAdaptor.getProducts(anyList()))
                 .willReturn(response);
         //when
         //then
@@ -132,7 +132,7 @@ public class OrderExternalAdaptorTest {
     @DisplayName("주문을 생성할때 상품 재고가 주문 수량보다 부족하면 예외를 던진다")
     void getOrderProducts_When_OutCreateOrderStock() {
         //given
-        List<CreateOrderItemDto> requestItems = List.of(
+        List<CreateOrderItemCommand> requestItems = List.of(
                 createOrderItemDto(VARIANT_ID_1, 3),
                 createOrderItemDto(VARIANT_ID_2, 5)
         );
@@ -140,7 +140,7 @@ public class OrderExternalAdaptorTest {
                 createProductResponse(VARIANT_ID_1, 100),
                 createProductResponse(VARIANT_ID_2,3)
         );
-        given(orderProductClientService.getProducts(anyList()))
+        given(orderProductAdaptor.getProducts(anyList()))
                 .willReturn(response);
         //when
         //then

@@ -1,7 +1,7 @@
 package com.example.order_service.api.support.fixture;
 
-import com.example.order_service.api.order.facade.dto.command.CreateOrderDto;
-import com.example.order_service.api.order.facade.dto.command.CreateOrderItemDto;
+import com.example.order_service.api.order.facade.dto.command.CreateOrderCommand;
+import com.example.order_service.api.order.facade.dto.command.CreateOrderItemCommand;
 import com.example.order_service.api.order.domain.model.OrderFailureCode;
 import com.example.order_service.api.order.domain.model.OrderStatus;
 import com.example.order_service.api.order.domain.model.vo.AppliedCoupon;
@@ -37,15 +37,15 @@ public class OrderApplicationServiceTestFixture {
 
     public static final Long FIXED_FINAL_PRICE = 28600L;
 
-    public static CreateOrderDto createOrderRequest(Long userId, CreateOrderItemDto... items) {
+    public static CreateOrderCommand createOrderRequest(Long userId, CreateOrderItemCommand... items) {
         if (items.length == 0) {
-            items = new CreateOrderItemDto[]{
+            items = new CreateOrderItemCommand[]{
                     createRequestItem(PROD_1_ID, 3),
                     createRequestItem(PROD_2_ID, 5)
             };
         }
 
-        return CreateOrderDto.builder()
+        return CreateOrderCommand.builder()
                 .userId(USER_ID)
                 .deliveryAddress(ADDRESS)
                 .couponId(1L)
@@ -55,8 +55,8 @@ public class OrderApplicationServiceTestFixture {
                 .build();
     }
 
-    public static CreateOrderItemDto createRequestItem(Long variantId, int quantity) {
-        return CreateOrderItemDto.builder()
+    public static CreateOrderItemCommand createRequestItem(Long variantId, int quantity) {
+        return CreateOrderItemCommand.builder()
                 .productVariantId(variantId)
                 .quantity(quantity)
                 .build();

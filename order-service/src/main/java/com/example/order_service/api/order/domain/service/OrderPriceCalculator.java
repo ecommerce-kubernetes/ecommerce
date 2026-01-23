@@ -2,7 +2,7 @@ package com.example.order_service.api.order.domain.service;
 
 import com.example.order_service.api.common.exception.BusinessException;
 import com.example.order_service.api.common.exception.OrderErrorCode;
-import com.example.order_service.api.order.facade.dto.command.CreateOrderItemDto;
+import com.example.order_service.api.order.facade.dto.command.CreateOrderItemCommand;
 import com.example.order_service.api.order.domain.model.vo.PriceCalculateResult;
 import com.example.order_service.api.order.domain.service.dto.result.ItemCalculationResult;
 import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponDiscountResponse;
@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 @Component
 public class OrderPriceCalculator {
 
-    public ItemCalculationResult calculateItemAmounts(List<CreateOrderItemDto> items, List<OrderProductResponse> products) {
+    public ItemCalculationResult calculateItemAmounts(List<CreateOrderItemCommand> items, List<OrderProductResponse> products) {
         Map<Long, Integer> quantityByVariantId = mapToQuantityByVariantId(items);
         Map<Long, OrderProductResponse.UnitPrice> unitPriceByVariantId = mapToUnitPriceByVariantId(products);
         return ItemCalculationResult.of(quantityByVariantId, unitPriceByVariantId);
@@ -51,11 +51,11 @@ public class OrderPriceCalculator {
         }
     }
 
-    private Map<Long, Integer> mapToQuantityByVariantId(List<CreateOrderItemDto> items){
+    private Map<Long, Integer> mapToQuantityByVariantId(List<CreateOrderItemCommand> items){
         return  items.stream()
                 .collect(Collectors.toMap(
-                        CreateOrderItemDto::getProductVariantId,
-                        CreateOrderItemDto::getQuantity
+                        CreateOrderItemCommand::getProductVariantId,
+                        CreateOrderItemCommand::getQuantity
                 ));
     }
 

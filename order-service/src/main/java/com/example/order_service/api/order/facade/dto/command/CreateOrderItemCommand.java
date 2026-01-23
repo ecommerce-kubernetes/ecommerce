@@ -6,18 +6,18 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class CreateOrderItemDto {
+public class CreateOrderItemCommand {
     private Long productVariantId;
     private int quantity;
 
     @Builder
-    private CreateOrderItemDto(Long productVariantId, int quantity){
+    private CreateOrderItemCommand(Long productVariantId, int quantity){
         this.productVariantId = productVariantId;
         this.quantity = quantity;
     }
 
-    public static CreateOrderItemDto of(Long productVariantId, int quantity){
-        return CreateOrderItemDto.builder()
+    public static CreateOrderItemCommand of(Long productVariantId, int quantity){
+        return CreateOrderItemCommand.builder()
                 .productVariantId(productVariantId)
                 .quantity(quantity)
                 .build();

@@ -14,7 +14,10 @@ public enum OrderErrorCode implements ErrorCode {
     ORDER_PRODUCT_OUT_OF_STOCK(409, "ORDER_005", "상품 재고가 부족합니다"),
     ORDER_INSUFFICIENT_POINT_BALANCE(409, "ORDER_006", "포인트 잔액이 부족합니다"),
     ORDER_PRICE_MISMATCH(409, "ORDER_007", "주문 금액이 변동되었습니다"),
-    ORDER_ITEM_MINIMUM_ONE_REQUIRED(400, "ORDER_008", "주문 상품은 1개 이상이여야 합니다");
+    ORDER_ITEM_MINIMUM_ONE_REQUIRED(400, "ORDER_008", "주문 상품은 1개 이상이여야 합니다"),
+    ORDER_DUPLICATE_ORDER_PRODUCT(400, "ORDER_009", "중복된 주문 상품이 존재합니다"),
+    ORDER_PRODUCT_NOT_ON_SALE(409, "ORDER_010", "주문 상품중 판매중이 아닌 상품이 존재합니다"),
+    ORDER_PRODUCT_INSUFFICIENT_STOCK(409, "ORDER_010", "주문 상품중 재고가 부족한 상품이 있습니다");
     private final int status;
     private final String code;
     private final String message;

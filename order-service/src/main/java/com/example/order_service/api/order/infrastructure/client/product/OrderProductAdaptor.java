@@ -7,14 +7,14 @@ import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-@Service
 @Slf4j
+@Component
 @RequiredArgsConstructor
-public class OrderProductClientService {
+public class OrderProductAdaptor {
 
     private final OrderProductClient orderProductClient;
 

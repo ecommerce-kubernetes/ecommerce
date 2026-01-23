@@ -3,8 +3,8 @@ package com.example.order_service.api.order.controller;
 import com.example.order_service.api.common.dto.PageDto;
 import com.example.order_service.api.common.security.model.UserPrincipal;
 import com.example.order_service.api.order.facade.OrderFacade;
-import com.example.order_service.api.order.facade.dto.command.CreateOrderDto;
-import com.example.order_service.api.order.facade.dto.command.CreateOrderItemDto;
+import com.example.order_service.api.order.facade.dto.command.CreateOrderCommand;
+import com.example.order_service.api.order.facade.dto.command.CreateOrderItemCommand;
 import com.example.order_service.api.order.facade.dto.result.CreateOrderResponse;
 import com.example.order_service.api.order.facade.dto.result.OrderDetailResponse;
 import com.example.order_service.api.order.facade.dto.result.OrderListResponse;
@@ -32,8 +32,8 @@ public class OrderController {
     @PostMapping
     public ResponseEntity<CreateOrderResponse> createOrder(@AuthenticationPrincipal UserPrincipal userPrincipal,
                                                            @RequestBody @Validated CreateOrderRequest request){
-        List<CreateOrderItemDto> orderItems = mappingCreateOrderItemDto(request);
-        CreateOrderDto command = CreateOrderDto.builder()
+        List<CreateOrderItemCommand> orderItems = mappingCreateOrderItemDto(request);
+        CreateOrderCommand command = CreateOrderCommand.builder()
                 .userId(userPrincipal.getUserId())
                 .orderItemDtoList(orderItems)
                 .deliveryAddress(request.getDeliveryAddress())
@@ -68,8 +68,8 @@ public class OrderController {
         return ResponseEntity.ok(response);
     }
 
-    private List<CreateOrderItemDto> mappingCreateOrderItemDto(CreateOrderRequest request){
-        return request.getItems().stream().map(item -> CreateOrderItemDto.of(item.getProductVariantId(), item.getQuantity()))
+    private List<CreateOrderItemCommand> mappingCreateOrderItemDto(CreateOrderRequest request){
+        return request.getItems().stream().map(item -> CreateOrderItemCommand.of(item.getProductVariantId(), item.getQuantity()))
                 .toList();
     }
 }

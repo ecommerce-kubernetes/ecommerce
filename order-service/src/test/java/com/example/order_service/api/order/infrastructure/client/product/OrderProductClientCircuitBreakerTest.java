@@ -24,7 +24,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class OrderProductClientCircuitBreakerTest extends ExcludeInfraTest {
 
     @Autowired
-    private OrderProductClientService orderProductClientService;
+    private OrderProductAdaptor orderProductAdaptor;
     @Autowired
     private CircuitBreakerRegistry circuitBreakerRegistry;
 
@@ -56,7 +56,7 @@ public class OrderProductClientCircuitBreakerTest extends ExcludeInfraTest {
         //when
         for (int i = 0; i < 10; i++) {
             try {
-                orderProductClientService.getProducts(List.of(1L, 2L));
+                orderProductAdaptor.getProducts(List.of(1L, 2L));
             } catch (Exception e) {}
         }
         //then
@@ -76,7 +76,7 @@ public class OrderProductClientCircuitBreakerTest extends ExcludeInfraTest {
         //when
         for (int i = 0; i < 10; i++) {
             try {
-                orderProductClientService.getProducts(List.of(1L, 2L));
+                orderProductAdaptor.getProducts(List.of(1L, 2L));
             } catch (Exception e) {}
         }
         //then
@@ -84,7 +84,7 @@ public class OrderProductClientCircuitBreakerTest extends ExcludeInfraTest {
         CircuitBreaker breaker = circuitBreakerRegistry.circuitBreaker("productService");
         assertThat(breaker.getState()).isEqualTo(CircuitBreaker.State.OPEN);
 
-        assertThatThrownBy(() -> orderProductClientService.getProducts(List.of(1L, 2L)))
+        assertThatThrownBy(() -> orderProductAdaptor.getProducts(List.of(1L, 2L)))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(ExternalServiceErrorCode.UNAVAILABLE);

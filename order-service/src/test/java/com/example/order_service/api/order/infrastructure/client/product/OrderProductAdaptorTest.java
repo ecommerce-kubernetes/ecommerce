@@ -18,10 +18,10 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
 
-public class OrderProductClientServiceTest extends ExcludeInfraTest {
+public class OrderProductAdaptorTest extends ExcludeInfraTest {
 
     @Autowired
-    private OrderProductClientService orderProductClientService;
+    private OrderProductAdaptor orderProductAdaptor;
 
     @MockitoBean
     private OrderProductClient orderProductClient;
@@ -36,7 +36,7 @@ public class OrderProductClientServiceTest extends ExcludeInfraTest {
         given(orderProductClient.getProductVariantByIds(anyList()))
                 .willReturn(List.of(product1, product2));
         //when
-        List<OrderProductResponse> responses = orderProductClientService.getProducts(List.of(1L, 2L));
+        List<OrderProductResponse> responses = orderProductAdaptor.getProducts(List.of(1L, 2L));
         //then
         assertThat(responses).hasSize(2)
                 .extracting(OrderProductResponse::getProductId)
@@ -50,7 +50,7 @@ public class OrderProductClientServiceTest extends ExcludeInfraTest {
         willThrow(CallNotPermittedException.class).given(orderProductClient).getProductVariantByIds(anyList());
         //when
         //then
-        assertThatThrownBy(() -> orderProductClientService.getProducts(List.of(1L, 2L)))
+        assertThatThrownBy(() -> orderProductAdaptor.getProducts(List.of(1L, 2L)))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(ExternalServiceErrorCode.UNAVAILABLE);
@@ -63,7 +63,7 @@ public class OrderProductClientServiceTest extends ExcludeInfraTest {
         willThrow(BusinessException.class).given(orderProductClient).getProductVariantByIds(anyList());
         //when
         //then
-        assertThatThrownBy(() -> orderProductClientService.getProducts(List.of(1L, 2L)))
+        assertThatThrownBy(() -> orderProductAdaptor.getProducts(List.of(1L, 2L)))
                 .isInstanceOf(BusinessException.class);
     }
 
@@ -75,7 +75,7 @@ public class OrderProductClientServiceTest extends ExcludeInfraTest {
                 .given(orderProductClient).getProductVariantByIds(anyList());
         //when
         //then
-        assertThatThrownBy(() -> orderProductClientService.getProducts(List.of(1L, 2L)))
+        assertThatThrownBy(() -> orderProductAdaptor.getProducts(List.of(1L, 2L)))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(ExternalServiceErrorCode.SYSTEM_ERROR);

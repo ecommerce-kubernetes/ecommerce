@@ -8,17 +8,17 @@ import java.util.List;
 
 @Getter
 @Setter
-public class CreateOrderDto {
+public class CreateOrderCommand {
     private Long userId;
-    private List<CreateOrderItemDto> orderItemDtoList;
+    private List<CreateOrderItemCommand> orderItemDtoList;
     private String deliveryAddress;
     private Long couponId;
     private Long pointToUse;
     private Long expectedPrice;
 
     @Builder
-    private CreateOrderDto(Long userId, List<CreateOrderItemDto> orderItemDtoList,
-                           String deliveryAddress, Long couponId, Long pointToUse, Long expectedPrice){
+    private CreateOrderCommand(Long userId, List<CreateOrderItemCommand> orderItemDtoList,
+                               String deliveryAddress, Long couponId, Long pointToUse, Long expectedPrice){
         this.userId = userId;
         this.orderItemDtoList = orderItemDtoList;
         this.deliveryAddress = deliveryAddress;
@@ -27,9 +27,9 @@ public class CreateOrderDto {
         this.expectedPrice = expectedPrice;
     }
 
-    public static CreateOrderDto of(Long userId, List<CreateOrderItemDto> orderItemDtoList,
-                                    String deliveryAddress, Long couponId, Long pointToUse, Long expectedPrice){
-        return CreateOrderDto.builder()
+    public static CreateOrderCommand of(Long userId, List<CreateOrderItemCommand> orderItemDtoList,
+                                        String deliveryAddress, Long couponId, Long pointToUse, Long expectedPrice){
+        return CreateOrderCommand.builder()
                 .userId(userId)
                 .orderItemDtoList(orderItemDtoList)
                 .deliveryAddress(deliveryAddress)

@@ -1,6 +1,6 @@
 package com.example.order_service.api.support.fixture;
 
-import com.example.order_service.api.order.facade.dto.command.CreateOrderItemDto;
+import com.example.order_service.api.order.facade.dto.command.CreateOrderItemCommand;
 import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponDiscountResponse;
 import com.example.order_service.api.order.infrastructure.client.payment.dto.response.TossPaymentConfirmResponse;
 import com.example.order_service.api.order.infrastructure.client.product.dto.OrderProductResponse;
@@ -31,8 +31,8 @@ public class OrderExternalAdaptorFixture {
                 .build();
     }
 
-    public static CreateOrderItemDto createOrderItemDto(Long variantId, int quantity) {
-        return CreateOrderItemDto.builder()
+    public static CreateOrderItemCommand createOrderItemDto(Long variantId, int quantity) {
+        return CreateOrderItemCommand.builder()
                 .productVariantId(variantId)
                 .quantity(quantity)
                 .build();
