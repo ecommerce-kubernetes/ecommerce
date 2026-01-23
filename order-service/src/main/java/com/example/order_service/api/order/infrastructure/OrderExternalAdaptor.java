@@ -9,7 +9,7 @@ import com.example.order_service.api.order.infrastructure.client.payment.TossPay
 import com.example.order_service.api.order.infrastructure.client.payment.dto.response.TossPaymentConfirmResponse;
 import com.example.order_service.api.order.infrastructure.client.product.OrderProductAdaptor;
 import com.example.order_service.api.order.infrastructure.client.product.dto.OrderProductResponse;
-import com.example.order_service.api.order.infrastructure.client.user.OrderUserClientService;
+import com.example.order_service.api.order.infrastructure.client.user.OrderUserAdaptor;
 import com.example.order_service.api.order.infrastructure.client.user.dto.OrderUserResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -23,12 +23,12 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class OrderExternalAdaptor {
     private final OrderProductAdaptor orderProductAdaptor;
-    private final OrderUserClientService orderUserClientService;
+    private final OrderUserAdaptor orderUserAdaptor;
     private final OrderCouponClientService orderCouponClientService;
     private final TossPaymentClientService tossPaymentClientService;
 
     public OrderUserResponse getOrderUser(Long userId) {
-        return orderUserClientService.getUserForOrder(userId);
+        return orderUserAdaptor.getUser(userId);
     }
 
     public OrderCouponDiscountResponse getCoupon(Long userId, Long couponId, Long subTotalPrice) {

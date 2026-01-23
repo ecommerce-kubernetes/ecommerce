@@ -47,7 +47,7 @@ public class OrderPriceCalculator {
 
     private void verifyEnoughPoints(Long useToPoint, OrderUserResponse user){
         if(useToPoint > 0 && !user.hasEnoughPoints(useToPoint)) {
-            throw new BusinessException(OrderErrorCode.ORDER_INSUFFICIENT_POINT_BALANCE);
+            throw new BusinessException(OrderErrorCode.ORDER_USER_INSUFFICIENT_POINT_BALANCE);
         }
     }
 

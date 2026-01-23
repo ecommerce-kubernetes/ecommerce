@@ -164,7 +164,7 @@ public class OrderPriceCalculatorTest {
         assertThatThrownBy(() -> calculator.calculateFinalPrice(1000, itemCalculationResult, 29600L, user, null))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
-                .isEqualTo(OrderErrorCode.ORDER_INSUFFICIENT_POINT_BALANCE);
+                .isEqualTo(OrderErrorCode.ORDER_USER_INSUFFICIENT_POINT_BALANCE);
     }
 
     @Test

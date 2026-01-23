@@ -12,11 +12,11 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class OrderUserClientService {
+public class OrderUserAdaptor {
     private final OrderUserClient orderUserClient;
 
     @CircuitBreaker(name = "userService", fallbackMethod = "getUserForOrderFallback")
-    public OrderUserResponse getUserForOrder(Long userId){
+    public OrderUserResponse getUser(Long userId){
         return orderUserClient.getOrderInfo(userId);
     }
 

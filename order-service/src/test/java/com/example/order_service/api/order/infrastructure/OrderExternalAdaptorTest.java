@@ -9,7 +9,7 @@ import com.example.order_service.api.order.infrastructure.client.payment.TossPay
 import com.example.order_service.api.order.infrastructure.client.payment.dto.response.TossPaymentConfirmResponse;
 import com.example.order_service.api.order.infrastructure.client.product.OrderProductAdaptor;
 import com.example.order_service.api.order.infrastructure.client.product.dto.OrderProductResponse;
-import com.example.order_service.api.order.infrastructure.client.user.OrderUserClientService;
+import com.example.order_service.api.order.infrastructure.client.user.OrderUserAdaptor;
 import com.example.order_service.api.order.infrastructure.client.user.dto.OrderUserResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -38,7 +38,7 @@ public class OrderExternalAdaptorTest {
     @Mock
     private OrderCouponClientService orderCouponClientService;
     @Mock
-    private OrderUserClientService orderUserClientService;
+    private OrderUserAdaptor orderUserAdaptor;
     @Mock
     private TossPaymentClientService tossPaymentClientService;
 
@@ -46,7 +46,7 @@ public class OrderExternalAdaptorTest {
     @DisplayName("유저 정보를 가져온다")
     void getOrderUser() {
         //given
-        given(orderUserClientService.getUserForOrder(anyLong()))
+        given(orderUserAdaptor.getUser(anyLong()))
                 .willReturn(createUserResponse());
         //when
         OrderUserResponse orderUser = orderExternalAdaptor.getOrderUser(USER_ID);

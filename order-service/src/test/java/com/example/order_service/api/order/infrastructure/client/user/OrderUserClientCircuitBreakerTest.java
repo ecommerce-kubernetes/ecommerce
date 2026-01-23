@@ -22,7 +22,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class OrderUserClientCircuitBreakerTest extends ExcludeInfraTest {
 
     @Autowired
-    private OrderUserClientService orderUserClientService;
+    private OrderUserAdaptor orderUserAdaptor;
     @Autowired
     private CircuitBreakerRegistry circuitBreakerRegistry;
 
@@ -54,7 +54,7 @@ public class OrderUserClientCircuitBreakerTest extends ExcludeInfraTest {
         //when
         for (int i = 0; i < 10; i++) {
             try {
-                orderUserClientService.getUserForOrder(1L);
+                orderUserAdaptor.getUser(1L);
             } catch (Exception e) {}
         }
         //then
@@ -74,7 +74,7 @@ public class OrderUserClientCircuitBreakerTest extends ExcludeInfraTest {
         //when
         for (int i = 0; i < 10; i++) {
             try {
-                orderUserClientService.getUserForOrder(1L);
+                orderUserAdaptor.getUser(1L);
             } catch (Exception e) {}
         }
         //then
@@ -82,7 +82,7 @@ public class OrderUserClientCircuitBreakerTest extends ExcludeInfraTest {
         CircuitBreaker breaker = circuitBreakerRegistry.circuitBreaker("userService");
         assertThat(breaker.getState()).isEqualTo(CircuitBreaker.State.OPEN);
 
-        assertThatThrownBy(() -> orderUserClientService.getUserForOrder(1L))
+        assertThatThrownBy(() -> orderUserAdaptor.getUser(1L))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(ExternalServiceErrorCode.UNAVAILABLE);
