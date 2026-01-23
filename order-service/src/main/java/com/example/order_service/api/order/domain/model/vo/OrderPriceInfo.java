@@ -1,6 +1,6 @@
 package com.example.order_service.api.order.domain.model.vo;
 
-import com.example.order_service.api.order.domain.service.dto.result.ItemCalculationResult;
+import com.example.order_service.api.order.domain.service.dto.result.OrderProductAmount;
 import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -37,7 +37,7 @@ public class OrderPriceInfo {
                 .build();
     }
 
-    public static OrderPriceInfo from(ItemCalculationResult result, long couponDiscount, long usedPoint, long finalPaymentAmount) {
-        return of(result.getTotalOriginalPrice(), result.getTotalProductDiscount(), couponDiscount, usedPoint, finalPaymentAmount);
+    public static OrderPriceInfo from(OrderProductAmount result, long couponDiscount, long usedPoint, long finalPaymentAmount) {
+        return of(result.getTotalOriginalAmount(), result.getTotalDiscountAmount(), couponDiscount, usedPoint, finalPaymentAmount);
     }
 }

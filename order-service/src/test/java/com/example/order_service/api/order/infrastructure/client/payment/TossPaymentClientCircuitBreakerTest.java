@@ -21,7 +21,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @AutoConfigureWireMock(port = 0)
 public class TossPaymentClientCircuitBreakerTest extends ExcludeInfraTest {
     @Autowired
-    private TossPaymentClientService paymentClientService;
+    private TossPaymentAdaptor paymentClientService;
     @Autowired
     private CircuitBreakerRegistry circuitBreakerRegistry;
     public static final String ORDER_NO = "ORD-20260101-AB12FVC";

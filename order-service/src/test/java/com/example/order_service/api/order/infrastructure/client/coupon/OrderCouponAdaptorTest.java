@@ -2,7 +2,7 @@ package com.example.order_service.api.order.infrastructure.client.coupon;
 
 import com.example.order_service.api.common.exception.BusinessException;
 import com.example.order_service.api.common.exception.ExternalServiceErrorCode;
-import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponCalcRequest;
+import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponCalculationRequest;
 import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponDiscountResponse;
 import com.example.order_service.api.support.ExcludeInfraTest;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
@@ -17,10 +17,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
 
-public class OrderCouponClientServiceTest extends ExcludeInfraTest {
+public class OrderCouponAdaptorTest extends ExcludeInfraTest {
 
     @Autowired
-    private OrderCouponClientService orderCouponClientService;
+    private OrderCouponAdaptor orderCouponAdaptor;
     @MockitoBean
     private OrderCouponClient orderCouponClient;
 
@@ -34,10 +34,10 @@ public class OrderCouponClientServiceTest extends ExcludeInfraTest {
                 .discountAmount(1000L)
                 .build();
 
-        given(orderCouponClient.calculate(any(OrderCouponCalcRequest.class)))
+        given(orderCouponClient.calculate(any(OrderCouponCalculationRequest.class)))
                 .willReturn(calcResponse);
         //when
-        OrderCouponDiscountResponse result = orderCouponClientService.calculateDiscount(1L, 1L, 3100L);
+        OrderCouponDiscountResponse result = orderCouponAdaptor.calculateDiscount(1L, 1L, 3100L);
         //then
         assertThat(result)
                 .extracting("couponId", "couponName", "discountAmount")
@@ -50,10 +50,10 @@ public class OrderCouponClientServiceTest extends ExcludeInfraTest {
         //given
         willThrow(CallNotPermittedException.class)
                 .given(orderCouponClient)
-                .calculate(any(OrderCouponCalcRequest.class));
+                .calculate(any(OrderCouponCalculationRequest.class));
         //when
         //then
-        assertThatThrownBy(() -> orderCouponClientService.calculateDiscount(1L, 1L, 3100L))
+        assertThatThrownBy(() -> orderCouponAdaptor.calculateDiscount(1L, 1L, 3100L))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(ExternalServiceErrorCode.UNAVAILABLE);
@@ -65,10 +65,10 @@ public class OrderCouponClientServiceTest extends ExcludeInfraTest {
         //given
         willThrow(BusinessException.class)
                 .given(orderCouponClient)
-                .calculate(any(OrderCouponCalcRequest.class));
+                .calculate(any(OrderCouponCalculationRequest.class));
         //when
         //then
-        assertThatThrownBy(() -> orderCouponClientService.calculateDiscount(1L, 1L, 3100L))
+        assertThatThrownBy(() -> orderCouponAdaptor.calculateDiscount(1L, 1L, 3100L))
                 .isInstanceOf(BusinessException.class);
     }
 
@@ -78,10 +78,10 @@ public class OrderCouponClientServiceTest extends ExcludeInfraTest {
         //given
         willThrow(new RuntimeException("쿠폰 서비스 오류 발생"))
                 .given(orderCouponClient)
-                .calculate(any(OrderCouponCalcRequest.class));
+                .calculate(any(OrderCouponCalculationRequest.class));
         //when
         //then
-        assertThatThrownBy(() -> orderCouponClientService.calculateDiscount(1L, 1L, 3100L))
+        assertThatThrownBy(() -> orderCouponAdaptor.calculateDiscount(1L, 1L, 3100L))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(ExternalServiceErrorCode.SYSTEM_ERROR);

@@ -6,38 +6,28 @@ import com.example.order_service.api.common.exception.CommonErrorCode;
 import com.example.order_service.api.common.exception.ErrorCode;
 import com.example.order_service.api.common.exception.OrderErrorCode;
 import com.example.order_service.api.common.util.AsyncUtil;
+import com.example.order_service.api.order.domain.service.*;
+import com.example.order_service.api.order.domain.service.dto.result.*;
 import com.example.order_service.api.order.facade.dto.OrderPreparationData;
 import com.example.order_service.api.order.facade.dto.command.CreateOrderCommand;
 import com.example.order_service.api.order.facade.dto.command.CreateOrderItemCommand;
 import com.example.order_service.api.order.facade.dto.result.CreateOrderResponse;
 import com.example.order_service.api.order.facade.dto.result.OrderDetailResponse;
 import com.example.order_service.api.order.facade.dto.result.OrderListResponse;
-import com.example.order_service.api.order.facade.event.OrderCreatedEvent;
 import com.example.order_service.api.order.facade.event.OrderEventStatus;
 import com.example.order_service.api.order.facade.event.OrderResultEvent;
 import com.example.order_service.api.order.facade.event.PaymentResultEvent;
 import com.example.order_service.api.order.controller.dto.request.OrderSearchCondition;
 import com.example.order_service.api.order.domain.model.OrderFailureCode;
 import com.example.order_service.api.order.domain.model.OrderStatus;
-import com.example.order_service.api.order.domain.model.vo.PriceCalculateResult;
-import com.example.order_service.api.order.domain.service.OrderDomainService;
-import com.example.order_service.api.order.domain.service.OrderPriceCalculator;
 import com.example.order_service.api.order.domain.service.dto.command.PaymentCreationCommand;
-import com.example.order_service.api.order.domain.service.dto.result.ItemCalculationResult;
-import com.example.order_service.api.order.domain.service.dto.result.OrderDto;
-import com.example.order_service.api.order.domain.service.dto.result.OrderItemDto;
-import com.example.order_service.api.order.infrastructure.OrderExternalAdaptor;
-import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponDiscountResponse;
 import com.example.order_service.api.order.infrastructure.client.payment.dto.response.TossPaymentConfirmResponse;
-import com.example.order_service.api.order.infrastructure.client.product.dto.OrderProductResponse;
-import com.example.order_service.api.order.infrastructure.client.user.dto.OrderUserResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -48,31 +38,30 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class OrderFacade {
 
-    private final OrderExternalAdaptor orderExternalAdaptor;
+    private final OrderPaymentService orderPaymentService;
+    private final OrderUserService orderUserService;
+    private final OrderProductService orderProductService;
+    private final OrderCouponService orderCouponService;
     private final OrderPriceCalculator calculator;
     private final OrderDtoMapper mapper;
     private final OrderDomainService orderDomainService;
     private final ApplicationEventPublisher eventPublisher;
 
-    public CreateOrderResponse initialOrder(CreateOrderCommand dto){
+    public CreateOrderResponse initialOrder(CreateOrderCommand command){
         // 중복 상품이 있는지 검증
-        validateUniqueItems(dto.getOrderItemDtoList());
+        validateUniqueItems(command.getOrderItemDtoList());
         //CompletableFuture 을 사용해서 상품, 유저 요청을 비동기로 동시에 조회
-        CompletableFuture<OrderUserResponse> userFuture = CompletableFuture.supplyAsync(() -> orderExternalAdaptor.getOrderUser(dto.getUserId()));
-        CompletableFuture<List<OrderProductResponse>> productFuture = CompletableFuture.supplyAsync(() -> orderExternalAdaptor.getOrderProducts(dto.getOrderItemDtoList()));
-        CompletableFuture.allOf(userFuture, productFuture).join();
-        OrderUserResponse user = AsyncUtil.join(userFuture);
-        List<OrderProductResponse> products = AsyncUtil.join(productFuture);
+        OrderPreparationData orderPreparationData = getOrderPreparationData(command);
         //주문 상품 가격 정보 계산
-        ItemCalculationResult itemResult = calculator.calculateItemAmounts(dto.getOrderItemDtoList(), products);
-        OrderCouponDiscountResponse coupon = orderExternalAdaptor.getCoupon(dto.getUserId(), dto.getCouponId(), itemResult.getSubTotalPrice());
+        OrderProductAmount productAmount = calculator.calculateItemAmounts(command.getOrderItemDtoList(), orderPreparationData.getProducts());
+        OrderCouponInfo coupon = orderCouponService.calculateCouponDiscount(command.getUserId(), command.getCouponId(), productAmount);
         //할인 적용 최종 금액 계산
-        PriceCalculateResult priceResult = calculator
-                .calculateFinalPrice(dto.getPointToUse(), itemResult, dto.getExpectedPrice(), user, coupon);
-        com.example.order_service.api.order.domain.service.dto.command.CreateOrderCommand creationContext = mapper.assembleOrderCommand(dto, user, products, priceResult);
-        OrderDto orderDto = orderDomainService.saveOrder(creationContext);
-        eventPublisher.publishEvent(OrderCreatedEvent.from(orderDto));
-        return CreateOrderResponse.of(orderDto);
+        OrderPriceInfo orderPriceInfo = calculator.calculateOrderPrice(productAmount, coupon, command.getPointToUse(), command.getExpectedPrice());
+//        OrderDto orderDto = orderDomainService.saveOrder(creationContext);
+//        eventPublisher.publishEvent(OrderCreatedEvent.from(orderDto));
+//        return CreateOrderResponse.of(orderDto);
+
+        return null;
     }
 
     public void preparePayment(String orderNo) {
@@ -105,7 +94,7 @@ public class OrderFacade {
     // 토스 결제 승인 실행
     private TossPaymentConfirmResponse executePaymentConfirmRequest(OrderDto orderDto, String paymentKey) {
         try {
-            return orderExternalAdaptor.confirmOrderPayment(orderDto.getOrderNo(), paymentKey, orderDto.getOrderPriceInfo().getFinalPaymentAmount());
+            return orderPaymentService.confirmOrderPayment(orderDto.getOrderNo(), paymentKey, orderDto.getOrderPriceInfo().getFinalPaymentAmount());
         } catch (BusinessException e) {
             // 결제 중 예외가 발생한 경우 주문 상태 변경 후 Saga 보상 로직 실행
             handlePaymentFailure(orderDto.getOrderNo(), e.getErrorCode());
@@ -146,7 +135,7 @@ public class OrderFacade {
 
     private void compensatePayment(String paymentKey, String cancelReason) {
         try {
-            orderExternalAdaptor.cancelPayment(paymentKey, cancelReason, null);
+            orderPaymentService.cancelPayment(paymentKey, cancelReason, null);
         } catch (Exception e) {
             log.error("결제 : [치명적 오류] 시스템 오류로 발생한 결제 환불 실패");
         }
@@ -166,7 +155,15 @@ public class OrderFacade {
         }
     }
 
-    private OrderPreparationData getOrderPreparationData() {
-        return null;
+    // 유저정보, 상품 정보를 비동기로 동시 조회
+    private OrderPreparationData getOrderPreparationData(CreateOrderCommand command) {
+        CompletableFuture<OrderUserInfo> userFuture = CompletableFuture.supplyAsync(() -> orderUserService.getUser(command.getUserId(), command.getPointToUse()));
+        CompletableFuture<List<OrderProductInfo>> productFuture = CompletableFuture.supplyAsync(() -> orderProductService.getProducts(command.getOrderItemDtoList()));
+        CompletableFuture.allOf(userFuture, productFuture).join();
+
+        return OrderPreparationData.builder()
+                .user(AsyncUtil.join(userFuture))
+                .products(AsyncUtil.join(productFuture))
+                .build();
     }
 }

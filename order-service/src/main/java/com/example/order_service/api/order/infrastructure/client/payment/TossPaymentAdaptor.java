@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class TossPaymentClientService {
+public class TossPaymentAdaptor {
     private final TossPaymentClient tossPaymentClient;
 
     @CircuitBreaker(name = "tossPaymentService", fallbackMethod = "confirmPaymentFallback")

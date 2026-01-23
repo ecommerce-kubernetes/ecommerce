@@ -13,14 +13,14 @@ import org.springframework.stereotype.Service;
 public class OrderUserService {
     private final OrderUserAdaptor orderUserAdaptor;
 
-    public OrderUserInfo getUser(Long userId, Long useToPoint) {
+    public OrderUserInfo getUser(Long userId, Long pointToUse) {
         OrderUserResponse user = orderUserAdaptor.getUser(userId);
-        validateEnoughPoint(user, useToPoint);
+        validateEnoughPoint(user, pointToUse);
         return mapToInfo(user);
     }
 
-    private void validateEnoughPoint(OrderUserResponse user, Long useToPoint) {
-        if (user.getPointBalance() < useToPoint) {
+    private void validateEnoughPoint(OrderUserResponse user, Long pointToUse) {
+        if (user.getPointBalance() < pointToUse) {
             throw new BusinessException(OrderErrorCode.ORDER_USER_INSUFFICIENT_POINT_BALANCE);
         }
     }

@@ -19,10 +19,10 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
 
-public class TossPaymentClientServiceTest extends ExcludeInfraTest {
+public class TossPaymentAdaptorTest extends ExcludeInfraTest {
 
     @Autowired
-    private TossPaymentClientService tossPaymentClientService;
+    private TossPaymentAdaptor tossPaymentAdaptor;
     @MockitoBean
     private TossPaymentClient tossPaymentClient;
     public static final String ORDER_NO = "ORD-20260101-AB12FVC";
@@ -40,7 +40,7 @@ public class TossPaymentClientServiceTest extends ExcludeInfraTest {
         given(tossPaymentClient.confirmPayment(any(TossPaymentConfirmRequest.class)))
                 .willReturn(response);
         //when
-        TossPaymentConfirmResponse result = tossPaymentClientService.confirmPayment(ORDER_NO, "paymentKey", 10000L);
+        TossPaymentConfirmResponse result = tossPaymentAdaptor.confirmPayment(ORDER_NO, "paymentKey", 10000L);
         //then
         assertThat(result)
                 .extracting(TossPaymentConfirmResponse::getPaymentKey, TossPaymentConfirmResponse::getOrderId, TossPaymentConfirmResponse::getTotalAmount,
@@ -57,7 +57,7 @@ public class TossPaymentClientServiceTest extends ExcludeInfraTest {
                 .confirmPayment(any(TossPaymentConfirmRequest.class));
         //when
         //then
-        assertThatThrownBy(() -> tossPaymentClientService.confirmPayment(ORDER_NO, "paymentKey", 10000L))
+        assertThatThrownBy(() -> tossPaymentAdaptor.confirmPayment(ORDER_NO, "paymentKey", 10000L))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(ExternalServiceErrorCode.UNAVAILABLE);
@@ -72,7 +72,7 @@ public class TossPaymentClientServiceTest extends ExcludeInfraTest {
                 .confirmPayment(any(TossPaymentConfirmRequest.class));
         //when
         //then
-        assertThatThrownBy(() -> tossPaymentClientService.confirmPayment(ORDER_NO, "paymentKey", 10000L))
+        assertThatThrownBy(() -> tossPaymentAdaptor.confirmPayment(ORDER_NO, "paymentKey", 10000L))
                 .isInstanceOf(BusinessException.class);
     }
 
@@ -85,7 +85,7 @@ public class TossPaymentClientServiceTest extends ExcludeInfraTest {
                 .confirmPayment(any(TossPaymentConfirmRequest.class));
         //when
         //then
-        assertThatThrownBy(() -> tossPaymentClientService.confirmPayment(ORDER_NO, "paymentKey", 1000L))
+        assertThatThrownBy(() -> tossPaymentAdaptor.confirmPayment(ORDER_NO, "paymentKey", 1000L))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(ExternalServiceErrorCode.SYSTEM_ERROR);
@@ -105,7 +105,7 @@ public class TossPaymentClientServiceTest extends ExcludeInfraTest {
         given(tossPaymentClient.cancelPayment(anyString(), any()))
                 .willReturn(response);
         //when
-        TossPaymentCancelResponse result = tossPaymentClientService.cancelPayment("paymentKey", "시스템 에러", null);
+        TossPaymentCancelResponse result = tossPaymentAdaptor.cancelPayment("paymentKey", "시스템 에러", null);
         //then
         assertThat(result)
                 .extracting(TossPaymentCancelResponse::getPaymentKey, TossPaymentCancelResponse::getOrderId, TossPaymentCancelResponse::getTotalAmount,
@@ -122,7 +122,7 @@ public class TossPaymentClientServiceTest extends ExcludeInfraTest {
                 .cancelPayment(anyString(), any());
         //when
         //then
-        assertThatThrownBy(() -> tossPaymentClientService.cancelPayment("paymentKey", "시스템 에러", null))
+        assertThatThrownBy(() -> tossPaymentAdaptor.cancelPayment("paymentKey", "시스템 에러", null))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(ExternalServiceErrorCode.UNAVAILABLE);
@@ -137,7 +137,7 @@ public class TossPaymentClientServiceTest extends ExcludeInfraTest {
                 .cancelPayment(anyString(), any());
         //when
         //then
-        assertThatThrownBy(() -> tossPaymentClientService.cancelPayment("paymentKey", "시스템 에러", null))
+        assertThatThrownBy(() -> tossPaymentAdaptor.cancelPayment("paymentKey", "시스템 에러", null))
                 .isInstanceOf(BusinessException.class);
     }
 
@@ -150,7 +150,7 @@ public class TossPaymentClientServiceTest extends ExcludeInfraTest {
                 .cancelPayment(anyString(), any());
         //when
         //then
-        assertThatThrownBy(() -> tossPaymentClientService.cancelPayment("paymentKey", "시스템 에러", null))
+        assertThatThrownBy(() -> tossPaymentAdaptor.cancelPayment("paymentKey", "시스템 에러", null))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(ExternalServiceErrorCode.SYSTEM_ERROR);

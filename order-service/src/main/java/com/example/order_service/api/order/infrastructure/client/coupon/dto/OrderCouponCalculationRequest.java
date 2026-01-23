@@ -4,20 +4,20 @@ import lombok.Builder;
 import lombok.Getter;
 
 @Getter
-public class OrderCouponCalcRequest {
+public class OrderCouponCalculationRequest {
     private Long userId;
     private Long couponId;
     private Long totalAmount;
 
     @Builder
-    private OrderCouponCalcRequest(Long userId, Long couponId, Long totalAmount){
+    private OrderCouponCalculationRequest(Long userId, Long couponId, Long totalAmount){
         this.userId = userId;
         this.couponId = couponId;
         this.totalAmount = totalAmount;
     }
 
-    public static OrderCouponCalcRequest of(Long userId, Long couponId, Long totalAmount){
-        return OrderCouponCalcRequest.builder()
+    public static OrderCouponCalculationRequest of(Long userId, Long couponId, Long totalAmount){
+        return OrderCouponCalculationRequest.builder()
                 .userId(userId)
                 .couponId(couponId)
                 .totalAmount(totalAmount)

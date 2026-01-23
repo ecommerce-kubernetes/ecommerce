@@ -1,5 +1,7 @@
 package com.example.order_service.api.support.fixture;
 
+import com.example.order_service.api.order.domain.service.dto.result.OrderProductInfo;
+import com.example.order_service.api.order.domain.service.dto.result.OrderUserInfo;
 import com.example.order_service.api.order.facade.dto.command.CreateOrderCommand;
 import com.example.order_service.api.order.facade.dto.command.CreateOrderItemCommand;
 import com.example.order_service.api.order.domain.model.OrderFailureCode;
@@ -59,6 +61,29 @@ public class OrderApplicationServiceTestFixture {
         return CreateOrderItemCommand.builder()
                 .productVariantId(variantId)
                 .quantity(quantity)
+                .build();
+    }
+
+    public static OrderUserInfo mockOrderUserInfo(Long userId) {
+        return OrderUserInfo.builder()
+                .userId(userId)
+                .userName("유저 이름")
+                .phoneNumber("010-1234-5678")
+                .build();
+    }
+
+    public static OrderProductInfo mockProductInfo(Long variantId) {
+        return OrderProductInfo.builder()
+                .productId(1L)
+                .productVariantId(variantId)
+                .sku("TEST")
+                .productName("상품")
+                .originalPrice(10000L)
+                .discountRate(10)
+                .discountAmount(1000L)
+                .discountedPrice(9000L)
+                .thumbnail("http://thumbnail.jpg")
+                .productOption(List.of())
                 .build();
     }
 

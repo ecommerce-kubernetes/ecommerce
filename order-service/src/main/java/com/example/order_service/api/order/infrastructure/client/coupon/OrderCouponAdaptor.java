@@ -2,7 +2,7 @@ package com.example.order_service.api.order.infrastructure.client.coupon;
 
 import com.example.order_service.api.common.exception.BusinessException;
 import com.example.order_service.api.common.exception.ExternalServiceErrorCode;
-import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponCalcRequest;
+import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponCalculationRequest;
 import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponDiscountResponse;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
@@ -13,12 +13,12 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class OrderCouponClientService {
+public class OrderCouponAdaptor {
     private final OrderCouponClient orderCouponClient;
 
     @CircuitBreaker(name = "couponService", fallbackMethod = "calculateDiscountFallback")
     public OrderCouponDiscountResponse calculateDiscount(Long userId, Long couponId, Long totalPrice){
-        OrderCouponCalcRequest request = OrderCouponCalcRequest.of(userId, couponId, totalPrice);
+        OrderCouponCalculationRequest request = OrderCouponCalculationRequest.of(userId, couponId, totalPrice);
         return orderCouponClient.calculate(request);
     }
 
