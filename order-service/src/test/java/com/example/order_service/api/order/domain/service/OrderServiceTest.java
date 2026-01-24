@@ -1,12 +1,11 @@
 package com.example.order_service.api.order.domain.service;
 
-import com.example.order_service.api.order.domain.model.ItemOption;
 import com.example.order_service.api.order.domain.model.OrderStatus;
 import com.example.order_service.api.order.domain.model.vo.*;
 import com.example.order_service.api.order.domain.repository.OrderRepository;
 import com.example.order_service.api.order.domain.service.dto.command.OrderCreationContext;
 import com.example.order_service.api.order.domain.service.dto.command.OrderItemCreationContext;
-import com.example.order_service.api.order.domain.service.dto.result.ItemOptionDto;
+import com.example.order_service.api.order.domain.service.dto.result.OrderItemOptionDto;
 import com.example.order_service.api.order.domain.service.dto.result.OrderDto;
 import com.example.order_service.api.order.domain.service.dto.result.OrderItemDto;
 import com.example.order_service.api.support.ExcludeInfraTest;
@@ -57,13 +56,13 @@ public class OrderServiceTest extends ExcludeInfraTest {
         OrderedProduct orderedProduct = OrderedProduct.of(1L, variantId, "TEST", "상품", "http://test.jpg");
         OrderItemPrice orderItemPrice = OrderItemPrice.of(originalPrice, discountRate, discountAmount, originalPrice - discountAmount);
         long lineTotal = orderItemPrice.getDiscountedPrice() * quantity;
-        List<OrderItemCreationContext.ItemOption> options = List.of(OrderItemCreationContext.ItemOption.builder().optionTypeName("사이즈").optionValueName("XL").build());
+        List<OrderItemCreationContext.CreateItemOptionSpec> options = List.of(OrderItemCreationContext.CreateItemOptionSpec.builder().optionTypeName("사이즈").optionValueName("XL").build());
         return OrderItemCreationContext.builder()
                 .orderedProduct(orderedProduct)
                 .orderItemPrice(orderItemPrice)
                 .quantity(quantity)
                 .lineTotal(lineTotal)
-                .itemOptions(options)
+                .createItemOptionSpecs(options)
                 .build();
     }
 
@@ -110,7 +109,7 @@ public class OrderServiceTest extends ExcludeInfraTest {
 
             assertThat(result.getOrderItems())
                     .flatExtracting(OrderItemDto::getItemOptions)
-                    .extracting(ItemOptionDto::getOptionTypeName, ItemOptionDto::getOptionValueName)
+                    .extracting(OrderItemOptionDto::getOptionTypeName, OrderItemOptionDto::getOptionValueName)
                     .containsExactlyInAnyOrder(
                             tuple("사이즈", "XL"),
                             tuple("사이즈", "XL"));

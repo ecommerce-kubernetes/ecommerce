@@ -1,7 +1,6 @@
 package com.example.order_service.api.support.fixture;
 
 import com.example.order_service.api.order.domain.model.vo.*;
-import com.example.order_service.api.order.domain.service.dto.command.OrderCreationContext;
 import com.example.order_service.api.order.domain.service.dto.command.OrderItemCreationContext;
 
 import java.util.List;
@@ -62,7 +61,7 @@ public class OrderDomainServiceTestFixture {
                 .orderItemPrice(orderItemPrice)
                 .quantity(quantity)
                 .lineTotal(orderItemPrice.getDiscountedPrice() * quantity)
-                .itemOptions(List.of(OrderItemCreationContext.ItemOption.builder().optionTypeName("사이즈").optionValueName("XL").build()))
+                .createItemOptionSpecs(List.of(OrderItemCreationContext.CreateItemOptionSpec.builder().optionTypeName("사이즈").optionValueName("XL").build()))
                 .build();
     }
 }

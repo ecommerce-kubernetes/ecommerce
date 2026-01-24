@@ -16,10 +16,10 @@ public class OrderItemDto {
     private OrderItemPrice orderItemPrice;
     private int quantity;
     private Long lineTotal;
-    private List<ItemOptionDto> itemOptions;
+    private List<OrderItemOptionDto> itemOptions;
 
     public static OrderItemDto from(OrderItem orderItem) {
-        List<ItemOptionDto> itemOptions = orderItem.getItemOptions().stream().map(ItemOptionDto::from).toList();
+        List<OrderItemOptionDto> itemOptions = orderItem.getOrderItemOptions().stream().map(OrderItemOptionDto::from).toList();
         return OrderItemDto.builder()
                 .id(orderItem.getId())
                 .orderedProduct(orderItem.getOrderedProduct())

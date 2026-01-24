@@ -54,8 +54,8 @@ public class OrderCreationContextMapper {
             OrderedProduct orderedProduct = OrderedProduct.of(product.getProductId(), product.getProductVariantId(), product.getSku(), product.getProductName(), product.getThumbnail());
             OrderItemPrice orderItemPrice = OrderItemPrice.of(product.getOriginalPrice(), product.getDiscountRate(), product.getDiscountAmount(), product.getDiscountedPrice());
             long lineTotal = product.getDiscountedPrice() * qty;
-            List<OrderItemCreationContext.ItemOption> itemOptions = product.getProductOption().stream().map(o -> OrderItemCreationContext.ItemOption.of(o.getOptionTypeName(), o.getOptionValueName())).toList();
-            return OrderItemCreationContext.of(orderedProduct, orderItemPrice, qty, lineTotal, itemOptions);
+            List<OrderItemCreationContext.CreateItemOptionSpec> createItemOptionSpecs = product.getProductOption().stream().map(o -> OrderItemCreationContext.CreateItemOptionSpec.of(o.getOptionTypeName(), o.getOptionValueName())).toList();
+            return OrderItemCreationContext.of(orderedProduct, orderItemPrice, qty, lineTotal, createItemOptionSpecs);
         }).toList();
     }
 

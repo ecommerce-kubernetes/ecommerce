@@ -94,7 +94,7 @@ public class OrderApplicationServiceTestFixture {
                 .thumbnailUrl("http://thumbnail.jpg")
                 .stockQuantity(100)
                 .unitPrice(calculateUnitPrice(price))
-                .itemOptions(List.of())
+                .productOptionInfos(List.of())
                 .build();
     }
 

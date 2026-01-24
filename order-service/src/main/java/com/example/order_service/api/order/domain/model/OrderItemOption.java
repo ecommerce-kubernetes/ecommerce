@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-public class ItemOption {
+public class OrderItemOption {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -22,7 +22,7 @@ public class ItemOption {
     private OrderItem orderItem;
 
     @Builder(access = AccessLevel.PRIVATE)
-    private ItemOption(String optionTypeName, String optionValueName){
+    private OrderItemOption(String optionTypeName, String optionValueName){
         this.optionTypeName = optionTypeName;
         this.optionValueName = optionValueName;
     }
@@ -31,10 +31,10 @@ public class ItemOption {
         this.orderItem = orderItem;
     }
 
-    public static ItemOption create(OrderItemCreationContext.ItemOption itemOption) {
-        return ItemOption.builder()
-                .optionTypeName(itemOption.getOptionTypeName())
-                .optionValueName(itemOption.getOptionValueName())
+    public static OrderItemOption create(OrderItemCreationContext.CreateItemOptionSpec createItemOptionSpec) {
+        return OrderItemOption.builder()
+                .optionTypeName(createItemOptionSpec.getOptionTypeName())
+                .optionValueName(createItemOptionSpec.getOptionValueName())
                 .build();
     }
 }

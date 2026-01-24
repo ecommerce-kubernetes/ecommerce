@@ -62,7 +62,7 @@ public class OrderProductService {
     }
 
     private OrderProductInfo mapToInfo(OrderProductResponse response) {
-        List<OrderProductInfo.ProductOption> productOptions = response.getItemOptions().stream()
+        List<OrderProductInfo.ProductOption> productOptions = response.getProductOptionInfos().stream()
                 .map(o -> OrderProductInfo.ProductOption.of(o.getOptionTypeName(), o.getOptionValueName())).toList();
         return OrderProductInfo.builder()
                 .productId(response.getProductId())

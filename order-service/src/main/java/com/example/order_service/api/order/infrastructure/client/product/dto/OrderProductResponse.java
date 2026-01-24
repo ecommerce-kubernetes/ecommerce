@@ -18,7 +18,7 @@ public class OrderProductResponse {
     private UnitPrice unitPrice;
     private Integer stockQuantity;
     @Builder.Default
-    private List<ItemOption> itemOptions = new ArrayList<>();
+    private List<ProductOptionInfo> productOptionInfos = new ArrayList<>();
 
     @Getter
     @Builder
@@ -31,7 +31,7 @@ public class OrderProductResponse {
 
     @Getter
     @Builder
-    public static class ItemOption {
+    public static class ProductOptionInfo {
         private String optionTypeName;
         private String optionValueName;
     }

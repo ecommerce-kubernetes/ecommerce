@@ -34,7 +34,7 @@ public class OrderItem extends BaseEntity {
     private Integer quantity;
 
     @OneToMany(mappedBy = "orderItem", cascade = CascadeType.PERSIST, orphanRemoval = true)
-    private List<ItemOption> itemOptions = new ArrayList<>();
+    private List<OrderItemOption> orderItemOptions = new ArrayList<>();
 
     @Builder(access = AccessLevel.PRIVATE)
     private OrderItem(OrderedProduct orderedProduct, OrderItemPrice orderItemPrice, Long lineTotal, Integer quantity){
@@ -48,16 +48,16 @@ public class OrderItem extends BaseEntity {
         this.order = order;
     }
 
-    public void addItemOption(ItemOption itemOption){
-        this.itemOptions.add(itemOption);
-        itemOption.setOrderItem(this);
+    public void addItemOption(OrderItemOption orderItemOption){
+        this.orderItemOptions.add(orderItemOption);
+        orderItemOption.setOrderItem(this);
     }
 
     public static OrderItem create (OrderItemCreationContext itemContext) {
         OrderItem orderItem = of(itemContext);
-        if (itemContext.getItemOptions() != null && !itemContext.getItemOptions().isEmpty()) {
-            for (OrderItemCreationContext.ItemOption option : itemContext.getItemOptions()) {
-                orderItem.addItemOption(ItemOption.create(option));
+        if (itemContext.getCreateItemOptionSpecs() != null && !itemContext.getCreateItemOptionSpecs().isEmpty()) {
+            for (OrderItemCreationContext.CreateItemOptionSpec option : itemContext.getCreateItemOptionSpecs()) {
+                orderItem.addItemOption(OrderItemOption.create(option));
             }
         }
         return orderItem;

@@ -51,7 +51,7 @@ public class OrderExternalAdaptorFixture {
                         .build())
                 .stockQuantity(stockQuantity)
                 .thumbnailUrl("http://thumbnail.jpg")
-                .itemOptions(List.of())
+                .productOptionInfos(List.of())
                 .build();
     }
 
