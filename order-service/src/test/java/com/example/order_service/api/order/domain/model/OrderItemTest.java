@@ -1,13 +1,5 @@
 package com.example.order_service.api.order.domain.model;
 
-import com.example.order_service.api.order.domain.service.dto.command.OrderItemCreationContext;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-
 public class OrderItemTest {
 
 //    @Test

@@ -53,7 +53,7 @@ public class OrderProductServiceTest {
                                 .build())
                 .stockQuantity(stockQuantity)
                 .thumbnailUrl("http://thumbnail.jpg")
-                .productOptionInfos(List.of())
+                .productOptionInfos(List.of(OrderProductResponse.ProductOptionInfo.builder().optionTypeName("사이즈").optionValueName("XL").build()))
                 .build();
     }
 
@@ -74,8 +74,24 @@ public class OrderProductServiceTest {
             List<OrderProductInfo> result = orderProductService.getProducts(List.of(itemCommand1, itemCommand2));
             //then
             assertThat(result).hasSize(2)
-                    .extracting(OrderProductInfo::getProductVariantId)
-                    .containsExactlyInAnyOrder(1L, 2L);
+                    .extracting(OrderProductInfo::getProductId, OrderProductInfo::getProductVariantId, OrderProductInfo::getSku,
+                            OrderProductInfo::getProductName, OrderProductInfo::getOriginalPrice, OrderProductInfo::getDiscountRate,
+                            OrderProductInfo::getDiscountAmount, OrderProductInfo::getDiscountedPrice, OrderProductInfo::getThumbnail)
+                    .containsExactlyInAnyOrder(
+                            tuple(product1.getProductId(), product1.getProductVariantId(), product1.getSku(), product1.getProductName(),
+                                    product1.getUnitPrice().getOriginalPrice(), product1.getUnitPrice().getDiscountRate(), product1.getUnitPrice().getDiscountAmount(),
+                                    product1.getUnitPrice().getDiscountedPrice(), product1.getThumbnailUrl()),
+                            tuple(product2.getProductId(), product2.getProductVariantId(), product2.getSku(), product2.getProductName(),
+                                    product2.getUnitPrice().getOriginalPrice(), product2.getUnitPrice().getDiscountRate(), product2.getUnitPrice().getDiscountAmount(),
+                                    product2.getUnitPrice().getDiscountedPrice(), product2.getThumbnailUrl())
+                    );
+
+            assertThat(result)
+                    .flatExtracting(OrderProductInfo::getProductOption)
+                    .extracting("optionTypeName", "optionValueName")
+                    .containsExactly(
+                            tuple("사이즈", "XL"),
+                            tuple("사이즈", "XL"));
         }
 
         @Test

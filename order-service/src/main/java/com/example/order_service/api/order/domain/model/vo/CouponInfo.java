@@ -1,7 +1,5 @@
 package com.example.order_service.api.order.domain.model.vo;
 
-import com.example.order_service.api.order.domain.model.Coupon;
-import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponDiscountResponse;
 import jakarta.persistence.Embeddable;
 import lombok.*;
 

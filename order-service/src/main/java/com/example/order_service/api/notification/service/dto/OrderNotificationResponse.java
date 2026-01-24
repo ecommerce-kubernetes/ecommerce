@@ -1,6 +1,6 @@
 package com.example.order_service.api.notification.service.dto;
 
-import com.example.order_service.api.notification.listener.dto.OrderNotificationDto;
+import com.example.order_service.api.notification.listener.dto.OrderPaymentReadyNotificationDto;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -29,11 +29,10 @@ public class OrderNotificationResponse {
         this.message = message;
     }
 
-    public static OrderNotificationResponse from(OrderNotificationDto dto) {
+    public static OrderNotificationResponse from(OrderPaymentReadyNotificationDto dto) {
         return OrderNotificationResponse.builder()
                 .orderNo(dto.getOrderNo())
                 .userId(dto.getUserId())
-                .status(dto.getStatus())
                 .code(dto.getCode())
                 .orderName(dto.getOrderName())
                 .amount(dto.getAmount())

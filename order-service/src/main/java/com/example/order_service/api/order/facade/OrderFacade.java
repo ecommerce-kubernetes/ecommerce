@@ -6,8 +6,12 @@ import com.example.order_service.api.common.exception.CommonErrorCode;
 import com.example.order_service.api.common.exception.ErrorCode;
 import com.example.order_service.api.common.exception.OrderErrorCode;
 import com.example.order_service.api.common.util.AsyncUtil;
+import com.example.order_service.api.order.controller.dto.request.OrderSearchCondition;
+import com.example.order_service.api.order.domain.model.OrderFailureCode;
+import com.example.order_service.api.order.domain.model.OrderStatus;
 import com.example.order_service.api.order.domain.service.*;
 import com.example.order_service.api.order.domain.service.dto.command.OrderCreationContext;
+import com.example.order_service.api.order.domain.service.dto.command.PaymentCreationCommand;
 import com.example.order_service.api.order.domain.service.dto.result.*;
 import com.example.order_service.api.order.facade.dto.OrderPreparationData;
 import com.example.order_service.api.order.facade.dto.command.CreateOrderCommand;
@@ -16,11 +20,8 @@ import com.example.order_service.api.order.facade.dto.result.CreateOrderResponse
 import com.example.order_service.api.order.facade.dto.result.OrderDetailResponse;
 import com.example.order_service.api.order.facade.dto.result.OrderListResponse;
 import com.example.order_service.api.order.facade.event.OrderCreatedEvent;
-import com.example.order_service.api.order.facade.event.OrderResultEvent;
-import com.example.order_service.api.order.controller.dto.request.OrderSearchCondition;
-import com.example.order_service.api.order.domain.model.OrderFailureCode;
-import com.example.order_service.api.order.domain.model.OrderStatus;
-import com.example.order_service.api.order.domain.service.dto.command.PaymentCreationCommand;
+import com.example.order_service.api.order.facade.event.OrderFailedEvent;
+import com.example.order_service.api.order.facade.event.OrderPaymentReadyEvent;
 import com.example.order_service.api.order.infrastructure.client.payment.dto.response.TossPaymentConfirmResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -60,18 +61,21 @@ public class OrderFacade {
         OrderCreationContext creationContext =
                 mapper.mapOrderCreationContext(orderPreparationData.getUser(), calculatedOrderAmounts, coupon, command, orderPreparationData.getProducts());
         OrderDto orderDto = orderService.saveOrder(creationContext);
+        //SAGA 진행을 위한 이벤트 발행
         eventPublisher.publishEvent(OrderCreatedEvent.from(orderDto));
         return CreateOrderResponse.from(orderDto);
     }
 
     public void preparePayment(String orderNo) {
         OrderDto orderDto = orderService.changeOrderStatus(orderNo, OrderStatus.PAYMENT_WAITING);
-        eventPublisher.publishEvent(OrderResultEvent.paymentReady(orderDto));
+        // SSE 메시지 전송을 위한 이벤트 발행
+        eventPublisher.publishEvent(OrderPaymentReadyEvent.from(orderDto));
     }
 
     public void processOrderFailure(String orderNo, OrderFailureCode orderFailureCode){
         OrderDto orderDto = orderService.canceledOrder(orderNo, orderFailureCode);
-        eventPublisher.publishEvent(OrderResultEvent.failure(orderDto));
+        // SSE 메시지 전송을 위한 이벤트 발행
+        eventPublisher.publishEvent(OrderFailedEvent.from(orderDto));
     }
 
     public OrderDetailResponse finalizeOrder(String orderNo, Long userId, String paymentKey, Long amount) {

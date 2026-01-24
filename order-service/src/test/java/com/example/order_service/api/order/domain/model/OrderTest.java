@@ -1,8 +1,5 @@
 package com.example.order_service.api.order.domain.model;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 public class OrderTest {
 
 //    @Test

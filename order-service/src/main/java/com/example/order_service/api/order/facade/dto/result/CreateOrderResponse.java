@@ -26,7 +26,7 @@ public class CreateOrderResponse {
     public static CreateOrderResponse from(OrderDto orderDto) {
         return CreateOrderResponse.builder()
                 .orderNo(orderDto.getOrderNo())
-                .status(orderDto.getStatus().toString())
+                .status(orderDto.getStatus().name())
                 .orderName(orderDto.getOrderName())
                 .finalPaymentAmount(orderDto.getOrderPriceDetail().getFinalPaymentAmount())
                 .createdAt(orderDto.getOrderedAt().toString())

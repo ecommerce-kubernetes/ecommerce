@@ -2,7 +2,6 @@ package com.example.order_service.api.order.facade.dto.command;
 
 import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
 
 @Builder
 @Getter

@@ -1,6 +1,7 @@
 package com.example.order_service.api.support.fixture;
 
-import com.example.order_service.api.order.domain.model.vo.*;
+import com.example.order_service.api.order.domain.model.vo.OrderItemPrice;
+import com.example.order_service.api.order.domain.model.vo.OrderedProduct;
 import com.example.order_service.api.order.domain.service.dto.command.OrderItemCreationContext;
 
 import java.util.List;

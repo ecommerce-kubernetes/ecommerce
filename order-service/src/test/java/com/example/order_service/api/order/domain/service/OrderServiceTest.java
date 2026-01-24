@@ -1,13 +1,17 @@
 package com.example.order_service.api.order.domain.service;
 
+import com.example.order_service.api.common.exception.BusinessException;
+import com.example.order_service.api.common.exception.OrderErrorCode;
+import com.example.order_service.api.order.domain.model.Order;
+import com.example.order_service.api.order.domain.model.OrderFailureCode;
 import com.example.order_service.api.order.domain.model.OrderStatus;
 import com.example.order_service.api.order.domain.model.vo.*;
 import com.example.order_service.api.order.domain.repository.OrderRepository;
 import com.example.order_service.api.order.domain.service.dto.command.OrderCreationContext;
 import com.example.order_service.api.order.domain.service.dto.command.OrderItemCreationContext;
-import com.example.order_service.api.order.domain.service.dto.result.OrderItemOptionDto;
 import com.example.order_service.api.order.domain.service.dto.result.OrderDto;
 import com.example.order_service.api.order.domain.service.dto.result.OrderItemDto;
+import com.example.order_service.api.order.domain.service.dto.result.OrderItemOptionDto;
 import com.example.order_service.api.support.ExcludeInfraTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -185,80 +189,63 @@ public class OrderServiceTest extends ExcludeInfraTest {
         }
     }
 
-//    @Test
-//    @DisplayName("주문을 저장한다")
-//    void saveOrder(){
-//        //given
-//        OrderCreationContext creationContext = null;
-//        //when
-//        OrderDto orderDto = orderService.saveOrder(creationContext);
-//        //then
-//        assertThat(orderDto.getOrderId()).isNotNull();
-//        assertThat(orderDto)
-//                .extracting(OrderDto::getStatus, OrderDto::getOrderName, OrderDto::getOrderFailureCode)
-//                .contains(OrderStatus.PENDING, "상품1 외 1건", null);
-//        assertThat(orderDto.getOrderedAt()).isNotNull();
-//
-//        assertThat(orderDto.getOrderPriceDetail())
-//                .extracting(
-//                        OrderPriceDetail::getTotalOriginPrice,
-//                        OrderPriceDetail::getTotalProductDiscount,
-//                        OrderPriceDetail::getCouponDiscount,
-//                        OrderPriceDetail::getPointDiscount,
-//                        OrderPriceDetail::getFinalPaymentAmount
-//                )
-//                .contains(
-//                        TOTAL_ORIGIN_PRICE,
-//                        TOTAL_PROD_DISCOUNT,
-//                        COUPON_DISCOUNT,
-//                        USE_POINT,
-//                        FINAL_PRICE
-//                );
-//
-//        assertThat(orderDto.getOrderItemDtoList())
-//                .hasSize(2)
-//                        .extracting(
-//                                OrderItemDto::getProductId,
-//                                OrderItemDto::getProductName,
-//                                OrderItemDto::getQuantity,
-//                                OrderItemDto::getLineTotal
-//                        )
-//                .containsExactlyInAnyOrder(
-//                        tuple(PROD1_ID, PROD1_NAME, PROD1_QTY, PROD1_LINE_TOTAL),
-//                        tuple(PROD2_ID, PROD2_NAME, PROD2_QTY, PROD2_LINE_TOTAL)
-//                );
-//
-//        assertThat(orderDto.getCouponInfo())
-//                .extracting(CouponInfo::getCouponId, CouponInfo::getCouponName, CouponInfo::getDiscountAmount)
-//                .containsExactly(1L, "1000원 할인 쿠폰", COUPON_DISCOUNT);
-//    }
+    @Nested
+    @DisplayName("주문 상태 변경")
+    class ChangeStatus {
 
-//    @Test
-//    @DisplayName("주문 상태를 변경한다")
-//    void changeOrderStatus() {
-//        //given
-//        OrderCreationContext context = createDefaultContext();
-//        Order order = Order.create(context);
-//        Order savedOrder = orderRepository.save(order);
-//        //when
-//        OrderDto result = orderService.changeOrderStatus(savedOrder.getOrderNo(), OrderStatus.PAYMENT_WAITING);
-//        //then
-//        assertThat(result.getStatus()).isEqualTo(OrderStatus.PAYMENT_WAITING);
-//        assertThat(result.getOrderId()).isEqualTo(savedOrder.getId());
-//        assertThat(result.getOrderFailureCode()).isNull();
-//    }
-//
-//    @Test
-//    @DisplayName("주문의 상태를 변경할때 주문을 찾을 수 없으면 예외를 던진다")
-//    void changeOrderStatus_notFound() {
-//        //given
-//        //when
-//        //then
-//        assertThatThrownBy(() -> orderService.changeOrderStatus(ORDER_NO, OrderStatus.PAYMENT_WAITING))
-//                .isInstanceOf(BusinessException.class)
-//                .extracting("errorCode")
-//                .isEqualTo(OrderErrorCode.ORDER_NOT_FOUND);
-//    }
+        @Test
+        @DisplayName("주문 상태를 변경한다")
+        void changeOrderStatus(){
+            //given
+            OrderItemCreationContext item1 = mockItemCreationContext(1L, 10000L, 10, 3);
+            OrderItemCreationContext item2 = mockItemCreationContext(2L, 20000L, 20, 5);
+            OrderCreationContext creationContext = createBaseOrderContext(List.of(item1, item2));
+            Order savedOrder = orderRepository.save(Order.create(creationContext));
+            //when
+            OrderDto result = orderService.changeOrderStatus(savedOrder.getOrderNo(), OrderStatus.PAYMENT_WAITING);
+            //then
+            assertThat(result.getStatus()).isEqualTo(OrderStatus.PAYMENT_WAITING);
+        }
+
+        @Test
+        @DisplayName("주문 상품을 찾을 수 없으면 상태를 변경할 수 없다")
+        void changeOrderStatus_order_not_found(){
+            //given
+            //when
+            //then
+            assertThatThrownBy(() -> orderService.changeOrderStatus("UNKNOWN", OrderStatus.PAYMENT_WAITING))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(OrderErrorCode.ORDER_NOT_FOUND);
+        }
+
+        @Test
+        @DisplayName("주문 상태를 취소로 변경한다")
+        void canceledOrder(){
+            //given
+            OrderItemCreationContext item1 = mockItemCreationContext(1L, 10000L, 10, 3);
+            OrderItemCreationContext item2 = mockItemCreationContext(2L, 20000L, 20, 5);
+            OrderCreationContext creationContext = createBaseOrderContext(List.of(item1, item2));
+            Order savedOrder = orderRepository.save(Order.create(creationContext));
+            //when
+            OrderDto result = orderService.canceledOrder(savedOrder.getOrderNo(), OrderFailureCode.OUT_OF_STOCK);
+            //then
+            assertThat(result.getStatus()).isEqualTo(OrderStatus.CANCELED);
+        }
+
+        @Test
+        @DisplayName("주문 상품을 찾을 수 없으면 주문 취소를 할 수 없다")
+        void canceledOrder_order_not_found(){
+            //given
+            //when
+            //then
+            assertThatThrownBy(() -> orderService.canceledOrder("UNKNOWN", OrderFailureCode.OUT_OF_STOCK))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(OrderErrorCode.ORDER_NOT_FOUND);
+        }
+    }
+
 //
 //    @Test
 //    @DisplayName("주문을 조회한다")
@@ -322,32 +309,6 @@ public class OrderServiceTest extends ExcludeInfraTest {
 //                .isEqualTo(OrderErrorCode.ORDER_NO_PERMISSION);
 //    }
 //
-//    @Test
-//    @DisplayName("주문을 실패 상태로 변경한다")
-//    void canceledOrder() {
-//        //given
-//        OrderCreationContext context = createDefaultContext();
-//        Order savedOrder = orderRepository.save(Order.create(context));
-//        OrderFailureCode failureCode = OrderFailureCode.OUT_OF_STOCK;
-//        //when
-//        OrderDto result = orderService.canceledOrder(savedOrder.getOrderNo(), failureCode);
-//        //then
-//        assertThat(result.getStatus()).isEqualTo(OrderStatus.CANCELED);
-//        assertThat(result.getOrderFailureCode()).isEqualTo(OrderFailureCode.OUT_OF_STOCK);
-//        assertThat(result.getOrderId()).isEqualTo(savedOrder.getId());
-//    }
-//
-//    @Test
-//    @DisplayName("주문을 실패 상태로 변경할때 주문을 찾을 수 없으면 예외를 던진다")
-//    void canceledOrder_notFound() {
-//        //given
-//        //when
-//        //then
-//        assertThatThrownBy(() -> orderService.canceledOrder(ORDER_NO, OrderFailureCode.OUT_OF_STOCK))
-//                .isInstanceOf(BusinessException.class)
-//                .extracting("errorCode")
-//                .isEqualTo(OrderErrorCode.ORDER_NOT_FOUND);
-//    }
 //
 //    @Test
 //    @DisplayName("유저 ID 와 조회 커맨드로 주문 목록을 조회한다")

@@ -73,6 +73,7 @@ public class OrderProductService {
                 .discountRate(response.getUnitPrice().getDiscountRate())
                 .discountAmount(response.getUnitPrice().getDiscountAmount())
                 .discountedPrice(response.getUnitPrice().getDiscountedPrice())
+                .thumbnail(response.getThumbnailUrl())
                 .productOption(productOptions)
                 .build();
     }

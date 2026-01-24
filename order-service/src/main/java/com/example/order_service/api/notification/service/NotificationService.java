@@ -1,6 +1,6 @@
 package com.example.order_service.api.notification.service;
 
-import com.example.order_service.api.notification.listener.dto.OrderNotificationDto;
+import com.example.order_service.api.notification.listener.dto.OrderPaymentReadyNotificationDto;
 import com.example.order_service.api.notification.service.dto.OrderNotificationResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,7 +30,7 @@ public class NotificationService {
         return emitter;
     }
 
-    public void sendMessage(OrderNotificationDto dto) {
+    public void sendMessage(OrderPaymentReadyNotificationDto dto) {
         OrderNotificationResponse response = OrderNotificationResponse.from(dto);
         send(response.getUserId(), "ORDER_RESULT", response);
     }

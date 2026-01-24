@@ -4,18 +4,12 @@ import com.example.order_service.api.order.domain.model.OrderStatus;
 import com.example.order_service.api.order.domain.model.vo.CouponInfo;
 import com.example.order_service.api.order.domain.model.vo.OrderPriceDetail;
 import com.example.order_service.api.order.domain.model.vo.Orderer;
-import com.example.order_service.api.order.domain.service.dto.result.*;
+import com.example.order_service.api.order.domain.service.dto.result.OrderDto;
+import com.example.order_service.api.order.domain.service.dto.result.OrderProductInfo;
+import com.example.order_service.api.order.domain.service.dto.result.OrderUserInfo;
 import com.example.order_service.api.order.facade.dto.command.CreateOrderCommand;
 import com.example.order_service.api.order.facade.dto.command.CreateOrderItemCommand;
-import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponDiscountResponse;
-import com.example.order_service.api.order.infrastructure.client.payment.dto.response.TossPaymentConfirmResponse;
-import com.example.order_service.api.order.infrastructure.client.product.dto.OrderProductResponse;
-import com.example.order_service.api.order.infrastructure.client.user.dto.OrderUserResponse;
 
-import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 public class OrderFacadeFixture {
