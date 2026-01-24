@@ -1,9 +1,6 @@
 package com.example.order_service.api.order.domain.service.dto.result;
 
-import com.example.order_service.api.order.domain.model.Order;
-import com.example.order_service.api.order.domain.model.OrderFailureCode;
-import com.example.order_service.api.order.domain.model.OrderItem;
-import com.example.order_service.api.order.domain.model.OrderStatus;
+import com.example.order_service.api.order.domain.model.*;
 import com.example.order_service.api.order.domain.model.vo.CouponInfo;
 import com.example.order_service.api.order.domain.model.vo.OrderPriceDetail;
 import com.example.order_service.api.order.domain.model.vo.Orderer;
@@ -13,6 +10,7 @@ import lombok.Getter;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Getter
 @Builder
@@ -38,13 +36,20 @@ public class OrderDto {
                 .orderName(order.getOrderName())
                 .orderer(order.getOrderer())
                 .orderPriceDetail(order.getOrderPriceDetail())
-                .couponInfo(order.getCoupon().getCouponInfo())
+                .couponInfo(resolveCouponInfo(order))
                 .orderItems(createOrderItemDto(order.getOrderItems()))
                 .deliveryAddress(order.getDeliveryAddress())
                 .paymentInfo(PaymentInfo.from(order.getPayment()))
                 .orderedAt(order.getCreatedAt())
                 .orderFailureCode(order.getFailureCode())
                 .build();
+    }
+
+    private static CouponInfo resolveCouponInfo(Order order) {
+        if (order.getCoupon() == null) {
+            return null;
+        }
+        return order.getCoupon().getCouponInfo();
     }
 
     private static List<OrderItemDto> createOrderItemDto(List<OrderItem> orderItems){

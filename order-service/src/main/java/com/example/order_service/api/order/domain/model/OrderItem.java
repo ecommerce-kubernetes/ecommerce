@@ -48,7 +48,7 @@ public class OrderItem extends BaseEntity {
         this.order = order;
     }
 
-    public void addItemOption(OrderItemOption orderItemOption){
+    public void addOrderItemOption(OrderItemOption orderItemOption){
         this.orderItemOptions.add(orderItemOption);
         orderItemOption.setOrderItem(this);
     }
@@ -57,7 +57,7 @@ public class OrderItem extends BaseEntity {
         OrderItem orderItem = of(itemContext);
         if (itemContext.getCreateItemOptionSpecs() != null && !itemContext.getCreateItemOptionSpecs().isEmpty()) {
             for (OrderItemCreationContext.CreateItemOptionSpec option : itemContext.getCreateItemOptionSpecs()) {
-                orderItem.addItemOption(OrderItemOption.create(option));
+                orderItem.addOrderItemOption(OrderItemOption.create(option));
             }
         }
         return orderItem;
