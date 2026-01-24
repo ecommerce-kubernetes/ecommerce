@@ -23,13 +23,13 @@ public class CreateOrderResponse {
         this.createdAt = createdAt;
     }
 
-    public static CreateOrderResponse of(OrderDto result) {
+    public static CreateOrderResponse from(OrderDto orderDto) {
         return CreateOrderResponse.builder()
-                .orderNo(result.getOrderNo())
-                .status(result.getStatus().name())
-                .orderName(result.getOrderName())
-                .finalPaymentAmount(result.getOrderPriceDetail().getFinalPaymentAmount())
-                .createdAt(result.getOrderedAt().toString())
+                .orderNo(orderDto.getOrderNo())
+                .status(orderDto.getStatus().toString())
+                .orderName(orderDto.getOrderName())
+                .finalPaymentAmount(orderDto.getOrderPriceDetail().getFinalPaymentAmount())
+                .createdAt(orderDto.getOrderedAt().toString())
                 .build();
     }
 }

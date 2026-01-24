@@ -15,9 +15,8 @@ import com.example.order_service.api.order.facade.dto.command.CreateOrderItemCom
 import com.example.order_service.api.order.facade.dto.result.CreateOrderResponse;
 import com.example.order_service.api.order.facade.dto.result.OrderDetailResponse;
 import com.example.order_service.api.order.facade.dto.result.OrderListResponse;
-import com.example.order_service.api.order.facade.event.OrderEventStatus;
+import com.example.order_service.api.order.facade.event.OrderCreatedEvent;
 import com.example.order_service.api.order.facade.event.OrderResultEvent;
-import com.example.order_service.api.order.facade.event.PaymentResultEvent;
 import com.example.order_service.api.order.controller.dto.request.OrderSearchCondition;
 import com.example.order_service.api.order.domain.model.OrderFailureCode;
 import com.example.order_service.api.order.domain.model.OrderStatus;
@@ -60,11 +59,9 @@ public class OrderFacade {
         CalculatedOrderAmounts calculatedOrderAmounts = calculator.calculateOrderPrice(productAmount, coupon, command.getPointToUse(), command.getExpectedPrice());
         OrderCreationContext creationContext =
                 mapper.mapOrderCreationContext(orderPreparationData.getUser(), calculatedOrderAmounts, coupon, command, orderPreparationData.getProducts());
-//        OrderDto orderDto = orderDomainService.saveOrder(creationContext);
-//        eventPublisher.publishEvent(OrderCreatedEvent.from(orderDto));
-//        return CreateOrderResponse.of(orderDto);
-
-        return null;
+        OrderDto orderDto = orderService.saveOrder(creationContext);
+        eventPublisher.publishEvent(OrderCreatedEvent.from(orderDto));
+        return CreateOrderResponse.from(orderDto);
     }
 
     public void preparePayment(String orderNo) {
