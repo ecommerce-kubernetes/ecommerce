@@ -129,10 +129,10 @@ public class OrderFacade {
 
     private OrderDetailResponse processOrderCompletion(TossPaymentConfirmResponse response) {
         OrderDto completedOrder = orderService.completedOrder(PaymentCreationCommand.from(response));
-        List<Long> productVariantIds = completedOrder.getOrderItemDtoList().stream()
-                .map(OrderItemDto::getProductVariantId).toList();
-        eventPublisher.publishEvent(PaymentResultEvent.of(completedOrder.getOrderNo(), completedOrder.getUserId(), OrderEventStatus.SUCCESS, null,
-                productVariantIds));
+//        List<Long> productVariantIds = completedOrder.getOrderItemDtoList().stream()
+//                .map(OrderItemDto::getProductVariantId).toList();
+//        eventPublisher.publishEvent(PaymentResultEvent.of(completedOrder.getOrderNo(), completedOrder.getUserId(), OrderEventStatus.SUCCESS, null,
+//                productVariantIds));
         return OrderDetailResponse.from(completedOrder);
     }
 
@@ -146,9 +146,9 @@ public class OrderFacade {
 
     private void handlePaymentFailure(String orderNo, ErrorCode errorCode) {
         OrderFailureCode failureCode = OrderFailureCode.fromErrorCode(errorCode);
-        OrderDto canceledOrder = orderService.canceledOrder(orderNo, failureCode);
-        eventPublisher.publishEvent(PaymentResultEvent.of(canceledOrder.getOrderNo(), canceledOrder.getUserId(), OrderEventStatus.FAILURE,
-                failureCode, null));
+//        OrderDto canceledOrder = orderService.canceledOrder(orderNo, failureCode);
+//        eventPublisher.publishEvent(PaymentResultEvent.of(canceledOrder.getOrderNo(), canceledOrder.getUserId(), OrderEventStatus.FAILURE,
+//                failureCode, null));
     }
 
     private void validateUniqueItems(List<CreateOrderItemCommand> items) {

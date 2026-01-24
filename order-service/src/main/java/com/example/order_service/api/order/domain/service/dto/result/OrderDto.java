@@ -6,6 +6,7 @@ import com.example.order_service.api.order.domain.model.OrderItem;
 import com.example.order_service.api.order.domain.model.OrderStatus;
 import com.example.order_service.api.order.domain.model.vo.CouponInfo;
 import com.example.order_service.api.order.domain.model.vo.OrderPriceDetail;
+import com.example.order_service.api.order.domain.model.vo.Orderer;
 import com.example.order_service.api.order.domain.model.vo.PaymentInfo;
 import lombok.Builder;
 import lombok.Getter;
@@ -14,50 +15,34 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
+@Builder
 public class OrderDto {
-    private Long orderId;
+    private Long id;
     private String orderNo;
-    private Long userId;
     private OrderStatus status;
     private String orderName;
-    private String deliveryAddress;
-    private LocalDateTime orderedAt;
+    private Orderer orderer;
     private OrderPriceDetail orderPriceDetail;
-    private List<OrderItemDto> orderItemDtoList;
     private CouponInfo couponInfo;
+    private List<OrderItemDto> orderItems;
+    private String deliveryAddress;
     private PaymentInfo paymentInfo;
+    private LocalDateTime orderedAt;
     private OrderFailureCode orderFailureCode;
-
-    @Builder
-    private OrderDto(Long orderId, String orderNo, Long userId, OrderStatus status, String orderName, String deliveryAddress, LocalDateTime orderedAt,
-                     OrderPriceDetail orderPriceDetail, List<OrderItemDto> orderItemDtoList, CouponInfo couponInfo, PaymentInfo paymentInfo, OrderFailureCode orderFailureCode){
-        this.orderId = orderId;
-        this.orderNo = orderNo;
-        this.userId = userId;
-        this.status = status;
-        this.orderName = orderName;
-        this.deliveryAddress = deliveryAddress;
-        this.orderedAt = orderedAt;
-        this.orderPriceDetail = orderPriceDetail;
-        this.orderItemDtoList = orderItemDtoList;
-        this.couponInfo = couponInfo;
-        this.paymentInfo = paymentInfo;
-        this.orderFailureCode = orderFailureCode;
-    }
 
     public static OrderDto from(Order order) {
         return OrderDto.builder()
-                .orderId(order.getId())
+                .id(order.getId())
                 .orderNo(order.getOrderNo())
-                .userId(order.getUserId())
                 .status(order.getStatus())
                 .orderName(order.getOrderName())
+                .orderer(order.getOrderer())
+                .orderPriceDetail(order.getOrderPriceDetail())
+                .couponInfo(order.getCoupon().getCouponInfo())
+                .orderItems(createOrderItemDto(order.getOrderItems()))
                 .deliveryAddress(order.getDeliveryAddress())
-                .orderedAt(order.getCreatedAt())
-                .orderPriceDetail(order.getPriceInfo())
-                .orderItemDtoList(createOrderItemDto(order.getOrderItems()))
-                .couponInfo(CouponInfo.from(order.getCoupon()))
                 .paymentInfo(PaymentInfo.from(order.getPayment()))
+                .orderedAt(order.getCreatedAt())
                 .orderFailureCode(order.getFailureCode())
                 .build();
     }

@@ -41,6 +41,9 @@ public class OrderCreationContextMapper {
     }
 
     private CouponInfo mapCouponInfo(OrderCouponInfo coupon) {
+        if (coupon == null || coupon.getCouponId() == null) {
+            return null;
+        }
         return CouponInfo.of(coupon.getCouponId(), coupon.getCouponName(), coupon.getDiscountAmount());
     }
 

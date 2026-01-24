@@ -3,13 +3,11 @@ package com.example.order_service.api.order.domain.model.vo;
 import com.example.order_service.api.order.domain.model.Coupon;
 import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponDiscountResponse;
 import jakarta.persistence.Embeddable;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Getter
 @Embeddable
+@EqualsAndHashCode
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class CouponInfo {
     private Long couponId;
@@ -29,19 +27,5 @@ public class CouponInfo {
                 .couponName(couponName)
                 .discountAmount(discountAmount)
                 .build();
-    }
-
-    public static CouponInfo from(OrderCouponDiscountResponse coupon) {
-        if (coupon == null) {
-            return null;
-        }
-        return of(coupon.getCouponId(), coupon.getCouponName(), coupon.getDiscountAmount());
-    }
-
-    public static CouponInfo from(Coupon coupon){
-        if(coupon == null) {
-            return null;
-        }
-        return of(coupon.getCouponId(), coupon.getCouponName(), coupon.getDiscountAmount());
     }
 }

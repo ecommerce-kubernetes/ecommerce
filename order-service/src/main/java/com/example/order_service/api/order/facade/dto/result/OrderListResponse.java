@@ -26,10 +26,11 @@ public class OrderListResponse {
     }
 
     public static OrderListResponse from(OrderDto orderDto){
-        List<OrderItemResponse> orderItemResponses = orderDto.getOrderItemDtoList().stream().map(OrderItemResponse::from).toList();
+        List<OrderItemResponse> orderItemResponses = orderDto.getOrderItems().stream().map(OrderItemResponse::from).toList();
         return OrderListResponse.builder()
                 .orderNo(orderDto.getOrderNo())
-                .userId(orderDto.getUserId())
+                //TODO
+//                .userId(orderDto.getUserId())
                 .orderStatus(orderDto.getStatus().name())
                 .orderItems(orderItemResponses)
                 .createdAt(orderDto.getOrderedAt().toString())

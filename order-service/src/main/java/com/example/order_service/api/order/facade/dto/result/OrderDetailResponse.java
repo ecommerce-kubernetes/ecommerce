@@ -122,18 +122,19 @@ public class OrderDetailResponse {
     }
 
     public static OrderDetailResponse from(OrderDto orderDto) {
-        List<OrderItemResponse> items = orderDto.getOrderItemDtoList().stream().map(OrderItemResponse::from).toList();
-        return OrderDetailResponse.builder()
-                .orderNo(orderDto.getOrderNo())
-                .userId(orderDto.getUserId())
-                .orderStatus(orderDto.getStatus().name())
-                .orderName(orderDto.getOrderName())
-                .deliveryAddress(orderDto.getDeliveryAddress())
-                .orderPriceResponse(OrderPriceResponse.from(orderDto.getOrderPriceDetail()))
-                .couponResponse(CouponResponse.from(orderDto.getCouponInfo()))
-                .orderItems(items)
-                .paymentResponse(PaymentResponse.from(orderDto.getPaymentInfo()))
-                .createdAt(orderDto.getOrderedAt().toString())
-                .build();
+//        List<OrderItemResponse> items = orderDto.getOrderItemDtoList().stream().map(OrderItemResponse::from).toList();
+//        return OrderDetailResponse.builder()
+//                .orderNo(orderDto.getOrderNo())
+//                .userId(orderDto.getUserId())
+//                .orderStatus(orderDto.getStatus().name())
+//                .orderName(orderDto.getOrderName())
+//                .deliveryAddress(orderDto.getDeliveryAddress())
+//                .orderPriceResponse(OrderPriceResponse.from(orderDto.getOrderPriceDetail()))
+//                .couponResponse(CouponResponse.from(orderDto.getCouponInfo()))
+//                .orderItems(items)
+//                .paymentResponse(PaymentResponse.from(orderDto.getPaymentInfo()))
+//                .createdAt(orderDto.getOrderedAt().toString())
+//                .build();
+        return null;
     }
 }

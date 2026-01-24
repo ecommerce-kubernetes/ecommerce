@@ -4,6 +4,7 @@ import com.example.order_service.api.common.entity.BaseEntity;
 import com.example.order_service.api.common.exception.BusinessException;
 import com.example.order_service.api.common.exception.OrderErrorCode;
 import com.example.order_service.api.order.domain.model.vo.OrderPriceDetail;
+import com.example.order_service.api.order.domain.model.vo.Orderer;
 import com.example.order_service.api.order.domain.service.dto.command.OrderCreationContext;
 import com.example.order_service.api.order.domain.service.dto.command.OrderItemCreationContext;
 import jakarta.persistence.*;
@@ -27,34 +28,35 @@ public class Order extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String orderNo;
-    private Long userId;
     @Enumerated(EnumType.STRING)
     private OrderStatus status;
     private String orderName;
-    private String deliveryAddress;
     @Embedded
-    private OrderPriceDetail priceInfo;
+    private Orderer orderer;
+    @Embedded
+    private OrderPriceDetail orderPriceDetail;
+    private String deliveryAddress;
 
     @Enumerated(EnumType.STRING)
     private OrderFailureCode failureCode;
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "order", cascade = CascadeType.PERSIST, orphanRemoval = true)
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> orderItems = new ArrayList<>();
 
-    @OneToOne(mappedBy = "order", cascade = CascadeType.PERSIST, orphanRemoval = true)
+    @OneToOne(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private Coupon coupon;
 
     @OneToOne(mappedBy = "order", cascade = CascadeType.PERSIST, orphanRemoval = true)
     private Payment payment;
 
     @Builder(access = AccessLevel.PRIVATE)
-    private Order(String orderNo, Long userId, OrderStatus status, String orderName, String deliveryAddress, OrderPriceDetail priceInfo, OrderFailureCode failureCode) {
+    private Order(String orderNo, OrderStatus status, String orderName, Orderer orderer, OrderPriceDetail orderPriceDetail, String deliveryAddress, OrderFailureCode failureCode) {
         this.orderNo = orderNo;
-        this.userId = userId;
+        this.orderer = orderer;
         this.status = status;
         this.orderName = orderName;
         this.deliveryAddress = deliveryAddress;
-        this.priceInfo = priceInfo;
+        this.orderPriceDetail = orderPriceDetail;
         this.failureCode = failureCode;
     }
 
@@ -78,7 +80,7 @@ public class Order extends BaseEntity {
     }
 
     public boolean isOwner(Long accessUserId) {
-        return this.userId.equals(accessUserId);
+        return this.orderer.getUserId().equals(accessUserId);
     }
 
     public void canceled(OrderFailureCode code) {
@@ -87,37 +89,36 @@ public class Order extends BaseEntity {
     }
 
     public static Order create(OrderCreationContext context) {
-//        validateOrderItems(context.getItemCommands());
-//        String orderNo = generatedOrderNo();
-//        String generatedOrderName = generateOrderName(context.getItemCommands());
-//        Order order = createOrder(context, orderNo, generatedOrderName);
-//        for (OrderItemCreationContext item : context.getItemCommands()) {
-//            order.addOrderItem(OrderItem.create(item));
-//        }
-//        if (context.getCouponInfo() != null) {
-//            order.addCoupon(Coupon.create(context.getCouponInfo()));
-//        }
+        validateOrderItems(context.getOrderItemCreationContexts());
+        String orderNo = generatedOrderNo();
+        String orderName = generateOrderName(context.getOrderItemCreationContexts());
+        Order order = createOrder(context, orderNo, orderName);
+        for (OrderItemCreationContext itemCtx : context.getOrderItemCreationContexts()) {
+            OrderItem orderItem = OrderItem.create(itemCtx);
+            order.addOrderItem(orderItem);
+        }
 
-        return null;
+        if (context.getCouponInfo() != null) {
+            Coupon coupon = Coupon.create(context.getCouponInfo());
+            order.addCoupon(coupon);
+        }
+
+        return order;
     }
 
-    private static void validateOrderItems(List<OrderItemCreationContext> itemSpecs) {
-        if (itemSpecs == null || itemSpecs.isEmpty()) {
+    private static void validateOrderItems(List<OrderItemCreationContext> orderItemsContext) {
+        if (orderItemsContext == null || orderItemsContext.isEmpty()) {
             throw new BusinessException(OrderErrorCode.ORDER_ITEM_MINIMUM_ONE_REQUIRED);
         }
     }
 
-    private static String generateOrderName(List<OrderItemCreationContext> itemSpecs){
-//        String firstProductName = itemSpecs.get(0).getProductName();
-        //TODO 수정
-        String firstProductName = "";
-        int size = itemSpecs.size();
-
+    private static String generateOrderName(List<OrderItemCreationContext> itemContexts){
+        String firstProductName = itemContexts.get(0).getOrderedProduct().getProductName();
+        int size = itemContexts.size();
         if(size == 1){
             return firstProductName;
-        } else {
-            return firstProductName + " 외 " + (size - 1) + "건";
         }
+        return firstProductName + " 외 " + (size - 1) + "건";
     }
 
     private static String generatedOrderNo() {
@@ -127,16 +128,14 @@ public class Order extends BaseEntity {
     }
 
     private static Order createOrder(OrderCreationContext context, String orderNo, String orderName){
-        //TODO 수정
-//        return Order.builder()
-//                .orderNo(orderNo)
-//                .userId(context.getUserId())
-//                .status(OrderStatus.PENDING)
-//                .orderName(orderName)
-//                .deliveryAddress(context.getDeliveryAddress())
-//                .priceInfo(context.getOrderPriceInfo())
-//                .failureCode(null)
-//                .build();
-        return null;
+        return Order.builder()
+                .orderNo(orderNo)
+                .orderer(context.getOrderer())
+                .status(OrderStatus.PENDING)
+                .orderName(orderName)
+                .deliveryAddress(context.getDeliveryAddress())
+                .orderPriceDetail(context.getOrderPriceDetail())
+                .failureCode(null)
+                .build();
     }
 }

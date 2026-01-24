@@ -1,6 +1,8 @@
 package com.example.order_service.api.order.domain.model;
 
 import com.example.order_service.api.common.entity.BaseEntity;
+import com.example.order_service.api.order.domain.model.vo.OrderItemPrice;
+import com.example.order_service.api.order.domain.model.vo.OrderedProduct;
 import com.example.order_service.api.order.domain.service.dto.command.OrderItemCreationContext;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -24,36 +26,22 @@ public class OrderItem extends BaseEntity {
     @JoinColumn(name = "order_id")
     private Order order;
 
-    private Long productId;
-    private Long productVariantId;
-    private String sku;
-    private String productName;
-    private Long originPrice;
-    private Integer discountRate;
-    private Long discountAmount;
-    private Long discountedPrice;
+    @Embedded
+    private OrderedProduct orderedProduct;
+    @Embedded
+    private OrderItemPrice orderItemPrice;
     private Long lineTotal;
     private Integer quantity;
-    private String thumbnail;
 
     @OneToMany(mappedBy = "orderItem", cascade = CascadeType.PERSIST, orphanRemoval = true)
     private List<ItemOption> itemOptions = new ArrayList<>();
 
     @Builder(access = AccessLevel.PRIVATE)
-    private OrderItem(Order order, Long productId, Long productVariantId, String sku, String productName, Long originPrice,
-                     Integer discountRate, Long discountAmount, Long discountedPrice, Long lineTotal, Integer quantity, String thumbnail) {
-        this.order = order;
-        this.productId = productId;
-        this.productVariantId = productVariantId;
-        this.sku = sku;
-        this.productName = productName;
-        this.originPrice = originPrice;
-        this.discountRate = discountRate;
-        this.discountAmount = discountAmount;
-        this.discountedPrice = discountedPrice;
+    private OrderItem(OrderedProduct orderedProduct, OrderItemPrice orderItemPrice, Long lineTotal, Integer quantity){
+        this.orderedProduct = orderedProduct;
+        this.orderItemPrice = orderItemPrice;
         this.lineTotal = lineTotal;
         this.quantity = quantity;
-        this.thumbnail = thumbnail;
     }
 
     protected void setOrder(Order order){
@@ -65,32 +53,23 @@ public class OrderItem extends BaseEntity {
         itemOption.setOrderItem(this);
     }
 
-    public static OrderItem create(OrderItemCreationContext orderItemCreationContext){
-        OrderItem orderItem = of(orderItemCreationContext);
-        if(orderItemCreationContext.getItemOptions() != null && !orderItemCreationContext.getItemOptions().isEmpty()) {
-            for (OrderItemCreationContext.ItemOption itemOption : orderItemCreationContext.getItemOptions()) {
-                orderItem.addItemOption(ItemOption.create(itemOption));
+    public static OrderItem create (OrderItemCreationContext itemContext) {
+        OrderItem orderItem = of(itemContext);
+        if (itemContext.getItemOptions() != null && !itemContext.getItemOptions().isEmpty()) {
+            for (OrderItemCreationContext.ItemOption option : itemContext.getItemOptions()) {
+                orderItem.addItemOption(ItemOption.create(option));
             }
         }
-
         return orderItem;
     }
 
-    public static OrderItem of(OrderItemCreationContext orderItemCreationContext){
-        //TODO 수정
-//        return OrderItem.builder()
-//                .productId(orderItemCreationContext.getProductId())
-//                .productVariantId(orderItemCreationContext.getProductVariantId())
-//                .sku(orderItemCreationContext.getSku())
-//                .productName(orderItemCreationContext.getProductName())
-//                .originPrice(orderItemCreationContext.getUnitPrice().getOriginalPrice())
-//                .discountRate(orderItemCreationContext.getUnitPrice().getDiscountRate())
-//                .discountAmount(orderItemCreationContext.getUnitPrice().getDiscountAmount())
-//                .discountedPrice(orderItemCreationContext.getUnitPrice().getDiscountedPrice())
-//                .lineTotal(orderItemCreationContext.getLineTotal())
-//                .quantity(orderItemCreationContext.getQuantity())
-//                .thumbnail(orderItemCreationContext.getThumbnailUrl())
-//                .build();
-        return null;
+    public static OrderItem of(OrderItemCreationContext itemContext){
+        return OrderItem.builder()
+                .orderedProduct(itemContext.getOrderedProduct())
+                .orderItemPrice(itemContext.getOrderItemPrice())
+                .lineTotal(itemContext.getLineTotal())
+                .quantity(itemContext.getQuantity())
+                .build();
     }
 }
+

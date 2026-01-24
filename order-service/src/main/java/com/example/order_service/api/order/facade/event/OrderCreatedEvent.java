@@ -30,22 +30,10 @@ public class OrderCreatedEvent {
         private Long productVariantId;
         private Integer quantity;
 
-        private static OrderedItem from(OrderItemDto orderItemDto){
-            return OrderedItem.builder()
-                    .productVariantId(orderItemDto.getProductVariantId())
-                    .quantity(orderItemDto.getQuantity())
-                    .build();
-        }
+
     }
 
     public static OrderCreatedEvent from(OrderDto orderDto) {
-        List<OrderedItem> orderedItems = orderDto.getOrderItemDtoList().stream().map(OrderedItem::from).toList();
-        return OrderCreatedEvent.builder()
-                .orderNo(orderDto.getOrderNo())
-                .userId(orderDto.getUserId())
-                .couponId(orderDto.getCouponInfo().getCouponId())
-                .orderedItems(orderedItems)
-                .usedPoint(orderDto.getOrderPriceDetail().getPointDiscount())
-                .build();
+        return null;
     }
 }

@@ -40,26 +40,28 @@ public class OrderResultEvent {
     }
 
     public static OrderResultEvent failure(OrderDto orderDto) {
-        return OrderResultEvent.builder()
-                .orderNo(orderDto.getOrderNo())
-                .userId(orderDto.getUserId())
-                .status(OrderEventStatus.FAILURE)
-                .code(orderDto.getOrderFailureCode().name())
-                .orderName(orderDto.getOrderName())
-                .finalPaymentAmount(orderDto.getOrderPriceDetail().getFinalPaymentAmount())
-                .message(orderDto.getOrderFailureCode().getName())
-                .build();
+//        return OrderResultEvent.builder()
+//                .orderNo(orderDto.getOrderNo())
+//                .userId(orderDto.getUserId())
+//                .status(OrderEventStatus.FAILURE)
+//                .code(orderDto.getOrderFailureCode().name())
+//                .orderName(orderDto.getOrderName())
+//                .finalPaymentAmount(orderDto.getOrderPriceDetail().getFinalPaymentAmount())
+//                .message(orderDto.getOrderFailureCode().getName())
+//                .build();
+        return null;
     }
 
     public static OrderResultEvent paymentReady(OrderDto orderDto) {
-        return OrderResultEvent.builder()
-                .orderNo(orderDto.getOrderNo())
-                .userId(orderDto.getUserId())
-                .status(OrderEventStatus.SUCCESS)
-                .code("PAYMENT_READY")
-                .orderName(orderDto.getOrderName())
-                .finalPaymentAmount(orderDto.getOrderPriceDetail().getFinalPaymentAmount())
-                .message("결제 준비 완료")
-                .build();
+//        return OrderResultEvent.builder()
+//                .orderNo(orderDto.getOrderNo())
+//                .userId(orderDto.getUserId())
+//                .status(OrderEventStatus.SUCCESS)
+//                .code("PAYMENT_READY")
+//                .orderName(orderDto.getOrderName())
+//                .finalPaymentAmount(orderDto.getOrderPriceDetail().getFinalPaymentAmount())
+//                .message("결제 준비 완료")
+//                .build();
+        return null;
     }
 }

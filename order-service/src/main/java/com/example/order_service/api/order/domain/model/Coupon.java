@@ -14,19 +14,16 @@ public class Coupon {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private Long couponId;
-    private String couponName;
-    private Long discountAmount;
+    @Embedded
+    private CouponInfo couponInfo;
 
     @OneToOne
     @JoinColumn(name = "order_id")
     private Order order;
 
     @Builder
-    private Coupon(Long couponId, String couponName, Long discountAmount) {
-        this.couponId = couponId;
-        this.couponName = couponName;
-        this.discountAmount = discountAmount;
+    private Coupon(CouponInfo couponInfo) {
+        this.couponInfo = couponInfo;
     }
 
     protected void setOrder(Order order){
@@ -35,9 +32,7 @@ public class Coupon {
 
     public static Coupon create(CouponInfo coupon){
         return Coupon.builder()
-                .couponId(coupon.getCouponId())
-                .couponName(coupon.getCouponName())
-                .discountAmount(coupon.getDiscountAmount())
+                .couponInfo(coupon)
                 .build();
     }
 }

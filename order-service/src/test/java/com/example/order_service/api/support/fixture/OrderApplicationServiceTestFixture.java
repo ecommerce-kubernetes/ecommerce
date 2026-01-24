@@ -1,6 +1,5 @@
 package com.example.order_service.api.support.fixture;
 
-import com.example.order_service.api.order.domain.model.vo.OrderPriceDetail;
 import com.example.order_service.api.order.domain.service.dto.result.OrderProductInfo;
 import com.example.order_service.api.order.domain.service.dto.result.OrderUserInfo;
 import com.example.order_service.api.order.facade.dto.command.CreateOrderCommand;
@@ -104,15 +103,15 @@ public class OrderApplicationServiceTestFixture {
         long totalOrigin = (PROD_1_PRICE * 3) + (PROD_2_PRICE * 5);
         long totalProdDisc = (totalOrigin * DISCOUNT_RATE) / 100;
         return OrderDto.builder()
-                .orderId(1L)
+                .id(1L)
                 .orderNo(ORDER_NO)
-                .userId(USER_ID)
+//                .userId(USER_ID)
                 .orderName("상품1 외 1건")
                 .deliveryAddress(ADDRESS)
                 .status(status)
                 .orderPriceDetail(null
                 )
-                .orderItemDtoList(List.of(
+                .orderItems(List.of(
                                 createMockOrderItemDto(PROD_1_ID, 3, PROD_1_PRICE),
                                 createMockOrderItemDto(PROD_2_ID, 5, PROD_2_PRICE)
                         )
@@ -134,13 +133,13 @@ public class OrderApplicationServiceTestFixture {
     public static OrderDto mockCanceledOrder(OrderFailureCode failureCode) {
         OrderDto order = mockSavedOrder(OrderStatus.CANCELED, FIXED_FINAL_PRICE);
         return OrderDto.builder()
-                .orderId(order.getOrderId())
+                .id(order.getId())
                 .orderNo(ORDER_NO)
-                .userId(order.getUserId())
+//                .userId(order.getUserId())
                 .orderName(order.getOrderName())
                 .status(OrderStatus.CANCELED)
                 .orderPriceDetail(order.getOrderPriceDetail())
-                .orderItemDtoList(order.getOrderItemDtoList())
+                .orderItems(order.getOrderItems())
                 .couponInfo(order.getCouponInfo())
                 .orderedAt(order.getOrderedAt())
                 .orderFailureCode(failureCode)
@@ -170,32 +169,22 @@ public class OrderApplicationServiceTestFixture {
     }
 
     private static OrderItemDto createMockOrderItemDto(Long id, int quantity, Long originalPrice) {
-        OrderItemDto.UnitPrice unitPriceObj = calculateItemDtoUnitPrice(originalPrice);
+//        OrderItemDto.UnitPrice unitPriceObj = calculateItemDtoUnitPrice(originalPrice);
 
         return OrderItemDto.builder()
-                .productId(id)
-                .productVariantId(id)
+//                .productId(id)
+//                .productVariantId(id)
                 .quantity(quantity)
-                .productName("상품" + id)
-                .thumbnailUrl("http://thumbnail.jpg")
-                .itemOptionDtos(List.of())
-                .unitPrice(unitPriceObj)
-                .lineTotal(unitPriceObj.getDiscountedPrice() * quantity)
+//                .productName("상품" + id)
+//                .thumbnailUrl("http://thumbnail.jpg")
+//                .itemOptionDtos(List.of())
+//                .unitPrice(unitPriceObj)
+//                .lineTotal(unitPriceObj.getDiscountedPrice() * quantity)
                 .build();
     }
     private static OrderProductResponse.UnitPrice calculateUnitPrice(Long price) {
         long discountAmt = price * DISCOUNT_RATE / 100;
         return OrderProductResponse.UnitPrice.builder()
-                .originalPrice(price)
-                .discountRate(DISCOUNT_RATE)
-                .discountAmount(discountAmt)
-                .discountedPrice(price - discountAmt)
-                .build();
-    }
-
-    private static OrderItemDto.UnitPrice calculateItemDtoUnitPrice(Long price) {
-        long discountAmt = price * DISCOUNT_RATE / 100;
-        return OrderItemDto.UnitPrice.builder()
                 .originalPrice(price)
                 .discountRate(DISCOUNT_RATE)
                 .discountAmount(discountAmt)

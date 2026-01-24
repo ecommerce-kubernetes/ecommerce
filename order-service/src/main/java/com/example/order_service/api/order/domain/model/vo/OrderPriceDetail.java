@@ -2,13 +2,11 @@ package com.example.order_service.api.order.domain.model.vo;
 
 import com.example.order_service.api.order.domain.service.dto.result.OrderProductAmount;
 import jakarta.persistence.Embeddable;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-@Embeddable
 @Getter
+@Embeddable
+@EqualsAndHashCode
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class OrderPriceDetail {
     private long totalOriginPrice;

@@ -1,13 +1,11 @@
 package com.example.order_service.api.order.domain.model.vo;
 
 import jakarta.persistence.Embeddable;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Getter
 @Embeddable
+@EqualsAndHashCode
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class OrderItemPrice {
     private Long originPrice;
