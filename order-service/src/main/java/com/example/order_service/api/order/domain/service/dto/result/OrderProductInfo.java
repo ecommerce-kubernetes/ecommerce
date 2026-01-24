@@ -24,5 +24,12 @@ public class OrderProductInfo {
     public static class ProductOption {
         private String optionTypeName;
         private String optionValueName;
+
+        public static ProductOption of(String optionTypeName, String optionValueName) {
+            return ProductOption.builder()
+                    .optionTypeName(optionTypeName)
+                    .optionValueName(optionValueName)
+                    .build();
+        }
     }
 }

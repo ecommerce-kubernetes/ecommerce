@@ -43,9 +43,9 @@ public class OrderCreatedEvent {
         return OrderCreatedEvent.builder()
                 .orderNo(orderDto.getOrderNo())
                 .userId(orderDto.getUserId())
-                .couponId(orderDto.getAppliedCoupon().getCouponId())
+                .couponId(orderDto.getCouponInfo().getCouponId())
                 .orderedItems(orderedItems)
-                .usedPoint(orderDto.getOrderPriceInfo().getPointDiscount())
+                .usedPoint(orderDto.getOrderPriceDetail().getPointDiscount())
                 .build();
     }
 }

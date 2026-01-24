@@ -2,13 +2,10 @@ package com.example.order_service.api.order.facade;
 
 import com.example.order_service.api.common.dto.PageDto;
 import com.example.order_service.api.common.exception.BusinessException;
-import com.example.order_service.api.common.exception.CommonErrorCode;
 import com.example.order_service.api.common.exception.OrderErrorCode;
-import com.example.order_service.api.common.exception.PaymentErrorCode;
 import com.example.order_service.api.order.domain.service.OrderProductService;
 import com.example.order_service.api.order.domain.service.OrderUserService;
 import com.example.order_service.api.order.facade.dto.command.CreateOrderCommand;
-import com.example.order_service.api.order.facade.dto.result.CreateOrderResponse;
 import com.example.order_service.api.order.facade.dto.result.OrderDetailResponse;
 import com.example.order_service.api.order.facade.dto.result.OrderItemResponse;
 import com.example.order_service.api.order.facade.dto.result.OrderListResponse;
@@ -19,7 +16,7 @@ import com.example.order_service.api.order.facade.event.PaymentResultEvent;
 import com.example.order_service.api.order.controller.dto.request.OrderSearchCondition;
 import com.example.order_service.api.order.domain.model.OrderFailureCode;
 import com.example.order_service.api.order.domain.model.OrderStatus;
-import com.example.order_service.api.order.domain.service.OrderDomainService;
+import com.example.order_service.api.order.domain.service.OrderService;
 import com.example.order_service.api.order.domain.service.OrderPriceCalculator;
 import com.example.order_service.api.order.domain.service.dto.result.OrderDto;
 import org.junit.jupiter.api.DisplayName;
@@ -52,11 +49,11 @@ public class OrderFacadeTest {
     @Mock
     private OrderUserService orderUserService;
     @Mock
-    private OrderDomainService orderDomainService;
+    private OrderService orderService;
     @Mock
     private ApplicationEventPublisher eventPublisher;
     @Spy
-    private OrderDtoMapper mapper;
+    private OrderCreationContextMapper mapper;
     @Spy
     private OrderPriceCalculator calculator;
 
@@ -102,12 +99,12 @@ public class OrderFacadeTest {
         //given
         Long expectedAmount = 28600L;
         OrderDto orderDto = mockSavedOrder(OrderStatus.PAYMENT_WAITING, expectedAmount);
-        given(orderDomainService.changeOrderStatus(ORDER_NO, OrderStatus.PAYMENT_WAITING))
+        given(orderService.changeOrderStatus(ORDER_NO, OrderStatus.PAYMENT_WAITING))
                 .willReturn(orderDto);
         //when
         orderFacade.preparePayment(ORDER_NO);
         //then
-        verify(orderDomainService, times(1)).changeOrderStatus(ORDER_NO, OrderStatus.PAYMENT_WAITING);
+        verify(orderService, times(1)).changeOrderStatus(ORDER_NO, OrderStatus.PAYMENT_WAITING);
         verify(eventPublisher, times(1)).publishEvent(orderResultEventCaptor.capture());
 
         assertThat(orderResultEventCaptor.getValue())
@@ -123,12 +120,12 @@ public class OrderFacadeTest {
         //given
         OrderFailureCode failureCode = OrderFailureCode.OUT_OF_STOCK;
         OrderDto canceledOrder = mockCanceledOrder(failureCode);
-        given(orderDomainService.canceledOrder(ORDER_NO, failureCode))
+        given(orderService.canceledOrder(ORDER_NO, failureCode))
                 .willReturn(canceledOrder);
         //when
         orderFacade.processOrderFailure(ORDER_NO, failureCode);
         //then
-        verify(orderDomainService, times(1)).canceledOrder(ORDER_NO, failureCode);
+        verify(orderService, times(1)).canceledOrder(ORDER_NO, failureCode);
 
         verify(eventPublisher, times(1))
                 .publishEvent(orderResultEventCaptor.capture());
@@ -176,7 +173,7 @@ public class OrderFacadeTest {
     void finalizeOrder_with_notPaymentWaiting(){
         //given
         OrderDto invalidStatusOrder = mockSavedOrder(OrderStatus.PENDING, FIXED_FINAL_PRICE);
-        given(orderDomainService.getOrder(anyString(), anyLong()))
+        given(orderService.getOrder(anyString(), anyLong()))
                 .willReturn(invalidStatusOrder);
         //when
         //then
@@ -192,7 +189,7 @@ public class OrderFacadeTest {
         //given
         Long requestedAmount = 30000L;
         OrderDto orderDto = mockSavedOrder(OrderStatus.PAYMENT_WAITING, FIXED_FINAL_PRICE);
-        given(orderDomainService.getOrder(anyString(), anyLong()))
+        given(orderService.getOrder(anyString(), anyLong()))
                 .willReturn(orderDto);
         //when
         //then
@@ -266,7 +263,7 @@ public class OrderFacadeTest {
     void getOrder(){
         //given
         OrderDto orderDto = mockSavedOrder(OrderStatus.COMPLETED, FIXED_FINAL_PRICE);
-        given(orderDomainService.getOrder(anyString(), anyLong()))
+        given(orderService.getOrder(anyString(), anyLong()))
                 .willReturn(orderDto);
         //when
         OrderDetailResponse result = orderFacade.getOrder(USER_ID, ORDER_NO);
@@ -328,7 +325,7 @@ public class OrderFacadeTest {
                 PageRequest.of(0, 10),
                 100
         );
-        given(orderDomainService.getOrders(anyLong(), any(OrderSearchCondition.class)))
+        given(orderService.getOrders(anyLong(), any(OrderSearchCondition.class)))
                 .willReturn(pageOrderDto);
         //when
         PageDto<OrderListResponse> result = orderFacade.getOrders(USER_ID, condition);

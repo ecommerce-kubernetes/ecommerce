@@ -10,16 +10,16 @@ import lombok.NoArgsConstructor;
 @Embeddable
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class OrderPriceInfo {
+public class OrderPriceDetail {
     private long totalOriginPrice;
     private long totalProductDiscount;
     private long couponDiscount;
     private long pointDiscount;
     private long finalPaymentAmount;
 
-    @Builder
-    private OrderPriceInfo(long totalOriginPrice, long totalProductDiscount, long couponDiscount, long pointDiscount,
-                           long finalPaymentAmount){
+    @Builder(access = AccessLevel.PRIVATE)
+    private OrderPriceDetail(long totalOriginPrice, long totalProductDiscount, long couponDiscount, long pointDiscount,
+                             long finalPaymentAmount){
         this.totalOriginPrice = totalOriginPrice;
         this.totalProductDiscount = totalProductDiscount;
         this.couponDiscount = couponDiscount;
@@ -27,17 +27,13 @@ public class OrderPriceInfo {
         this.finalPaymentAmount = finalPaymentAmount;
     }
 
-    public static OrderPriceInfo of(long totalOriginPrice, long totalProductDiscount, long couponDiscount, long usedPoint, long finalPaymentAmount){
-        return OrderPriceInfo.builder()
+    public static OrderPriceDetail of(long totalOriginPrice, long totalProductDiscount, long couponDiscount, long usedPoint, long finalPaymentAmount){
+        return OrderPriceDetail.builder()
                 .totalOriginPrice(totalOriginPrice)
                 .totalProductDiscount(totalProductDiscount)
                 .couponDiscount(couponDiscount)
                 .pointDiscount(usedPoint)
                 .finalPaymentAmount(finalPaymentAmount)
                 .build();
-    }
-
-    public static OrderPriceInfo from(OrderProductAmount result, long couponDiscount, long usedPoint, long finalPaymentAmount) {
-        return of(result.getTotalOriginalAmount(), result.getTotalDiscountAmount(), couponDiscount, usedPoint, finalPaymentAmount);
     }
 }

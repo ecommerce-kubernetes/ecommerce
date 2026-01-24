@@ -2,7 +2,7 @@ package com.example.order_service.api.order.domain.service;
 
 import com.example.order_service.api.common.exception.BusinessException;
 import com.example.order_service.api.common.exception.OrderErrorCode;
-import com.example.order_service.api.order.domain.service.dto.result.OrderPriceInfo;
+import com.example.order_service.api.order.domain.service.dto.result.CalculatedOrderAmounts;
 import com.example.order_service.api.order.domain.service.dto.result.OrderCouponInfo;
 import com.example.order_service.api.order.domain.service.dto.result.OrderProductInfo;
 import com.example.order_service.api.order.facade.dto.command.CreateOrderItemCommand;
@@ -30,15 +30,15 @@ public class OrderPriceCalculator {
         return OrderProductAmount.of(totalOriginalAmount, totalDiscountAmount, subTotalAmount);
     }
 
-    public OrderPriceInfo calculateOrderPrice(OrderProductAmount orderProductAmount, OrderCouponInfo coupon,
-                                              long pointToUse, long expectedPrice) {
+    public CalculatedOrderAmounts calculateOrderPrice(OrderProductAmount orderProductAmount, OrderCouponInfo coupon,
+                                                      long pointToUse, long expectedPrice) {
         long finalPaymentAmount = orderProductAmount.getSubTotalAmount() - pointToUse - coupon.getDiscountAmount();
 
         if (finalPaymentAmount != expectedPrice) {
             throw new BusinessException(OrderErrorCode.ORDER_PRICE_MISMATCH);
         }
 
-        return OrderPriceInfo.of(
+        return CalculatedOrderAmounts.of(
                 orderProductAmount.getTotalOriginalAmount(),
                 orderProductAmount.getTotalDiscountAmount(),
                 coupon.getDiscountAmount(),

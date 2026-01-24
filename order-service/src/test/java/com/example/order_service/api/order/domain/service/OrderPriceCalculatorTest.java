@@ -2,7 +2,7 @@ package com.example.order_service.api.order.domain.service;
 
 import com.example.order_service.api.common.exception.BusinessException;
 import com.example.order_service.api.common.exception.OrderErrorCode;
-import com.example.order_service.api.order.domain.service.dto.result.OrderPriceInfo;
+import com.example.order_service.api.order.domain.service.dto.result.CalculatedOrderAmounts;
 import com.example.order_service.api.order.domain.service.dto.result.OrderCouponInfo;
 import com.example.order_service.api.order.domain.service.dto.result.OrderProductInfo;
 import com.example.order_service.api.order.facade.dto.command.CreateOrderItemCommand;
@@ -92,11 +92,11 @@ public class OrderPriceCalculatorTest {
             OrderProductAmount productAmount = mockOrderProductAmount(11000L, 1000L);
             OrderCouponInfo coupon = mockCouponInfo(1000L);
             //when
-            OrderPriceInfo result = calculator.calculateOrderPrice(productAmount, coupon, 1000L, 8000L);
+            CalculatedOrderAmounts result = calculator.calculateOrderPrice(productAmount, coupon, 1000L, 8000L);
             //then
             assertThat(result)
-                    .extracting(OrderPriceInfo::getTotalOriginalAmount, OrderPriceInfo::getTotalProductDiscount,
-                            OrderPriceInfo::getCouponDiscountAmount, OrderPriceInfo::getUsePointAmount, OrderPriceInfo::getFinalPaymentAmount)
+                    .extracting(CalculatedOrderAmounts::getTotalOriginalAmount, CalculatedOrderAmounts::getTotalProductDiscount,
+                            CalculatedOrderAmounts::getCouponDiscountAmount, CalculatedOrderAmounts::getUsePointAmount, CalculatedOrderAmounts::getFinalPaymentAmount)
                     .containsExactly(11000L, 1000L, 1000L, 1000L, 8000L);
         }
 

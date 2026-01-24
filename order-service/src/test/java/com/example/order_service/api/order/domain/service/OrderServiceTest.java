@@ -6,11 +6,11 @@ import com.example.order_service.api.order.controller.dto.request.OrderSearchCon
 import com.example.order_service.api.order.domain.model.Order;
 import com.example.order_service.api.order.domain.model.OrderFailureCode;
 import com.example.order_service.api.order.domain.model.OrderStatus;
-import com.example.order_service.api.order.domain.model.vo.AppliedCoupon;
-import com.example.order_service.api.order.domain.model.vo.OrderPriceInfo;
+import com.example.order_service.api.order.domain.model.vo.CouponInfo;
+import com.example.order_service.api.order.domain.model.vo.OrderPriceDetail;
 import com.example.order_service.api.order.domain.model.vo.PaymentInfo;
 import com.example.order_service.api.order.domain.repository.OrderRepository;
-import com.example.order_service.api.order.domain.service.dto.command.CreateOrderCommand;
+import com.example.order_service.api.order.domain.service.dto.command.OrderCreationContext;
 import com.example.order_service.api.order.domain.service.dto.command.PaymentCreationCommand;
 import com.example.order_service.api.order.domain.service.dto.result.OrderDto;
 import com.example.order_service.api.order.domain.service.dto.result.OrderItemDto;
@@ -27,10 +27,10 @@ import static com.example.order_service.api.support.fixture.OrderDomainServiceTe
 import static org.assertj.core.api.Assertions.*;
 
 @Transactional
-public class OrderDomainServiceTest extends ExcludeInfraTest {
+public class OrderServiceTest extends ExcludeInfraTest {
 
     @Autowired
-    private OrderDomainService orderDomainService;
+    private OrderService orderService;
     @Autowired
     private OrderRepository orderRepository;
 
@@ -38,9 +38,9 @@ public class OrderDomainServiceTest extends ExcludeInfraTest {
     @DisplayName("주문을 저장한다")
     void saveOrder(){
         //given
-        CreateOrderCommand creationContext = createDefaultContext();
+        OrderCreationContext creationContext = createDefaultContext();
         //when
-        OrderDto orderDto = orderDomainService.saveOrder(creationContext);
+        OrderDto orderDto = orderService.saveOrder(creationContext);
         //then
         assertThat(orderDto.getOrderId()).isNotNull();
         assertThat(orderDto)
@@ -48,13 +48,13 @@ public class OrderDomainServiceTest extends ExcludeInfraTest {
                 .contains(OrderStatus.PENDING, "상품1 외 1건", null);
         assertThat(orderDto.getOrderedAt()).isNotNull();
 
-        assertThat(orderDto.getOrderPriceInfo())
+        assertThat(orderDto.getOrderPriceDetail())
                 .extracting(
-                        OrderPriceInfo::getTotalOriginPrice,
-                        OrderPriceInfo::getTotalProductDiscount,
-                        OrderPriceInfo::getCouponDiscount,
-                        OrderPriceInfo::getPointDiscount,
-                        OrderPriceInfo::getFinalPaymentAmount
+                        OrderPriceDetail::getTotalOriginPrice,
+                        OrderPriceDetail::getTotalProductDiscount,
+                        OrderPriceDetail::getCouponDiscount,
+                        OrderPriceDetail::getPointDiscount,
+                        OrderPriceDetail::getFinalPaymentAmount
                 )
                 .contains(
                         TOTAL_ORIGIN_PRICE,
@@ -77,8 +77,8 @@ public class OrderDomainServiceTest extends ExcludeInfraTest {
                         tuple(PROD2_ID, PROD2_NAME, PROD2_QTY, PROD2_LINE_TOTAL)
                 );
 
-        assertThat(orderDto.getAppliedCoupon())
-                .extracting(AppliedCoupon::getCouponId, AppliedCoupon::getCouponName, AppliedCoupon::getDiscountAmount)
+        assertThat(orderDto.getCouponInfo())
+                .extracting(CouponInfo::getCouponId, CouponInfo::getCouponName, CouponInfo::getDiscountAmount)
                 .containsExactly(1L, "1000원 할인 쿠폰", COUPON_DISCOUNT);
     }
 
@@ -86,11 +86,11 @@ public class OrderDomainServiceTest extends ExcludeInfraTest {
     @DisplayName("주문 상태를 변경한다")
     void changeOrderStatus() {
         //given
-        CreateOrderCommand context = createDefaultContext();
+        OrderCreationContext context = createDefaultContext();
         Order order = Order.create(context);
         Order savedOrder = orderRepository.save(order);
         //when
-        OrderDto result = orderDomainService.changeOrderStatus(savedOrder.getOrderNo(), OrderStatus.PAYMENT_WAITING);
+        OrderDto result = orderService.changeOrderStatus(savedOrder.getOrderNo(), OrderStatus.PAYMENT_WAITING);
         //then
         assertThat(result.getStatus()).isEqualTo(OrderStatus.PAYMENT_WAITING);
         assertThat(result.getOrderId()).isEqualTo(savedOrder.getId());
@@ -103,7 +103,7 @@ public class OrderDomainServiceTest extends ExcludeInfraTest {
         //given
         //when
         //then
-        assertThatThrownBy(() -> orderDomainService.changeOrderStatus(ORDER_NO, OrderStatus.PAYMENT_WAITING))
+        assertThatThrownBy(() -> orderService.changeOrderStatus(ORDER_NO, OrderStatus.PAYMENT_WAITING))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(OrderErrorCode.ORDER_NOT_FOUND);
@@ -113,17 +113,17 @@ public class OrderDomainServiceTest extends ExcludeInfraTest {
     @DisplayName("주문을 조회한다")
     void getOrder(){
         //given
-        CreateOrderCommand context = createDefaultContext();
+        OrderCreationContext context = createDefaultContext();
         Order savedOrder = orderRepository.save(Order.create(context));
         //when
-        OrderDto result = orderDomainService.getOrder(savedOrder.getOrderNo(), USER_ID);
+        OrderDto result = orderService.getOrder(savedOrder.getOrderNo(), USER_ID);
         //then
         assertThat(result.getOrderId()).isEqualTo(savedOrder.getId());
         assertThat(result.getStatus()).isEqualTo(OrderStatus.PENDING);
 
-        assertThat(result.getOrderPriceInfo())
-                .extracting(OrderPriceInfo::getTotalOriginPrice, OrderPriceInfo::getTotalProductDiscount,
-                        OrderPriceInfo::getCouponDiscount, OrderPriceInfo::getPointDiscount, OrderPriceInfo::getFinalPaymentAmount)
+        assertThat(result.getOrderPriceDetail())
+                .extracting(OrderPriceDetail::getTotalOriginPrice, OrderPriceDetail::getTotalProductDiscount,
+                        OrderPriceDetail::getCouponDiscount, OrderPriceDetail::getPointDiscount, OrderPriceDetail::getFinalPaymentAmount)
                 .contains(TOTAL_ORIGIN_PRICE, TOTAL_PROD_DISCOUNT, COUPON_DISCOUNT, USE_POINT, FINAL_PRICE);
 
         assertThat(result.getOrderItemDtoList())
@@ -139,8 +139,8 @@ public class OrderDomainServiceTest extends ExcludeInfraTest {
                                 tuple(PROD2_ID, PROD2_NAME, PROD2_QTY, PROD2_LINE_TOTAL)
                         );
 
-        assertThat(result.getAppliedCoupon())
-                .extracting(AppliedCoupon::getCouponId, AppliedCoupon::getCouponName, AppliedCoupon::getDiscountAmount)
+        assertThat(result.getCouponInfo())
+                .extracting(CouponInfo::getCouponId, CouponInfo::getCouponName, CouponInfo::getDiscountAmount)
                 .contains(1L, "1000원 할인 쿠폰", COUPON_DISCOUNT);
     }
 
@@ -150,7 +150,7 @@ public class OrderDomainServiceTest extends ExcludeInfraTest {
         //given
         //when
         //then
-        assertThatThrownBy(() -> orderDomainService.getOrder("NOT_EXIST_ORDER_NO", USER_ID))
+        assertThatThrownBy(() -> orderService.getOrder("NOT_EXIST_ORDER_NO", USER_ID))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(OrderErrorCode.ORDER_NOT_FOUND);
@@ -161,11 +161,11 @@ public class OrderDomainServiceTest extends ExcludeInfraTest {
     void getOrder_noPermission() {
         //given
         Long otherUserId = 20L;
-        CreateOrderCommand context = createDefaultContext();
+        OrderCreationContext context = createDefaultContext();
         Order savedOrder = orderRepository.save(Order.create(context));
         //when
         //then
-        assertThatThrownBy(() -> orderDomainService.getOrder(savedOrder.getOrderNo(), otherUserId))
+        assertThatThrownBy(() -> orderService.getOrder(savedOrder.getOrderNo(), otherUserId))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(OrderErrorCode.ORDER_NO_PERMISSION);
@@ -175,11 +175,11 @@ public class OrderDomainServiceTest extends ExcludeInfraTest {
     @DisplayName("주문을 실패 상태로 변경한다")
     void canceledOrder() {
         //given
-        CreateOrderCommand context = createDefaultContext();
+        OrderCreationContext context = createDefaultContext();
         Order savedOrder = orderRepository.save(Order.create(context));
         OrderFailureCode failureCode = OrderFailureCode.OUT_OF_STOCK;
         //when
-        OrderDto result = orderDomainService.canceledOrder(savedOrder.getOrderNo(), failureCode);
+        OrderDto result = orderService.canceledOrder(savedOrder.getOrderNo(), failureCode);
         //then
         assertThat(result.getStatus()).isEqualTo(OrderStatus.CANCELED);
         assertThat(result.getOrderFailureCode()).isEqualTo(OrderFailureCode.OUT_OF_STOCK);
@@ -192,7 +192,7 @@ public class OrderDomainServiceTest extends ExcludeInfraTest {
         //given
         //when
         //then
-        assertThatThrownBy(() -> orderDomainService.canceledOrder(ORDER_NO, OrderFailureCode.OUT_OF_STOCK))
+        assertThatThrownBy(() -> orderService.canceledOrder(ORDER_NO, OrderFailureCode.OUT_OF_STOCK))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(OrderErrorCode.ORDER_NOT_FOUND);
@@ -202,7 +202,7 @@ public class OrderDomainServiceTest extends ExcludeInfraTest {
     @DisplayName("유저 ID 와 조회 커맨드로 주문 목록을 조회한다")
     void getOrders(){
         //given
-        CreateOrderCommand context = createDefaultContext();
+        OrderCreationContext context = createDefaultContext();
         Order savedOrder1 = orderRepository.save(Order.create(context));
         Order savedOrder2 = orderRepository.save(Order.create(context));
         OrderSearchCondition condition = OrderSearchCondition.builder()
@@ -210,7 +210,7 @@ public class OrderDomainServiceTest extends ExcludeInfraTest {
                 .size(10)
                 .sort("latest").build();
         //when
-        Page<OrderDto> result = orderDomainService.getOrders(USER_ID, condition);
+        Page<OrderDto> result = orderService.getOrders(USER_ID, condition);
         //then
 
         assertThat(result.getTotalElements()).isEqualTo(2);
@@ -222,7 +222,7 @@ public class OrderDomainServiceTest extends ExcludeInfraTest {
                 .extracting(
                         OrderDto::getUserId,
                         OrderDto::getStatus,
-                        o -> o.getOrderPriceInfo().getFinalPaymentAmount()
+                        o -> o.getOrderPriceDetail().getFinalPaymentAmount()
                 )
                 .contains(
                         tuple(USER_ID, OrderStatus.PENDING, FINAL_PRICE),
@@ -239,7 +239,7 @@ public class OrderDomainServiceTest extends ExcludeInfraTest {
     void completedOrder(){
         //given
         String paymentKey = "paymentKey";
-        CreateOrderCommand context = createDefaultContext();
+        OrderCreationContext context = createDefaultContext();
         Order order = Order.create(context);
         order.changeStatus(OrderStatus.PAYMENT_WAITING);
         Order savedOrder = orderRepository.save(order);
@@ -251,7 +251,7 @@ public class OrderDomainServiceTest extends ExcludeInfraTest {
                 .approvedAt(LocalDateTime.now())
                 .build();
         //when
-        OrderDto orderDto = orderDomainService.completedOrder(command);
+        OrderDto orderDto = orderService.completedOrder(command);
         //then
         assertThat(orderDto.getStatus()).isEqualTo(OrderStatus.COMPLETED);
         assertThat(orderDto.getPaymentInfo().getId()).isNotNull();

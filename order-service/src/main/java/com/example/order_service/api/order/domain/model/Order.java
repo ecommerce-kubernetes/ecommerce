@@ -3,9 +3,9 @@ package com.example.order_service.api.order.domain.model;
 import com.example.order_service.api.common.entity.BaseEntity;
 import com.example.order_service.api.common.exception.BusinessException;
 import com.example.order_service.api.common.exception.OrderErrorCode;
-import com.example.order_service.api.order.domain.model.vo.OrderPriceInfo;
-import com.example.order_service.api.order.domain.service.dto.command.CreateOrderCommand;
-import com.example.order_service.api.order.domain.service.dto.command.CreateOrderItemCommand;
+import com.example.order_service.api.order.domain.model.vo.OrderPriceDetail;
+import com.example.order_service.api.order.domain.service.dto.command.OrderCreationContext;
+import com.example.order_service.api.order.domain.service.dto.command.OrderItemCreationContext;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -33,7 +33,7 @@ public class Order extends BaseEntity {
     private String orderName;
     private String deliveryAddress;
     @Embedded
-    private OrderPriceInfo priceInfo;
+    private OrderPriceDetail priceInfo;
 
     @Enumerated(EnumType.STRING)
     private OrderFailureCode failureCode;
@@ -48,7 +48,7 @@ public class Order extends BaseEntity {
     private Payment payment;
 
     @Builder(access = AccessLevel.PRIVATE)
-    private Order(String orderNo, Long userId, OrderStatus status, String orderName, String deliveryAddress, OrderPriceInfo priceInfo, OrderFailureCode failureCode) {
+    private Order(String orderNo, Long userId, OrderStatus status, String orderName, String deliveryAddress, OrderPriceDetail priceInfo, OrderFailureCode failureCode) {
         this.orderNo = orderNo;
         this.userId = userId;
         this.status = status;
@@ -86,29 +86,31 @@ public class Order extends BaseEntity {
         this.failureCode = code;
     }
 
-    public static Order create(CreateOrderCommand context) {
-        validateOrderItems(context.getItemCommands());
-        String orderNo = generatedOrderNo();
-        String generatedOrderName = generateOrderName(context.getItemCommands());
-        Order order = createOrder(context, orderNo, generatedOrderName);
-        for (CreateOrderItemCommand item : context.getItemCommands()) {
-            order.addOrderItem(OrderItem.create(item));
-        }
-        if (context.getAppliedCoupon() != null) {
-            order.addCoupon(Coupon.create(context.getAppliedCoupon()));
-        }
+    public static Order create(OrderCreationContext context) {
+//        validateOrderItems(context.getItemCommands());
+//        String orderNo = generatedOrderNo();
+//        String generatedOrderName = generateOrderName(context.getItemCommands());
+//        Order order = createOrder(context, orderNo, generatedOrderName);
+//        for (OrderItemCreationContext item : context.getItemCommands()) {
+//            order.addOrderItem(OrderItem.create(item));
+//        }
+//        if (context.getCouponInfo() != null) {
+//            order.addCoupon(Coupon.create(context.getCouponInfo()));
+//        }
 
-        return order;
+        return null;
     }
 
-    private static void validateOrderItems(List<CreateOrderItemCommand> itemSpecs) {
+    private static void validateOrderItems(List<OrderItemCreationContext> itemSpecs) {
         if (itemSpecs == null || itemSpecs.isEmpty()) {
             throw new BusinessException(OrderErrorCode.ORDER_ITEM_MINIMUM_ONE_REQUIRED);
         }
     }
 
-    private static String generateOrderName(List<CreateOrderItemCommand> itemSpecs){
-        String firstProductName = itemSpecs.get(0).getProductName();
+    private static String generateOrderName(List<OrderItemCreationContext> itemSpecs){
+//        String firstProductName = itemSpecs.get(0).getProductName();
+        //TODO 수정
+        String firstProductName = "";
         int size = itemSpecs.size();
 
         if(size == 1){
@@ -124,15 +126,17 @@ public class Order extends BaseEntity {
         return "ORD-" + date + "-" + randomStr;
     }
 
-    private static Order createOrder(CreateOrderCommand context, String orderNo, String orderName){
-        return Order.builder()
-                .orderNo(orderNo)
-                .userId(context.getUserId())
-                .status(OrderStatus.PENDING)
-                .orderName(orderName)
-                .deliveryAddress(context.getDeliveryAddress())
-                .priceInfo(context.getOrderPriceInfo())
-                .failureCode(null)
-                .build();
+    private static Order createOrder(OrderCreationContext context, String orderNo, String orderName){
+        //TODO 수정
+//        return Order.builder()
+//                .orderNo(orderNo)
+//                .userId(context.getUserId())
+//                .status(OrderStatus.PENDING)
+//                .orderName(orderName)
+//                .deliveryAddress(context.getDeliveryAddress())
+//                .priceInfo(context.getOrderPriceInfo())
+//                .failureCode(null)
+//                .build();
+        return null;
     }
 }

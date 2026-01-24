@@ -8,20 +8,17 @@ import lombok.Getter;
 
 @Getter
 public class PriceCalculateResult {
-    private OrderPriceInfo orderPriceInfo;
-    private AppliedCoupon appliedCoupon;
+    private OrderPriceDetail orderPriceDetail;
+    private CouponInfo couponInfo;
 
     @Builder(access = AccessLevel.PRIVATE)
-    private PriceCalculateResult(OrderPriceInfo orderPriceInfo, AppliedCoupon appliedCoupon){
-        this.orderPriceInfo = orderPriceInfo;
-        this.appliedCoupon = appliedCoupon;
+    private PriceCalculateResult(OrderPriceDetail orderPriceDetail, CouponInfo couponInfo){
+        this.orderPriceDetail = orderPriceDetail;
+        this.couponInfo = couponInfo;
     }
 
     public static PriceCalculateResult of(OrderProductAmount orderProductAmount, OrderCouponDiscountResponse coupon,
                                           Long couponDiscount, Long useToPoint, Long finalPaymentAmount) {
-        return PriceCalculateResult.builder()
-                .orderPriceInfo(OrderPriceInfo.from(orderProductAmount, couponDiscount, useToPoint, finalPaymentAmount))
-                .appliedCoupon(AppliedCoupon.from(coupon))
-                .build();
+        return null;
     }
 }

@@ -8,7 +8,7 @@ import com.example.order_service.api.order.domain.model.OrderFailureCode;
 import com.example.order_service.api.order.domain.model.OrderStatus;
 import com.example.order_service.api.order.domain.model.Payment;
 import com.example.order_service.api.order.domain.repository.OrderRepository;
-import com.example.order_service.api.order.domain.service.dto.command.CreateOrderCommand;
+import com.example.order_service.api.order.domain.service.dto.command.OrderCreationContext;
 import com.example.order_service.api.order.domain.service.dto.command.PaymentCreationCommand;
 import com.example.order_service.api.order.domain.service.dto.result.OrderDto;
 import lombok.RequiredArgsConstructor;
@@ -24,10 +24,10 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 @Transactional
-public class OrderDomainService {
+public class OrderService {
     private final OrderRepository orderRepository;
 
-    public OrderDto saveOrder(CreateOrderCommand context){
+    public OrderDto saveOrder(OrderCreationContext context){
         Order order = Order.create(context);
         Order savedOrder = orderRepository.save(order);
         return OrderDto.from(savedOrder);

@@ -46,7 +46,7 @@ public class OrderResultEvent {
                 .status(OrderEventStatus.FAILURE)
                 .code(orderDto.getOrderFailureCode().name())
                 .orderName(orderDto.getOrderName())
-                .finalPaymentAmount(orderDto.getOrderPriceInfo().getFinalPaymentAmount())
+                .finalPaymentAmount(orderDto.getOrderPriceDetail().getFinalPaymentAmount())
                 .message(orderDto.getOrderFailureCode().getName())
                 .build();
     }
@@ -58,7 +58,7 @@ public class OrderResultEvent {
                 .status(OrderEventStatus.SUCCESS)
                 .code("PAYMENT_READY")
                 .orderName(orderDto.getOrderName())
-                .finalPaymentAmount(orderDto.getOrderPriceInfo().getFinalPaymentAmount())
+                .finalPaymentAmount(orderDto.getOrderPriceDetail().getFinalPaymentAmount())
                 .message("결제 준비 완료")
                 .build();
     }

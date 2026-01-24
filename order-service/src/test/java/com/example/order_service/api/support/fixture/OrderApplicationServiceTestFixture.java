@@ -1,13 +1,13 @@
 package com.example.order_service.api.support.fixture;
 
+import com.example.order_service.api.order.domain.model.vo.OrderPriceDetail;
 import com.example.order_service.api.order.domain.service.dto.result.OrderProductInfo;
 import com.example.order_service.api.order.domain.service.dto.result.OrderUserInfo;
 import com.example.order_service.api.order.facade.dto.command.CreateOrderCommand;
 import com.example.order_service.api.order.facade.dto.command.CreateOrderItemCommand;
 import com.example.order_service.api.order.domain.model.OrderFailureCode;
 import com.example.order_service.api.order.domain.model.OrderStatus;
-import com.example.order_service.api.order.domain.model.vo.AppliedCoupon;
-import com.example.order_service.api.order.domain.model.vo.OrderPriceInfo;
+import com.example.order_service.api.order.domain.model.vo.CouponInfo;
 import com.example.order_service.api.order.domain.model.vo.PaymentInfo;
 import com.example.order_service.api.order.domain.service.dto.result.OrderDto;
 import com.example.order_service.api.order.domain.service.dto.result.OrderItemDto;
@@ -53,7 +53,7 @@ public class OrderApplicationServiceTestFixture {
                 .couponId(1L)
                 .pointToUse(USE_POINT)
                 .expectedPrice(FIXED_FINAL_PRICE)
-                .orderItemDtoList(List.of(items))
+                .orderItemCommands(List.of(items))
                 .build();
     }
 
@@ -110,25 +110,14 @@ public class OrderApplicationServiceTestFixture {
                 .orderName("상품1 외 1건")
                 .deliveryAddress(ADDRESS)
                 .status(status)
-                .orderPriceInfo(
-                        OrderPriceInfo.builder()
-                                .totalOriginPrice(totalOrigin)
-                                .totalProductDiscount(totalProdDisc)
-                                .couponDiscount(COUPON_DISCOUNT)
-                                .pointDiscount(USE_POINT)
-                                .finalPaymentAmount(finalAmount)
-                                .build()
+                .orderPriceDetail(null
                 )
                 .orderItemDtoList(List.of(
                                 createMockOrderItemDto(PROD_1_ID, 3, PROD_1_PRICE),
                                 createMockOrderItemDto(PROD_2_ID, 5, PROD_2_PRICE)
                         )
                 )
-                .appliedCoupon(AppliedCoupon.builder()
-                        .couponId(1L)
-                        .couponName("1000원 할인 쿠폰")
-                        .discountAmount(1000L)
-                        .build())
+                .couponInfo(CouponInfo.of(1L, "1000원 할인 쿠폰", 1000L))
                 .paymentInfo(
                         PaymentInfo.builder()
                                 .id(1L)
@@ -150,9 +139,9 @@ public class OrderApplicationServiceTestFixture {
                 .userId(order.getUserId())
                 .orderName(order.getOrderName())
                 .status(OrderStatus.CANCELED)
-                .orderPriceInfo(order.getOrderPriceInfo())
+                .orderPriceDetail(order.getOrderPriceDetail())
                 .orderItemDtoList(order.getOrderItemDtoList())
-                .appliedCoupon(order.getAppliedCoupon())
+                .couponInfo(order.getCouponInfo())
                 .orderedAt(order.getOrderedAt())
                 .orderFailureCode(failureCode)
                 .build();

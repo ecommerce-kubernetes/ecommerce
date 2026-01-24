@@ -3,6 +3,7 @@ package com.example.order_service.api.order.infrastructure.client.product.dto;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -13,10 +14,11 @@ public class OrderProductResponse {
     private ProductStatus status;
     private String sku;
     private String productName;
+    private String thumbnailUrl;
     private UnitPrice unitPrice;
     private Integer stockQuantity;
-    private String thumbnailUrl;
-    private List<ItemOption> itemOptions;
+    @Builder.Default
+    private List<ItemOption> itemOptions = new ArrayList<>();
 
     @Getter
     @Builder

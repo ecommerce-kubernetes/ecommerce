@@ -1,6 +1,6 @@
 package com.example.order_service.api.order.domain.model;
 
-import com.example.order_service.api.order.domain.model.vo.AppliedCoupon;
+import com.example.order_service.api.order.domain.model.vo.CouponInfo;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -33,7 +33,7 @@ public class Coupon {
         this.order = order;
     }
 
-    public static Coupon create(AppliedCoupon coupon){
+    public static Coupon create(CouponInfo coupon){
         return Coupon.builder()
                 .couponId(coupon.getCouponId())
                 .couponName(coupon.getCouponName())

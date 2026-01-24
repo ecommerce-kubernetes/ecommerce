@@ -7,6 +7,7 @@ import com.example.order_service.api.common.exception.ErrorCode;
 import com.example.order_service.api.common.exception.OrderErrorCode;
 import com.example.order_service.api.common.util.AsyncUtil;
 import com.example.order_service.api.order.domain.service.*;
+import com.example.order_service.api.order.domain.service.dto.command.OrderCreationContext;
 import com.example.order_service.api.order.domain.service.dto.result.*;
 import com.example.order_service.api.order.facade.dto.OrderPreparationData;
 import com.example.order_service.api.order.facade.dto.command.CreateOrderCommand;
@@ -43,20 +44,22 @@ public class OrderFacade {
     private final OrderProductService orderProductService;
     private final OrderCouponService orderCouponService;
     private final OrderPriceCalculator calculator;
-    private final OrderDtoMapper mapper;
-    private final OrderDomainService orderDomainService;
+    private final OrderCreationContextMapper mapper;
+    private final OrderService orderService;
     private final ApplicationEventPublisher eventPublisher;
 
     public CreateOrderResponse initialOrder(CreateOrderCommand command){
         // 중복 상품이 있는지 검증
-        validateUniqueItems(command.getOrderItemDtoList());
+        validateUniqueItems(command.getOrderItemCommands());
         //CompletableFuture 을 사용해서 상품, 유저 요청을 비동기로 동시에 조회
         OrderPreparationData orderPreparationData = getOrderPreparationData(command);
         //주문 상품 가격 정보 계산
-        OrderProductAmount productAmount = calculator.calculateItemAmounts(command.getOrderItemDtoList(), orderPreparationData.getProducts());
+        OrderProductAmount productAmount = calculator.calculateItemAmounts(command.getOrderItemCommands(), orderPreparationData.getProducts());
         OrderCouponInfo coupon = orderCouponService.calculateCouponDiscount(command.getUserId(), command.getCouponId(), productAmount);
         //할인 적용 최종 금액 계산
-        OrderPriceInfo orderPriceInfo = calculator.calculateOrderPrice(productAmount, coupon, command.getPointToUse(), command.getExpectedPrice());
+        CalculatedOrderAmounts calculatedOrderAmounts = calculator.calculateOrderPrice(productAmount, coupon, command.getPointToUse(), command.getExpectedPrice());
+        OrderCreationContext creationContext =
+                mapper.mapOrderCreationContext(orderPreparationData.getUser(), calculatedOrderAmounts, coupon, command, orderPreparationData.getProducts());
 //        OrderDto orderDto = orderDomainService.saveOrder(creationContext);
 //        eventPublisher.publishEvent(OrderCreatedEvent.from(orderDto));
 //        return CreateOrderResponse.of(orderDto);
@@ -65,36 +68,36 @@ public class OrderFacade {
     }
 
     public void preparePayment(String orderNo) {
-        OrderDto orderDto = orderDomainService.changeOrderStatus(orderNo, OrderStatus.PAYMENT_WAITING);
+        OrderDto orderDto = orderService.changeOrderStatus(orderNo, OrderStatus.PAYMENT_WAITING);
         eventPublisher.publishEvent(OrderResultEvent.paymentReady(orderDto));
     }
 
     public void processOrderFailure(String orderNo, OrderFailureCode orderFailureCode){
-        OrderDto orderDto = orderDomainService.canceledOrder(orderNo, orderFailureCode);
+        OrderDto orderDto = orderService.canceledOrder(orderNo, orderFailureCode);
         eventPublisher.publishEvent(OrderResultEvent.failure(orderDto));
     }
 
     public OrderDetailResponse finalizeOrder(String orderNo, Long userId, String paymentKey, Long amount) {
-        OrderDto order = orderDomainService.getOrder(orderNo, userId);
+        OrderDto order = orderService.getOrder(orderNo, userId);
         validBeforePayment(order, amount);
         TossPaymentConfirmResponse confirmResponse = executePaymentConfirmRequest(order, paymentKey);
         return completeOrderWithCompensation(order, confirmResponse, paymentKey);
     }
 
     public OrderDetailResponse getOrder(Long userId, String orderNo) {
-        OrderDto order = orderDomainService.getOrder(orderNo, userId);
+        OrderDto order = orderService.getOrder(orderNo, userId);
         return OrderDetailResponse.from(order);
     }
 
     public PageDto<OrderListResponse> getOrders(Long userId, OrderSearchCondition condition){
-        Page<OrderDto> orders = orderDomainService.getOrders(userId, condition);
+        Page<OrderDto> orders = orderService.getOrders(userId, condition);
         return PageDto.of(orders, OrderListResponse::from);
     }
 
     // 토스 결제 승인 실행
     private TossPaymentConfirmResponse executePaymentConfirmRequest(OrderDto orderDto, String paymentKey) {
         try {
-            return orderPaymentService.confirmOrderPayment(orderDto.getOrderNo(), paymentKey, orderDto.getOrderPriceInfo().getFinalPaymentAmount());
+            return orderPaymentService.confirmOrderPayment(orderDto.getOrderNo(), paymentKey, orderDto.getOrderPriceDetail().getFinalPaymentAmount());
         } catch (BusinessException e) {
             // 결제 중 예외가 발생한 경우 주문 상태 변경 후 Saga 보상 로직 실행
             handlePaymentFailure(orderDto.getOrderNo(), e.getErrorCode());
@@ -119,13 +122,13 @@ public class OrderFacade {
             throw new BusinessException(OrderErrorCode.ORDER_NOT_PAYABLE);
         }
 
-        if (order.getOrderPriceInfo().getFinalPaymentAmount() != amount) {
+        if (order.getOrderPriceDetail().getFinalPaymentAmount() != amount) {
             throw new BusinessException(OrderErrorCode.ORDER_PRICE_MISMATCH);
         }
     }
 
     private OrderDetailResponse processOrderCompletion(TossPaymentConfirmResponse response) {
-        OrderDto completedOrder = orderDomainService.completedOrder(PaymentCreationCommand.from(response));
+        OrderDto completedOrder = orderService.completedOrder(PaymentCreationCommand.from(response));
         List<Long> productVariantIds = completedOrder.getOrderItemDtoList().stream()
                 .map(OrderItemDto::getProductVariantId).toList();
         eventPublisher.publishEvent(PaymentResultEvent.of(completedOrder.getOrderNo(), completedOrder.getUserId(), OrderEventStatus.SUCCESS, null,
@@ -143,7 +146,7 @@ public class OrderFacade {
 
     private void handlePaymentFailure(String orderNo, ErrorCode errorCode) {
         OrderFailureCode failureCode = OrderFailureCode.fromErrorCode(errorCode);
-        OrderDto canceledOrder = orderDomainService.canceledOrder(orderNo, failureCode);
+        OrderDto canceledOrder = orderService.canceledOrder(orderNo, failureCode);
         eventPublisher.publishEvent(PaymentResultEvent.of(canceledOrder.getOrderNo(), canceledOrder.getUserId(), OrderEventStatus.FAILURE,
                 failureCode, null));
     }
@@ -158,7 +161,7 @@ public class OrderFacade {
     // 유저정보, 상품 정보를 비동기로 동시 조회
     private OrderPreparationData getOrderPreparationData(CreateOrderCommand command) {
         CompletableFuture<OrderUserInfo> userFuture = CompletableFuture.supplyAsync(() -> orderUserService.getUser(command.getUserId(), command.getPointToUse()));
-        CompletableFuture<List<OrderProductInfo>> productFuture = CompletableFuture.supplyAsync(() -> orderProductService.getProducts(command.getOrderItemDtoList()));
+        CompletableFuture<List<OrderProductInfo>> productFuture = CompletableFuture.supplyAsync(() -> orderProductService.getProducts(command.getOrderItemCommands()));
         CompletableFuture.allOf(userFuture, productFuture).join();
 
         return OrderPreparationData.builder()

@@ -35,7 +35,7 @@ public class OrderController {
         List<CreateOrderItemCommand> orderItems = mappingCreateOrderItemDto(request);
         CreateOrderCommand command = CreateOrderCommand.builder()
                 .userId(userPrincipal.getUserId())
-                .orderItemDtoList(orderItems)
+                .orderItemCommands(orderItems)
                 .deliveryAddress(request.getDeliveryAddress())
                 .couponId(request.getCouponId())
                 .pointToUse(request.getPointToUse())

@@ -62,6 +62,8 @@ public class OrderProductService {
     }
 
     private OrderProductInfo mapToInfo(OrderProductResponse response) {
+        List<OrderProductInfo.ProductOption> productOptions = response.getItemOptions().stream()
+                .map(o -> OrderProductInfo.ProductOption.of(o.getOptionTypeName(), o.getOptionValueName())).toList();
         return OrderProductInfo.builder()
                 .productId(response.getProductId())
                 .productVariantId(response.getProductVariantId())
@@ -71,6 +73,7 @@ public class OrderProductService {
                 .discountRate(response.getUnitPrice().getDiscountRate())
                 .discountAmount(response.getUnitPrice().getDiscountAmount())
                 .discountedPrice(response.getUnitPrice().getDiscountedPrice())
+                .productOption(productOptions)
                 .build();
     }
 }

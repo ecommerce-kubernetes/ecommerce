@@ -1,11 +1,7 @@
 package com.example.order_service.api.support.fixture;
 
-import com.example.order_service.api.order.domain.model.vo.AppliedCoupon;
-import com.example.order_service.api.order.domain.model.vo.OrderPriceInfo;
-import com.example.order_service.api.order.domain.service.dto.command.CreateOrderCommand;
-import com.example.order_service.api.order.domain.service.dto.command.CreateOrderItemCommand;
-
-import java.util.List;
+import com.example.order_service.api.order.domain.service.dto.command.OrderCreationContext;
+import com.example.order_service.api.order.domain.service.dto.command.OrderItemCreationContext;
 
 public class OrderDomainServiceTestFixture {
     public static final Long USER_ID = 1L;
@@ -33,49 +29,52 @@ public class OrderDomainServiceTestFixture {
     public static final Long TOTAL_PROD_DISCOUNT = TOTAL_ORIGIN_PRICE * DISCOUNT_RATE / 100;
     public static final Long FINAL_PRICE = TOTAL_ORIGIN_PRICE - TOTAL_PROD_DISCOUNT - COUPON_DISCOUNT - USE_POINT;
 
-    public static CreateOrderCommand createDefaultContext() {
-        return CreateOrderCommand.builder()
-                .userId(USER_ID)
-                .itemCommands(
-                        List.of(
-                                createOrderItemCommand(PROD1_ID, PROD1_NAME, PROD1_PRICE, PROD1_QTY, PROD1_LINE_TOTAL),
-                                createOrderItemCommand(PROD2_ID, PROD2_NAME, PROD2_PRICE, PROD2_QTY, PROD2_LINE_TOTAL)
-                        ))
-                .orderPriceInfo(
-                        OrderPriceInfo.builder()
-                                .totalOriginPrice(TOTAL_ORIGIN_PRICE)
-                                .totalProductDiscount(TOTAL_PROD_DISCOUNT)
-                                .couponDiscount(COUPON_DISCOUNT)
-                                .pointDiscount(USE_POINT)
-                                .finalPaymentAmount(FINAL_PRICE)
-                                .build())
-                .appliedCoupon(
-                        AppliedCoupon.builder()
-                                .couponId(1L)
-                                .couponName("1000원 할인 쿠폰")
-                                .discountAmount(COUPON_DISCOUNT)
-                                .build())
-                .deliveryAddress(ADDRESS)
-                .build();
+    public static OrderCreationContext createDefaultContext() {
+//        return OrderCreationContext.builder()
+//                .userId(USER_ID)
+//                .itemCommands(
+//                        List.of(
+//                                createOrderItemCommand(PROD1_ID, PROD1_NAME, PROD1_PRICE, PROD1_QTY, PROD1_LINE_TOTAL),
+//                                createOrderItemCommand(PROD2_ID, PROD2_NAME, PROD2_PRICE, PROD2_QTY, PROD2_LINE_TOTAL)
+//                        ))
+//                .orderPriceInfo(
+//                        OrderPriceInfo.builder()
+//                                .totalOriginPrice(TOTAL_ORIGIN_PRICE)
+//                                .totalProductDiscount(TOTAL_PROD_DISCOUNT)
+//                                .couponDiscount(COUPON_DISCOUNT)
+//                                .pointDiscount(USE_POINT)
+//                                .finalPaymentAmount(FINAL_PRICE)
+//                                .build())
+//                .appliedCoupon(
+//                        CouponInfo.builder()
+//                                .couponId(1L)
+//                                .couponName("1000원 할인 쿠폰")
+//                                .discountAmount(COUPON_DISCOUNT)
+//                                .build())
+//                .deliveryAddress(ADDRESS)
+//                .build();
+        return null;
     }
 
-    private static CreateOrderItemCommand createOrderItemCommand(Long productId, String productName, Long price, int quantity,
-                                                           Long lineTotal) {
-        return CreateOrderItemCommand.builder()
-                .productId(productId)
-                .productVariantId(productId)
-                .productName(productName)
-                .thumbnailUrl("http://thumbnail.jpg")
-                .unitPrice(
-                        CreateOrderItemCommand.UnitPrice.builder()
-                                .originalPrice(price)
-                                .discountRate(DISCOUNT_RATE)
-                                .discountAmount(price/DISCOUNT_RATE)
-                                .discountedPrice(price - (price/DISCOUNT_RATE))
-                                .build())
-                .itemOptions(List.of())
-                .quantity(quantity)
-                .lineTotal(lineTotal)
-                .build();
+    private static OrderItemCreationContext createOrderItemCommand(Long productId, String productName, Long price, int quantity,
+                                                                   Long lineTotal) {
+//        return OrderItemCreationContext.builder()
+//                .productId(productId)
+//                .productVariantId(productId)
+//                .productName(productName)
+//                .thumbnailUrl("http://thumbnail.jpg")
+//                .unitPrice(
+//                        OrderItemCreationContext.UnitPrice.builder()
+//                                .originalPrice(price)
+//                                .discountRate(DISCOUNT_RATE)
+//                                .discountAmount(price/DISCOUNT_RATE)
+//                                .discountedPrice(price - (price/DISCOUNT_RATE))
+//                                .build())
+//                .itemOptions(List.of())
+//                .quantity(quantity)
+//                .lineTotal(lineTotal)
+//                .build();
+
+        return null;
     }
 }

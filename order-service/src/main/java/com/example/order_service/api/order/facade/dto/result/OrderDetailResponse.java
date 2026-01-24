@@ -1,7 +1,7 @@
 package com.example.order_service.api.order.facade.dto.result;
 
-import com.example.order_service.api.order.domain.model.vo.AppliedCoupon;
-import com.example.order_service.api.order.domain.model.vo.OrderPriceInfo;
+import com.example.order_service.api.order.domain.model.vo.CouponInfo;
+import com.example.order_service.api.order.domain.model.vo.OrderPriceDetail;
 import com.example.order_service.api.order.domain.model.vo.PaymentInfo;
 import com.example.order_service.api.order.domain.service.dto.result.OrderDto;
 import lombok.Builder;
@@ -58,13 +58,13 @@ public class OrderDetailResponse {
             this.finalPaymentAmount = finalPaymentAmount;
         }
 
-        public static OrderPriceResponse from(OrderPriceInfo orderPriceInfo) {
+        public static OrderPriceResponse from(OrderPriceDetail orderPriceDetail) {
             return OrderPriceResponse.builder()
-                    .totalOriginPrice(orderPriceInfo.getTotalOriginPrice())
-                    .totalProductDiscount(orderPriceInfo.getTotalProductDiscount())
-                    .couponDiscount(orderPriceInfo.getCouponDiscount())
-                    .pointDiscount(orderPriceInfo.getPointDiscount())
-                    .finalPaymentAmount(orderPriceInfo.getFinalPaymentAmount())
+                    .totalOriginPrice(orderPriceDetail.getTotalOriginPrice())
+                    .totalProductDiscount(orderPriceDetail.getTotalProductDiscount())
+                    .couponDiscount(orderPriceDetail.getCouponDiscount())
+                    .pointDiscount(orderPriceDetail.getPointDiscount())
+                    .finalPaymentAmount(orderPriceDetail.getFinalPaymentAmount())
                     .build();
         }
     }
@@ -83,7 +83,7 @@ public class OrderDetailResponse {
             this.couponDiscount = couponDiscount;
         }
 
-        public static CouponResponse from(AppliedCoupon coupon) {
+        public static CouponResponse from(CouponInfo coupon) {
             return CouponResponse.builder()
                     .couponId(coupon.getCouponId())
                     .couponName(coupon.getCouponName())
@@ -129,8 +129,8 @@ public class OrderDetailResponse {
                 .orderStatus(orderDto.getStatus().name())
                 .orderName(orderDto.getOrderName())
                 .deliveryAddress(orderDto.getDeliveryAddress())
-                .orderPriceResponse(OrderPriceResponse.from(orderDto.getOrderPriceInfo()))
-                .couponResponse(CouponResponse.from(orderDto.getAppliedCoupon()))
+                .orderPriceResponse(OrderPriceResponse.from(orderDto.getOrderPriceDetail()))
+                .couponResponse(CouponResponse.from(orderDto.getCouponInfo()))
                 .orderItems(items)
                 .paymentResponse(PaymentResponse.from(orderDto.getPaymentInfo()))
                 .createdAt(orderDto.getOrderedAt().toString())

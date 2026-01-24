@@ -1,7 +1,7 @@
 package com.example.order_service.api.order.domain.model;
 
 import com.example.order_service.api.common.entity.BaseEntity;
-import com.example.order_service.api.order.domain.service.dto.command.CreateOrderItemCommand;
+import com.example.order_service.api.order.domain.service.dto.command.OrderItemCreationContext;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -65,10 +65,10 @@ public class OrderItem extends BaseEntity {
         itemOption.setOrderItem(this);
     }
 
-    public static OrderItem create(CreateOrderItemCommand createOrderItemCommand){
-        OrderItem orderItem = of(createOrderItemCommand);
-        if(createOrderItemCommand.getItemOptions() != null && !createOrderItemCommand.getItemOptions().isEmpty()) {
-            for (CreateOrderItemCommand.ItemOption itemOption : createOrderItemCommand.getItemOptions()) {
+    public static OrderItem create(OrderItemCreationContext orderItemCreationContext){
+        OrderItem orderItem = of(orderItemCreationContext);
+        if(orderItemCreationContext.getItemOptions() != null && !orderItemCreationContext.getItemOptions().isEmpty()) {
+            for (OrderItemCreationContext.ItemOption itemOption : orderItemCreationContext.getItemOptions()) {
                 orderItem.addItemOption(ItemOption.create(itemOption));
             }
         }
@@ -76,19 +76,21 @@ public class OrderItem extends BaseEntity {
         return orderItem;
     }
 
-    public static OrderItem of(CreateOrderItemCommand createOrderItemCommand){
-        return OrderItem.builder()
-                .productId(createOrderItemCommand.getProductId())
-                .productVariantId(createOrderItemCommand.getProductVariantId())
-                .sku(createOrderItemCommand.getSku())
-                .productName(createOrderItemCommand.getProductName())
-                .originPrice(createOrderItemCommand.getUnitPrice().getOriginalPrice())
-                .discountRate(createOrderItemCommand.getUnitPrice().getDiscountRate())
-                .discountAmount(createOrderItemCommand.getUnitPrice().getDiscountAmount())
-                .discountedPrice(createOrderItemCommand.getUnitPrice().getDiscountedPrice())
-                .lineTotal(createOrderItemCommand.getLineTotal())
-                .quantity(createOrderItemCommand.getQuantity())
-                .thumbnail(createOrderItemCommand.getThumbnailUrl())
-                .build();
+    public static OrderItem of(OrderItemCreationContext orderItemCreationContext){
+        //TODO 수정
+//        return OrderItem.builder()
+//                .productId(orderItemCreationContext.getProductId())
+//                .productVariantId(orderItemCreationContext.getProductVariantId())
+//                .sku(orderItemCreationContext.getSku())
+//                .productName(orderItemCreationContext.getProductName())
+//                .originPrice(orderItemCreationContext.getUnitPrice().getOriginalPrice())
+//                .discountRate(orderItemCreationContext.getUnitPrice().getDiscountRate())
+//                .discountAmount(orderItemCreationContext.getUnitPrice().getDiscountAmount())
+//                .discountedPrice(orderItemCreationContext.getUnitPrice().getDiscountedPrice())
+//                .lineTotal(orderItemCreationContext.getLineTotal())
+//                .quantity(orderItemCreationContext.getQuantity())
+//                .thumbnail(orderItemCreationContext.getThumbnailUrl())
+//                .build();
+        return null;
     }
 }
