@@ -28,22 +28,6 @@ public class OrderCouponServiceTest {
     @Mock
     private OrderCouponAdaptor orderCouponAdaptor;
 
-    private OrderProductAmount mockOrderProductAmount(Long totalOriginalAmount, Long totalDiscountAmount) {
-        return OrderProductAmount.builder()
-                .totalOriginalAmount(totalOriginalAmount)
-                .totalDiscountAmount(totalDiscountAmount)
-                .subTotalAmount(totalOriginalAmount - totalDiscountAmount)
-                .build();
-    }
-
-    private OrderCouponDiscountResponse mockCouponDiscountResponse(Long couponId, String couponName, Long discountAmount){
-        return OrderCouponDiscountResponse.builder()
-                .couponId(couponId)
-                .couponName(couponName)
-                .discountAmount(discountAmount)
-                .build();
-    }
-    
     @Nested
     @DisplayName("쿠폰 정보 조회")
     class GetCoupon {

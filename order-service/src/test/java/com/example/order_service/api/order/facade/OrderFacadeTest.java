@@ -12,8 +12,9 @@ import com.example.order_service.api.order.facade.event.OrderCreatedEvent;
 import com.example.order_service.api.order.facade.event.OrderFailedEvent;
 import com.example.order_service.api.order.facade.event.OrderPaymentReadyEvent;
 import com.example.order_service.api.order.facade.event.PaymentResultEvent;
-import com.example.order_service.api.support.fixture.OrderCouponFixture;
+import com.example.order_service.api.support.fixture.OrderCommandFixture;
 import com.example.order_service.api.support.fixture.OrderFixture;
+import com.example.order_service.api.support.fixture.OrderUserFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -28,7 +29,10 @@ import org.springframework.context.ApplicationEventPublisher;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static com.example.order_service.api.support.fixture.OrderCommandFixture.anOrderCommand;
+import static com.example.order_service.api.support.fixture.OrderCommandFixture.anOrderItemCommand;
 import static com.example.order_service.api.support.fixture.OrderCouponFixture.anOrderCouponInfo;
+import static com.example.order_service.api.support.fixture.OrderUserFixture.anOrderUserInfo;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.*;
@@ -92,7 +96,9 @@ public class OrderFacadeTest {
         @DisplayName("중복된 상품은 주문할 수 없다")
         void initialOrder_duplicate_item(){
             //given
-            CreateOrderCommand command = mockOrderCommand(List.of(mockOrderItemCommand(1L, 3), mockOrderItemCommand(1L, 3)));
+            CreateOrderCommand command = anOrderCommand()
+                    .orderItemCommands(List.of(anOrderItemCommand().build(), anOrderItemCommand().build()))
+                    .build();
             //when
             //then
             assertThatThrownBy(() -> orderFacade.initialOrder(command))
@@ -108,8 +114,10 @@ public class OrderFacadeTest {
             OrderDto dto = OrderFixture.returnOrderDto()
                     .orderNo(ORDER_NO)
                     .orderedAt(LocalDateTime.now()).build();
-            CreateOrderCommand command = mockOrderCommand(List.of(mockOrderItemCommand(1L, 3), mockOrderItemCommand(2L, 5)));
-            given(orderUserService.getUser(anyLong(), anyLong())).willReturn(OrderUserInfo.builder().build());
+            CreateOrderCommand command = anOrderCommand()
+                    .orderItemCommands(List.of(anOrderItemCommand().productVariantId(1L).build(), anOrderItemCommand().productVariantId(2L).build()))
+                    .build();
+            given(orderUserService.getUser(anyLong(), anyLong())).willReturn(anOrderUserInfo().build());
             given(orderProductService.getProducts(anyList())).willReturn(List.of(OrderProductInfo.builder().build()));
             given(calculator.calculateItemAmounts(anyList(), anyList())).willReturn(OrderProductAmount.builder().build());
             given(orderCouponService.calculateCouponDiscount(anyLong(), anyLong(), any(OrderProductAmount.class))).willReturn(anOrderCouponInfo().build());
