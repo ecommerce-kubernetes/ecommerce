@@ -4,8 +4,6 @@ import com.example.order_service.api.order.domain.service.dto.result.OrderCoupon
 import com.example.order_service.api.order.domain.service.dto.result.OrderProductAmount;
 import com.example.order_service.api.order.infrastructure.client.coupon.OrderCouponAdaptor;
 import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponDiscountResponse;
-import com.example.order_service.api.support.fixture.OrderCouponFixture;
-import com.example.order_service.api.support.fixture.OrderPriceFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

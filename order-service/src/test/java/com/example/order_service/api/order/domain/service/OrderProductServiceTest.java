@@ -19,6 +19,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 
+import static com.example.order_service.api.support.fixture.OrderProductFixture.anOrderProductInfo;
 import static com.example.order_service.api.support.fixture.OrderProductFixture.anOrderProductResponse;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -45,29 +46,15 @@ public class OrderProductServiceTest {
             CreateOrderItemCommand itemCommand2 = OrderCommandFixture.anOrderItemCommand().productVariantId(2L).quantity(5).build();
             OrderProductResponse product1 = anOrderProductResponse().productVariantId(1L).status(ProductStatus.ON_SALE).build();
             OrderProductResponse product2 = anOrderProductResponse().productVariantId(2L).status(ProductStatus.ON_SALE).build();
+            OrderProductInfo expectedProductInfo1 = anOrderProductInfo().productVariantId(1L).build();
+            OrderProductInfo expectedProductInfo2 = anOrderProductInfo().productVariantId(2L).build();
             given(orderProductAdaptor.getProducts(anyList())).willReturn(List.of(product1, product2));
             //when
             List<OrderProductInfo> result = orderProductService.getProducts(List.of(itemCommand1, itemCommand2));
             //then
-            assertThat(result).hasSize(2)
-                    .extracting(OrderProductInfo::getProductId, OrderProductInfo::getProductVariantId, OrderProductInfo::getSku,
-                            OrderProductInfo::getProductName, OrderProductInfo::getOriginalPrice, OrderProductInfo::getDiscountRate,
-                            OrderProductInfo::getDiscountAmount, OrderProductInfo::getDiscountedPrice, OrderProductInfo::getThumbnail)
-                    .containsExactlyInAnyOrder(
-                            tuple(product1.getProductId(), product1.getProductVariantId(), product1.getSku(), product1.getProductName(),
-                                    product1.getUnitPrice().getOriginalPrice(), product1.getUnitPrice().getDiscountRate(), product1.getUnitPrice().getDiscountAmount(),
-                                    product1.getUnitPrice().getDiscountedPrice(), product1.getThumbnailUrl()),
-                            tuple(product2.getProductId(), product2.getProductVariantId(), product2.getSku(), product2.getProductName(),
-                                    product2.getUnitPrice().getOriginalPrice(), product2.getUnitPrice().getDiscountRate(), product2.getUnitPrice().getDiscountAmount(),
-                                    product2.getUnitPrice().getDiscountedPrice(), product2.getThumbnailUrl())
-                    );
-
             assertThat(result)
-                    .flatExtracting(OrderProductInfo::getProductOption)
-                    .extracting("optionTypeName", "optionValueName")
-                    .containsExactly(
-                            tuple("사이즈", "XL"),
-                            tuple("사이즈", "XL"));
+                    .usingRecursiveComparison()
+                    .isEqualTo(List.of(expectedProductInfo1, expectedProductInfo2));
         }
 
         @Test
