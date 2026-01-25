@@ -2,12 +2,15 @@ package com.example.order_service.api.order.facade;
 
 import com.example.order_service.api.common.exception.BusinessException;
 import com.example.order_service.api.common.exception.OrderErrorCode;
+import com.example.order_service.api.order.domain.model.OrderFailureCode;
+import com.example.order_service.api.order.domain.model.OrderStatus;
 import com.example.order_service.api.order.domain.service.*;
 import com.example.order_service.api.order.domain.service.dto.command.OrderCreationContext;
 import com.example.order_service.api.order.domain.service.dto.result.*;
 import com.example.order_service.api.order.facade.dto.command.CreateOrderCommand;
 import com.example.order_service.api.order.facade.dto.command.CreateOrderItemCommand;
 import com.example.order_service.api.order.facade.dto.result.CreateOrderResponse;
+import com.example.order_service.api.order.facade.dto.result.OrderDetailResponse;
 import com.example.order_service.api.order.facade.event.OrderCreatedEvent;
 import com.example.order_service.api.order.facade.event.OrderFailedEvent;
 import com.example.order_service.api.order.facade.event.OrderPaymentReadyEvent;
@@ -30,10 +33,12 @@ import java.util.List;
 import static com.example.order_service.api.support.fixture.OrderCommandFixture.anOrderCommand;
 import static com.example.order_service.api.support.fixture.OrderCommandFixture.anOrderItemCommand;
 import static com.example.order_service.api.support.fixture.OrderCouponFixture.anOrderCouponInfo;
-import static com.example.order_service.api.support.fixture.OrderFixture.anOrderCreationContext;
+import static com.example.order_service.api.support.fixture.OrderFixture.*;
 import static com.example.order_service.api.support.fixture.OrderPriceFixture.anCalculatedOrderAmounts;
 import static com.example.order_service.api.support.fixture.OrderPriceFixture.anOrderProductAmount;
 import static com.example.order_service.api.support.fixture.OrderProductFixture.anOrderProductInfo;
+import static com.example.order_service.api.support.fixture.OrderResponseFixture.anOrderDetailResponse;
+import static com.example.order_service.api.support.fixture.OrderResponseFixture.anPaymentResponse;
 import static com.example.order_service.api.support.fixture.OrderUserFixture.anOrderUserInfo;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -95,7 +100,7 @@ public class OrderFacadeTest {
         @DisplayName("쿠폰을 사용한 주문을 생성하면 쿠폰 아이디가 포함된 주문 생성 이벤트가 발행된다")
         void initialOrder_use_coupon(){
             //given
-            OrderDto dto = OrderFixture.returnOrderDto()
+            OrderDto dto = returnOrderDto()
                     .orderNo(ORDER_NO)
                     .orderedAt(LocalDateTime.now()).build();
             CreateOrderCommand command = anOrderCommand()
@@ -110,7 +115,7 @@ public class OrderFacadeTest {
                     anyList())).willReturn(anOrderCreationContext().build());
             given(orderService.saveOrder(any(OrderCreationContext.class))).willReturn(dto);
 
-            CreateOrderResponse expectedResult = OrderResponseFixture.anCreateOrderResponse(ORDER_NO).build();
+            CreateOrderResponse expectedResult = OrderResponseFixture.anCreateOrderResponse().orderNo(ORDER_NO).build();
             //when
             CreateOrderResponse result = orderFacade.initialOrder(command);
             //then
@@ -130,7 +135,7 @@ public class OrderFacadeTest {
         @DisplayName("쿠폰을 사용하지 않은 주문을 생성하면 쿠폰 아이디가 null인 이벤트가 발행된다")
         void initialOrder_non_use_coupon(){
             //given
-            OrderDto dto = OrderFixture.returnOrderDto()
+            OrderDto dto = returnOrderDto()
                     .orderNo(ORDER_NO)
                     .couponInfo(null)
                     .orderedAt(LocalDateTime.now()).build();
@@ -145,7 +150,7 @@ public class OrderFacadeTest {
             given(mapper.mapOrderCreationContext(any(OrderUserInfo.class), any(CalculatedOrderAmounts.class), any(OrderCouponInfo.class), any(CreateOrderCommand.class),
                     anyList())).willReturn(anOrderCreationContext().build());
             given(orderService.saveOrder(any(OrderCreationContext.class))).willReturn(dto);
-            CreateOrderResponse expectedResult = OrderResponseFixture.anCreateOrderResponse(ORDER_NO).build();
+            CreateOrderResponse expectedResult = OrderResponseFixture.anCreateOrderResponse().orderNo(ORDER_NO).build();
             //when
             CreateOrderResponse result = orderFacade.initialOrder(command);
             //then
@@ -169,32 +174,32 @@ public class OrderFacadeTest {
         @DisplayName("주문 상태를 결제 대기로 변경하고 결제 대기 이벤트를 발행한다")
         void preparePayment(){
             //given
-//            OrderDto orderDto = mockOrderDto(OrderStatus.PAYMENT_WAITING, null, null);
-//            given(orderService.changeOrderStatus(ORDER_NO, OrderStatus.PAYMENT_WAITING)).willReturn(orderDto);
-//            //when
-//            orderFacade.preparePayment(ORDER_NO);
-//            //then
-//            verify(eventPublisher).publishEvent(orderPaymentReadyEventCaptor.capture());
-//            assertThat(orderPaymentReadyEventCaptor.getValue())
-//                    .extracting(OrderPaymentReadyEvent::getOrderNo, OrderPaymentReadyEvent::getUserId, OrderPaymentReadyEvent::getCode,
-//                            OrderPaymentReadyEvent::getOrderName, OrderPaymentReadyEvent::getFinalPaymentAmount)
-//                    .containsExactly(ORDER_NO, 1L, "PAYMENT_WAITING", "상품 외 1건", 117000L);
+            OrderDto orderDto = returnOrderDto().orderNo(ORDER_NO).status(OrderStatus.PAYMENT_WAITING).build();
+            given(orderService.changeOrderStatus(ORDER_NO, OrderStatus.PAYMENT_WAITING)).willReturn(orderDto);
+            //when
+            orderFacade.preparePayment(ORDER_NO);
+            //then
+            verify(eventPublisher).publishEvent(orderPaymentReadyEventCaptor.capture());
+            assertThat(orderPaymentReadyEventCaptor.getValue())
+                    .extracting(OrderPaymentReadyEvent::getOrderNo, OrderPaymentReadyEvent::getUserId, OrderPaymentReadyEvent::getCode,
+                            OrderPaymentReadyEvent::getOrderName, OrderPaymentReadyEvent::getFinalPaymentAmount)
+                    .containsExactly(ORDER_NO, 1L, "PAYMENT_WAITING", "상품", 7000L);
         }
 
         @Test
         @DisplayName("주문 상태를 취소로 변경하고 주문 취소 이벤트를 발행한다")
         void processOrderFailure(){
             //given
-//            OrderDto orderDto = mockOrderDto(OrderStatus.CANCELED, null, OrderFailureCode.OUT_OF_STOCK);
-//            given(orderService.canceledOrder(ORDER_NO, OrderFailureCode.OUT_OF_STOCK)).willReturn(orderDto);
-//            //when
-//            orderFacade.processOrderFailure(ORDER_NO, OrderFailureCode.OUT_OF_STOCK);
-//            //then
-//            verify(eventPublisher).publishEvent(orderFailedEventCaptor.capture());
-//            assertThat(orderFailedEventCaptor.getValue())
-//                    .extracting(OrderFailedEvent::getOrderNo, OrderFailedEvent::getUserId, OrderFailedEvent::getCode,
-//                            OrderFailedEvent::getOrderName)
-//                    .containsExactly(ORDER_NO, 1L, "OUT_OF_STOCK", "상품 외 1건");
+            OrderDto orderDto = returnOrderDto().status(OrderStatus.CANCELED).orderFailureCode(OrderFailureCode.OUT_OF_STOCK).build();
+            given(orderService.canceledOrder(ORDER_NO, OrderFailureCode.OUT_OF_STOCK)).willReturn(orderDto);
+            //when
+            orderFacade.processOrderFailure(ORDER_NO, OrderFailureCode.OUT_OF_STOCK);
+            //then
+            verify(eventPublisher).publishEvent(orderFailedEventCaptor.capture());
+            assertThat(orderFailedEventCaptor.getValue())
+                    .extracting(OrderFailedEvent::getOrderNo, OrderFailedEvent::getUserId, OrderFailedEvent::getCode,
+                            OrderFailedEvent::getOrderName)
+                    .containsExactly(ORDER_NO, 1L, "OUT_OF_STOCK", "상품");
         }
     }
 
@@ -319,56 +324,32 @@ public class OrderFacadeTest {
 //                .containsExactly(ORDER_NO, OrderEventStatus.FAILURE, OrderFailureCode.SYSTEM_ERROR);
 //    }
 
-//    @Test
-//    @DisplayName("주문을 조회한다")
-//    void getOrder(){
-//        //given
-//        OrderDto orderDto = mockSavedOrder(OrderStatus.COMPLETED, FIXED_FINAL_PRICE);
-//        given(orderService.getOrder(anyString(), anyLong()))
-//                .willReturn(orderDto);
-//        //when
-//        OrderDetailResponse result = orderFacade.getOrder(USER_ID, ORDER_NO);
-//        //then
-//        assertThat(result)
-//                .extracting(OrderDetailResponse::getOrderNo, OrderDetailResponse::getUserId, OrderDetailResponse::getOrderStatus, OrderDetailResponse::getOrderName,
-//                        OrderDetailResponse::getDeliveryAddress)
-//                .containsExactly(ORDER_NO, USER_ID, "COMPLETED", "상품1 외 1건", ADDRESS);
-//
-//        assertThat(result.getOrderPriceResponse())
-//                .extracting(
-//                        OrderDetailResponse.OrderPriceResponse::getTotalOriginPrice,
-//                        OrderDetailResponse.OrderPriceResponse::getTotalProductDiscount,
-//                        OrderDetailResponse.OrderPriceResponse::getCouponDiscount,
-//                        OrderDetailResponse.OrderPriceResponse::getPointDiscount,
-//                        OrderDetailResponse.OrderPriceResponse::getFinalPaymentAmount
-//                )
-//                        .containsExactly(
-//                                34000L,
-//                                3400L,
-//                                COUPON_DISCOUNT,
-//                                USE_POINT,
-//                                FIXED_FINAL_PRICE
-//                        );
-//
-//        assertThat(result.getCouponResponse())
-//                .extracting(OrderDetailResponse.CouponResponse::getCouponId,
-//                        OrderDetailResponse.CouponResponse::getCouponName,
-//                        OrderDetailResponse.CouponResponse::getCouponDiscount)
-//                .containsExactly(1L, "1000원 할인 쿠폰", COUPON_DISCOUNT);
-//
-//        assertThat(result.getOrderItems())
-//                .hasSize(2)
-//                .extracting(
-//                        OrderItemResponse::getProductId,
-//                        OrderItemResponse::getProductName,
-//                        OrderItemResponse::getQuantity,
-//                        OrderItemResponse::getLineTotal
-//                )
-//                .containsExactly(
-//                        tuple(PROD_1_ID, "상품1", 3, 8100L),
-//                        tuple(PROD_2_ID, "상품2", 5, 22500L)
-//                );
-//    }
+    @Nested
+    @DisplayName("주문 조회")
+    class GetOrder {
+
+        @Test
+        @DisplayName("주문을 조회한다")
+        void getOrder(){
+            //given
+            OrderDto orderDto = returnOrderDto().orderNo(ORDER_NO).status(OrderStatus.COMPLETED)
+                    .paymentInfo(returnPayment().build())
+                    .build();
+            given(orderService.getOrder(anyString(), anyLong()))
+                    .willReturn(orderDto);
+            OrderDetailResponse expectedResult = anOrderDetailResponse()
+                    .orderNo(ORDER_NO).build();
+            //when
+            OrderDetailResponse result = orderFacade.getOrder(1L, ORDER_NO);
+            //then
+            assertThat(result)
+                    .usingRecursiveComparison()
+                    .ignoringFields("createdAt", "payment.approvedAt")
+                    .isEqualTo(expectedResult);
+        }
+    }
+
+
 
 //    @Test
 //    @DisplayName("주문 목록을 조회한다")

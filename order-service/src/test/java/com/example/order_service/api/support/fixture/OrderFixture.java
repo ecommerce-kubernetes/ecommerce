@@ -13,14 +13,17 @@ import com.example.order_service.api.order.domain.service.dto.result.OrderDto;
 import com.example.order_service.api.order.domain.service.dto.result.OrderDto.CouponInfo;
 import com.example.order_service.api.order.domain.service.dto.result.OrderDto.OrderPriceInfo;
 import com.example.order_service.api.order.domain.service.dto.result.OrderDto.OrdererInfo;
+import com.example.order_service.api.order.domain.service.dto.result.OrderDto.PaymentInfo;
 import com.example.order_service.api.order.domain.service.dto.result.OrderItemDto;
 import com.example.order_service.api.order.domain.service.dto.result.OrderItemDto.OrderItemOptionDto;
 import com.example.order_service.api.order.domain.service.dto.result.OrderItemDto.OrderItemPriceInfo;
 import com.example.order_service.api.order.domain.service.dto.result.OrderItemDto.OrderedProductInfo;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public class OrderFixture {
+    private static final String ORDER_NO = "ORDER-20261149-sXvczFv";
     public static OrderCreationContext.OrderCreationContextBuilder anOrderCreationContext() {
         return OrderCreationContext.builder()
                 .orderer(anOrdererSpec().build())
@@ -86,13 +89,15 @@ public class OrderFixture {
     public static OrderDto.OrderDtoBuilder returnOrderDto() {
         return OrderDto.builder()
                 .orderer(returnOrderer().build())
+                .orderNo(ORDER_NO)
                 .status(OrderStatus.PENDING)
                 .orderName("상품")
                 .orderer(returnOrderer().build())
                 .orderPriceInfo(returnOrderPrice().build())
                 .couponInfo(returnCoupon().build())
                 .orderItems(List.of(returnOrderItem().build()))
-                .deliveryAddress("서울시 테헤란로 123");
+                .deliveryAddress("서울시 테헤란로 123")
+                .orderedAt(LocalDateTime.now());
     }
 
     public static OrdererInfo.OrdererInfoBuilder returnOrderer() {
@@ -113,6 +118,15 @@ public class OrderFixture {
                 .couponId(1L)
                 .couponName("1000원 할인 쿠폰")
                 .discountAmount(1000L);
+    }
+
+    public static PaymentInfo.PaymentInfoBuilder returnPayment() {
+        return PaymentInfo.builder()
+                .paymentId(1L)
+                .paymentKey("paymentKey")
+                .amount(7000L)
+                .method("CARD")
+                .approvedAt(LocalDateTime.now());
     }
 
     public static OrderItemDto.OrderItemDtoBuilder returnOrderItem() {

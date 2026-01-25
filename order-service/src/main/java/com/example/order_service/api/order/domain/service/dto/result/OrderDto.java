@@ -81,6 +81,29 @@ public class OrderDto {
         }
     }
 
+    @Getter
+    @Builder
+    public static class PaymentInfo {
+        private Long paymentId;
+        private String paymentKey;
+        private Long amount;
+        private String method;
+        private LocalDateTime approvedAt;
+
+        public static PaymentInfo from(Payment payment) {
+            if (payment == null) {
+                return null;
+            }
+            return PaymentInfo.builder()
+                    .paymentId(payment.getId())
+                    .paymentKey(payment.getPaymentKey())
+                    .amount(payment.getAmount())
+                    .method(payment.getMethod())
+                    .approvedAt(payment.getApprovedAt())
+                    .build();
+        }
+    }
+
     public static OrderDto from(Order order) {
         return OrderDto.builder()
                 .id(order.getId())

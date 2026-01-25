@@ -1,60 +1,67 @@
 package com.example.order_service.api.order.facade.dto.result;
 
 import com.example.order_service.api.order.domain.service.dto.result.OrderItemDto;
+import com.example.order_service.api.order.domain.service.dto.result.OrderItemDto.OrderItemOptionDto;
+import com.example.order_service.api.order.domain.service.dto.result.OrderItemDto.OrderItemPriceInfo;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.util.List;
 
 @Getter
-@Setter
-@NoArgsConstructor
+@Builder
 public class OrderItemResponse {
     private Long productId;
     private Long productVariantId;
     private String productName;
-    private String thumbNailUrl;
+    private String thumbnailUrl;
     private int quantity;
-    private OrderItemPrice unitPrice;
+    private OrderItemPriceResponse unitPrice;
     private Long lineTotal;
-    private List<OrderItemOption> options;
+    private List<OrderItemOptionResponse> options;
 
-    @Builder
-    private OrderItemResponse(Long productId, Long productVariantId, String productName, String thumbNailUrl, int quantity,
-                              OrderItemPrice unitPrice, Long lineTotal, List<OrderItemOption> options){
-        this.productId = productId;
-        this.productVariantId = productVariantId;
-        this.productName = productName;
-        this.thumbNailUrl = thumbNailUrl;
-        this.quantity = quantity;
-        this.unitPrice = unitPrice;
-        this.lineTotal = lineTotal;
-        this.options = options;
+    public static OrderItemResponse from(OrderItemDto orderItemDto) {
+        List<OrderItemOptionResponse> options = orderItemDto.getItemOptions().stream().map(OrderItemOptionResponse::from).toList();
+        return OrderItemResponse.builder()
+                .productId(orderItemDto.getOrderedProduct().getProductId())
+                .productVariantId(orderItemDto.getOrderedProduct().getProductVariantId())
+                .productName(orderItemDto.getOrderedProduct().getProductName())
+                .thumbnailUrl(orderItemDto.getOrderedProduct().getThumbnail())
+                .quantity(orderItemDto.getQuantity())
+                .unitPrice(OrderItemPriceResponse.from(orderItemDto.getOrderItemPrice()))
+                .lineTotal(orderItemDto.getLineTotal())
+                .options(options)
+                .build();
     }
 
     @Getter
     @Builder
-    public static class OrderItemPrice {
+    public static class OrderItemPriceResponse {
         private long originalPrice;
         private int discountRate;
         private long discountAmount;
         private long discountedPrice;
 
-
+        private static OrderItemPriceResponse from(OrderItemPriceInfo orderItemPriceInfo) {
+            return OrderItemPriceResponse.builder()
+                    .originalPrice(orderItemPriceInfo.getOriginPrice())
+                    .discountRate(orderItemPriceInfo.getDiscountRate())
+                    .discountAmount(orderItemPriceInfo.getDiscountAmount())
+                    .discountedPrice(orderItemPriceInfo.getDiscountedPrice())
+                    .build();
+        }
     }
-
     @Getter
     @Builder
-    public static class OrderItemOption {
+    public static class OrderItemOptionResponse {
         private String optionTypeName;
         private String optionValueName;
 
-
-    }
-
-    public static OrderItemResponse from(OrderItemDto orderItemDto) {
-        return null;
+        private static OrderItemOptionResponse from(OrderItemOptionDto optionDto) {
+            return OrderItemOptionResponse.builder()
+                    .optionTypeName(optionDto.getOptionTypeName())
+                    .optionValueName(optionDto.getOptionValueName())
+                    .build();
+        }
     }
 }

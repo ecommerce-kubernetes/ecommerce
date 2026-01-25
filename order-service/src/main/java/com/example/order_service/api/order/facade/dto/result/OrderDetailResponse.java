@@ -1,14 +1,12 @@
 package com.example.order_service.api.order.facade.dto.result;
 
-import com.example.order_service.api.order.domain.model.vo.CouponInfo;
-import com.example.order_service.api.order.domain.model.vo.OrderPriceDetail;
-import com.example.order_service.api.order.domain.model.vo.Orderer;
-import com.example.order_service.api.order.domain.model.vo.PaymentInfo;
 import com.example.order_service.api.order.domain.service.dto.result.OrderDto;
+import com.example.order_service.api.order.domain.service.dto.result.OrderDto.CouponInfo;
+import com.example.order_service.api.order.domain.service.dto.result.OrderDto.OrderPriceInfo;
+import com.example.order_service.api.order.domain.service.dto.result.OrderDto.OrdererInfo;
+import com.example.order_service.api.order.domain.service.dto.result.OrderDto.PaymentInfo;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-
 import java.util.List;
 
 @Getter
@@ -19,11 +17,27 @@ public class OrderDetailResponse {
     private String orderName;
     private OrdererResponse orderer;
     private OrderPriceResponse orderPrice;
-    private String deliveryAddress;
-    private PaymentResponse paymentResponse;
     private CouponResponse couponResponse;
+    private String deliveryAddress;
+    private PaymentResponse payment;
     private List<OrderItemResponse> orderItems;
     private String createdAt;
+
+    public static OrderDetailResponse from(OrderDto orderDto) {
+        List<OrderItemResponse> orderItems = orderDto.getOrderItems().stream().map(OrderItemResponse::from).toList();
+        return OrderDetailResponse.builder()
+                .orderNo(orderDto.getOrderNo())
+                .status(orderDto.getStatus().toString())
+                .orderName(orderDto.getOrderName())
+                .orderer(OrdererResponse.from(orderDto.getOrderer()))
+                .orderPrice(OrderPriceResponse.from(orderDto.getOrderPriceInfo()))
+                .couponResponse(CouponResponse.from(orderDto.getCouponInfo()))
+                .deliveryAddress(orderDto.getDeliveryAddress())
+                .payment(PaymentResponse.from(orderDto.getPaymentInfo()))
+                .orderItems(orderItems)
+                .createdAt(orderDto.getOrderedAt().toString())
+                .build();
+    }
 
     @Getter
     @Builder
@@ -32,27 +46,38 @@ public class OrderDetailResponse {
         private Long totalProductDiscount;
         private Long couponDiscount;
         private Long pointDiscount;
-        private Long finalPaymentAmount;
 
-        public static OrderPriceResponse from(OrderPriceDetail orderPrice) {
+        private Long finalPaymentAmount;
+        private static OrderPriceResponse from(OrderPriceInfo orderPriceInfo) {
             return OrderPriceResponse.builder()
-                    .totalOriginPrice(orderPrice.getTotalOriginPrice())
-                    .totalProductDiscount(orderPrice.getTotalProductDiscount())
-                    .couponDiscount(orderPrice.getCouponDiscount())
-                    .pointDiscount(orderPrice.getPointDiscount())
-                    .finalPaymentAmount(orderPrice.getFinalPaymentAmount())
+                    .totalOriginPrice(orderPriceInfo.getTotalOriginPrice())
+                    .totalProductDiscount(orderPriceInfo.getTotalProductDiscount())
+                    .couponDiscount(orderPriceInfo.getCouponDiscount())
+                    .pointDiscount(orderPriceInfo.getPointDiscount())
+                    .finalPaymentAmount(orderPriceInfo.getFinalPaymentAmount())
                     .build();
         }
-    }
 
+    }
     @Getter
     @Builder
     public static class CouponResponse {
         private Long couponId;
         private String couponName;
         private Long couponDiscount;
-    }
 
+        private static CouponResponse from(CouponInfo couponInfo) {
+            if (couponInfo == null) {
+                return null;
+            }
+            return CouponResponse.builder()
+                    .couponId(couponInfo.getCouponId())
+                    .couponName(couponInfo.getCouponName())
+                    .couponDiscount(couponInfo.getDiscountAmount())
+                    .build();
+        }
+
+    }
     @Getter
     @Builder
     public static class OrdererResponse {
@@ -60,11 +85,11 @@ public class OrderDetailResponse {
         private String userName;
         private String phoneNumber;
 
-        public static OrdererResponse from(Orderer orderer) {
+        private static OrdererResponse from(OrdererInfo ordererInfo) {
             return OrdererResponse.builder()
-                    .userId(orderer.getUserId())
-                    .userName(orderer.getUserName())
-                    .phoneNumber(orderer.getPhoneNumber())
+                    .userId(ordererInfo.getUserId())
+                    .userName(ordererInfo.getUserName())
+                    .phoneNumber(ordererInfo.getPhoneNumber())
                     .build();
         }
     }
@@ -77,20 +102,18 @@ public class OrderDetailResponse {
         private Long amount;
         private String method;
         private String approvedAt;
-    }
 
-    public static OrderDetailResponse from(OrderDto orderDto) {
-//        return OrderDetailResponse.builder()
-//                .orderNo(orderDto.getOrderNo())
-//                .userId(orderDto.getUserId())
-//                .orderStatus(orderDto.getStatus().name())
-//                .orderName(orderDto.getOrderName())
-//                .orderer(OrdererResponse.from(orderDto.getOrderer()))
-//                .orderPrice(OrderPriceResponse.from(orderDto.getOrderPriceDetail()))
-//                .deliveryAddress(orderDto.getDeliveryAddress())
-//                .
-//                .build()
-
-        return null;
+        private static PaymentResponse from (PaymentInfo paymentInfo) {
+            if (paymentInfo == null) {
+                return null;
+            }
+            return PaymentResponse.builder()
+                    .paymentId(paymentInfo.getPaymentId())
+                    .paymentKey(paymentInfo.getPaymentKey())
+                    .amount(paymentInfo.getAmount())
+                    .method(paymentInfo.getMethod())
+                    .approvedAt(paymentInfo.getApprovedAt().toString())
+                    .build();
+        }
     }
 }

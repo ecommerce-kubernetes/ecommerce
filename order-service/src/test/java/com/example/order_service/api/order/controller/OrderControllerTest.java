@@ -523,10 +523,10 @@ class OrderControllerTest extends ControllerTestSupport {
                         .productId(1L)
                         .productVariantId(1L)
                         .productName("상품1")
-                        .thumbNailUrl("http://thumbanil.jpg")
+                        .thumbnailUrl("http://thumbanil.jpg")
                         .quantity(1)
                         .unitPrice(
-                                OrderItemResponse.OrderItemPrice.builder()
+                                OrderItemResponse.OrderItemPriceResponse.builder()
                                         .originalPrice(30000L)
                                         .discountAmount(3000L)
                                         .discountRate(10)
@@ -534,7 +534,7 @@ class OrderControllerTest extends ControllerTestSupport {
                         )
                         .lineTotal(27000L)
                         .options(
-                                List.of(OrderItemResponse.OrderItemOption.builder()
+                                List.of(OrderItemResponse.OrderItemOptionResponse.builder()
                                         .optionTypeName("사이즈")
                                         .optionValueName("XL")
                                         .build())
