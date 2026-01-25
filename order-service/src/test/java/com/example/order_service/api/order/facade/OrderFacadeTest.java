@@ -12,9 +12,7 @@ import com.example.order_service.api.order.facade.event.OrderCreatedEvent;
 import com.example.order_service.api.order.facade.event.OrderFailedEvent;
 import com.example.order_service.api.order.facade.event.OrderPaymentReadyEvent;
 import com.example.order_service.api.order.facade.event.PaymentResultEvent;
-import com.example.order_service.api.support.fixture.OrderCommandFixture;
-import com.example.order_service.api.support.fixture.OrderFixture;
-import com.example.order_service.api.support.fixture.OrderUserFixture;
+import com.example.order_service.api.support.fixture.*;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -32,6 +30,10 @@ import java.util.List;
 import static com.example.order_service.api.support.fixture.OrderCommandFixture.anOrderCommand;
 import static com.example.order_service.api.support.fixture.OrderCommandFixture.anOrderItemCommand;
 import static com.example.order_service.api.support.fixture.OrderCouponFixture.anOrderCouponInfo;
+import static com.example.order_service.api.support.fixture.OrderFixture.anOrderCreationContext;
+import static com.example.order_service.api.support.fixture.OrderPriceFixture.anCalculatedOrderAmounts;
+import static com.example.order_service.api.support.fixture.OrderPriceFixture.anOrderProductAmount;
+import static com.example.order_service.api.support.fixture.OrderProductFixture.anOrderProductInfo;
 import static com.example.order_service.api.support.fixture.OrderUserFixture.anOrderUserInfo;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -70,24 +72,6 @@ public class OrderFacadeTest {
 
     private static final String ORDER_NO = "ORDER-20261149-sXvczFv";
 
-    private CreateOrderItemCommand mockOrderItemCommand(Long variantId, int quantity) {
-        return CreateOrderItemCommand.builder()
-                .productVariantId(variantId)
-                .quantity(quantity)
-                .build();
-    }
-
-    private CreateOrderCommand mockOrderCommand(List<CreateOrderItemCommand> items) {
-        return CreateOrderCommand.builder()
-                .userId(1L)
-                .orderItemCommands(items)
-                .deliveryAddress("서울시 테헤란로 123")
-                .couponId(1L)
-                .pointToUse(1000L)
-                .expectedPrice(117000L)
-                .build();
-    }
-
     @Nested
     @DisplayName("주문을 생성")
     class InitialOrder {
@@ -115,23 +99,26 @@ public class OrderFacadeTest {
                     .orderNo(ORDER_NO)
                     .orderedAt(LocalDateTime.now()).build();
             CreateOrderCommand command = anOrderCommand()
-                    .orderItemCommands(List.of(anOrderItemCommand().productVariantId(1L).build(), anOrderItemCommand().productVariantId(2L).build()))
+                    .orderItemCommands(List.of(anOrderItemCommand().productVariantId(1L).build()))
                     .build();
             given(orderUserService.getUser(anyLong(), anyLong())).willReturn(anOrderUserInfo().build());
-            given(orderProductService.getProducts(anyList())).willReturn(List.of(OrderProductInfo.builder().build()));
-            given(calculator.calculateItemAmounts(anyList(), anyList())).willReturn(OrderProductAmount.builder().build());
+            given(orderProductService.getProducts(anyList())).willReturn(List.of(anOrderProductInfo().build()));
+            given(calculator.calculateItemAmounts(anyList(), anyList())).willReturn(anOrderProductAmount().build());
             given(orderCouponService.calculateCouponDiscount(anyLong(), anyLong(), any(OrderProductAmount.class))).willReturn(anOrderCouponInfo().build());
-            given(calculator.calculateOrderPrice(any(OrderProductAmount.class), any(OrderCouponInfo.class), anyLong(), anyLong())).willReturn(CalculatedOrderAmounts.builder().build());
+            given(calculator.calculateOrderPrice(any(OrderProductAmount.class), any(OrderCouponInfo.class), anyLong(), anyLong())).willReturn(anCalculatedOrderAmounts().build());
             given(mapper.mapOrderCreationContext(any(OrderUserInfo.class), any(CalculatedOrderAmounts.class), any(OrderCouponInfo.class), any(CreateOrderCommand.class),
-                    anyList())).willReturn(OrderCreationContext.builder().build());
+                    anyList())).willReturn(anOrderCreationContext().build());
             given(orderService.saveOrder(any(OrderCreationContext.class))).willReturn(dto);
+
+            CreateOrderResponse expectedResult = OrderResponseFixture.anCreateOrderResponse(ORDER_NO).build();
             //when
             CreateOrderResponse result = orderFacade.initialOrder(command);
             //then
             assertThat(result)
-                    .extracting(CreateOrderResponse::getOrderNo, CreateOrderResponse::getStatus, CreateOrderResponse::getOrderName,
-                            CreateOrderResponse::getFinalPaymentAmount)
-                    .containsExactly(ORDER_NO, "PENDING", "상품", 7000L);
+                    .usingRecursiveComparison()
+                    .ignoringFields("createdAt")
+                            .isEqualTo(expectedResult);
+            assertThat(result.getCreatedAt()).isNotNull();
 
             verify(eventPublisher).publishEvent(orderCreatedEventCaptor.capture());
             assertThat(orderCreatedEventCaptor.getValue())
@@ -147,22 +134,25 @@ public class OrderFacadeTest {
                     .orderNo(ORDER_NO)
                     .couponInfo(null)
                     .orderedAt(LocalDateTime.now()).build();
-            CreateOrderCommand command = mockOrderCommand(List.of(mockOrderItemCommand(1L, 3), mockOrderItemCommand(2L, 5)));
-            given(orderUserService.getUser(anyLong(), anyLong())).willReturn(OrderUserInfo.builder().build());
-            given(orderProductService.getProducts(anyList())).willReturn(List.of(OrderProductInfo.builder().build()));
-            given(calculator.calculateItemAmounts(anyList(), anyList())).willReturn(OrderProductAmount.builder().build());
+            CreateOrderCommand command = anOrderCommand()
+                    .orderItemCommands(List.of(anOrderItemCommand().productVariantId(1L).build()))
+                    .build();
+            given(orderUserService.getUser(anyLong(), anyLong())).willReturn(anOrderUserInfo().build());
+            given(orderProductService.getProducts(anyList())).willReturn(List.of(anOrderProductInfo().build()));
+            given(calculator.calculateItemAmounts(anyList(), anyList())).willReturn(anOrderProductAmount().build());
             given(orderCouponService.calculateCouponDiscount(anyLong(), anyLong(), any(OrderProductAmount.class))).willReturn(anOrderCouponInfo().build());
-            given(calculator.calculateOrderPrice(any(OrderProductAmount.class), any(OrderCouponInfo.class), anyLong(), anyLong())).willReturn(CalculatedOrderAmounts.builder().build());
+            given(calculator.calculateOrderPrice(any(OrderProductAmount.class), any(OrderCouponInfo.class), anyLong(), anyLong())).willReturn(anCalculatedOrderAmounts().build());
             given(mapper.mapOrderCreationContext(any(OrderUserInfo.class), any(CalculatedOrderAmounts.class), any(OrderCouponInfo.class), any(CreateOrderCommand.class),
-                    anyList())).willReturn(OrderCreationContext.builder().build());
+                    anyList())).willReturn(anOrderCreationContext().build());
             given(orderService.saveOrder(any(OrderCreationContext.class))).willReturn(dto);
+            CreateOrderResponse expectedResult = OrderResponseFixture.anCreateOrderResponse(ORDER_NO).build();
             //when
             CreateOrderResponse result = orderFacade.initialOrder(command);
             //then
             assertThat(result)
-                    .extracting(CreateOrderResponse::getOrderNo, CreateOrderResponse::getStatus, CreateOrderResponse::getOrderName,
-                            CreateOrderResponse::getFinalPaymentAmount)
-                    .containsExactly(ORDER_NO, "PENDING", "상품", 7000L);
+                    .usingRecursiveComparison()
+                            .ignoringFields("createdAt")
+                                    .isEqualTo(expectedResult);
 
             verify(eventPublisher).publishEvent(orderCreatedEventCaptor.capture());
             assertThat(orderCreatedEventCaptor.getValue())
