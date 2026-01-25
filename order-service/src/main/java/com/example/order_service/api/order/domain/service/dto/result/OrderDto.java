@@ -1,10 +1,6 @@
 package com.example.order_service.api.order.domain.service.dto.result;
 
-import com.example.order_service.api.order.domain.model.Order;
-import com.example.order_service.api.order.domain.model.OrderFailureCode;
-import com.example.order_service.api.order.domain.model.OrderItem;
-import com.example.order_service.api.order.domain.model.OrderStatus;
-import com.example.order_service.api.order.domain.model.vo.CouponInfo;
+import com.example.order_service.api.order.domain.model.*;
 import com.example.order_service.api.order.domain.model.vo.OrderPriceDetail;
 import com.example.order_service.api.order.domain.model.vo.Orderer;
 import com.example.order_service.api.order.domain.model.vo.PaymentInfo;
@@ -21,8 +17,8 @@ public class OrderDto {
     private String orderNo;
     private OrderStatus status;
     private String orderName;
-    private Orderer orderer;
-    private OrderPriceDetail orderPriceDetail;
+    private OrdererInfo orderer;
+    private OrderPriceInfo orderPriceInfo;
     private CouponInfo couponInfo;
     private List<OrderItemDto> orderItems;
     private String deliveryAddress;
@@ -30,28 +26,76 @@ public class OrderDto {
     private LocalDateTime orderedAt;
     private OrderFailureCode orderFailureCode;
 
+    @Getter
+    @Builder
+    public static class OrdererInfo {
+        private Long userId;
+        private String userName;
+        private String phoneNumber;
+
+        public static OrdererInfo from(Orderer orderer) {
+            return OrdererInfo.builder()
+                    .userId(orderer.getUserId())
+                    .userName(orderer.getUserName())
+                    .phoneNumber(orderer.getPhoneNumber())
+                    .build();
+        }
+    }
+
+    @Getter
+    @Builder
+    public static class OrderPriceInfo {
+        private long totalOriginPrice;
+        private long totalProductDiscount;
+        private long couponDiscount;
+        private long pointDiscount;
+        private long finalPaymentAmount;
+
+        public static OrderPriceInfo from(OrderPriceDetail orderPrice) {
+            return OrderPriceInfo.builder()
+                    .totalOriginPrice(orderPrice.getTotalOriginPrice())
+                    .totalProductDiscount(orderPrice.getTotalProductDiscount())
+                    .couponDiscount(orderPrice.getCouponDiscount())
+                    .pointDiscount(orderPrice.getPointDiscount())
+                    .finalPaymentAmount(orderPrice.getFinalPaymentAmount())
+                    .build();
+        }
+    }
+
+    @Getter
+    @Builder
+    public static class CouponInfo {
+        private Long couponId;
+        private String couponName;
+        private Long discountAmount;
+
+        public static CouponInfo from(Coupon coupon) {
+            if (coupon == null) {
+                return null;
+            }
+            return CouponInfo.builder()
+                    .couponId(coupon.getCouponId())
+                    .couponName(coupon.getCouponName())
+                    .discountAmount(coupon.getDiscountAmount())
+                    .build();
+        }
+    }
+
     public static OrderDto from(Order order) {
         return OrderDto.builder()
                 .id(order.getId())
                 .orderNo(order.getOrderNo())
                 .status(order.getStatus())
                 .orderName(order.getOrderName())
-                .orderer(order.getOrderer())
-                .orderPriceDetail(order.getOrderPriceDetail())
-                .couponInfo(resolveCouponInfo(order))
+                .orderer(OrdererInfo.from(order.getOrderer()))
+                .orderPriceInfo(OrderPriceInfo.from(order.getOrderPriceDetail()))
+                .couponInfo(CouponInfo.from(order.getCoupon()))
                 .orderItems(createOrderItemDto(order.getOrderItems()))
                 .deliveryAddress(order.getDeliveryAddress())
                 .paymentInfo(PaymentInfo.from(order.getPayment()))
                 .orderedAt(order.getCreatedAt())
                 .orderFailureCode(order.getFailureCode())
                 .build();
-    }
-
-    private static CouponInfo resolveCouponInfo(Order order) {
-        if (order.getCoupon() == null) {
-            return null;
-        }
-        return order.getCoupon().getCouponInfo();
     }
 
     private static List<OrderItemDto> createOrderItemDto(List<OrderItem> orderItems){

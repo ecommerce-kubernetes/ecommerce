@@ -6,6 +6,8 @@ import com.example.order_service.api.common.exception.OrderErrorCode;
 import com.example.order_service.api.order.domain.model.vo.OrderPriceDetail;
 import com.example.order_service.api.order.domain.model.vo.Orderer;
 import com.example.order_service.api.order.domain.service.dto.command.OrderCreationContext;
+import com.example.order_service.api.order.domain.service.dto.command.OrderCreationContext.OrderPriceSpec;
+import com.example.order_service.api.order.domain.service.dto.command.OrderCreationContext.OrdererSpec;
 import com.example.order_service.api.order.domain.service.dto.command.OrderItemCreationContext;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -98,8 +100,8 @@ public class Order extends BaseEntity {
             order.addOrderItem(orderItem);
         }
 
-        if (context.getCouponInfo() != null) {
-            Coupon coupon = Coupon.create(context.getCouponInfo());
+        if (context.getCoupon() != null) {
+            Coupon coupon = Coupon.create(context.getCoupon());
             order.addCoupon(coupon);
         }
 
@@ -113,7 +115,7 @@ public class Order extends BaseEntity {
     }
 
     private static String generateOrderName(List<OrderItemCreationContext> itemContexts){
-        String firstProductName = itemContexts.get(0).getOrderedProduct().getProductName();
+        String firstProductName = itemContexts.get(0).getProductSpec().getProductName();
         int size = itemContexts.size();
         if(size == 1){
             return firstProductName;
@@ -130,12 +132,21 @@ public class Order extends BaseEntity {
     private static Order createOrder(OrderCreationContext context, String orderNo, String orderName){
         return Order.builder()
                 .orderNo(orderNo)
-                .orderer(context.getOrderer())
+                .orderer(mapToOrderer(context.getOrderer()))
                 .status(OrderStatus.PENDING)
                 .orderName(orderName)
                 .deliveryAddress(context.getDeliveryAddress())
-                .orderPriceDetail(context.getOrderPriceDetail())
+                .orderPriceDetail(mapToOrderPriceDetail(context.getOrderPrice()))
                 .failureCode(null)
                 .build();
+    }
+
+    private static Orderer mapToOrderer(OrdererSpec ordererSpec) {
+        return Orderer.of(ordererSpec.getUserId(), ordererSpec.getUserName(), ordererSpec.getPhoneNumber());
+    }
+
+    private static OrderPriceDetail mapToOrderPriceDetail(OrderPriceSpec priceSpec) {
+        return OrderPriceDetail.of(priceSpec.getTotalOriginPrice(), priceSpec.getTotalProductDiscount(),
+                priceSpec.getCouponDiscount(), priceSpec.getPointDiscount(), priceSpec.getFinalPaymentAmount());
     }
 }

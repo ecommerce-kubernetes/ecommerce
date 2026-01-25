@@ -2,6 +2,7 @@ package com.example.order_service.api.order.facade.dto.result;
 
 import com.example.order_service.api.order.domain.model.vo.CouponInfo;
 import com.example.order_service.api.order.domain.model.vo.OrderPriceDetail;
+import com.example.order_service.api.order.domain.model.vo.Orderer;
 import com.example.order_service.api.order.domain.model.vo.PaymentInfo;
 import com.example.order_service.api.order.domain.service.dto.result.OrderDto;
 import lombok.Builder;
@@ -11,37 +12,21 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 
 @Getter
-@NoArgsConstructor
+@Builder
 public class OrderDetailResponse {
     private String orderNo;
-    private Long userId;
-    private String orderStatus;
+    private String status;
     private String orderName;
+    private OrdererResponse orderer;
+    private OrderPriceResponse orderPrice;
     private String deliveryAddress;
-    private OrderPriceResponse orderPriceResponse;
     private PaymentResponse paymentResponse;
     private CouponResponse couponResponse;
     private List<OrderItemResponse> orderItems;
     private String createdAt;
 
-    @Builder
-    private OrderDetailResponse(String orderNo, Long userId, String orderStatus, String orderName, String deliveryAddress,
-                                OrderPriceResponse orderPriceResponse, CouponResponse couponResponse, PaymentResponse paymentResponse, List<OrderItemResponse> orderItems,
-                                String createdAt) {
-        this.orderNo = orderNo;
-        this.userId = userId;
-        this.orderStatus = orderStatus;
-        this.orderName = orderName;
-        this.deliveryAddress = deliveryAddress;
-        this.orderPriceResponse = orderPriceResponse;
-        this.couponResponse = couponResponse;
-        this.paymentResponse = paymentResponse;
-        this.orderItems = orderItems;
-        this.createdAt = createdAt;
-    }
-
     @Getter
-    @NoArgsConstructor
+    @Builder
     public static class OrderPriceResponse {
         private Long totalOriginPrice;
         private Long totalProductDiscount;
@@ -49,92 +34,63 @@ public class OrderDetailResponse {
         private Long pointDiscount;
         private Long finalPaymentAmount;
 
-        @Builder
-        private OrderPriceResponse(Long totalOriginPrice, Long totalProductDiscount, Long couponDiscount, Long pointDiscount, Long finalPaymentAmount) {
-            this.totalOriginPrice = totalOriginPrice;
-            this.totalProductDiscount = totalProductDiscount;
-            this.couponDiscount = couponDiscount;
-            this.pointDiscount = pointDiscount;
-            this.finalPaymentAmount = finalPaymentAmount;
-        }
-
-        public static OrderPriceResponse from(OrderPriceDetail orderPriceDetail) {
+        public static OrderPriceResponse from(OrderPriceDetail orderPrice) {
             return OrderPriceResponse.builder()
-                    .totalOriginPrice(orderPriceDetail.getTotalOriginPrice())
-                    .totalProductDiscount(orderPriceDetail.getTotalProductDiscount())
-                    .couponDiscount(orderPriceDetail.getCouponDiscount())
-                    .pointDiscount(orderPriceDetail.getPointDiscount())
-                    .finalPaymentAmount(orderPriceDetail.getFinalPaymentAmount())
+                    .totalOriginPrice(orderPrice.getTotalOriginPrice())
+                    .totalProductDiscount(orderPrice.getTotalProductDiscount())
+                    .couponDiscount(orderPrice.getCouponDiscount())
+                    .pointDiscount(orderPrice.getPointDiscount())
+                    .finalPaymentAmount(orderPrice.getFinalPaymentAmount())
                     .build();
         }
     }
 
     @Getter
-    @NoArgsConstructor
+    @Builder
     public static class CouponResponse {
         private Long couponId;
         private String couponName;
         private Long couponDiscount;
+    }
 
-        @Builder
-        private CouponResponse(Long couponId, String couponName, Long couponDiscount) {
-            this.couponId = couponId;
-            this.couponName = couponName;
-            this.couponDiscount = couponDiscount;
-        }
+    @Getter
+    @Builder
+    public static class OrdererResponse {
+        private Long userId;
+        private String userName;
+        private String phoneNumber;
 
-        public static CouponResponse from(CouponInfo coupon) {
-            return CouponResponse.builder()
-                    .couponId(coupon.getCouponId())
-                    .couponName(coupon.getCouponName())
-                    .couponDiscount(coupon.getDiscountAmount())
+        public static OrdererResponse from(Orderer orderer) {
+            return OrdererResponse.builder()
+                    .userId(orderer.getUserId())
+                    .userName(orderer.getUserName())
+                    .phoneNumber(orderer.getPhoneNumber())
                     .build();
         }
     }
 
     @Getter
-    @NoArgsConstructor
+    @Builder
     public static class PaymentResponse {
         private Long paymentId;
         private String paymentKey;
         private Long amount;
         private String method;
         private String approvedAt;
-
-        @Builder
-        private PaymentResponse(Long paymentId, String paymentKey, Long amount, String method, String approvedAt) {
-            this.paymentId = paymentId;
-            this.paymentKey = paymentKey;
-            this.amount = amount;
-            this.method = method;
-            this.approvedAt = approvedAt;
-        }
-
-        public static PaymentResponse from(PaymentInfo paymentInfo) {
-            return PaymentResponse.builder()
-                    .paymentId(paymentInfo.getId())
-                    .paymentKey(paymentInfo.getPaymentKey())
-                    .amount(paymentInfo.getAmount())
-                    .method(paymentInfo.getMethod())
-                    .approvedAt(paymentInfo.getApprovedAt().toString())
-                    .build();
-        }
     }
 
     public static OrderDetailResponse from(OrderDto orderDto) {
-//        List<OrderItemResponse> items = orderDto.getOrderItemDtoList().stream().map(OrderItemResponse::from).toList();
 //        return OrderDetailResponse.builder()
 //                .orderNo(orderDto.getOrderNo())
 //                .userId(orderDto.getUserId())
 //                .orderStatus(orderDto.getStatus().name())
 //                .orderName(orderDto.getOrderName())
+//                .orderer(OrdererResponse.from(orderDto.getOrderer()))
+//                .orderPrice(OrderPriceResponse.from(orderDto.getOrderPriceDetail()))
 //                .deliveryAddress(orderDto.getDeliveryAddress())
-//                .orderPriceResponse(OrderPriceResponse.from(orderDto.getOrderPriceDetail()))
-//                .couponResponse(CouponResponse.from(orderDto.getCouponInfo()))
-//                .orderItems(items)
-//                .paymentResponse(PaymentResponse.from(orderDto.getPaymentInfo()))
-//                .createdAt(orderDto.getOrderedAt().toString())
-//                .build();
+//                .
+//                .build()
+
         return null;
     }
 }

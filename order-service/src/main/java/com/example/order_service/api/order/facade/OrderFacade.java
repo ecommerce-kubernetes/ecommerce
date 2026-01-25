@@ -58,8 +58,10 @@ public class OrderFacade {
         OrderCouponInfo coupon = orderCouponService.calculateCouponDiscount(command.getUserId(), command.getCouponId(), productAmount);
         //할인 적용 최종 금액 계산
         CalculatedOrderAmounts calculatedOrderAmounts = calculator.calculateOrderPrice(productAmount, coupon, command.getPointToUse(), command.getExpectedPrice());
+        // 주문 생성 Context 매핑
         OrderCreationContext creationContext =
                 mapper.mapOrderCreationContext(orderPreparationData.getUser(), calculatedOrderAmounts, coupon, command, orderPreparationData.getProducts());
+        // 주문 저장
         OrderDto orderDto = orderService.saveOrder(creationContext);
         //SAGA 진행을 위한 이벤트 발행
         eventPublisher.publishEvent(OrderCreatedEvent.from(orderDto));
@@ -98,7 +100,7 @@ public class OrderFacade {
     // 토스 결제 승인 실행
     private TossPaymentConfirmResponse executePaymentConfirmRequest(OrderDto orderDto, String paymentKey) {
         try {
-            return orderPaymentService.confirmOrderPayment(orderDto.getOrderNo(), paymentKey, orderDto.getOrderPriceDetail().getFinalPaymentAmount());
+            return orderPaymentService.confirmOrderPayment(orderDto.getOrderNo(), paymentKey, orderDto.getOrderPriceInfo().getFinalPaymentAmount());
         } catch (BusinessException e) {
             // 결제 중 예외가 발생한 경우 주문 상태 변경 후 Saga 보상 로직 실행
             handlePaymentFailure(orderDto.getOrderNo(), e.getErrorCode());
@@ -123,7 +125,7 @@ public class OrderFacade {
             throw new BusinessException(OrderErrorCode.ORDER_NOT_PAYABLE);
         }
 
-        if (order.getOrderPriceDetail().getFinalPaymentAmount() != amount) {
+        if (order.getOrderPriceInfo().getFinalPaymentAmount() != amount) {
             throw new BusinessException(OrderErrorCode.ORDER_PRICE_MISMATCH);
         }
     }

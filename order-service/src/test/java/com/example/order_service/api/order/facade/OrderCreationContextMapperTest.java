@@ -1,14 +1,11 @@
 package com.example.order_service.api.order.facade;
 
-import com.example.order_service.api.order.domain.model.vo.CouponInfo;
-import com.example.order_service.api.order.domain.model.vo.OrderPriceDetail;
-import com.example.order_service.api.order.domain.model.vo.Orderer;
 import com.example.order_service.api.order.domain.service.dto.command.OrderCreationContext;
+import com.example.order_service.api.order.domain.service.dto.command.OrderCreationContext.CouponSpec;
+import com.example.order_service.api.order.domain.service.dto.command.OrderCreationContext.OrderPriceSpec;
+import com.example.order_service.api.order.domain.service.dto.command.OrderCreationContext.OrdererSpec;
 import com.example.order_service.api.order.domain.service.dto.command.OrderItemCreationContext;
-import com.example.order_service.api.order.domain.service.dto.result.CalculatedOrderAmounts;
-import com.example.order_service.api.order.domain.service.dto.result.OrderCouponInfo;
-import com.example.order_service.api.order.domain.service.dto.result.OrderProductInfo;
-import com.example.order_service.api.order.domain.service.dto.result.OrderUserInfo;
+import com.example.order_service.api.order.domain.service.dto.result.*;
 import com.example.order_service.api.order.facade.dto.command.CreateOrderCommand;
 import com.example.order_service.api.order.facade.dto.command.CreateOrderItemCommand;
 import org.junit.jupiter.api.DisplayName;
@@ -68,6 +65,7 @@ public class OrderCreationContextMapperTest {
                 .productVariantId(variantId)
                 .sku("TEST")
                 .productName("상품")
+                .thumbnail("http://thumbnail.jpg")
                 .originalPrice(originalPrice)
                 .discountRate(discountRate)
                 .discountAmount(discountAmount)
@@ -87,7 +85,6 @@ public class OrderCreationContextMapperTest {
                 .build();
     }
 
-
     @Test
     @DisplayName("주문 생성 Context를 매핑한다")
     void mapOrderCreationContext(){
@@ -103,33 +100,42 @@ public class OrderCreationContextMapperTest {
         //then
         // 주문자 매핑
         assertThat(result.getOrderer())
-                .extracting(Orderer::getUserId, Orderer::getUserName, Orderer::getPhoneNumber)
+                .extracting(OrdererSpec::getUserId, OrdererSpec::getUserName, OrdererSpec::getPhoneNumber)
                 .containsExactly(1L, "유저 이름", "010-1234-5678");
 
         // 주문 가격 매핑
-        assertThat(result.getOrderPriceDetail())
-                .extracting(OrderPriceDetail::getTotalOriginPrice, OrderPriceDetail::getTotalProductDiscount, OrderPriceDetail::getCouponDiscount,
-                        OrderPriceDetail::getPointDiscount, OrderPriceDetail::getFinalPaymentAmount)
+        assertThat(result.getOrderPrice())
+                .extracting(OrderPriceSpec::getTotalOriginPrice, OrderPriceSpec::getTotalProductDiscount, OrderPriceSpec::getCouponDiscount,
+                        OrderPriceSpec::getPointDiscount, OrderPriceSpec::getFinalPaymentAmount)
                 .containsExactly(130000L, 23000L, 1000L, 1000L, 105000L);
 
         // 쿠폰 정보 매핑
-        assertThat(result.getCouponInfo())
-                .extracting(CouponInfo::getCouponId, CouponInfo::getCouponName, CouponInfo::getDiscountAmount)
+        assertThat(result.getCoupon())
+                .extracting(CouponSpec::getCouponId, CouponSpec::getCouponName, CouponSpec::getDiscountAmount)
                 .containsExactly(1L, "1000원 할인 쿠폰", 1000L);
 
         // 주문 상품 정보 매핑
         assertThat(result.getOrderItemCreationContexts())
                 .extracting(
-                        itemCtx -> itemCtx.getOrderedProduct().getProductVariantId(),
-                        itemCtx -> itemCtx.getOrderItemPrice().getOriginPrice(),
-                        itemCtx -> itemCtx.getOrderItemPrice().getDiscountRate(),
-                        itemCtx -> itemCtx.getOrderItemPrice().getDiscountAmount(),
-                        itemCtx -> itemCtx.getOrderItemPrice().getDiscountedPrice(),
+                        // 상품 기본 정보 검증
+                        itemCtx -> itemCtx.getProductSpec().getProductId(),
+                        itemCtx -> itemCtx.getProductSpec().getProductVariantId(),
+                        itemCtx -> itemCtx.getProductSpec().getProductName(),
+                        itemCtx -> itemCtx.getProductSpec().getSku(),
+                        itemCtx -> itemCtx.getProductSpec().getThumbnail(),
+
+                        // 상품 가격 정보 검증
+                        itemCtx -> itemCtx.getPriceSpec().getOriginPrice(),
+                        itemCtx -> itemCtx.getPriceSpec().getDiscountRate(),
+                        itemCtx -> itemCtx.getPriceSpec().getDiscountAmount(),
+                        itemCtx -> itemCtx.getPriceSpec().getDiscountedPrice(),
                         OrderItemCreationContext::getQuantity,
                         OrderItemCreationContext::getLineTotal)
                 .containsExactly(
-                        tuple(1L, 10000L, 10, 1000L, 9000L, 3, 27000L),
-                        tuple(2L, 20000L, 20, 4000L, 16000L, 5, 80000L)
+                        tuple(1L, 1L, "상품", "TEST", "http://thumbnail.jpg",
+                                10000L, 10, 1000L, 9000L, 3, 27000L),
+                        tuple(1L, 2L, "상품", "TEST", "http://thumbnail.jpg",
+                                20000L, 20, 4000L, 16000L, 5, 80000L)
                 );
 
         // 배송지 매핑

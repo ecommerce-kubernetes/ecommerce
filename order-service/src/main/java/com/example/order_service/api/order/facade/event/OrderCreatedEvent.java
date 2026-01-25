@@ -45,7 +45,7 @@ public class OrderCreatedEvent {
                 .userId(orderDto.getOrderer().getUserId())
                 .couponId(resolveCouponId(orderDto))
                 .orderedItems(orderedItems)
-                .usedPoint(orderDto.getOrderPriceDetail().getPointDiscount())
+                .usedPoint(orderDto.getOrderPriceInfo().getPointDiscount())
                 .build();
     }
 

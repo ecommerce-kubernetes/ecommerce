@@ -4,6 +4,9 @@ import com.example.order_service.api.common.entity.BaseEntity;
 import com.example.order_service.api.order.domain.model.vo.OrderItemPrice;
 import com.example.order_service.api.order.domain.model.vo.OrderedProduct;
 import com.example.order_service.api.order.domain.service.dto.command.OrderItemCreationContext;
+import com.example.order_service.api.order.domain.service.dto.command.OrderItemCreationContext.CreateItemOptionSpec;
+import com.example.order_service.api.order.domain.service.dto.command.OrderItemCreationContext.PriceSpec;
+import com.example.order_service.api.order.domain.service.dto.command.OrderItemCreationContext.ProductSpec;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -55,8 +58,8 @@ public class OrderItem extends BaseEntity {
 
     public static OrderItem create (OrderItemCreationContext itemContext) {
         OrderItem orderItem = of(itemContext);
-        if (itemContext.getCreateItemOptionSpecs() != null && !itemContext.getCreateItemOptionSpecs().isEmpty()) {
-            for (OrderItemCreationContext.CreateItemOptionSpec option : itemContext.getCreateItemOptionSpecs()) {
+        if (itemContext.getItemOptionSpecs() != null && !itemContext.getItemOptionSpecs().isEmpty()) {
+            for (CreateItemOptionSpec option : itemContext.getItemOptionSpecs()) {
                 orderItem.addOrderItemOption(OrderItemOption.create(option));
             }
         }
@@ -65,11 +68,21 @@ public class OrderItem extends BaseEntity {
 
     public static OrderItem of(OrderItemCreationContext itemContext){
         return OrderItem.builder()
-                .orderedProduct(itemContext.getOrderedProduct())
-                .orderItemPrice(itemContext.getOrderItemPrice())
+                .orderedProduct(mapToOrderedProduct(itemContext.getProductSpec()))
+                .orderItemPrice(mapToOrderItemPrice(itemContext.getPriceSpec()))
                 .lineTotal(itemContext.getLineTotal())
                 .quantity(itemContext.getQuantity())
                 .build();
+    }
+
+    private static OrderedProduct mapToOrderedProduct(ProductSpec productSpec) {
+        return OrderedProduct.of(productSpec.getProductId(), productSpec.getProductVariantId(),
+                productSpec.getSku(), productSpec.getProductName(), productSpec.getThumbnail());
+    }
+
+    private static OrderItemPrice mapToOrderItemPrice(PriceSpec priceSpec) {
+        return OrderItemPrice.of(priceSpec.getOriginPrice(), priceSpec.getDiscountRate(),
+                priceSpec.getDiscountAmount(), priceSpec.getDiscountedPrice());
     }
 }
 

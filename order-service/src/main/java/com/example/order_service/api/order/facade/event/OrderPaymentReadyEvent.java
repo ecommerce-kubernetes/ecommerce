@@ -20,7 +20,7 @@ public class OrderPaymentReadyEvent {
                 .userId(orderDto.getOrderer().getUserId())
                 .code(orderDto.getStatus().name())
                 .orderName(orderDto.getOrderName())
-                .finalPaymentAmount(orderDto.getOrderPriceDetail().getFinalPaymentAmount())
+                .finalPaymentAmount(orderDto.getOrderPriceInfo().getFinalPaymentAmount())
                 .build();
     }
 }

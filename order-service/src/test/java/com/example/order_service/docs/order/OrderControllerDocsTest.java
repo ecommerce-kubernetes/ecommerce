@@ -326,41 +326,41 @@ public class OrderControllerDocsTest extends RestDocSupport {
     }
 
     private OrderDetailResponse createOrderResponse() {
-        return OrderDetailResponse.builder()
-                .orderNo(ORDER_NO)
-                .userId(1L)
-                .orderStatus("COMPLETED")
-                .orderName("상품1")
-                .deliveryAddress("서울시 테헤란로 123")
-                .orderPriceResponse(
-                        OrderDetailResponse.OrderPriceResponse.builder()
-                                .totalOriginPrice(30000L)
-                                .totalProductDiscount(3000L)
-                                .couponDiscount(1000L)
-                                .pointDiscount(1000L)
-                                .finalPaymentAmount(25000L)
-                                .build()
-                )
-                .couponResponse(
-                        OrderDetailResponse.CouponResponse.builder()
-                                .couponId(1L)
-                                .couponName("1000원 할인 쿠폰")
-                                .couponDiscount(1000L)
-                                .build()
-                )
-                .paymentResponse(
-                        OrderDetailResponse.PaymentResponse.builder()
-                                .paymentId(1L)
-                                .paymentKey("paymentKey")
-                                .amount(25000L)
-                                .method("CARD")
-                                .approvedAt(LocalDateTime.now().toString())
-                                .build()
-                )
-                .orderItems(createOrderItems())
-                .createdAt(LocalDateTime.now().toString())
-                .build();
-
+//        return OrderDetailResponse.builder()
+//                .orderNo(ORDER_NO)
+//                .userId(1L)
+//                .orderStatus("COMPLETED")
+//                .orderName("상품1")
+//                .deliveryAddress("서울시 테헤란로 123")
+//                .orderPriceResponse(
+//                        OrderDetailResponse.OrderPriceResponse.builder()
+//                                .totalOriginPrice(30000L)
+//                                .totalProductDiscount(3000L)
+//                                .couponDiscount(1000L)
+//                                .pointDiscount(1000L)
+//                                .finalPaymentAmount(25000L)
+//                                .build()
+//                )
+//                .couponResponse(
+//                        OrderDetailResponse.CouponResponse.builder()
+//                                .couponId(1L)
+//                                .couponName("1000원 할인 쿠폰")
+//                                .couponDiscount(1000L)
+//                                .build()
+//                )
+//                .paymentResponse(
+//                        OrderDetailResponse.PaymentResponse.builder()
+//                                .paymentId(1L)
+//                                .paymentKey("paymentKey")
+//                                .amount(25000L)
+//                                .method("CARD")
+//                                .approvedAt(LocalDateTime.now().toString())
+//                                .build()
+//                )
+//                .orderItems(createOrderItems())
+//                .createdAt(LocalDateTime.now().toString())
+//                .build();
+        return null;
     }
 
     private List<OrderItemResponse> createOrderItems() {

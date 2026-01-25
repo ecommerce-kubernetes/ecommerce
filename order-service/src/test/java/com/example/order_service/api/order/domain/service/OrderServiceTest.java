@@ -5,13 +5,10 @@ import com.example.order_service.api.common.exception.OrderErrorCode;
 import com.example.order_service.api.order.domain.model.Order;
 import com.example.order_service.api.order.domain.model.OrderFailureCode;
 import com.example.order_service.api.order.domain.model.OrderStatus;
-import com.example.order_service.api.order.domain.model.vo.*;
 import com.example.order_service.api.order.domain.repository.OrderRepository;
 import com.example.order_service.api.order.domain.service.dto.command.OrderCreationContext;
-import com.example.order_service.api.order.domain.service.dto.command.OrderItemCreationContext;
+import com.example.order_service.api.order.domain.service.dto.command.OrderCreationContext.OrderPriceSpec;
 import com.example.order_service.api.order.domain.service.dto.result.OrderDto;
-import com.example.order_service.api.order.domain.service.dto.result.OrderItemDto;
-import com.example.order_service.api.order.domain.service.dto.result.OrderItemOptionDto;
 import com.example.order_service.api.support.ExcludeInfraTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -19,8 +16,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-
+import static com.example.order_service.api.support.fixture.OrderFixture.*;
 import static org.assertj.core.api.Assertions.*;
 
 @Transactional
@@ -31,161 +27,65 @@ public class OrderServiceTest extends ExcludeInfraTest {
     @Autowired
     private OrderRepository orderRepository;
 
-    private OrderCreationContext createBaseOrderContext(List<OrderItemCreationContext> itemContexts) {
-        Orderer orderer = Orderer.of(1L, "유저", "010-1234-5678");
-        long totalOriginPrice = 0;
-        long totalProductDiscount = 0;
-        long usedPoint = 1000L;
-
-        for (OrderItemCreationContext itemContext : itemContexts) {
-            totalOriginPrice += itemContext.getOrderItemPrice().getDiscountedPrice() * itemContext.getQuantity();
-            totalProductDiscount += itemContext.getOrderItemPrice().getDiscountAmount() * itemContext.getQuantity();
-        }
-
-        long finalPaymentAmount = totalOriginPrice - totalProductDiscount - usedPoint;
-        OrderPriceDetail priceDetail = OrderPriceDetail.of(totalOriginPrice, totalProductDiscount, 0, usedPoint, finalPaymentAmount);
-
-        return OrderCreationContext.builder()
-                .orderer(orderer)
-                .orderPriceDetail(priceDetail)
-                .couponInfo(null)
-                .orderItemCreationContexts(itemContexts)
-                .deliveryAddress("서울시 테헤란로 123")
-                .build();
-    }
-
-    private OrderCreationContext applyCoupon(OrderCreationContext context, CouponInfo couponInfo) {
-        OrderPriceDetail oldPrice = context.getOrderPriceDetail();
-        long newFinalAmount = oldPrice.getFinalPaymentAmount() - couponInfo.getDiscountAmount();
-
-        OrderPriceDetail newPrice = OrderPriceDetail.of(
-                oldPrice.getTotalOriginPrice(),
-                oldPrice.getTotalProductDiscount(),
-                couponInfo.getDiscountAmount(),
-                oldPrice.getPointDiscount(),
-                newFinalAmount
-        );
-
-        return OrderCreationContext.builder()
-                .orderer(context.getOrderer())
-                .orderPriceDetail(newPrice)
-                .couponInfo(couponInfo)
-                .orderItemCreationContexts(context.getOrderItemCreationContexts())
-                .deliveryAddress(context.getDeliveryAddress())
-                .build();
-    }
-
-    private OrderItemCreationContext mockItemCreationContext(Long variantId, long originalPrice, int discountRate, int quantity) {
-        long discountAmount = (long) (originalPrice * (discountRate / 100.0));
-        OrderedProduct orderedProduct = OrderedProduct.of(1L, variantId, "TEST", "상품", "http://test.jpg");
-        OrderItemPrice orderItemPrice = OrderItemPrice.of(originalPrice, discountRate, discountAmount, originalPrice - discountAmount);
-        long lineTotal = orderItemPrice.getDiscountedPrice() * quantity;
-        List<OrderItemCreationContext.CreateItemOptionSpec> options = List.of(OrderItemCreationContext.CreateItemOptionSpec.builder().optionTypeName("사이즈").optionValueName("XL").build());
-        return OrderItemCreationContext.builder()
-                .orderedProduct(orderedProduct)
-                .orderItemPrice(orderItemPrice)
-                .quantity(quantity)
-                .lineTotal(lineTotal)
-                .createItemOptionSpecs(options)
-                .build();
-    }
-
     @Nested
     @DisplayName("주문 저장")
     class Save {
 
         @Test
-        @DisplayName("쿠폰 사용 주문을 저장한다")
-        void saveOrder_use_coupon(){
+        @DisplayName("쿠폰 사용 주문을 생성한다")
+        void saveOrder_use_coupon() {
             //given
-            OrderItemCreationContext item1 = mockItemCreationContext(1L, 10000L, 10, 3);
-            OrderItemCreationContext item2 = mockItemCreationContext(2L, 20000L, 20, 5);
-            OrderCreationContext baseOrderContext = createBaseOrderContext(List.of(item1, item2));
-            CouponInfo couponInfo = CouponInfo.of(1L, "1000원 할인 쿠폰", 1000L);
-            OrderCreationContext applyCouponOrderContext = applyCoupon(baseOrderContext, couponInfo);
+            OrderCreationContext creationContext = anOrderCreationContext().build();
+            OrderDto expectedResult = returnOrderDto().build();
             //when
-            OrderDto result = orderService.saveOrder(applyCouponOrderContext);
+            OrderDto result = orderService.saveOrder(creationContext);
             //then
-            // 주문 ID, 주문 이름, 주문일자 생성 검증
-            assertThat(result).satisfies(order -> {
-                assertThat(order.getId()).isNotNull();
-                assertThat(order.getOrderNo()).isNotNull();
-                assertThat(order.getOrderedAt()).isNotNull();
-            });
-
-            // 주문 생성 기본 정보 검증 (주문 상태, 주문 이름, 주문자, 주문 가격정보, 쿠폰 정보, 배송지 정보, 결제 정보, 실패 코드)
             assertThat(result)
-                    .extracting(OrderDto::getStatus, OrderDto::getOrderName, OrderDto::getOrderer, OrderDto::getOrderPriceDetail,
-                            OrderDto::getCouponInfo, OrderDto::getDeliveryAddress, OrderDto::getPaymentInfo, OrderDto::getOrderFailureCode)
-                    .containsExactly(OrderStatus.PENDING, "상품 외 1건", applyCouponOrderContext.getOrderer(), applyCouponOrderContext.getOrderPriceDetail(),
-                            applyCouponOrderContext.getCouponInfo(), applyCouponOrderContext.getDeliveryAddress(), null, null);
+                    .usingRecursiveComparison()
+                    .ignoringFields("id", "orderNo", "orderedAt", "orderItems.id")
+                    .isEqualTo(expectedResult);
 
-            // 주문 상품 수량 및 ID 검증
-            assertThat(result.getOrderItems())
-                    .hasSize(2)
-                    .allSatisfy(item -> assertThat(item.getId()).isNotNull());
-
-            // 주문 상품 기본 정보 검증 (상품 정보, 상품 가격정보, 주문 수량, 라인 금액)
-            assertThat(result.getOrderItems())
-                    .extracting(OrderItemDto::getOrderedProduct, OrderItemDto::getOrderItemPrice, OrderItemDto::getQuantity, OrderItemDto::getLineTotal)
-                    .containsExactlyInAnyOrder(
-                            tuple(item1.getOrderedProduct(), item1.getOrderItemPrice(), item1.getQuantity(), item1.getLineTotal()),
-                            tuple(item2.getOrderedProduct(), item2.getOrderItemPrice(), item2.getQuantity(), item2.getLineTotal())
-                    );
-
-            // 주문 상품 옵션 정보 검증
-            assertThat(result.getOrderItems())
-                    .flatExtracting(OrderItemDto::getItemOptions)
-                    .extracting(OrderItemOptionDto::getOptionTypeName, OrderItemOptionDto::getOptionValueName)
-                    .containsExactlyInAnyOrder(
-                            tuple("사이즈", "XL"),
-                            tuple("사이즈", "XL"));
+            assertThat(result).satisfies(r -> {
+                assertThat(r.getId()).isNotNull();
+                assertThat(r.getOrderNo()).isNotNull();
+                assertThat(r.getOrderedAt()).isNotNull();
+            });
+            assertThat(result.getOrderItems()).allSatisfy(i -> assertThat(i.getId()).isNotNull());
         }
 
         @Test
         @DisplayName("쿠폰을 사용하지 않은 주문을 생성한다")
         void saveOrder_not_use_coupon(){
             //given
-            OrderItemCreationContext item1 = mockItemCreationContext(1L, 10000L, 10, 3);
-            OrderItemCreationContext item2 = mockItemCreationContext(2L, 20000L, 20, 5);
-            OrderCreationContext creationContext = createBaseOrderContext(List.of(item1, item2));
+            OrderCreationContext context = anOrderCreationContext()
+                    .coupon(null)
+                    .orderPrice(OrderPriceSpec.of(10000L, 1000L, 0L, 1000L, 8000L))
+                    .build();
+            OrderDto expectedResult = returnOrderDto()
+                    .couponInfo(null)
+                    .orderPriceInfo(OrderDto.OrderPriceInfo.builder()
+                            .totalOriginPrice(10000L)
+                            .totalProductDiscount(1000L)
+                            .couponDiscount(0)
+                            .pointDiscount(1000L)
+                            .finalPaymentAmount(8000L).build())
+                    .build();
+
             //when
-            OrderDto result = orderService.saveOrder(creationContext);
+            OrderDto result = orderService.saveOrder(context);
             //then
-            // 주문 ID, 주문 이름, 주문일자 생성 검증
-            assertThat(result).satisfies(order -> {
-                assertThat(order.getId()).isNotNull();
-                assertThat(order.getOrderNo()).isNotNull();
-                assertThat(order.getOrderedAt()).isNotNull();
+            assertThat(result)
+                    .usingRecursiveComparison()
+                    .ignoringFields("id", "orderNo", "orderedAt", "orderItems.id")
+                    .isEqualTo(expectedResult);
+
+            assertThat(result).satisfies(r -> {
+                assertThat(r.getId()).isNotNull();
+                assertThat(r.getOrderNo()).isNotNull();
+                assertThat(r.getOrderedAt()).isNotNull();
             });
 
-            // 주문 생성 기본 정보 검증 (주문 상태, 주문 이름, 주문자, 주문 가격정보, 쿠폰 정보, 배송지 정보, 결제 정보, 실패 코드)
-            assertThat(result)
-                    .extracting(OrderDto::getStatus, OrderDto::getOrderName, OrderDto::getOrderer, OrderDto::getOrderPriceDetail,
-                            OrderDto::getCouponInfo, OrderDto::getDeliveryAddress, OrderDto::getPaymentInfo, OrderDto::getOrderFailureCode)
-                    .containsExactly(OrderStatus.PENDING, "상품 외 1건", creationContext.getOrderer(), creationContext.getOrderPriceDetail(),
-                            null, creationContext.getDeliveryAddress(), null, null);
-
-            // 주문 상품 수량 및 ID 검증
-            assertThat(result.getOrderItems())
-                    .hasSize(2)
-                    .allSatisfy(item -> assertThat(item.getId()).isNotNull());
-
-            // 주문 상품 기본 정보 검증 (상품 정보, 상품 가격정보, 주문 수량, 라인 금액)
-            assertThat(result.getOrderItems())
-                    .extracting(OrderItemDto::getOrderedProduct, OrderItemDto::getOrderItemPrice, OrderItemDto::getQuantity, OrderItemDto::getLineTotal)
-                    .containsExactlyInAnyOrder(
-                            tuple(item1.getOrderedProduct(), item1.getOrderItemPrice(), item1.getQuantity(), item1.getLineTotal()),
-                            tuple(item2.getOrderedProduct(), item2.getOrderItemPrice(), item2.getQuantity(), item2.getLineTotal())
-                    );
-
-            // 주문 상품 옵션 정보 검증
-            assertThat(result.getOrderItems())
-                    .flatExtracting(OrderItemDto::getItemOptions)
-                    .extracting(OrderItemOptionDto::getOptionTypeName, OrderItemOptionDto::getOptionValueName)
-                    .containsExactlyInAnyOrder(
-                            tuple("사이즈", "XL"),
-                            tuple("사이즈", "XL"));
+            assertThat(result.getOrderItems()).allSatisfy(i -> assertThat(i.getId()).isNotNull());
         }
     }
 
@@ -197,10 +97,8 @@ public class OrderServiceTest extends ExcludeInfraTest {
         @DisplayName("주문 상태를 변경한다")
         void changeOrderStatus(){
             //given
-            OrderItemCreationContext item1 = mockItemCreationContext(1L, 10000L, 10, 3);
-            OrderItemCreationContext item2 = mockItemCreationContext(2L, 20000L, 20, 5);
-            OrderCreationContext creationContext = createBaseOrderContext(List.of(item1, item2));
-            Order savedOrder = orderRepository.save(Order.create(creationContext));
+            OrderCreationContext context = anOrderCreationContext().build();
+            Order savedOrder = orderRepository.save(Order.create(context));
             //when
             OrderDto result = orderService.changeOrderStatus(savedOrder.getOrderNo(), OrderStatus.PAYMENT_WAITING);
             //then
@@ -223,10 +121,8 @@ public class OrderServiceTest extends ExcludeInfraTest {
         @DisplayName("주문 상태를 취소로 변경한다")
         void canceledOrder(){
             //given
-            OrderItemCreationContext item1 = mockItemCreationContext(1L, 10000L, 10, 3);
-            OrderItemCreationContext item2 = mockItemCreationContext(2L, 20000L, 20, 5);
-            OrderCreationContext creationContext = createBaseOrderContext(List.of(item1, item2));
-            Order savedOrder = orderRepository.save(Order.create(creationContext));
+            OrderCreationContext context = anOrderCreationContext().build();
+            Order savedOrder = orderRepository.save(Order.create(context));
             //when
             OrderDto result = orderService.canceledOrder(savedOrder.getOrderNo(), OrderFailureCode.OUT_OF_STOCK);
             //then
