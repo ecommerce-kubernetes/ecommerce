@@ -12,6 +12,7 @@ import com.example.order_service.api.order.facade.event.OrderCreatedEvent;
 import com.example.order_service.api.order.facade.event.OrderFailedEvent;
 import com.example.order_service.api.order.facade.event.OrderPaymentReadyEvent;
 import com.example.order_service.api.order.facade.event.PaymentResultEvent;
+import com.example.order_service.api.support.fixture.OrderCouponFixture;
 import com.example.order_service.api.support.fixture.OrderFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -27,6 +28,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static com.example.order_service.api.support.fixture.OrderCouponFixture.anOrderCouponInfo;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.*;
@@ -82,10 +84,6 @@ public class OrderFacadeTest {
                 .build();
     }
 
-    private OrderProductInfo mockProductInfo() {
-        return OrderProductInfo.builder().build();
-    }
-
     @Nested
     @DisplayName("주문을 생성")
     class InitialOrder {
@@ -112,9 +110,9 @@ public class OrderFacadeTest {
                     .orderedAt(LocalDateTime.now()).build();
             CreateOrderCommand command = mockOrderCommand(List.of(mockOrderItemCommand(1L, 3), mockOrderItemCommand(2L, 5)));
             given(orderUserService.getUser(anyLong(), anyLong())).willReturn(OrderUserInfo.builder().build());
-            given(orderProductService.getProducts(anyList())).willReturn(List.of(mockProductInfo(), mockProductInfo()));
+            given(orderProductService.getProducts(anyList())).willReturn(List.of(OrderProductInfo.builder().build()));
             given(calculator.calculateItemAmounts(anyList(), anyList())).willReturn(OrderProductAmount.builder().build());
-            given(orderCouponService.calculateCouponDiscount(anyLong(), anyLong(), any(OrderProductAmount.class))).willReturn(OrderCouponInfo.builder().build());
+            given(orderCouponService.calculateCouponDiscount(anyLong(), anyLong(), any(OrderProductAmount.class))).willReturn(anOrderCouponInfo().build());
             given(calculator.calculateOrderPrice(any(OrderProductAmount.class), any(OrderCouponInfo.class), anyLong(), anyLong())).willReturn(CalculatedOrderAmounts.builder().build());
             given(mapper.mapOrderCreationContext(any(OrderUserInfo.class), any(CalculatedOrderAmounts.class), any(OrderCouponInfo.class), any(CreateOrderCommand.class),
                     anyList())).willReturn(OrderCreationContext.builder().build());
@@ -143,9 +141,9 @@ public class OrderFacadeTest {
                     .orderedAt(LocalDateTime.now()).build();
             CreateOrderCommand command = mockOrderCommand(List.of(mockOrderItemCommand(1L, 3), mockOrderItemCommand(2L, 5)));
             given(orderUserService.getUser(anyLong(), anyLong())).willReturn(OrderUserInfo.builder().build());
-            given(orderProductService.getProducts(anyList())).willReturn(List.of(mockProductInfo(), mockProductInfo()));
+            given(orderProductService.getProducts(anyList())).willReturn(List.of(OrderProductInfo.builder().build()));
             given(calculator.calculateItemAmounts(anyList(), anyList())).willReturn(OrderProductAmount.builder().build());
-            given(orderCouponService.calculateCouponDiscount(anyLong(), anyLong(), any(OrderProductAmount.class))).willReturn(OrderCouponInfo.builder().build());
+            given(orderCouponService.calculateCouponDiscount(anyLong(), anyLong(), any(OrderProductAmount.class))).willReturn(anOrderCouponInfo().build());
             given(calculator.calculateOrderPrice(any(OrderProductAmount.class), any(OrderCouponInfo.class), anyLong(), anyLong())).willReturn(CalculatedOrderAmounts.builder().build());
             given(mapper.mapOrderCreationContext(any(OrderUserInfo.class), any(CalculatedOrderAmounts.class), any(OrderCouponInfo.class), any(CreateOrderCommand.class),
                     anyList())).willReturn(OrderCreationContext.builder().build());

@@ -21,14 +21,6 @@ public class OrderRepositoryTestFixture {
         return new  TestOrderBuilder();
     }
 
-    public static Order createOrderWithItems(String... productNames) {
-        TestOrderBuilder builder = testOrderBuilder();
-        for (String name : productNames) {
-            builder.addItem(name);
-        }
-        return builder.build();
-    }
-
     public static class TestOrderBuilder {
         private Long userId = DEFAULT_USER_ID;
         private String orderNo = ORDER_NO;
@@ -42,24 +34,6 @@ public class OrderRepositoryTestFixture {
 
         public TestOrderBuilder userId(Long userId) {
             this.userId = userId;
-            return this;
-        }
-
-        public TestOrderBuilder orderNo(String orderNo) {
-            this.orderNo = orderNo;
-            return this;
-        }
-
-        public TestOrderBuilder status(OrderStatus status) {
-            this.status = status;
-            return this;
-        }
-        public TestOrderBuilder orderName(String orderName) {
-            this.orderName = orderName;
-            return this;
-        }
-        public TestOrderBuilder failureCode(OrderFailureCode code) {
-            this.failureCode = code;
             return this;
         }
 

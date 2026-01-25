@@ -65,7 +65,7 @@ public class OrderRepositoryTest extends ExcludeInfraTest {
 
         Order order2 = testOrderBuilder()
                 .userId(userId)
-                .status(OrderStatus.COMPLETED)
+//                .status(OrderStatus.COMPLETED)
                 .addItem("상품1").addItem("상품3")
                 .build();
 
@@ -115,7 +115,7 @@ public class OrderRepositoryTest extends ExcludeInfraTest {
 
         Order order2 = testOrderBuilder()
                 .userId(userId)
-                .status(OrderStatus.COMPLETED)
+//                .status(OrderStatus.COMPLETED)
                 .addItem("상품1").addItem("상품3")
                 .build();
 
@@ -154,7 +154,7 @@ public class OrderRepositoryTest extends ExcludeInfraTest {
 
         Order order2 = testOrderBuilder()
                 .userId(userId)
-                .status(OrderStatus.COMPLETED)
+//                .status(OrderStatus.COMPLETED)
                 .addItem("상품1").addItem("상품3")
                 .build();
 
@@ -196,13 +196,13 @@ public class OrderRepositoryTest extends ExcludeInfraTest {
 
         Order order2 = testOrderBuilder()
                 .userId(userId)
-                .status(OrderStatus.COMPLETED)
+//                .status(OrderStatus.COMPLETED)
                 .addItem("상품1").addItem("상품3")
                 .build();
 
         Order order3 = testOrderBuilder()
                 .userId(userId)
-                .status(OrderStatus.COMPLETED)
+//                .status(OrderStatus.COMPLETED)
                 .addItem("상품3")
                 .build();
 
