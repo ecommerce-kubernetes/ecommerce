@@ -83,11 +83,6 @@ public class OrderFacade {
     public OrderDetailResponse confirmOrderPayment(String orderNo, Long userId, String paymentKey, Long amount) {
         OrderDto order = orderService.getOrder(orderNo, userId);
         validBeforePayment(order, amount);
-        try {
-            TossPaymentConfirmResponse tossPaymentConfirmResponse = orderPaymentService.confirmOrderPayment(order.getOrderNo(), paymentKey, amount);
-        } catch (Exception e) {
-            log.error("TEST");
-        }
         return null;
     }
 
@@ -101,16 +96,6 @@ public class OrderFacade {
         return PageDto.of(orders, OrderListResponse::from);
     }
 
-    // 토스 결제 승인 실행
-    private TossPaymentConfirmResponse executePaymentConfirmRequest(OrderDto orderDto, String paymentKey) {
-        try {
-            return orderPaymentService.confirmOrderPayment(orderDto.getOrderNo(), paymentKey, orderDto.getOrderPriceInfo().getFinalPaymentAmount());
-        } catch (BusinessException e) {
-            // 결제 중 예외가 발생한 경우 주문 상태 변경 후 Saga 보상 로직 실행
-            handlePaymentFailure(orderDto.getOrderNo(), e.getErrorCode());
-            throw e;
-        }
-    }
 
     // 결제 후 주문 완료 실행
     private OrderDetailResponse completeOrderWithCompensation(OrderDto orderDto, TossPaymentConfirmResponse response, String paymentKey) {
