@@ -188,22 +188,21 @@ public class OrderServiceTest extends ExcludeInfraTest {
                     .extracting("errorCode")
                     .isEqualTo(OrderErrorCode.ORDER_NOT_FOUND);
         }
+
+        @Test
+        @DisplayName("주문을 조회할때 주문자 id와 사용자 id가 다른 경우 예외가 발생한다")
+        void getOrder_miss_match_userId() {
+            //given
+            OrderCreationContext context = anOrderCreationContext().build();
+            Order savedOrder = orderRepository.save(Order.create(context));
+            //when
+            //then
+            assertThatThrownBy(() -> orderService.getOrder(savedOrder.getOrderNo(), 2L))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(OrderErrorCode.ORDER_NO_PERMISSION);
+        }
     }
-//
-//    @Test
-//    @DisplayName("주문을 조회할때 주문의 사용자 Id 가 요청 사용자 Id와 다른 경우 예외를 던진다")
-//    void getOrder_noPermission() {
-//        //given
-//        Long otherUserId = 20L;
-//        OrderCreationContext context = createDefaultContext();
-//        Order savedOrder = orderRepository.save(Order.create(context));
-//        //when
-//        //then
-//        assertThatThrownBy(() -> orderService.getOrder(savedOrder.getOrderNo(), otherUserId))
-//                .isInstanceOf(BusinessException.class)
-//                .extracting("errorCode")
-//                .isEqualTo(OrderErrorCode.ORDER_NO_PERMISSION);
-//    }
 //
 //
 //    @Test
