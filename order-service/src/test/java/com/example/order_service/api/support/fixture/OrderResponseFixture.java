@@ -1,5 +1,6 @@
 package com.example.order_service.api.support.fixture;
 
+import com.example.order_service.api.common.dto.PageDto;
 import com.example.order_service.api.order.domain.model.OrderStatus;
 import com.example.order_service.api.order.domain.model.vo.OrderItemPrice;
 import com.example.order_service.api.order.facade.dto.result.CreateOrderResponse;
@@ -11,6 +12,7 @@ import com.example.order_service.api.order.facade.dto.result.OrderDetailResponse
 import com.example.order_service.api.order.facade.dto.result.OrderItemResponse;
 import com.example.order_service.api.order.facade.dto.result.OrderItemResponse.OrderItemOptionResponse;
 import com.example.order_service.api.order.facade.dto.result.OrderItemResponse.OrderItemPriceResponse;
+import com.example.order_service.api.order.facade.dto.result.OrderListResponse;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -26,6 +28,23 @@ public class OrderResponseFixture {
                 .createdAt(LocalDateTime.now().toString());
     }
 
+    public static OrderListResponse.OrderListResponseBuilder anOrderListResponse() {
+        return OrderListResponse.builder()
+                .orderNo("")
+                .orderStatus("COMPLETED")
+                .orderItems(List.of(anOrderItemResponse().build()))
+                .createdAt(LocalDateTime.now().toString());
+    }
+
+    public static PageDto.PageDtoBuilder<OrderListResponse> anOrderListPageResponse() {
+        return PageDto.<OrderListResponse>builder()
+                .content(List.of(anOrderListResponse().build()))
+                .currentPage(1)
+                .totalPage(1)
+                .pageSize(10)
+                .totalElement(1);
+    }
+
     public static OrderDetailResponse.OrderDetailResponseBuilder anOrderDetailResponse() {
         return OrderDetailResponse.builder()
                 .orderNo("")
@@ -38,7 +57,6 @@ public class OrderResponseFixture {
                 .payment(anPaymentResponse().build())
                 .orderItems(List.of(anOrderItemResponse().build()))
                 .createdAt(LocalDateTime.now().toString());
-
     }
 
     public static OrdererResponse.OrdererResponseBuilder anOrdererResponse() {

@@ -318,7 +318,6 @@ public class OrderControllerDocsTest extends RestDocSupport {
     private OrderListResponse createOrderListResponse() {
         return OrderListResponse.builder()
                 .orderNo(ORDER_NO)
-                .userId(1L)
                 .orderStatus("COMPLETED")
                 .orderItems(createOrderItems())
                 .createdAt(LocalDateTime.now().toString())

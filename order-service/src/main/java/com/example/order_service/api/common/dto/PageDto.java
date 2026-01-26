@@ -9,22 +9,13 @@ import java.util.List;
 import java.util.function.Function;
 
 @Getter
-@Setter
+@Builder
 public class PageDto<T> {
     private List<T> content;
     private int currentPage;
     private long totalPage;
     private int pageSize;
     private long totalElement;
-
-    @Builder
-    private PageDto(List<T> content, int currentPage, long totalPage, int pageSize, long totalElement){
-        this.content = content;
-        this.currentPage = currentPage;
-        this.totalPage = totalPage;
-        this.pageSize = pageSize;
-        this.totalElement = totalElement;
-    }
 
     public static <E, T> PageDto<T> of(Page<E> page, Function<E, T> mapper) {
         return PageDto.<T>builder()

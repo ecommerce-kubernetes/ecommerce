@@ -1,7 +1,9 @@
 package com.example.order_service.api.order.facade;
 
+import com.example.order_service.api.common.dto.PageDto;
 import com.example.order_service.api.common.exception.BusinessException;
 import com.example.order_service.api.common.exception.OrderErrorCode;
+import com.example.order_service.api.order.controller.dto.request.OrderSearchCondition;
 import com.example.order_service.api.order.domain.model.OrderFailureCode;
 import com.example.order_service.api.order.domain.model.OrderStatus;
 import com.example.order_service.api.order.domain.service.*;
@@ -11,6 +13,7 @@ import com.example.order_service.api.order.facade.dto.command.CreateOrderCommand
 import com.example.order_service.api.order.facade.dto.command.CreateOrderItemCommand;
 import com.example.order_service.api.order.facade.dto.result.CreateOrderResponse;
 import com.example.order_service.api.order.facade.dto.result.OrderDetailResponse;
+import com.example.order_service.api.order.facade.dto.result.OrderListResponse;
 import com.example.order_service.api.order.facade.event.OrderCreatedEvent;
 import com.example.order_service.api.order.facade.event.OrderFailedEvent;
 import com.example.order_service.api.order.facade.event.OrderPaymentReadyEvent;
@@ -26,19 +29,20 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static com.example.order_service.api.support.fixture.OrderCommandFixture.anOrderCommand;
-import static com.example.order_service.api.support.fixture.OrderCommandFixture.anOrderItemCommand;
+import static com.example.order_service.api.support.fixture.OrderCommandFixture.*;
 import static com.example.order_service.api.support.fixture.OrderCouponFixture.anOrderCouponInfo;
 import static com.example.order_service.api.support.fixture.OrderFixture.*;
 import static com.example.order_service.api.support.fixture.OrderPriceFixture.anCalculatedOrderAmounts;
 import static com.example.order_service.api.support.fixture.OrderPriceFixture.anOrderProductAmount;
 import static com.example.order_service.api.support.fixture.OrderProductFixture.anOrderProductInfo;
-import static com.example.order_service.api.support.fixture.OrderResponseFixture.anOrderDetailResponse;
-import static com.example.order_service.api.support.fixture.OrderResponseFixture.anPaymentResponse;
+import static com.example.order_service.api.support.fixture.OrderResponseFixture.*;
 import static com.example.order_service.api.support.fixture.OrderUserFixture.anOrderUserInfo;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -346,56 +350,109 @@ public class OrderFacadeTest {
                     .usingRecursiveComparison()
                     .ignoringFields("createdAt", "payment.approvedAt")
                     .isEqualTo(expectedResult);
+
+            assertThat(result.getCreatedAt()).isNotNull();
+            assertThat(result.getPayment().getApprovedAt()).isNotNull();
+        }
+
+        @Test
+        @DisplayName("쿠폰을 사용하지 않은 주문을 조회한다")
+        void getOrder_no_coupon() {
+            //given
+            OrderDto orderDto = returnOrderDto().orderNo(ORDER_NO).status(OrderStatus.COMPLETED)
+                    .couponInfo(null)
+                    .orderPriceInfo(returnOrderPrice().couponDiscount(0).build())
+                    .paymentInfo(returnPayment().build())
+                    .build();
+            given(orderService.getOrder(anyString(), anyLong()))
+                    .willReturn(orderDto);
+            OrderDetailResponse expectedResult = anOrderDetailResponse()
+                    .orderNo(ORDER_NO)
+                    .orderPrice(anOrderPriceResponse().couponDiscount(0L).build())
+                    .couponResponse(null)
+                    .build();
+            //when
+            OrderDetailResponse result = orderFacade.getOrder(1L, ORDER_NO);
+            //then
+            assertThat(result)
+                    .usingRecursiveComparison()
+                    .ignoringFields("createdAt", "payment.approvedAt")
+                    .isEqualTo(expectedResult);
+
+            assertThat(result.getCreatedAt()).isNotNull();
+            assertThat(result.getPayment().getApprovedAt()).isNotNull();
+        }
+
+        @Test
+        @DisplayName("결제 정보가 없는 주문을 조회한다")
+        void getOrder_no_payment() {
+            //given
+            OrderDto orderDto = returnOrderDto().orderNo(ORDER_NO).status(OrderStatus.PAYMENT_WAITING)
+                    .paymentInfo(null)
+                    .build();
+            given(orderService.getOrder(anyString(), anyLong()))
+                    .willReturn(orderDto);
+            OrderDetailResponse expectedResult = anOrderDetailResponse().status("PAYMENT_WAITING")
+                    .orderNo(ORDER_NO)
+                    .payment(null)
+                    .build();
+            //when
+            OrderDetailResponse result = orderFacade.getOrder(1L, ORDER_NO);
+            //then
+            assertThat(result)
+                    .usingRecursiveComparison()
+                    .ignoringFields("createdAt")
+                    .isEqualTo(expectedResult);
         }
     }
 
+    @Nested
+    @DisplayName("주문 목록 조회")
+    class GetOrders {
 
+        @Test
+        @DisplayName("주문 목록을 조회한다")
+        void getOrders() {
+            //given
+            OrderSearchCondition condition = anOrderSearchCondition().build();
+            OrderDto order1 = returnOrderDto()
+                    .orderNo(ORDER_NO + "1")
+                    .status(OrderStatus.COMPLETED)
+                    .orderItems(List.of(
+                            returnOrderItem().orderedProduct(returnOrderItemProduct().productVariantId(1L).build()).build()
+                    )).build();
+            OrderDto order2 = returnOrderDto()
+                    .orderNo(ORDER_NO + "2")
+                    .status(OrderStatus.COMPLETED)
+                    .orderItems(List.of(
+                            returnOrderItem().orderedProduct(returnOrderItemProduct().productVariantId(2L).build()).build()
+                    )).build();
+            Page<OrderDto> returnOrders = new PageImpl<>(List.of(order1, order2), PageRequest.of(0, 10), 2);
+            given(orderService.getOrders(anyLong(), any(OrderSearchCondition.class)))
+                    .willReturn(returnOrders);
 
-//    @Test
-//    @DisplayName("주문 목록을 조회한다")
-//    void getOrders() {
-//        //given
-//        OrderSearchCondition condition = OrderSearchCondition.builder()
-//                .page(1)
-//                .size(10)
-//                .sort("latest")
-//                .build();
-//        OrderDto orderDto = mockSavedOrder(OrderStatus.COMPLETED, FIXED_FINAL_PRICE);
-//
-//        Page<OrderDto> pageOrderDto = new PageImpl<>(
-//                List.of(orderDto, orderDto),
-//                PageRequest.of(0, 10),
-//                100
-//        );
-//        given(orderService.getOrders(anyLong(), any(OrderSearchCondition.class)))
-//                .willReturn(pageOrderDto);
-//        //when
-//        PageDto<OrderListResponse> result = orderFacade.getOrders(USER_ID, condition);
-//        //then
-//        assertThat(result)
-//                .extracting(
-//                        PageDto::getCurrentPage,
-//                        PageDto::getTotalPage,
-//                        PageDto::getPageSize,
-//                        PageDto::getTotalElement
-//                )
-//                .containsExactly(1, 10L, 10, 100L);
-//
-//        assertThat(result.getContent())
-//                .hasSize(2)
-//                .extracting(
-//                        OrderListResponse::getOrderNo,
-//                        OrderListResponse::getOrderStatus,
-//                        OrderListResponse::getUserId
-//                )
-//                .containsExactly(
-//                        tuple(ORDER_NO, "COMPLETED", USER_ID),
-//                        tuple(ORDER_NO, "COMPLETED", USER_ID)
-//                );
-//
-//        assertThat(result.getContent().get(0).getOrderItems())
-//                .hasSize(2)
-//                .extracting("productName")
-//                .contains("상품1", "상품2");
-//    }
+            OrderListResponse expectedOrder1 = anOrderListResponse().orderStatus("COMPLETED")
+                    .orderNo(ORDER_NO + "1")
+                    .orderItems(List.of(anOrderItemResponse().productVariantId(1L).build())).build();
+
+            OrderListResponse expectedOrder2 = anOrderListResponse().orderStatus("COMPLETED")
+                    .orderNo(ORDER_NO + "2")
+                    .orderItems(List.of(anOrderItemResponse().productVariantId(2L).build())).build();
+
+            PageDto<OrderListResponse> expectedResult = anOrderListPageResponse()
+                    .content(List.of(expectedOrder1, expectedOrder2))
+                    .currentPage(1)
+                    .pageSize(10)
+                    .totalElement(2)
+                    .totalPage(1)
+                    .build();
+            //when
+            PageDto<OrderListResponse> result = orderFacade.getOrders(1L, condition);
+            //then
+            assertThat(result)
+                    .usingRecursiveComparison()
+                    .ignoringFields("content.createdAt")
+                    .isEqualTo(expectedResult);
+        }
+    }
 }

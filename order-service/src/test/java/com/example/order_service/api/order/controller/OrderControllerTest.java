@@ -510,7 +510,6 @@ class OrderControllerTest extends ControllerTestSupport {
     private OrderListResponse createOrderListResponse(){
         return OrderListResponse.builder()
                 .orderNo(ORDER_NO)
-                .userId(1L)
                 .orderStatus("COMPLETED")
                 .orderItems(createOrderItemResponse())
                 .createdAt(LocalDateTime.now().toString())

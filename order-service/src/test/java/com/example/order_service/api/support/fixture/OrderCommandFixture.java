@@ -1,5 +1,7 @@
 package com.example.order_service.api.support.fixture;
 
+import com.example.order_service.api.common.dto.PageDto;
+import com.example.order_service.api.order.controller.dto.request.OrderSearchCondition;
 import com.example.order_service.api.order.facade.dto.command.CreateOrderCommand;
 import com.example.order_service.api.order.facade.dto.command.CreateOrderItemCommand;
 
@@ -21,5 +23,12 @@ public class OrderCommandFixture {
         return CreateOrderItemCommand.builder()
                 .productVariantId(1L)
                 .quantity(1);
+    }
+
+    public static OrderSearchCondition.OrderSearchConditionBuilder anOrderSearchCondition() {
+        return OrderSearchCondition.builder()
+                .page(1)
+                .size(10)
+                .sort("latest");
     }
 }
