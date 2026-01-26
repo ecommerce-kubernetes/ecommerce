@@ -2,6 +2,7 @@ package com.example.order_service.api.order.domain.service;
 
 import com.example.order_service.api.common.exception.BusinessException;
 import com.example.order_service.api.common.exception.OrderErrorCode;
+import com.example.order_service.api.order.controller.dto.request.OrderSearchCondition;
 import com.example.order_service.api.order.domain.model.Order;
 import com.example.order_service.api.order.domain.model.OrderFailureCode;
 import com.example.order_service.api.order.domain.model.OrderItem;
@@ -12,14 +13,17 @@ import com.example.order_service.api.order.domain.service.dto.command.OrderCreat
 import com.example.order_service.api.order.domain.service.dto.result.OrderDto;
 import com.example.order_service.api.order.domain.service.dto.result.OrderItemDto;
 import com.example.order_service.api.support.ExcludeInfraTest;
+import com.example.order_service.api.support.fixture.OrderCommandFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+import static com.example.order_service.api.support.fixture.OrderCommandFixture.anOrderSearchCondition;
 import static com.example.order_service.api.support.fixture.OrderFixture.*;
 import static org.assertj.core.api.Assertions.*;
 
@@ -201,6 +205,37 @@ public class OrderServiceTest extends ExcludeInfraTest {
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(OrderErrorCode.ORDER_NO_PERMISSION);
+        }
+
+        @Test
+        @DisplayName("주문 목록을 조회한다")
+        void getOrders() {
+            //given
+            OrderSearchCondition condition = anOrderSearchCondition().build();
+            OrderCreationContext context = anOrderCreationContext().build();
+            Order order1 = orderRepository.save(Order.create(context));
+            Order order2 = orderRepository.save(Order.create(context));
+            Order order3 = orderRepository.save(Order.create(context));
+
+            List<OrderDto> expectedContent = List.of(
+                    returnOrderDto().orderNo(order3.getOrderNo())
+                            .build(),
+                    returnOrderDto().orderNo(order2.getOrderNo())
+                            .build(),
+                    returnOrderDto().orderNo(order1.getOrderNo())
+                            .build()
+            );
+            //when
+            Page<OrderDto> result = orderService.getOrders(1L, condition);
+            //then
+            assertThat(result.getContent())
+                    .usingRecursiveComparison()
+                    .ignoringFields("id", "orderedAt", "orderItems.id")
+                    .isEqualTo(expectedContent);
+
+            assertThat(result.getTotalElements()).isEqualTo(3);
+            assertThat(result.getTotalPages()).isEqualTo(1);
+            assertThat(result.getNumber()).isEqualTo(0);
         }
     }
 //
