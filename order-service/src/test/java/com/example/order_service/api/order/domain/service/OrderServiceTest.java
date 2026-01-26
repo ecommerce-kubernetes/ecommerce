@@ -4,17 +4,21 @@ import com.example.order_service.api.common.exception.BusinessException;
 import com.example.order_service.api.common.exception.OrderErrorCode;
 import com.example.order_service.api.order.domain.model.Order;
 import com.example.order_service.api.order.domain.model.OrderFailureCode;
+import com.example.order_service.api.order.domain.model.OrderItem;
 import com.example.order_service.api.order.domain.model.OrderStatus;
 import com.example.order_service.api.order.domain.repository.OrderRepository;
 import com.example.order_service.api.order.domain.service.dto.command.OrderCreationContext;
 import com.example.order_service.api.order.domain.service.dto.command.OrderCreationContext.OrderPriceSpec;
 import com.example.order_service.api.order.domain.service.dto.result.OrderDto;
+import com.example.order_service.api.order.domain.service.dto.result.OrderItemDto;
 import com.example.order_service.api.support.ExcludeInfraTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 import static com.example.order_service.api.support.fixture.OrderFixture.*;
 import static org.assertj.core.api.Assertions.*;
@@ -142,53 +146,49 @@ public class OrderServiceTest extends ExcludeInfraTest {
         }
     }
 
-//
-//    @Test
-//    @DisplayName("주문을 조회한다")
-//    void getOrder(){
-//        //given
-//        OrderCreationContext context = createDefaultContext();
-//        Order savedOrder = orderRepository.save(Order.create(context));
-//        //when
-//        OrderDto result = orderService.getOrder(savedOrder.getOrderNo(), USER_ID);
-//        //then
-//        assertThat(result.getOrderId()).isEqualTo(savedOrder.getId());
-//        assertThat(result.getStatus()).isEqualTo(OrderStatus.PENDING);
-//
-//        assertThat(result.getOrderPriceDetail())
-//                .extracting(OrderPriceDetail::getTotalOriginPrice, OrderPriceDetail::getTotalProductDiscount,
-//                        OrderPriceDetail::getCouponDiscount, OrderPriceDetail::getPointDiscount, OrderPriceDetail::getFinalPaymentAmount)
-//                .contains(TOTAL_ORIGIN_PRICE, TOTAL_PROD_DISCOUNT, COUPON_DISCOUNT, USE_POINT, FINAL_PRICE);
-//
-//        assertThat(result.getOrderItemDtoList())
-//                .hasSize(2)
-//                        .extracting(
-//                                OrderItemDto::getProductId,
-//                                OrderItemDto::getProductName,
-//                                OrderItemDto::getQuantity,
-//                                OrderItemDto::getLineTotal
-//                        )
-//                        .containsExactly(
-//                                tuple(PROD1_ID, PROD1_NAME, PROD1_QTY, PROD1_LINE_TOTAL),
-//                                tuple(PROD2_ID, PROD2_NAME, PROD2_QTY, PROD2_LINE_TOTAL)
-//                        );
-//
-//        assertThat(result.getCouponInfo())
-//                .extracting(CouponInfo::getCouponId, CouponInfo::getCouponName, CouponInfo::getDiscountAmount)
-//                .contains(1L, "1000원 할인 쿠폰", COUPON_DISCOUNT);
-//    }
-//
-//    @Test
-//    @DisplayName("주문을 조회할때 주문을 찾을 수 없으면 예외를 던진다")
-//    void getOrder_notFound(){
-//        //given
-//        //when
-//        //then
-//        assertThatThrownBy(() -> orderService.getOrder("NOT_EXIST_ORDER_NO", USER_ID))
-//                .isInstanceOf(BusinessException.class)
-//                .extracting("errorCode")
-//                .isEqualTo(OrderErrorCode.ORDER_NOT_FOUND);
-//    }
+    @Nested
+    @DisplayName("주문 조회")
+    class GetOrder {
+
+        @Test
+        @DisplayName("주문을 조회한다")
+        void getOrder() {
+            //given
+            OrderCreationContext context = anOrderCreationContext().build();
+            Order savedOrder = orderRepository.save(Order.create(context));
+            OrderDto expectedResult = returnOrderDto().build();
+            List<Long> expectedOrderItemIds = savedOrder.getOrderItems().stream().map(OrderItem::getId).toList();
+            //when
+            OrderDto result = orderService.getOrder(savedOrder.getOrderNo(), 1L);
+            //then
+            assertThat(result)
+                    .usingRecursiveComparison()
+                    .ignoringFields("id", "orderNo", "orderedAt", "orderItems.id")
+                    .isEqualTo(expectedResult);
+
+            assertThat(result).satisfies(r -> {
+                assertThat(r.getId()).isEqualTo(savedOrder.getId());
+                assertThat(r.getOrderNo()).isEqualTo(savedOrder.getOrderNo());
+                assertThat(r.getOrderedAt()).isEqualTo(savedOrder.getCreatedAt());
+            });
+
+            assertThat(result.getOrderItems())
+                    .extracting(OrderItemDto::getId)
+                    .containsExactlyInAnyOrderElementsOf(expectedOrderItemIds);
+        }
+
+        @Test
+        @DisplayName("주문을 찾을 수 없으면 예외가 발생한다")
+        void getOrder_not_found_order() {
+            //given
+            //when
+            //then
+            assertThatThrownBy(() -> orderService.getOrder("UNKNOWN", 1L))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(OrderErrorCode.ORDER_NOT_FOUND);
+        }
+    }
 //
 //    @Test
 //    @DisplayName("주문을 조회할때 주문의 사용자 Id 가 요청 사용자 Id와 다른 경우 예외를 던진다")
