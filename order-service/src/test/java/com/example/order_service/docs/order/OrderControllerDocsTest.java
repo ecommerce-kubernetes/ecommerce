@@ -121,7 +121,7 @@ public class OrderControllerDocsTest extends RestDocSupport {
                 .build();
         HttpHeaders roleUser = createUserHeader("ROLE_USER");
         OrderDetailResponse orderDetailResponse = createOrderResponse();
-        given(orderFacade.finalizeOrder(anyString(), anyLong(), anyString(), anyLong()))
+        given(orderFacade.confirmOrderPayment(anyString(), anyLong(), anyString(), anyLong()))
                 .willReturn(orderDetailResponse);
         //when
         //then

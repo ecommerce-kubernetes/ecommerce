@@ -63,7 +63,7 @@ public class OrderController {
     @PostMapping("/confirm")
     public ResponseEntity<OrderDetailResponse> confirm(@AuthenticationPrincipal UserPrincipal userPrincipal,
                                                        @RequestBody @Validated OrderConfirmRequest request) {
-        OrderDetailResponse response = orderFacade.finalizeOrder(request.getOrderNo(),
+        OrderDetailResponse response = orderFacade.confirmOrderPayment(request.getOrderNo(),
                 userPrincipal.getUserId(), request.getPaymentKey(), request.getAmount());
         return ResponseEntity.ok(response);
     }

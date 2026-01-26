@@ -128,7 +128,7 @@ class OrderControllerTest extends ControllerTestSupport {
         OrderConfirmRequest request = confirmBaseRequest().build();
         OrderDetailResponse response = createOrderDetailResponse();
 
-        given(orderFacade.finalizeOrder(anyString(), anyLong(), anyString(), anyLong()))
+        given(orderFacade.confirmOrderPayment(anyString(), anyLong(), anyString(), anyLong()))
                 .willReturn(response);
         //when
         //then

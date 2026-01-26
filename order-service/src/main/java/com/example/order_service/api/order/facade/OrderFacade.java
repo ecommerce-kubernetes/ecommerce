@@ -80,11 +80,15 @@ public class OrderFacade {
         eventPublisher.publishEvent(OrderFailedEvent.from(orderDto));
     }
 
-    public OrderDetailResponse finalizeOrder(String orderNo, Long userId, String paymentKey, Long amount) {
+    public OrderDetailResponse confirmOrderPayment(String orderNo, Long userId, String paymentKey, Long amount) {
         OrderDto order = orderService.getOrder(orderNo, userId);
         validBeforePayment(order, amount);
-        TossPaymentConfirmResponse confirmResponse = executePaymentConfirmRequest(order, paymentKey);
-        return completeOrderWithCompensation(order, confirmResponse, paymentKey);
+        try {
+            TossPaymentConfirmResponse tossPaymentConfirmResponse = orderPaymentService.confirmOrderPayment(order.getOrderNo(), paymentKey, amount);
+        } catch (Exception e) {
+            log.error("TEST");
+        }
+        return null;
     }
 
     public OrderDetailResponse getOrder(Long userId, String orderNo) {

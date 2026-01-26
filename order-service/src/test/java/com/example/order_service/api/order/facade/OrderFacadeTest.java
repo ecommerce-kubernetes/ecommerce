@@ -207,6 +207,45 @@ public class OrderFacadeTest {
         }
     }
 
+    @Nested
+    @DisplayName("주문 결제 승인")
+    class ConfirmOrderPayment {
+
+        @Test
+        @DisplayName("주문 상태가 결제 대기 상태가 아니면 주문 결제 승인을 할 수 없다")
+        void confirmOrderPayment_order_status_not_payment_waiting() {
+            //given
+            OrderDto orderDto = returnOrderDto()
+                    .orderNo(ORDER_NO)
+                    .status(OrderStatus.PENDING).build();
+            given(orderService.getOrder(anyString(), anyLong()))
+                    .willReturn(orderDto);
+            //when
+            //then
+            assertThatThrownBy(() -> orderFacade.confirmOrderPayment(ORDER_NO, 1L, "paymentKey", 7000L))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(OrderErrorCode.ORDER_NOT_PAYABLE);
+        }
+
+        @Test
+        @DisplayName("결제 승인 가격이 주문 최종 가격과 다르면 결제 승인할 수 없다")
+        void confirmOrderPayment_amount_missMatch_order_finalPaymentAmount() {
+            //given
+            OrderDto orderDto = returnOrderDto()
+                    .orderNo(ORDER_NO)
+                    .status(OrderStatus.PAYMENT_WAITING).build();
+            given(orderService.getOrder(anyString(), anyLong()))
+                    .willReturn(orderDto);
+            //when
+            //then
+            assertThatThrownBy(() -> orderFacade.confirmOrderPayment(ORDER_NO, 1L, "paymentKey", 8000L))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(OrderErrorCode.ORDER_PRICE_MISMATCH);
+        }
+    }
+
 //    @Test
 //    @DisplayName("결제가 승인되면 주문상태를 성공으로 변경, 결제 승인 이벤트를 발행하고 응답을 반환한다")
 //    void finalizeOrder(){
@@ -236,37 +275,6 @@ public class OrderFacadeTest {
 //        assertThat(paymentResultEventCaptor.getValue())
 //                .extracting(PaymentResultEvent::getOrderNo, PaymentResultEvent::getStatus, PaymentResultEvent::getCode)
 //                .containsExactly(ORDER_NO, OrderEventStatus.SUCCESS, null);
-//    }
-
-//    @Test
-//    @DisplayName("결제를 승인할때 주문 상태가 결제 대기 상태가 아니면 예외를 던진다")
-//    void finalizeOrder_with_notPaymentWaiting(){
-//        //given
-//        OrderDto invalidStatusOrder = mockSavedOrder(OrderStatus.PENDING, FIXED_FINAL_PRICE);
-//        given(orderService.getOrder(anyString(), anyLong()))
-//                .willReturn(invalidStatusOrder);
-//        //when
-//        //then
-//        assertThatThrownBy(() -> orderFacade.finalizeOrder(ORDER_NO, USER_ID, "paymentKey", FIXED_FINAL_PRICE))
-//                .isInstanceOf(BusinessException.class)
-//                .extracting("errorCode")
-//                .isEqualTo(OrderErrorCode.ORDER_NOT_PAYABLE);
-//    }
-
-//    @Test
-//    @DisplayName("결제를 승인할때 요청의 amount 와 실제 최종 주문 금액이 다르면 예외를 던진다")
-//    void finalizeOrder_with_missMatch_Price(){
-//        //given
-//        Long requestedAmount = 30000L;
-//        OrderDto orderDto = mockSavedOrder(OrderStatus.PAYMENT_WAITING, FIXED_FINAL_PRICE);
-//        given(orderService.getOrder(anyString(), anyLong()))
-//                .willReturn(orderDto);
-//        //when
-//        //then
-//        assertThatThrownBy(() -> orderFacade.finalizeOrder(ORDER_NO, USER_ID, "paymentKey", requestedAmount))
-//                .isInstanceOf(BusinessException.class)
-//                .extracting("errorCode")
-//                .isEqualTo(OrderErrorCode.ORDER_PRICE_MISMATCH);
 //    }
 
 //    @Test

@@ -3,7 +3,6 @@ package com.example.order_service.api.order.domain.service.dto.result;
 import com.example.order_service.api.order.domain.model.*;
 import com.example.order_service.api.order.domain.model.vo.OrderPriceDetail;
 import com.example.order_service.api.order.domain.model.vo.Orderer;
-import com.example.order_service.api.order.domain.model.vo.PaymentInfo;
 import lombok.Builder;
 import lombok.Getter;
 
