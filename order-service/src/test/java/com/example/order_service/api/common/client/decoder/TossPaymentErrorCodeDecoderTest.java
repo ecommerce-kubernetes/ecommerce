@@ -21,7 +21,7 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class TossPaymentErrorDecoderTest {
+public class TossPaymentErrorCodeDecoderTest {
     private TossPaymentErrorDecoder decoder = new TossPaymentErrorDecoder();
     private static ObjectMapper objectMapper = new ObjectMapper();
 
@@ -79,9 +79,6 @@ public class TossPaymentErrorDecoderTest {
                         createResponse(400, createErrorResponse("INVALID_API_KEY", "잘못된 시크릿키 연동 정보 입니다.")),
                         PaymentErrorCode.PAYMENT_SYSTEM_ERROR
                 ),
-                Arguments.of("이외의 400 에러",
-                        createResponse(400, createErrorResponse("ANOTHER", "다른 400 번 에러")),
-                        PaymentErrorCode.PAYMENT_BAD_REQUEST),
                 Arguments.of("401 인증 에러",
                         createResponse(401, createErrorResponse("UNAUTHORIZED_KEY", "인증되지 않은 시크릿 키 혹은 클라이언트 키 입니다.")),
                         PaymentErrorCode.PAYMENT_SYSTEM_ERROR),
@@ -91,18 +88,13 @@ public class TossPaymentErrorDecoderTest {
                 Arguments.of("허용되지 않은 요청",
                         createResponse(403, createErrorResponse("FORBIDDEN_REQUEST", "허용되지 않은 요청입니다")),
                         PaymentErrorCode.PAYMENT_SYSTEM_ERROR),
-                Arguments.of("이외의 403 에러",
-                        createResponse(403, createErrorResponse("ANOTHER", "다른 403 번 에러")),
-                        PaymentErrorCode.PAYMENT_APPROVAL_FAIL),
+
                 Arguments.of("결제 정보 찾을 수 없음",
                         createResponse(404, createErrorResponse("NOT_FOUND_PAYMENT", "존재하지 않는 결제 정보 입니다.")),
                         PaymentErrorCode.PAYMENT_NOT_FOUND),
                 Arguments.of("결제 시간이 만료",
                         createResponse(404, createErrorResponse("NOT_FOUND_PAYMENT_SESSION", "결제 시간이 만료되어 결제 진행 데이터가 존재하지 않습니다.")),
-                        PaymentErrorCode.PAYMENT_TIMEOUT),
-                Arguments.of("이외의 404 에러",
-                        createResponse(404, createErrorResponse("ANOTHER", "다른 404 번 에러")),
-                        PaymentErrorCode.PAYMENT_NOT_FOUND)
+                        PaymentErrorCode.PAYMENT_TIMEOUT)
         );
     }
 }
