@@ -7,7 +7,7 @@ import com.example.order_service.api.cart.facade.dto.command.UpdateQuantityComma
 import com.example.order_service.api.cart.facade.dto.result.CartItemResponse;
 import com.example.order_service.api.cart.facade.dto.result.CartItemStatus;
 import com.example.order_service.api.cart.facade.dto.result.CartResponse;
-import com.example.order_service.api.cart.infrastructure.client.CartProductClientService;
+import com.example.order_service.api.cart.infrastructure.client.CartProductAdaptor;
 import com.example.order_service.api.cart.infrastructure.client.dto.CartProductResponse;
 import com.example.order_service.api.cart.infrastructure.client.dto.ProductStatus;
 import com.example.order_service.api.common.exception.BusinessException;
@@ -32,7 +32,7 @@ public class CartFacadeTest {
     @InjectMocks
     private CartFacade cartFacade;
     @Mock
-    private CartProductClientService cartProductClientService;
+    private CartProductAdaptor cartProductAdaptor;
     @Mock
     private CartService cartService;
 
@@ -89,7 +89,7 @@ public class CartFacadeTest {
             AddCartItemCommand command = mockAddCartItemCommand(1L, 1L, 3);
             CartProductResponse product = createProductResponse(1L, 1L, ProductStatus.ON_SALE);
             CartItemDto cartItem = createCartItemDto(1L, 1L, 3);
-            given(cartProductClientService.getProduct(anyLong()))
+            given(cartProductAdaptor.getProduct(anyLong()))
                     .willReturn(product);
             given(cartService.addItemToCart(anyLong(), anyLong(), anyInt()))
                     .willReturn(cartItem);
@@ -110,7 +110,7 @@ public class CartFacadeTest {
             //given
             AddCartItemCommand command = mockAddCartItemCommand(1L, 1L, 3);
             CartProductResponse product = createProductResponse(1L, 1L, ProductStatus.DELETED);
-            given(cartProductClientService.getProduct(anyLong()))
+            given(cartProductAdaptor.getProduct(anyLong()))
                     .willReturn(product);
             //when
             //then
@@ -160,7 +160,7 @@ public class CartFacadeTest {
 
             given(cartService.getCartItems(1L))
                     .willReturn(List.of(cartItem1, cartItem2, cartItem3, cartItem4, cartItem5, cartItem6));
-            given(cartProductClientService.getProducts(anyList()))
+            given(cartProductAdaptor.getProducts(anyList()))
                     .willReturn(List.of(product1, product2, product4, product5, product6));
             //when
             CartResponse result = cartFacade.getCartDetails(1L);
@@ -193,7 +193,7 @@ public class CartFacadeTest {
             CartItemDto updatedCartItem = createCartItemDto(1L, 1L, 3);
             given(cartService.getCartItem(anyLong(), anyLong())).willReturn(cartItem);
             CartProductResponse product = createProductResponse(1L, 1L, ProductStatus.ON_SALE);
-            given(cartProductClientService.getProduct(anyLong())).willReturn(product);
+            given(cartProductAdaptor.getProduct(anyLong())).willReturn(product);
             given(cartService.updateQuantity(anyLong(), anyLong(), anyInt())).willReturn(updatedCartItem);
             //when
             CartItemResponse result = cartFacade.updateCartItemQuantity(command);
@@ -211,7 +211,7 @@ public class CartFacadeTest {
             CartItemDto cartItem = createCartItemDto(1L, 1L, 1);
             CartProductResponse product = createProductResponse(1L, 1L, ProductStatus.STOP_SALE);
             given(cartService.getCartItem(anyLong(), anyLong())).willReturn(cartItem);
-            given(cartProductClientService.getProduct(anyLong())).willReturn(product);
+            given(cartProductAdaptor.getProduct(anyLong())).willReturn(product);
             //when
             //then
             assertThatThrownBy(() -> cartFacade.updateCartItemQuantity(command))

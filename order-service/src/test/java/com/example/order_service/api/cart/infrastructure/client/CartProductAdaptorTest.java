@@ -18,10 +18,10 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
 
-public class CartProductClientServiceTest extends ExcludeInfraTest {
+public class CartProductAdaptorTest extends ExcludeInfraTest {
 
     @Autowired
-    private CartProductClientService cartProductClientService;
+    private CartProductAdaptor cartProductAdaptor;
 
     @MockitoBean
     private CartProductClient cartProductClient;
@@ -36,7 +36,7 @@ public class CartProductClientServiceTest extends ExcludeInfraTest {
         given(cartProductClient.getProductByVariantId(anyLong()))
                 .willReturn(product);
         //when
-        CartProductResponse response = cartProductClientService.getProduct(1L);
+        CartProductResponse response = cartProductAdaptor.getProduct(1L);
         //then
         assertThat(response)
                 .extracting("productId", "productVariantId", "productName", "thumbnailUrl")
@@ -54,7 +54,7 @@ public class CartProductClientServiceTest extends ExcludeInfraTest {
         willThrow(CallNotPermittedException.class).given(cartProductClient).getProductByVariantId(anyLong());
         //when
         //then
-        assertThatThrownBy(() -> cartProductClientService.getProduct(1L))
+        assertThatThrownBy(() -> cartProductAdaptor.getProduct(1L))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(ExternalServiceErrorCode.UNAVAILABLE);
@@ -68,7 +68,7 @@ public class CartProductClientServiceTest extends ExcludeInfraTest {
                         .getProductByVariantId(anyLong());
         //when
         //then
-        assertThatThrownBy(() -> cartProductClientService.getProduct(1L))
+        assertThatThrownBy(() -> cartProductAdaptor.getProduct(1L))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(ExternalServiceErrorCode.SYSTEM_ERROR);
@@ -83,7 +83,7 @@ public class CartProductClientServiceTest extends ExcludeInfraTest {
                 .getProductByVariantId(anyLong());
         //when
         //then
-        assertThatThrownBy(() -> cartProductClientService.getProduct(1L))
+        assertThatThrownBy(() -> cartProductAdaptor.getProduct(1L))
                 .isInstanceOf(BusinessException.class);
     }
 
@@ -100,7 +100,7 @@ public class CartProductClientServiceTest extends ExcludeInfraTest {
         given(cartProductClient.getProductVariantByIds(anyList()))
                 .willReturn(List.of(product1, product2));
         //when
-        List<CartProductResponse> products = cartProductClientService.getProducts(List.of(1L, 2L));
+        List<CartProductResponse> products = cartProductAdaptor.getProducts(List.of(1L, 2L));
         //then
         assertThat(products)
                 .hasSize(2) // 1. 리스트 크기 확인
@@ -119,7 +119,7 @@ public class CartProductClientServiceTest extends ExcludeInfraTest {
                 .given(cartProductClient)
                 .getProductVariantByIds(anyList());
         //when
-        List<CartProductResponse> products = cartProductClientService.getProducts(List.of(1L, 2L));
+        List<CartProductResponse> products = cartProductAdaptor.getProducts(List.of(1L, 2L));
         //then
         assertThat(products).isEmpty();
     }
@@ -132,7 +132,7 @@ public class CartProductClientServiceTest extends ExcludeInfraTest {
                 .given(cartProductClient)
                 .getProductVariantByIds(anyList());
         //when
-        List<CartProductResponse> products = cartProductClientService.getProducts(List.of(1L, 2L));
+        List<CartProductResponse> products = cartProductAdaptor.getProducts(List.of(1L, 2L));
         //then
         assertThat(products).isEmpty();
     }

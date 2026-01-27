@@ -24,7 +24,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @AutoConfigureWireMock(port = 0)
 public class CartProductClientCircuitBreakerTest extends ExcludeInfraTest {
     @Autowired
-    private CartProductClientService cartProductClientService;
+    private CartProductAdaptor cartProductAdaptor;
     @Autowired
     private CircuitBreakerRegistry circuitBreakerRegistry;
 
@@ -57,7 +57,7 @@ public class CartProductClientCircuitBreakerTest extends ExcludeInfraTest {
         //when
         for (int i = 0; i < 10; i++) {
             try {
-                cartProductClientService.getProduct(1L);
+                cartProductAdaptor.getProduct(1L);
             } catch (Exception e) {}
         }
         //then
@@ -77,7 +77,7 @@ public class CartProductClientCircuitBreakerTest extends ExcludeInfraTest {
         //when
         for (int i = 0; i < 10; i++) {
             try {
-                cartProductClientService.getProduct(1L);
+                cartProductAdaptor.getProduct(1L);
             } catch (Exception e) {
             }
         }
@@ -86,7 +86,7 @@ public class CartProductClientCircuitBreakerTest extends ExcludeInfraTest {
         CircuitBreaker breaker = circuitBreakerRegistry.circuitBreaker("productService");
         assertThat(breaker.getState()).isEqualTo(CircuitBreaker.State.OPEN);
 
-        assertThatThrownBy(() -> cartProductClientService.getProduct(1L))
+        assertThatThrownBy(() -> cartProductAdaptor.getProduct(1L))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(ExternalServiceErrorCode.UNAVAILABLE);

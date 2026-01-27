@@ -12,6 +12,7 @@ public class TossPaymentFeignConfig {
     @Value("${payment.toss.secret-key}")
     private String secretKey;
 
+    // 토스 요청시 헤더에 시크릿 키를 추가하는 인터셉터
     @Bean
     public RequestInterceptor basicAuthRequestInterceptor() {
         return template -> {
@@ -21,6 +22,7 @@ public class TossPaymentFeignConfig {
         };
     }
 
+    // 에러 디코더
     @Bean
     public ErrorDecoder tossPaymentErrorDecoder() {
         return new TossPaymentErrorDecoder();

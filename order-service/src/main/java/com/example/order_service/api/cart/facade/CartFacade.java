@@ -6,7 +6,7 @@ import com.example.order_service.api.cart.facade.dto.command.AddCartItemCommand;
 import com.example.order_service.api.cart.facade.dto.command.UpdateQuantityCommand;
 import com.example.order_service.api.cart.facade.dto.result.CartItemResponse;
 import com.example.order_service.api.cart.facade.dto.result.CartResponse;
-import com.example.order_service.api.cart.infrastructure.client.CartProductClientService;
+import com.example.order_service.api.cart.infrastructure.client.CartProductAdaptor;
 import com.example.order_service.api.cart.infrastructure.client.dto.CartProductResponse;
 import com.example.order_service.api.common.exception.BusinessException;
 import com.example.order_service.api.common.exception.CartErrorCode;
@@ -22,10 +22,10 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class CartFacade {
     private final CartService cartService;
-    private final CartProductClientService cartProductClientService;
+    private final CartProductAdaptor cartProductAdaptor;
 
     public CartItemResponse addItem(AddCartItemCommand dto) {
-        CartProductResponse product = cartProductClientService.getProduct(dto.getProductVariantId());
+        CartProductResponse product = cartProductAdaptor.getProduct(dto.getProductVariantId());
         validateProductOnSale(product);
         CartItemDto result = cartService.addItemToCart(dto.getUserId(), dto.getProductVariantId(), dto.getQuantity());
         return CartItemResponse.available(result, product);
@@ -38,14 +38,14 @@ public class CartFacade {
             return CartResponse.empty();
         }
         List<Long> variantIds = getProductVariantId(cartItems);
-        List<CartProductResponse> products = cartProductClientService.getProducts(variantIds);
+        List<CartProductResponse> products = cartProductAdaptor.getProducts(variantIds);
         List<CartItemResponse> cartItemResponses = mapToCartItemResponse(cartItems, products);
         return CartResponse.from(cartItemResponses);
     }
 
     public CartItemResponse updateCartItemQuantity(UpdateQuantityCommand dto){
         CartItemDto cartItem = cartService.getCartItem(dto.getUserId(), dto.getCartItemId());
-        CartProductResponse product = cartProductClientService.getProduct(cartItem.getProductVariantId());
+        CartProductResponse product = cartProductAdaptor.getProduct(cartItem.getProductVariantId());
         validateProductOnSale(product);
         CartItemDto cartItemDto = cartService.updateQuantity(dto.getUserId(), cartItem.getId(), dto.getQuantity());
         return CartItemResponse.available(cartItemDto, product);

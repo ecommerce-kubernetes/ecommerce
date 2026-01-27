@@ -15,7 +15,7 @@ import java.util.List;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class CartProductClientService {
+public class CartProductAdaptor {
 
     private final CartProductClient cartProductClient;
 
