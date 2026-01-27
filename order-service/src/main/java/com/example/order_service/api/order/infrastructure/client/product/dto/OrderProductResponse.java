@@ -11,7 +11,7 @@ import java.util.List;
 public class OrderProductResponse {
     private Long productId;
     private Long productVariantId;
-    private ProductStatus status;
+    private String status;
     private String sku;
     private String productName;
     private String thumbnailUrl;

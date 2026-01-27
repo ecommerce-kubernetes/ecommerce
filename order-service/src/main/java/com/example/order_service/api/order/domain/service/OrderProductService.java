@@ -7,7 +7,7 @@ import com.example.order_service.api.order.domain.service.dto.result.OrderProduc
 import com.example.order_service.api.order.facade.dto.command.CreateOrderItemCommand;
 import com.example.order_service.api.order.infrastructure.client.product.OrderProductAdaptor;
 import com.example.order_service.api.order.infrastructure.client.product.dto.OrderProductResponse;
-import com.example.order_service.api.order.infrastructure.client.product.dto.ProductStatus;
+import com.example.order_service.api.order.domain.model.ProductStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -49,8 +49,9 @@ public class OrderProductService {
         }
 
         for (OrderProductResponse product : products) {
+            ProductStatus status = ProductStatus.from(product.getStatus());
             // 상품이 판매중이 아닌 경우
-            if (!product.getStatus().equals(ProductStatus.ON_SALE)) {
+            if (!status.equals(ProductStatus.ON_SALE)) {
                 throw new BusinessException(OrderErrorCode.ORDER_PRODUCT_NOT_ON_SALE);
             }
 

@@ -5,7 +5,7 @@ import com.example.order_service.api.order.domain.service.dto.result.OrderProduc
 import com.example.order_service.api.order.infrastructure.client.product.dto.OrderProductResponse;
 import com.example.order_service.api.order.infrastructure.client.product.dto.OrderProductResponse.ProductOptionInfo;
 import com.example.order_service.api.order.infrastructure.client.product.dto.OrderProductResponse.UnitPrice;
-import com.example.order_service.api.order.infrastructure.client.product.dto.ProductStatus;
+import com.example.order_service.api.order.domain.model.ProductStatus;
 
 import java.util.List;
 
@@ -15,7 +15,7 @@ public class OrderProductFixture {
         return OrderProductResponse.builder()
                 .productId(1L)
                 .productVariantId(2L)
-                .status(ProductStatus.ON_SALE)
+                .status("ON_SALE")
                 .sku("TEST")
                 .productName("상품")
                 .thumbnailUrl("http://thumbnail.jpg")

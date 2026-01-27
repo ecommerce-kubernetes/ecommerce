@@ -6,9 +6,8 @@ import com.example.order_service.api.order.domain.service.dto.result.OrderProduc
 import com.example.order_service.api.order.facade.dto.command.CreateOrderItemCommand;
 import com.example.order_service.api.order.infrastructure.client.product.OrderProductAdaptor;
 import com.example.order_service.api.order.infrastructure.client.product.dto.OrderProductResponse;
-import com.example.order_service.api.order.infrastructure.client.product.dto.ProductStatus;
+import com.example.order_service.api.order.domain.model.ProductStatus;
 import com.example.order_service.api.support.fixture.OrderCommandFixture;
-import com.example.order_service.api.support.fixture.OrderProductFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -44,8 +43,8 @@ public class OrderProductServiceTest {
             //given
             CreateOrderItemCommand itemCommand1 = OrderCommandFixture.anOrderItemCommand().productVariantId(1L).quantity(2).build();
             CreateOrderItemCommand itemCommand2 = OrderCommandFixture.anOrderItemCommand().productVariantId(2L).quantity(5).build();
-            OrderProductResponse product1 = anOrderProductResponse().productVariantId(1L).status(ProductStatus.ON_SALE).build();
-            OrderProductResponse product2 = anOrderProductResponse().productVariantId(2L).status(ProductStatus.ON_SALE).build();
+            OrderProductResponse product1 = anOrderProductResponse().productVariantId(1L).status("ON_SALE").build();
+            OrderProductResponse product2 = anOrderProductResponse().productVariantId(2L).status("ON_SALE").build();
             OrderProductInfo expectedProductInfo1 = anOrderProductInfo().productVariantId(1L).build();
             OrderProductInfo expectedProductInfo2 = anOrderProductInfo().productVariantId(2L).build();
             given(orderProductAdaptor.getProducts(anyList())).willReturn(List.of(product1, product2));
@@ -63,7 +62,7 @@ public class OrderProductServiceTest {
             //given
             CreateOrderItemCommand itemCommand1 = OrderCommandFixture.anOrderItemCommand().productVariantId(1L).quantity(2).build();
             CreateOrderItemCommand itemCommand2 = OrderCommandFixture.anOrderItemCommand().productVariantId(2L).quantity(5).build();
-            OrderProductResponse product = anOrderProductResponse().productVariantId(1L).status(ProductStatus.ON_SALE).build();
+            OrderProductResponse product = anOrderProductResponse().productVariantId(1L).status("ON_SALE").build();
             given(orderProductAdaptor.getProducts(anyList())).willReturn(List.of(product));
             //when
             //then
@@ -79,9 +78,9 @@ public class OrderProductServiceTest {
             //given
             CreateOrderItemCommand itemCommand1 = OrderCommandFixture.anOrderItemCommand().productVariantId(1L).quantity(2).build();
             CreateOrderItemCommand itemCommand2 = OrderCommandFixture.anOrderItemCommand().productVariantId(2L).quantity(5).build();
-            OrderProductResponse product1 = anOrderProductResponse().productVariantId(1L).status(ProductStatus.ON_SALE).build();
+            OrderProductResponse product1 = anOrderProductResponse().productVariantId(1L).status("ON_SALE").build();
             // 판매 중지된 상품
-            OrderProductResponse product2 = anOrderProductResponse().productVariantId(1L).status(ProductStatus.STOP_SALE).build();
+            OrderProductResponse product2 = anOrderProductResponse().productVariantId(1L).status("STOP_SALE").build();
             given(orderProductAdaptor.getProducts(anyList()))
                     .willReturn(List.of(product1, product2));
             //when
@@ -98,9 +97,9 @@ public class OrderProductServiceTest {
             //given
             CreateOrderItemCommand itemCommand1 = OrderCommandFixture.anOrderItemCommand().productVariantId(1L).quantity(2).build();
             CreateOrderItemCommand itemCommand2 = OrderCommandFixture.anOrderItemCommand().productVariantId(2L).quantity(5).build();
-            OrderProductResponse product1 = anOrderProductResponse().productVariantId(1L).status(ProductStatus.ON_SALE).build();
+            OrderProductResponse product1 = anOrderProductResponse().productVariantId(1L).status("ON_SALE").build();
             // 재고가 부족한 상품
-            OrderProductResponse product2 = anOrderProductResponse().productVariantId(2L).status(ProductStatus.ON_SALE).stockQuantity(3).build();
+            OrderProductResponse product2 = anOrderProductResponse().productVariantId(2L).status("ON_SALE").stockQuantity(3).build();
             given(orderProductAdaptor.getProducts(anyList()))
                     .willReturn(List.of(product1, product2));
             //when
