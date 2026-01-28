@@ -131,15 +131,28 @@ public class OrderTest {
     class UpdateStatus {
 
         @Test
-        @DisplayName("주문 상태를 변경한다")
-        void changeStatus(){
+        @DisplayName("주문 상태를 결제 대기로 변경한다")
+        void preparePaymentWaiting(){
             //given
             OrderCreationContext context = anOrderCreationContext().build();
             Order order = Order.create(context);
             //when
-            order.changeStatus(OrderStatus.PAYMENT_WAITING);
+            order.preparePaymentWaiting();
             //then
             assertThat(order.getStatus()).isEqualTo(OrderStatus.PAYMENT_WAITING);
+        }
+
+        @Test
+        @DisplayName("주문 상태를 결제 실패로 변경한다")
+        void paymentFailed(){
+            //given
+            OrderCreationContext context = anOrderCreationContext().build();
+            Order order = Order.create(context);
+            //when
+            order.paymentFailed(OrderFailureCode.PAYMENT_INSUFFICIENT_BALANCE);
+            //then
+            assertThat(order.getStatus()).isEqualTo(OrderStatus.PAYMENT_FAILED);
+            assertThat(order.getFailureCode()).isEqualTo(OrderFailureCode.PAYMENT_INSUFFICIENT_BALANCE);
         }
 
         @Test

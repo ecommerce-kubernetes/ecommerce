@@ -48,9 +48,9 @@ public class OrderService {
         return new PageImpl<>(orderDtoList, orders.getPageable(), orders.getTotalElements());
     }
 
-    public OrderDto changeOrderStatus(String orderNo, OrderStatus orderStatus){
+    public OrderDto preparePaymentWaiting(String orderNo){
         Order order = getByOrderNo(orderNo);
-        order.changeStatus(orderStatus);
+        order.preparePaymentWaiting();
         return OrderDto.from(order);
     }
 
@@ -60,19 +60,17 @@ public class OrderService {
         return OrderDto.from(order);
     }
 
-    @Transactional
-    public OrderDto completePayment(PaymentCreationContext command) {
-        Order order = getByOrderNo(command.getOrderNo());
-        order.changeStatus(OrderStatus.COMPLETED);
-//        Payment payment = Payment.create(command.getAmount(), command.getPaymentKey(), command.getMethod(), command.getApprovedAt());
-//        order.addPayment(payment);
-        Order savedOrder = orderRepository.saveAndFlush(order);
-        return OrderDto.from(savedOrder);
+    public OrderDto completePayment(PaymentCreationContext context) {
+        Order order = getByOrderNo(context.getOrderNo());
+        order.completePayment(context);
+        orderRepository.flush();
+        return OrderDto.from(order);
     }
 
-    @Transactional
-    public OrderDto failPayment() {
-        return null;
+    public OrderDto failPayment(String orderNo, OrderFailureCode orderFailureCode) {
+        Order order = getByOrderNo(orderNo);
+        order.paymentFailed(orderFailureCode);
+        return OrderDto.from(order);
     }
 
     private Order getByOrderNo(String orderNo) {

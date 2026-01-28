@@ -16,8 +16,6 @@ import com.example.order_service.api.order.facade.dto.result.CreateOrderResponse
 import com.example.order_service.api.order.facade.dto.result.OrderDetailResponse;
 import com.example.order_service.api.order.facade.dto.result.OrderListResponse;
 import com.example.order_service.api.order.facade.event.*;
-import com.example.order_service.api.support.fixture.OrderFixture;
-import com.example.order_service.api.support.fixture.OrderPaymentFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -180,7 +178,7 @@ public class OrderFacadeTest {
         void preparePayment(){
             //given
             OrderDto orderDto = returnOrderDto().status(OrderStatus.PAYMENT_WAITING).build();
-            given(orderService.changeOrderStatus(ORDER_NO, OrderStatus.PAYMENT_WAITING)).willReturn(orderDto);
+            given(orderService.preparePaymentWaiting(ORDER_NO)).willReturn(orderDto);
             //when
             orderFacade.preparePayment(ORDER_NO);
             //then
@@ -282,7 +280,7 @@ public class OrderFacadeTest {
             OrderDto failOrderDto = returnOrderDto().status(OrderStatus.CANCELED).build();
             willThrow(new BusinessException(PaymentErrorCode.PAYMENT_INSUFFICIENT_BALANCE)).given(orderPaymentService)
                     .confirmOrderPayment(anyString(), anyString(), anyLong());
-            given(orderService.failPayment()).willReturn(failOrderDto);
+            given(orderService.failPayment(anyString(), any(OrderFailureCode.class))).willReturn(failOrderDto);
             //when
             //then
             assertThatThrownBy(() -> orderFacade.confirmOrderPayment(ORDER_NO, 1L, "paymentKey", 7000L))
@@ -290,39 +288,11 @@ public class OrderFacadeTest {
                     .extracting("errorCode")
                     .isEqualTo(PaymentErrorCode.PAYMENT_INSUFFICIENT_BALANCE);
 
-            verify(orderService, times(1)).failPayment();
+            verify(orderService, times(1)).failPayment(anyString(), any(OrderFailureCode.class));
             verify(eventPublisher).publishEvent(paymentFailedEventCaptor.capture());
             assertThat(paymentFailedEventCaptor.getValue())
                     .extracting(PaymentFailedEvent::getOrderNo, PaymentFailedEvent::getUserId, PaymentFailedEvent::getCode)
                     .containsExactlyInAnyOrder(ORDER_NO, 1L, PaymentFailureCode.PG_REJECT);
-        }
-
-        @Test
-        @DisplayName("결제 승인 성공 후 결제 저장시 예외가 발생하면 주문을 실패로 처리하고 환불 요청과 결제 실패 이벤트를 발행한다")
-        void confirmOrderPayment_orderService_throw_exception() {
-            //given
-            OrderDto getOrderDto = returnOrderDto().status(OrderStatus.PAYMENT_WAITING).build();
-            OrderPaymentInfo orderPaymentInfo = anOrderPaymentInfo().build();
-            PaymentCreationContext paymentContext = anPaymentContext().build();
-            OrderDto failOrderDto = returnOrderDto().status(OrderStatus.CANCELED).build();
-            given(orderService.getOrder(anyString(), anyLong()))
-                    .willReturn(getOrderDto);
-            given(orderPaymentService.confirmOrderPayment(anyString(), anyString(), anyLong()))
-                    .willReturn(orderPaymentInfo);
-            given(mapper.mapPaymentCreationContext(any(OrderPaymentInfo.class)))
-                    .willReturn(paymentContext);
-            willThrow(RuntimeException.class).given(orderService).completePayment(any(PaymentCreationContext.class));
-            given(orderService.failPayment()).willReturn(failOrderDto);
-            //when
-            //then
-            assertThatThrownBy(() -> orderFacade.confirmOrderPayment(ORDER_NO, 1L, "paymentKey", 7000L))
-                    .isInstanceOf(Exception.class);
-
-            verify(orderPaymentService).cancelPayment("paymentKey", PaymentFailureCode.INTERNAL_ERROR.name(), 7000L);
-            verify(eventPublisher).publishEvent(paymentFailedEventCaptor.capture());
-            assertThat(paymentFailedEventCaptor.getValue())
-                    .extracting(PaymentFailedEvent::getOrderNo, PaymentFailedEvent::getUserId, PaymentFailedEvent::getCode)
-                    .containsExactly(ORDER_NO, 1L, PaymentFailureCode.INTERNAL_ERROR);
         }
     }
 

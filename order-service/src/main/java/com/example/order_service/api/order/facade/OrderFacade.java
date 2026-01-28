@@ -2,13 +2,14 @@ package com.example.order_service.api.order.facade;
 
 import com.example.order_service.api.common.dto.PageDto;
 import com.example.order_service.api.common.exception.BusinessException;
-import com.example.order_service.api.common.exception.CommonErrorCode;
 import com.example.order_service.api.common.exception.ErrorCode;
 import com.example.order_service.api.common.exception.OrderErrorCode;
+import com.example.order_service.api.common.exception.PaymentErrorCode;
 import com.example.order_service.api.common.util.AsyncUtil;
 import com.example.order_service.api.order.controller.dto.request.OrderSearchCondition;
 import com.example.order_service.api.order.domain.model.OrderFailureCode;
 import com.example.order_service.api.order.domain.model.OrderStatus;
+import com.example.order_service.api.order.domain.model.PaymentType;
 import com.example.order_service.api.order.domain.service.*;
 import com.example.order_service.api.order.domain.service.dto.command.OrderCreationContext;
 import com.example.order_service.api.order.domain.service.dto.command.PaymentCreationContext;
@@ -20,7 +21,6 @@ import com.example.order_service.api.order.facade.dto.result.CreateOrderResponse
 import com.example.order_service.api.order.facade.dto.result.OrderDetailResponse;
 import com.example.order_service.api.order.facade.dto.result.OrderListResponse;
 import com.example.order_service.api.order.facade.event.*;
-import com.example.order_service.api.order.infrastructure.client.payment.dto.response.TossPaymentConfirmResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -67,7 +67,7 @@ public class OrderFacade {
     }
 
     public void preparePayment(String orderNo) {
-        OrderDto orderDto = orderService.changeOrderStatus(orderNo, OrderStatus.PAYMENT_WAITING);
+        OrderDto orderDto = orderService.preparePaymentWaiting(orderNo);
         // SSE 메시지 전송을 위한 이벤트 발행
         eventPublisher.publishEvent(OrderPaymentReadyEvent.from(orderDto));
     }
@@ -82,8 +82,11 @@ public class OrderFacade {
         OrderDto order = orderService.getOrder(orderNo, userId);
         // 결제 가능한 상태인지 검증
         validBeforePayment(order, amount);
+        // 결제 서비스 결제 승인 요청
         OrderPaymentInfo orderPaymentInfo = confirmPayment(order.getOrderNo(), paymentKey, order.getOrderPriceInfo().getFinalPaymentAmount());
-        return completePayment(orderPaymentInfo, order.getOrderNo(), paymentKey);
+        PaymentCreationContext paymentContext = mapper.mapPaymentCreationContext(orderPaymentInfo);
+        OrderDto orderDto = orderService.completePayment(paymentContext);
+        return OrderDetailResponse.from(orderDto);
     }
 
     public OrderDetailResponse getOrder(Long userId, String orderNo) {
@@ -102,32 +105,9 @@ public class OrderFacade {
             return orderPaymentService.confirmOrderPayment(orderNo, paymentKey, amount);
         } catch (BusinessException e) {
             // 결제 서비스 호출중 예외 발생시 주문 상태를 변경하고 saga 롤백을 위한 이벤트를 발행
-            OrderDto failOrderDto = orderService.failPayment();
+            OrderFailureCode orderFailureCode = mapToOrderFailureCode(e.getErrorCode());
+            OrderDto failOrderDto = orderService.failPayment(orderNo, orderFailureCode);
             eventPublisher.publishEvent(PaymentFailedEvent.of(failOrderDto.getOrderNo(), failOrderDto.getOrderer().getUserId(), PaymentFailureCode.PG_REJECT));
-            throw e;
-        }
-    }
-
-    private OrderDetailResponse completePayment(OrderPaymentInfo orderPaymentInfo, String orderNo, String paymentKey) {
-        try {
-            // 결제 서비스를 호출해 받은 응답으로 주문상태 변경과 결제 데이터를 저장
-            PaymentCreationContext paymentContext = mapper.mapPaymentCreationContext(orderPaymentInfo);
-            OrderDto orderDto = orderService.completePayment(paymentContext);
-            return OrderDetailResponse.from(orderDto);
-        } catch (Exception e) {
-            // 결제 데이터를 저장하는 과정에서 발생한 예외
-            // 이때는 결제가 진행된 상태이므로 결제 환불과 주문 상태를 변경 그리고 saga 롤백을 위한 이벤트 발행
-            OrderDto failOrderDto = orderService.failPayment();
-            try {
-                orderPaymentService.cancelPayment(
-                        paymentKey,
-                        PaymentFailureCode.INTERNAL_ERROR.name(),
-                        failOrderDto.getOrderPriceInfo().getFinalPaymentAmount()
-                );
-            } catch (Exception cancelEx) {
-                log.error("CRITICAL: 결제 취소 실패 orderNo={}", orderNo);
-            }
-            eventPublisher.publishEvent(PaymentFailedEvent.of(failOrderDto.getOrderNo(), failOrderDto.getOrderer().getUserId(), PaymentFailureCode.INTERNAL_ERROR));
             throw e;
         }
     }
@@ -140,6 +120,19 @@ public class OrderFacade {
         if (order.getOrderPriceInfo().getFinalPaymentAmount() != amount) {
             throw new BusinessException(OrderErrorCode.ORDER_PRICE_MISMATCH);
         }
+    }
+
+    private OrderFailureCode mapToOrderFailureCode(ErrorCode errorCode) {
+        if (errorCode == PaymentErrorCode.PAYMENT_INSUFFICIENT_BALANCE) {
+            return OrderFailureCode.PAYMENT_INSUFFICIENT_BALANCE;
+        }
+        if (errorCode == PaymentErrorCode.PAYMENT_TIMEOUT) {
+            return OrderFailureCode.PAYMENT_TIMEOUT;
+        }
+        if (errorCode == PaymentErrorCode.PAYMENT_NOT_FOUND) {
+            return OrderFailureCode.PAYMENT_NOT_FOUND;
+        }
+        return OrderFailureCode.UNKNOWN;
     }
 
     private void validateUniqueItems(List<CreateOrderItemCommand> items) {

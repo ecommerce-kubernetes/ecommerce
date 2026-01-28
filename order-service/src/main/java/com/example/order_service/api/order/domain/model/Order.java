@@ -9,6 +9,7 @@ import com.example.order_service.api.order.domain.service.dto.command.OrderCreat
 import com.example.order_service.api.order.domain.service.dto.command.OrderCreationContext.OrderPriceSpec;
 import com.example.order_service.api.order.domain.service.dto.command.OrderCreationContext.OrdererSpec;
 import com.example.order_service.api.order.domain.service.dto.command.OrderItemCreationContext;
+import com.example.order_service.api.order.domain.service.dto.command.PaymentCreationContext;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -73,8 +74,9 @@ public class Order extends BaseEntity {
         coupon.setOrder(this);
     }
 
-    public void changeStatus(OrderStatus orderStatus){
-        this.status = orderStatus;
+    private void addPayment(Payment payment) {
+        this.payments.add(payment);
+        payment.setOrder(this);
     }
 
     public boolean isOwner(Long accessUserId) {
@@ -96,6 +98,21 @@ public class Order extends BaseEntity {
     public void canceled(OrderFailureCode code) {
         this.status = OrderStatus.CANCELED;
         this.failureCode = code;
+    }
+
+    public void paymentFailed(OrderFailureCode code) {
+        this.status = OrderStatus.PAYMENT_FAILED;
+        this.failureCode = code;
+    }
+
+    public void preparePaymentWaiting(){
+        this.status = OrderStatus.PAYMENT_WAITING;
+    }
+
+    public void completePayment(PaymentCreationContext context) {
+        Payment payment = Payment.create(context);
+        addPayment(payment);
+        this.status = OrderStatus.COMPLETED;
     }
 
     public static Order create(OrderCreationContext context) {

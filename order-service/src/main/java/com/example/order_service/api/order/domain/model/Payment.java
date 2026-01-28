@@ -1,5 +1,6 @@
 package com.example.order_service.api.order.domain.model;
 
+import com.example.order_service.api.order.domain.service.dto.command.PaymentCreationContext;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -42,5 +43,16 @@ public class Payment {
         this.status = status;
         this.method = method;
         this.approvedAt = approvedAt;
+    }
+
+    public static Payment create(PaymentCreationContext context) {
+        return Payment.builder()
+                .paymentKey(context.getPaymentKey())
+                .amount(context.getAmount())
+                .type(PaymentType.PAYMENT)
+                .status(context.getStatus())
+                .method(context.getMethod())
+                .approvedAt(context.getApprovedAt())
+                .build();
     }
 }

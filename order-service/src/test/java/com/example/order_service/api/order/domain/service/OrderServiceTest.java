@@ -10,10 +10,10 @@ import com.example.order_service.api.order.domain.model.OrderStatus;
 import com.example.order_service.api.order.domain.repository.OrderRepository;
 import com.example.order_service.api.order.domain.service.dto.command.OrderCreationContext;
 import com.example.order_service.api.order.domain.service.dto.command.OrderCreationContext.OrderPriceSpec;
+import com.example.order_service.api.order.domain.service.dto.command.PaymentCreationContext;
 import com.example.order_service.api.order.domain.service.dto.result.OrderDto;
 import com.example.order_service.api.order.domain.service.dto.result.OrderItemDto;
 import com.example.order_service.api.support.ExcludeInfraTest;
-import com.example.order_service.api.support.fixture.OrderCommandFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -102,24 +102,24 @@ public class OrderServiceTest extends ExcludeInfraTest {
     class ChangeStatus {
 
         @Test
-        @DisplayName("주문 상태를 변경한다")
-        void changeOrderStatus(){
+        @DisplayName("주문 상태를 결제 대기로 변경한다")
+        void preparePaymentWaiting(){
             //given
             OrderCreationContext context = anOrderCreationContext().build();
             Order savedOrder = orderRepository.save(Order.create(context));
             //when
-            OrderDto result = orderService.changeOrderStatus(savedOrder.getOrderNo(), OrderStatus.PAYMENT_WAITING);
+            OrderDto result = orderService.preparePaymentWaiting(savedOrder.getOrderNo());
             //then
             assertThat(result.getStatus()).isEqualTo(OrderStatus.PAYMENT_WAITING);
         }
 
         @Test
-        @DisplayName("주문 상품을 찾을 수 없으면 상태를 변경할 수 없다")
-        void changeOrderStatus_order_not_found(){
+        @DisplayName("주문 상품을 찾을 수 없으면 결제 대기 상태로 변경할 수 없다")
+        void preparePaymentWaiting_order_not_found(){
             //given
             //when
             //then
-            assertThatThrownBy(() -> orderService.changeOrderStatus("UNKNOWN", OrderStatus.PAYMENT_WAITING))
+            assertThatThrownBy(() -> orderService.preparePaymentWaiting("UNKNOWN"))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(OrderErrorCode.ORDER_NOT_FOUND);
@@ -147,6 +147,20 @@ public class OrderServiceTest extends ExcludeInfraTest {
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(OrderErrorCode.ORDER_NOT_FOUND);
+        }
+
+        @Test
+        @DisplayName("주문을 결제 실패로 변경한다")
+        void failPayment(){
+            //given
+            OrderCreationContext context = anOrderCreationContext().build();
+            Order savedOrder = orderRepository.save(Order.create(context));
+            savedOrder.preparePaymentWaiting();
+            //when
+            OrderDto result = orderService.failPayment(savedOrder.getOrderNo(), OrderFailureCode.PAYMENT_INSUFFICIENT_BALANCE);
+            //then
+            assertThat(result.getStatus()).isEqualTo(OrderStatus.PAYMENT_FAILED);
+            assertThat(result.getOrderFailureCode()).isEqualTo(OrderFailureCode.PAYMENT_INSUFFICIENT_BALANCE);
         }
     }
 
@@ -244,37 +258,24 @@ public class OrderServiceTest extends ExcludeInfraTest {
     class SavePayment {
 
         @Test
-        @DisplayName("")
-        void test(){
+        @DisplayName("결제 정보를 저장한다")
+        void completePayment(){
             //given
+            OrderCreationContext orderContext = anOrderCreationContext().build();
+            Order savedOrder = orderRepository.save(Order.create(orderContext));
+            PaymentCreationContext context = anPaymentContext().orderNo(savedOrder.getOrderNo()).build();
+            OrderDto expectedResult = returnOrderDto().orderNo(savedOrder.getOrderNo())
+                    .status(OrderStatus.COMPLETED).paymentInfo(returnPayment().build()).build();
             //when
+            OrderDto result = orderService.completePayment(context);
             //then
+            assertThat(result)
+                    .usingRecursiveComparison()
+                    .ignoringFields("id", "orderedAt", "orderItems.id", "paymentInfo.id", "paymentInfo.approvedAt")
+                    .isEqualTo(expectedResult);
+
+            assertThat(result.getPaymentInfo().getPaymentId()).isNotNull();
+            assertThat(result.getPaymentInfo().getApprovedAt()).isNotNull();
         }
     }
-
-//    @Test
-//    @DisplayName("주문에 결제 정보를 저장한다")
-//    void completedOrder(){
-//        //given
-//        String paymentKey = "paymentKey";
-//        OrderCreationContext context = createDefaultContext();
-//        Order order = Order.create(context);
-//        order.changeStatus(OrderStatus.PAYMENT_WAITING);
-//        Order savedOrder = orderRepository.save(order);
-//        PaymentCreationCommand command = PaymentCreationCommand.builder()
-//                .orderNo(savedOrder.getOrderNo())
-//                .paymentKey(paymentKey)
-//                .amount(order.getPriceInfo().getFinalPaymentAmount())
-//                .method("CARD")
-//                .approvedAt(LocalDateTime.now())
-//                .build();
-//        //when
-//        OrderDto orderDto = orderService.completedOrder(command);
-//        //then
-//        assertThat(orderDto.getStatus()).isEqualTo(OrderStatus.COMPLETED);
-//        assertThat(orderDto.getPaymentInfo().getId()).isNotNull();
-//        assertThat(orderDto.getPaymentInfo())
-//                .extracting(PaymentInfo::getPaymentKey, PaymentInfo::getAmount, PaymentInfo::getMethod)
-//                .containsExactly(paymentKey, order.getPriceInfo().getFinalPaymentAmount(), "CARD");
-//    }
 }

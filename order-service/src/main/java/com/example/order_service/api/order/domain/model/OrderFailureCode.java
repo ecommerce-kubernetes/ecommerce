@@ -23,18 +23,6 @@ public enum OrderFailureCode {
 
     private final String name;
 
-    public static OrderFailureCode fromErrorCode(ErrorCode errorCode) {
-        if (errorCode instanceof PaymentErrorCode paymentErrorCode) {
-            return switch (paymentErrorCode) {
-                case PAYMENT_INSUFFICIENT_BALANCE -> OrderFailureCode.PAYMENT_INSUFFICIENT_BALANCE;
-                case PAYMENT_TIMEOUT -> OrderFailureCode.PAYMENT_TIMEOUT;
-                case PAYMENT_ALREADY_PROCEED_PAYMENT -> OrderFailureCode.ALREADY_PROCEED_PAYMENT;
-                case PAYMENT_NOT_FOUND -> OrderFailureCode.PAYMENT_NOT_FOUND;
-                default -> OrderFailureCode.PAYMENT_FAILED;
-            };
-        }
-        return SYSTEM_ERROR;
-    }
 
     public static OrderFailureCode fromSagaErrorCode(String errorCode) {
         return switch (errorCode) {
