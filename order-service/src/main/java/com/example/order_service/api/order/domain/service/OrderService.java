@@ -6,10 +6,9 @@ import com.example.order_service.api.order.controller.dto.request.OrderSearchCon
 import com.example.order_service.api.order.domain.model.Order;
 import com.example.order_service.api.order.domain.model.OrderFailureCode;
 import com.example.order_service.api.order.domain.model.OrderStatus;
-import com.example.order_service.api.order.domain.model.Payment;
 import com.example.order_service.api.order.domain.repository.OrderRepository;
 import com.example.order_service.api.order.domain.service.dto.command.OrderCreationContext;
-import com.example.order_service.api.order.domain.service.dto.command.PaymentCreationCommand;
+import com.example.order_service.api.order.domain.service.dto.command.PaymentCreationContext;
 import com.example.order_service.api.order.domain.service.dto.result.OrderDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -62,13 +61,18 @@ public class OrderService {
     }
 
     @Transactional
-    public OrderDto completedOrder(PaymentCreationCommand command) {
+    public OrderDto completePayment(PaymentCreationContext command) {
         Order order = getByOrderNo(command.getOrderNo());
         order.changeStatus(OrderStatus.COMPLETED);
-        Payment payment = Payment.create(command.getAmount(), command.getPaymentKey(), command.getMethod(), command.getApprovedAt());
-        order.addPayment(payment);
+//        Payment payment = Payment.create(command.getAmount(), command.getPaymentKey(), command.getMethod(), command.getApprovedAt());
+//        order.addPayment(payment);
         Order savedOrder = orderRepository.saveAndFlush(order);
         return OrderDto.from(savedOrder);
+    }
+
+    @Transactional
+    public OrderDto failPayment() {
+        return null;
     }
 
     private Order getByOrderNo(String orderNo) {

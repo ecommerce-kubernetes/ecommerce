@@ -5,10 +5,8 @@ import com.example.order_service.api.order.domain.service.dto.command.OrderCreat
 import com.example.order_service.api.order.domain.service.dto.command.OrderCreationContext.OrderPriceSpec;
 import com.example.order_service.api.order.domain.service.dto.command.OrderCreationContext.OrdererSpec;
 import com.example.order_service.api.order.domain.service.dto.command.OrderItemCreationContext;
-import com.example.order_service.api.order.domain.service.dto.result.CalculatedOrderAmounts;
-import com.example.order_service.api.order.domain.service.dto.result.OrderCouponInfo;
-import com.example.order_service.api.order.domain.service.dto.result.OrderProductInfo;
-import com.example.order_service.api.order.domain.service.dto.result.OrderUserInfo;
+import com.example.order_service.api.order.domain.service.dto.command.PaymentCreationContext;
+import com.example.order_service.api.order.domain.service.dto.result.*;
 import com.example.order_service.api.order.facade.dto.command.CreateOrderCommand;
 import com.example.order_service.api.order.facade.dto.command.CreateOrderItemCommand;
 import org.springframework.stereotype.Component;
@@ -21,6 +19,17 @@ import static com.example.order_service.api.order.domain.service.dto.command.Ord
 
 @Component
 public class OrderCreationContextMapper {
+
+    public PaymentCreationContext mapPaymentCreationContext(OrderPaymentInfo orderPaymentInfo) {
+        return PaymentCreationContext.builder()
+                .orderNo(orderPaymentInfo.getOrderNo())
+                .paymentKey(orderPaymentInfo.getPaymentKey())
+                .amount(orderPaymentInfo.getTotalAmount())
+                .status(orderPaymentInfo.getStatus())
+                .method(orderPaymentInfo.getMethod())
+                .approvedAt(orderPaymentInfo.getApprovedAt())
+                .build();
+    }
 
     public OrderCreationContext mapOrderCreationContext(OrderUserInfo user, CalculatedOrderAmounts amounts, OrderCouponInfo coupon,
                                                         CreateOrderCommand command, List<OrderProductInfo> products) {

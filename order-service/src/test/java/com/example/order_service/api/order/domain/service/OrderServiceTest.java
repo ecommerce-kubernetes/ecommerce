@@ -238,44 +238,20 @@ public class OrderServiceTest extends ExcludeInfraTest {
             assertThat(result.getNumber()).isEqualTo(0);
         }
     }
-//
-//
-//    @Test
-//    @DisplayName("유저 ID 와 조회 커맨드로 주문 목록을 조회한다")
-//    void getOrders(){
-//        //given
-//        OrderCreationContext context = createDefaultContext();
-//        Order savedOrder1 = orderRepository.save(Order.create(context));
-//        Order savedOrder2 = orderRepository.save(Order.create(context));
-//        OrderSearchCondition condition = OrderSearchCondition.builder()
-//                .page(1)
-//                .size(10)
-//                .sort("latest").build();
-//        //when
-//        Page<OrderDto> result = orderService.getOrders(USER_ID, condition);
-//        //then
-//
-//        assertThat(result.getTotalElements()).isEqualTo(2);
-//        assertThat(result.getTotalPages()).isEqualTo(1);
-//        assertThat(result.getContent()).hasSize(2);
-//        assertThat(result.getNumber()).isEqualTo(0);
-//
-//        assertThat(result.getContent())
-//                .extracting(
-//                        OrderDto::getUserId,
-//                        OrderDto::getStatus,
-//                        o -> o.getOrderPriceDetail().getFinalPaymentAmount()
-//                )
-//                .contains(
-//                        tuple(USER_ID, OrderStatus.PENDING, FINAL_PRICE),
-//                        tuple(USER_ID, OrderStatus.PENDING, FINAL_PRICE)
-//                );
-//
-//        assertThat(result.getContent())
-//                .extracting(OrderDto::getOrderId)
-//                .containsExactly(savedOrder2.getId(), savedOrder1.getId());
-//    }
-//
+
+    @Nested
+    @DisplayName("주문 결제 저장")
+    class SavePayment {
+
+        @Test
+        @DisplayName("")
+        void test(){
+            //given
+            //when
+            //then
+        }
+    }
+
 //    @Test
 //    @DisplayName("주문에 결제 정보를 저장한다")
 //    void completedOrder(){

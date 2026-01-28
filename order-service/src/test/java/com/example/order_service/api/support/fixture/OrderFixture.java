@@ -1,6 +1,9 @@
 package com.example.order_service.api.support.fixture;
 
 import com.example.order_service.api.order.domain.model.OrderStatus;
+import com.example.order_service.api.order.domain.model.PaymentMethod;
+import com.example.order_service.api.order.domain.model.PaymentStatus;
+import com.example.order_service.api.order.domain.model.PaymentType;
 import com.example.order_service.api.order.domain.service.dto.command.OrderCreationContext;
 import com.example.order_service.api.order.domain.service.dto.command.OrderCreationContext.CouponSpec;
 import com.example.order_service.api.order.domain.service.dto.command.OrderCreationContext.OrderPriceSpec;
@@ -9,6 +12,7 @@ import com.example.order_service.api.order.domain.service.dto.command.OrderItemC
 import com.example.order_service.api.order.domain.service.dto.command.OrderItemCreationContext.CreateItemOptionSpec;
 import com.example.order_service.api.order.domain.service.dto.command.OrderItemCreationContext.PriceSpec;
 import com.example.order_service.api.order.domain.service.dto.command.OrderItemCreationContext.ProductSpec;
+import com.example.order_service.api.order.domain.service.dto.command.PaymentCreationContext;
 import com.example.order_service.api.order.domain.service.dto.result.OrderDto;
 import com.example.order_service.api.order.domain.service.dto.result.OrderDto.CouponInfo;
 import com.example.order_service.api.order.domain.service.dto.result.OrderDto.OrderPriceInfo;
@@ -23,7 +27,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public class OrderFixture {
-    private static final String ORDER_NO = "ORDER-20261149-sXvczFv";
+    public static final String ORDER_NO = "ORD-20260101-adsvc";
     public static OrderCreationContext.OrderCreationContextBuilder anOrderCreationContext() {
         return OrderCreationContext.builder()
                 .orderer(anOrdererSpec().build())
@@ -86,6 +90,16 @@ public class OrderFixture {
                 .optionValueName("XL");
     }
 
+    public static PaymentCreationContext.PaymentCreationContextBuilder anPaymentContext() {
+        return PaymentCreationContext.builder()
+                .orderNo(ORDER_NO)
+                .paymentKey("paymentKey")
+                .amount(7000L)
+                .status(PaymentStatus.DONE)
+                .method(PaymentMethod.CARD)
+                .approvedAt(LocalDateTime.now());
+    }
+
     public static OrderDto.OrderDtoBuilder returnOrderDto() {
         return OrderDto.builder()
                 .orderer(returnOrderer().build())
@@ -125,7 +139,9 @@ public class OrderFixture {
                 .paymentId(1L)
                 .paymentKey("paymentKey")
                 .amount(7000L)
-                .method("CARD")
+                .type(PaymentType.PAYMENT)
+                .status(PaymentStatus.DONE)
+                .method(PaymentMethod.CARD)
                 .approvedAt(LocalDateTime.now());
     }
 

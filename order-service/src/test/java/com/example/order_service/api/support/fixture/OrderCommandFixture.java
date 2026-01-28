@@ -2,6 +2,7 @@ package com.example.order_service.api.support.fixture;
 
 import com.example.order_service.api.common.dto.PageDto;
 import com.example.order_service.api.order.controller.dto.request.OrderSearchCondition;
+import com.example.order_service.api.order.domain.service.dto.command.PaymentCreationContext;
 import com.example.order_service.api.order.facade.dto.command.CreateOrderCommand;
 import com.example.order_service.api.order.facade.dto.command.CreateOrderItemCommand;
 

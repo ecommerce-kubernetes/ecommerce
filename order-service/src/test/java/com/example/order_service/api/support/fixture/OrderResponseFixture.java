@@ -18,10 +18,10 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public class OrderResponseFixture {
-
+    public static final String ORDER_NO = "ORD-20260101-adsvc";
     public static CreateOrderResponse.CreateOrderResponseBuilder anCreateOrderResponse() {
         return CreateOrderResponse.builder()
-                .orderNo("")
+                .orderNo(ORDER_NO)
                 .status(OrderStatus.PENDING.name())
                 .orderName("상품")
                 .finalPaymentAmount(7000L)
@@ -30,7 +30,7 @@ public class OrderResponseFixture {
 
     public static OrderListResponse.OrderListResponseBuilder anOrderListResponse() {
         return OrderListResponse.builder()
-                .orderNo("")
+                .orderNo(ORDER_NO)
                 .orderStatus("COMPLETED")
                 .orderItems(List.of(anOrderItemResponse().build()))
                 .createdAt(LocalDateTime.now().toString());
@@ -47,7 +47,7 @@ public class OrderResponseFixture {
 
     public static OrderDetailResponse.OrderDetailResponseBuilder anOrderDetailResponse() {
         return OrderDetailResponse.builder()
-                .orderNo("")
+                .orderNo(ORDER_NO)
                 .status(OrderStatus.COMPLETED.name())
                 .orderName("상품")
                 .orderer(anOrdererResponse().build())
@@ -80,6 +80,8 @@ public class OrderResponseFixture {
                 .paymentId(1L)
                 .paymentKey("paymentKey")
                 .amount(7000L)
+                .type("PAYMENT")
+                .status("DONE")
                 .method("CARD")
                 .approvedAt(LocalDateTime.now().toString());
     }

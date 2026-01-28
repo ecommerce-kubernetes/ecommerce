@@ -22,7 +22,12 @@ public class Payment {
     private Order order;
     private String paymentKey;
     private Long amount;
-    private String method;
+    @Enumerated(EnumType.STRING)
+    private PaymentType type;
+    @Enumerated(EnumType.STRING)
+    private PaymentStatus status;
+    @Enumerated(EnumType.STRING)
+    private PaymentMethod method;
     private LocalDateTime approvedAt;
 
     protected void setOrder(Order order) {
@@ -30,19 +35,12 @@ public class Payment {
     }
 
     @Builder(access = AccessLevel.PRIVATE)
-    private Payment(Long amount, String paymentKey, String method, LocalDateTime approvedAt) {
-        this.amount = amount;
+    private Payment(String paymentKey, Long amount, PaymentType type, PaymentStatus status, PaymentMethod method, LocalDateTime approvedAt) {
         this.paymentKey = paymentKey;
+        this.amount = amount;
+        this.type = type;
+        this.status = status;
         this.method = method;
         this.approvedAt = approvedAt;
-    }
-
-    public static Payment create(Long amount, String paymentKey, String method, LocalDateTime approvedAt) {
-        return Payment.builder()
-                .amount(amount)
-                .paymentKey(paymentKey)
-                .method(method)
-                .approvedAt(approvedAt)
-                .build();
     }
 }

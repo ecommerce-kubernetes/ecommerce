@@ -53,7 +53,7 @@ public class OrderTest {
                     .containsExactly(1L, "1000원 할인 쿠폰", 1000L);
 
             // 주문 생성시 결제 정보는 없음
-            assertThat(order.getPayment()).isNull();
+            assertThat(order.getValidPayment()).isNull();
 
             assertThat(order.getOrderItems()).hasSize(1)
                     .extracting(OrderItem::getOrderedProduct, OrderItem::getOrderItemPrice,

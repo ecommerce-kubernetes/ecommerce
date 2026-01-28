@@ -100,6 +100,8 @@ public class OrderDetailResponse {
         private Long paymentId;
         private String paymentKey;
         private Long amount;
+        private String type;
+        private String status;
         private String method;
         private String approvedAt;
 
@@ -111,7 +113,9 @@ public class OrderDetailResponse {
                     .paymentId(paymentInfo.getPaymentId())
                     .paymentKey(paymentInfo.getPaymentKey())
                     .amount(paymentInfo.getAmount())
-                    .method(paymentInfo.getMethod())
+                    .type(paymentInfo.getType().name())
+                    .status(paymentInfo.getStatus().name())
+                    .method(paymentInfo.getMethod().name())
                     .approvedAt(paymentInfo.getApprovedAt().toString())
                     .build();
         }

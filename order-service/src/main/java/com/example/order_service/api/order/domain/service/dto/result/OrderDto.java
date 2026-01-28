@@ -86,7 +86,9 @@ public class OrderDto {
         private Long paymentId;
         private String paymentKey;
         private Long amount;
-        private String method;
+        private PaymentType type;
+        private PaymentStatus status;
+        private PaymentMethod method;
         private LocalDateTime approvedAt;
 
         public static PaymentInfo from(Payment payment) {
@@ -97,6 +99,8 @@ public class OrderDto {
                     .paymentId(payment.getId())
                     .paymentKey(payment.getPaymentKey())
                     .amount(payment.getAmount())
+                    .type(payment.getType())
+                    .status(payment.getStatus())
                     .method(payment.getMethod())
                     .approvedAt(payment.getApprovedAt())
                     .build();
@@ -114,7 +118,7 @@ public class OrderDto {
                 .couponInfo(CouponInfo.from(order.getCoupon()))
                 .orderItems(createOrderItemDto(order.getOrderItems()))
                 .deliveryAddress(order.getDeliveryAddress())
-                .paymentInfo(PaymentInfo.from(order.getPayment()))
+                .paymentInfo(PaymentInfo.from(order.getValidPayment()))
                 .orderedAt(order.getCreatedAt())
                 .orderFailureCode(order.getFailureCode())
                 .build();

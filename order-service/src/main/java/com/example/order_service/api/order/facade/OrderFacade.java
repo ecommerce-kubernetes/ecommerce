@@ -11,7 +11,7 @@ import com.example.order_service.api.order.domain.model.OrderFailureCode;
 import com.example.order_service.api.order.domain.model.OrderStatus;
 import com.example.order_service.api.order.domain.service.*;
 import com.example.order_service.api.order.domain.service.dto.command.OrderCreationContext;
-import com.example.order_service.api.order.domain.service.dto.command.PaymentCreationCommand;
+import com.example.order_service.api.order.domain.service.dto.command.PaymentCreationContext;
 import com.example.order_service.api.order.domain.service.dto.result.*;
 import com.example.order_service.api.order.facade.dto.OrderPreparationData;
 import com.example.order_service.api.order.facade.dto.command.CreateOrderCommand;
@@ -19,9 +19,7 @@ import com.example.order_service.api.order.facade.dto.command.CreateOrderItemCom
 import com.example.order_service.api.order.facade.dto.result.CreateOrderResponse;
 import com.example.order_service.api.order.facade.dto.result.OrderDetailResponse;
 import com.example.order_service.api.order.facade.dto.result.OrderListResponse;
-import com.example.order_service.api.order.facade.event.OrderCreatedEvent;
-import com.example.order_service.api.order.facade.event.OrderFailedEvent;
-import com.example.order_service.api.order.facade.event.OrderPaymentReadyEvent;
+import com.example.order_service.api.order.facade.event.*;
 import com.example.order_service.api.order.infrastructure.client.payment.dto.response.TossPaymentConfirmResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -82,8 +80,41 @@ public class OrderFacade {
 
     public OrderDetailResponse confirmOrderPayment(String orderNo, Long userId, String paymentKey, Long amount) {
         OrderDto order = orderService.getOrder(orderNo, userId);
+        // 결제 가능한 상태인지 검증
         validBeforePayment(order, amount);
-        return null;
+        OrderPaymentInfo orderPaymentInfo = null;
+
+        try {
+            // 결제 서비스를 호출해 결제를 진행
+            orderPaymentInfo = orderPaymentService.confirmOrderPayment(order.getOrderNo(), paymentKey, amount);
+        } catch (BusinessException e) {
+            // 결제 서비스 호출중 예외 발생시 주문 상태를 변경하고 saga 롤백을 위한 이벤트를 발행
+            OrderDto failOrderDto = orderService.failPayment();
+            eventPublisher.publishEvent(PaymentFailedEvent.of(failOrderDto.getOrderNo(), failOrderDto.getOrderer().getUserId(), PaymentFailureCode.PG_REJECT));
+            throw e;
+        }
+
+        try {
+            // 결제 서비스를 호출해 받은 응답으로 주문상태 변경과 결제 데이터를 저장
+            PaymentCreationContext paymentContext = mapper.mapPaymentCreationContext(orderPaymentInfo);
+            OrderDto orderDto = orderService.completePayment(paymentContext);
+            return OrderDetailResponse.from(orderDto);
+        } catch (Exception e) {
+            // 결제 데이터를 저장하는 과정에서 발생한 예외
+            // 이때는 결제가 진행된 상태이므로 결제 환불과 주문 상태를 변경 그리고 saga 롤백을 위한 이벤트 발행
+            OrderDto failOrderDto = orderService.failPayment();
+            try {
+                orderPaymentService.cancelPayment(
+                        paymentKey,
+                        PaymentFailureCode.INTERNAL_ERROR.name(),
+                        failOrderDto.getOrderPriceInfo().getFinalPaymentAmount()
+                );
+            } catch (Exception cancelEx) {
+                log.error("CRITICAL: 결제 취소 실패 orderNo={}", orderNo);
+            }
+            eventPublisher.publishEvent(PaymentFailedEvent.of(failOrderDto.getOrderNo(), failOrderDto.getOrderer().getUserId(), PaymentFailureCode.INTERNAL_ERROR));
+            throw e;
+        }
     }
 
     public OrderDetailResponse getOrder(Long userId, String orderNo) {
@@ -97,18 +128,6 @@ public class OrderFacade {
     }
 
 
-    // 결제 후 주문 완료 실행
-    private OrderDetailResponse completeOrderWithCompensation(OrderDto orderDto, TossPaymentConfirmResponse response, String paymentKey) {
-        try {
-            return processOrderCompletion(response);
-        } catch (Exception e) {
-            // 주문 완료 DB 상태 변경중 예외 발생시 결제는 완료되었으므로 결제 환불 요청 후 SAGA 보상 실행
-            compensatePayment(paymentKey, "시스템 에러");
-            handlePaymentFailure(orderDto.getOrderNo(), CommonErrorCode.INTERNAL_ERROR);
-            throw new BusinessException(CommonErrorCode.INTERNAL_ERROR);
-        }
-    }
-
     private void validBeforePayment(OrderDto order, Long amount) {
         if (!order.getStatus().equals(OrderStatus.PAYMENT_WAITING)) {
             throw new BusinessException(OrderErrorCode.ORDER_NOT_PAYABLE);
@@ -117,30 +136,6 @@ public class OrderFacade {
         if (order.getOrderPriceInfo().getFinalPaymentAmount() != amount) {
             throw new BusinessException(OrderErrorCode.ORDER_PRICE_MISMATCH);
         }
-    }
-
-    private OrderDetailResponse processOrderCompletion(TossPaymentConfirmResponse response) {
-        OrderDto completedOrder = orderService.completedOrder(PaymentCreationCommand.from(response));
-//        List<Long> productVariantIds = completedOrder.getOrderItemDtoList().stream()
-//                .map(OrderItemDto::getProductVariantId).toList();
-//        eventPublisher.publishEvent(PaymentResultEvent.of(completedOrder.getOrderNo(), completedOrder.getUserId(), OrderEventStatus.SUCCESS, null,
-//                productVariantIds));
-        return OrderDetailResponse.from(completedOrder);
-    }
-
-    private void compensatePayment(String paymentKey, String cancelReason) {
-        try {
-            orderPaymentService.cancelPayment(paymentKey, cancelReason, null);
-        } catch (Exception e) {
-            log.error("결제 : [치명적 오류] 시스템 오류로 발생한 결제 환불 실패");
-        }
-    }
-
-    private void handlePaymentFailure(String orderNo, ErrorCode errorCode) {
-        OrderFailureCode failureCode = OrderFailureCode.fromErrorCode(errorCode);
-//        OrderDto canceledOrder = orderService.canceledOrder(orderNo, failureCode);
-//        eventPublisher.publishEvent(PaymentResultEvent.of(canceledOrder.getOrderNo(), canceledOrder.getUserId(), OrderEventStatus.FAILURE,
-//                failureCode, null));
     }
 
     private void validateUniqueItems(List<CreateOrderItemCommand> items) {

@@ -18,6 +18,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
@@ -48,8 +49,8 @@ public class Order extends BaseEntity {
     @OneToOne(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private Coupon coupon;
 
-    @OneToOne(mappedBy = "order", cascade = CascadeType.PERSIST, orphanRemoval = true)
-    private Payment payment;
+    @OneToMany(mappedBy = "order", cascade = CascadeType.PERSIST)
+    private List<Payment> payments = new ArrayList<>();
 
     @Builder(access = AccessLevel.PRIVATE)
     private Order(String orderNo, OrderStatus status, String orderName, Orderer orderer, OrderPriceDetail orderPriceDetail, String deliveryAddress, OrderFailureCode failureCode) {
@@ -72,17 +73,24 @@ public class Order extends BaseEntity {
         coupon.setOrder(this);
     }
 
-    public void addPayment(Payment payment) {
-        this.payment = payment;
-        payment.setOrder(this);
-    }
-
     public void changeStatus(OrderStatus orderStatus){
         this.status = orderStatus;
     }
 
     public boolean isOwner(Long accessUserId) {
         return this.orderer.getUserId().equals(accessUserId);
+    }
+
+    // 유효한 결제 정보를 추출
+    public Payment getValidPayment() {
+        return this.payments.stream()
+                // 타입이 결제인것
+                .filter(p -> p.getType() == PaymentType.PAYMENT)
+                // 상태는 완료 또는 입금 대기인것
+                .filter(p -> p.getStatus() == PaymentStatus.DONE || p.getStatus() == PaymentStatus.WAITING_FOR_DEPOSIT)
+                // 동일한 결제 엔티티가 있다면 가장 최신의 결제 정보
+                .max(Comparator.comparing(Payment::getId))
+                .orElse(null);
     }
 
     public void canceled(OrderFailureCode code) {

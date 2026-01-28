@@ -1,5 +1,7 @@
 package com.example.order_service.api.order.domain.service;
 
+import com.example.order_service.api.common.exception.BusinessException;
+import com.example.order_service.api.common.exception.PaymentErrorCode;
 import com.example.order_service.api.order.domain.model.PaymentMethod;
 import com.example.order_service.api.order.domain.model.PaymentStatus;
 import com.example.order_service.api.order.domain.service.dto.result.OrderPaymentInfo;
@@ -19,6 +21,7 @@ public class OrderPaymentService {
 
     public OrderPaymentInfo confirmOrderPayment(String orderNo, String paymentKey, Long amount) {
         TossPaymentConfirmResponse paymentResponse = tossPaymentAdaptor.confirmPayment(orderNo, paymentKey, amount);
+        validatePaymentStatus(paymentResponse);
         return mapToOrderPaymentInfo(paymentResponse);
     }
 
@@ -35,6 +38,13 @@ public class OrderPaymentService {
                 .method(PaymentMethod.from(response.getMethod()))
                 .approvedAt(parseDateTime(response.getApprovedAt()))
                 .build();
+    }
+
+    private void validatePaymentStatus(TossPaymentConfirmResponse response) {
+        if (PaymentStatus.from(response.getStatus()) != PaymentStatus.DONE &&
+                PaymentStatus.from(response.getStatus()) != PaymentStatus.WAITING_FOR_DEPOSIT) {
+            throw new BusinessException(PaymentErrorCode.PAYMENT_APPROVAL_FAIL);
+        }
     }
 
     private LocalDateTime parseDateTime(String dateTimeString) {

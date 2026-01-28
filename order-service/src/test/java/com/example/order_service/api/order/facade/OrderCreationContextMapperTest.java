@@ -1,6 +1,7 @@
 package com.example.order_service.api.order.facade;
 
 import com.example.order_service.api.order.domain.service.dto.command.OrderCreationContext;
+import com.example.order_service.api.order.domain.service.dto.command.PaymentCreationContext;
 import com.example.order_service.api.order.domain.service.dto.result.*;
 import com.example.order_service.api.order.facade.dto.command.CreateOrderCommand;
 import com.example.order_service.api.support.fixture.*;
@@ -14,6 +15,7 @@ import java.util.List;
 
 import static com.example.order_service.api.support.fixture.OrderCouponFixture.anOrderCouponInfo;
 import static com.example.order_service.api.support.fixture.OrderFixture.*;
+import static com.example.order_service.api.support.fixture.OrderPaymentFixture.anOrderPaymentInfo;
 import static com.example.order_service.api.support.fixture.OrderPriceFixture.anCalculatedOrderAmounts;
 import static com.example.order_service.api.support.fixture.OrderUserFixture.anOrderUserInfo;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -41,6 +43,21 @@ public class OrderCreationContextMapperTest {
 
         assertThat(result)
                 .usingRecursiveComparison()
+                .isEqualTo(expectedResult);
+    }
+
+    @Test
+    @DisplayName("결제 생성 Context를 매핑한다")
+    void mapPaymentCreationContext(){
+        //given
+        OrderPaymentInfo payment = anOrderPaymentInfo().build();
+        PaymentCreationContext expectedResult = anPaymentContext().build();
+        //when
+        PaymentCreationContext result = mapper.mapPaymentCreationContext(payment);
+        //then
+        assertThat(result)
+                .usingRecursiveComparison()
+                .ignoringFields("approvedAt")
                 .isEqualTo(expectedResult);
     }
 
