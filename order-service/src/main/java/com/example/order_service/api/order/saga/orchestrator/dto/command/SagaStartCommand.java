@@ -10,7 +10,6 @@ import java.util.List;
 
 @Getter
 @Builder
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class SagaStartCommand {
     private String orderNo;
     private Long userId;
@@ -20,7 +19,6 @@ public class SagaStartCommand {
 
     @Getter
     @Builder
-    @AllArgsConstructor(access = AccessLevel.PRIVATE)
     public static class DeductProduct {
         private Long productVariantId;
         private Integer quantity;

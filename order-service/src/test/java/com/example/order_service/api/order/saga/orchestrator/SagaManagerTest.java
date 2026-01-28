@@ -55,17 +55,14 @@ public class SagaManagerTest {
     @DisplayName("Saga 시작 시 인스턴스를 저장하고 재고 차감 요청 이벤트를 발행한다")
     void startSaga() {
         //given
-        SagaStartCommand command = createStartCommand();
-        SagaInstanceDto sagaInstance = createSagaInstance(SagaStep.PRODUCT, SagaStatus.STARTED, Payload.from(command));
-
+        SagaStartCommand command = anSagaStartCommand().build();
+        SagaInstanceDto sagaInstanceDto = anSagaInstanceDto().build();
         given(sagaService.initialize(anyString(), any(Payload.class), any(SagaStep.class)))
-                .willReturn(sagaInstance);
-
+                .willReturn(sagaInstanceDto);
         //when
         sagaManager.startSaga(command);
         //then
-        verify(sagaService, times(1))
-                .initialize(
+        verify(sagaService).initialize(
                         eq(ORDER_NO),
                         payloadCaptor.capture(),
                         eq(SagaStep.PRODUCT)
@@ -73,9 +70,9 @@ public class SagaManagerTest {
 
         assertThat(payloadCaptor.getValue())
                 .extracting(Payload::getUserId, Payload::getCouponId, Payload::getUseToPoint)
-                .containsExactly(USER_ID, COUPON_ID, USE_POINT);
+                .containsExactly(1L, 1L, 1000L);
         assertThat(payloadCaptor.getValue().getSagaItems())
-                .hasSize(2);
+                .hasSize(1);
 
         verify(sagaEventProducer).requestInventoryDeduction(
                 eq(SAGA_ID),
