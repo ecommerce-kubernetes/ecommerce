@@ -5,7 +5,7 @@ import com.example.order_service.api.order.domain.model.OrderFailureCode;
 import com.example.order_service.api.order.saga.domain.model.SagaStatus;
 import com.example.order_service.api.order.saga.domain.model.SagaStep;
 import com.example.order_service.api.order.saga.domain.model.vo.Payload;
-import com.example.order_service.api.order.saga.domain.service.OrderSagaDomainService;
+import com.example.order_service.api.order.saga.domain.service.SagaService;
 import com.example.order_service.api.order.saga.domain.service.dto.SagaInstanceDto;
 import com.example.order_service.api.order.saga.infrastructure.kafka.producer.SagaEventProducer;
 import com.example.order_service.api.order.saga.orchestrator.dto.command.SagaPaymentCommand;
@@ -40,7 +40,7 @@ public class SagaManagerTest {
     @Mock
     private SagaEventProducer sagaEventProducer;
     @Mock
-    private OrderSagaDomainService orderSagaDomainService;
+    private SagaService sagaService;
     @Mock
     private ApplicationEventPublisher eventPublisher;
 
@@ -58,14 +58,14 @@ public class SagaManagerTest {
         SagaStartCommand command = createStartCommand();
         SagaInstanceDto sagaInstance = createSagaInstance(SagaStep.PRODUCT, SagaStatus.STARTED, Payload.from(command));
 
-        given(orderSagaDomainService.create(anyString(), any(Payload.class), any(SagaStep.class)))
+        given(sagaService.initialize(anyString(), any(Payload.class), any(SagaStep.class)))
                 .willReturn(sagaInstance);
 
         //when
         sagaManager.startSaga(command);
         //then
-        verify(orderSagaDomainService, times(1))
-                .create(
+        verify(sagaService, times(1))
+                .initialize(
                         eq(ORDER_NO),
                         payloadCaptor.capture(),
                         eq(SagaStep.PRODUCT)
@@ -94,7 +94,7 @@ public class SagaManagerTest {
         sagaManager.processProductResult(SagaProcessResult.success(SAGA_ID, ORDER_NO));
         //then
         // 상태 변경 검증
-        verify(orderSagaDomainService).proceedTo(SAGA_ID, SagaStep.COUPON);
+        verify(sagaService).proceedTo(SAGA_ID, SagaStep.COUPON);
         // 이벤트 발행 검증
         verify(sagaEventProducer).requestCouponUse(SAGA_ID, ORDER_NO, payload);
         // 포인트 단계로 바로 실행 되면 안되고 SAGA 가 바로 종료되서는 안된다
@@ -112,11 +112,11 @@ public class SagaManagerTest {
         sagaManager.processProductResult(SagaProcessResult.success(SAGA_ID, ORDER_NO));
         //then
         //포인트 관련 로직은 실행되어야함
-        verify(orderSagaDomainService, times(1)).proceedTo(SAGA_ID, SagaStep.USER);
+        verify(sagaService, times(1)).proceedTo(SAGA_ID, SagaStep.USER);
         verify(sagaEventProducer, times(1)).requestUserPointUse(SAGA_ID, ORDER_NO, payload);
 
         // 쿠폰단계 또는 결제 대기 상태가 실행되서는 안됨
-        verify(orderSagaDomainService, never()).proceedTo(SAGA_ID, SagaStep.COUPON);
+        verify(sagaService, never()).proceedTo(SAGA_ID, SagaStep.COUPON);
         verify(sagaEventProducer, never()).requestCouponUse(anyLong(), anyString(), any(Payload.class));
     }
 
@@ -130,7 +130,7 @@ public class SagaManagerTest {
         sagaManager.processProductResult(SagaProcessResult.success(SAGA_ID, ORDER_NO));
         //then
         // 결제 대기로 상태 변경 확인
-        verify(orderSagaDomainService, times(1)).proceedTo(SAGA_ID, SagaStep.PAYMENT);
+        verify(sagaService, times(1)).proceedTo(SAGA_ID, SagaStep.PAYMENT);
         verify(eventPublisher, times(1)).publishEvent(sagaResourceSecuredCaptor.capture());
         assertThat(sagaResourceSecuredCaptor.getValue())
                 .extracting(SagaResourceSecuredEvent::getSagaId, SagaResourceSecuredEvent::getOrderNo, SagaResourceSecuredEvent::getUserId)
@@ -151,7 +151,7 @@ public class SagaManagerTest {
         sagaManager.processCouponResult(SagaProcessResult.success(SAGA_ID, ORDER_NO));
         //then
         // 포인트 단계가 실행되어야 함
-        verify(orderSagaDomainService, times(1)).proceedTo(SAGA_ID, SagaStep.USER);
+        verify(sagaService, times(1)).proceedTo(SAGA_ID, SagaStep.USER);
         verify(sagaEventProducer, times(1)).requestUserPointUse(SAGA_ID, ORDER_NO, payload);
 
         // 이전 단계를 실행하면 안됨
@@ -159,7 +159,7 @@ public class SagaManagerTest {
         // 결제 대기 상태로 바로 건너뛰면 안됨
         verify(eventPublisher, never()).publishEvent(any());
         // SAGA 를 끝내서는 안됨
-        verify(orderSagaDomainService, never()).finish(anyLong());
+        verify(sagaService, never()).finish(anyLong());
     }
 
     @Test
@@ -171,7 +171,7 @@ public class SagaManagerTest {
         //when
         sagaManager.processCouponResult(SagaProcessResult.success(SAGA_ID, ORDER_NO));
         //then
-        verify(orderSagaDomainService, times(1)).proceedTo(SAGA_ID, SagaStep.PAYMENT);
+        verify(sagaService, times(1)).proceedTo(SAGA_ID, SagaStep.PAYMENT);
         verify(eventPublisher, times(1)).publishEvent(sagaResourceSecuredCaptor.capture());
         assertThat(sagaResourceSecuredCaptor.getValue())
                 .extracting(SagaResourceSecuredEvent::getSagaId, SagaResourceSecuredEvent::getOrderNo, SagaResourceSecuredEvent::getUserId)
@@ -191,7 +191,7 @@ public class SagaManagerTest {
         //when
         sagaManager.processUserResult(SagaProcessResult.success(SAGA_ID, ORDER_NO));
         //then
-        verify(orderSagaDomainService, times(1)).proceedTo(SAGA_ID, SagaStep.PAYMENT);
+        verify(sagaService, times(1)).proceedTo(SAGA_ID, SagaStep.PAYMENT);
         verify(eventPublisher, times(1)).publishEvent(sagaResourceSecuredCaptor.capture());
         assertThat(sagaResourceSecuredCaptor.getValue())
                 .extracting(SagaResourceSecuredEvent::getSagaId, SagaResourceSecuredEvent::getOrderNo, SagaResourceSecuredEvent::getUserId)
@@ -215,7 +215,7 @@ public class SagaManagerTest {
         sagaManager.processUserResult(SagaProcessResult.fail(SAGA_ID, ORDER_NO, errorCode, failureReason));
         //then
         // 보상 시작 서비스 메서드 호출 검증
-        verify(orderSagaDomainService).startCompensation(SAGA_ID, SagaStep.COUPON, failureReason);
+        verify(sagaService).startCompensation(SAGA_ID, SagaStep.COUPON, failureReason);
         // 쿠폰 보상 메시지 발행 검증
         verify(sagaEventProducer).requestCouponCompensate(SAGA_ID, ORDER_NO, payload);
         // SAGA 중지 이벤트 발행 검증
@@ -229,7 +229,7 @@ public class SagaManagerTest {
         // 상품 보상으로 넘어가면 안됨
         verify(sagaEventProducer, never()).requestInventoryCompensate(anyLong(), anyString(), any(Payload.class));
         //SAGA 가 종료되면 안됨
-        verify(orderSagaDomainService, never()).fail(anyLong(), nullable(String.class));
+        verify(sagaService, never()).fail(anyLong(), nullable(String.class));
     }
 
     @Test
@@ -245,7 +245,7 @@ public class SagaManagerTest {
         sagaManager.processUserResult(SagaProcessResult.fail(SAGA_ID, ORDER_NO, errorCode, failureReason));
         //then
         // 상품 재고 보상 로직 실행 검증
-        verify(orderSagaDomainService).startCompensation(SAGA_ID, SagaStep.PRODUCT, failureReason);
+        verify(sagaService).startCompensation(SAGA_ID, SagaStep.PRODUCT, failureReason);
         verify(sagaEventProducer).requestInventoryCompensate(SAGA_ID, ORDER_NO, payload);
 
         // 쿠폰 보상은 실행되면 안됨
@@ -270,7 +270,7 @@ public class SagaManagerTest {
         //when
         sagaManager.processCouponResult(SagaProcessResult.fail(SAGA_ID, ORDER_NO, errorCode, failureReason));
         //then
-        verify(orderSagaDomainService).startCompensation(SAGA_ID, SagaStep.PRODUCT, failureReason);
+        verify(sagaService).startCompensation(SAGA_ID, SagaStep.PRODUCT, failureReason);
         verify(sagaEventProducer).requestInventoryCompensate(SAGA_ID, ORDER_NO, payload);
         verify(eventPublisher).publishEvent(sagaAbortCaptor.capture());
         assertThat(sagaAbortCaptor.getValue())
@@ -278,7 +278,7 @@ public class SagaManagerTest {
                         SagaAbortEvent::getFailureCode)
                 .containsExactly(SAGA_ID, ORDER_NO, USER_ID, OrderFailureCode.INVALID_COUPON);
         // SAGA가 바로 종료되면 안됨
-        verify(orderSagaDomainService, never()).fail(anyLong(), nullable(String.class));
+        verify(sagaService, never()).fail(anyLong(), nullable(String.class));
     }
 
     @Test
@@ -292,7 +292,7 @@ public class SagaManagerTest {
         //when
         sagaManager.processProductResult(SagaProcessResult.fail(SAGA_ID, ORDER_NO, errorCode, failureReason));
         //then
-        verify(orderSagaDomainService).fail(SAGA_ID, failureReason);
+        verify(sagaService).fail(SAGA_ID, failureReason);
 
         // 보상이 발생해서는 안됨
         verify(sagaEventProducer, never()).requestInventoryCompensate(anyLong(), anyString(), any());
@@ -314,13 +314,13 @@ public class SagaManagerTest {
         sagaManager.processCouponResult(SagaProcessResult.success(SAGA_ID, ORDER_NO));
         //then
         //상품 보상 로직이 진행되어야 함
-        verify(orderSagaDomainService, times(1)).continueCompensation(SAGA_ID, SagaStep.PRODUCT);
+        verify(sagaService, times(1)).continueCompensation(SAGA_ID, SagaStep.PRODUCT);
         verify(sagaEventProducer, times(1)).requestInventoryCompensate(SAGA_ID, ORDER_NO, payload);
 
         //쿠폰 복구는 진행되서는 안됨
         verify(sagaEventProducer, never()).requestCouponCompensate(anyLong(), anyString(), any());
         //SAGA 가 완료되서는 안됨, Saga 실패 이벤트가 발행되서는 안됨
-        verify(orderSagaDomainService, never()).fail(anyLong(), any());
+        verify(sagaService, never()).fail(anyLong(), any());
         verify(eventPublisher, never()).publishEvent(any());
     }
 
@@ -334,7 +334,7 @@ public class SagaManagerTest {
         sagaManager.processProductResult(SagaProcessResult.success(SAGA_ID, ORDER_NO));
         //then
         //사가가 완료됨
-        verify(orderSagaDomainService).fail(SAGA_ID, null);
+        verify(sagaService).fail(SAGA_ID, null);
 
         //다른 단계는 진행되서는 안됨
         verify(sagaEventProducer, never()).requestInventoryCompensate(anyLong(), anyString(), any());
@@ -352,7 +352,7 @@ public class SagaManagerTest {
         SagaInstanceDto saga1 = createSagaInstanceWithId(sagaId1, SagaStep.COUPON, SagaStatus.STARTED, payload);
         SagaInstanceDto saga2 = createSagaInstanceWithId(sagaId2, SagaStep.COUPON, SagaStatus.STARTED, payload);
 
-        given(orderSagaDomainService.getTimeouts(any(LocalDateTime.class)))
+        given(sagaService.getTimeouts(any(LocalDateTime.class)))
                 .willReturn(List.of(saga1, saga2));
 
         mockCompensationReturn(sagaId1, SagaStep.PRODUCT, payload);
@@ -360,8 +360,8 @@ public class SagaManagerTest {
         //when
         sagaManager.processTimeouts();
         //then
-        verify(orderSagaDomainService).startCompensation(eq(sagaId1), any(), eq("주문 처리 지연"));
-        verify(orderSagaDomainService).startCompensation(eq(sagaId2), any(), eq("주문 처리 지연"));
+        verify(sagaService).startCompensation(eq(sagaId1), any(), eq("주문 처리 지연"));
+        verify(sagaService).startCompensation(eq(sagaId2), any(), eq("주문 처리 지연"));
 
         verify(sagaEventProducer).requestInventoryCompensate(eq(sagaId1), any(), eq(payload));
         verify(sagaEventProducer).requestInventoryCompensate(eq(sagaId2), any(), eq(payload));
@@ -377,9 +377,9 @@ public class SagaManagerTest {
         //when
         sagaManager.processPaymentResult(command);
         //then
-        verify(orderSagaDomainService, times(1)).finish(SAGA_ID);
+        verify(sagaService, times(1)).finish(SAGA_ID);
 
-        verify(orderSagaDomainService, never()).fail(anyLong(), anyString());
+        verify(sagaService, never()).fail(anyLong(), anyString());
     }
 
     @Test
@@ -393,7 +393,7 @@ public class SagaManagerTest {
         //when
         sagaManager.processPaymentResult(command);
         //then
-        verify(orderSagaDomainService).startCompensation(SAGA_ID, SagaStep.USER, failureReason);
+        verify(sagaService).startCompensation(SAGA_ID, SagaStep.USER, failureReason);
         verify(sagaEventProducer).requestUserPointCompensate(SAGA_ID, ORDER_NO, payload);
 
         verify(sagaEventProducer, never()).requestCouponCompensate(anyLong(), anyString(), any());
@@ -411,7 +411,7 @@ public class SagaManagerTest {
         //when
         sagaManager.processPaymentResult(command);
         //then
-        verify(orderSagaDomainService).startCompensation(SAGA_ID, SagaStep.COUPON, failureReason);
+        verify(sagaService).startCompensation(SAGA_ID, SagaStep.COUPON, failureReason);
 
         verify(sagaEventProducer).requestCouponCompensate(SAGA_ID, ORDER_NO, payload);
 
@@ -430,7 +430,7 @@ public class SagaManagerTest {
         //when
         sagaManager.processPaymentResult(command);
         //then
-        verify(orderSagaDomainService).startCompensation(SAGA_ID, SagaStep.PRODUCT, failureReason);
+        verify(sagaService).startCompensation(SAGA_ID, SagaStep.PRODUCT, failureReason);
         verify(sagaEventProducer).requestInventoryCompensate(SAGA_ID, ORDER_NO, payload);
 
         verify(sagaEventProducer, never()).requestUserPointCompensate(anyLong(), anyString(), any());
@@ -441,69 +441,69 @@ public class SagaManagerTest {
         SagaInstanceDto currentInstance = createSagaInstance(currentStep, SagaStatus.STARTED, payload);
         SagaInstanceDto nextInstance = createSagaInstance(nextStep, SagaStatus.STARTED, payload);
 
-        given(orderSagaDomainService.getSagaBySagaId(SAGA_ID))
+        given(sagaService.getSagaBySagaId(SAGA_ID))
                 .willReturn(currentInstance);
-        given(orderSagaDomainService.proceedTo(SAGA_ID, nextStep))
+        given(sagaService.proceedTo(SAGA_ID, nextStep))
                 .willReturn(nextInstance);
     }
 
     private void mockCompensationStart(SagaStep currentStep, SagaStep compensateStep, Payload payload, String failureReason) {
         SagaInstanceDto currentInstance = createSagaInstance(currentStep, SagaStatus.STARTED, payload);
         SagaInstanceDto compensateInstance = createSagaInstance(compensateStep, SagaStatus.COMPENSATING, payload);
-        given(orderSagaDomainService.getSagaBySagaId(SAGA_ID))
+        given(sagaService.getSagaBySagaId(SAGA_ID))
                 .willReturn(currentInstance);
-        given(orderSagaDomainService.startCompensation(SAGA_ID, compensateStep, failureReason))
+        given(sagaService.startCompensation(SAGA_ID, compensateStep, failureReason))
                 .willReturn(compensateInstance);
     }
 
     private void mockImmediateFailure(SagaStep step, Payload payload) {
         SagaInstanceDto currentInstance = createSagaInstance(step, SagaStatus.STARTED, payload);
         SagaInstanceDto failedInstance = createSagaInstance(step, SagaStatus.FAILED, payload);
-        given(orderSagaDomainService.getSagaBySagaId(SAGA_ID))
+        given(sagaService.getSagaBySagaId(SAGA_ID))
                 .willReturn(currentInstance);
-        given(orderSagaDomainService.fail(eq(SAGA_ID), anyString()))
+        given(sagaService.fail(eq(SAGA_ID), anyString()))
                 .willReturn(failedInstance);
     }
 
     private void mockCompensationTransition(SagaStep currentStep, SagaStep nextStep, Payload payload) {
         SagaInstanceDto currentInstance = createSagaInstance(currentStep, SagaStatus.COMPENSATING, payload);
         SagaInstanceDto nextInstance = createSagaInstance(nextStep, SagaStatus.COMPENSATING, payload);
-        given(orderSagaDomainService.getSagaBySagaId(SAGA_ID))
+        given(sagaService.getSagaBySagaId(SAGA_ID))
                 .willReturn(currentInstance);
-        given(orderSagaDomainService.continueCompensation(SAGA_ID, nextStep))
+        given(sagaService.continueCompensation(SAGA_ID, nextStep))
                 .willReturn(nextInstance);
     }
 
     private void mockCompensateEnd(SagaStep currentStep, Payload payload) {
         SagaInstanceDto currentInstance = createSagaInstance(currentStep, SagaStatus.COMPENSATING, payload);
         SagaInstanceDto failedInstance = createSagaInstance(currentStep, SagaStatus.FAILED, payload);
-        given(orderSagaDomainService.getSagaBySagaId(SAGA_ID))
+        given(sagaService.getSagaBySagaId(SAGA_ID))
                 .willReturn(currentInstance);
-        given(orderSagaDomainService.fail(eq(SAGA_ID), isNull()))
+        given(sagaService.fail(eq(SAGA_ID), isNull()))
                 .willReturn(failedInstance);
     }
 
     private void mockCompensationReturn(Long sagaId, SagaStep nextStep, Payload payload) {
         SagaInstanceDto compensatingInstance = createSagaInstanceWithId(sagaId, nextStep, SagaStatus.COMPENSATING, payload);
-        given(orderSagaDomainService.startCompensation(eq(sagaId), any(SagaStep.class), anyString()))
+        given(sagaService.startCompensation(eq(sagaId), any(SagaStep.class), anyString()))
                 .willReturn(compensatingInstance);
     }
 
     private void mockSagaFinishByOrder(SagaStep step, Payload payload) {
         SagaInstanceDto currentInstance = createSagaInstance(step, SagaStatus.STARTED, payload);
         SagaInstanceDto finishedInstance = createSagaInstance(step, SagaStatus.FINISHED, payload);
-        given(orderSagaDomainService.getSagaByOrderNo(ORDER_NO))
+        given(sagaService.getSagaByOrderNo(ORDER_NO))
                 .willReturn(currentInstance);
-        given(orderSagaDomainService.finish(SAGA_ID))
+        given(sagaService.finish(SAGA_ID))
                 .willReturn(finishedInstance);
     }
 
     private void mockCompensationStartByOrder(SagaStep currentStep, SagaStep compensateStep, Payload payload, String failureReason) {
         SagaInstanceDto currentInstance = createSagaInstance(currentStep, SagaStatus.STARTED, payload);
         SagaInstanceDto compensateInstance = createSagaInstance(compensateStep, SagaStatus.COMPENSATING, payload);
-        given(orderSagaDomainService.getSagaByOrderNo(ORDER_NO))
+        given(sagaService.getSagaByOrderNo(ORDER_NO))
                 .willReturn(currentInstance);
-        given(orderSagaDomainService.startCompensation(SAGA_ID, compensateStep, failureReason))
+        given(sagaService.startCompensation(SAGA_ID, compensateStep, failureReason))
                 .willReturn(compensateInstance);
     }
 }

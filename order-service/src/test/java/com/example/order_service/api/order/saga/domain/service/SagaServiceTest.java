@@ -21,17 +21,17 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.*;
 
 @Transactional
-public class OrderSagaDomainServiceTest extends ExcludeInfraTest {
+public class SagaServiceTest extends ExcludeInfraTest {
 
     @Autowired
-    private OrderSagaDomainService orderSagaDomainService;
+    private SagaService sagaService;
     @Autowired
     private OrderSagaInstanceRepository orderSagaInstanceRepository;
     private static final String ORDER_NO = "ORD-20260101-AB12FVC";
 
     @Test
     @DisplayName("Saga 인스턴스를 생성해 저장한다")
-    void create(){
+    void initialize(){
         //given
         Payload.SagaItem item1 = Payload.SagaItem.builder().productVariantId(1L)
                 .quantity(3).build();
@@ -44,7 +44,7 @@ public class OrderSagaDomainServiceTest extends ExcludeInfraTest {
                 .useToPoint(1000L)
                 .build();
         //when
-        SagaInstanceDto sagaInstanceDto = orderSagaDomainService.create(ORDER_NO, payload, SagaStep.PRODUCT);
+        SagaInstanceDto sagaInstanceDto = sagaService.initialize(ORDER_NO, payload, SagaStep.PRODUCT);
         //then
         assertThat(sagaInstanceDto.getId()).isNotNull();
         assertThat(sagaInstanceDto)
@@ -74,7 +74,7 @@ public class OrderSagaDomainServiceTest extends ExcludeInfraTest {
         OrderSagaInstance sagaInstance = OrderSagaInstance.create(ORDER_NO, payload, SagaStep.PRODUCT);
         OrderSagaInstance save = orderSagaInstanceRepository.save(sagaInstance);
         //when
-        SagaInstanceDto result = orderSagaDomainService.getSagaBySagaId(save.getId());
+        SagaInstanceDto result = sagaService.getSagaBySagaId(save.getId());
         //then
         assertThat(result.getId()).isNotNull();
         assertThat(result)
@@ -96,7 +96,7 @@ public class OrderSagaDomainServiceTest extends ExcludeInfraTest {
         OrderSagaInstance sagaInstance = OrderSagaInstance.create(ORDER_NO, payload, SagaStep.PRODUCT);
         OrderSagaInstance save = orderSagaInstanceRepository.save(sagaInstance);
         //when
-        SagaInstanceDto result = orderSagaDomainService.proceedTo(save.getId(), SagaStep.COUPON);
+        SagaInstanceDto result = sagaService.proceedTo(save.getId(), SagaStep.COUPON);
         //then
         assertThat(result.getId()).isNotNull();
         assertThat(result)
@@ -111,7 +111,7 @@ public class OrderSagaDomainServiceTest extends ExcludeInfraTest {
         //given
         //when
         //then
-        assertThatThrownBy(() -> orderSagaDomainService.proceedTo(999L, SagaStep.COUPON))
+        assertThatThrownBy(() -> sagaService.proceedTo(999L, SagaStep.COUPON))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(SagaErrorCode.SAGA_NOT_FOUND);
@@ -123,7 +123,7 @@ public class OrderSagaDomainServiceTest extends ExcludeInfraTest {
         //given
         //when
         //then
-        assertThatThrownBy(() -> orderSagaDomainService.getSagaBySagaId(999L))
+        assertThatThrownBy(() -> sagaService.getSagaBySagaId(999L))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(SagaErrorCode.SAGA_NOT_FOUND);
@@ -142,7 +142,7 @@ public class OrderSagaDomainServiceTest extends ExcludeInfraTest {
         OrderSagaInstance sagaInstance = OrderSagaInstance.create(ORDER_NO, payload, SagaStep.PRODUCT);
         OrderSagaInstance save = orderSagaInstanceRepository.save(sagaInstance);
         //when
-        SagaInstanceDto result = orderSagaDomainService.finish(save.getId());
+        SagaInstanceDto result = sagaService.finish(save.getId());
         //then
         assertThat(result.getId()).isNotNull();
         assertThat(result)
@@ -157,7 +157,7 @@ public class OrderSagaDomainServiceTest extends ExcludeInfraTest {
         //given
         //when
         //then
-        assertThatThrownBy(() -> orderSagaDomainService.finish(999L))
+        assertThatThrownBy(() -> sagaService.finish(999L))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(SagaErrorCode.SAGA_NOT_FOUND);
@@ -176,7 +176,7 @@ public class OrderSagaDomainServiceTest extends ExcludeInfraTest {
         OrderSagaInstance sagaInstance = OrderSagaInstance.create(ORDER_NO, payload, SagaStep.PRODUCT);
         OrderSagaInstance save = orderSagaInstanceRepository.save(sagaInstance);
         //when
-        SagaInstanceDto result = orderSagaDomainService.fail(save.getId(), null);
+        SagaInstanceDto result = sagaService.fail(save.getId(), null);
         //then
         assertThat(result.getId()).isNotNull();
         assertThat(result)
@@ -191,7 +191,7 @@ public class OrderSagaDomainServiceTest extends ExcludeInfraTest {
         //given
         //when
         //then
-        assertThatThrownBy(() -> orderSagaDomainService.fail(999L, null))
+        assertThatThrownBy(() -> sagaService.fail(999L, null))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(SagaErrorCode.SAGA_NOT_FOUND);
@@ -211,7 +211,7 @@ public class OrderSagaDomainServiceTest extends ExcludeInfraTest {
         sagaInstance.changeStep(SagaStep.COUPON);
         OrderSagaInstance save = orderSagaInstanceRepository.save(sagaInstance);
         //when
-        SagaInstanceDto result = orderSagaDomainService.startCompensation(save.getId(), SagaStep.PRODUCT, "유효하지 않은 쿠폰");
+        SagaInstanceDto result = sagaService.startCompensation(save.getId(), SagaStep.PRODUCT, "유효하지 않은 쿠폰");
         //then
         assertThat(result.getId()).isNotNull();
         assertThat(result)
@@ -234,7 +234,7 @@ public class OrderSagaDomainServiceTest extends ExcludeInfraTest {
         sagaInstance.changeStatus(SagaStatus.FINISHED);
         OrderSagaInstance save = orderSagaInstanceRepository.save(sagaInstance);
         //when
-        SagaInstanceDto result = orderSagaDomainService.startCompensation(save.getId(), SagaStep.PRODUCT, "timeout");
+        SagaInstanceDto result = sagaService.startCompensation(save.getId(), SagaStep.PRODUCT, "timeout");
         //then
         assertThat(result.getId()).isNotNull();
         assertThat(result)
@@ -249,7 +249,7 @@ public class OrderSagaDomainServiceTest extends ExcludeInfraTest {
         //given
         //when
         //then
-        assertThatThrownBy(() -> orderSagaDomainService.startCompensation(1L, SagaStep.PRODUCT, "유효하지 않은 쿠폰"))
+        assertThatThrownBy(() -> sagaService.startCompensation(1L, SagaStep.PRODUCT, "유효하지 않은 쿠폰"))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(SagaErrorCode.SAGA_NOT_FOUND);
@@ -269,7 +269,7 @@ public class OrderSagaDomainServiceTest extends ExcludeInfraTest {
         sagaInstance.startCompensation(SagaStep.COUPON, "포인트가 부족합니다");
         OrderSagaInstance save = orderSagaInstanceRepository.save(sagaInstance);
         //when
-        SagaInstanceDto result = orderSagaDomainService.continueCompensation(save.getId(), SagaStep.PRODUCT);
+        SagaInstanceDto result = sagaService.continueCompensation(save.getId(), SagaStep.PRODUCT);
         //then
         assertThat(result.getId()).isNotNull();
         assertThat(result)
@@ -285,7 +285,7 @@ public class OrderSagaDomainServiceTest extends ExcludeInfraTest {
         //given
         //when
         //then
-        assertThatThrownBy(() -> orderSagaDomainService.continueCompensation(1L, SagaStep.PRODUCT))
+        assertThatThrownBy(() -> sagaService.continueCompensation(1L, SagaStep.PRODUCT))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(SagaErrorCode.SAGA_NOT_FOUND);
@@ -315,7 +315,7 @@ public class OrderSagaDomainServiceTest extends ExcludeInfraTest {
         OrderSagaInstance save2 = orderSagaInstanceRepository.save(sagaInstance2);
         OrderSagaInstance save3 = orderSagaInstanceRepository.save(sagaInstance3);
         //when
-        List<SagaInstanceDto> timeouts = orderSagaDomainService.getTimeouts(LocalDateTime.of(2025, 12, 23, 0, 0, 0));
+        List<SagaInstanceDto> timeouts = sagaService.getTimeouts(LocalDateTime.of(2025, 12, 23, 0, 0, 0));
         //then
         assertThat(timeouts).hasSize(1)
                 .extracting(SagaInstanceDto::getId, SagaInstanceDto::getSagaStatus)
@@ -337,7 +337,7 @@ public class OrderSagaDomainServiceTest extends ExcludeInfraTest {
         OrderSagaInstance sagaInstance = OrderSagaInstance.create(ORDER_NO, payload, SagaStep.PRODUCT);
         OrderSagaInstance save = orderSagaInstanceRepository.save(sagaInstance);
         //when
-        SagaInstanceDto result = orderSagaDomainService.getSagaByOrderNo(ORDER_NO);
+        SagaInstanceDto result = sagaService.getSagaByOrderNo(ORDER_NO);
         //then
         assertThat(result)
                 .extracting(SagaInstanceDto::getId, SagaInstanceDto::getOrderNo,
@@ -351,7 +351,7 @@ public class OrderSagaDomainServiceTest extends ExcludeInfraTest {
         //given
         //when
         //then
-        assertThatThrownBy(() -> orderSagaDomainService.getSagaByOrderNo(ORDER_NO))
+        assertThatThrownBy(() -> sagaService.getSagaByOrderNo(ORDER_NO))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(SagaErrorCode.SAGA_NOT_FOUND);

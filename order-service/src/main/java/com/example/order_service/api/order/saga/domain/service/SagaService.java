@@ -20,11 +20,11 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class OrderSagaDomainService {
+public class SagaService {
 
     private final OrderSagaInstanceRepository orderSagaInstanceRepository;
 
-    public SagaInstanceDto create(String orderNo, Payload payload, SagaStep firstStep){
+    public SagaInstanceDto initialize(String orderNo, Payload payload, SagaStep firstStep){
         OrderSagaInstance sagaInstance = OrderSagaInstance.create(orderNo, payload, firstStep);
         OrderSagaInstance savedSagaInstance = orderSagaInstanceRepository.save(sagaInstance);
         return SagaInstanceDto.from(savedSagaInstance);
