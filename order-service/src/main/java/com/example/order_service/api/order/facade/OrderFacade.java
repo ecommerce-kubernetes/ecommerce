@@ -82,18 +82,33 @@ public class OrderFacade {
         OrderDto order = orderService.getOrder(orderNo, userId);
         // 결제 가능한 상태인지 검증
         validBeforePayment(order, amount);
-        OrderPaymentInfo orderPaymentInfo = null;
+        OrderPaymentInfo orderPaymentInfo = confirmPayment(order.getOrderNo(), paymentKey, order.getOrderPriceInfo().getFinalPaymentAmount());
+        return completePayment(orderPaymentInfo, order.getOrderNo(), paymentKey);
+    }
 
+    public OrderDetailResponse getOrder(Long userId, String orderNo) {
+        OrderDto order = orderService.getOrder(orderNo, userId);
+        return OrderDetailResponse.from(order);
+    }
+
+    public PageDto<OrderListResponse> getOrders(Long userId, OrderSearchCondition condition){
+        Page<OrderDto> orders = orderService.getOrders(userId, condition);
+        return PageDto.of(orders, OrderListResponse::from);
+    }
+
+    private OrderPaymentInfo confirmPayment(String orderNo, String paymentKey, Long amount) {
         try {
             // 결제 서비스를 호출해 결제를 진행
-            orderPaymentInfo = orderPaymentService.confirmOrderPayment(order.getOrderNo(), paymentKey, amount);
+            return orderPaymentService.confirmOrderPayment(orderNo, paymentKey, amount);
         } catch (BusinessException e) {
             // 결제 서비스 호출중 예외 발생시 주문 상태를 변경하고 saga 롤백을 위한 이벤트를 발행
             OrderDto failOrderDto = orderService.failPayment();
             eventPublisher.publishEvent(PaymentFailedEvent.of(failOrderDto.getOrderNo(), failOrderDto.getOrderer().getUserId(), PaymentFailureCode.PG_REJECT));
             throw e;
         }
+    }
 
+    private OrderDetailResponse completePayment(OrderPaymentInfo orderPaymentInfo, String orderNo, String paymentKey) {
         try {
             // 결제 서비스를 호출해 받은 응답으로 주문상태 변경과 결제 데이터를 저장
             PaymentCreationContext paymentContext = mapper.mapPaymentCreationContext(orderPaymentInfo);
@@ -116,17 +131,6 @@ public class OrderFacade {
             throw e;
         }
     }
-
-    public OrderDetailResponse getOrder(Long userId, String orderNo) {
-        OrderDto order = orderService.getOrder(orderNo, userId);
-        return OrderDetailResponse.from(order);
-    }
-
-    public PageDto<OrderListResponse> getOrders(Long userId, OrderSearchCondition condition){
-        Page<OrderDto> orders = orderService.getOrders(userId, condition);
-        return PageDto.of(orders, OrderListResponse::from);
-    }
-
 
     private void validBeforePayment(OrderDto order, Long amount) {
         if (!order.getStatus().equals(OrderStatus.PAYMENT_WAITING)) {

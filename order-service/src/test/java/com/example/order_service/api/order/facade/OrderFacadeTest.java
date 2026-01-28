@@ -298,74 +298,33 @@ public class OrderFacadeTest {
         }
 
         @Test
-        @DisplayName("결제 승인 성공 후 결제 저장시 예외(결제가 유효하지 않음)발생시 ")
-        void confirmOrderPayment_orderService_throw_business_exception() {
+        @DisplayName("결제 승인 성공 후 결제 저장시 예외가 발생하면 주문을 실패로 처리하고 환불 요청과 결제 실패 이벤트를 발행한다")
+        void confirmOrderPayment_orderService_throw_exception() {
             //given
+            OrderDto getOrderDto = returnOrderDto().status(OrderStatus.PAYMENT_WAITING).build();
+            OrderPaymentInfo orderPaymentInfo = anOrderPaymentInfo().build();
+            PaymentCreationContext paymentContext = anPaymentContext().build();
+            OrderDto failOrderDto = returnOrderDto().status(OrderStatus.CANCELED).build();
+            given(orderService.getOrder(anyString(), anyLong()))
+                    .willReturn(getOrderDto);
+            given(orderPaymentService.confirmOrderPayment(anyString(), anyString(), anyLong()))
+                    .willReturn(orderPaymentInfo);
+            given(mapper.mapPaymentCreationContext(any(OrderPaymentInfo.class)))
+                    .willReturn(paymentContext);
+            willThrow(RuntimeException.class).given(orderService).completePayment(any(PaymentCreationContext.class));
+            given(orderService.failPayment()).willReturn(failOrderDto);
             //when
             //then
+            assertThatThrownBy(() -> orderFacade.confirmOrderPayment(ORDER_NO, 1L, "paymentKey", 7000L))
+                    .isInstanceOf(Exception.class);
+
+            verify(orderPaymentService).cancelPayment("paymentKey", PaymentFailureCode.INTERNAL_ERROR.name(), 7000L);
+            verify(eventPublisher).publishEvent(paymentFailedEventCaptor.capture());
+            assertThat(paymentFailedEventCaptor.getValue())
+                    .extracting(PaymentFailedEvent::getOrderNo, PaymentFailedEvent::getUserId, PaymentFailedEvent::getCode)
+                    .containsExactly(ORDER_NO, 1L, PaymentFailureCode.INTERNAL_ERROR);
         }
     }
-
-
-
-//    @Test
-//    @DisplayName("결제를 승인할때 결제 승인이 실패한 경우 주문을 실패 처리, 주문 실패 이벤트를 발행하고 예외를 그대로 던진다")
-//    void finalizeOrder_when_payment_fail(){
-//        //given
-//        String paymentKey = "paymentKey";
-//        String failureMessage = "결제 승인이 거절되었습니다";
-//
-//        OrderDto waitingOrder = mockSavedOrder(OrderStatus.PAYMENT_WAITING, FIXED_FINAL_PRICE);
-//        OrderDto failureOrder = mockCanceledOrder(OrderFailureCode.PAYMENT_FAILED);
-//        given(orderDomainService.getOrder(anyString(), anyLong()))
-//                .willReturn(waitingOrder);
-//        willThrow(new BusinessException(PaymentErrorCode.PAYMENT_APPROVAL_FAIL))
-//                .given(orderExternalAdaptor).confirmOrderPayment(anyString(), anyString(), anyLong());
-//        given(orderDomainService.canceledOrder(anyString(), any(OrderFailureCode.class)))
-//                .willReturn(failureOrder);
-//        //when
-//        //then
-//        assertThatThrownBy(() -> orderFacade.finalizeOrder(ORDER_NO, USER_ID, paymentKey, FIXED_FINAL_PRICE))
-//                .isInstanceOf(BusinessException.class)
-//                .hasMessage(failureMessage);
-//
-//        verify(orderDomainService, times(1)).canceledOrder(ORDER_NO, OrderFailureCode.PAYMENT_FAILED);
-//
-//        verify(eventPublisher, times(1)).publishEvent(paymentResultEventCaptor.capture());
-//        assertThat(paymentResultEventCaptor.getValue())
-//                .extracting(PaymentResultEvent::getOrderNo, PaymentResultEvent::getStatus, PaymentResultEvent::getCode)
-//                .containsExactly(ORDER_NO, OrderEventStatus.FAILURE, OrderFailureCode.PAYMENT_FAILED);
-//    }
-
-//    @Test
-//    @DisplayName("결제 승인 요청시 결제는 승인되었지만 주문 상태 변경이 실패한 경우 주문을 실패 처리, SAGA 보상을 진행하고 예외를 던진다")
-//    void finalizeOrder_when_DB_Exception(){
-//        //given
-//        String paymentKey = "paymentKey";
-//        OrderDto waitingOrder = mockSavedOrder(OrderStatus.PAYMENT_WAITING, FIXED_FINAL_PRICE);
-//        OrderDto canceledOrder = mockSavedOrder(OrderStatus.CANCELED, FIXED_FINAL_PRICE);
-//        given(orderDomainService.getOrder(anyString(), anyLong()))
-//                .willReturn(waitingOrder);
-//        TossPaymentConfirmResponse paymentResponse = mockPaymentResponse(paymentKey, FIXED_FINAL_PRICE);
-//        given(orderExternalAdaptor.confirmOrderPayment(anyString(), anyString(), anyLong()))
-//                .willReturn(paymentResponse);
-//        willThrow(RuntimeException.class)
-//                .given(orderDomainService).completedOrder(any());
-//        given(orderDomainService.canceledOrder(anyString(), any()))
-//                .willReturn(canceledOrder);
-//        //when
-//        //then
-//        assertThatThrownBy(() -> orderFacade.finalizeOrder(ORDER_NO, USER_ID, paymentKey, FIXED_FINAL_PRICE))
-//                .isInstanceOf(BusinessException.class)
-//                .extracting("errorCode")
-//                .isEqualTo(CommonErrorCode.INTERNAL_ERROR);
-//
-//        verify(orderDomainService).canceledOrder(ORDER_NO, OrderFailureCode.SYSTEM_ERROR);
-//        verify(eventPublisher, times(1)).publishEvent(paymentResultEventCaptor.capture());
-//        assertThat(paymentResultEventCaptor.getValue())
-//                .extracting(PaymentResultEvent::getOrderNo, PaymentResultEvent::getStatus, PaymentResultEvent::getCode)
-//                .containsExactly(ORDER_NO, OrderEventStatus.FAILURE, OrderFailureCode.SYSTEM_ERROR);
-//    }
 
     @Nested
     @DisplayName("주문 조회")
