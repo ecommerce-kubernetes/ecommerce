@@ -9,7 +9,6 @@ import com.example.order_service.api.common.util.AsyncUtil;
 import com.example.order_service.api.order.controller.dto.request.OrderSearchCondition;
 import com.example.order_service.api.order.domain.model.OrderFailureCode;
 import com.example.order_service.api.order.domain.model.OrderStatus;
-import com.example.order_service.api.order.domain.model.PaymentType;
 import com.example.order_service.api.order.domain.service.*;
 import com.example.order_service.api.order.domain.service.dto.command.OrderCreationContext;
 import com.example.order_service.api.order.domain.service.dto.command.PaymentCreationContext;

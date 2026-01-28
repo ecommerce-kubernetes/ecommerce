@@ -193,10 +193,10 @@ public class OrderFacadeTest {
         @DisplayName("주문 상태를 취소로 변경하고 주문 취소 이벤트를 발행한다")
         void processOrderFailure(){
             //given
-            OrderDto orderDto = returnOrderDto().status(OrderStatus.CANCELED).orderFailureCode(OrderFailureCode.OUT_OF_STOCK).build();
+            OrderDto orderDto = returnOrderDto().status(OrderStatus.CANCELED).orderFailureCode(OrderFailureCode.INSUFFICIENT_STOCK).build();
             given(orderService.canceledOrder(anyString(), any(OrderFailureCode.class))).willReturn(orderDto);
             //when
-            orderFacade.processOrderFailure(ORDER_NO, OrderFailureCode.OUT_OF_STOCK);
+            orderFacade.processOrderFailure(ORDER_NO, OrderFailureCode.INSUFFICIENT_STOCK);
             //then
             verify(eventPublisher).publishEvent(orderFailedEventCaptor.capture());
             assertThat(orderFailedEventCaptor.getValue())

@@ -162,10 +162,10 @@ public class OrderTest {
             OrderCreationContext context = anOrderCreationContext().build();
             Order order = Order.create(context);
             //when
-            order.canceled(OrderFailureCode.OUT_OF_STOCK);
+            order.canceled(OrderFailureCode.INSUFFICIENT_STOCK);
             //then
             assertThat(order.getStatus()).isEqualTo(OrderStatus.CANCELED);
-            assertThat(order.getFailureCode()).isEqualTo(OrderFailureCode.OUT_OF_STOCK);
+            assertThat(order.getFailureCode()).isEqualTo(OrderFailureCode.INSUFFICIENT_STOCK);
         }
     }
 }

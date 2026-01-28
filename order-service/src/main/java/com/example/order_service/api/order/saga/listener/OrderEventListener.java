@@ -1,5 +1,6 @@
 package com.example.order_service.api.order.saga.listener;
 
+import com.example.order_service.api.order.domain.model.OrderFailureCode;
 import com.example.order_service.api.order.facade.OrderFacade;
 import com.example.order_service.api.order.facade.event.OrderCreatedEvent;
 import com.example.order_service.api.order.facade.event.PaymentResultEvent;
@@ -38,6 +39,19 @@ public class OrderEventListener {
 
     @EventListener
     public void handleSagaAborted(SagaAbortEvent event) {
-        orderFacade.processOrderFailure(event.getOrderNo(), event.getOrderFailureCode());
+        OrderFailureCode orderFailureCode = mapToOrderFailureCode(event.getFailureCode());
+        orderFacade.processOrderFailure(event.getOrderNo(), orderFailureCode);
+    }
+
+    private OrderFailureCode mapToOrderFailureCode(String errorCode) {
+        if (errorCode == null) return OrderFailureCode.UNKNOWN;
+
+        return switch (errorCode) {
+            case "INSUFFICIENT_POINT" -> OrderFailureCode.INSUFFICIENT_POINT;
+            case "INVALID_COUPON" -> OrderFailureCode.INVALID_COUPON;
+            case "COUPON_EXPIRED" -> OrderFailureCode.COUPON_EXPIRED;
+            case "INSUFFICIENT_STOCK" -> OrderFailureCode.INSUFFICIENT_STOCK;
+            default -> OrderFailureCode.SYSTEM_ERROR;
+        };
     }
 }

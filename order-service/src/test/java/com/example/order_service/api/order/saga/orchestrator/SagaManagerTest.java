@@ -223,8 +223,8 @@ public class SagaManagerTest {
 
         assertThat(sagaAbortCaptor.getValue())
                 .extracting(SagaAbortEvent::getSagaId, SagaAbortEvent::getOrderNo, SagaAbortEvent::getUserId,
-                        SagaAbortEvent::getOrderFailureCode)
-                .containsExactly(SAGA_ID, ORDER_NO, USER_ID, OrderFailureCode.POINT_SHORTAGE);
+                        SagaAbortEvent::getFailureCode)
+                .containsExactly(SAGA_ID, ORDER_NO, USER_ID, OrderFailureCode.INSUFFICIENT_POINT);
 
         // 상품 보상으로 넘어가면 안됨
         verify(sagaEventProducer, never()).requestInventoryCompensate(anyLong(), anyString(), any(Payload.class));
@@ -255,8 +255,8 @@ public class SagaManagerTest {
         verify(eventPublisher).publishEvent(sagaAbortCaptor.capture());
         assertThat(sagaAbortCaptor.getValue())
                 .extracting(SagaAbortEvent::getSagaId, SagaAbortEvent::getOrderNo, SagaAbortEvent::getUserId,
-                        SagaAbortEvent::getOrderFailureCode)
-                .containsExactly(SAGA_ID, ORDER_NO, USER_ID, OrderFailureCode.POINT_SHORTAGE);
+                        SagaAbortEvent::getFailureCode)
+                .containsExactly(SAGA_ID, ORDER_NO, USER_ID, OrderFailureCode.INSUFFICIENT_POINT);
     }
 
     @Test
@@ -275,7 +275,7 @@ public class SagaManagerTest {
         verify(eventPublisher).publishEvent(sagaAbortCaptor.capture());
         assertThat(sagaAbortCaptor.getValue())
                 .extracting(SagaAbortEvent::getSagaId, SagaAbortEvent::getOrderNo, SagaAbortEvent::getUserId,
-                        SagaAbortEvent::getOrderFailureCode)
+                        SagaAbortEvent::getFailureCode)
                 .containsExactly(SAGA_ID, ORDER_NO, USER_ID, OrderFailureCode.INVALID_COUPON);
         // SAGA가 바로 종료되면 안됨
         verify(orderSagaDomainService, never()).fail(anyLong(), nullable(String.class));
@@ -300,8 +300,8 @@ public class SagaManagerTest {
         verify(eventPublisher).publishEvent(sagaAbortCaptor.capture());
         assertThat(sagaAbortCaptor.getValue())
                 .extracting(SagaAbortEvent::getSagaId, SagaAbortEvent::getOrderNo, SagaAbortEvent::getUserId,
-                        SagaAbortEvent::getOrderFailureCode)
-                .containsExactly(SAGA_ID, ORDER_NO, USER_ID, OrderFailureCode.OUT_OF_STOCK);
+                        SagaAbortEvent::getFailureCode)
+                .containsExactly(SAGA_ID, ORDER_NO, USER_ID, errorCode);
     }
 
     @Test

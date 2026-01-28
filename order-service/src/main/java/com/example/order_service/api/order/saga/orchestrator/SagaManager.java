@@ -132,9 +132,7 @@ public class SagaManager {
     }
 
     private SagaAbortEvent createSagaAbortEvent(SagaInstanceDto saga, String errorCode) {
-        OrderFailureCode orderFailureCode = OrderFailureCode.fromSagaErrorCode(errorCode);
-        return SagaAbortEvent.of(saga.getId(), saga.getOrderNo(), saga.getPayload().getUserId(),
-                orderFailureCode);
+        return SagaAbortEvent.of(saga.getId(), saga.getOrderNo(), saga.getPayload().getUserId(), errorCode);
     }
 
     private void continueCompensationSequence(SagaInstanceDto saga) {

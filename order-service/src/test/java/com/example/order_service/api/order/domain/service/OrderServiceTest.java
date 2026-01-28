@@ -132,7 +132,7 @@ public class OrderServiceTest extends ExcludeInfraTest {
             OrderCreationContext context = anOrderCreationContext().build();
             Order savedOrder = orderRepository.save(Order.create(context));
             //when
-            OrderDto result = orderService.canceledOrder(savedOrder.getOrderNo(), OrderFailureCode.OUT_OF_STOCK);
+            OrderDto result = orderService.canceledOrder(savedOrder.getOrderNo(), OrderFailureCode.INSUFFICIENT_STOCK);
             //then
             assertThat(result.getStatus()).isEqualTo(OrderStatus.CANCELED);
         }
@@ -143,7 +143,7 @@ public class OrderServiceTest extends ExcludeInfraTest {
             //given
             //when
             //then
-            assertThatThrownBy(() -> orderService.canceledOrder("UNKNOWN", OrderFailureCode.OUT_OF_STOCK))
+            assertThatThrownBy(() -> orderService.canceledOrder("UNKNOWN", OrderFailureCode.INSUFFICIENT_STOCK))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(OrderErrorCode.ORDER_NOT_FOUND);

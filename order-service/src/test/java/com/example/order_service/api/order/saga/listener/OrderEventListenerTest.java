@@ -11,14 +11,20 @@ import com.example.order_service.api.order.saga.orchestrator.dto.command.SagaSta
 import com.example.order_service.api.order.saga.orchestrator.event.SagaAbortEvent;
 import com.example.order_service.api.order.saga.orchestrator.event.SagaResourceSecuredEvent;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
@@ -87,17 +93,6 @@ public class OrderEventListenerTest {
     }
 
     @Test
-    @DisplayName("Saga가 실패되면 주문 상태를 변경하기 위해 orderApplicationService를 호출한다")
-    void handleSagaAborted() {
-        //given
-        SagaAbortEvent sagaAbortEvent = SagaAbortEvent.of(1L, ORDER_NO, 1L, OrderFailureCode.OUT_OF_STOCK);
-        //when
-        orderEventListener.handleSagaAborted(sagaAbortEvent);
-        //then
-        verify(orderFacade, times(1)).processOrderFailure(ORDER_NO, OrderFailureCode.OUT_OF_STOCK);
-    }
-
-    @Test
     @DisplayName("결제 처리 후 Saga를 완료하기 위해 sagaManager를 호출한다")
     void handlePaymentResult(){
         //given
@@ -114,4 +109,54 @@ public class OrderEventListenerTest {
                         SagaPaymentCommand::getFailureReason)
                 .containsExactly(ORDER_NO, OrderEventStatus.SUCCESS, null, null);
     }
+
+    @Nested
+    @DisplayName("SAGA 실패시")
+    class SagaAborted {
+
+        @Test
+        @DisplayName("Saga 포인트 부족 이벤트 수신 시 INSUFFICIENT_POINT 코드로 실패 처리한다")
+        void handleSagaAbort_publish_insufficient_point_event(){
+            //given
+            SagaAbortEvent abortEvent = SagaAbortEvent.of(1L, ORDER_NO, 1L, "INSUFFICIENT_POINT");
+            //when
+            orderEventListener.handleSagaAborted(abortEvent);
+            //then
+            verify(orderFacade).processOrderFailure(ORDER_NO, OrderFailureCode.INSUFFICIENT_POINT);
+        }
+
+        @Test
+        @DisplayName("Saga 유효하지 않은 쿠폰 이벤트 수신시 INVALID_COUPON 코드로 실패 처리한다")
+        void handleSagaAbort_publish_invalid_coupon(){
+            //given
+            SagaAbortEvent abortEvent = SagaAbortEvent.of(1L, ORDER_NO, 1L, "INVALID_COUPON");
+            //when
+            orderEventListener.handleSagaAborted(abortEvent);
+            //then
+            verify(orderFacade).processOrderFailure(ORDER_NO, OrderFailureCode.INVALID_COUPON);
+        }
+
+        @Test
+        @DisplayName("Saga 만료된 쿠폰 이벤트 수신시 COUPON_EXPIRED 코드로 실패 처리한다")
+        void handleSagaAbort_publish_coupon_expired(){
+            //given
+            SagaAbortEvent abortEvent = SagaAbortEvent.of(1L, ORDER_NO, 1L, "COUPON_EXPIRED");
+            //when
+            orderEventListener.handleSagaAborted(abortEvent);
+            //then
+            verify(orderFacade).processOrderFailure(ORDER_NO, OrderFailureCode.COUPON_EXPIRED);
+        }
+
+        @Test
+        @DisplayName("Saga 재고 부족 이벤트 수신시  코드로 실패 처리한다")
+        void handleSagaAbort_publish_insufficient_stock(){
+            //given
+            SagaAbortEvent abortEvent = SagaAbortEvent.of(1L, ORDER_NO, 1L, "INSUFFICIENT_STOCK");
+            //when
+            orderEventListener.handleSagaAborted(abortEvent);
+            //then
+            verify(orderFacade).processOrderFailure(ORDER_NO, OrderFailureCode.INSUFFICIENT_STOCK);
+        }
+    }
+
 }
