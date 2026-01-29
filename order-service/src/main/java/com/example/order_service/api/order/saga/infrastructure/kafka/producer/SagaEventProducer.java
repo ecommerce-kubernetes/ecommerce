@@ -20,43 +20,43 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SagaEventProducer {
 
-    @Value("${order.topics.product-request}")
-    private String productRequestTopic;
-    @Value("${order.topics.coupon-request}")
-    private String couponRequestTopic;
-    @Value("${order.topics.user-request}")
-    private String userRequestTopic;
+    @Value("${product-saga-command}")
+    private String productCommandTopic;
+    @Value("${coupon-saga-command}")
+    private String couponCommandTopic;
+    @Value("${user-saga-command}")
+    private String userCommandTopic;
 
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
     public void requestInventoryDeduction(Long sagaId, String orderNo, Payload payload) {
         ProductSagaCommand message = createInventoryRequestMessage(ProductCommandType.DEDUCT_STOCK, sagaId, orderNo, payload);
-        kafkaTemplate.send(productRequestTopic, String.valueOf(sagaId), message);
+        kafkaTemplate.send(productCommandTopic, String.valueOf(sagaId), message);
     }
 
     public void requestCouponUse(Long sagaId, String orderNo, Payload payload) {
         CouponSagaCommand message = createCouponRequestMessage(CouponCommandType.USE_COUPON, sagaId, orderNo, payload);
-        kafkaTemplate.send(couponRequestTopic, String.valueOf(sagaId), message);
+        kafkaTemplate.send(couponCommandTopic, String.valueOf(sagaId), message);
     }
 
     public void requestUserPointUse(Long sagaId, String orderNo, Payload payload){
         UserSagaCommand message = createUserRequestMessage(UserCommandType.USE_POINT, sagaId, orderNo, payload);
-        kafkaTemplate.send(userRequestTopic, String.valueOf(sagaId), message);
+        kafkaTemplate.send(userCommandTopic, String.valueOf(sagaId), message);
     }
 
     public void requestUserPointCompensate(Long sagaId, String orderNo, Payload payload) {
         UserSagaCommand message = createUserRequestMessage(UserCommandType.REFUND_POINT, sagaId, orderNo, payload);
-        kafkaTemplate.send(userRequestTopic, String.valueOf(sagaId), message);
+        kafkaTemplate.send(userCommandTopic, String.valueOf(sagaId), message);
     }
 
     public void requestCouponCompensate(Long sagaId, String orderNo, Payload payload) {
         CouponSagaCommand message = createCouponRequestMessage(CouponCommandType.CANCEL_USE, sagaId, orderNo, payload);
-        kafkaTemplate.send(couponRequestTopic, String.valueOf(sagaId), message);
+        kafkaTemplate.send(couponCommandTopic, String.valueOf(sagaId), message);
     }
 
     public void requestInventoryCompensate(Long sagaId, String orderNo, Payload payload) {
         ProductSagaCommand message = createInventoryRequestMessage(ProductCommandType.RESTORE_STOCK, sagaId, orderNo, payload);
-        kafkaTemplate.send(productRequestTopic, String.valueOf(sagaId), message);
+        kafkaTemplate.send(productCommandTopic, String.valueOf(sagaId), message);
     }
 
     private ProductSagaCommand createInventoryRequestMessage(ProductCommandType type, Long sagaId, String orderNo, Payload payload){
