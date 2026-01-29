@@ -3,7 +3,6 @@ package com.example.order_service.api.common.client.payment;
 import com.example.order_service.api.common.exception.BusinessException;
 import com.example.order_service.api.common.exception.CommonErrorCode;
 import com.example.order_service.api.common.exception.ExternalServiceErrorCode;
-import com.example.order_service.api.common.exception.PaymentErrorCode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import feign.Response;
 import feign.codec.ErrorDecoder;

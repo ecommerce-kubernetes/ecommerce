@@ -5,7 +5,6 @@ import com.example.order_service.api.common.exception.OrderErrorCode;
 import com.example.order_service.api.order.controller.dto.request.OrderSearchCondition;
 import com.example.order_service.api.order.domain.model.Order;
 import com.example.order_service.api.order.domain.model.OrderFailureCode;
-import com.example.order_service.api.order.domain.model.OrderStatus;
 import com.example.order_service.api.order.domain.repository.OrderRepository;
 import com.example.order_service.api.order.domain.service.dto.command.OrderCreationContext;
 import com.example.order_service.api.order.domain.service.dto.command.PaymentCreationContext;

@@ -3,7 +3,6 @@ package com.example.order_service.api.order.facade.dto.result;
 import com.example.order_service.api.order.domain.service.dto.result.OrderDto;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import java.util.List;
 

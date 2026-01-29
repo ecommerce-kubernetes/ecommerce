@@ -1,8 +1,7 @@
 package com.example.order_service.api.cart.listener.event;
 
 import com.example.order_service.api.cart.facade.CartFacade;
-import com.example.order_service.api.order.facade.event.OrderEventStatus;
-import com.example.order_service.api.order.facade.event.PaymentResultEvent;
+import com.example.order_service.api.order.facade.event.PaymentCompletedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
@@ -14,12 +13,7 @@ public class CartEventListener {
     private final CartFacade cartFacade;
 
     @EventListener
-    public void handlePaymentResult(PaymentResultEvent event) {
-
-        if (event.getStatus() != OrderEventStatus.SUCCESS) {
-            return;
-        }
-
+    public void handlePaymentCompletedEvent(PaymentCompletedEvent event){
         cartFacade.removePurchasedItems(event.getUserId(), event.getProductVariantIds());
     }
 }
