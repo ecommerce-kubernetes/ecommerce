@@ -102,7 +102,7 @@ public class OrderEventListenerTest {
         @DisplayName("결제 성공 이벤트 수신시 Saga를 완료한다")
         void handlePaymentCompleted(){
             //given
-            PaymentCompletedEvent event = PaymentCompletedEvent.of(ORDER_NO, 1L);
+            PaymentCompletedEvent event = PaymentCompletedEvent.of(ORDER_NO, 1L, List.of(1L, 2L));
             //when
             orderEventListener.handlePaymentCompleted(event);
             //then
