@@ -291,8 +291,8 @@ public class OrderFacadeTest {
             verify(orderService, times(1)).failPayment(anyString(), any(OrderFailureCode.class));
             verify(eventPublisher).publishEvent(paymentFailedEventCaptor.capture());
             assertThat(paymentFailedEventCaptor.getValue())
-                    .extracting(PaymentFailedEvent::getOrderNo, PaymentFailedEvent::getUserId, PaymentFailedEvent::getCode)
-                    .containsExactlyInAnyOrder(ORDER_NO, 1L, PaymentFailureCode.PG_REJECT);
+                    .extracting(PaymentFailedEvent::getOrderNo, PaymentFailedEvent::getUserId, PaymentFailedEvent::getCode, PaymentFailedEvent::getFailureReason)
+                    .containsExactlyInAnyOrder(ORDER_NO, 1L, PaymentFailureCode.PG_REJECT, "잔액이 부족합니다");
         }
     }
 

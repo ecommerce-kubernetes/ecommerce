@@ -106,7 +106,8 @@ public class OrderFacade {
             // 결제 서비스 호출중 예외 발생시 주문 상태를 변경하고 saga 롤백을 위한 이벤트를 발행
             OrderFailureCode orderFailureCode = mapToOrderFailureCode(e.getErrorCode());
             OrderDto failOrderDto = orderService.failPayment(orderNo, orderFailureCode);
-            eventPublisher.publishEvent(PaymentFailedEvent.of(failOrderDto.getOrderNo(), failOrderDto.getOrderer().getUserId(), PaymentFailureCode.PG_REJECT));
+            eventPublisher.publishEvent(PaymentFailedEvent
+                    .of(failOrderDto.getOrderNo(), failOrderDto.getOrderer().getUserId(), PaymentFailureCode.PG_REJECT, e.getErrorCode().getMessage()));
             throw e;
         }
     }

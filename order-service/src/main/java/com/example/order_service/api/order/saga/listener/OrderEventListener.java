@@ -3,10 +3,14 @@ package com.example.order_service.api.order.saga.listener;
 import com.example.order_service.api.order.domain.model.OrderFailureCode;
 import com.example.order_service.api.order.facade.OrderFacade;
 import com.example.order_service.api.order.facade.event.OrderCreatedEvent;
+import com.example.order_service.api.order.facade.event.PaymentCompletedEvent;
+import com.example.order_service.api.order.facade.event.PaymentFailedEvent;
 import com.example.order_service.api.order.facade.event.PaymentResultEvent;
+import com.example.order_service.api.order.saga.domain.model.SagaStep;
 import com.example.order_service.api.order.saga.orchestrator.SagaManager;
 import com.example.order_service.api.order.saga.orchestrator.dto.command.SagaPaymentCommand;
 import com.example.order_service.api.order.saga.orchestrator.dto.command.SagaStartCommand;
+import com.example.order_service.api.order.saga.orchestrator.dto.command.SagaStepResultCommand;
 import com.example.order_service.api.order.saga.orchestrator.event.SagaAbortEvent;
 import com.example.order_service.api.order.saga.orchestrator.event.SagaResourceSecuredEvent;
 import lombok.RequiredArgsConstructor;
@@ -27,9 +31,16 @@ public class OrderEventListener {
     }
 
     @EventListener
-    public void handlePaymentResult(PaymentResultEvent event) {
-        SagaPaymentCommand command = SagaPaymentCommand.from(event);
-        sagaManager.processPaymentResult(command);
+    public void handlePaymentCompleted(PaymentCompletedEvent event) {
+        SagaStepResultCommand command = SagaStepResultCommand.of(SagaStep.PAYMENT, event.getOrderNo(), true, null, null);
+        sagaManager.handleStepResult(command);
+    }
+
+    @EventListener
+    public void handlePaymentFailed(PaymentFailedEvent event) {
+        SagaStepResultCommand command = SagaStepResultCommand.of(SagaStep.PAYMENT, event.getOrderNo(), false, event.getCode().name(),
+                event.getFailureReason());
+        sagaManager.handleStepResult(command);
     }
 
     @EventListener

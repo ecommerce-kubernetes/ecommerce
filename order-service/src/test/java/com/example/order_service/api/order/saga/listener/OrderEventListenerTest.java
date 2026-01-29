@@ -2,12 +2,12 @@ package com.example.order_service.api.order.saga.listener;
 
 import com.example.order_service.api.order.domain.model.OrderFailureCode;
 import com.example.order_service.api.order.facade.OrderFacade;
-import com.example.order_service.api.order.facade.event.OrderCreatedEvent;
-import com.example.order_service.api.order.facade.event.OrderEventStatus;
-import com.example.order_service.api.order.facade.event.PaymentResultEvent;
+import com.example.order_service.api.order.facade.event.*;
+import com.example.order_service.api.order.saga.domain.model.SagaStep;
 import com.example.order_service.api.order.saga.orchestrator.SagaManager;
 import com.example.order_service.api.order.saga.orchestrator.dto.command.SagaPaymentCommand;
 import com.example.order_service.api.order.saga.orchestrator.dto.command.SagaStartCommand;
+import com.example.order_service.api.order.saga.orchestrator.dto.command.SagaStepResultCommand;
 import com.example.order_service.api.order.saga.orchestrator.event.SagaAbortEvent;
 import com.example.order_service.api.order.saga.orchestrator.event.SagaResourceSecuredEvent;
 import org.junit.jupiter.api.DisplayName;
@@ -41,6 +41,9 @@ public class OrderEventListenerTest {
     @Mock
     private OrderFacade orderFacade;
     public static final String ORDER_NO = "ORD-20260101-AB12FVC";
+    @Captor
+    private ArgumentCaptor<SagaStepResultCommand> sagaStepResultCaptor;
+
 
     @Test
     @DisplayName("주문 생성 이벤트를 수신하면 SAGA 를 수행한다")
@@ -92,22 +95,39 @@ public class OrderEventListenerTest {
         verify(orderFacade, times(1)).preparePayment(ORDER_NO);
     }
 
-    @Test
-    @DisplayName("결제 처리 후 Saga를 완료하기 위해 sagaManager를 호출한다")
-    void handlePaymentResult(){
-        //given
-        PaymentResultEvent paymentResultEvent = PaymentResultEvent.of(ORDER_NO, 1L, OrderEventStatus.SUCCESS, null,
-                List.of(1L, 2L));
-        //when
-        orderEventListener.handlePaymentResult(paymentResultEvent);
-        //then
-        ArgumentCaptor<SagaPaymentCommand> captor = ArgumentCaptor.forClass(SagaPaymentCommand.class);
-        verify(sagaManager, times(1)).processPaymentResult(captor.capture());
+    @Nested
+    @DisplayName("결제 이벤트 수신시")
+    class PaymentEvent {
 
-        assertThat(captor.getValue())
-                .extracting(SagaPaymentCommand::getOrderNo, SagaPaymentCommand::getStatus, SagaPaymentCommand::getCode,
-                        SagaPaymentCommand::getFailureReason)
-                .containsExactly(ORDER_NO, OrderEventStatus.SUCCESS, null, null);
+        @Test
+        @DisplayName("결제 성공 이벤트 수신시 Saga를 완료한다")
+        void handlePaymentCompleted(){
+            //given
+            PaymentCompletedEvent event = PaymentCompletedEvent.of(ORDER_NO, 1L);
+            //when
+            orderEventListener.handlePaymentCompleted(event);
+            //then
+            verify(sagaManager).handleStepResult(sagaStepResultCaptor.capture());
+            assertThat(sagaStepResultCaptor.getValue())
+                    .extracting(SagaStepResultCommand::getStep, SagaStepResultCommand::getOrderNo, SagaStepResultCommand::isSuccess,
+                            SagaStepResultCommand::getErrorCode, SagaStepResultCommand::getFailureReason)
+                    .containsExactly(SagaStep.PAYMENT, ORDER_NO, true, null, null);
+        }
+
+        @Test
+        @DisplayName("결제 실패 이벤트 수신시 Saga를 실패처리하고 보상로직을 실행한다")
+        void handlePaymentFailed(){
+            //given
+            PaymentFailedEvent event = PaymentFailedEvent.of(ORDER_NO, 1L, PaymentFailureCode.PG_REJECT, "잔액이 부족합니다");
+            //when
+            orderEventListener.handlePaymentFailed(event);
+            //then
+            verify(sagaManager).handleStepResult(sagaStepResultCaptor.capture());
+            assertThat(sagaStepResultCaptor.getValue())
+                    .extracting(SagaStepResultCommand::getStep, SagaStepResultCommand::getOrderNo, SagaStepResultCommand::isSuccess,
+                            SagaStepResultCommand::getErrorCode, SagaStepResultCommand::getFailureReason)
+                    .containsExactly(SagaStep.PAYMENT, ORDER_NO, false, "PG_REJECT", "잔액이 부족합니다");
+        }
     }
 
     @Nested

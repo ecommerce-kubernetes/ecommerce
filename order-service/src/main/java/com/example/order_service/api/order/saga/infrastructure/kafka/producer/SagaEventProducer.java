@@ -20,11 +20,11 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SagaEventProducer {
 
-    @Value("${product-saga-command}")
+    @Value("${order.topics.product-saga-command}")
     private String productCommandTopic;
-    @Value("${coupon-saga-command}")
+    @Value("${order.topics.coupon-saga-command}")
     private String couponCommandTopic;
-    @Value("${user-saga-command}")
+    @Value("${order.topics.user-saga-command}")
     private String userCommandTopic;
 
     private final KafkaTemplate<String, Object> kafkaTemplate;
