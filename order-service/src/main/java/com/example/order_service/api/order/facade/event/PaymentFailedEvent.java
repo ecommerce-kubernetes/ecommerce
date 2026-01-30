@@ -8,10 +8,10 @@ import lombok.Getter;
 public class PaymentFailedEvent {
     private String orderNo;
     private Long userId;
-    private PaymentFailureCode code;
+    private String code;
     private String failureReason;
 
-    public static PaymentFailedEvent of(String orderNo, Long userId, PaymentFailureCode code, String failureReason) {
+    public static PaymentFailedEvent of(String orderNo, Long userId, String code, String failureReason) {
         return PaymentFailedEvent.builder()
                 .orderNo(orderNo)
                 .userId(userId)

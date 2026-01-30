@@ -111,7 +111,10 @@ public class OrderFacade {
             OrderFailureCode orderFailureCode = mapToOrderFailureCode(e.getErrorCode());
             OrderDto failOrderDto = orderService.failPayment(orderNo, orderFailureCode);
             eventPublisher.publishEvent(PaymentFailedEvent
-                    .of(failOrderDto.getOrderNo(), failOrderDto.getOrderer().getUserId(), PaymentFailureCode.PG_REJECT, e.getErrorCode().getMessage()));
+                    .of(failOrderDto.getOrderNo(),
+                            failOrderDto.getOrderer().getUserId(),
+                            e.getErrorCode().name(),
+                            e.getErrorCode().getMessage()));
             throw e;
         }
     }

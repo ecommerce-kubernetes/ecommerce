@@ -36,7 +36,7 @@ public class OrderEventListener {
 
     @EventListener
     public void handlePaymentFailed(PaymentFailedEvent event) {
-        SagaStepResultCommand command = SagaStepResultCommand.of(SagaStep.PAYMENT, event.getOrderNo(), false, event.getCode().name(),
+        SagaStepResultCommand command = SagaStepResultCommand.of(SagaStep.PAYMENT, event.getOrderNo(), false, event.getCode(),
                 event.getFailureReason());
         sagaManager.handleStepResult(command);
     }
@@ -60,7 +60,9 @@ public class OrderEventListener {
             case "INVALID_COUPON" -> OrderFailureCode.INVALID_COUPON;
             case "COUPON_EXPIRED" -> OrderFailureCode.COUPON_EXPIRED;
             case "INSUFFICIENT_STOCK" -> OrderFailureCode.INSUFFICIENT_STOCK;
-            default -> OrderFailureCode.SYSTEM_ERROR;
+            case "PAYMENT_INSUFFICIENT_BALANCE" -> OrderFailureCode.PAYMENT_INSUFFICIENT_BALANCE;
+            case "PAYMENT_ALREADY_PROCEED_PAYMENT" -> OrderFailureCode.ALREADY_PROCEED_PAYMENT;
+            default -> OrderFailureCode.UNKNOWN;
         };
     }
 }

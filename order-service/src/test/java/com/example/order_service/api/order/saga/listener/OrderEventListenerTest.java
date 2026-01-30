@@ -13,9 +13,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
@@ -23,7 +20,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
-import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
@@ -117,7 +113,7 @@ public class OrderEventListenerTest {
         @DisplayName("결제 실패 이벤트 수신시 Saga를 실패처리하고 보상로직을 실행한다")
         void handlePaymentFailed(){
             //given
-            PaymentFailedEvent event = PaymentFailedEvent.of(ORDER_NO, 1L, PaymentFailureCode.PG_REJECT, "잔액이 부족합니다");
+            PaymentFailedEvent event = PaymentFailedEvent.of(ORDER_NO, 1L, "PAYMENT_INSUFFICIENT_BALANCE", "잔액이 부족합니다");
             //when
             orderEventListener.handlePaymentFailed(event);
             //then

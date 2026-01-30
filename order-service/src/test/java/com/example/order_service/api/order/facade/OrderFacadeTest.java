@@ -202,7 +202,7 @@ public class OrderFacadeTest {
             assertThat(orderFailedEventCaptor.getValue())
                     .extracting(OrderFailedEvent::getOrderNo, OrderFailedEvent::getUserId, OrderFailedEvent::getCode,
                             OrderFailedEvent::getOrderName)
-                    .containsExactly(ORDER_NO, 1L, "OUT_OF_STOCK", "상품");
+                    .containsExactly(ORDER_NO, 1L, "INSUFFICIENT_STOCK", "상품");
         }
     }
 
@@ -292,7 +292,7 @@ public class OrderFacadeTest {
             verify(eventPublisher).publishEvent(paymentFailedEventCaptor.capture());
             assertThat(paymentFailedEventCaptor.getValue())
                     .extracting(PaymentFailedEvent::getOrderNo, PaymentFailedEvent::getUserId, PaymentFailedEvent::getCode, PaymentFailedEvent::getFailureReason)
-                    .containsExactlyInAnyOrder(ORDER_NO, 1L, PaymentFailureCode.PG_REJECT, "잔액이 부족합니다");
+                    .containsExactlyInAnyOrder(ORDER_NO, 1L, "PAYMENT_INSUFFICIENT_BALANCE", "잔액이 부족합니다");
         }
     }
 
