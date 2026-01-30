@@ -3,7 +3,6 @@ package com.example.order_service.api.order.domain.model;
 import com.example.order_service.api.order.domain.model.vo.OrderItemPrice;
 import com.example.order_service.api.order.domain.model.vo.OrderedProduct;
 import com.example.order_service.api.order.domain.service.dto.command.OrderItemCreationContext;
-import com.example.order_service.api.support.fixture.OrderFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

@@ -14,9 +14,6 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static com.example.order_service.api.support.fixture.OrderFixture.*;
-import static com.example.order_service.api.support.fixture.OrderFixture.anOrderItemCreationContext;
-import static com.example.order_service.api.support.fixture.OrderFixture.anOrderPriceSpec;
-import static com.example.order_service.api.support.fixture.OrderFixture.anProductSpec;
 import static org.assertj.core.api.Assertions.*;
 
 public class OrderTest {
@@ -163,6 +160,20 @@ public class OrderTest {
             Order order = Order.create(context);
             //when
             order.canceled(OrderFailureCode.INSUFFICIENT_STOCK);
+            //then
+            assertThat(order.getStatus()).isEqualTo(OrderStatus.CANCELED);
+            assertThat(order.getFailureCode()).isEqualTo(OrderFailureCode.INSUFFICIENT_STOCK);
+        }
+
+        @Test
+        @DisplayName("이미 완료된 주문이라면 주문 취소를 수행하지 않고 반환한다")
+        void canceled_already_terminate() {
+            //given
+            OrderCreationContext context = anOrderCreationContext().build();
+            Order order = Order.create(context);
+            order.canceled(OrderFailureCode.INSUFFICIENT_STOCK);
+            //when
+            order.canceled(OrderFailureCode.ALREADY_PROCEED_PAYMENT);
             //then
             assertThat(order.getStatus()).isEqualTo(OrderStatus.CANCELED);
             assertThat(order.getFailureCode()).isEqualTo(OrderFailureCode.INSUFFICIENT_STOCK);

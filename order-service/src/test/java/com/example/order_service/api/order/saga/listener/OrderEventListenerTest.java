@@ -2,7 +2,9 @@ package com.example.order_service.api.order.saga.listener;
 
 import com.example.order_service.api.order.domain.model.OrderFailureCode;
 import com.example.order_service.api.order.facade.OrderFacade;
-import com.example.order_service.api.order.facade.event.*;
+import com.example.order_service.api.order.facade.event.OrderCreatedEvent;
+import com.example.order_service.api.order.facade.event.PaymentCompletedEvent;
+import com.example.order_service.api.order.facade.event.PaymentFailedEvent;
 import com.example.order_service.api.order.saga.domain.model.SagaStep;
 import com.example.order_service.api.order.saga.orchestrator.SagaManager;
 import com.example.order_service.api.order.saga.orchestrator.dto.command.SagaStartCommand;
@@ -121,7 +123,7 @@ public class OrderEventListenerTest {
             assertThat(sagaStepResultCaptor.getValue())
                     .extracting(SagaStepResultCommand::getStep, SagaStepResultCommand::getOrderNo, SagaStepResultCommand::isSuccess,
                             SagaStepResultCommand::getErrorCode, SagaStepResultCommand::getFailureReason)
-                    .containsExactly(SagaStep.PAYMENT, ORDER_NO, false, "PG_REJECT", "잔액이 부족합니다");
+                    .containsExactly(SagaStep.PAYMENT, ORDER_NO, false, "PAYMENT_INSUFFICIENT_BALANCE", "잔액이 부족합니다");
         }
     }
 
@@ -163,7 +165,7 @@ public class OrderEventListenerTest {
         }
 
         @Test
-        @DisplayName("Saga 재고 부족 이벤트 수신시  코드로 실패 처리한다")
+        @DisplayName("Saga 재고 부족 이벤트 수신시 코드로 실패 처리한다")
         void handleSagaAbort_publish_insufficient_stock(){
             //given
             SagaAbortEvent abortEvent = SagaAbortEvent.of(1L, ORDER_NO, 1L, "INSUFFICIENT_STOCK");

@@ -62,6 +62,7 @@ public class OrderEventListener {
             case "INSUFFICIENT_STOCK" -> OrderFailureCode.INSUFFICIENT_STOCK;
             case "PAYMENT_INSUFFICIENT_BALANCE" -> OrderFailureCode.PAYMENT_INSUFFICIENT_BALANCE;
             case "PAYMENT_ALREADY_PROCEED_PAYMENT" -> OrderFailureCode.ALREADY_PROCEED_PAYMENT;
+            case "SAGA_TIMEOUT" -> OrderFailureCode.SAGA_TIMEOUT;
             default -> OrderFailureCode.UNKNOWN;
         };
     }

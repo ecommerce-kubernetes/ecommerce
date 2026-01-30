@@ -5,7 +5,6 @@ import com.example.order_service.api.common.exception.OrderErrorCode;
 import com.example.order_service.api.order.domain.service.dto.result.OrderUserInfo;
 import com.example.order_service.api.order.infrastructure.client.user.OrderUserAdaptor;
 import com.example.order_service.api.order.infrastructure.client.user.dto.OrderUserResponse;
-import com.example.order_service.api.support.fixture.OrderUserFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

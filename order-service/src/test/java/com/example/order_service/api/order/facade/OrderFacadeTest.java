@@ -15,7 +15,10 @@ import com.example.order_service.api.order.facade.dto.command.CreateOrderCommand
 import com.example.order_service.api.order.facade.dto.result.CreateOrderResponse;
 import com.example.order_service.api.order.facade.dto.result.OrderDetailResponse;
 import com.example.order_service.api.order.facade.dto.result.OrderListResponse;
-import com.example.order_service.api.order.facade.event.*;
+import com.example.order_service.api.order.facade.event.OrderCreatedEvent;
+import com.example.order_service.api.order.facade.event.OrderFailedEvent;
+import com.example.order_service.api.order.facade.event.OrderPaymentReadyEvent;
+import com.example.order_service.api.order.facade.event.PaymentFailedEvent;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -335,7 +338,7 @@ public class OrderFacadeTest {
                     .willReturn(orderDto);
             OrderDetailResponse expectedResult = anOrderDetailResponse()
                     .orderPrice(anOrderPriceResponse().couponDiscount(0L).build())
-                    .couponResponse(null)
+                    .coupon(null)
                     .build();
             //when
             OrderDetailResponse result = orderFacade.getOrder(1L, ORDER_NO);

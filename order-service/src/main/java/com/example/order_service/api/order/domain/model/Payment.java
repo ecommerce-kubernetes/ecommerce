@@ -24,8 +24,6 @@ public class Payment {
     private String paymentKey;
     private Long amount;
     @Enumerated(EnumType.STRING)
-    private PaymentType type;
-    @Enumerated(EnumType.STRING)
     private PaymentStatus status;
     @Enumerated(EnumType.STRING)
     private PaymentMethod method;
@@ -36,10 +34,9 @@ public class Payment {
     }
 
     @Builder(access = AccessLevel.PRIVATE)
-    private Payment(String paymentKey, Long amount, PaymentType type, PaymentStatus status, PaymentMethod method, LocalDateTime approvedAt) {
+    private Payment(String paymentKey, Long amount, PaymentStatus status, PaymentMethod method, LocalDateTime approvedAt) {
         this.paymentKey = paymentKey;
         this.amount = amount;
-        this.type = type;
         this.status = status;
         this.method = method;
         this.approvedAt = approvedAt;
@@ -49,7 +46,6 @@ public class Payment {
         return Payment.builder()
                 .paymentKey(context.getPaymentKey())
                 .amount(context.getAmount())
-                .type(PaymentType.PAYMENT)
                 .status(context.getStatus())
                 .method(context.getMethod())
                 .approvedAt(context.getApprovedAt())

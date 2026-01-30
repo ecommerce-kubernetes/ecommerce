@@ -9,7 +9,6 @@ import com.example.order_service.api.order.controller.dto.request.OrderSearchCon
 import com.example.order_service.api.order.facade.dto.command.CreateOrderCommand;
 import com.example.order_service.api.order.facade.dto.result.CreateOrderResponse;
 import com.example.order_service.api.order.facade.dto.result.OrderDetailResponse;
-import com.example.order_service.api.order.facade.dto.result.OrderItemResponse;
 import com.example.order_service.api.order.facade.dto.result.OrderListResponse;
 import com.example.order_service.api.support.ControllerTestSupport;
 import com.example.order_service.api.support.security.annotation.WithCustomMockUser;
@@ -30,6 +29,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static com.example.order_service.api.support.fixture.OrderResponseFixture.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
@@ -52,7 +52,7 @@ class OrderControllerTest extends ControllerTestSupport {
     void createOrder() throws Exception {
         //given
         CreateOrderRequest request = createBaseRequest().build();
-        CreateOrderResponse response = createCreateOrderResponse();
+        CreateOrderResponse response = anCreateOrderResponse().build();
         given(orderFacade.initialOrder(any(CreateOrderCommand.class)))
                 .willReturn(response);
         //when
@@ -126,7 +126,7 @@ class OrderControllerTest extends ControllerTestSupport {
     void confirm() throws Exception {
         //given
         OrderConfirmRequest request = confirmBaseRequest().build();
-        OrderDetailResponse response = createOrderDetailResponse();
+        OrderDetailResponse response = anOrderDetailResponse().build();
 
         given(orderFacade.confirmOrderPayment(anyString(), anyLong(), anyString(), anyLong()))
                 .willReturn(response);
@@ -198,8 +198,7 @@ class OrderControllerTest extends ControllerTestSupport {
     @WithCustomMockUser
     void getOrder() throws Exception {
         //given
-        OrderDetailResponse response = createOrderDetailResponse();
-
+        OrderDetailResponse response = anOrderDetailResponse().build();
         given(orderFacade.getOrder(anyLong(), anyString()))
                 .willReturn(response);
         //when
@@ -249,7 +248,7 @@ class OrderControllerTest extends ControllerTestSupport {
     @WithCustomMockUser
     void getOrders() throws Exception {
         //given
-        OrderListResponse orderListResponse = createOrderListResponse();
+        OrderListResponse orderListResponse = anOrderListResponse().build();
         PageDto<OrderListResponse> response = PageDto.<OrderListResponse>builder().content(List.of(orderListResponse))
                 .currentPage(1)
                 .totalPage(10)
@@ -331,7 +330,7 @@ class OrderControllerTest extends ControllerTestSupport {
     @WithCustomMockUser
     void getOrders_default() throws Exception {
         //given
-        OrderListResponse orderListResponse = createOrderListResponse();
+        OrderListResponse orderListResponse = anOrderListResponse().build();
         PageDto<OrderListResponse> response = PageDto.<OrderListResponse>builder().content(List.of(orderListResponse))
                 .currentPage(1)
                 .totalPage(10)
@@ -362,7 +361,7 @@ class OrderControllerTest extends ControllerTestSupport {
     @WithCustomMockUser
     void getOrder_page_less_than_0() throws Exception {
         //given
-        OrderListResponse orderListResponse = createOrderListResponse();
+        OrderListResponse orderListResponse = anOrderListResponse().build();
         PageDto<OrderListResponse> response = PageDto.<OrderListResponse>builder().content(List.of(orderListResponse))
                 .currentPage(1)
                 .totalPage(10)
@@ -394,7 +393,7 @@ class OrderControllerTest extends ControllerTestSupport {
     @WithCustomMockUser
     void getOrder_size_greater_than_100() throws Exception {
         //given
-        OrderListResponse orderListResponse = createOrderListResponse();
+        OrderListResponse orderListResponse = anOrderListResponse().build();
         PageDto<OrderListResponse> response = PageDto.<OrderListResponse>builder().content(List.of(orderListResponse))
                 .currentPage(1)
                 .totalPage(10)
@@ -458,87 +457,6 @@ class OrderControllerTest extends ControllerTestSupport {
                 Arguments.of("결제 키 null", confirmBaseRequest().paymentKey(null).build(), "결제 키는 필수 입니다"),
                 Arguments.of("결제 가격 null", confirmBaseRequest().amount(null).build(), "결제 가격은 필수 입니다")
         );
-    }
-
-    private OrderDetailResponse createOrderDetailResponse() {
-//        return OrderDetailResponse.builder()
-//                .orderNo(ORDER_NO)
-//                .userId(1L)
-//                .orderStatus("COMPLETED")
-//                .orderName("상품1")
-//                .deliveryAddress("서울시 테헤란로 123")
-//                .orderPriceResponse(
-//                        OrderDetailResponse.OrderPriceResponse.builder()
-//                                .totalOriginPrice(30000L)
-//                                .totalProductDiscount(3000L)
-//                                .couponDiscount(1000L)
-//                                .pointDiscount(1000L)
-//                                .finalPaymentAmount(25000L)
-//                                .build()
-//                )
-//                .couponResponse(
-//                        OrderDetailResponse.CouponResponse.builder()
-//                                .couponId(1L)
-//                                .couponName("1000원 할인 쿠폰")
-//                                .couponDiscount(1000L)
-//                                .build()
-//                )
-//                .paymentResponse(
-//                        OrderDetailResponse.PaymentResponse.builder()
-//                                .paymentId(1L)
-//                                .paymentKey("paymentKey")
-//                                .amount(25000L)
-//                                .method("CARD")
-//                                .approvedAt(LocalDateTime.now().toString())
-//                                .build()
-//                )
-//                .orderItems(createOrderItemResponse())
-//                .build();
-        return null;
-    }
-
-    private CreateOrderResponse createCreateOrderResponse(){
-        return CreateOrderResponse.builder()
-                .orderNo(ORDER_NO)
-                .status("PENDING")
-                .orderName("상품1")
-                .finalPaymentAmount(2400L)
-                .createdAt(LocalDateTime.now().toString())
-                .build();
-    }
-
-    private OrderListResponse createOrderListResponse(){
-        return OrderListResponse.builder()
-                .orderNo(ORDER_NO)
-                .orderStatus("COMPLETED")
-                .orderItems(createOrderItemResponse())
-                .createdAt(LocalDateTime.now().toString())
-                .build();
-    }
-
-    private List<OrderItemResponse> createOrderItemResponse() {
-        return List.of(
-                OrderItemResponse.builder()
-                        .productId(1L)
-                        .productVariantId(1L)
-                        .productName("상품1")
-                        .thumbnailUrl("http://thumbanil.jpg")
-                        .quantity(1)
-                        .unitPrice(
-                                OrderItemResponse.OrderItemPriceResponse.builder()
-                                        .originalPrice(30000L)
-                                        .discountAmount(3000L)
-                                        .discountRate(10)
-                                        .discountedPrice(27000L).build()
-                        )
-                        .lineTotal(27000L)
-                        .options(
-                                List.of(OrderItemResponse.OrderItemOptionResponse.builder()
-                                        .optionTypeName("사이즈")
-                                        .optionValueName("XL")
-                                        .build())
-                        )
-                        .build());
     }
 
     private static CreateOrderRequest.CreateOrderRequestBuilder createBaseRequest() {

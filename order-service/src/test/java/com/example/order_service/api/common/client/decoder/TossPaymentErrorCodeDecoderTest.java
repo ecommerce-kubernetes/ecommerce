@@ -87,7 +87,7 @@ public class TossPaymentErrorCodeDecoderTest {
                         PaymentErrorCode.PAYMENT_INSUFFICIENT_BALANCE),
                 Arguments.of("허용되지 않은 요청",
                         createResponse(403, createErrorResponse("FORBIDDEN_REQUEST", "허용되지 않은 요청입니다")),
-                        PaymentErrorCode.PAYMENT_SYSTEM_ERROR),
+                        PaymentErrorCode.PAYMENT_BAD_REQUEST),
 
                 Arguments.of("결제 정보 찾을 수 없음",
                         createResponse(404, createErrorResponse("NOT_FOUND_PAYMENT", "존재하지 않는 결제 정보 입니다.")),

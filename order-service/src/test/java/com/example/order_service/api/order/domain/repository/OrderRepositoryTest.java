@@ -2,13 +2,8 @@ package com.example.order_service.api.order.domain.repository;
 
 import com.example.order_service.api.order.controller.dto.request.OrderSearchCondition;
 import com.example.order_service.api.order.domain.model.Order;
-import com.example.order_service.api.order.domain.model.OrderStatus;
 import com.example.order_service.api.order.domain.service.dto.command.OrderCreationContext;
-import com.example.order_service.api.order.domain.service.dto.command.OrderItemCreationContext;
-import com.example.order_service.api.order.facade.dto.command.CreateOrderCommand;
 import com.example.order_service.api.support.ExcludeInfraTest;
-import com.example.order_service.api.support.fixture.OrderCommandFixture;
-import com.example.order_service.api.support.fixture.OrderFixture;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -18,12 +13,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
-import static com.example.order_service.api.support.fixture.OrderCommandFixture.anOrderCommand;
 import static com.example.order_service.api.support.fixture.OrderCommandFixture.anOrderSearchCondition;
 import static com.example.order_service.api.support.fixture.OrderFixture.*;
-import static com.example.order_service.api.support.fixture.OrderRepositoryTestFixture.testOrderBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Transactional

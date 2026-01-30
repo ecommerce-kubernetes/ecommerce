@@ -7,11 +7,6 @@ import com.example.order_service.api.order.domain.service.dto.result.OrderCoupon
 import com.example.order_service.api.order.domain.service.dto.result.OrderProductAmount;
 import com.example.order_service.api.order.domain.service.dto.result.OrderProductInfo;
 import com.example.order_service.api.order.facade.dto.command.CreateOrderItemCommand;
-import com.example.order_service.api.order.infrastructure.client.product.dto.OrderProductResponse;
-import com.example.order_service.api.support.fixture.OrderCommandFixture;
-import com.example.order_service.api.support.fixture.OrderCouponFixture;
-import com.example.order_service.api.support.fixture.OrderPriceFixture;
-import com.example.order_service.api.support.fixture.OrderProductFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -24,7 +19,7 @@ import static com.example.order_service.api.support.fixture.OrderCommandFixture.
 import static com.example.order_service.api.support.fixture.OrderCouponFixture.anOrderCouponInfo;
 import static com.example.order_service.api.support.fixture.OrderPriceFixture.anCalculatedOrderAmounts;
 import static com.example.order_service.api.support.fixture.OrderPriceFixture.anOrderProductAmount;
-import static com.example.order_service.api.support.fixture.OrderProductFixture.*;
+import static com.example.order_service.api.support.fixture.OrderProductFixture.anOrderProductInfo;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 

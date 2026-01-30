@@ -86,8 +86,6 @@ public class Order extends BaseEntity {
     // 유효한 결제 정보를 추출
     public Payment getValidPayment() {
         return this.payments.stream()
-                // 타입이 결제인것
-                .filter(p -> p.getType() == PaymentType.PAYMENT)
                 // 상태는 완료 또는 입금 대기인것
                 .filter(p -> p.getStatus() == PaymentStatus.DONE || p.getStatus() == PaymentStatus.WAITING_FOR_DEPOSIT)
                 // 동일한 결제 엔티티가 있다면 가장 최신의 결제 정보
@@ -96,6 +94,10 @@ public class Order extends BaseEntity {
     }
 
     public void canceled(OrderFailureCode code) {
+        if (isTerminalState()) {
+            return;
+        }
+
         this.status = OrderStatus.CANCELED;
         this.failureCode = code;
     }
@@ -173,5 +175,11 @@ public class Order extends BaseEntity {
     private static OrderPriceDetail mapToOrderPriceDetail(OrderPriceSpec priceSpec) {
         return OrderPriceDetail.of(priceSpec.getTotalOriginPrice(), priceSpec.getTotalProductDiscount(),
                 priceSpec.getCouponDiscount(), priceSpec.getPointDiscount(), priceSpec.getFinalPaymentAmount());
+    }
+
+    private boolean isTerminalState() {
+        return this.status == OrderStatus.CANCELED ||
+                this.status ==OrderStatus.PAYMENT_FAILED ||
+                this.status == OrderStatus.COMPLETED;
     }
 }

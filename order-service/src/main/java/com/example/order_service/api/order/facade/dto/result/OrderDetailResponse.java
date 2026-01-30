@@ -18,7 +18,7 @@ public class OrderDetailResponse {
     private String orderName;
     private OrdererResponse orderer;
     private OrderPriceResponse orderPrice;
-    private CouponResponse couponResponse;
+    private CouponResponse coupon;
     private String deliveryAddress;
     private PaymentResponse payment;
     private List<OrderItemResponse> orderItems;
@@ -32,7 +32,7 @@ public class OrderDetailResponse {
                 .orderName(orderDto.getOrderName())
                 .orderer(OrdererResponse.from(orderDto.getOrderer()))
                 .orderPrice(OrderPriceResponse.from(orderDto.getOrderPriceInfo()))
-                .couponResponse(CouponResponse.from(orderDto.getCouponInfo()))
+                .coupon(CouponResponse.from(orderDto.getCouponInfo()))
                 .deliveryAddress(orderDto.getDeliveryAddress())
                 .payment(PaymentResponse.from(orderDto.getPaymentInfo()))
                 .orderItems(orderItems)
@@ -47,8 +47,8 @@ public class OrderDetailResponse {
         private Long totalProductDiscount;
         private Long couponDiscount;
         private Long pointDiscount;
-
         private Long finalPaymentAmount;
+
         private static OrderPriceResponse from(OrderPriceInfo orderPriceInfo) {
             return OrderPriceResponse.builder()
                     .totalOriginPrice(orderPriceInfo.getTotalOriginPrice())
@@ -101,7 +101,6 @@ public class OrderDetailResponse {
         private Long paymentId;
         private String paymentKey;
         private Long amount;
-        private String type;
         private String status;
         private String method;
         private String approvedAt;
@@ -114,7 +113,6 @@ public class OrderDetailResponse {
                     .paymentId(paymentInfo.getPaymentId())
                     .paymentKey(paymentInfo.getPaymentKey())
                     .amount(paymentInfo.getAmount())
-                    .type(paymentInfo.getType().name())
                     .status(paymentInfo.getStatus().name())
                     .method(paymentInfo.getMethod().name())
                     .approvedAt(paymentInfo.getApprovedAt().toString())

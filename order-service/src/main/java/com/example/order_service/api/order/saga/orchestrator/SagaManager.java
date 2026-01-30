@@ -15,6 +15,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -114,16 +117,16 @@ public class SagaManager {
 
     public void processTimeouts() {
         //Saga 시작 시간이 5분 이전이면서 상태는 STARTED인 Saga 모두 조회
-//        LocalDateTime timeout = LocalDateTime.now().minusMinutes(5);
-//        List<SagaInstanceDto> timeouts = sagaService.getTimeouts(timeout);
-//        //조회된 SAGA 를 보상 처리함
-//        for (SagaInstanceDto saga : timeouts) {
-//            try {
-//                oldstartCompensationSequence(saga, "TIMEOUT", "주문 처리 지연");
-//            } catch (Exception e) {
-//                log.error("Timeout 처리 실패 SagaId : {}", saga.getId());
-//            }
-//        }
+        LocalDateTime timeout = LocalDateTime.now().minusMinutes(5);
+        List<SagaInstanceDto> timeouts = sagaService.getTimeouts(timeout);
+        //조회된 SAGA 를 보상 처리함
+        for (SagaInstanceDto saga : timeouts) {
+            try {
+                startCompensationSequence(saga, "SAGA_TIMEOUT", "사가 처리 지연");
+            } catch (Exception e) {
+                log.error("Timeout 처리 실패 SagaId : {}", saga.getId());
+            }
+        }
     }
 
     private void processStep(SagaInstanceDto saga) {

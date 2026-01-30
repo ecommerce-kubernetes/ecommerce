@@ -3,7 +3,6 @@ package com.example.order_service.api.support.fixture;
 import com.example.order_service.api.order.domain.model.OrderStatus;
 import com.example.order_service.api.order.domain.model.PaymentMethod;
 import com.example.order_service.api.order.domain.model.PaymentStatus;
-import com.example.order_service.api.order.domain.model.PaymentType;
 import com.example.order_service.api.order.domain.service.dto.command.OrderCreationContext;
 import com.example.order_service.api.order.domain.service.dto.command.OrderCreationContext.CouponSpec;
 import com.example.order_service.api.order.domain.service.dto.command.OrderCreationContext.OrderPriceSpec;
@@ -139,7 +138,6 @@ public class OrderFixture {
                 .paymentId(1L)
                 .paymentKey("paymentKey")
                 .amount(7000L)
-                .type(PaymentType.PAYMENT)
                 .status(PaymentStatus.DONE)
                 .method(PaymentMethod.CARD)
                 .approvedAt(LocalDateTime.now());

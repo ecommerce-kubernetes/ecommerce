@@ -2,7 +2,6 @@ package com.example.order_service.api.support.fixture;
 
 import com.example.order_service.api.common.dto.PageDto;
 import com.example.order_service.api.order.domain.model.OrderStatus;
-import com.example.order_service.api.order.domain.model.vo.OrderItemPrice;
 import com.example.order_service.api.order.facade.dto.result.CreateOrderResponse;
 import com.example.order_service.api.order.facade.dto.result.OrderDetailResponse;
 import com.example.order_service.api.order.facade.dto.result.OrderDetailResponse.CouponResponse;
@@ -52,7 +51,7 @@ public class OrderResponseFixture {
                 .orderName("상품")
                 .orderer(anOrdererResponse().build())
                 .orderPrice(anOrderPriceResponse().build())
-                .couponResponse(anCouponResponse().build())
+                .coupon(anCouponResponse().build())
                 .deliveryAddress("서울시 테헤란로 123")
                 .payment(anPaymentResponse().build())
                 .orderItems(List.of(anOrderItemResponse().build()))
@@ -80,7 +79,6 @@ public class OrderResponseFixture {
                 .paymentId(1L)
                 .paymentKey("paymentKey")
                 .amount(7000L)
-                .type("PAYMENT")
                 .status("DONE")
                 .method("CARD")
                 .approvedAt(LocalDateTime.now().toString());

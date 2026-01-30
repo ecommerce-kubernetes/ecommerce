@@ -15,11 +15,6 @@ public class SagaManagerTestFixture {
     public static final Long SAGA_ID = 1L;
     public static final String ORDER_NO = "ORD-20260101-AB12FVC";
     public static final Long USER_ID = 1L;
-    public static final Long PRODUCT_VARIANT_ID_1 = 10L;
-    public static final Long PRODUCT_VARIANT_ID_2 = 20L;
-    public static final Long COUPON_ID = 100L;
-    public static final Long USE_POINT = 1000L;
-    public static final Long NO_POINT = 0L;
 
     public static SagaStartCommand.SagaStartCommandBuilder anSagaStartCommand(){
         return SagaStartCommand.builder()
@@ -58,31 +53,5 @@ public class SagaManagerTestFixture {
         return SagaItem.builder()
                 .productVariantId(1L)
                 .quantity(1);
-    }
-
-    public static Payload createPayload(Long couponId, Long usedPoint) {
-        return Payload.builder()
-                .userId(USER_ID)
-                .sagaItems(
-                        List.of(SagaItem.builder().productVariantId(PRODUCT_VARIANT_ID_1).quantity(3).build())
-                )
-                .couponId(couponId)
-                .useToPoint(usedPoint)
-                .build();
-    }
-
-    public static Payload createDefaultPayload() {
-        return createPayload(COUPON_ID, USE_POINT);
-    }
-
-
-    public static SagaInstanceDto createSagaInstanceWithId(Long id, SagaStep step, SagaStatus status, Payload payload) {
-        return SagaInstanceDto.builder()
-                .id(id)
-                .orderNo(ORDER_NO)
-                .sagaStatus(status)
-                .sagaStep(step)
-                .payload(payload)
-                .build();
     }
 }

@@ -12,6 +12,7 @@ import com.example.order_service.api.order.facade.dto.result.CreateOrderResponse
 import com.example.order_service.api.order.facade.dto.result.OrderDetailResponse;
 import com.example.order_service.api.order.facade.dto.result.OrderItemResponse;
 import com.example.order_service.api.order.facade.dto.result.OrderListResponse;
+import com.example.order_service.api.support.fixture.OrderResponseFixture;
 import com.example.order_service.docs.RestDocSupport;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -21,6 +22,7 @@ import org.springframework.http.MediaType;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static com.example.order_service.api.support.fixture.OrderResponseFixture.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
@@ -111,7 +113,7 @@ public class OrderControllerDocsTest extends RestDocSupport {
     }
 
     @Test
-    @DisplayName("주문 결제 검증 API")
+    @DisplayName("주문 결제 승인 API")
     void confirm() throws Exception {
         //given
         OrderConfirmRequest request = OrderConfirmRequest.builder()
@@ -120,9 +122,10 @@ public class OrderControllerDocsTest extends RestDocSupport {
                 .amount(1000L)
                 .build();
         HttpHeaders roleUser = createUserHeader("ROLE_USER");
-        OrderDetailResponse orderDetailResponse = createOrderResponse();
+        OrderDetailResponse response = anOrderDetailResponse()
+                .payment(anPaymentResponse().build()).build();
         given(orderFacade.confirmOrderPayment(anyString(), anyLong(), anyString(), anyLong()))
-                .willReturn(orderDetailResponse);
+                .willReturn(response);
         //when
         //then
         mockMvc.perform(post("/orders/confirm")
@@ -145,32 +148,38 @@ public class OrderControllerDocsTest extends RestDocSupport {
                         ),
                         responseFields(
                                 fieldWithPath("orderNo").description("주문 번호"),
-                                fieldWithPath("userId").description("유저 ID"),
-                                fieldWithPath("orderStatus").description("주문 상태"),
+                                fieldWithPath("status").description("주문 상태"),
                                 fieldWithPath("orderName").description("주문 이름"),
+
+                                fieldWithPath("orderer.userId").description("주문자 아이디"),
+                                fieldWithPath("orderer.userName").description("주문자 이름"),
+                                fieldWithPath("orderer.phoneNumber").description("주문자 전화번호"),
+
+                                fieldWithPath("orderPrice.totalOriginPrice").description("할인 전 주문 금액"),
+                                fieldWithPath("orderPrice.totalProductDiscount").description("상품 총 할인 금액"),
+                                fieldWithPath("orderPrice.couponDiscount").description("쿠폰 할인 금액"),
+                                fieldWithPath("orderPrice.pointDiscount").description("포인트 할인 금액"),
+                                fieldWithPath("orderPrice.finalPaymentAmount").description("최종 주문 금액"),
+
+                                fieldWithPath("coupon.couponId").description("쿠폰 ID"),
+                                fieldWithPath("coupon.couponName").description("쿠폰 이름"),
+                                fieldWithPath("coupon.couponDiscount").description("쿠폰 할인금"),
+
                                 fieldWithPath("deliveryAddress").description("배송지"),
+
+                                fieldWithPath("payment.paymentId").description("결제 ID"),
+                                fieldWithPath("payment.paymentKey").description("결제 키"),
+                                fieldWithPath("payment.amount").description("결제 금액"),
+                                fieldWithPath("payment.status").description("결제 상태"),
+                                fieldWithPath("payment.method").description("결제 방법"),
+                                fieldWithPath("payment.approvedAt").description("결제 시각"),
+
                                 fieldWithPath("createdAt").description("주문 시각"),
-
-                                fieldWithPath("orderPriceResponse.totalOriginPrice").description("할인 전 주문 금액"),
-                                fieldWithPath("orderPriceResponse.totalProductDiscount").description("상품 총 할인 금액"),
-                                fieldWithPath("orderPriceResponse.couponDiscount").description("쿠폰 할인 금액"),
-                                fieldWithPath("orderPriceResponse.pointDiscount").description("포인트 할인 금액"),
-                                fieldWithPath("orderPriceResponse.finalPaymentAmount").description("최종 주문 금액"),
-
-                                fieldWithPath("paymentResponse.paymentId").description("결제 ID"),
-                                fieldWithPath("paymentResponse.paymentKey").description("결제 키"),
-                                fieldWithPath("paymentResponse.amount").description("결제 금액"),
-                                fieldWithPath("paymentResponse.method").description("결제 방법"),
-                                fieldWithPath("paymentResponse.approvedAt").description("결제 시각"),
-
-                                fieldWithPath("couponResponse.couponId").description("사용 쿠폰 ID"),
-                                fieldWithPath("couponResponse.couponName").description("쿠폰 이름"),
-                                fieldWithPath("couponResponse.couponDiscount").description("쿠폰 할인 금액"),
 
                                 fieldWithPath("orderItems[].productId").description("주문 상품 ID(상품(Product) 식별자)"),
                                 fieldWithPath("orderItems[].productVariantId").description("주문 상품 변형 ID"),
                                 fieldWithPath("orderItems[].productName").description("주문 상품 이름"),
-                                fieldWithPath("orderItems[].thumbNailUrl").description("주문 상품 썸네일"),
+                                fieldWithPath("orderItems[].thumbnailUrl").description("주문 상품 썸네일"),
                                 fieldWithPath("orderItems[].quantity").description("주문 수량"),
                                 fieldWithPath("orderItems[].unitPrice.originalPrice").description("주문 상품 원본 가격"),
                                 fieldWithPath("orderItems[].unitPrice.discountRate").description("상품 할인율"),
@@ -187,10 +196,11 @@ public class OrderControllerDocsTest extends RestDocSupport {
     @DisplayName("주문 정보를 조회한다")
     void getOrder() throws Exception {
         //given
-        OrderDetailResponse orderDetailResponse = createOrderResponse();
+        OrderDetailResponse response = anOrderDetailResponse()
+                .payment(anPaymentResponse().build()).build();
         HttpHeaders roleUser = createUserHeader("ROLE_USER");
         given(orderFacade.getOrder(anyLong(), anyString()))
-                .willReturn(orderDetailResponse);
+                .willReturn(response);
         //when
         //then
         mockMvc.perform(get("/orders/{orderNo}", ORDER_NO)
@@ -207,32 +217,36 @@ public class OrderControllerDocsTest extends RestDocSupport {
                                 ),
                                 responseFields(
                                         fieldWithPath("orderNo").description("주문 번호"),
-                                        fieldWithPath("userId").description("유저 ID"),
-                                        fieldWithPath("orderStatus").description("주문 상태"),
+                                        fieldWithPath("status").description("주문 상태"),
                                         fieldWithPath("orderName").description("주문 이름"),
                                         fieldWithPath("deliveryAddress").description("배송지"),
                                         fieldWithPath("createdAt").description("주문 시각"),
 
-                                        fieldWithPath("orderPriceResponse.totalOriginPrice").description("할인 전 주문 금액"),
-                                        fieldWithPath("orderPriceResponse.totalProductDiscount").description("상품 총 할인 금액"),
-                                        fieldWithPath("orderPriceResponse.couponDiscount").description("쿠폰 할인 금액"),
-                                        fieldWithPath("orderPriceResponse.pointDiscount").description("포인트 할인 금액"),
-                                        fieldWithPath("orderPriceResponse.finalPaymentAmount").description("최종 주문 금액"),
+                                        fieldWithPath("orderer.userId").description("주문자 아이디"),
+                                        fieldWithPath("orderer.userName").description("주문자 이름"),
+                                        fieldWithPath("orderer.phoneNumber").description("주문자 전화번호"),
 
-                                        fieldWithPath("paymentResponse.paymentId").description("결제 ID"),
-                                        fieldWithPath("paymentResponse.paymentKey").description("결제 키"),
-                                        fieldWithPath("paymentResponse.amount").description("결제 금액"),
-                                        fieldWithPath("paymentResponse.method").description("결제 방법"),
-                                        fieldWithPath("paymentResponse.approvedAt").description("결제 시각"),
+                                        fieldWithPath("orderPrice.totalOriginPrice").description("할인 전 주문 금액"),
+                                        fieldWithPath("orderPrice.totalProductDiscount").description("상품 총 할인 금액"),
+                                        fieldWithPath("orderPrice.couponDiscount").description("쿠폰 할인 금액"),
+                                        fieldWithPath("orderPrice.pointDiscount").description("포인트 할인 금액"),
+                                        fieldWithPath("orderPrice.finalPaymentAmount").description("최종 주문 금액"),
 
-                                        fieldWithPath("couponResponse.couponId").description("사용 쿠폰 ID"),
-                                        fieldWithPath("couponResponse.couponName").description("쿠폰 이름"),
-                                        fieldWithPath("couponResponse.couponDiscount").description("쿠폰 할인 금액"),
+                                        fieldWithPath("payment.paymentId").description("결제 ID"),
+                                        fieldWithPath("payment.paymentKey").description("결제 키"),
+                                        fieldWithPath("payment.amount").description("결제 금액"),
+                                        fieldWithPath("payment.status").description("결제 상태"),
+                                        fieldWithPath("payment.method").description("결제 방법"),
+                                        fieldWithPath("payment.approvedAt").description("결제 시각"),
+
+                                        fieldWithPath("coupon.couponId").description("사용 쿠폰 ID"),
+                                        fieldWithPath("coupon.couponName").description("쿠폰 이름"),
+                                        fieldWithPath("coupon.couponDiscount").description("쿠폰 할인 금액"),
 
                                         fieldWithPath("orderItems[].productId").description("주문 상품 ID(상품(Product) 식별자)"),
                                         fieldWithPath("orderItems[].productVariantId").description("주문 상품 변형 ID"),
                                         fieldWithPath("orderItems[].productName").description("주문 상품 이름"),
-                                        fieldWithPath("orderItems[].thumbNailUrl").description("주문 상품 썸네일"),
+                                        fieldWithPath("orderItems[].thumbnailUrl").description("주문 상품 썸네일"),
                                         fieldWithPath("orderItems[].quantity").description("주문 수량"),
                                         fieldWithPath("orderItems[].unitPrice.originalPrice").description("주문 상품 원본 가격"),
                                         fieldWithPath("orderItems[].unitPrice.discountRate").description("상품 할인율"),
@@ -252,7 +266,7 @@ public class OrderControllerDocsTest extends RestDocSupport {
     void getOrders() throws Exception {
         //given
         HttpHeaders roleUser = createUserHeader("ROLE_USER");
-        OrderListResponse orderListResponse = createOrderListResponse();
+        OrderListResponse orderListResponse = anOrderListResponse().build();
         PageDto<OrderListResponse> response = PageDto.<OrderListResponse>builder().content(List.of(orderListResponse))
                 .currentPage(1)
                 .totalPage(10)
@@ -289,14 +303,13 @@ public class OrderControllerDocsTest extends RestDocSupport {
                                 ),
                                 responseFields(
                                         fieldWithPath("content[].orderNo").description("주문 번호"),
-                                        fieldWithPath("content[].userId").description("유저 ID"),
                                         fieldWithPath("content[].orderStatus").description("주문 상태"),
                                         fieldWithPath("content[].createdAt").description("주문 시각"),
 
                                         fieldWithPath("content[].orderItems[].productId").description("주문 상품 ID(상품(Product) 식별자)"),
                                         fieldWithPath("content[].orderItems[].productVariantId").description("주문 상품 변형 ID"),
                                         fieldWithPath("content[].orderItems[].productName").description("주문 상품 이름"),
-                                        fieldWithPath("content[].orderItems[].thumbNailUrl").description("주문 상품 썸네일"),
+                                        fieldWithPath("content[].orderItems[].thumbnailUrl").description("주문 상품 썸네일"),
                                         fieldWithPath("content[].orderItems[].quantity").description("주문 수량"),
                                         fieldWithPath("content[].orderItems[].unitPrice.originalPrice").description("주문 상품 원본 가격"),
                                         fieldWithPath("content[].orderItems[].unitPrice.discountRate").description("상품 할인율"),
@@ -313,79 +326,6 @@ public class OrderControllerDocsTest extends RestDocSupport {
                                 )
                         )
                 );
-    }
-
-    private OrderListResponse createOrderListResponse() {
-        return OrderListResponse.builder()
-                .orderNo(ORDER_NO)
-                .orderStatus("COMPLETED")
-                .orderItems(createOrderItems())
-                .createdAt(LocalDateTime.now().toString())
-                .build();
-    }
-
-    private OrderDetailResponse createOrderResponse() {
-//        return OrderDetailResponse.builder()
-//                .orderNo(ORDER_NO)
-//                .userId(1L)
-//                .orderStatus("COMPLETED")
-//                .orderName("상품1")
-//                .deliveryAddress("서울시 테헤란로 123")
-//                .orderPriceResponse(
-//                        OrderDetailResponse.OrderPriceResponse.builder()
-//                                .totalOriginPrice(30000L)
-//                                .totalProductDiscount(3000L)
-//                                .couponDiscount(1000L)
-//                                .pointDiscount(1000L)
-//                                .finalPaymentAmount(25000L)
-//                                .build()
-//                )
-//                .couponResponse(
-//                        OrderDetailResponse.CouponResponse.builder()
-//                                .couponId(1L)
-//                                .couponName("1000원 할인 쿠폰")
-//                                .couponDiscount(1000L)
-//                                .build()
-//                )
-//                .paymentResponse(
-//                        OrderDetailResponse.PaymentResponse.builder()
-//                                .paymentId(1L)
-//                                .paymentKey("paymentKey")
-//                                .amount(25000L)
-//                                .method("CARD")
-//                                .approvedAt(LocalDateTime.now().toString())
-//                                .build()
-//                )
-//                .orderItems(createOrderItems())
-//                .createdAt(LocalDateTime.now().toString())
-//                .build();
-        return null;
-    }
-
-    private List<OrderItemResponse> createOrderItems() {
-        return List.of(
-                OrderItemResponse.builder()
-                        .productId(1L)
-                        .productVariantId(1L)
-                        .productName("상품1")
-                        .thumbnailUrl("http://thumbanil.jpg")
-                        .quantity(1)
-                        .unitPrice(
-                                OrderItemResponse.OrderItemPriceResponse.builder()
-                                        .originalPrice(30000L)
-                                        .discountAmount(3000L)
-                                        .discountRate(10)
-                                        .discountedPrice(27000L).build()
-                        )
-                        .lineTotal(27000L)
-                        .options(
-                                List.of(OrderItemResponse.OrderItemOptionResponse.builder()
-                                        .optionTypeName("사이즈")
-                                        .optionValueName("XL")
-                                        .build())
-                        )
-                        .build()
-        );
     }
 
     private HttpHeaders createUserHeader(String userRole){

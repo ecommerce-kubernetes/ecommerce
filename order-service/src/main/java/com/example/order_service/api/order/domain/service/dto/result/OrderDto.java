@@ -86,7 +86,6 @@ public class OrderDto {
         private Long paymentId;
         private String paymentKey;
         private Long amount;
-        private PaymentType type;
         private PaymentStatus status;
         private PaymentMethod method;
         private LocalDateTime approvedAt;
@@ -99,7 +98,6 @@ public class OrderDto {
                     .paymentId(payment.getId())
                     .paymentKey(payment.getPaymentKey())
                     .amount(payment.getAmount())
-                    .type(payment.getType())
                     .status(payment.getStatus())
                     .method(payment.getMethod())
                     .approvedAt(payment.getApprovedAt())

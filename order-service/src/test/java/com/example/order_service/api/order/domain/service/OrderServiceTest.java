@@ -25,7 +25,8 @@ import java.util.List;
 
 import static com.example.order_service.api.support.fixture.OrderCommandFixture.anOrderSearchCondition;
 import static com.example.order_service.api.support.fixture.OrderFixture.*;
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @Transactional
 public class OrderServiceTest extends ExcludeInfraTest {

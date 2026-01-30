@@ -5,11 +5,9 @@ import com.example.order_service.api.order.saga.domain.model.SagaStep;
 import com.example.order_service.api.order.saga.domain.model.vo.Payload;
 import com.example.order_service.api.order.saga.domain.service.SagaService;
 import com.example.order_service.api.order.saga.domain.service.dto.SagaInstanceDto;
-import com.example.order_service.api.order.saga.infrastructure.kafka.producer.SagaEventProducer;
 import com.example.order_service.api.order.saga.orchestrator.dto.command.SagaStartCommand;
 import com.example.order_service.api.order.saga.orchestrator.dto.command.SagaStepResultCommand;
 import com.example.order_service.api.order.saga.orchestrator.event.SagaAbortEvent;
-import com.example.order_service.api.order.saga.orchestrator.event.SagaResourceSecuredEvent;
 import com.example.order_service.api.order.saga.orchestrator.handler.*;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -38,8 +36,6 @@ public class SagaManagerTest {
     private SagaManager sagaManager;
 
     @Mock
-    private SagaEventProducer sagaEventProducer;
-    @Mock
     private SagaService sagaService;
     @Mock
     private ApplicationEventPublisher eventPublisher;
@@ -48,8 +44,6 @@ public class SagaManagerTest {
 
     @Captor
     private ArgumentCaptor<Payload> payloadCaptor;
-    @Captor
-    private ArgumentCaptor<SagaResourceSecuredEvent> sagaResourceSecuredCaptor;
     @Captor
     private ArgumentCaptor<SagaAbortEvent> sagaAbortCaptor;
 
@@ -504,30 +498,44 @@ public class SagaManagerTest {
         }
     }
 
+    @Nested
+    @DisplayName("SAGA 타임아웃시")
+    class TimeOutSaga {
 
-    @Test
-    @DisplayName("타임아웃시 타임아웃된 SAGA를 조회하고 보상을 수행한다")
-    void processTimeouts(){
-        //given
-        Payload payload = createDefaultPayload();
-        Long sagaId1 = 10L;
-        Long sagaId2 = 20L;
-        SagaInstanceDto saga1 = createSagaInstanceWithId(sagaId1, SagaStep.COUPON, SagaStatus.STARTED, payload);
-        SagaInstanceDto saga2 = createSagaInstanceWithId(sagaId2, SagaStep.COUPON, SagaStatus.STARTED, payload);
+        @Test
+        @DisplayName("타임아웃시 타임아웃된 SAGA를 조회하고 보상을 수행한다")
+        void processTimeouts(){
+            //given
+            SagaInstanceDto saga1 = anSagaInstanceDto().id(1L).sagaStatus(SagaStatus.STARTED).sagaStep(SagaStep.COUPON).build();
+            SagaInstanceDto saga1_update = anSagaInstanceDto().id(1L).sagaStatus(SagaStatus.COMPENSATING).sagaStep(SagaStep.PRODUCT).build();
+            SagaInstanceDto saga2 = anSagaInstanceDto().id(2L).sagaStatus(SagaStatus.STARTED).sagaStep(SagaStep.COUPON).build();
+            SagaInstanceDto saga2_update = anSagaInstanceDto().id(2L).sagaStatus(SagaStatus.COMPENSATING).sagaStep(SagaStep.PRODUCT).build();
+            ProductStepHandler mockHandler = mock(ProductStepHandler.class);
+            given(sagaService.getTimeouts(any(LocalDateTime.class)))
+                    .willReturn(List.of(saga1, saga2));
+            given(sagaService.startCompensation(saga1.getId(), SagaStep.PRODUCT, "사가 처리 지연"))
+                    .willReturn(saga1_update);
+            given(sagaService.startCompensation(saga2.getId(), SagaStep.PRODUCT, "사가 처리 지연"))
+                    .willReturn(saga2_update);
+            given(handlerFactory.getHandler(SagaStep.PRODUCT))
+                    .willReturn(mockHandler);
+            //when
+            sagaManager.processTimeouts();
+            //then
+            verify(sagaService).startCompensation(saga1.getId(), SagaStep.PRODUCT, "사가 처리 지연");
+            verify(sagaService).startCompensation(saga2.getId(), SagaStep.PRODUCT, "사가 처리 지연");
 
-        given(sagaService.getTimeouts(any(LocalDateTime.class)))
-                .willReturn(List.of(saga1, saga2));
-
-        mockCompensationReturn(sagaId1, SagaStep.PRODUCT, payload);
-        mockCompensationReturn(sagaId2, SagaStep.PRODUCT, payload);
-        //when
-        sagaManager.processTimeouts();
-        //then
-        verify(sagaService).startCompensation(eq(sagaId1), any(), eq("주문 처리 지연"));
-        verify(sagaService).startCompensation(eq(sagaId2), any(), eq("주문 처리 지연"));
-
-        verify(sagaEventProducer).requestInventoryCompensate(eq(sagaId1), any(), eq(payload));
-        verify(sagaEventProducer).requestInventoryCompensate(eq(sagaId2), any(), eq(payload));
+            verify(mockHandler).compensate(
+                    eq(saga1.getId()),
+                    eq(ORDER_NO),
+                    any(Payload.class)
+            );
+            verify(mockHandler).compensate(
+                    eq(saga2.getId()),
+                    eq(ORDER_NO),
+                    any(Payload.class)
+            );
+        }
     }
 
     @Nested
@@ -580,7 +588,7 @@ public class SagaManagerTest {
             given(handlerFactory.getHandler(SagaStep.USER))
                     .willReturn(mockHandler);
             SagaStepResultCommand command = SagaStepResultCommand.of(SagaStep.PAYMENT, ORDER_NO,
-                    false, "PG_REJECT", "잔액이 부족합니다");
+                    false, "PAYMENT_INSUFFICIENT_BALANCE", "잔액이 부족합니다");
             //when
             sagaManager.handleStepResult(command);
             //then
@@ -589,7 +597,7 @@ public class SagaManagerTest {
             assertThat(sagaAbortCaptor.getValue())
                     .extracting(SagaAbortEvent::getSagaId, SagaAbortEvent::getOrderNo, SagaAbortEvent::getUserId,
                             SagaAbortEvent::getFailureCode)
-                    .containsExactly(SAGA_ID, ORDER_NO, USER_ID, "PG_REJECT");
+                    .containsExactly(SAGA_ID, ORDER_NO, USER_ID, "PAYMENT_INSUFFICIENT_BALANCE");
 
             verify(mockHandler).compensate(
                     eq(SAGA_ID),
@@ -619,7 +627,7 @@ public class SagaManagerTest {
             given(handlerFactory.getHandler(SagaStep.COUPON))
                     .willReturn(mockHandler);
             SagaStepResultCommand command = SagaStepResultCommand.of(SagaStep.PAYMENT, ORDER_NO,
-                    false, "PG_REJECT", "잔액이 부족합니다");
+                    false, "PAYMENT_INSUFFICIENT_BALANCE", "잔액이 부족합니다");
             //when
             sagaManager.handleStepResult(command);
             //then
@@ -628,7 +636,7 @@ public class SagaManagerTest {
             assertThat(sagaAbortCaptor.getValue())
                     .extracting(SagaAbortEvent::getSagaId, SagaAbortEvent::getOrderNo, SagaAbortEvent::getUserId,
                             SagaAbortEvent::getFailureCode)
-                    .containsExactly(SAGA_ID, ORDER_NO, USER_ID, "PG_REJECT");
+                    .containsExactly(SAGA_ID, ORDER_NO, USER_ID, "PAYMENT_INSUFFICIENT_BALANCE");
 
             verify(mockHandler).compensate(
                     eq(SAGA_ID),
@@ -658,7 +666,7 @@ public class SagaManagerTest {
             given(handlerFactory.getHandler(SagaStep.PRODUCT))
                     .willReturn(mockHandler);
             SagaStepResultCommand command = SagaStepResultCommand.of(SagaStep.PAYMENT, ORDER_NO,
-                    false, "PG_REJECT", "잔액이 부족합니다");
+                    false, "PAYMENT_INSUFFICIENT_BALANCE", "잔액이 부족합니다");
             //when
             sagaManager.handleStepResult(command);
             //then
@@ -667,7 +675,7 @@ public class SagaManagerTest {
             assertThat(sagaAbortCaptor.getValue())
                     .extracting(SagaAbortEvent::getSagaId, SagaAbortEvent::getOrderNo, SagaAbortEvent::getUserId,
                             SagaAbortEvent::getFailureCode)
-                    .containsExactly(SAGA_ID, ORDER_NO, USER_ID, "PG_REJECT");
+                    .containsExactly(SAGA_ID, ORDER_NO, USER_ID, "PAYMENT_INSUFFICIENT_BALANCE");
 
             verify(mockHandler).compensate(
                     eq(SAGA_ID),
@@ -675,11 +683,5 @@ public class SagaManagerTest {
                     any(Payload.class)
             );
         }
-    }
-
-    private void mockCompensationReturn(Long sagaId, SagaStep nextStep, Payload payload) {
-        SagaInstanceDto compensatingInstance = createSagaInstanceWithId(sagaId, nextStep, SagaStatus.COMPENSATING, payload);
-        given(sagaService.startCompensation(eq(sagaId), any(SagaStep.class), anyString()))
-                .willReturn(compensatingInstance);
     }
 }

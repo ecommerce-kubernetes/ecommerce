@@ -85,10 +85,8 @@ public class OrderFacade {
         OrderPaymentInfo orderPaymentInfo = confirmPayment(order.getOrderNo(), paymentKey, order.getOrderPriceInfo().getFinalPaymentAmount());
         PaymentCreationContext paymentContext = mapper.mapPaymentCreationContext(orderPaymentInfo);
         OrderDto orderDto = orderService.completePayment(paymentContext);
-
-        //TODO 리팩터링
-        eventPublisher.publishEvent(PaymentCompletedEvent.of(orderDto.getOrderNo(), orderDto.getOrderer().getUserId(),
-                orderDto.getOrderItems().stream().map(i -> i.getOrderedProduct().getProductVariantId()).toList()));
+        List<Long> orderedItemVariantIds = orderDto.getOrderItems().stream().map(i -> i.getOrderedProduct().getProductVariantId()).toList();
+        eventPublisher.publishEvent(PaymentCompletedEvent.of(orderDto.getOrderNo(), orderDto.getOrderer().getUserId(), orderedItemVariantIds));
         return OrderDetailResponse.from(orderDto);
     }
 
