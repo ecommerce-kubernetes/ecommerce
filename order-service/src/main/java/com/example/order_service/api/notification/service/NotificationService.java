@@ -1,7 +1,6 @@
 package com.example.order_service.api.notification.service;
 
-import com.example.order_service.api.notification.listener.dto.OrderPaymentReadyNotificationDto;
-import com.example.order_service.api.notification.service.dto.OrderNotificationResponse;
+import com.example.order_service.api.notification.service.dto.command.SendNotificationDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -30,9 +29,8 @@ public class NotificationService {
         return emitter;
     }
 
-    public void sendMessage(OrderPaymentReadyNotificationDto dto) {
-        OrderNotificationResponse response = OrderNotificationResponse.from(dto);
-        send(response.getUserId(), "ORDER_RESULT", response);
+    public void sendMessage(SendNotificationDto dto) {
+        send(dto.getSendUserId(), dto.getEventName(), dto.getSendObject());
     }
 
     private void initEmitter(Long userId, SseEmitter emitter) {

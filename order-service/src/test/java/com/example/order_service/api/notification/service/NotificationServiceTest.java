@@ -1,13 +1,21 @@
 package com.example.order_service.api.notification.service;
 
+import com.example.order_service.api.notification.service.dto.command.SendNotificationDto;
+import com.example.order_service.api.order.facade.event.OrderPaymentReadyEvent;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.io.IOException;
+import java.util.concurrent.ConcurrentHashMap;
+
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class NotificationServiceTest {
@@ -26,45 +34,44 @@ public class NotificationServiceTest {
         assertThat(emitter).isNotNull();
     }
 
-//    @Test
-//    @DisplayName("메시지 전송 시 실제 전송 로직이 호출된다")
-//    void sendMessage() throws IOException {
-//        //given
-//        Long userId = 1L;
-//        SseEmitter sseEmitter = spy(new SseEmitter());
-//        ConcurrentHashMap<Long, SseEmitter> emitters = new ConcurrentHashMap<>();
-//        emitters.put(userId, sseEmitter);
-//        ReflectionTestUtils.setField(notificationService, "emitters", emitters);
-//
-//        OrderPaymentReadyNotificationDto dto = OrderPaymentReadyNotificationDto.builder()
-//                .orderNo(ORDER_NO)
-//                .userId(1L)
-//                .status("SUCCESS")
-//                .code("PAYMENT_READY")
-//                .amount(5000L)
-//                .message("결제 대기")
-//                .build();
-//        //when
-//        notificationService.sendMessage(dto);
-//        //then
-//        verify(sseEmitter, times(1)).send(any(SseEmitter.SseEventBuilder.class));
-//    }
-//
-//    @Test
-//    @DisplayName("에미터가 없는 유저에게 메시지 전송 시 예외가 발생하지 않는다")
-//    void sendMessageWithoutEmitter() {
-//        //given
-//        OrderPaymentReadyNotificationDto dto = OrderPaymentReadyNotificationDto.builder()
-//                .orderNo(ORDER_NO)
-//                .userId(1L)
-//                .status("SUCCESS")
-//                .code("PAYMENT_READY")
-//                .orderName("상품1 외 1건")
-//                .amount(30000L)
-//                .message("결제 대기중입니다")
-//                .build();
-//        //when
-//        //then
-//        assertThatCode(() -> notificationService.sendMessage(dto)).doesNotThrowAnyException();
-//    }
+    @Test
+    @DisplayName("메시지 전송 시 실제 전송 로직이 호출된다")
+    void sendMessage() throws IOException {
+        //given
+        Long userId = 1L;
+        SseEmitter sseEmitter = spy(new SseEmitter());
+        ConcurrentHashMap<Long, SseEmitter> emitters = new ConcurrentHashMap<>();
+        emitters.put(userId, sseEmitter);
+        ReflectionTestUtils.setField(notificationService, "emitters", emitters);
+
+        OrderPaymentReadyEvent event = OrderPaymentReadyEvent.builder()
+                .orderNo(ORDER_NO)
+                .userId(1L)
+                .code("PAYMENT_READY")
+                .orderName("상품")
+                .finalPaymentAmount(9000L)
+                .build();
+        SendNotificationDto dto = SendNotificationDto.of(1L, "ORDER_RESULT", event);
+        //when
+        notificationService.sendMessage(dto);
+        //then
+        verify(sseEmitter, times(1)).send(any(SseEmitter.SseEventBuilder.class));
+    }
+
+    @Test
+    @DisplayName("에미터가 없는 유저에게 메시지 전송 시 예외가 발생하지 않는다")
+    void sendMessageWithoutEmitter() {
+        //given
+        OrderPaymentReadyEvent event = OrderPaymentReadyEvent.builder()
+                .orderNo(ORDER_NO)
+                .userId(1L)
+                .code("PAYMENT_READY")
+                .orderName("상품")
+                .finalPaymentAmount(9000L)
+                .build();
+        SendNotificationDto dto = SendNotificationDto.of(1L, "ORDER_RESULT", event);
+        //when
+        //then
+        assertThatCode(() -> notificationService.sendMessage(dto)).doesNotThrowAnyException();
+    }
 }
