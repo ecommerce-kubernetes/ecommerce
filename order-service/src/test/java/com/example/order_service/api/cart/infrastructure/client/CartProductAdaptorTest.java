@@ -31,7 +31,7 @@ public class CartProductAdaptorTest extends ExcludeInfraTest {
     void getProduct(){
         //given
         CartProductResponse product = createProductResponse(1L, 1L, "상품1", 3000L, 10,
-                "http://thumbnail.jpg", List.of(CartProductResponse.ItemOption.builder().optionTypeName("사이즈").optionValueName("XL").build()));
+                "http://thumbnail.jpg", List.of(CartProductResponse.ProductOptionInfo.builder().optionTypeName("사이즈").optionValueName("XL").build()));
 
         given(cartProductClient.getProductByVariantId(anyLong()))
                 .willReturn(product);
@@ -92,10 +92,10 @@ public class CartProductAdaptorTest extends ExcludeInfraTest {
     void getProducts(){
         //given
         CartProductResponse product1 = createProductResponse(1L, 1L, "상품1", 3000L, 10,
-                "http://thumbnail1.jpg", List.of(CartProductResponse.ItemOption.builder().optionTypeName("사이즈").optionValueName("XL").build()));
+                "http://thumbnail1.jpg", List.of(CartProductResponse.ProductOptionInfo.builder().optionTypeName("사이즈").optionValueName("XL").build()));
 
         CartProductResponse product2 = createProductResponse(2L, 2L, "상품2", 5000L, 10,
-                "http://thumbnail2.jpg", List.of(CartProductResponse.ItemOption.builder().optionTypeName("용량").optionValueName("256").build()));
+                "http://thumbnail2.jpg", List.of(CartProductResponse.ProductOptionInfo.builder().optionTypeName("용량").optionValueName("256").build()));
 
         given(cartProductClient.getProductVariantByIds(anyList()))
                 .willReturn(List.of(product1, product2));
@@ -139,7 +139,7 @@ public class CartProductAdaptorTest extends ExcludeInfraTest {
 
     private CartProductResponse createProductResponse(Long productId, Long productVariantId,
                                                       String productName, Long originalPrice, int discountRate,
-                                                      String thumbnail, List<CartProductResponse.ItemOption> options){
+                                                      String thumbnail, List<CartProductResponse.ProductOptionInfo> options){
         long discountAmount = originalPrice * discountRate / 100;
         return CartProductResponse.builder()
                 .productId(productId)
@@ -153,7 +153,7 @@ public class CartProductAdaptorTest extends ExcludeInfraTest {
                                 .discountedPrice(originalPrice - discountAmount)
                                 .build())
                 .thumbnailUrl(thumbnail)
-                .itemOptions(options)
+                .productOptionInfos(options)
                 .build();
     }
 }

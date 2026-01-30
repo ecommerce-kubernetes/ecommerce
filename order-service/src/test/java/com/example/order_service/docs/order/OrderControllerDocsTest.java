@@ -10,9 +10,7 @@ import com.example.order_service.api.order.facade.OrderFacade;
 import com.example.order_service.api.order.facade.dto.command.CreateOrderCommand;
 import com.example.order_service.api.order.facade.dto.result.CreateOrderResponse;
 import com.example.order_service.api.order.facade.dto.result.OrderDetailResponse;
-import com.example.order_service.api.order.facade.dto.result.OrderItemResponse;
 import com.example.order_service.api.order.facade.dto.result.OrderListResponse;
-import com.example.order_service.api.support.fixture.OrderResponseFixture;
 import com.example.order_service.docs.RestDocSupport;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -22,7 +20,7 @@ import org.springframework.http.MediaType;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static com.example.order_service.api.support.fixture.OrderResponseFixture.*;
+import static com.example.order_service.api.support.fixture.order.OrderResponseFixture.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;

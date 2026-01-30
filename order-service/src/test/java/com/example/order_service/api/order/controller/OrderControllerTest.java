@@ -25,11 +25,10 @@ import org.springframework.http.MediaType;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Stream;
 
-import static com.example.order_service.api.support.fixture.OrderResponseFixture.*;
+import static com.example.order_service.api.support.fixture.order.OrderResponseFixture.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;

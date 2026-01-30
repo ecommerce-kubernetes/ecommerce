@@ -1,7 +1,7 @@
 package com.example.order_service.api.cart.facade;
 
 import com.example.order_service.api.cart.domain.service.CartService;
-import com.example.order_service.api.cart.domain.service.dto.CartItemDto;
+import com.example.order_service.api.cart.domain.service.dto.result.CartItemDto;
 import com.example.order_service.api.cart.facade.dto.command.AddCartItemCommand;
 import com.example.order_service.api.cart.facade.dto.command.UpdateQuantityCommand;
 import com.example.order_service.api.cart.facade.dto.result.CartItemResponse;
@@ -85,17 +85,18 @@ public class CartFacade {
         if(product == null){
             return CartItemResponse.unAvailable(item.getId(), item.getProductVariantId(), item.getQuantity());
         }
-        return switch (product.getStatus()) {
-            case ON_SALE -> CartItemResponse.available(item, product);
-            case PREPARING -> CartItemResponse.preparing(item, product);
-            case STOP_SALE -> CartItemResponse.stop_sale(item, product);
-            case DELETED -> CartItemResponse.deleted(item, product);
-        };
+//        return switch (product.getStatus()) {
+//            case ON_SALE -> CartItemResponse.available(item, product);
+//            case PREPARING -> CartItemResponse.preparing(item, product);
+//            case STOP_SALE -> CartItemResponse.stop_sale(item, product);
+//            case DELETED -> CartItemResponse.deleted(item, product);
+//        };
+        return null;
     }
 
     private void validateProductOnSale(CartProductResponse product) {
-        if (product == null || !product.isOnSale()) {
-            throw new BusinessException(CartErrorCode.PRODUCT_NOT_ON_SALE);
-        }
+//        if (product == null || !product.isOnSale()) {
+//            throw new BusinessException(CartErrorCode.PRODUCT_NOT_ON_SALE);
+//        }
     }
 }

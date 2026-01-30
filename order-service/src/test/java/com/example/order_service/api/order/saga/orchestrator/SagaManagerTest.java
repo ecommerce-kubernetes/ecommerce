@@ -23,7 +23,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static com.example.order_service.api.support.fixture.SagaManagerTestFixture.*;
+import static com.example.order_service.api.support.fixture.saga.SagaManagerTestFixture.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;

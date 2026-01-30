@@ -1,7 +1,7 @@
 package com.example.order_service.api.cart.facade;
 
 import com.example.order_service.api.cart.domain.service.CartService;
-import com.example.order_service.api.cart.domain.service.dto.CartItemDto;
+import com.example.order_service.api.cart.domain.service.dto.result.CartItemDto;
 import com.example.order_service.api.cart.facade.dto.command.AddCartItemCommand;
 import com.example.order_service.api.cart.facade.dto.command.UpdateQuantityCommand;
 import com.example.order_service.api.cart.facade.dto.result.CartItemResponse;
@@ -9,7 +9,7 @@ import com.example.order_service.api.cart.facade.dto.result.CartItemStatus;
 import com.example.order_service.api.cart.facade.dto.result.CartResponse;
 import com.example.order_service.api.cart.infrastructure.client.CartProductAdaptor;
 import com.example.order_service.api.cart.infrastructure.client.dto.CartProductResponse;
-import com.example.order_service.api.cart.infrastructure.client.dto.ProductStatus;
+import com.example.order_service.api.cart.domain.model.ProductStatus;
 import com.example.order_service.api.common.exception.BusinessException;
 import com.example.order_service.api.common.exception.CartErrorCode;
 import org.junit.jupiter.api.DisplayName;
@@ -22,6 +22,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 
+import static com.example.order_service.api.support.fixture.cart.CartCommandFixture.anAddCartItemCommand;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.*;
@@ -56,7 +57,7 @@ public class CartFacadeTest {
         return CartProductResponse.builder()
                 .productId(productId)
                 .productVariantId(productVariantId)
-                .status(status)
+                .status("ON_SALE")
                 .productName("상품 이름")
                 .unitPrice(
                         CartProductResponse.UnitPrice.builder()
@@ -66,7 +67,7 @@ public class CartFacadeTest {
                                 .discountedPrice(9000L)
                                 .build())
                 .thumbnailUrl("http://thumbnail.jpg")
-                .itemOptions(List.of())
+                .productOptionInfos(List.of())
                 .build();
     }
 
@@ -86,7 +87,7 @@ public class CartFacadeTest {
         @DisplayName("장바구니에 상품이 추가되면 상품 정보가 포함된 응답값을 반환한다")
         void addItem(){
             //given
-            AddCartItemCommand command = mockAddCartItemCommand(1L, 1L, 3);
+            AddCartItemCommand command = anAddCartItemCommand().build();
             CartProductResponse product = createProductResponse(1L, 1L, ProductStatus.ON_SALE);
             CartItemDto cartItem = createCartItemDto(1L, 1L, 3);
             given(cartProductAdaptor.getProduct(anyLong()))

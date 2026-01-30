@@ -3,7 +3,7 @@ package com.example.order_service.api.cart.domain.service;
 import com.example.order_service.api.cart.domain.model.Cart;
 import com.example.order_service.api.cart.domain.model.CartItem;
 import com.example.order_service.api.cart.domain.repository.CartRepository;
-import com.example.order_service.api.cart.domain.service.dto.CartItemDto;
+import com.example.order_service.api.cart.domain.service.dto.result.CartItemDto;
 import com.example.order_service.api.common.exception.BusinessException;
 import com.example.order_service.api.common.exception.CartErrorCode;
 import com.example.order_service.api.support.ExcludeInfraTest;

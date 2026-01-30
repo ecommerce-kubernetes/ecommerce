@@ -12,9 +12,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static com.example.order_service.api.support.fixture.OrderCouponFixture.anOrderCouponDiscountResponse;
-import static com.example.order_service.api.support.fixture.OrderCouponFixture.anOrderCouponInfo;
-import static com.example.order_service.api.support.fixture.OrderPriceFixture.anOrderProductAmount;
+import static com.example.order_service.api.support.fixture.order.OrderCouponFixture.anOrderCouponDiscountResponse;
+import static com.example.order_service.api.support.fixture.order.OrderCouponFixture.anOrderCouponInfo;
+import static com.example.order_service.api.support.fixture.order.OrderPriceFixture.anOrderProductAmount;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;

@@ -1,4 +1,4 @@
-package com.example.order_service.api.support.fixture;
+package com.example.order_service.api.support.fixture.saga;
 
 import com.example.order_service.api.order.saga.domain.model.SagaStatus;
 import com.example.order_service.api.order.saga.domain.model.SagaStep;

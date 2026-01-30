@@ -23,8 +23,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-import static com.example.order_service.api.support.fixture.OrderCommandFixture.anOrderSearchCondition;
-import static com.example.order_service.api.support.fixture.OrderFixture.*;
+import static com.example.order_service.api.support.fixture.order.OrderCommandFixture.anOrderSearchCondition;
+import static com.example.order_service.api.support.fixture.order.OrderFixture.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 

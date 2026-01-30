@@ -15,11 +15,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 
-import static com.example.order_service.api.support.fixture.OrderCommandFixture.anOrderItemCommand;
-import static com.example.order_service.api.support.fixture.OrderCouponFixture.anOrderCouponInfo;
-import static com.example.order_service.api.support.fixture.OrderPriceFixture.anCalculatedOrderAmounts;
-import static com.example.order_service.api.support.fixture.OrderPriceFixture.anOrderProductAmount;
-import static com.example.order_service.api.support.fixture.OrderProductFixture.anOrderProductInfo;
+import static com.example.order_service.api.support.fixture.order.OrderCommandFixture.anOrderItemCommand;
+import static com.example.order_service.api.support.fixture.order.OrderCouponFixture.anOrderCouponInfo;
+import static com.example.order_service.api.support.fixture.order.OrderPriceFixture.anCalculatedOrderAmounts;
+import static com.example.order_service.api.support.fixture.order.OrderPriceFixture.anOrderProductAmount;
+import static com.example.order_service.api.support.fixture.order.OrderProductFixture.anOrderProductInfo;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 

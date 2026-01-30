@@ -6,7 +6,7 @@ import com.example.order_service.api.order.domain.service.dto.result.OrderProduc
 import com.example.order_service.api.order.facade.dto.command.CreateOrderItemCommand;
 import com.example.order_service.api.order.infrastructure.client.product.OrderProductAdaptor;
 import com.example.order_service.api.order.infrastructure.client.product.dto.OrderProductResponse;
-import com.example.order_service.api.support.fixture.OrderCommandFixture;
+import com.example.order_service.api.support.fixture.order.OrderCommandFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -17,8 +17,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 
-import static com.example.order_service.api.support.fixture.OrderProductFixture.anOrderProductInfo;
-import static com.example.order_service.api.support.fixture.OrderProductFixture.anOrderProductResponse;
+import static com.example.order_service.api.support.fixture.order.OrderProductFixture.anOrderProductInfo;
+import static com.example.order_service.api.support.fixture.order.OrderProductFixture.anOrderProductResponse;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyList;

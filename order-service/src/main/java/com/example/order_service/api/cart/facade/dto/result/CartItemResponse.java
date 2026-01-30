@@ -1,6 +1,6 @@
 package com.example.order_service.api.cart.facade.dto.result;
 
-import com.example.order_service.api.cart.domain.service.dto.CartItemDto;
+import com.example.order_service.api.cart.domain.service.dto.result.CartItemDto;
 import com.example.order_service.api.cart.infrastructure.client.dto.CartProductResponse;
 import lombok.Builder;
 import lombok.Getter;
@@ -50,7 +50,7 @@ public class CartItemResponse {
                 .quantity(cartItemDto.getQuantity())
                 .price(mapToPrice(product.getUnitPrice()))
                 .lineTotal(product.getUnitPrice().getDiscountedPrice() * cartItemDto.getQuantity())
-                .options(mapToOptions(product.getItemOptions()))
+                .options(mapToOptions(product.getProductOptionInfos()))
                 .build();
     }
 
@@ -66,7 +66,7 @@ public class CartItemResponse {
                 .quantity(cartItemDto.getQuantity())
                 .price(mapToPrice(product.getUnitPrice()))
                 .lineTotal(product.getUnitPrice().getDiscountedPrice() * cartItemDto.getQuantity())
-                .options(mapToOptions(product.getItemOptions()))
+                .options(mapToOptions(product.getProductOptionInfos()))
                 .build();
     }
 
@@ -82,7 +82,7 @@ public class CartItemResponse {
                 .quantity(cartItemDto.getQuantity())
                 .price(mapToPrice(product.getUnitPrice()))
                 .lineTotal(product.getUnitPrice().getDiscountedPrice() * cartItemDto.getQuantity())
-                .options(mapToOptions(product.getItemOptions()))
+                .options(mapToOptions(product.getProductOptionInfos()))
                 .build();
     }
 
@@ -98,7 +98,7 @@ public class CartItemResponse {
                 .quantity(cartItemDto.getQuantity())
                 .price(mapToPrice(product.getUnitPrice()))
                 .lineTotal(product.getUnitPrice().getDiscountedPrice() * cartItemDto.getQuantity())
-                .options(mapToOptions(product.getItemOptions()))
+                .options(mapToOptions(product.getProductOptionInfos()))
                 .build();
     }
 
@@ -120,7 +120,7 @@ public class CartItemResponse {
                 .build();
     }
 
-    private static List<CartItemOption> mapToOptions(List<CartProductResponse.ItemOption> optionResponses){
+    private static List<CartItemOption> mapToOptions(List<CartProductResponse.ProductOptionInfo> optionResponses){
         return optionResponses.stream().map(optionResponse -> CartItemOption.builder()
                 .optionTypeName(optionResponse.getOptionTypeName())
                 .optionValueName(optionResponse.getOptionValueName())

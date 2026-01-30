@@ -1,4 +1,4 @@
-package com.example.order_service.api.support.fixture;
+package com.example.order_service.api.support.fixture.order;
 
 import com.example.order_service.api.order.domain.service.dto.result.CalculatedOrderAmounts;
 import com.example.order_service.api.order.domain.service.dto.result.OrderProductAmount;

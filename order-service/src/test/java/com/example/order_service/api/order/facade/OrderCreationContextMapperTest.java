@@ -4,8 +4,8 @@ import com.example.order_service.api.order.domain.service.dto.command.OrderCreat
 import com.example.order_service.api.order.domain.service.dto.command.PaymentCreationContext;
 import com.example.order_service.api.order.domain.service.dto.result.*;
 import com.example.order_service.api.order.facade.dto.command.CreateOrderCommand;
-import com.example.order_service.api.support.fixture.OrderCommandFixture;
-import com.example.order_service.api.support.fixture.OrderProductFixture;
+import com.example.order_service.api.support.fixture.order.OrderCommandFixture;
+import com.example.order_service.api.support.fixture.order.OrderProductFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,12 +14,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 
-import static com.example.order_service.api.support.fixture.OrderCouponFixture.anOrderCouponInfo;
-import static com.example.order_service.api.support.fixture.OrderFixture.anOrderCreationContext;
-import static com.example.order_service.api.support.fixture.OrderFixture.anPaymentContext;
-import static com.example.order_service.api.support.fixture.OrderPaymentFixture.anOrderPaymentInfo;
-import static com.example.order_service.api.support.fixture.OrderPriceFixture.anCalculatedOrderAmounts;
-import static com.example.order_service.api.support.fixture.OrderUserFixture.anOrderUserInfo;
+import static com.example.order_service.api.support.fixture.order.OrderCouponFixture.anOrderCouponInfo;
+import static com.example.order_service.api.support.fixture.order.OrderFixture.anOrderCreationContext;
+import static com.example.order_service.api.support.fixture.order.OrderFixture.anPaymentContext;
+import static com.example.order_service.api.support.fixture.order.OrderPaymentFixture.anOrderPaymentInfo;
+import static com.example.order_service.api.support.fixture.order.OrderPriceFixture.anCalculatedOrderAmounts;
+import static com.example.order_service.api.support.fixture.order.OrderUserFixture.anOrderUserInfo;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(MockitoExtension.class)

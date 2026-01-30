@@ -7,7 +7,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import static com.example.order_service.api.support.fixture.OrderFixture.anOrderItemCreationContext;
+import static com.example.order_service.api.support.fixture.order.OrderFixture.anOrderItemCreationContext;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 

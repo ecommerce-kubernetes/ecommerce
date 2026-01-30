@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import static com.example.order_service.api.support.fixture.OrderFixture.*;
+import static com.example.order_service.api.support.fixture.order.OrderFixture.*;
 import static org.assertj.core.api.Assertions.*;
 
 public class OrderTest {
