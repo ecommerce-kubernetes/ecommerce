@@ -1,36 +1,24 @@
 package com.example.order_service.api.order.infrastructure.client.product.dto;
 
-import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Builder
 public class OrderProductResponse {
     private Long productId;
     private Long productVariantId;
+    private String status;
     private String sku;
     private String productName;
+    private String thumbnailUrl;
     private UnitPrice unitPrice;
     private Integer stockQuantity;
-    private String thumbnailUrl;
-    private List<ItemOption> itemOptions;
-
-    @Builder
-    private OrderProductResponse(Long productId, Long productVariantId, String sku, String productName, UnitPrice unitPrice, Integer stockQuantity,
-                                 String thumbnailUrl, List<ItemOption> itemOptions){
-        this.productId = productId;
-        this.productVariantId = productVariantId;
-        this.sku = sku;
-        this.productName = productName;
-        this.unitPrice = unitPrice;
-        this.stockQuantity = stockQuantity;
-        this.thumbnailUrl = thumbnailUrl;
-        this.itemOptions = itemOptions;
-    }
+    @Builder.Default
+    private List<ProductOptionInfo> itemOptions = new ArrayList<>();
 
     @Getter
     @Builder
@@ -43,7 +31,7 @@ public class OrderProductResponse {
 
     @Getter
     @Builder
-    public static class ItemOption {
+    public static class ProductOptionInfo {
         private String optionTypeName;
         private String optionValueName;
     }

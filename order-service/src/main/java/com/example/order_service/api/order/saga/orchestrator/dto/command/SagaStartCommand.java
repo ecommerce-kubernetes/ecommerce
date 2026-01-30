@@ -1,8 +1,6 @@
 package com.example.order_service.api.order.saga.orchestrator.dto.command;
 
-import com.example.order_service.api.order.application.event.OrderCreatedEvent;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
+import com.example.order_service.api.order.facade.event.OrderCreatedEvent;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -10,7 +8,6 @@ import java.util.List;
 
 @Getter
 @Builder
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class SagaStartCommand {
     private String orderNo;
     private Long userId;
@@ -20,7 +17,6 @@ public class SagaStartCommand {
 
     @Getter
     @Builder
-    @AllArgsConstructor(access = AccessLevel.PRIVATE)
     public static class DeductProduct {
         private Long productVariantId;
         private Integer quantity;

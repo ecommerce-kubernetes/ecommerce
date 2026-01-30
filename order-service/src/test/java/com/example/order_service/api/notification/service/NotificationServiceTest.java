@@ -1,6 +1,7 @@
 package com.example.order_service.api.notification.service;
 
-import com.example.order_service.api.notification.listener.dto.OrderNotificationDto;
+import com.example.order_service.api.notification.service.dto.command.SendNotificationDto;
+import com.example.order_service.api.order.facade.event.OrderPaymentReadyEvent;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -43,14 +44,14 @@ public class NotificationServiceTest {
         emitters.put(userId, sseEmitter);
         ReflectionTestUtils.setField(notificationService, "emitters", emitters);
 
-        OrderNotificationDto dto = OrderNotificationDto.builder()
+        OrderPaymentReadyEvent event = OrderPaymentReadyEvent.builder()
                 .orderNo(ORDER_NO)
                 .userId(1L)
-                .status("SUCCESS")
                 .code("PAYMENT_READY")
-                .amount(5000L)
-                .message("결제 대기")
+                .orderName("상품")
+                .finalPaymentAmount(9000L)
                 .build();
+        SendNotificationDto dto = SendNotificationDto.of(1L, "ORDER_RESULT", event);
         //when
         notificationService.sendMessage(dto);
         //then
@@ -61,15 +62,14 @@ public class NotificationServiceTest {
     @DisplayName("에미터가 없는 유저에게 메시지 전송 시 예외가 발생하지 않는다")
     void sendMessageWithoutEmitter() {
         //given
-        OrderNotificationDto dto = OrderNotificationDto.builder()
+        OrderPaymentReadyEvent event = OrderPaymentReadyEvent.builder()
                 .orderNo(ORDER_NO)
                 .userId(1L)
-                .status("SUCCESS")
                 .code("PAYMENT_READY")
-                .orderName("상품1 외 1건")
-                .amount(30000L)
-                .message("결제 대기중입니다")
+                .orderName("상품")
+                .finalPaymentAmount(9000L)
                 .build();
+        SendNotificationDto dto = SendNotificationDto.of(1L, "ORDER_RESULT", event);
         //when
         //then
         assertThatCode(() -> notificationService.sendMessage(dto)).doesNotThrowAnyException();

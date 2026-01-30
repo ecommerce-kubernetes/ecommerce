@@ -2,12 +2,11 @@ package com.example.order_service.api.order.domain.service;
 
 import com.example.order_service.api.common.exception.BusinessException;
 import com.example.order_service.api.common.exception.OrderErrorCode;
-import com.example.order_service.api.order.application.dto.command.CreateOrderItemDto;
-import com.example.order_service.api.order.domain.model.vo.PriceCalculateResult;
-import com.example.order_service.api.order.domain.service.dto.result.ItemCalculationResult;
-import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponDiscountResponse;
-import com.example.order_service.api.order.infrastructure.client.product.dto.OrderProductResponse;
-import com.example.order_service.api.order.infrastructure.client.user.dto.OrderUserResponse;
+import com.example.order_service.api.order.domain.service.dto.result.CalculatedOrderAmounts;
+import com.example.order_service.api.order.domain.service.dto.result.OrderCouponInfo;
+import com.example.order_service.api.order.domain.service.dto.result.OrderProductAmount;
+import com.example.order_service.api.order.domain.service.dto.result.OrderProductInfo;
+import com.example.order_service.api.order.facade.dto.command.CreateOrderItemCommand;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -17,45 +16,42 @@ import java.util.stream.Collectors;
 @Component
 public class OrderPriceCalculator {
 
-    public ItemCalculationResult calculateItemAmounts(List<CreateOrderItemDto> items, List<OrderProductResponse> products) {
-        Map<Long, Integer> quantityByVariantId = mapToQuantityByVariantId(items);
-        Map<Long, OrderProductResponse.UnitPrice> unitPriceByVariantId = mapToUnitPriceByVariantId(products);
-        return ItemCalculationResult.of(quantityByVariantId, unitPriceByVariantId);
+    public OrderProductAmount calculateItemAmounts(List<CreateOrderItemCommand> items, List<OrderProductInfo> products) {
+        Map<Long, Integer> qtyByVariantId = mapToQuantityByVariantId(items);
+        long totalOriginalAmount = 0;
+        long totalDiscountAmount = 0;
+        long subTotalAmount= 0;
+        for(OrderProductInfo p : products) {
+            Integer qty = qtyByVariantId.get(p.getProductVariantId());
+            totalOriginalAmount += p.getOriginalPrice() * qty;
+            totalDiscountAmount += p.getDiscountAmount() * qty;
+            subTotalAmount += p.getDiscountedPrice() * qty;
+        }
+        return OrderProductAmount.of(totalOriginalAmount, totalDiscountAmount, subTotalAmount);
     }
 
-    public PriceCalculateResult calculateFinalPrice(long useToPoint, ItemCalculationResult itemCalculationResult, long expectedPrice,
-                                                    OrderUserResponse user, OrderCouponDiscountResponse coupon) {
-        verifyEnoughPoints(useToPoint, user);
-        long couponDiscount = coupon != null ? coupon.getDiscountAmount() : 0L;
-        long priceAfterCoupon = itemCalculationResult.getSubTotalPrice() - couponDiscount;
-        long finalPaymentAmount = priceAfterCoupon - useToPoint;
+    public CalculatedOrderAmounts calculateOrderPrice(OrderProductAmount orderProductAmount, OrderCouponInfo coupon,
+                                                      long pointToUse, long expectedPrice) {
+        long finalPaymentAmount = orderProductAmount.getSubTotalAmount() - pointToUse - coupon.getDiscountAmount();
 
-        if(finalPaymentAmount != expectedPrice) {
+        if (finalPaymentAmount != expectedPrice) {
             throw new BusinessException(OrderErrorCode.ORDER_PRICE_MISMATCH);
         }
 
-        return PriceCalculateResult.of(itemCalculationResult, coupon, couponDiscount, useToPoint, finalPaymentAmount);
+        return CalculatedOrderAmounts.of(
+                orderProductAmount.getTotalOriginalAmount(),
+                orderProductAmount.getTotalDiscountAmount(),
+                coupon.getDiscountAmount(),
+                pointToUse,
+                finalPaymentAmount
+        );
     }
 
-    private Map<Long, OrderProductResponse.UnitPrice> mapToUnitPriceByVariantId(List<OrderProductResponse> products) {
-        return products.stream()
-                .collect(Collectors.toMap(
-                        OrderProductResponse::getProductVariantId,
-                        OrderProductResponse::getUnitPrice
-                ));
-    }
-
-    private void verifyEnoughPoints(Long useToPoint, OrderUserResponse user){
-        if(useToPoint > 0 && !user.hasEnoughPoints(useToPoint)) {
-            throw new BusinessException(OrderErrorCode.ORDER_INSUFFICIENT_POINT_BALANCE);
-        }
-    }
-
-    private Map<Long, Integer> mapToQuantityByVariantId(List<CreateOrderItemDto> items){
+    private Map<Long, Integer> mapToQuantityByVariantId(List<CreateOrderItemCommand> items){
         return  items.stream()
                 .collect(Collectors.toMap(
-                        CreateOrderItemDto::getProductVariantId,
-                        CreateOrderItemDto::getQuantity
+                        CreateOrderItemCommand::getProductVariantId,
+                        CreateOrderItemCommand::getQuantity
                 ));
     }
 

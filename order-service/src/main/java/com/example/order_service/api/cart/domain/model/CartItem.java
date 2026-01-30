@@ -30,6 +30,9 @@ public class CartItem {
     }
 
     public static CartItem create(Long productVariantId, int quantity){
+        if (quantity <= 0) {
+            throw new BusinessException(CartErrorCode.CART_ITEM_MINIMUM_ONE_REQUIRED);
+        }
         return CartItem.builder()
                 .productVariantId(productVariantId)
                 .quantity(quantity)

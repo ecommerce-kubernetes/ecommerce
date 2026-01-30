@@ -35,7 +35,7 @@ public class OrderQueryDslRepositoryImpl implements OrderQueryDslRepository{
                 .join(order.orderItems, orderItem)
                 .where(
                         yearEq(condition.getYear()),
-                        order.userId.eq(userId),
+                        order.orderer.userId.eq(userId),
                         productNameEq(condition.getProductName())
                 )
                 .offset(pageable.getOffset())
@@ -48,7 +48,7 @@ public class OrderQueryDslRepositoryImpl implements OrderQueryDslRepository{
                 .leftJoin(order.orderItems, orderItem)
                 .where(
                         yearEq(condition.getYear()),
-                        order.userId.eq(userId),
+                        order.orderer.userId.eq(userId),
                         productNameEq(condition.getProductName())
                 )
                 .fetchOne();
@@ -77,6 +77,6 @@ public class OrderQueryDslRepositoryImpl implements OrderQueryDslRepository{
         if (productName == null || productName.isEmpty()) {
             return null;
         }
-        return orderItem.productName.contains(productName);
+        return orderItem.orderedProduct.productName.contains(productName);
     }
 }

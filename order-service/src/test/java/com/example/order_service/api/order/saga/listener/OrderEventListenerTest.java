@@ -1,19 +1,22 @@
 package com.example.order_service.api.order.saga.listener;
 
-import com.example.order_service.api.order.application.OrderApplicationService;
-import com.example.order_service.api.order.application.event.OrderCreatedEvent;
-import com.example.order_service.api.order.application.event.OrderEventStatus;
-import com.example.order_service.api.order.application.event.PaymentResultEvent;
 import com.example.order_service.api.order.domain.model.OrderFailureCode;
+import com.example.order_service.api.order.facade.OrderFacade;
+import com.example.order_service.api.order.facade.event.OrderCreatedEvent;
+import com.example.order_service.api.order.facade.event.PaymentCompletedEvent;
+import com.example.order_service.api.order.facade.event.PaymentFailedEvent;
+import com.example.order_service.api.order.saga.domain.model.SagaStep;
 import com.example.order_service.api.order.saga.orchestrator.SagaManager;
-import com.example.order_service.api.order.saga.orchestrator.dto.command.SagaPaymentCommand;
 import com.example.order_service.api.order.saga.orchestrator.dto.command.SagaStartCommand;
+import com.example.order_service.api.order.saga.orchestrator.dto.command.SagaStepResultCommand;
 import com.example.order_service.api.order.saga.orchestrator.event.SagaAbortEvent;
 import com.example.order_service.api.order.saga.orchestrator.event.SagaResourceSecuredEvent;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -33,8 +36,11 @@ public class OrderEventListenerTest {
     @Mock
     private SagaManager sagaManager;
     @Mock
-    private OrderApplicationService orderApplicationService;
+    private OrderFacade orderFacade;
     public static final String ORDER_NO = "ORD-20260101-AB12FVC";
+    @Captor
+    private ArgumentCaptor<SagaStepResultCommand> sagaStepResultCaptor;
+
 
     @Test
     @DisplayName("주문 생성 이벤트를 수신하면 SAGA 를 수행한다")
@@ -83,35 +89,91 @@ public class OrderEventListenerTest {
         //when
         orderEventListener.handleSagaCompleted(sagaResourceSecuredEvent);
         //then
-        verify(orderApplicationService, times(1)).preparePayment(ORDER_NO);
+        verify(orderFacade, times(1)).preparePayment(ORDER_NO);
     }
 
-    @Test
-    @DisplayName("Saga가 실패되면 주문 상태를 변경하기 위해 orderApplicationService를 호출한다")
-    void handleSagaAborted() {
-        //given
-        SagaAbortEvent sagaAbortEvent = SagaAbortEvent.of(1L, ORDER_NO, 1L, OrderFailureCode.OUT_OF_STOCK);
-        //when
-        orderEventListener.handleSagaAborted(sagaAbortEvent);
-        //then
-        verify(orderApplicationService, times(1)).processOrderFailure(ORDER_NO, OrderFailureCode.OUT_OF_STOCK);
+    @Nested
+    @DisplayName("결제 이벤트 수신시")
+    class PaymentEvent {
+
+        @Test
+        @DisplayName("결제 성공 이벤트 수신시 Saga를 완료한다")
+        void handlePaymentCompleted(){
+            //given
+            PaymentCompletedEvent event = PaymentCompletedEvent.of(ORDER_NO, 1L, List.of(1L, 2L));
+            //when
+            orderEventListener.handlePaymentCompleted(event);
+            //then
+            verify(sagaManager).handleStepResult(sagaStepResultCaptor.capture());
+            assertThat(sagaStepResultCaptor.getValue())
+                    .extracting(SagaStepResultCommand::getStep, SagaStepResultCommand::getOrderNo, SagaStepResultCommand::isSuccess,
+                            SagaStepResultCommand::getErrorCode, SagaStepResultCommand::getFailureReason)
+                    .containsExactly(SagaStep.PAYMENT, ORDER_NO, true, null, null);
+        }
+
+        @Test
+        @DisplayName("결제 실패 이벤트 수신시 Saga를 실패처리하고 보상로직을 실행한다")
+        void handlePaymentFailed(){
+            //given
+            PaymentFailedEvent event = PaymentFailedEvent.of(ORDER_NO, 1L, "PAYMENT_INSUFFICIENT_BALANCE", "잔액이 부족합니다");
+            //when
+            orderEventListener.handlePaymentFailed(event);
+            //then
+            verify(sagaManager).handleStepResult(sagaStepResultCaptor.capture());
+            assertThat(sagaStepResultCaptor.getValue())
+                    .extracting(SagaStepResultCommand::getStep, SagaStepResultCommand::getOrderNo, SagaStepResultCommand::isSuccess,
+                            SagaStepResultCommand::getErrorCode, SagaStepResultCommand::getFailureReason)
+                    .containsExactly(SagaStep.PAYMENT, ORDER_NO, false, "PAYMENT_INSUFFICIENT_BALANCE", "잔액이 부족합니다");
+        }
     }
 
-    @Test
-    @DisplayName("결제 처리 후 Saga를 완료하기 위해 sagaManager를 호출한다")
-    void handlePaymentResult(){
-        //given
-        PaymentResultEvent paymentResultEvent = PaymentResultEvent.of(ORDER_NO, 1L, OrderEventStatus.SUCCESS, null,
-                List.of(1L, 2L));
-        //when
-        orderEventListener.handlePaymentResult(paymentResultEvent);
-        //then
-        ArgumentCaptor<SagaPaymentCommand> captor = ArgumentCaptor.forClass(SagaPaymentCommand.class);
-        verify(sagaManager, times(1)).processPaymentResult(captor.capture());
+    @Nested
+    @DisplayName("SAGA 실패시")
+    class SagaAborted {
 
-        assertThat(captor.getValue())
-                .extracting(SagaPaymentCommand::getOrderNo, SagaPaymentCommand::getStatus, SagaPaymentCommand::getCode,
-                        SagaPaymentCommand::getFailureReason)
-                .containsExactly(ORDER_NO, OrderEventStatus.SUCCESS, null, null);
+        @Test
+        @DisplayName("Saga 포인트 부족 이벤트 수신 시 INSUFFICIENT_POINT 코드로 실패 처리한다")
+        void handleSagaAbort_publish_insufficient_point_event(){
+            //given
+            SagaAbortEvent abortEvent = SagaAbortEvent.of(1L, ORDER_NO, 1L, "INSUFFICIENT_POINT");
+            //when
+            orderEventListener.handleSagaAborted(abortEvent);
+            //then
+            verify(orderFacade).processOrderFailure(ORDER_NO, OrderFailureCode.INSUFFICIENT_POINT);
+        }
+
+        @Test
+        @DisplayName("Saga 유효하지 않은 쿠폰 이벤트 수신시 INVALID_COUPON 코드로 실패 처리한다")
+        void handleSagaAbort_publish_invalid_coupon(){
+            //given
+            SagaAbortEvent abortEvent = SagaAbortEvent.of(1L, ORDER_NO, 1L, "INVALID_COUPON");
+            //when
+            orderEventListener.handleSagaAborted(abortEvent);
+            //then
+            verify(orderFacade).processOrderFailure(ORDER_NO, OrderFailureCode.INVALID_COUPON);
+        }
+
+        @Test
+        @DisplayName("Saga 만료된 쿠폰 이벤트 수신시 COUPON_EXPIRED 코드로 실패 처리한다")
+        void handleSagaAbort_publish_coupon_expired(){
+            //given
+            SagaAbortEvent abortEvent = SagaAbortEvent.of(1L, ORDER_NO, 1L, "COUPON_EXPIRED");
+            //when
+            orderEventListener.handleSagaAborted(abortEvent);
+            //then
+            verify(orderFacade).processOrderFailure(ORDER_NO, OrderFailureCode.COUPON_EXPIRED);
+        }
+
+        @Test
+        @DisplayName("Saga 재고 부족 이벤트 수신시 코드로 실패 처리한다")
+        void handleSagaAbort_publish_insufficient_stock(){
+            //given
+            SagaAbortEvent abortEvent = SagaAbortEvent.of(1L, ORDER_NO, 1L, "INSUFFICIENT_STOCK");
+            //when
+            orderEventListener.handleSagaAborted(abortEvent);
+            //then
+            verify(orderFacade).processOrderFailure(ORDER_NO, OrderFailureCode.INSUFFICIENT_STOCK);
+        }
     }
+
 }

@@ -1,8 +1,9 @@
 package com.example.order_service.api.notification.listener;
 
-import com.example.order_service.api.notification.listener.dto.OrderNotificationDto;
+import com.example.order_service.api.notification.service.dto.command.SendNotificationDto;
 import com.example.order_service.api.notification.service.NotificationService;
-import com.example.order_service.api.order.application.event.OrderResultEvent;
+import com.example.order_service.api.order.facade.event.OrderFailedEvent;
+import com.example.order_service.api.order.facade.event.OrderPaymentReadyEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
@@ -14,8 +15,14 @@ public class NotificationListener {
     private final NotificationService notificationService;
 
     @EventListener
-    public void handleOrderResult(OrderResultEvent event){
-        OrderNotificationDto orderResult = OrderNotificationDto.from(event);
-        notificationService.sendMessage(orderResult);
+    public void handlePaymentReadyEvent(OrderPaymentReadyEvent event){
+        SendNotificationDto dto = SendNotificationDto.of(event.getUserId(), "ORDER_RESULT", event);
+        notificationService.sendMessage(dto);
+    }
+
+    @EventListener
+    public void handleOrderFailedEvent(OrderFailedEvent event) {
+        SendNotificationDto dto = SendNotificationDto.of(event.getUserId(), "ORDER_RESULT", event);
+        notificationService.sendMessage(dto);
     }
 }

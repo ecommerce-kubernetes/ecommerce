@@ -1,5 +1,6 @@
 package com.example.order_service.api.order.domain.model;
 
+import com.example.order_service.api.order.domain.service.dto.command.PaymentCreationContext;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -22,7 +23,10 @@ public class Payment {
     private Order order;
     private String paymentKey;
     private Long amount;
-    private String method;
+    @Enumerated(EnumType.STRING)
+    private PaymentStatus status;
+    @Enumerated(EnumType.STRING)
+    private PaymentMethod method;
     private LocalDateTime approvedAt;
 
     protected void setOrder(Order order) {
@@ -30,19 +34,21 @@ public class Payment {
     }
 
     @Builder(access = AccessLevel.PRIVATE)
-    private Payment(Long amount, String paymentKey, String method, LocalDateTime approvedAt) {
-        this.amount = amount;
+    private Payment(String paymentKey, Long amount, PaymentStatus status, PaymentMethod method, LocalDateTime approvedAt) {
         this.paymentKey = paymentKey;
+        this.amount = amount;
+        this.status = status;
         this.method = method;
         this.approvedAt = approvedAt;
     }
 
-    public static Payment create(Long amount, String paymentKey, String method, LocalDateTime approvedAt) {
+    public static Payment create(PaymentCreationContext context) {
         return Payment.builder()
-                .amount(amount)
-                .paymentKey(paymentKey)
-                .method(method)
-                .approvedAt(approvedAt)
+                .paymentKey(context.getPaymentKey())
+                .amount(context.getAmount())
+                .status(context.getStatus())
+                .method(context.getMethod())
+                .approvedAt(context.getApprovedAt())
                 .build();
     }
 }

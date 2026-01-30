@@ -2,7 +2,7 @@ package com.example.order_service.api.order.domain.repository;
 
 import com.example.order_service.api.order.controller.dto.request.OrderSearchCondition;
 import com.example.order_service.api.order.domain.model.Order;
-import com.example.order_service.api.order.domain.model.OrderStatus;
+import com.example.order_service.api.order.domain.service.dto.command.OrderCreationContext;
 import com.example.order_service.api.support.ExcludeInfraTest;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
@@ -12,9 +12,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
+import java.util.List;
 
-import static com.example.order_service.api.support.fixture.OrderRepositoryTestFixture.testOrderBuilder;
+import static com.example.order_service.api.support.fixture.order.OrderCommandFixture.anOrderSearchCondition;
+import static com.example.order_service.api.support.fixture.order.OrderFixture.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Transactional
@@ -27,56 +28,73 @@ public class OrderRepositoryTest extends ExcludeInfraTest {
     private OrderRepository repository;
 
     @Test
-    @DisplayName("주문 번호로 주문을 조회한다")
-    void findByOrderNoTest(){
-        //given
-        Long userId = 1L;
-        Order order = testOrderBuilder()
-                .userId(userId)
-                .addItem("상품1").addItem("상품2")
-                .build();
-
-        Order savedOrder = repository.save(order);
-        //when
-        Optional<Order> find = repository.findByOrderNo(savedOrder.getOrderNo());
-        //then
-        assertThat(find).isNotEmpty();
-
-        assertThat(find.get().getUserId()).isEqualTo(userId);
-        assertThat(find.get().getOrderNo()).isNotNull();
-    }
-
-    @Test
     @DisplayName("특정 유저의 주문을 최신순으로 조회한다")
     void findByUserIdAndCondition_latest(){
         //given
+        OrderSearchCondition condition = anOrderSearchCondition().sort("latest").build();
+        OrderCreationContext context = anOrderCreationContext().build();
+        Order order1 = repository.save(Order.create(context));
+        Order order2 = repository.save(Order.create(context));
+        Order order3 = repository.save(Order.create(context));
+        //when
+        Page<Order> result = repository.findByUserIdAndCondition(1L, condition);
+        //then
+        assertThat(result.getNumber()).isEqualTo(0);
+        assertThat(result.getTotalPages()).isEqualTo(1);
+        assertThat(result.getSize()).isEqualTo(10);
+        assertThat(result.getTotalElements()).isEqualTo(3);
+
+        assertThat(result.getContent())
+                .hasSize(3)
+                .extracting(Order::getId)
+                .containsExactly(
+                        order3.getId(),
+                        order2.getId(),
+                        order1.getId()
+                );
+    }
+
+    @Test
+    @DisplayName("특정 유저의 주문을 오래된 순으로 조회한다")
+    void findByUserIdAndCondition_oldest(){
+        //given
+        OrderSearchCondition condition = anOrderSearchCondition().sort("oldest").build();
+        OrderCreationContext context = anOrderCreationContext().build();
+        Order order1 = repository.save(Order.create(context));
+        Order order2 = repository.save(Order.create(context));
+        Order order3 = repository.save(Order.create(context));
+        //when
+        Page<Order> result = repository.findByUserIdAndCondition(1L, condition);
+        //then
+        assertThat(result.getNumber()).isEqualTo(0);
+        assertThat(result.getTotalPages()).isEqualTo(1);
+        assertThat(result.getSize()).isEqualTo(10);
+        assertThat(result.getTotalElements()).isEqualTo(3);
+
+        assertThat(result.getContent())
+                .hasSize(3)
+                .extracting(Order::getId)
+                .containsExactly(
+                        order1.getId(),
+                        order2.getId(),
+                        order3.getId()
+                );
+    }
+
+    @Test
+    @DisplayName("특정 유저의 주문중 해당 년도에 주문한 주문을 조회한다")
+    void findByUserIdAndCondition_match_year(){
+        //given
         Long userId = 1L;
-        Long otherUserId = 2L;
-        OrderSearchCondition condition = OrderSearchCondition.builder()
-                .page(1)
-                .size(10)
-                .sort("latest")
-                .build();
+        OrderSearchCondition condition = anOrderSearchCondition().year("2026").build();
+        OrderCreationContext context = anOrderCreationContext().build();
+        Order order1 = repository.save(Order.create(context));
+        Order order2 = repository.save(Order.create(context));
+        Order order3 = repository.save(Order.create(context));
 
-        Order order1 = testOrderBuilder()
-                .userId(userId)
-                .addItem("상품1").addItem("상품2")
-                .build();
-
-        Order order2 = testOrderBuilder()
-                .userId(userId)
-                .status(OrderStatus.COMPLETED)
-                .addItem("상품1").addItem("상품3")
-                .build();
-
-        Order order3 = testOrderBuilder()
-                .userId(otherUserId)
-                .addItem("상품1").addItem("상품2").addItem("상품3")
-                .build();
-
-        repository.save(order1);
-        repository.save(order2);
-        repository.save(order3);
+        orderTimeSetting(order1.getId(), LocalDateTime.of(2024, 10, 20, 10, 5, 10));
+        orderTimeSetting(order2.getId(), LocalDateTime.of(2026, 10, 20, 10, 5, 10));
+        orderTimeSetting(order3.getId(), LocalDateTime.of(2026, 10, 20, 10, 10, 10));
         //when
         Page<Order> result = repository.findByUserIdAndCondition(userId, condition);
         //then
@@ -88,83 +106,25 @@ public class OrderRepositoryTest extends ExcludeInfraTest {
         assertThat(result.getContent())
                 .hasSize(2)
                 .extracting(Order::getId)
-                .containsExactly(order2.getId(), order1.getId());
-
-        assertThat(result.getContent())
-                .extracting(Order::getUserId)
-                .containsOnly(userId);
-    }
-
-
-    @Test
-    @DisplayName("특정 유저의 주문을 오래된 순으로 조회한다")
-    void findByUserIdAndCondition_oldest(){
-        //given
-        Long userId = 1L;
-        Long otherUserId = 2L;
-        OrderSearchCondition condition = OrderSearchCondition.builder()
-                .page(1)
-                .size(10)
-                .sort("oldest")
-                .build();
-
-        Order order1 = testOrderBuilder()
-                .userId(userId)
-                .addItem("상품1").addItem("상품2")
-                .build();
-
-        Order order2 = testOrderBuilder()
-                .userId(userId)
-                .status(OrderStatus.COMPLETED)
-                .addItem("상품1").addItem("상품3")
-                .build();
-
-        Order order3 = testOrderBuilder()
-                .userId(otherUserId)
-                .addItem("상품1").addItem("상품2").addItem("상품3")
-                .build();
-        repository.save(order1);
-        repository.save(order2);
-        repository.save(order3);
-        //when
-        Page<Order> result = repository.findByUserIdAndCondition(userId, condition);
-        //then
-        assertThat(result.getContent())
-                .hasSize(2)
-                .extracting(Order::getId)
-                .containsExactly(order1.getId(), order2.getId());
+                .containsExactly(
+                        order3.getId(),
+                        order2.getId()
+                );
     }
 
     @Test
-    @DisplayName("특정 유저의 주문중 해당 년도에 주문한 주문을 조회한다")
-    void findByUserIdAndCondition_match_year(){
+    @DisplayName("특정 유저의 주문중 주문 상품명이 동일한 주문을 조회한다")
+    void findByUserIdAndCondition_match_productName(){
         //given
-        Long userId = 1L;
-        OrderSearchCondition condition = OrderSearchCondition.builder()
-                .page(1)
-                .size(10)
-                .sort("latest")
-                .year("2024")
-                .build();
-
-        Order order1 = testOrderBuilder()
-                .userId(userId)
-                .addItem("상품1").addItem("상품2")
-                .build();
-
-        Order order2 = testOrderBuilder()
-                .userId(userId)
-                .status(OrderStatus.COMPLETED)
-                .addItem("상품1").addItem("상품3")
-                .build();
-
-        repository.save(order1);
-        repository.save(order2);
-
-        orderTimeSetting(order1.getId(), LocalDateTime.of(2024, 10, 20, 10, 5, 10));
-        orderTimeSetting(order2.getId(), LocalDateTime.of(2025, 10, 20, 10, 5, 10));
+        OrderSearchCondition condition = anOrderSearchCondition().productName("상품1").build();
+        OrderCreationContext prod1Context = anOrderCreationContext().orderItemCreationContexts(
+                List.of(anOrderItemCreationContext().productSpec(anProductSpec().productName("상품1").build()).build())).build();
+        OrderCreationContext prod2Context = anOrderCreationContext().orderItemCreationContexts(
+                List.of(anOrderItemCreationContext().productSpec(anProductSpec().productName("상품2").build()).build())).build();
+        Order order1 = repository.save(Order.create(prod1Context));
+        Order order2 = repository.save(Order.create(prod2Context));
         //when
-        Page<Order> result = repository.findByUserIdAndCondition(userId, condition);
+        Page<Order> result = repository.findByUserIdAndCondition(1L, condition);
         //then
         assertThat(result.getNumber()).isEqualTo(0);
         assertThat(result.getTotalPages()).isEqualTo(1);
@@ -175,52 +135,6 @@ public class OrderRepositoryTest extends ExcludeInfraTest {
                 .hasSize(1)
                 .extracting(Order::getId)
                 .containsExactly(order1.getId());
-    }
-
-    @Test
-    @DisplayName("특정 유저의 주문중 주문 상품이 동일한 주문을 조회한다")
-    void findByUserIdAndCondition_match_productName(){
-        //given
-        Long userId = 1L;
-        OrderSearchCondition condition = OrderSearchCondition.builder()
-                .page(1)
-                .size(10)
-                .sort("latest")
-                .productName("상품1")
-                .build();
-
-        Order order1 = testOrderBuilder()
-                .userId(userId)
-                .addItem("상품1").addItem("상품2")
-                .build();
-
-        Order order2 = testOrderBuilder()
-                .userId(userId)
-                .status(OrderStatus.COMPLETED)
-                .addItem("상품1").addItem("상품3")
-                .build();
-
-        Order order3 = testOrderBuilder()
-                .userId(userId)
-                .status(OrderStatus.COMPLETED)
-                .addItem("상품3")
-                .build();
-
-        repository.save(order1);
-        repository.save(order2);
-        repository.save(order3);
-        //when
-        Page<Order> result = repository.findByUserIdAndCondition(userId, condition);
-        //then
-        assertThat(result.getNumber()).isEqualTo(0);
-        assertThat(result.getTotalPages()).isEqualTo(1);
-        assertThat(result.getSize()).isEqualTo(10);
-        assertThat(result.getTotalElements()).isEqualTo(2);
-
-        assertThat(result.getContent())
-                .hasSize(2)
-                .extracting(Order::getId)
-                .containsExactly(order2.getId(), order1.getId());
     }
 
     private void orderTimeSetting(Long orderId, LocalDateTime targetTime) {

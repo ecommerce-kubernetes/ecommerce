@@ -37,23 +37,23 @@ import java.util.UUID;
         partitions = 1,
         brokerProperties = {"listeners=PLAINTEXT://127.0.0.1:0"},
         topics = {
-                "order.saga.product.request", "order.saga.coupon.request", "order.saga.user.request",
-                "product.saga.result", "coupon.saga.result", "user.saga.result"
+                "product.saga.command", "coupon.saga.command", "user.saga.command",
+                "product.saga.reply", "coupon.saga.reply", "user.saga.reply"
         }
 )
 public abstract class IncludeInfraTest {
 
-    @Value("${order.topics.product-request}")
+    @Value("${order.topics.product-saga-command}")
     protected String PRODUCT_REQUEST_TOPIC_NAME;
-    @Value("${order.topics.coupon-request}")
+    @Value("${order.topics.coupon-saga-command}")
     protected String COUPON_REQUEST_TOPIC_NAME;
-    @Value("${order.topics.user-request}")
+    @Value("${order.topics.user-saga-command}")
     protected String USER_REQUEST_TOPIC_NAME;
-    @Value("${order.topics.product-result}")
+    @Value("${order.topics.product-saga-reply}")
     protected String PRODUCT_RESULT_TOPIC_NAME;
-    @Value("${order.topics.coupon-result}")
+    @Value("${order.topics.coupon-saga-reply}")
     protected String COUPON_RESULT_TOPIC_NAME;
-    @Value("${order.topics.user-result}")
+    @Value("${order.topics.user-saga-reply}")
     protected String USER_RESULT_TOPIC_NAME;
     @Autowired
     protected EmbeddedKafkaBroker embeddedKafkaBroker;

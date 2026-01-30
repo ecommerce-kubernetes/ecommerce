@@ -1,7 +1,12 @@
 package com.example.order_service.api.order.domain.model;
 
 import com.example.order_service.api.common.entity.BaseEntity;
-import com.example.order_service.api.order.domain.service.dto.command.CreateOrderItemCommand;
+import com.example.order_service.api.order.domain.model.vo.OrderItemPrice;
+import com.example.order_service.api.order.domain.model.vo.OrderedProduct;
+import com.example.order_service.api.order.domain.service.dto.command.OrderItemCreationContext;
+import com.example.order_service.api.order.domain.service.dto.command.OrderItemCreationContext.CreateItemOptionSpec;
+import com.example.order_service.api.order.domain.service.dto.command.OrderItemCreationContext.PriceSpec;
+import com.example.order_service.api.order.domain.service.dto.command.OrderItemCreationContext.ProductSpec;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -24,71 +29,60 @@ public class OrderItem extends BaseEntity {
     @JoinColumn(name = "order_id")
     private Order order;
 
-    private Long productId;
-    private Long productVariantId;
-    private String sku;
-    private String productName;
-    private Long originPrice;
-    private Integer discountRate;
-    private Long discountAmount;
-    private Long discountedPrice;
+    @Embedded
+    private OrderedProduct orderedProduct;
+    @Embedded
+    private OrderItemPrice orderItemPrice;
     private Long lineTotal;
     private Integer quantity;
-    private String thumbnail;
 
     @OneToMany(mappedBy = "orderItem", cascade = CascadeType.PERSIST, orphanRemoval = true)
-    private List<ItemOption> itemOptions = new ArrayList<>();
+    private List<OrderItemOption> orderItemOptions = new ArrayList<>();
 
     @Builder(access = AccessLevel.PRIVATE)
-    private OrderItem(Order order, Long productId, Long productVariantId, String sku, String productName, Long originPrice,
-                     Integer discountRate, Long discountAmount, Long discountedPrice, Long lineTotal, Integer quantity, String thumbnail) {
-        this.order = order;
-        this.productId = productId;
-        this.productVariantId = productVariantId;
-        this.sku = sku;
-        this.productName = productName;
-        this.originPrice = originPrice;
-        this.discountRate = discountRate;
-        this.discountAmount = discountAmount;
-        this.discountedPrice = discountedPrice;
+    private OrderItem(OrderedProduct orderedProduct, OrderItemPrice orderItemPrice, Long lineTotal, Integer quantity){
+        this.orderedProduct = orderedProduct;
+        this.orderItemPrice = orderItemPrice;
         this.lineTotal = lineTotal;
         this.quantity = quantity;
-        this.thumbnail = thumbnail;
     }
 
     protected void setOrder(Order order){
         this.order = order;
     }
 
-    public void addItemOption(ItemOption itemOption){
-        this.itemOptions.add(itemOption);
-        itemOption.setOrderItem(this);
+    public void addOrderItemOption(OrderItemOption orderItemOption){
+        this.orderItemOptions.add(orderItemOption);
+        orderItemOption.setOrderItem(this);
     }
 
-    public static OrderItem create(CreateOrderItemCommand createOrderItemCommand){
-        OrderItem orderItem = of(createOrderItemCommand);
-        if(createOrderItemCommand.getItemOptions() != null && !createOrderItemCommand.getItemOptions().isEmpty()) {
-            for (CreateOrderItemCommand.ItemOption itemOption : createOrderItemCommand.getItemOptions()) {
-                orderItem.addItemOption(ItemOption.create(itemOption));
+    public static OrderItem create (OrderItemCreationContext itemContext) {
+        OrderItem orderItem = of(itemContext);
+        if (itemContext.getItemOptionSpecs() != null && !itemContext.getItemOptionSpecs().isEmpty()) {
+            for (CreateItemOptionSpec option : itemContext.getItemOptionSpecs()) {
+                orderItem.addOrderItemOption(OrderItemOption.create(option));
             }
         }
-
         return orderItem;
     }
 
-    public static OrderItem of(CreateOrderItemCommand createOrderItemCommand){
+    public static OrderItem of(OrderItemCreationContext itemContext){
         return OrderItem.builder()
-                .productId(createOrderItemCommand.getProductId())
-                .productVariantId(createOrderItemCommand.getProductVariantId())
-                .sku(createOrderItemCommand.getSku())
-                .productName(createOrderItemCommand.getProductName())
-                .originPrice(createOrderItemCommand.getUnitPrice().getOriginalPrice())
-                .discountRate(createOrderItemCommand.getUnitPrice().getDiscountRate())
-                .discountAmount(createOrderItemCommand.getUnitPrice().getDiscountAmount())
-                .discountedPrice(createOrderItemCommand.getUnitPrice().getDiscountedPrice())
-                .lineTotal(createOrderItemCommand.getLineTotal())
-                .quantity(createOrderItemCommand.getQuantity())
-                .thumbnail(createOrderItemCommand.getThumbnailUrl())
+                .orderedProduct(mapToOrderedProduct(itemContext.getProductSpec()))
+                .orderItemPrice(mapToOrderItemPrice(itemContext.getPriceSpec()))
+                .lineTotal(itemContext.getLineTotal())
+                .quantity(itemContext.getQuantity())
                 .build();
     }
+
+    private static OrderedProduct mapToOrderedProduct(ProductSpec productSpec) {
+        return OrderedProduct.of(productSpec.getProductId(), productSpec.getProductVariantId(),
+                productSpec.getSku(), productSpec.getProductName(), productSpec.getThumbnail());
+    }
+
+    private static OrderItemPrice mapToOrderItemPrice(PriceSpec priceSpec) {
+        return OrderItemPrice.of(priceSpec.getOriginPrice(), priceSpec.getDiscountRate(),
+                priceSpec.getDiscountAmount(), priceSpec.getDiscountedPrice());
+    }
 }
+

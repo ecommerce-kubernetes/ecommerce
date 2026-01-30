@@ -1,11 +1,11 @@
 package com.example.order_service.api.support;
 
-import com.example.order_service.api.cart.application.CartApplicationService;
 import com.example.order_service.api.cart.controller.CartController;
+import com.example.order_service.api.cart.facade.CartFacade;
 import com.example.order_service.api.notification.controller.NotificationController;
 import com.example.order_service.api.notification.service.NotificationService;
-import com.example.order_service.api.order.application.OrderApplicationService;
 import com.example.order_service.api.order.controller.OrderController;
+import com.example.order_service.api.order.facade.OrderFacade;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -19,9 +19,9 @@ public abstract class ControllerTestSupport {
     @Autowired
     protected ObjectMapper objectMapper;
     @MockitoBean
-    protected CartApplicationService cartApplicationService;
+    protected CartFacade cartFacade;
     @MockitoBean
-    protected OrderApplicationService orderApplicationService;
+    protected OrderFacade orderFacade;
     @MockitoBean
     protected NotificationService notificationService;
 }
