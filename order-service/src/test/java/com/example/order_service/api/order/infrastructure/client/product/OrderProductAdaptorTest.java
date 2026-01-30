@@ -96,7 +96,7 @@ public class OrderProductAdaptorTest extends ExcludeInfraTest {
                 )
                 .stockQuantity(100)
                 .thumbnailUrl("http://thumbnail.com")
-                .productOptionInfos(List.of())
+                .itemOptions(List.of())
                 .build();
     }
 }

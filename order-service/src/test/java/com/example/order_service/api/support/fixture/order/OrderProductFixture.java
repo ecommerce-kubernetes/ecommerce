@@ -20,7 +20,7 @@ public class OrderProductFixture {
                 .thumbnailUrl("http://thumbnail.jpg")
                 .unitPrice(anUnitPrice().build())
                 .stockQuantity(100)
-                .productOptionInfos(List.of(anProductOption().build()));
+                .itemOptions(List.of(anProductOption().build()));
     }
 
     public static UnitPrice.UnitPriceBuilder anUnitPrice() {

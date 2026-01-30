@@ -16,7 +16,7 @@ public class CartProductResponse {
     private UnitPrice unitPrice;
     private String thumbnailUrl;
     @Builder.Default
-    private List<ProductOptionInfo> productOptionInfos = new ArrayList<>();
+    private List<ProductOptionInfo> itemOptions = new ArrayList<>();
 
     @Getter
     @Builder

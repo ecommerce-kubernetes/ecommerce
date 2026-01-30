@@ -1,5 +1,6 @@
 package com.example.order_service.api.cart.facade;
 
+import com.example.order_service.api.cart.domain.model.ProductStatus;
 import com.example.order_service.api.cart.domain.service.CartProductService;
 import com.example.order_service.api.cart.domain.service.CartService;
 import com.example.order_service.api.cart.domain.service.dto.result.CartItemDto;
@@ -25,7 +26,6 @@ import java.util.stream.Collectors;
 public class CartFacade {
     private final CartService cartService;
     private final CartProductService cartProductService;
-    private final CartProductAdaptor cartProductAdaptor;
 
     public CartItemResponse addItem(AddCartItemCommand dto) {
         CartProductInfo productInfo = cartProductService.getProductInfo(dto.getProductVariantId());
@@ -40,8 +40,8 @@ public class CartFacade {
             return CartResponse.empty();
         }
         List<Long> variantIds = getProductVariantId(cartItems);
-        List<CartProductResponse> products = cartProductAdaptor.getProducts(variantIds);
-        List<CartItemResponse> cartItemResponses = mapToCartItemResponse(cartItems, products);
+        List<CartProductInfo> productInfos = cartProductService.getProductInfos(variantIds);
+        List<CartItemResponse> cartItemResponses = mapToCartItemResponse(cartItems, productInfos);
         return CartResponse.from(cartItemResponses);
     }
 
@@ -68,30 +68,30 @@ public class CartFacade {
         return cartItems.stream().map(CartItemDto::getProductVariantId).toList();
     }
 
-    private List<CartItemResponse> mapToCartItemResponse(List<CartItemDto> cartItems, List<CartProductResponse> products){
-        Map<Long, CartProductResponse> productMap = products.stream().collect(Collectors.toMap(
-                CartProductResponse::getProductVariantId,
+    private List<CartItemResponse> mapToCartItemResponse(List<CartItemDto> cartItems, List<CartProductInfo> products){
+        Map<Long, CartProductInfo> productMap = products.stream().collect(Collectors.toMap(
+                CartProductInfo::getProductVariantId,
                 Function.identity()
         ));
 
         return cartItems.stream()
                 .map(item -> {
-                    CartProductResponse product = productMap.get(item.getProductVariantId());
+                    CartProductInfo product = productMap.get(item.getProductVariantId());
                     return createCartItemResponse(item, product);
                 }).toList();
     }
 
-    private CartItemResponse createCartItemResponse(CartItemDto item, CartProductResponse product){
+    private CartItemResponse createCartItemResponse(CartItemDto item, CartProductInfo product){
         // 상품을 찾을 수 없거나 상품이 판매중이 아닌 상품인 경우 오류 응답
         if(product == null){
             return CartItemResponse.unAvailable(item.getId(), item.getProductVariantId(), item.getQuantity());
         }
-//        return switch (product.getStatus()) {
-//            case ON_SALE -> CartItemResponse.available(item, product);
-//            case PREPARING -> CartItemResponse.preparing(item, product);
-//            case STOP_SALE -> CartItemResponse.stop_sale(item, product);
-//            case DELETED -> CartItemResponse.deleted(item, product);
-//        };
-        return null;
+        return switch (product.getStatus()) {
+            case ON_SALE -> CartItemResponse.available(item, product);
+            case PREPARING -> CartItemResponse.preparing(item, product);
+            case STOP_SALE -> CartItemResponse.stop_sale(item, product);
+            case DELETED -> CartItemResponse.deleted(item, product);
+            case UNKNOWN -> CartItemResponse.unAvailable(item.getId(), product.getProductVariantId(), item.getQuantity());
+        };
     }
 }

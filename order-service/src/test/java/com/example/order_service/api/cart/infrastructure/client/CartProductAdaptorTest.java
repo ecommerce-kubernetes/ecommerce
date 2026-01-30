@@ -153,7 +153,7 @@ public class CartProductAdaptorTest extends ExcludeInfraTest {
                                 .discountedPrice(originalPrice - discountAmount)
                                 .build())
                 .thumbnailUrl(thumbnail)
-                .productOptionInfos(options)
+                .itemOptions(options)
                 .build();
     }
 }

@@ -19,7 +19,7 @@ public class CartProductFixture {
                 .productName("상품")
                 .unitPrice(anCartProductUnitPrice().build())
                 .thumbnailUrl("http://thumbnail.jpg")
-                .productOptionInfos(List.of(anCartProductOptionInfo().build()));
+                .itemOptions(List.of(anCartProductOptionInfo().build()));
     }
 
     public static UnitPrice.UnitPriceBuilder anCartProductUnitPrice() {
