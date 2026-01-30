@@ -112,7 +112,6 @@ public class SagaManager {
         compensateStep(updateSagaInstanceDto);
     }
 
-
     public void processTimeouts() {
         //Saga 시작 시간이 5분 이전이면서 상태는 STARTED인 Saga 모두 조회
 //        LocalDateTime timeout = LocalDateTime.now().minusMinutes(5);

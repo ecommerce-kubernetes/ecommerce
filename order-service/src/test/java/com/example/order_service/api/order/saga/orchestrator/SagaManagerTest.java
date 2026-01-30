@@ -565,59 +565,115 @@ public class SagaManagerTest {
         @DisplayName("결제 승인실패시 포인트를 사용한 경우 포인트 보상을 진행한다")
         void processPaymentResult_paymentFail_with_usedPoint(){
             //given
-//            SagaInstanceDto getSagaInstance = anSagaInstanceDto()
-//                    .sagaStatus(SagaStatus.STARTED)
-//                    .sagaStep(SagaStep.PAYMENT)
-//                    .build();
-//            SagaInstanceDto updateSagaInstance = anSagaInstanceDto()
-//                    .sagaStatus(SagaStatus.FINISHED)
-//                    .sagaStep(SagaStep.PAYMENT)
-//                    .build();
-//            //when
-//            sagaManager.processPaymentResult(command);
-//            //then
-//            verify(sagaService).startCompensation(SAGA_ID, SagaStep.USER, failureReason);
-//            verify(sagaEventProducer).requestUserPointCompensate(SAGA_ID, ORDER_NO, payload);
-//
-//            verify(sagaEventProducer, never()).requestCouponCompensate(anyLong(), anyString(), any());
-//            verify(sagaEventProducer, never()).requestCouponUse(anyLong(), anyString(), any());
+            SagaInstanceDto getSagaInstance = anSagaInstanceDto()
+                    .sagaStatus(SagaStatus.STARTED)
+                    .sagaStep(SagaStep.PAYMENT)
+                    .build();
+            SagaInstanceDto updateSagaInstance = anSagaInstanceDto()
+                    .sagaStatus(SagaStatus.COMPENSATING)
+                    .sagaStep(SagaStep.USER)
+                    .build();
+            UserStepHandler mockHandler = mock(UserStepHandler.class);
+            given(sagaService.getSagaByOrderNo(ORDER_NO)).willReturn(getSagaInstance);
+            given(sagaService.startCompensation(SAGA_ID, SagaStep.USER, "잔액이 부족합니다"))
+                    .willReturn(updateSagaInstance);
+            given(handlerFactory.getHandler(SagaStep.USER))
+                    .willReturn(mockHandler);
+            SagaStepResultCommand command = SagaStepResultCommand.of(SagaStep.PAYMENT, ORDER_NO,
+                    false, "PG_REJECT", "잔액이 부족합니다");
+            //when
+            sagaManager.handleStepResult(command);
+            //then
+            verify(sagaService).startCompensation(SAGA_ID, SagaStep.USER, "잔액이 부족합니다");
+            verify(eventPublisher).publishEvent(sagaAbortCaptor.capture());
+            assertThat(sagaAbortCaptor.getValue())
+                    .extracting(SagaAbortEvent::getSagaId, SagaAbortEvent::getOrderNo, SagaAbortEvent::getUserId,
+                            SagaAbortEvent::getFailureCode)
+                    .containsExactly(SAGA_ID, ORDER_NO, USER_ID, "PG_REJECT");
+
+            verify(mockHandler).compensate(
+                    eq(SAGA_ID),
+                    eq(ORDER_NO),
+                    any(Payload.class)
+            );
         }
 
         @Test
         @DisplayName("결제 승인 실패시 포인트를 사용하지 않고 쿠폰을 사용했다면 포인트 보상을 건너뛰고 쿠폰 보상을 진행한다")
         void processPaymentResult_paymentFail_skip_user(){
             //given
-//            Payload payload = createPayload(COUPON_ID, NO_POINT);
-//            String failureReason = "결제 승인 실패";
-//            SagaPaymentCommand command = createPaymentFailCommand(failureReason);
-//            mockCompensationStartByOrder(SagaStep.PAYMENT, SagaStep.COUPON, payload, failureReason);
-//            //when
-//            sagaManager.processPaymentResult(command);
-//            //then
-//            verify(sagaService).startCompensation(SAGA_ID, SagaStep.COUPON, failureReason);
-//
-//            verify(sagaEventProducer).requestCouponCompensate(SAGA_ID, ORDER_NO, payload);
-//
-//            verify(sagaEventProducer, never()).requestUserPointCompensate(anyLong(), anyString(), any());
+            SagaInstanceDto getSagaInstance = anSagaInstanceDto()
+                    .sagaStatus(SagaStatus.STARTED)
+                    .sagaStep(SagaStep.PAYMENT)
+                    .payload(anPayload().useToPoint(0L).build())
+                    .build();
+            SagaInstanceDto updateSagaInstance = anSagaInstanceDto()
+                    .sagaStatus(SagaStatus.COMPENSATING)
+                    .sagaStep(SagaStep.COUPON)
+                    .payload(anPayload().useToPoint(0L).build())
+                    .build();
+            CouponStepHandler mockHandler = mock(CouponStepHandler.class);
+            given(sagaService.getSagaByOrderNo(ORDER_NO)).willReturn(getSagaInstance);
+            given(sagaService.startCompensation(SAGA_ID, SagaStep.COUPON, "잔액이 부족합니다"))
+                    .willReturn(updateSagaInstance);
+            given(handlerFactory.getHandler(SagaStep.COUPON))
+                    .willReturn(mockHandler);
+            SagaStepResultCommand command = SagaStepResultCommand.of(SagaStep.PAYMENT, ORDER_NO,
+                    false, "PG_REJECT", "잔액이 부족합니다");
+            //when
+            sagaManager.handleStepResult(command);
+            //then
+            verify(sagaService).startCompensation(SAGA_ID, SagaStep.COUPON, "잔액이 부족합니다");
+            verify(eventPublisher).publishEvent(sagaAbortCaptor.capture());
+            assertThat(sagaAbortCaptor.getValue())
+                    .extracting(SagaAbortEvent::getSagaId, SagaAbortEvent::getOrderNo, SagaAbortEvent::getUserId,
+                            SagaAbortEvent::getFailureCode)
+                    .containsExactly(SAGA_ID, ORDER_NO, USER_ID, "PG_REJECT");
+
+            verify(mockHandler).compensate(
+                    eq(SAGA_ID),
+                    eq(ORDER_NO),
+                    any(Payload.class)
+            );
         }
 
         @Test
         @DisplayName("결제 승인 실패시 포인트를 사용하지 않고 쿠폰도 사용하지 않았다면 포인트 보상과 쿠폰 보상을 건너뛰고 상품 보상을 진행한다")
         void processPaymentResult_paymentFail_skip_user_and_coupon(){
-//            //given
-//            Payload payload = createPayload(null, NO_POINT);
-//            String failureReason = "결제 승인 실패";
-//
-//            SagaPaymentCommand command = createPaymentFailCommand(failureReason);
-//            mockCompensationStartByOrder(SagaStep.PAYMENT, SagaStep.PRODUCT, payload, failureReason);
-//            //when
-//            sagaManager.processPaymentResult(command);
-//            //then
-//            verify(sagaService).startCompensation(SAGA_ID, SagaStep.PRODUCT, failureReason);
-//            verify(sagaEventProducer).requestInventoryCompensate(SAGA_ID, ORDER_NO, payload);
-//
-//            verify(sagaEventProducer, never()).requestUserPointCompensate(anyLong(), anyString(), any());
-//            verify(sagaEventProducer, never()).requestCouponCompensate(anyLong(), anyString(), any());
+            //given
+            SagaInstanceDto getSagaInstance = anSagaInstanceDto()
+                    .sagaStatus(SagaStatus.STARTED)
+                    .sagaStep(SagaStep.PAYMENT)
+                    .payload(anPayload().useToPoint(0L).couponId(null).build())
+                    .build();
+            SagaInstanceDto updateSagaInstance = anSagaInstanceDto()
+                    .sagaStatus(SagaStatus.COMPENSATING)
+                    .sagaStep(SagaStep.PRODUCT)
+                    .payload(anPayload().useToPoint(0L).couponId(null).build())
+                    .build();
+            ProductStepHandler mockHandler = mock(ProductStepHandler.class);
+            given(sagaService.getSagaByOrderNo(ORDER_NO)).willReturn(getSagaInstance);
+            given(sagaService.startCompensation(SAGA_ID, SagaStep.PRODUCT, "잔액이 부족합니다"))
+                    .willReturn(updateSagaInstance);
+            given(handlerFactory.getHandler(SagaStep.PRODUCT))
+                    .willReturn(mockHandler);
+            SagaStepResultCommand command = SagaStepResultCommand.of(SagaStep.PAYMENT, ORDER_NO,
+                    false, "PG_REJECT", "잔액이 부족합니다");
+            //when
+            sagaManager.handleStepResult(command);
+            //then
+            verify(sagaService).startCompensation(SAGA_ID, SagaStep.PRODUCT, "잔액이 부족합니다");
+            verify(eventPublisher).publishEvent(sagaAbortCaptor.capture());
+            assertThat(sagaAbortCaptor.getValue())
+                    .extracting(SagaAbortEvent::getSagaId, SagaAbortEvent::getOrderNo, SagaAbortEvent::getUserId,
+                            SagaAbortEvent::getFailureCode)
+                    .containsExactly(SAGA_ID, ORDER_NO, USER_ID, "PG_REJECT");
+
+            verify(mockHandler).compensate(
+                    eq(SAGA_ID),
+                    eq(ORDER_NO),
+                    any(Payload.class)
+            );
         }
     }
 
