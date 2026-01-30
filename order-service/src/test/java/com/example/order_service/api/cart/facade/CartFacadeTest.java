@@ -1,7 +1,9 @@
 package com.example.order_service.api.cart.facade;
 
+import com.example.order_service.api.cart.domain.service.CartProductService;
 import com.example.order_service.api.cart.domain.service.CartService;
 import com.example.order_service.api.cart.domain.service.dto.result.CartItemDto;
+import com.example.order_service.api.cart.domain.service.dto.result.CartProductInfo;
 import com.example.order_service.api.cart.facade.dto.command.AddCartItemCommand;
 import com.example.order_service.api.cart.facade.dto.command.UpdateQuantityCommand;
 import com.example.order_service.api.cart.facade.dto.result.CartItemResponse;
@@ -12,6 +14,9 @@ import com.example.order_service.api.cart.infrastructure.client.dto.CartProductR
 import com.example.order_service.api.cart.domain.model.ProductStatus;
 import com.example.order_service.api.common.exception.BusinessException;
 import com.example.order_service.api.common.exception.CartErrorCode;
+import com.example.order_service.api.support.fixture.cart.CartFixture;
+import com.example.order_service.api.support.fixture.cart.CartProductFixture;
+import com.example.order_service.api.support.fixture.cart.CartResponseFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -23,6 +28,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.List;
 
 import static com.example.order_service.api.support.fixture.cart.CartCommandFixture.anAddCartItemCommand;
+import static com.example.order_service.api.support.fixture.cart.CartFixture.anCartItemDto;
+import static com.example.order_service.api.support.fixture.cart.CartProductFixture.anCartProductInfo;
+import static com.example.order_service.api.support.fixture.cart.CartResponseFixture.anCartItemResponse;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.*;
@@ -35,15 +43,9 @@ public class CartFacadeTest {
     @Mock
     private CartProductAdaptor cartProductAdaptor;
     @Mock
+    private CartProductService cartProductService;
+    @Mock
     private CartService cartService;
-
-    private AddCartItemCommand mockAddCartItemCommand(Long userId, Long variantId, int quantity){
-        return AddCartItemCommand.builder()
-                .userId(userId)
-                .productVariantId(variantId)
-                .quantity(quantity)
-                .build();
-    }
 
     private UpdateQuantityCommand mockUpdateQuantityCommand(Long userId, Long cartItemId, Integer quantity) {
         return UpdateQuantityCommand.builder()
@@ -88,37 +90,19 @@ public class CartFacadeTest {
         void addItem(){
             //given
             AddCartItemCommand command = anAddCartItemCommand().build();
-            CartProductResponse product = createProductResponse(1L, 1L, ProductStatus.ON_SALE);
-            CartItemDto cartItem = createCartItemDto(1L, 1L, 3);
-            given(cartProductAdaptor.getProduct(anyLong()))
+            CartProductInfo product = anCartProductInfo().build();
+            CartItemDto cartItemDto = anCartItemDto().build();
+            CartItemResponse expectedResult = anCartItemResponse().build();
+            given(cartProductService.getProductInfo(anyLong()))
                     .willReturn(product);
             given(cartService.addItemToCart(anyLong(), anyLong(), anyInt()))
-                    .willReturn(cartItem);
+                    .willReturn(cartItemDto);
             //when
             CartItemResponse result = cartFacade.addItem(command);
             //then
-            assertThat(result.getId()).isNotNull();
             assertThat(result)
-                    .extracting(
-                            CartItemResponse::getProductId, CartItemResponse::getProductVariantId, CartItemResponse::getQuantity, CartItemResponse::getLineTotal,
-                            CartItemResponse::isAvailable)
-                    .containsExactly(1L, 1L, 3, 9000L * 3, true);
-        }
-
-        @Test
-        @DisplayName("판매중이 아닌 상품은 장바구니에 추가할 수 없다")
-        void addItem_cannot_be_added_product(){
-            //given
-            AddCartItemCommand command = mockAddCartItemCommand(1L, 1L, 3);
-            CartProductResponse product = createProductResponse(1L, 1L, ProductStatus.DELETED);
-            given(cartProductAdaptor.getProduct(anyLong()))
-                    .willReturn(product);
-            //when
-            //then
-            assertThatThrownBy(() -> cartFacade.addItem(command))
-                    .isInstanceOf(BusinessException.class)
-                    .extracting("errorCode")
-                    .isEqualTo(CartErrorCode.PRODUCT_NOT_ON_SALE);
+                    .usingRecursiveComparison()
+                    .isEqualTo(expectedResult);
         }
     }
 
@@ -143,8 +127,8 @@ public class CartFacadeTest {
         @DisplayName("장바구니 목록을 조회한다")
         void getCartDetails(){
             //given
-            CartItemDto cartItem1 = createCartItemDto(1L, 1L, 3);
-            CartItemDto cartItem2 = createCartItemDto(2L, 2L, 5);
+            CartItemDto cartItem1 = anCartItemDto().id(1L).productVariantId(1L).quantity(3).build();
+            CartItemDto cartItem2 = anCartItemDto().id(2L).productVariantId(2L).quantity(5).build();
             // 찾을 수 없는 상품
             CartItemDto cartItem3 = createCartItemDto(3L, 3L, 2);
             // 판매 중지된 상품

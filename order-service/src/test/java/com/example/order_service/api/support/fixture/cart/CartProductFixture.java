@@ -46,6 +46,7 @@ public class CartProductFixture {
                 .discountRate(10)
                 .discountAmount(1000L)
                 .discountedPrice(9000L)
+                .thumbnail("http://thumbnail.jpg")
                 .productOption(List.of(anProductOption().build()));
     }
 

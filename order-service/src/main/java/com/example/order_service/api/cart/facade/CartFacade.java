@@ -1,7 +1,9 @@
 package com.example.order_service.api.cart.facade;
 
+import com.example.order_service.api.cart.domain.service.CartProductService;
 import com.example.order_service.api.cart.domain.service.CartService;
 import com.example.order_service.api.cart.domain.service.dto.result.CartItemDto;
+import com.example.order_service.api.cart.domain.service.dto.result.CartProductInfo;
 import com.example.order_service.api.cart.facade.dto.command.AddCartItemCommand;
 import com.example.order_service.api.cart.facade.dto.command.UpdateQuantityCommand;
 import com.example.order_service.api.cart.facade.dto.result.CartItemResponse;
@@ -22,13 +24,13 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class CartFacade {
     private final CartService cartService;
+    private final CartProductService cartProductService;
     private final CartProductAdaptor cartProductAdaptor;
 
     public CartItemResponse addItem(AddCartItemCommand dto) {
-        CartProductResponse product = cartProductAdaptor.getProduct(dto.getProductVariantId());
-        validateProductOnSale(product);
-        CartItemDto result = cartService.addItemToCart(dto.getUserId(), dto.getProductVariantId(), dto.getQuantity());
-        return CartItemResponse.available(result, product);
+        CartProductInfo productInfo = cartProductService.getProductInfo(dto.getProductVariantId());
+        CartItemDto result = cartService.addItemToCart(dto.getUserId(), productInfo.getProductVariantId(), dto.getQuantity());
+        return CartItemResponse.available(result, productInfo);
     }
 
     public CartResponse getCartDetails(Long userId){
@@ -45,10 +47,9 @@ public class CartFacade {
 
     public CartItemResponse updateCartItemQuantity(UpdateQuantityCommand dto){
         CartItemDto cartItem = cartService.getCartItem(dto.getUserId(), dto.getCartItemId());
-        CartProductResponse product = cartProductAdaptor.getProduct(cartItem.getProductVariantId());
-        validateProductOnSale(product);
+        CartProductInfo productInfo = cartProductService.getProductInfo(cartItem.getProductVariantId());
         CartItemDto cartItemDto = cartService.updateQuantity(dto.getUserId(), cartItem.getId(), dto.getQuantity());
-        return CartItemResponse.available(cartItemDto, product);
+        return CartItemResponse.available(cartItemDto, productInfo);
     }
 
     public void removeCartItem(Long userId, Long cartItemId){
@@ -92,11 +93,5 @@ public class CartFacade {
 //            case DELETED -> CartItemResponse.deleted(item, product);
 //        };
         return null;
-    }
-
-    private void validateProductOnSale(CartProductResponse product) {
-//        if (product == null || !product.isOnSale()) {
-//            throw new BusinessException(CartErrorCode.PRODUCT_NOT_ON_SALE);
-//        }
     }
 }

@@ -1,6 +1,8 @@
 package com.example.order_service.api.cart.facade.dto.result;
 
 import com.example.order_service.api.cart.domain.service.dto.result.CartItemDto;
+import com.example.order_service.api.cart.domain.service.dto.result.CartProductInfo;
+import com.example.order_service.api.cart.domain.service.dto.result.CartProductInfo.ProductOption;
 import com.example.order_service.api.cart.infrastructure.client.dto.CartProductResponse;
 import lombok.Builder;
 import lombok.Getter;
@@ -38,7 +40,7 @@ public class CartItemResponse {
         private String optionValueName;
     }
 
-    public static CartItemResponse available(CartItemDto cartItemDto, CartProductResponse product){
+    public static CartItemResponse available(CartItemDto cartItemDto, CartProductInfo product) {
         return CartItemResponse.builder()
                 .id(cartItemDto.getId())
                 .status(CartItemStatus.AVAILABLE)
@@ -46,61 +48,62 @@ public class CartItemResponse {
                 .productId(product.getProductId())
                 .productVariantId(cartItemDto.getProductVariantId())
                 .productName(product.getProductName())
-                .thumbnailUrl(product.getThumbnailUrl())
+                .thumbnailUrl(product.getThumbnail())
                 .quantity(cartItemDto.getQuantity())
-                .price(mapToPrice(product.getUnitPrice()))
-                .lineTotal(product.getUnitPrice().getDiscountedPrice() * cartItemDto.getQuantity())
-                .options(mapToOptions(product.getProductOptionInfos()))
+                .price(mapToPrice(product))
+                .lineTotal(product.getDiscountedPrice() * cartItemDto.getQuantity())
+                .options(mapToOptions(product.getProductOption()))
                 .build();
+
     }
 
-    public static CartItemResponse stop_sale(CartItemDto cartItemDto, CartProductResponse product) {
-        return CartItemResponse.builder()
-                .id(cartItemDto.getId())
-                .status(CartItemStatus.STOP_SALE)
-                .isAvailable(false)
-                .productId(product.getProductId())
-                .productVariantId(cartItemDto.getProductVariantId())
-                .productName(product.getProductName())
-                .thumbnailUrl(product.getThumbnailUrl())
-                .quantity(cartItemDto.getQuantity())
-                .price(mapToPrice(product.getUnitPrice()))
-                .lineTotal(product.getUnitPrice().getDiscountedPrice() * cartItemDto.getQuantity())
-                .options(mapToOptions(product.getProductOptionInfos()))
-                .build();
-    }
+//    public static CartItemResponse stop_sale(CartItemDto cartItemDto, CartProductResponse product) {
+//        return CartItemResponse.builder()
+//                .id(cartItemDto.getId())
+//                .status(CartItemStatus.STOP_SALE)
+//                .isAvailable(false)
+//                .productId(product.getProductId())
+//                .productVariantId(cartItemDto.getProductVariantId())
+//                .productName(product.getProductName())
+//                .thumbnailUrl(product.getThumbnailUrl())
+//                .quantity(cartItemDto.getQuantity())
+//                .price(mapToPrice(product.getUnitPrice()))
+//                .lineTotal(product.getUnitPrice().getDiscountedPrice() * cartItemDto.getQuantity())
+//                .options(mapToOptions(product.getProductOptionInfos()))
+//                .build();
+//    }
 
-    public static CartItemResponse preparing(CartItemDto cartItemDto, CartProductResponse product) {
-        return CartItemResponse.builder()
-                .id(cartItemDto.getId())
-                .status(CartItemStatus.PREPARING)
-                .isAvailable(false)
-                .productId(product.getProductId())
-                .productVariantId(cartItemDto.getProductVariantId())
-                .productName(product.getProductName())
-                .thumbnailUrl(product.getThumbnailUrl())
-                .quantity(cartItemDto.getQuantity())
-                .price(mapToPrice(product.getUnitPrice()))
-                .lineTotal(product.getUnitPrice().getDiscountedPrice() * cartItemDto.getQuantity())
-                .options(mapToOptions(product.getProductOptionInfos()))
-                .build();
-    }
+//    public static CartItemResponse preparing(CartItemDto cartItemDto, CartProductResponse product) {
+//        return CartItemResponse.builder()
+//                .id(cartItemDto.getId())
+//                .status(CartItemStatus.PREPARING)
+//                .isAvailable(false)
+//                .productId(product.getProductId())
+//                .productVariantId(cartItemDto.getProductVariantId())
+//                .productName(product.getProductName())
+//                .thumbnailUrl(product.getThumbnailUrl())
+//                .quantity(cartItemDto.getQuantity())
+//                .price(mapToPrice(product.getUnitPrice()))
+//                .lineTotal(product.getUnitPrice().getDiscountedPrice() * cartItemDto.getQuantity())
+//                .options(mapToOptions(product.getProductOptionInfos()))
+//                .build();
+//    }
 
-    public static CartItemResponse deleted(CartItemDto cartItemDto, CartProductResponse product) {
-        return CartItemResponse.builder()
-                .id(cartItemDto.getId())
-                .status(CartItemStatus.DELETED)
-                .isAvailable(false)
-                .productId(product.getProductId())
-                .productVariantId(cartItemDto.getProductVariantId())
-                .productName(product.getProductName())
-                .thumbnailUrl(product.getThumbnailUrl())
-                .quantity(cartItemDto.getQuantity())
-                .price(mapToPrice(product.getUnitPrice()))
-                .lineTotal(product.getUnitPrice().getDiscountedPrice() * cartItemDto.getQuantity())
-                .options(mapToOptions(product.getProductOptionInfos()))
-                .build();
-    }
+//    public static CartItemResponse deleted(CartItemDto cartItemDto, CartProductResponse product) {
+//        return CartItemResponse.builder()
+//                .id(cartItemDto.getId())
+//                .status(CartItemStatus.DELETED)
+//                .isAvailable(false)
+//                .productId(product.getProductId())
+//                .productVariantId(cartItemDto.getProductVariantId())
+//                .productName(product.getProductName())
+//                .thumbnailUrl(product.getThumbnailUrl())
+//                .quantity(cartItemDto.getQuantity())
+//                .price(mapToPrice(product.getUnitPrice()))
+//                .lineTotal(product.getUnitPrice().getDiscountedPrice() * cartItemDto.getQuantity())
+//                .options(mapToOptions(product.getProductOptionInfos()))
+//                .build();
+//    }
 
 
     public static CartItemResponse unAvailable(Long id, Long productVariantId, int quantity){
@@ -120,12 +123,12 @@ public class CartItemResponse {
                 .build();
     }
 
-    private static List<CartItemOption> mapToOptions(List<CartProductResponse.ProductOptionInfo> optionResponses){
-        return optionResponses.stream().map(optionResponse -> CartItemOption.builder()
-                .optionTypeName(optionResponse.getOptionTypeName())
-                .optionValueName(optionResponse.getOptionValueName())
-                .build()).toList();
-    }
+//    private static List<CartItemOption> mapToOptions(List<CartProductResponse.ProductOptionInfo> optionResponses){
+//        return optionResponses.stream().map(optionResponse -> CartItemOption.builder()
+//                .optionTypeName(optionResponse.getOptionTypeName())
+//                .optionValueName(optionResponse.getOptionValueName())
+//                .build()).toList();
+//    }
 
     private static CartItemPrice mapToPrice(CartProductResponse.UnitPrice unitPrice){
         return CartItemPrice.builder()
@@ -134,5 +137,21 @@ public class CartItemResponse {
                 .discountAmount(unitPrice.getDiscountAmount())
                 .discountedPrice(unitPrice.getDiscountedPrice())
                 .build();
+    }
+
+    private static CartItemPrice mapToPrice(CartProductInfo product) {
+        return CartItemPrice.builder()
+                .originalPrice(product.getOriginalPrice())
+                .discountRate(product.getDiscountRate())
+                .discountAmount(product.getDiscountAmount())
+                .discountedPrice(product.getDiscountedPrice())
+                .build();
+    }
+
+    private static List<CartItemOption> mapToOptions(List<ProductOption> optionResponses){
+        return optionResponses.stream().map(optionResponse -> CartItemOption.builder()
+                .optionTypeName(optionResponse.getOptionTypeName())
+                .optionValueName(optionResponse.getOptionValueName())
+                .build()).toList();
     }
 }

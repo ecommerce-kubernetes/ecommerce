@@ -13,6 +13,7 @@ public class CartProductInfo {
     private Long productVariantId;
     private ProductStatus status;
     private String productName;
+    private String thumbnail;
     private Long originalPrice;
     private Integer discountRate;
     private Long discountAmount;
