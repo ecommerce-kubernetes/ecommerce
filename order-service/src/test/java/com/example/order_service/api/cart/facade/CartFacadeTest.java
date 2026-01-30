@@ -1,5 +1,6 @@
 package com.example.order_service.api.cart.facade;
 
+import com.example.order_service.api.cart.domain.model.ProductStatus;
 import com.example.order_service.api.cart.domain.service.CartProductService;
 import com.example.order_service.api.cart.domain.service.CartService;
 import com.example.order_service.api.cart.domain.service.dto.result.CartItemDto;
@@ -9,11 +10,6 @@ import com.example.order_service.api.cart.facade.dto.command.UpdateQuantityComma
 import com.example.order_service.api.cart.facade.dto.result.CartItemResponse;
 import com.example.order_service.api.cart.facade.dto.result.CartItemStatus;
 import com.example.order_service.api.cart.facade.dto.result.CartResponse;
-import com.example.order_service.api.cart.infrastructure.client.CartProductAdaptor;
-import com.example.order_service.api.cart.infrastructure.client.dto.CartProductResponse;
-import com.example.order_service.api.cart.domain.model.ProductStatus;
-import com.example.order_service.api.common.exception.BusinessException;
-import com.example.order_service.api.common.exception.CartErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -29,7 +25,8 @@ import static com.example.order_service.api.support.fixture.cart.CartCommandFixt
 import static com.example.order_service.api.support.fixture.cart.CartFixture.anCartItemDto;
 import static com.example.order_service.api.support.fixture.cart.CartProductFixture.anCartProductInfo;
 import static com.example.order_service.api.support.fixture.cart.CartResponseFixture.anCartItemResponse;
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.*;
 
@@ -39,38 +36,9 @@ public class CartFacadeTest {
     @InjectMocks
     private CartFacade cartFacade;
     @Mock
-    private CartProductAdaptor cartProductAdaptor;
-    @Mock
     private CartProductService cartProductService;
     @Mock
     private CartService cartService;
-
-
-    private CartProductResponse createProductResponse(Long productId, Long productVariantId, ProductStatus status) {
-        return CartProductResponse.builder()
-                .productId(productId)
-                .productVariantId(productVariantId)
-                .status("ON_SALE")
-                .productName("상품 이름")
-                .unitPrice(
-                        CartProductResponse.UnitPrice.builder()
-                                .originalPrice(10000L)
-                                .discountRate(10)
-                                .discountAmount(1000L)
-                                .discountedPrice(9000L)
-                                .build())
-                .thumbnailUrl("http://thumbnail.jpg")
-                .itemOptions(List.of())
-                .build();
-    }
-
-    private CartItemDto createCartItemDto(Long id, Long productVariantId, Integer quantity) {
-        return CartItemDto.builder()
-                .id(id)
-                .productVariantId(productVariantId)
-                .quantity(quantity)
-                .build();
-    }
 
     @Nested
     @DisplayName("장바구니 추가")
@@ -193,7 +161,7 @@ public class CartFacadeTest {
             //when
             cartFacade.removeCartItem(1L, 1L);
             //then
-            verify(cartService, times(1)).deleteCartItem(1L, 1L);
+            verify(cartService).deleteCartItem(1L, 1L);
         }
 
         @Test
@@ -204,7 +172,7 @@ public class CartFacadeTest {
             //when
             cartFacade.clearCart(1L);
             //then
-            verify(cartService, times(1))
+            verify(cartService)
                     .clearCart(1L);
         }
 
@@ -217,7 +185,7 @@ public class CartFacadeTest {
             //when
             cartFacade.removePurchasedItems(userId, productVariantIds);
             //then
-            verify(cartService, times(1)).deleteByProductVariantIds(userId, productVariantIds);
+            verify(cartService).deleteByProductVariantIds(userId, productVariantIds);
         }
     }
 }

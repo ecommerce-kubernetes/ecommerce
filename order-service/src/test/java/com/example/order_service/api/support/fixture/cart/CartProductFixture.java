@@ -1,11 +1,11 @@
 package com.example.order_service.api.support.fixture.cart;
 
+import com.example.order_service.api.cart.domain.model.ProductStatus;
 import com.example.order_service.api.cart.domain.service.dto.result.CartProductInfo;
 import com.example.order_service.api.cart.domain.service.dto.result.CartProductInfo.ProductOption;
 import com.example.order_service.api.cart.infrastructure.client.dto.CartProductResponse;
 import com.example.order_service.api.cart.infrastructure.client.dto.CartProductResponse.ProductOptionInfo;
 import com.example.order_service.api.cart.infrastructure.client.dto.CartProductResponse.UnitPrice;
-import com.example.order_service.api.cart.domain.model.ProductStatus;
 
 import java.util.List;
 

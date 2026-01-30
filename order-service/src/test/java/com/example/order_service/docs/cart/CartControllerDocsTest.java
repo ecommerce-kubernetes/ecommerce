@@ -76,6 +76,8 @@ public class CartControllerDocsTest extends RestDocSupport {
                                 ),
                                 responseFields(
                                         fieldWithPath("id").description("장바구니 상품 ID(장바구니 상품 식별자)"),
+                                        fieldWithPath("status").description("장바구니 상품 상태[주문 가능, 삭제됨, 준비중]"),
+                                        fieldWithPath("available").description("주문 가능 여부"),
                                         fieldWithPath("productId").description("상품 ID(상품 식별자)"),
                                         fieldWithPath("productVariantId").description("상품 변형 ID"),
                                         fieldWithPath("productName").description("상품 이름"),
@@ -87,8 +89,7 @@ public class CartControllerDocsTest extends RestDocSupport {
                                         fieldWithPath("price.discountedPrice").description("할인된 가격"),
                                         fieldWithPath("lineTotal").description("항목 총액 (상품 할인 가격 X 수량)"),
                                         fieldWithPath("options[].optionTypeName").description("상품 옵션 타입 (예: 사이즈)"),
-                                        fieldWithPath("options[].optionValueName").description("상품 옵션 값 (예: XL)"),
-                                        fieldWithPath("available").description("주문 가능 여부")
+                                        fieldWithPath("options[].optionValueName").description("상품 옵션 값 (예: XL)")
                                 )
                         )
                 );
@@ -128,6 +129,8 @@ public class CartControllerDocsTest extends RestDocSupport {
                                 responseFields(
                                         fieldWithPath("cartItems[].id").description("장바구니 상품 ID(장바구니 상품 식별자)"),
                                         fieldWithPath("cartItems[].productId").description("상품 ID(상품 식별자)"),
+                                        fieldWithPath("cartItems[].status").description("장바구니 상품 상태"),
+                                        fieldWithPath("cartItems[].available").description("주문 가능 여부"),
                                         fieldWithPath("cartItems[].productVariantId").description("상품 변형 ID"),
                                         fieldWithPath("cartItems[].productName").description("상품 이름"),
                                         fieldWithPath("cartItems[].thumbnailUrl").description("상품 썸네일"),
@@ -223,6 +226,7 @@ public class CartControllerDocsTest extends RestDocSupport {
                                 ),
                                 responseFields(
                                         fieldWithPath("id").description("장바구니 상품 ID(장바구니 상품 식별자)"),
+                                        fieldWithPath("status").description("장바구니 상품 상태"),
                                         fieldWithPath("productId").description("상품 ID(상품 식별자)"),
                                         fieldWithPath("productVariantId").description("상품 변형 ID"),
                                         fieldWithPath("productName").description("상품 이름"),

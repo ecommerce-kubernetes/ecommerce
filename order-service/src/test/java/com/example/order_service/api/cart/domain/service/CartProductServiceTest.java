@@ -6,12 +6,10 @@ import com.example.order_service.api.cart.infrastructure.client.CartProductAdapt
 import com.example.order_service.api.cart.infrastructure.client.dto.CartProductResponse;
 import com.example.order_service.api.common.exception.BusinessException;
 import com.example.order_service.api.common.exception.CartErrorCode;
-import com.example.order_service.api.support.fixture.cart.CartProductFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.BDDMockito;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
