@@ -2,7 +2,7 @@ package com.example.userservice.security;
 
 import com.example.userservice.dto.UserDto;
 import com.example.userservice.service.TokenService;
-import com.example.userservice.service.UserService;
+import com.example.userservice.service.DeprecatedUserService;
 import com.example.userservice.vo.RequestLoginUser;
 import com.example.userservice.vo.TokenPair;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -26,12 +26,12 @@ import java.util.ArrayList;
 @Slf4j
 public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
-    private UserService userService;
+    private DeprecatedUserService deprecatedUserService;
     private TokenService tokenService;
 
-    public AuthenticationFilter(AuthenticationManager authenticationManager, UserService userService, TokenService tokenService) {
+    public AuthenticationFilter(AuthenticationManager authenticationManager, DeprecatedUserService deprecatedUserService, TokenService tokenService) {
         super(authenticationManager);
-        this.userService = userService;
+        this.deprecatedUserService = deprecatedUserService;
         this.tokenService = tokenService;
     }
 
@@ -59,7 +59,7 @@ public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) throws IOException, ServletException {
 
         String username = ((User) authResult.getPrincipal()).getUsername();
-        UserDto userDetails = userService.getUserByEmail(username);
+        UserDto userDetails = deprecatedUserService.getUserByEmail(username);
 
         String role = authResult.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)

@@ -1,0 +1,16 @@
+ifndef::snippets[]
+:snippets: ../../build/generated-snippets
+endif::[]
+= UserService REST API
+:doctype: book
+:icons: font
+:source-highlighter: highlightjs
+:toc: left
+:toclevels: 4
+:sectlinks:
+
+
+[[USER-SERVICE-API]]
+== UserService API
+= User
+include::api/user/user.adoc[]
