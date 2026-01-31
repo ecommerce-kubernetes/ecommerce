@@ -1,6 +1,6 @@
 package com.example.userservice.api.user.service.dto.result;
 
-import com.example.userservice.jpa.entity.Gender;
+import com.example.userservice.api.user.domain.model.Gender;
 import lombok.Builder;
 import lombok.Getter;
 

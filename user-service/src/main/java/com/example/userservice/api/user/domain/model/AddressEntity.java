@@ -1,4 +1,4 @@
-package com.example.userservice.jpa.entity;
+package com.example.userservice.api.user.domain.model;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -20,7 +20,7 @@ public class AddressEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    private UserEntity user;
+    private User user;
 
     @Column(nullable = false, unique = true)
     private String name;
@@ -51,7 +51,7 @@ public class AddressEntity {
     }
 
     @Builder
-    public AddressEntity(UserEntity user, String name, String address, String details, boolean defaultAddress) {
+    public AddressEntity(User user, String name, String address, String details, boolean defaultAddress) {
         this.user = user;
         this.name = name;
         this.address = address;

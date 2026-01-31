@@ -10,21 +10,12 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
-@SpringBootApplication(exclude = {
-		RedisAutoConfiguration.class,
-		RedisRepositoriesAutoConfiguration.class,
-		KafkaAutoConfiguration.class
-})
+@SpringBootApplication
 @EnableDiscoveryClient
 @EnableFeignClients
 public class UserServiceApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(UserServiceApplication.class, args);
-	}
-
-	@Bean
-	public BCryptPasswordEncoder bCryptPasswordEncoder() {
-		return new BCryptPasswordEncoder();
 	}
 }

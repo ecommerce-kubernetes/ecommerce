@@ -4,7 +4,7 @@ import com.example.userservice.api.user.controller.dto.UserCreateRequest;
 import com.example.userservice.api.user.service.UserService;
 import com.example.userservice.api.user.service.dto.command.UserCreateCommand;
 import com.example.userservice.api.user.service.dto.result.UserCreateResponse;
-import com.example.userservice.jpa.entity.Gender;
+import com.example.userservice.api.user.domain.model.Gender;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

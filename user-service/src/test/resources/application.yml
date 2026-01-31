@@ -22,6 +22,15 @@ token:
   refresh_expiration_time: 604800000
   secret: 'native1234567890123456789012345678901234567890123456789012345678901234567890'
 
-swagger:
-  allowed-origins:
-    - "http://localhost:8000"
+---
+spring:
+  config:
+    activate:
+      on-profile: test-mock
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+  cloud:
+    bus:
+      enabled: false

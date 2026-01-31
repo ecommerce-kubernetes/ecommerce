@@ -1,4 +1,4 @@
-package com.example.userservice.jpa.entity;
+package com.example.userservice.api.user.domain.model;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
