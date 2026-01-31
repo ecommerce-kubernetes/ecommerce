@@ -19,7 +19,7 @@ import static com.example.userservice.api.support.fixture.UserRequestFixture.anU
 import static com.example.userservice.api.support.fixture.UserResponseFixture.anUserCreateResponse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 

@@ -1,9 +1,9 @@
 package com.example.userservice.config;
 
+import com.example.userservice.jpa.UserRepository;
 import com.example.userservice.jpa.entity.Gender;
 import com.example.userservice.jpa.entity.Role;
 import com.example.userservice.jpa.entity.UserEntity;
-import com.example.userservice.jpa.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
