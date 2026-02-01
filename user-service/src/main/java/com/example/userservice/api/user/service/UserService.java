@@ -1,5 +1,8 @@
 package com.example.userservice.api.user.service;
 
+import com.example.userservice.api.common.exception.BusinessException;
+import com.example.userservice.api.common.exception.UserErrorCode;
+import com.example.userservice.api.user.domain.model.User;
 import com.example.userservice.api.user.domain.repository.UserRepository;
 import com.example.userservice.api.user.service.dto.command.UserCreateCommand;
 import com.example.userservice.api.user.service.dto.result.UserCreateResponse;
@@ -17,6 +20,11 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
 
     public UserCreateResponse createUser(UserCreateCommand command) {
-        return null;
+        if (userRepository.existsByEmail(command.getEmail())){
+            throw new BusinessException(UserErrorCode.USER_NOT_FOUND);
+        }
+        String encryptPwd = passwordEncoder.encode(command.getPassword());
+        User user = userRepository.save(User.createUser(command, encryptPwd));
+        return UserCreateResponse.from(user);
     }
 }
