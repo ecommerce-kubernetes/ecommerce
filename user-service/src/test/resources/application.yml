@@ -1,13 +1,13 @@
+eureka:
+  client:
+    enable: false
+    fetch-registry: false
+    register-with-eureka: false
+
 spring:
-  datasource:
-    url: jdbc:h2:mem:testdb
-    driver-class-name: org.h2.Driver
-    username: sa
-    password:
   jpa:
     hibernate:
-      ddl-auto: update
-    database-platform: org.hibernate.dialect.H2Dialect
+      ddl-auto: create-drop
   redis:
     host: localhost
     port: 6379
@@ -21,6 +21,11 @@ token:
   expiration_time: 3000000
   refresh_expiration_time: 604800000
   secret: sRwFJewa3JqnGtFZJsMREtKh9ApEy3RS
+
+user:
+  topics:
+    user-saga-command: "user.saga.command"
+    user-saga-reply: "user.saga.reply"
 
 ---
 spring:

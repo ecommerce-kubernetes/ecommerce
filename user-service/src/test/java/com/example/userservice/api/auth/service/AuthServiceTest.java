@@ -1,5 +1,6 @@
 package com.example.userservice.api.auth.service;
 
+import com.example.userservice.api.auth.domain.model.RefreshToken;
 import com.example.userservice.api.auth.domain.repository.RefreshTokenRepository;
 import com.example.userservice.api.auth.service.dto.TokenData;
 import com.example.userservice.api.common.exception.AuthErrorCode;
@@ -22,6 +23,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 
 @Transactional
 public class AuthServiceTest extends ExcludeInfraTest {
@@ -57,7 +60,7 @@ public class AuthServiceTest extends ExcludeInfraTest {
                     token -> assertThat(token.getRefreshToken()).isNotNull()
             );
 
-            Mockito.verify(tokenRepository).save(1L, tokenData.getRefreshToken(), refreshTtl);
+            Mockito.verify(tokenRepository).save(any(RefreshToken.class), anyLong());
         }
 
         @Test

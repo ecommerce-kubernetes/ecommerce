@@ -1,5 +1,6 @@
 package com.example.userservice.api.auth.service;
 
+import com.example.userservice.api.auth.domain.model.RefreshToken;
 import com.example.userservice.api.auth.domain.repository.RefreshTokenRepository;
 import com.example.userservice.api.auth.service.dto.TokenData;
 import com.example.userservice.api.common.exception.AuthErrorCode;
@@ -26,7 +27,8 @@ public class AuthService {
         User user = findByEmailOrThrow(email);
         validatePassword(password, user.getEncryptedPwd());
         TokenData tokenData = tokenGenerator.generateTokenData(user.getId(), user.getRole());
-        tokenRepository.save(user.getId(), tokenData.getRefreshToken(), tokenGenerator.getRefreshTokenExpiration());
+        RefreshToken refreshToken = RefreshToken.create(user.getId(), tokenData.getRefreshToken());
+        tokenRepository.save(refreshToken, tokenGenerator.getRefreshTokenExpiration());
         return tokenData;
     }
 

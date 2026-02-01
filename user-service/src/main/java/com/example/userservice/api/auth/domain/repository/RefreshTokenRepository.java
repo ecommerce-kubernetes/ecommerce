@@ -1,18 +1,23 @@
 package com.example.userservice.api.auth.domain.repository;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.example.userservice.api.auth.domain.model.RefreshToken;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 
+import java.util.concurrent.TimeUnit;
+
 @Repository
 @RequiredArgsConstructor
 public class RefreshTokenRepository {
+    private final RedisTemplate<String, Object> redisTemplate;
 
-    private final RedisTemplate<String, String> redisTemplate;
-    private final ObjectMapper mapper;
-
-    public void save(Long userId, String token, long ttl) {
-
+    public void save(RefreshToken refreshToken, long ttl) {
+        redisTemplate.opsForValue().set(
+                "RT:" + refreshToken.getUserId(),
+                refreshToken,
+                ttl,
+                TimeUnit.MICROSECONDS
+        );
     }
 }
