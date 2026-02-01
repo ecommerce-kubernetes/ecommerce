@@ -20,7 +20,7 @@ spring:
 token:
   expiration_time: 3000000
   refresh_expiration_time: 604800000
-  secret: 'native1234567890123456789012345678901234567890123456789012345678901234567890'
+  secret: sRwFJewa3JqnGtFZJsMREtKh9ApEy3RS
 
 ---
 spring:
