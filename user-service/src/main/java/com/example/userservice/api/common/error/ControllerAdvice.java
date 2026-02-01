@@ -1,6 +1,7 @@
 package com.example.userservice.api.common.error;
 
 import com.example.userservice.api.common.error.dto.response.ErrorResponse;
+import com.example.userservice.api.common.exception.BusinessException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -38,5 +39,21 @@ public class ControllerAdvice {
         }
         ErrorResponse response = ErrorResponse.of("VALIDATION", "요청 데이터 형식이 올바르지 않습니다", now.toString(), request.getRequestURI());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity<ErrorResponse> businessExceptionHandler(HttpServletRequest request, BusinessException e) {
+        LocalDateTime now = LocalDateTime.now();
+        ErrorResponse errorResponse = createErrorResponse(e.getErrorCode().getCode(), e.getErrorCode().getMessage(), now.toString(), request.getRequestURI());
+        return ResponseEntity.status(e.getErrorCode().getStatus()).body(errorResponse);
+    }
+
+    private ErrorResponse createErrorResponse(String code, String message, String timestamp, String path){
+        return ErrorResponse.builder()
+                .code(code)
+                .message(message)
+                .timestamp(timestamp)
+                .path(path)
+                .build();
     }
 }

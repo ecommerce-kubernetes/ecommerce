@@ -14,3 +14,7 @@ endif::[]
 == UserService API
 = User
 include::api/user/user.adoc[]
+
+== Internal API
+= User
+include::api/user/internalUser.adoc[]

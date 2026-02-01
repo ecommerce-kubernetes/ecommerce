@@ -1,6 +1,8 @@
 package com.example.userservice.api.user.domain.model;
 
 import com.example.userservice.api.common.entity.BaseEntity;
+import com.example.userservice.api.common.exception.BusinessException;
+import com.example.userservice.api.common.exception.UserErrorCode;
 import com.example.userservice.api.user.service.dto.command.UserCreateCommand;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -33,7 +35,7 @@ public class User extends BaseEntity {
     @Column(nullable = false)
     private Gender gender;
     private LocalDate birthDate;
-    private int point;
+    private Long point;
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role;
@@ -45,7 +47,7 @@ public class User extends BaseEntity {
     private List<AddressEntity> addresses = new ArrayList<>();
 
     @Builder(access = AccessLevel.PRIVATE)
-    public User(String email, String name, String encryptedPwd, String phoneNumber, Gender gender, LocalDate birthDate, int point, Role role) {
+    public User(String email, String name, String encryptedPwd, String phoneNumber, Gender gender, LocalDate birthDate, Long point, Role role) {
         this.email = email;
         this.name = name;
         this.encryptedPwd = encryptedPwd;
@@ -56,6 +58,17 @@ public class User extends BaseEntity {
         this.role = role;
     }
 
+    public void deductPoint(Long point) {
+        if (this.point < point) {
+            throw new BusinessException(UserErrorCode.INSUFFICIENT_POINT);
+        }
+        this.point -= point;
+    }
+
+    public void refundPoint(Long point) {
+        this.point += point;
+    }
+
     public static User createUser(UserCreateCommand command, String encryptedPwd) {
         return User.builder()
                 .email(command.getEmail())
@@ -63,7 +76,7 @@ public class User extends BaseEntity {
                 .encryptedPwd(encryptedPwd)
                 .gender(command.getGender())
                 .birthDate(command.getBirthDate())
-                .point(0)
+                .point(0L)
                 .phoneNumber(command.getPhoneNumber())
                 .role(Role.ROLE_USER)
                 .build();

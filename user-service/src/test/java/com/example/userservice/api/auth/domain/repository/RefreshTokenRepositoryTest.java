@@ -29,7 +29,7 @@ public class RefreshTokenRepositoryTest extends IncludeInfraTest {
 
         @Test
         @DisplayName("리프레시 토큰을 저장한다")
-        void save() throws JsonProcessingException {
+        void save() {
             //given
             RefreshToken refreshToken = RefreshToken.create(1L, "refreshToken");
             //when

@@ -7,6 +7,7 @@ import com.example.userservice.api.user.domain.model.User;
 import com.example.userservice.api.user.domain.repository.UserRepository;
 import com.example.userservice.api.user.service.dto.command.UserCreateCommand;
 import com.example.userservice.api.user.service.dto.result.UserCreateResponse;
+import com.example.userservice.api.user.service.dto.result.UserOrderResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -64,6 +65,38 @@ public class UserServiceTest extends ExcludeInfraTest {
             //when
             //then
             assertThatThrownBy(() -> userService.createUser(command))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(UserErrorCode.USER_NOT_FOUND);
+        }
+    }
+
+    @Nested
+    @DisplayName("회원 주문 정보 조회")
+    class GetUserForOrder {
+
+        @Test
+        @DisplayName("회원의 주문에 필요한 정보를 조회")
+        void getUserInfoForOrder(){
+            //given
+            UserCreateCommand command = anUserCreateCommand().email("test@email.com").build();
+            User user = User.createUser(command, "$2a$asdfasdcxzvcx");
+            userRepository.save(user);
+            //when
+            UserOrderResponse result = userService.getUserInfoForOrder(user.getId());
+            //then
+            assertThat(result)
+                    .extracting("userId", "pointBalance", "userName", "phoneNumber")
+                    .containsExactly(user.getId(), user.getPoint(), user.getName(), user.getPhoneNumber());
+        }
+
+        @Test
+        @DisplayName("회원을 찾을 수 없으면 예외를 던진다")
+        void getUserInfoForOrder_not_found(){
+            //given
+            //when
+            //then
+            assertThatThrownBy(() -> userService.getUserInfoForOrder(999L))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(UserErrorCode.USER_NOT_FOUND);
