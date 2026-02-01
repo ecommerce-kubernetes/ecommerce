@@ -1,0 +1,11 @@
+[[user-create]]
+=== 유저 생성
+
+==== HTTP Request
+include::{snippets}/user-create/http-request.adoc[]
+===== Request Fields
+include::{snippets}/user-create/request-fields.adoc[]
+==== HTTP Response
+include::{snippets}/user-create/http-response.adoc[]
+===== Response Fields
+include::{snippets}/user-create/response-fields.adoc[]

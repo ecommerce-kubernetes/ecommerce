@@ -1,0 +1,4 @@
+user:
+  topics:
+    user-saga-command: "user.saga.command"
+    user-saga-reply: "user.saga.reply"

@@ -1,0 +1,9 @@
+=== 유저 정보 조회
+==== HTTP Request
+include::{snippets}/internal-get-user/http-request.adoc[]
+===== Request PathParam
+include::{snippets}/internal-get-user/path-parameters.adoc[]
+==== HTTP Response
+include::{snippets}/internal-get-user/http-response.adoc[]
+===== Response Fields
+include::{snippets}/internal-get-user/response-fields.adoc[]
