@@ -9,7 +9,7 @@ public class UserRequestFixture {
     public static UserCreateRequest.UserCreateRequestBuilder anUserCreateRequest() {
         return UserCreateRequest.builder()
                 .email("la9814@naver.com")
-                .password("password123*")
+                .password("password1234*")
                 .name("김이박")
                 .birthDate(LocalDate.of(1999, 12, 25))
                 .gender("MALE")

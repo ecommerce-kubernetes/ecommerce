@@ -1,5 +1,7 @@
 package com.example.userservice.api.support;
 
+import com.example.userservice.api.auth.controller.AuthController;
+import com.example.userservice.api.auth.service.AuthService;
 import com.example.userservice.api.user.controller.UserController;
 import com.example.userservice.api.user.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -8,7 +10,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-@WebMvcTest(controllers = {UserController.class})
+@WebMvcTest(controllers = {UserController.class, AuthController.class})
 public class ControllerTestSupport {
     @Autowired
     protected MockMvc mockMvc;
@@ -16,4 +18,6 @@ public class ControllerTestSupport {
     protected ObjectMapper objectMapper;
     @MockitoBean
     protected UserService userService;
+    @MockitoBean
+    protected AuthService authService;
 }

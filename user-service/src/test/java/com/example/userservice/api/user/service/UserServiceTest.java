@@ -3,7 +3,6 @@ package com.example.userservice.api.user.service;
 import com.example.userservice.api.common.exception.BusinessException;
 import com.example.userservice.api.common.exception.UserErrorCode;
 import com.example.userservice.api.support.ExcludeInfraTest;
-import com.example.userservice.api.user.domain.model.Gender;
 import com.example.userservice.api.user.domain.model.User;
 import com.example.userservice.api.user.domain.repository.UserRepository;
 import com.example.userservice.api.user.service.dto.command.UserCreateCommand;
@@ -14,8 +13,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDate;
 
 import static com.example.userservice.api.support.fixture.UserCommandFixture.anUserCreateCommand;
 import static com.example.userservice.api.support.fixture.UserResponseFixture.anUserCreateResponse;

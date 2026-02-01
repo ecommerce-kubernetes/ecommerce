@@ -1,5 +1,5 @@
 [[user-create]]
-=== 장바구니 상품 추가
+=== 유저 생성
 
 ==== HTTP Request
 include::{snippets}/user-create/http-request.adoc[]
