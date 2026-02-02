@@ -1,4 +1,4 @@
-package com.example.userservice.config;
+package com.example.userservice.api.common.config;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
