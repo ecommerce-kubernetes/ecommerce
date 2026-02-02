@@ -1,35 +1,3 @@
-resilience4j:
-  circuitbreaker:
-    configs:
-      default:
-        slidingWindowSize: 100
-        failureRateThreshold: 50
-        recordFailurePredicate: com.example.order_service.api.common.config.CircuitBreakerFailurePredicate
-    instances:
-      productService:
-        baseConfig: default
-      userService:
-        baseConfig: default
-      couponService:
-        baseConfig: default
-      tossPaymentService:
-        baseConfig: default
-
-payment:
-  toss:
-    url: https://api.tosspayments.com
-
-order:
-  topics:
-    # 상품 재고 차감/보상 명령
-    product-saga-command: "product.saga.command"
-    # 상품 처리 결과 응답
-    product-saga-reply: "product.saga.reply"
-    # 쿠폰 사용/복구 명령
-    coupon-saga-command: "coupon.saga.command"
-    # 쿠폰 처리 결과 응답
-    coupon-saga-reply: "coupon.saga.reply"
-    # 포인트 사용/환불 명령
-    user-saga-command: "user.saga.command"
-    # 유저 처리 결과 응답
-    user-saga-reply: "user.saga.reply"
+spring:
+  application:
+    name: order-service

@@ -40,12 +40,6 @@ public class User extends BaseEntity {
     @Column(nullable = false)
     private Role role;
 
-    @CreatedDate
-    @Column(updatable = false)
-    private LocalDateTime createdAt;
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<AddressEntity> addresses = new ArrayList<>();
-
     @Builder(access = AccessLevel.PRIVATE)
     public User(String email, String name, String encryptedPwd, String phoneNumber, Gender gender, LocalDate birthDate, Long point, Role role) {
         this.email = email;

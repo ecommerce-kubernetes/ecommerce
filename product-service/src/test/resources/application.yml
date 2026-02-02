@@ -19,8 +19,6 @@ spring:
         ddl-auto: create-drop
         format_sql: true
       hibernate.default_batch_fetch_size: 1000
-  flyway:
-    enabled: false
 
 product:
   topics:
