@@ -42,7 +42,7 @@ public class AuthorizationHeaderFilter extends AbstractGatewayFilterFactory<Auth
 
     public AuthorizationHeaderFilter(@Value("${token.secret}") String secret) {
         super(Config.class);
-        byte[] secretKeyBytes = Base64.getEncoder().encode(secret.getBytes());
+        byte[] secretKeyBytes = secret.getBytes(StandardCharsets.UTF_8);
         this.secretKey = Keys.hmacShaKeyFor(secretKeyBytes);
         this.jwtParser = Jwts.parser().verifyWith(this.secretKey).build();
     }
@@ -64,7 +64,7 @@ public class AuthorizationHeaderFilter extends AbstractGatewayFilterFactory<Auth
             }
 
             String token = authHeader.substring(BEARER_PREFIX.length());
-
+            log.error("token : {}", token);
             try {
                 Claims claims = jwtParser.parseSignedClaims(token).getPayload();
                 ServerHttpRequest mutatedRequest = mutateRequestWithClaims(request, claims);

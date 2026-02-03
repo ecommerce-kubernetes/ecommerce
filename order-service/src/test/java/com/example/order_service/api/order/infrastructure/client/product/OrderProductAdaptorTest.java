@@ -3,6 +3,7 @@ package com.example.order_service.api.order.infrastructure.client.product;
 import com.example.order_service.api.common.exception.BusinessException;
 import com.example.order_service.api.common.exception.ExternalServiceErrorCode;
 import com.example.order_service.api.order.infrastructure.client.product.dto.OrderProductResponse;
+import com.example.order_service.api.order.infrastructure.client.product.dto.OrderProductsRequest;
 import com.example.order_service.api.support.ExcludeInfraTest;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import org.junit.jupiter.api.DisplayName;
@@ -14,6 +15,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
@@ -33,7 +35,7 @@ public class OrderProductAdaptorTest extends ExcludeInfraTest {
         OrderProductResponse product1 = createProductResponse(1L);
         OrderProductResponse product2 = createProductResponse(2L);
 
-        given(orderProductClient.getProductVariantByIds(anyList()))
+        given(orderProductClient.getProductVariantByIds(any(OrderProductsRequest.class)))
                 .willReturn(List.of(product1, product2));
         //when
         List<OrderProductResponse> responses = orderProductAdaptor.getProducts(List.of(1L, 2L));
@@ -47,7 +49,7 @@ public class OrderProductAdaptorTest extends ExcludeInfraTest {
     @DisplayName("서킷브레이커가 열렸을때 상품 목록 정보를 조회하면 예외를 던진다")
     void getProducts_When_OpenCircuitBreaker(){
         //given
-        willThrow(CallNotPermittedException.class).given(orderProductClient).getProductVariantByIds(anyList());
+        willThrow(CallNotPermittedException.class).given(orderProductClient).getProductVariantByIds(any(OrderProductsRequest.class));
         //when
         //then
         assertThatThrownBy(() -> orderProductAdaptor.getProducts(List.of(1L, 2L)))
@@ -60,7 +62,7 @@ public class OrderProductAdaptorTest extends ExcludeInfraTest {
     @DisplayName("상품 목록 조회시 비지니스 예외가 발생한 경우 그대로 던진다")
     void getProducts_when_businessException(){
         //given
-        willThrow(BusinessException.class).given(orderProductClient).getProductVariantByIds(anyList());
+        willThrow(BusinessException.class).given(orderProductClient).getProductVariantByIds(any(OrderProductsRequest.class));
         //when
         //then
         assertThatThrownBy(() -> orderProductAdaptor.getProducts(List.of(1L, 2L)))
@@ -72,7 +74,7 @@ public class OrderProductAdaptorTest extends ExcludeInfraTest {
     void getProducts_When_Unknown_Exception() {
         //given
         willThrow(new RuntimeException("상품 서비스 장애 발생"))
-                .given(orderProductClient).getProductVariantByIds(anyList());
+                .given(orderProductClient).getProductVariantByIds(any(OrderProductsRequest.class));
         //when
         //then
         assertThatThrownBy(() -> orderProductAdaptor.getProducts(List.of(1L, 2L)))

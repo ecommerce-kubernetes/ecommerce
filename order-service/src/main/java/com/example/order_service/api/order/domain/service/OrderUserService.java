@@ -6,10 +6,12 @@ import com.example.order_service.api.order.domain.service.dto.result.OrderUserIn
 import com.example.order_service.api.order.infrastructure.client.user.OrderUserAdaptor;
 import com.example.order_service.api.order.infrastructure.client.user.dto.OrderUserResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class OrderUserService {
     private final OrderUserAdaptor orderUserAdaptor;
 

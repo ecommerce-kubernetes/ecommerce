@@ -1,8 +1,10 @@
 package com.example.order_service.api.order.infrastructure.client.product;
 
+import com.example.order_service.api.cart.infrastructure.client.dto.CartProductsRequest;
 import com.example.order_service.api.common.exception.BusinessException;
 import com.example.order_service.api.common.exception.ExternalServiceErrorCode;
 import com.example.order_service.api.order.infrastructure.client.product.dto.OrderProductResponse;
+import com.example.order_service.api.order.infrastructure.client.product.dto.OrderProductsRequest;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +22,8 @@ public class OrderProductAdaptor {
 
     @CircuitBreaker(name = "productService", fallbackMethod = "getProductsFallback")
     public List<OrderProductResponse> getProducts(List<Long> variantIds) {
-        return orderProductClient.getProductVariantByIds(variantIds);
+        OrderProductsRequest request = OrderProductsRequest.of(variantIds);
+        return orderProductClient.getProductVariantByIds(request);
     }
 
     private List<OrderProductResponse> getProductsFallback(List<Long> variantIds, Throwable throwable){

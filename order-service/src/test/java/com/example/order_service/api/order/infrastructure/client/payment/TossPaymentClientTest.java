@@ -37,7 +37,7 @@ public class TossPaymentClientTest extends ExcludeInfraTest {
                                 """)));
         TossPaymentConfirmRequest request = TossPaymentConfirmRequest
                 .builder()
-                .orderNo(ORDER_NO)
+                .orderId(ORDER_NO)
                 .paymentKey("paymentKey")
                 .amount(3000L)
                 .build();

@@ -42,7 +42,7 @@ public class SagaManager {
         SagaInstanceDto saga = sagaService.getSagaByOrderNo(command.getOrderNo());
         if (saga.getSagaStep() != command.getStep()) {
             log.warn("이미 처리되었거나 잘못된 단계의 응답입니다. current={}, result={}",
-                    saga.getSagaStep(), saga);
+                    saga.getSagaStep(), command.getStep());
             return;
         }
 
@@ -116,8 +116,8 @@ public class SagaManager {
     }
 
     public void processTimeouts() {
-        //Saga 시작 시간이 5분 이전이면서 상태는 STARTED인 Saga 모두 조회
-        LocalDateTime timeout = LocalDateTime.now().minusMinutes(5);
+        //Saga 시작 시간이 10분 이전이면서 상태는 STARTED인 Saga 모두 조회
+        LocalDateTime timeout = LocalDateTime.now().minusMinutes(10);
         List<SagaInstanceDto> timeouts = sagaService.getTimeouts(timeout);
         //조회된 SAGA 를 보상 처리함
         for (SagaInstanceDto saga : timeouts) {

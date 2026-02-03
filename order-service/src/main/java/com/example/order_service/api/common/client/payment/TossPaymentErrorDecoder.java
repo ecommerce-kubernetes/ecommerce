@@ -3,13 +3,16 @@ package com.example.order_service.api.common.client.payment;
 import com.example.order_service.api.common.exception.BusinessException;
 import com.example.order_service.api.common.exception.CommonErrorCode;
 import com.example.order_service.api.common.exception.ExternalServiceErrorCode;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import feign.Response;
 import feign.codec.ErrorDecoder;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.StreamUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 
 @Slf4j
 public class TossPaymentErrorDecoder implements ErrorDecoder {

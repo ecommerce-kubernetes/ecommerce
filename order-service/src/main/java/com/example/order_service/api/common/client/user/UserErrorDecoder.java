@@ -5,7 +5,9 @@ import com.example.order_service.api.common.exception.CommonErrorCode;
 import com.example.order_service.api.common.exception.ExternalServiceErrorCode;
 import feign.Response;
 import feign.codec.ErrorDecoder;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class UserErrorDecoder implements ErrorDecoder {
     @Override
     public Exception decode(String s, Response response) {

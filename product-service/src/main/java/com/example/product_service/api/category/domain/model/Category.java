@@ -50,7 +50,7 @@ public class Category extends BaseEntity {
         }
         //부모 카테고리의 depth 가 최대인지 검증
         parent.validateCanAddChild();
-        Category category = create(name.trim(), parent.getNextDepth(), imageUrl.trim());
+        Category category = create(name, parent.getNextDepth(), imageUrl);
         category.linkParent(parent);
         return category;
     }
