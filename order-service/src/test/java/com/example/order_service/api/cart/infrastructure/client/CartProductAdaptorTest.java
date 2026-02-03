@@ -1,6 +1,7 @@
 package com.example.order_service.api.cart.infrastructure.client;
 
 import com.example.order_service.api.cart.infrastructure.client.dto.CartProductResponse;
+import com.example.order_service.api.cart.infrastructure.client.dto.CartProductsRequest;
 import com.example.order_service.api.common.exception.BusinessException;
 import com.example.order_service.api.common.exception.ExternalServiceErrorCode;
 import com.example.order_service.api.support.ExcludeInfraTest;
@@ -13,8 +14,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
 
@@ -97,7 +97,7 @@ public class CartProductAdaptorTest extends ExcludeInfraTest {
         CartProductResponse product2 = createProductResponse(2L, 2L, "상품2", 5000L, 10,
                 "http://thumbnail2.jpg", List.of(CartProductResponse.ProductOptionInfo.builder().optionTypeName("용량").optionValueName("256").build()));
 
-        given(cartProductClient.getProductVariantByIds(anyList()))
+        given(cartProductClient.getProductVariantByIds(any(CartProductsRequest.class)))
                 .willReturn(List.of(product1, product2));
         //when
         List<CartProductResponse> products = cartProductAdaptor.getProducts(List.of(1L, 2L));
@@ -117,7 +117,7 @@ public class CartProductAdaptorTest extends ExcludeInfraTest {
         //given
         willThrow(CallNotPermittedException.class)
                 .given(cartProductClient)
-                .getProductVariantByIds(anyList());
+                .getProductVariantByIds(any(CartProductsRequest.class));
         //when
         List<CartProductResponse> products = cartProductAdaptor.getProducts(List.of(1L, 2L));
         //then
@@ -130,7 +130,7 @@ public class CartProductAdaptorTest extends ExcludeInfraTest {
         //given
         willThrow(new RuntimeException("상품서비스 오류 발생"))
                 .given(cartProductClient)
-                .getProductVariantByIds(anyList());
+                .getProductVariantByIds(any(CartProductsRequest.class));
         //when
         List<CartProductResponse> products = cartProductAdaptor.getProducts(List.of(1L, 2L));
         //then

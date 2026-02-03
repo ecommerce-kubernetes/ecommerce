@@ -1,6 +1,7 @@
 package com.example.order_service.api.cart.infrastructure.client;
 
 import com.example.order_service.api.cart.infrastructure.client.dto.CartProductResponse;
+import com.example.order_service.api.cart.infrastructure.client.dto.CartProductsRequest;
 import com.example.order_service.api.common.exception.BusinessException;
 import com.example.order_service.api.common.exception.ExternalServiceErrorCode;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
@@ -26,7 +27,8 @@ public class CartProductAdaptor {
 
     @CircuitBreaker(name = "productService", fallbackMethod = "getProductsFallback")
     public List<CartProductResponse> getProducts(List<Long> productVariantIds){
-        return cartProductClient.getProductVariantByIds(productVariantIds);
+        CartProductsRequest request = CartProductsRequest.of(productVariantIds);
+        return cartProductClient.getProductVariantByIds(request);
     }
 
     private CartProductResponse getProductFallback(Long productVariantId, Throwable throwable){

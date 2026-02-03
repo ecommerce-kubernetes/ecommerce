@@ -22,7 +22,7 @@ public class UserService {
 
     public UserCreateResponse createUser(UserCreateCommand command) {
         if (userRepository.existsByEmail(command.getEmail())){
-            throw new BusinessException(UserErrorCode.USER_NOT_FOUND);
+            throw new BusinessException(UserErrorCode.DUPLICATE_EMAIL);
         }
         String encryptPwd = passwordEncoder.encode(command.getPassword());
         User user = userRepository.save(User.createUser(command, encryptPwd));

@@ -67,7 +67,7 @@ public class UserServiceTest extends ExcludeInfraTest {
             assertThatThrownBy(() -> userService.createUser(command))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
-                    .isEqualTo(UserErrorCode.USER_NOT_FOUND);
+                    .isEqualTo(UserErrorCode.DUPLICATE_EMAIL);
         }
     }
 

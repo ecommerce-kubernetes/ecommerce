@@ -7,20 +7,20 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 public class TossPaymentConfirmRequest {
-    private String orderNo;
+    private String orderId;
     private String paymentKey;
     private Long amount;
 
     @Builder
-    private TossPaymentConfirmRequest(String orderNo, String paymentKey, Long amount) {
-        this.orderNo = orderNo;
+    private TossPaymentConfirmRequest(String orderId, String paymentKey, Long amount) {
+        this.orderId = orderId;
         this.paymentKey = paymentKey;
         this.amount = amount;
     }
 
-    public static TossPaymentConfirmRequest of(String orderNo, String paymentKey, Long amount) {
+    public static TossPaymentConfirmRequest of(String orderId, String paymentKey, Long amount) {
         return TossPaymentConfirmRequest.builder()
-                .orderNo(orderNo)
+                .orderId(orderId)
                 .paymentKey(paymentKey)
                 .amount(amount)
                 .build();

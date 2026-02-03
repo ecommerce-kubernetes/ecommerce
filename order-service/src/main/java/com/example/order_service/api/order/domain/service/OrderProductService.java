@@ -9,6 +9,7 @@ import com.example.order_service.api.order.facade.dto.command.CreateOrderItemCom
 import com.example.order_service.api.order.infrastructure.client.product.OrderProductAdaptor;
 import com.example.order_service.api.order.infrastructure.client.product.dto.OrderProductResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -17,6 +18,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class OrderProductService {
 

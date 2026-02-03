@@ -8,12 +8,14 @@ import com.example.order_service.api.cart.infrastructure.client.dto.CartProductR
 import com.example.order_service.api.common.exception.BusinessException;
 import com.example.order_service.api.common.exception.CartErrorCode;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class CartProductService {
     private final CartProductAdaptor cartProductAdaptor;
 

@@ -9,6 +9,7 @@ import com.example.order_service.api.cart.facade.dto.command.UpdateQuantityComma
 import com.example.order_service.api.cart.facade.dto.result.CartItemResponse;
 import com.example.order_service.api.cart.facade.dto.result.CartResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,6 +18,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class CartFacade {
     private final CartService cartService;

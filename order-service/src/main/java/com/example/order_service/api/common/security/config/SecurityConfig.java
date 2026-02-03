@@ -28,7 +28,10 @@ public class SecurityConfig {
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authorizeHttpRequests(
-                        auth -> auth.anyRequest().authenticated()
+                        auth ->
+                                auth
+                                        .requestMatchers("/error").permitAll()
+                                        .anyRequest().authenticated()
                 )
                 .addFilterBefore(headerPreAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling(exception -> exception
