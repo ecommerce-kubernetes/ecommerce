@@ -5,10 +5,5 @@
 include::{snippets}/sse-subscribe/http-request.adoc[]
 ===== Request Header
 include::{snippets}/sse-subscribe/request-headers.adoc[]
-===== Request Parameter
-include::{snippets}/sse-subscribe/query-parameters.adoc[]
-
 ==== HTTP Response
 include::{snippets}/sse-subscribe/http-response.adoc[]
-===== Response Fields
-include::{snippets}/sse-subscribe/response-fields.adoc[]

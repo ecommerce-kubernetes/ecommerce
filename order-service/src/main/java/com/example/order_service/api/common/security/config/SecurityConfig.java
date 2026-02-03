@@ -31,6 +31,7 @@ public class SecurityConfig {
                         auth ->
                                 auth
                                         .requestMatchers("/error").permitAll()
+                                        .requestMatchers("/docs/**").permitAll()
                                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(headerPreAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
