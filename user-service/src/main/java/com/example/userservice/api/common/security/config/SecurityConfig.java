@@ -28,6 +28,7 @@ public class SecurityConfig {
                 .formLogin(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(
                         auth -> auth
+                                .requestMatchers("/docs/**").permitAll()
                                 .requestMatchers("/error").permitAll()
                                 .requestMatchers("/internal/**").permitAll()
                                 .requestMatchers(HttpMethod.POST, "/users").permitAll()

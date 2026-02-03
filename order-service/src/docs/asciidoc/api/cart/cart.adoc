@@ -18,7 +18,7 @@ include::{snippets}/add-cartItem/response-fields.adoc[]
 ==== HTTP Request
 include::{snippets}/getAllCartItem/http-request.adoc[]
 ===== Request Header
-include::{snippets}/getOrderList/request-headers.adoc[]
+include::{snippets}/getAllCartItem/request-headers.adoc[]
 ==== HTTP Response
 include::{snippets}/getAllCartItem/http-response.adoc[]
 ===== Response Fields

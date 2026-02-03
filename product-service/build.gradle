@@ -44,6 +44,17 @@ asciidoctor {
         include("**/index.adoc")
     }
     baseDirFollowsSourceFile()
+
+    doLast {
+        copy {
+            from outputDir
+            into file("build/resources/main/static/docs")
+        }
+    }
+}
+
+bootRun {
+    dependsOn asciidoctor
 }
 
 bootJar {
