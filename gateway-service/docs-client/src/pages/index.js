@@ -9,23 +9,55 @@ import styles from './index.module.css';
 
 function HomepageHeader() {
   const {siteConfig} = useDocusaurusContext();
-  return (
-    <header className={clsx('hero hero--primary', styles.heroBanner)}>
-      <div className="container">
-        <Heading as="h1" className="hero__title">
-          {siteConfig.title}
-        </Heading>
-        <p className="hero__subtitle">{siteConfig.tagline}</p>
-        <div className={styles.buttons}>
-          <Link
-            className="button button--secondary button--lg"
-            to="/docs/intro">
-            Docusaurus Tutorial - 5min ⏱️
-          </Link>
-        </div>
-      </div>
-    </header>
-  );
+ return (
+     <header style={{padding: '120px 0', textAlign: 'center', background: '#f9fafb'}}>
+       <div className="container">
+         <h1 style={{fontSize: '3rem', fontWeight: '800', marginBottom: '20px'}}>
+           <span style={{color: '#A08574'}}>BuyNest</span> <span style={{color: '#2b2b2b'}}>Ecommerce</span>
+         </h1>
+
+         <p style={{
+             fontSize: '1.2rem',
+             color: '#525252',
+             marginBottom: '40px',
+             lineHeight: '1.8',
+             maxWidth: '800px',
+             marginLeft: 'auto',
+             marginRight: 'auto',
+             wordBreak: 'keep-all'
+         }}>
+           BuyNest는 MSA 기반으로 구성된 <strong>이커머스 시스템</strong> 입니다.<br/>
+           각 서비스는 <strong>Spring Cloud</strong> 기반의 마이크로 서비스 아키텍쳐로 구성되어 있으며 <br/>
+           서비스 간 비동기 통신은 이벤트 스트리밍 기반으로 구현하였습니다.<br/>
+           또한 <strong>Eureka</strong> 기반의 서비스 디스커버리와 <strong>Config Server</strong>를 통한 중앙 설정 관리<br/>
+           <strong>Gateway</strong>을 활용한 API 라우팅을 적용하여 <br/>
+           실제 프로덕션 환경을 고려한 MSA 설계 및 운영 구조를 구현한 프로젝트 입니다
+         </p>
+
+         <div style={{display: 'flex', gap: '15px', justifyContent: 'center'}}>
+            <Link
+                className="button button--primary button--lg btn-brown btn-animate"
+                to="/docs/guide/intro">
+                프로젝트 개요 📘
+              </Link>
+
+              {/* 2. 서브 버튼 (기본색 + 애니메이션) */}
+              <Link
+                className="button button--secondary button--lg btn-animate"
+                to="/docs/api/intro">
+                 API 명세서 📝
+              </Link>
+
+              {/* 3. 서브 버튼 (기본색 + 애니메이션) */}
+              <Link
+                className="button button--secondary button--lg btn-animate"
+                to="/api-test">
+                 API 테스트 🧪
+              </Link>
+         </div>
+       </div>
+     </header>
+   );
 }
 
 export default function Home() {
