@@ -22,6 +22,22 @@
   text-decoration: none;
 }
 
+.base-text {
+  font-size: 18px;
+}
+
+.tech-stack-wrapper {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.full-width-table table {
+  width: 100% !important;
+  display: table; /* 반응형 스크롤 문제 방지 */
+}
+
 :root {
 
   --ifm-color-primary: #A08574;

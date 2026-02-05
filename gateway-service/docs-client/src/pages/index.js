@@ -37,18 +37,14 @@ function HomepageHeader() {
          <div style={{display: 'flex', gap: '15px', justifyContent: 'center'}}>
             <Link
                 className="button button--primary button--lg btn-brown btn-animate"
-                to="/docs/guide/intro">
+                to="/docs/intro">
                 프로젝트 개요 📘
               </Link>
-
-              {/* 2. 서브 버튼 (기본색 + 애니메이션) */}
               <Link
                 className="button button--secondary button--lg btn-animate"
                 to="/docs/api/intro">
                  API 명세서 📝
               </Link>
-
-              {/* 3. 서브 버튼 (기본색 + 애니메이션) */}
               <Link
                 className="button button--secondary button--lg btn-animate"
                 to="/api-test">
