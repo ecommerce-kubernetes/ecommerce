@@ -80,46 +80,46 @@ const config = {
         style: 'dark',
         links: [
           {
-            title: 'Docs',
-            items: [
-              {
-                label: 'Tutorial',
-                to: '/docs/intro',
-              },
-            ],
-          },
-          {
             title: 'Community',
             items: [
               {
-                label: 'Stack Overflow',
-                href: 'https://stackoverflow.com/questions/tagged/docusaurus',
+                label: 'GitHub',
+                href: 'https://github.com/minsik2434',
               },
               {
-                label: 'Discord',
-                href: 'https://discordapp.com/invite/docusaurus',
-              },
-              {
-                label: 'X',
-                href: 'https://x.com/docusaurus',
+                label: 'Tech Blog',
+                href: 'https://velog.io/@minsik2434/posts',
               },
             ],
           },
           {
-            title: 'More',
+            title: 'Resources',
             items: [
               {
-                label: 'Blog',
-                to: '/blog',
+                label: '깃허브 레포지토리',
+                href: 'https://github.com/ecommerce-kubernetes/ecommerce',
               },
               {
-                label: 'GitHub',
-                href: 'https://github.com/facebook/docusaurus',
+                label: '시스템 구조',
+                to: '/docs/architecture',
+              },
+              {
+                label: 'API 명세',
+                to: '/docs/api-spec',
               },
             ],
           },
+          {
+           title: 'Contact',
+           items: [
+             {
+               label: 'Email Me',
+               href: 'https://mail.google.com/mail/?view=cm&fs=1&to=minsik2434@gmail.com',
+             },
+           ],
+         },
         ],
-        copyright: `Copyright © ${new Date().getFullYear()} My Project, Inc. Built with Docusaurus.`,
+        copyright: `Copyright © ${new Date().getFullYear()} BuyNest Project.`,
       },
       prism: {
         theme: prismThemes.github,
