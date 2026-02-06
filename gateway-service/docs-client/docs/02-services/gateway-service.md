@@ -1,6 +1,6 @@
 ---
 id: gateway-service
-title: 🚪 API GATEWAY
+title: 🚪 Api Gateway
 sidebar_position: 2
 ---
 
