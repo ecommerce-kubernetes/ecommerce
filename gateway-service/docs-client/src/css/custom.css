@@ -26,6 +26,10 @@
   font-size: 18px;
 }
 
+.lg-text {
+  font-size: 24px;
+}
+
 .tech-stack-wrapper {
   display: flex;
   gap: 8px;

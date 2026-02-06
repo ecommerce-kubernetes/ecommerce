@@ -15,6 +15,10 @@ const config = {
   projectName: 'docusaurus',
 
   onBrokenLinks: 'throw',
+  themes: ['@docusaurus/theme-mermaid'],
+  markdown: {
+      mermaid: true,
+  },
 
   i18n: {
     defaultLocale: 'en',
@@ -120,6 +124,9 @@ const config = {
       prism: {
         theme: prismThemes.github,
         darkTheme: prismThemes.dracula,
+      },
+      mermaid: {
+        theme: {light: 'neutral', dark: 'forest'},
       },
     }),
 };

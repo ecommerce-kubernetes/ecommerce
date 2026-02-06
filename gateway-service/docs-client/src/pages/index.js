@@ -37,7 +37,7 @@ function HomepageHeader() {
          <div style={{display: 'flex', gap: '15px', justifyContent: 'center'}}>
             <Link
                 className="button button--primary button--lg btn-brown btn-animate"
-                to="/docs/intro">
+                to="/docs/intro/intro">
                 프로젝트 개요 📘
               </Link>
               <Link

@@ -97,3 +97,26 @@ sidebar_position: 1
 | **Order Service**             | 주문 관련               | • **Event-Driven**: Kafka를 활용한 비동기 주문 생성<br/>• **SAGA Pattern**: 분산 트랜잭션의 데이터 정합성 보장 (유저 포인트/재고 보상 트랜잭션)                                            |
 </div>
 
+## Service Communication Strategy
+
+<div style={{ display: 'flex', gap: '20px', flexDirection: 'column' }}>
+  <div style={{ padding: '15px', border: '1px solid #ddd', borderRadius: '8px', backgroundColor: '#f9f9f9' }}>
+    <span style={{ fontSize: '20px', fontWeight: 'bold', color: '#E8590C' }}>
+      🔹 Kafka 기반 비동기 이벤트 처리
+    </span>
+    <p style={{ margin: '10px 0 0 0', lineHeight: '1.6' }}>
+      이벤트 기반 아키텍처(EDA)를 도입하여 <strong>서비스 간 결합도를 낮추었습니다.</strong><br/>
+      특히 SAGA 패턴을 적용하여 분산 환경에서의 데이터 정합성을 보장하고, 대량의 트래픽을 <strong>비동기로 처리(Non-blocking)</strong>하여 성능을 최적화했습니다.
+    </p>
+  </div>
+
+  <div style={{ padding: '15px', border: '1px solid #ddd', borderRadius: '8px', backgroundColor: '#f9f9f9' }}>
+    <span style={{ fontSize: '20px', fontWeight: 'bold', color: '#1098AD' }}>
+      🔹 Feign Client 기반 동기 통신
+    </span>
+    <p style={{ margin: '10px 0 0 0', lineHeight: '1.6' }}>
+      즉각적인 응답이 필요한 조회 로직에는 <strong>Feign Client</strong>를 사용했습니다.<br/>
+      이때 <strong>Circuit Breaker</strong>를 함께 적용하여, 타 서비스 장애 시 <strong>장애 전파를 차단</strong>하도록 설계했습니다.
+    </p>
+  </div>
+</div>
