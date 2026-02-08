@@ -1,0 +1,1 @@
+{"title":"Body","body":{"content":{"application/json":{"schema":{"required":["parentId"],"type":"object","properties":{"parentId":{"type":"number","description":"이동할 부모 카테고리 ID"}},"title":"categories-categoryId-move-1123695825"},"examples":{"01-category-06-move":{"value":"{\r\n  \"parentId\" : 2\r\n}"}}}}}}

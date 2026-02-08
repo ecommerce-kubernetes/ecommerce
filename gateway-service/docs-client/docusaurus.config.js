@@ -14,8 +14,9 @@ const config = {
   organizationName: 'facebook',
   projectName: 'docusaurus',
 
-  onBrokenLinks: 'throw',
-  themes: ['@docusaurus/theme-mermaid'],
+  onBrokenLinks: 'warn',
+  onBrokenMarkdownLinks: 'warn',
+  themes: ['docusaurus-theme-openapi-docs', '@docusaurus/theme-mermaid'],
   markdown: {
       mermaid: true,
   },
@@ -31,6 +32,7 @@ const config = {
       ({
         docs: {
           sidebarPath: './sidebars.js',
+          docItemComponent: "@theme/ApiItem",
         },
         blog: {
           showReadingTime: true,
@@ -47,6 +49,62 @@ const config = {
         },
       }),
     ],
+  ],
+
+  plugins: [
+    [
+      'docusaurus-plugin-openapi-docs',
+      {
+        id: "api",
+        docsPluginId: "classic",
+        config: {
+          product: {
+            specPath: "static/api-specs/product-openapi.json",
+            outputDir: "docs/api/product",
+          },
+          // order, member 등 다른 서비스도 여기에 추가 가능
+        }
+      },
+    ],
+    function (context, options) {
+      return {
+        name: 'custom-docusaurus-plugin',
+        configureWebpack(config, isServer, utils) {
+          return {
+            module: {
+              rules: [
+                {
+                  test: /\.mjs$/,
+                  include: /node_modules/,
+                  type: 'javascript/auto',
+                  resolve: {
+                    fullySpecified: false,
+                  },
+                },
+              ],
+            },
+            resolve: {
+              alias: {
+                'process/browser': require.resolve('process/browser'),
+              },
+              fallback: {
+                path: require.resolve('path-browserify'),
+                url: require.resolve('url/'),
+                buffer: require.resolve('buffer/'),
+                stream: require.resolve('stream-browserify'),
+                process: require.resolve('process/browser'),
+              },
+            },
+            plugins: [
+              new (require('webpack').ProvidePlugin)({
+                Buffer: ['buffer', 'Buffer'],
+                process: 'process/browser',
+              }),
+            ],
+          };
+        },
+      };
+    },
   ],
 
   themeConfig:
@@ -68,11 +126,11 @@ const config = {
             position: 'left',
             label: '개요',
           },
-          {to: '/blog', label: 'Blog', position: 'left'},
           {
-            href: 'https://github.com/facebook/docusaurus',
-            label: 'GitHub',
-            position: 'right',
+            type: 'docSidebar',
+            sidebarId: 'apiSidebar',
+            position: 'left',
+            label: 'API 테스트',
           },
         ],
       },

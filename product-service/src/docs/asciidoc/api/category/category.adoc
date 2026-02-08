@@ -1,79 +1,79 @@
 ## 관리자 전용
 === 카테고리 생성
 ==== HTTP Request
-include::{snippets}/create-category/http-request.adoc[]
+include::{snippets}/01-category-01-create/http-request.adoc[]
 ===== Request Header
-include::{snippets}/create-category/request-headers.adoc[]
+include::{snippets}/01-category-01-create/request-headers.adoc[]
 ===== Request Fields
-include::{snippets}/create-category/request-fields.adoc[]
+include::{snippets}/01-category-01-create/request-fields.adoc[]
 ==== HTTP Response
-include::{snippets}/create-category/http-response.adoc[]
+include::{snippets}/01-category-01-create/http-response.adoc[]
 ===== Response Fields
-include::{snippets}/create-category/response-fields.adoc[]
+include::{snippets}/01-category-01-create/response-fields.adoc[]
 
 === 카테고리 수정
 ==== HTTP Request
-include::{snippets}/update-category/http-request.adoc[]
+include::{snippets}/01-category-05-update/http-request.adoc[]
 ===== Request Header
-include::{snippets}/update-category/request-headers.adoc[]
+include::{snippets}/01-category-05-update/request-headers.adoc[]
 ===== Request PathParam
-include::{snippets}/update-category/path-parameters.adoc[]
+include::{snippets}/01-category-05-update/path-parameters.adoc[]
 ===== Request Fields
-include::{snippets}/update-category/request-fields.adoc[]
+include::{snippets}/01-category-05-update/request-fields.adoc[]
 ==== HTTP Response
-include::{snippets}/update-category/http-response.adoc[]
+include::{snippets}/01-category-05-update/http-response.adoc[]
 ===== Response Fields
-include::{snippets}/update-category/response-fields.adoc[]
+include::{snippets}/01-category-05-update/response-fields.adoc[]
 
 === 카테고리 부모 변경
 ==== HTTP Request
-include::{snippets}/moveParent-category/http-request.adoc[]
+include::{snippets}/01-category-06-move/http-request.adoc[]
 ===== Request Header
-include::{snippets}/moveParent-category/request-headers.adoc[]
+include::{snippets}/01-category-06-move/request-headers.adoc[]
 ===== Request PathParam
-include::{snippets}/moveParent-category/path-parameters.adoc[]
+include::{snippets}/01-category-06-move/path-parameters.adoc[]
 ===== Request Fields
-include::{snippets}/moveParent-category/request-fields.adoc[]
+include::{snippets}/01-category-06-move/request-fields.adoc[]
 ==== HTTP Response
-include::{snippets}/moveParent-category/http-response.adoc[]
+include::{snippets}/01-category-06-move/http-response.adoc[]
 ===== Response Fields
-include::{snippets}/moveParent-category/response-fields.adoc[]
+include::{snippets}/01-category-06-move/response-fields.adoc[]
 
 === 카테고리 삭제
 ==== HTTP Request
-include::{snippets}/delete-category/http-request.adoc[]
+include::{snippets}/01-category-07-delete/http-request.adoc[]
 ===== Request Header
-include::{snippets}/delete-category/request-headers.adoc[]
+include::{snippets}/01-category-07-delete/request-headers.adoc[]
 ===== Request PathParam
-include::{snippets}/delete-category/path-parameters.adoc[]
+include::{snippets}/01-category-07-delete/path-parameters.adoc[]
 ==== HTTP Response
-include::{snippets}/delete-category/http-response.adoc[]
+include::{snippets}/01-category-07-delete/http-response.adoc[]
 
 ## 일반
 === 카테고리 트리 구조 조회
 ==== HTTP Request
-include::{snippets}/category-get-tree/http-request.adoc[]
+include::{snippets}/01-category-02-get-tree/http-request.adoc[]
 ==== HTTP Response
-include::{snippets}/category-get-tree/http-response.adoc[]
+include::{snippets}/01-category-02-get-tree/http-response.adoc[]
 ===== ResponseFields
-include::{snippets}/category-get-tree/response-fields.adoc[]
+include::{snippets}/01-category-02-get-tree/response-fields.adoc[]
 
 === 카테고리 네비게이션 조회
 ==== HTTP Request
-include::{snippets}/category-get-navigation/http-request.adoc[]
+include::{snippets}/01-category-03-get-navigation/http-request.adoc[]
 ===== HTTP PathParam
-include::{snippets}/category-get-navigation/path-parameters.adoc[]
+include::{snippets}/01-category-03-get-navigation/path-parameters.adoc[]
 ==== HTTP Response
-include::{snippets}/category-get-navigation/http-response.adoc[]
+include::{snippets}/01-category-03-get-navigation/http-response.adoc[]
 ===== Response Fields
-include::{snippets}/category-get-navigation/response-fields.adoc[]
+include::{snippets}/01-category-03-get-navigation/response-fields.adoc[]
 
 === 카테고리 조회
 ==== HTTP Request
-include::{snippets}/category-get/http-request.adoc[]
+include::{snippets}/01-category-04-get/http-request.adoc[]
 ===== HTTP PathParam
-include::{snippets}/category-get/path-parameters.adoc[]
+include::{snippets}/01-category-04-get/path-parameters.adoc[]
 ==== HTTP Response
-include::{snippets}/category-get/http-response.adoc[]
+include::{snippets}/01-category-04-get/http-response.adoc[]
 ===== Response Fields
-include::{snippets}/category-get/response-fields.adoc[]
+include::{snippets}/01-category-04-get/response-fields.adoc[]

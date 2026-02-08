@@ -39,17 +39,40 @@ function HomepageHeader() {
                 className="button button--primary button--lg btn-brown btn-animate"
                 to="/docs/intro/intro">
                 프로젝트 개요 📘
-              </Link>
-              <Link
-                className="button button--secondary button--lg btn-animate"
-                to="/docs/api/intro">
-                 API 명세서 📝
-              </Link>
-              <Link
-                className="button button--secondary button--lg btn-animate"
-                to="/api-test">
-                 API 테스트 🧪
-              </Link>
+            </Link>
+            <div className={styles.dropdownContainer}>
+              <button className={clsx("button button--secondary button--lg btn-animate", styles.dropdownBtn)}>
+                API 명세서 📝 ▼
+              </button>
+              <div className={styles.dropdownContent}>
+                  <a
+                      href="/product-service/docs/index.html"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={styles.dropdownItem}
+                  > 상품 서비스 API 명세
+                  </a>
+                  <a
+                      href="/order-service/docs/index.html"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={styles.dropdownItem}
+                  > 주문 서비스 API 명세
+                  </a>
+                  <a
+                      href="/user-service/docs/index.html"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={styles.dropdownItem}
+                  > 유저 서비스 API 명세
+                  </a>
+              </div>
+            </div>
+            <Link
+              className="button button--secondary button--lg btn-animate"
+              to="/docs/api-test">
+               API 테스트 🧪
+            </Link>
          </div>
        </div>
      </header>
