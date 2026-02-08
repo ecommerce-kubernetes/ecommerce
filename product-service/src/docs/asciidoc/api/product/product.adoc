@@ -1,121 +1,121 @@
 ## 관리자 전용
 === 상품 생성(Draft)
 ==== HTTP Request
-include::{snippets}/create-product/http-request.adoc[]
+include::{snippets}/03-product-01-create/http-request.adoc[]
 ===== Request Header
-include::{snippets}/create-product/request-headers.adoc[]
+include::{snippets}/03-product-01-create/request-headers.adoc[]
 ===== Request Fields
-include::{snippets}/create-product/request-fields.adoc[]
+include::{snippets}/03-product-01-create/request-fields.adoc[]
 ==== HTTP Response
-include::{snippets}/create-product/http-response.adoc[]
+include::{snippets}/03-product-01-create/http-response.adoc[]
 ===== Response Fields
-include::{snippets}/create-product/response-fields.adoc[]
+include::{snippets}/03-product-01-create/response-fields.adoc[]
 
 === 상품 옵션 명세
 ==== HTTP Request
-include::{snippets}/add-option/http-request.adoc[]
+include::{snippets}/03-product-02-add-option/http-request.adoc[]
 ===== Request Header
-include::{snippets}/add-option/request-headers.adoc[]
+include::{snippets}/03-product-02-add-option/request-headers.adoc[]
 ===== Request PathParam
-include::{snippets}/add-option/path-parameters.adoc[]
+include::{snippets}/03-product-02-add-option/path-parameters.adoc[]
 ===== Request Fields
-include::{snippets}/add-option/request-fields.adoc[]
+include::{snippets}/03-product-02-add-option/request-fields.adoc[]
 ==== HTTP Response
-include::{snippets}/add-option/http-response.adoc[]
+include::{snippets}/03-product-02-add-option/http-response.adoc[]
 ===== Response Fields
-include::{snippets}/add-option/response-fields.adoc[]
+include::{snippets}/03-product-02-add-option/response-fields.adoc[]
 
 === 상품 변형 추가
 ==== HTTP Request
-include::{snippets}/add-variants/http-request.adoc[]
+include::{snippets}/03-product-03-add-variants/http-request.adoc[]
 ===== Request Header
-include::{snippets}/add-variants/request-headers.adoc[]
+include::{snippets}/03-product-03-add-variants/request-headers.adoc[]
 ===== Request PathParam
-include::{snippets}/add-variants/path-parameters.adoc[]
+include::{snippets}/03-product-03-add-variants/path-parameters.adoc[]
 ===== Request Fields
-include::{snippets}/add-variants/request-fields.adoc[]
+include::{snippets}/03-product-03-add-variants/request-fields.adoc[]
 ==== HTTP Response
-include::{snippets}/add-variants/http-response.adoc[]
+include::{snippets}/03-product-03-add-variants/http-response.adoc[]
 ===== Response Fields
-include::{snippets}/add-variants/response-fields.adoc[]
+include::{snippets}/03-product-03-add-variants/response-fields.adoc[]
 
 === 상품 이미지 추가
 ==== HTTP Request
-include::{snippets}/add-images/http-request.adoc[]
+include::{snippets}/03-product-04-add-images/http-request.adoc[]
 ===== Request Header
-include::{snippets}/add-images/request-headers.adoc[]
+include::{snippets}/03-product-04-add-images/request-headers.adoc[]
 ===== Request PathParam
-include::{snippets}/add-images/path-parameters.adoc[]
+include::{snippets}/03-product-04-add-images/path-parameters.adoc[]
 ===== Request Fields
-include::{snippets}/add-images/request-fields.adoc[]
+include::{snippets}/03-product-04-add-images/request-fields.adoc[]
 ==== HTTP Response
-include::{snippets}/add-images/http-response.adoc[]
+include::{snippets}/03-product-04-add-images/http-response.adoc[]
 ===== Response Fields
-include::{snippets}/add-images/response-fields.adoc[]
+include::{snippets}/03-product-04-add-images/response-fields.adoc[]
 
 === 상품 게시
 ==== HTTP Request
-include::{snippets}/product-publish/http-request.adoc[]
+include::{snippets}/03-product-05-publish/http-request.adoc[]
 ===== Request Header
-include::{snippets}/product-publish/request-headers.adoc[]
+include::{snippets}/03-product-05-publish/request-headers.adoc[]
 ===== Request PathParam
-include::{snippets}/product-publish/path-parameters.adoc[]
+include::{snippets}/03-product-05-publish/path-parameters.adoc[]
 ==== HTTP Response
-include::{snippets}/product-publish/http-response.adoc[]
+include::{snippets}/03-product-05-publish/http-response.adoc[]
 ===== Response Fields
-include::{snippets}/product-publish/response-fields.adoc[]
+include::{snippets}/03-product-05-publish/response-fields.adoc[]
 
 === 상품 판매 중지
 ==== HTTP Request
-include::{snippets}/product-close/http-request.adoc[]
+include::{snippets}/03-product-10-close/http-request.adoc[]
 ===== Request Header
-include::{snippets}/product-close/request-headers.adoc[]
+include::{snippets}/03-product-10-close/request-headers.adoc[]
 ===== Request PathParam
-include::{snippets}/product-close/path-parameters.adoc[]
+include::{snippets}/03-product-10-close/path-parameters.adoc[]
 ==== HTTP Response
-include::{snippets}/product-close/http-response.adoc[]
+include::{snippets}/03-product-10-close/http-response.adoc[]
 ===== Response Fields
-include::{snippets}/product-close/response-fields.adoc[]
+include::{snippets}/03-product-10-close/response-fields.adoc[]
 
 === 상품 수정
 ==== HTTP Request
-include::{snippets}/update-product/http-request.adoc[]
+include::{snippets}/03-product-08-update/http-request.adoc[]
 ===== Request Header
-include::{snippets}/update-product/request-headers.adoc[]
+include::{snippets}/03-product-08-update/request-headers.adoc[]
 ===== Request PathParam
-include::{snippets}/update-product/path-parameters.adoc[]
+include::{snippets}/03-product-08-update/path-parameters.adoc[]
 ==== HTTP Response
-include::{snippets}/update-product/http-response.adoc[]
+include::{snippets}/03-product-08-update/http-response.adoc[]
 ===== Response Fields
-include::{snippets}/update-product/response-fields.adoc[]
+include::{snippets}/03-product-08-update/response-fields.adoc[]
 
 === 상품 삭제
 ==== HTTP Request
-include::{snippets}/delete-product/http-request.adoc[]
+include::{snippets}/03-product-09-delete/http-request.adoc[]
 ===== Request Header
-include::{snippets}/delete-product/request-headers.adoc[]
+include::{snippets}/03-product-09-delete/request-headers.adoc[]
 ===== Request PathParam
-include::{snippets}/delete-product/path-parameters.adoc[]
+include::{snippets}/03-product-09-delete/path-parameters.adoc[]
 ==== HTTP Response
-include::{snippets}/delete-product/http-response.adoc[]
+include::{snippets}/03-product-09-delete/http-response.adoc[]
 
 ## 일반
 === 상품 목록 조회
 ==== HTTP Request
-include::{snippets}/get-products/http-request.adoc[]
+include::{snippets}/03-product-06-get-products/http-request.adoc[]
 ==== HTTP Param
-include::{snippets}/get-products/query-parameters.adoc[]
+include::{snippets}/03-product-06-get-products/query-parameters.adoc[]
 ==== HTTP Response
-include::{snippets}/get-products/http-response.adoc[]
+include::{snippets}/03-product-06-get-products/http-response.adoc[]
 ===== Response Fields
-include::{snippets}/get-products/response-fields.adoc[]
+include::{snippets}/03-product-06-get-products/response-fields.adoc[]
 
 === 상품 조회
 ==== HTTP Request
-include::{snippets}/get-product/http-request.adoc[]
+include::{snippets}/03-product-07-get-product/http-request.adoc[]
 ===== Request PathParam
-include::{snippets}/get-product/path-parameters.adoc[]
+include::{snippets}/03-product-07-get-product/path-parameters.adoc[]
 ==== HTTP Response
-include::{snippets}/get-product/http-response.adoc[]
+include::{snippets}/03-product-07-get-product/http-response.adoc[]
 ===== Response Fields
-include::{snippets}/get-product/response-fields.adoc[]
+include::{snippets}/03-product-07-get-product/response-fields.adoc[]

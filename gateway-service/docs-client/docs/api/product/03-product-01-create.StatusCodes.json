@@ -1,0 +1,1 @@
+{"responses":{"201":{"description":"201","content":{"application/json":{"schema":{"required":["productId"],"type":"object","properties":{"productId":{"type":"number","description":"상품 Id"}},"title":"products-780837155"},"examples":{"03-product-01-create":{"value":"{\r\n  \"productId\" : 1\r\n}"}}}}}}}

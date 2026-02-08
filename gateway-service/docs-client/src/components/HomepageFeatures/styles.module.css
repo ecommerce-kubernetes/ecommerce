@@ -5,7 +5,34 @@
   width: 100%;
 }
 
-.featureSvg {
-  height: 200px;
-  width: 200px;
+.featureImage {
+  max-height: 100px;
+  max-width: 120px;
+  width: auto;
+  height: auto;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.featureImageContainer {
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.featureCard {
+  height: 100%;
+  padding: 20px;
+  border-radius: 16px;
+  border: 1px solid transparent;
+  background-color: #fff;
+  transition: all 0.3s ease;
+}
+
+.featureCard:hover {
+  transform: translateY(-7px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+  border-color: #ced4da;
 }

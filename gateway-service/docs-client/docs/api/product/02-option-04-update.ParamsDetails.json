@@ -1,0 +1,1 @@
+{"parameters":[{"name":"optionTypeId","in":"path","description":"수정할 옵션 ID","required":true,"schema":{"type":"string"}},{"name":"Authorization","in":"header","description":"JWT Access Token","required":true,"schema":{"type":"string"},"example":"Bearer {ACCESS_TOKEN}"}]}

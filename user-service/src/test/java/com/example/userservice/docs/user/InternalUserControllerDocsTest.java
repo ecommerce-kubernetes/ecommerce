@@ -1,16 +1,13 @@
 package com.example.userservice.docs.user;
 
-import com.example.userservice.api.support.fixture.UserResponseFixture;
 import com.example.userservice.api.user.controller.InternalUserController;
 import com.example.userservice.api.user.service.UserService;
 import com.example.userservice.api.user.service.dto.result.UserOrderResponse;
 import com.example.userservice.docs.RestDocsSupport;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.BDDMockito;
 import org.mockito.Mockito;
 import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import static com.example.userservice.api.support.fixture.UserResponseFixture.anUserOrderResponse;
 import static org.mockito.ArgumentMatchers.anyLong;

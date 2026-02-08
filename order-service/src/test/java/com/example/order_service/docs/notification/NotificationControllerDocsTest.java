@@ -1,5 +1,6 @@
 package com.example.order_service.docs.notification;
 
+import com.epages.restdocs.apispec.ResourceSnippetParameters;
 import com.example.order_service.api.common.security.model.UserPrincipal;
 import com.example.order_service.api.common.security.model.UserRole;
 import com.example.order_service.api.notification.controller.NotificationController;
@@ -10,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.restdocs.headers.HeaderDescriptor;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
@@ -17,12 +19,13 @@ import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import static com.epages.restdocs.apispec.ResourceDocumentation.resource;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
 import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
-import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
+import static com.epages.restdocs.apispec.MockMvcRestDocumentationWrapper.document;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -32,6 +35,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 public class NotificationControllerDocsTest extends RestDocSupport {
     private NotificationService notificationService = mock(NotificationService.class);
+    private static final String TAG = "Notification";
     @Override
     protected Object initController() {
         return new NotificationController(notificationService);
@@ -64,6 +68,9 @@ public class NotificationControllerDocsTest extends RestDocSupport {
         SseEmitter sseEmitter = new SseEmitter();
         given(notificationService.createEmitter(anyLong()))
                 .willReturn(sseEmitter);
+        HeaderDescriptor[] requestHeaders = new HeaderDescriptor[] {
+                headerWithName("Authorization").description("JWT Access Token")
+        };
         //when
         //then
         MvcResult mvcResult = mockMvc.perform(get("/notification/subscribe")
@@ -73,13 +80,22 @@ public class NotificationControllerDocsTest extends RestDocSupport {
                 .andExpect(status().isOk())
                 .andExpect(request().asyncStarted())
                 .andDo(
-                        document("sse-subscribe",
-                                preprocessRequest(prettyPrint()),
+                        document("03-notification-01-connect",
+                                preprocessRequest(prettyPrint(),
+                                        modifyHeaders()
+                                                .remove("X-User-Id")
+                                                .remove("X-User-Role")
+                                                .add("Authorization", "Bearer {ACCESS_TOKEN}")),
                                 preprocessResponse(prettyPrint()),
-                                requestHeaders(
-                                        headerWithName("X-User-Id").description(USER_ID_HEADER_DESCRIPTION).optional(),
-                                        headerWithName("X-User-Role").description(USER_ROLE_HEADER_DESCRIPTION).optional()
-                                )
+                                resource(
+                                        ResourceSnippetParameters.builder()
+                                                .tag(TAG)
+                                                .summary("SSE 연결")
+                                                .description("SSE를 연결한다")
+                                                .requestHeaders(requestHeaders)
+                                                .build()
+                                ),
+                                requestHeaders(requestHeaders)
                         )
                 )
                 .andReturn();

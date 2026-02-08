@@ -12,13 +12,6 @@ public class CategoryResponse {
     private Integer depth;
     private String imageUrl;
 
-    public CategoryResponse(Category category){
-        this.id = category.getId();
-        this.name = category.getName();
-        this.parentId = category.getParent() == null ? null : category.getParent().getId();
-        this.imageUrl = category.getImageUrl();
-    }
-
     @Builder
     public CategoryResponse(Long id, String name, Long parentId, Integer depth, String imageUrl) {
         this.id = id;

@@ -2,10 +2,10 @@
 === 유저 생성
 
 ==== HTTP Request
-include::{snippets}/user-create/http-request.adoc[]
+include::{snippets}/01-user-01-create/http-request.adoc[]
 ===== Request Fields
-include::{snippets}/user-create/request-fields.adoc[]
+include::{snippets}/01-user-01-create/request-fields.adoc[]
 ==== HTTP Response
-include::{snippets}/user-create/http-response.adoc[]
+include::{snippets}/01-user-01-create/http-response.adoc[]
 ===== Response Fields
-include::{snippets}/user-create/response-fields.adoc[]
+include::{snippets}/01-user-01-create/response-fields.adoc[]

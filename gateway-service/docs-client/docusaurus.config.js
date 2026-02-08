@@ -14,7 +14,12 @@ const config = {
   organizationName: 'facebook',
   projectName: 'docusaurus',
 
-  onBrokenLinks: 'throw',
+  onBrokenLinks: 'warn',
+  onBrokenMarkdownLinks: 'warn',
+  themes: ['docusaurus-theme-openapi-docs', '@docusaurus/theme-mermaid'],
+  markdown: {
+      mermaid: true,
+  },
 
   i18n: {
     defaultLocale: 'en',
@@ -27,8 +32,7 @@ const config = {
       ({
         docs: {
           sidebarPath: './sidebars.js',
-          editUrl:
-            'https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/',
+          docItemComponent: "@theme/ApiItem",
         },
         blog: {
           showReadingTime: true,
@@ -36,8 +40,6 @@ const config = {
             type: ['rss', 'atom'],
             xslt: true,
           },
-          editUrl:
-            'https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/',
           onInlineTags: 'warn',
           onInlineAuthors: 'warn',
           onUntruncatedBlogPosts: 'warn',
@@ -49,6 +51,80 @@ const config = {
     ],
   ],
 
+  plugins: [
+    [
+      'docusaurus-plugin-openapi-docs',
+      {
+        id: "api",
+        docsPluginId: "classic",
+        config: {
+          product: {
+            specPath: "static/api-specs/product-openapi.json",
+            outputDir: "docs/api/product",
+          },
+
+          user: {
+            specPath: "static/api-specs/user-openapi.json",
+            outputDir: "docs/api/user",
+            sidebarOptions: {
+              groupPathsBy: "tag",
+              categoryLinkSource: "tag",
+            },
+          },
+
+          order: {
+            specPath: "static/api-specs/order-openapi.json",
+            outputDir: "docs/api/order",
+            sidebarOptions: {
+              groupPathsBy: "tag",
+              categoryLinkSource: "tag",
+            },
+          }
+        }
+      },
+    ],
+
+    function (context, options) {
+      return {
+        name: 'custom-docusaurus-plugin',
+        configureWebpack(config, isServer, utils) {
+          return {
+            module: {
+              rules: [
+                {
+                  test: /\.mjs$/,
+                  include: /node_modules/,
+                  type: 'javascript/auto',
+                  resolve: {
+                    fullySpecified: false,
+                  },
+                },
+              ],
+            },
+            resolve: {
+              alias: {
+                'process/browser': require.resolve('process/browser'),
+              },
+              fallback: {
+                path: require.resolve('path-browserify'),
+                url: require.resolve('url/'),
+                buffer: require.resolve('buffer/'),
+                stream: require.resolve('stream-browserify'),
+                process: require.resolve('process/browser'),
+              },
+            },
+            plugins: [
+              new (require('webpack').ProvidePlugin)({
+                Buffer: ['buffer', 'Buffer'],
+                process: 'process/browser',
+              }),
+            ],
+          };
+        },
+      };
+    },
+  ],
+
   themeConfig:
     ({
       image: 'img/docusaurus-social-card.jpg',
@@ -56,7 +132,7 @@ const config = {
         respectPrefersColorScheme: true,
       },
       navbar: {
-        title: 'My Site',
+        title: '',
         logo: {
           alt: 'My Site Logo',
           src: 'img/buynest.svg',
@@ -66,13 +142,13 @@ const config = {
             type: 'docSidebar',
             sidebarId: 'tutorialSidebar',
             position: 'left',
-            label: 'Tutorial',
+            label: '개요',
           },
-          {to: '/blog', label: 'Blog', position: 'left'},
           {
-            href: 'https://github.com/facebook/docusaurus',
-            label: 'GitHub',
-            position: 'right',
+            type: 'docSidebar',
+            sidebarId: 'apiSidebar',
+            position: 'left',
+            label: 'API 테스트',
           },
         ],
       },
@@ -80,50 +156,53 @@ const config = {
         style: 'dark',
         links: [
           {
-            title: 'Docs',
-            items: [
-              {
-                label: 'Tutorial',
-                to: '/docs/intro',
-              },
-            ],
-          },
-          {
             title: 'Community',
             items: [
               {
-                label: 'Stack Overflow',
-                href: 'https://stackoverflow.com/questions/tagged/docusaurus',
+                label: 'GitHub',
+                href: 'https://github.com/minsik2434',
               },
               {
-                label: 'Discord',
-                href: 'https://discordapp.com/invite/docusaurus',
-              },
-              {
-                label: 'X',
-                href: 'https://x.com/docusaurus',
+                label: 'Tech Blog',
+                href: 'https://velog.io/@minsik2434/posts',
               },
             ],
           },
           {
-            title: 'More',
+            title: 'Resources',
             items: [
               {
-                label: 'Blog',
-                to: '/blog',
+                label: '깃허브 레포지토리',
+                href: 'https://github.com/ecommerce-kubernetes/ecommerce',
               },
               {
-                label: 'GitHub',
-                href: 'https://github.com/facebook/docusaurus',
+                label: '시스템 구조',
+                to: '/docs/architecture',
+              },
+              {
+                label: 'API 명세',
+                to: '/docs/api-spec',
               },
             ],
           },
+          {
+           title: 'Contact',
+           items: [
+             {
+               label: 'Email Me',
+               href: 'https://mail.google.com/mail/?view=cm&fs=1&to=minsik2434@gmail.com',
+             },
+           ],
+         },
         ],
-        copyright: `Copyright © ${new Date().getFullYear()} My Project, Inc. Built with Docusaurus.`,
+        copyright: `Copyright © ${new Date().getFullYear()} BuyNest Project.`,
       },
       prism: {
         theme: prismThemes.github,
         darkTheme: prismThemes.dracula,
+      },
+      mermaid: {
+        theme: {light: 'neutral', dark: 'forest'},
       },
     }),
 };
