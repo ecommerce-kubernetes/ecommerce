@@ -1,0 +1,64 @@
+[[add-cartItem]]
+=== 장바구니 상품 추가
+
+==== HTTP Request
+include::{snippets}/02-cart-01-add-cartItem/http-request.adoc[]
+===== Request Header
+include::{snippets}/02-cart-01-add-cartItem/request-headers.adoc[]
+===== Request Fields
+include::{snippets}/02-cart-01-add-cartItem/request-fields.adoc[]
+==== HTTP Response
+include::{snippets}/02-cart-01-add-cartItem/http-response.adoc[]
+===== Response Fields
+include::{snippets}/02-cart-01-add-cartItem/response-fields.adoc[]
+
+[[getAllCartItem]]
+=== 장바구니 목록 조회
+
+==== HTTP Request
+include::{snippets}/02-cart-02-get-list/http-request.adoc[]
+===== Request Header
+include::{snippets}/02-cart-02-get-list/request-headers.adoc[]
+==== HTTP Response
+include::{snippets}/02-cart-02-get-list/http-response.adoc[]
+===== Response Fields
+include::{snippets}/02-cart-02-get-list/response-fields.adoc[]
+
+[[removeCartItem]]
+=== 장바구니 상품 삭제
+
+==== HTTP Request
+include::{snippets}/02-cart-03-delete-item/http-request.adoc[]
+===== HTTP PathParam
+include::{snippets}/02-cart-03-delete-item/path-parameters.adoc[]
+===== Request Header
+include::{snippets}/02-cart-03-delete-item/request-headers.adoc[]
+==== HTTP Response
+include::{snippets}/02-cart-03-delete-item/http-response.adoc[]
+
+
+[[clearCart]]
+=== 장바구니 비우기
+
+==== HTTP Request
+include::{snippets}/02-cart-04-clear/http-request.adoc[]
+===== Request Header
+include::{snippets}/02-cart-04-clear/request-headers.adoc[]
+==== HTTP Response
+include::{snippets}/02-cart-04-clear/http-response.adoc[]
+
+[[update-quantity]]
+=== 장바구니 상품 수량 변경
+
+==== HTTP Request
+include::{snippets}/02-cart-05-update-quantity/http-request.adoc[]
+===== Request Header
+include::{snippets}/02-cart-05-update-quantity/request-headers.adoc[]
+===== HTTP PathParam
+include::{snippets}/02-cart-05-update-quantity/path-parameters.adoc[]
+===== Request Fields
+include::{snippets}/02-cart-05-update-quantity/request-fields.adoc[]
+==== HTTP Response
+include::{snippets}/02-cart-05-update-quantity/http-response.adoc[]
+===== Response Fields
+include::{snippets}/02-cart-05-update-quantity/response-fields.adoc[]

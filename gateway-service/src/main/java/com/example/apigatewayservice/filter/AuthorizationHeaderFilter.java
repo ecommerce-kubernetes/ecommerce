@@ -4,7 +4,11 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
+import io.netty.util.internal.StringUtil;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
 import org.springframework.core.env.Environment;
@@ -15,6 +19,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -27,11 +32,19 @@ import java.util.Base64;
 @Slf4j
 public class AuthorizationHeaderFilter extends AbstractGatewayFilterFactory<AuthorizationHeaderFilter.Config> {
 
-    private final Environment env;
+    private static final String BEARER_PREFIX = "Bearer ";
+    private static final String HEADER_USER_ID = "X-User-Id";
+    private static final String HEADER_USER_ROLE = "X-User-Role";
+    private static final String KEY_ROLE = "role";
 
-    public AuthorizationHeaderFilter(Environment env) {
+    private SecretKey secretKey;
+    private JwtParser jwtParser;
+
+    public AuthorizationHeaderFilter(@Value("${token.secret}") String secret) {
         super(Config.class);
-        this.env = env;
+        byte[] secretKeyBytes = secret.getBytes(StandardCharsets.UTF_8);
+        this.secretKey = Keys.hmacShaKeyFor(secretKeyBytes);
+        this.jwtParser = Jwts.parser().verifyWith(this.secretKey).build();
     }
 
     public static class Config {}
@@ -42,38 +55,24 @@ public class AuthorizationHeaderFilter extends AbstractGatewayFilterFactory<Auth
             ServerHttpRequest request = exchange.getRequest();
 
             if (!request.getHeaders().containsKey(HttpHeaders.AUTHORIZATION)) {
-                return onError(exchange, "Authorization 헤더가 없습니다.");
+                return chain.filter(exchange);
+            }
+            String authHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
+
+            if (!StringUtils.hasText(authHeader) || !authHeader.startsWith(BEARER_PREFIX)) {
+                return onError(exchange, "Authorization header must start with Bearer");
             }
 
-            String authorizationHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
-            String jwt = authorizationHeader.replace("Bearer ", "");
-
-            Claims claims;
+            String token = authHeader.substring(BEARER_PREFIX.length());
+            log.error("token : {}", token);
             try {
-                byte[] secretKeyBytes = Base64.getEncoder().encode(env.getProperty("token.secret").getBytes());
-                SecretKey signingKey = new SecretKeySpec(secretKeyBytes, SignatureAlgorithm.HS512.getJcaName());
-
-                JwtParser jwtParser = Jwts.parser().verifyWith(signingKey).build();
-                claims = jwtParser.parseSignedClaims(jwt).getPayload();
-            } catch (Exception ex) {
-                log.error("JWT 파싱 오류: {}", ex.getMessage());
+                Claims claims = jwtParser.parseSignedClaims(token).getPayload();
+                ServerHttpRequest mutatedRequest = mutateRequestWithClaims(request, claims);
+                return chain.filter(exchange.mutate().request(mutatedRequest).build());
+            } catch (Exception e) {
+                log.warn("JWT 검증 실패: {}", e.getMessage());
                 return onError(exchange, "유효하지 않은 JWT 토큰입니다.");
             }
-
-            String userId = claims.getSubject();
-            String role = claims.get("role", String.class);
-
-            if (userId == null || userId.isEmpty()) {
-                return onError(exchange, "JWT 토큰에 userId가 없습니다.");
-            }
-
-            // 새 요청에 헤더 추가
-            ServerHttpRequest mutatedRequest = request.mutate()
-                    .header("X-User-Id", userId)
-                    .header("X-User-Role", role)
-                    .build();
-
-            return chain.filter(exchange.mutate().request(mutatedRequest).build());
         };
     }
 
@@ -87,5 +86,24 @@ public class AuthorizationHeaderFilter extends AbstractGatewayFilterFactory<Auth
 
         log.error("인증 오류: {}", errMessage);
         return response.writeWith(Mono.just(buffer));
+    }
+
+    private ServerHttpRequest mutateRequestWithClaims(ServerHttpRequest request, Claims claims) {
+        String userId = claims.getSubject();
+        String role = claims.get(KEY_ROLE, String.class);
+
+        // 검증 로직: userId 필수 체크
+        if (!StringUtils.hasText(userId)) {
+            throw new IllegalArgumentException("Token subject(userId) is missing");
+        }
+
+        ServerHttpRequest.Builder requestBuilder = request.mutate()
+                .header(HEADER_USER_ID, userId);
+
+        if (StringUtils.hasText(role)) {
+            requestBuilder.header(HEADER_USER_ROLE, role);
+        }
+
+        return requestBuilder.build();
     }
 }

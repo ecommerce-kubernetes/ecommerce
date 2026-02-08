@@ -1,0 +1,23 @@
+ifndef::snippets[]
+:snippets: ../../build/generated-snippets
+endif::[]
+= ProductService REST API
+:doctype: book
+:icons: font
+:source-highlighter: highlightjs
+:toc: left
+:toclevels: 4
+:sectlinks:
+
+[[PRODUCT-SERVICE-API]]
+== ProductService API
+= Category
+include::api/category/category.adoc[]
+= Option
+include::api/option/option.adoc[]
+= Product
+include::api/product/product.adoc[]
+
+== Internal API
+= Product
+include::api/product/internalProduct.adoc[]

@@ -2,6 +2,7 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.4.4'
     id 'io.spring.dependency-management' version '1.1.6'
+    id "com.github.node-gradle.node" version "7.0.0"
 }
 
 group = 'com.example'
@@ -35,7 +36,6 @@ dependencies {
     implementation 'org.springframework.cloud:spring-cloud-starter-config'
     implementation 'org.springframework.cloud:spring-cloud-starter-bus-kafka'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
-    implementation 'org.springdoc:springdoc-openapi-starter-webflux-ui:2.8.13'
     implementation 'io.jsonwebtoken:jjwt-api:0.12.6'
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.6'
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.6'
@@ -53,4 +53,29 @@ dependencyManagement {
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+node {
+    nodeProjectDir = file("${project.projectDir}/docs-client")
+    version = '24.13.0'
+    download = true
+}
+
+task npmInstallDocs(type: NpmTask) {
+    args = ['install']
+}
+
+task buildDocs(type: NpmTask) {
+    args = ['run', 'build']
+    dependsOn npmInstallDocs
+}
+
+tasks.named('processResources') {
+    // Docusaurus 빌드가 끝날 때까지 기다림
+    dependsOn buildDocs
+
+    // 빌드된 HTML 파일들을 가져와서 static 폴더에 넣음
+    from("${project.projectDir}/docs-client/build") {
+        into 'static'
+    }
 }

@@ -1,13 +1,13 @@
+eureka:
+  client:
+    enable: false
+    fetch-registry: false
+    register-with-eureka: false
+
 spring:
-  datasource:
-    url: jdbc:h2:mem:testdb
-    driver-class-name: org.h2.Driver
-    username: sa
-    password:
   jpa:
     hibernate:
-      ddl-auto: update
-    database-platform: org.hibernate.dialect.H2Dialect
+      ddl-auto: create-drop
   redis:
     host: localhost
     port: 6379
@@ -20,8 +20,22 @@ spring:
 token:
   expiration_time: 3000000
   refresh_expiration_time: 604800000
-  secret: 'native1234567890123456789012345678901234567890123456789012345678901234567890'
+  secret: sRwFJewa3JqnGtFZJsMREtKh9ApEy3RS
 
-swagger:
-  allowed-origins:
-    - "http://localhost:8000"
+user:
+  topics:
+    user-saga-command: "user.saga.command"
+    user-saga-reply: "user.saga.reply"
+
+---
+spring:
+  config:
+    activate:
+      on-profile: test-mock
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+  cloud:
+    bus:
+      enabled: false

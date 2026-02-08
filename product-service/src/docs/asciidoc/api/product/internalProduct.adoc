@@ -1,0 +1,19 @@
+=== 상품 변형 조회
+==== HTTP Request
+include::{snippets}/internal-get-variant/http-request.adoc[]
+===== Request PathParam
+include::{snippets}/internal-get-variant/path-parameters.adoc[]
+==== HTTP Response
+include::{snippets}/internal-get-variant/http-response.adoc[]
+===== Response Fields
+include::{snippets}/internal-get-variant/response-fields.adoc[]
+
+=== 상품 변형 리스트 조회
+==== HTTP Request
+include::{snippets}/internal-get-variants/http-request.adoc[]
+===== Request Fields
+include::{snippets}/internal-get-variants/request-fields.adoc[]
+==== HTTP Response
+include::{snippets}/internal-get-variants/http-response.adoc[]
+===== Response Fields
+include::{snippets}/internal-get-variants/response-fields.adoc[]

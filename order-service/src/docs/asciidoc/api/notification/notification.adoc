@@ -1,0 +1,9 @@
+[[sse-subscribe]]
+=== 주문 메시지
+
+==== HTTP Request
+include::{snippets}/03-notification-01-connect/http-request.adoc[]
+===== Request Header
+include::{snippets}/03-notification-01-connect/request-headers.adoc[]
+==== HTTP Response
+include::{snippets}/03-notification-01-connect/http-response.adoc[]

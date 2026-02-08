@@ -1,0 +1,61 @@
+package com.example.product_service.api.common.security.config;
+
+import com.example.product_service.api.common.security.filter.CustomAccessDeniedHandler;
+import com.example.product_service.api.common.security.filter.CustomAuthenticationEntryPoint;
+import com.example.product_service.api.common.security.filter.HeaderPreAuthenticationFilter;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+@EnableWebSecurity
+@Configuration
+@EnableMethodSecurity
+public class SecurityConfig {
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+                .csrf(AbstractHttpConfigurer::disable)
+                .httpBasic(AbstractHttpConfigurer::disable)
+                .formLogin(AbstractHttpConfigurer::disable)
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
+                .authorizeHttpRequests(
+                        auth -> auth
+                                .requestMatchers("/error").permitAll()
+                                .requestMatchers("/docs/**").permitAll()
+                                .requestMatchers("/categories/**").permitAll()
+                                .requestMatchers("/options/**").permitAll()
+                                .requestMatchers("/products/**").permitAll()
+                                .requestMatchers("/internal/**").permitAll()
+                                .anyRequest().authenticated()
+                )
+                .addFilterBefore(headerPreAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint(customAuthenticationEntryPoint())
+                        .accessDeniedHandler(customAccessDeniedHandler()));
+        return http.build();
+    }
+
+    @Bean
+    public HeaderPreAuthenticationFilter headerPreAuthenticationFilter() {
+        return new HeaderPreAuthenticationFilter();
+    }
+
+    @Bean
+    public CustomAuthenticationEntryPoint customAuthenticationEntryPoint() {
+        return new CustomAuthenticationEntryPoint();
+    }
+
+    @Bean
+    public CustomAccessDeniedHandler customAccessDeniedHandler() {
+        return new CustomAccessDeniedHandler();
+    }
+}

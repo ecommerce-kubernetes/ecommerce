@@ -1,0 +1,22 @@
+ifndef::snippets[]
+:snippets: ../../build/generated-snippets
+endif::[]
+= OrderService REST API
+:doctype: book
+:icons: font
+:source-highlighter: highlightjs
+:toc: left
+:toclevels: 4
+:sectlinks:
+
+
+[[ORDER-SERVICE-API]]
+== OrderService API
+= Order
+include::api/order/order.adoc[]
+
+= Cart
+include::api/cart/cart.adoc[]
+
+= Notification
+include::api/notification/notification.adoc[]

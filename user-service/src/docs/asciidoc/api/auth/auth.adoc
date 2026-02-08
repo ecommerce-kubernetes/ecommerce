@@ -1,0 +1,13 @@
+[[auth-login]]
+=== 로그인
+
+==== HTTP Request
+include::{snippets}/02-auth-01-login/http-request.adoc[]
+===== Request Fields
+include::{snippets}/02-auth-01-login/request-fields.adoc[]
+==== HTTP Response
+include::{snippets}/02-auth-01-login/http-response.adoc[]
+===== Response Fields
+include::{snippets}/02-auth-01-login/response-fields.adoc[]
+===== Response Cookies
+include::{snippets}/02-auth-01-login/response-cookies.adoc[]

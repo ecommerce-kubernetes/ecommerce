@@ -1,0 +1,74 @@
+package com.example.userservice.api.user.domain.model;
+
+import com.example.userservice.api.common.entity.BaseEntity;
+import com.example.userservice.api.common.exception.BusinessException;
+import com.example.userservice.api.common.exception.UserErrorCode;
+import com.example.userservice.api.user.service.dto.command.UserCreateCommand;
+import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import java.time.LocalDate;
+
+@Entity
+@Getter
+@Table(name = "users")
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@EntityListeners(AuditingEntityListener.class)
+public class User extends BaseEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private String email;
+    private String name;
+    private String encryptedPwd;
+    private String phoneNumber;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Gender gender;
+    private LocalDate birthDate;
+    private Long point;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Role role;
+
+    @Builder(access = AccessLevel.PRIVATE)
+    public User(String email, String name, String encryptedPwd, String phoneNumber, Gender gender, LocalDate birthDate, Long point, Role role) {
+        this.email = email;
+        this.name = name;
+        this.encryptedPwd = encryptedPwd;
+        this.phoneNumber = phoneNumber;
+        this.gender = gender;
+        this.birthDate = birthDate;
+        this.point = point;
+        this.role = role;
+    }
+
+    public void deductPoint(Long point) {
+        if (this.point < point) {
+            throw new BusinessException(UserErrorCode.INSUFFICIENT_POINT);
+        }
+        this.point -= point;
+    }
+
+    public void refundPoint(Long point) {
+        this.point += point;
+    }
+
+    public static User createUser(UserCreateCommand command, String encryptedPwd) {
+        return User.builder()
+                .email(command.getEmail())
+                .name(command.getName())
+                .encryptedPwd(encryptedPwd)
+                .gender(command.getGender())
+                .birthDate(command.getBirthDate())
+                .point(0L)
+                .phoneNumber(command.getPhoneNumber())
+                .role(Role.ROLE_USER)
+                .build();
+    }
+}

@@ -1,0 +1,1 @@
+{"parameters":[{"name":"categoryId","in":"path","description":"조회할 카테고리 ID","required":true,"schema":{"type":"string"}}]}

@@ -1,0 +1,79 @@
+## 관리자 전용
+=== 카테고리 생성
+==== HTTP Request
+include::{snippets}/01-category-01-create/http-request.adoc[]
+===== Request Header
+include::{snippets}/01-category-01-create/request-headers.adoc[]
+===== Request Fields
+include::{snippets}/01-category-01-create/request-fields.adoc[]
+==== HTTP Response
+include::{snippets}/01-category-01-create/http-response.adoc[]
+===== Response Fields
+include::{snippets}/01-category-01-create/response-fields.adoc[]
+
+=== 카테고리 수정
+==== HTTP Request
+include::{snippets}/01-category-05-update/http-request.adoc[]
+===== Request Header
+include::{snippets}/01-category-05-update/request-headers.adoc[]
+===== Request PathParam
+include::{snippets}/01-category-05-update/path-parameters.adoc[]
+===== Request Fields
+include::{snippets}/01-category-05-update/request-fields.adoc[]
+==== HTTP Response
+include::{snippets}/01-category-05-update/http-response.adoc[]
+===== Response Fields
+include::{snippets}/01-category-05-update/response-fields.adoc[]
+
+=== 카테고리 부모 변경
+==== HTTP Request
+include::{snippets}/01-category-06-move/http-request.adoc[]
+===== Request Header
+include::{snippets}/01-category-06-move/request-headers.adoc[]
+===== Request PathParam
+include::{snippets}/01-category-06-move/path-parameters.adoc[]
+===== Request Fields
+include::{snippets}/01-category-06-move/request-fields.adoc[]
+==== HTTP Response
+include::{snippets}/01-category-06-move/http-response.adoc[]
+===== Response Fields
+include::{snippets}/01-category-06-move/response-fields.adoc[]
+
+=== 카테고리 삭제
+==== HTTP Request
+include::{snippets}/01-category-07-delete/http-request.adoc[]
+===== Request Header
+include::{snippets}/01-category-07-delete/request-headers.adoc[]
+===== Request PathParam
+include::{snippets}/01-category-07-delete/path-parameters.adoc[]
+==== HTTP Response
+include::{snippets}/01-category-07-delete/http-response.adoc[]
+
+## 일반
+=== 카테고리 트리 구조 조회
+==== HTTP Request
+include::{snippets}/01-category-02-get-tree/http-request.adoc[]
+==== HTTP Response
+include::{snippets}/01-category-02-get-tree/http-response.adoc[]
+===== ResponseFields
+include::{snippets}/01-category-02-get-tree/response-fields.adoc[]
+
+=== 카테고리 네비게이션 조회
+==== HTTP Request
+include::{snippets}/01-category-03-get-navigation/http-request.adoc[]
+===== HTTP PathParam
+include::{snippets}/01-category-03-get-navigation/path-parameters.adoc[]
+==== HTTP Response
+include::{snippets}/01-category-03-get-navigation/http-response.adoc[]
+===== Response Fields
+include::{snippets}/01-category-03-get-navigation/response-fields.adoc[]
+
+=== 카테고리 조회
+==== HTTP Request
+include::{snippets}/01-category-04-get/http-request.adoc[]
+===== HTTP PathParam
+include::{snippets}/01-category-04-get/path-parameters.adoc[]
+==== HTTP Response
+include::{snippets}/01-category-04-get/http-response.adoc[]
+===== Response Fields
+include::{snippets}/01-category-04-get/response-fields.adoc[]
