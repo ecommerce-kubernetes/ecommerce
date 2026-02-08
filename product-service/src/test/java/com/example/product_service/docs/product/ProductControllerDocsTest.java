@@ -61,9 +61,9 @@ public class ProductControllerDocsTest extends RestDocsSupport {
         };
 
         FieldDescriptor[] requestFields = new FieldDescriptor[] {
-                fieldWithPath("name").description("상품 이름").optional(),
-                fieldWithPath("categoryId").description("카테고리 Id").optional(),
-                fieldWithPath("description").description("상품 설명")
+                fieldWithPath("name").description("상품 이름"),
+                fieldWithPath("categoryId").description("카테고리 Id"),
+                fieldWithPath("description").description("상품 설명").optional()
         };
 
         FieldDescriptor[] responseFields = new FieldDescriptor[] {

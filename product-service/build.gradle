@@ -5,6 +5,7 @@ plugins {
     // api 명세 restdocs 플러그인
     id "org.asciidoctor.jvm.convert" version "3.3.2"
     id 'com.epages.restdocs-api-spec' version '0.19.2'
+    id 'jacoco'
 }
 
 group = 'com.example'
@@ -152,4 +153,14 @@ tasks.register('copyOpenApiToDocusaurus', Copy) {
 
 tasks.named('build') {
     dependsOn 'copyOpenApiToDocusaurus'
+}
+
+jacocoTestReport {
+    reports { html.required = true }
+
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: "**/Q*")
+        }))
+    }
 }

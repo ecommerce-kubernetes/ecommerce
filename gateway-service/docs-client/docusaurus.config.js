@@ -62,10 +62,28 @@ const config = {
             specPath: "static/api-specs/product-openapi.json",
             outputDir: "docs/api/product",
           },
-          // order, member 등 다른 서비스도 여기에 추가 가능
+
+          user: {
+            specPath: "static/api-specs/user-openapi.json",
+            outputDir: "docs/api/user",
+            sidebarOptions: {
+              groupPathsBy: "tag",
+              categoryLinkSource: "tag",
+            },
+          },
+
+          order: {
+            specPath: "static/api-specs/order-openapi.json",
+            outputDir: "docs/api/order",
+            sidebarOptions: {
+              groupPathsBy: "tag",
+              categoryLinkSource: "tag",
+            },
+          }
         }
       },
     ],
+
     function (context, options) {
       return {
         name: 'custom-docusaurus-plugin',

@@ -63,7 +63,7 @@ public class CategoryControllerDocsTest extends RestDocsSupport {
         };
 
         FieldDescriptor[] requestFields = new FieldDescriptor[] {
-                fieldWithPath("name").description("카테고리 이름").optional(),
+                fieldWithPath("name").description("카테고리 이름"),
                 fieldWithPath("parentId").description("부모 카테고리 ID").type(JsonFieldType.NUMBER).optional(),
                 fieldWithPath("imageUrl").description("카테고리 아이콘 URL")
         };
@@ -119,7 +119,7 @@ public class CategoryControllerDocsTest extends RestDocsSupport {
         FieldDescriptor[] responseFields = new FieldDescriptor[] {
                 fieldWithPath("[].id").description("카테고리 ID"),
                 fieldWithPath("[].name").description("카테고리 이름"),
-                fieldWithPath("[].parentId").description("부모 카테고리 ID"),
+                fieldWithPath("[].parentId").description("부모 카테고리 ID").optional(),
                 fieldWithPath("[].depth").description("카테고리 깊이"),
                 fieldWithPath("[].imageUrl").description("카테고리 이미지 URL"),
                 subsectionWithPath("[].children").description("하위 카테고리 목록 (상위 구조와 동일)")
@@ -249,14 +249,14 @@ public class CategoryControllerDocsTest extends RestDocsSupport {
         };
 
         FieldDescriptor[] requestFields = new FieldDescriptor[] {
-                fieldWithPath("name").description("변경할 카테고리 이름"),
-                fieldWithPath("imageUrl").description("변경할 카테고리 아이콘 URL")
+                fieldWithPath("name").description("변경할 카테고리 이름").optional(),
+                fieldWithPath("imageUrl").description("변경할 카테고리 아이콘 URL").optional()
         };
 
         FieldDescriptor[] responseFields = new FieldDescriptor[] {
                 fieldWithPath("id").description("카테고리 ID"),
                 fieldWithPath("name").description("카테고리 이름"),
-                fieldWithPath("parentId").description("부모 카테고리 ID").type("Number"),
+                fieldWithPath("parentId").description("부모 카테고리 ID").type("Number").optional(),
                 fieldWithPath("depth").description("카테고리 깊이"),
                 fieldWithPath("imageUrl").description("카테고리 아이콘 URL")
         };
@@ -315,7 +315,7 @@ public class CategoryControllerDocsTest extends RestDocsSupport {
         };
 
         FieldDescriptor[] requestFields = new FieldDescriptor[] {
-                fieldWithPath("parentId").description("이동할 부모 카테고리 ID")
+                fieldWithPath("parentId").description("이동할 부모 카테고리 ID").optional()
         };
 
         FieldDescriptor[] responseFields = new FieldDescriptor[] {

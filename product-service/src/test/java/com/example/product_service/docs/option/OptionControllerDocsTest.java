@@ -59,7 +59,7 @@ public class OptionControllerDocsTest extends RestDocsSupport {
         };
 
         FieldDescriptor[] requestFields = new FieldDescriptor[] {
-                fieldWithPath("name").description("옵션 이름").optional(),
+                fieldWithPath("name").description("옵션 이름"),
                 fieldWithPath("values").description("옵션 값")
         };
 
@@ -199,7 +199,7 @@ public class OptionControllerDocsTest extends RestDocsSupport {
         };
 
         FieldDescriptor[] requestFields = new FieldDescriptor[] {
-                fieldWithPath("name").description("변경할 이름").optional()
+                fieldWithPath("name").description("변경할 이름")
         };
 
         FieldDescriptor[] responseFields = new FieldDescriptor[] {
@@ -300,7 +300,7 @@ public class OptionControllerDocsTest extends RestDocsSupport {
         };
 
         FieldDescriptor[] requestFields = new FieldDescriptor[] {
-                fieldWithPath("name").description("변경할 이름").optional()
+                fieldWithPath("name").description("변경할 이름")
         };
 
         FieldDescriptor[] responseFields = new FieldDescriptor[] {

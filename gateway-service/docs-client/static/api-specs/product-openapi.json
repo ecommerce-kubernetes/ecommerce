@@ -34,7 +34,7 @@
           "content" : {
             "application/json" : {
               "schema" : {
-                "$ref" : "#/components/schemas/categories1008533777"
+                "$ref" : "#/components/schemas/categories2105590919"
               },
               "examples" : {
                 "01-category-01-create" : {
@@ -75,7 +75,7 @@
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/categories-tree-2114769061"
+                  "$ref" : "#/components/schemas/categories-tree2114474150"
                 },
                 "examples" : {
                   "01-category-02-get-tree" : {
@@ -177,7 +177,7 @@
           "content" : {
             "application/json" : {
               "schema" : {
-                "$ref" : "#/components/schemas/categories-categoryId327775553"
+                "$ref" : "#/components/schemas/categories-categoryId-1660989367"
               },
               "examples" : {
                 "01-category-05-update" : {
@@ -193,7 +193,7 @@
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/categories-categoryId695877920"
+                  "$ref" : "#/components/schemas/categories-1715266578"
                 },
                 "examples" : {
                   "01-category-05-update" : {
@@ -268,7 +268,7 @@
           "content" : {
             "application/json" : {
               "schema" : {
-                "$ref" : "#/components/schemas/categories-categoryId-move-1123695825"
+                "$ref" : "#/components/schemas/categories-categoryId-move358547130"
               },
               "examples" : {
                 "01-category-06-move" : {
@@ -284,7 +284,7 @@
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/categories-categoryId695877920"
+                  "$ref" : "#/components/schemas/categories-categoryId-move695877920"
                 },
                 "examples" : {
                   "01-category-06-move" : {
@@ -354,7 +354,7 @@
           "content" : {
             "application/json" : {
               "schema" : {
-                "$ref" : "#/components/schemas/options-optionTypeId-1280769477"
+                "$ref" : "#/components/schemas/option-values-optionValueId950837630"
               },
               "examples" : {
                 "02-option-06-update-value" : {
@@ -426,7 +426,7 @@
           "content" : {
             "application/json" : {
               "schema" : {
-                "$ref" : "#/components/schemas/options-1565379284"
+                "$ref" : "#/components/schemas/options-1986606340"
               },
               "examples" : {
                 "02-option-01-create" : {
@@ -546,7 +546,7 @@
           "content" : {
             "application/json" : {
               "schema" : {
-                "$ref" : "#/components/schemas/options-optionTypeId-1280769477"
+                "$ref" : "#/components/schemas/option-values-optionValueId950837630"
               },
               "examples" : {
                 "02-option-04-update" : {
@@ -640,7 +640,7 @@
                 },
                 "examples" : {
                   "03-product-06-get-products" : {
-                    "value" : "{\r\n  \"content\" : [ {\r\n    \"productId\" : 1,\r\n    \"name\" : \"상품\",\r\n    \"thumbnail\" : \"http://image.jpg\",\r\n    \"displayPrice\" : 2700,\r\n    \"originalPrice\" : 3000,\r\n    \"maxDiscountRate\" : 10,\r\n    \"categoryId\" : 1,\r\n    \"publishedAt\" : \"2026-02-08T03:07:17.570935400\",\r\n    \"rating\" : 3.0,\r\n    \"reviewCount\" : 100,\r\n    \"status\" : \"ON_SALE\"\r\n  } ],\r\n  \"currentPage\" : 1,\r\n  \"totalPage\" : 10,\r\n  \"pageSize\" : 10,\r\n  \"totalElement\" : 100\r\n}"
+                    "value" : "{\r\n  \"content\" : [ {\r\n    \"productId\" : 1,\r\n    \"name\" : \"상품\",\r\n    \"thumbnail\" : \"http://image.jpg\",\r\n    \"displayPrice\" : 2700,\r\n    \"originalPrice\" : 3000,\r\n    \"maxDiscountRate\" : 10,\r\n    \"categoryId\" : 1,\r\n    \"publishedAt\" : \"2026-02-08T23:25:47.715876400\",\r\n    \"rating\" : 3.0,\r\n    \"reviewCount\" : 100,\r\n    \"status\" : \"ON_SALE\"\r\n  } ],\r\n  \"currentPage\" : 1,\r\n  \"totalPage\" : 10,\r\n  \"pageSize\" : 10,\r\n  \"totalElement\" : 100\r\n}"
                   }
                 }
               }
@@ -667,7 +667,7 @@
           "content" : {
             "application/json" : {
               "schema" : {
-                "$ref" : "#/components/schemas/products-281155297"
+                "$ref" : "#/components/schemas/products-830251234"
               },
               "examples" : {
                 "03-product-01-create" : {
@@ -848,7 +848,7 @@
                 },
                 "examples" : {
                   "03-product-10-close" : {
-                    "value" : "{\r\n  \"productId\" : 1,\r\n  \"status\" : \"STOP_SELLING\",\r\n  \"saleStoppedAt\" : \"2026-02-08T03:07:17.252416300\"\r\n}"
+                    "value" : "{\r\n  \"productId\" : 1,\r\n  \"status\" : \"STOP_SELLING\",\r\n  \"saleStoppedAt\" : \"2026-02-08T23:25:47.349411\"\r\n}"
                   }
                 }
               }
@@ -1005,7 +1005,7 @@
                 },
                 "examples" : {
                   "03-product-05-publish" : {
-                    "value" : "{\r\n  \"productId\" : 1,\r\n  \"status\" : \"ON_SALE\",\r\n  \"publishedAt\" : \"2026-02-08T03:07:17.316980700\"\r\n}"
+                    "value" : "{\r\n  \"productId\" : 1,\r\n  \"status\" : \"ON_SALE\",\r\n  \"publishedAt\" : \"2026-02-08T23:25:47.431179700\"\r\n}"
                   }
                 }
               }
@@ -1139,17 +1139,22 @@
           }
         }
       },
-      "categories-categoryId327775553" : {
+      "categories2105590919" : {
         "required" : [ "imageUrl", "name" ],
         "type" : "object",
         "properties" : {
           "imageUrl" : {
             "type" : "string",
-            "description" : "변경할 카테고리 아이콘 URL"
+            "description" : "카테고리 아이콘 URL"
           },
           "name" : {
             "type" : "string",
-            "description" : "변경할 카테고리 이름"
+            "description" : "카테고리 이름"
+          },
+          "parentId" : {
+            "type" : "number",
+            "description" : "부모 카테고리 ID",
+            "nullable" : true
           }
         }
       },
@@ -1164,26 +1169,6 @@
           "id" : {
             "type" : "number",
             "description" : "옵션 값 ID"
-          }
-        }
-      },
-      "categories1008533777" : {
-        "required" : [ "imageUrl" ],
-        "type" : "object",
-        "properties" : {
-          "imageUrl" : {
-            "type" : "string",
-            "description" : "카테고리 아이콘 URL"
-          },
-          "name" : {
-            "type" : "string",
-            "description" : "카테고리 이름",
-            "nullable" : true
-          },
-          "parentId" : {
-            "type" : "number",
-            "description" : "부모 카테고리 ID",
-            "nullable" : true
           }
         }
       },
@@ -1214,13 +1199,13 @@
           }
         }
       },
-      "options-optionTypeId-1280769477" : {
+      "option-values-optionValueId950837630" : {
+        "required" : [ "name" ],
         "type" : "object",
         "properties" : {
           "name" : {
             "type" : "string",
-            "description" : "변경할 이름",
-            "nullable" : true
+            "description" : "변경할 이름"
           }
         }
       },
@@ -1300,7 +1285,7 @@
           }
         }
       },
-      "categories-categoryId695877920" : {
+      "categories-categoryId-move695877920" : {
         "required" : [ "depth", "id", "imageUrl", "name", "parentId" ],
         "type" : "object",
         "properties" : {
@@ -1326,29 +1311,22 @@
           }
         }
       },
-      "options-1565379284" : {
-        "required" : [ "values" ],
+      "products-830251234" : {
+        "required" : [ "categoryId", "name" ],
         "type" : "object",
         "properties" : {
-          "values" : {
-            "type" : "array",
-            "description" : "옵션 값",
-            "items" : {
-              "oneOf" : [ {
-                "type" : "object"
-              }, {
-                "type" : "boolean"
-              }, {
-                "type" : "string"
-              }, {
-                "type" : "number"
-              } ]
-            }
-          },
           "name" : {
             "type" : "string",
-            "description" : "옵션 이름",
+            "description" : "상품 이름"
+          },
+          "description" : {
+            "type" : "string",
+            "description" : "상품 설명",
             "nullable" : true
+          },
+          "categoryId" : {
+            "type" : "number",
+            "description" : "카테고리 Id"
           }
         }
       },
@@ -1419,26 +1397,6 @@
           }
         }
       },
-      "products-281155297" : {
-        "required" : [ "description" ],
-        "type" : "object",
-        "properties" : {
-          "name" : {
-            "type" : "string",
-            "description" : "상품 이름",
-            "nullable" : true
-          },
-          "description" : {
-            "type" : "string",
-            "description" : "상품 설명"
-          },
-          "categoryId" : {
-            "type" : "number",
-            "description" : "카테고리 Id",
-            "nullable" : true
-          }
-        }
-      },
       "products-productId-544130958" : {
         "required" : [ "categoryId", "description", "name", "productId" ],
         "type" : "object",
@@ -1461,6 +1419,16 @@
           }
         }
       },
+      "categories-categoryId-move358547130" : {
+        "type" : "object",
+        "properties" : {
+          "parentId" : {
+            "type" : "number",
+            "description" : "이동할 부모 카테고리 ID",
+            "nullable" : true
+          }
+        }
+      },
       "products-780837155" : {
         "required" : [ "productId" ],
         "type" : "object",
@@ -1471,53 +1439,28 @@
           }
         }
       },
-      "categories-tree-2114769061" : {
-        "type" : "array",
-        "items" : {
-          "required" : [ "children", "depth", "id", "imageUrl", "name", "parentId" ],
-          "type" : "object",
-          "properties" : {
-            "depth" : {
-              "type" : "number",
-              "description" : "카테고리 깊이"
-            },
-            "children" : {
-              "type" : "array",
-              "description" : "하위 카테고리 목록 (상위 구조와 동일)",
-              "items" : {
-                "oneOf" : [ {
-                  "type" : "object"
-                }, {
-                  "type" : "boolean"
-                }, {
-                  "type" : "string"
-                }, {
-                  "type" : "number"
-                } ]
-              }
-            },
-            "imageUrl" : {
-              "type" : "string",
-              "description" : "카테고리 이미지 URL"
-            },
-            "name" : {
-              "type" : "string",
-              "description" : "카테고리 이름"
-            },
-            "id" : {
-              "type" : "number",
-              "description" : "카테고리 ID"
-            }
-          }
-        }
-      },
-      "categories-categoryId-move-1123695825" : {
-        "required" : [ "parentId" ],
+      "options-1986606340" : {
+        "required" : [ "name", "values" ],
         "type" : "object",
         "properties" : {
-          "parentId" : {
-            "type" : "number",
-            "description" : "이동할 부모 카테고리 ID"
+          "values" : {
+            "type" : "array",
+            "description" : "옵션 값",
+            "items" : {
+              "oneOf" : [ {
+                "type" : "object"
+              }, {
+                "type" : "boolean"
+              }, {
+                "type" : "string"
+              }, {
+                "type" : "number"
+              } ]
+            }
+          },
+          "name" : {
+            "type" : "string",
+            "description" : "옵션 이름"
           }
         }
       },
@@ -1624,6 +1567,46 @@
           }
         }
       },
+      "categories-tree2114474150" : {
+        "type" : "array",
+        "items" : {
+          "required" : [ "children", "depth", "id", "imageUrl", "name" ],
+          "type" : "object",
+          "properties" : {
+            "depth" : {
+              "type" : "number",
+              "description" : "카테고리 깊이"
+            },
+            "children" : {
+              "type" : "array",
+              "description" : "하위 카테고리 목록 (상위 구조와 동일)",
+              "items" : {
+                "oneOf" : [ {
+                  "type" : "object"
+                }, {
+                  "type" : "boolean"
+                }, {
+                  "type" : "string"
+                }, {
+                  "type" : "number"
+                } ]
+              }
+            },
+            "imageUrl" : {
+              "type" : "string",
+              "description" : "카테고리 이미지 URL"
+            },
+            "name" : {
+              "type" : "string",
+              "description" : "카테고리 이름"
+            },
+            "id" : {
+              "type" : "number",
+              "description" : "카테고리 ID"
+            }
+          }
+        }
+      },
       "options-optionId129092355" : {
         "required" : [ "id", "name" ],
         "type" : "object",
@@ -1652,47 +1635,6 @@
           "id" : {
             "type" : "number",
             "description" : "옵션 ID"
-          }
-        }
-      },
-      "products-productId-variants117197070" : {
-        "type" : "object",
-        "properties" : {
-          "variants" : {
-            "type" : "array",
-            "items" : {
-              "required" : [ "discountRate", "optionValueIds", "originalPrice", "stockQuantity" ],
-              "type" : "object",
-              "properties" : {
-                "discountRate" : {
-                  "type" : "number",
-                  "description" : "할인율"
-                },
-                "originalPrice" : {
-                  "type" : "number",
-                  "description" : "상품 변형 가격"
-                },
-                "optionValueIds" : {
-                  "type" : "array",
-                  "description" : "옵션 값 Id 리스트",
-                  "items" : {
-                    "oneOf" : [ {
-                      "type" : "object"
-                    }, {
-                      "type" : "boolean"
-                    }, {
-                      "type" : "string"
-                    }, {
-                      "type" : "number"
-                    } ]
-                  }
-                },
-                "stockQuantity" : {
-                  "type" : "number",
-                  "description" : "재고 수량"
-                }
-              }
-            }
           }
         }
       },
@@ -1768,6 +1710,62 @@
                 }
               }
             }
+          }
+        }
+      },
+      "products-productId-variants117197070" : {
+        "type" : "object",
+        "properties" : {
+          "variants" : {
+            "type" : "array",
+            "items" : {
+              "required" : [ "discountRate", "optionValueIds", "originalPrice", "stockQuantity" ],
+              "type" : "object",
+              "properties" : {
+                "discountRate" : {
+                  "type" : "number",
+                  "description" : "할인율"
+                },
+                "originalPrice" : {
+                  "type" : "number",
+                  "description" : "상품 변형 가격"
+                },
+                "optionValueIds" : {
+                  "type" : "array",
+                  "description" : "옵션 값 Id 리스트",
+                  "items" : {
+                    "oneOf" : [ {
+                      "type" : "object"
+                    }, {
+                      "type" : "boolean"
+                    }, {
+                      "type" : "string"
+                    }, {
+                      "type" : "number"
+                    } ]
+                  }
+                },
+                "stockQuantity" : {
+                  "type" : "number",
+                  "description" : "재고 수량"
+                }
+              }
+            }
+          }
+        }
+      },
+      "categories-categoryId-1660989367" : {
+        "type" : "object",
+        "properties" : {
+          "imageUrl" : {
+            "type" : "string",
+            "description" : "변경할 카테고리 아이콘 URL",
+            "nullable" : true
+          },
+          "name" : {
+            "type" : "string",
+            "description" : "변경할 카테고리 이름",
+            "nullable" : true
           }
         }
       },

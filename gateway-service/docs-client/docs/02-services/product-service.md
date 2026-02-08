@@ -354,3 +354,12 @@ Product 서비스는 Database per Service 패턴을 따르며, 독립적인 데�
 <div style={{ display: 'flex', justifyContent: 'center' }}>
   <img src="/img/erd-product.png" alt="ER 다이어그램" width="700" />
 </div>
+
+
+## ✅ 테스트 커버리지
+
+**테스트 커버리지** : 96%
+
+<div style={{ display: 'flex', justifyContent: 'center' }}>
+  <img src="/img/test-product.png" alt="ER 다이어그램" width="700" />
+</div>

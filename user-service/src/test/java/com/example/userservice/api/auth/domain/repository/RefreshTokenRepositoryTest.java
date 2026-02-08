@@ -2,7 +2,6 @@ package com.example.userservice.api.auth.domain.repository;
 
 import com.example.userservice.api.auth.domain.model.RefreshToken;
 import com.example.userservice.api.support.IncludeInfraTest;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
