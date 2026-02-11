@@ -6,6 +6,11 @@ pipeline {
     }
 
     stages {
+        stage('Create Network') {
+            steps {
+                sh "docker network create ${env.MY_NETWORK} || true"
+            }
+        }
         stage('Deploy Discovery') {
             when { changeset "discovery-service/**"}
             steps {

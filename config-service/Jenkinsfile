@@ -10,7 +10,7 @@ pipeline {
     stages {
         stage('Create Network') {
             steps {
-                sh "docker network create $MY_NETWORK || true"
+                sh "docker network create ${env.MY_NETWORK} || true"
             }
         }
 
