@@ -65,12 +65,14 @@ public abstract class IncludeInfraTest {
 
     @Container
     static GenericContainer<?> redisContainer = new GenericContainer<>("redis:alpine")
-            .withExposedPorts(6379);
+            .withExposedPorts(6379)
+            .withCommand("redis-server --requirepass test");
 
     @DynamicPropertySource
     static void overrideProperties(DynamicPropertyRegistry registry) {
         registry.add("spring.data.redis.host", redisContainer::getHost);
         registry.add("spring.data.redis.port", redisContainer::getFirstMappedPort);
+        registry.add("spring.redis.password", () -> "dummy-test-password");
     }
 
     @BeforeEach
