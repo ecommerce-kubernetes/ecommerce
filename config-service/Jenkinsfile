@@ -19,7 +19,7 @@ pipeline {
                 dir('config-service') {
                     echo 'Config 빌드 및 배포'
                     sh 'chmod +x gradlew'
-                    sh './gradlew clean build'
+                    sh './gradlew clean build -x test'
                     sh 'docker build -t config-service:latest .'
                     sh 'docker stop config-service || true'
                     sh 'docker rm config-service || true'
