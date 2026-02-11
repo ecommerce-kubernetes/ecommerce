@@ -21,7 +21,12 @@ import org.springframework.kafka.test.EmbeddedKafkaBroker;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.kafka.test.utils.ContainerTestUtils;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
+import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -39,6 +44,7 @@ import java.util.UUID;
         brokerProperties = {"listeners=PLAINTEXT://127.0.0.1:0"},
         topics = {"user.saga.command", "user.saga.reply"}
 )
+@Testcontainers
 public abstract class IncludeInfraTest {
     
 
@@ -56,6 +62,16 @@ public abstract class IncludeInfraTest {
     protected RedisTemplate<String, Object> redisTemplate;
     @Autowired
     private KafkaListenerEndpointRegistry kafkaListenerEndpointRegistry;
+
+    @Container
+    static GenericContainer<?> redisContainer = new GenericContainer<>("redis:alpine")
+            .withExposedPorts(6379);
+
+    @DynamicPropertySource
+    static void overrideProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.data.redis.host", redisContainer::getHost);
+        registry.add("spring.data.redis.port", redisContainer::getFirstMappedPort);
+    }
 
     @BeforeEach
     void waitForListenerAssignment() {
