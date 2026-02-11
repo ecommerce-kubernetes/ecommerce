@@ -25,8 +25,16 @@ pipeline {
         stage('Build & Test') {
             steps {
                 dir('user-service') {
-                    sh "chmod +x gradlew"
-                    sh "./gradlew clean build"
+                    script {
+                        def hostIp = sh(script: "ip route | awk '/default/ { print \$3 }'", returnStdout: true).trim()
+                        env.TESTCONTAINERS_HOST_OVERRIDE = hostIp
+                        env.TESTCONTAINERS_RYUK_DISABLED = "true"
+
+                        echo "🚀 [SUCCESS] 찾아낸 도커 호스트 게이트웨이 IP: ${hostIp}"
+                        echo "🚀 이 IP로 Testcontainers(Redis 등)에 연결을 시도합니다."
+                        sh "chmod +x gradlew"
+                        sh "./gradlew clean build"
+                    }
                 }
             }
         }
