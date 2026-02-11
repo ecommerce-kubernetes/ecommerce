@@ -23,14 +23,20 @@ pipeline {
         }
 
         stage('Build & Test') {
+            agent {
+                docker {
+                    image 'eclipse-temurin:21-jdk'
+                    args '-v /var/run/docker.sock:/var/run/docker.sock --network host'
+                    reuseNode true
+                }
+            }
             steps {
                 dir('user-service') {
-                    script {
-                        env.TESTCONTAINERS_HOST_OVERRIDE = "host.docker.internal"
-                        env.TESTCONTAINERS_RYUK_DISABLED = "true"
-                        sh "chmod +x gradlew"
-                        sh "./gradlew clean build"
-                    }
+                    env.TESTCONTAINERS_HOST_OVERRIDE = "localhost"
+                    env.TESTCONTAINERS_RYUK_DISABLED = "true"
+                    echo "🚀 [필살기] 호스트 네트워크를 직접 사용하여 Testcontainers에 접속합니다!"
+                    sh "chmod +x gradlew"
+                    sh "./gradlew clean build"
                 }
             }
         }
