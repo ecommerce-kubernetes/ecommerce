@@ -5,13 +5,10 @@ pipeline {
         MY_NETWORK = "buynest-network"
         DOCKER_IMAGE = "user-service"
         DOCKER_TAG = "latest"
-
-        TESTCONTAINERS_RYUK_DISABLED = "true"
-        TESTCONTAINERS_HOST_OVERRIDE = "host.docker.internal"
     }
 
     stages {
-        stage('Prepare Network') {
+        stage('Create Network') {
             steps {
                 sh "docker network create ${env.MY_NETWORK} || true"
             }
@@ -24,11 +21,24 @@ pipeline {
         }
 
         stage('Build & Test') {
+            agent {
+                docker {
+                    image 'eclipse-temurin:21-jdk'
+
+                    args '-v /var/run/docker.sock:/var/run/docker.sock --network host'
+                    reuseNode true
+                }
+            }
             steps {
                 dir('user-service') {
-                    echo "🚀 Testcontainers 출격! (Target IP: ${env.TESTCONTAINERS_HOST_OVERRIDE})"
-                    sh "chmod +x gradlew"
-                    sh "./gradlew clean build"
+                    script {
+                        env.TESTCONTAINERS_HOST_OVERRIDE = "localhost"
+                        env.TESTCONTAINERS_RYUK_DISABLED = "true"
+
+                        echo "🚀 [SUCCESS] 호스트 네트워크를 공유하는 일회용 빌드 환경 출격!"
+                        sh "chmod +x gradlew"
+                        sh "./gradlew clean build"
+                    }
                 }
             }
         }
