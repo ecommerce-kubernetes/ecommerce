@@ -12,7 +12,7 @@ version = '1.2'
 
 java {
 	toolchain {
-		languageVersion = JavaLanguageVersion.of(17)
+		languageVersion = JavaLanguageVersion.of(21)
 	}
 }
 
@@ -60,6 +60,10 @@ bootJar {
 	from("${asciidoctor.outputDir}"){
 		into 'static/docs'
 	}
+
+    from("build/api-spec") {
+        into 'static/docs'
+    }
 }
 
 dependencies {
@@ -136,19 +140,4 @@ openapi3 {
 			}
 	]
 	outputFileNamePrefix = 'user-openapi'
-}
-
-tasks.register('copyOpenApiToDocusaurus', Copy) {
-	dependsOn 'openapi3'
-	//
-	doFirst {
-		delete file("../gateway-service/docs-client/docs/api/user")
-		println "user 명세 폴더 삭제"
-	}
-	from layout.buildDirectory.dir("api-spec")
-	into file("../gateway-service/docs-client/static/api-specs")
-}
-
-tasks.named('build') {
-	dependsOn 'copyOpenApiToDocusaurus'
 }
