@@ -28,6 +28,7 @@ pipeline {
                         docker run -d --name config-service \
                         --network ${env.MY_NETWORK} \
                         -p 8888:8888 \
+                        -e SPRING_PROFILES_ACTIVE=prod \
                         -e GITHUB_USERNAME=${env.MY_GITHUB_USR} \
                         -e GITHUB_TOKEN=${env.MY_GITHUB_PSW} \
                         config-service:latest
