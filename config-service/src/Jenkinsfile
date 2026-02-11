@@ -1,0 +1,48 @@
+pipeline {
+    agent any
+
+    environment {
+        MY_NETWORK = "buynest-network"
+        MY_GITHUB = "credentials('github-token-id')"
+    }
+
+    stages {
+        stage('Create Network') {
+            steps {
+                sh "docker network create $MY_NETWORK || true"
+            }
+        }
+
+        stage('Deploy Config') {
+            when { changeset "config-service/**"}
+            steps {
+                dir('config-service') {
+                    echo 'Config 빌드 및 배포'
+                    sh 'chmod +x gradlew'
+                    sh './gradlew clean build'
+                    sh 'docker build -t config-service:latest .'
+                    sh 'docker stop config-service || true'
+                    sh 'docker rm config-service || true'
+
+                    sh """
+                        docker run -d --name config-service \
+                        --network $MY_NETWORK \
+                        -p 8888:8888 \
+                        -e GITHUB_USERNAME=${MY_GITHUB_USR} \
+                        -e GITHUB_TOKEN=${MY_GITHUB_TOKEN} \
+                    """
+
+                    echo 'Config 부팅 대기'
+                    sh 'sleep 30'
+                }
+            }
+        }
+
+        stage('Trigger Discovery') {
+            steps {
+                echo 'Config 완료, Discovery 파이프라인 호출'
+                build job: 'buynest-discovery', wait: false
+            }
+        }
+    }
+}

@@ -1,0 +1,30 @@
+pipeline {
+    agent any
+
+    environment {
+        MY_NETWORK = "buynest-network"
+    }
+
+    stages {
+        stage('Deploy Discovery') {
+            when { changeset "discovery-service/**"}
+            steps {
+                dir('discovery-service') {
+                    echo 'Discovery 빌드 배포'
+                    sh 'chmod +x gradlew'
+                    sh './gradlew clean build'
+                    sh 'docker build -t discovery-service:latest .'
+                    sh 'docker stop discovery-service || true'
+                    sh 'docker rm discovery-service || true'
+
+                    sh """
+                        docker run -d --name discovery-service \
+                        --network $MY_NETWORK \
+                        -p 8761:8761 \
+                        discovery-service:latest
+                    """
+                }
+            }
+        }
+    }
+}
