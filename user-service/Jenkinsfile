@@ -6,6 +6,7 @@ pipeline {
         DOCKER_IMAGE = "user-service"
         DOCKER_TAG = "latest"
         TESTCONTAINERS_RYUK_DISABLED = "true"
+        TESTCONTAINERS_HOST_OVERRIDE = "172.17.0.1"
     }
 
     stages {
