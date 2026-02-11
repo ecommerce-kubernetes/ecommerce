@@ -5,6 +5,7 @@ pipeline {
         MY_NETWORK = "buynest-network"
         DOCKER_IMAGE = "user-service"
         DOCKER_TAG = "latest"
+        TESTCONTAINERS_RYUK_DISABLED = "true"
     }
 
     stages {
