@@ -72,7 +72,7 @@ public abstract class IncludeInfraTest {
     static void overrideProperties(DynamicPropertyRegistry registry) {
         registry.add("spring.data.redis.host", redisContainer::getHost);
         registry.add("spring.data.redis.port", redisContainer::getFirstMappedPort);
-        registry.add("spring.redis.password", () -> "dummy-test-password");
+        registry.add("spring.redis.password", () -> "test");
     }
 
     @BeforeEach
