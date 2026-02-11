@@ -26,7 +26,7 @@ pipeline {
             steps {
                 dir('user-service') {
                     script {
-                        env.TESTCONTAINERS_HOST_OVERRIDE = "172.18.0.1"
+                        env.TESTCONTAINERS_HOST_OVERRIDE = "host.docker.internal"
                         env.TESTCONTAINERS_RYUK_DISABLED = "true"
                         sh "chmod +x gradlew"
                         sh "./gradlew clean build"
