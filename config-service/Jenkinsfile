@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         MY_NETWORK = "buynest-network"
-        MY_GITHUB = "credentials('github-token-id')"
+        MY_GITHUB = credentials('github-token-id')
     }
 
     stages {
@@ -26,10 +26,11 @@ pipeline {
 
                     sh """
                         docker run -d --name config-service \
-                        --network $MY_NETWORK \
+                        --network ${env.MY_NETWORK} \
                         -p 8888:8888 \
-                        -e GITHUB_USERNAME=${MY_GITHUB_USR} \
-                        -e GITHUB_TOKEN=${MY_GITHUB_TOKEN} \
+                        -e GITHUB_USERNAME=${env.MY_GITHUB_USR} \
+                        -e GITHUB_TOKEN=${env.MY_GITHUB_PSW} \
+                        config-service:latest
                     """
 
                     echo 'Config 부팅 대기'
