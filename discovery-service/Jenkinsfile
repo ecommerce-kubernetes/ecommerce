@@ -11,6 +11,13 @@ pipeline {
                 sh "docker network create ${env.MY_NETWORK} || true"
             }
         }
+
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
         stage('Deploy Discovery') {
             when { changeset "discovery-service/**"}
             steps {
@@ -29,6 +36,14 @@ pipeline {
                         discovery-service:latest
                     """
                 }
+            }
+        }
+
+        stage('Trigger User Service') {
+            steps {
+                echo 'Discovery 준비 완료! 이제 User Service 배포를 시작합니다.'
+                // 젠킨스에 등록된 user-service 파이프라인 아이템 이름을 적어주세요.
+                build job: 'buynest-user-service', wait: false
             }
         }
     }
