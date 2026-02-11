@@ -8,8 +8,3 @@ spring:
           password: ${GITHUB_TOKEN}
           default-label: main
           search-paths: /
-      bus:
-        enabled: true
-        destination: springCloudBus # Kafka 토픽명
-  kafka:
-    bootstrap-servers: Kafka00Container:9092,Kafka01Container:9092,Kafka02Container:9092
