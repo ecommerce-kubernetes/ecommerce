@@ -141,3 +141,7 @@ openapi3 {
 	]
 	outputFileNamePrefix = 'user-openapi'
 }
+
+jar {
+    enabled = false
+}
