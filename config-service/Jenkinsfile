@@ -4,6 +4,7 @@ pipeline {
     environment {
         MY_NETWORK = "buynest-network"
         MY_GITHUB = credentials('github-token-id')
+        MY_ENCRYPT = credentials('config-encrypt-key')
     }
 
     stages {
@@ -31,6 +32,7 @@ pipeline {
                         -e SPRING_PROFILES_ACTIVE=prod \
                         -e GITHUB_USERNAME=${env.MY_GITHUB_USR} \
                         -e GITHUB_TOKEN=${env.MY_GITHUB_PSW} \
+                        -e ENCRYPT_KEY=${env.MY_ENCRYPT} \
                         config-service:latest
                     """
 
