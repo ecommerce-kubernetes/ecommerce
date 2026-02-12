@@ -1,1 +1,0 @@
-{"parameters":[{"name":"cartItemId","in":"path","description":"장바구니 상품 ID(장바구니 상품 식별자)","required":true,"schema":{"type":"string"}},{"name":"Authorization","in":"header","description":"JWT Access Token","required":true,"schema":{"type":"string"},"example":"Bearer {ACCESS_TOKEN}"}]}

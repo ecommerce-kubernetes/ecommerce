@@ -1,1 +1,0 @@
-{"parameters":[{"name":"Authorization","in":"header","description":"JWT Access Token","required":true,"schema":{"type":"string"},"example":"Bearer {ACCESS_TOKEN}"}]}
