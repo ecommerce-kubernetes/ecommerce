@@ -3,6 +3,7 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 COPY . .
+RUN npm docusaurus gen-api-docs all
 RUN npm run build
 
 FROM nginx:alpine
