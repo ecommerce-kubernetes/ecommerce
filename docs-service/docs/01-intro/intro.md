@@ -82,7 +82,7 @@ slug: /intro
 ### CICD 구조도
 
 <div style={{ display: 'flex', justifyContent: 'center' }}>
-  <img src="/img/cicd.png" alt="cicd" width="700" />
+  <img src="img/cicd.png" alt="cicd" width="700" />
 </div>
 
 ## 주요 기능
