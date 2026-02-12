@@ -1,0 +1,86 @@
+pipeline {
+    agent any
+
+    environment {
+        MY_NETWORK = "buynest-network"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Create Network') {
+            steps {
+                script {
+                    sh "docker network create ${env.MY_NETWORK} || true"
+                    echo "도커 네트워크 준비"
+                }
+            }
+        }
+
+        stage('1. Deploy Config Server'){
+            when {changeset "config-service/**"}
+            steps {
+                script {
+                    echo 'Config Server 배포 시작'
+                    build job: 'buynest-config', wait: true
+                    sleep 20
+                }
+            }
+        }
+
+        stage('2. Deploy Discovery Service') {
+            when {
+                anyOf {
+                    changeset "discovery-service/**"
+                    changeset "config-service/**"
+                }
+            }
+            steps {
+                script {
+                    echo 'Discovery Service 배포 시작'
+                    build job: 'buynest-discovery', wait: true
+                    sleep 15
+                }
+            }
+        }
+
+        stage('3. Deploy MicroServices') {
+            parallel {
+                stage('User Service') {
+                    when {
+                        anyOf {
+                            changeset "user-service/**"
+                            changeset "config-service/**"
+                        }
+                    }
+                    steps {
+                        script {
+                            echo 'User Service 배포 시작'
+                            build job: 'buynest-user', wait: true
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('4. Deploy API Gateway') {
+            when {
+                anyOf {
+                    changeset "gateway-service/**"
+                    changeset "config-service/**"
+                }
+            }
+            steps {
+                script {
+                    echo 'API Gateway 배포 시작'
+                    sleep 20
+                    build job: 'buynest-gateway', wait: true
+                }
+            }
+        }
+    }
+}

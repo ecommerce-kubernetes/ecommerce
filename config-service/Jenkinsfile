@@ -3,49 +3,57 @@ pipeline {
 
     environment {
         MY_NETWORK = "buynest-network"
+        DOCKER_IMAGE = "config-service"
+        DOCKER_TAG = "latest"
         MY_GITHUB = credentials('github-token-id')
         MY_ENCRYPT = credentials('config-encrypt-key')
     }
 
     stages {
-        stage('Create Network') {
+        stage('Checkout') {
             steps {
-                sh "docker network create ${env.MY_NETWORK} || true"
+                checkout scm
             }
         }
 
-        stage('Deploy Config') {
-            when { changeset "config-service/**"}
+        stage('Build') {
             steps {
                 dir('config-service') {
-                    echo 'Config 빌드 및 배포'
-                    sh 'chmod +x gradlew'
-                    sh './gradlew clean build -x test'
-                    sh 'docker build -t config-service:latest .'
-                    sh 'docker stop config-service || true'
-                    sh 'docker rm config-service || true'
+                    script {
+                        echo "Config Server 빌드"
+                        sh "chmod +x gradlew"
+                        sh "./gradlew clean build -x test"
+                    }
+                }
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                dir('config-service') {
+                    echo "Docker 이미지 빌드"
+                    sh "docker build -t ${env.DOCKER_IMAGE}:${env.DOCKER_TAG} ."
+                }
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                script {
+                    echo "배포 시작"
+                    sh "docker rm -f ${env.DOCKER_IMAGE} || true"
 
                     sh """
-                        docker run -d --name config-service \
+                        docker run -d --name ${env.DOCKER_IMAGE} \
                         --network ${env.MY_NETWORK} \
                         -p 8888:8888 \
                         -e SPRING_PROFILES_ACTIVE=prod \
                         -e GITHUB_USERNAME=${env.MY_GITHUB_USR} \
                         -e GITHUB_TOKEN=${env.MY_GITHUB_PSW} \
                         -e ENCRYPT_KEY=${env.MY_ENCRYPT} \
-                        config-service:latest
+                        ${env.DOCKER_IMAGE}:${env.DOCKER_TAG}
                     """
-
-                    echo 'Config 부팅 대기'
-                    sh 'sleep 30'
                 }
-            }
-        }
-
-        stage('Trigger Discovery') {
-            steps {
-                echo 'Config 완료, Discovery 파이프라인 호출'
-                build job: 'buynest-discovery', wait: false
             }
         }
     }

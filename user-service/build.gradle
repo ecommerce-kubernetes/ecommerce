@@ -57,6 +57,7 @@ asciidoctor {
 
 bootJar {
 	dependsOn asciidoctor
+
 	from("${asciidoctor.outputDir}"){
 		into 'static/docs'
 	}
@@ -144,4 +145,14 @@ openapi3 {
 
 jar {
     enabled = false
+}
+
+afterEvaluate {
+    tasks.named('openapi3') {
+        dependsOn tasks.named('test')
+    }
+
+    tasks.named('bootJar') {
+        dependsOn tasks.named('openapi3')
+    }
 }

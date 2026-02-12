@@ -8,12 +8,6 @@ pipeline {
     }
 
     stages {
-        stage('Create Network') {
-            steps {
-                sh "docker network create ${env.MY_NETWORK} || true"
-            }
-        }
-
         stage('Checkout') {
             steps {
                 checkout scm
@@ -24,7 +18,6 @@ pipeline {
             agent {
                 docker {
                     image 'eclipse-temurin:21-jdk'
-
                     args '-v /var/run/docker.sock:/var/run/docker.sock --network host'
                     reuseNode true
                 }
@@ -34,10 +27,9 @@ pipeline {
                     script {
                         env.TESTCONTAINERS_HOST_OVERRIDE = "localhost"
                         env.TESTCONTAINERS_RYUK_DISABLED = "true"
-
-                        echo "🚀 [SUCCESS] 호스트 네트워크를 공유하는 일회용 빌드 환경 출격!"
                         sh "chmod +x gradlew"
                         sh "./gradlew clean build"
+                        archiveArtifacts artifacts: 'build/api-spec/*.json', allowEmptyArchive: false
                     }
                 }
             }
@@ -65,12 +57,5 @@ pipeline {
                 }
             }
         }
-
-//         stage('Trigger Next') {
-//             steps {
-//                 echo 'User Service 배포 완료! Gateway를 호출합니다.'
-//                 build job: 'buynest-api-gateway', wait: false
-//             }
-//         }
     }
 }
