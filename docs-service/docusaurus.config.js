@@ -31,6 +31,7 @@ const config = {
       'classic',
       ({
         docs: {
+          routeBasePath: '/',
           sidebarPath: './sidebars.js',
           docItemComponent: "@theme/ApiItem",
         },
