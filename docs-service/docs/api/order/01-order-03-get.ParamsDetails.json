@@ -1,0 +1,1 @@
+{"parameters":[{"name":"orderNo","in":"path","description":"조회할 주문 번호","required":true,"schema":{"type":"string"}},{"name":"Authorization","in":"header","description":"JWT Access Token","required":true,"schema":{"type":"string"},"example":"Bearer {ACCESS_TOKEN}"}]}
