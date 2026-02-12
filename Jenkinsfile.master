@@ -75,6 +75,12 @@ pipeline {
                     changeset "config-service/**"
                 }
             }
+            steps {
+                script {
+                    echo 'Docs Service 배포'
+                    build job: 'buynest-docs', wait: true
+                }
+            }
         }
 
         stage('4. Deploy API Gateway') {
