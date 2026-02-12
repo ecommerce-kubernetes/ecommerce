@@ -1,0 +1,46 @@
+pipeline {
+    agent any
+
+    environment {
+        MY_NETWORK = "buynest-network"
+        DOCKER_IMAGE = "docs-service"
+        DOCKER_TAG = "latest"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Fetch API Spec') {
+            steps {
+                script {
+                    echo "서비스 API 스펙 Fetch"
+                    copyArtifacts projectName: 'buynest-user',
+                    selector: lastSuccessful(),
+                    filter: 'build/api-spec/*.json',
+                    target: 'docs-service/static/specs/',
+                    flatten: true
+                }
+            }
+        }
+
+        stage('Build') {
+            steps {
+                dir('docs-service') {
+                    echo "docs 빌드"
+                    sh "docker build -t ${env.DOCKER_IMAGE}:${env.DOCKER_TAG} ."
+                    sh "docker rm -f ${env.DOCKER_IMAGE} || true"
+                    sh """
+                        docker run -d --name ${env.DOCKER_IMAGE} \
+                        --network ${env.MY_NETWORK} \
+                        --restart always \
+                        ${env.DOCKER_IMAGE}:${env.DOCKER_TAG}
+                    """
+                }
+            }
+        }
+    }
+}

@@ -67,6 +67,16 @@ pipeline {
             }
         }
 
+        stage('4. Deploy Docs Service') {
+            when {
+                anyOf {
+                    changeset "docs-service/**"
+                    changeset "user-service/**"
+                    changeset "config-service/**"
+                }
+            }
+        }
+
         stage('4. Deploy API Gateway') {
             when {
                 anyOf {

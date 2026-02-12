@@ -1,0 +1,1 @@
+{"responses":{"200":{"description":"200","content":{"application/json":{"schema":{"required":["accessToken"],"type":"object","properties":{"accessToken":{"type":"string","description":"액세스 토큰"}},"title":"auth-login-996144396"},"examples":{"02-auth-01-login":{"value":"{\r\n  \"accessToken\" : \"accessToken\"\r\n}"}}}}}}}
