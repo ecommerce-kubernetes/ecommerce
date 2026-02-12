@@ -62,7 +62,7 @@ slug: /intro
 ### 시스템 구조도
 
 <div style={{ display: 'flex', justifyContent: 'center' }}>
-  <img src="/img/system_architecture.png" alt="아키텍처" width="700" />
+  ![Architecture](/img/system_architecture.png)
 </div>
 
 ## CICD (배포 CICD 파이프라인)
