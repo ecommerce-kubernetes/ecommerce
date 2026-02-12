@@ -83,3 +83,7 @@ tasks.named('processResources') {
         into 'static'
     }
 }
+
+jar {
+    enabled = false
+}
