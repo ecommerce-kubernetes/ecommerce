@@ -65,7 +65,7 @@ public abstract class IncludeInfraTest {
 
     @Container
     static GenericContainer<?> redisContainer = new GenericContainer<>("redis:alpine")
-            .withExposedPorts(6379)
+            .withExposedPorts(63790)
             .withCommand("redis-server --requirepass test");
 
     @DynamicPropertySource
