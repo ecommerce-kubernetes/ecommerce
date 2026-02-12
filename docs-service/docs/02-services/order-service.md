@@ -496,7 +496,7 @@ Product 서비스는 Database per Service 패턴을 따르며, 독립적인 데�
 ### 📊 ER Diagram
 
 <div style={{ display: 'flex', justifyContent: 'center' }}>
-  <img src="img/erd-order.png" alt="ER 다이어그램" width="700" />
+  ![Erd-Order](/img/erd-order.png)
 </div>
 
 ## ✅ 테스트 커버리지
@@ -504,5 +504,5 @@ Product 서비스는 Database per Service 패턴을 따르며, 독립적인 데�
 **테스트 커버리지** : 95%
 
 <div style={{ display: 'flex', justifyContent: 'center' }}>
-  <img src="img/test-order.png" alt="ER 다이어그램" width="700" />
+  ![Test-Order](/img/test-order.png)
 </div>
