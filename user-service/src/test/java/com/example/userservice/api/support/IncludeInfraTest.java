@@ -73,11 +73,6 @@ public abstract class IncludeInfraTest {
         registry.add("spring.data.redis.host", redisContainer::getHost);
         registry.add("spring.data.redis.port", redisContainer::getFirstMappedPort);
         registry.add("spring.data.redis.password", () -> "test");
-
-        // 2. 구버전/커스텀 설정 (사용자님의 RedisConfig.java가 보고 있을 곳!)
-        registry.add("spring.redis.host", redisContainer::getHost);
-        registry.add("spring.redis.port", redisContainer::getFirstMappedPort);
-        registry.add("spring.redis.password", () -> "test");
     }
 
     @BeforeEach
