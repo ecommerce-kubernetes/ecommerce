@@ -1,1 +1,0 @@
-{"title":"Body","body":{"content":{"application/json":{"schema":{"required":["quantity"],"type":"object","properties":{"quantity":{"type":"number","description":"변경할 수량"}},"title":"carts-cartItemId-705233379"},"examples":{"02-cart-05-update-quantity":{"value":"{\r\n  \"quantity\" : 3\r\n}"}}}}}}

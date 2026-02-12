@@ -14,22 +14,10 @@ pipeline {
             }
         }
 
-        stage('Fetch API Spec') {
-            steps {
-                script {
-                    echo "API 스펙 다운로드"
-                    copyArtifacts projectName: 'buynest-user',
-                    filter: 'build/api-spec/*.json',
-                    target: 'gateway-service/docs-client/static/specs/',
-                    flatten: true
-                }
-            }
-        }
-
         stage('Build') {
             steps {
                 dir('gateway-service') {
-                    echo "gateway 문서 + 빌드 시작"
+                    echo "빌드 시작"
                     sh "chmod +x gradlew"
                     sh "./gradlew clean build -x test"
                 }
