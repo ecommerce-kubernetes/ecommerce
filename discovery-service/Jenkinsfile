@@ -3,47 +3,49 @@ pipeline {
 
     environment {
         MY_NETWORK = "buynest-network"
+        DOCKER_IMAGE = "discovery-service"
+        DOCKER_TAG = "latest"
     }
 
     stages {
-        stage('Create Network') {
-            steps {
-                sh "docker network create ${env.MY_NETWORK} || true"
-            }
-        }
-
         stage('Checkout') {
             steps {
                 checkout scm
             }
         }
 
-        stage('Deploy Discovery') {
-            when { changeset "discovery-service/**"}
+        stage('Build') {
             steps {
                 dir('discovery-service') {
-                    echo 'Discovery 빌드 배포'
-                    sh 'chmod +x gradlew'
-                    sh './gradlew clean build'
-                    sh 'docker build -t discovery-service:latest .'
-                    sh 'docker stop discovery-service || true'
-                    sh 'docker rm discovery-service || true'
-
-                    sh """
-                        docker run -d --name discovery-service \
-                        --network $MY_NETWORK \
-                        -p 8761:8761 \
-                        discovery-service:latest
-                    """
+                    echo "Discovery 빌드"
+                    sh "chmod +x gradlew"
+                    sh "./gradlew clean build -x test"
                 }
             }
         }
 
-        stage('Trigger User Service') {
+        stage('Build Docker image') {
             steps {
-                echo 'Discovery 준비 완료! 이제 User Service 배포를 시작합니다.'
-                // 젠킨스에 등록된 user-service 파이프라인 아이템 이름을 적어주세요.
-                build job: 'buynest-user', wait: false
+                dir('discovery-service') {
+                    echo "Docker 이미지 빌드"
+                    sh "docker build -t ${env.DOCKER_IMAGE}:${env.DOCKER_TAG} ."
+                }
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                script {
+                    echo "배포"
+                    sh "docker rm -f ${env.DOCKER_IMAGE} || true"
+                    sh """
+                        docker run -d --name ${env.DOCKER_IMAGE} \
+                        --network ${env.MY_NETWORK} \
+                        -p 8761:8761 \
+                        -e SPRING_PROFILES_ACTIVE=prod \
+                        ${env.DOCKER_IMAGE}:${env.DOCKER_TAG}
+                    """
+                }
             }
         }
     }
