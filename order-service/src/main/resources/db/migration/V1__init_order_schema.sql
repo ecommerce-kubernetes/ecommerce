@@ -102,7 +102,7 @@ create table if not exists cart (
     id bigint auto_increment primary key,
     user_id bigint not null unique,
     created_at datetime default current_timestamp,
-    updated_at datetime default current_timestamp on update current_timestamp,
+    updated_at datetime default current_timestamp on update current_timestamp
 );
 
 create table if not exists cart_item (
