@@ -1,0 +1,48 @@
+services:
+  user-db:
+    image: mysql:8.4
+    container_name: buynest-user-db
+    networks:
+      - buynest-network
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${USER_DB_PASSWORD}
+      MYSQL_DATABASE: buynest_user
+    volumes:
+      - buynest-user-db-data:/var/lib/mysql
+
+  order-db:
+    image: mysql:8.4
+    container_name: buynest-order-db
+    networks:
+      - buynest-network
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${ORDER_DB_PASSWORD}
+      MYSQL_DATABASE: buynest_order
+    volumes:
+      - buynest-order-db-data:/var/lib/mysql
+
+  product-db:
+    image: mysql:8.4
+    container_name: buynest-product-db
+    networks:
+      - buynest-network
+    ports:
+      - "3308:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${PRODUCT_DB_PASSWORD}
+      MYSQL_DATABASE: buynest_product
+    volumes:
+      - buynest-product-db-data:/var/lib/mysql
+
+volumes:
+  buynest-user-db-data:
+  buynest-order-db-data:
+  buynest-product-db-data:
+
+networks:
+  buynest-network:
+    external: true
