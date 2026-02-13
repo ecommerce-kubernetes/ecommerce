@@ -127,7 +127,7 @@ clean {
 
 openapi3 {
 	title = 'BuyNest User API'
-	description = '상품 서비스 API 명세서'
+	description = '유저 서비스 API 테스트'
 	version = '1.0.0'
 	format = 'json'
 	servers = [

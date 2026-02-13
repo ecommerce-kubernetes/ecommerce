@@ -64,6 +64,21 @@ pipeline {
                         }
                     }
                 }
+
+                stage('Product Service') {
+                    when {
+                        anyOf {
+                            changeset "product-service/**"
+                            changeset "config-service/**"
+                        }
+                    }
+                    steps {
+                        script {
+                            echo 'Product Service 배포 시작'
+                            build job: 'buynest-product', wait: true
+                        }
+                    }
+                }
             }
         }
 
@@ -72,6 +87,7 @@ pipeline {
                 anyOf {
                     changeset "docs-service/**"
                     changeset "user-service/**"
+                    changeest "product-service/**"
                     changeset "config-service/**"
                 }
             }
