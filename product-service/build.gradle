@@ -13,7 +13,7 @@ version = '1.2'
 
 java {
 	toolchain {
-		languageVersion = JavaLanguageVersion.of(17)
+		languageVersion = JavaLanguageVersion.of(21)
 	}
 }
 
@@ -55,13 +55,12 @@ asciidoctor {
     }
 }
 
-bootRun {
-    dependsOn asciidoctor
-}
-
 bootJar {
     dependsOn asciidoctor
     from("${asciidoctor.outputDir}"){
+        into 'static/docs'
+    }
+    from("build/api-spec") {
         into 'static/docs'
     }
 }
@@ -91,6 +90,10 @@ dependencies {
 
     //kafka dto
     implementation 'com.github.ecommerce-kubernetes:common-dto:3.0.9'
+
+    //flyway
+    implementation 'org.flywaydb:flyway-core'
+    implementation 'org.flywaydb:flyway-mysql'
 
     //API 명세
     asciidoctorExt 'org.springframework.restdocs:spring-restdocs-asciidoctor'
@@ -123,7 +126,7 @@ clean {
 
 openapi3 {
     title = 'BuyNest Product API'
-    description = '상품 서비스 API 명세서'
+    description = '상품 서비스 API 테스트'
     version = '1.0.0'
     format = 'json'
     servers = [
@@ -139,22 +142,6 @@ openapi3 {
     outputFileNamePrefix = 'product-openapi'
 }
 
-// 빌드시 자동으로 api 파일이 gateway의 docs-client로 복사
-tasks.register('copyOpenApiToDocusaurus', Copy) {
-    dependsOn 'openapi3'
-    //
-    doFirst {
-        delete file("../gateway-service/docs-client/docs/api/product")
-        println "product 명세 폴더 삭제"
-    }
-    from layout.buildDirectory.dir("api-spec")
-    into file("../gateway-service/docs-client/static/api-specs")
-}
-
-tasks.named('build') {
-    dependsOn 'copyOpenApiToDocusaurus'
-}
-
 jacocoTestReport {
     reports { html.required = true }
 
@@ -162,5 +149,19 @@ jacocoTestReport {
         classDirectories.setFrom(files(classDirectories.files.collect {
             fileTree(dir: it, exclude: "**/Q*")
         }))
+    }
+}
+
+jar {
+    enabled = false
+}
+
+afterEvaluate {
+    tasks.named('openapi3') {
+        dependsOn tasks.named('test')
+    }
+
+    tasks.named('bootJar') {
+        dependsOn tasks.named('openapi3')
     }
 }
