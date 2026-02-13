@@ -98,14 +98,14 @@ create table if not exists order_saga_instance (
     finished_at datetime
 );
 
-create table if not exists cart {
+create table if not exists cart (
     id bigint auto_increment primary key,
     user_id bigint not null unique,
     created_at datetime default current_timestamp,
     updated_at datetime default current_timestamp on update current_timestamp,
-}
+);
 
-create table if not exists cart_item {
+create table if not exists cart_item (
     id bigint auto_increment primary key,
     product_variant_id bigint not null,
     quantity int not null,
@@ -115,4 +115,4 @@ create table if not exists cart_item {
     constraint fk_cart_item_cart
         foreign key (cart_id)
         references cart (id)
-}
+);
