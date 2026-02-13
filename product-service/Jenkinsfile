@@ -1,5 +1,5 @@
 pipeline {
-    agnet any
+    agent any
 
     environment {
         MY_NETWORK = "buynest-network"
