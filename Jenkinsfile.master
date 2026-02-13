@@ -87,7 +87,7 @@ pipeline {
                 anyOf {
                     changeset "docs-service/**"
                     changeset "user-service/**"
-                    changeest "product-service/**"
+                    changeset "product-service/**"
                     changeset "config-service/**"
                 }
             }
