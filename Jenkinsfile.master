@@ -79,6 +79,21 @@ pipeline {
                         }
                     }
                 }
+
+                stage('Order Service') {
+                    when {
+                        anyOf {
+                            changeset "order-service/**"
+                            changeset "config-service/**"
+                        }
+                    }
+                    steps {
+                        script {
+                            echo 'Order Service 배포 시작'
+                            build job: 'buynest-order', wait: true
+                        }
+                    }
+                }
             }
         }
 
@@ -88,6 +103,7 @@ pipeline {
                     changeset "docs-service/**"
                     changeset "user-service/**"
                     changeset "product-service/**"
+                    changeset "order-service/**"
                     changeset "config-service/**"
                 }
             }

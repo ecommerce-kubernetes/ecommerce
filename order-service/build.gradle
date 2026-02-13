@@ -13,7 +13,7 @@ version = '1.2'
 
 java {
 	toolchain {
-		languageVersion = JavaLanguageVersion.of(17)
+		languageVersion = JavaLanguageVersion.of(21)
 	}
 }
 
@@ -57,13 +57,12 @@ asciidoctor {
 	}
 }
 
-bootRun {
-	dependsOn asciidoctor
-}
-
 bootJar {
 	dependsOn asciidoctor
 	from("${asciidoctor.outputDir}"){
+		into 'static/docs'
+	}
+	from("build/api-spec") {
 		into 'static/docs'
 	}
 }
@@ -110,7 +109,9 @@ dependencies {
 	testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
 	testImplementation 'com.epages:restdocs-api-spec-mockmvc:0.19.2'
 
-
+	//flyway
+	implementation 'org.flywaydb:flyway-core'
+	implementation 'org.flywaydb:flyway-mysql'
 }
 
 
@@ -146,19 +147,8 @@ openapi3 {
 	outputFileNamePrefix = 'order-openapi'
 }
 
-tasks.register('copyOpenApiToDocusaurus', Copy) {
-	dependsOn 'openapi3'
-	//
-	doFirst {
-		delete file("../gateway-service/docs-client/docs/api/order")
-		println "order 명세 폴더 삭제"
-	}
-	from layout.buildDirectory.dir("api-spec")
-	into file("../gateway-service/docs-client/static/api-specs")
-}
-
-tasks.named('build') {
-	dependsOn 'copyOpenApiToDocusaurus'
+jar {
+	enabled = false
 }
 
 jacocoTestReport {
@@ -168,5 +158,15 @@ jacocoTestReport {
 		classDirectories.setFrom(files(classDirectories.files.collect {
 			fileTree(dir: it, exclude: "**/Q*")
 		}))
+	}
+}
+
+afterEvaluate {
+	tasks.named('openapi3') {
+		dependsOn tasks.named('test')
+	}
+
+	tasks.named('bootJar') {
+		dependsOn tasks.named('openapi3')
 	}
 }
