@@ -7,7 +7,7 @@ create table if not exists orders (
 
     user_id bigint not null,
     user_name varchar(50) not null,
-    phon_number varchar(20),
+    phone_number varchar(20),
 
     total_origin_price bigint not null,
     total_product_discount bigint not null,
