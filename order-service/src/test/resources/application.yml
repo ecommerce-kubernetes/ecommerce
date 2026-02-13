@@ -29,9 +29,6 @@ spring:
   output:
     ansi:
       enabled: always
-swagger:
-  allowed-origins:
-    - "http://localhost:8000"
 
 payment:
   toss:
