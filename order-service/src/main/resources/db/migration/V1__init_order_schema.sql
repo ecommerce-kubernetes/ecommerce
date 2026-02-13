@@ -1,4 +1,4 @@
-create table if exists orders (
+create table if not exists orders (
 	id bigint auto_increment primary key,
     order_no varchar(50) not null unique,
     order_name varchar(30) not null,
@@ -21,7 +21,7 @@ create table if exists orders (
     updated_at datetime default current_timestamp on update current_timestamp
 );
 
-create table if exists coupon (
+create table if not exists coupon (
 	id bigint auto_increment primary key,
     order_id bigint not null,
 
@@ -34,7 +34,7 @@ create table if exists coupon (
         references orders (id)
 );
 
-create table if exists order_item (
+create table if not exists order_item (
 	id bigint auto_increment primary key,
     order_id bigint not null,
     product_id bigint not null,
@@ -58,7 +58,7 @@ create table if exists order_item (
         references orders (id)
 );
 
-create table if exists order_item_option (
+create table if not exists order_item_option (
 	id bigint auto_increment primary key,
     order_item_id bigint not null,
 
@@ -70,7 +70,7 @@ create table if exists order_item_option (
         references order_item(id)
 );
 
-create table if exists payment (
+create table if not exists payment (
 	id bigint auto_increment primary key,
     order_id bigint not null,
 
@@ -86,7 +86,7 @@ create table if exists payment (
         references orders (id)
 );
 
-create table if exists order_saga_instance (
+create table if not exists order_saga_instance (
 	id bigint auto_increment primary key,
     order_no varchar(50) not null unique,
     saga_status varchar(20) not null,
