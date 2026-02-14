@@ -132,7 +132,7 @@ openapi3 {
 	format = 'json'
 	servers = [
 		{
-			url = 'https://api.buynest.cloud'
+			url = 'https://api.buynest.cloud/user-service'
 			description = '운영'
 		}
 	]
