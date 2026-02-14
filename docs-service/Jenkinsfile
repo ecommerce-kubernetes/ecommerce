@@ -34,14 +34,14 @@ pipeline {
                     selector: lastSuccessful(),
                     filter: 'build/api-spec/*.json',
                     target: 'docs-service/static/api-specs/',
-                    flatten: true,
+                    flatten: true
 
                     echo "주문 서비스 API 스펙 Fetch"
                     copyArtifacts projectName: 'buynest-order',
                     selector: lastSuccessful(),
                     filter: 'build/api-spec/*.json',
                     target: 'docs-service/static/api-specs/',
-                    flatten: true,
+                    flatten: true
                 }
             }
         }
