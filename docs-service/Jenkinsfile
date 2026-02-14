@@ -17,31 +17,49 @@ pipeline {
 
         stage('Fetch API Spec') {
             steps {
-                script {
-                    echo "기존 API 스펙 초기화"
-                    sh "mkdir -p docs-service/static/api-specs" 
-                    sh "rm -rf docs-service/static/api-specs/*"
+                dir('docs-service') { 
+                    script {
+                        echo "기존 API 스펙 초기화"
+                        sh "mkdir -p static/api-specs" 
+                        sh "rm -rf static/api-specs/*"
 
-                    echo "서비스 API 스펙 Fetch"
-                    copyArtifacts projectName: 'buynest-user',
-                    selector: lastSuccessful(),
-                    filter: 'build/api-spec/*.json',
-                    target: 'docs-service/static/api-specs/'
-                    flatten: true
+                        // 1. 세 서비스의 스펙을 차례대로 다운로드 (말썽꾼 flatten 옵션은 아예 제거!)
+                        // optional: true를 넣어서 혹시 하나가 빌드 실패 상태여도 파이프라인이 멈추지 않게 보호합니다.
+                        echo "유저 서비스 API 스펙 Fetch"
+                        copyArtifacts(
+                            projectName: 'buynest-user',
+                            selector: lastSuccessful(),
+                            filter: 'build/api-spec/*.json',
+                            optional: true
+                        )
 
-                    echo "상품 서비스 API 스펙 Fetch"
-                    copyArtifacts projectName: 'buynest-product',
-                    selector: lastSuccessful(),
-                    filter: 'build/api-spec/*.json',
-                    target: 'docs-service/static/api-specs/',
-                    flatten: true
+                        echo "상품 서비스 API 스펙 Fetch"
+                        copyArtifacts(
+                            projectName: 'buynest-product',
+                            selector: lastSuccessful(),
+                            filter: 'build/api-spec/*.json',
+                            optional: true
+                        )
 
-                    echo "주문 서비스 API 스펙 Fetch"
-                    copyArtifacts projectName: 'buynest-order',
-                    selector: lastSuccessful(),
-                    filter: 'build/api-spec/*.json',
-                    target: 'docs-service/static/api-specs/',
-                    flatten: true
+                        echo "주문 서비스 API 스펙 Fetch"
+                        copyArtifacts(
+                            projectName: 'buynest-order',
+                            selector: lastSuccessful(),
+                            filter: 'build/api-spec/*.json',
+                            optional: true
+                        )
+
+                        // 2. 🔥 핵심: 젠킨스가 가져온 세 개의 json 파일을 한방에 빼냅니다!
+                        echo "JSON 파일 알맹이 추출 및 찌꺼기 폴더 삭제"
+                        sh "mv build/api-spec/*.json static/api-specs/ || true"
+                        
+                        // 3. 빈 껍데기가 된 build 폴더는 완전히 삭제합니다.
+                        sh "rm -rf build"
+
+                        // 4. 도커 빌드 전, 파일 3개가 예쁘게 모였는지 최종 확인
+                        echo "✅ 최종 스펙 폴더 상태 확인 ✅"
+                        sh "ls -la static/api-specs/"
+                    }
                 }
             }
         }
