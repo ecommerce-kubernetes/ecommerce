@@ -61,7 +61,7 @@ pipeline {
 
                     echo "배포"
                     sh """
-                        ansible-playbook -i ../ansible/inventory.ini ../ansible/deploy.yml \
+                        ansible-playbook -i ../infra/ansible/inventory.ini ../infra/ansible/deploy.yml \
                         -e target_service=user-service
                     """
                 }
