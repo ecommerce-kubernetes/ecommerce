@@ -28,6 +28,20 @@ pipeline {
                     filter: 'build/api-spec/*.json',
                     target: 'docs-service/static/api-specs/'
                     flatten: true
+
+                    echo "상품 서비스 API 스펙 Fetch"
+                    copyArtifacts projectName: 'buynest-product',
+                    selector: lastSuccessful(),
+                    filter: 'build/api-spec/*.json',
+                    target: 'docs-service/static/api-specs/',
+                    flatten: true,
+
+                    echo "주문 서비스 API 스펙 Fetch"
+                    copyArtifacts projectName: 'buynest-order',
+                    selector: lastSuccessful(),
+                    filter: 'build/api-spec/*.json',
+                    target: 'docs-service/static/api-specs/',
+                    flatten: true,
                 }
             }
         }
