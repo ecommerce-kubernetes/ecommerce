@@ -19,14 +19,14 @@ pipeline {
             steps {
                 script {
                     echo "기존 API 스펙 초기화"
-                    sh "mkdir -p docs-service/static/specs" 
-                    sh "rm -rf docs-service/static/specs/*"
-                    
+                    sh "mkdir -p docs-service/static/api-specs" 
+                    sh "rm -rf docs-service/static/api-specs/*"
+
                     echo "서비스 API 스펙 Fetch"
                     copyArtifacts projectName: 'buynest-user',
                     selector: lastSuccessful(),
                     filter: 'build/api-spec/*.json',
-                    target: 'docs-service/static/specs/',
+                    target: 'docs-service/static/api-specs/'
                     flatten: true
                 }
             }
