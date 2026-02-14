@@ -79,7 +79,7 @@ public class UserControllerDocsTest extends RestDocsSupport {
                                         ResourceSnippetParameters.builder()
                                                 .tag(TAG)
                                                 .summary("유저 생성")
-                                                .description("새로운 유저를 생성한다")
+                                                .description("신규 유저를 생성한다")
                                                 .requestFields(requestFields)
                                                 .responseFields(responseFields)
                                                 .build()
