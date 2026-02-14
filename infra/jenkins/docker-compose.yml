@@ -1,6 +1,7 @@
 services:
   jenkins:
     build: .
+    image: buynest-jenkins:latest
     container_name: jenkins
     restart: always
     privileged: true
