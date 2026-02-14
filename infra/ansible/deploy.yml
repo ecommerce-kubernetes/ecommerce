@@ -4,6 +4,7 @@
   gather_facts: no
   vars:
     target_service: "기본값"
+    workspace: "/tmp"
   tasks:
     - name: 1. 도커 허브 이미지 풀링(Pulling Docker Image)
       shell: "docker compose pull"

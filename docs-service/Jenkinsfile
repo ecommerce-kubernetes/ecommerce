@@ -49,6 +49,7 @@ pipeline {
                     sh """
                         ansible-playbook -i ../infra/ansible/inventory.ini ../infra/ansible/deploy.yml \
                         -e target_service=docs-service
+                        -e workspace=${env.WORKSPACE}
                     """
                 }
             }
