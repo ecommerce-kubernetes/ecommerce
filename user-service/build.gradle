@@ -131,14 +131,10 @@ openapi3 {
 	version = '1.0.0'
 	format = 'json'
 	servers = [
-			{
-				url = 'http://localhost:8000/user-service'
-				description = '로컬'
-			},
-			{
-				url = 'https://api.buynest.com'
-				description = '운영'
-			}
+		{
+			url = 'https://api.buynest.cloud'
+			description = '운영'
+		}
 	]
 	outputFileNamePrefix = 'user-openapi'
 }

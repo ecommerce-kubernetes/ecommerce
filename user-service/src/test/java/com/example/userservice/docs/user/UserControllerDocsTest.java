@@ -11,6 +11,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.restdocs.payload.FieldDescriptor;
+import org.springframework.restdocs.payload.JsonFieldType;
 
 import static com.epages.restdocs.apispec.MockMvcRestDocumentationWrapper.document;
 import static com.epages.restdocs.apispec.ResourceDocumentation.resource;
@@ -48,7 +49,7 @@ public class UserControllerDocsTest extends RestDocsSupport {
                 fieldWithPath("email").description("이메일"),
                 fieldWithPath("password").description("비밀번호"),
                 fieldWithPath("name").description("이름"),
-                fieldWithPath("birthDate").description("생년월일"),
+                fieldWithPath("birthDate").type(JsonFieldType.STRING).description("생년월일"),
                 fieldWithPath("gender").description("성별"),
                 fieldWithPath("phoneNumber").description("전화번호")
         };

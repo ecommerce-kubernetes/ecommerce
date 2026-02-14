@@ -2,6 +2,8 @@ package com.example.userservice.api.user.service.dto.result;
 
 import com.example.userservice.api.user.domain.model.Gender;
 import com.example.userservice.api.user.domain.model.User;
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import lombok.Builder;
 import lombok.Getter;
 
@@ -13,6 +15,7 @@ public class UserCreateResponse {
     private Long id;
     private String email;
     private String name;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate birthDate;
     private Gender gender;
     private String phoneNumber;
