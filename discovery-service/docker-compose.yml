@@ -1,0 +1,19 @@
+version: "3.8"
+
+services:
+  discovery-service:
+    image: minsik2434/discovery-service:latest
+    container_name: discovery-service
+    restart: always
+    networks:
+      - buynest-network
+    ports:
+      - "8761:8761"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+    env_file:
+      - .env
+
+networks:
+  buynest-network:
+    external: true

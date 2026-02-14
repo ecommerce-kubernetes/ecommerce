@@ -1,0 +1,13 @@
+version: "3.8"
+
+services:
+  docs-service:
+    image: minsik2434/docs-service:latest
+    container_name: docs-service
+    restart: always
+    networks:
+      - buynest-network
+
+networks:
+  buynest-network:
+    external: true
