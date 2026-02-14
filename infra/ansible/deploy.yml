@@ -1,17 +1,17 @@
 ---
 - name: 배포 파이프라인
   hosts: target_servers
-  gather_facts: false
+  gather_facts: no
   vars:
-    target_servers: "기본값"
+    target_service: "기본값"
   tasks:
     - name: 1. 도커 허브 이미지 풀링(Pulling Docker Image)
       shell: "docker compose pull"
       args:
-        chdir: "../{{ target_servers }}"
+        chdir: "../{{ target_service }}"
     - name: 2. 컨테이너 최신화
       shell: "docker compose up -d"
       args:
-        chdir: "../{{ target_servers }}"
+        chdir: "../{{ target_service }}"
     - name: 3. 사용하지 않는 이미지 제거
       shell: "docker image prune -f"
