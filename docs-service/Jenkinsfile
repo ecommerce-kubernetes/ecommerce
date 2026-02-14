@@ -50,6 +50,7 @@ pipeline {
             steps {
                 dir('docs-service') {
                     echo "docs 이미지 빌드"
+                    sh "ls -la static/api-specs/"
                     sh "docker build -t ${env.DOCKER_IMAGE}:${env.DOCKER_TAG} ."
 
                     withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', passwordVariable: 'DOCKER_PW', usernameVariable: 'DOCKER_ID')]) {
