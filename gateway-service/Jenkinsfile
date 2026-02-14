@@ -52,6 +52,7 @@ pipeline {
                     sh """
                         ansible-playbook -i ../infra/ansible/inventory.ini ../infra/ansible/deploy.yml \
                         -e target_service=gateway-service
+                        -e workspace=${env.WORKSPACE}
                     """
                 }
             }
