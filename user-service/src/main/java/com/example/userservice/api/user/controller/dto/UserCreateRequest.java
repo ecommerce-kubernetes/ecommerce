@@ -1,5 +1,6 @@
 package com.example.userservice.api.user.controller.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.*;
 import lombok.Builder;
 import lombok.Getter;
@@ -24,6 +25,7 @@ public class UserCreateRequest {
     @Size(min = 2, max = 12, message = "이름은 2글자~12글자 사이여야 합니다")
     private String name;
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     @NotNull(message = "생년월일은 필수 입력값입니다")
     private LocalDate birthDate;
 
