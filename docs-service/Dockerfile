@@ -3,6 +3,10 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 COPY . .
+
+RUN npx docusaurus clean-api-docs all
+RUN npx docusaurus clear
+
 RUN npx docusaurus gen-api-docs all
 RUN npm run build
 
