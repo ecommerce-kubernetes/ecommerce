@@ -3,7 +3,8 @@ pipeline {
 
     environment {
         MY_NETWORK = "buynest-network"
-        DOCKER_IMAGE = "user-service"
+        DOCKER_HUB_ID = "minsik2434"
+        DOCKER_IMAGE = "${DOCKER_HUB_ID}/user-service"
         DOCKER_TAG = "latest"
     }
 
@@ -35,24 +36,33 @@ pipeline {
             }
         }
 
-        stage('Docker Image Build') {
+        stage('Build Docker Image') {
             steps {
                 dir('user-service') {
+                    echo "Docker 이미지 빌드"
                     sh "docker build -t ${env.DOCKER_IMAGE}:${env.DOCKER_TAG} ."
+
+                    withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', passwordVariable: 'DOCKER_PW', usernameVariable: 'DOCKER_ID')]) {
+                        sh "echo \$DOCKER_PW | docker login -u \$DOCKER_ID --password-stdin"
+                        sh "docker push ${env.DOCKER_IMAGE}:${env.DOCKER_TAG}"
+                    }
                 }
             }
         }
 
         stage('Deploy') {
             steps {
-                script {
-                    sh "docker rm -f ${env.DOCKER_IMAGE} || true"
+                dir('user-service') {
+                    echo "배포 준비"
                     sh """
-                        docker run -d --name ${env.DOCKER_IMAGE} \
-                        --network ${env.MY_NETWORK} \
-                        -e SPRING_PROFILES_ACTIVE=prod \
-                        -e SPRING_CONFIG_IMPORT=optional:configserver:http://config-service:8888 \
-                        ${env.DOCKER_IMAGE}:${env.DOCKER_TAG}
+                        echo "SPRING_PROFILES_ACTIVE=prod" > .env
+                        echo "SPRING_CONFIG_IMPORT=optional:configserver:http://config-service:8888" >> .env
+                    """
+
+                    echo "배포"
+                    sh """
+                        ansible-playbook -i ../ansible/inventory.ini ../ansible/deploy.yml \
+                        -e target_service=user-service
                     """
                 }
             }

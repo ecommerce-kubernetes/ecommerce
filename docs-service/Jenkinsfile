@@ -3,7 +3,8 @@ pipeline {
 
     environment {
         MY_NETWORK = "buynest-network"
-        DOCKER_IMAGE = "docs-service"
+        DOCKER_HUB_ID = "minsik2434"
+        DOCKER_IMAGE = "${DOCKER_HUB_ID}/docs-service"
         DOCKER_TAG = "latest"
     }
 
@@ -27,17 +28,27 @@ pipeline {
             }
         }
 
-        stage('Build') {
+        stage('Build & Push Docker Image') {
             steps {
                 dir('docs-service') {
-                    echo "docs 빌드"
+                    echo "docs 이미지 빌드"
                     sh "docker build -t ${env.DOCKER_IMAGE}:${env.DOCKER_TAG} ."
-                    sh "docker rm -f ${env.DOCKER_IMAGE} || true"
+
+                    withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', passwordVariable: 'DOCKER_PW', usernameVariable: 'DOCKER_ID')]) {
+                        sh "echo \$DOCKER_PW | docker login -u \$DOCKER_ID --password-stdin"
+                        sh "docker push ${env.DOCKER_IMAGE}:${env.DOCKER_TAG}"
+                    }   
+                }
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                dir('docs-service') {    
+                    echo "배포"
                     sh """
-                        docker run -d --name ${env.DOCKER_IMAGE} \
-                        --network ${env.MY_NETWORK} \
-                        --restart always \
-                        ${env.DOCKER_IMAGE}:${env.DOCKER_TAG}
+                        ansible-playbook -i ../ansible/inventory.ini ../ansible/deploy.yml \
+                        -e target_service=docs-service
                     """
                 }
             }

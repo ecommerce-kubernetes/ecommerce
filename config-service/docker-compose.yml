@@ -1,0 +1,17 @@
+version: "3.8"
+
+services:
+  config-service:
+    image: minsik2434/config-service:latest
+    container_name: config-service
+    restart: always
+    networks:
+      - buynest-network
+    ports:
+      - "8888:8888"
+    env_file:
+      - .env
+
+networks:
+  buynest-network:
+    external: true

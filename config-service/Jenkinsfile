@@ -3,7 +3,8 @@ pipeline {
 
     environment {
         MY_NETWORK = "buynest-network"
-        DOCKER_IMAGE = "config-service"
+        DOCKER_HUB_ID = "minsik2434"
+        DOCKER_IMAGE = "${DOCKER_HUB_ID}/config-service"
         DOCKER_TAG = "latest"
         MY_GITHUB = credentials('github-token-id')
         MY_ENCRYPT = credentials('config-encrypt-key')
@@ -33,26 +34,33 @@ pipeline {
                 dir('config-service') {
                     echo "Docker 이미지 빌드"
                     sh "docker build -t ${env.DOCKER_IMAGE}:${env.DOCKER_TAG} ."
+
+                    withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', passwordVariable: 'DOCKER_PW', usernameVariable: 'DOCKER_ID')]) {
+                        sh "echo \$DOCKER_PW | docker login -u \$DOCKER_ID --password-stdin"
+                        sh "docker push ${env.DOCKER_IMAGE}:${env.DOCKER_TAG}"
+                    }
                 }
             }
         }
 
         stage('Deploy') {
             steps {
-                script {
-                    echo "배포 시작"
-                    sh "docker rm -f ${env.DOCKER_IMAGE} || true"
+                dir('config-service') {
+                    script {
+                        echo "배포 준비"
+                        sh """
+                            echo "SPRING_PROFILES_ACTIVE=prod" > .env
+                            echo "GITHUB_USERNAME=${env.MY_GITHUB_USR}" >> .env
+                            echo "GITHUB_TOKEN=${env.MY_GITHUB_PSW}" >> .env
+                            echo "ENCRYPT_KEY=${env.MY_ENCRYPT}" >> .env
+                        """
 
-                    sh """
-                        docker run -d --name ${env.DOCKER_IMAGE} \
-                        --network ${env.MY_NETWORK} \
-                        -p 8888:8888 \
-                        -e SPRING_PROFILES_ACTIVE=prod \
-                        -e GITHUB_USERNAME=${env.MY_GITHUB_USR} \
-                        -e GITHUB_TOKEN=${env.MY_GITHUB_PSW} \
-                        -e ENCRYPT_KEY=${env.MY_ENCRYPT} \
-                        ${env.DOCKER_IMAGE}:${env.DOCKER_TAG}
-                    """
+                        echo "배포"
+                        sh """
+                            ansible-playbook -i ../ansible/inventory.ini ../ansible/deploy.yml \
+                            -e target_service=config-service
+                        """
+                    }
                 }
             }
         }

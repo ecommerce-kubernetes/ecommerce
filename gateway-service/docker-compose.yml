@@ -1,0 +1,20 @@
+version: "3.8"
+
+services:
+  gateway-service:
+    image: minsik2434/gateway-service:latest
+    container_name: gateway-service
+    restart: always
+    networks:
+      - buynest-network
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-service:8888
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+
+networks:
+  buynest-network:
+    external: true
