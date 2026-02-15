@@ -17,8 +17,8 @@
 }
 
 .btn-animate:hover {
-  transform: translateY(-3px); /* 3픽셀 위로 뜸 */
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1); /* 부드러운 그림자 */
+  transform: translateY(-3px); 
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1); 
   text-decoration: none;
 }
 
@@ -39,7 +39,7 @@
 
 .full-width-table table {
   width: 100% !important;
-  display: table; /* 반응형 스크롤 문제 방지 */
+  display: table; 
 }
 
 :root {
