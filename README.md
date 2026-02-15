@@ -1,10 +1,3 @@
----
-id: intro
-title : 프로젝트 개요
-sidebar_position: 1
-slug: /intro
----
-
 # 📘 BuyNest: MSA 이커머스 플랫폼
 
 ## 프로젝트 소개 
