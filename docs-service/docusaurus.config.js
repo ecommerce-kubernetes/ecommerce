@@ -130,7 +130,9 @@ const config = {
     ({
       image: 'img/docusaurus-social-card.jpg',
       colorMode: {
-        respectPrefersColorScheme: true,
+        defaultMode: 'light',
+        disableSwitch: false,   
+        respectPrefersColorScheme: false, // OS 다크모드 무시
       },
       navbar: {
         title: '',
