@@ -1,134 +1,116 @@
-# 🛒 Buynest [E-Commerce Microservices Platform] 
+# 📘 BuyNest: MSA 이커머스 플랫폼
 
-> Spring Boot 기반 **전자상거래 마이크로서비스 프로젝트**입니다.  
-> 서비스 간 비동기 이벤트 통신(Kafka)과 Eureka 기반 서비스 디스커버리,  
-> Config Server를 이용한 중앙 설정 관리, Gateway를 통한 API 라우팅을 구현했습니다.  
-> 실제 프로덕션 환경 수준의 **MSA 설계 능력과 운영 구조 설계 경험**을 보여주기 위한 포트폴리오 프로젝트입니다.
+## 프로젝트 소개 
 
----
+<div class="base-text">
+**BuyNest** 는 MSA 기반으로 구성된 **이커머스 시스템** 입니다.
 
-## 📐 Architecture Overview
+각 서비스들은 **Spring Cloud** 기반의 마이크로 서비스 아키텍쳐로 구성되어 있으며 
+서비스간 비동기 통신은 이벤트 스트리밍 기반으로 구현되어 있습니다.
 
-<p align="left">
-  <img src="https://github.com/user-attachments/assets/df5a3918-463a-44c5-8c53-7ef7b609a2d2" width="70%"/>
-  <br/>
-  <em>Jenkins CI/CD Pipeline</em>
-</p>
+또한 **Eureka** 기반의 서비스 디스커버리,
+**Config Server** 를 통한 중앙 설정 관리,
+**Gateway**를 활용한 API 라우팅을 적용하여 실제 프로덕션 환경을 고려한 MSA 설계 및 운영 구조를 구현한 프로젝트 입니다.
+</div>
 
-<p align="left">
-  <img src="https://github.com/user-attachments/assets/d86536eb-e6be-4169-bd2d-0113d4465005" width="70%" />
-  <br/>
-</p>
+## 기술 스택
 
-<p align="left">
-  <img src="https://github.com/user-attachments/assets/47054e9b-c18e-4869-b232-21545a835fdd" width="70%" />
-  <br/>
-</p>
+**☕ Languages & Frameworks**
+<div className="tech-stack-wrapper">
+  <img src="https://img.shields.io/badge/Java 17-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white" />
+  <img src="https://img.shields.io/badge/Spring Boot 3.2-6DB33F?style=for-the-badge&logo=spring&logoColor=white" />
+  <img src="https://img.shields.io/badge/Spring Data JPA-6DB33F?style=for-the-badge&logo=spring&logoColor=white" />
+  <img src="https://img.shields.io/badge/Spring Security-6DB33F?style=for-the-badge&logo=springsecurity&logoColor=white" />
+  <img src="https://img.shields.io/badge/QueryDSL-007ACC?style=for-the-badge&logo=hibernate&logoColor=white" />
+</div>
 
-<p align="left">
-  <img src="https://github.com/user-attachments/assets/d8ccbedd-bc02-41fe-8702-f652cabca638" width="70%" />
-  <br/>
-  <em>전체 마이크로서비스 구조도</em>
-</p>
+**☁️ MSA & Infrastructure**
+<div className="tech-stack-wrapper">
+  <img src="https://img.shields.io/badge/Spring Cloud-6DB33F?style=for-the-badge&logo=spring&logoColor=white" />
+  <img src="https://img.shields.io/badge/Spring Cloud Gateway-6DB33F?style=for-the-badge&logo=spring&logoColor=white" />
+  <img src="https://img.shields.io/badge/Netflix Eureka-6DB33F?style=for-the-badge&logo=spring&logoColor=white" />
+</div>
 
----
+**💾 Data & Messaging**
 
-## ⚙️ Services Overview
+<div className="tech-stack-wrapper">
+  <img src="https://img.shields.io/badge/Apache Kafka-231F20?style=for-the-badge&logo=apachekafka&logoColor=white" />
+  <img src="https://img.shields.io/badge/MySQL 8.0-4479A1?style=for-the-badge&logo=mysql&logoColor=white" />
+  <img src="https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white" />
+</div>
 
+## 시스템 구조 (System Architecture)
 
+<div class="base-text">
+시스템 구조는 **Spring Cloud** 기반 마이크로 서비스 아키텍쳐로 구성되어 있습니다.
+전체 시스템은 **Gateway**, **Management**, **Business**, **Data** 4가지 계층으로 구성되어있습니다.
+</div>
 
+* **Entry & Routing**: 모든 클라이언트 요청은 **API GATEWAY** 를 통해 단일 진입점으로 처리되며, 이곳에서 JWT 토큰 인증 및 각 서비스로의 라우팅을 수행합니다.
+* **Management Layer**: **Eureka**와 **Config Service**를 통해 마이크로 서비스 인스턴스의 위치와 설정 정보를 중앙에서 관리합니다.
+* **Event-Driven Core**: 마이크로 서비스간의 결합도를 낮추기위해 **Kafka**기반 비동기 이벤트 통신 구조를 적용했습니다.
+  주문 발생시 주문 서비스가 주문 생성 이벤트를 발행하면 상품 서비스와 유저서비스가 이벤트를 수신해 각자의 트랜잭션 범위에서 처리하도록 설계하였습니다.
+* **Persistence**: 각 마이크로 서비스는 독립적인 데이터베이스를 가지며 유저 서비스는 안전한 토큰 관리와 만료 처리를 위해 **Redis**를 저장소로 활용했습니다.
 
-| Service | Description |
-|----------|--------------|
-| **User Service** | 회원 관리, 인증 및 권한 처리 |
-| **Product Service** | 상품 등록, 수정, 조회 |
-| **Order Service** | 주문 생성 및 상태 관리 |
-| **Coupon Service** | 쿠폰 발급, 검증, 만료 처리 |
-| **Image Service** | 상품 이미지 저장 및 관리 |
-| **Config Service** | 중앙 설정 서버 |
-| **Discovery Service (Eureka)** | 서비스 등록/탐색 |
-| **Gateway Service** | 외부 요청 진입점 (라우팅/보안) |
+### 시스템 구조도
 
----
+<div style={{ display: 'flex', justifyContent: 'center' }}>
+  ![Architecture](/img/system_architecture.png)
+</div>
 
-## 🧩 Communication Strategy
+## CICD (배포 CICD 파이프라인)
 
-### 🔹 Kafka 기반 비동기 이벤트 처리
-- 대용량 요청 처리, 결합도 감소
-- `order.created`, `order.completed`, `user.point.updated` 등 이벤트 기반 메시징 구조
+<div class="base-text">
+ 개발 생산성과 안정적인 배포를 위해 **Jenkins**, **Ansible**, **Docker**를 활용한 자동화 파이프라인을 구축했습니다.
+ 소스코드 변경 사항은 **Github Webhook**을 통해 실시간으로 감지되며 빌드, 배포를 수행했습니다.
+</div>
 
-### 🔹 Feign Client 기반 REST 통신
-- 순서가 중요한 트랜잭션(예: 결제 승인 → 주문 확정)에서는 REST 사용
-- 장애 상황에서도 **idempotent** 구조로 설계
+### 배포 프로세스
+1. **Code Push & Trigger** : 깃허브에 코드를 Push 하면 Webhook이 트리거 되어 **Jenkins**가 빌드 작업을 수행합니다.
+2. **Build & Artifacts** : Jenkins는 애플리케이션을 빌드 하고 이를 **Docker Image**로 패키징 합니다.
+3. **Push to Registry** : 생성된 도커 이미지는 **Docker Hub**에 업로드 됩니다.
+4. **Infrastructure as Code** : Jenkins는 **Ansible**에게 배포 명령을 전달하면 **Ansible**은 Playbook을 실행합니다.
+5. **Deploy**: 운영 서버는 Docker Hub에서 최신 이미지를 **Pull** 받아 컨테이너를 교체해 배포를 완료 합니다.
 
----
+### CICD 구조도
 
-## 🧠 Tech Stack
+<div style={{ display: 'flex', justifyContent: 'center' }}>
+  ![Cicd](/img/cicd.png)
+</div>
 
-| Category | Stack |
-|-----------|--------|
-| **Backend** | Spring Boot 3, Spring Cloud (Eureka, Config, Gateway), Spring Security |
-| **Messaging** | Apache Kafka |
-| **Database** | MySQL, Redis |
-| **Infra** | Docker, Nginx, Kubernetes(구상) |
-| **Monitoring** |  |
-| **Build/Deploy** | Jenkins CI/CD (Pipeline 기반), Ansible |
-| **Language** | Java 17 |
+## 주요 기능
 
----
+<div className="full-width-table">
+| 서비스 (Service)                 | 핵심 역할 (Core Domain) | 구현 상세                                                                                                                                               |
+|:------------------------------|:--------------------|:----------------------------------------------------------------------------------------------------------------------------------------------------|
+| **API Gateway**               | 라우팅/인증              | • **Spring Cloud Gateway**: Netty 기반의 Non-blocking I/O 아키텍처<br/>• **JWT Filter**: 인증 필터를 통한 토큰 검증 및 파싱<br/>• **Load Balancing**: 라운드 로빈 방식의 서비스 라우팅 |
+| **Discovery Service(Eureka)** | 서비스 등록              | • **Netflix Eureka**: 마이크로 서비스 인스턴스의 상태(Up/Down) 감지<br/>• **Heartbeat**: 주기적인 헬스 체크를 통해 가용성 없는 인스턴스 자동 제거                                           |
+| **Config Service**            | 설정 중앙화              | • **Spring Cloud Config**: Git 저장소를 백엔드로 하여 설정 이력 관리<br/>• **Cipher Encryption**: DB 비밀번호 등 민감 정보를 암호화(`{cipher}...`)하여 저장                          |
+| **User Service**              | 회원 관련               | • **Spring Security**: JWT 기반 인증 아키텍처<br/>• **Redis**: Refresh Token 저장소                                                                            | 
+| **Product Service**           | 상품 관련               | • **Spring Security**: 커스텀 헤더 기반 인증 아키텍처<br/>• 상품 관련 엔티티 저장 및 조회, 수정                                                                                |
+| **Order Service**             | 주문 관련               | • **Event-Driven**: Kafka를 활용한 비동기 주문 생성<br/>• **SAGA Pattern**: 분산 트랜잭션의 데이터 정합성 보장 (유저 포인트/재고 보상 트랜잭션)                                            |
+</div>
 
-## 🚀 Deployment
+## Service Communication Strategy
 
-> 현재는 실제 클라우드 환경 대신, **하나의 서버에 Docker 컨테이너 형태로 배포**하여 운영 중입니다.  
-> Kubernetes 배포 구성을 미리 설계해두었으며, 클라우드 환경 전환 시 손쉽게 확장 가능합니다.
+<div style={{ display: 'flex', gap: '20px', flexDirection: 'column' }}>
+  <div style={{ padding: '15px', border: '1px solid #ddd', borderRadius: '8px', backgroundColor: '#f9f9f9' }}>
+    <span style={{ fontSize: '20px', fontWeight: 'bold', color: '#E8590C' }}>
+      🔹 Kafka 기반 비동기 이벤트 처리
+    </span>
+    <p style={{ margin: '10px 0 0 0', lineHeight: '1.6' }}>
+      이벤트 기반 아키텍처(EDA)를 도입하여 <strong>서비스 간 결합도를 낮추었습니다.</strong><br/>
+      특히 SAGA 패턴을 적용하여 분산 환경에서의 데이터 정합성을 보장하고, 대량의 트래픽을 <strong>비동기로 처리(Non-blocking)</strong>하여 성능을 최적화했습니다.
+    </p>
+  </div>
 
----
-
-## 📦 How to Run (Local)
-
-Kafka, MySQL, Redis, Eureka, Config Server를 먼저 실행해야 합니다.
-이후 각 서비스들이 Eureka에 등록되고, Gateway를 통해 접근할 수 있습니다.
-
----
-
-## 🌐 Domain
-
-Jenkins Server : https://buynestshop.store/jenkins
-
-Swagger API : https://buynestshop.store/swagger-ui/index.html
-
-현재 실제 배포 서버 : https://buynestshop.store/
-
-## 👨‍💻 Developer
-
-> 유호연 (Ho-Yeon Yu)
-> Email: [zmfmsh46@gmail.com]
-> GitHub: https://github.com/zmfmsh46
-
-> 최민식 ()
-> Email: []
-> GitHub: 
-
-
-## 📄 License
-
-이 프로젝트는 개인 포트폴리오 용도로 제작되었으며,
-상업적 사용은 금지됩니다.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  <div style={{ padding: '15px', border: '1px solid #ddd', borderRadius: '8px', backgroundColor: '#f9f9f9' }}>
+    <span style={{ fontSize: '20px', fontWeight: 'bold', color: '#1098AD' }}>
+      🔹 Feign Client 기반 동기 통신
+    </span>
+    <p style={{ margin: '10px 0 0 0', lineHeight: '1.6' }}>
+      즉각적인 응답이 필요한 조회 로직에는 <strong>Feign Client</strong>를 사용했습니다.<br/>
+      이때 <strong>Circuit Breaker</strong>를 함께 적용하여, 타 서비스 장애 시 <strong>장애 전파를 차단</strong>하도록 설계했습니다.
+    </p>
+  </div>
+</div>
