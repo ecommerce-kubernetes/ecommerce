@@ -130,13 +130,9 @@ openapi3 {
     format = 'json'
     servers = [
             {
-                url = 'http://localhost:8000/product-service'
-                description = '로컬'
-            },
-            {
-                url = 'https://api.buynest.com'
+                url = 'https://api.buynest.cloud/product-service'
                 description = '운영'
-            }
+            },
     ]
     outputFileNamePrefix = 'product-openapi'
 }
