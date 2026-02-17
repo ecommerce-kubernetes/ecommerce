@@ -12,7 +12,6 @@ import java.time.LocalDate;
 
 @Getter
 @Builder
-@JsonPropertyOrder({"id", "email", "name", "birthDate", "gender", "phoneNumber"})
 public class UserCreateResponse {
     private Long id;
     private String email;
