@@ -1,6 +1,7 @@
 package com.example.userservice.api.user.controller.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import jakarta.validation.constraints.*;
 import lombok.Builder;
 import lombok.Getter;
@@ -9,6 +10,7 @@ import java.time.LocalDate;
 
 @Getter
 @Builder
+@JsonPropertyOrder({"email", "password", "name", "birthDate", "gender", "phoneNumber"})
 public class UserCreateRequest {
     @NotBlank(message = "이메일은 필수 입력값입니다")
     @Email(message = "올바른 이메일 형식을 입력해주세요")

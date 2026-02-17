@@ -14,6 +14,7 @@ import org.mockito.Mockito;
 import org.springframework.http.MediaType;
 import org.springframework.restdocs.headers.HeaderDescriptor;
 import org.springframework.restdocs.payload.FieldDescriptor;
+import org.springframework.restdocs.payload.JsonFieldType;
 import org.springframework.restdocs.request.ParameterDescriptor;
 
 import java.util.List;
@@ -59,7 +60,7 @@ public class OptionControllerDocsTest extends RestDocsSupport {
 
         FieldDescriptor[] requestFields = new FieldDescriptor[] {
                 fieldWithPath("name").description("옵션 이름"),
-                fieldWithPath("values").description("옵션 값")
+                fieldWithPath("values").type(JsonFieldType.ARRAY).description("옵션 값")
         };
 
         FieldDescriptor[] responseFields = new FieldDescriptor[] {
