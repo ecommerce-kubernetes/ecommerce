@@ -66,18 +66,13 @@ public class CartService {
     }
 
     public void deleteByProductVariantIds(Long userId, List<Long> productVariantIds) {
-        Cart cart = getCartWithItemsByUserId(userId);
-        cart.removeItemsByVariantIds(productVariantIds);
+        cartRepository.findWithItemsByUserId(userId)
+                .ifPresent(cart -> cart.removeItemsByVariantIds(productVariantIds));
     }
 
     private List<CartItemDto> createCartItemDtoList(Cart cart){
         return cart.getCartItems().stream().map(CartItemDto::from)
                 .toList();
-    }
-
-    private Cart getCartWithItemsByUserId(Long userId) {
-        return cartRepository.findWithItemsByUserId(userId)
-                .orElseThrow(() -> new BusinessException(CartErrorCode.CART_NOT_FOUND));
     }
 
     private CartItem getCartItemByCartItemId(Long cartItemId) {
