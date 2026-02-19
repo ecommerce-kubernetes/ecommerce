@@ -6,6 +6,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -15,6 +16,7 @@ import java.util.Date;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class TokenGenerator {
 
     @Value("${token.expiration_time}")
@@ -33,6 +35,7 @@ public class TokenGenerator {
 
     public TokenData generateTokenData(Long userId, Role role) {
         Date now = new Date();
+        log.info("AccessToken Expiration = {}", ACCESS_TOKEN_EXPIRATION);
         String accessToken = genAccessToken(userId, role, now);
         String refreshToken = genRefreshToken(userId, now);
         return TokenData.of(accessToken, refreshToken);
