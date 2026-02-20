@@ -13,24 +13,20 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @Slf4j
 public class SagaProcessor {
-    private final UserService userService;
+    private final UserSagaCommandExecutor executor;
     private final SagaEventProducer sagaEventProducer;
 
     public void userSagaProcess(UserSagaCommand command) {
         try {
-            processPointCommand(command.getType(), command.getUserId(), command.getUsedPoint());
+            boolean isAlreadyProcessed = executor.processSagaCommand(command);
+            if (isAlreadyProcessed) {
+                log.info("이미 처리된 Saga Command");
+            }
             sagaEventProducer.sendSagaSuccess(command.getSagaId(), command.getOrderNo());
         } catch (BusinessException e) {
             handleException(command, e.getErrorCode().name(), e.getMessage());
         } catch (Exception e) {
             handleException(command, "SYSTEM_ERROR", "시스템 오류");
-        }
-    }
-
-    private void processPointCommand(UserCommandType type, Long userId, Long point){
-        switch (type) {
-            case USE_POINT -> userService.deductPoints(userId, point);
-            case REFUND_POINT -> userService.refundPoints(userId, point);
         }
     }
 
