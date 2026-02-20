@@ -4,7 +4,6 @@ import com.example.common.user.UserCommandType;
 import com.example.common.user.UserSagaCommand;
 import com.example.userservice.api.common.exception.BusinessException;
 import com.example.userservice.api.user.saga.producer.SagaEventProducer;
-import com.example.userservice.api.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

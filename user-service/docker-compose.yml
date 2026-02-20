@@ -1,10 +1,24 @@
 version: "3.8"
 
 services:
-  user-service:
+  user-service-blue:
     image: minsik2434/user-service:latest
-    container_name: user-service
+    container_name: user-service-blue
     restart: always
+    stop_grace_period: 35s # 스프링 대기시간 보다 여유를 둔다
+    networks:
+      - buynest-network
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-service:8888
+    env_file:
+      - .env
+
+  user-service-green:
+    image: minsik2434/user-service:latest
+    container_name: user-service-green
+    restart: always
+    stop_grace_period: 35s # 스프링 대기시간 보다 여유를 둔다
     networks:
       - buynest-network
     environment:
