@@ -1,5 +1,6 @@
 package com.example.userservice.api.auth.service;
 
+import com.example.userservice.api.auth.properties.TokenProperties;
 import com.example.userservice.api.auth.service.dto.TokenData;
 import com.example.userservice.api.user.domain.model.Role;
 import io.jsonwebtoken.Jwts;
@@ -7,7 +8,6 @@ import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -19,30 +19,22 @@ import java.util.Date;
 @Slf4j
 public class TokenGenerator {
 
-    @Value("${token.expiration_time}")
-    private long ACCESS_TOKEN_EXPIRATION;
-    @Value("${token.refresh_expiration_time}")
-    private long REFRESH_TOKEN_EXPIRATION;
-    @Value("${token.secret}")
-    private String keyString;
-
-    private SecretKey secretKey;
-
-    @PostConstruct
-    public void init(){
-        this.secretKey = Keys.hmacShaKeyFor(keyString.getBytes(StandardCharsets.UTF_8));
-    }
+    private final TokenProperties tokenProperties;
 
     public TokenData generateTokenData(Long userId, Role role) {
         Date now = new Date();
-        log.info("AccessToken Expiration = {}", ACCESS_TOKEN_EXPIRATION);
+        log.info("AccessToken Expiration = {}", tokenProperties.getExpirationTime());
         String accessToken = genAccessToken(userId, role, now);
         String refreshToken = genRefreshToken(userId, now);
         return TokenData.of(accessToken, refreshToken);
     }
 
     public long getRefreshTokenExpiration() {
-        return REFRESH_TOKEN_EXPIRATION;
+        return tokenProperties.getRefreshExpirationTime();
+    }
+
+    private SecretKey getSecretKey() {
+        return Keys.hmacShaKeyFor(tokenProperties.getSecret().getBytes(StandardCharsets.UTF_8));
     }
 
     private String genAccessToken(Long userId, Role role, Date date){
@@ -51,8 +43,8 @@ public class TokenGenerator {
                 .claim("role", role.name())
                 .claim("type", "ACCESS")
                 .issuedAt(date)
-                .expiration(new Date(date.getTime() + ACCESS_TOKEN_EXPIRATION))
-                .signWith(secretKey)
+                .expiration(new Date(date.getTime() + tokenProperties.getExpirationTime()))
+                .signWith(getSecretKey())
                 .compact();
     }
 
@@ -61,8 +53,8 @@ public class TokenGenerator {
                 .subject(String.valueOf(userId))
                 .claim("type", "REFRESH")
                 .issuedAt(date)
-                .expiration(new Date(date.getTime() + REFRESH_TOKEN_EXPIRATION))
-                .signWith(secretKey)
+                .expiration(new Date(date.getTime() + tokenProperties.getRefreshExpirationTime()))
+                .signWith(getSecretKey())
                 .compact();
     }
 }
