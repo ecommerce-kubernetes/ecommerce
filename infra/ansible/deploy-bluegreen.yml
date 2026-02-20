@@ -1,5 +1,5 @@
 ---
-- name: 배포 파이프라인
+- name: 블루 그린 배포 파이프라인
   hosts: target_servers
   gather_facts: no
   vars:
