@@ -6,13 +6,37 @@
     target_service: "기본값"
     workspace: "/tmp"
   tasks:
-    - name: 1. 도커 허브 이미지 풀링(Pulling Docker Image)
-      shell: "docker-compose pull"
+    - name: 1. 실행중인 Blue 컨테이너 확인
+      shell: "docker ps -q --filter 'name={{ target_service }}-blue'"
+      register: blue_running
+      ignore_errors: yes
+
+    - name: 2. 배포 타겟 결정
+      set_fact:
+        current_color: "{{ 'blue' if blue_running.stdout != '' else 'green' }}" # 만약 blue가 기동중이면 current = blue, 아니면 green
+        target_color: "{{ 'green' if blue_running.stdout != '' else 'blue' }}" # 만약 blue가 기동중이면 target=green, 아니면 blue
+    
+    - name: 3.배포 타겟 로그
+      debug:
+        msg: "현재 실행중: {{ current_color }} / 새로 배포할 타깃: {{ target_color }}"
+
+    - name: 4. 도커 허브 이미지 풀링(Pulling Docker Image)
+      shell: "docker-compose pull {{ target_service }}-{{ target_color }}"
       args:
         chdir: "{{ workspace }}/{{ target_service }}"
-    - name: 2. 컨테이너 최신화
-      shell: "docker-compose up -d"
+        
+    - name: 5. 새 버전 컨테이너 실행 
+      shell: "docker-compose up -d {{ target_service }}-{{ target_color }}"
       args:
         chdir: "{{ workspace }}/{{ target_service }}"
-    - name: 3. 사용하지 않는 이미지 제거
+
+    - name: 6. 유레카 등록 및 트래픽 라우팅 대기
+      pause:
+        seconds: 45
+
+    - name: 7. 구버전 컨테이너 종료
+      shell: "docker stop {{ target_service }}-{{ current_color }}"
+      ignore_errors: yes 
+
+    - name: 8. 사용하지 않는 이미지 제거
       shell: "docker image prune -f"
