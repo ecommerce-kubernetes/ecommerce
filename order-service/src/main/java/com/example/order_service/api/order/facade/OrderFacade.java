@@ -29,6 +29,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -38,6 +39,7 @@ public class OrderFacade {
 
     private final OrderPaymentService orderPaymentService;
     private final OrderUserService orderUserService;
+    private final Executor applicationTaskExecutor;
     private final OrderProductService orderProductService;
     private final OrderCouponService orderCouponService;
     private final OrderPriceCalculator calculator;
@@ -149,8 +151,14 @@ public class OrderFacade {
 
     // 유저정보, 상품 정보를 비동기로 동시 조회
     private OrderPreparationData getOrderPreparationData(CreateOrderCommand command) {
-        CompletableFuture<OrderUserInfo> userFuture = CompletableFuture.supplyAsync(() -> orderUserService.getUser(command.getUserId(), command.getPointToUse()));
-        CompletableFuture<List<OrderProductInfo>> productFuture = CompletableFuture.supplyAsync(() -> orderProductService.getProducts(command.getOrderItemCommands()));
+        CompletableFuture<OrderUserInfo> userFuture = CompletableFuture.supplyAsync(
+                () -> orderUserService.getUser(command.getUserId(), command.getPointToUse()),
+                applicationTaskExecutor
+        );
+        CompletableFuture<List<OrderProductInfo>> productFuture = CompletableFuture.supplyAsync(
+                () -> orderProductService.getProducts(command.getOrderItemCommands()),
+                applicationTaskExecutor
+        );
         CompletableFuture.allOf(userFuture, productFuture).join();
 
         return OrderPreparationData.builder()
