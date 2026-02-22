@@ -101,6 +101,7 @@ dependencies {
     //Monitoring
     implementation 'io.micrometer:micrometer-tracing-bridge-brave'
     implementation 'io.zipkin.reporter2:zipkin-reporter-brave'
+    implementation 'io.micrometer:micrometer-registry-prometheus'
 
     //Test
     testImplementation 'org.springframework.kafka:spring-kafka-test'
