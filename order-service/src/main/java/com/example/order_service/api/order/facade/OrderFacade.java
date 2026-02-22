@@ -20,6 +20,8 @@ import com.example.order_service.api.order.facade.dto.result.CreateOrderResponse
 import com.example.order_service.api.order.facade.dto.result.OrderDetailResponse;
 import com.example.order_service.api.order.facade.dto.result.OrderListResponse;
 import com.example.order_service.api.order.facade.event.*;
+import io.micrometer.context.ContextSnapshot;
+import io.micrometer.context.ContextSnapshotFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -151,13 +153,19 @@ public class OrderFacade {
 
     // 유저정보, 상품 정보를 비동기로 동시 조회
     private OrderPreparationData getOrderPreparationData(CreateOrderCommand command) {
+        Executor contextAwareExecutor = task -> {
+            ContextSnapshot snapshot = ContextSnapshotFactory.builder().build().captureAll();
+            applicationTaskExecutor.execute(snapshot.wrap(task));
+        };
+
         CompletableFuture<OrderUserInfo> userFuture = CompletableFuture.supplyAsync(
                 () -> orderUserService.getUser(command.getUserId(), command.getPointToUse()),
-                applicationTaskExecutor
+                contextAwareExecutor
         );
+
         CompletableFuture<List<OrderProductInfo>> productFuture = CompletableFuture.supplyAsync(
                 () -> orderProductService.getProducts(command.getOrderItemCommands()),
-                applicationTaskExecutor
+                contextAwareExecutor
         );
         CompletableFuture.allOf(userFuture, productFuture).join();
 
