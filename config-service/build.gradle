@@ -24,10 +24,13 @@ ext {
 dependencies {
 	implementation 'org.springframework.cloud:spring-cloud-config-server'
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
-	implementation 'org.springframework.cloud:spring-cloud-starter-bootstrap'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
     implementation 'org.springframework.cloud:spring-cloud-starter-bus-kafka'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+	//Monitoring
+	implementation 'io.micrometer:micrometer-registry-prometheus'
+	implementation 'com.github.loki4j:loki-logback-appender:2.0.3'
 }
 
 dependencyManagement {

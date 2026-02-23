@@ -26,4 +26,11 @@ scrape_configs:
     static_configs:
       - targets: ['host.docker.internal:8761']
         labels:
-          application: 'DISCOVERY-SERVICE'
+          application: 'discovery-service'
+
+  - job_name: 'config-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['host.docker.internal:8888']
+        labels:
+          application: 'config-service'
