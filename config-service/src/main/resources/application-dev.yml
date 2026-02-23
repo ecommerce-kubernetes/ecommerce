@@ -8,3 +8,7 @@ spring:
           password: ${GITHUB_TOKEN}
           default-label: main
           search-paths: /
+
+logging:
+  loki:
+    url: http://localhost:3100/loki/api/v1/push
