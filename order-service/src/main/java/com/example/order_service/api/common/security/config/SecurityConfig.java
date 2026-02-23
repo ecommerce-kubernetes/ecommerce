@@ -31,6 +31,7 @@ public class SecurityConfig {
                         auth ->
                                 auth
                                         .requestMatchers("/error").permitAll()
+                                        .requestMatchers("/actuator/**").permitAll()
                                         .requestMatchers("/docs/**").permitAll()
                                         .anyRequest().authenticated()
                 )

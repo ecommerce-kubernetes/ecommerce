@@ -8,9 +8,3 @@ spring:
           password: ${GITHUB_TOKEN}
           default-label: main
           search-paths: /
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: "bus-refresh"
