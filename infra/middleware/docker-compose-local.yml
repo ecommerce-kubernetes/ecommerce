@@ -56,6 +56,12 @@ services:
     container_name: zipkin
     ports:
       - "9411:9411"
+    environment:
+      - STORAGE_TYPE=mysql
+      - MYSQL_HOST=host.docker.internal
+      - MYSQL_USER=root
+      - MYSQL_PASS=${ZIPKIN_DB_PASSWORD}
+      - MYSQL_TCP_PORT=3306
     restart: always
 
   prometheus:
@@ -75,6 +81,15 @@ services:
     restart: unless-stopped
     depends_on:
       - prometheus
+
+  loki:
+    image: grafana/loki:latest
+    container_name: loki
+    ports:
+      - "3100:3100"
+    volumes:
+      - "C:/loki_data:/loki"
+    restart: unless-stopped
 
 networks:
   default:
