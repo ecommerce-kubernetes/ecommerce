@@ -62,7 +62,7 @@ services:
       - MYSQL_USER=root
       - MYSQL_PASS=${ZIPKIN_DB_PASSWORD}
       - MYSQL_TCP_PORT=3306
-      - MYSQL_DB=buynest_zipkin
+      - MYSQL_DB=buynest_zipkin?allowPublicKeyRetrieval=true&useSSL=false
     restart: always
 
   prometheus:
