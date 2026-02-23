@@ -49,6 +49,10 @@ order:
     user-saga-command: "user.saga.command"
     # 유저 처리 결과 응답
     user-saga-reply: "user.saga.reply"
+
+logging:
+  loki:
+    url: http://localhost:3100/loki/api/v1/push
 ---
 spring:
   config:
