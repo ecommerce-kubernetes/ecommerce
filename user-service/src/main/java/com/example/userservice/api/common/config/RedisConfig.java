@@ -1,5 +1,7 @@
 package com.example.userservice.api.common.config;
 
+import com.example.userservice.api.common.config.properties.RedisProperties;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.context.annotation.Bean;
@@ -13,26 +15,20 @@ import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSeriali
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 @Configuration
+@RequiredArgsConstructor
 @Profile("!test-mock")
 public class RedisConfig {
 
-    @Value("${spring.data.redis.host}")
-    private String redisHost;
-
-    @Value("${spring.data.redis.port}")
-    private String redisPort;
-
-    @Value("${spring.data.redis.password}")
-    private String redisPassword;
+    private final RedisProperties properties;
 
     @Bean
     @RefreshScope
     public RedisConnectionFactory redisConnectionFactory() {
         RedisStandaloneConfiguration redisStandaloneConfiguration = new RedisStandaloneConfiguration();
-        redisStandaloneConfiguration.setHostName(redisHost);
-        redisStandaloneConfiguration.setPort(Integer.parseInt(redisPort));
-        if(redisPassword != null && !redisPassword.isEmpty()){
-            redisStandaloneConfiguration.setPassword(redisPassword);
+        redisStandaloneConfiguration.setHostName(properties.getHost());
+        redisStandaloneConfiguration.setPort(Integer.parseInt(properties.getPort()));
+        if(properties.getPassword() != null && !properties.getPassword().isEmpty()){
+            redisStandaloneConfiguration.setPassword(properties.getPassword());
         }
         return new LettuceConnectionFactory(redisStandaloneConfiguration);
     }

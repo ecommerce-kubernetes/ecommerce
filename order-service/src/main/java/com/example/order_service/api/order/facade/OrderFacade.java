@@ -20,6 +20,8 @@ import com.example.order_service.api.order.facade.dto.result.CreateOrderResponse
 import com.example.order_service.api.order.facade.dto.result.OrderDetailResponse;
 import com.example.order_service.api.order.facade.dto.result.OrderListResponse;
 import com.example.order_service.api.order.facade.event.*;
+import io.micrometer.context.ContextSnapshot;
+import io.micrometer.context.ContextSnapshotFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -29,6 +31,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -38,6 +41,7 @@ public class OrderFacade {
 
     private final OrderPaymentService orderPaymentService;
     private final OrderUserService orderUserService;
+    private final Executor applicationTaskExecutor;
     private final OrderProductService orderProductService;
     private final OrderCouponService orderCouponService;
     private final OrderPriceCalculator calculator;
@@ -149,8 +153,20 @@ public class OrderFacade {
 
     // 유저정보, 상품 정보를 비동기로 동시 조회
     private OrderPreparationData getOrderPreparationData(CreateOrderCommand command) {
-        CompletableFuture<OrderUserInfo> userFuture = CompletableFuture.supplyAsync(() -> orderUserService.getUser(command.getUserId(), command.getPointToUse()));
-        CompletableFuture<List<OrderProductInfo>> productFuture = CompletableFuture.supplyAsync(() -> orderProductService.getProducts(command.getOrderItemCommands()));
+        Executor contextAwareExecutor = task -> {
+            ContextSnapshot snapshot = ContextSnapshotFactory.builder().build().captureAll();
+            applicationTaskExecutor.execute(snapshot.wrap(task));
+        };
+
+        CompletableFuture<OrderUserInfo> userFuture = CompletableFuture.supplyAsync(
+                () -> orderUserService.getUser(command.getUserId(), command.getPointToUse()),
+                contextAwareExecutor
+        );
+
+        CompletableFuture<List<OrderProductInfo>> productFuture = CompletableFuture.supplyAsync(
+                () -> orderProductService.getProducts(command.getOrderItemCommands()),
+                contextAwareExecutor
+        );
         CompletableFuture.allOf(userFuture, productFuture).join();
 
         return OrderPreparationData.builder()
