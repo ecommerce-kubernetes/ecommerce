@@ -28,6 +28,10 @@ product:
     saga-command: "product.saga.command"
     ## 주문 상품 재고 감소 응답 토픽
     saga-reply: "product.saga.reply"
+
+logging:
+  loki:
+    url: http://localhost:3100/loki/api/v1/push
 ---
 spring:
   config:
