@@ -20,7 +20,8 @@ scrape_configs:
     metrics_path: '/actuator/prometheus'
     static_configs:
       - targets: ['discovery-service:8761']
-
+        labels:
+          application: 'discovery-service'
   - job_name: 'config-service'
     metrics_path: '/actuator/prometheus'
     static_configs:
