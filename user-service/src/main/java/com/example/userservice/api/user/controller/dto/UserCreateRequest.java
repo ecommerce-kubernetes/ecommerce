@@ -1,7 +1,6 @@
 package com.example.userservice.api.user.controller.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import jakarta.validation.constraints.*;
 import lombok.Builder;
 import lombok.Getter;

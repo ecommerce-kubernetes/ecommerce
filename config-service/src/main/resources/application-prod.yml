@@ -9,7 +9,7 @@ spring:
           default-label: main
           search-paths: /
   kafka:
-    bootstrap-servers: kafka:9092
+    bootstrap-servers: kafka:29092
 logging:
   loki:
     url: http://loki:3100/loki/api/v1/push
