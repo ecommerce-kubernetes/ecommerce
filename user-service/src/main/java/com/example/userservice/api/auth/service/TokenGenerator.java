@@ -1,6 +1,6 @@
 package com.example.userservice.api.auth.service;
 
-import com.example.userservice.api.auth.properties.TokenProperties;
+import com.example.userservice.api.auth.service.properties.TokenProperties;
 import com.example.userservice.api.auth.service.dto.TokenData;
 import com.example.userservice.api.user.domain.model.Role;
 import io.jsonwebtoken.Jwts;

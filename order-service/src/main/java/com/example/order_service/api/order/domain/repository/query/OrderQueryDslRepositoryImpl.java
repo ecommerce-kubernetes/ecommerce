@@ -40,7 +40,7 @@ public class OrderQueryDslRepositoryImpl implements OrderQueryDslRepository{
                 )
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
-                .orderBy(sortOrder)
+                .orderBy(sortOrder, order.id.desc())
                 .fetch();
 
         Long totalElement = queryFactory.select(order.countDistinct())

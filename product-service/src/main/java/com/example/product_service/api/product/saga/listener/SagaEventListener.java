@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 public class SagaEventListener {
     private final SagaProcessor sagaProcessor;
 
-    @KafkaListener(topics = "${product.topics.saga-command}")
+    @KafkaListener(topics = "${product.topics.product-saga-command}")
     public void handleOrderEvent(@Payload ProductSagaCommand event) {
         sagaProcessor.productSagaProcess(event);
     }

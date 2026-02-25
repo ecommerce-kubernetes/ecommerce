@@ -1,4 +1,4 @@
-package com.example.userservice.api.auth.properties;
+package com.example.apigatewayservice.filter.properties;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -10,7 +10,5 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConfigurationProperties(prefix = "token")
 public class TokenProperties {
-    private long expirationTime;
-    private long refreshExpirationTime;
     private String secret;
 }
