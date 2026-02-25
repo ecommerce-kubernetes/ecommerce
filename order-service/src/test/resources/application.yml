@@ -22,7 +22,7 @@ spring:
             coupon-service:
               - uri: http://localhost:${wiremock.server.port}
   kafka:
-    bootstrap-servers: 127.0.0.1:9092 # (테스트 환경에 맞게)
+    bootstrap-servers: 127.0.0.1:9092
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
@@ -64,14 +64,3 @@ order:
 logging:
   loki:
     url: http://localhost:3100/loki/api/v1/push
----
-spring:
-  config:
-    activate:
-      on-profile: test-mock
-  autoconfigure:
-    exclude:
-      - org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration
-  cloud:
-    bus:
-      enabled: false

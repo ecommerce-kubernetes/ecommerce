@@ -1,4 +1,4 @@
-package com.example.userservice.api.common.config;
+package com.example.order_service.api.common.config;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;

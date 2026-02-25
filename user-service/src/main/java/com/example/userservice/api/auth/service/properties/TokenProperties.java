@@ -1,4 +1,4 @@
-package com.example.userservice.api.auth.properties;
+package com.example.userservice.api.auth.service.properties;
 
 import lombok.Getter;
 import lombok.Setter;
