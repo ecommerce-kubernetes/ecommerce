@@ -5,6 +5,3 @@ spring:
   cloud:
     bus:
       enabled: false
-infra:
-  kafka:
-    enabled: false
