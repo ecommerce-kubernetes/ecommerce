@@ -35,8 +35,9 @@ flowchart LR
 </div>
 
 ### 구성 아키텍처
-- **Centralized Management**: 서비스 재배포 없이 설정 변경 사항을 반영합니다
-- **Security**: DB 비밀번호와 같은 민감 정보는 **Encrypt**를 사용하여 암호화 된 상태로 저장소에 올리고 런타임시 복호화 하여 사용합니다
+- **Centralized Management**: 서비스 재배포 없이 설정 변경 사항을 반영합니다.
+- **Security**: DB 비밀번호와 같은 민감 정보는 **Encrypt**를 사용하여 암호화 된 상태로 저장소에 올리고 런타임시 복호화 하여 사용합니다.
+- **SCB(Spring Cloud Bus)**: Kafka를 사용한 Spring Cloud Bus를 통해 설정 파일 변경시 서비스를 재시작 하지 않고 `refresh` 요청을 통해 마이크로 서비스의 설정을 동적으로 변경합니다.
 
 ```mermaid
 sequenceDiagram
