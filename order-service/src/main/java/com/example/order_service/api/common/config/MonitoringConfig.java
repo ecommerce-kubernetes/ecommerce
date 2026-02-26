@@ -1,4 +1,4 @@
-package com.example.config_service.config;
+package com.example.order_service.api.common.config;
 
 import io.micrometer.core.instrument.Meter;
 import io.micrometer.core.instrument.config.MeterFilter;

@@ -1,4 +1,4 @@
-package com.example.config_service.config;
+package com.example.discovery_service.config;
 
 import io.micrometer.core.instrument.Meter;
 import io.micrometer.core.instrument.config.MeterFilter;
