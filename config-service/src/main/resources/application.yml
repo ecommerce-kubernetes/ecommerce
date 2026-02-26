@@ -9,4 +9,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: refresh, busrefresh, health, info
+        include: refresh, busrefresh, health, info, prometheus
+  endpoint:
+    prometheus:
+      enabled: true

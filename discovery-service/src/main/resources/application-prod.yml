@@ -1,0 +1,6 @@
+logging:
+  level:
+    root: INFO
+    org.springframework.web: WARN
+  loki:
+    url: http://loki:3100/loki/api/v1/push

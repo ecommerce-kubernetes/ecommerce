@@ -1,0 +1,30 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'buynest-services'
+    metrics_path: '/actuator/prometheus'
+    eureka_sd_configs:
+      - server: 'http://discovery-service:8761/eureka'
+
+    relabel_configs:
+      - source_labels: [__meta_eureka_app_name]
+        target_label: application
+        action: lowercase
+        
+      - source_labels: [__meta_eureka_app_name]
+        regex: 'GATEWAY-SERVICE|ORDER-SERVICE|PRODUCT-SERVICE|USER-SERVICE'
+        action: keep
+
+  - job_name: 'discovery-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['discovery-service:8761']
+        labels:
+          application: 'discovery-service'
+  - job_name: 'config-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['config-service:8888']
+        labels:
+          application: 'config-service'

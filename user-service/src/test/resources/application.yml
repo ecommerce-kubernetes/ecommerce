@@ -15,11 +15,24 @@ spring:
       password:
   kafka:
     bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    consumer:
+      group-id: users
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
   flyway:
     enabled: false
   cloud:
     config:
       enabled: false
+
+logging:
+  loki:
+    url: http://localhost:3100/loki/api/v1/push
 
 token:
   expiration_time: 3000000
@@ -30,16 +43,3 @@ user:
   topics:
     user-saga-command: "user.saga.command"
     user-saga-reply: "user.saga.reply"
-
----
-spring:
-  config:
-    activate:
-      on-profile: test-mock
-  autoconfigure:
-    exclude:
-      - org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration
-      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
-  cloud:
-    bus:
-      enabled: false

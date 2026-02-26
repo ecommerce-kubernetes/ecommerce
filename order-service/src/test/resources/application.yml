@@ -21,6 +21,17 @@ spring:
               - uri: http://localhost:${wiremock.server.port}
             coupon-service:
               - uri: http://localhost:${wiremock.server.port}
+  kafka:
+    bootstrap-servers: 127.0.0.1:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    consumer:
+      group-id: orders
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
   jpa:
     hibernate:
       ddl-auto: create-drop
@@ -49,15 +60,7 @@ order:
     user-saga-command: "user.saga.command"
     # 유저 처리 결과 응답
     user-saga-reply: "user.saga.reply"
----
-spring:
-  config:
-    activate:
-      on-profile: test-mock
-  autoconfigure:
-    exclude:
-      - org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration
-      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
-  cloud:
-    bus:
-      enabled: false
+
+logging:
+  loki:
+    url: http://localhost:3100/loki/api/v1/push

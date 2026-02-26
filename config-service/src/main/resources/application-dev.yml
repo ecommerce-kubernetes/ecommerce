@@ -8,9 +8,8 @@ spring:
           password: ${GITHUB_TOKEN}
           default-label: main
           search-paths: /
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: "bus-refresh"
+  kafka:
+    bootstrap-servers: localhost:9092
+logging:
+  loki:
+    url: http://localhost:3100/loki/api/v1/push

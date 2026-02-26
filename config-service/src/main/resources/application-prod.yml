@@ -8,3 +8,11 @@ spring:
           password: ${GITHUB_TOKEN}
           default-label: main
           search-paths: /
+  kafka:
+    bootstrap-servers: kafka:29092
+logging:
+  level:
+    root: INFO
+    org.springframework.web: WARN
+  loki:
+    url: http://loki:3100/loki/api/v1/push
