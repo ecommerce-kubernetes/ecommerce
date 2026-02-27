@@ -5,7 +5,7 @@ services:
     image: minsik2434/user-service:latest
     container_name: user-service-blue
     restart: always
-    stop_grace_period: 35s # 스프링 대기시간 보다 여유를 둔다
+    stop_grace_period: 35s 
     networks:
       - buynest-network
     environment:
@@ -18,7 +18,7 @@ services:
     image: minsik2434/user-service:latest
     container_name: user-service-green
     restart: always
-    stop_grace_period: 35s # 스프링 대기시간 보다 여유를 둔다
+    stop_grace_period: 35s
     networks:
       - buynest-network
     environment:
