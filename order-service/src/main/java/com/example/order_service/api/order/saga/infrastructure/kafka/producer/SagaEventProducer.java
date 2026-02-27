@@ -10,12 +10,14 @@ import com.example.common.user.UserSagaCommand;
 import com.example.order_service.api.order.saga.domain.model.vo.Payload;
 import com.example.order_service.api.order.saga.infrastructure.kafka.properties.OrderTopicProperties;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class SagaEventProducer {
@@ -27,6 +29,7 @@ public class SagaEventProducer {
         ProductSagaCommand message = createInventoryRequestMessage(ProductCommandType.DEDUCT_STOCK, sagaId, orderNo, payload);
         kafkaTemplate.send(orderTopicProperties.getProductSagaCommand(),
                 String.valueOf(sagaId), message);
+        log.info("saga 상품 재고 차감 호출");
     }
 
     public void requestCouponUse(Long sagaId, String orderNo, Payload payload) {

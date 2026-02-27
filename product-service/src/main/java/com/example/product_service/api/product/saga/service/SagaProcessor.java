@@ -16,31 +16,21 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 public class SagaProcessor {
-    private final VariantService variantService;
+    private final ProductSagaCommandExecutor executor;
     private final SagaEventProducer sagaEventProducer;
 
     public void productSagaProcess(ProductSagaCommand command) {
         try {
-            List<VariantStockCommand> stockCommands = mapToStockCommand(command);
-            processStockCommand(command.getType(), stockCommands);
+            boolean isAlreadyProcessed = executor.processSagaCommand(command);
+            if (isAlreadyProcessed) {
+                log.info("이미 처리된 Saga Command");
+            }
             sagaEventProducer.sendSagaSuccess(command.getSagaId(), command.getOrderNo());
         } catch (BusinessException e) {
             handleException(command, e.getErrorCode().name(), e.getMessage());
         } catch (Exception e) {
             handleException(command, "SYSTEM_ERROR", "시스템 오류");
         }
-    }
-
-    private void processStockCommand(ProductCommandType type, List<VariantStockCommand> commands) {
-        switch (type) {
-            case DEDUCT_STOCK -> variantService.deductVariantsStock(commands);
-            case RESTORE_STOCK -> variantService.restoreVariantsStock(commands);
-        }
-    }
-
-    private List<VariantStockCommand> mapToStockCommand(ProductSagaCommand command) {
-        return command.getItems().stream().map(item -> VariantStockCommand.of(item.getProductVariantId(), item.getQuantity()))
-                .toList();
     }
 
     private void handleException(ProductSagaCommand command, String code, String message) {
