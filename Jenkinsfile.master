@@ -12,7 +12,61 @@ pipeline {
             }
         }
 
+        stage('SonarQube Code Check') {
+            when { changeRequest target: 'develop' }
+            parallel {
+                stage('check order service') {
+                    when { changeset "order-service/**" }
+                    steps {
+                        dir('order-service') {
+                            script {
+                                echo "order service sonarqube 검사"
+                                sh "chmod +x gradlew"
+                                sh "./gradlew clean build"
+                                withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+                                    sh "./gradlew sonar -Dsonar.token=\$SONAR_TOKEN --info"
+                                }
+                            }
+                        }
+                    }
+                }
+
+                stage('check user service') {
+                    when{ changeset "user-service/**" }
+                    steps {
+                        dir('user-service') {
+                            script {
+                                echo "user service sonarqube 검사"
+                                sh "chmod +x gradlew"
+                                sh "./gradlew clean build"
+                                withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+                                    sh "./gradlew sonar -Dsonar.token=\$SONAR_TOKEN --info"
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                stage('check product service') {
+                    when{ changeset "product-service/**" }
+                    steps {
+                        dir('product-service') {
+                            script {
+                                echo "product service sonarqube 검사"
+                                sh "chmod +x gradlew"
+                                sh "./gradlew clean build"
+                                withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+                                    sh "./gradlew sonar -Dsonar.token=\$SONAR_TOKEN --info"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         stage('Create Network') {
+            when { branch 'main' }
             steps {
                 script {
                     sh "docker network create ${env.MY_NETWORK} || true"
@@ -22,7 +76,12 @@ pipeline {
         }
 
         stage('1. Deploy Config Server'){
-            when {changeset "config-service/**"}
+            when {
+                allOf {
+                    branch 'main'
+                    changeset "config-service/**"
+                }
+            }
             steps {
                 script {
                     echo 'Config Server 배포 시작'
@@ -35,8 +94,11 @@ pipeline {
         stage('2. Deploy Discovery Service') {
             when {
                 anyOf {
-                    changeset "discovery-service/**"
-                    changeset "config-service/**"
+                    branch 'main'
+                    anyOf{
+                        changeset "discovery-service/**"
+                        changeset "config-service/**"
+                    }
                 }
             }
             steps {
@@ -52,9 +114,12 @@ pipeline {
             parallel {
                 stage('User Service') {
                     when {
-                        anyOf {
-                            changeset "user-service/**"
-                            changeset "config-service/**"
+                        allOf {
+                            branch 'main'
+                            anyOf {
+                                changeset "user-service/**"
+                                changeset "config-service/**"
+                            }
                         }
                     }
                     steps {
@@ -67,9 +132,12 @@ pipeline {
 
                 stage('Product Service') {
                     when {
-                        anyOf {
-                            changeset "product-service/**"
-                            changeset "config-service/**"
+                        allOf {
+                            branch 'main'
+                            anyOf {
+                                changeset "product-service/**"
+                                changeset "config-service/**"
+                            }
                         }
                     }
                     steps {
@@ -82,9 +150,12 @@ pipeline {
 
                 stage('Order Service') {
                     when {
-                        anyOf {
-                            changeset "order-service/**"
-                            changeset "config-service/**"
+                        allOf {
+                            branch 'main'
+                            anyOf {
+                                changeset "order-service/**"
+                                changeset "config-service/**"
+                            }
                         }
                     }
                     steps {
@@ -99,12 +170,15 @@ pipeline {
 
         stage('4. Deploy Docs Service') {
             when {
-                anyOf {
-                    changeset "docs-service/**"
-                    changeset "user-service/**"
-                    changeset "product-service/**"
-                    changeset "order-service/**"
-                    changeset "config-service/**"
+                allOf {
+                    branch 'main'
+                    anyOf {
+                        changeset "docs-service/**"
+                        changeset "user-service/**"
+                        changeset "product-service/**"
+                        changeset "order-service/**"
+                        changeset "config-service/**"
+                    }
                 }
             }
             steps {
@@ -117,9 +191,12 @@ pipeline {
 
         stage('4. Deploy API Gateway') {
             when {
-                anyOf {
-                    changeset "gateway-service/**"
-                    changeset "config-service/**"
+                allOf {
+                    branch 'main'
+                    anyOf {
+                        changeset "gateway-service/**"
+                        changeset "config-service/**"
+                    }
                 }
             }
             steps {
