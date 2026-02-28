@@ -6,6 +6,7 @@ plugins {
 	id "org.asciidoctor.jvm.convert" version "3.3.2"
 	id 'com.epages.restdocs-api-spec' version '0.19.2'
 	id "org.sonarqube" version "7.1.0.6387"
+	id "jacoco"
 }
 
 group = 'com.example'
@@ -20,7 +21,9 @@ java {
 sonar {
 	properties {
 		property "sonar.organization", "ecommerce-kubernetes"
-		property "sonar.projectKey", "ecommerce-kubernetes_ecommerce"
+		property "sonar.projectKey", "ecommerce-kubernetes_user-service"
+		property "sonar.projectName", "User Service"
+		property "sonar.coverage.jacoco.xmlReportPaths", "build/reports/jacoco/test/jacocoTestReport.xml"
 	}
 }
 
@@ -44,6 +47,16 @@ ext {
 
 test {
 	outputs.dir snippetsDir
+	useJUnitPlatform()
+	finalizedBy jacocoTestReport
+}
+
+jacocoTestReport {
+	dependsOn test
+	reports {
+		xml.required = true
+		html.required = true
+	}
 }
 
 asciidoctor {
@@ -128,10 +141,6 @@ dependencyManagement {
 	imports {
 		mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
 	}
-}
-
-tasks.named('test') {
-	useJUnitPlatform()
 }
 
 clean {
