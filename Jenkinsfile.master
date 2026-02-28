@@ -36,7 +36,14 @@ pipeline {
                                 sh "chmod +x gradlew"
                                 sh "./gradlew clean build"
                                 withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
-                                    sh "./gradlew sonar -Dsonar.token=\$SONAR_TOKEN --info"
+                                    sh """
+                                        ./gradlew sonar \
+                                        -Dsonar.token=$SONAR_TOKEN \
+                                        -Dsonar.pullrequest.key=${env.CHANGE_ID} \
+                                        -Dsonar.pullrequest.branch=${env.CHANGE_BRANCH} \
+                                        -Dsonar.pullrequest.base=${env.CHANGE_TARGET} \
+                                        --info
+                                    """
                                 }
                             }
                         }
@@ -68,7 +75,14 @@ pipeline {
                                 sh "chmod +x gradlew"
                                 sh "./gradlew clean build"
                                 withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
-                                    sh "./gradlew sonar -Dsonar.token=\$SONAR_TOKEN --info"
+                                    sh """
+                                        ./gradlew sonar \
+                                        -Dsonar.token=$SONAR_TOKEN \
+                                        -Dsonar.pullrequest.key=${env.CHANGE_ID} \
+                                        -Dsonar.pullrequest.branch=${env.CHANGE_BRANCH} \
+                                        -Dsonar.pullrequest.base=${env.CHANGE_TARGET} \
+                                        --info
+                                    """
                                 }
                             }
                         }
@@ -91,7 +105,14 @@ pipeline {
                                 sh "chmod +x gradlew"
                                 sh "./gradlew clean build"
                                 withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
-                                    sh "./gradlew sonar -Dsonar.token=\$SONAR_TOKEN --info"
+                                    sh """
+                                        ./gradlew sonar \
+                                        -Dsonar.token=$SONAR_TOKEN \
+                                        -Dsonar.pullrequest.key=${env.CHANGE_ID} \
+                                        -Dsonar.pullrequest.branch=${env.CHANGE_BRANCH} \
+                                        -Dsonar.pullrequest.base=${env.CHANGE_TARGET} \
+                                        --info
+                                    """
                                 }
                             }
                         }
