@@ -13,10 +13,22 @@ pipeline {
         }
 
         stage('SonarQube Code Check') {
-            when { changeRequest target: 'develop' }
+            when { 
+                anyOf {
+                    changeRequest target: 'develop' 
+                    branch 'develop'                
+                }
+            }
             parallel {
                 stage('check order service') {
-                    when { changeset "order-service/**" }
+                    when {
+                        anyOf {
+                            changeset "order-service/**"
+                            expression {
+                                return sh(script: "git diff --name-only origin/${env.CHANGE_TARGET}...HEAD | grep -q '^order-service/'", returnStatus: true) == 0
+                            }
+                        }
+                    }
                     steps {
                         dir('order-service') {
                             script {
@@ -32,7 +44,14 @@ pipeline {
                 }
 
                 stage('check user service') {
-                    when{ changeset "user-service/**" }
+                    when {
+                        anyOf {
+                            changeset "user-service/**"
+                            expression {
+                                return sh(script: "git diff --name-only origin/${env.CHANGE_TARGET}...HEAD | grep -q '^user-service/'", returnStatus: true) == 0
+                            }
+                        }
+                    }
                     steps {
                         dir('user-service') {
                             script {
@@ -48,7 +67,14 @@ pipeline {
                 }
                 
                 stage('check product service') {
-                    when{ changeset "product-service/**" }
+                    when {
+                        anyOf {
+                            changeset "product-service/**"
+                            expression {
+                                return sh(script: "git diff --name-only origin/${env.CHANGE_TARGET}...HEAD | grep -q '^product-service/'", returnStatus: true) == 0
+                            }
+                        }
+                    }
                     steps {
                         dir('product-service') {
                             script {
