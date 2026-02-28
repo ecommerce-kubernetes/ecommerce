@@ -56,7 +56,7 @@ pipeline {
                         dir('user-service') {
                             script {
                                 echo "user service sonarqube 검사"
-                                env.TESTCONTAINERS_HOST_OVERRIDE = "localhost"
+                                env.TESTCONTAINERS_HOST_OVERRIDE = "172.17.0.1"
                                 env.TESTCONTAINERS_RYUK_DISABLED = "true"
                                 sh "chmod +x gradlew"
                                 sh "./gradlew clean build"
