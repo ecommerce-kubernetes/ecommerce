@@ -13,7 +13,7 @@ if [ ! -f "$PATH" ]; then
     exit 1
 fi
 
-if [ "$MODE" == "prom"]; then
+if [ "$MODE" = "prom" ]; then
     echo "Prometheus 지표 연동 실행 : $PATH"
     k6 run -o experimental-prometheus-rw "$PATH"
 else 
