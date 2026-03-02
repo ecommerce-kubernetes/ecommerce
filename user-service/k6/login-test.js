@@ -17,7 +17,7 @@ export const options = {
 
 export default function () {
     const baseUrl = __ENV.BASE_URL
-    const url = `${baseUrl}/login`
+    const url = `${baseUrl}/auth/login`
     const payload = JSON.stringify({
         email: __ENV.TEST_EMAIL,
         password: __ENV.TEST_PASSWORD
