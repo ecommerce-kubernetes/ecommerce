@@ -1,5 +1,10 @@
 import http from 'k6/http';
 import { check, sleep } from 'k6';
+import { SharedArray } from 'k6/data';
+
+const users = new SharedArray('users', function () {
+    return JSON.parse(open('./users.json'));
+});
 
 // 테스트 설정
 export const options = {
@@ -16,11 +21,12 @@ export const options = {
 }
 
 export default function () {
-    const baseUrl = __ENV.BASE_URL
-    const url = `${baseUrl}/auth/login`
+    // 계정 여러개 사용
+    const user = users[(__VU - 1) % users.length];
+
     const payload = JSON.stringify({
-        email: __ENV.TEST_EMAIL,
-        password: __ENV.TEST_PASSWORD
+        email: user.email,
+        password: user.password,
     });
 
     const params = {
@@ -30,7 +36,7 @@ export default function () {
     };
     
     //로그인 post 요청
-    const res = http.post(url, payload, params);
+    const res = http.post(`${__ENV.BASE_URL}/auth/login`, payload, params);
 
     check(res, {
         "로그인 상태 코드 200": (r) => r.status === 200,
