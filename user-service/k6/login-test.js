@@ -34,10 +34,7 @@ export default function () {
 
     check(res, {
         "로그인 상태 코드 200": (r) => r.status === 200,
-
-        'JWT 토큰 정상 발급 확인': (r) => {
-            const hasTokenInBody = r.body.includes('accessToken');
-        }
+        'JWT 토큰 정상 발급 확인': (r) => r.body.includes('accessToken'),
     });
 
     //요청 시간 대기
