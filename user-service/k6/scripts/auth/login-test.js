@@ -1,17 +1,24 @@
 import http from 'k6/http';
 import { check, sleep } from 'k6';
 import { SharedArray } from 'k6/data';
+import { htmlReport } from "https://raw.githubusercontent.com/benc-uk/k6-reporter/main/dist/bencuk.js";
+import { textSummary } from "https://jslib.k6.io/k6-summary/0.0.1/index.js";
 
 const users = new SharedArray('users', function () {
-    return JSON.parse(open('./users.json'));
+    return JSON.parse(open('../../data/users.json'));
 });
+
+const maxVus = Number(__ENV.MAX_VUS) || 10;
+const rampUp = __ENV.RAMP_UP || '10s';
+const hold = __ENV.HOLD || '20s';
+const rampDown = __ENV.RAMP_DOWN || '10s';
 
 // 테스트 설정
 export const options = {
     stages: [
-        { duration: '10s', target: 10 }, // 처음 10초 동안 10 명까지 증가
-        { duration: '20s', target: 10 }, // 20초 동안 10명 유지
-        { duration: '10s', target: 0 }, 
+        { duration: rampUp, target: maxVus }, // 처음 10초 동안 10 명까지 증가
+        { duration: hold, target: maxVus }, // 20초 동안 10명 유지
+        { duration: rampDown, target: 0 }, 
     ],
 
     thresholds: {
@@ -45,4 +52,11 @@ export default function () {
 
     //요청 시간 대기
     sleep(1);
+}
+
+export function handleSummary(data) {
+    return {
+        "reports/login-test-report.html": htmlReport(data),
+        stdout: textSummary(data, { indent: " ", enableColors: true }),
+    };
 }
