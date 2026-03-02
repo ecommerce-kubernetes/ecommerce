@@ -1,4 +1,5 @@
 import http from 'k6/http';
+import { check, sleep } from 'k6';
 
 // 테스트 설정
 export const options = {
@@ -18,8 +19,8 @@ export default function () {
     const baseUrl = __ENV.BASE_URL
     const url = `${baseUrl}/login`
     const payload = JSON.stringify({
-        email: "user@naver.com",
-        password: "user1234*"
+        email: __ENV.TEST_EMAIL,
+        password: __ENV.TEST_PASSWORD
     });
 
     const params = {
