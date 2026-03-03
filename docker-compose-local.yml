@@ -5,6 +5,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8888:8888"
+    environment:
+    - SPRING_PROFILES_ACTIVE=dev
     networks:
       - buynest-network
   
@@ -14,6 +16,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8761:8761"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
     depends_on: 
       - "config-service"
     networks:
@@ -25,6 +29,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8082:8082"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
     depends_on:
       - discovery-service
     networks:
@@ -36,6 +42,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8081:8081"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
     depends_on:
       - "discovery-service"
     networks:
@@ -47,6 +55,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8085:8085"
+    environment:    
+      - SPRING_PROFILES_ACTIVE=dev
     depends_on:
       - discovery-service
     networks:
@@ -58,6 +68,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8000:8000"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
     depends_on:
       - user-service
       - order-service
