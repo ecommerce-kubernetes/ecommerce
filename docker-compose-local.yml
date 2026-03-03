@@ -1,0 +1,65 @@
+services:
+  config-service:
+    build:
+      context: ./config-service
+      dockerfile: Dockerfile
+    ports:
+      - "8888:8888"
+    networks:
+      - buynest-network
+  
+  discovery-service:
+    build:
+      context: ./discovery-service
+    ports:
+      - "8761:8761"
+    depends_on: 
+      - "config-service"
+    networks:
+      - buynest-network
+  
+  user-service:
+    build:
+      context: ./user-service
+    ports:
+      - "8082:8082"
+    depends_on:
+      - discovery-service
+    networks:
+      - buynest-network
+  
+  product-service:
+    build:
+      context: ./product-service
+    ports:
+      - "8081:8081"
+    depends_on:
+      - "discovery-service"
+    networks:
+      - buynest-network
+  
+  order-service:
+    build:
+      context: ./order-service
+    ports:
+      - "8085:8085"
+    depends_on:
+      - discovery-service
+    networks:
+      - buynest-network
+    
+  gateway-service:
+    build: 
+      context: ./gateway-service
+    ports:
+      - "8000:8000"
+    depends_on:
+      - user-service
+      - order-service
+      - product-service
+    networks:
+      - buynest-network
+      
+networks:
+  buynest-network:
+    driver: bridge
