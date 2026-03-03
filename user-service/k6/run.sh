@@ -17,6 +17,6 @@ if [ "$MODE" = "prom" ]; then
     echo "Prometheus 지표 연동 실행 : $FULL_PATH"
     k6 run -o experimental-prometheus-rw "$FULL_PATH"
 else 
-    echo "일반 테스트 진행 (HTML 결과만 생성): $FULL_PATHH"
+    echo "일반 테스트 진행 (HTML 결과만 생성): $FULL_PATH"
     k6 run "$FULL_PATH"
 fi
