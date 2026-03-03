@@ -58,7 +58,7 @@ services:
       - "9411:9411"
     environment:
       - STORAGE_TYPE=mysql
-      - MYSQL_HOST=${ZIPKIN_MYSQL_HOST}
+      - MYSQL_HOST=zipkin-db
       - MYSQL_USER=root
       - MYSQL_PASS=${ZIPKIN_DB_PASSWORD}
       - MYSQL_TCP_PORT=3306
@@ -71,7 +71,7 @@ services:
     ports:
       - "9090:9090"
     volumes:
-      - ${PROMETHEUS_CONFIG_PATH}:/etc/prometheus/prometheus.yml
+      - ../prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
     restart: unless-stopped
 
   grafana:
