@@ -11,6 +11,7 @@ services:
   discovery-service:
     build:
       context: ./discovery-service
+      dockerfile: Dockerfile
     ports:
       - "8761:8761"
     depends_on: 
@@ -21,6 +22,7 @@ services:
   user-service:
     build:
       context: ./user-service
+      dockerfile: Dockerfile
     ports:
       - "8082:8082"
     depends_on:
@@ -31,6 +33,7 @@ services:
   product-service:
     build:
       context: ./product-service
+      dockerfile: Dockerfile
     ports:
       - "8081:8081"
     depends_on:
@@ -41,6 +44,7 @@ services:
   order-service:
     build:
       context: ./order-service
+      dockerfile: Dockerfile
     ports:
       - "8085:8085"
     depends_on:
@@ -51,6 +55,7 @@ services:
   gateway-service:
     build: 
       context: ./gateway-service
+      dockerfile: Dockerfile
     ports:
       - "8000:8000"
     depends_on:
