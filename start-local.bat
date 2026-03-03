@@ -36,6 +36,7 @@ echo 미들웨어 초기화 대기
 timeout /t 10 /nobreak > nul
 
 echo [4/4] 마이크로 서비스 도커 빌드 실행
-docker compose -f docker-compose-local.yml up -d --build
+docker compose -f docker-compose-local.yml build --progress=plain
+docker compose -f docker-compose-local.yml up -d
 
 echo 모든 작업 완료
