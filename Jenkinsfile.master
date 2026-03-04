@@ -194,7 +194,7 @@ pipeline {
 
         stage('2. Deploy Discovery Service') {
             when {
-                anyOf {
+                allOf {
                     branch 'main'
                     anyOf{
                         changeset "discovery-service/**"
