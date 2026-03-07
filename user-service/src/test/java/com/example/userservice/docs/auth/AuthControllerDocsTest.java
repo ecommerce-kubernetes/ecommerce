@@ -75,9 +75,11 @@ class AuthControllerDocsTest extends RestDocsSupport {
                                         ResourceSnippetParameters.builder()
                                                 .tag(TAG)
                                                 .summary("로그인")
-                                                .description("이메일과 패스워드로 로그인\n " +
-                                                        "테스트 유저 -> email : user@naver.com, password : user1234*\n " +
-                                                        "테스트 어드민 -> email : admin@naver.com, password : admin1234*")
+                                                .description("""
+                                                        이메일과 패스워드로 로그인
+                                                        "테스트 유저 -> email : user@naver.com, password : user1234*
+                                                        "테스트 어드민 -> email : admin@naver.com, password : admin1234*
+                                                        """)
                                                 .requestFields(requestFields)
                                                 .responseFields(responseFields)
                                                 .build()
