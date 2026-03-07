@@ -27,7 +27,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 
 @Transactional
-public class AuthServiceTest extends ExcludeInfraTest {
+class AuthServiceTest extends ExcludeInfraTest {
 
     @Autowired
     private AuthService authService;

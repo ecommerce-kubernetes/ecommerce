@@ -25,7 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @Import(TestSecurityConfig.class)
-public class AuthControllerTest extends ControllerTestSupport {
+class AuthControllerTest extends ControllerTestSupport {
 
     @Test
     @DisplayName("로그인")

@@ -16,7 +16,7 @@ import java.nio.charset.StandardCharsets;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class TokenGeneratorTest extends ExcludeInfraTest {
+class TokenGeneratorTest extends ExcludeInfraTest {
 
     @Autowired
     private TokenGenerator tokenGenerator;

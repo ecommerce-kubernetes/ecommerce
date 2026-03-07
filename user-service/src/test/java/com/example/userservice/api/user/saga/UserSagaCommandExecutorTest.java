@@ -22,7 +22,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class UserSagaCommandExecutorTest {
+class UserSagaCommandExecutorTest {
 
     @InjectMocks
     private UserSagaCommandExecutor executor;

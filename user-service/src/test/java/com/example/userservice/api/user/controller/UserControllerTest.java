@@ -24,7 +24,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @Import(TestSecurityConfig.class)
-public class UserControllerTest extends ControllerTestSupport {
+class UserControllerTest extends ControllerTestSupport {
 
     @Test
     @DisplayName("회원을 생성한다")

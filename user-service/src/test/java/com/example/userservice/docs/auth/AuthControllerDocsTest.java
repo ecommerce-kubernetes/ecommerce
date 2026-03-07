@@ -27,7 +27,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-public class AuthControllerDocsTest extends RestDocsSupport {
+class AuthControllerDocsTest extends RestDocsSupport {
 
     private AuthService authService = Mockito.mock(AuthService.class);
 
