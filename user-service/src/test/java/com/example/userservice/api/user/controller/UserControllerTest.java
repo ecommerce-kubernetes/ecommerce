@@ -56,7 +56,7 @@ class UserControllerTest extends ControllerTestSupport {
                 .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value("VALIDATION"))
+                .andExpect(jsonPath("$.code").value("COMMON_001"))
                 .andExpect(jsonPath("$.message").value(errorMessage))
                 .andExpect(jsonPath("$.timestamp").exists())
                 .andExpect(jsonPath("$.path").value("/users"));

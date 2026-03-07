@@ -2,6 +2,7 @@ package com.example.userservice.api.common.error;
 
 import com.example.userservice.api.common.error.dto.response.ErrorResponse;
 import com.example.userservice.api.common.exception.BusinessException;
+import com.example.userservice.api.common.exception.CommonErrorCode;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,15 +20,16 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ControllerAdvice {
 
-    private static final String VALIDATION_CODE = "VALIDATION";
-
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> validationExceptionHandler(HttpServletRequest request,
                                                                     MethodArgumentNotValidException e) {
         LocalDateTime now = LocalDateTime.now();
         List<FieldError> fieldErrors = e.getBindingResult().getFieldErrors();
         String message = fieldErrors.get(0).getDefaultMessage();
-        ErrorResponse response = ErrorResponse.of(VALIDATION_CODE, message, now.toString(), request.getRequestURI());
+
+        CommonErrorCode errorCode = CommonErrorCode.INVALID_INPUT_VALUE;
+
+        ErrorResponse response = ErrorResponse.of(errorCode.getCode(), message, now.toString(), request.getRequestURI());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
@@ -36,10 +38,12 @@ public class ControllerAdvice {
                                                           HttpMessageNotReadableException e) {
         LocalDateTime now = LocalDateTime.now();
         if (e.getMessage().contains("LocalDate")) {
-            ErrorResponse response = ErrorResponse.of(VALIDATION_CODE, "잘못된 날짜 형식입니다", now.toString(), request.getRequestURI());
+            CommonErrorCode errorCode = CommonErrorCode.INVALID_DATE_FORMAT;
+            ErrorResponse response = ErrorResponse.of(errorCode.getCode(), errorCode.getMessage(), now.toString(), request.getRequestURI());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
-        ErrorResponse response = ErrorResponse.of(VALIDATION_CODE, "요청 데이터 형식이 올바르지 않습니다", now.toString(), request.getRequestURI());
+        CommonErrorCode errorCode = CommonErrorCode.INVALID_TYPE_VALUE;
+        ErrorResponse response = ErrorResponse.of(errorCode.getCode(), errorCode.getMessage(), now.toString(), request.getRequestURI());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
