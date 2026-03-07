@@ -84,7 +84,8 @@ class AuthServiceTest extends ExcludeInfraTest {
             userRepository.save(User.createUser(command, encryptPwd));
             //when
             //then
-            assertThatThrownBy(() -> authService.login(command.getEmail(), "invalidPassword"))
+            String email = command.getEmail();
+            assertThatThrownBy(() -> authService.login(email, "invalidPassword"))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(AuthErrorCode.PASSWORD_NOT_MATCH);
