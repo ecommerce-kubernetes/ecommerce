@@ -49,9 +49,9 @@ public abstract class IncludeInfraTest {
     
 
     @Value("${user.topics.user-saga-command}")
-    protected String USER_SAGA_COMMAND;
+    protected String userSagaCommand;
     @Value("${user.topics.user-saga-reply}")
-    protected String USER_SAGA_REPLY;
+    protected String userSagaReply;
     @Autowired
     protected EmbeddedKafkaBroker embeddedKafkaBroker;
     @Autowired
@@ -108,9 +108,9 @@ public abstract class IncludeInfraTest {
                 continue;
             }
 
-            for (ConsumerRecord<String, String> record : records) {
-                if (record.key() != null && record.key().equals(key)) {
-                    return record;
+            for (ConsumerRecord<String, String> consumerRecord : records) {
+                if (consumerRecord .key() != null && consumerRecord .key().equals(key)) {
+                    return consumerRecord ;
                 }
             }
         }

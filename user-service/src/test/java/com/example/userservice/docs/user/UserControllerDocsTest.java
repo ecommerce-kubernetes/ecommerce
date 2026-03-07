@@ -26,7 +26,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-public class UserControllerDocsTest extends RestDocsSupport {
+class UserControllerDocsTest extends RestDocsSupport {
     private UserService userService = mock(UserService.class);
 
     private static final String TAG = "USER";

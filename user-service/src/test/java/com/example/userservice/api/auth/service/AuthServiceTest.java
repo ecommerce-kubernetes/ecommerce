@@ -27,7 +27,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 
 @Transactional
-public class AuthServiceTest extends ExcludeInfraTest {
+class AuthServiceTest extends ExcludeInfraTest {
 
     @Autowired
     private AuthService authService;
@@ -84,7 +84,8 @@ public class AuthServiceTest extends ExcludeInfraTest {
             userRepository.save(User.createUser(command, encryptPwd));
             //when
             //then
-            assertThatThrownBy(() -> authService.login(command.getEmail(), "invalidPassword"))
+            String email = command.getEmail();
+            assertThatThrownBy(() -> authService.login(email, "invalidPassword"))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(AuthErrorCode.PASSWORD_NOT_MATCH);

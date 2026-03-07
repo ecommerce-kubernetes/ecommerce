@@ -21,7 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @Transactional
-public class UserServiceTest extends ExcludeInfraTest {
+class UserServiceTest extends ExcludeInfraTest {
 
     @Autowired
     private UserService userService;

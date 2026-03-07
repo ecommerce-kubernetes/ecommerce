@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.Duration;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/auth")
@@ -36,7 +38,7 @@ public class AuthController {
                 .httpOnly(true)
                 .secure(true)
                 .path("/")
-                .maxAge(24 * 60 * 60)
+                .maxAge(Duration.ofDays(1))
                 .sameSite("None")
                 .build();
     }

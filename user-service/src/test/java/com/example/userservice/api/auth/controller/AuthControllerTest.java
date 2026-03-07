@@ -25,7 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @Import(TestSecurityConfig.class)
-public class AuthControllerTest extends ControllerTestSupport {
+class AuthControllerTest extends ControllerTestSupport {
 
     @Test
     @DisplayName("로그인")
@@ -57,7 +57,7 @@ public class AuthControllerTest extends ControllerTestSupport {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value("VALIDATION"))
+                .andExpect(jsonPath("$.code").value("COMMON_001"))
                 .andExpect(jsonPath("$.message").value(message))
                 .andExpect(jsonPath("$.timestamp").exists())
                 .andExpect(jsonPath("$.path").value("/auth/login"));

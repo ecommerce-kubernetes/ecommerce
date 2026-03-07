@@ -2,6 +2,7 @@ package com.example.userservice.api.common.error;
 
 import com.example.userservice.api.common.error.dto.response.ErrorResponse;
 import com.example.userservice.api.common.exception.BusinessException;
+import com.example.userservice.api.common.exception.CommonErrorCode;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -25,7 +26,10 @@ public class ControllerAdvice {
         LocalDateTime now = LocalDateTime.now();
         List<FieldError> fieldErrors = e.getBindingResult().getFieldErrors();
         String message = fieldErrors.get(0).getDefaultMessage();
-        ErrorResponse response = ErrorResponse.of("VALIDATION", message, now.toString(), request.getRequestURI());
+
+        CommonErrorCode errorCode = CommonErrorCode.INVALID_INPUT_VALUE;
+
+        ErrorResponse response = ErrorResponse.of(errorCode.getCode(), message, now.toString(), request.getRequestURI());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
@@ -34,10 +38,12 @@ public class ControllerAdvice {
                                                           HttpMessageNotReadableException e) {
         LocalDateTime now = LocalDateTime.now();
         if (e.getMessage().contains("LocalDate")) {
-            ErrorResponse response = ErrorResponse.of("VALIDATION", "잘못된 날짜 형식입니다", now.toString(), request.getRequestURI());
+            CommonErrorCode errorCode = CommonErrorCode.INVALID_DATE_FORMAT;
+            ErrorResponse response = ErrorResponse.of(errorCode.getCode(), errorCode.getMessage(), now.toString(), request.getRequestURI());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
-        ErrorResponse response = ErrorResponse.of("VALIDATION", "요청 데이터 형식이 올바르지 않습니다", now.toString(), request.getRequestURI());
+        CommonErrorCode errorCode = CommonErrorCode.INVALID_TYPE_VALUE;
+        ErrorResponse response = ErrorResponse.of(errorCode.getCode(), errorCode.getMessage(), now.toString(), request.getRequestURI());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 

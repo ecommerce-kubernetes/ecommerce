@@ -16,12 +16,12 @@ import java.nio.charset.StandardCharsets;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class TokenGeneratorTest extends ExcludeInfraTest {
+class TokenGeneratorTest extends ExcludeInfraTest {
 
     @Autowired
     private TokenGenerator tokenGenerator;
     @Value("${token.secret}")
-    private String TEST_SECRET_KEY;
+    private String testSecretKey;
     @Test
     @DisplayName("액세스 토큰과 리프레시 토큰을 생성한다")
     void generateTokenData(){
@@ -34,11 +34,13 @@ public class TokenGeneratorTest extends ExcludeInfraTest {
         assertThat(parseToken(tokenData.getAccessToken()).getSubject()).isEqualTo(String.valueOf(1L));
         assertThat(parseToken(tokenData.getRefreshToken()).getSubject()).isEqualTo(String.valueOf(1L));
 
-        assertThat(parseToken(tokenData.getAccessToken()).get("role")).isEqualTo(Role.ROLE_USER.name());
+        Claims claims = parseToken(tokenData.getAccessToken());
+        assertThat(claims)
+                .containsEntry("role", Role.ROLE_USER.name());
     }
 
     private Claims parseToken(String token) {
-        SecretKey secretKey = Keys.hmacShaKeyFor(TEST_SECRET_KEY.getBytes(StandardCharsets.UTF_8));
+        SecretKey secretKey = Keys.hmacShaKeyFor(testSecretKey.getBytes(StandardCharsets.UTF_8));
         return Jwts.parser()
                 .verifyWith(secretKey)
                 .build()
