@@ -20,6 +20,7 @@ public class TestSecurityConfig {
                         auth -> auth
                                 .requestMatchers(HttpMethod.POST, "/users").permitAll()
                                 .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
+                                .requestMatchers("/exception").permitAll()
                                 .anyRequest().authenticated()
                 );
 

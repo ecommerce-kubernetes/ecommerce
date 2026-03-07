@@ -1,10 +1,9 @@
-package com.example.userservice.api.user.saga;
+package com.example.userservice.api.user.saga.service;
 
 import com.example.common.user.UserCommandType;
 import com.example.common.user.UserSagaCommand;
 import com.example.userservice.api.user.saga.domain.model.ProcessedSagaEvent;
 import com.example.userservice.api.user.saga.domain.repository.ProcessedSagaEventRepository;
-import com.example.userservice.api.user.saga.service.UserSagaCommandExecutor;
 import com.example.userservice.api.user.service.UserService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
