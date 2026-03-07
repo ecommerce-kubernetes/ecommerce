@@ -108,9 +108,9 @@ public abstract class IncludeInfraTest {
                 continue;
             }
 
-            for (ConsumerRecord<String, String> record : records) {
-                if (record.key() != null && record.key().equals(key)) {
-                    return record;
+            for (ConsumerRecord<String, String> consumerRecord : records) {
+                if (consumerRecord .key() != null && consumerRecord .key().equals(key)) {
+                    return consumerRecord ;
                 }
             }
         }
