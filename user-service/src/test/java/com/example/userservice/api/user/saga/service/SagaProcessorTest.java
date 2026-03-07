@@ -3,6 +3,7 @@ package com.example.userservice.api.user.saga.service;
 import com.example.common.user.UserCommandType;
 import com.example.common.user.UserSagaCommand;
 import com.example.userservice.api.common.exception.BusinessException;
+import com.example.userservice.api.common.exception.SagaErrorCode;
 import com.example.userservice.api.common.exception.UserErrorCode;
 import com.example.userservice.api.user.saga.producer.SagaEventProducer;
 import org.junit.jupiter.api.DisplayName;
@@ -14,6 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
@@ -21,7 +23,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
-public class SagaProcessorTest {
+class SagaProcessorTest {
 
     @InjectMocks
     private SagaProcessor sagaProcessor;
@@ -91,5 +93,20 @@ public class SagaProcessorTest {
         sagaProcessor.userSagaProcess(command);
         //then
         verify(executor, times(1)).processSagaCommand(command);
+    }
+
+    @Test
+    @DisplayName("포인트 복구 메시지 수신후 포인트 복구를 실패한 경우 예외를 던진다")
+    void userSagaProcess_refund_point_fail(){
+        //given
+        UserSagaCommand command = UserSagaCommand.of(UserCommandType.REFUND_POINT, 1L, "ORDER_NO", 1L, 1000L, LocalDateTime.now());
+        willThrow(new BusinessException(SagaErrorCode.POINT_REFOUND_FAILED))
+                .given(executor).processSagaCommand(command);
+        //when
+        //then
+        assertThatThrownBy(() -> sagaProcessor.userSagaProcess(command))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(SagaErrorCode.POINT_REFOUND_FAILED);
     }
 }
