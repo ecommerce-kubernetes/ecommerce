@@ -21,7 +21,7 @@ class TokenGeneratorTest extends ExcludeInfraTest {
     @Autowired
     private TokenGenerator tokenGenerator;
     @Value("${token.secret}")
-    private String TEST_SECRET_KEY;
+    private String testSecretKey;
     @Test
     @DisplayName("액세스 토큰과 리프레시 토큰을 생성한다")
     void generateTokenData(){
@@ -38,7 +38,7 @@ class TokenGeneratorTest extends ExcludeInfraTest {
     }
 
     private Claims parseToken(String token) {
-        SecretKey secretKey = Keys.hmacShaKeyFor(TEST_SECRET_KEY.getBytes(StandardCharsets.UTF_8));
+        SecretKey secretKey = Keys.hmacShaKeyFor(testSecretKey.getBytes(StandardCharsets.UTF_8));
         return Jwts.parser()
                 .verifyWith(secretKey)
                 .build()

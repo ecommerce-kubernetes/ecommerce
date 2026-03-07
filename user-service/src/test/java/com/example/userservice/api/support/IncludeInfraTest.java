@@ -49,9 +49,9 @@ public abstract class IncludeInfraTest {
     
 
     @Value("${user.topics.user-saga-command}")
-    protected String USER_SAGA_COMMAND;
+    protected String userSagaCommand;
     @Value("${user.topics.user-saga-reply}")
-    protected String USER_SAGA_REPLY;
+    protected String userSagaReply;
     @Autowired
     protected EmbeddedKafkaBroker embeddedKafkaBroker;
     @Autowired
