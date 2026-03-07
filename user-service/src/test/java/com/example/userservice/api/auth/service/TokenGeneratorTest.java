@@ -34,7 +34,9 @@ class TokenGeneratorTest extends ExcludeInfraTest {
         assertThat(parseToken(tokenData.getAccessToken()).getSubject()).isEqualTo(String.valueOf(1L));
         assertThat(parseToken(tokenData.getRefreshToken()).getSubject()).isEqualTo(String.valueOf(1L));
 
-        assertThat(parseToken(tokenData.getAccessToken()).get("role")).isEqualTo(Role.ROLE_USER.name());
+        Claims claims = parseToken(tokenData.getAccessToken());
+        assertThat(claims)
+                .containsEntry("role", Role.ROLE_USER.name());
     }
 
     private Claims parseToken(String token) {
