@@ -316,7 +316,7 @@ public class CategoryTest {
         void isLeaf_false() {
             //given
             Category parent = CategoryTestBuilder.aCategory().build();
-            Category child = CategoryTestBuilder.aCategory().withParent(parent).build();
+            CategoryTestBuilder.aCategory().withParent(parent).build();
             //when
             boolean isLeaf = parent.isLeaf();
             //then
