@@ -147,9 +147,10 @@ public class ProductServiceTest extends ExcludeInfraTest {
         @DisplayName("상품 옵션을 설정할때 상품을 찾을 수 없으면 예외를 던진다")
         void defineOptions_notFound_product(){
             //given
+            List<Long> productOptions = List.of(1L, 2L);
             //when
             //then
-            assertThatThrownBy(() -> productService.defineOptions(999L, List.of(1L,2L)))
+            assertThatThrownBy(() -> productService.defineOptions(999L, productOptions))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(ProductErrorCode.PRODUCT_NOT_FOUND);
@@ -162,9 +163,11 @@ public class ProductServiceTest extends ExcludeInfraTest {
             OptionType size = saveOptionType("사이즈", List.of("XL", "L", "M", "S"));
             Category category = saveCategory();
             Product product = saveProduct(category);
+            Long productId = product.getId();
+            List<Long> optionTypes = List.of(size.getId(), 999L);
             //when
             //then
-            assertThatThrownBy(() -> productService.defineOptions(product.getId(), List.of(size.getId(), 999L)))
+            assertThatThrownBy(() -> productService.defineOptions(productId, optionTypes))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(OptionErrorCode.OPTION_NOT_FOUND);
@@ -315,9 +318,10 @@ public class ProductServiceTest extends ExcludeInfraTest {
         @DisplayName("상품을 찾을 수 없으면 예외를 던진다")
         void addImages_notFound_product(){
             //given
+            List<String> images = List.of("http://image1.jpg", "http://image2.jpg");
             //when
             //then
-            assertThatThrownBy(() -> productService.updateImages(999L, List.of("http://image1.jpg", "http://image2.jpg")))
+            assertThatThrownBy(() -> productService.updateImages(999L, images))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(ProductErrorCode.PRODUCT_NOT_FOUND);
