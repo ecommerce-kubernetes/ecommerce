@@ -124,10 +124,8 @@ public class Product extends BaseEntity {
         }
 
         // 판매중인 상품이라면 상품 이미지가 존재해야한다
-        if (this.status == ProductStatus.ON_SALE) {
-            if (imageUrls == null || imageUrls.isEmpty()) {
-                throw new BusinessException(ProductErrorCode.IMAGE_REQUIRED_ON_SALE);
-            }
+        if (this.status == ProductStatus.ON_SALE && (imageUrls == null || imageUrls.isEmpty())) {
+            throw new BusinessException(ProductErrorCode.IMAGE_REQUIRED_ON_SALE);
         }
 
         images.clear();

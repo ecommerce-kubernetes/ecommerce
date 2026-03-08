@@ -6,7 +6,6 @@ import com.example.common.product.ProductSagaCommand;
 import com.example.product_service.api.common.exception.BusinessException;
 import com.example.product_service.api.common.exception.ProductErrorCode;
 import com.example.product_service.api.product.saga.producer.SagaEventProducer;
-import com.example.product_service.api.product.service.VariantService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
