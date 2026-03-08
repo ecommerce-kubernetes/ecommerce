@@ -74,6 +74,7 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=dev
       - SPRING_CONFIG_IMPORT=optional:configserver:http://config-service:8888
+      - JAVA_TOOL_OPTIONS=-Xms512m -Xmx512m
     depends_on:
       config-service:
         condition: service_healthy
@@ -81,6 +82,11 @@ services:
         condition: service_healthy
     networks:
       - buynest-network
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
   
   order-service:
     container_name: order-service
