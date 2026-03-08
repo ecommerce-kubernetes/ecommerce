@@ -28,7 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @Import(TestSecurityConfig.class)
-public class CategoryControllerTest extends ControllerTestSupport {
+class CategoryControllerTest extends ControllerTestSupport {
 
     @Test
     @DisplayName("카테고리를 생성한다")

@@ -85,9 +85,10 @@ public class OptionServiceTest extends ExcludeInfraTest {
         void saveOption_duplicate_name(){
             //given
             OptionServiceTest.this.saveOption("사이즈", List.of("XL", "L"));
+            List<String> newValues = List.of("M", "S");
             //when
             //then
-            assertThatThrownBy(() -> optionService.saveOption("사이즈", List.of("M", "S")))
+            assertThatThrownBy(() -> optionService.saveOption("사이즈", newValues))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(OptionErrorCode.DUPLICATE_NAME);
@@ -202,9 +203,10 @@ public class OptionServiceTest extends ExcludeInfraTest {
             //given
             OptionType optionType = saveOption("사이즈", List.of("XL", "L", "M"));
             saveOption("용량", List.of("256GB"));
+            Long targetId = optionType.getId();
             //when
             //then
-            assertThatThrownBy(() -> optionService.updateOptionTypeName(optionType.getId(), "용량"))
+            assertThatThrownBy(() -> optionService.updateOptionTypeName(targetId, "용량"))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(OptionErrorCode.DUPLICATE_NAME);
@@ -228,9 +230,10 @@ public class OptionServiceTest extends ExcludeInfraTest {
             //given
             OptionType size = saveOption("사이즈", List.of("XL", "L"));
             OptionValue xl = findOptionValue(size, "XL");
+            Long targetId = xl.getId();
             //when
             //then
-            assertThatThrownBy(() -> optionService.updateOptionValueName(xl.getId(), "L"))
+            assertThatThrownBy(() -> optionService.updateOptionValueName(targetId, "L"))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(OptionErrorCode.OPTION_VALUE_DUPLICATE_NAME);
@@ -272,9 +275,10 @@ public class OptionServiceTest extends ExcludeInfraTest {
             OptionType size = saveOption("사이즈", List.of("XL", "L"));
             OptionValue xl = findOptionValue(size, "XL");
             settingProductOption(size, xl);
+            Long targetId = size.getId();
             //when
             //then
-            assertThatThrownBy(() -> optionService.deleteOption(size.getId()))
+            assertThatThrownBy(() -> optionService.deleteOption(targetId))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(OptionErrorCode.OPTION_IN_PRODUCT_OPTION);
@@ -307,9 +311,10 @@ public class OptionServiceTest extends ExcludeInfraTest {
             OptionType optionType = saveOption("사이즈", List.of("XL", "L"));
             OptionValue xl = findOptionValue(optionType, "XL");
             settingProductOption(optionType, xl);
+            Long targetId = xl.getId();
             //when
             //then
-            assertThatThrownBy(() -> optionService.deleteOptionValue(xl.getId()))
+            assertThatThrownBy(() -> optionService.deleteOptionValue(targetId))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(OptionErrorCode.OPTION_VALUE_IN_VARIANT);

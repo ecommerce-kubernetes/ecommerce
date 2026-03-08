@@ -20,7 +20,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @Import(TestSecurityConfig.class)
-public class InternalProductControllerTest extends ControllerTestSupport {
+class InternalProductControllerTest extends ControllerTestSupport {
 
     @Test
     @DisplayName("상품 변형을 조회한다")
