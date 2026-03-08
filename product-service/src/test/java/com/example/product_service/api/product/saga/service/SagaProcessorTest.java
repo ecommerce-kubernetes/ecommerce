@@ -5,6 +5,7 @@ import com.example.common.product.ProductCommandType;
 import com.example.common.product.ProductSagaCommand;
 import com.example.product_service.api.common.exception.BusinessException;
 import com.example.product_service.api.common.exception.ProductErrorCode;
+import com.example.product_service.api.common.exception.SagaErrorCode;
 import com.example.product_service.api.product.saga.producer.SagaEventProducer;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -16,6 +17,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
@@ -97,5 +99,20 @@ public class SagaProcessorTest {
         sagaProcessor.productSagaProcess(command);
         //then
         verify(executor, times(1)).processSagaCommand(command);
+    }
+
+    @Test
+    @DisplayName("재고 복구에 실패하면 예외를 던진다")
+    void productSagaProcess_restore_stock_fail() {
+        //given
+        List<Item> items = List.of(Item.builder().productVariantId(1L).quantity(3).build());
+        ProductSagaCommand command = ProductSagaCommand.of(ProductCommandType.RESTORE_STOCK, 1L, "ORDER_NO", 1L, items, LocalDateTime.now());
+        willThrow(new RuntimeException()).given(executor).processSagaCommand(command);
+        //when
+        //then
+        assertThatThrownBy(() -> sagaProcessor.productSagaProcess(command))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(SagaErrorCode.STOCK_RESTORE_FAIL);
     }
 }
