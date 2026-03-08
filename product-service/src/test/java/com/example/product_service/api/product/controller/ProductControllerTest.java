@@ -32,7 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @Import(TestSecurityConfig.class)
-public class ProductControllerTest extends ControllerTestSupport {
+class ProductControllerTest extends ControllerTestSupport {
 
     @Test
     @DisplayName("상품을 생성한다")

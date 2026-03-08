@@ -15,7 +15,7 @@ import java.util.List;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 
-public class SagaEventListerTest extends IncludeInfraTest {
+class SagaEventListerTest extends IncludeInfraTest {
 
     private static final String ORDER_NO = "ORD-20260101-AB12FVC";
 

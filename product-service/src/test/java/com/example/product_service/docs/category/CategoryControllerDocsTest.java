@@ -37,7 +37,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-public class CategoryControllerDocsTest extends RestDocsSupport {
+class CategoryControllerDocsTest extends RestDocsSupport {
 
     CategoryService categoryService = mock(CategoryService.class);
 

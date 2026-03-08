@@ -12,7 +12,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Transactional
-public class CategoryRepositoryTest extends ExcludeInfraTest {
+class CategoryRepositoryTest extends ExcludeInfraTest {
 
     @Autowired
     private CategoryRepository repository;

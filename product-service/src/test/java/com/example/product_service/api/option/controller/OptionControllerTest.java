@@ -27,7 +27,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @Import(TestSecurityConfig.class)
-public class OptionControllerTest extends ControllerTestSupport {
+class OptionControllerTest extends ControllerTestSupport {
 
 
     @Test

@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
 @Transactional
-public class ProductRepositoryTest extends ExcludeInfraTest {
+class ProductRepositoryTest extends ExcludeInfraTest {
     @Autowired
     private ProductRepository productRepository;
     @Autowired
