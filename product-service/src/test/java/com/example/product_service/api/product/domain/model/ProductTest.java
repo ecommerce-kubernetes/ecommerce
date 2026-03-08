@@ -115,9 +115,10 @@ public class ProductTest {
             //given
             OptionType size = createOptionType(1L, "사이즈", List.of("XL", "L"));
             Product product = ProductTestBuilder.aProduct().withStatus(ProductStatus.ON_SALE).build();
+            List<OptionType> productOptions = List.of(size);
             //when
             //then
-            assertThatThrownBy(() -> product.updateOptions(List.of(size)))
+            assertThatThrownBy(() -> product.updateOptions(productOptions))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(ProductErrorCode.OPTION_MODIFICATION_NOT_ALLOWED_ON_SALE);
@@ -132,9 +133,10 @@ public class ProductTest {
             Product product = ProductTestBuilder.aProduct()
                     .withVariants(List.of(mockVariant))
                     .build();
+            List<OptionType> productOptions = List.of(size);
             //when
             //then
-            assertThatThrownBy(() -> product.updateOptions(List.of(size)))
+            assertThatThrownBy(() -> product.updateOptions(productOptions))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(ProductErrorCode.OPTION_MODIFICATION_NOT_ALLOWED_WITH_VARIANT);
@@ -149,9 +151,10 @@ public class ProductTest {
             OptionType texture = createOptionType(3L, "재질", List.of("WOOL", "COTTON"));
             OptionType storage = createOptionType(4L, "용량", List.of("256GB", "128GB"));
             Product product = ProductTestBuilder.aProduct().build();
+            List<OptionType> productOptions = List.of(size, color, texture, storage);
             //when
             //then
-            assertThatThrownBy(() -> product.updateOptions(List.of(size, color, texture, storage)))
+            assertThatThrownBy(() -> product.updateOptions(productOptions))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(ProductErrorCode.OPTION_COUNT_LIMIT_EXCEEDED);
@@ -162,9 +165,10 @@ public class ProductTest {
             //given
             OptionType size = createOptionType(1L, "사이즈", List.of("XL", "L"));
             Product product = ProductTestBuilder.aProduct().build();
+            List<OptionType> productOptions = List.of(size, size);
             //when
             //then
-            assertThatThrownBy(() -> product.updateOptions(List.of(size, size)))
+            assertThatThrownBy(() -> product.updateOptions(productOptions))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(ProductErrorCode.OPTION_TYPE_DUPLICATED);
@@ -319,9 +323,10 @@ public class ProductTest {
         void replaceImages_product_deleted(){
             //given
             Product product = ProductTestBuilder.aProduct().withStatus(ProductStatus.DELETED).build();
+            List<String> productImages = List.of("http://image1.jpg", "http://image2.jpg");
             //when
             //then
-            assertThatThrownBy(() -> product.replaceImages(List.of("http://image1.jpg", "http://image2.jpg")))
+            assertThatThrownBy(() -> product.replaceImages(productImages))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(ProductErrorCode.PRODUCT_NOT_FOUND);
@@ -332,9 +337,10 @@ public class ProductTest {
         void replaceImages_product_on_sale(){
             //given
             Product product = ProductTestBuilder.aProduct().withStatus(ProductStatus.ON_SALE).build();
+            List<String> productImages = List.of();
             //when
             //then
-            assertThatThrownBy(() -> product.replaceImages(List.of()))
+            assertThatThrownBy(() -> product.replaceImages(productImages))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(ProductErrorCode.IMAGE_REQUIRED_ON_SALE);
@@ -548,7 +554,7 @@ public class ProductTest {
         void updateProductInfo_parent_category() {
             //given
             Category parent = Category.create("부모 카테고리", null, "http://image.jpg");
-            Category child = Category.create("자식 카테고리", parent, "http://image.jpg");
+            Category.create("자식 카테고리", parent, "http://image.jpg");
             Product product = ProductTestBuilder.aProduct().build();
             //when
             //then
