@@ -50,9 +50,10 @@ public class ProductVariantTest {
             //given
             OptionValue xl = createOptionValue(1L, "XL");
             ProductVariant variant = ProductVariant.create("TEST", 10000L, 100, 10);
+            List<OptionValue> variantOptions = List.of(xl, xl);
             //when
             //then
-            assertThatThrownBy(() -> variant.addProductVariantOptions(List.of(xl, xl)))
+            assertThatThrownBy(() -> variant.addProductVariantOptions(variantOptions))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(ProductErrorCode.VARIANT_DUPLICATE_OPTION);
