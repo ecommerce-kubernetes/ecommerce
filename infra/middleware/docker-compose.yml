@@ -98,6 +98,20 @@ services:
       - loki-data:/loki
     command: -config.file=/etc/loki/local-config.yml
     restart: unless-stopped
+  
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    restart: always
+    ports: 
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: "admin"
+      MINIO_ROOT_PASSWORD: ${MINIO_PASSWORD}
+    volumes:
+      - minio-data:/data
+    command: server /data --console-address ":9001"
 
 networks:
   default:
@@ -110,3 +124,4 @@ volumes:
   kafka-data:
   loki-data:
   grafana-data:
+  minio-data:
