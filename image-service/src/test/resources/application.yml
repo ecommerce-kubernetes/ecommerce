@@ -1,12 +1,7 @@
 spring:
-  application:
-    name:
-
-upload-root:
-
-gateway:
-  domain:
-  port:
+  cloud:
+    config:
+      enabled: false
 
 eureka:
   client:
@@ -14,6 +9,10 @@ eureka:
     fetch-registry: false
     register-with-eureka: false
 
-swagger:
-  allowed-origins:
-    - "http://localhost:8000"
+minio:
+  endpoint: http://localhost:9000
+  bucket: buynest-images
+  access-key: admin
+  secret-key: test1234
+  region: ap-northeast-2
+  presign-duration: 3
