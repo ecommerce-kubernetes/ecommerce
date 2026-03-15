@@ -1,8 +1,14 @@
 eureka:
   client:
-    enable: false
+    enabled: false
     fetch-registry: false
     register-with-eureka: false
+
+
+spring:
+  cloud:
+    config:
+      enabled: false
 
 minio:
   endpoint: http://localhost:9000
