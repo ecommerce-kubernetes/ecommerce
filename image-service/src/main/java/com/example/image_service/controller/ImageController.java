@@ -5,6 +5,7 @@ import com.example.image_service.service.ImageService;
 import com.example.image_service.service.dto.result.PresignedUrlResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -18,6 +19,7 @@ public class ImageController {
     private final ImageService imageService;
 
     @PostMapping("/presigned-url")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<PresignedUrlResponse> getPresignedUrl(@RequestBody @Validated PresignedRequest request) {
         PresignedUrlResponse response = imageService
                 .generatePresignedUrl(request.getDomain(), request.getOriginalFilename());
