@@ -3,7 +3,7 @@ chcp 65001 > nul
 setlocal enabledelayedexpansion
 
 echo [0/4] 마이크로 서비스 빌드
-set SERVICES=config-service discovery-service, order-service product-service user-service gateway-service
+set SERVICES=config-service discovery-service, order-service product-service user-service image-service gateway-service
 
 for %%s in (%SERVICES%) do (
     echo.
