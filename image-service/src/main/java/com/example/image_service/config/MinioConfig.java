@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Configuration;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 
 import java.net.URI;
@@ -24,6 +25,17 @@ public class MinioConfig {
                 .region(Region.of(properties.getRegion()))
                 .credentialsProvider(StaticCredentialsProvider.create(credentials))
                 .endpointOverride(URI.create(properties.getEndPoint()))
+                .build();
+    }
+
+    @Bean
+    public S3Client s3Client() {
+        AwsBasicCredentials credentials = AwsBasicCredentials.create(properties.getAccessKey(), properties.getSecretKey());
+        return S3Client.builder()
+                .region(Region.of(properties.getRegion()))
+                .credentialsProvider(StaticCredentialsProvider.create(credentials))
+                .endpointOverride(URI.create(properties.getEndPoint()))
+                .forcePathStyle(true)
                 .build();
     }
 }
