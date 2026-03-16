@@ -3,6 +3,7 @@ package com.example.image_service.service;
 import com.example.image_service.config.properties.MinioProperties;
 import com.example.image_service.service.dto.result.PresignedUrlResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
@@ -13,6 +14,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ImageService {
     private final S3Presigner s3Presigner;
     private final MinioProperties properties;
@@ -31,7 +33,7 @@ public class ImageService {
                 .build();
     }
 
-    private String issuedPresignedUrl(String objectKey, String bucket, int duration){
+    private String issuedPresignedUrl(String objectKey, String bucket, int duration) {
         PutObjectRequest objectRequest = PutObjectRequest.builder()
                 .bucket(bucket)
                 .key(objectKey)
@@ -43,7 +45,7 @@ public class ImageService {
         return s3Presigner.presignPutObject(presignRequest).url().toString();
     }
 
-    private String createObjectKey(String domain, String filename){
+    private String createObjectKey(String domain, String filename) {
         String extension = extractExtension(filename);
         return domain + "/" + UUID.randomUUID() + extension;
     }
