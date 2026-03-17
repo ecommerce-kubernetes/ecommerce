@@ -124,8 +124,8 @@ public class CategoryServiceTest extends ExcludeInfraTest {
             CategoryResponse result = categoryService.saveCategory("육류", food.getId(), "http://test.jpg");
             //then
             assertThat(result)
-                    .extracting(CategoryResponse::getName, CategoryResponse::getParentId, CategoryResponse::getDepth)
-                    .containsExactly("육류", food.getId(), 2);
+                    .extracting(CategoryResponse::getName, CategoryResponse::getParentId, CategoryResponse::getDepth, CategoryResponse::getImageUrl)
+                    .containsExactly("육류", food.getId(), 2, "http://test.jpg");
 
             Category saved = categoryRepository.findById(result.getId()).orElseThrow();
             assertThat(saved.getPath()).isEqualTo(food.getId() + "/" + saved.getId());
@@ -145,8 +145,8 @@ public class CategoryServiceTest extends ExcludeInfraTest {
             CategoryResponse result = categoryService.getCategory(category.getId());
             //then
             assertThat(result)
-                    .extracting(CategoryResponse::getId, CategoryResponse::getName, CategoryResponse::getParentId, CategoryResponse::getDepth)
-                    .containsExactly(category.getId(), "카테고리", null, 1);
+                    .extracting(CategoryResponse::getId, CategoryResponse::getName, CategoryResponse::getParentId, CategoryResponse::getDepth, CategoryResponse::getImageUrl)
+                    .containsExactly(category.getId(), "카테고리", null, 1, "http://test.jpg");
         }
 
         @Test
@@ -173,10 +173,10 @@ public class CategoryServiceTest extends ExcludeInfraTest {
             //when
             List<CategoryTreeResponse> result = categoryService.getTree();
             //then
-            assertThat(result).extracting(CategoryTreeResponse::getName, CategoryTreeResponse::getDepth)
+            assertThat(result).extracting(CategoryTreeResponse::getName, CategoryTreeResponse::getDepth, CategoryTreeResponse::getImageUrl)
                     .containsExactly(
-                            tuple("전자", 1),
-                            tuple("식품", 1)
+                            tuple("전자", 1, "http://test.jpg"),
+                            tuple("식품", 1, "http://test.jpg")
                     );
 
             CategoryTreeResponse electronics = result.get(0);
