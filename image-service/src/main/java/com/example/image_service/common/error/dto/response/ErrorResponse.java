@@ -21,13 +21,4 @@ public class ErrorResponse {
         this.timestamp = timestamp;
         this.path = path;
     }
-
-    public static ErrorResponse of(String code, String message, String timestamp, String path) {
-        return ErrorResponse.builder()
-                .code(code)
-                .message(message)
-                .timestamp(timestamp)
-                .path(path)
-                .build();
-    }
 }
