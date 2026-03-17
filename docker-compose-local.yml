@@ -99,6 +99,24 @@ services:
         condition: service_healthy
     networks:
       - buynest-network
+
+  image-service:
+    container_name: image-service
+    build:
+      context: ./image-service
+      dockerfile: Dockerfile
+    ports:
+      - "8083:8083"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-service:8888
+    depends_on:
+      config-service:
+        condition: service_healthy
+      discovery-service:
+        condition: service_healthy
+    networks:
+      - buynest-network
     
   gateway-service:
     container_name: gateway-service
