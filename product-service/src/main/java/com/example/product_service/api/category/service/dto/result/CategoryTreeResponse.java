@@ -41,6 +41,7 @@ public class CategoryTreeResponse {
                 .name(category.getName())
                 .parentId((category.getParent() == null) ? null : category.getParent().getId())
                 .depth(category.getDepth())
+                .imageUrl(category.getImageUrl())
                 .build();
     }
 
