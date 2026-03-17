@@ -163,6 +163,51 @@ pipeline {
                         }
                     }
                 }
+
+                stage('check image service') {
+                    when {
+                        anyOf {
+                            branch 'develop'
+                            allOf {
+                                changeRequest()
+                                anyOf {
+                                    changeset "image-service/**"
+                                    expression {
+                                        return sh(script: "git diff --name-only origin/${env.CHANGE_TARGET}...HEAD | grep -q '^image-service/'", returnStatus: true) == 0
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    steps {
+                        dir('image-service') {
+                            script {
+                                echo "image service sonarqube 검사"
+                                sh "chmod +x gradlew"
+                                sh "./gradlew clean build"
+                                withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+                                    if (env.CHANGE_ID) {
+                                        sh """
+                                            ./gradlew sonar \
+                                            -Dsonar.token=$SONAR_TOKEN \
+                                            -Dsonar.pullrequest.key=${env.CHANGE_ID} \
+                                            -Dsonar.pullrequest.branch=${env.CHANGE_BRANCH} \
+                                            -Dsonar.pullrequest.base=${env.CHANGE_TARGET} \
+                                            --info
+                                        """
+                                    } else {
+                                        sh """
+                                            ./gradlew sonar \
+                                            -Dsonar.token=$SONAR_TOKEN \
+                                            -Dsonar.branch.name=${env.BRANCH_NAME} \
+                                            --info
+                                        """
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
 
