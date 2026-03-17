@@ -20,8 +20,8 @@ java {
 sonar {
 	properties {
 		property "sonar.organization", "ecommerce-kubernetes"
-		property "sonar.projectKey", "buynest-order-service"
-		property "sonar.projectName", "Order Service"
+		property "sonar.projectKey", "buynest-image-service"
+		property "sonar.projectName", "Image Service"
 		property "sonar.coverage.jacoco.xmlReportPaths", "build/reports/jacoco/test/jacocoTestReport.xml"
 	}
 }
