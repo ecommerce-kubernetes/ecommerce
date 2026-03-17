@@ -90,6 +90,7 @@ dependencies {
 	implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'org.springframework.cloud:spring-cloud-starter-bus-kafka'
 
     //S3 SDK
     implementation 'software.amazon.awssdk:s3:2.42.10'
@@ -98,6 +99,7 @@ dependencies {
 	annotationProcessor 'org.projectlombok:lombok'
 
 	//Test
+	testImplementation 'org.springframework.kafka:spring-kafka-test'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'
 	testImplementation 'org.projectlombok:lombok'
