@@ -26,11 +26,8 @@ pipeline {
                             branch 'develop'
                             allOf {
                                 changeRequest()
-                                anyOf {
-                                    changeset "order-service/**"
-                                    expression {
-                                        return sh(script: "git diff --name-only origin/${env.CHANGE_TARGET}...HEAD | grep -q '^order-service/'", returnStatus: true) == 0
-                                    }
+                                expression {
+                                    return sh(script: "git diff --name-only origin/${env.CHANGE_TARGET}...HEAD | grep -q '^order-service/'", returnStatus: true) == 0
                                 }
                             }
                         }
@@ -78,11 +75,8 @@ pipeline {
                             branch 'develop'
                             allOf {
                                 changeRequest()
-                                anyOf {
-                                    changeset "user-service/**"
-                                    expression {
-                                        return sh(script: "git diff --name-only origin/${env.CHANGE_TARGET}...HEAD | grep -q '^user-service/'", returnStatus: true) == 0
-                                    }
+                                expression {
+                                    return sh(script: "git diff --name-only origin/${env.CHANGE_TARGET}...HEAD | grep -q '^user-service/'", returnStatus: true) == 0
                                 }
                             }
                         }
@@ -125,11 +119,8 @@ pipeline {
                             branch 'develop'
                             allOf {
                                 changeRequest()
-                                anyOf {
-                                    changeset "product-service/**"
-                                    expression {
-                                        return sh(script: "git diff --name-only origin/${env.CHANGE_TARGET}...HEAD | grep -q '^product-service/'", returnStatus: true) == 0
-                                    }
+                                expression {
+                                    return sh(script: "git diff --name-only origin/${env.CHANGE_TARGET}...HEAD | grep -q '^product-service/'", returnStatus: true) == 0
                                 }
                             }
                         }
@@ -170,11 +161,8 @@ pipeline {
                             branch 'develop'
                             allOf {
                                 changeRequest()
-                                anyOf {
-                                    changeset "image-service/**"
-                                    expression {
-                                        return sh(script: "git diff --name-only origin/${env.CHANGE_TARGET}...HEAD | grep -q '^image-service/'", returnStatus: true) == 0
-                                    }
+                                expression {
+                                    return sh(script: "git diff --name-only origin/${env.CHANGE_TARGET}...HEAD | grep -q '^image-service/'", returnStatus: true) == 0
                                 }
                             }
                         }
