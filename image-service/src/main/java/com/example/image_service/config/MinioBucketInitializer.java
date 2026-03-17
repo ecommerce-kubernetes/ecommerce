@@ -4,6 +4,7 @@ import com.example.image_service.config.properties.MinioProperties;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.Bucket;
@@ -16,6 +17,7 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 @Slf4j
+@ConditionalOnProperty(prefix = "minio", name = "initialize", havingValue = "true", matchIfMissing = true)
 public class MinioBucketInitializer {
     private final S3Client s3Client;
     private final MinioProperties properties;

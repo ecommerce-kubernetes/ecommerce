@@ -4,13 +4,13 @@ eureka:
     fetch-registry: false
     register-with-eureka: false
 
-
 spring:
   cloud:
     config:
       enabled: false
 
 minio:
+  initialize: false
   endpoint: http://localhost:9000
   bucket: buynest-images
   access-key: admin

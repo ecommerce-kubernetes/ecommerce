@@ -1,5 +1,6 @@
 package com.example.image_service.service;
 
+import com.example.image_service.config.MinioBucketInitializer;
 import com.example.image_service.service.dto.result.PresignedUrlResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -20,7 +21,8 @@ import static org.mockito.Mockito.mock;
 
 @SpringBootTest
 class ImageServiceTest {
-
+    @MockitoBean
+    private MinioBucketInitializer minioBucketInitializer;
     @Autowired
     private ImageService imageService;
     @MockitoBean
