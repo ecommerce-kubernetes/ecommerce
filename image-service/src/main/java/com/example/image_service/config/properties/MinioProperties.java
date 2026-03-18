@@ -10,7 +10,8 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConfigurationProperties(prefix = "minio")
 public class MinioProperties {
-    private String endPoint;
+    private String internalEndpoint;
+    private String externalEndpoint;
     private String bucket;
     private String accessKey;
     private String secretKey;
