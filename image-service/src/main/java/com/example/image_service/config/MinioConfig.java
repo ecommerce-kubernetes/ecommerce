@@ -27,7 +27,7 @@ public class MinioConfig {
         return S3Presigner.builder()
                 .region(Region.of(properties.getRegion()))
                 .credentialsProvider(StaticCredentialsProvider.create(credentials))
-                .endpointOverride(URI.create(properties.getEndPoint()))
+                .endpointOverride(URI.create(properties.getExternalEndpoint()))
                 .serviceConfiguration(serviceConfiguration)
                 .build();
     }
@@ -38,7 +38,7 @@ public class MinioConfig {
         return S3Client.builder()
                 .region(Region.of(properties.getRegion()))
                 .credentialsProvider(StaticCredentialsProvider.create(credentials))
-                .endpointOverride(URI.create(properties.getEndPoint()))
+                .endpointOverride(URI.create(properties.getInternalEndpoint()))
                 .forcePathStyle(true)
                 .build();
     }

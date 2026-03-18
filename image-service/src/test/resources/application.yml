@@ -11,7 +11,8 @@ spring:
 
 minio:
   initialize: false
-  endpoint: http://localhost:9000
+  internal-endpoint: http://minio:9000
+  external-endpoint: http://localhost:9000
   bucket: buynest-images
   access-key: admin
   secret-key: test1234

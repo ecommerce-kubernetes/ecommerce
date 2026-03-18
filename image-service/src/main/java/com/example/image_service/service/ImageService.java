@@ -22,7 +22,7 @@ public class ImageService {
     public PresignedUrlResponse generatePresignedUrl(String domain, String originalFilename) {
         String objectKey = createObjectKey(domain, originalFilename);
         String presignedUrl = issuedPresignedUrl(objectKey, properties.getBucket(), properties.getPresignDuration());
-        return createPresignedUrlResponse(presignedUrl, properties.getEndPoint(), properties.getBucket(), objectKey);
+        return createPresignedUrlResponse(presignedUrl, properties.getExternalEndpoint(), properties.getBucket(), objectKey);
     }
 
     private PresignedUrlResponse createPresignedUrlResponse(String presignedUrl, String endPoint, String bucket, String objectKey) {
