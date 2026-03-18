@@ -22,14 +22,13 @@ public class ImageService {
     public PresignedUrlResponse generatePresignedUrl(String domain, String originalFilename) {
         String objectKey = createObjectKey(domain, originalFilename);
         String presignedUrl = issuedPresignedUrl(objectKey, properties.getBucket(), properties.getPresignDuration());
-        return createPresignedUrlResponse(presignedUrl, properties.getExternalEndpoint(), properties.getBucket(), objectKey);
+        return createPresignedUrlResponse(presignedUrl, objectKey);
     }
 
-    private PresignedUrlResponse createPresignedUrlResponse(String presignedUrl, String endPoint, String bucket, String objectKey) {
-        String imageUrl = String.format("%s/%s/%s", endPoint, bucket, objectKey);
+    private PresignedUrlResponse createPresignedUrlResponse(String presignedUrl, String objectKey) {
         return PresignedUrlResponse.builder()
                 .presignedUrl(presignedUrl)
-                .imageUrl(imageUrl)
+                .imageUrl(objectKey)
                 .build();
     }
 
