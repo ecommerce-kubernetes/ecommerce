@@ -3,9 +3,14 @@ package com.example.userservice.api.auth.service;
 import com.example.userservice.api.auth.service.dto.JwtClaims;
 import com.example.userservice.api.auth.service.properties.TokenProperties;
 import com.example.userservice.api.auth.service.dto.TokenData;
-import com.example.userservice.api.user.domain.model.Role;
+import com.example.userservice.api.common.exception.AuthErrorCode;
+import com.example.userservice.api.common.exception.BusinessException;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.security.SignatureException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -17,7 +22,7 @@ import java.util.Date;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class TokenGenerator {
+public class JwtProvider {
 
     private final TokenProperties tokenProperties;
 
@@ -30,6 +35,24 @@ public class TokenGenerator {
 
     public long getRefreshTokenExpiration() {
         return tokenProperties.getRefreshExpirationTime();
+    }
+
+    public Claims getValidClaims(String token) {
+        try {
+            return Jwts.parser()
+                    .verifyWith(getSecretKey())
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+        } catch (ExpiredJwtException e) {
+            throw new BusinessException(AuthErrorCode.REFRESH_TOKEN_EXPIRED);
+        } catch (SignatureException e) {
+            log.warn("토큰 시그니처 오류");
+            throw new BusinessException(AuthErrorCode.REFRESH_TOKEN_INVALID);
+        } catch (MalformedJwtException e) {
+            log.warn("토큰 형식 오류");
+            throw new BusinessException(AuthErrorCode.REFRESH_TOKEN_INVALID);
+        }
     }
 
     private SecretKey getSecretKey() {

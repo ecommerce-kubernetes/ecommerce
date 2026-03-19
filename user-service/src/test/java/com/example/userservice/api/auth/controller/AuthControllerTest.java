@@ -3,8 +3,10 @@ package com.example.userservice.api.auth.controller;
 import com.example.userservice.api.auth.controller.dto.LoginRequest;
 import com.example.userservice.api.auth.service.dto.LoginResponse;
 import com.example.userservice.api.auth.service.dto.TokenData;
+import com.example.userservice.api.common.exception.AuthErrorCode;
 import com.example.userservice.api.support.ControllerTestSupport;
 import com.example.userservice.api.support.security.config.TestSecurityConfig;
+import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -61,6 +63,38 @@ class AuthControllerTest extends ControllerTestSupport {
                 .andExpect(jsonPath("$.message").value(message))
                 .andExpect(jsonPath("$.timestamp").exists())
                 .andExpect(jsonPath("$.path").value("/auth/login"));
+    }
+
+    @Test
+    @DisplayName("토큰 리프레시")
+    void refresh() throws Exception {
+        //given
+        TokenData token = anTokenData().build();
+        LoginResponse response = anLoginResponse().build();
+        given(authService.refresh(anyString())).willReturn(token);
+        //when
+        //then
+        mockMvc.perform(post("/auth/refresh")
+                .contentType(MediaType.APPLICATION_JSON)
+                .cookie(new Cookie("refreshToken", "token")))
+                .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(response)))
+                .andExpect(cookie().value("refreshToken", token.getRefreshToken()));
+    }
+
+    @Test
+    @DisplayName("리프레시 요청의 쿠키에 토큰이 없는 경우 에러를 반환한다")
+    void refresh_cookie_missing() throws Exception {
+        //given
+        //when
+        //then
+        mockMvc.perform(post("/auth/refresh")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value(AuthErrorCode.REFRESH_TOKEN_MISSING.getCode()))
+                .andExpect(jsonPath("$.message").value(AuthErrorCode.REFRESH_TOKEN_MISSING.getMessage()))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/auth/refresh"));
     }
 
     static Stream<Arguments> provideInvalidLoginRequest() {

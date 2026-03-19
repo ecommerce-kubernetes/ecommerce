@@ -11,3 +11,14 @@ include::{snippets}/02-auth-01-login/http-response.adoc[]
 include::{snippets}/02-auth-01-login/response-fields.adoc[]
 ===== Response Cookies
 include::{snippets}/02-auth-01-login/response-cookies.adoc[]
+
+[[auth-refresh]]
+=== 토큰 리프레시
+==== HTTP Request
+include::{snippets}/02-auth-02-refresh/http-request.adoc[]
+==== HTTP Response
+include::{snippets}/02-auth-02-refresh/http-response.adoc[]
+===== Response Fields
+include::{snippets}/02-auth-02-refresh/response-fields.adoc[]
+===== Response Cookies
+include::{snippets}/02-auth-02-refresh/response-cookies.adoc[]
