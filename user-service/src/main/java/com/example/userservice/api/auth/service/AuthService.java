@@ -2,6 +2,7 @@ package com.example.userservice.api.auth.service;
 
 import com.example.userservice.api.auth.domain.model.RefreshToken;
 import com.example.userservice.api.auth.domain.repository.RefreshTokenRepository;
+import com.example.userservice.api.auth.service.dto.JwtClaims;
 import com.example.userservice.api.auth.service.dto.TokenData;
 import com.example.userservice.api.common.exception.AuthErrorCode;
 import com.example.userservice.api.common.exception.BusinessException;
@@ -26,7 +27,8 @@ public class AuthService {
     public TokenData login(String email, String password) {
         User user = findByEmailOrThrow(email);
         validatePassword(password, user.getEncryptedPwd());
-        TokenData tokenData = tokenGenerator.generateTokenData(user.getId(), user.getRole());
+        JwtClaims jwtClaims = JwtClaims.of(user);
+        TokenData tokenData = tokenGenerator.generateTokenData(jwtClaims);
         RefreshToken refreshToken = RefreshToken.create(user.getId(), tokenData.getRefreshToken());
         tokenRepository.save(refreshToken, tokenGenerator.getRefreshTokenExpiration());
         return tokenData;

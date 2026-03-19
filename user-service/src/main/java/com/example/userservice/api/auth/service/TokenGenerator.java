@@ -1,5 +1,6 @@
 package com.example.userservice.api.auth.service;
 
+import com.example.userservice.api.auth.service.dto.JwtClaims;
 import com.example.userservice.api.auth.service.properties.TokenProperties;
 import com.example.userservice.api.auth.service.dto.TokenData;
 import com.example.userservice.api.user.domain.model.Role;
@@ -20,10 +21,10 @@ public class TokenGenerator {
 
     private final TokenProperties tokenProperties;
 
-    public TokenData generateTokenData(Long userId, Role role) {
+    public TokenData generateTokenData(JwtClaims claims) {
         Date now = new Date();
-        String accessToken = genAccessToken(userId, role, now);
-        String refreshToken = genRefreshToken(userId, now);
+        String accessToken = genAccessToken(claims, now);
+        String refreshToken = genRefreshToken(claims.getId(), now);
         return TokenData.of(accessToken, refreshToken);
     }
 
@@ -35,11 +36,14 @@ public class TokenGenerator {
         return Keys.hmacShaKeyFor(tokenProperties.getSecret().getBytes(StandardCharsets.UTF_8));
     }
 
-    private String genAccessToken(Long userId, Role role, Date date){
+    private String genAccessToken(JwtClaims claims, Date date){
         return Jwts.builder()
-                .subject(String.valueOf(userId))
-                .claim("role", role.name())
-                .claim("type", "ACCESS")
+                .subject(String.valueOf(claims.getId()))
+                .issuer("buynest-user-service")
+                .claim("email", claims.getEmail())
+                .claim("name", claims.getName())
+                .claim("role", claims.getRole().name())
+                .claim("token_type", "ACCESS")
                 .issuedAt(date)
                 .expiration(new Date(date.getTime() + tokenProperties.getExpirationTime()))
                 .signWith(getSecretKey())
@@ -49,7 +53,8 @@ public class TokenGenerator {
     private String genRefreshToken(Long userId, Date date) {
         return Jwts.builder()
                 .subject(String.valueOf(userId))
-                .claim("type", "REFRESH")
+                .issuer("buynest-user-service")
+                .claim("token_type", "REFRESH")
                 .issuedAt(date)
                 .expiration(new Date(date.getTime() + tokenProperties.getRefreshExpirationTime()))
                 .signWith(getSecretKey())

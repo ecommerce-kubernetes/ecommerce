@@ -1,5 +1,6 @@
 package com.example.userservice.api.auth.service;
 
+import com.example.userservice.api.auth.service.dto.JwtClaims;
 import com.example.userservice.api.auth.service.dto.TokenData;
 import com.example.userservice.api.support.ExcludeInfraTest;
 import com.example.userservice.api.user.domain.model.Role;
@@ -26,8 +27,14 @@ class TokenGeneratorTest extends ExcludeInfraTest {
     @DisplayName("액세스 토큰과 리프레시 토큰을 생성한다")
     void generateTokenData(){
         //given
+        JwtClaims jwtPayload = JwtClaims.builder()
+                .id(1L)
+                .email("test@naver.com")
+                .name("홍길동")
+                .role(Role.ROLE_USER)
+                .build();
         //when
-        TokenData tokenData = tokenGenerator.generateTokenData(1L, Role.ROLE_USER);
+        TokenData tokenData = tokenGenerator.generateTokenData(jwtPayload);
         //then
         assertThat(tokenData.getAccessToken()).isNotNull();
         assertThat(tokenData.getRefreshToken()).isNotNull();
