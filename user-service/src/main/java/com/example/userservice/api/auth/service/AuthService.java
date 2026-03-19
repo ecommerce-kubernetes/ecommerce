@@ -52,6 +52,10 @@ public class AuthService {
         return tokenData;
     }
 
+    public void logout(Long userId) {
+        tokenRepository.deleteById(userId);
+    }
+
     private User findByIdOrThrow(Long id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(UserErrorCode.USER_NOT_FOUND));

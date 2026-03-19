@@ -5,6 +5,7 @@ import com.example.userservice.api.auth.service.dto.LoginResponse;
 import com.example.userservice.api.auth.service.dto.TokenData;
 import com.example.userservice.api.common.exception.AuthErrorCode;
 import com.example.userservice.api.support.ControllerTestSupport;
+import com.example.userservice.api.support.security.annotation.WithCustomMockUser;
 import com.example.userservice.api.support.security.config.TestSecurityConfig;
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.DisplayName;
@@ -95,6 +96,37 @@ class AuthControllerTest extends ControllerTestSupport {
                 .andExpect(jsonPath("$.message").value(AuthErrorCode.REFRESH_TOKEN_MISSING.getMessage()))
                 .andExpect(jsonPath("$.timestamp").exists())
                 .andExpect(jsonPath("$.path").value("/auth/refresh"));
+    }
+
+    @Test
+    @DisplayName("로그아웃시 refreshToken 쿠키를 삭제한다")
+    @WithCustomMockUser
+    void logout() throws Exception {
+        //given
+        //when
+        //then
+        mockMvc.perform(post("/auth/logout")
+                .contentType(MediaType.APPLICATION_JSON)
+                .cookie(new Cookie("refreshToken", "token")))
+                .andExpect(status().isNoContent())
+                .andExpect(cookie().value("refreshToken", ""))
+                .andExpect(cookie().maxAge("refreshToken", 0));
+    }
+
+    @Test
+    @DisplayName("로그인 하지 않은 사용자는 로그아웃 할 수 없다")
+    void logout_notLogin() throws Exception {
+        //given
+        //when
+        //then
+        mockMvc.perform(post("/auth/logout")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .cookie(new Cookie("refreshToken", "token")))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("code").value("UNAUTHORIZED"))
+                .andExpect(jsonPath("message").value("인증이 필요한 접근입니다"))
+                .andExpect(jsonPath("timestamp").exists())
+                .andExpect(jsonPath("path").value("/auth/logout"));
     }
 
     static Stream<Arguments> provideInvalidLoginRequest() {

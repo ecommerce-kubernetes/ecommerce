@@ -174,4 +174,18 @@ class AuthServiceTest extends ExcludeInfraTest {
                     .isEqualTo(AuthErrorCode.REFRESH_TOKEN_INVALID);
         }
     }
+
+    @Nested
+    @DisplayName("로그아웃")
+    class Logout {
+        @Test
+        @DisplayName("로그아웃시 저장된 리프레시 토큰을 삭제한다")
+        void logout() {
+            //given
+            //when
+            authService.logout(1L);
+            //then
+            verify(tokenRepository).deleteById(anyLong());
+        }
+    }
 }

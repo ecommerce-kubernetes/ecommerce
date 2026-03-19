@@ -22,3 +22,12 @@ include::{snippets}/02-auth-02-refresh/http-response.adoc[]
 include::{snippets}/02-auth-02-refresh/response-fields.adoc[]
 ===== Response Cookies
 include::{snippets}/02-auth-02-refresh/response-cookies.adoc[]
+
+[[auth-logout]]
+=== 로그아웃
+==== HTTP Request
+include::{snippets}/02-auth-03-logout/http-request.adoc[]
+===== Request Header
+include::{snippets}/02-auth-03-logout/request-headers.adoc[]
+==== HTTP Response
+include::{snippets}/02-auth-03-logout/http-response.adoc[]
