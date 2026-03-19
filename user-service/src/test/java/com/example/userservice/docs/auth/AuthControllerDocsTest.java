@@ -9,14 +9,12 @@ import com.example.userservice.docs.RestDocsSupport;
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.BDDMockito;
 import org.mockito.Mockito;
 import org.springframework.http.MediaType;
 import org.springframework.restdocs.cookies.CookieDescriptor;
 import org.springframework.restdocs.payload.FieldDescriptor;
 
 import static com.epages.restdocs.apispec.MockMvcRestDocumentationWrapper.document;
-import static com.epages.restdocs.apispec.ResourceDocumentation.headerWithName;
 import static com.epages.restdocs.apispec.ResourceDocumentation.resource;
 import static com.example.userservice.api.support.fixture.AuthRequestFixture.anLoginRequest;
 import static com.example.userservice.api.support.fixture.AuthResponseFixture.anTokenData;
