@@ -2,6 +2,7 @@ package com.example.userservice.api.user.service;
 
 import com.example.userservice.api.common.exception.BusinessException;
 import com.example.userservice.api.common.exception.UserErrorCode;
+import com.example.userservice.api.user.controller.dto.EmailAvailableResponse;
 import com.example.userservice.api.user.domain.model.User;
 import com.example.userservice.api.user.domain.repository.UserRepository;
 import com.example.userservice.api.user.service.dto.command.UserCreateCommand;
@@ -33,6 +34,14 @@ public class UserService {
     public UserOrderResponse getUserInfoForOrder(Long userId) {
         User user = findByIdOrThrow(userId);
         return UserOrderResponse.from(user);
+    }
+
+    @Transactional(readOnly = true)
+    public EmailAvailableResponse checkAvailableEmail(String email) {
+        boolean isExist = userRepository.existsByEmail(email);
+        return EmailAvailableResponse.builder()
+                .available(!isExist)
+                .build();
     }
 
     public void deductPoints(Long userId, Long point) {
