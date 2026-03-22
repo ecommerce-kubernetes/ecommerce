@@ -2,6 +2,7 @@ package com.example.userservice.api.user.controller;
 
 import com.example.userservice.api.support.ControllerTestSupport;
 import com.example.userservice.api.support.security.config.TestSecurityConfig;
+import com.example.userservice.api.user.controller.dto.EmailAvailableResponse;
 import com.example.userservice.api.user.controller.dto.UserCreateRequest;
 import com.example.userservice.api.user.service.dto.command.UserCreateCommand;
 import com.example.userservice.api.user.service.dto.result.UserCreateResponse;
@@ -20,7 +21,9 @@ import java.util.stream.Stream;
 import static com.example.userservice.api.support.fixture.UserRequestFixture.anUserCreateRequest;
 import static com.example.userservice.api.support.fixture.UserResponseFixture.anUserCreateResponse;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -85,6 +88,40 @@ class UserControllerTest extends ControllerTestSupport {
                 .andExpect(jsonPath("$.path").value("/users"));
     }
 
+    @Test
+    @DisplayName("사용 가능한 이메일 여부를 확인한다")
+    void checkEmailAvailable() throws Exception {
+        //given
+        String checkEmail = "test@naver.com";
+        EmailAvailableResponse response = EmailAvailableResponse.builder()
+                .available(true)
+                .build();
+        given(userService.checkAvailableEmail(anyString()))
+                .willReturn(response);
+        //when
+        //then
+        mockMvc.perform(get("/users/email-availability")
+                .contentType(MediaType.APPLICATION_JSON)
+                .param("email", checkEmail))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.available").value(true));
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("provideInvalidEmailAvailableParam")
+    @DisplayName("사용 가능 이메일 파라미터 검증")
+    void checkEmailAvailable_validation(String description, String email, String message) throws Exception {
+        mockMvc.perform(get("/users/email-availability")
+                .contentType(MediaType.APPLICATION_JSON)
+                .param("email", email))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("COMMON_001"))
+                .andExpect(jsonPath("$.message").value(message))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/users/email-availability"));
+    }
 
     static Stream<Arguments> provideInvalidCreateRequest() {
         return Stream.of(
@@ -104,6 +141,13 @@ class UserControllerTest extends ControllerTestSupport {
 
                 Arguments.of("전화번호가 없음", anUserCreateRequest().phoneNumber(null).build(), "COMMON_001", "전화번호는 필수 입력값 입니다"),
                 Arguments.of("잘못된 전화번호 형식", anUserCreateRequest().phoneNumber("01012345678").build(), "COMMON_001", "전화번호 형식이 올바르지 않습니다 (예: 010-1234-5678)")
+        );
+    }
+
+    static Stream<Arguments> provideInvalidEmailAvailableParam() {
+        return Stream.of(
+                Arguments.of("이메일 없음", "", "email 파라미터는 필수값 입니다"),
+                Arguments.of("잘못된 이메일 형식", "invalidEmail", "올바른 이메일 형식이 아닙니다")
         );
     }
 }

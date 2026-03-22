@@ -4,7 +4,9 @@ import com.example.userservice.api.common.error.dto.response.ErrorResponse;
 import com.example.userservice.api.common.exception.BusinessException;
 import com.example.userservice.api.common.exception.CommonErrorCode;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.ConstraintViolationException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Slf4j
 @RestControllerAdvice
 @RequiredArgsConstructor
 public class ControllerAdvice {
@@ -30,6 +33,22 @@ public class ControllerAdvice {
         CommonErrorCode errorCode = CommonErrorCode.INVALID_INPUT_VALUE;
 
         ErrorResponse response = ErrorResponse.of(errorCode.getCode(), message, now.toString(), request.getRequestURI());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ErrorResponse> constraintViolationExceptionHandler(HttpServletRequest request,
+                                                                             ConstraintViolationException e){
+        LocalDateTime now = LocalDateTime.now();
+        String message = e.getConstraintViolations().iterator().next().getMessage();
+        CommonErrorCode errorCode = CommonErrorCode.INVALID_INPUT_VALUE;
+        ErrorResponse response = ErrorResponse.of(
+                errorCode.getCode(),
+                message,
+                now.toString(),
+                request.getRequestURI()
+        );
+
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
