@@ -56,6 +56,9 @@ public class Product extends BaseEntity {
     @OneToMany(mappedBy = "product", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProductImage> images = new ArrayList<>();
 
+    @OneToMany(mappedBy = "product", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ProductDescriptionImage> descriptionImages = new ArrayList<>();
+
     @Builder(access = AccessLevel.PRIVATE)
     private Product(String name, Category category, ProductStatus status, String description, LocalDateTime publishedAt, LocalDateTime saleStoppedAt, String thumbnail, Double rating, Long reviewCount, Double popularityScore, Long lowestPrice, Long originalPrice, Integer maxDiscountRate) {
         this.name = name;
@@ -133,6 +136,21 @@ public class Product extends BaseEntity {
             this.images.add(ProductImage.create(this, imageUrls.get(i), i + 1));
         }
         updateThumbnail();
+    }
+
+    public void replaceDescriptionImage(List<String> imageUrls) {
+        if(this.status == ProductStatus.DELETED) {
+            throw new BusinessException(ProductErrorCode.PRODUCT_NOT_FOUND);
+        }
+
+        if(this.status == ProductStatus.ON_SALE && (imageUrls == null || imageUrls.isEmpty())){
+            throw new BusinessException(ProductErrorCode.IMAGE_REQUIRED_ON_SALE);
+        }
+
+        descriptionImages.clear();
+        for(int i=0; i<imageUrls.size(); i++) {
+            this.descriptionImages.add(ProductDescriptionImage.create(this, imageUrls.get(i), i+1));
+        }
     }
 
     public void updateProductInfo(String name, String description, Category category) {
