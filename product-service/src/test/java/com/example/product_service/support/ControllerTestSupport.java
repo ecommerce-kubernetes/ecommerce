@@ -8,7 +8,9 @@ import com.example.product_service.api.product.controller.InternalProductControl
 import com.example.product_service.api.product.controller.ProductController;
 import com.example.product_service.api.product.service.ProductService;
 import com.example.product_service.api.product.service.VariantService;
+import com.example.product_service.support.fixture.FixtureMonkeyFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.navercorp.fixturemonkey.FixtureMonkey;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -17,6 +19,7 @@ import org.springframework.test.web.servlet.MockMvc;
 @WebMvcTest(controllers = {CategoryController.class, OptionController.class,
         ProductController.class, InternalProductController.class, DummyController.class})
 public abstract class ControllerTestSupport {
+    protected final FixtureMonkey fixtureMonkey = FixtureMonkeyFactory.get;
     @Autowired
     protected MockMvc mockMvc;
     @Autowired

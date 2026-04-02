@@ -27,7 +27,7 @@ public class CategoryController {
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CategoryResponse> saveCategory(@RequestBody @Validated CategoryRequest request) {
-        CategoryResponse response = categoryService.saveCategory(request.getName(), request.getParentId(), request.getImageUrl());
+        CategoryResponse response = categoryService.saveCategory(request.getName(), request.getParentId(), request.getImagePath());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -53,7 +53,7 @@ public class CategoryController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CategoryResponse> updateCategory(@PathVariable("categoryId") Long categoryId,
                                                            @RequestBody @Validated UpdateCategoryRequest request) {
-        CategoryResponse response = categoryService.updateCategory(categoryId, request.getName(), request.getImageUrl());
+        CategoryResponse response = categoryService.updateCategory(categoryId, request.getName(), request.getImagePath());
         return ResponseEntity.ok(response);
     }
 

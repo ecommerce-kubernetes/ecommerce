@@ -35,8 +35,11 @@ class CategoryControllerTest extends ControllerTestSupport {
     @WithCustomMockUser
     void saveCategory() throws Exception {
         //given
-        CategoryRequest request = createCategoryRequest().build();
-        CategoryResponse response = createCategoryResponse().build();
+        CategoryRequest request = fixtureMonkey.giveMeBuilder(CategoryRequest.class)
+                .set("name", "카테고리")
+                .set("imagePath", "/test/image.jpg")
+                .sample();
+        CategoryResponse response = fixtureMonkey.giveMeOne(CategoryResponse.class);
         given(categoryService.saveCategory(anyString(), nullable(Long.class), anyString()))
                 .willReturn(response);
         //when
@@ -54,7 +57,10 @@ class CategoryControllerTest extends ControllerTestSupport {
     @WithCustomMockUser(userRole = UserRole.ROLE_USER)
     void saveCategoryWithUserRole() throws Exception {
         //given
-        CategoryRequest request = createCategoryRequest().build();
+        CategoryRequest request = fixtureMonkey.giveMeBuilder(CategoryRequest.class)
+                .set("name", "카테고리")
+                .set("imagePath", "/test/image.jpg")
+                .sample();
         //when
         //then
         mockMvc.perform(post("/categories")
@@ -72,7 +78,10 @@ class CategoryControllerTest extends ControllerTestSupport {
     @DisplayName("로그인 하지 않은 유저는 카테고리를 생성할 수 없다")
     void saveCategory_unAuthentication() throws Exception {
         //given
-        CategoryRequest request = createCategoryRequest().build();
+        CategoryRequest request = fixtureMonkey.giveMeBuilder(CategoryRequest.class)
+                .set("name", "카테고리")
+                .set("imagePath", "/test/image.jpg")
+                .sample();
         //when
         //then
         mockMvc.perform(post("/categories")
@@ -110,8 +119,11 @@ class CategoryControllerTest extends ControllerTestSupport {
     @WithCustomMockUser
     void updateCategory() throws Exception {
         //given
-        UpdateCategoryRequest request = createUpdateCategoryRequest().build();
-        CategoryResponse response = createCategoryResponse().name("새 카테고리").imageUrl("http://newCategory.jpg").build();
+        CategoryRequest request = fixtureMonkey.giveMeBuilder(CategoryRequest.class)
+                .set("name", "카테고리")
+                .set("imagePath", "/test/image.jpg")
+                .sample();
+        CategoryResponse response = fixtureMonkey.giveMeOne(CategoryResponse.class);
         given(categoryService.updateCategory(anyLong(), anyString(), anyString()))
                 .willReturn(response);
         //when
@@ -129,7 +141,10 @@ class CategoryControllerTest extends ControllerTestSupport {
     @WithCustomMockUser(userRole = UserRole.ROLE_USER)
     void updateCategoryWhenUserRole() throws Exception {
         //given
-        UpdateCategoryRequest request = createUpdateCategoryRequest().build();
+        UpdateCategoryRequest request = fixtureMonkey.giveMeBuilder(UpdateCategoryRequest.class)
+                .set("name", "새 카티고리")
+                .set("imagePath", "/test/new-image.jpg")
+                .sample();
         //when
         //then
         mockMvc.perform(patch("/categories/{categoryId}", 1L)
@@ -147,7 +162,10 @@ class CategoryControllerTest extends ControllerTestSupport {
     @DisplayName("로그인 하지 않은 유저는 카테고리를 수정할 수 없다")
     void updateCategory_unAuthentication() throws Exception {
         //given
-        UpdateCategoryRequest request = createUpdateCategoryRequest().build();
+        CategoryRequest request = fixtureMonkey.giveMeBuilder(CategoryRequest.class)
+                .set("name", "카테고리")
+                .set("imagePath", "/test/image.jpg")
+                .sample();
         //when
         //then
         mockMvc.perform(patch("/categories/{categoryId}", 1L)
@@ -185,8 +203,8 @@ class CategoryControllerTest extends ControllerTestSupport {
     @WithCustomMockUser
     void moveParent() throws Exception {
         //given
-        MoveCategoryRequest request = createMoveCategoryRequest().build();
-        CategoryResponse response = createCategoryResponse().parentId(2L).build();
+        MoveCategoryRequest request = fixtureMonkey.giveMeOne(MoveCategoryRequest.class);
+        CategoryResponse response = fixtureMonkey.giveMeOne(CategoryResponse.class);
         given(categoryService.moveParent(anyLong(), anyLong()))
                 .willReturn(response);
         //when
@@ -204,7 +222,7 @@ class CategoryControllerTest extends ControllerTestSupport {
     @WithCustomMockUser(userRole = UserRole.ROLE_USER)
     void moveParentWhenUserRole() throws Exception {
         //given
-        MoveCategoryRequest request = createMoveCategoryRequest().build();
+        MoveCategoryRequest request = fixtureMonkey.giveMeOne(MoveCategoryRequest.class);
         //when
         //then
         mockMvc.perform(post("/categories/{categoryId}/move", 1L)
@@ -222,7 +240,7 @@ class CategoryControllerTest extends ControllerTestSupport {
     @DisplayName("로그인 하지 않은 유저는 카테고리 부모를 변경할 수 없다")
     void moveParent_unAuthentication() throws Exception {
         //given
-        MoveCategoryRequest request = createMoveCategoryRequest().build();
+        MoveCategoryRequest request = fixtureMonkey.giveMeOne(MoveCategoryRequest.class);
         //when
         //then
         mockMvc.perform(post("/categories/{categoryId}/move", 1L)
@@ -283,7 +301,7 @@ class CategoryControllerTest extends ControllerTestSupport {
     @DisplayName("카테고리 트리를 조회한다")
     void getCategoryTree() throws Exception {
         //given
-        List<CategoryTreeResponse> response = mappingTreeResponse();
+        List<CategoryTreeResponse> response = fixtureMonkey.giveMe(CategoryTreeResponse.class, 3);
         given(categoryService.getTree())
                         .willReturn(response);
         //when
@@ -298,7 +316,7 @@ class CategoryControllerTest extends ControllerTestSupport {
     @DisplayName("카테고리 네비게이션을 조회한다")
     void getCategoryNavigation() throws Exception {
         //given
-        CategoryNavigationResponse response = createNavigation();
+        CategoryNavigationResponse response = fixtureMonkey.giveMeOne(CategoryNavigationResponse.class);
         given(categoryService.getNavigation(anyLong()))
                 .willReturn(response);
         //when
@@ -313,7 +331,7 @@ class CategoryControllerTest extends ControllerTestSupport {
     @DisplayName("카테고리를 조회한다")
     void getCategory() throws Exception {
         //given
-        CategoryResponse response = createCategoryResponse().build();
+        CategoryResponse response = fixtureMonkey.giveMeOne(CategoryResponse.class);
         given(categoryService.getCategory(anyLong()))
                 .willReturn(response);
         //when
@@ -324,94 +342,37 @@ class CategoryControllerTest extends ControllerTestSupport {
                 .andExpect(content().json(objectMapper.writeValueAsString(response)));
     }
 
-    private List<CategoryTreeResponse> mappingTreeResponse() {
-        CategoryTreeResponse electron = createCategoryTreeResponse(1L, "전자기기", null, 1, "http://electron.jpg");
-        CategoryTreeResponse laptop = createCategoryTreeResponse(3L, "노트북", 1L, 2, "http://laptop.jpg");
-        CategoryTreeResponse cellPhone = createCategoryTreeResponse(4L, "핸드폰", 1L, 2, "http://cellPhone.jpg");
-        electron.addChild(laptop);
-        electron.addChild(cellPhone);
-
-        CategoryTreeResponse food = createCategoryTreeResponse(2L, "식품", null, 1, "http://food.jpg");
-        CategoryTreeResponse meat = createCategoryTreeResponse(5L, "육류", 2L, 2, "http://meat.jpg");
-        CategoryTreeResponse vegetable = createCategoryTreeResponse(6L, "채소류", 2L, 2, "http://vegetable.jpg");
-        food.addChild(meat);
-        food.addChild(vegetable);
-        return List.of(electron, food);
-    }
-
-    private CategoryTreeResponse createCategoryTreeResponse(Long id, String name, Long parentId, int depth,
-                                                            String imageUrl) {
-
-        return CategoryTreeResponse.builder()
-                .id(id)
-                .name(name)
-                .parentId(parentId)
-                .depth(depth)
-                .imageUrl(imageUrl)
-                .build();
-    }
-
-    private CategoryNavigationResponse createNavigation() {
-        CategoryResponse electron = createCategoryResponse().id(1L).name("전자기기").parentId(null).depth(1).imageUrl("http://electron.jpg").build();
-        CategoryResponse laptop = createCategoryResponse().id(2L).name("노트북").parentId(1L).depth(2).imageUrl("http://laptop.jpg").build();
-        CategoryResponse desktop = createCategoryResponse().id(3L).name("데스크탑").parentId(1L).depth(2).imageUrl("http://desktop.jpg").build();
-        CategoryResponse light = createCategoryResponse().id(4L).name("경량 노트북").parentId(2L).depth(3).imageUrl("http://lightlaptop.jpg").build();
-        CategoryResponse gaming = createCategoryResponse().id(5L).name("게이밍 노트북").parentId(2L).depth(3).imageUrl("http://gaminglaptop.jpg").build();
-
-        return  CategoryNavigationResponse.builder()
-                .current(laptop)
-                .path(List.of(electron, laptop))
-                .siblings(List.of(desktop))
-                .children(List.of(light, gaming))
-                .build();
-    }
-
-    private CategoryResponse.CategoryResponseBuilder createCategoryResponse() {
-        return CategoryResponse.builder()
-                .id(1L)
-                .name("카테고리")
-                .parentId(null)
-                .depth(1)
-                .imageUrl("http://category.jpg");
-    }
-
-    private static UpdateCategoryRequest.UpdateCategoryRequestBuilder createUpdateCategoryRequest() {
-        return UpdateCategoryRequest.builder()
-                .name("새 카테고리")
-                .imageUrl("http://newCategory.jpg");
-    }
-
-    private static CategoryRequest.CategoryRequestBuilder createCategoryRequest() {
-        return CategoryRequest.builder()
-                .name("카테고리")
-                .parentId(null)
-                .imageUrl("http://category.jpg");
-    }
-
-    private MoveCategoryRequest.MoveCategoryRequestBuilder createMoveCategoryRequest() {
-        return MoveCategoryRequest.builder()
-                .parentId(2L);
-    }
-
     private static Stream<Arguments> provideInvalidCreateRequest() {
         return Stream.of(
                 Arguments.of("카테고리 이름은 공백이 아닌 필수값이여야한다",
-                        createCategoryRequest().name("").build(),
+                        CategoryRequest.builder()
+                                .name(null)
+                                .imagePath("/test/image.jpg")
+                                .build(),
                         "name은 필수값입니다"
                 ),
-                Arguments.of("imageUrl 값은 URL 형식이여야 한다",
-                        createCategoryRequest().imageUrl("invalid").build(),
-                        "imageUrl 형식은 URL 형식이여야합니다")
+                Arguments.of("imagePath는 유효한 이미지 파일 형식 ('/'시작, 확장자 등)에 만족해야한다",
+                        CategoryRequest.builder()
+                                .name("카테고리")
+                                .imagePath("invalid-image-files")
+                                .build(),
+                        "이미지 경로는 '/'로 시작하는 유효한 이미지 파일이어야 합니다")
         );
     }
 
     private static Stream<Arguments> provideInvalidUpdateRequest() {
         return Stream.of(
-                Arguments.of("imageUrl 값은 URL 형식이여야 한다",
-                        createUpdateCategoryRequest().imageUrl("invalid").build(),
-                        "imageUrl 형식은 URL 형식이여야합니다"),
+                Arguments.of("imagePath는 유효한 이미지 파일 형식 ('/'시작, 확장자 등)에 만족해야한다",
+                        UpdateCategoryRequest.builder()
+                                .name("변경된 카테고리")
+                                .imagePath("invalid=image-files")
+                                .build(),
+                        "이미지 경로는 '/'로 시작하는 유효한 이미지 파일이어야 합니다"),
                 Arguments.of("필드는 최소 하나는 존재해야한다",
-                        createUpdateCategoryRequest().name(null).imageUrl(null).build(),
+                        UpdateCategoryRequest.builder()
+                                .name(null)
+                                .imagePath(null)
+                                .build(),
                         "수정할 값이 하나는 존재해야합니다")
         );
     }

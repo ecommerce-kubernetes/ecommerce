@@ -451,7 +451,7 @@ class CategoryControllerDocsTest extends RestDocsSupport {
     private static UpdateCategoryRequest.UpdateCategoryRequestBuilder createUpdateCategoryRequest() {
         return UpdateCategoryRequest.builder()
                 .name("새 카테고리")
-                .imageUrl("http://newCategory.jpg");
+                .imagePath("http://newCategory.jpg");
     }
 
     private CategoryResponse.CategoryResponseBuilder createCategoryResponse() {
@@ -467,7 +467,7 @@ class CategoryControllerDocsTest extends RestDocsSupport {
         return CategoryRequest.builder()
                 .name("카테고리")
                 .parentId(null)
-                .imageUrl("http://category.jpg");
+                .imagePath("http://category.jpg");
     }
 
     private HttpHeaders createAdminHeader(){
