@@ -39,6 +39,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 class ProductControllerDocsTest extends RestDocsSupport {
     ProductService productService = Mockito.mock(ProductService.class);
+
+    @Override
+    protected String getTag() {
+        return "Product";
+    }
+
     @Override
     protected Object initController() {
         return new ProductController(productService);

@@ -27,6 +27,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 public class InternalProductControllerDocsTest extends RestDocsSupport {
     private VariantService variantService = Mockito.mock(VariantService.class);
+
+    @Override
+    protected String getTag() {
+        return ""; //내부 호출 API
+    }
+
     @Override
     protected Object initController() {
         return new InternalProductController(variantService);

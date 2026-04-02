@@ -1,6 +1,6 @@
 package com.example.product_service.api.category.controller;
 
-import com.example.product_service.api.category.controller.dto.CategoryRequest;
+import com.example.product_service.api.category.controller.dto.CategoryCreateRequest;
 import com.example.product_service.api.category.controller.dto.MoveCategoryRequest;
 import com.example.product_service.api.category.controller.dto.UpdateCategoryRequest;
 import com.example.product_service.api.category.service.CategoryService;
@@ -26,8 +26,8 @@ public class CategoryController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<CategoryResponse> saveCategory(@RequestBody @Validated CategoryRequest request) {
-        CategoryResponse response = categoryService.saveCategory(request.getName(), request.getParentId(), request.getImagePath());
+    public ResponseEntity<CategoryResponse> saveCategory(@RequestBody @Validated CategoryCreateRequest request) {
+        CategoryResponse response = categoryService.saveCategory(request.name(), request.parentId(), request.imagePath());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 

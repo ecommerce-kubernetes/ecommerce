@@ -2,13 +2,14 @@ package com.example.product_service.docs.category;
 
 import com.epages.restdocs.apispec.ResourceSnippetParameters;
 import com.example.product_service.api.category.controller.CategoryController;
-import com.example.product_service.api.category.controller.dto.CategoryRequest;
+import com.example.product_service.api.category.controller.dto.CategoryCreateRequest;
 import com.example.product_service.api.category.controller.dto.MoveCategoryRequest;
 import com.example.product_service.api.category.controller.dto.UpdateCategoryRequest;
 import com.example.product_service.api.category.service.CategoryService;
 import com.example.product_service.api.category.service.dto.result.CategoryNavigationResponse;
 import com.example.product_service.api.category.service.dto.result.CategoryResponse;
 import com.example.product_service.api.category.service.dto.result.CategoryTreeResponse;
+import com.example.product_service.docs.CategoryDescriptor;
 import com.example.product_service.docs.RestDocsSupport;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -41,8 +42,11 @@ class CategoryControllerDocsTest extends RestDocsSupport {
 
     CategoryService categoryService = mock(CategoryService.class);
 
+    @Override
+    protected String getTag() {
+        return "Category";
+    }
     private static final String TAG = "Category";
-    
     @Override
     protected Object initController() {
         return new CategoryController(categoryService);
@@ -52,29 +56,21 @@ class CategoryControllerDocsTest extends RestDocsSupport {
     @DisplayName("카테고리를 저장한다")
     void saveCategory() throws Exception {
         //given
-        CategoryRequest request = createCategoryRequest().build();
-        CategoryResponse response = createCategoryResponse().build();
+        CategoryCreateRequest request = fixtureMonkey.giveMeBuilder(CategoryCreateRequest.class)
+                .set("name", "카테고리")
+                .set("parentId", null)
+                .set("imagePath", "/test/image.jpg")
+                .sample();
+        CategoryResponse response = fixtureMonkey.giveMeBuilder(CategoryResponse.class)
+                .set("id", 1L)
+                .set("name", "카테고리")
+                .set("parentId", null)
+                .set("depth", 1)
+                .set("imageUrl", "/test/image.jpg")
+                .sample();
         HttpHeaders adminHeader = createAdminHeader();
         given(categoryService.saveCategory(anyString(), nullable(Long.class), anyString()))
                 .willReturn(response);
-
-        HeaderDescriptor[] requestHeaders = new HeaderDescriptor[] {
-                headerWithName("Authorization").description("JWT Access Token")
-        };
-
-        FieldDescriptor[] requestFields = new FieldDescriptor[] {
-                fieldWithPath("name").description("카테고리 이름"),
-                fieldWithPath("parentId").description("부모 카테고리 ID").type(JsonFieldType.NUMBER).optional(),
-                fieldWithPath("imageUrl").description("카테고리 아이콘 URL")
-        };
-
-        FieldDescriptor[] responseFields = new FieldDescriptor[] {
-                fieldWithPath("id").description("카테고리 ID"),
-                fieldWithPath("name").description("카테고리 이름"),
-                fieldWithPath("parentId").description("부모 카테고리 ID").type(JsonFieldType.NUMBER).optional(),
-                fieldWithPath("depth").description("카테고리 깊이"),
-                fieldWithPath("imageUrl").description("카테고리 아이콘 URL")
-        };
         //when
         //then
         mockMvc.perform(post("/categories")
@@ -83,29 +79,13 @@ class CategoryControllerDocsTest extends RestDocsSupport {
                         .headers(adminHeader))
                 .andDo(print())
                 .andExpect(status().isCreated())
-                .andDo(
-                        document("01-category-01-create",
-                                preprocessRequest(prettyPrint(),
-                                        modifyHeaders()
-                                                .remove("X-User-Id")
-                                                .remove("X-User-Role")
-                                                .add("Authorization", "Bearer {ACCESS_TOKEN}")),
-                                preprocessResponse(prettyPrint()),
-                                resource(
-                                        ResourceSnippetParameters.builder()
-                                                .tag(TAG)
-                                                .summary("카테고리 생성")
-                                                .description("새로운 카테고리를 생성합니다")
-                                                .requestHeaders(requestHeaders)
-                                                .requestFields(requestFields)
-                                                .responseFields(responseFields)
-                                                .build()
-                                ),
-                                requestHeaders(requestHeaders),
-                                requestFields(requestFields),
-                                responseFields(responseFields)
-                        )
-                );
+                .andDo(createDocument(
+                        "01-category-01-create",
+                        "카테고리 생성",
+                        "새로운 카테고리를 생성합니다",
+                        CategoryDescriptor.getRequestFields(),
+                        CategoryDescriptor.getResponseFields()
+                ));
     }
 
     @Test
@@ -191,7 +171,13 @@ class CategoryControllerDocsTest extends RestDocsSupport {
     @DisplayName("카테고리를 조회한다")
     void getCategory() throws Exception {
         //given
-        CategoryResponse response = createCategoryResponse().build();
+        CategoryResponse response = fixtureMonkey.giveMeBuilder(CategoryResponse.class)
+                .set("id", 2L)
+                .set("name", "카테고리")
+                .set("parentId", 1L)
+                .set("depth", 2)
+                .set("imageUrl", "/test/image.jpg")
+                .sample();
         given(categoryService.getCategory(anyLong()))
                 .willReturn(response);
 
@@ -234,8 +220,17 @@ class CategoryControllerDocsTest extends RestDocsSupport {
     @DisplayName("카테고리를 수정한다")
     void updateCategory() throws Exception {
         //given
-        UpdateCategoryRequest request = createUpdateCategoryRequest().build();
-        CategoryResponse response = createCategoryResponse().name("새 카테고리").imageUrl("http://newCategory.jpg").build();
+        UpdateCategoryRequest request = fixtureMonkey.giveMeBuilder(UpdateCategoryRequest.class)
+                .set("name", "새 카테고리")
+                .set("imagePath", "/test/image.jpg")
+                .sample();
+        CategoryResponse response = fixtureMonkey.giveMeBuilder(CategoryResponse.class)
+                .set("id", 1L)
+                .set("name", "새 카테고리")
+                .set("parentId", null)
+                .set("depth", 1)
+                .set("imageUrl", "/test/image.jpg")
+                .sample();
         HttpHeaders adminHeader = createAdminHeader();
         given(categoryService.updateCategory(anyLong(), anyString(), anyString()))
                 .willReturn(response);
@@ -250,7 +245,7 @@ class CategoryControllerDocsTest extends RestDocsSupport {
 
         FieldDescriptor[] requestFields = new FieldDescriptor[] {
                 fieldWithPath("name").description("변경할 카테고리 이름").optional(),
-                fieldWithPath("imageUrl").description("변경할 카테고리 아이콘 URL").optional()
+                fieldWithPath("imagePath").description("변경할 카테고리 아이콘 URL").optional()
         };
 
         FieldDescriptor[] responseFields = new FieldDescriptor[] {
@@ -300,8 +295,18 @@ class CategoryControllerDocsTest extends RestDocsSupport {
     @DisplayName("카테고리의 부모를 변경한다")
     void moveParent() throws Exception {
         //given
-        MoveCategoryRequest request = createMoveCategoryRequest();
-        CategoryResponse response = createCategoryResponse().parentId(2L).build();
+        MoveCategoryRequest request = fixtureMonkey.giveMeBuilder(MoveCategoryRequest.class)
+                .set("parentId", 1L)
+                .sample();
+
+        CategoryResponse response = fixtureMonkey.giveMeBuilder(CategoryResponse.class)
+                .set("id", 2L)
+                .set("name", "자식 카테고리")
+                .set("parentId", 1L)
+                .set("depth", 2)
+                .set("imageUrl", "/test/image.jpg")
+                .sample();
+
         HttpHeaders adminHeader = createAdminHeader();
         given(categoryService.moveParent(anyLong(), anyLong()))
                 .willReturn(response);
@@ -328,7 +333,7 @@ class CategoryControllerDocsTest extends RestDocsSupport {
 
         //when
         //then
-        mockMvc.perform(post("/categories/{categoryId}/move", 1L)
+        mockMvc.perform(post("/categories/{categoryId}/move", 2L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
                         .headers(adminHeader))
@@ -448,11 +453,6 @@ class CategoryControllerDocsTest extends RestDocsSupport {
                 .build();
     }
 
-    private static UpdateCategoryRequest.UpdateCategoryRequestBuilder createUpdateCategoryRequest() {
-        return UpdateCategoryRequest.builder()
-                .name("새 카테고리")
-                .imagePath("http://newCategory.jpg");
-    }
 
     private CategoryResponse.CategoryResponseBuilder createCategoryResponse() {
         return CategoryResponse.builder()
@@ -463,23 +463,10 @@ class CategoryControllerDocsTest extends RestDocsSupport {
                 .imageUrl("http://category.jpg");
     }
 
-    private static CategoryRequest.CategoryRequestBuilder createCategoryRequest() {
-        return CategoryRequest.builder()
-                .name("카테고리")
-                .parentId(null)
-                .imagePath("http://category.jpg");
-    }
-
     private HttpHeaders createAdminHeader(){
         HttpHeaders headers = new HttpHeaders();
         headers.add("X-User-Id", "1");
         headers.add("X-User-Role", "ROLE_ADMIN");
         return headers;
-    }
-
-    private MoveCategoryRequest createMoveCategoryRequest() {
-        return MoveCategoryRequest.builder()
-                .parentId(2L)
-                .build();
     }
 }
