@@ -72,6 +72,14 @@ public class ProductController {
         return ResponseEntity.ok(response);
     }
 
+    @PutMapping("/{productId}/description-images")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ProductDescriptionImageCreateResponse> updateDescriptionImage(@PathVariable("productId") Long productId,
+                                                                                        @RequestBody @Validated ProductDescriptionImageRequest request) {
+        ProductDescriptionImageCreateResponse response = productService.updateDescriptionImages(productId, request.getImages());
+        return ResponseEntity.ok(response);
+    }
+
     @PatchMapping("/{productId}/publish")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ProductStatusResponse> publishProduct(@PathVariable("productId") Long productId) {

@@ -334,6 +334,81 @@ class ProductControllerTest extends ControllerTestSupport {
     }
 
     @Test
+    @DisplayName("상품 이미지를 추가한다")
+    @WithCustomMockUser
+    void updateDescriptionImage() throws Exception {
+        //given
+        ProductDescriptionImageRequest request = mockDescriptionImageRequest().build();
+        ProductDescriptionImageCreateResponse response = mockDescriptionImageResponse().build();
+        given(productService.updateDescriptionImages(anyLong(), anyList()))
+                .willReturn(response);
+        //when
+        //then
+        mockMvc.perform(put("/products/{productId}/description-images", 1L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(response)));
+    }
+
+    @Test
+    @DisplayName("상품 이미지를 추가하려면 관리자 권한이여야한다")
+    @WithCustomMockUser(userRole = UserRole.ROLE_USER)
+    void updateDescriptionImage_user_role() throws Exception {
+        //given
+        ProductDescriptionImageRequest request = mockDescriptionImageRequest().build();
+        //when
+        //then
+        mockMvc.perform(put("/products/{productId}/description-images", 1L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value("FORBIDDEN"))
+                .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다"))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/products/1/description-images"));
+    }
+
+    @Test
+    @DisplayName("로그인 하지 않은 사용자는 상품 이미지를 추가할 수 없다")
+    void updateDescriptionImage_unAuthorized() throws Exception {
+        //given
+        ProductDescriptionImageRequest request = mockDescriptionImageRequest().build();
+        //when
+        //then
+        mockMvc.perform(put("/products/{productId}/description-images", 1L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
+                .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다"))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/products/1/description-images"));
+    }
+
+    @Test
+    @DisplayName("상품 이미지 요청 검증")
+    @WithCustomMockUser
+    void updateDescriptionImage_invalidRequest() throws Exception {
+        //given
+        ProductDescriptionImageRequest request = mockDescriptionImageRequest().images(null).build();
+        //when
+        //then
+        mockMvc.perform(put("/products/{productId}/description-images", 1L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION"))
+                .andExpect(jsonPath("$.message").value("상품 설명 이미지는 필수 입니다"))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.path").value("/products/1/description-images"));
+    }
+
+    @Test
     @DisplayName("상품을 게시한다")
     @WithCustomMockUser
     void publishProduct() throws Exception {

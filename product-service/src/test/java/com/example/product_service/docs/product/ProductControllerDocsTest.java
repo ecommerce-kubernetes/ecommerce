@@ -10,6 +10,7 @@ import com.example.product_service.api.product.service.dto.command.ProductUpdate
 import com.example.product_service.api.product.service.dto.command.ProductVariantsCreateCommand;
 import com.example.product_service.api.product.service.dto.result.*;
 import com.example.product_service.docs.RestDocsSupport;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -238,7 +239,7 @@ class ProductControllerDocsTest extends RestDocsSupport {
 
     @Test
     @DisplayName("상품 이미지 추가")
-    void replaceImages() throws Exception {
+    void updateImages() throws Exception {
         //given
         ProductImageCreateRequest request = mockImageRequest().build();
         ProductImageCreateResponse response = mockImageResponse().build();
@@ -301,6 +302,68 @@ class ProductControllerDocsTest extends RestDocsSupport {
     }
 
     @Test
+    @DisplayName("상품 설명 이미지 추가")
+    void updateDescriptionImage() throws Exception {
+        ProductDescriptionImageRequest request = mockDescriptionImageRequest().build();
+        ProductDescriptionImageCreateResponse response = mockDescriptionImageResponse().build();
+        HttpHeaders adminHeader = createAdminHeader();
+        given(productService.updateDescriptionImages(anyLong(), anyList()))
+                .willReturn(response);
+
+        HeaderDescriptor[] requestHeaders = new HeaderDescriptor[] {
+                headerWithName("Authorization")
+                        .description("JWT Access Token")
+        };
+
+        ParameterDescriptor[] pathParameters = new ParameterDescriptor[] {
+                parameterWithName("productId").description("설명 이미지를 추가할 상품 ID")
+        };
+
+        FieldDescriptor[] requestFields = new FieldDescriptor[] {
+                fieldWithPath("images").description("설명 이미지 URL 리스트")
+        };
+
+        FieldDescriptor[] responseFields = new FieldDescriptor[] {
+                fieldWithPath("productId").description("상품 Id"),
+                fieldWithPath("descriptionImages[].imageUrl").description("상품 이미지 URL"),
+                fieldWithPath("descriptionImages[].order").description("상품 이미지 순서")
+        };
+
+        mockMvc.perform(put("/products/{productId}/description-images", 1L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
+                        .headers(adminHeader))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(
+                        document("03-product-05-add-description-images",
+                                preprocessRequest(prettyPrint(),
+                                        modifyHeaders()
+                                                .remove("X-User-Id")
+                                                .remove("X-User-Role")
+                                                .add("Authorization", "Bearer {ACCESS_TOKEN}")),
+                                preprocessResponse(prettyPrint()),
+                                resource(
+                                        ResourceSnippetParameters.builder()
+                                                .tag(TAG)
+                                                .summary("상품 설명 이미지 추가")
+                                                .description("상품 설명 이미지를 추가")
+                                                .requestHeaders(requestHeaders)
+                                                .pathParameters(pathParameters)
+                                                .requestFields(requestFields)
+                                                .responseFields(responseFields)
+                                                .build()
+                                ),
+                                requestHeaders(requestHeaders),
+                                pathParameters(pathParameters),
+                                requestFields(requestFields),
+                                responseFields(responseFields)
+                        )
+                );
+
+    }
+
+    @Test
     @DisplayName("상품을 게시한다")
     void publishProduct() throws Exception {
         //given
@@ -330,7 +393,7 @@ class ProductControllerDocsTest extends RestDocsSupport {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andDo(
-                        document("03-product-05-publish",
+                        document("03-product-06-publish",
                                 preprocessRequest(prettyPrint(),
                                         modifyHeaders()
                                                 .remove("X-User-Id")
@@ -408,7 +471,7 @@ class ProductControllerDocsTest extends RestDocsSupport {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andDo(
-                        document("03-product-06-get-products",
+                        document("03-product-07-get-products",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint()),
                                 resource(
@@ -471,7 +534,7 @@ class ProductControllerDocsTest extends RestDocsSupport {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andDo(
-                        document("03-product-07-get-product",
+                        document("03-product-08-get-product",
                                 preprocessRequest(prettyPrint()),
                                 preprocessResponse(prettyPrint()),
                                 resource(
@@ -528,7 +591,7 @@ class ProductControllerDocsTest extends RestDocsSupport {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andDo(
-                        document("03-product-08-update",
+                        document("03-product-09-update",
                                 preprocessRequest(prettyPrint(),
                                         modifyHeaders()
                                                 .remove("X-User-Id")
@@ -577,7 +640,7 @@ class ProductControllerDocsTest extends RestDocsSupport {
                 .andDo(print())
                 .andExpect(status().isNoContent())
                 .andDo(
-                        document("03-product-09-delete",
+                        document("03-product-10-delete",
                                 preprocessRequest(prettyPrint(),
                                         modifyHeaders()
                                                 .remove("X-User-Id")
@@ -632,7 +695,7 @@ class ProductControllerDocsTest extends RestDocsSupport {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andDo(
-                        document("03-product-10-close",
+                        document("03-product-11-close",
                                 preprocessRequest(prettyPrint(),
                                         modifyHeaders()
                                                 .remove("X-User-Id")

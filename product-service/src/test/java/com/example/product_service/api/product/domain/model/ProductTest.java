@@ -348,6 +348,54 @@ public class ProductTest {
     }
 
     @Nested
+    @DisplayName("상품 설명 이미지 추가")
+    class AddDescriptionImage {
+        @Test
+        @DisplayName("상품 설명 이미지를 추가한다")
+        void replaceDescriptionImages(){
+            //given
+            Product product = ProductTestBuilder.aProduct().build();
+            //when
+            product.replaceDescriptionImage(List.of("http://image1.jpg", "http://image2.jpg"));
+            //then
+            assertThat(product.getDescriptionImages()).hasSize(2)
+                    .extracting(ProductDescriptionImage::getImageUrl, ProductDescriptionImage::getSortOrder)
+                    .containsExactlyInAnyOrder(
+                            tuple("http://image1.jpg", 1),
+                            tuple("http://image2.jpg", 2)
+                    );
+        }
+
+        @Test
+        @DisplayName("삭제된 상품에 상품 설명 이미지를 추가할 수 없다")
+        void replaceDescriptionImages_product_deleted(){
+            //given
+            Product product = ProductTestBuilder.aProduct().withStatus(ProductStatus.DELETED).build();
+            List<String> productDescriptionImages = List.of("http://image1.jpg", "http://image2.jpg");
+            //when
+            //then
+            assertThatThrownBy(() -> product.replaceDescriptionImage(productDescriptionImages))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(ProductErrorCode.PRODUCT_NOT_FOUND);
+        }
+
+        @Test
+        @DisplayName("판매중인 상품은 최소 상품 설명 이미지가 한개 이상이여야 한다")
+        void replaceImages_product_on_sale(){
+            //given
+            Product product = ProductTestBuilder.aProduct().withStatus(ProductStatus.ON_SALE).build();
+            List<String> productDescriptionImages = List.of();
+            //when
+            //then
+            assertThatThrownBy(() -> product.replaceDescriptionImage(productDescriptionImages))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(ProductErrorCode.IMAGE_REQUIRED_ON_SALE);
+        }
+    }
+
+    @Nested
     @DisplayName("상품 게시")
     class Publish {
         

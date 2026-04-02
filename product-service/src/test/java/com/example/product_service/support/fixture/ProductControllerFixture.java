@@ -83,6 +83,11 @@ public class ProductControllerFixture {
                 .images(List.of("http://image1.jpg", "http://image2.jpg"));
     }
 
+    public static ProductDescriptionImageRequest.ProductDescriptionImageRequestBuilder mockDescriptionImageRequest() {
+        return ProductDescriptionImageRequest.builder()
+                .images(List.of("http://image1.jpg", "http://image2.jpg"));
+    }
+
     public static ProductOptionResponse.ProductOptionResponseBuilder mockOptionSpecResponse() {
         return ProductOptionResponse.builder()
                 .productId(PRODUCT_ID)
@@ -109,6 +114,21 @@ public class ProductControllerFixture {
                                         .isThumbnail(true)
                                         .build()
                         ));
+    }
+
+    public static ProductDescriptionImageCreateResponse.ProductDescriptionImageCreateResponseBuilder mockDescriptionImageResponse() {
+        return ProductDescriptionImageCreateResponse
+                .builder()
+                .productId(PRODUCT_ID)
+                .descriptionImages(
+                        List.of(
+                                ProductDescriptionImageResponse.builder()
+                                        .imageUrl("http://image1.jpg")
+                                        .order(1)
+                                        .build()
+                        )
+                );
+
     }
 
     public static ProductStatusResponse.ProductStatusResponseBuilder mockProductStatusResponse() {
