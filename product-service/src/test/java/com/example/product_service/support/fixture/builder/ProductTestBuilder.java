@@ -26,6 +26,7 @@ public class ProductTestBuilder {
     private Integer maxDiscountRate = 0;
     private List<ProductVariant> variants = new ArrayList<>();
     private List<String> imageUrls = new ArrayList<>();
+    private List<String> descriptionImageUrls = new ArrayList<>();
     private List<OptionType> optionTypes = new ArrayList<>();
 
     public static ProductTestBuilder aProduct() {
@@ -81,9 +82,13 @@ public class ProductTestBuilder {
         return this;
     }
 
-    // [핵심] 이미지를 강제로 주입
     public ProductTestBuilder withImages(List<String> imageUrls) {
         this.imageUrls = imageUrls;
+        return this;
+    }
+
+    public ProductTestBuilder withDescriptionImages(List<String> imageUrls) {
+        this.descriptionImageUrls = imageUrls;
         return this;
     }
 
@@ -125,6 +130,15 @@ public class ProductTestBuilder {
             }
         }
 
+        if (!descriptionImageUrls.isEmpty()) {
+            List<ProductDescriptionImage> productDescriptionImages = new ArrayList<>();
+            for (int i = 0; i < imageUrls.size(); i++) {
+                ProductDescriptionImage image = createProductDescriptionImagesByReflection(product, imageUrls.get(i), i + 1);
+                productDescriptionImages.add(image);
+            }
+            ReflectionTestUtils.setField(product, "descriptionImages", productDescriptionImages);
+        }
+
         if (status == ProductStatus.ON_SALE) {
             ReflectionTestUtils.setField(product, "publishedAt", LocalDateTime.now());
         }
@@ -151,6 +165,18 @@ public class ProductTestBuilder {
             ProductImage productImage = constructor.newInstance(imageUrl, sortOrder);
             ReflectionTestUtils.setField(productImage, "product", product);
             return productImage;
+        } catch (Exception e) {
+            throw new RuntimeException("테스트용 ProductImage 생성 실패", e);
+        }
+    }
+
+    private ProductDescriptionImage createProductDescriptionImagesByReflection(Product product, String imageUrl, int sortOrder) {
+        try {
+            Constructor<ProductDescriptionImage> constructor = ProductDescriptionImage.class.getDeclaredConstructor(String.class, int.class);
+            constructor.setAccessible(true);
+            ProductDescriptionImage productDescriptionImage = constructor.newInstance(imageUrl, sortOrder);
+            ReflectionTestUtils.setField(productDescriptionImage, "product", product);
+            return productDescriptionImage;
         } catch (Exception e) {
             throw new RuntimeException("테스트용 ProductImage 생성 실패", e);
         }

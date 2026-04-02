@@ -519,6 +519,8 @@ class ProductControllerDocsTest extends RestDocsSupport {
                 fieldWithPath("images[].imageUrl").description("상품 이미지 URL"),
                 fieldWithPath("images[].order").description("상품 이미지 순서"),
                 fieldWithPath("images[].thumbnail").description("썸네일 여부"),
+                fieldWithPath("descriptionImages[].imageUrl").description("상품 이미지 URL"),
+                fieldWithPath("descriptionImages[].order").description("상품 이미지 순서"),
                 fieldWithPath("variants[].variantId").description("상품 변형 ID"),
                 fieldWithPath("variants[].sku").description("상품 변형 SKU"),
                 fieldWithPath("variants[].optionValueIds").description("상품 변형 옵션 값 Id 리스트"),

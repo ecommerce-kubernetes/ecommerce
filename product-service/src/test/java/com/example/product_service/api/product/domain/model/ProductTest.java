@@ -391,7 +391,7 @@ public class ProductTest {
             assertThatThrownBy(() -> product.replaceDescriptionImage(productDescriptionImages))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
-                    .isEqualTo(ProductErrorCode.IMAGE_REQUIRED_ON_SALE);
+                    .isEqualTo(ProductErrorCode.DESCRIPTION_IMAGE_REQUIRED_ON_SALE);
         }
     }
 
@@ -408,6 +408,7 @@ public class ProductTest {
                     .withStatus(ProductStatus.PREPARING)
                     .withVariants(List.of(variant))
                     .withImages(List.of("http://image.jpg"))
+                    .withDescriptionImages(List.of("http://description.jpg"))
                     .withPrice(1000L, 1200L, 10).build();
             //when
             product.publish();
@@ -425,6 +426,7 @@ public class ProductTest {
                     .withStatus(ProductStatus.STOP_SALE)
                     .withVariants(List.of(variant))
                     .withImages(List.of("http://image.jpg"))
+                    .withDescriptionImages(List.of("http://description.jpg"))
                     .withPrice(1000L, 1200L, 10).build();
             ReflectionTestUtils.setField(product, "publishedAt", LocalDateTime.of(2026, 1, 1, 10, 10, 20));
             ReflectionTestUtils.setField(product, "saleStoppedAt", LocalDateTime.of(2026, 1, 2, 10, 10, 20));
@@ -443,7 +445,7 @@ public class ProductTest {
             Product product = ProductTestBuilder.aProduct().withStatus(ProductStatus.DELETED).build();
             //when
             //then
-            assertThatThrownBy(() -> product.publish())
+            assertThatThrownBy(product::publish)
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(ProductErrorCode.DELETED_PRODUCT_CANNOT_PUBLISH);
@@ -456,7 +458,7 @@ public class ProductTest {
             Product product = ProductTestBuilder.aProduct().withVariants(List.of()).build();
             //when
             //then
-            assertThatThrownBy(() -> product.publish())
+            assertThatThrownBy(product::publish)
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(ProductErrorCode.VARIANT_REQUIRED_FOR_PUBLISH);
@@ -470,11 +472,28 @@ public class ProductTest {
             Product product = ProductTestBuilder.aProduct().withVariants(List.of(variant)).withImages(List.of()).build();
             //when
             //then
-            assertThatThrownBy(() -> product.publish())
+            assertThatThrownBy(product::publish)
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(ProductErrorCode.THUMBNAIL_IMAGE_REQUIRED);
         }
+
+        @Test
+        @DisplayName("상품 설명 이미지가 없는 상품은 게시할 수 없다")
+        void publish_product_have_not_description_image(){
+            //given
+            ProductVariant variant = ProductVariant.create("TEST", 10000L, 100, 10);
+            Product product = ProductTestBuilder.aProduct().withVariants(List.of(variant))
+                    .withImages(List.of("http://image.jpg"))
+                    .withDescriptionImages(List.of()).build();
+            //when
+            //then
+            assertThatThrownBy(product::publish)
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(ProductErrorCode.DESCRIPTION_IMAGE_REQUIRED_ON_SALE);
+        }
+
 
         @Test
         @DisplayName("판매가가 유효하지 않으면 게시할 수 없다")
@@ -484,10 +503,11 @@ public class ProductTest {
             Product product = ProductTestBuilder.aProduct()
                     .withVariants(List.of(variant))
                     .withImages(List.of("http://image.jpg"))
+                    .withDescriptionImages(List.of("http://description.jpg"))
                     .withPrice(0L, 0L, 0).build();
             //when
             //then
-            assertThatThrownBy(() -> product.publish())
+            assertThatThrownBy(product::publish)
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(ProductErrorCode.DISPLAY_PRICE_INVALID);
@@ -501,10 +521,11 @@ public class ProductTest {
             Product product = ProductTestBuilder.aProduct()
                     .withVariants(List.of(variant))
                     .withImages(List.of("http://image.jpg"))
+                    .withDescriptionImages(List.of("http://description.jpg"))
                     .withPrice(1000L, 0L, 0).build();
             //when
             //then
-            assertThatThrownBy(() -> product.publish())
+            assertThatThrownBy(product::publish)
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(ProductErrorCode.ORIGINAL_PRICE_INVALID);
@@ -518,10 +539,11 @@ public class ProductTest {
             Product product = ProductTestBuilder.aProduct()
                     .withVariants(List.of(variant))
                     .withImages(List.of("http://image.jpg"))
+                    .withDescriptionImages(List.of("http://description.jpg"))
                     .withPrice(1000L, 900L, 0).build();
             //when
             //then
-            assertThatThrownBy(() -> product.publish())
+            assertThatThrownBy(product::publish)
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(ProductErrorCode.DISPLAY_PRICE_EXCEEDS_ORIGINAL);
@@ -535,10 +557,11 @@ public class ProductTest {
             Product product = ProductTestBuilder.aProduct()
                     .withVariants(List.of(variant))
                     .withImages(List.of("http://image.jpg"))
+                    .withDescriptionImages(List.of("http://description.jpg"))
                     .withPrice(1000L, 1200L, null).build();
             //when
             //then
-            assertThatThrownBy(() -> product.publish())
+            assertThatThrownBy(product::publish)
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(ProductErrorCode.DISCOUNT_RATE_INVALID);

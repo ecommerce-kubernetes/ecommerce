@@ -144,7 +144,7 @@ public class Product extends BaseEntity {
         }
 
         if(this.status == ProductStatus.ON_SALE && (imageUrls == null || imageUrls.isEmpty())){
-            throw new BusinessException(ProductErrorCode.IMAGE_REQUIRED_ON_SALE);
+            throw new BusinessException(ProductErrorCode.DESCRIPTION_IMAGE_REQUIRED_ON_SALE);
         }
 
         descriptionImages.clear();
@@ -266,6 +266,10 @@ public class Product extends BaseEntity {
 
         if (this.thumbnail == null || this.thumbnail.isBlank()) {
             throw new BusinessException(ProductErrorCode.THUMBNAIL_IMAGE_REQUIRED);
+        }
+
+        if (this.descriptionImages.isEmpty()) {
+            throw new BusinessException(ProductErrorCode.DESCRIPTION_IMAGE_REQUIRED_ON_SALE);
         }
 
         if (this.lowestPrice == null || this.lowestPrice <= 0) {

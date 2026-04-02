@@ -184,6 +184,14 @@ public class ProductControllerFixture {
                                         .order(1)
                                         .isThumbnail(true)
                                         .build()))
+                .descriptionImages(
+                        List.of(
+                                ProductDescriptionImageResponse.builder()
+                                        .imageUrl("http://description.jpg")
+                                        .order(1)
+                                        .build()
+                        )
+                )
                 .variants(
                         List.of(
                                 VariantResponse.builder()

@@ -84,6 +84,7 @@ public class ProductServiceTest extends ExcludeInfraTest {
         ProductVariant variant = ProductVariant.create("TEST", 10000L, 100, 10);
         product.addVariant(variant);
         product.replaceImages(List.of("http://image.jpg"));
+        product.replaceDescriptionImage(List.of("http://description.jpg"));
         product.publish();
         return productRepository.save(product);
     }
@@ -396,6 +397,7 @@ public class ProductServiceTest extends ExcludeInfraTest {
             ProductVariant variant = ProductVariant.create("TEST", 3000L, 100, 10);
             product.addVariant(variant);
             product.replaceImages(List.of("http://image.jpg"));
+            product.replaceDescriptionImage(List.of("http://description.jpg"));
             productRepository.save(product);
             //when
             ProductStatusResponse result = productService.publish(product.getId());
@@ -441,6 +443,7 @@ public class ProductServiceTest extends ExcludeInfraTest {
             product.addVariant(xl_blue);
             product.addVariant(xl_red);
             product.replaceImages(List.of("http://thumbnail.jpg", "http://image.jpg"));
+            product.replaceDescriptionImage(List.of("http://description.jpg"));
             product.publish();
             productRepository.save(product);
             //when
@@ -463,6 +466,12 @@ public class ProductServiceTest extends ExcludeInfraTest {
                             tuple("http://thumbnail.jpg", 1, true),
                             tuple("http://image.jpg", 2, false)
                     );
+
+            assertThat(result.getDescriptionImages())
+                    .extracting(ProductDescriptionImageResponse::getImageUrl, ProductDescriptionImageResponse::getOrder)
+                            .containsExactlyInAnyOrder(
+                                    tuple("http://description.jpg", 1)
+                            );
 
             assertThat(result.getVariants())
                     .hasSize(2)
@@ -637,6 +646,7 @@ public class ProductServiceTest extends ExcludeInfraTest {
             ProductVariant variant = ProductVariant.create("TEST", 3000L, 100, 10);
             product.addVariant(variant);
             product.replaceImages(List.of("http://image.jpg"));
+            product.replaceDescriptionImage(List.of("http://description.jpg"));
             product.publish();
             productRepository.save(product);
             //when

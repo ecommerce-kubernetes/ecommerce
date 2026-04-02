@@ -2,6 +2,7 @@ package com.example.product_service.api.product.service.dto.result;
 
 import com.example.product_service.api.option.domain.model.OptionValue;
 import com.example.product_service.api.product.domain.model.Product;
+import com.example.product_service.api.product.domain.model.ProductDescriptionImage;
 import com.example.product_service.api.product.domain.model.ProductOption;
 import lombok.Builder;
 import lombok.Getter;
@@ -23,6 +24,7 @@ public class ProductDetailResponse {
     private Double popularityScore;
     private List<OptionGroup> optionGroups;
     private List<ProductImageResponse> images;
+    private List<ProductDescriptionImageResponse> descriptionImages;
     private List<VariantResponse> variants;
 
     @Getter
@@ -75,7 +77,7 @@ public class ProductDetailResponse {
     @Builder
     private ProductDetailResponse(Long productId, String name, String status, Long categoryId, String description, Long displayPrice,
                                   Long originalPrice, Integer maxDiscountRate, Double rating, Long reviewCount, Double popularityScore,
-                                  List<OptionGroup> optionGroups, List<ProductImageResponse> images, List<VariantResponse> variants) {
+                                  List<OptionGroup> optionGroups, List<ProductImageResponse> images, List<ProductDescriptionImageResponse> descriptionImages, List<VariantResponse> variants) {
         this.productId = productId;
         this.name = name;
         this.status = status;
@@ -89,6 +91,7 @@ public class ProductDetailResponse {
         this.popularityScore = popularityScore;
         this.optionGroups = optionGroups;
         this.images = images;
+        this.descriptionImages = descriptionImages;
         this.variants = variants;
     }
 
@@ -97,6 +100,7 @@ public class ProductDetailResponse {
                 .toList();
         List<ProductImageResponse> images = product.getImages().stream().map(ProductImageResponse::from)
                 .toList();
+        List<ProductDescriptionImageResponse> descriptionImages = product.getDescriptionImages().stream().map(ProductDescriptionImageResponse::from).toList();
         List<VariantResponse> variants = product.getVariants().stream().map(VariantResponse::from).toList();
         return ProductDetailResponse.builder()
                 .productId(product.getId())
@@ -112,6 +116,7 @@ public class ProductDetailResponse {
                 .popularityScore(product.getPopularityScore())
                 .optionGroups(optionGroups)
                 .images(images)
+                .descriptionImages(descriptionImages)
                 .variants(variants)
                 .build();
     }
