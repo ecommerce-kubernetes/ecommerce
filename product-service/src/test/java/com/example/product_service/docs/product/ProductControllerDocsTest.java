@@ -10,7 +10,6 @@ import com.example.product_service.api.product.service.dto.command.ProductUpdate
 import com.example.product_service.api.product.service.dto.command.ProductVariantsCreateCommand;
 import com.example.product_service.api.product.service.dto.result.*;
 import com.example.product_service.docs.RestDocsSupport;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
