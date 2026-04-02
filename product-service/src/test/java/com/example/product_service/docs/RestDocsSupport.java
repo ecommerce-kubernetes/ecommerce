@@ -13,8 +13,11 @@ import org.springframework.core.MethodParameter;
 import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.restdocs.RestDocumentationContextProvider;
 import org.springframework.restdocs.RestDocumentationExtension;
+import org.springframework.restdocs.headers.HeaderDescriptor;
 import org.springframework.restdocs.mockmvc.RestDocumentationResultHandler;
 import org.springframework.restdocs.payload.FieldDescriptor;
+import org.springframework.restdocs.request.ParameterDescriptor;
+import org.springframework.restdocs.snippet.Snippet;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.bind.support.WebDataBinderFactory;
@@ -23,12 +26,18 @@ import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 import org.springframework.web.servlet.view.json.MappingJackson2JsonView;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static com.epages.restdocs.apispec.ResourceDocumentation.resource;
+import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
+import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.documentationConfiguration;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
 import static org.springframework.restdocs.payload.PayloadDocumentation.requestFields;
 import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
+import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
 
 @ExtendWith(RestDocumentationExtension.class)
 public abstract class RestDocsSupport {
@@ -47,27 +56,59 @@ public abstract class RestDocsSupport {
 
     protected abstract String getTag();
 
-    protected RestDocumentationResultHandler createDocument(
-            String identifier,
-            String summary,
-            String description,
-            FieldDescriptor[] requestFields,
-            FieldDescriptor[] responseFields) {
+    protected static final HeaderDescriptor[] AUTH_HEADER = new HeaderDescriptor[]{
+            headerWithName("Authorization").description("JWT Access Token")
+    };
 
-        return document(identifier,
-                preprocessRequest(prettyPrint(),
-                        modifyHeaders().remove("X-User-Id").remove("X-User-Role").add("Authorization", "Bearer {ACCESS_TOKEN}")),
+    private RestDocumentationResultHandler createDocument(
+            String identifier, String summary, String description,
+            HeaderDescriptor[] requestHeaders,
+            FieldDescriptor[] requestFields,
+            FieldDescriptor[] responseFields,
+            ParameterDescriptor... pathParameters) {
+        List<Snippet> snippets = new ArrayList<>();
+        snippets.add(resource(ResourceSnippetParameters.builder()
+                .tag(getTag())
+                .summary(summary)
+                .description(description)
+                .requestHeaders(requestHeaders)
+                .pathParameters(pathParameters)
+                .requestFields(requestFields)
+                .responseFields(responseFields)
+                .build()));
+        if (requestHeaders.length > 0) snippets.add(requestHeaders(requestHeaders));
+        if (pathParameters.length > 0) snippets.add(pathParameters(pathParameters));
+        if (requestFields.length > 0) snippets.add(requestFields(requestFields));
+        if (responseFields.length > 0) snippets.add(responseFields(responseFields));
+        return document(
+                identifier,
+                preprocessRequest(prettyPrint(), modifyHeaders().remove("X-User-Id").remove("X-User-Role")),
                 preprocessResponse(prettyPrint()),
-                resource(ResourceSnippetParameters.builder()
-                        .tag(getTag())
-                        .summary(summary)
-                        .description(description)
-                        .requestFields(requestFields)
-                        .responseFields(responseFields)
-                        .build()),
-                requestFields(requestFields),
-                responseFields(responseFields)
+                snippets.toArray(new Snippet[0])
         );
+    }
+
+    protected RestDocumentationResultHandler createSecuredDocument(
+            String identifier, String summary, String description,
+            FieldDescriptor[] requestFields,
+            FieldDescriptor[] responseFields,
+            ParameterDescriptor... pathParameters) {
+        return createDocument(identifier, summary, description, AUTH_HEADER, requestFields, responseFields, pathParameters);
+    }
+
+    protected RestDocumentationResultHandler createSecuredDocument(
+            String identifier, String summary, String description,
+            ParameterDescriptor... pathParameters) {
+        return createDocument(identifier, summary, description, AUTH_HEADER,new FieldDescriptor[0], new FieldDescriptor[0], pathParameters);
+    }
+
+
+    protected RestDocumentationResultHandler createPublicDocument(
+            String identifier, String summary, String description,
+            FieldDescriptor[] responseFields,
+            ParameterDescriptor... pathParameters) {
+
+        return createDocument(identifier, summary, description, new HeaderDescriptor[0], new FieldDescriptor[0], responseFields, pathParameters);
     }
 
     protected abstract Object initController();
