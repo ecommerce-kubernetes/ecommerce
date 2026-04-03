@@ -1,8 +1,8 @@
 package com.example.product_service.api.category.controller;
 
-import com.example.product_service.api.category.controller.dto.CategoryCreateRequest;
-import com.example.product_service.api.category.controller.dto.MoveCategoryRequest;
-import com.example.product_service.api.category.controller.dto.UpdateCategoryRequest;
+import com.example.product_service.api.category.controller.dto.CategoryRequest.CreateRequest;
+import com.example.product_service.api.category.controller.dto.CategoryRequest.MoveRequest;
+import com.example.product_service.api.category.controller.dto.CategoryRequest.UpdateRequest;
 import com.example.product_service.api.category.service.CategoryService;
 import com.example.product_service.api.category.service.dto.result.CategoryNavigationResponse;
 import com.example.product_service.api.category.service.dto.result.CategoryResponse;
@@ -26,7 +26,7 @@ public class CategoryController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<CategoryResponse> saveCategory(@RequestBody @Validated CategoryCreateRequest request) {
+    public ResponseEntity<CategoryResponse> saveCategory(@RequestBody @Validated CreateRequest request) {
         CategoryResponse response = categoryService.saveCategory(request.name(), request.parentId(), request.imagePath());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -52,16 +52,16 @@ public class CategoryController {
     @PatchMapping("/{categoryId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CategoryResponse> updateCategory(@PathVariable("categoryId") Long categoryId,
-                                                           @RequestBody @Validated UpdateCategoryRequest request) {
-        CategoryResponse response = categoryService.updateCategory(categoryId, request.getName(), request.getImagePath());
+                                                           @RequestBody @Validated UpdateRequest request) {
+        CategoryResponse response = categoryService.updateCategory(categoryId, request.name(), request.imagePath());
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/{categoryId}/move")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CategoryResponse> moveParent(@PathVariable("categoryId") Long categoryId,
-                                                       @RequestBody @Validated MoveCategoryRequest request) {
-        CategoryResponse response = categoryService.moveParent(categoryId, request.getParentId());
+                                                       @RequestBody @Validated MoveRequest request) {
+        CategoryResponse response = categoryService.moveParent(categoryId, request.parentId());
         return ResponseEntity.ok(response);
     }
 

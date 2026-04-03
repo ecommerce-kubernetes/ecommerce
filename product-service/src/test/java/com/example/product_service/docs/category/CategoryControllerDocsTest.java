@@ -1,9 +1,9 @@
 package com.example.product_service.docs.category;
 
 import com.example.product_service.api.category.controller.CategoryController;
-import com.example.product_service.api.category.controller.dto.CategoryCreateRequest;
-import com.example.product_service.api.category.controller.dto.MoveCategoryRequest;
-import com.example.product_service.api.category.controller.dto.UpdateCategoryRequest;
+import com.example.product_service.api.category.controller.dto.CategoryRequest.CreateRequest;
+import com.example.product_service.api.category.controller.dto.CategoryRequest.MoveRequest;
+import com.example.product_service.api.category.controller.dto.CategoryRequest.UpdateRequest;
 import com.example.product_service.api.category.service.CategoryService;
 import com.example.product_service.api.category.service.dto.result.CategoryNavigationResponse;
 import com.example.product_service.api.category.service.dto.result.CategoryResponse;
@@ -44,7 +44,7 @@ class CategoryControllerDocsTest extends RestDocsSupport {
     @DisplayName("카테고리를 저장한다")
     void saveCategory() throws Exception {
         //given
-        CategoryCreateRequest request = fixtureMonkey.giveMeBuilder(CategoryCreateRequest.class)
+        CreateRequest request = fixtureMonkey.giveMeBuilder(CreateRequest.class)
                 .set("name", "카테고리")
                 .set("parentId", null)
                 .set("imagePath", "/test/image.jpg")
@@ -145,7 +145,7 @@ class CategoryControllerDocsTest extends RestDocsSupport {
     @DisplayName("카테고리를 수정한다")
     void updateCategory() throws Exception {
         //given
-        UpdateCategoryRequest request = fixtureMonkey.giveMeBuilder(UpdateCategoryRequest.class)
+        UpdateRequest request = fixtureMonkey.giveMeBuilder(UpdateRequest.class)
                 .set("name", "새 카테고리")
                 .set("imagePath", "/test/image.jpg")
                 .sample();
@@ -180,7 +180,7 @@ class CategoryControllerDocsTest extends RestDocsSupport {
     @DisplayName("카테고리의 부모를 변경한다")
     void moveParent() throws Exception {
         //given
-        MoveCategoryRequest request = fixtureMonkey.giveMeBuilder(MoveCategoryRequest.class)
+        MoveRequest request = fixtureMonkey.giveMeBuilder(MoveRequest.class)
                 .set("parentId", 1L)
                 .sample();
 

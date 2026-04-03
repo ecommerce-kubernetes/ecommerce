@@ -1,8 +1,8 @@
 package com.example.product_service.api.category.controller;
 
-import com.example.product_service.api.category.controller.dto.CategoryCreateRequest;
-import com.example.product_service.api.category.controller.dto.MoveCategoryRequest;
-import com.example.product_service.api.category.controller.dto.UpdateCategoryRequest;
+import com.example.product_service.api.category.controller.dto.CategoryRequest.CreateRequest;
+import com.example.product_service.api.category.controller.dto.CategoryRequest.MoveRequest;
+import com.example.product_service.api.category.controller.dto.CategoryRequest.UpdateRequest;
 import com.example.product_service.api.category.service.dto.result.CategoryNavigationResponse;
 import com.example.product_service.api.category.service.dto.result.CategoryResponse;
 import com.example.product_service.api.category.service.dto.result.CategoryTreeResponse;
@@ -35,7 +35,7 @@ class CategoryControllerTest extends ControllerTestSupport {
     @WithCustomMockUser
     void saveCategory() throws Exception {
         //given
-        CategoryCreateRequest request = fixtureMonkey.giveMeBuilder(CategoryCreateRequest.class)
+        CreateRequest request = fixtureMonkey.giveMeBuilder(CreateRequest.class)
                 .set("name", "카테고리")
                 .set("imagePath", "/test/image.jpg")
                 .sample();
@@ -57,7 +57,7 @@ class CategoryControllerTest extends ControllerTestSupport {
     @WithCustomMockUser(userRole = UserRole.ROLE_USER)
     void saveCategoryWithUserRole() throws Exception {
         //given
-        CategoryCreateRequest request = fixtureMonkey.giveMeBuilder(CategoryCreateRequest.class)
+        CreateRequest request = fixtureMonkey.giveMeBuilder(CreateRequest.class)
                 .set("name", "카테고리")
                 .set("imagePath", "/test/image.jpg")
                 .sample();
@@ -78,7 +78,7 @@ class CategoryControllerTest extends ControllerTestSupport {
     @DisplayName("로그인 하지 않은 유저는 카테고리를 생성할 수 없다")
     void saveCategory_unAuthentication() throws Exception {
         //given
-        CategoryCreateRequest request = fixtureMonkey.giveMeBuilder(CategoryCreateRequest.class)
+        CreateRequest request = fixtureMonkey.giveMeBuilder(CreateRequest.class)
                 .set("name", "카테고리")
                 .set("imagePath", "/test/image.jpg")
                 .sample();
@@ -99,7 +99,7 @@ class CategoryControllerTest extends ControllerTestSupport {
     @MethodSource("provideInvalidCreateRequest")
     @DisplayName("카테고리 생성 요청 검증")
     @WithCustomMockUser
-    void saveCategoryValidation(String description, CategoryCreateRequest request, String message) throws Exception {
+    void saveCategoryValidation(String description, CreateRequest request, String message) throws Exception {
         //given
         //when
         //then
@@ -119,7 +119,7 @@ class CategoryControllerTest extends ControllerTestSupport {
     @WithCustomMockUser
     void updateCategory() throws Exception {
         //given
-        CategoryCreateRequest request = fixtureMonkey.giveMeBuilder(CategoryCreateRequest.class)
+        CreateRequest request = fixtureMonkey.giveMeBuilder(CreateRequest.class)
                 .set("name", "카테고리")
                 .set("imagePath", "/test/image.jpg")
                 .sample();
@@ -141,7 +141,7 @@ class CategoryControllerTest extends ControllerTestSupport {
     @WithCustomMockUser(userRole = UserRole.ROLE_USER)
     void updateCategoryWhenUserRole() throws Exception {
         //given
-        UpdateCategoryRequest request = fixtureMonkey.giveMeBuilder(UpdateCategoryRequest.class)
+        UpdateRequest request = fixtureMonkey.giveMeBuilder(UpdateRequest.class)
                 .set("name", "새 카티고리")
                 .set("imagePath", "/test/new-image.jpg")
                 .sample();
@@ -162,7 +162,7 @@ class CategoryControllerTest extends ControllerTestSupport {
     @DisplayName("로그인 하지 않은 유저는 카테고리를 수정할 수 없다")
     void updateCategory_unAuthentication() throws Exception {
         //given
-        CategoryCreateRequest request = fixtureMonkey.giveMeBuilder(CategoryCreateRequest.class)
+        UpdateRequest request = fixtureMonkey.giveMeBuilder(UpdateRequest.class)
                 .set("name", "카테고리")
                 .set("imagePath", "/test/image.jpg")
                 .sample();
@@ -183,7 +183,7 @@ class CategoryControllerTest extends ControllerTestSupport {
     @MethodSource("provideInvalidUpdateRequest")
     @DisplayName("카테고리 수정 요청 검증")
     @WithCustomMockUser
-    void updateCategoryValidation(String description, UpdateCategoryRequest request, String message) throws Exception {
+    void updateCategoryValidation(String description, UpdateRequest request, String message) throws Exception {
         //given
         //when
         //then
@@ -203,7 +203,7 @@ class CategoryControllerTest extends ControllerTestSupport {
     @WithCustomMockUser
     void moveParent() throws Exception {
         //given
-        MoveCategoryRequest request = fixtureMonkey.giveMeBuilder(MoveCategoryRequest.class)
+        MoveRequest request = fixtureMonkey.giveMeBuilder(MoveRequest.class)
                 .set("parentId", 1L)
                 .sample();
         CategoryResponse response = fixtureMonkey.giveMeOne(CategoryResponse.class);
@@ -224,7 +224,7 @@ class CategoryControllerTest extends ControllerTestSupport {
     @WithCustomMockUser(userRole = UserRole.ROLE_USER)
     void moveParentWhenUserRole() throws Exception {
         //given
-        MoveCategoryRequest request = fixtureMonkey.giveMeBuilder(MoveCategoryRequest.class)
+        MoveRequest request = fixtureMonkey.giveMeBuilder(MoveRequest.class)
                 .set("parentId", 1L)
                 .sample();
         //when
@@ -244,7 +244,7 @@ class CategoryControllerTest extends ControllerTestSupport {
     @DisplayName("로그인 하지 않은 유저는 카테고리 부모를 변경할 수 없다")
     void moveParent_unAuthentication() throws Exception {
         //given
-        MoveCategoryRequest request = fixtureMonkey.giveMeBuilder(MoveCategoryRequest.class)
+        MoveRequest request = fixtureMonkey.giveMeBuilder(MoveRequest.class)
                 .set("parentId", 1L)
                 .sample();
         //when
@@ -351,14 +351,14 @@ class CategoryControllerTest extends ControllerTestSupport {
     private static Stream<Arguments> provideInvalidCreateRequest() {
         return Stream.of(
                 Arguments.of("카테고리 이름은 공백이 아닌 필수값이여야한다",
-                        CategoryCreateRequest.builder()
+                        CreateRequest.builder()
                                 .name(null)
                                 .imagePath("/test/image.jpg")
                                 .build(),
                         "name은 필수값입니다"
                 ),
                 Arguments.of("imagePath는 유효한 이미지 파일 형식 ('/'시작, 확장자 등)에 만족해야한다",
-                        CategoryCreateRequest.builder()
+                        CreateRequest.builder()
                                 .name("카테고리")
                                 .imagePath("invalid-image-files")
                                 .build(),
@@ -369,13 +369,13 @@ class CategoryControllerTest extends ControllerTestSupport {
     private static Stream<Arguments> provideInvalidUpdateRequest() {
         return Stream.of(
                 Arguments.of("imagePath는 유효한 이미지 파일 형식 ('/'시작, 확장자 등)에 만족해야한다",
-                        UpdateCategoryRequest.builder()
+                        UpdateRequest.builder()
                                 .name("변경된 카테고리")
                                 .imagePath("invalid=image-files")
                                 .build(),
                         "이미지 경로는 '/'로 시작하는 유효한 이미지 파일이어야 합니다"),
                 Arguments.of("필드는 최소 하나는 존재해야한다",
-                        UpdateCategoryRequest.builder()
+                        UpdateRequest.builder()
                                 .name(null)
                                 .imagePath(null)
                                 .build(),
