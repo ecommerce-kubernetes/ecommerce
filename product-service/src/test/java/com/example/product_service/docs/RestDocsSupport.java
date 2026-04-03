@@ -11,6 +11,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.core.MethodParameter;
 import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
+import org.springframework.http.HttpHeaders;
 import org.springframework.restdocs.RestDocumentationContextProvider;
 import org.springframework.restdocs.RestDocumentationExtension;
 import org.springframework.restdocs.headers.HeaderDescriptor;
@@ -138,5 +139,13 @@ public abstract class RestDocsSupport {
 
             return UserPrincipal.of(Long.parseLong(userId), UserRole.valueOf(userRole));
         }
+    }
+
+    protected HttpHeaders createAdminHeader(){
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", "Bearer test-access-token");
+        headers.add("X-User-Id", "1");
+        headers.add("X-User-Role", "ROLE_ADMIN");
+        return headers;
     }
 }

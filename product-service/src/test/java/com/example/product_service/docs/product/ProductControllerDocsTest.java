@@ -725,11 +725,4 @@ class ProductControllerDocsTest extends RestDocsSupport {
                         )
                 );
     }
-
-    private HttpHeaders createAdminHeader(){
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("X-User-Id", "1");
-        headers.add("X-User-Role", "ROLE_ADMIN");
-        return headers;
-    }
 }

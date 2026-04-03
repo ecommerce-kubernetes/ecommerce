@@ -8,7 +8,7 @@ import com.example.product_service.api.category.service.CategoryService;
 import com.example.product_service.api.category.service.dto.result.CategoryNavigationResponse;
 import com.example.product_service.api.category.service.dto.result.CategoryResponse;
 import com.example.product_service.api.category.service.dto.result.CategoryTreeResponse;
-import com.example.product_service.docs.CategoryDescriptor;
+import com.example.product_service.docs.descriptor.CategoryDescriptor;
 import com.example.product_service.docs.RestDocsSupport;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -34,7 +34,6 @@ class CategoryControllerDocsTest extends RestDocsSupport {
     protected String getTag() {
         return "Category";
     }
-    private static final String TAG = "Category";
     @Override
     protected Object initController() {
         return new CategoryController(categoryService);
@@ -281,13 +280,5 @@ class CategoryControllerDocsTest extends RestDocsSupport {
                 .parentId(null)
                 .depth(1)
                 .imageUrl("http://category.jpg");
-    }
-
-    private HttpHeaders createAdminHeader(){
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Authorization", "Bearer test-access-token");
-        headers.add("X-User-Id", "1");
-        headers.add("X-User-Role", "ROLE_ADMIN");
-        return headers;
     }
 }

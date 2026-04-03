@@ -1,7 +1,8 @@
 package com.example.product_service.api.option.controller;
 
-import com.example.product_service.api.option.controller.dto.OptionCreateRequest;
-import com.example.product_service.api.option.controller.dto.OptionUpdateRequest;
+import com.example.product_service.api.option.controller.dto.OptionRequest;
+import com.example.product_service.api.option.controller.dto.OptionRequest.CreateRequest;
+import com.example.product_service.api.option.controller.dto.OptionRequest.UpdateRequest;
 import com.example.product_service.api.option.service.OptionService;
 import com.example.product_service.api.option.service.dto.OptionResponse;
 import com.example.product_service.api.option.service.dto.OptionValueResponse;
@@ -22,8 +23,9 @@ public class OptionController {
 
     @PostMapping("/options")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<OptionResponse> saveOption(@RequestBody @Validated OptionCreateRequest request) {
-        OptionResponse response = optionService.saveOption(request.getName(), request.getValues());
+    public ResponseEntity<OptionResponse> saveOption(@RequestBody @Validated CreateRequest request) {
+        List<String> valueNames = request.values().stream().map(OptionRequest.OptionValueRequest::name).toList();
+        OptionResponse response = optionService.saveOption(request.name(), valueNames);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -42,8 +44,8 @@ public class OptionController {
     @PatchMapping("/options/{optionTypeId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<OptionResponse> updateOptionType(@PathVariable("optionTypeId") Long optionTypeId,
-                                                           @RequestBody @Validated OptionUpdateRequest request) {
-        OptionResponse response = optionService.updateOptionTypeName(optionTypeId, request.getName());
+                                                           @RequestBody @Validated UpdateRequest request) {
+        OptionResponse response = optionService.updateOptionTypeName(optionTypeId, request.name());
         return ResponseEntity.ok(response);
     }
 
@@ -57,8 +59,8 @@ public class OptionController {
     @PatchMapping("/option-values/{optionValueId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<OptionValueResponse> updateOptionValue(@PathVariable("optionValueId") Long optionValueId,
-                                                                 @RequestBody @Validated OptionUpdateRequest request) {
-        OptionValueResponse response = optionService.updateOptionValueName(optionValueId, request.getName());
+                                                                 @RequestBody @Validated OptionRequest.UpdateRequest request) {
+        OptionValueResponse response = optionService.updateOptionValueName(optionValueId, request.name());
         return ResponseEntity.ok(response);
     }
 

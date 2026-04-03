@@ -1,4 +1,4 @@
-package com.example.product_service.docs;
+package com.example.product_service.docs.descriptor;
 
 import org.springframework.restdocs.payload.FieldDescriptor;
 import org.springframework.restdocs.payload.JsonFieldType;
