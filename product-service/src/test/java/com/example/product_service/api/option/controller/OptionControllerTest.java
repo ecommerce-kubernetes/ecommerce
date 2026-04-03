@@ -132,7 +132,7 @@ class OptionControllerTest extends ControllerTestSupport {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(List.of(response))));
+                .andExpect(content().json(objectMapper.writeValueAsString(response)));
     }
 
     @Test
