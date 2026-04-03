@@ -5,7 +5,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 @Getter
-public class CategoryResponse {
+public class CategoryResult {
     private Long id;
     private String name;
     private Long parentId;
@@ -13,7 +13,7 @@ public class CategoryResponse {
     private String imageUrl;
 
     @Builder
-    public CategoryResponse(Long id, String name, Long parentId, Integer depth, String imageUrl) {
+    public CategoryResult(Long id, String name, Long parentId, Integer depth, String imageUrl) {
         this.id = id;
         this.name = name;
         this.parentId = parentId;
@@ -21,8 +21,8 @@ public class CategoryResponse {
         this.imageUrl = imageUrl;
     }
 
-    public static CategoryResponse from(Category category) {
-        return CategoryResponse.builder()
+    public static CategoryResult from(Category category) {
+        return CategoryResult.builder()
                 .id(category.getId())
                 .name(category.getName())
                 .parentId(category.getParent() == null ? null : category.getParent().getId())

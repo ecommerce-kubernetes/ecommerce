@@ -3,7 +3,7 @@ package com.example.product_service.api.category.service;
 import com.example.product_service.api.category.domain.model.Category;
 import com.example.product_service.api.category.domain.repository.CategoryRepository;
 import com.example.product_service.api.category.service.dto.result.CategoryNavigationResponse;
-import com.example.product_service.api.category.service.dto.result.CategoryResponse;
+import com.example.product_service.api.category.service.dto.result.CategoryResult;
 import com.example.product_service.api.category.service.dto.result.CategoryTreeResponse;
 import com.example.product_service.api.common.exception.BusinessException;
 import com.example.product_service.api.common.exception.CategoryErrorCode;
@@ -27,19 +27,19 @@ public class CategoryService {
     private final ProductRepository productRepository;
 
     @Transactional
-    public CategoryResponse saveCategory(String name, Long parentId, String imageUrl) {
+    public CategoryResult saveCategory(String name, Long parentId, String imageUrl) {
         String trimName = name.trim();
         Category parent = getValidatedParent(parentId);
         validateDuplicateName(parent, trimName);
         Category category = Category.create(trimName, parent, imageUrl);
         categoryRepository.save(category);
         category.generatePath();
-        return CategoryResponse.from(category);
+        return CategoryResult.from(category);
     }
 
-    public CategoryResponse getCategory(Long categoryId) {
+    public CategoryResult getCategory(Long categoryId) {
         Category category = findCategoryOrThrow(categoryId);
-        return CategoryResponse.from(category);
+        return CategoryResult.from(category);
     }
 
     public List<CategoryTreeResponse> getTree() {
@@ -50,15 +50,15 @@ public class CategoryService {
 
     public CategoryNavigationResponse getNavigation(Long categoryId) {
         Category target = findCategoryOrThrow(categoryId);
-        CategoryResponse current = CategoryResponse.from(target);
-        List<CategoryResponse> ancestors = findCategoryPath(target);
-        List<CategoryResponse> siblings = findSiblings(target);
-        List<CategoryResponse> children = findChildren(target);
+        CategoryResult current = CategoryResult.from(target);
+        List<CategoryResult> ancestors = findCategoryPath(target);
+        List<CategoryResult> siblings = findSiblings(target);
+        List<CategoryResult> children = findChildren(target);
         return CategoryNavigationResponse.of(current, ancestors, siblings, children);
     }
 
     @Transactional
-    public CategoryResponse updateCategory(Long categoryId, String name, String imageUrl) {
+    public CategoryResult updateCategory(Long categoryId, String name, String imageUrl) {
         Category category = findCategoryOrThrow(categoryId);
         if (StringUtils.hasText(name)) {
             String trimName = name.trim();
@@ -69,17 +69,17 @@ public class CategoryService {
         if (imageUrl != null) {
             category.changeImage(imageUrl);
         }
-        return CategoryResponse.from(category);
+        return CategoryResult.from(category);
     }
 
     @Transactional
-    public CategoryResponse moveParent(Long categoryId, Long parentId) {
+    public CategoryResult moveParent(Long categoryId, Long parentId) {
         // 카테고리 조회
         Category category = findCategoryOrThrow(categoryId);
         Category parent = getValidatedParent(parentId);
         validateDuplicateName(parent, category.getName());
         category.moveParent(parent);
-        return CategoryResponse.from(category);
+        return CategoryResult.from(category);
     }
 
     @Transactional
@@ -107,16 +107,16 @@ public class CategoryService {
                 .orElseThrow(() -> new BusinessException(CategoryErrorCode.CATEGORY_NOT_FOUND));
     }
 
-    private List<CategoryResponse> findCategoryPath(Category current) {
+    private List<CategoryResult> findCategoryPath(Category current) {
         if (current.isRoot()) {
-            return List.of(CategoryResponse.from(current));
+            return List.of(CategoryResult.from(current));
         }
         List<Long> ancestorIds = current.getPathIds();
         List<Category> ancestors = categoryRepository.findByInOrderDepth(ancestorIds);
         return createCategoryResponses(ancestors);
     }
 
-    private List<CategoryResponse> findSiblings(Category current) {
+    private List<CategoryResult> findSiblings(Category current) {
         if (current.isRoot()) {
             List<Category> siblings = categoryRepository.findByParentIsNull();
             return createCategoryResponses(siblings);
@@ -125,12 +125,12 @@ public class CategoryService {
         return createCategoryResponses(siblings);
     }
 
-    private List<CategoryResponse> findChildren(Category current) {
+    private List<CategoryResult> findChildren(Category current) {
         return createCategoryResponses(current.getChildren());
     }
 
-    private List<CategoryResponse> createCategoryResponses(List<Category> categories) {
-        return categories.stream().map(CategoryResponse::from).toList();
+    private List<CategoryResult> createCategoryResponses(List<Category> categories) {
+        return categories.stream().map(CategoryResult::from).toList();
     }
 
     // 부모 카테고리를 찾고 부모 카테고리에 속한 상품이 존재하는지 검증

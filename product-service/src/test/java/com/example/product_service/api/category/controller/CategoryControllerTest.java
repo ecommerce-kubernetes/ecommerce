@@ -1,10 +1,11 @@
 package com.example.product_service.api.category.controller;
 
-import com.example.product_service.api.category.controller.dto.CategoryRequest.CreateRequest;
-import com.example.product_service.api.category.controller.dto.CategoryRequest.MoveRequest;
-import com.example.product_service.api.category.controller.dto.CategoryRequest.UpdateRequest;
+import com.example.product_service.api.category.controller.dto.request.CategoryRequest.CreateRequest;
+import com.example.product_service.api.category.controller.dto.request.CategoryRequest.MoveRequest;
+import com.example.product_service.api.category.controller.dto.request.CategoryRequest.UpdateRequest;
+import com.example.product_service.api.category.controller.dto.response.CategoryResponse;
 import com.example.product_service.api.category.service.dto.result.CategoryNavigationResponse;
-import com.example.product_service.api.category.service.dto.result.CategoryResponse;
+import com.example.product_service.api.category.service.dto.result.CategoryResult;
 import com.example.product_service.api.category.service.dto.result.CategoryTreeResponse;
 import com.example.product_service.api.common.security.model.UserRole;
 import com.example.product_service.support.ControllerTestSupport;
@@ -21,6 +22,7 @@ import org.springframework.http.MediaType;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static com.example.product_service.api.category.controller.dto.response.CategoryResponse.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -39,9 +41,12 @@ class CategoryControllerTest extends ControllerTestSupport {
                 .set("name", "카테고리")
                 .set("imagePath", "/test/image.jpg")
                 .sample();
-        CategoryResponse response = fixtureMonkey.giveMeOne(CategoryResponse.class);
+        CategoryResult result = fixtureMonkey.giveMeOne(CategoryResult.class);
+        assert result != null;
+
         given(categoryService.saveCategory(anyString(), nullable(Long.class), anyString()))
-                .willReturn(response);
+                .willReturn(result);
+        Detail response = Detail.from(result);
         //when
         //then
         mockMvc.perform(post("/categories")
@@ -123,7 +128,7 @@ class CategoryControllerTest extends ControllerTestSupport {
                 .set("name", "카테고리")
                 .set("imagePath", "/test/image.jpg")
                 .sample();
-        CategoryResponse response = fixtureMonkey.giveMeOne(CategoryResponse.class);
+        CategoryResult response = fixtureMonkey.giveMeOne(CategoryResult.class);
         given(categoryService.updateCategory(anyLong(), anyString(), anyString()))
                 .willReturn(response);
         //when
@@ -206,7 +211,7 @@ class CategoryControllerTest extends ControllerTestSupport {
         MoveRequest request = fixtureMonkey.giveMeBuilder(MoveRequest.class)
                 .set("parentId", 1L)
                 .sample();
-        CategoryResponse response = fixtureMonkey.giveMeOne(CategoryResponse.class);
+        CategoryResult response = fixtureMonkey.giveMeOne(CategoryResult.class);
         given(categoryService.moveParent(anyLong(), anyLong()))
                 .willReturn(response);
         //when
@@ -337,7 +342,7 @@ class CategoryControllerTest extends ControllerTestSupport {
     @DisplayName("카테고리를 조회한다")
     void getCategory() throws Exception {
         //given
-        CategoryResponse response = fixtureMonkey.giveMeOne(CategoryResponse.class);
+        CategoryResult response = fixtureMonkey.giveMeOne(CategoryResult.class);
         given(categoryService.getCategory(anyLong()))
                 .willReturn(response);
         //when

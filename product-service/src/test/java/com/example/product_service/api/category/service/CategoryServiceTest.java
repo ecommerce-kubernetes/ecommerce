@@ -3,7 +3,7 @@ package com.example.product_service.api.category.service;
 import com.example.product_service.api.category.domain.model.Category;
 import com.example.product_service.api.category.domain.repository.CategoryRepository;
 import com.example.product_service.api.category.service.dto.result.CategoryNavigationResponse;
-import com.example.product_service.api.category.service.dto.result.CategoryResponse;
+import com.example.product_service.api.category.service.dto.result.CategoryResult;
 import com.example.product_service.api.category.service.dto.result.CategoryTreeResponse;
 import com.example.product_service.api.common.exception.BusinessException;
 import com.example.product_service.api.common.exception.CategoryErrorCode;
@@ -105,10 +105,10 @@ public class CategoryServiceTest extends ExcludeInfraTest {
         @DisplayName("최상위 카테고리를 생성한다")
         void save_root(){
             //when
-            CategoryResponse result = categoryService.saveCategory("가전", null, "http://img.jpg");
+            CategoryResult result = categoryService.saveCategory("가전", null, "http://img.jpg");
             //then
             assertThat(result)
-                    .extracting(CategoryResponse::getName, CategoryResponse::getParentId, CategoryResponse::getDepth)
+                    .extracting(CategoryResult::getName, CategoryResult::getParentId, CategoryResult::getDepth)
                     .containsExactly("가전", null, 1);
 
             Category saved = categoryRepository.findById(result.getId()).orElseThrow();
@@ -121,10 +121,10 @@ public class CategoryServiceTest extends ExcludeInfraTest {
             //given
             Category food = setupCategory("식품", null);
             //when
-            CategoryResponse result = categoryService.saveCategory("육류", food.getId(), "http://test.jpg");
+            CategoryResult result = categoryService.saveCategory("육류", food.getId(), "http://test.jpg");
             //then
             assertThat(result)
-                    .extracting(CategoryResponse::getName, CategoryResponse::getParentId, CategoryResponse::getDepth, CategoryResponse::getImageUrl)
+                    .extracting(CategoryResult::getName, CategoryResult::getParentId, CategoryResult::getDepth, CategoryResult::getImageUrl)
                     .containsExactly("육류", food.getId(), 2, "http://test.jpg");
 
             Category saved = categoryRepository.findById(result.getId()).orElseThrow();
@@ -142,10 +142,10 @@ public class CategoryServiceTest extends ExcludeInfraTest {
             //given
             Category category = setupCategory("카테고리", null);
             //when
-            CategoryResponse result = categoryService.getCategory(category.getId());
+            CategoryResult result = categoryService.getCategory(category.getId());
             //then
             assertThat(result)
-                    .extracting(CategoryResponse::getId, CategoryResponse::getName, CategoryResponse::getParentId, CategoryResponse::getDepth, CategoryResponse::getImageUrl)
+                    .extracting(CategoryResult::getId, CategoryResult::getName, CategoryResult::getParentId, CategoryResult::getDepth, CategoryResult::getImageUrl)
                     .containsExactly(category.getId(), "카테고리", null, 1, "http://test.jpg");
         }
 
@@ -200,11 +200,11 @@ public class CategoryServiceTest extends ExcludeInfraTest {
             CategoryNavigationResponse result = categoryService.getNavigation(target.getId());
             //then
             assertThat(result.getCurrent())
-                    .extracting(CategoryResponse::getName, CategoryResponse::getDepth)
+                    .extracting(CategoryResult::getName, CategoryResult::getDepth)
                     .containsExactly("노트북", 3);
 
             assertThat(result.getPath())
-                    .extracting(CategoryResponse::getName, CategoryResponse::getDepth)
+                    .extracting(CategoryResult::getName, CategoryResult::getDepth)
                     .containsExactly(
                             tuple("전자", 1),
                             tuple("컴퓨터", 2),
@@ -212,14 +212,14 @@ public class CategoryServiceTest extends ExcludeInfraTest {
                     );
 
             assertThat(result.getSiblings())
-                    .extracting(CategoryResponse::getName, CategoryResponse::getDepth)
+                    .extracting(CategoryResult::getName, CategoryResult::getDepth)
                     .containsExactly(
                             tuple("노트북", 3),
                             tuple("데스크탑", 3)
                     );
 
             assertThat(result.getChildren())
-                    .extracting(CategoryResponse::getName, CategoryResponse::getDepth)
+                    .extracting(CategoryResult::getName, CategoryResult::getDepth)
                     .containsExactly(
                             tuple("삼성", 4)
                     );
@@ -236,10 +236,10 @@ public class CategoryServiceTest extends ExcludeInfraTest {
             //given
             Category category = setupCategory("기존", null);
             //when
-            CategoryResponse result = categoryService.updateCategory(category.getId(), "변경", "http://newimage.jpg");
+            CategoryResult result = categoryService.updateCategory(category.getId(), "변경", "http://newimage.jpg");
             //then
             assertThat(result)
-                    .extracting(CategoryResponse::getName, CategoryResponse::getImageUrl)
+                    .extracting(CategoryResult::getName, CategoryResult::getImageUrl)
                     .containsExactly("변경", "http://newimage.jpg");
         }
 
@@ -301,10 +301,10 @@ public class CategoryServiceTest extends ExcludeInfraTest {
 
             Category root2 = setupCategory("식품", null);
             //when
-            CategoryResponse result = categoryService.moveParent(target.getId(), root2.getId());
+            CategoryResult result = categoryService.moveParent(target.getId(), root2.getId());
             //then
             assertThat(result)
-                    .extracting(CategoryResponse::getName, CategoryResponse::getParentId, CategoryResponse::getDepth)
+                    .extracting(CategoryResult::getName, CategoryResult::getParentId, CategoryResult::getDepth)
                     .containsExactly("컴퓨터", root2.getId(), 2);
 
             Category updatedChild = categoryRepository.findById(child.getId()).orElseThrow();
@@ -319,10 +319,10 @@ public class CategoryServiceTest extends ExcludeInfraTest {
             Category root = setupCategory("전자", null);
             Category target = setupCategory("노트북", root);
             //when
-            CategoryResponse result = categoryService.moveParent(target.getId(), null);
+            CategoryResult result = categoryService.moveParent(target.getId(), null);
             //then
             assertThat(result)
-                    .extracting(CategoryResponse::getName, CategoryResponse::getParentId, CategoryResponse::getDepth)
+                    .extracting(CategoryResult::getName, CategoryResult::getParentId, CategoryResult::getDepth)
                     .containsExactly("노트북", null, 1);
 
             Category find = categoryRepository.findById(target.getId()).orElseThrow();

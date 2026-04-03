@@ -1,4 +1,4 @@
-package com.example.product_service.api.category.controller.dto;
+package com.example.product_service.api.category.controller.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.AssertTrue;

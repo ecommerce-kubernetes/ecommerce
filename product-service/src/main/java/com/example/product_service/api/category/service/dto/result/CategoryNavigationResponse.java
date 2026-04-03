@@ -7,26 +7,26 @@ import java.util.List;
 
 @Getter
 public class CategoryNavigationResponse {
-    private CategoryResponse current;
-    private List<CategoryResponse> path;
-    private List<CategoryResponse> siblings;
-    private List<CategoryResponse> children;
+    private CategoryResult current;
+    private List<CategoryResult> path;
+    private List<CategoryResult> siblings;
+    private List<CategoryResult> children;
 
     @Builder
-    private CategoryNavigationResponse(CategoryResponse current,
-                                       List<CategoryResponse> path,
-                                       List<CategoryResponse> siblings,
-                                       List<CategoryResponse> children) {
+    private CategoryNavigationResponse(CategoryResult current,
+                                       List<CategoryResult> path,
+                                       List<CategoryResult> siblings,
+                                       List<CategoryResult> children) {
         this.current = current;
         this.path = path;
         this.siblings = siblings;
         this.children = children;
     }
 
-    public static CategoryNavigationResponse of(CategoryResponse current,
-                                                List<CategoryResponse> path,
-                                                List<CategoryResponse> siblings,
-                                                List<CategoryResponse> children) {
+    public static CategoryNavigationResponse of(CategoryResult current,
+                                                List<CategoryResult> path,
+                                                List<CategoryResult> siblings,
+                                                List<CategoryResult> children) {
         return CategoryNavigationResponse.builder()
                 .current(current)
                 .path(path)

@@ -1,12 +1,12 @@
 package com.example.product_service.docs.category;
 
 import com.example.product_service.api.category.controller.CategoryController;
-import com.example.product_service.api.category.controller.dto.CategoryRequest.CreateRequest;
-import com.example.product_service.api.category.controller.dto.CategoryRequest.MoveRequest;
-import com.example.product_service.api.category.controller.dto.CategoryRequest.UpdateRequest;
+import com.example.product_service.api.category.controller.dto.request.CategoryRequest.CreateRequest;
+import com.example.product_service.api.category.controller.dto.request.CategoryRequest.MoveRequest;
+import com.example.product_service.api.category.controller.dto.request.CategoryRequest.UpdateRequest;
 import com.example.product_service.api.category.service.CategoryService;
 import com.example.product_service.api.category.service.dto.result.CategoryNavigationResponse;
-import com.example.product_service.api.category.service.dto.result.CategoryResponse;
+import com.example.product_service.api.category.service.dto.result.CategoryResult;
 import com.example.product_service.api.category.service.dto.result.CategoryTreeResponse;
 import com.example.product_service.docs.descriptor.CategoryDescriptor;
 import com.example.product_service.docs.RestDocsSupport;
@@ -48,7 +48,7 @@ class CategoryControllerDocsTest extends RestDocsSupport {
                 .set("parentId", null)
                 .set("imagePath", "/test/image.jpg")
                 .sample();
-        CategoryResponse response = fixtureMonkey.giveMeBuilder(CategoryResponse.class)
+        CategoryResult response = fixtureMonkey.giveMeBuilder(CategoryResult.class)
                 .set("id", 1L)
                 .set("name", "카테고리")
                 .set("parentId", null)
@@ -118,7 +118,7 @@ class CategoryControllerDocsTest extends RestDocsSupport {
     @DisplayName("카테고리를 조회한다")
     void getCategory() throws Exception {
         //given
-        CategoryResponse response = fixtureMonkey.giveMeBuilder(CategoryResponse.class)
+        CategoryResult response = fixtureMonkey.giveMeBuilder(CategoryResult.class)
                 .set("id", 2L)
                 .set("name", "카테고리")
                 .set("parentId", 1L)
@@ -148,7 +148,7 @@ class CategoryControllerDocsTest extends RestDocsSupport {
                 .set("name", "새 카테고리")
                 .set("imagePath", "/test/image.jpg")
                 .sample();
-        CategoryResponse response = fixtureMonkey.giveMeBuilder(CategoryResponse.class)
+        CategoryResult response = fixtureMonkey.giveMeBuilder(CategoryResult.class)
                 .set("id", 1L)
                 .set("name", "새 카테고리")
                 .set("parentId", null)
@@ -183,7 +183,7 @@ class CategoryControllerDocsTest extends RestDocsSupport {
                 .set("parentId", 1L)
                 .sample();
 
-        CategoryResponse response = fixtureMonkey.giveMeBuilder(CategoryResponse.class)
+        CategoryResult response = fixtureMonkey.giveMeBuilder(CategoryResult.class)
                 .set("id", 2L)
                 .set("name", "자식 카테고리")
                 .set("parentId", 1L)
@@ -231,11 +231,11 @@ class CategoryControllerDocsTest extends RestDocsSupport {
     }
 
     private CategoryNavigationResponse createNavigation() {
-        CategoryResponse electron = createCategoryResponse().id(1L).name("전자기기").parentId(null).depth(1).imageUrl("http://electron.jpg").build();
-        CategoryResponse laptop = createCategoryResponse().id(2L).name("노트북").parentId(1L).depth(2).imageUrl("http://laptop.jpg").build();
-        CategoryResponse desktop = createCategoryResponse().id(3L).name("데스크탑").parentId(1L).depth(2).imageUrl("http://desktop.jpg").build();
-        CategoryResponse light = createCategoryResponse().id(4L).name("경량 노트북").parentId(2L).depth(3).imageUrl("http://lightlaptop.jpg").build();
-        CategoryResponse gaming = createCategoryResponse().id(5L).name("게이밍 노트북").parentId(2L).depth(3).imageUrl("http://gaminglaptop.jpg").build();
+        CategoryResult electron = createCategoryResponse().id(1L).name("전자기기").parentId(null).depth(1).imageUrl("http://electron.jpg").build();
+        CategoryResult laptop = createCategoryResponse().id(2L).name("노트북").parentId(1L).depth(2).imageUrl("http://laptop.jpg").build();
+        CategoryResult desktop = createCategoryResponse().id(3L).name("데스크탑").parentId(1L).depth(2).imageUrl("http://desktop.jpg").build();
+        CategoryResult light = createCategoryResponse().id(4L).name("경량 노트북").parentId(2L).depth(3).imageUrl("http://lightlaptop.jpg").build();
+        CategoryResult gaming = createCategoryResponse().id(5L).name("게이밍 노트북").parentId(2L).depth(3).imageUrl("http://gaminglaptop.jpg").build();
 
         return  CategoryNavigationResponse.builder()
                 .current(laptop)
@@ -273,8 +273,8 @@ class CategoryControllerDocsTest extends RestDocsSupport {
     }
 
 
-    private CategoryResponse.CategoryResponseBuilder createCategoryResponse() {
-        return CategoryResponse.builder()
+    private CategoryResult.CategoryResultBuilder createCategoryResponse() {
+        return CategoryResult.builder()
                 .id(1L)
                 .name("카테고리")
                 .parentId(null)

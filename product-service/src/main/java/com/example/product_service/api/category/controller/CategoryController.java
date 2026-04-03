@@ -1,11 +1,13 @@
 package com.example.product_service.api.category.controller;
 
-import com.example.product_service.api.category.controller.dto.CategoryRequest.CreateRequest;
-import com.example.product_service.api.category.controller.dto.CategoryRequest.MoveRequest;
-import com.example.product_service.api.category.controller.dto.CategoryRequest.UpdateRequest;
+import com.example.product_service.api.category.controller.dto.request.CategoryRequest.CreateRequest;
+import com.example.product_service.api.category.controller.dto.request.CategoryRequest.MoveRequest;
+import com.example.product_service.api.category.controller.dto.request.CategoryRequest.UpdateRequest;
+import com.example.product_service.api.category.controller.dto.response.CategoryResponse;
+import com.example.product_service.api.category.controller.dto.response.CategoryResponse.Detail;
 import com.example.product_service.api.category.service.CategoryService;
 import com.example.product_service.api.category.service.dto.result.CategoryNavigationResponse;
-import com.example.product_service.api.category.service.dto.result.CategoryResponse;
+import com.example.product_service.api.category.service.dto.result.CategoryResult;
 import com.example.product_service.api.category.service.dto.result.CategoryTreeResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,9 +28,9 @@ public class CategoryController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<CategoryResponse> saveCategory(@RequestBody @Validated CreateRequest request) {
-        CategoryResponse response = categoryService.saveCategory(request.name(), request.parentId(), request.imagePath());
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    public ResponseEntity<Detail> saveCategory(@RequestBody @Validated CreateRequest request) {
+        CategoryResult result = categoryService.saveCategory(request.name(), request.parentId(), request.imagePath());
+        return ResponseEntity.status(HttpStatus.CREATED).body(Detail.from(result));
     }
 
     @GetMapping("/tree")
@@ -44,24 +46,24 @@ public class CategoryController {
     }
 
     @GetMapping("/{categoryId}")
-    public ResponseEntity<CategoryResponse> getCategory(@PathVariable("categoryId") Long categoryId){
-        CategoryResponse response = categoryService.getCategory(categoryId);
+    public ResponseEntity<CategoryResult> getCategory(@PathVariable("categoryId") Long categoryId){
+        CategoryResult response = categoryService.getCategory(categoryId);
         return ResponseEntity.ok(response);
     }
 
     @PatchMapping("/{categoryId}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<CategoryResponse> updateCategory(@PathVariable("categoryId") Long categoryId,
-                                                           @RequestBody @Validated UpdateRequest request) {
-        CategoryResponse response = categoryService.updateCategory(categoryId, request.name(), request.imagePath());
+    public ResponseEntity<CategoryResult> updateCategory(@PathVariable("categoryId") Long categoryId,
+                                                         @RequestBody @Validated UpdateRequest request) {
+        CategoryResult response = categoryService.updateCategory(categoryId, request.name(), request.imagePath());
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/{categoryId}/move")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<CategoryResponse> moveParent(@PathVariable("categoryId") Long categoryId,
-                                                       @RequestBody @Validated MoveRequest request) {
-        CategoryResponse response = categoryService.moveParent(categoryId, request.parentId());
+    public ResponseEntity<CategoryResult> moveParent(@PathVariable("categoryId") Long categoryId,
+                                                     @RequestBody @Validated MoveRequest request) {
+        CategoryResult response = categoryService.moveParent(categoryId, request.parentId());
         return ResponseEntity.ok(response);
     }
 

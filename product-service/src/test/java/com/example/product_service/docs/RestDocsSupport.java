@@ -128,7 +128,7 @@ public abstract class RestDocsSupport {
         }
 
         @Override
-        public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer, NativeWebRequest webRequest, WebDataBinderFactory binderFactory) throws Exception {
+        public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer, NativeWebRequest webRequest, WebDataBinderFactory binderFactory) {
             HttpServletRequest request = (HttpServletRequest) webRequest.getNativeRequest();
             String userId = request.getHeader("X-User-Id");
             String userRole = request.getHeader("X-User-Role");

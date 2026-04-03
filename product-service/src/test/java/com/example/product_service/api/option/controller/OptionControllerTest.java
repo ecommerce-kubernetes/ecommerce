@@ -122,9 +122,10 @@ class OptionControllerTest extends ControllerTestSupport {
     @DisplayName("옵션 목록을 조회한다")
     void getOptions() throws Exception {
         //given
-        OptionResponse response = fixtureMonkey.giveMeOne(OptionResponse.class);
+        List<OptionResponse> response =
+                fixtureMonkey.giveMe(OptionResponse.class, 3);
         given(optionService.getOptions())
-                .willReturn(List.of(response));
+                .willReturn(response);
         //when
         //then
         mockMvc.perform(get("/options")
