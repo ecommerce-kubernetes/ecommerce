@@ -3,10 +3,9 @@ package com.example.product_service.api.category.controller;
 import com.example.product_service.api.category.controller.dto.request.CategoryRequest.CreateRequest;
 import com.example.product_service.api.category.controller.dto.request.CategoryRequest.MoveRequest;
 import com.example.product_service.api.category.controller.dto.request.CategoryRequest.UpdateRequest;
-import com.example.product_service.api.category.controller.dto.response.CategoryResponse;
-import com.example.product_service.api.category.service.dto.result.CategoryNavigationResponse;
+import com.example.product_service.api.category.service.dto.result.CategoryNavigationResult;
 import com.example.product_service.api.category.service.dto.result.CategoryResult;
-import com.example.product_service.api.category.service.dto.result.CategoryTreeResponse;
+import com.example.product_service.api.category.service.dto.result.CategoryTreeResult;
 import com.example.product_service.api.common.security.model.UserRole;
 import com.example.product_service.support.ControllerTestSupport;
 import com.example.product_service.support.security.annotation.WithCustomMockUser;
@@ -25,6 +24,7 @@ import java.util.stream.Stream;
 import static com.example.product_service.api.category.controller.dto.response.CategoryResponse.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -128,9 +128,11 @@ class CategoryControllerTest extends ControllerTestSupport {
                 .set("name", "카테고리")
                 .set("imagePath", "/test/image.jpg")
                 .sample();
-        CategoryResult response = fixtureMonkey.giveMeOne(CategoryResult.class);
+        CategoryResult result = fixtureMonkey.giveMeOne(CategoryResult.class);
         given(categoryService.updateCategory(anyLong(), anyString(), anyString()))
-                .willReturn(response);
+                .willReturn(result);
+        assert result != null;
+        Detail response = Detail.from(result);
         //when
         //then
         mockMvc.perform(patch("/categories/{categoryId}", 1L)
@@ -211,9 +213,10 @@ class CategoryControllerTest extends ControllerTestSupport {
         MoveRequest request = fixtureMonkey.giveMeBuilder(MoveRequest.class)
                 .set("parentId", 1L)
                 .sample();
-        CategoryResult response = fixtureMonkey.giveMeOne(CategoryResult.class);
-        given(categoryService.moveParent(anyLong(), anyLong()))
-                .willReturn(response);
+        CategoryResult result = fixtureMonkey.giveMeOne(CategoryResult.class);
+        given(categoryService.moveParent(anyLong(), anyLong())).willReturn(result);
+        assert result != null;
+        Detail response = Detail.from(result);
         //when
         //then
         mockMvc.perform(post("/categories/{categoryId}/move", 1L)
@@ -276,6 +279,7 @@ class CategoryControllerTest extends ControllerTestSupport {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isNoContent());
+        verify(categoryService).deleteCategory(1L);
     }
 
     @Test
@@ -312,24 +316,26 @@ class CategoryControllerTest extends ControllerTestSupport {
     @DisplayName("카테고리 트리를 조회한다")
     void getCategoryTree() throws Exception {
         //given
-        List<CategoryTreeResponse> response = fixtureMonkey.giveMe(CategoryTreeResponse.class, 3);
-        given(categoryService.getTree())
-                        .willReturn(response);
+        List<CategoryTreeResult> results = fixtureMonkey.giveMe(CategoryTreeResult.class, 3);
+        given(categoryService.getTree()).willReturn(results);
+        List<Tree> responses = results.stream().map(Tree::from).toList();
         //when
         //then
         mockMvc.perform(get("/categories/tree"))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(response)));
+                .andExpect(content().json(objectMapper.writeValueAsString(responses)));
     }
 
     @Test
     @DisplayName("카테고리 네비게이션을 조회한다")
     void getCategoryNavigation() throws Exception {
         //given
-        CategoryNavigationResponse response = fixtureMonkey.giveMeOne(CategoryNavigationResponse.class);
+        CategoryNavigationResult result = fixtureMonkey.giveMeOne(CategoryNavigationResult.class);
+        assert result != null;
+        Navigation response = Navigation.from(result);
         given(categoryService.getNavigation(anyLong()))
-                .willReturn(response);
+                .willReturn(result);
         //when
         //then
         mockMvc.perform(get("/categories/navigation/{categoryId}", 1L))
@@ -342,9 +348,10 @@ class CategoryControllerTest extends ControllerTestSupport {
     @DisplayName("카테고리를 조회한다")
     void getCategory() throws Exception {
         //given
-        CategoryResult response = fixtureMonkey.giveMeOne(CategoryResult.class);
-        given(categoryService.getCategory(anyLong()))
-                .willReturn(response);
+        CategoryResult result = fixtureMonkey.giveMeOne(CategoryResult.class);
+        given(categoryService.getCategory(anyLong())).willReturn(result);
+        assert result != null;
+        Detail response = Detail.from(result);
         //when
         //then
         mockMvc.perform(get("/categories/{categoryId}", 1L))

@@ -2,9 +2,9 @@ package com.example.product_service.api.category.service;
 
 import com.example.product_service.api.category.domain.model.Category;
 import com.example.product_service.api.category.domain.repository.CategoryRepository;
-import com.example.product_service.api.category.service.dto.result.CategoryNavigationResponse;
+import com.example.product_service.api.category.service.dto.result.CategoryNavigationResult;
 import com.example.product_service.api.category.service.dto.result.CategoryResult;
-import com.example.product_service.api.category.service.dto.result.CategoryTreeResponse;
+import com.example.product_service.api.category.service.dto.result.CategoryTreeResult;
 import com.example.product_service.api.common.exception.BusinessException;
 import com.example.product_service.api.common.exception.CategoryErrorCode;
 import com.example.product_service.api.product.domain.repository.ProductRepository;
@@ -42,19 +42,19 @@ public class CategoryService {
         return CategoryResult.from(category);
     }
 
-    public List<CategoryTreeResponse> getTree() {
+    public List<CategoryTreeResult> getTree() {
         Sort sort = Sort.by(Sort.Direction.ASC, "depth", "id");
         List<Category> allCategories = categoryRepository.findAll(sort);
-        return CategoryTreeResponse.convertTree(allCategories);
+        return CategoryTreeResult.convertTree(allCategories);
     }
 
-    public CategoryNavigationResponse getNavigation(Long categoryId) {
+    public CategoryNavigationResult getNavigation(Long categoryId) {
         Category target = findCategoryOrThrow(categoryId);
         CategoryResult current = CategoryResult.from(target);
         List<CategoryResult> ancestors = findCategoryPath(target);
         List<CategoryResult> siblings = findSiblings(target);
         List<CategoryResult> children = findChildren(target);
-        return CategoryNavigationResponse.of(current, ancestors, siblings, children);
+        return CategoryNavigationResult.of(current, ancestors, siblings, children);
     }
 
     @Transactional

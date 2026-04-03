@@ -11,17 +11,17 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Getter
-public class CategoryTreeResponse {
+public class CategoryTreeResult {
     private Long id;
     private String name;
     private Long parentId;
     private Integer depth;
     private String imageUrl;
 
-    private List<CategoryTreeResponse> children;
+    private List<CategoryTreeResult> children;
 
     @Builder
-    public CategoryTreeResponse(Long id, String name, Long parentId, String imageUrl, Integer depth) {
+    public CategoryTreeResult(Long id, String name, Long parentId, String imageUrl, Integer depth) {
         this.id = id;
         this.name = name;
         this.parentId = parentId;
@@ -30,12 +30,12 @@ public class CategoryTreeResponse {
         this.children = new ArrayList<>();
     }
 
-    public void addChild(CategoryTreeResponse child) {
+    public void addChild(CategoryTreeResult child) {
         children.add(child);
     }
 
-    public static CategoryTreeResponse from(Category category) {
-        return CategoryTreeResponse
+    public static CategoryTreeResult from(Category category) {
+        return CategoryTreeResult
                 .builder()
                 .id(category.getId())
                 .name(category.getName())
@@ -45,17 +45,17 @@ public class CategoryTreeResponse {
                 .build();
     }
 
-    public static List<CategoryTreeResponse> convertTree(List<Category> allCategories) {
-        List<CategoryTreeResponse> allDtoList = allCategories.stream().map(CategoryTreeResponse::from).toList();
-        Map<Long, CategoryTreeResponse> dtoMap = allDtoList.stream().collect(Collectors.toMap(CategoryTreeResponse::getId, Function.identity()));
-        List<CategoryTreeResponse> rootCategories = new ArrayList<>();
-        for (CategoryTreeResponse category : allDtoList) {
+    public static List<CategoryTreeResult> convertTree(List<Category> allCategories) {
+        List<CategoryTreeResult> allDtoList = allCategories.stream().map(CategoryTreeResult::from).toList();
+        Map<Long, CategoryTreeResult> dtoMap = allDtoList.stream().collect(Collectors.toMap(CategoryTreeResult::getId, Function.identity()));
+        List<CategoryTreeResult> rootCategories = new ArrayList<>();
+        for (CategoryTreeResult category : allDtoList) {
             // depth 가 1 이면 최상위 카테고리
             if (category.getDepth() == 1) {
                 rootCategories.add(category);
             } else {
                 // depth 가 1 이상이면 map에서 부모 카테고리를 찾아 addChild() 메서드 호출
-                CategoryTreeResponse parent = dtoMap.get(category.getParentId());
+                CategoryTreeResult parent = dtoMap.get(category.getParentId());
                 parent.addChild(category);
             }
         }

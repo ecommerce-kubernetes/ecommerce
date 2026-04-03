@@ -2,9 +2,9 @@ package com.example.product_service.api.category.service;
 
 import com.example.product_service.api.category.domain.model.Category;
 import com.example.product_service.api.category.domain.repository.CategoryRepository;
-import com.example.product_service.api.category.service.dto.result.CategoryNavigationResponse;
+import com.example.product_service.api.category.service.dto.result.CategoryNavigationResult;
 import com.example.product_service.api.category.service.dto.result.CategoryResult;
-import com.example.product_service.api.category.service.dto.result.CategoryTreeResponse;
+import com.example.product_service.api.category.service.dto.result.CategoryTreeResult;
 import com.example.product_service.api.common.exception.BusinessException;
 import com.example.product_service.api.common.exception.CategoryErrorCode;
 import com.example.product_service.api.product.domain.model.Product;
@@ -171,16 +171,16 @@ public class CategoryServiceTest extends ExcludeInfraTest {
             setupCategory("노트북", root1);
             setupCategory("냉장고", root1);
             //when
-            List<CategoryTreeResponse> result = categoryService.getTree();
+            List<CategoryTreeResult> result = categoryService.getTree();
             //then
-            assertThat(result).extracting(CategoryTreeResponse::getName, CategoryTreeResponse::getDepth, CategoryTreeResponse::getImageUrl)
+            assertThat(result).extracting(CategoryTreeResult::getName, CategoryTreeResult::getDepth, CategoryTreeResult::getImageUrl)
                     .containsExactly(
                             tuple("전자", 1, "http://test.jpg"),
                             tuple("식품", 1, "http://test.jpg")
                     );
 
-            CategoryTreeResponse electronics = result.get(0);
-            assertThat(electronics.getChildren()).extracting(CategoryTreeResponse::getName, CategoryTreeResponse::getDepth)
+            CategoryTreeResult electronics = result.get(0);
+            assertThat(electronics.getChildren()).extracting(CategoryTreeResult::getName, CategoryTreeResult::getDepth)
                     .containsExactly(
                             tuple("노트북", 2),
                             tuple("냉장고", 2)
@@ -197,7 +197,7 @@ public class CategoryServiceTest extends ExcludeInfraTest {
             setupCategory("데스크탑", depth2);
             setupCategory("삼성", target);
             //when
-            CategoryNavigationResponse result = categoryService.getNavigation(target.getId());
+            CategoryNavigationResult result = categoryService.getNavigation(target.getId());
             //then
             assertThat(result.getCurrent())
                     .extracting(CategoryResult::getName, CategoryResult::getDepth)

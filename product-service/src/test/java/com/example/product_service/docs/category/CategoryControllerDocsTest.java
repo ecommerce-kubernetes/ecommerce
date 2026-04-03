@@ -4,10 +4,14 @@ import com.example.product_service.api.category.controller.CategoryController;
 import com.example.product_service.api.category.controller.dto.request.CategoryRequest.CreateRequest;
 import com.example.product_service.api.category.controller.dto.request.CategoryRequest.MoveRequest;
 import com.example.product_service.api.category.controller.dto.request.CategoryRequest.UpdateRequest;
+import com.example.product_service.api.category.controller.dto.response.CategoryResponse;
+import com.example.product_service.api.category.controller.dto.response.CategoryResponse.Detail;
+import com.example.product_service.api.category.controller.dto.response.CategoryResponse.Navigation;
+import com.example.product_service.api.category.controller.dto.response.CategoryResponse.Tree;
 import com.example.product_service.api.category.service.CategoryService;
-import com.example.product_service.api.category.service.dto.result.CategoryNavigationResponse;
+import com.example.product_service.api.category.service.dto.result.CategoryNavigationResult;
 import com.example.product_service.api.category.service.dto.result.CategoryResult;
-import com.example.product_service.api.category.service.dto.result.CategoryTreeResponse;
+import com.example.product_service.api.category.service.dto.result.CategoryTreeResult;
 import com.example.product_service.docs.descriptor.CategoryDescriptor;
 import com.example.product_service.docs.RestDocsSupport;
 import org.junit.jupiter.api.DisplayName;
@@ -24,6 +28,7 @@ import static org.mockito.Mockito.mock;
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class CategoryControllerDocsTest extends RestDocsSupport {
@@ -48,7 +53,7 @@ class CategoryControllerDocsTest extends RestDocsSupport {
                 .set("parentId", null)
                 .set("imagePath", "/test/image.jpg")
                 .sample();
-        CategoryResult response = fixtureMonkey.giveMeBuilder(CategoryResult.class)
+        CategoryResult result = fixtureMonkey.giveMeBuilder(CategoryResult.class)
                 .set("id", 1L)
                 .set("name", "카테고리")
                 .set("parentId", null)
@@ -57,7 +62,9 @@ class CategoryControllerDocsTest extends RestDocsSupport {
                 .sample();
         HttpHeaders adminHeader = createAdminHeader();
         given(categoryService.saveCategory(anyString(), nullable(Long.class), anyString()))
-                .willReturn(response);
+                .willReturn(result);
+        assert result != null;
+        Detail response = Detail.from(result);
         //when
         //then
         mockMvc.perform(post("/categories")
@@ -66,6 +73,7 @@ class CategoryControllerDocsTest extends RestDocsSupport {
                         .headers(adminHeader))
                 .andDo(print())
                 .andExpect(status().isCreated())
+                .andExpect(content().json(objectMapper.writeValueAsString(response)))
                 .andDo(createSecuredDocument(
                         "01-category-01-create",
                         "카테고리 생성",
@@ -79,14 +87,15 @@ class CategoryControllerDocsTest extends RestDocsSupport {
     @DisplayName("카테고리 트리 구조 조회")
     void getCategoryTree() throws Exception {
         //given
-        List<CategoryTreeResponse> categoryTreeResponses = mappingTreeResponse();
-        given(categoryService.getTree())
-                .willReturn(categoryTreeResponses);
+        List<CategoryTreeResult> results = mappingTreeResponse();
+        given(categoryService.getTree()).willReturn(results);
+        List<Tree> response = results.stream().map(Tree::from).toList();
         //when
         //then
         mockMvc.perform(get("/categories/tree"))
                 .andDo(print())
                 .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(response)))
                 .andDo(createPublicDocument("01-category-02-get-tree",
                                 "카테고리 트리 조회",
                                 "전체 카테고리를 트리 구조로 조회합니다",
@@ -98,14 +107,16 @@ class CategoryControllerDocsTest extends RestDocsSupport {
     @DisplayName("카테고리 네비게이션을 조회한다")
     void getCategoryNavigation() throws Exception {
         //given
-        CategoryNavigationResponse response = createNavigation();
+        CategoryNavigationResult result = createNavigation();
         given(categoryService.getNavigation(anyLong()))
-                .willReturn(response);
+                .willReturn(result);
+        Navigation response = Navigation.from(result);
         //when
         //then
         mockMvc.perform(get("/categories/navigation/{categoryId}", 2L))
                 .andDo(print())
                 .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(response)))
                 .andDo(createPublicDocument("01-category-03-get-navigation",
                         "카테고리 네비게이션 조회",
                         "특정 카테고리의 네비게이션 구조를 조회합니다",
@@ -118,7 +129,7 @@ class CategoryControllerDocsTest extends RestDocsSupport {
     @DisplayName("카테고리를 조회한다")
     void getCategory() throws Exception {
         //given
-        CategoryResult response = fixtureMonkey.giveMeBuilder(CategoryResult.class)
+        CategoryResult result = fixtureMonkey.giveMeBuilder(CategoryResult.class)
                 .set("id", 2L)
                 .set("name", "카테고리")
                 .set("parentId", 1L)
@@ -126,12 +137,15 @@ class CategoryControllerDocsTest extends RestDocsSupport {
                 .set("imageUrl", "/test/image.jpg")
                 .sample();
         given(categoryService.getCategory(anyLong()))
-                .willReturn(response);
+                .willReturn(result);
+        assert result != null;
+        Detail response = Detail.from(result);
         //when
         //then
         mockMvc.perform(get("/categories/{categoryId}", 1L))
                 .andDo(print())
                 .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(response)))
                 .andDo(createPublicDocument("01-category-04-get",
                         "카테고리 단건 조회",
                         "ID로 특정 카테고리의 상세 정보 조회",
@@ -148,7 +162,7 @@ class CategoryControllerDocsTest extends RestDocsSupport {
                 .set("name", "새 카테고리")
                 .set("imagePath", "/test/image.jpg")
                 .sample();
-        CategoryResult response = fixtureMonkey.giveMeBuilder(CategoryResult.class)
+        CategoryResult result = fixtureMonkey.giveMeBuilder(CategoryResult.class)
                 .set("id", 1L)
                 .set("name", "새 카테고리")
                 .set("parentId", null)
@@ -156,8 +170,9 @@ class CategoryControllerDocsTest extends RestDocsSupport {
                 .set("imageUrl", "/test/image.jpg")
                 .sample();
         HttpHeaders adminHeader = createAdminHeader();
-        given(categoryService.updateCategory(anyLong(), anyString(), anyString()))
-                .willReturn(response);
+        given(categoryService.updateCategory(anyLong(), anyString(), anyString())).willReturn(result);
+        assert result != null;
+        Detail response = Detail.from(result);
         //when
         //then
         mockMvc.perform(patch("/categories/{categoryId}", 1L)
@@ -166,6 +181,7 @@ class CategoryControllerDocsTest extends RestDocsSupport {
                         .headers(adminHeader))
                 .andDo(print())
                 .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(response)))
                 .andDo(createSecuredDocument("01-category-05-update",
                         "카테고리 수정",
                         "ID로 특정 카테고리의 기본 정보 수정",
@@ -183,7 +199,7 @@ class CategoryControllerDocsTest extends RestDocsSupport {
                 .set("parentId", 1L)
                 .sample();
 
-        CategoryResult response = fixtureMonkey.giveMeBuilder(CategoryResult.class)
+        CategoryResult result = fixtureMonkey.giveMeBuilder(CategoryResult.class)
                 .set("id", 2L)
                 .set("name", "자식 카테고리")
                 .set("parentId", 1L)
@@ -192,8 +208,9 @@ class CategoryControllerDocsTest extends RestDocsSupport {
                 .sample();
 
         HttpHeaders adminHeader = createAdminHeader();
-        given(categoryService.moveParent(anyLong(), anyLong()))
-                .willReturn(response);
+        given(categoryService.moveParent(anyLong(), anyLong())).willReturn(result);
+        assert result != null;
+        Detail response = Detail.from(result);
         //when
         //then
         mockMvc.perform(post("/categories/{categoryId}/move", 2L)
@@ -202,6 +219,7 @@ class CategoryControllerDocsTest extends RestDocsSupport {
                         .headers(adminHeader))
                 .andDo(print())
                 .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(response)))
                 .andDo(createSecuredDocument("01-category-06-move",
                                 "카테고리 부모 변경",
                                 "카테고리의 부모를 변경",
@@ -230,14 +248,14 @@ class CategoryControllerDocsTest extends RestDocsSupport {
                 );
     }
 
-    private CategoryNavigationResponse createNavigation() {
+    private CategoryNavigationResult createNavigation() {
         CategoryResult electron = createCategoryResponse().id(1L).name("전자기기").parentId(null).depth(1).imageUrl("http://electron.jpg").build();
         CategoryResult laptop = createCategoryResponse().id(2L).name("노트북").parentId(1L).depth(2).imageUrl("http://laptop.jpg").build();
         CategoryResult desktop = createCategoryResponse().id(3L).name("데스크탑").parentId(1L).depth(2).imageUrl("http://desktop.jpg").build();
         CategoryResult light = createCategoryResponse().id(4L).name("경량 노트북").parentId(2L).depth(3).imageUrl("http://lightlaptop.jpg").build();
         CategoryResult gaming = createCategoryResponse().id(5L).name("게이밍 노트북").parentId(2L).depth(3).imageUrl("http://gaminglaptop.jpg").build();
 
-        return  CategoryNavigationResponse.builder()
+        return  CategoryNavigationResult.builder()
                 .current(laptop)
                 .path(List.of(electron, laptop))
                 .siblings(List.of(desktop))
@@ -245,25 +263,25 @@ class CategoryControllerDocsTest extends RestDocsSupport {
                 .build();
     }
 
-    private List<CategoryTreeResponse> mappingTreeResponse() {
-        CategoryTreeResponse electron = createCategoryTreeResponse(1L, "전자기기", null, 1, "http://electron.jpg");
-        CategoryTreeResponse laptop = createCategoryTreeResponse(3L, "노트북", 1L, 2, "http://laptop.jpg");
-        CategoryTreeResponse cellPhone = createCategoryTreeResponse(4L, "핸드폰", 1L, 2, "http://cellPhone.jpg");
+    private List<CategoryTreeResult> mappingTreeResponse() {
+        CategoryTreeResult electron = createCategoryTreeResponse(1L, "전자기기", null, 1, "http://electron.jpg");
+        CategoryTreeResult laptop = createCategoryTreeResponse(3L, "노트북", 1L, 2, "http://laptop.jpg");
+        CategoryTreeResult cellPhone = createCategoryTreeResponse(4L, "핸드폰", 1L, 2, "http://cellPhone.jpg");
         electron.addChild(laptop);
         electron.addChild(cellPhone);
 
-        CategoryTreeResponse food = createCategoryTreeResponse(2L, "식품", null, 1, "http://food.jpg");
-        CategoryTreeResponse meat = createCategoryTreeResponse(5L, "육류", 2L, 2, "http://meat.jpg");
-        CategoryTreeResponse vegetable = createCategoryTreeResponse(6L, "채소류", 2L, 2, "http://vegetable.jpg");
+        CategoryTreeResult food = createCategoryTreeResponse(2L, "식품", null, 1, "http://food.jpg");
+        CategoryTreeResult meat = createCategoryTreeResponse(5L, "육류", 2L, 2, "http://meat.jpg");
+        CategoryTreeResult vegetable = createCategoryTreeResponse(6L, "채소류", 2L, 2, "http://vegetable.jpg");
         food.addChild(meat);
         food.addChild(vegetable);
         return List.of(electron, food);
     }
 
-    private CategoryTreeResponse createCategoryTreeResponse(Long id, String name, Long parentId, int depth,
-                                                            String imageUrl) {
+    private CategoryTreeResult createCategoryTreeResponse(Long id, String name, Long parentId, int depth,
+                                                          String imageUrl) {
 
-        return CategoryTreeResponse.builder()
+        return CategoryTreeResult.builder()
                 .id(id)
                 .name(name)
                 .parentId(parentId)

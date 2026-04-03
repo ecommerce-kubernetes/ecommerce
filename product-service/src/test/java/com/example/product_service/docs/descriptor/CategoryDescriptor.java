@@ -33,7 +33,7 @@ public class CategoryDescriptor {
                 fieldWithPath("[].name").description("카테고리 이름"),
                 fieldWithPath("[].parentId").description("부모 카테고리 ID").optional(),
                 fieldWithPath("[].depth").description("카테고리 깊이"),
-                fieldWithPath("[].imageUrl").description("카테고리 이미지 URL"),
+                fieldWithPath("[].imagePath").description("카테고리 이미지 URL"),
                 subsectionWithPath("[].children").description("하위 카테고리 목록 (상위 구조와 동일)")
         };
     }
