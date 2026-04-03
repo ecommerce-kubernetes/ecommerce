@@ -4,7 +4,6 @@ import com.example.product_service.api.category.controller.CategoryController;
 import com.example.product_service.api.category.controller.dto.request.CategoryRequest.CreateRequest;
 import com.example.product_service.api.category.controller.dto.request.CategoryRequest.MoveRequest;
 import com.example.product_service.api.category.controller.dto.request.CategoryRequest.UpdateRequest;
-import com.example.product_service.api.category.controller.dto.response.CategoryResponse;
 import com.example.product_service.api.category.controller.dto.response.CategoryResponse.Detail;
 import com.example.product_service.api.category.controller.dto.response.CategoryResponse.Navigation;
 import com.example.product_service.api.category.controller.dto.response.CategoryResponse.Tree;
@@ -249,11 +248,11 @@ class CategoryControllerDocsTest extends RestDocsSupport {
     }
 
     private CategoryNavigationResult createNavigation() {
-        CategoryResult electron = createCategoryResponse().id(1L).name("전자기기").parentId(null).depth(1).imageUrl("http://electron.jpg").build();
-        CategoryResult laptop = createCategoryResponse().id(2L).name("노트북").parentId(1L).depth(2).imageUrl("http://laptop.jpg").build();
-        CategoryResult desktop = createCategoryResponse().id(3L).name("데스크탑").parentId(1L).depth(2).imageUrl("http://desktop.jpg").build();
-        CategoryResult light = createCategoryResponse().id(4L).name("경량 노트북").parentId(2L).depth(3).imageUrl("http://lightlaptop.jpg").build();
-        CategoryResult gaming = createCategoryResponse().id(5L).name("게이밍 노트북").parentId(2L).depth(3).imageUrl("http://gaminglaptop.jpg").build();
+        CategoryResult electron = createCategoryResponse().id(1L).name("전자기기").parentId(null).depth(1).imagePath("/test/electron.jpg").build();
+        CategoryResult laptop = createCategoryResponse().id(2L).name("노트북").parentId(1L).depth(2).imagePath("/test/laptop.jpg").build();
+        CategoryResult desktop = createCategoryResponse().id(3L).name("데스크탑").parentId(1L).depth(2).imagePath("/test/desktop.jpg").build();
+        CategoryResult light = createCategoryResponse().id(4L).name("경량 노트북").parentId(2L).depth(3).imagePath("/test/lightLaptop.jpg").build();
+        CategoryResult gaming = createCategoryResponse().id(5L).name("게이밍 노트북").parentId(2L).depth(3).imagePath("/test/gamingLaptop.jpg").build();
 
         return  CategoryNavigationResult.builder()
                 .current(laptop)
@@ -264,29 +263,29 @@ class CategoryControllerDocsTest extends RestDocsSupport {
     }
 
     private List<CategoryTreeResult> mappingTreeResponse() {
-        CategoryTreeResult electron = createCategoryTreeResponse(1L, "전자기기", null, 1, "http://electron.jpg");
-        CategoryTreeResult laptop = createCategoryTreeResponse(3L, "노트북", 1L, 2, "http://laptop.jpg");
-        CategoryTreeResult cellPhone = createCategoryTreeResponse(4L, "핸드폰", 1L, 2, "http://cellPhone.jpg");
+        CategoryTreeResult electron = createCategoryTreeResponse(1L, "전자기기", null, 1, "/test/electron.jpg");
+        CategoryTreeResult laptop = createCategoryTreeResponse(3L, "노트북", 1L, 2, "/test/laptop.jpg");
+        CategoryTreeResult cellPhone = createCategoryTreeResponse(4L, "핸드폰", 1L, 2, "/test/cellPhone.jpg");
         electron.addChild(laptop);
         electron.addChild(cellPhone);
 
-        CategoryTreeResult food = createCategoryTreeResponse(2L, "식품", null, 1, "http://food.jpg");
-        CategoryTreeResult meat = createCategoryTreeResponse(5L, "육류", 2L, 2, "http://meat.jpg");
-        CategoryTreeResult vegetable = createCategoryTreeResponse(6L, "채소류", 2L, 2, "http://vegetable.jpg");
+        CategoryTreeResult food = createCategoryTreeResponse(2L, "식품", null, 1, "/test/food.jpg");
+        CategoryTreeResult meat = createCategoryTreeResponse(5L, "육류", 2L, 2, "/test/meat.jpg");
+        CategoryTreeResult vegetable = createCategoryTreeResponse(6L, "채소류", 2L, 2, "/test/vegetable.jpg");
         food.addChild(meat);
         food.addChild(vegetable);
         return List.of(electron, food);
     }
 
     private CategoryTreeResult createCategoryTreeResponse(Long id, String name, Long parentId, int depth,
-                                                          String imageUrl) {
+                                                          String imagePath) {
 
         return CategoryTreeResult.builder()
                 .id(id)
                 .name(name)
                 .parentId(parentId)
                 .depth(depth)
-                .imageUrl(imageUrl)
+                .imagePath(imagePath)
                 .build();
     }
 
@@ -297,6 +296,6 @@ class CategoryControllerDocsTest extends RestDocsSupport {
                 .name("카테고리")
                 .parentId(null)
                 .depth(1)
-                .imageUrl("http://category.jpg");
+                .imagePath("/test/category.jpg");
     }
 }

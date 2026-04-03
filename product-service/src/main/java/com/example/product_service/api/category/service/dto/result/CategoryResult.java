@@ -10,15 +10,15 @@ public class CategoryResult {
     private String name;
     private Long parentId;
     private Integer depth;
-    private String imageUrl;
+    private String imagePath;
 
     @Builder
-    public CategoryResult(Long id, String name, Long parentId, Integer depth, String imageUrl) {
+    public CategoryResult(Long id, String name, Long parentId, Integer depth, String imagePath) {
         this.id = id;
         this.name = name;
         this.parentId = parentId;
         this.depth = depth;
-        this.imageUrl = imageUrl;
+        this.imagePath = imagePath;
     }
 
     public static CategoryResult from(Category category) {
@@ -27,7 +27,7 @@ public class CategoryResult {
                 .name(category.getName())
                 .parentId(category.getParent() == null ? null : category.getParent().getId())
                 .depth(category.getDepth())
-                .imageUrl(category.getImageUrl())
+                .imagePath(category.getImageUrl())
                 .build();
     }
 }

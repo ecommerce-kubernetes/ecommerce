@@ -15,7 +15,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -28,10 +32,9 @@ public class CategoryService {
 
     @Transactional
     public CategoryResult saveCategory(String name, Long parentId, String imageUrl) {
-        String trimName = name.trim();
         Category parent = getValidatedParent(parentId);
-        validateDuplicateName(parent, trimName);
-        Category category = Category.create(trimName, parent, imageUrl);
+        validateDuplicateName(parent, name.trim());
+        Category category = Category.create(name, parent, imageUrl);
         categoryRepository.save(category);
         category.generatePath();
         return CategoryResult.from(category);
@@ -45,7 +48,7 @@ public class CategoryService {
     public List<CategoryTreeResult> getTree() {
         Sort sort = Sort.by(Sort.Direction.ASC, "depth", "id");
         List<Category> allCategories = categoryRepository.findAll(sort);
-        return CategoryTreeResult.convertTree(allCategories);
+        return convertTree(allCategories);
     }
 
     public CategoryNavigationResult getNavigation(Long categoryId) {
@@ -95,13 +98,13 @@ public class CategoryService {
     }
 
     // 형제중 같은 이름이 존재하면 예외를 던짐
+
     private void validateDuplicateName(Category parent, String name) {
         Long parentId = (parent == null) ? null : parent.getId();
         if (categoryRepository.existsDuplicateName(parentId, name)) {
             throw new BusinessException(CategoryErrorCode.DUPLICATE_NAME);
         }
     }
-
     private Category findCategoryOrThrow(Long categoryId) {
         return categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new BusinessException(CategoryErrorCode.CATEGORY_NOT_FOUND));
@@ -127,6 +130,22 @@ public class CategoryService {
 
     private List<CategoryResult> findChildren(Category current) {
         return createCategoryResponses(current.getChildren());
+    }
+
+    private List<CategoryTreeResult> convertTree(List<Category> categories) {
+        List<CategoryTreeResult> allDtoList = categories.stream().map(CategoryTreeResult::from)
+                .toList();
+        Map<Long, CategoryTreeResult> dtoMap = allDtoList.stream().collect(Collectors.toMap(CategoryTreeResult::getId, Function.identity()));
+        List<CategoryTreeResult> rootCategories = new ArrayList<>();
+        for (CategoryTreeResult categoryResult : allDtoList) {
+            if (categoryResult.getDepth() == 1) {
+                rootCategories.add(categoryResult);
+            } else {
+                CategoryTreeResult parent = dtoMap.get(categoryResult.getId());
+                parent.addChild(categoryResult);
+            }
+        }
+        return rootCategories;
     }
 
     private List<CategoryResult> createCategoryResponses(List<Category> categories) {

@@ -16,16 +16,16 @@ public class CategoryTreeResult {
     private String name;
     private Long parentId;
     private Integer depth;
-    private String imageUrl;
+    private String imagePath;
 
     private List<CategoryTreeResult> children;
 
     @Builder
-    public CategoryTreeResult(Long id, String name, Long parentId, String imageUrl, Integer depth) {
+    public CategoryTreeResult(Long id, String name, Long parentId, String imagePath, Integer depth) {
         this.id = id;
         this.name = name;
         this.parentId = parentId;
-        this.imageUrl = imageUrl;
+        this.imagePath = imagePath;
         this.depth = depth;
         this.children = new ArrayList<>();
     }
@@ -41,24 +41,7 @@ public class CategoryTreeResult {
                 .name(category.getName())
                 .parentId((category.getParent() == null) ? null : category.getParent().getId())
                 .depth(category.getDepth())
-                .imageUrl(category.getImageUrl())
+                .imagePath(category.getImageUrl())
                 .build();
-    }
-
-    public static List<CategoryTreeResult> convertTree(List<Category> allCategories) {
-        List<CategoryTreeResult> allDtoList = allCategories.stream().map(CategoryTreeResult::from).toList();
-        Map<Long, CategoryTreeResult> dtoMap = allDtoList.stream().collect(Collectors.toMap(CategoryTreeResult::getId, Function.identity()));
-        List<CategoryTreeResult> rootCategories = new ArrayList<>();
-        for (CategoryTreeResult category : allDtoList) {
-            // depth 가 1 이면 최상위 카테고리
-            if (category.getDepth() == 1) {
-                rootCategories.add(category);
-            } else {
-                // depth 가 1 이상이면 map에서 부모 카테고리를 찾아 addChild() 메서드 호출
-                CategoryTreeResult parent = dtoMap.get(category.getParentId());
-                parent.addChild(category);
-            }
-        }
-        return rootCategories;
     }
 }

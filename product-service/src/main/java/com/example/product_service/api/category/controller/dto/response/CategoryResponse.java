@@ -23,7 +23,7 @@ public class CategoryResponse {
                     .name(result.getName())
                     .parentId(result.getParentId())
                     .depth(result.getDepth())
-                    .imagePath(result.getImageUrl())
+                    .imagePath(result.getImagePath())
                     .build();
         }
     }
@@ -43,7 +43,7 @@ public class CategoryResponse {
                     .name(result.getName())
                     .parentId(result.getParentId())
                     .depth(result.getDepth())
-                    .imagePath(result.getImageUrl())
+                    .imagePath(result.getImagePath())
                     .children(result.getChildren().stream().map(Tree::from).toList())
                     .build();
         }
