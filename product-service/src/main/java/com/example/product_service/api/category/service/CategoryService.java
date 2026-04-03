@@ -64,8 +64,7 @@ public class CategoryService {
     public CategoryResult updateCategory(Long categoryId, String name, String imageUrl) {
         Category category = findCategoryOrThrow(categoryId);
         if (StringUtils.hasText(name)) {
-            String trimName = name.trim();
-            validateDuplicateName(category.getParent(), trimName);
+            validateDuplicateName(category.getParent(), name);
             category.rename(name);
         }
 

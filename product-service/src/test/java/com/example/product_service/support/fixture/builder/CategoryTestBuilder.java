@@ -7,7 +7,7 @@ public class CategoryTestBuilder {
     private Long id = 1L;
     private String name = "카테고리";
     private Integer depth = 1;
-    private String imageUrl = "http://image.jpg";
+    private String imagePath = "/test/image.jpg";
     private Category parent = null;
 
     public static CategoryTestBuilder aCategory() {
@@ -29,18 +29,13 @@ public class CategoryTestBuilder {
         return this;
     }
 
-    public CategoryTestBuilder withImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
-        return this;
-    }
-
     public CategoryTestBuilder withParent(Category parent) {
         this.parent = parent;
         return this;
     }
 
     public Category build() {
-        Category category = Category.create(name, parent, imageUrl);
+        Category category = Category.create(name, parent, imagePath);
         if (id != null) {
             ReflectionTestUtils.setField(category, "id", id);
             category.generatePath();

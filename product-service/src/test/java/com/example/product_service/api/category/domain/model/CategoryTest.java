@@ -13,7 +13,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class CategoryTest {
-
+    private static final String DEFAULT_IMAGE_PATH = "/test/image.jpg";
     @Nested
     @DisplayName("카테고리 생성")
     class Create {
@@ -23,11 +23,11 @@ public class CategoryTest {
         void create_root(){
             //given
             //when
-            Category category = Category.create("루트", null, "http://root.jpg");
+            Category category = Category.create("루트", null, DEFAULT_IMAGE_PATH);
             //then
             assertThat(category)
-                    .extracting(Category::getName, Category::getDepth, Category::getImageUrl)
-                    .containsExactly("루트", 1, "http://root.jpg");
+                    .extracting(Category::getName, Category::getDepth, Category::getImagePath)
+                    .containsExactly("루트", 1, DEFAULT_IMAGE_PATH);
         }
 
         @Test
@@ -36,11 +36,11 @@ public class CategoryTest {
             //given
             Category parent = CategoryTestBuilder.aCategory().build();
             //when
-            Category category = Category.create("자식", parent, "http://child.jpg");
+            Category category = Category.create("자식", parent, DEFAULT_IMAGE_PATH);
             //then
             assertThat(category)
-                    .extracting(Category::getName, Category::getDepth, Category::getImageUrl)
-                    .containsExactly("자식", 2, "http://child.jpg");
+                    .extracting(Category::getName, Category::getDepth, Category::getImagePath)
+                    .containsExactly("자식", 2, DEFAULT_IMAGE_PATH);
 
             assertThat(parent.getChildren()).contains(category);
         }
@@ -53,7 +53,7 @@ public class CategoryTest {
                     .withDepth(5).build();
             //when
             //then
-            assertThatThrownBy(() -> Category.create("자식 카테고리", maxDepthCategory, "http://image.jpg"))
+            assertThatThrownBy(() -> Category.create("자식 카테고리", maxDepthCategory, DEFAULT_IMAGE_PATH))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(CategoryErrorCode.EXCEED_MAX_DEPTH);
@@ -130,10 +130,10 @@ public class CategoryTest {
             //given
             Category category = CategoryTestBuilder.aCategory().build();
             //when
-            category.changeImage("http://newImage.jpg");
+            category.changeImage(DEFAULT_IMAGE_PATH);
             //then
-            assertThat(category.getImageUrl())
-                    .isEqualTo("http://newImage.jpg");
+            assertThat(category.getImagePath())
+                    .isEqualTo(DEFAULT_IMAGE_PATH);
         }
     }
 

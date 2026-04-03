@@ -27,7 +27,7 @@ public class Category extends BaseEntity {
     private String name;
     private Integer depth;
     private String path;
-    private String imageUrl;
+    private String imagePath;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id")
@@ -37,20 +37,20 @@ public class Category extends BaseEntity {
     private List<Category> children = new ArrayList<>();
 
     @Builder(access = AccessLevel.PRIVATE)
-    public Category(String name, int depth, String path, String imageUrl){
+    public Category(String name, int depth, String path, String imagePath){
         this.name = name;
         this.depth = depth;
         this.path = path;
-        this.imageUrl = imageUrl;
+        this.imagePath = imagePath;
     }
 
-    public static Category create(String name, Category parent, String imageUrl) {
+    public static Category create(String name, Category parent, String imagePath) {
         if (parent == null) {
-            return create(name, ROOT_DEPTH, imageUrl);
+            return create(name, ROOT_DEPTH, imagePath);
         }
         //부모 카테고리의 depth 가 최대인지 검증
         parent.validateCanAddChild();
-        Category category = create(name.trim(), parent.getNextDepth(), imageUrl);
+        Category category = create(name.trim(), parent.getNextDepth(), imagePath);
         category.linkParent(parent);
         return category;
     }
@@ -73,7 +73,7 @@ public class Category extends BaseEntity {
     }
 
     public void changeImage(String newImage) {
-        this.imageUrl = newImage.trim();
+        this.imagePath = newImage.trim();
     }
 
     public boolean isRoot() {
@@ -137,12 +137,12 @@ public class Category extends BaseEntity {
         return (parent == null) ? 1 : parent.getDepth() + 1;
     }
 
-    private static Category create(String name, int depth, String imageUrl){
+    private static Category create(String name, int depth, String imagePath){
         return Category.builder()
                 .name(name)
                 .depth(depth)
                 .path(null)
-                .imageUrl(imageUrl)
+                .imagePath(imagePath)
                 .build();
     }
 

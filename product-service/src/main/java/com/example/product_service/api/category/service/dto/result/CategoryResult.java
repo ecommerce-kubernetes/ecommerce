@@ -27,7 +27,7 @@ public class CategoryResult {
                 .name(category.getName())
                 .parentId(category.getParent() == null ? null : category.getParent().getId())
                 .depth(category.getDepth())
-                .imagePath(category.getImageUrl())
+                .imagePath(category.getImagePath())
                 .build();
     }
 }
