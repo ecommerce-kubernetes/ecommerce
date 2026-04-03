@@ -98,7 +98,6 @@ public class CategoryService {
     }
 
     // 형제중 같은 이름이 존재하면 예외를 던짐
-
     private void validateDuplicateName(Category parent, String name) {
         Long parentId = (parent == null) ? null : parent.getId();
         if (categoryRepository.existsDuplicateName(parentId, name)) {
@@ -141,7 +140,7 @@ public class CategoryService {
             if (categoryResult.getDepth() == 1) {
                 rootCategories.add(categoryResult);
             } else {
-                CategoryTreeResult parent = dtoMap.get(categoryResult.getId());
+                CategoryTreeResult parent = dtoMap.get(categoryResult.getParentId());
                 parent.addChild(categoryResult);
             }
         }
