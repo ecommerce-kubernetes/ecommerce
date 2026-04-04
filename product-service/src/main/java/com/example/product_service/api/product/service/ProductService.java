@@ -42,11 +42,11 @@ public class ProductService {
     private final OptionValueRepository optionValueRepository;
     private final SkuGenerator skuGenerator;
 
-    public ProductCreateResponse createProduct(ProductCreateCommand command) {
+    public ProductCreateResult createProduct(ProductCreateCommand command) {
         Category category = findCategoryByIdOrThrow(command.getCategoryId());
         Product product = Product.create(command.getName(), command.getDescription(), category);
         Product savedProduct = productRepository.save(product);
-        return ProductCreateResponse.from(savedProduct);
+        return ProductCreateResult.from(savedProduct);
     }
 
     public ProductOptionResponse defineOptions(Long productId, List<Long> optionTypeIds) {

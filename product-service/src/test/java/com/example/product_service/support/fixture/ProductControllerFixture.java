@@ -1,7 +1,6 @@
 package com.example.product_service.support.fixture;
 
 import com.example.product_service.api.product.controller.dto.*;
-import com.example.product_service.api.product.controller.dto.ProductRequest.CreateRequest;
 import com.example.product_service.api.product.service.dto.result.*;
 
 import java.time.LocalDateTime;
@@ -26,25 +25,6 @@ public class ProductControllerFixture {
                 .name("새상품")
                 .description("상품 설명")
                 .categoryId(1L);
-    }
-
-    public static CreateRequest.CreateRequestBuilder mockCreateRequest(){
-        return CreateRequest.builder()
-                .name("상품")
-                .categoryId(1L)
-                .description("상품 설명");
-    }
-
-    public static ProductCreateResponse.ProductCreateResponseBuilder mockCreateResponse(){
-        return ProductCreateResponse.builder()
-                .productId(PRODUCT_ID);
-    }
-
-    public static ProductOptionRequest.ProductOptionRequestBuilder mockOptionSpecRequest(){
-        return ProductOptionRequest.builder()
-                .optionTypeIds(
-                        List.of(1L, 2L)
-                );
     }
 
     public static VariantCreateRequest.VariantCreateRequestBuilder mockCreateVariantRequest() {
@@ -89,19 +69,6 @@ public class ProductControllerFixture {
                 .images(List.of("http://image1.jpg", "http://image2.jpg"));
     }
 
-    public static ProductOptionResponse.ProductOptionResponseBuilder mockOptionSpecResponse() {
-        return ProductOptionResponse.builder()
-                .productId(PRODUCT_ID)
-                .options(
-                        List.of(
-                                ProductOptionResponse.OptionDto.builder()
-                                        .optionTypeId(1L)
-                                        .optionTypeName("사이즈")
-                                        .priority(1)
-                                        .build()
-                        )
-                );
-    }
 
     public static ProductImageCreateResponse.ProductImageCreateResponseBuilder mockImageResponse() {
         return ProductImageCreateResponse

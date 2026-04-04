@@ -2,7 +2,12 @@ package com.example.product_service.api.product.controller;
 
 import com.example.product_service.api.common.dto.PageDto;
 import com.example.product_service.api.product.controller.dto.*;
-import com.example.product_service.api.product.controller.dto.ProductRequest.CreateRequest;
+import com.example.product_service.api.product.controller.dto.request.ProductRequest;
+import com.example.product_service.api.product.controller.dto.request.ProductRequest.CreateRequest;
+import com.example.product_service.api.product.controller.dto.request.ProductRequest.OptionRegisterRequest;
+import com.example.product_service.api.product.controller.dto.response.ProductResponse;
+import com.example.product_service.api.product.controller.dto.response.ProductResponse.CreateResponse;
+import com.example.product_service.api.product.controller.dto.response.ProductResponse.OptionRegisterResponse;
 import com.example.product_service.api.product.service.ProductService;
 import com.example.product_service.api.product.service.dto.command.ProductCreateCommand;
 import com.example.product_service.api.product.service.dto.command.ProductUpdateCommand;
@@ -26,17 +31,19 @@ public class ProductController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ProductCreateResponse> createProduct(@RequestBody @Validated CreateRequest request) {
+    public ResponseEntity<CreateResponse> createProduct(@RequestBody @Validated CreateRequest request) {
         ProductCreateCommand command = request.toCommand();
-        ProductCreateResponse response = productService.createProduct(command);
+        ProductCreateResult result = productService.createProduct(command);
+        CreateResponse response = CreateResponse.from(result);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @PutMapping("/{productId}/option")
+    @PutMapping("/{productId}/options")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ProductOptionResponse> registerProductOption(@PathVariable("productId") Long productId,
-                                                                       @RequestBody @Validated ProductOptionRequest request) {
-        ProductOptionResponse response = productService.defineOptions(productId, request.getOptionTypeIds());
+    public ResponseEntity<OptionRegisterResponse> registerProductOption(@PathVariable("productId") Long productId,
+                                                                        @RequestBody @Validated OptionRegisterRequest request) {
+        ProductOptionResponse result = productService.defineOptions(productId, request.optionTypeIds());
+        OptionRegisterResponse response = OptionRegisterResponse.from(result);
         return ResponseEntity.ok(response);
     }
 

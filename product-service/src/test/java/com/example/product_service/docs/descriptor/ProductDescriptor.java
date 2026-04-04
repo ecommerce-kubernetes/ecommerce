@@ -14,9 +14,24 @@ public class ProductDescriptor {
         };
     }
 
+    public static FieldDescriptor[] getRegisterOptionRequest() {
+        return new FieldDescriptor[] {
+                fieldWithPath("optionTypeIds").description("옵션 타입 Id 리스트")
+        };
+    }
+
     public static FieldDescriptor[] getCreateResponse() {
         return new FieldDescriptor[] {
                 fieldWithPath("productId").description("상품 Id")
+        };
+    }
+
+    public static FieldDescriptor[] getRegisterOptionResponse() {
+        return new FieldDescriptor[] {
+                fieldWithPath("productId").description("상품 Id"),
+                fieldWithPath("options[].optionTypeId").description("옵션 타입 Id"),
+                fieldWithPath("options[].optionTypeName").description("옵션 타입 이름"),
+                fieldWithPath("options[].priority").description("상품 옵션 순서")
         };
     }
 }

@@ -5,14 +5,14 @@ import lombok.Builder;
 import lombok.Getter;
 
 @Getter
-public class ProductCreateResponse {
+public class ProductCreateResult {
     private Long productId;
     @Builder
-    private ProductCreateResponse(Long productId) {
+    private ProductCreateResult(Long productId) {
         this.productId = productId;
     }
 
-    public static ProductCreateResponse from(Product product) {
-        return ProductCreateResponse.builder().productId(product.getId()).build();
+    public static ProductCreateResult from(Product product) {
+        return ProductCreateResult.builder().productId(product.getId()).build();
     }
 }

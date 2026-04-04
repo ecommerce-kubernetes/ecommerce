@@ -4,7 +4,12 @@ import com.epages.restdocs.apispec.ResourceSnippetParameters;
 import com.example.product_service.api.common.dto.PageDto;
 import com.example.product_service.api.product.controller.ProductController;
 import com.example.product_service.api.product.controller.dto.*;
-import com.example.product_service.api.product.controller.dto.ProductRequest.CreateRequest;
+import com.example.product_service.api.product.controller.dto.request.ProductRequest;
+import com.example.product_service.api.product.controller.dto.request.ProductRequest.CreateRequest;
+import com.example.product_service.api.product.controller.dto.request.ProductRequest.OptionRegisterRequest;
+import com.example.product_service.api.product.controller.dto.response.ProductResponse;
+import com.example.product_service.api.product.controller.dto.response.ProductResponse.CreateResponse;
+import com.example.product_service.api.product.controller.dto.response.ProductResponse.OptionRegisterResponse;
 import com.example.product_service.api.product.service.ProductService;
 import com.example.product_service.api.product.service.dto.command.ProductCreateCommand;
 import com.example.product_service.api.product.service.dto.command.ProductUpdateCommand;
@@ -37,6 +42,7 @@ import static org.springframework.restdocs.payload.PayloadDocumentation.*;
 import static org.springframework.restdocs.request.RequestDocumentation.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class ProductControllerDocsTest extends RestDocsSupport {
@@ -58,11 +64,19 @@ class ProductControllerDocsTest extends RestDocsSupport {
     @DisplayName("상품을 생성한다")
     void createProduct() throws Exception {
         //given
-        CreateRequest request = mockCreateRequest().build();
-        ProductCreateResponse response = mockCreateResponse().build();
+        CreateRequest request = fixtureMonkey.giveMeBuilder(CreateRequest.class)
+                .set("name", "상품")
+                .set("categoryId", 1L)
+                .set("description", "상품 설명")
+                .sample();
+        ProductCreateResult result = fixtureMonkey.giveMeBuilder(ProductCreateResult.class)
+                .set("productId", 1L)
+                .sample();
+        assert result != null;
         HttpHeaders adminHeader = createAdminHeader();
         given(productService.createProduct(any(ProductCreateCommand.class)))
-                .willReturn(response);
+                .willReturn(result);
+        CreateResponse response = CreateResponse.from(result);
         //when
         //then
         mockMvc.perform(post("/products")
@@ -70,13 +84,13 @@ class ProductControllerDocsTest extends RestDocsSupport {
                 .content(objectMapper.writeValueAsString(request))
                         .headers(adminHeader))
                 .andExpect(status().isCreated())
+                .andExpect(content().json(objectMapper.writeValueAsString(response)))
                 .andDo(print())
                 .andDo(createSecuredDocument("03-product-01-create",
                                 "상품 생성",
                                 "새로운 상품을 생성합니다",
                                 ProductDescriptor.getCreateRequest(),
-                                ProductDescriptor.getCreateResponse()
-                                )
+                                ProductDescriptor.getCreateResponse())
                 );
     }
 
@@ -84,62 +98,36 @@ class ProductControllerDocsTest extends RestDocsSupport {
     @DisplayName("상품 옵션 정의")
     void registerProductOption() throws Exception {
         //given
-        ProductOptionRequest request = mockOptionSpecRequest().build();
-        ProductOptionResponse response = mockOptionSpecResponse().build();
+        OptionRegisterRequest request = fixtureMonkey.giveMeBuilder(OptionRegisterRequest.class)
+                .set("optionTypeIds", List.of(1L, 2L))
+                .sample();
+        ProductOptionResponse result = fixtureMonkey.giveMeBuilder(ProductOptionResponse.class)
+                .set("productId", 1L)
+                .size("options", 1)
+                .set("options[0].optionTypeId", 1L)
+                .set("options[0].optionTypeName", "사이즈")
+                .set("options[0].priority", 1)
+                .sample();
+        assert result != null;
         HttpHeaders adminHeader = createAdminHeader();
         given(productService.defineOptions(anyLong(), anyList()))
-                .willReturn(response);
-
-        HeaderDescriptor[] requestHeaders = new HeaderDescriptor[] {
-                headerWithName("Authorization").description("JWT Access Token")
-        };
-
-        ParameterDescriptor[] pathParameters = new ParameterDescriptor[] {
-                parameterWithName("productId").description("옵션을 추가할 상품 ID")
-        };
-
-        FieldDescriptor[] requestFields = new FieldDescriptor[] {
-                fieldWithPath("optionTypeIds").description("옵션 타입 Id 리스트")
-        };
-
-        FieldDescriptor[] responseFields = new FieldDescriptor[] {
-                fieldWithPath("productId").description("상품 Id"),
-                fieldWithPath("options[].optionTypeId").description("옵션 타입 Id"),
-                fieldWithPath("options[].optionTypeName").description("옵션 타입 이름"),
-                fieldWithPath("options[].priority").description("상품 옵션 순서")
-        };
+                .willReturn(result);
+        OptionRegisterResponse response = OptionRegisterResponse.from(result);
         //when
         //then
-        mockMvc.perform(put("/products/{productId}/option", 1L)
+        mockMvc.perform(put("/products/{productId}/options", 1L)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
                         .headers(adminHeader))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andDo(
-                        document("03-product-02-add-option",
-                                preprocessRequest(prettyPrint(),
-                                        modifyHeaders()
-                                                .remove("X-User-Id")
-                                                .remove("X-User-Role")
-                                                .add("Authorization", "Bearer {ACCESS_TOKEN}")),
-                                preprocessResponse(prettyPrint()),
-                                resource(
-                                        ResourceSnippetParameters.builder()
-                                                .tag(TAG)
-                                                .summary("상품 옵션 추가")
-                                                .description("상품에 상품 옵션을 추가")
-                                                .requestHeaders(requestHeaders)
-                                                .pathParameters(pathParameters)
-                                                .requestFields(requestFields)
-                                                .responseFields(responseFields)
-                                                .build()
-                                ),
-                                requestHeaders(requestHeaders),
-                                pathParameters(pathParameters),
-                                requestFields(requestFields),
-                                responseFields(responseFields)
-                        )
+                .andExpect(content().json(objectMapper.writeValueAsString(response)))
+                .andDo(createSecuredDocument("03-product-02-add-option",
+                                "상품 옵션 추가",
+                                "상품에 상품 옵션을 추가",
+                                ProductDescriptor.getRegisterOptionRequest(),
+                                ProductDescriptor.getRegisterOptionResponse(),
+                                parameterWithName("productId").description("옵션을 추가할 상품 ID"))
                 );
     }
 

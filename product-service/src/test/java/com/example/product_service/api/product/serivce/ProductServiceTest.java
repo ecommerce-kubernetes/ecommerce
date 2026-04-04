@@ -100,7 +100,7 @@ public class ProductServiceTest extends ExcludeInfraTest {
             Category category = saveCategory();
             ProductCreateCommand command = createProductCommand(category.getId());
             //when
-            ProductCreateResponse result = productService.createProduct(command);
+            ProductCreateResult result = productService.createProduct(command);
             //then
             assertThat(result.getProductId()).isNotNull();
         }
