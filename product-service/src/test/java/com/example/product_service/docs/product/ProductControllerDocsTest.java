@@ -4,10 +4,10 @@ import com.epages.restdocs.apispec.ResourceSnippetParameters;
 import com.example.product_service.api.common.dto.PageDto;
 import com.example.product_service.api.product.controller.ProductController;
 import com.example.product_service.api.product.controller.dto.*;
-import com.example.product_service.api.product.controller.dto.request.ProductRequest;
+import com.example.product_service.api.product.controller.dto.request.ProductRequest.AddVariantRequest;
 import com.example.product_service.api.product.controller.dto.request.ProductRequest.CreateRequest;
 import com.example.product_service.api.product.controller.dto.request.ProductRequest.OptionRegisterRequest;
-import com.example.product_service.api.product.controller.dto.response.ProductResponse;
+import com.example.product_service.api.product.controller.dto.response.ProductResponse.AddVariantResponse;
 import com.example.product_service.api.product.controller.dto.response.ProductResponse.CreateResponse;
 import com.example.product_service.api.product.controller.dto.response.ProductResponse.OptionRegisterResponse;
 import com.example.product_service.api.product.service.ProductService;
@@ -99,7 +99,7 @@ class ProductControllerDocsTest extends RestDocsSupport {
     void registerProductOption() throws Exception {
         //given
         OptionRegisterRequest request = fixtureMonkey.giveMeBuilder(OptionRegisterRequest.class)
-                .set("optionTypeIds", List.of(1L, 2L))
+                .set("optionTypeIds", List.of(1L))
                 .sample();
         ProductOptionResponse result = fixtureMonkey.giveMeBuilder(ProductOptionResponse.class)
                 .set("productId", 1L)
@@ -135,38 +135,29 @@ class ProductControllerDocsTest extends RestDocsSupport {
     @DisplayName("상품 변형 추가")
     void createVariants() throws Exception {
         //given
-        VariantCreateRequest request = mockCreateVariantRequest().build();
-        VariantCreateResponse response = mockCreateVariantResponse().build();
+        AddVariantRequest request = fixtureMonkey.giveMeBuilder(AddVariantRequest.class)
+                .size("variants", 1)
+                .set("variants[0].originalPrice", 10000L)
+                .set("variants[0].discountRate", 10)
+                .set("variants[0].stockQuantity", 100)
+                .set("variants[0].optionValueIds", List.of(1L, 2L))
+                .sample();
+        AddVariantResult result = fixtureMonkey.giveMeBuilder(AddVariantResult.class)
+                .size("variants", 1)
+                .set("productId", 1L)
+                .set("variants[0].variantId", 1L)
+                .set("variants[0].sku", "PROD_XL_BLUE")
+                .set("variants[0].optionValueIds", List.of(1L, 2L))
+                .set("variants[0].originalPrice", 10000L)
+                .set("variants[0].discountedPrice", 9000L)
+                .set("variants[0].discountRate", 10)
+                .set("variants[0].stockQuantity", 100)
+                .sample();
+        assert result != null;
+        AddVariantResponse response = AddVariantResponse.from(result);
         HttpHeaders adminHeader = createAdminHeader();
         given(productService.createVariants(any(ProductVariantsCreateCommand.class)))
-                .willReturn(response);
-        HeaderDescriptor[] requestHeaders = new HeaderDescriptor[] {
-                headerWithName("Authorization")
-                        .description("JWT Access Token")
-        };
-
-        ParameterDescriptor[] pathParameters = new ParameterDescriptor[] {
-                parameterWithName("productId").description("상품 변형을 추가할 상품 ID")
-        };
-
-        FieldDescriptor[] requestFields = new FieldDescriptor[] {
-                fieldWithPath("variants[].originalPrice").description("상품 변형 가격"),
-                fieldWithPath("variants[].discountRate").description("할인율"),
-                fieldWithPath("variants[].stockQuantity").description("재고 수량"),
-                fieldWithPath("variants[].optionValueIds").description("옵션 값 Id 리스트")
-        };
-
-        FieldDescriptor[] responseFields = new FieldDescriptor[] {
-                fieldWithPath("productId").description("상품 Id"),
-                fieldWithPath("variants[].variantId").description("상품 변형 Id"),
-                fieldWithPath("variants[].sku").description("상품 SKU"),
-                fieldWithPath("variants[].optionValueIds").description("상품 변형 옵션 값 ID 리스트"),
-                fieldWithPath("variants[].originalPrice").description("상품 변형 원본 가격"),
-                fieldWithPath("variants[].discountedPrice").description("상품 변형 할인 가격"),
-                fieldWithPath("variants[].discountRate").description("상품 변형 할인율"),
-                fieldWithPath("variants[].stockQuantity").description("상품 변형 재고 수량")
-        };
-
+                .willReturn(result);
         //when
         //then
         mockMvc.perform(post("/products/{productId}/variants", 1L)
@@ -175,30 +166,14 @@ class ProductControllerDocsTest extends RestDocsSupport {
                         .headers(adminHeader))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andDo(
-                        document("03-product-03-add-variants",
-                                preprocessRequest(prettyPrint(),
-                                        modifyHeaders()
-                                                .remove("X-User-Id")
-                                                .remove("X-User-Role")
-                                                .add("Authorization", "Bearer {ACCESS_TOKEN}")),
-                                preprocessResponse(prettyPrint()),
-                                resource(
-                                        ResourceSnippetParameters.builder()
-                                                .tag(TAG)
-                                                .summary("상품 변형 추가")
-                                                .description("상품에 상품 변형을 추가")
-                                                .requestHeaders(requestHeaders)
-                                                .pathParameters(pathParameters)
-                                                .requestFields(requestFields)
-                                                .responseFields(responseFields)
-                                                .build()
-                                ),
-                                requestHeaders(requestHeaders),
-                                pathParameters(pathParameters),
-                                requestFields(requestFields),
-                                responseFields(responseFields)
-                        )
+                .andExpect(content().json(objectMapper.writeValueAsString(response)))
+                .andDo(createSecuredDocument(
+                        "03-product-03-add-variants",
+                        "상품 변형 추가",
+                        "상품에 상품 변형을 추가",
+                        ProductDescriptor.getAddVariantRequest(),
+                        ProductDescriptor.getAddVariantResponse(),
+                        parameterWithName("productId").description("상품 변형을 추가할 상품 ID"))
                 );
     }
 

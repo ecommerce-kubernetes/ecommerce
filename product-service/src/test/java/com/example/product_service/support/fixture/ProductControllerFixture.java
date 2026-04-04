@@ -27,38 +27,6 @@ public class ProductControllerFixture {
                 .categoryId(1L);
     }
 
-    public static VariantCreateRequest.VariantCreateRequestBuilder mockCreateVariantRequest() {
-        return VariantCreateRequest.builder()
-                .variants(
-                        List.of(
-                                VariantCreateRequest.VariantRequest.builder()
-                                        .originalPrice(PRICE)
-                                        .discountRate(DISCOUNT_RATE)
-                                        .stockQuantity(100)
-                                        .optionValueIds(List.of(1L, 2L))
-                                        .build()
-                        )
-                );
-    }
-
-    public static VariantCreateResponse.VariantCreateResponseBuilder mockCreateVariantResponse() {
-        return VariantCreateResponse.builder()
-                .productId(PRODUCT_ID)
-                .variants(
-                        List.of(
-                                VariantResponse.builder()
-                                        .variantId(VARIANT_ID_1)
-                                        .sku("PROD-XL")
-                                        .optionValueIds(List.of(1L, 2L))
-                                        .originalPrice(PRICE)
-                                        .discountedPrice(2700L)
-                                        .discountRate(DISCOUNT_RATE)
-                                        .stockQuantity(100)
-                                        .build()
-                        )
-                );
-    }
-
     public static ProductImageCreateRequest.ProductImageCreateRequestBuilder mockImageRequest(){
         return ProductImageCreateRequest.builder()
                 .images(List.of("http://image1.jpg", "http://image2.jpg"));
@@ -162,7 +130,7 @@ public class ProductControllerFixture {
                 )
                 .variants(
                         List.of(
-                                VariantResponse.builder()
+                                VariantResult.builder()
                                         .variantId(VARIANT_ID_1)
                                         .sku("PROD-XL")
                                         .optionValueIds(List.of(1L))

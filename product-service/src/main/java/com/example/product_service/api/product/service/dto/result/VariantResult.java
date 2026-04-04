@@ -7,7 +7,7 @@ import lombok.Getter;
 import java.util.List;
 
 @Getter
-public class VariantResponse {
+public class VariantResult {
     private Long variantId;
     private String sku;
     private List<Long> optionValueIds;
@@ -17,7 +17,7 @@ public class VariantResponse {
     private Integer stockQuantity;
 
     @Builder
-    public VariantResponse(Long variantId, String sku, List<Long> optionValueIds, Long originalPrice, Long discountedPrice, Integer discountRate, Integer stockQuantity) {
+    public VariantResult(Long variantId, String sku, List<Long> optionValueIds, Long originalPrice, Long discountedPrice, Integer discountRate, Integer stockQuantity) {
         this.variantId = variantId;
         this.sku = sku;
         this.optionValueIds = optionValueIds;
@@ -27,8 +27,8 @@ public class VariantResponse {
         this.stockQuantity = stockQuantity;
     }
 
-    public static VariantResponse from(ProductVariant productVariant) {
-        return VariantResponse.builder()
+    public static VariantResult from(ProductVariant productVariant) {
+        return VariantResult.builder()
                 .variantId(productVariant.getId())
                 .sku(productVariant.getSku())
                 .optionValueIds(productVariant.getProductVariantOptions().stream().map(pvo -> pvo.getOptionValue().getId()).toList())

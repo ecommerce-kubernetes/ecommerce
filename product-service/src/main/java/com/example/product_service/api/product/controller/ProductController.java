@@ -2,12 +2,14 @@ package com.example.product_service.api.product.controller;
 
 import com.example.product_service.api.common.dto.PageDto;
 import com.example.product_service.api.product.controller.dto.*;
-import com.example.product_service.api.product.controller.dto.request.ProductRequest;
+import com.example.product_service.api.product.controller.dto.request.ProductRequest.AddVariantRequest;
 import com.example.product_service.api.product.controller.dto.request.ProductRequest.CreateRequest;
 import com.example.product_service.api.product.controller.dto.request.ProductRequest.OptionRegisterRequest;
 import com.example.product_service.api.product.controller.dto.response.ProductResponse;
+import com.example.product_service.api.product.controller.dto.response.ProductResponse.AddVariantResponse;
 import com.example.product_service.api.product.controller.dto.response.ProductResponse.CreateResponse;
 import com.example.product_service.api.product.controller.dto.response.ProductResponse.OptionRegisterResponse;
+import com.example.product_service.api.product.controller.dto.response.ProductResponse.VariantResponse;
 import com.example.product_service.api.product.service.ProductService;
 import com.example.product_service.api.product.service.dto.command.ProductCreateCommand;
 import com.example.product_service.api.product.service.dto.command.ProductUpdateCommand;
@@ -49,21 +51,11 @@ public class ProductController {
 
     @PostMapping("/{productId}/variants")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<VariantCreateResponse> createVariants(@PathVariable("productId") Long productId,
-                                                                @RequestBody @Validated VariantCreateRequest request) {
-        List<ProductVariantsCreateCommand.VariantDetail> variantDetails = request.getVariants().stream().map(v -> ProductVariantsCreateCommand.VariantDetail.builder()
-                .originalPrice(v.getOriginalPrice())
-                .discountRate(v.getDiscountRate())
-                .stockQuantity(v.getStockQuantity())
-                .optionValueIds(v.getOptionValueIds())
-                .build()).toList();
-
-        ProductVariantsCreateCommand command = ProductVariantsCreateCommand.builder()
-                .productId(productId)
-                .variants(variantDetails)
-                .build();
-
-        VariantCreateResponse response = productService.createVariants(command);
+    public ResponseEntity<AddVariantResponse> createVariants(@PathVariable("productId") Long productId,
+                                                             @RequestBody @Validated AddVariantRequest request) {
+        ProductVariantsCreateCommand command = request.toCommand(productId);
+        AddVariantResult result = productService.createVariants(command);
+        AddVariantResponse response = AddVariantResponse.from(result);
         return ResponseEntity.ok(response);
     }
 

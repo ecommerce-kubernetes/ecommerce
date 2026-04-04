@@ -3,6 +3,8 @@ package com.example.product_service.api.product.controller.dto.response;
 import com.example.product_service.api.product.service.dto.result.ProductCreateResult;
 import com.example.product_service.api.product.service.dto.result.ProductOptionResponse;
 import com.example.product_service.api.product.service.dto.result.ProductOptionResponse.OptionDto;
+import com.example.product_service.api.product.service.dto.result.AddVariantResult;
+import com.example.product_service.api.product.service.dto.result.VariantResult;
 import lombok.Builder;
 
 import java.util.List;
@@ -50,6 +52,47 @@ public class ProductResponse {
                    .optionTypeName(option.getOptionTypeName())
                    .priority(option.getPriority())
                    .build();
+        }
+    }
+
+    @Builder
+    public record AddVariantResponse(
+            Long productId,
+            List<VariantResponse> variants
+    ) {
+        public static AddVariantResponse from(AddVariantResult result) {
+            List<VariantResponse> variants = mappingVariants(result.getVariants());
+            return AddVariantResponse.builder()
+                    .productId(result.getProductId())
+                    .variants(variants)
+                    .build();
+        }
+
+        private static List<VariantResponse> mappingVariants(List<VariantResult> variants) {
+            return variants.stream().map(VariantResponse::from).toList();
+        }
+    }
+
+    @Builder
+    public record VariantResponse(
+            Long variantId,
+            String sku,
+            List<Long> optionValueIds,
+            Long originalPrice,
+            Long discountedPrice,
+            Integer discountRate,
+            Integer stockQuantity
+    ) {
+        public static VariantResponse from(VariantResult result) {
+            return VariantResponse.builder()
+                    .variantId(result.getVariantId())
+                    .sku(result.getSku())
+                    .optionValueIds(result.getOptionValueIds())
+                    .originalPrice(result.getOriginalPrice())
+                    .discountedPrice(result.getDiscountedPrice())
+                    .discountRate(result.getDiscountRate())
+                    .stockQuantity(result.getStockQuantity())
+                    .build();
         }
     }
 }

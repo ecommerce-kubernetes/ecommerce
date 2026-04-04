@@ -205,7 +205,7 @@ public class ProductServiceTest extends ExcludeInfraTest {
                                             .optionValueIds(List.of(xl.getId(), blue.getId())).build()))
                     .build();
             //when
-            VariantCreateResponse result = productService.createVariants(command);
+            AddVariantResult result = productService.createVariants(command);
             //then
             String createdSku = "PROD" + product.getId() + "-" +xl.getName() + "-" + blue.getName();
             assertThat(result.getProductId()).isEqualTo(product.getId());

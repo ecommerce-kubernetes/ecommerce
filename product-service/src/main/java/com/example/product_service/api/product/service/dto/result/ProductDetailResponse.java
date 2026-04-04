@@ -24,7 +24,7 @@ public class ProductDetailResponse {
     private List<OptionGroup> optionGroups;
     private List<ProductImageResponse> images;
     private List<ProductDescriptionImageResponse> descriptionImages;
-    private List<VariantResponse> variants;
+    private List<VariantResult> variants;
 
     @Getter
     public static class OptionGroup {
@@ -76,7 +76,7 @@ public class ProductDetailResponse {
     @Builder
     private ProductDetailResponse(Long productId, String name, String status, Long categoryId, String description, Long displayPrice,
                                   Long originalPrice, Integer maxDiscountRate, Double rating, Long reviewCount, Double popularityScore,
-                                  List<OptionGroup> optionGroups, List<ProductImageResponse> images, List<ProductDescriptionImageResponse> descriptionImages, List<VariantResponse> variants) {
+                                  List<OptionGroup> optionGroups, List<ProductImageResponse> images, List<ProductDescriptionImageResponse> descriptionImages, List<VariantResult> variants) {
         this.productId = productId;
         this.name = name;
         this.status = status;
@@ -100,7 +100,7 @@ public class ProductDetailResponse {
         List<ProductImageResponse> images = product.getImages().stream().map(ProductImageResponse::from)
                 .toList();
         List<ProductDescriptionImageResponse> descriptionImages = product.getDescriptionImages().stream().map(ProductDescriptionImageResponse::from).toList();
-        List<VariantResponse> variants = product.getVariants().stream().map(VariantResponse::from).toList();
+        List<VariantResult> variants = product.getVariants().stream().map(VariantResult::from).toList();
         return ProductDetailResponse.builder()
                 .productId(product.getId())
                 .name(product.getName())

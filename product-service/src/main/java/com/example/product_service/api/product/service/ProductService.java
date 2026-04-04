@@ -56,7 +56,7 @@ public class ProductService {
         return ProductOptionResponse.of(product.getId(), product.getOptions());
     }
 
-    public VariantCreateResponse createVariants(ProductVariantsCreateCommand command) {
+    public AddVariantResult createVariants(ProductVariantsCreateCommand command) {
         // 동일한 옵션 조합의 상품 변형이 존재하는지 검증
         validateRequestUniqueCombination(command.getVariants());
         Product product = findProductByIdOrThrow(command.getProductId());
@@ -75,7 +75,7 @@ public class ProductService {
             newlyCreatedVariants.add(variant);
         }
         productRepository.flush();
-        return VariantCreateResponse.of(product.getId(), newlyCreatedVariants);
+        return AddVariantResult.of(product.getId(), newlyCreatedVariants);
     }
 
     public ProductImageCreateResponse updateImages(Long productId, List<String> images) {
