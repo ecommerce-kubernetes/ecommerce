@@ -78,10 +78,10 @@ public class ProductService {
         return AddVariantResult.of(product.getId(), newlyCreatedVariants);
     }
 
-    public ProductImageCreateResponse updateImages(Long productId, List<String> images) {
+    public ProductImageCreateResult updateImages(Long productId, List<String> images) {
         Product product = findProductByIdOrThrow(productId);
         product.replaceImages(images);
-        return ProductImageCreateResponse.of(product.getId(), product.getImages());
+        return ProductImageCreateResult.of(product.getId(), product.getImages());
     }
 
     public ProductDescriptionImageCreateResponse updateDescriptionImages(Long productId, List<String> images) {

@@ -7,19 +7,19 @@ import lombok.Getter;
 import java.util.List;
 
 @Getter
-public class ProductImageCreateResponse {
+public class ProductImageCreateResult {
     private Long productId;
-    private List<ProductImageResponse> images;
+    private List<ProductImageResult> images;
 
     @Builder
-    private ProductImageCreateResponse(List<ProductImageResponse> images, Long productId) {
+    private ProductImageCreateResult(List<ProductImageResult> images, Long productId) {
         this.images = images;
         this.productId = productId;
     }
 
-    public static ProductImageCreateResponse of(Long productId, List<ProductImage> images) {
-        List<ProductImageResponse> imageResponses = images.stream().map(ProductImageResponse::from).toList();
-        return ProductImageCreateResponse.builder()
+    public static ProductImageCreateResult of(Long productId, List<ProductImage> images) {
+        List<ProductImageResult> imageResponses = images.stream().map(ProductImageResult::from).toList();
+        return ProductImageCreateResult.builder()
                 .productId(productId)
                 .images(imageResponses)
                 .build();

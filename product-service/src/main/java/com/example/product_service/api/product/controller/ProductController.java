@@ -1,11 +1,11 @@
 package com.example.product_service.api.product.controller;
 
 import com.example.product_service.api.common.dto.PageDto;
-import com.example.product_service.api.product.controller.dto.*;
+import com.example.product_service.api.product.controller.dto.ProductSearchCondition;
+import com.example.product_service.api.product.controller.dto.ProductUpdateRequest;
 import com.example.product_service.api.product.controller.dto.request.ProductRequest;
-import com.example.product_service.api.product.controller.dto.request.ProductRequest.AddVariantRequest;
-import com.example.product_service.api.product.controller.dto.request.ProductRequest.CreateRequest;
-import com.example.product_service.api.product.controller.dto.request.ProductRequest.OptionRegisterRequest;
+import com.example.product_service.api.product.controller.dto.request.ProductRequest.*;
+import com.example.product_service.api.product.controller.dto.response.ProductResponse.AddImageResponse;
 import com.example.product_service.api.product.controller.dto.response.ProductResponse.AddVariantResponse;
 import com.example.product_service.api.product.controller.dto.response.ProductResponse.CreateResponse;
 import com.example.product_service.api.product.controller.dto.response.ProductResponse.OptionRegisterResponse;
@@ -62,17 +62,22 @@ public class ProductController {
 
     @PutMapping("/{productId}/images")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ProductImageCreateResponse> updateImages(@PathVariable("productId") Long productId,
-                                                                   @RequestBody @Validated ProductImageCreateRequest request) {
-        ProductImageCreateResponse response = productService.updateImages(productId, request.getImages());
+    public ResponseEntity<AddImageResponse> updateImages(@PathVariable("productId") Long productId,
+                                                         @RequestBody @Validated AddImageRequest request) {
+        //TODO command 객체 사용
+        List<String> images = request.images().stream().map((image) -> image.imagePath()).toList();
+        ProductImageCreateResult result = productService.updateImages(productId, images);
+        AddImageResponse response = AddImageResponse.from(result);
         return ResponseEntity.ok(response);
     }
 
     @PutMapping("/{productId}/description-images")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ProductDescriptionImageCreateResponse> updateDescriptionImage(@PathVariable("productId") Long productId,
-                                                                                        @RequestBody @Validated ProductDescriptionImageRequest request) {
-        ProductDescriptionImageCreateResponse response = productService.updateDescriptionImages(productId, request.getImages());
+                                                                                        @RequestBody @Validated AddDescriptionImageRequest request) {
+        //TODO command 객체로 변경
+        List<String> list = request.images().stream().map((image) -> image.imagePath()).toList();
+        ProductDescriptionImageCreateResponse response = productService.updateDescriptionImages(productId, list);
         return ResponseEntity.ok(response);
     }
 

@@ -1,10 +1,7 @@
 package com.example.product_service.api.product.controller.dto.response;
 
-import com.example.product_service.api.product.service.dto.result.ProductCreateResult;
-import com.example.product_service.api.product.service.dto.result.ProductOptionResponse;
+import com.example.product_service.api.product.service.dto.result.*;
 import com.example.product_service.api.product.service.dto.result.ProductOptionResponse.OptionDto;
-import com.example.product_service.api.product.service.dto.result.AddVariantResult;
-import com.example.product_service.api.product.service.dto.result.VariantResult;
 import lombok.Builder;
 
 import java.util.List;
@@ -92,6 +89,41 @@ public class ProductResponse {
                     .discountedPrice(result.getDiscountedPrice())
                     .discountRate(result.getDiscountRate())
                     .stockQuantity(result.getStockQuantity())
+                    .build();
+        }
+    }
+
+    @Builder
+    public record AddImageResponse(
+            Long productId,
+            List<ImageResponse> images
+    ) {
+        public static AddImageResponse from(ProductImageCreateResult result) {
+            List<ImageResponse> images = mappingImageResponse(result.getImages());
+            return AddImageResponse.builder()
+                    .productId(result.getProductId())
+                    .images(images)
+                    .build();
+        }
+
+        public static List<ImageResponse> mappingImageResponse(List<ProductImageResult> images) {
+            return images.stream().map(ImageResponse::from).toList();
+        }
+    }
+
+    @Builder
+    public record ImageResponse(
+            Long imageId,
+            String imagePath,
+            Boolean isThumbnail,
+            Integer sortOrder
+    ) {
+        public static ImageResponse from(ProductImageResult image) {
+            return ImageResponse.builder()
+                    .imageId(image.getImageId())
+                    .imagePath(image.getImageUrl())
+                    .isThumbnail(image.isThumbnail())
+                    .sortOrder(image.getSortOrder())
                     .build();
         }
     }

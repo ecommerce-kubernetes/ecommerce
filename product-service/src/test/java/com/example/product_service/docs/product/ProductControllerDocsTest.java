@@ -3,12 +3,10 @@ package com.example.product_service.docs.product;
 import com.epages.restdocs.apispec.ResourceSnippetParameters;
 import com.example.product_service.api.common.dto.PageDto;
 import com.example.product_service.api.product.controller.ProductController;
-import com.example.product_service.api.product.controller.dto.*;
-import com.example.product_service.api.product.controller.dto.request.ProductRequest;
-import com.example.product_service.api.product.controller.dto.request.ProductRequest.AddVariantRequest;
-import com.example.product_service.api.product.controller.dto.request.ProductRequest.CreateRequest;
-import com.example.product_service.api.product.controller.dto.request.ProductRequest.OptionRegisterRequest;
-import com.example.product_service.api.product.controller.dto.request.ProductRequest.ProductOptionRequest;
+import com.example.product_service.api.product.controller.dto.ProductSearchCondition;
+import com.example.product_service.api.product.controller.dto.ProductUpdateRequest;
+import com.example.product_service.api.product.controller.dto.request.ProductRequest.*;
+import com.example.product_service.api.product.controller.dto.response.ProductResponse.AddImageResponse;
 import com.example.product_service.api.product.controller.dto.response.ProductResponse.AddVariantResponse;
 import com.example.product_service.api.product.controller.dto.response.ProductResponse.CreateResponse;
 import com.example.product_service.api.product.controller.dto.response.ProductResponse.OptionRegisterResponse;
@@ -188,31 +186,25 @@ class ProductControllerDocsTest extends RestDocsSupport {
     @DisplayName("상품 이미지 추가")
     void updateImages() throws Exception {
         //given
-        ProductImageCreateRequest request = mockImageRequest().build();
-        ProductImageCreateResponse response = mockImageResponse().build();
+        AddImageRequest request = fixtureMonkey.giveMeBuilder(AddImageRequest.class)
+                .size("images", 1)
+                .set("images[0].imagePath", "/test/image.jpg")
+                .set("images[0].isThumbnail", true)
+                .set("images[0].sortOrder", 1)
+                .sample();
+        ProductImageCreateResult result = fixtureMonkey.giveMeBuilder(ProductImageCreateResult.class)
+                .size("images", 1)
+                .set("productId", 1L)
+                .set("images[0].imageId", 1L)
+                .set("images[0].imagePath", "/test/image.jpg")
+                .set("images[0].isThumbnail", true)
+                .set("images[0].sortOrder", 1)
+                .sample();
+        assert result != null;
+        AddImageResponse response = AddImageResponse.from(result);
         HttpHeaders adminHeader = createAdminHeader();
         given(productService.updateImages(anyLong(), anyList()))
-                .willReturn(response);
-
-        HeaderDescriptor[] requestHeaders = new HeaderDescriptor[] {
-                headerWithName("Authorization")
-                        .description("JWT Access Token")
-        };
-
-        ParameterDescriptor[] pathParameters = new ParameterDescriptor[] {
-                parameterWithName("productId").description("이미지를 추가할 상품 ID")
-        };
-
-        FieldDescriptor[] requestFields = new FieldDescriptor[] {
-                fieldWithPath("images").description("상품 이미지 URL 리스트")
-        };
-
-        FieldDescriptor[] responseFields = new FieldDescriptor[] {
-                fieldWithPath("productId").description("상품 Id"),
-                fieldWithPath("images[].imageUrl").description("상품 이미지 URL"),
-                fieldWithPath("images[].order").description("상품 이미지 순서"),
-                fieldWithPath("images[].thumbnail").description("썸네일 여부")
-        };
+                .willReturn(result);
         //when
         //then
         mockMvc.perform(put("/products/{productId}/images", 1L)
@@ -221,91 +213,40 @@ class ProductControllerDocsTest extends RestDocsSupport {
                         .headers(adminHeader))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andDo(
-                        document("03-product-04-add-images",
-                                preprocessRequest(prettyPrint(),
-                                        modifyHeaders()
-                                                .remove("X-User-Id")
-                                                .remove("X-User-Role")
-                                                .add("Authorization", "Bearer {ACCESS_TOKEN}")),
-                                preprocessResponse(prettyPrint()),
-                                resource(
-                                        ResourceSnippetParameters.builder()
-                                                .tag(TAG)
-                                                .summary("상품 이미지 추가")
-                                                .description("상품 이미지를 추가")
-                                                .requestHeaders(requestHeaders)
-                                                .pathParameters(pathParameters)
-                                                .requestFields(requestFields)
-                                                .responseFields(responseFields)
-                                                .build()
-                                ),
-                                requestHeaders(requestHeaders),
-                                pathParameters(pathParameters),
-                                requestFields(requestFields),
-                                responseFields(responseFields)
-                        )
+                .andExpect(content().json(objectMapper.writeValueAsString(response)))
+                .andDo(createSecuredDocument("03-product-04-add-images",
+                        "상품 이미지 추가",
+                        "상품 이미지를 추가",
+                        ProductDescriptor.getAddImageRequest(),
+                        ProductDescriptor.getAddImageResponse(),
+                        parameterWithName("productId").description("이미지를 추가할 상품 ID"))
                 );
     }
 
     @Test
     @DisplayName("상품 설명 이미지 추가")
     void updateDescriptionImage() throws Exception {
-        ProductDescriptionImageRequest request = mockDescriptionImageRequest().build();
+        AddDescriptionImageRequest request = fixtureMonkey.giveMeBuilder(AddDescriptionImageRequest.class)
+                .size("images", 1)
+                .set("images[0].imagePath", "/test/image.jpg")
+                .set("images[0].sortOrder", 1)
+                .sample();
         ProductDescriptionImageCreateResponse response = mockDescriptionImageResponse().build();
         HttpHeaders adminHeader = createAdminHeader();
         given(productService.updateDescriptionImages(anyLong(), anyList()))
                 .willReturn(response);
-
-        HeaderDescriptor[] requestHeaders = new HeaderDescriptor[] {
-                headerWithName("Authorization")
-                        .description("JWT Access Token")
-        };
-
-        ParameterDescriptor[] pathParameters = new ParameterDescriptor[] {
-                parameterWithName("productId").description("설명 이미지를 추가할 상품 ID")
-        };
-
-        FieldDescriptor[] requestFields = new FieldDescriptor[] {
-                fieldWithPath("images").description("설명 이미지 URL 리스트")
-        };
-
-        FieldDescriptor[] responseFields = new FieldDescriptor[] {
-                fieldWithPath("productId").description("상품 Id"),
-                fieldWithPath("descriptionImages[].imageUrl").description("상품 이미지 URL"),
-                fieldWithPath("descriptionImages[].order").description("상품 이미지 순서")
-        };
-
         mockMvc.perform(put("/products/{productId}/description-images", 1L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
                         .headers(adminHeader))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andDo(
-                        document("03-product-05-add-description-images",
-                                preprocessRequest(prettyPrint(),
-                                        modifyHeaders()
-                                                .remove("X-User-Id")
-                                                .remove("X-User-Role")
-                                                .add("Authorization", "Bearer {ACCESS_TOKEN}")),
-                                preprocessResponse(prettyPrint()),
-                                resource(
-                                        ResourceSnippetParameters.builder()
-                                                .tag(TAG)
-                                                .summary("상품 설명 이미지 추가")
-                                                .description("상품 설명 이미지를 추가")
-                                                .requestHeaders(requestHeaders)
-                                                .pathParameters(pathParameters)
-                                                .requestFields(requestFields)
-                                                .responseFields(responseFields)
-                                                .build()
-                                ),
-                                requestHeaders(requestHeaders),
-                                pathParameters(pathParameters),
-                                requestFields(requestFields),
-                                responseFields(responseFields)
-                        )
+                .andDo(createSecuredDocument("03-product-05-add-description-images",
+                                "상품 설명 이미지 추가",
+                                "상품 설명 이미지를 추가",
+                                ProductDescriptor.getAddDescriptionImageRequest(),
+                                ProductDescriptor.getAddDescriptionImageResponse(),
+                                parameterWithName("productId").description("설명 이미지를 추가할 상품 ID"))
                 );
 
     }
@@ -463,11 +404,12 @@ class ProductControllerDocsTest extends RestDocsSupport {
                 fieldWithPath("optionGroups[].priority").description("상품 옵션 우선순위"),
                 fieldWithPath("optionGroups[].values[].optionValueId").description("상품 옵션 값 ID"),
                 fieldWithPath("optionGroups[].values[].name").description("상품 옵션 값 이름"),
+                fieldWithPath("images[].imageId").description("상품 이미지 Id"),
                 fieldWithPath("images[].imageUrl").description("상품 이미지 URL"),
-                fieldWithPath("images[].order").description("상품 이미지 순서"),
+                fieldWithPath("images[].sortOrder").description("상품 이미지 순서"),
                 fieldWithPath("images[].thumbnail").description("썸네일 여부"),
                 fieldWithPath("descriptionImages[].imageUrl").description("상품 이미지 URL"),
-                fieldWithPath("descriptionImages[].order").description("상품 이미지 순서"),
+                fieldWithPath("descriptionImages[].sortOrder").description("상품 이미지 순서"),
                 fieldWithPath("variants[].variantId").description("상품 변형 ID"),
                 fieldWithPath("variants[].sku").description("상품 변형 SKU"),
                 fieldWithPath("variants[].optionValueIds").description("상품 변형 옵션 값 Id 리스트"),

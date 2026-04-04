@@ -57,4 +57,37 @@ public class ProductDescriptor {
                 fieldWithPath("variants[].stockQuantity").description("상품 변형 재고 수량")
         };
     }
+
+    public static FieldDescriptor[] getAddImageRequest() {
+        return new FieldDescriptor[] {
+                fieldWithPath("images[].imagePath").description("이미지 경로"),
+                fieldWithPath("images[].isThumbnail").description("썸네일 여부"),
+                fieldWithPath("images[].sortOrder").description("정렬 순서")
+        };
+    }
+
+    public static FieldDescriptor[] getAddImageResponse() {
+        return new FieldDescriptor[] {
+                fieldWithPath("productId").description("상품 Id"),
+                fieldWithPath("images[].imageId").description("상품 이미지 ID"),
+                fieldWithPath("images[].imagePath").description("상품 이미지 URL"),
+                fieldWithPath("images[].sortOrder").description("상품 이미지 순서"),
+                fieldWithPath("images[].isThumbnail").description("썸네일 여부")
+        };
+    }
+
+    public static FieldDescriptor[] getAddDescriptionImageRequest() {
+        return new FieldDescriptor[] {
+                fieldWithPath("images[].imagePath").description("이미지 경로"),
+                fieldWithPath("images[].sortOrder").description("정렬 순서")
+        };
+    }
+
+    public static FieldDescriptor[] getAddDescriptionImageResponse() {
+        return new FieldDescriptor[] {
+                fieldWithPath("productId").description("상품 Id"),
+                fieldWithPath("descriptionImages[].imageUrl").description("상품 이미지 URL"),
+                fieldWithPath("descriptionImages[].sortOrder").description("상품 이미지 순서")
+        };
+    }
 }

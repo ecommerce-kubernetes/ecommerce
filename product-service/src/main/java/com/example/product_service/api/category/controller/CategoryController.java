@@ -3,7 +3,6 @@ package com.example.product_service.api.category.controller;
 import com.example.product_service.api.category.controller.dto.request.CategoryRequest.CreateRequest;
 import com.example.product_service.api.category.controller.dto.request.CategoryRequest.MoveRequest;
 import com.example.product_service.api.category.controller.dto.request.CategoryRequest.UpdateRequest;
-import com.example.product_service.api.category.controller.dto.response.CategoryResponse;
 import com.example.product_service.api.category.controller.dto.response.CategoryResponse.Detail;
 import com.example.product_service.api.category.controller.dto.response.CategoryResponse.Navigation;
 import com.example.product_service.api.category.controller.dto.response.CategoryResponse.Tree;

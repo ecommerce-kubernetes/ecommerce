@@ -11,8 +11,8 @@ import com.example.product_service.api.category.service.CategoryService;
 import com.example.product_service.api.category.service.dto.result.CategoryNavigationResult;
 import com.example.product_service.api.category.service.dto.result.CategoryResult;
 import com.example.product_service.api.category.service.dto.result.CategoryTreeResult;
-import com.example.product_service.docs.descriptor.CategoryDescriptor;
 import com.example.product_service.docs.RestDocsSupport;
+import com.example.product_service.docs.descriptor.CategoryDescriptor;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
@@ -57,7 +57,7 @@ class CategoryControllerDocsTest extends RestDocsSupport {
                 .set("name", "카테고리")
                 .set("parentId", null)
                 .set("depth", 1)
-                .set("imageUrl", "/test/image.jpg")
+                .set("imagePath", "/test/image.jpg")
                 .sample();
         HttpHeaders adminHeader = createAdminHeader();
         given(categoryService.saveCategory(anyString(), nullable(Long.class), anyString()))
@@ -166,7 +166,7 @@ class CategoryControllerDocsTest extends RestDocsSupport {
                 .set("name", "새 카테고리")
                 .set("parentId", null)
                 .set("depth", 1)
-                .set("imageUrl", "/test/image.jpg")
+                .set("imagePath", "/test/image.jpg")
                 .sample();
         HttpHeaders adminHeader = createAdminHeader();
         given(categoryService.updateCategory(anyLong(), anyString(), anyString())).willReturn(result);

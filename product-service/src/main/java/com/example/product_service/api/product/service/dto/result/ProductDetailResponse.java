@@ -22,7 +22,7 @@ public class ProductDetailResponse {
     private Long reviewCount;
     private Double popularityScore;
     private List<OptionGroup> optionGroups;
-    private List<ProductImageResponse> images;
+    private List<ProductImageResult> images;
     private List<ProductDescriptionImageResponse> descriptionImages;
     private List<VariantResult> variants;
 
@@ -76,7 +76,7 @@ public class ProductDetailResponse {
     @Builder
     private ProductDetailResponse(Long productId, String name, String status, Long categoryId, String description, Long displayPrice,
                                   Long originalPrice, Integer maxDiscountRate, Double rating, Long reviewCount, Double popularityScore,
-                                  List<OptionGroup> optionGroups, List<ProductImageResponse> images, List<ProductDescriptionImageResponse> descriptionImages, List<VariantResult> variants) {
+                                  List<OptionGroup> optionGroups, List<ProductImageResult> images, List<ProductDescriptionImageResponse> descriptionImages, List<VariantResult> variants) {
         this.productId = productId;
         this.name = name;
         this.status = status;
@@ -97,7 +97,7 @@ public class ProductDetailResponse {
     public static ProductDetailResponse from(Product product) {
         List<OptionGroup> optionGroups = product.getOptions().stream().map(OptionGroup::from)
                 .toList();
-        List<ProductImageResponse> images = product.getImages().stream().map(ProductImageResponse::from)
+        List<ProductImageResult> images = product.getImages().stream().map(ProductImageResult::from)
                 .toList();
         List<ProductDescriptionImageResponse> descriptionImages = product.getDescriptionImages().stream().map(ProductDescriptionImageResponse::from).toList();
         List<VariantResult> variants = product.getVariants().stream().map(VariantResult::from).toList();

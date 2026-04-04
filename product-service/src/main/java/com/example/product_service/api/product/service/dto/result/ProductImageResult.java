@@ -5,22 +5,24 @@ import lombok.Builder;
 import lombok.Getter;
 
 @Getter
-public class ProductImageResponse {
+public class ProductImageResult {
+    //TODO 이미지 Id 매핑
+    private Long imageId;
     private String imageUrl;
-    private Integer order;
+    private Integer sortOrder;
     private boolean isThumbnail;
 
     @Builder
-    private ProductImageResponse(String imageUrl, Integer order, boolean isThumbnail) {
+    private ProductImageResult(String imageUrl, Integer sortOrder, boolean isThumbnail) {
         this.imageUrl = imageUrl;
-        this.order = order;
+        this.sortOrder = sortOrder;
         this.isThumbnail = isThumbnail;
     }
 
-    public static ProductImageResponse from(ProductImage productImage) {
-        return ProductImageResponse.builder()
+    public static ProductImageResult from(ProductImage productImage) {
+        return ProductImageResult.builder()
                 .imageUrl(productImage.getImageUrl())
-                .order(productImage.getSortOrder())
+                .sortOrder(productImage.getSortOrder())
                 .isThumbnail(productImage.isThumbnail())
                 .build();
     }

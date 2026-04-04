@@ -1,6 +1,8 @@
 package com.example.product_service.support.fixture;
 
-import com.example.product_service.api.product.controller.dto.*;
+import com.example.product_service.api.product.controller.dto.ProductDescriptionImageRequest;
+import com.example.product_service.api.product.controller.dto.ProductImageCreateRequest;
+import com.example.product_service.api.product.controller.dto.ProductUpdateRequest;
 import com.example.product_service.api.product.service.dto.result.*;
 
 import java.time.LocalDateTime;
@@ -38,15 +40,15 @@ public class ProductControllerFixture {
     }
 
 
-    public static ProductImageCreateResponse.ProductImageCreateResponseBuilder mockImageResponse() {
-        return ProductImageCreateResponse
+    public static ProductImageCreateResult.ProductImageCreateResultBuilder mockImageResponse() {
+        return ProductImageCreateResult
                 .builder()
                 .productId(PRODUCT_ID)
                 .images(
                         List.of(
-                                ProductImageResponse.builder()
+                                ProductImageResult.builder()
                                         .imageUrl("http://image1.jpg")
-                                        .order(1)
+                                        .sortOrder(1)
                                         .isThumbnail(true)
                                         .build()
                         ));
@@ -60,7 +62,7 @@ public class ProductControllerFixture {
                         List.of(
                                 ProductDescriptionImageResponse.builder()
                                         .imageUrl("http://image1.jpg")
-                                        .order(1)
+                                        .sortOrder(1)
                                         .build()
                         )
                 );
@@ -115,16 +117,16 @@ public class ProductControllerFixture {
                                         .build()))
                 .images(
                         List.of(
-                                ProductImageResponse.builder()
+                                ProductImageResult.builder()
                                         .imageUrl("http://image.jpg")
-                                        .order(1)
+                                        .sortOrder(1)
                                         .isThumbnail(true)
                                         .build()))
                 .descriptionImages(
                         List.of(
                                 ProductDescriptionImageResponse.builder()
                                         .imageUrl("http://description.jpg")
-                                        .order(1)
+                                        .sortOrder(1)
                                         .build()
                         )
                 )

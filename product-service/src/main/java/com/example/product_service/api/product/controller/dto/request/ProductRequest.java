@@ -90,4 +90,46 @@ public class ProductRequest {
             @UniqueElements(message = "중복된 옵션 종류가 포함되어 있습니다")
             List<Long> optionValueIds
     ) { }
+
+    @Builder
+    public record AddImageRequest (
+        @Valid
+        @NotEmpty(message = "최소 1장의 이미지를 등록해야 합니다")
+        List<ImageRequest> images
+    ) { }
+
+    @Builder(toBuilder = true)
+    public record ImageRequest (
+            @NotBlank(message = "이미지 경로는 필수 입니다")
+            @Pattern(
+                    regexp = "^/[\\w\\-/]+\\.(jpg|jpeg|png|gif|webp|JPG|JPEG|PNG|GIF|WEBP)$",
+                    message = "이미지 경로는 '/'로 시작하는 유효한 이미지 파일이어야 합니다"
+            )
+            String imagePath,
+            @NotNull(message = "썸네일 여부는 필수 입니다")
+            Boolean isThumbnail,
+            @NotNull(message = "정렬 순서는 필수 입니다")
+            @Min(value = 1, message = "정렬 순서는 1 이상이여야 합니다")
+            Integer sortOrder
+    ) {}
+
+    @Builder
+    public record AddDescriptionImageRequest (
+            @Valid
+            @NotEmpty(message = "최소 1장의 이미지를 등록해야 합니다")
+            List<DescriptionImageRequest> images
+    ) { }
+
+    @Builder(toBuilder = true)
+    public record DescriptionImageRequest (
+            @NotBlank(message = "이미지 경로는 필수 입니다")
+            @Pattern(
+                    regexp = "^/[\\w\\-/]+\\.(jpg|jpeg|png|gif|webp|JPG|JPEG|PNG|GIF|WEBP)$",
+                    message = "이미지 경로는 '/'로 시작하는 유효한 이미지 파일이어야 합니다"
+            )
+            String imagePath,
+            @NotNull(message = "정렬 순서는 필수 입니다")
+            @Min(value = 1, message = "정렬 순서는 1 이상이여야 합니다")
+            Integer sortOrder
+    ) {}
 }

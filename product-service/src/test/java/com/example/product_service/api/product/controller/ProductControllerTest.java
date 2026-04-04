@@ -2,8 +2,10 @@ package com.example.product_service.api.product.controller;
 
 import com.example.product_service.api.common.dto.PageDto;
 import com.example.product_service.api.common.security.model.UserRole;
-import com.example.product_service.api.product.controller.dto.*;
+import com.example.product_service.api.product.controller.dto.ProductSearchCondition;
+import com.example.product_service.api.product.controller.dto.ProductUpdateRequest;
 import com.example.product_service.api.product.controller.dto.request.ProductRequest.*;
+import com.example.product_service.api.product.controller.dto.response.ProductResponse.AddImageResponse;
 import com.example.product_service.api.product.controller.dto.response.ProductResponse.AddVariantResponse;
 import com.example.product_service.api.product.controller.dto.response.ProductResponse.CreateResponse;
 import com.example.product_service.api.product.controller.dto.response.ProductResponse.OptionRegisterResponse;
@@ -422,10 +424,12 @@ class ProductControllerTest extends ControllerTestSupport {
         @WithCustomMockUser
         void addImage() throws Exception {
             //given
-            ProductImageCreateRequest request = mockImageRequest().build();
-            ProductImageCreateResponse response = mockImageResponse().build();
+            AddImageRequest request = fixtureMonkey.giveMeOne(AddImageRequest.class);
+            ProductImageCreateResult result = fixtureMonkey.giveMeOne(ProductImageCreateResult.class);
+            assert result != null;
+            AddImageResponse response = AddImageResponse.from(result);
             given(productService.updateImages(anyLong(), anyList()))
-                    .willReturn(response);
+                    .willReturn(result);
             //when
             //then
             mockMvc.perform(put("/products/{productId}/images", 1L)
@@ -441,7 +445,7 @@ class ProductControllerTest extends ControllerTestSupport {
         @WithCustomMockUser(userRole = UserRole.ROLE_USER)
         void addImage_user_role() throws Exception {
             //given
-            ProductImageCreateRequest request = mockImageRequest().build();
+            AddImageRequest request = fixtureMonkey.giveMeOne(AddImageRequest.class);
             //when
             //then
             mockMvc.perform(put("/products/{productId}/images", 1L)
@@ -459,7 +463,7 @@ class ProductControllerTest extends ControllerTestSupport {
         @DisplayName("로그인 하지 않은 사용자는 상품 이미지를 추가할 수 없다")
         void addImage_unAuthorized() throws Exception {
             //given
-            ProductImageCreateRequest request = mockImageRequest().build();
+            AddImageRequest request = fixtureMonkey.giveMeOne(AddImageRequest.class);
             //when
             //then
             mockMvc.perform(put("/products/{productId}/images", 1L)
@@ -473,12 +477,12 @@ class ProductControllerTest extends ControllerTestSupport {
                     .andExpect(jsonPath("$.path").value("/products/1/images"));
         }
 
-        @Test
+        @ParameterizedTest(name = "{0}")
         @DisplayName("상품 이미지 추가 요청 검증")
+        @MethodSource("provideInvalidAddImageRequest")
         @WithCustomMockUser
-        void addImage_invalidRequest() throws Exception {
+        void addImage_invalidRequest(String description, AddImageRequest request, String message) throws Exception {
             //given
-            ProductImageCreateRequest request = mockImageRequest().images(null).build();
             //when
             //then
             mockMvc.perform(put("/products/{productId}/images", 1L)
@@ -487,17 +491,67 @@ class ProductControllerTest extends ControllerTestSupport {
                     .andDo(print())
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.code").value("VALIDATION"))
-                    .andExpect(jsonPath("$.message").value("상품 이미지는 필수 입니다"))
+                    .andExpect(jsonPath("$.message").value(message))
                     .andExpect(jsonPath("$.timestamp").exists())
                     .andExpect(jsonPath("$.path").value("/products/1/images"));
         }
 
+        private static Stream<Arguments> provideInvalidAddImageRequest() {
+            ImageRequest VALID_BASE_IMAGE = ImageRequest.builder()
+                    .imagePath("/test/image.jpg")
+                    .isThumbnail(true)
+                    .sortOrder(1)
+                    .build();
+            return Stream.of(
+                    Arguments.of(
+                            "이미지 리스트가 null",
+                            wrap(null),
+                            "최소 1장의 이미지를 등록해야 합니다"
+                    ),
+                    Arguments.of(
+                            "이미지 Path가 null",
+                            wrap(VALID_BASE_IMAGE.toBuilder().imagePath(null).build()),
+                            "이미지 경로는 필수 입니다"
+                    ),
+                    Arguments.of(
+                            "잘못된 형식의 path",
+                            wrap(VALID_BASE_IMAGE.toBuilder().imagePath("invalidPath").build()),
+                            "이미지 경로는 '/'로 시작하는 유효한 이미지 파일이어야 합니다"
+                    ),
+                    Arguments.of(
+                            "썸네일 여부가 null",
+                            wrap(VALID_BASE_IMAGE.toBuilder().isThumbnail(null).build()),
+                            "썸네일 여부는 필수 입니다"
+                    ),
+                    Arguments.of(
+                            "정렬 순서가 null",
+                            wrap(VALID_BASE_IMAGE.toBuilder().sortOrder(null).build()),
+                            "정렬 순서는 필수 입니다"
+                    ),
+                    Arguments.of(
+                            "정렬 순서가 1미만",
+                            wrap(VALID_BASE_IMAGE.toBuilder().sortOrder(0).build()),
+                            "정렬 순서는 1 이상이여야 합니다"
+                    )
+            );
+        }
+
+        private static AddImageRequest wrap(ImageRequest imageRequest) {
+            return AddImageRequest.builder()
+                    .images(imageRequest == null ? null : List.of(imageRequest))
+                    .build();
+        }
+    }
+
+    @Nested
+    @DisplayName("상품 설명 이미지 추가")
+    class AddDescriptionImage {
         @Test
-        @DisplayName("상품 이미지를 추가한다")
+        @DisplayName("상품 설명 이미지를 추가한다")
         @WithCustomMockUser
         void updateDescriptionImage() throws Exception {
             //given
-            ProductDescriptionImageRequest request = mockDescriptionImageRequest().build();
+            AddDescriptionImageRequest request = fixtureMonkey.giveMeOne(AddDescriptionImageRequest.class);
             ProductDescriptionImageCreateResponse response = mockDescriptionImageResponse().build();
             given(productService.updateDescriptionImages(anyLong(), anyList()))
                     .willReturn(response);
@@ -512,11 +566,11 @@ class ProductControllerTest extends ControllerTestSupport {
         }
 
         @Test
-        @DisplayName("상품 이미지를 추가하려면 관리자 권한이여야한다")
+        @DisplayName("상품 설명 이미지를 추가하려면 관리자 권한이여야한다")
         @WithCustomMockUser(userRole = UserRole.ROLE_USER)
         void updateDescriptionImage_user_role() throws Exception {
             //given
-            ProductDescriptionImageRequest request = mockDescriptionImageRequest().build();
+            AddDescriptionImageRequest request = fixtureMonkey.giveMeOne(AddDescriptionImageRequest.class);
             //when
             //then
             mockMvc.perform(put("/products/{productId}/description-images", 1L)
@@ -531,10 +585,10 @@ class ProductControllerTest extends ControllerTestSupport {
         }
 
         @Test
-        @DisplayName("로그인 하지 않은 사용자는 상품 이미지를 추가할 수 없다")
+        @DisplayName("로그인 하지 않은 사용자는 상품 설명 이미지를 추가할 수 없다")
         void updateDescriptionImage_unAuthorized() throws Exception {
             //given
-            ProductDescriptionImageRequest request = mockDescriptionImageRequest().build();
+            AddDescriptionImageRequest request = fixtureMonkey.giveMeOne(AddDescriptionImageRequest.class);
             //when
             //then
             mockMvc.perform(put("/products/{productId}/description-images", 1L)
@@ -548,12 +602,12 @@ class ProductControllerTest extends ControllerTestSupport {
                     .andExpect(jsonPath("$.path").value("/products/1/description-images"));
         }
 
-        @Test
-        @DisplayName("상품 이미지 요청 검증")
+        @ParameterizedTest(name = "{0}")
+        @DisplayName("상품 설명 이미지 요청 검증")
+        @MethodSource("provideInvalidDescriptionImageRequest")
         @WithCustomMockUser
-        void updateDescriptionImage_invalidRequest() throws Exception {
+        void updateDescriptionImage_Validation(String description, AddDescriptionImageRequest request, String message) throws Exception {
             //given
-            ProductDescriptionImageRequest request = mockDescriptionImageRequest().images(null).build();
             //when
             //then
             mockMvc.perform(put("/products/{productId}/description-images", 1L)
@@ -562,9 +616,49 @@ class ProductControllerTest extends ControllerTestSupport {
                     .andDo(print())
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.code").value("VALIDATION"))
-                    .andExpect(jsonPath("$.message").value("상품 설명 이미지는 필수 입니다"))
+                    .andExpect(jsonPath("$.message").value(message))
                     .andExpect(jsonPath("$.timestamp").exists())
                     .andExpect(jsonPath("$.path").value("/products/1/description-images"));
+        }
+
+        private static Stream<Arguments> provideInvalidDescriptionImageRequest() {
+            DescriptionImageRequest VALID_BASE_IMAGE = DescriptionImageRequest.builder()
+                    .imagePath("/test/image.jpg")
+                    .sortOrder(1)
+                    .build();
+            return Stream.of(
+                    Arguments.of(
+                            "images 가 null",
+                            wrap(null),
+                            "최소 1장의 이미지를 등록해야 합니다"
+                    ),
+                    Arguments.of(
+                            "imagePath가 null",
+                            wrap(VALID_BASE_IMAGE.toBuilder().imagePath(null).build()),
+                            "이미지 경로는 필수 입니다"
+                    ),
+                    Arguments.of(
+                            "잘못된 형식의 path",
+                            wrap(VALID_BASE_IMAGE.toBuilder().imagePath("invalidPath").build()),
+                            "이미지 경로는 '/'로 시작하는 유효한 이미지 파일이어야 합니다"
+                    ),
+                    Arguments.of(
+                            "정렬 순서가 null",
+                            wrap(VALID_BASE_IMAGE.toBuilder().sortOrder(null).build()),
+                            "정렬 순서는 필수 입니다"
+                    ),
+                    Arguments.of(
+                            "정렬 순서가 1미만",
+                            wrap(VALID_BASE_IMAGE.toBuilder().sortOrder(0).build()),
+                            "정렬 순서는 1 이상이여야 합니다"
+                    )
+            );
+        }
+
+        private static AddDescriptionImageRequest wrap(DescriptionImageRequest request) {
+            return AddDescriptionImageRequest.builder()
+                    .images(request == null ? null : List.of(request))
+                    .build();
         }
     }
 
