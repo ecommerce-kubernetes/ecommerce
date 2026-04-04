@@ -1,5 +1,6 @@
 package com.example.product_service.api.product.controller.dto.request;
 
+import com.example.product_service.api.product.controller.validation.annotation.UniqueOptionTypes;
 import com.example.product_service.api.product.service.dto.command.ProductCreateCommand;
 import com.example.product_service.api.product.service.dto.command.ProductVariantsCreateCommand;
 import com.example.product_service.api.product.service.dto.command.ProductVariantsCreateCommand.VariantDetail;
@@ -32,10 +33,20 @@ public class ProductRequest {
 
     @Builder
     public record OptionRegisterRequest(
-            @NotNull(message = "옵션 id 리스트는 필수 입니다")
+            @Valid
+            @NotNull(message = "옵션 리스트는 필수 입니다")
             @Size(max = 3, message = "옵션은 최대 3개까지만 설정 가능합니다")
-            @UniqueElements(message = "중복된 옵션 종류가 포함되어 있습니다")
-            List<Long> optionTypeIds
+            @UniqueOptionTypes(message = "중복된 옵션 종류(optionTypeId)가 포함되어 있습니다")
+            List<ProductOptionRequest> options
+    ) {}
+
+    @Builder(toBuilder = true)
+    public record ProductOptionRequest (
+            @NotNull(message = "옵션 타입 Id는 필수 입니다")
+            Long optionTypeId,
+            @NotNull(message = "옵션 우선순위는 필수 입니다")
+            @Min(value = 1, message = "옵션 우선순위는 1이상 이여야 합니다")
+            Integer priority
     ) {}
 
     @Builder

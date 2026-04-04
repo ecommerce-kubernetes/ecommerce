@@ -3,10 +3,7 @@ package com.example.product_service.api.product.controller;
 import com.example.product_service.api.common.dto.PageDto;
 import com.example.product_service.api.common.security.model.UserRole;
 import com.example.product_service.api.product.controller.dto.*;
-import com.example.product_service.api.product.controller.dto.request.ProductRequest.AddVariantRequest;
-import com.example.product_service.api.product.controller.dto.request.ProductRequest.CreateRequest;
-import com.example.product_service.api.product.controller.dto.request.ProductRequest.OptionRegisterRequest;
-import com.example.product_service.api.product.controller.dto.request.ProductRequest.VariantRequest;
+import com.example.product_service.api.product.controller.dto.request.ProductRequest.*;
 import com.example.product_service.api.product.controller.dto.response.ProductResponse.AddVariantResponse;
 import com.example.product_service.api.product.controller.dto.response.ProductResponse.CreateResponse;
 import com.example.product_service.api.product.controller.dto.response.ProductResponse.OptionRegisterResponse;
@@ -215,20 +212,66 @@ class ProductControllerTest extends ControllerTestSupport {
         }
 
         private static Stream<Arguments> provideInvalidOptionSpecRequest() {
+            ProductOptionRequest VALID_BASE_OPTION = ProductOptionRequest.builder()
+                    .optionTypeId(1L)
+                    .priority(1)
+                    .build();
             return Stream.of(
+                    //필수 필드 누락
                     Arguments.of(
-                            "옵션 id 리스트가 null",
-                            OptionRegisterRequest.builder().optionTypeIds(null).build(),
-                            "옵션 id 리스트는 필수 입니다"),
+                            "옵션 리스트가 null",
+                            wrap(null),
+                            "옵션 리스트는 필수 입니다"
+                    ),
                     Arguments.of(
-                            "옵션 id 리스트가 null",
-                            OptionRegisterRequest.builder().optionTypeIds(List.of(1L, 2L, 3L, 4L)).build(),
-                            "옵션은 최대 3개까지만 설정 가능합니다"),
+                            "옵션 타입 아이디가 null",
+                            wrap(List.of(
+                                    VALID_BASE_OPTION.toBuilder().optionTypeId(null).build()
+                            )),
+                            "옵션 타입 Id는 필수 입니다"
+                    ),
                     Arguments.of(
-                            "옵션 id 리스트가 null",
-                            OptionRegisterRequest.builder().optionTypeIds(List.of(1L, 1L)).build(),
-                            "중복된 옵션 종류가 포함되어 있습니다")
+                            "옵션 타입 우선순위가 null",
+                            wrap(List.of(
+                                    VALID_BASE_OPTION.toBuilder().priority(null).build()
+                            )),
+                            "옵션 우선순위는 필수 입니다"
+                    ),
+                    //허용 범위 이탈
+                    Arguments.of(
+                            "옵션 타입 우선순위가 1미만",
+                            wrap(List.of(
+                                    VALID_BASE_OPTION.toBuilder().priority(0).build()
+                            )),
+                            "옵션 우선순위는 1이상 이여야 합니다"
+                    ),
+                    //요청 내부 중복 옵션
+                    Arguments.of(
+                            "중복된 옵션 타입 Id",
+                            wrap(List.of(
+                                    VALID_BASE_OPTION.toBuilder().optionTypeId(1L).build(),
+                                    VALID_BASE_OPTION.toBuilder().optionTypeId(1L).build()
+                            )),
+                            "중복된 옵션 종류(optionTypeId)가 포함되어 있습니다"
+                    ),
+                    //최대 옵션 개수 초과
+                    Arguments.of(
+                            "옵션 개수가 3개 이상",
+                            wrap(List.of(
+                                    VALID_BASE_OPTION.toBuilder().optionTypeId(1L).priority(1).build(),
+                                    VALID_BASE_OPTION.toBuilder().optionTypeId(2L).priority(2).build(),
+                                    VALID_BASE_OPTION.toBuilder().optionTypeId(3L).priority(3).build(),
+                                    VALID_BASE_OPTION.toBuilder().optionTypeId(4L).priority(4).build()
+                            )),
+                            "옵션은 최대 3개까지만 설정 가능합니다"
+                    )
             );
+        }
+
+        private static OptionRegisterRequest wrap(List<ProductOptionRequest> options) {
+            return OptionRegisterRequest.builder()
+                    .options(options)
+                    .build();
         }
     }
 

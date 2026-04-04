@@ -4,9 +4,11 @@ import com.epages.restdocs.apispec.ResourceSnippetParameters;
 import com.example.product_service.api.common.dto.PageDto;
 import com.example.product_service.api.product.controller.ProductController;
 import com.example.product_service.api.product.controller.dto.*;
+import com.example.product_service.api.product.controller.dto.request.ProductRequest;
 import com.example.product_service.api.product.controller.dto.request.ProductRequest.AddVariantRequest;
 import com.example.product_service.api.product.controller.dto.request.ProductRequest.CreateRequest;
 import com.example.product_service.api.product.controller.dto.request.ProductRequest.OptionRegisterRequest;
+import com.example.product_service.api.product.controller.dto.request.ProductRequest.ProductOptionRequest;
 import com.example.product_service.api.product.controller.dto.response.ProductResponse.AddVariantResponse;
 import com.example.product_service.api.product.controller.dto.response.ProductResponse.CreateResponse;
 import com.example.product_service.api.product.controller.dto.response.ProductResponse.OptionRegisterResponse;
@@ -99,7 +101,12 @@ class ProductControllerDocsTest extends RestDocsSupport {
     void registerProductOption() throws Exception {
         //given
         OptionRegisterRequest request = fixtureMonkey.giveMeBuilder(OptionRegisterRequest.class)
-                .set("optionTypeIds", List.of(1L))
+                .set("options", List.of(
+                        ProductOptionRequest.builder()
+                                .optionTypeId(1L)
+                                .priority(1)
+                                .build()
+                ))
                 .sample();
         ProductOptionResponse result = fixtureMonkey.giveMeBuilder(ProductOptionResponse.class)
                 .set("productId", 1L)
@@ -133,7 +140,7 @@ class ProductControllerDocsTest extends RestDocsSupport {
 
     @Test
     @DisplayName("상품 변형 추가")
-    void createVariants() throws Exception {
+    void addVariants() throws Exception {
         //given
         AddVariantRequest request = fixtureMonkey.giveMeBuilder(AddVariantRequest.class)
                 .size("variants", 1)

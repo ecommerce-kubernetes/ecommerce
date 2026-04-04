@@ -2,14 +2,13 @@ package com.example.product_service.api.product.controller;
 
 import com.example.product_service.api.common.dto.PageDto;
 import com.example.product_service.api.product.controller.dto.*;
+import com.example.product_service.api.product.controller.dto.request.ProductRequest;
 import com.example.product_service.api.product.controller.dto.request.ProductRequest.AddVariantRequest;
 import com.example.product_service.api.product.controller.dto.request.ProductRequest.CreateRequest;
 import com.example.product_service.api.product.controller.dto.request.ProductRequest.OptionRegisterRequest;
-import com.example.product_service.api.product.controller.dto.response.ProductResponse;
 import com.example.product_service.api.product.controller.dto.response.ProductResponse.AddVariantResponse;
 import com.example.product_service.api.product.controller.dto.response.ProductResponse.CreateResponse;
 import com.example.product_service.api.product.controller.dto.response.ProductResponse.OptionRegisterResponse;
-import com.example.product_service.api.product.controller.dto.response.ProductResponse.VariantResponse;
 import com.example.product_service.api.product.service.ProductService;
 import com.example.product_service.api.product.service.dto.command.ProductCreateCommand;
 import com.example.product_service.api.product.service.dto.command.ProductUpdateCommand;
@@ -44,15 +43,17 @@ public class ProductController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<OptionRegisterResponse> registerProductOption(@PathVariable("productId") Long productId,
                                                                         @RequestBody @Validated OptionRegisterRequest request) {
-        ProductOptionResponse result = productService.defineOptions(productId, request.optionTypeIds());
+        //TODO 옵션 Command 객체 넘기는 방식으로 변경
+        List<Long> list = request.options().stream().map(ProductRequest.ProductOptionRequest::optionTypeId).toList();
+        ProductOptionResponse result = productService.defineOptions(productId, list);
         OptionRegisterResponse response = OptionRegisterResponse.from(result);
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/{productId}/variants")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<AddVariantResponse> createVariants(@PathVariable("productId") Long productId,
-                                                             @RequestBody @Validated AddVariantRequest request) {
+    public ResponseEntity<AddVariantResponse> addVariants(@PathVariable("productId") Long productId,
+                                                          @RequestBody @Validated AddVariantRequest request) {
         ProductVariantsCreateCommand command = request.toCommand(productId);
         AddVariantResult result = productService.createVariants(command);
         AddVariantResponse response = AddVariantResponse.from(result);

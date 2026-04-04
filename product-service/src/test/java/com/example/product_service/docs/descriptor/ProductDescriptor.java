@@ -16,7 +16,8 @@ public class ProductDescriptor {
 
     public static FieldDescriptor[] getRegisterOptionRequest() {
         return new FieldDescriptor[] {
-                fieldWithPath("optionTypeIds").description("옵션 타입 Id 리스트")
+                fieldWithPath("options[].optionTypeId").description("옵션 타입 Id 리스트"),
+                fieldWithPath("options[].priority").description("옵션 타입 우선순위")
         };
     }
 
