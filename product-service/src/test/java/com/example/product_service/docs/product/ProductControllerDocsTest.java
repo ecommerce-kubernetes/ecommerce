@@ -4,12 +4,14 @@ import com.epages.restdocs.apispec.ResourceSnippetParameters;
 import com.example.product_service.api.common.dto.PageDto;
 import com.example.product_service.api.product.controller.ProductController;
 import com.example.product_service.api.product.controller.dto.*;
+import com.example.product_service.api.product.controller.dto.ProductRequest.CreateRequest;
 import com.example.product_service.api.product.service.ProductService;
 import com.example.product_service.api.product.service.dto.command.ProductCreateCommand;
 import com.example.product_service.api.product.service.dto.command.ProductUpdateCommand;
 import com.example.product_service.api.product.service.dto.command.ProductVariantsCreateCommand;
 import com.example.product_service.api.product.service.dto.result.*;
 import com.example.product_service.docs.RestDocsSupport;
+import com.example.product_service.docs.descriptor.ProductDescriptor;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -56,25 +58,11 @@ class ProductControllerDocsTest extends RestDocsSupport {
     @DisplayName("상품을 생성한다")
     void createProduct() throws Exception {
         //given
-        ProductCreateRequest request = mockCreateRequest().build();
+        CreateRequest request = mockCreateRequest().build();
         ProductCreateResponse response = mockCreateResponse().build();
         HttpHeaders adminHeader = createAdminHeader();
         given(productService.createProduct(any(ProductCreateCommand.class)))
                 .willReturn(response);
-
-        HeaderDescriptor[] requestHeaders = new HeaderDescriptor[] {
-                headerWithName("Authorization").description("JWT Access Token")
-        };
-
-        FieldDescriptor[] requestFields = new FieldDescriptor[] {
-                fieldWithPath("name").description("상품 이름"),
-                fieldWithPath("categoryId").description("카테고리 Id"),
-                fieldWithPath("description").description("상품 설명").optional()
-        };
-
-        FieldDescriptor[] responseFields = new FieldDescriptor[] {
-                fieldWithPath("productId").description("상품 Id")
-        };
         //when
         //then
         mockMvc.perform(post("/products")
@@ -83,28 +71,12 @@ class ProductControllerDocsTest extends RestDocsSupport {
                         .headers(adminHeader))
                 .andExpect(status().isCreated())
                 .andDo(print())
-                .andDo(
-                        document("03-product-01-create",
-                                preprocessRequest(prettyPrint(),
-                                        modifyHeaders()
-                                                .remove("X-User-Id")
-                                                .remove("X-User-Role")
-                                                .add("Authorization", "Bearer {ACCESS_TOKEN}")),
-                                preprocessResponse(prettyPrint()),
-                                resource(
-                                        ResourceSnippetParameters.builder()
-                                                .tag(TAG)
-                                                .summary("상품 생성")
-                                                .description("새로운 상품을 생성합니다")
-                                                .requestHeaders(requestHeaders)
-                                                .requestFields(requestFields)
-                                                .responseFields(responseFields)
-                                                .build()
-                                ),
-                                requestHeaders(requestHeaders),
-                                requestFields(requestFields),
-                                responseFields(responseFields)
-                        )
+                .andDo(createSecuredDocument("03-product-01-create",
+                                "상품 생성",
+                                "새로운 상품을 생성합니다",
+                                ProductDescriptor.getCreateRequest(),
+                                ProductDescriptor.getCreateResponse()
+                                )
                 );
     }
 

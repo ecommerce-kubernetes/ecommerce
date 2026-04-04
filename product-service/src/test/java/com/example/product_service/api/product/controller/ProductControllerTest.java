@@ -3,6 +3,7 @@ package com.example.product_service.api.product.controller;
 import com.example.product_service.api.common.dto.PageDto;
 import com.example.product_service.api.common.security.model.UserRole;
 import com.example.product_service.api.product.controller.dto.*;
+import com.example.product_service.api.product.controller.dto.ProductRequest.CreateRequest;
 import com.example.product_service.api.product.service.dto.command.ProductCreateCommand;
 import com.example.product_service.api.product.service.dto.command.ProductUpdateCommand;
 import com.example.product_service.api.product.service.dto.command.ProductVariantsCreateCommand;
@@ -39,7 +40,7 @@ class ProductControllerTest extends ControllerTestSupport {
     @WithCustomMockUser
     void createProduct() throws Exception {
         //given
-        ProductCreateRequest request = mockCreateRequest().build();
+        CreateRequest request = fixtureMonkey.giveMeOne(CreateRequest.class);
         ProductCreateResponse response = mockCreateResponse().build();
         given(productService.createProduct(any(ProductCreateCommand.class)))
                 .willReturn(response);
@@ -58,7 +59,7 @@ class ProductControllerTest extends ControllerTestSupport {
     @WithCustomMockUser(userRole = UserRole.ROLE_USER)
     void createProduct_user_role() throws Exception {
         //given
-        ProductCreateRequest request = mockCreateRequest().build();
+        CreateRequest request = fixtureMonkey.giveMeOne(CreateRequest.class);
         //when
         //then
         mockMvc.perform(post("/products")
@@ -76,7 +77,7 @@ class ProductControllerTest extends ControllerTestSupport {
     @DisplayName("로그인 하지 않은 사용자는 상품을 생성할 수 없다")
     void createProduct_unAuthorized() throws Exception {
         //given
-        ProductCreateRequest request = mockCreateRequest().build();
+        CreateRequest request = fixtureMonkey.giveMeOne(CreateRequest.class);
         //when
         //then
         mockMvc.perform(post("/products")
@@ -94,7 +95,7 @@ class ProductControllerTest extends ControllerTestSupport {
     @MethodSource("provideInvalidProductCreateRequest")
     @WithCustomMockUser
     @DisplayName("상품 저장 요청 검증")
-    void createProduct_Validation(String description, ProductCreateRequest request, String message) throws Exception {
+    void createProduct_Validation(String description, CreateRequest request, String message) throws Exception {
         //given
         //when
         //then

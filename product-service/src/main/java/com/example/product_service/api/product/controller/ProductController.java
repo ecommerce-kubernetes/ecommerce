@@ -2,6 +2,7 @@ package com.example.product_service.api.product.controller;
 
 import com.example.product_service.api.common.dto.PageDto;
 import com.example.product_service.api.product.controller.dto.*;
+import com.example.product_service.api.product.controller.dto.ProductRequest.CreateRequest;
 import com.example.product_service.api.product.service.ProductService;
 import com.example.product_service.api.product.service.dto.command.ProductCreateCommand;
 import com.example.product_service.api.product.service.dto.command.ProductUpdateCommand;
@@ -25,13 +26,8 @@ public class ProductController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ProductCreateResponse> createProduct(@RequestBody @Validated ProductCreateRequest request) {
-        ProductCreateCommand command = ProductCreateCommand.builder()
-                .name(request.getName())
-                .categoryId(request.getCategoryId())
-                .description(request.getDescription())
-                .build();
-
+    public ResponseEntity<ProductCreateResponse> createProduct(@RequestBody @Validated CreateRequest request) {
+        ProductCreateCommand command = request.toCommand();
         ProductCreateResponse response = productService.createProduct(command);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }

@@ -1,6 +1,7 @@
 package com.example.product_service.support.fixture;
 
 import com.example.product_service.api.product.controller.dto.*;
+import com.example.product_service.api.product.controller.dto.ProductRequest.CreateRequest;
 import com.example.product_service.api.product.service.dto.result.*;
 
 import java.time.LocalDateTime;
@@ -27,8 +28,8 @@ public class ProductControllerFixture {
                 .categoryId(1L);
     }
 
-    public static ProductCreateRequest.ProductCreateRequestBuilder mockCreateRequest(){
-        return ProductCreateRequest.builder()
+    public static CreateRequest.CreateRequestBuilder mockCreateRequest(){
+        return CreateRequest.builder()
                 .name("상품")
                 .categoryId(1L)
                 .description("상품 설명");
