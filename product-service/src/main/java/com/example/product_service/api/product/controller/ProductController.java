@@ -5,10 +5,7 @@ import com.example.product_service.api.product.controller.dto.ProductSearchCondi
 import com.example.product_service.api.product.controller.dto.ProductUpdateRequest;
 import com.example.product_service.api.product.controller.dto.request.ProductRequest;
 import com.example.product_service.api.product.controller.dto.request.ProductRequest.*;
-import com.example.product_service.api.product.controller.dto.response.ProductResponse.AddImageResponse;
-import com.example.product_service.api.product.controller.dto.response.ProductResponse.AddVariantResponse;
-import com.example.product_service.api.product.controller.dto.response.ProductResponse.CreateResponse;
-import com.example.product_service.api.product.controller.dto.response.ProductResponse.OptionRegisterResponse;
+import com.example.product_service.api.product.controller.dto.response.ProductResponse.*;
 import com.example.product_service.api.product.service.ProductService;
 import com.example.product_service.api.product.service.dto.command.ProductCreateCommand;
 import com.example.product_service.api.product.service.dto.command.ProductUpdateCommand;
@@ -73,11 +70,12 @@ public class ProductController {
 
     @PutMapping("/{productId}/description-images")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ProductDescriptionImageCreateResponse> updateDescriptionImage(@PathVariable("productId") Long productId,
-                                                                                        @RequestBody @Validated AddDescriptionImageRequest request) {
+    public ResponseEntity<AddDescriptionImageResponse> updateDescriptionImage(@PathVariable("productId") Long productId,
+                                                                           @RequestBody @Validated AddDescriptionImageRequest request) {
         //TODO command 객체로 변경
         List<String> list = request.images().stream().map((image) -> image.imagePath()).toList();
-        ProductDescriptionImageCreateResponse response = productService.updateDescriptionImages(productId, list);
+        ProductDescriptionImageResult result = productService.updateDescriptionImages(productId, list);
+        AddDescriptionImageResponse response = AddDescriptionImageResponse.from(result);
         return ResponseEntity.ok(response);
     }
 

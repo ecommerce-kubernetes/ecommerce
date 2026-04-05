@@ -7,12 +7,13 @@ import lombok.Getter;
 @Getter
 @Builder
 public class ProductDescriptionImageResponse {
-    private String imageUrl;
+    private Long imageId;
+    private String imagePath;
     private Integer sortOrder;
 
     public static ProductDescriptionImageResponse from(ProductDescriptionImage productDescriptionImage) {
         return ProductDescriptionImageResponse.builder()
-                .imageUrl(productDescriptionImage.getImageUrl())
+                .imagePath(productDescriptionImage.getImageUrl())
                 .sortOrder(productDescriptionImage.getSortOrder())
                 .build();
     }

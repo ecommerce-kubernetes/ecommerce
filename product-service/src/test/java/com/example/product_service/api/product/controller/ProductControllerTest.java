@@ -5,10 +5,8 @@ import com.example.product_service.api.common.security.model.UserRole;
 import com.example.product_service.api.product.controller.dto.ProductSearchCondition;
 import com.example.product_service.api.product.controller.dto.ProductUpdateRequest;
 import com.example.product_service.api.product.controller.dto.request.ProductRequest.*;
-import com.example.product_service.api.product.controller.dto.response.ProductResponse.AddImageResponse;
-import com.example.product_service.api.product.controller.dto.response.ProductResponse.AddVariantResponse;
-import com.example.product_service.api.product.controller.dto.response.ProductResponse.CreateResponse;
-import com.example.product_service.api.product.controller.dto.response.ProductResponse.OptionRegisterResponse;
+import com.example.product_service.api.product.controller.dto.response.ProductResponse;
+import com.example.product_service.api.product.controller.dto.response.ProductResponse.*;
 import com.example.product_service.api.product.service.dto.command.ProductCreateCommand;
 import com.example.product_service.api.product.service.dto.command.ProductUpdateCommand;
 import com.example.product_service.api.product.service.dto.command.ProductVariantsCreateCommand;
@@ -552,9 +550,11 @@ class ProductControllerTest extends ControllerTestSupport {
         void updateDescriptionImage() throws Exception {
             //given
             AddDescriptionImageRequest request = fixtureMonkey.giveMeOne(AddDescriptionImageRequest.class);
-            ProductDescriptionImageCreateResponse response = mockDescriptionImageResponse().build();
+            ProductDescriptionImageResult result = fixtureMonkey.giveMeOne(ProductDescriptionImageResult.class);
+            assert result != null;
             given(productService.updateDescriptionImages(anyLong(), anyList()))
-                    .willReturn(response);
+                    .willReturn(result);
+            AddDescriptionImageResponse response = AddDescriptionImageResponse.from(result);
             //when
             //then
             mockMvc.perform(put("/products/{productId}/description-images", 1L)

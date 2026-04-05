@@ -121,8 +121,41 @@ public class ProductResponse {
         public static ImageResponse from(ProductImageResult image) {
             return ImageResponse.builder()
                     .imageId(image.getImageId())
-                    .imagePath(image.getImageUrl())
+                    .imagePath(image.getImagePath())
                     .isThumbnail(image.isThumbnail())
+                    .sortOrder(image.getSortOrder())
+                    .build();
+        }
+    }
+
+    @Builder
+    public record AddDescriptionImageResponse(
+            Long productId,
+            List<DescriptionImageResponse> descriptionImages
+    ) {
+        public static AddDescriptionImageResponse from(ProductDescriptionImageResult result) {
+            List<DescriptionImageResponse> images = mappingDescriptionImages(result.getDescriptionImages());
+            return AddDescriptionImageResponse.builder()
+                    .productId(result.getProductId())
+                    .descriptionImages(images)
+                    .build();
+        }
+
+        private static List<DescriptionImageResponse> mappingDescriptionImages(List<ProductDescriptionImageResponse> images) {
+            return images.stream().map(DescriptionImageResponse::from).toList();
+        }
+    }
+
+    @Builder
+    public record DescriptionImageResponse(
+            Long imageId,
+            String imagePath,
+            Integer sortOrder
+    ) {
+        public static DescriptionImageResponse from(ProductDescriptionImageResponse image) {
+            return DescriptionImageResponse.builder()
+                    .imageId(image.getImageId())
+                    .imagePath(image.getImagePath())
                     .sortOrder(image.getSortOrder())
                     .build();
         }

@@ -8,20 +8,20 @@ import lombok.Getter;
 public class ProductImageResult {
     //TODO 이미지 Id 매핑
     private Long imageId;
-    private String imageUrl;
+    private String imagePath;
     private Integer sortOrder;
     private boolean isThumbnail;
 
     @Builder
-    private ProductImageResult(String imageUrl, Integer sortOrder, boolean isThumbnail) {
-        this.imageUrl = imageUrl;
+    private ProductImageResult(String imagePath, Integer sortOrder, boolean isThumbnail) {
+        this.imagePath = imagePath;
         this.sortOrder = sortOrder;
         this.isThumbnail = isThumbnail;
     }
 
     public static ProductImageResult from(ProductImage productImage) {
         return ProductImageResult.builder()
-                .imageUrl(productImage.getImageUrl())
+                .imagePath(productImage.getImageUrl())
                 .sortOrder(productImage.getSortOrder())
                 .isThumbnail(productImage.isThumbnail())
                 .build();

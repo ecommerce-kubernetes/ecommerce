@@ -7,6 +7,7 @@ import com.navercorp.fixturemonkey.jakarta.validation.plugin.JakartaValidationPl
 public class FixtureMonkeyFactory {
     public static final FixtureMonkey get = FixtureMonkey.builder()
             .objectIntrospector(BuilderArbitraryIntrospector.INSTANCE)
+            .defaultNotNull(true)
             .plugin(new JakartaValidationPlugin())
             .build();
 

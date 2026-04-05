@@ -1,7 +1,5 @@
 package com.example.product_service.support.fixture;
 
-import com.example.product_service.api.product.controller.dto.ProductDescriptionImageRequest;
-import com.example.product_service.api.product.controller.dto.ProductImageCreateRequest;
 import com.example.product_service.api.product.controller.dto.ProductUpdateRequest;
 import com.example.product_service.api.product.service.dto.result.*;
 
@@ -27,46 +25,6 @@ public class ProductControllerFixture {
                 .name("새상품")
                 .description("상품 설명")
                 .categoryId(1L);
-    }
-
-    public static ProductImageCreateRequest.ProductImageCreateRequestBuilder mockImageRequest(){
-        return ProductImageCreateRequest.builder()
-                .images(List.of("http://image1.jpg", "http://image2.jpg"));
-    }
-
-    public static ProductDescriptionImageRequest.ProductDescriptionImageRequestBuilder mockDescriptionImageRequest() {
-        return ProductDescriptionImageRequest.builder()
-                .images(List.of("http://image1.jpg", "http://image2.jpg"));
-    }
-
-
-    public static ProductImageCreateResult.ProductImageCreateResultBuilder mockImageResponse() {
-        return ProductImageCreateResult
-                .builder()
-                .productId(PRODUCT_ID)
-                .images(
-                        List.of(
-                                ProductImageResult.builder()
-                                        .imageUrl("http://image1.jpg")
-                                        .sortOrder(1)
-                                        .isThumbnail(true)
-                                        .build()
-                        ));
-    }
-
-    public static ProductDescriptionImageCreateResponse.ProductDescriptionImageCreateResponseBuilder mockDescriptionImageResponse() {
-        return ProductDescriptionImageCreateResponse
-                .builder()
-                .productId(PRODUCT_ID)
-                .descriptionImages(
-                        List.of(
-                                ProductDescriptionImageResponse.builder()
-                                        .imageUrl("http://image1.jpg")
-                                        .sortOrder(1)
-                                        .build()
-                        )
-                );
-
     }
 
     public static ProductStatusResponse.ProductStatusResponseBuilder mockProductStatusResponse() {
@@ -118,14 +76,14 @@ public class ProductControllerFixture {
                 .images(
                         List.of(
                                 ProductImageResult.builder()
-                                        .imageUrl("http://image.jpg")
+                                        .imagePath("http://image.jpg")
                                         .sortOrder(1)
                                         .isThumbnail(true)
                                         .build()))
                 .descriptionImages(
                         List.of(
                                 ProductDescriptionImageResponse.builder()
-                                        .imageUrl("http://description.jpg")
+                                        .imagePath("http://description.jpg")
                                         .sortOrder(1)
                                         .build()
                         )

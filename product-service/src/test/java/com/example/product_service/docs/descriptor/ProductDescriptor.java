@@ -86,7 +86,8 @@ public class ProductDescriptor {
     public static FieldDescriptor[] getAddDescriptionImageResponse() {
         return new FieldDescriptor[] {
                 fieldWithPath("productId").description("상품 Id"),
-                fieldWithPath("descriptionImages[].imageUrl").description("상품 이미지 URL"),
+                fieldWithPath("descriptionImages[].imageId").description("상품 설명 이미지 Id"),
+                fieldWithPath("descriptionImages[].imagePath").description("상품 이미지 URL"),
                 fieldWithPath("descriptionImages[].sortOrder").description("상품 이미지 순서")
         };
     }

@@ -6,10 +6,8 @@ import com.example.product_service.api.product.controller.ProductController;
 import com.example.product_service.api.product.controller.dto.ProductSearchCondition;
 import com.example.product_service.api.product.controller.dto.ProductUpdateRequest;
 import com.example.product_service.api.product.controller.dto.request.ProductRequest.*;
-import com.example.product_service.api.product.controller.dto.response.ProductResponse.AddImageResponse;
-import com.example.product_service.api.product.controller.dto.response.ProductResponse.AddVariantResponse;
-import com.example.product_service.api.product.controller.dto.response.ProductResponse.CreateResponse;
-import com.example.product_service.api.product.controller.dto.response.ProductResponse.OptionRegisterResponse;
+import com.example.product_service.api.product.controller.dto.response.ProductResponse;
+import com.example.product_service.api.product.controller.dto.response.ProductResponse.*;
 import com.example.product_service.api.product.service.ProductService;
 import com.example.product_service.api.product.service.dto.command.ProductCreateCommand;
 import com.example.product_service.api.product.service.dto.command.ProductUpdateCommand;
@@ -231,16 +229,25 @@ class ProductControllerDocsTest extends RestDocsSupport {
                 .set("images[0].imagePath", "/test/image.jpg")
                 .set("images[0].sortOrder", 1)
                 .sample();
-        ProductDescriptionImageCreateResponse response = mockDescriptionImageResponse().build();
+        ProductDescriptionImageResult result = fixtureMonkey.giveMeBuilder(ProductDescriptionImageResult.class)
+                .size("images", 1)
+                .set("productId", 1L)
+                .set("descriptionImages[0].imageId", 1L)
+                .set("descriptionImages[0].imagePath", "/test/image.jpg")
+                .set("descriptionImages[0].sortOrder", 1)
+                .sample();
+        assert result != null;
         HttpHeaders adminHeader = createAdminHeader();
         given(productService.updateDescriptionImages(anyLong(), anyList()))
-                .willReturn(response);
+                .willReturn(result);
+        AddDescriptionImageResponse response = AddDescriptionImageResponse.from(result);
         mockMvc.perform(put("/products/{productId}/description-images", 1L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
                         .headers(adminHeader))
                 .andDo(print())
                 .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(response)))
                 .andDo(createSecuredDocument("03-product-05-add-description-images",
                                 "상품 설명 이미지 추가",
                                 "상품 설명 이미지를 추가",
@@ -405,11 +412,12 @@ class ProductControllerDocsTest extends RestDocsSupport {
                 fieldWithPath("optionGroups[].values[].optionValueId").description("상품 옵션 값 ID"),
                 fieldWithPath("optionGroups[].values[].name").description("상품 옵션 값 이름"),
                 fieldWithPath("images[].imageId").description("상품 이미지 Id"),
-                fieldWithPath("images[].imageUrl").description("상품 이미지 URL"),
+                fieldWithPath("images[].imagePath").description("상품 이미지 URL"),
                 fieldWithPath("images[].sortOrder").description("상품 이미지 순서"),
                 fieldWithPath("images[].thumbnail").description("썸네일 여부"),
-                fieldWithPath("descriptionImages[].imageUrl").description("상품 이미지 URL"),
-                fieldWithPath("descriptionImages[].sortOrder").description("상품 이미지 순서"),
+                fieldWithPath("descriptionImages[].imageId").description("상품 설명 이미지 ID"),
+                fieldWithPath("descriptionImages[].imagePath").description("상품 설명 이미지 URL"),
+                fieldWithPath("descriptionImages[].sortOrder").description("상품 설명 이미지 순서"),
                 fieldWithPath("variants[].variantId").description("상품 변형 ID"),
                 fieldWithPath("variants[].sku").description("상품 변형 SKU"),
                 fieldWithPath("variants[].optionValueIds").description("상품 변형 옵션 값 Id 리스트"),

@@ -340,7 +340,7 @@ public class ProductServiceTest extends ExcludeInfraTest {
             //then
             assertThat(result.getProductId()).isEqualTo(product.getId());
             assertThat(result.getImages())
-                    .extracting(ProductImageResult::getImageUrl, ProductImageResult::getSortOrder, ProductImageResult::isThumbnail)
+                    .extracting(ProductImageResult::getImagePath, ProductImageResult::getSortOrder, ProductImageResult::isThumbnail)
                     .containsExactlyInAnyOrder(
                             tuple("http://prod1.jpg", 1, true),
                             tuple("http://prod2.jpg", 2, false)
@@ -372,11 +372,11 @@ public class ProductServiceTest extends ExcludeInfraTest {
             Product product = Product.create("상품", "상품 설명", category);
             productRepository.save(product);
             //when
-            ProductDescriptionImageCreateResponse result = productService.updateDescriptionImages(product.getId(), List.of("http://prod1.jpg", "http://prod2.jpg"));
+            ProductDescriptionImageResult result = productService.updateDescriptionImages(product.getId(), List.of("http://prod1.jpg", "http://prod2.jpg"));
             //then
             assertThat(result.getProductId()).isEqualTo(product.getId());
             assertThat(result.getDescriptionImages())
-                    .extracting(ProductDescriptionImageResponse::getImageUrl, ProductDescriptionImageResponse::getSortOrder)
+                    .extracting(ProductDescriptionImageResponse::getImagePath, ProductDescriptionImageResponse::getSortOrder)
                     .containsExactlyInAnyOrder(
                             tuple("http://prod1.jpg", 1),
                             tuple("http://prod2.jpg", 2)
@@ -461,14 +461,14 @@ public class ProductServiceTest extends ExcludeInfraTest {
                             tuple(color.getId(), color.getName(), 2)
                     );
             assertThat(result.getImages())
-                    .extracting(ProductImageResult::getImageUrl, ProductImageResult::getSortOrder, ProductImageResult::isThumbnail)
+                    .extracting(ProductImageResult::getImagePath, ProductImageResult::getSortOrder, ProductImageResult::isThumbnail)
                     .containsExactlyInAnyOrder(
                             tuple("http://thumbnail.jpg", 1, true),
                             tuple("http://image.jpg", 2, false)
                     );
 
             assertThat(result.getDescriptionImages())
-                    .extracting(ProductDescriptionImageResponse::getImageUrl, ProductDescriptionImageResponse::getSortOrder)
+                    .extracting(ProductDescriptionImageResponse::getImagePath, ProductDescriptionImageResponse::getSortOrder)
                             .containsExactlyInAnyOrder(
                                     tuple("http://description.jpg", 1)
                             );

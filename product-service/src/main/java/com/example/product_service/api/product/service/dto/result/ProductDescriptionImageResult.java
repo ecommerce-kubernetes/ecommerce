@@ -8,13 +8,13 @@ import java.util.List;
 
 @Getter
 @Builder
-public class ProductDescriptionImageCreateResponse {
+public class ProductDescriptionImageResult {
     private Long productId;
     private List<ProductDescriptionImageResponse> descriptionImages;
 
-    public static ProductDescriptionImageCreateResponse of(Long productId, List<ProductDescriptionImage> images) {
+    public static ProductDescriptionImageResult of(Long productId, List<ProductDescriptionImage> images) {
         List<ProductDescriptionImageResponse> descriptionImageResponses = images.stream().map(ProductDescriptionImageResponse::from).toList();
-        return ProductDescriptionImageCreateResponse.builder()
+        return ProductDescriptionImageResult.builder()
                 .productId(productId)
                 .descriptionImages(descriptionImageResponses)
                 .build();
