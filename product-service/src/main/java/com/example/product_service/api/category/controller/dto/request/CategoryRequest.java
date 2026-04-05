@@ -1,6 +1,6 @@
 package com.example.product_service.api.category.controller.dto.request;
 
-import com.example.product_service.api.category.service.dto.command.CategoryCommand.Create;
+import com.example.product_service.api.category.service.dto.command.CategoryCommand;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
@@ -10,7 +10,7 @@ import lombok.Builder;
 public class CategoryRequest {
 
     @Builder
-    public record CreateRequest(
+    public record Create(
             @NotBlank(message = "name은 필수값입니다")
             String name,
             Long parentId,
@@ -20,8 +20,8 @@ public class CategoryRequest {
             )
             String imagePath
     ) {
-        public Create toCommand() {
-            return Create.builder()
+        public CategoryCommand.Create toCommand() {
+            return CategoryCommand.Create.builder()
                     .name(name)
                     .parentId(parentId)
                     .imagePath(imagePath)
@@ -30,7 +30,7 @@ public class CategoryRequest {
     }
 
     @Builder
-    public record UpdateRequest(
+    public record Update(
             String name,
             @Pattern(
                     regexp = "^/[\\w\\-/]+\\.(jpg|jpeg|png|gif|webp|JPG|JPEG|PNG|GIF|WEBP)$",
@@ -42,6 +42,14 @@ public class CategoryRequest {
         @AssertTrue(message = "수정할 값이 하나는 존재해야합니다")
         public boolean isAtLeastOneFieldPresent() {
             return name != null || imagePath != null;
+        }
+
+        public CategoryCommand.Update toCommand(Long categoryId) {
+            return CategoryCommand.Update.builder()
+                    .id(categoryId)
+                    .name(name)
+                    .imagePath(imagePath)
+                    .build();
         }
     }
 

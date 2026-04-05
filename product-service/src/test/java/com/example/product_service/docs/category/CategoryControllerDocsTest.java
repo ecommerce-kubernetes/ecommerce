@@ -1,14 +1,10 @@
 package com.example.product_service.docs.category;
 
 import com.example.product_service.api.category.controller.CategoryController;
-import com.example.product_service.api.category.controller.dto.request.CategoryRequest.CreateRequest;
-import com.example.product_service.api.category.controller.dto.request.CategoryRequest.MoveRequest;
-import com.example.product_service.api.category.controller.dto.request.CategoryRequest.UpdateRequest;
-import com.example.product_service.api.category.controller.dto.response.CategoryResponse.Detail;
-import com.example.product_service.api.category.controller.dto.response.CategoryResponse.Navigation;
-import com.example.product_service.api.category.controller.dto.response.CategoryResponse.Tree;
+import com.example.product_service.api.category.controller.dto.request.CategoryRequest;
+import com.example.product_service.api.category.controller.dto.response.CategoryResponse;
 import com.example.product_service.api.category.service.CategoryService;
-import com.example.product_service.api.category.service.dto.command.CategoryCommand.Create;
+import com.example.product_service.api.category.service.dto.command.CategoryCommand;
 import com.example.product_service.api.category.service.dto.result.CategoryNavigationResult;
 import com.example.product_service.api.category.service.dto.result.CategoryResult;
 import com.example.product_service.api.category.service.dto.result.CategoryTreeResult;
@@ -48,12 +44,12 @@ class CategoryControllerDocsTest extends RestDocsSupport {
     @DisplayName("카테고리를 저장한다")
     void saveCategory() throws Exception {
         //given
-        CreateRequest request = fixtureMonkey.giveMeBuilder(CreateRequest.class)
-                .set("name", "카테고리")
-                .set("parentId", null)
-                .set("imagePath", "/test/image.jpg")
-                .sample();
-        CategoryResult result = fixtureMonkey.giveMeBuilder(CategoryResult.class)
+        CategoryRequest.Create request = CategoryRequest.Create.builder()
+                .name("카테고리")
+                .parentId(null)
+                .imagePath("/test/image.jpg")
+                .build();
+        CategoryResult.Detail result = fixtureMonkey.giveMeBuilder(CategoryResult.Detail.class)
                 .set("id", 1L)
                 .set("name", "카테고리")
                 .set("parentId", null)
@@ -61,10 +57,10 @@ class CategoryControllerDocsTest extends RestDocsSupport {
                 .set("imagePath", "/test/image.jpg")
                 .sample();
         HttpHeaders adminHeader = createAdminHeader();
-        given(categoryService.saveCategory(any(Create.class)))
+        given(categoryService.saveCategory(any(CategoryCommand.Create.class)))
                 .willReturn(result);
         assert result != null;
-        Detail response = Detail.from(result);
+        CategoryResponse.Detail response = CategoryResponse.Detail.from(result);
         //when
         //then
         mockMvc.perform(post("/categories")
@@ -89,7 +85,7 @@ class CategoryControllerDocsTest extends RestDocsSupport {
         //given
         List<CategoryTreeResult> results = mappingTreeResponse();
         given(categoryService.getTree()).willReturn(results);
-        List<Tree> response = results.stream().map(Tree::from).toList();
+        List<CategoryResponse.Tree> response = results.stream().map(CategoryResponse.Tree::from).toList();
         //when
         //then
         mockMvc.perform(get("/categories/tree"))
@@ -110,7 +106,7 @@ class CategoryControllerDocsTest extends RestDocsSupport {
         CategoryNavigationResult result = createNavigation();
         given(categoryService.getNavigation(anyLong()))
                 .willReturn(result);
-        Navigation response = Navigation.from(result);
+        CategoryResponse.Navigation response = CategoryResponse.Navigation.from(result);
         //when
         //then
         mockMvc.perform(get("/categories/navigation/{categoryId}", 2L))
@@ -139,7 +135,7 @@ class CategoryControllerDocsTest extends RestDocsSupport {
         given(categoryService.getCategory(anyLong()))
                 .willReturn(result);
         assert result != null;
-        Detail response = Detail.from(result);
+        CategoryResponse.Detail response = CategoryResponse.Detail.from(result);
         //when
         //then
         mockMvc.perform(get("/categories/{categoryId}", 1L))
@@ -158,11 +154,11 @@ class CategoryControllerDocsTest extends RestDocsSupport {
     @DisplayName("카테고리를 수정한다")
     void updateCategory() throws Exception {
         //given
-        UpdateRequest request = fixtureMonkey.giveMeBuilder(UpdateRequest.class)
+        CategoryRequest.Update request = fixtureMonkey.giveMeBuilder(CategoryRequest.Update.class)
                 .set("name", "새 카테고리")
                 .set("imagePath", "/test/image.jpg")
                 .sample();
-        CategoryResult result = fixtureMonkey.giveMeBuilder(CategoryResult.class)
+        CategoryResult.Detail result = fixtureMonkey.giveMeBuilder(CategoryResult.Detail.class)
                 .set("id", 1L)
                 .set("name", "새 카테고리")
                 .set("parentId", null)
@@ -170,9 +166,9 @@ class CategoryControllerDocsTest extends RestDocsSupport {
                 .set("imagePath", "/test/image.jpg")
                 .sample();
         HttpHeaders adminHeader = createAdminHeader();
-        given(categoryService.updateCategory(anyLong(), anyString(), anyString())).willReturn(result);
+        given(categoryService.updateCategory(any(CategoryCommand.Update.class))).willReturn(result);
         assert result != null;
-        Detail response = Detail.from(result);
+        CategoryResponse.Detail response = CategoryResponse.Detail.from(result);
         //when
         //then
         mockMvc.perform(patch("/categories/{categoryId}", 1L)
@@ -195,7 +191,7 @@ class CategoryControllerDocsTest extends RestDocsSupport {
     @DisplayName("카테고리의 부모를 변경한다")
     void moveParent() throws Exception {
         //given
-        MoveRequest request = fixtureMonkey.giveMeBuilder(MoveRequest.class)
+        CategoryRequest.MoveRequest request = fixtureMonkey.giveMeBuilder(CategoryRequest.MoveRequest.class)
                 .set("parentId", 1L)
                 .sample();
 
@@ -210,7 +206,7 @@ class CategoryControllerDocsTest extends RestDocsSupport {
         HttpHeaders adminHeader = createAdminHeader();
         given(categoryService.moveParent(anyLong(), anyLong())).willReturn(result);
         assert result != null;
-        Detail response = Detail.from(result);
+        CategoryResponse.Detail response = CategoryResponse.Detail.from(result);
         //when
         //then
         mockMvc.perform(post("/categories/{categoryId}/move", 2L)

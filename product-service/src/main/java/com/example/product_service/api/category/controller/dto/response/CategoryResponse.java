@@ -26,6 +26,16 @@ public class CategoryResponse {
                     .imagePath(result.getImagePath())
                     .build();
         }
+
+        public static Detail from(CategoryResult.Detail result) {
+            return Detail.builder()
+                    .id(result.id())
+                    .name(result.name())
+                    .parentId(result.parentId())
+                    .depth(result.depth())
+                    .imagePath(result.imagePath())
+                    .build();
+        }
     }
 
     @Builder

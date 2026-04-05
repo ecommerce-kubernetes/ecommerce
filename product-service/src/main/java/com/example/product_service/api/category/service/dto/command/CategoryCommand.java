@@ -10,4 +10,11 @@ public class CategoryCommand {
             Long parentId,
             String imagePath
     ) {}
+
+    @Builder
+    public record Update(
+            Long id,
+            String name,
+            String imagePath
+    ) { }
 }

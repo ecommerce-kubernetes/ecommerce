@@ -30,4 +30,23 @@ public class CategoryResult {
                 .imagePath(category.getImagePath())
                 .build();
     }
+
+    @Builder
+    public record Detail(
+            Long id,
+            String name,
+            Long parentId,
+            Integer depth,
+            String imagePath
+    ) {
+        public static Detail from(Category category) {
+            return Detail.builder()
+                    .id(category.getId())
+                    .name(category.getName())
+                    .parentId(category.getParent() == null ? null : category.getParent().getId())
+                    .depth(category.getDepth())
+                    .imagePath(category.getImagePath())
+                    .build();
+        }
+    }
 }

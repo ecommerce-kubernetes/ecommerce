@@ -2,7 +2,7 @@ package com.example.product_service.api.category.service;
 
 import com.example.product_service.api.category.domain.model.Category;
 import com.example.product_service.api.category.domain.repository.CategoryRepository;
-import com.example.product_service.api.category.service.dto.command.CategoryCommand.Create;
+import com.example.product_service.api.category.service.dto.command.CategoryCommand;
 import com.example.product_service.api.category.service.dto.result.CategoryNavigationResult;
 import com.example.product_service.api.category.service.dto.result.CategoryResult;
 import com.example.product_service.api.category.service.dto.result.CategoryTreeResult;
@@ -32,13 +32,13 @@ public class CategoryService {
     private final ProductRepository productRepository;
 
     @Transactional
-    public CategoryResult saveCategory(Create command) {
+    public CategoryResult.Detail saveCategory(CategoryCommand.Create command) {
         Category parent = getValidatedParent(command.parentId());
         validateDuplicateName(parent, command.name().trim());
         Category category = Category.create(command.name(), parent, command.imagePath());
         categoryRepository.save(category);
         category.generatePath();
-        return CategoryResult.from(category);
+        return CategoryResult.Detail.from(category);
     }
 
     public CategoryResult getCategory(Long categoryId) {
@@ -62,17 +62,17 @@ public class CategoryService {
     }
 
     @Transactional
-    public CategoryResult updateCategory(Long categoryId, String name, String imageUrl) {
-        Category category = findCategoryOrThrow(categoryId);
-        if (StringUtils.hasText(name)) {
-            validateDuplicateName(category.getParent(), name);
-            category.rename(name);
+    public CategoryResult.Detail updateCategory(CategoryCommand.Update command) {
+        Category category = findCategoryOrThrow(command.id());
+        if (StringUtils.hasText(command.name())) {
+            validateDuplicateName(category.getParent(), command.name());
+            category.rename(command.name());
         }
 
-        if (imageUrl != null) {
-            category.changeImage(imageUrl);
+        if (command.imagePath() != null) {
+            category.changeImage(command.imagePath());
         }
-        return CategoryResult.from(category);
+        return CategoryResult.Detail.from(category);
     }
 
     @Transactional
