@@ -3,6 +3,8 @@ package com.example.product_service.api.category.controller;
 import com.example.product_service.api.category.controller.dto.request.CategoryRequest.CreateRequest;
 import com.example.product_service.api.category.controller.dto.request.CategoryRequest.MoveRequest;
 import com.example.product_service.api.category.controller.dto.request.CategoryRequest.UpdateRequest;
+import com.example.product_service.api.category.service.dto.command.CategoryCommand;
+import com.example.product_service.api.category.service.dto.command.CategoryCommand.Create;
 import com.example.product_service.api.category.service.dto.result.CategoryNavigationResult;
 import com.example.product_service.api.category.service.dto.result.CategoryResult;
 import com.example.product_service.api.category.service.dto.result.CategoryTreeResult;
@@ -44,7 +46,7 @@ class CategoryControllerTest extends ControllerTestSupport {
         CategoryResult result = fixtureMonkey.giveMeOne(CategoryResult.class);
         assert result != null;
 
-        given(categoryService.saveCategory(anyString(), nullable(Long.class), anyString()))
+        given(categoryService.saveCategory(any(Create.class)))
                 .willReturn(result);
         Detail response = Detail.from(result);
         //when

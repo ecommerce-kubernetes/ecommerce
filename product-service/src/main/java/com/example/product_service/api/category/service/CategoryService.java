@@ -2,6 +2,8 @@ package com.example.product_service.api.category.service;
 
 import com.example.product_service.api.category.domain.model.Category;
 import com.example.product_service.api.category.domain.repository.CategoryRepository;
+import com.example.product_service.api.category.service.dto.command.CategoryCommand;
+import com.example.product_service.api.category.service.dto.command.CategoryCommand.Create;
 import com.example.product_service.api.category.service.dto.result.CategoryNavigationResult;
 import com.example.product_service.api.category.service.dto.result.CategoryResult;
 import com.example.product_service.api.category.service.dto.result.CategoryTreeResult;
@@ -31,10 +33,10 @@ public class CategoryService {
     private final ProductRepository productRepository;
 
     @Transactional
-    public CategoryResult saveCategory(String name, Long parentId, String imageUrl) {
-        Category parent = getValidatedParent(parentId);
-        validateDuplicateName(parent, name.trim());
-        Category category = Category.create(name, parent, imageUrl);
+    public CategoryResult saveCategory(Create command) {
+        Category parent = getValidatedParent(command.parentId());
+        validateDuplicateName(parent, command.name().trim());
+        Category category = Category.create(command.name(), parent, command.imagePath());
         categoryRepository.save(category);
         category.generatePath();
         return CategoryResult.from(category);

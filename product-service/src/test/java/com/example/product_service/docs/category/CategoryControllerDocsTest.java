@@ -8,6 +8,8 @@ import com.example.product_service.api.category.controller.dto.response.Category
 import com.example.product_service.api.category.controller.dto.response.CategoryResponse.Navigation;
 import com.example.product_service.api.category.controller.dto.response.CategoryResponse.Tree;
 import com.example.product_service.api.category.service.CategoryService;
+import com.example.product_service.api.category.service.dto.command.CategoryCommand;
+import com.example.product_service.api.category.service.dto.command.CategoryCommand.Create;
 import com.example.product_service.api.category.service.dto.result.CategoryNavigationResult;
 import com.example.product_service.api.category.service.dto.result.CategoryResult;
 import com.example.product_service.api.category.service.dto.result.CategoryTreeResult;
@@ -60,7 +62,7 @@ class CategoryControllerDocsTest extends RestDocsSupport {
                 .set("imagePath", "/test/image.jpg")
                 .sample();
         HttpHeaders adminHeader = createAdminHeader();
-        given(categoryService.saveCategory(anyString(), nullable(Long.class), anyString()))
+        given(categoryService.saveCategory(any(Create.class)))
                 .willReturn(result);
         assert result != null;
         Detail response = Detail.from(result);

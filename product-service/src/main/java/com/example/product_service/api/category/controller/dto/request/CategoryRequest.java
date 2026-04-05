@@ -1,5 +1,7 @@
 package com.example.product_service.api.category.controller.dto.request;
 
+import com.example.product_service.api.category.service.dto.command.CategoryCommand;
+import com.example.product_service.api.category.service.dto.command.CategoryCommand.Create;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
@@ -18,7 +20,15 @@ public class CategoryRequest {
                     message = "이미지 경로는 '/'로 시작하는 유효한 이미지 파일이어야 합니다"
             )
             String imagePath
-    ) { }
+    ) {
+        public Create toCommand() {
+            return Create.builder()
+                    .name(name)
+                    .parentId(parentId)
+                    .imagePath(imagePath)
+                    .build();
+        }
+    }
 
     @Builder
     public record UpdateRequest(

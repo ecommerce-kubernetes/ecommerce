@@ -2,6 +2,7 @@ package com.example.product_service.api.category.service;
 
 import com.example.product_service.api.category.domain.model.Category;
 import com.example.product_service.api.category.domain.repository.CategoryRepository;
+import com.example.product_service.api.category.service.dto.command.CategoryCommand.Create;
 import com.example.product_service.api.category.service.dto.result.CategoryNavigationResult;
 import com.example.product_service.api.category.service.dto.result.CategoryResult;
 import com.example.product_service.api.category.service.dto.result.CategoryTreeResult;
@@ -53,7 +54,7 @@ public class CategoryServiceTest extends ExcludeInfraTest {
 
     @Nested
     @DisplayName("카테고리 생성시")
-    class Create {
+    class CategoryCreate {
 
         @Test
         @DisplayName("부모 카테고리를 찾을 수 없는 경우 카테고리를 생성할 수 없다")
@@ -61,7 +62,12 @@ public class CategoryServiceTest extends ExcludeInfraTest {
             //given
             //when
             //then
-            assertThatThrownBy(() -> categoryService.saveCategory("자식", NOT_FOUNT_ID, DEFAULT_IMAGE_PATH))
+            Create command = Create.builder()
+                    .name("자식")
+                    .parentId(NOT_FOUNT_ID)
+                    .imagePath(DEFAULT_IMAGE_PATH)
+                    .build();
+            assertThatThrownBy(() -> categoryService.saveCategory(command))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(CategoryErrorCode.CATEGORY_NOT_FOUND);
@@ -73,9 +79,14 @@ public class CategoryServiceTest extends ExcludeInfraTest {
             //given
             Category food = setupCategory("식품", null);
             setupProduct("카레", food);
+            Create command = Create.builder()
+                    .name("육류")
+                    .parentId(food.getId())
+                    .imagePath(DEFAULT_IMAGE_PATH)
+                    .build();
             //when
             //then
-            assertThatThrownBy(() -> categoryService.saveCategory("육류", food.getId(), DEFAULT_IMAGE_PATH))
+            assertThatThrownBy(() -> categoryService.saveCategory(command))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(CategoryErrorCode.HAS_PRODUCT);
@@ -86,9 +97,14 @@ public class CategoryServiceTest extends ExcludeInfraTest {
         void save_duplicate_name_root(){
             //given
             setupCategory("가전", null);
+            Create command = Create.builder()
+                    .name("가전")
+                    .parentId(null)
+                    .imagePath(DEFAULT_IMAGE_PATH)
+                    .build();
             //when
             //then
-            assertThatThrownBy(() -> categoryService.saveCategory("가전", null, DEFAULT_IMAGE_PATH))
+            assertThatThrownBy(() -> categoryService.saveCategory(command))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(CategoryErrorCode.DUPLICATE_NAME);
@@ -101,9 +117,14 @@ public class CategoryServiceTest extends ExcludeInfraTest {
             Category food = setupCategory("식품", null);
             setupCategory("육류", food);
             Long categoryId = food.getId();
+            Create command = Create.builder()
+                    .name("육류")
+                    .parentId(categoryId)
+                    .imagePath(DEFAULT_IMAGE_PATH)
+                    .build();
             //when
             //then
-            assertThatThrownBy(() -> categoryService.saveCategory("육류", categoryId, DEFAULT_IMAGE_PATH))
+            assertThatThrownBy(() -> categoryService.saveCategory(command))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(CategoryErrorCode.DUPLICATE_NAME);
@@ -113,7 +134,12 @@ public class CategoryServiceTest extends ExcludeInfraTest {
         @DisplayName("최상위 카테고리를 생성한다")
         void save_root(){
             //when
-            CategoryResult result = categoryService.saveCategory("가전", null, DEFAULT_IMAGE_PATH);
+            Create command = Create.builder()
+                    .name("가전")
+                    .parentId(null)
+                    .imagePath(DEFAULT_IMAGE_PATH)
+                    .build();
+            CategoryResult result = categoryService.saveCategory(command);
             //then
             assertThat(result)
                     .extracting(CategoryResult::getName, CategoryResult::getParentId, CategoryResult::getDepth, CategoryResult::getImagePath)
@@ -128,8 +154,13 @@ public class CategoryServiceTest extends ExcludeInfraTest {
         void save_child(){
             //given
             Category food = setupCategory("식품", null);
+            Create command = Create.builder()
+                    .name("육류")
+                    .parentId(food.getId())
+                    .imagePath(DEFAULT_IMAGE_PATH)
+                    .build();
             //when
-            CategoryResult result = categoryService.saveCategory("육류", food.getId(), DEFAULT_IMAGE_PATH);
+            CategoryResult result = categoryService.saveCategory(command);
             //then
             assertThat(result)
                     .extracting(CategoryResult::getName, CategoryResult::getParentId, CategoryResult::getDepth, CategoryResult::getImagePath)

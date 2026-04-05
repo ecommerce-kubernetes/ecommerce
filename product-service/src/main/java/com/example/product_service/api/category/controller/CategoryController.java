@@ -7,6 +7,8 @@ import com.example.product_service.api.category.controller.dto.response.Category
 import com.example.product_service.api.category.controller.dto.response.CategoryResponse.Navigation;
 import com.example.product_service.api.category.controller.dto.response.CategoryResponse.Tree;
 import com.example.product_service.api.category.service.CategoryService;
+import com.example.product_service.api.category.service.dto.command.CategoryCommand;
+import com.example.product_service.api.category.service.dto.command.CategoryCommand.Create;
 import com.example.product_service.api.category.service.dto.result.CategoryNavigationResult;
 import com.example.product_service.api.category.service.dto.result.CategoryResult;
 import com.example.product_service.api.category.service.dto.result.CategoryTreeResult;
@@ -30,7 +32,8 @@ public class CategoryController {
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Detail> saveCategory(@RequestBody @Validated CreateRequest request) {
-        CategoryResult result = categoryService.saveCategory(request.name(), request.parentId(), request.imagePath());
+        Create command = request.toCommand();
+        CategoryResult result = categoryService.saveCategory(command);
         return ResponseEntity.status(HttpStatus.CREATED).body(Detail.from(result));
     }
 
