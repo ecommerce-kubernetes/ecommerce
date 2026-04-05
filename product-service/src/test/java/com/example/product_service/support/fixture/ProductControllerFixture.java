@@ -1,6 +1,5 @@
 package com.example.product_service.support.fixture;
 
-import com.example.product_service.api.product.controller.dto.ProductUpdateRequest;
 import com.example.product_service.api.product.service.dto.result.*;
 
 import java.time.LocalDateTime;
@@ -12,26 +11,12 @@ public class ProductControllerFixture {
     public static final Long PRICE = 3000L;
     public static final Integer DISCOUNT_RATE = 10;
 
-    public static ProductUpdateRequest.ProductUpdateRequestBuilder mockUpdateRequest() {
-        return ProductUpdateRequest.builder()
-                .name("새상품")
-                .description("상품 설명")
-                .categoryId(1L);
-    }
-
     public static ProductUpdateResponse.ProductUpdateResponseBuilder mockUpdateResponse() {
         return ProductUpdateResponse.builder()
                 .productId(PRODUCT_ID)
                 .name("새상품")
                 .description("상품 설명")
                 .categoryId(1L);
-    }
-
-    public static ProductStatusResponse.ProductStatusResponseBuilder mockProductStatusResponse() {
-        return ProductStatusResponse.builder()
-                .productId(PRODUCT_ID)
-                .status("ON_SALE")
-                .publishedAt(LocalDateTime.now().toString());
     }
 
     public static ProductSummaryResponse.ProductSummaryResponseBuilder mockSummaryResponse() {

@@ -2,8 +2,10 @@ package com.example.product_service.api.product.controller.dto.response;
 
 import com.example.product_service.api.product.service.dto.result.*;
 import com.example.product_service.api.product.service.dto.result.ProductOptionResponse.OptionDto;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public class ProductResponse {
@@ -157,6 +159,55 @@ public class ProductResponse {
                     .imageId(image.getImageId())
                     .imagePath(image.getImagePath())
                     .sortOrder(image.getSortOrder())
+                    .build();
+        }
+    }
+
+    @Builder
+    public record PublishResponse (
+            Long productId,
+            String status,
+            @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-mm-dd HH:mm:ss", timezone = "Asia/Seoul")
+            LocalDateTime publishedAt
+    ) {
+        public static PublishResponse from(ProductStatusResult result) {
+            return PublishResponse.builder()
+                    .productId(result.getProductId())
+                    .status(result.getStatus())
+                    .publishedAt(result.getPublishedAt())
+                    .build();
+        }
+    }
+
+    @Builder
+    public record CloseResponse (
+            Long productId,
+            String status,
+            @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-mm-dd HH:mm:ss", timezone = "Asia/Seoul")
+            LocalDateTime saleStoppedAt
+    ) {
+        public static CloseResponse from(ProductStatusResult result) {
+            return CloseResponse.builder()
+                    .productId(result.getProductId())
+                    .status(result.getStatus())
+                    .saleStoppedAt(result.getSaleStoppedAt())
+                    .build();
+        }
+    }
+
+    @Builder
+    public record UpdateResponse (
+            Long productId,
+            String name,
+            String description,
+            Long categoryId
+    ) {
+        public static UpdateResponse from (ProductUpdateResponse result) {
+            return UpdateResponse.builder()
+                    .productId(result.getProductId())
+                    .name(result.getName())
+                    .description(result.getDescription())
+                    .categoryId(result.getCategoryId())
                     .build();
         }
     }

@@ -2,7 +2,6 @@ package com.example.product_service.api.product.controller;
 
 import com.example.product_service.api.common.dto.PageDto;
 import com.example.product_service.api.product.controller.dto.ProductSearchCondition;
-import com.example.product_service.api.product.controller.dto.ProductUpdateRequest;
 import com.example.product_service.api.product.controller.dto.request.ProductRequest;
 import com.example.product_service.api.product.controller.dto.request.ProductRequest.*;
 import com.example.product_service.api.product.controller.dto.response.ProductResponse.*;
@@ -81,8 +80,17 @@ public class ProductController {
 
     @PatchMapping("/{productId}/publish")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ProductStatusResponse> publishProduct(@PathVariable("productId") Long productId) {
-        ProductStatusResponse response = productService.publish(productId);
+    public ResponseEntity<PublishResponse> publishProduct(@PathVariable("productId") Long productId) {
+        ProductStatusResult result = productService.publish(productId);
+        PublishResponse response = PublishResponse.from(result);
+        return ResponseEntity.ok(response);
+    }
+
+    @PatchMapping("/{productId}/close")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<CloseResponse> closeProduct(@PathVariable("productId") Long productId) {
+        ProductStatusResult result = productService.closedProduct(productId);
+        CloseResponse response = CloseResponse.from(result);
         return ResponseEntity.ok(response);
     }
 
@@ -101,22 +109,10 @@ public class ProductController {
     @PutMapping("/{productId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ProductUpdateResponse> updateProduct(@PathVariable("productId") Long productId,
-                                                               @RequestBody @Validated ProductUpdateRequest request) {
-        ProductUpdateCommand command = ProductUpdateCommand.builder()
-                .productId(productId)
-                .name(request.getName())
-                .categoryId(request.getCategoryId())
-                .description(request.getDescription())
-                .build();
+                                                               @RequestBody @Validated UpdateRequest request) {
 
+        ProductUpdateCommand command = request.toCommand(productId);
         ProductUpdateResponse response = productService.updateProduct(command);
-        return ResponseEntity.ok(response);
-    }
-
-    @PatchMapping("/{productId}/close")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ProductStatusResponse> closeProduct(@PathVariable("productId") Long productId) {
-        ProductStatusResponse response = productService.closedProduct(productId);
         return ResponseEntity.ok(response);
     }
 

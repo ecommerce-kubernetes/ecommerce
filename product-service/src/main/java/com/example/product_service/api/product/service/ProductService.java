@@ -90,10 +90,10 @@ public class ProductService {
         return ProductDescriptionImageResult.of(productId, product.getDescriptionImages());
     }
 
-    public ProductStatusResponse publish(Long productId) {
+    public ProductStatusResult publish(Long productId) {
         Product product = findProductByIdOrThrow(productId);
         product.publish();
-        return ProductStatusResponse.publish(product);
+        return ProductStatusResult.publish(product);
     }
 
     @Transactional(readOnly = true)
@@ -120,10 +120,10 @@ public class ProductService {
         product.deleted();
     }
 
-    public ProductStatusResponse closedProduct(Long productId) {
+    public ProductStatusResult closedProduct(Long productId) {
         Product product = findProductByIdOrThrow(productId);
         product.closed();
-        return ProductStatusResponse.closed(product);
+        return ProductStatusResult.closed(product);
     }
 
     private List<OptionType> findOptionTypes(List<Long> optionTypeIds) {

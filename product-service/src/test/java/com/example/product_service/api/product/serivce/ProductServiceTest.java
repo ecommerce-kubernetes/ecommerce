@@ -400,7 +400,7 @@ public class ProductServiceTest extends ExcludeInfraTest {
             product.replaceDescriptionImage(List.of("http://description.jpg"));
             productRepository.save(product);
             //when
-            ProductStatusResponse result = productService.publish(product.getId());
+            ProductStatusResult result = productService.publish(product.getId());
             //then
             assertThat(result.getProductId()).isEqualTo(product.getId());
             assertThat(result.getStatus()).isEqualTo("ON_SALE");
@@ -650,7 +650,7 @@ public class ProductServiceTest extends ExcludeInfraTest {
             product.publish();
             productRepository.save(product);
             //when
-            ProductStatusResponse result = productService.closedProduct(product.getId());
+            ProductStatusResult result = productService.closedProduct(product.getId());
             //then
             assertThat(result.getProductId()).isEqualTo(product.getId());
             assertThat(result.getStatus()).isEqualTo("STOP_SALE");

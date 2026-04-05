@@ -4,9 +4,7 @@ import com.epages.restdocs.apispec.ResourceSnippetParameters;
 import com.example.product_service.api.common.dto.PageDto;
 import com.example.product_service.api.product.controller.ProductController;
 import com.example.product_service.api.product.controller.dto.ProductSearchCondition;
-import com.example.product_service.api.product.controller.dto.ProductUpdateRequest;
 import com.example.product_service.api.product.controller.dto.request.ProductRequest.*;
-import com.example.product_service.api.product.controller.dto.response.ProductResponse;
 import com.example.product_service.api.product.controller.dto.response.ProductResponse.*;
 import com.example.product_service.api.product.service.ProductService;
 import com.example.product_service.api.product.service.dto.command.ProductCreateCommand;
@@ -230,7 +228,7 @@ class ProductControllerDocsTest extends RestDocsSupport {
                 .set("images[0].sortOrder", 1)
                 .sample();
         ProductDescriptionImageResult result = fixtureMonkey.giveMeBuilder(ProductDescriptionImageResult.class)
-                .size("images", 1)
+                .size("descriptionImages", 1)
                 .set("productId", 1L)
                 .set("descriptionImages[0].imageId", 1L)
                 .set("descriptionImages[0].imagePath", "/test/image.jpg")
@@ -262,24 +260,16 @@ class ProductControllerDocsTest extends RestDocsSupport {
     @DisplayName("상품을 게시한다")
     void publishProduct() throws Exception {
         //given
-        ProductStatusResponse response = mockProductStatusResponse().build();
+        ProductStatusResult result = fixtureMonkey.giveMeBuilder(ProductStatusResult.class)
+                .set("productId", 1L)
+                .set("status", "ON_SALE")
+                .set("publishedAt", LocalDateTime.now())
+                .sample();
+        assert result != null;
         HttpHeaders adminHeader = createAdminHeader();
         given(productService.publish(anyLong()))
-                .willReturn(response);
-        HeaderDescriptor[] requestHeaders = new HeaderDescriptor[] {
-                headerWithName("Authorization")
-                        .description("JWT Access Token")
-        };
-
-        ParameterDescriptor[] pathParameters = new ParameterDescriptor[] {
-                parameterWithName("productId").description("게시할 상품 상품 ID")
-        };
-
-        FieldDescriptor[] responseFields = new FieldDescriptor[] {
-                fieldWithPath("productId").description("상품 Id"),
-                fieldWithPath("status").description("상품 상태"),
-                fieldWithPath("publishedAt").description("게시일")
-        };
+                .willReturn(result);
+        PublishResponse response = PublishResponse.from(result);
         //when
         //then
         mockMvc.perform(patch("/products/{productId}/publish", 1L)
@@ -287,28 +277,42 @@ class ProductControllerDocsTest extends RestDocsSupport {
                         .headers(adminHeader))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andDo(
-                        document("03-product-06-publish",
-                                preprocessRequest(prettyPrint(),
-                                        modifyHeaders()
-                                                .remove("X-User-Id")
-                                                .remove("X-User-Role")
-                                                .add("Authorization", "Bearer {ACCESS_TOKEN}")),
-                                preprocessResponse(prettyPrint()),
-                                resource(
-                                        ResourceSnippetParameters.builder()
-                                                .tag(TAG)
-                                                .summary("상품 판매 개시")
-                                                .description("상품을 판매 개시한다")
-                                                .requestHeaders(requestHeaders)
-                                                .pathParameters(pathParameters)
-                                                .responseFields(responseFields)
-                                                .build()
-                                ),
-                                requestHeaders(requestHeaders),
-                                pathParameters(pathParameters),
-                                responseFields(responseFields)
-                        )
+                .andExpect(content().json(objectMapper.writeValueAsString(response)))
+                .andDo(createSecuredDocument("03-product-06-publish",
+                        "상품 판매 개시",
+                        "상품을 판매 개시한다",
+                        ProductDescriptor.getPublishResponse(),
+                        parameterWithName("productId").description("게시할 상품 상품 ID"))
+                );
+    }
+
+    @Test
+    @DisplayName("상품을 판매 중지로 변경한다")
+    void closeProduct() throws Exception {
+        //given
+        ProductStatusResult result = fixtureMonkey.giveMeBuilder(ProductStatusResult.class)
+                .set("productId", 1L)
+                .set("status", "STOP_SALE")
+                .set("saleStoppedAt", LocalDateTime.now())
+                .sample();
+        assert result != null;
+        HttpHeaders adminHeader = createAdminHeader();
+        given(productService.closedProduct(anyLong()))
+                .willReturn(result);
+        CloseResponse response = CloseResponse.from(result);
+        //when
+        //then
+        mockMvc.perform(patch("/products/{productId}/close", 1L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .headers(adminHeader))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(response)))
+                .andDo(createSecuredDocument("03-product-11-close",
+                                "상품 판매 중지",
+                                "상품을 판매 중지한다",
+                                ProductDescriptor.getCloseResponse(),
+                                parameterWithName("productId").description("판매 중지할 상품 ID"))
                 );
     }
 
@@ -455,32 +459,15 @@ class ProductControllerDocsTest extends RestDocsSupport {
     @DisplayName("상품 정보를 수정한다")
     void updateProduct() throws Exception {
         //given
-        ProductUpdateRequest request = mockUpdateRequest().build();
+        UpdateRequest request = fixtureMonkey.giveMeBuilder(UpdateRequest.class)
+                .set("name", "새 이름")
+                .set("categoryId", 1L)
+                .set("description", "상품 설명")
+                .sample();
         ProductUpdateResponse response = mockUpdateResponse().build();
         HttpHeaders adminHeader = createAdminHeader();
         given(productService.updateProduct(any(ProductUpdateCommand.class)))
                 .willReturn(response);
-        HeaderDescriptor[] requestHeaders = new HeaderDescriptor[] {
-                headerWithName("Authorization")
-                        .description("JWT Access Token")
-        };
-
-        ParameterDescriptor[] pathParameters = new ParameterDescriptor[] {
-                parameterWithName("productId").description("수정할 상품 ID")
-        };
-
-        FieldDescriptor[] requestFields = new FieldDescriptor[] {
-                fieldWithPath("name").description("변경할 상품 이름"),
-                fieldWithPath("categoryId").description("변경할 카테고리 Id"),
-                fieldWithPath("description").description("변경할 상품 설명")
-        };
-
-        FieldDescriptor[] responseFields = new FieldDescriptor[] {
-                fieldWithPath("productId").description("상품 ID"),
-                fieldWithPath("name").description("상품 이름"),
-                fieldWithPath("categoryId").description("카테고리 Id"),
-                fieldWithPath("description").description("상품 설명")
-        };
         //when
         //then
         mockMvc.perform(put("/products/{productId}", 1L)
@@ -489,30 +476,12 @@ class ProductControllerDocsTest extends RestDocsSupport {
                         .headers(adminHeader))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andDo(
-                        document("03-product-09-update",
-                                preprocessRequest(prettyPrint(),
-                                        modifyHeaders()
-                                                .remove("X-User-Id")
-                                                .remove("X-User-Role")
-                                                .add("Authorization", "Bearer {ACCESS_TOKEN}")),
-                                preprocessResponse(prettyPrint()),
-                                resource(
-                                        ResourceSnippetParameters.builder()
-                                                .tag(TAG)
-                                                .summary("상품 정보 수정")
-                                                .description("상품 기본 정보를 수정한다")
-                                                .requestHeaders(requestHeaders)
-                                                .pathParameters(pathParameters)
-                                                .requestFields(requestFields)
-                                                .responseFields(responseFields)
-                                                .build()
-                                ),
-                                requestHeaders(requestHeaders),
-                                pathParameters(pathParameters),
-                                requestFields(requestFields),
-                                responseFields(responseFields)
-                        )
+                .andDo(createSecuredDocument("03-product-09-update",
+                        "상품 정보 수정",
+                        "상품 기본 정보를 수정한다",
+                        ProductDescriptor.getUpdateRequest(),
+                        ProductDescriptor.getUpdateResponse(),
+                        parameterWithName("productId").description("수정할 상품 ID"))
                 );
     }
 
@@ -522,15 +491,6 @@ class ProductControllerDocsTest extends RestDocsSupport {
         //given
         willDoNothing().given(productService).deleteProduct(anyLong());
         HttpHeaders adminHeader = createAdminHeader();
-
-        HeaderDescriptor[] requestHeaders = new HeaderDescriptor[] {
-                headerWithName("Authorization")
-                        .description("JWT Access Token")
-        };
-
-        ParameterDescriptor[] pathParameters = new ParameterDescriptor[] {
-                parameterWithName("productId").description("삭제할 상품 ID")
-        };
         //when
         //then
         mockMvc.perform(delete("/products/{productId}", 1L)
@@ -538,83 +498,10 @@ class ProductControllerDocsTest extends RestDocsSupport {
                         .headers(adminHeader))
                 .andDo(print())
                 .andExpect(status().isNoContent())
-                .andDo(
-                        document("03-product-10-delete",
-                                preprocessRequest(prettyPrint(),
-                                        modifyHeaders()
-                                                .remove("X-User-Id")
-                                                .remove("X-User-Role")
-                                                .add("Authorization", "Bearer {ACCESS_TOKEN}")),
-                                preprocessResponse(prettyPrint()),
-                                resource(
-                                        ResourceSnippetParameters.builder()
-                                                .tag(TAG)
-                                                .summary("상품 삭제")
-                                                .description("상품을 삭제한다")
-                                                .requestHeaders(requestHeaders)
-                                                .pathParameters(pathParameters)
-                                                .build()
-                                ),
-                                requestHeaders(requestHeaders),
-                                pathParameters(pathParameters)
-                        )
-                );
-    }
-
-    @Test
-    @DisplayName("상품을 판매 중지로 변경한다")
-    void closeProduct() throws Exception {
-        //given
-        ProductStatusResponse response = mockProductStatusResponse().status("STOP_SELLING")
-                .publishedAt(null)
-                .saleStoppedAt(LocalDateTime.now().toString()).build();
-        HttpHeaders adminHeader = createAdminHeader();
-        given(productService.closedProduct(anyLong()))
-                .willReturn(response);
-
-        HeaderDescriptor[] requestHeaders = new HeaderDescriptor[] {
-                headerWithName("Authorization")
-                        .description("JWT Access Token")
-        };
-
-        ParameterDescriptor[] pathParameters = new ParameterDescriptor[] {
-                parameterWithName("productId").description("판매 중지할 상품 ID")
-        };
-
-        FieldDescriptor[] responseFields = new FieldDescriptor[] {
-                fieldWithPath("productId").description("상품 Id"),
-                fieldWithPath("status").description("상품 상태"),
-                fieldWithPath("saleStoppedAt").description("판매 중지일")
-        };
-        //when
-        //then
-        mockMvc.perform(patch("/products/{productId}/close", 1L)
-                .contentType(MediaType.APPLICATION_JSON)
-                .headers(adminHeader))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andDo(
-                        document("03-product-11-close",
-                                preprocessRequest(prettyPrint(),
-                                        modifyHeaders()
-                                                .remove("X-User-Id")
-                                                .remove("X-User-Role")
-                                                .add("Authorization", "Bearer {ACCESS_TOKEN}")),
-                                preprocessResponse(prettyPrint()),
-                                resource(
-                                        ResourceSnippetParameters.builder()
-                                                .tag(TAG)
-                                                .summary("상품 판매 중지")
-                                                .description("상품을 판매 중지한다")
-                                                .requestHeaders(requestHeaders)
-                                                .pathParameters(pathParameters)
-                                                .responseFields(responseFields)
-                                                .build()
-                                ),
-                                requestHeaders(requestHeaders),
-                                pathParameters(pathParameters),
-                                responseFields(responseFields)
-                        )
+                .andDo(createSecuredDocument("03-product-10-delete",
+                                "상품 삭제",
+                                "상품을 삭제한다",
+                                parameterWithName("productId").description("삭제할 상품 ID"))
                 );
     }
 }

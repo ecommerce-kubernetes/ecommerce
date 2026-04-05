@@ -5,6 +5,8 @@ import com.example.product_service.api.common.security.model.UserPrincipal;
 import com.example.product_service.api.common.security.model.UserRole;
 import com.example.product_service.support.fixture.FixtureMonkeyFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.navercorp.fixturemonkey.FixtureMonkey;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,7 +45,9 @@ import static org.springframework.restdocs.request.RequestDocumentation.pathPara
 @ExtendWith(RestDocumentationExtension.class)
 public abstract class RestDocsSupport {
     protected MockMvc mockMvc;
-    protected ObjectMapper objectMapper = new ObjectMapper();
+    protected ObjectMapper objectMapper = new ObjectMapper()
+            .registerModule(new JavaTimeModule())
+            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
     protected FixtureMonkey fixtureMonkey = FixtureMonkeyFactory.get;
 
     @BeforeEach
@@ -101,6 +105,13 @@ public abstract class RestDocsSupport {
             String identifier, String summary, String description,
             ParameterDescriptor... pathParameters) {
         return createDocument(identifier, summary, description, AUTH_HEADER,new FieldDescriptor[0], new FieldDescriptor[0], pathParameters);
+    }
+
+    protected RestDocumentationResultHandler createSecuredDocument(
+            String identifier, String summary, String description,
+            FieldDescriptor[] responseFields,
+            ParameterDescriptor... pathParameters) {
+        return createDocument(identifier, summary, description, AUTH_HEADER, new FieldDescriptor[0], responseFields, pathParameters);
     }
 
 

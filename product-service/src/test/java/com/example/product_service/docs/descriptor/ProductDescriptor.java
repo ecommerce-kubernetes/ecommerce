@@ -91,4 +91,37 @@ public class ProductDescriptor {
                 fieldWithPath("descriptionImages[].sortOrder").description("상품 이미지 순서")
         };
     }
+
+    public static FieldDescriptor[] getPublishResponse() {
+        return new FieldDescriptor[] {
+                fieldWithPath("productId").description("상품 Id"),
+                fieldWithPath("status").description("상품 상태"),
+                fieldWithPath("publishedAt").description("게시일")
+        };
+    }
+
+    public static FieldDescriptor[] getCloseResponse() {
+        return new FieldDescriptor[] {
+                fieldWithPath("productId").description("상품 Id"),
+                fieldWithPath("status").description("상품 상태"),
+                fieldWithPath("saleStoppedAt").description("판매 중지일")
+        };
+    }
+
+    public static FieldDescriptor[] getUpdateRequest() {
+        return new FieldDescriptor[] {
+                fieldWithPath("name").description("변경할 상품 이름"),
+                fieldWithPath("categoryId").description("변경할 카테고리 Id"),
+                fieldWithPath("description").description("변경할 상품 설명")
+        };
+    }
+
+    public static FieldDescriptor[] getUpdateResponse() {
+        return new FieldDescriptor[]{
+                fieldWithPath("productId").description("상품 ID"),
+                fieldWithPath("name").description("상품 이름"),
+                fieldWithPath("categoryId").description("카테고리 Id"),
+                fieldWithPath("description").description("상품 설명")
+        };
+    }
 }

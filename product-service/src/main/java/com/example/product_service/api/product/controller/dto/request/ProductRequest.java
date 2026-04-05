@@ -2,6 +2,7 @@ package com.example.product_service.api.product.controller.dto.request;
 
 import com.example.product_service.api.product.controller.validation.annotation.UniqueOptionTypes;
 import com.example.product_service.api.product.service.dto.command.ProductCreateCommand;
+import com.example.product_service.api.product.service.dto.command.ProductUpdateCommand;
 import com.example.product_service.api.product.service.dto.command.ProductVariantsCreateCommand;
 import com.example.product_service.api.product.service.dto.command.ProductVariantsCreateCommand.VariantDetail;
 import jakarta.validation.Valid;
@@ -132,4 +133,22 @@ public class ProductRequest {
             @Min(value = 1, message = "정렬 순서는 1 이상이여야 합니다")
             Integer sortOrder
     ) {}
+
+    @Builder(toBuilder = true)
+    public record UpdateRequest(
+            @NotBlank(message = "상품 이름은 필수 입니다")
+            String name,
+            @NotNull(message = "카테고리 id는 필수 입니다")
+            Long categoryId,
+            String description
+    ) {
+        public ProductUpdateCommand toCommand(Long productId) {
+            return ProductUpdateCommand.builder()
+                    .productId(productId)
+                    .name(this.name())
+                    .categoryId(this.categoryId())
+                    .description(this.description())
+                    .build();
+        }
+    }
 }

@@ -3,9 +3,7 @@ package com.example.product_service.api.product.controller;
 import com.example.product_service.api.common.dto.PageDto;
 import com.example.product_service.api.common.security.model.UserRole;
 import com.example.product_service.api.product.controller.dto.ProductSearchCondition;
-import com.example.product_service.api.product.controller.dto.ProductUpdateRequest;
 import com.example.product_service.api.product.controller.dto.request.ProductRequest.*;
-import com.example.product_service.api.product.controller.dto.response.ProductResponse;
 import com.example.product_service.api.product.controller.dto.response.ProductResponse.*;
 import com.example.product_service.api.product.service.dto.command.ProductCreateCommand;
 import com.example.product_service.api.product.service.dto.command.ProductUpdateCommand;
@@ -25,7 +23,6 @@ import org.springframework.http.MediaType;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -670,10 +667,11 @@ class ProductControllerTest extends ControllerTestSupport {
         @WithCustomMockUser
         void publishProduct() throws Exception {
             //given
-            ProductStatusResponse response = mockProductStatusResponse()
-                    .saleStoppedAt(null).build();
+            ProductStatusResult result = fixtureMonkey.giveMeOne(ProductStatusResult.class);
+            assert result != null;
             given(productService.publish(anyLong()))
-                    .willReturn(response);
+                    .willReturn(result);
+            PublishResponse response = PublishResponse.from(result);
             //when
             //then
             mockMvc.perform(patch("/products/{productId}/publish", 1L)
@@ -711,6 +709,61 @@ class ProductControllerTest extends ControllerTestSupport {
                     .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다"))
                     .andExpect(jsonPath("$.timestamp").exists())
                     .andExpect(jsonPath("$.path").value("/products/1/publish"));
+        }
+    }
+
+    @Nested
+    @DisplayName("상품 판매 중지")
+    class CloseProduct {
+        @Test
+        @DisplayName("상품을 판매 중지한다")
+        @WithCustomMockUser
+        void closeProduct() throws Exception {
+            //given
+            ProductStatusResult result = fixtureMonkey.giveMeOne(ProductStatusResult.class);
+            assert result != null;
+            given(productService.closedProduct(anyLong()))
+                    .willReturn(result);
+            CloseResponse response = CloseResponse.from(result);
+            //when
+            //then
+            mockMvc.perform(patch("/products/{productId}/close", 1L)
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andDo(print())
+                    .andExpect(content().json(objectMapper.writeValueAsString(response)));
+        }
+
+        @Test
+        @DisplayName("상품을 판매 중지 하려면 관리자 권한이여야 한다")
+        @WithCustomMockUser(userRole = UserRole.ROLE_USER)
+        void closeProduct_user_role() throws Exception {
+            //given
+            //when
+            //then
+            mockMvc.perform(patch("/products/{productId}/close", 1L)
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andDo(print())
+                    .andExpect(status().isForbidden())
+                    .andExpect(jsonPath("$.code").value("FORBIDDEN"))
+                    .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다"))
+                    .andExpect(jsonPath("$.timestamp").exists())
+                    .andExpect(jsonPath("$.path").value("/products/1/close"));
+        }
+
+        @Test
+        @DisplayName("로그인 하지 않은 사용자는 상품을 판매 중지 할 수 없다")
+        void closeProduct_unAuthorized() throws Exception {
+            //given
+            //when
+            //then
+            mockMvc.perform(patch("/products/{productId}/close", 1L)
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andDo(print())
+                    .andExpect(status().isUnauthorized())
+                    .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
+                    .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다"))
+                    .andExpect(jsonPath("$.timestamp").exists())
+                    .andExpect(jsonPath("$.path").value("/products/1/close"));
         }
     }
 
@@ -782,6 +835,7 @@ class ProductControllerTest extends ControllerTestSupport {
                     Arguments.of("rating 이 5 이상", invalidCondition("rating", "6"), "최대 평점은 5점입니다")
             );
         }
+
         private static LinkedMultiValueMap<String, String> invalidCondition(String key, String value){
             LinkedMultiValueMap<String, String> parameterMap = new LinkedMultiValueMap<>();
             parameterMap.add(key, value);
@@ -815,10 +869,12 @@ class ProductControllerTest extends ControllerTestSupport {
         @WithCustomMockUser
         void updateProduct() throws Exception {
             //given
-            ProductUpdateRequest request = mockUpdateRequest().build();
-            ProductUpdateResponse response = mockUpdateResponse().build();
+            UpdateRequest request = fixtureMonkey.giveMeOne(UpdateRequest.class);
+            ProductUpdateResponse result = fixtureMonkey.giveMeOne(ProductUpdateResponse.class);
+            assert result != null;
             given(productService.updateProduct(any(ProductUpdateCommand.class)))
-                    .willReturn(response);
+                    .willReturn(result);
+            UpdateResponse response = UpdateResponse.from(result);
             //when
             //then
             mockMvc.perform(put("/products/{productId}", 1L)
@@ -834,7 +890,7 @@ class ProductControllerTest extends ControllerTestSupport {
         @WithCustomMockUser(userRole = UserRole.ROLE_USER)
         void updateProduct_user_role() throws Exception {
             //given
-            ProductUpdateRequest request = mockUpdateRequest().build();
+            UpdateRequest request = fixtureMonkey.giveMeOne(UpdateRequest.class);
             //when
             //then
             mockMvc.perform(put("/products/{productId}", 1L)
@@ -852,7 +908,7 @@ class ProductControllerTest extends ControllerTestSupport {
         @DisplayName("로그인 하지 않은 사용자는 상품을 수정할 수 없다")
         void updateProduct_unAuthorized() throws Exception {
             //given
-            ProductUpdateRequest request = mockUpdateRequest().build();
+            UpdateRequest request = fixtureMonkey.giveMeOne(UpdateRequest.class);
             //when
             //then
             mockMvc.perform(put("/products/{productId}", 1L)
@@ -870,7 +926,7 @@ class ProductControllerTest extends ControllerTestSupport {
         @MethodSource("provideInvalidUpdateRequest")
         @WithCustomMockUser
         @DisplayName("상품 수정 요청 검증")
-        void updateProduct_validation(String description, ProductUpdateRequest request, String message) throws Exception {
+        void updateProduct_validation(String description, UpdateRequest request, String message) throws Exception {
             //given
             //when
             //then
@@ -886,9 +942,14 @@ class ProductControllerTest extends ControllerTestSupport {
         }
 
         private static Stream<Arguments> provideInvalidUpdateRequest(){
+            UpdateRequest VALID_BASE_UPDATE = UpdateRequest.builder()
+                    .name("새 이름")
+                    .categoryId(1L)
+                    .description("상품 설명")
+                    .build();
             return Stream.of(
-                    Arguments.of("빈 이름", mockUpdateRequest().name(null).build(), "상품 이름은 필수 입니다"),
-                    Arguments.of("카테고리 id 가 null", mockUpdateRequest().categoryId(null).build(), "카테고리 id는 필수 입니다")
+                    Arguments.of("빈 이름", VALID_BASE_UPDATE.toBuilder().name(null).build(), "상품 이름은 필수 입니다"),
+                    Arguments.of("카테고리 id 가 null", VALID_BASE_UPDATE.toBuilder().categoryId(null).build(), "카테고리 id는 필수 입니다")
             );
         }
     }
@@ -940,63 +1001,6 @@ class ProductControllerTest extends ControllerTestSupport {
                     .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다"))
                     .andExpect(jsonPath("$.timestamp").exists())
                     .andExpect(jsonPath("$.path").value("/products/1"));
-        }
-    }
-
-    @Nested
-    @DisplayName("상품 판매 중지")
-    class CloseProduct {
-        @Test
-        @DisplayName("상품을 판매 중지한다")
-        @WithCustomMockUser
-        void closeProduct() throws Exception {
-            //given
-            ProductStatusResponse response = mockProductStatusResponse()
-                    .status("STOP_SALE")
-                    .publishedAt(null)
-                    .saleStoppedAt(LocalDateTime.now().toString())
-                    .build();
-            given(productService.closedProduct(anyLong()))
-                    .willReturn(response);
-            //when
-            //then
-            mockMvc.perform(patch("/products/{productId}/close", 1L)
-                            .contentType(MediaType.APPLICATION_JSON))
-                    .andDo(print())
-                    .andExpect(content().json(objectMapper.writeValueAsString(response)));
-        }
-
-        @Test
-        @DisplayName("상품을 판매 중지 하려면 관리자 권한이여야 한다")
-        @WithCustomMockUser(userRole = UserRole.ROLE_USER)
-        void closeProduct_user_role() throws Exception {
-            //given
-            //when
-            //then
-            mockMvc.perform(patch("/products/{productId}/close", 1L)
-                            .contentType(MediaType.APPLICATION_JSON))
-                    .andDo(print())
-                    .andExpect(status().isForbidden())
-                    .andExpect(jsonPath("$.code").value("FORBIDDEN"))
-                    .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다"))
-                    .andExpect(jsonPath("$.timestamp").exists())
-                    .andExpect(jsonPath("$.path").value("/products/1/close"));
-        }
-
-        @Test
-        @DisplayName("로그인 하지 않은 사용자는 상품을 판매 중지 할 수 없다")
-        void closeProduct_unAuthorized() throws Exception {
-            //given
-            //when
-            //then
-            mockMvc.perform(patch("/products/{productId}/close", 1L)
-                            .contentType(MediaType.APPLICATION_JSON))
-                    .andDo(print())
-                    .andExpect(status().isUnauthorized())
-                    .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
-                    .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다"))
-                    .andExpect(jsonPath("$.timestamp").exists())
-                    .andExpect(jsonPath("$.path").value("/products/1/close"));
         }
     }
 }
