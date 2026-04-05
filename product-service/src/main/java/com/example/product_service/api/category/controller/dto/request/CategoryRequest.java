@@ -1,6 +1,5 @@
 package com.example.product_service.api.category.controller.dto.request;
 
-import com.example.product_service.api.category.service.dto.command.CategoryCommand;
 import com.example.product_service.api.category.service.dto.command.CategoryCommand.Create;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.AssertTrue;

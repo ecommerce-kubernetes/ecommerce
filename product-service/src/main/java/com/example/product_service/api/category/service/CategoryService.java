@@ -2,7 +2,6 @@ package com.example.product_service.api.category.service;
 
 import com.example.product_service.api.category.domain.model.Category;
 import com.example.product_service.api.category.domain.repository.CategoryRepository;
-import com.example.product_service.api.category.service.dto.command.CategoryCommand;
 import com.example.product_service.api.category.service.dto.command.CategoryCommand.Create;
 import com.example.product_service.api.category.service.dto.result.CategoryNavigationResult;
 import com.example.product_service.api.category.service.dto.result.CategoryResult;

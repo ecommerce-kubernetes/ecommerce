@@ -26,7 +26,8 @@ import org.springframework.util.MultiValueMap;
 import java.util.List;
 import java.util.stream.Stream;
 
-import static com.example.product_service.support.fixture.ProductControllerFixture.*;
+import static com.example.product_service.support.fixture.ProductControllerFixture.mockDetailResponse;
+import static com.example.product_service.support.fixture.ProductControllerFixture.mockSummaryResponse;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
