@@ -48,7 +48,7 @@ public class CategoryController {
 
     @GetMapping("/{categoryId}")
     public ResponseEntity<CategoryResponse.Detail> getCategory(@PathVariable("categoryId") Long categoryId){
-        CategoryResult result = categoryService.getCategory(categoryId);
+        CategoryResult.Detail result = categoryService.getCategory(categoryId);
         return ResponseEntity.ok(CategoryResponse.Detail.from(result));
     }
 
@@ -65,7 +65,7 @@ public class CategoryController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CategoryResponse.Detail> moveParent(@PathVariable("categoryId") Long categoryId,
                                                      @RequestBody @Validated CategoryRequest.MoveRequest request) {
-        CategoryResult result = categoryService.moveParent(categoryId, request.parentId());
+        CategoryResult.Detail result = categoryService.moveParent(categoryId, request.parentId());
         return ResponseEntity.ok(CategoryResponse.Detail.from(result));
     }
 

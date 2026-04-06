@@ -181,10 +181,10 @@ public class CategoryServiceTest extends ExcludeInfraTest {
             //given
             Category category = setupCategory("카테고리", null);
             //when
-            CategoryResult result = categoryService.getCategory(category.getId());
+            CategoryResult.Detail result = categoryService.getCategory(category.getId());
             //then
             assertThat(result)
-                    .extracting(CategoryResult::getId, CategoryResult::getName, CategoryResult::getParentId, CategoryResult::getDepth, CategoryResult::getImagePath)
+                    .extracting(CategoryResult.Detail::id, CategoryResult.Detail::name, CategoryResult.Detail::parentId, CategoryResult.Detail::depth, CategoryResult.Detail::imagePath)
                     .containsExactly(category.getId(), "카테고리", null, 1, DEFAULT_IMAGE_PATH);
         }
 
@@ -360,10 +360,10 @@ public class CategoryServiceTest extends ExcludeInfraTest {
 
             Category root2 = setupCategory("식품", null);
             //when
-            CategoryResult result = categoryService.moveParent(target.getId(), root2.getId());
+            CategoryResult.Detail result = categoryService.moveParent(target.getId(), root2.getId());
             //then
             assertThat(result)
-                    .extracting(CategoryResult::getName, CategoryResult::getParentId, CategoryResult::getDepth)
+                    .extracting(CategoryResult.Detail::name, CategoryResult.Detail::parentId, CategoryResult.Detail::depth)
                     .containsExactly("컴퓨터", root2.getId(), 2);
 
             Category updatedChild = categoryRepository.findById(child.getId()).orElseThrow();
@@ -378,10 +378,10 @@ public class CategoryServiceTest extends ExcludeInfraTest {
             Category root = setupCategory("전자", null);
             Category target = setupCategory("노트북", root);
             //when
-            CategoryResult result = categoryService.moveParent(target.getId(), null);
+            CategoryResult.Detail result = categoryService.moveParent(target.getId(), null);
             //then
             assertThat(result)
-                    .extracting(CategoryResult::getName, CategoryResult::getParentId, CategoryResult::getDepth)
+                    .extracting(CategoryResult.Detail::name, CategoryResult.Detail::parentId, CategoryResult.Detail::depth)
                     .containsExactly("노트북", null, 1);
 
             Category find = categoryRepository.findById(target.getId()).orElseThrow();

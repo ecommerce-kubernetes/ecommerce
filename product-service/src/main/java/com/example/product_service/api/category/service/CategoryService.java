@@ -41,9 +41,9 @@ public class CategoryService {
         return CategoryResult.Detail.from(category);
     }
 
-    public CategoryResult getCategory(Long categoryId) {
+    public CategoryResult.Detail getCategory(Long categoryId) {
         Category category = findCategoryOrThrow(categoryId);
-        return CategoryResult.from(category);
+        return CategoryResult.Detail.from(category);
     }
 
     public List<CategoryTreeResult> getTree() {
@@ -76,13 +76,13 @@ public class CategoryService {
     }
 
     @Transactional
-    public CategoryResult moveParent(Long categoryId, Long parentId) {
+    public CategoryResult.Detail moveParent(Long categoryId, Long parentId) {
         // 카테고리 조회
         Category category = findCategoryOrThrow(categoryId);
         Category parent = getValidatedParent(parentId);
         validateDuplicateName(parent, category.getName());
         category.moveParent(parent);
-        return CategoryResult.from(category);
+        return CategoryResult.Detail.from(category);
     }
 
     @Transactional

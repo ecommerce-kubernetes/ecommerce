@@ -125,16 +125,15 @@ class CategoryControllerDocsTest extends RestDocsSupport {
     @DisplayName("카테고리를 조회한다")
     void getCategory() throws Exception {
         //given
-        CategoryResult result = fixtureMonkey.giveMeBuilder(CategoryResult.class)
-                .set("id", 2L)
-                .set("name", "카테고리")
-                .set("parentId", 1L)
-                .set("depth", 2)
-                .set("imageUrl", "/test/image.jpg")
-                .sample();
+        CategoryResult.Detail result = CategoryResult.Detail.builder()
+                .id(2L)
+                .name("카테고리")
+                .parentId(1L)
+                .depth(2)
+                .imagePath("/test/image.jpg")
+                .build();
         given(categoryService.getCategory(anyLong()))
                 .willReturn(result);
-        assert result != null;
         CategoryResponse.Detail response = CategoryResponse.Detail.from(result);
         //when
         //then
@@ -194,18 +193,16 @@ class CategoryControllerDocsTest extends RestDocsSupport {
         CategoryRequest.MoveRequest request = fixtureMonkey.giveMeBuilder(CategoryRequest.MoveRequest.class)
                 .set("parentId", 1L)
                 .sample();
-
-        CategoryResult result = fixtureMonkey.giveMeBuilder(CategoryResult.class)
-                .set("id", 2L)
-                .set("name", "자식 카테고리")
-                .set("parentId", 1L)
-                .set("depth", 2)
-                .set("imageUrl", "/test/image.jpg")
-                .sample();
+        CategoryResult.Detail result = CategoryResult.Detail.builder()
+                .id(2L)
+                .name("자식 카테고리")
+                .parentId(1L)
+                .depth(2)
+                .imagePath("/test/image.jpg")
+                .build();
 
         HttpHeaders adminHeader = createAdminHeader();
         given(categoryService.moveParent(anyLong(), anyLong())).willReturn(result);
-        assert result != null;
         CategoryResponse.Detail response = CategoryResponse.Detail.from(result);
         //when
         //then

@@ -149,7 +149,7 @@ class CategoryControllerTest extends ControllerTestSupport {
         @DisplayName("카테고리를 조회한다")
         void getCategory() throws Exception {
             //given
-            CategoryResult result = fixtureMonkey.giveMeOne(CategoryResult.class);
+            CategoryResult.Detail result = fixtureMonkey.giveMeOne(CategoryResult.Detail.class);
             given(categoryService.getCategory(anyLong())).willReturn(result);
             assert result != null;
             CategoryResponse.Detail response = CategoryResponse.Detail.from(result);
@@ -322,7 +322,7 @@ class CategoryControllerTest extends ControllerTestSupport {
             CategoryRequest.MoveRequest request = fixtureMonkey.giveMeBuilder(CategoryRequest.MoveRequest.class)
                     .set("parentId", 1L)
                     .sample();
-            CategoryResult result = fixtureMonkey.giveMeOne(CategoryResult.class);
+            CategoryResult.Detail result = fixtureMonkey.giveMeOne(CategoryResult.Detail.class);
             given(categoryService.moveParent(anyLong(), anyLong())).willReturn(result);
             assert result != null;
             CategoryResponse.Detail response = CategoryResponse.Detail.from(result);
