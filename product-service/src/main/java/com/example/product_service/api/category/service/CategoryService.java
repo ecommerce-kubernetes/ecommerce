@@ -3,9 +3,7 @@ package com.example.product_service.api.category.service;
 import com.example.product_service.api.category.domain.model.Category;
 import com.example.product_service.api.category.domain.repository.CategoryRepository;
 import com.example.product_service.api.category.service.dto.command.CategoryCommand;
-import com.example.product_service.api.category.service.dto.result.CategoryNavigationResult;
 import com.example.product_service.api.category.service.dto.result.CategoryResult;
-import com.example.product_service.api.category.service.dto.result.CategoryTreeResult;
 import com.example.product_service.api.common.exception.BusinessException;
 import com.example.product_service.api.common.exception.CategoryErrorCode;
 import com.example.product_service.api.product.domain.repository.ProductRepository;
@@ -46,19 +44,24 @@ public class CategoryService {
         return CategoryResult.Detail.from(category);
     }
 
-    public List<CategoryTreeResult> getTree() {
+    public List<CategoryResult.Tree> getTree() {
         Sort sort = Sort.by(Sort.Direction.ASC, "depth", "id");
         List<Category> allCategories = categoryRepository.findAll(sort);
         return convertTree(allCategories);
     }
 
-    public CategoryNavigationResult getNavigation(Long categoryId) {
+    public CategoryResult.Navigation getNavigation(Long categoryId) {
         Category target = findCategoryOrThrow(categoryId);
-        CategoryResult current = CategoryResult.from(target);
-        List<CategoryResult> ancestors = findCategoryPath(target);
-        List<CategoryResult> siblings = findSiblings(target);
-        List<CategoryResult> children = findChildren(target);
-        return CategoryNavigationResult.of(current, ancestors, siblings, children);
+        CategoryResult.Detail current = CategoryResult.Detail.from(target);
+        List<CategoryResult.Detail> path = findCategoryPath(target);
+        List<CategoryResult.Detail> siblings = findSiblings(target);
+        List<CategoryResult.Detail> children = findChildren(target);
+        return CategoryResult.Navigation.builder()
+                .current(current)
+                .path(path)
+                .siblings(siblings)
+                .children(children)
+                .build();
     }
 
     @Transactional
@@ -109,16 +112,16 @@ public class CategoryService {
                 .orElseThrow(() -> new BusinessException(CategoryErrorCode.CATEGORY_NOT_FOUND));
     }
 
-    private List<CategoryResult> findCategoryPath(Category current) {
+    private List<CategoryResult.Detail> findCategoryPath(Category current) {
         if (current.isRoot()) {
-            return List.of(CategoryResult.from(current));
+            return List.of(CategoryResult.Detail.from(current));
         }
         List<Long> ancestorIds = current.getPathIds();
         List<Category> ancestors = categoryRepository.findByInOrderDepth(ancestorIds);
         return createCategoryResponses(ancestors);
     }
 
-    private List<CategoryResult> findSiblings(Category current) {
+    private List<CategoryResult.Detail> findSiblings(Category current) {
         if (current.isRoot()) {
             List<Category> siblings = categoryRepository.findByParentIsNull();
             return createCategoryResponses(siblings);
@@ -127,28 +130,28 @@ public class CategoryService {
         return createCategoryResponses(siblings);
     }
 
-    private List<CategoryResult> findChildren(Category current) {
+    private List<CategoryResult.Detail> findChildren(Category current) {
         return createCategoryResponses(current.getChildren());
     }
 
-    private List<CategoryTreeResult> convertTree(List<Category> categories) {
-        List<CategoryTreeResult> allDtoList = categories.stream().map(CategoryTreeResult::from)
+    private List<CategoryResult.Tree> convertTree(List<Category> categories) {
+        List<CategoryResult.Tree> allDtoList = categories.stream().map(CategoryResult.Tree::from)
                 .toList();
-        Map<Long, CategoryTreeResult> dtoMap = allDtoList.stream().collect(Collectors.toMap(CategoryTreeResult::getId, Function.identity()));
-        List<CategoryTreeResult> rootCategories = new ArrayList<>();
-        for (CategoryTreeResult categoryResult : allDtoList) {
+        Map<Long, CategoryResult.Tree> dtoMap = allDtoList.stream().collect(Collectors.toMap(CategoryResult.Tree::getId, Function.identity()));
+        List<CategoryResult.Tree> rootCategories = new ArrayList<>();
+        for (CategoryResult.Tree categoryResult : allDtoList) {
             if (categoryResult.getDepth() == 1) {
                 rootCategories.add(categoryResult);
             } else {
-                CategoryTreeResult parent = dtoMap.get(categoryResult.getParentId());
+                CategoryResult.Tree parent = dtoMap.get(categoryResult.getParentId());
                 parent.addChild(categoryResult);
             }
         }
         return rootCategories;
     }
 
-    private List<CategoryResult> createCategoryResponses(List<Category> categories) {
-        return categories.stream().map(CategoryResult::from).toList();
+    private List<CategoryResult.Detail> createCategoryResponses(List<Category> categories) {
+        return categories.stream().map(CategoryResult.Detail::from).toList();
     }
 
     // 부모 카테고리를 찾고 부모 카테고리에 속한 상품이 존재하는지 검증

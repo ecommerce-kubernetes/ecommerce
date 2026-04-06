@@ -1,8 +1,6 @@
 package com.example.product_service.api.category.controller.dto.response;
 
-import com.example.product_service.api.category.service.dto.result.CategoryNavigationResult;
 import com.example.product_service.api.category.service.dto.result.CategoryResult;
-import com.example.product_service.api.category.service.dto.result.CategoryTreeResult;
 import lombok.Builder;
 
 import java.util.List;
@@ -17,16 +15,6 @@ public class CategoryResponse {
             Integer depth,
             String imagePath
     ) {
-        public static Detail from(CategoryResult result) {
-            return Detail.builder()
-                    .id(result.getId())
-                    .name(result.getName())
-                    .parentId(result.getParentId())
-                    .depth(result.getDepth())
-                    .imagePath(result.getImagePath())
-                    .build();
-        }
-
         public static Detail from(CategoryResult.Detail result) {
             return Detail.builder()
                     .id(result.id())
@@ -47,7 +35,7 @@ public class CategoryResponse {
             String imagePath,
             List<Tree> children
     ) {
-        public static Tree from (CategoryTreeResult result) {
+        public static Tree from (CategoryResult.Tree result) {
             return Tree.builder()
                     .id(result.getId())
                     .name(result.getName())
@@ -56,6 +44,10 @@ public class CategoryResponse {
                     .imagePath(result.getImagePath())
                     .children(result.getChildren().stream().map(Tree::from).toList())
                     .build();
+        }
+
+        public static List<Tree> from(List<CategoryResult.Tree> results) {
+            return results.stream().map(Tree::from).toList();
         }
     }
 
@@ -66,12 +58,12 @@ public class CategoryResponse {
             List<Detail> siblings,
             List<Detail> children
     ) {
-        public static Navigation from(CategoryNavigationResult result) {
+        public static Navigation from(CategoryResult.Navigation result) {
             return Navigation.builder()
-                    .current(Detail.from(result.getCurrent()))
-                    .path(result.getPath().stream().map(Detail::from).toList())
-                    .siblings(result.getSiblings().stream().map(Detail::from).toList())
-                    .children(result.getChildren().stream().map(Detail::from).toList())
+                    .current(Detail.from(result.current()))
+                    .path(result.path().stream().map(Detail::from).toList())
+                    .siblings(result.siblings().stream().map(Detail::from).toList())
+                    .children(result.children().stream().map(Detail::from).toList())
                     .build();
         }
     }

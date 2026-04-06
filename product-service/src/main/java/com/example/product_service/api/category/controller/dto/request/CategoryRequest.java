@@ -54,7 +54,7 @@ public class CategoryRequest {
     }
 
     @Builder
-    public record MoveRequest(
+    public record Move(
             Long parentId
     ) { }
 }

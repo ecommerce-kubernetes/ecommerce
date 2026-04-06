@@ -3,9 +3,7 @@ package com.example.product_service.api.category.service;
 import com.example.product_service.api.category.domain.model.Category;
 import com.example.product_service.api.category.domain.repository.CategoryRepository;
 import com.example.product_service.api.category.service.dto.command.CategoryCommand;
-import com.example.product_service.api.category.service.dto.result.CategoryNavigationResult;
 import com.example.product_service.api.category.service.dto.result.CategoryResult;
-import com.example.product_service.api.category.service.dto.result.CategoryTreeResult;
 import com.example.product_service.api.common.exception.BusinessException;
 import com.example.product_service.api.common.exception.CategoryErrorCode;
 import com.example.product_service.api.product.domain.model.Product;
@@ -210,16 +208,16 @@ public class CategoryServiceTest extends ExcludeInfraTest {
             setupCategory("노트북", root1);
             setupCategory("냉장고", root1);
             //when
-            List<CategoryTreeResult> result = categoryService.getTree();
+            List<CategoryResult.Tree> result = categoryService.getTree();
             //then
-            assertThat(result).extracting(CategoryTreeResult::getName, CategoryTreeResult::getDepth, CategoryTreeResult::getImagePath)
+            assertThat(result).extracting(CategoryResult.Tree::getName, CategoryResult.Tree::getDepth, CategoryResult.Tree::getImagePath)
                     .containsExactly(
                             tuple("전자", 1, DEFAULT_IMAGE_PATH),
                             tuple("식품", 1, DEFAULT_IMAGE_PATH)
                     );
 
-            CategoryTreeResult electronics = result.getFirst();
-            assertThat(electronics.getChildren()).extracting(CategoryTreeResult::getName, CategoryTreeResult::getDepth)
+            CategoryResult.Tree electronics = result.getFirst();
+            assertThat(electronics.getChildren()).extracting(CategoryResult.Tree::getName, CategoryResult.Tree::getDepth)
                     .containsExactly(
                             tuple("노트북", 2),
                             tuple("냉장고", 2)
@@ -236,29 +234,29 @@ public class CategoryServiceTest extends ExcludeInfraTest {
             setupCategory("데스크탑", depth2);
             setupCategory("삼성", target);
             //when
-            CategoryNavigationResult result = categoryService.getNavigation(target.getId());
+            CategoryResult.Navigation result = categoryService.getNavigation(target.getId());
             //then
-            assertThat(result.getCurrent())
-                    .extracting(CategoryResult::getName, CategoryResult::getDepth)
+            assertThat(result.current())
+                    .extracting(CategoryResult.Detail::name, CategoryResult.Detail::depth)
                     .containsExactly("노트북", 3);
 
-            assertThat(result.getPath())
-                    .extracting(CategoryResult::getName, CategoryResult::getDepth)
+            assertThat(result.path())
+                    .extracting(CategoryResult.Detail::name, CategoryResult.Detail::depth)
                     .containsExactly(
                             tuple("전자", 1),
                             tuple("컴퓨터", 2),
                             tuple("노트북", 3)
                     );
 
-            assertThat(result.getSiblings())
-                    .extracting(CategoryResult::getName, CategoryResult::getDepth)
+            assertThat(result.siblings())
+                    .extracting(CategoryResult.Detail::name, CategoryResult.Detail::depth)
                     .containsExactly(
                             tuple("노트북", 3),
                             tuple("데스크탑", 3)
                     );
 
-            assertThat(result.getChildren())
-                    .extracting(CategoryResult::getName, CategoryResult::getDepth)
+            assertThat(result.children())
+                    .extracting(CategoryResult.Detail::name, CategoryResult.Detail::depth)
                     .containsExactly(
                             tuple("삼성", 4)
                     );

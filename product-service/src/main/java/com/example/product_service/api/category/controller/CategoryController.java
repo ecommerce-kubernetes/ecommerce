@@ -5,9 +5,7 @@ import com.example.product_service.api.category.controller.dto.response.Category
 import com.example.product_service.api.category.controller.dto.response.CategoryResponse.Tree;
 import com.example.product_service.api.category.service.CategoryService;
 import com.example.product_service.api.category.service.dto.command.CategoryCommand;
-import com.example.product_service.api.category.service.dto.result.CategoryNavigationResult;
 import com.example.product_service.api.category.service.dto.result.CategoryResult;
-import com.example.product_service.api.category.service.dto.result.CategoryTreeResult;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -35,14 +33,14 @@ public class CategoryController {
 
     @GetMapping("/tree")
     public ResponseEntity<List<CategoryResponse.Tree>> getCategoryTree(){
-        List<CategoryTreeResult> results = categoryService.getTree();
-        List<Tree> responses = results.stream().map(Tree::from).toList();
+        List<CategoryResult.Tree> results = categoryService.getTree();
+        List<Tree> responses = Tree.from(results);
         return ResponseEntity.ok(responses);
     }
 
     @GetMapping("/navigation/{categoryId}")
     public ResponseEntity<CategoryResponse.Navigation> getCategoryNavigation(@PathVariable("categoryId") Long categoryId) {
-        CategoryNavigationResult result = categoryService.getNavigation(categoryId);
+        CategoryResult.Navigation result = categoryService.getNavigation(categoryId);
         return ResponseEntity.ok(CategoryResponse.Navigation.from(result));
     }
 
@@ -64,7 +62,7 @@ public class CategoryController {
     @PostMapping("/{categoryId}/move")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CategoryResponse.Detail> moveParent(@PathVariable("categoryId") Long categoryId,
-                                                     @RequestBody @Validated CategoryRequest.MoveRequest request) {
+                                                     @RequestBody @Validated CategoryRequest.Move request) {
         CategoryResult.Detail result = categoryService.moveParent(categoryId, request.parentId());
         return ResponseEntity.ok(CategoryResponse.Detail.from(result));
     }

@@ -5,9 +5,7 @@ import com.example.product_service.api.category.controller.dto.request.CategoryR
 import com.example.product_service.api.category.controller.dto.response.CategoryResponse;
 import com.example.product_service.api.category.service.CategoryService;
 import com.example.product_service.api.category.service.dto.command.CategoryCommand;
-import com.example.product_service.api.category.service.dto.result.CategoryNavigationResult;
 import com.example.product_service.api.category.service.dto.result.CategoryResult;
-import com.example.product_service.api.category.service.dto.result.CategoryTreeResult;
 import com.example.product_service.docs.RestDocsSupport;
 import com.example.product_service.docs.descriptor.CategoryDescriptor;
 import org.junit.jupiter.api.DisplayName;
@@ -17,7 +15,8 @@ import org.springframework.http.MediaType;
 
 import java.util.List;
 
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willDoNothing;
 import static org.mockito.Mockito.mock;
@@ -49,17 +48,17 @@ class CategoryControllerDocsTest extends RestDocsSupport {
                 .parentId(null)
                 .imagePath("/test/image.jpg")
                 .build();
-        CategoryResult.Detail result = fixtureMonkey.giveMeBuilder(CategoryResult.Detail.class)
-                .set("id", 1L)
-                .set("name", "카테고리")
-                .set("parentId", null)
-                .set("depth", 1)
-                .set("imagePath", "/test/image.jpg")
-                .sample();
+
+        CategoryResult.Detail result = CategoryResult.Detail.builder()
+                .id(1L)
+                .name("카테고리")
+                .parentId(null)
+                .depth(1)
+                .imagePath("/test/image.jpg")
+                .build();
         HttpHeaders adminHeader = createAdminHeader();
         given(categoryService.saveCategory(any(CategoryCommand.Create.class)))
                 .willReturn(result);
-        assert result != null;
         CategoryResponse.Detail response = CategoryResponse.Detail.from(result);
         //when
         //then
@@ -83,7 +82,7 @@ class CategoryControllerDocsTest extends RestDocsSupport {
     @DisplayName("카테고리 트리 구조 조회")
     void getCategoryTree() throws Exception {
         //given
-        List<CategoryTreeResult> results = mappingTreeResponse();
+        List<CategoryResult.Tree> results = mappingTreeResponse();
         given(categoryService.getTree()).willReturn(results);
         List<CategoryResponse.Tree> response = results.stream().map(CategoryResponse.Tree::from).toList();
         //when
@@ -103,7 +102,7 @@ class CategoryControllerDocsTest extends RestDocsSupport {
     @DisplayName("카테고리 네비게이션을 조회한다")
     void getCategoryNavigation() throws Exception {
         //given
-        CategoryNavigationResult result = createNavigation();
+        CategoryResult.Navigation result = createNavigation();
         given(categoryService.getNavigation(anyLong()))
                 .willReturn(result);
         CategoryResponse.Navigation response = CategoryResponse.Navigation.from(result);
@@ -153,17 +152,18 @@ class CategoryControllerDocsTest extends RestDocsSupport {
     @DisplayName("카테고리를 수정한다")
     void updateCategory() throws Exception {
         //given
-        CategoryRequest.Update request = fixtureMonkey.giveMeBuilder(CategoryRequest.Update.class)
-                .set("name", "새 카테고리")
-                .set("imagePath", "/test/image.jpg")
-                .sample();
-        CategoryResult.Detail result = fixtureMonkey.giveMeBuilder(CategoryResult.Detail.class)
-                .set("id", 1L)
-                .set("name", "새 카테고리")
-                .set("parentId", null)
-                .set("depth", 1)
-                .set("imagePath", "/test/image.jpg")
-                .sample();
+        CategoryRequest.Update request = CategoryRequest.Update.builder()
+                .name("새 카테고리")
+                .imagePath("/test/image.jpg")
+                .build();
+
+        CategoryResult.Detail result = CategoryResult.Detail.builder()
+                .id(1L)
+                .name("새 카테고리")
+                .parentId(null)
+                .depth(1)
+                .imagePath("/test/image.jpg")
+                .build();
         HttpHeaders adminHeader = createAdminHeader();
         given(categoryService.updateCategory(any(CategoryCommand.Update.class))).willReturn(result);
         assert result != null;
@@ -190,9 +190,9 @@ class CategoryControllerDocsTest extends RestDocsSupport {
     @DisplayName("카테고리의 부모를 변경한다")
     void moveParent() throws Exception {
         //given
-        CategoryRequest.MoveRequest request = fixtureMonkey.giveMeBuilder(CategoryRequest.MoveRequest.class)
-                .set("parentId", 1L)
-                .sample();
+        CategoryRequest.Move request = CategoryRequest.Move.builder()
+                .parentId(1L)
+                .build();
         CategoryResult.Detail result = CategoryResult.Detail.builder()
                 .id(2L)
                 .name("자식 카테고리")
@@ -241,14 +241,14 @@ class CategoryControllerDocsTest extends RestDocsSupport {
                 );
     }
 
-    private CategoryNavigationResult createNavigation() {
-        CategoryResult electron = createCategoryResponse().id(1L).name("전자기기").parentId(null).depth(1).imagePath("/test/electron.jpg").build();
-        CategoryResult laptop = createCategoryResponse().id(2L).name("노트북").parentId(1L).depth(2).imagePath("/test/laptop.jpg").build();
-        CategoryResult desktop = createCategoryResponse().id(3L).name("데스크탑").parentId(1L).depth(2).imagePath("/test/desktop.jpg").build();
-        CategoryResult light = createCategoryResponse().id(4L).name("경량 노트북").parentId(2L).depth(3).imagePath("/test/lightLaptop.jpg").build();
-        CategoryResult gaming = createCategoryResponse().id(5L).name("게이밍 노트북").parentId(2L).depth(3).imagePath("/test/gamingLaptop.jpg").build();
+    private CategoryResult.Navigation createNavigation() {
+        CategoryResult.Detail electron = createCategoryResponse().id(1L).name("전자기기").parentId(null).depth(1).imagePath("/test/electron.jpg").build();
+        CategoryResult.Detail laptop = createCategoryResponse().id(2L).name("노트북").parentId(1L).depth(2).imagePath("/test/laptop.jpg").build();
+        CategoryResult.Detail desktop = createCategoryResponse().id(3L).name("데스크탑").parentId(1L).depth(2).imagePath("/test/desktop.jpg").build();
+        CategoryResult.Detail light = createCategoryResponse().id(4L).name("경량 노트북").parentId(2L).depth(3).imagePath("/test/lightLaptop.jpg").build();
+        CategoryResult.Detail gaming = createCategoryResponse().id(5L).name("게이밍 노트북").parentId(2L).depth(3).imagePath("/test/gamingLaptop.jpg").build();
 
-        return  CategoryNavigationResult.builder()
+        return  CategoryResult.Navigation.builder()
                 .current(laptop)
                 .path(List.of(electron, laptop))
                 .siblings(List.of(desktop))
@@ -256,25 +256,25 @@ class CategoryControllerDocsTest extends RestDocsSupport {
                 .build();
     }
 
-    private List<CategoryTreeResult> mappingTreeResponse() {
-        CategoryTreeResult electron = createCategoryTreeResponse(1L, "전자기기", null, 1, "/test/electron.jpg");
-        CategoryTreeResult laptop = createCategoryTreeResponse(3L, "노트북", 1L, 2, "/test/laptop.jpg");
-        CategoryTreeResult cellPhone = createCategoryTreeResponse(4L, "핸드폰", 1L, 2, "/test/cellPhone.jpg");
+    private List<CategoryResult.Tree> mappingTreeResponse() {
+        CategoryResult.Tree electron = createCategoryTreeResponse(1L, "전자기기", null, 1, "/test/electron.jpg");
+        CategoryResult.Tree laptop = createCategoryTreeResponse(3L, "노트북", 1L, 2, "/test/laptop.jpg");
+        CategoryResult.Tree cellPhone = createCategoryTreeResponse(4L, "핸드폰", 1L, 2, "/test/cellPhone.jpg");
         electron.addChild(laptop);
         electron.addChild(cellPhone);
 
-        CategoryTreeResult food = createCategoryTreeResponse(2L, "식품", null, 1, "/test/food.jpg");
-        CategoryTreeResult meat = createCategoryTreeResponse(5L, "육류", 2L, 2, "/test/meat.jpg");
-        CategoryTreeResult vegetable = createCategoryTreeResponse(6L, "채소류", 2L, 2, "/test/vegetable.jpg");
+        CategoryResult.Tree food = createCategoryTreeResponse(2L, "식품", null, 1, "/test/food.jpg");
+        CategoryResult.Tree meat = createCategoryTreeResponse(5L, "육류", 2L, 2, "/test/meat.jpg");
+        CategoryResult.Tree vegetable = createCategoryTreeResponse(6L, "채소류", 2L, 2, "/test/vegetable.jpg");
         food.addChild(meat);
         food.addChild(vegetable);
         return List.of(electron, food);
     }
 
-    private CategoryTreeResult createCategoryTreeResponse(Long id, String name, Long parentId, int depth,
+    private CategoryResult.Tree createCategoryTreeResponse(Long id, String name, Long parentId, int depth,
                                                           String imagePath) {
 
-        return CategoryTreeResult.builder()
+        return CategoryResult.Tree.builder()
                 .id(id)
                 .name(name)
                 .parentId(parentId)
@@ -284,8 +284,8 @@ class CategoryControllerDocsTest extends RestDocsSupport {
     }
 
 
-    private CategoryResult.CategoryResultBuilder createCategoryResponse() {
-        return CategoryResult.builder()
+    private CategoryResult.Detail.DetailBuilder createCategoryResponse() {
+        return CategoryResult.Detail.builder()
                 .id(1L)
                 .name("카테고리")
                 .parentId(null)

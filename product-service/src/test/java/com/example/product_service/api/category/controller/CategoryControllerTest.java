@@ -3,9 +3,7 @@ package com.example.product_service.api.category.controller;
 import com.example.product_service.api.category.controller.dto.request.CategoryRequest;
 import com.example.product_service.api.category.controller.dto.response.CategoryResponse;
 import com.example.product_service.api.category.service.dto.command.CategoryCommand;
-import com.example.product_service.api.category.service.dto.result.CategoryNavigationResult;
 import com.example.product_service.api.category.service.dto.result.CategoryResult;
-import com.example.product_service.api.category.service.dto.result.CategoryTreeResult;
 import com.example.product_service.api.common.security.model.UserRole;
 import com.example.product_service.support.ControllerTestSupport;
 import com.example.product_service.support.security.annotation.WithCustomMockUser;
@@ -22,7 +20,8 @@ import org.springframework.http.MediaType;
 import java.util.List;
 import java.util.stream.Stream;
 
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -170,7 +169,7 @@ class CategoryControllerTest extends ControllerTestSupport {
         @DisplayName("카테고리 트리를 조회한다")
         void getCategoryTree() throws Exception {
             //given
-            List<CategoryTreeResult> results = fixtureMonkey.giveMe(CategoryTreeResult.class, 3);
+            List<CategoryResult.Tree> results = fixtureMonkey.giveMe(CategoryResult.Tree.class, 3);
             given(categoryService.getTree()).willReturn(results);
             List<CategoryResponse.Tree> responses = results.stream().map(CategoryResponse.Tree::from).toList();
             //when
@@ -189,7 +188,7 @@ class CategoryControllerTest extends ControllerTestSupport {
         @DisplayName("카테고리 네비게이션을 조회한다")
         void getCategoryNavigation() throws Exception {
             //given
-            CategoryNavigationResult result = fixtureMonkey.giveMeOne(CategoryNavigationResult.class);
+            CategoryResult.Navigation result = fixtureMonkey.giveMeOne(CategoryResult.Navigation.class);
             assert result != null;
             CategoryResponse.Navigation response = CategoryResponse.Navigation.from(result);
             given(categoryService.getNavigation(anyLong()))
@@ -319,7 +318,7 @@ class CategoryControllerTest extends ControllerTestSupport {
         @WithCustomMockUser
         void moveParent() throws Exception {
             //given
-            CategoryRequest.MoveRequest request = fixtureMonkey.giveMeBuilder(CategoryRequest.MoveRequest.class)
+            CategoryRequest.Move request = fixtureMonkey.giveMeBuilder(CategoryRequest.Move.class)
                     .set("parentId", 1L)
                     .sample();
             CategoryResult.Detail result = fixtureMonkey.giveMeOne(CategoryResult.Detail.class);
@@ -341,7 +340,7 @@ class CategoryControllerTest extends ControllerTestSupport {
         @WithCustomMockUser(userRole = UserRole.ROLE_USER)
         void moveParentWhenUserRole() throws Exception {
             //given
-            CategoryRequest.MoveRequest request = fixtureMonkey.giveMeBuilder(CategoryRequest.MoveRequest.class)
+            CategoryRequest.Move request = fixtureMonkey.giveMeBuilder(CategoryRequest.Move.class)
                     .set("parentId", 1L)
                     .sample();
             //when
@@ -361,7 +360,7 @@ class CategoryControllerTest extends ControllerTestSupport {
         @DisplayName("로그인 하지 않은 유저는 카테고리 부모를 변경할 수 없다")
         void moveParent_unAuthentication() throws Exception {
             //given
-            CategoryRequest.MoveRequest request = fixtureMonkey.giveMeBuilder(CategoryRequest.MoveRequest.class)
+            CategoryRequest.Move request = fixtureMonkey.giveMeBuilder(CategoryRequest.Move.class)
                     .set("parentId", 1L)
                     .sample();
             //when
