@@ -1,12 +1,12 @@
 package com.example.product_service.docs.option;
 
 import com.example.product_service.api.option.controller.OptionController;
-import com.example.product_service.api.option.controller.dto.OptionRequest.CreateRequest;
-import com.example.product_service.api.option.controller.dto.OptionRequest.OptionValueRequest;
-import com.example.product_service.api.option.controller.dto.OptionRequest.UpdateRequest;
+import com.example.product_service.api.option.controller.dto.request.OptionRequest;
+import com.example.product_service.api.option.controller.dto.response.OptionResponse;
 import com.example.product_service.api.option.service.OptionService;
-import com.example.product_service.api.option.service.dto.OptionResponse;
-import com.example.product_service.api.option.service.dto.OptionValueResponse;
+import com.example.product_service.api.option.service.dto.command.OptionCommand;
+import com.example.product_service.api.option.service.dto.result.OptionResult;
+import com.example.product_service.api.option.service.dto.result.OptionValueResult;
 import com.example.product_service.docs.RestDocsSupport;
 import com.example.product_service.docs.descriptor.OptionDescriptor;
 import org.junit.jupiter.api.DisplayName;
@@ -23,6 +23,7 @@ import static org.mockito.BDDMockito.willDoNothing;
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class OptionControllerDocsTest extends RestDocsSupport {
@@ -41,18 +42,17 @@ class OptionControllerDocsTest extends RestDocsSupport {
     @DisplayName("옵션을 저장한다")
     void saveOption() throws Exception {
         //given
-        CreateRequest request = fixtureMonkey.giveMeBuilder(CreateRequest.class)
-                .set("name", "사이즈")
-                .set("values", List.of(
-                        OptionValueRequest.builder()
-                                .name("XL")
-                                .build()
-                ))
-                .sample();
-        OptionResponse response = createOptionResponse().build();
+        OptionRequest.Create request = OptionRequest.Create.builder()
+                .name("사이즈")
+                .values(
+                        List.of(OptionRequest.Value.builder()
+                                .name("XL").build())
+                ).build();
+        OptionResult result = createOptionResponse().build();
+        OptionResponse.Detail response = OptionResponse.Detail.from(result);
         HttpHeaders adminHeader = createAdminHeader();
-        given(optionService.saveOption(anyString(), anyList()))
-                .willReturn(response);
+        given(optionService.saveOption(any(OptionCommand.Create.class)))
+                .willReturn(result);
         //when
         //then
         mockMvc.perform(post("/options")
@@ -61,6 +61,7 @@ class OptionControllerDocsTest extends RestDocsSupport {
                         .headers(adminHeader))
                 .andDo(print())
                 .andExpect(status().isCreated())
+                .andExpect(content().json(objectMapper.writeValueAsString(response)))
                 .andDo(createSecuredDocument(
                         "02-option-01-create",
                         "옵션 생성",
@@ -74,14 +75,16 @@ class OptionControllerDocsTest extends RestDocsSupport {
     @DisplayName("옵션을 조회한다")
     void getOption() throws Exception {
         //given
-        OptionResponse response = createOptionResponse().build();
+        OptionResult result = createOptionResponse().build();
+        OptionResponse.Detail response = OptionResponse.Detail.from(result);
         given(optionService.getOption(anyLong()))
-                .willReturn(response);
+                .willReturn(result);
         //when
         //then
         mockMvc.perform(get("/options/{optionTypeId}", 1L))
                 .andDo(print())
                 .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(response)))
                 .andDo(createPublicDocument(
                         "02-option-02-get",
                         "옵션 조회",
@@ -95,14 +98,16 @@ class OptionControllerDocsTest extends RestDocsSupport {
     @DisplayName("옵션 목록을 조회한다")
     void getOptions() throws Exception {
         //given
-        OptionResponse response = createOptionResponse().build();
+        OptionResult result = createOptionResponse().build();
         given(optionService.getOptions())
-                .willReturn(List.of(response));
+                .willReturn(List.of(result));
+        OptionResponse.Detail response = OptionResponse.Detail.from(result);
         //when
         //then
         mockMvc.perform(get("/options"))
                 .andDo(print())
                 .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(List.of(response))))
                 .andDo(createPublicDocument(
                         "02-option-03-get-list",
                         "옵션 목록 조회",
@@ -115,12 +120,13 @@ class OptionControllerDocsTest extends RestDocsSupport {
     @DisplayName("옵션을 수정한다")
     void updateOptionType() throws Exception {
         //given
-        UpdateRequest request = fixtureMonkey.giveMeBuilder(UpdateRequest.class)
+        OptionRequest.UpdateOptionType request = fixtureMonkey.giveMeBuilder(OptionRequest.UpdateOptionType.class)
                 .set("name", "새 이름")
                 .sample();
-        OptionResponse response = createOptionResponse().name("새 이름").build();
-        given(optionService.updateOptionTypeName(anyLong(), anyString()))
-                .willReturn(response);
+        OptionResult result = createOptionResponse().name("새 이름").build();
+        OptionResponse.Detail response = OptionResponse.Detail.from(result);
+        given(optionService.updateOptionTypeName(any(OptionCommand.UpdateOptionType.class)))
+                .willReturn(result);
         HttpHeaders adminHeader = createAdminHeader();
         //when
         //then
@@ -130,6 +136,7 @@ class OptionControllerDocsTest extends RestDocsSupport {
                         .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
                 .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(response)))
                 .andDo(createSecuredDocument("02-option-04-update",
                         "옵션 타입 수정",
                         "옵션 타입 이름을 수정한다",
@@ -162,12 +169,13 @@ class OptionControllerDocsTest extends RestDocsSupport {
     @DisplayName("옵션 값 수정")
     void updateOptionValue() throws Exception {
         //given
-        UpdateRequest request = fixtureMonkey.giveMeBuilder(UpdateRequest.class)
+        OptionRequest.UpdateOptionValue request = fixtureMonkey.giveMeBuilder(OptionRequest.UpdateOptionValue.class)
                 .set("name", "새 이름")
                 .sample();
-        OptionValueResponse response = createOptionValueResponse().name("새 이름").build();
-        given(optionService.updateOptionValueName(anyLong(), anyString()))
-                .willReturn(response);
+        OptionValueResult result = createOptionValueResponse().name("새 이름").build();
+        given(optionService.updateOptionValueName(any(OptionCommand.UpdateOptionValue.class)))
+                .willReturn(result);
+        OptionResponse.Value response = OptionResponse.Value.from(result);
         HttpHeaders adminHeader = createAdminHeader();
         //when
         //then
@@ -177,6 +185,7 @@ class OptionControllerDocsTest extends RestDocsSupport {
                         .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
                 .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(response)))
                 .andDo(createSecuredDocument("02-option-06-update-value",
                                 "옵션 값 수정",
                                 "옵션 값 이름을 수정한다",
@@ -205,21 +214,21 @@ class OptionControllerDocsTest extends RestDocsSupport {
                 );
     }
 
-    private OptionResponse.OptionResponseBuilder createOptionResponse() {
-        return OptionResponse.builder()
+    private OptionResult.OptionResultBuilder createOptionResponse() {
+        return OptionResult.builder()
                 .id(1L)
                 .name("사이즈")
                 .values(
                         List.of(
-                                OptionValueResponse.builder().id(1L).name("XL").build(),
-                                OptionValueResponse.builder().id(2L).name("L").build(),
-                                OptionValueResponse.builder().id(3L).name("M").build(),
-                                OptionValueResponse.builder().id(4L).name("S").build()
+                                OptionValueResult.builder().id(1L).name("XL").build(),
+                                OptionValueResult.builder().id(2L).name("L").build(),
+                                OptionValueResult.builder().id(3L).name("M").build(),
+                                OptionValueResult.builder().id(4L).name("S").build()
                         ));
     }
 
-    private OptionValueResponse.OptionValueResponseBuilder createOptionValueResponse() {
-        return OptionValueResponse.builder()
+    private OptionValueResult.OptionValueResultBuilder createOptionValueResponse() {
+        return OptionValueResult.builder()
                 .id(1L)
                 .name("XL");
     }

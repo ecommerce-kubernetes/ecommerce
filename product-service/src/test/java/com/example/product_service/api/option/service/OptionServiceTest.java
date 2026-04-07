@@ -7,8 +7,9 @@ import com.example.product_service.api.common.exception.OptionErrorCode;
 import com.example.product_service.api.option.domain.model.OptionType;
 import com.example.product_service.api.option.domain.model.OptionValue;
 import com.example.product_service.api.option.domain.repository.OptionTypeRepository;
-import com.example.product_service.api.option.service.dto.OptionResponse;
-import com.example.product_service.api.option.service.dto.OptionValueResponse;
+import com.example.product_service.api.option.service.dto.command.OptionCommand;
+import com.example.product_service.api.option.service.dto.result.OptionResult;
+import com.example.product_service.api.option.service.dto.result.OptionValueResult;
 import com.example.product_service.api.product.domain.model.Product;
 import com.example.product_service.api.product.domain.model.ProductVariant;
 import com.example.product_service.api.product.domain.repository.ProductRepository;
@@ -40,7 +41,7 @@ public class OptionServiceTest extends ExcludeInfraTest {
     @Autowired
     private EntityManager em;
 
-    private OptionType saveOption(String name, List<String> values) {
+    private OptionType saveTestOption(String name, List<String> values) {
         OptionType optionType = OptionType.create(name, values);
         return optionTypeRepository.save(optionType);
     }
@@ -69,14 +70,17 @@ public class OptionServiceTest extends ExcludeInfraTest {
         @DisplayName("옵션을 저장한다")
         void saveOption(){
             //given
-            List<String> optionValues = List.of("XL", "L", "M", "S");
+            OptionCommand.Create command = OptionCommand.Create.builder()
+                    .name("사이즈")
+                    .valueNames(List.of("XL", "L", "M", "S"))
+                    .build();
             //when
-            OptionResponse result = optionService.saveOption("사이즈", optionValues);
+            OptionResult result = optionService.saveOption(command);
             //then
             assertThat(result.getId()).isNotNull();
             assertThat(result.getName()).isEqualTo("사이즈");
             assertThat(result.getValues()).hasSize(4)
-                    .extracting(OptionValueResponse::getName)
+                    .extracting(OptionValueResult::getName)
                     .containsExactly("XL", "L", "M", "S");
         }
 
@@ -84,11 +88,14 @@ public class OptionServiceTest extends ExcludeInfraTest {
         @DisplayName("동일한 이름을 가진 옵션 타입은 생성할 수 없다")
         void saveOption_duplicate_name(){
             //given
-            OptionServiceTest.this.saveOption("사이즈", List.of("XL", "L"));
-            List<String> newValues = List.of("M", "S");
+            OptionCommand.Create command = OptionCommand.Create.builder()
+                    .name("사이즈")
+                    .valueNames(List.of("XL", "L", "M", "S"))
+                    .build();
+            saveTestOption("사이즈", List.of("XL", "L"));
             //when
             //then
-            assertThatThrownBy(() -> optionService.saveOption("사이즈", newValues))
+            assertThatThrownBy(() -> optionService.saveOption(command))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(OptionErrorCode.DUPLICATE_NAME);
@@ -105,14 +112,14 @@ public class OptionServiceTest extends ExcludeInfraTest {
             OptionType optionType = OptionType.create("사이즈", List.of("XL", "L", "M", "S"));
             OptionType savedOptionType = optionTypeRepository.save(optionType);
             //when
-            OptionResponse result = optionService.getOption(savedOptionType.getId());
+            OptionResult result = optionService.getOption(savedOptionType.getId());
             //then
             assertThat(result)
-                    .extracting(OptionResponse::getId, OptionResponse::getName)
+                    .extracting(OptionResult::getId, OptionResult::getName)
                     .containsExactly(savedOptionType.getId(), "사이즈");
 
             assertThat(result.getValues())
-                    .extracting(OptionValueResponse::getName)
+                    .extracting(OptionValueResult::getName)
                     .containsExactlyInAnyOrder(
                             "XL", "L", "M", "S"
                     );
@@ -138,30 +145,30 @@ public class OptionServiceTest extends ExcludeInfraTest {
             OptionType storage = OptionType.create("용량", List.of("256GB", "128GB", "64GB"));
             optionTypeRepository.saveAll(List.of(size, storage));
             //when
-            List<OptionResponse> result = optionService.getOptions();
+            List<OptionResult> result = optionService.getOptions();
             //then
             assertThat(result).hasSize(2);
 
             // 1. 사이즈 옵션 검증
-            OptionResponse sizeResponse = result.stream()
+            OptionResult sizeResponse = result.stream()
                     .filter(r -> r.getName().equals("사이즈"))
                     .findFirst()
                     .orElseThrow();
 
             assertThat(sizeResponse.getId()).isEqualTo(size.getId());
             assertThat(sizeResponse.getValues())
-                    .extracting(OptionValueResponse::getName)
+                    .extracting(OptionValueResult::getName)
                     .containsExactlyInAnyOrder("XL", "L", "M", "S");
 
             // 2. 용량 옵션 검증
-            OptionResponse storageResponse = result.stream()
+            OptionResult storageResponse = result.stream()
                     .filter(r -> r.getName().equals("용량"))
                     .findFirst()
                     .orElseThrow();
 
             assertThat(storageResponse.getId()).isEqualTo(storage.getId());
             assertThat(storageResponse.getValues())
-                    .extracting(OptionValueResponse::getName)
+                    .extracting(OptionValueResult::getName)
                     .containsExactlyInAnyOrder("256GB", "128GB", "64GB");
         }
     }
@@ -174,14 +181,18 @@ public class OptionServiceTest extends ExcludeInfraTest {
         @DisplayName("옵션 이름을 수정한다")
         void updateOptionTypeName(){
             //given
-            OptionType optionType = saveOption("사이즈", List.of("XL", "L", "M", "S"));
+            OptionType optionType = saveTestOption("사이즈", List.of("XL", "L", "M", "S"));
+            OptionCommand.UpdateOptionType command = OptionCommand.UpdateOptionType.builder()
+                    .id(optionType.getId())
+                    .name("용량")
+                    .build();
             //when
-            OptionResponse result = optionService.updateOptionTypeName(optionType.getId(), "용량");
+            OptionResult result = optionService.updateOptionTypeName(command);
             //then
             assertThat(result.getId()).isEqualTo(optionType.getId());
             assertThat(result.getName()).isEqualTo("용량");
             assertThat(result.getValues()).hasSize(4)
-                    .extracting(OptionValueResponse::getName)
+                    .extracting(OptionValueResult::getName)
                     .containsExactly("XL", "L", "M", "S");
         }
 
@@ -189,9 +200,13 @@ public class OptionServiceTest extends ExcludeInfraTest {
         @DisplayName("수정할 옵션을 찾을 수 없으면 옵션 이름을 수정할 수 없다")
         void updateOptionTypeName_notFound(){
             //given
+            OptionCommand.UpdateOptionType command = OptionCommand.UpdateOptionType.builder()
+                    .id(999L)
+                    .name("새 이름")
+                    .build();
             //when
             //then
-            assertThatThrownBy(() -> optionService.updateOptionTypeName(999L, "새 이름"))
+            assertThatThrownBy(() -> optionService.updateOptionTypeName(command))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(OptionErrorCode.OPTION_NOT_FOUND);
@@ -201,12 +216,15 @@ public class OptionServiceTest extends ExcludeInfraTest {
         @DisplayName("동일한 이름의 옵션이 있는 경우 옵션 이름을 수정할 수 없다")
         void updateOptionTypeName_duplicate_name(){
             //given
-            OptionType optionType = saveOption("사이즈", List.of("XL", "L", "M"));
-            saveOption("용량", List.of("256GB"));
-            Long targetId = optionType.getId();
+            OptionType optionType = saveTestOption("사이즈", List.of("XL", "L", "M"));
+            saveTestOption("용량", List.of("256GB"));
+            OptionCommand.UpdateOptionType command = OptionCommand.UpdateOptionType.builder()
+                    .id(optionType.getId())
+                    .name("용량")
+                    .build();
             //when
             //then
-            assertThatThrownBy(() -> optionService.updateOptionTypeName(targetId, "용량"))
+            assertThatThrownBy(() -> optionService.updateOptionTypeName(command))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(OptionErrorCode.DUPLICATE_NAME);
@@ -216,9 +234,13 @@ public class OptionServiceTest extends ExcludeInfraTest {
         @DisplayName("옵션 값을 찾을 수 없는 경우 옵션 값 이름을 수정할 수 없다")
         void updateOptionValueName_not_found_option_value(){
             //given
+            OptionCommand.UpdateOptionValue command = OptionCommand.UpdateOptionValue.builder()
+                    .id(999L)
+                    .name("새 이름")
+                    .build();
             //when
             //then
-            assertThatThrownBy(() -> optionService.updateOptionValueName(999L, "새 이름"))
+            assertThatThrownBy(() -> optionService.updateOptionValueName(command))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(OptionErrorCode.OPTION_VALUE_NOT_FOUND);
@@ -228,12 +250,15 @@ public class OptionServiceTest extends ExcludeInfraTest {
         @DisplayName("옵션에 동일한 옵션 값이 있는 경우 옵션 값 이름을 수정할 수 없다")
         void updateOptionValueName_duplicate_name(){
             //given
-            OptionType size = saveOption("사이즈", List.of("XL", "L"));
+            OptionType size = saveTestOption("사이즈", List.of("XL", "L"));
             OptionValue xl = findOptionValue(size, "XL");
-            Long targetId = xl.getId();
+            OptionCommand.UpdateOptionValue command = OptionCommand.UpdateOptionValue.builder()
+                    .id(xl.getId())
+                    .name("L")
+                    .build();
             //when
             //then
-            assertThatThrownBy(() -> optionService.updateOptionValueName(targetId, "L"))
+            assertThatThrownBy(() -> optionService.updateOptionValueName(command))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(OptionErrorCode.OPTION_VALUE_DUPLICATE_NAME);
@@ -248,7 +273,7 @@ public class OptionServiceTest extends ExcludeInfraTest {
         @DisplayName("옵션을 삭제한다")
         void deleteOption(){
             //given
-            OptionType optionType = saveOption("사이즈", List.of("XL", "L"));
+            OptionType optionType = saveTestOption("사이즈", List.of("XL", "L"));
             //when
             optionService.deleteOption(optionType.getId());
             //then
@@ -272,7 +297,7 @@ public class OptionServiceTest extends ExcludeInfraTest {
         @DisplayName("삭제할 옵션이 설정된 상품이 있는 경우 삭제할 수 없다")
         void deleteOption_option_used_by_product(){
             //given
-            OptionType size = saveOption("사이즈", List.of("XL", "L"));
+            OptionType size = saveTestOption("사이즈", List.of("XL", "L"));
             OptionValue xl = findOptionValue(size, "XL");
             settingProductOption(size, xl);
             Long targetId = size.getId();
@@ -288,7 +313,7 @@ public class OptionServiceTest extends ExcludeInfraTest {
         @DisplayName("옵션 값을 삭제한다")
         void deleteOptionValue() {
             //given
-            OptionType optionType = saveOption("사이즈", List.of("XL", "L"));
+            OptionType optionType = saveTestOption("사이즈", List.of("XL", "L"));
             OptionValue xl = findOptionValue(optionType, "XL");
             OptionValue l = findOptionValue(optionType, "L");
             em.flush();
@@ -308,7 +333,7 @@ public class OptionServiceTest extends ExcludeInfraTest {
         @DisplayName("옵션 값이 상품 변형에 사용중이면 삭제할 수 없다")
         void deleteOptionValue_used_product_variant_option() {
             //given
-            OptionType optionType = saveOption("사이즈", List.of("XL", "L"));
+            OptionType optionType = saveTestOption("사이즈", List.of("XL", "L"));
             OptionValue xl = findOptionValue(optionType, "XL");
             settingProductOption(optionType, xl);
             Long targetId = xl.getId();
