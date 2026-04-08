@@ -3,12 +3,17 @@ package com.example.product_service.api.product.controller;
 import com.example.product_service.api.common.dto.PageDto;
 import com.example.product_service.api.product.controller.dto.ProductSearchCondition;
 import com.example.product_service.api.product.controller.dto.request.ProductRequest;
-import com.example.product_service.api.product.controller.dto.request.ProductRequest.*;
-import com.example.product_service.api.product.controller.dto.response.ProductResponse.*;
+import com.example.product_service.api.product.controller.dto.request.ProductRequest.AddDescriptionImageRequest;
+import com.example.product_service.api.product.controller.dto.request.ProductRequest.AddImageRequest;
+import com.example.product_service.api.product.controller.dto.request.ProductRequest.UpdateRequest;
+import com.example.product_service.api.product.controller.dto.response.ProductResponse;
+import com.example.product_service.api.product.controller.dto.response.ProductResponse.AddDescriptionImageResponse;
+import com.example.product_service.api.product.controller.dto.response.ProductResponse.AddImageResponse;
+import com.example.product_service.api.product.controller.dto.response.ProductResponse.CloseResponse;
+import com.example.product_service.api.product.controller.dto.response.ProductResponse.PublishResponse;
 import com.example.product_service.api.product.service.ProductService;
-import com.example.product_service.api.product.service.dto.command.ProductCreateCommand;
+import com.example.product_service.api.product.service.dto.command.ProductCommand;
 import com.example.product_service.api.product.service.dto.command.ProductUpdateCommand;
-import com.example.product_service.api.product.service.dto.command.ProductVariantsCreateCommand;
 import com.example.product_service.api.product.service.dto.result.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -28,31 +33,31 @@ public class ProductController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<CreateResponse> createProduct(@RequestBody @Validated CreateRequest request) {
-        ProductCreateCommand command = request.toCommand();
-        ProductCreateResult result = productService.createProduct(command);
-        CreateResponse response = CreateResponse.from(result);
+    public ResponseEntity<ProductResponse.Create> createProduct(@RequestBody @Validated ProductRequest.Create request) {
+
+        ProductCommand.Create command = request.toCommand();
+        ProductResult.Create result = productService.createProduct(command);
+        ProductResponse.Create response = ProductResponse.Create.from(result);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PutMapping("/{productId}/options")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<OptionRegisterResponse> registerProductOption(@PathVariable("productId") Long productId,
-                                                                        @RequestBody @Validated OptionRegisterRequest request) {
-        //TODO 옵션 Command 객체 넘기는 방식으로 변경
-        List<Long> list = request.options().stream().map(ProductRequest.ProductOptionRequest::optionTypeId).toList();
-        ProductOptionResponse result = productService.defineOptions(productId, list);
-        OptionRegisterResponse response = OptionRegisterResponse.from(result);
+    public ResponseEntity<ProductResponse.OptionRegister> registerProductOption(@PathVariable("productId") Long productId,
+                                                                                @RequestBody @Validated ProductRequest.OptionRegister request) {
+        ProductCommand.OptionRegister command = request.toCommand(productId);
+        ProductResult.OptionRegister result = productService.defineOptions(command);
+        ProductResponse.OptionRegister response = ProductResponse.OptionRegister.from(result);
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/{productId}/variants")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<AddVariantResponse> addVariants(@PathVariable("productId") Long productId,
-                                                          @RequestBody @Validated AddVariantRequest request) {
-        ProductVariantsCreateCommand command = request.toCommand(productId);
-        AddVariantResult result = productService.createVariants(command);
-        AddVariantResponse response = AddVariantResponse.from(result);
+    public ResponseEntity<ProductResponse.AddVariant> addVariants(@PathVariable("productId") Long productId,
+                                                  @RequestBody @Validated ProductRequest.AddVariant request) {
+        ProductCommand.AddVariant command = request.toCommand(productId);
+        ProductResult.AddVariant result = productService.createVariants(command);
+        ProductResponse.AddVariant response = ProductResponse.AddVariant.from(result);
         return ResponseEntity.ok(response);
     }
 

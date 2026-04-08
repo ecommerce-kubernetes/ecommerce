@@ -15,9 +15,8 @@ import com.example.product_service.api.product.controller.dto.ProductSearchCondi
 import com.example.product_service.api.product.domain.model.Product;
 import com.example.product_service.api.product.domain.model.ProductVariant;
 import com.example.product_service.api.product.domain.repository.ProductRepository;
-import com.example.product_service.api.product.service.dto.command.ProductCreateCommand;
+import com.example.product_service.api.product.service.dto.command.ProductCommand;
 import com.example.product_service.api.product.service.dto.command.ProductUpdateCommand;
-import com.example.product_service.api.product.service.dto.command.ProductVariantsCreateCommand;
 import com.example.product_service.api.product.service.dto.result.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -42,40 +41,40 @@ public class ProductService {
     private final OptionValueRepository optionValueRepository;
     private final SkuGenerator skuGenerator;
 
-    public ProductCreateResult createProduct(ProductCreateCommand command) {
-        Category category = findCategoryByIdOrThrow(command.getCategoryId());
-        Product product = Product.create(command.getName(), command.getDescription(), category);
+    public ProductResult.Create createProduct(ProductCommand.Create command) {
+        Category category = findCategoryByIdOrThrow(command.categoryId());
+        Product product = Product.create(command.name(), command.description(), category);
         Product savedProduct = productRepository.save(product);
-        return ProductCreateResult.from(savedProduct);
+        return ProductResult.Create.from(savedProduct);
     }
 
-    public ProductOptionResponse defineOptions(Long productId, List<Long> optionTypeIds) {
-        Product product = findProductByIdOrThrow(productId);
-        List<OptionType> optionTypes = findOptionTypes(optionTypeIds);
+    public ProductResult.OptionRegister defineOptions(ProductCommand.OptionRegister command) {
+        Product product = findProductByIdOrThrow(command.productId());
+        List<OptionType> optionTypes = findOptionTypes(command.optionTypeIds());
         product.updateOptions(optionTypes);
-        return ProductOptionResponse.of(product.getId(), product.getOptions());
+        return ProductResult.OptionRegister.from(product);
     }
 
-    public AddVariantResult createVariants(ProductVariantsCreateCommand command) {
+    public ProductResult.AddVariant createVariants(ProductCommand.AddVariant command) {
         // 동일한 옵션 조합의 상품 변형이 존재하는지 검증
-        validateRequestUniqueCombination(command.getVariants());
-        Product product = findProductByIdOrThrow(command.getProductId());
-        Map<Long, OptionValue> variantOptionMap = findAndMapOptionValues(command.getVariants());
+        validateRequestUniqueCombination(command.variants());
+        Product product = findProductByIdOrThrow(command.productId());
+        Map<Long, OptionValue> variantOptionMap = findAndMapOptionValues(command.variants());
 
         //새로 추가되는 상품 변형
         List<ProductVariant> newlyCreatedVariants = new ArrayList<>();
-        for (ProductVariantsCreateCommand.VariantDetail variantReq : command.getVariants()) {
+        for (ProductCommand.VariantDetail variantReq : command.variants()) {
             // 요청 variant 의 optionValue를 찾음
-            List<OptionValue> optionValues = mapToOptionValues(variantReq.getOptionValueIds(), variantOptionMap);
+            List<OptionValue> optionValues = mapToOptionValues(variantReq.optionValueIds(), variantOptionMap);
             // ProductVariant 생성
             String sku = skuGenerator.generate(product, optionValues);
-            ProductVariant variant = ProductVariant.create(sku, variantReq.getOriginalPrice(), variantReq.getStockQuantity(), variantReq.getDiscountRate());
+            ProductVariant variant = ProductVariant.create(sku, variantReq.originalPrice(), variantReq.stockQuantity(), variantReq.discountRate());
             variant.addProductVariantOptions(optionValues);
             product.addVariant(variant);
             newlyCreatedVariants.add(variant);
         }
         productRepository.flush();
-        return AddVariantResult.of(product.getId(), newlyCreatedVariants);
+        return ProductResult.AddVariant.of(product.getId(), newlyCreatedVariants);
     }
 
     public ProductImageCreateResult updateImages(Long productId, List<String> images) {
@@ -157,9 +156,9 @@ public class ProductService {
     }
 
     // 동일한 옵션 조합을 가진 상품 변형이 있는지 검증
-    private void validateRequestUniqueCombination(List<ProductVariantsCreateCommand.VariantDetail> variants){
+    private void validateRequestUniqueCombination(List<ProductCommand.VariantDetail> variants){
         long distinctRequestCount = variants.stream()
-                .map(v -> new HashSet<>(v.getOptionValueIds()))
+                .map(v -> new HashSet<>(v.optionValueIds()))
                 .distinct()
                 .count();
         if (distinctRequestCount != variants.size()) {
@@ -167,8 +166,8 @@ public class ProductService {
         }
     }
 
-    private Map<Long, OptionValue> findAndMapOptionValues(List<ProductVariantsCreateCommand.VariantDetail> variants) {
-        List<Long> optionValueIds = variants.stream().flatMap(v -> v.getOptionValueIds().stream()).toList();
+    private Map<Long, OptionValue> findAndMapOptionValues(List<ProductCommand.VariantDetail> variants) {
+        List<Long> optionValueIds = variants.stream().flatMap(v -> v.optionValueIds().stream()).toList();
         List<OptionValue> optionValues = optionValueRepository.findByIdIn(optionValueIds);
         return optionValues.stream().collect(Collectors.toMap(OptionValue::getId, Function.identity()));
     }

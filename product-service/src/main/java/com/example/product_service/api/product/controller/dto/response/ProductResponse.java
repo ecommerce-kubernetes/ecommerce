@@ -1,7 +1,6 @@
 package com.example.product_service.api.product.controller.dto.response;
 
 import com.example.product_service.api.product.service.dto.result.*;
-import com.example.product_service.api.product.service.dto.result.ProductOptionResponse.OptionDto;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 
@@ -11,30 +10,30 @@ import java.util.List;
 public class ProductResponse {
 
     @Builder
-    public record CreateResponse (
+    public record Create(
             Long productId
     ) {
-        public static CreateResponse from(ProductCreateResult result) {
-            return CreateResponse.builder()
-                    .productId(result.getProductId())
+        public static Create from(ProductResult.Create result) {
+            return Create.builder()
+                    .productId(result.productId())
                     .build();
         }
     }
 
     @Builder
-    public record OptionRegisterResponse (
+    public record OptionRegister(
             Long productId,
             List<OptionInfo> options
     ) {
-        public static OptionRegisterResponse from(ProductOptionResponse result) {
-            List<OptionInfo> optionInfos = mappingOptionInfo(result.getOptions());
-            return OptionRegisterResponse.builder()
-                    .productId(result.getProductId())
+        public static OptionRegister from(ProductResult.OptionRegister result) {
+            List<OptionInfo> optionInfos = mappingOptionInfo(result.options());
+            return OptionRegister.builder()
+                    .productId(result.productId())
                     .options(optionInfos)
                     .build();
         }
 
-        private static List<OptionInfo> mappingOptionInfo(List<OptionDto> options) {
+        private static List<OptionInfo> mappingOptionInfo(List<ProductResult.Option> options) {
             return options.stream().map(OptionInfo::from).toList();
         }
     }
@@ -45,35 +44,35 @@ public class ProductResponse {
             String optionTypeName,
             Integer priority
     ) {
-        public static OptionInfo from(OptionDto option) {
+        public static OptionInfo from(ProductResult.Option option) {
            return OptionInfo.builder()
-                   .optionTypeId(option.getOptionTypeId())
-                   .optionTypeName(option.getOptionTypeName())
-                   .priority(option.getPriority())
+                   .optionTypeId(option.optionTypeId())
+                   .optionTypeName(option.optionTypeName())
+                   .priority(option.priority())
                    .build();
         }
     }
 
     @Builder
-    public record AddVariantResponse(
+    public record AddVariant(
             Long productId,
-            List<VariantResponse> variants
+            List<VariantDetail> variants
     ) {
-        public static AddVariantResponse from(AddVariantResult result) {
-            List<VariantResponse> variants = mappingVariants(result.getVariants());
-            return AddVariantResponse.builder()
-                    .productId(result.getProductId())
+        public static AddVariant from(ProductResult.AddVariant result) {
+            List<VariantDetail> variants = mappingVariants(result.variants());
+            return ProductResponse.AddVariant.builder()
+                    .productId(result.productId())
                     .variants(variants)
                     .build();
         }
 
-        private static List<VariantResponse> mappingVariants(List<VariantResult> variants) {
-            return variants.stream().map(VariantResponse::from).toList();
+        private static List<VariantDetail> mappingVariants(List<ProductResult.VariantDetail> variants) {
+            return variants.stream().map(VariantDetail::from).toList();
         }
     }
 
     @Builder
-    public record VariantResponse(
+    public record VariantDetail(
             Long variantId,
             String sku,
             List<Long> optionValueIds,
@@ -82,15 +81,15 @@ public class ProductResponse {
             Integer discountRate,
             Integer stockQuantity
     ) {
-        public static VariantResponse from(VariantResult result) {
-            return VariantResponse.builder()
-                    .variantId(result.getVariantId())
-                    .sku(result.getSku())
-                    .optionValueIds(result.getOptionValueIds())
-                    .originalPrice(result.getOriginalPrice())
-                    .discountedPrice(result.getDiscountedPrice())
-                    .discountRate(result.getDiscountRate())
-                    .stockQuantity(result.getStockQuantity())
+        public static VariantDetail from(ProductResult.VariantDetail result) {
+            return VariantDetail.builder()
+                    .variantId(result.variantId())
+                    .sku(result.sku())
+                    .optionValueIds(result.optionValueIds())
+                    .originalPrice(result.originalPrice())
+                    .discountedPrice(result.discountedPrice())
+                    .discountRate(result.discountRate())
+                    .stockQuantity(result.stockQuantity())
                     .build();
         }
     }

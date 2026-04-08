@@ -17,7 +17,8 @@ import org.springframework.http.MediaType;
 
 import java.util.List;
 
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willDoNothing;
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
@@ -120,9 +121,9 @@ class OptionControllerDocsTest extends RestDocsSupport {
     @DisplayName("옵션을 수정한다")
     void updateOptionType() throws Exception {
         //given
-        OptionRequest.UpdateOptionType request = fixtureMonkey.giveMeBuilder(OptionRequest.UpdateOptionType.class)
-                .set("name", "새 이름")
-                .sample();
+        OptionRequest.UpdateOptionType request = OptionRequest.UpdateOptionType.builder()
+                .name("새 이름")
+                .build();
         OptionResult result = createOptionResponse().name("새 이름").build();
         OptionResponse.Detail response = OptionResponse.Detail.from(result);
         given(optionService.updateOptionTypeName(any(OptionCommand.UpdateOptionType.class)))
@@ -169,9 +170,9 @@ class OptionControllerDocsTest extends RestDocsSupport {
     @DisplayName("옵션 값 수정")
     void updateOptionValue() throws Exception {
         //given
-        OptionRequest.UpdateOptionValue request = fixtureMonkey.giveMeBuilder(OptionRequest.UpdateOptionValue.class)
-                .set("name", "새 이름")
-                .sample();
+        OptionRequest.UpdateOptionValue request = OptionRequest.UpdateOptionValue.builder()
+                .name("새 이름")
+                .build();
         OptionValueResult result = createOptionValueResponse().name("새 이름").build();
         given(optionService.updateOptionValueName(any(OptionCommand.UpdateOptionValue.class)))
                 .willReturn(result);

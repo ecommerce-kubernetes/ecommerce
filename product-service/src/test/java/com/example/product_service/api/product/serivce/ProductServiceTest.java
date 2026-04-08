@@ -16,9 +16,8 @@ import com.example.product_service.api.product.domain.model.ProductStatus;
 import com.example.product_service.api.product.domain.model.ProductVariant;
 import com.example.product_service.api.product.domain.repository.ProductRepository;
 import com.example.product_service.api.product.service.ProductService;
-import com.example.product_service.api.product.service.dto.command.ProductCreateCommand;
+import com.example.product_service.api.product.service.dto.command.ProductCommand;
 import com.example.product_service.api.product.service.dto.command.ProductUpdateCommand;
-import com.example.product_service.api.product.service.dto.command.ProductVariantsCreateCommand;
 import com.example.product_service.api.product.service.dto.result.*;
 import com.example.product_service.support.ExcludeInfraTest;
 import org.junit.jupiter.api.DisplayName;
@@ -43,19 +42,19 @@ public class ProductServiceTest extends ExcludeInfraTest {
     @Autowired
     private OptionTypeRepository optionTypeRepository;
 
-    private ProductCreateCommand createProductCommand(Long categoryId){
-        return ProductCreateCommand.builder()
+    private ProductCommand.Create createProductCommand(Long categoryId){
+        return ProductCommand.Create.builder()
                 .name("상품")
                 .categoryId(categoryId)
                 .description("상품 설명")
                 .build();
     }
 
-    private ProductVariantsCreateCommand.ProductVariantsCreateCommandBuilder createVariantCommand() {
-        return ProductVariantsCreateCommand.builder()
+    private ProductCommand.AddVariant.AddVariantBuilder createVariantCommand() {
+        return ProductCommand.AddVariant.builder()
                 .productId(1L)
                 .variants(
-                        List.of(ProductVariantsCreateCommand.VariantDetail.builder()
+                        List.of(ProductCommand.VariantDetail.builder()
                                 .originalPrice(3000L)
                                 .discountRate(10)
                                 .stockQuantity(100)
@@ -98,18 +97,18 @@ public class ProductServiceTest extends ExcludeInfraTest {
         void createProduct(){
             //given
             Category category = saveCategory();
-            ProductCreateCommand command = createProductCommand(category.getId());
+            ProductCommand.Create command = createProductCommand(category.getId());
             //when
-            ProductCreateResult result = productService.createProduct(command);
+            ProductResult.Create result = productService.createProduct(command);
             //then
-            assertThat(result.getProductId()).isNotNull();
+            assertThat(result.productId()).isNotNull();
         }
 
         @Test
         @DisplayName("카테고리를 찾을 수 없으면 예외를 던진다")
         void createProduct_category_notFound(){
             //given
-            ProductCreateCommand command = createProductCommand(999L);
+            ProductCommand.Create command = createProductCommand(999L);
             //when
             //then
             assertThatThrownBy(() -> productService.createProduct(command))
@@ -131,13 +130,17 @@ public class ProductServiceTest extends ExcludeInfraTest {
             OptionType color = saveOptionType("색상", List.of("RED", "BLUE"));
             Category category = saveCategory();
             Product product = saveProduct(category);
+            ProductCommand.OptionRegister command = ProductCommand.OptionRegister.builder()
+                    .productId(product.getId())
+                    .optionTypeIds(List.of(size.getId(), color.getId()))
+                    .build();
             //when
-            ProductOptionResponse response = productService.defineOptions(product.getId(), List.of(size.getId(), color.getId()));
+            ProductResult.OptionRegister result = productService.defineOptions(command);
             //then
-            assertThat(response.getProductId()).isEqualTo(product.getId());
-            assertThat(response.getOptions())
-                    .extracting(ProductOptionResponse.OptionDto::getOptionTypeId, ProductOptionResponse.OptionDto::getOptionTypeName,
-                            ProductOptionResponse.OptionDto::getPriority)
+            assertThat(result.productId()).isEqualTo(product.getId());
+            assertThat(result.options())
+                    .extracting(ProductResult.Option::optionTypeId, ProductResult.Option::optionTypeName,
+                            ProductResult.Option::priority)
                     .containsExactly(
                             tuple(size.getId(), size.getName(), 1),
                             tuple(color.getId(), color.getName(), 2)
@@ -148,10 +151,13 @@ public class ProductServiceTest extends ExcludeInfraTest {
         @DisplayName("상품 옵션을 설정할때 상품을 찾을 수 없으면 예외를 던진다")
         void defineOptions_notFound_product(){
             //given
-            List<Long> productOptions = List.of(1L, 2L);
+            ProductCommand.OptionRegister command = ProductCommand.OptionRegister.builder()
+                    .productId(999L)
+                    .optionTypeIds(List.of(1L, 2L))
+                    .build();
             //when
             //then
-            assertThatThrownBy(() -> productService.defineOptions(999L, productOptions))
+            assertThatThrownBy(() -> productService.defineOptions(command))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(ProductErrorCode.PRODUCT_NOT_FOUND);
@@ -164,11 +170,13 @@ public class ProductServiceTest extends ExcludeInfraTest {
             OptionType size = saveOptionType("사이즈", List.of("XL", "L", "M", "S"));
             Category category = saveCategory();
             Product product = saveProduct(category);
-            Long productId = product.getId();
-            List<Long> optionTypes = List.of(size.getId(), 999L);
+            ProductCommand.OptionRegister command = ProductCommand.OptionRegister.builder()
+                    .productId(product.getId())
+                    .optionTypeIds(List.of(size.getId(), 999L))
+                    .build();
             //when
             //then
-            assertThatThrownBy(() -> productService.defineOptions(productId, optionTypes))
+            assertThatThrownBy(() -> productService.defineOptions(command))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(OptionErrorCode.OPTION_NOT_FOUND);
@@ -195,32 +203,32 @@ public class ProductServiceTest extends ExcludeInfraTest {
             product.updateOptions(List.of(size, color));
             product.addVariant(variant);
             productRepository.save(product);
-            ProductVariantsCreateCommand command = createVariantCommand()
+            ProductCommand.AddVariant command = createVariantCommand()
                     .productId(product.getId()).variants(
                             List.of(
-                                    ProductVariantsCreateCommand.VariantDetail.builder()
+                                    ProductCommand.VariantDetail.builder()
                                             .originalPrice(3000L)
                                             .discountRate(10)
                                             .stockQuantity(100)
                                             .optionValueIds(List.of(xl.getId(), blue.getId())).build()))
                     .build();
             //when
-            AddVariantResult result = productService.createVariants(command);
+            ProductResult.AddVariant result = productService.createVariants(command);
             //then
             String createdSku = "PROD" + product.getId() + "-" +xl.getName() + "-" + blue.getName();
-            assertThat(result.getProductId()).isEqualTo(product.getId());
-            assertThat(result.getVariants())
-                    .allSatisfy(v -> assertThat(v.getVariantId()).isNotNull());
+            assertThat(result.productId()).isEqualTo(product.getId());
+            assertThat(result.variants())
+                    .allSatisfy(v -> assertThat(v.variantId()).isNotNull());
 
-            assertThat(result.getVariants())
+            assertThat(result.variants())
                     .hasSize(1)
                     .satisfiesExactly(
                             variantResp -> {
-                                assertThat(variantResp.getVariantId()).isNotNull();
-                                assertThat(variantResp.getSku()).isEqualTo(createdSku);
-                                assertThat(variantResp.getOriginalPrice()).isEqualTo(3000L);
-                                assertThat(variantResp.getDiscountRate()).isEqualTo(10);
-                                assertThat(variantResp.getOptionValueIds())
+                                assertThat(variantResp.variantId()).isNotNull();
+                                assertThat(variantResp.sku()).isEqualTo(createdSku);
+                                assertThat(variantResp.originalPrice()).isEqualTo(3000L);
+                                assertThat(variantResp.discountRate()).isEqualTo(10);
+                                assertThat(variantResp.optionValueIds())
                                         .containsExactlyInAnyOrder(xl.getId(), blue.getId());
                             }
                     );
@@ -230,14 +238,14 @@ public class ProductServiceTest extends ExcludeInfraTest {
         @DisplayName("동일한 옵션 조합의 상품 변형을 여러개 생성할 수 없다 [상품 옵션이 있는 경우]")
         void createVariants_duplicate_variant_request_has_option_case(){
             //given
-            ProductVariantsCreateCommand command = createVariantCommand().variants(
+            ProductCommand.AddVariant command = createVariantCommand().variants(
                     List.of(
-                            ProductVariantsCreateCommand.VariantDetail.builder()
+                            ProductCommand.VariantDetail.builder()
                                     .originalPrice(3000L)
                                     .discountRate(10)
                                     .stockQuantity(100)
                                     .optionValueIds(List.of(1L, 2L)).build(),
-                            ProductVariantsCreateCommand.VariantDetail.builder()
+                            ProductCommand.VariantDetail.builder()
                                     .originalPrice(3000L)
                                     .discountRate(10)
                                     .stockQuantity(100)
@@ -255,14 +263,14 @@ public class ProductServiceTest extends ExcludeInfraTest {
         @DisplayName("동일한 옵션 조합의 상품 변형을 여러개 생성할 수 없다 [상품 옵션이 없는 경우]")
         void createVariants_duplicate_variant_request_no_option_case(){
             //given
-            ProductVariantsCreateCommand command = createVariantCommand().variants(
+            ProductCommand.AddVariant command = createVariantCommand().variants(
                             List.of(
-                                    ProductVariantsCreateCommand.VariantDetail.builder()
+                                    ProductCommand.VariantDetail.builder()
                                             .originalPrice(3000L)
                                             .discountRate(10)
                                             .stockQuantity(100)
                                             .optionValueIds(List.of()).build(),
-                                    ProductVariantsCreateCommand.VariantDetail.builder()
+                                    ProductCommand.VariantDetail.builder()
                                             .originalPrice(3000L)
                                             .discountRate(10)
                                             .stockQuantity(100)
@@ -273,13 +281,14 @@ public class ProductServiceTest extends ExcludeInfraTest {
             assertThatThrownBy(() -> productService.createVariants(command))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
-                    .isEqualTo(ProductErrorCode.VARIANT_DUPLICATED_IN_REQUEST);        }
+                    .isEqualTo(ProductErrorCode.VARIANT_DUPLICATED_IN_REQUEST);
+        }
 
         @Test
         @DisplayName("상품을 찾을 수 없으면 예외를 던진다")
         void createVariants_not_found_product(){
             //given
-            ProductVariantsCreateCommand command = createVariantCommand().productId(999L).build();
+            ProductCommand.AddVariant command = createVariantCommand().productId(999L).build();
             //when
             //then
             assertThatThrownBy(() -> productService.createVariants(command))
@@ -294,10 +303,10 @@ public class ProductServiceTest extends ExcludeInfraTest {
             //given
             Category category = saveCategory();
             Product product = saveProduct(category);
-            ProductVariantsCreateCommand command = createVariantCommand()
+            ProductCommand.AddVariant command = createVariantCommand()
                     .productId(product.getId()).variants(
                             List.of(
-                                    ProductVariantsCreateCommand.VariantDetail.builder()
+                                    ProductCommand.VariantDetail.builder()
                                             .originalPrice(3000L)
                                             .discountRate(10)
                                             .stockQuantity(100)

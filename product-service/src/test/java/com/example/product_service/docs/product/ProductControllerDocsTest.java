@@ -4,12 +4,15 @@ import com.epages.restdocs.apispec.ResourceSnippetParameters;
 import com.example.product_service.api.common.dto.PageDto;
 import com.example.product_service.api.product.controller.ProductController;
 import com.example.product_service.api.product.controller.dto.ProductSearchCondition;
-import com.example.product_service.api.product.controller.dto.request.ProductRequest.*;
+import com.example.product_service.api.product.controller.dto.request.ProductRequest;
+import com.example.product_service.api.product.controller.dto.request.ProductRequest.AddDescriptionImageRequest;
+import com.example.product_service.api.product.controller.dto.request.ProductRequest.AddImageRequest;
+import com.example.product_service.api.product.controller.dto.request.ProductRequest.UpdateRequest;
+import com.example.product_service.api.product.controller.dto.response.ProductResponse;
 import com.example.product_service.api.product.controller.dto.response.ProductResponse.*;
 import com.example.product_service.api.product.service.ProductService;
-import com.example.product_service.api.product.service.dto.command.ProductCreateCommand;
+import com.example.product_service.api.product.service.dto.command.ProductCommand;
 import com.example.product_service.api.product.service.dto.command.ProductUpdateCommand;
-import com.example.product_service.api.product.service.dto.command.ProductVariantsCreateCommand;
 import com.example.product_service.api.product.service.dto.result.*;
 import com.example.product_service.docs.RestDocsSupport;
 import com.example.product_service.docs.descriptor.ProductDescriptor;
@@ -58,19 +61,18 @@ class ProductControllerDocsTest extends RestDocsSupport {
     @DisplayName("상품을 생성한다")
     void createProduct() throws Exception {
         //given
-        CreateRequest request = fixtureMonkey.giveMeBuilder(CreateRequest.class)
-                .set("name", "상품")
-                .set("categoryId", 1L)
-                .set("description", "상품 설명")
-                .sample();
-        ProductCreateResult result = fixtureMonkey.giveMeBuilder(ProductCreateResult.class)
-                .set("productId", 1L)
-                .sample();
-        assert result != null;
+        ProductRequest.Create request = ProductRequest.Create.builder()
+                .name("상품")
+                .categoryId(1L)
+                .description("상품 설명")
+                .build();
+        ProductResult.Create result = ProductResult.Create.builder()
+                .productId(1L)
+                .build();
         HttpHeaders adminHeader = createAdminHeader();
-        given(productService.createProduct(any(ProductCreateCommand.class)))
+        given(productService.createProduct(any(ProductCommand.Create.class)))
                 .willReturn(result);
-        CreateResponse response = CreateResponse.from(result);
+        ProductResponse.Create response = ProductResponse.Create.from(result);
         //when
         //then
         mockMvc.perform(post("/products")
@@ -92,26 +94,24 @@ class ProductControllerDocsTest extends RestDocsSupport {
     @DisplayName("상품 옵션 정의")
     void registerProductOption() throws Exception {
         //given
-        OptionRegisterRequest request = fixtureMonkey.giveMeBuilder(OptionRegisterRequest.class)
-                .set("options", List.of(
-                        ProductOptionRequest.builder()
-                                .optionTypeId(1L)
-                                .priority(1)
-                                .build()
-                ))
-                .sample();
-        ProductOptionResponse result = fixtureMonkey.giveMeBuilder(ProductOptionResponse.class)
-                .set("productId", 1L)
-                .size("options", 1)
-                .set("options[0].optionTypeId", 1L)
-                .set("options[0].optionTypeName", "사이즈")
-                .set("options[0].priority", 1)
-                .sample();
-        assert result != null;
+        ProductRequest.OptionRegister request = ProductRequest.OptionRegister.builder()
+                .optionTypeIds(
+                        List.of(1L)
+                ).build();
+
+        ProductResult.OptionRegister result = ProductResult.OptionRegister.builder()
+                .productId(1L)
+                .options(List.of(
+                        ProductResult.Option.builder()
+                                    .optionTypeId(1L)
+                                    .optionTypeName("사이즈")
+                                    .priority(1)
+                                    .build()))
+                .build();
         HttpHeaders adminHeader = createAdminHeader();
-        given(productService.defineOptions(anyLong(), anyList()))
+        given(productService.defineOptions(any(ProductCommand.OptionRegister.class)))
                 .willReturn(result);
-        OptionRegisterResponse response = OptionRegisterResponse.from(result);
+        ProductResponse.OptionRegister response = ProductResponse.OptionRegister.from(result);
         //when
         //then
         mockMvc.perform(put("/products/{productId}/options", 1L)
@@ -134,28 +134,36 @@ class ProductControllerDocsTest extends RestDocsSupport {
     @DisplayName("상품 변형 추가")
     void addVariants() throws Exception {
         //given
-        AddVariantRequest request = fixtureMonkey.giveMeBuilder(AddVariantRequest.class)
-                .size("variants", 1)
-                .set("variants[0].originalPrice", 10000L)
-                .set("variants[0].discountRate", 10)
-                .set("variants[0].stockQuantity", 100)
-                .set("variants[0].optionValueIds", List.of(1L, 2L))
-                .sample();
-        AddVariantResult result = fixtureMonkey.giveMeBuilder(AddVariantResult.class)
-                .size("variants", 1)
-                .set("productId", 1L)
-                .set("variants[0].variantId", 1L)
-                .set("variants[0].sku", "PROD_XL_BLUE")
-                .set("variants[0].optionValueIds", List.of(1L, 2L))
-                .set("variants[0].originalPrice", 10000L)
-                .set("variants[0].discountedPrice", 9000L)
-                .set("variants[0].discountRate", 10)
-                .set("variants[0].stockQuantity", 100)
-                .sample();
+        ProductRequest.AddVariant request = ProductRequest.AddVariant.builder()
+                .variants(
+                        List.of(
+                                ProductRequest.VariantDetail.builder()
+                                        .originalPrice(10000L)
+                                        .discountRate(10)
+                                        .stockQuantity(100)
+                                        .optionValueIds(List.of(1L,2L))
+                                        .build()
+                        )
+                ).build();
+        ProductResult.AddVariant result = ProductResult.AddVariant.builder()
+                .productId(1L)
+                .variants(
+                        List.of(
+                                ProductResult.VariantDetail.builder()
+                                        .variantId(1L)
+                                        .sku("PROD1_XL_BLUE")
+                                        .optionValueIds(List.of(1L,2L))
+                                        .originalPrice(10000L)
+                                        .discountedPrice(9000L)
+                                        .discountRate(10)
+                                        .stockQuantity(100)
+                                        .build()
+                        )
+                ).build();
         assert result != null;
-        AddVariantResponse response = AddVariantResponse.from(result);
+        AddVariant response = AddVariant.from(result);
         HttpHeaders adminHeader = createAdminHeader();
-        given(productService.createVariants(any(ProductVariantsCreateCommand.class)))
+        given(productService.createVariants(any(ProductCommand.AddVariant.class)))
                 .willReturn(result);
         //when
         //then

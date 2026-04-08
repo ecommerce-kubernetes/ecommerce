@@ -3,11 +3,12 @@ package com.example.product_service.api.product.controller;
 import com.example.product_service.api.common.dto.PageDto;
 import com.example.product_service.api.common.security.model.UserRole;
 import com.example.product_service.api.product.controller.dto.ProductSearchCondition;
+import com.example.product_service.api.product.controller.dto.request.ProductRequest;
 import com.example.product_service.api.product.controller.dto.request.ProductRequest.*;
+import com.example.product_service.api.product.controller.dto.response.ProductResponse;
 import com.example.product_service.api.product.controller.dto.response.ProductResponse.*;
-import com.example.product_service.api.product.service.dto.command.ProductCreateCommand;
+import com.example.product_service.api.product.service.dto.command.ProductCommand;
 import com.example.product_service.api.product.service.dto.command.ProductUpdateCommand;
-import com.example.product_service.api.product.service.dto.command.ProductVariantsCreateCommand;
 import com.example.product_service.api.product.service.dto.result.*;
 import com.example.product_service.support.ControllerTestSupport;
 import com.example.product_service.support.security.annotation.WithCustomMockUser;
@@ -45,12 +46,12 @@ class ProductControllerTest extends ControllerTestSupport {
         @WithCustomMockUser
         void createProduct() throws Exception {
             //given
-            CreateRequest request = fixtureMonkey.giveMeOne(CreateRequest.class);
-            ProductCreateResult result = fixtureMonkey.giveMeOne(ProductCreateResult.class);
+            ProductRequest.Create request = fixtureMonkey.giveMeOne(ProductRequest.Create.class);
+            ProductResult.Create result = fixtureMonkey.giveMeOne(ProductResult.Create.class);
             assert result != null;
-            given(productService.createProduct(any(ProductCreateCommand.class)))
+            given(productService.createProduct(any(ProductCommand.Create.class)))
                     .willReturn(result);
-            CreateResponse response = CreateResponse.from(result);
+            ProductResponse.Create response = ProductResponse.Create.from(result);
             //when
             //then
             mockMvc.perform(post("/products")
@@ -66,7 +67,7 @@ class ProductControllerTest extends ControllerTestSupport {
         @WithCustomMockUser(userRole = UserRole.ROLE_USER)
         void createProduct_user_role() throws Exception {
             //given
-            CreateRequest request = fixtureMonkey.giveMeOne(CreateRequest.class);
+            ProductRequest.Create request = fixtureMonkey.giveMeOne(ProductRequest.Create.class);
             //when
             //then
             mockMvc.perform(post("/products")
@@ -84,7 +85,7 @@ class ProductControllerTest extends ControllerTestSupport {
         @DisplayName("로그인 하지 않은 사용자는 상품을 생성할 수 없다")
         void createProduct_unAuthorized() throws Exception {
             //given
-            CreateRequest request = fixtureMonkey.giveMeOne(CreateRequest.class);
+            ProductRequest.Create request = fixtureMonkey.giveMeOne(ProductRequest.Create.class);
             //when
             //then
             mockMvc.perform(post("/products")
@@ -102,7 +103,7 @@ class ProductControllerTest extends ControllerTestSupport {
         @MethodSource("provideInvalidProductCreateRequest")
         @WithCustomMockUser
         @DisplayName("상품 저장 요청 검증")
-        void createProduct_Validation(String description, CreateRequest request, String message) throws Exception {
+        void createProduct_Validation(String description, ProductRequest.Create request, String message) throws Exception {
             //given
             //when
             //then
@@ -119,10 +120,10 @@ class ProductControllerTest extends ControllerTestSupport {
 
         private static Stream<Arguments> provideInvalidProductCreateRequest() {
             return Stream.of(
-                    Arguments.of("상품 이름이 공백", CreateRequest.builder()
+                    Arguments.of("상품 이름이 공백", ProductRequest.Create.builder()
                                     .name(null).categoryId(1L).description("상품 설명").build(),
                             "상품 이름은 필수 입니다"),
-                    Arguments.of("카테고리 Id가 null", CreateRequest.builder()
+                    Arguments.of("카테고리 Id가 null", ProductRequest.Create.builder()
                                     .name("상품").categoryId(null).description("상품 설명")
                                     .build(),
                             "카테고리 id는 필수 입니다")
@@ -138,11 +139,11 @@ class ProductControllerTest extends ControllerTestSupport {
         @WithCustomMockUser
         void registerProductOption() throws Exception {
             //given
-            OptionRegisterRequest request = fixtureMonkey.giveMeOne(OptionRegisterRequest.class);
-            ProductOptionResponse result = fixtureMonkey.giveMeOne(ProductOptionResponse.class);
+            ProductRequest.OptionRegister request = fixtureMonkey.giveMeOne(ProductRequest.OptionRegister.class);
+            ProductResult.OptionRegister result = fixtureMonkey.giveMeOne(ProductResult.OptionRegister.class);
             assert result != null;
-            OptionRegisterResponse response = OptionRegisterResponse.from(result);
-            given(productService.defineOptions(anyLong(), anyList()))
+            ProductResponse.OptionRegister response = ProductResponse.OptionRegister.from(result);
+            given(productService.defineOptions(any(ProductCommand.OptionRegister.class)))
                     .willReturn(result);
             //when
             //then
@@ -159,7 +160,7 @@ class ProductControllerTest extends ControllerTestSupport {
         @WithCustomMockUser(userRole = UserRole.ROLE_USER)
         void registerProductOption_user_role() throws Exception {
             //given
-            OptionRegisterRequest request = fixtureMonkey.giveMeOne(OptionRegisterRequest.class);
+            ProductRequest.OptionRegister request = fixtureMonkey.giveMeOne(ProductRequest.OptionRegister.class);
             //when
             //then
             mockMvc.perform(put("/products/{productId}/options", 1L)
@@ -176,7 +177,7 @@ class ProductControllerTest extends ControllerTestSupport {
         @DisplayName("로그인 하지 않은 사용자는 상품 옵션을 정의할 수 없다")
         void registerProductOption_unAuthorized() throws Exception {
             //given
-            OptionRegisterRequest request = fixtureMonkey.giveMeOne(OptionRegisterRequest.class);
+            ProductRequest.OptionRegister request = fixtureMonkey.giveMeOne(ProductRequest.OptionRegister.class);
             //when
             //then
             mockMvc.perform(put("/products/{productId}/options", 1L)
@@ -194,7 +195,7 @@ class ProductControllerTest extends ControllerTestSupport {
         @MethodSource("provideInvalidOptionSpecRequest")
         @DisplayName("상품 옵션 설정 요청 검증")
         @WithCustomMockUser
-        void registerProductOption_invalidRequest(String description, OptionRegisterRequest request, String message) throws Exception {
+        void registerProductOption_invalidRequest(String description, ProductRequest.OptionRegister request, String message) throws Exception {
             //given
             //when
             //then
@@ -210,10 +211,6 @@ class ProductControllerTest extends ControllerTestSupport {
         }
 
         private static Stream<Arguments> provideInvalidOptionSpecRequest() {
-            ProductOptionRequest VALID_BASE_OPTION = ProductOptionRequest.builder()
-                    .optionTypeId(1L)
-                    .priority(1)
-                    .build();
             return Stream.of(
                     //필수 필드 누락
                     Arguments.of(
@@ -221,54 +218,28 @@ class ProductControllerTest extends ControllerTestSupport {
                             wrap(null),
                             "옵션 리스트는 필수 입니다"
                     ),
-                    Arguments.of(
-                            "옵션 타입 아이디가 null",
-                            wrap(List.of(
-                                    VALID_BASE_OPTION.toBuilder().optionTypeId(null).build()
-                            )),
-                            "옵션 타입 Id는 필수 입니다"
-                    ),
-                    Arguments.of(
-                            "옵션 타입 우선순위가 null",
-                            wrap(List.of(
-                                    VALID_BASE_OPTION.toBuilder().priority(null).build()
-                            )),
-                            "옵션 우선순위는 필수 입니다"
-                    ),
-                    //허용 범위 이탈
-                    Arguments.of(
-                            "옵션 타입 우선순위가 1미만",
-                            wrap(List.of(
-                                    VALID_BASE_OPTION.toBuilder().priority(0).build()
-                            )),
-                            "옵션 우선순위는 1이상 이여야 합니다"
-                    ),
                     //요청 내부 중복 옵션
                     Arguments.of(
                             "중복된 옵션 타입 Id",
                             wrap(List.of(
-                                    VALID_BASE_OPTION.toBuilder().optionTypeId(1L).build(),
-                                    VALID_BASE_OPTION.toBuilder().optionTypeId(1L).build()
+                                    1L,1L
                             )),
-                            "중복된 옵션 종류(optionTypeId)가 포함되어 있습니다"
+                            "옵션 ID는 중복될 수 없습니다"
                     ),
                     //최대 옵션 개수 초과
                     Arguments.of(
                             "옵션 개수가 3개 이상",
                             wrap(List.of(
-                                    VALID_BASE_OPTION.toBuilder().optionTypeId(1L).priority(1).build(),
-                                    VALID_BASE_OPTION.toBuilder().optionTypeId(2L).priority(2).build(),
-                                    VALID_BASE_OPTION.toBuilder().optionTypeId(3L).priority(3).build(),
-                                    VALID_BASE_OPTION.toBuilder().optionTypeId(4L).priority(4).build()
+                                1L,2L,3L,4L
                             )),
                             "옵션은 최대 3개까지만 설정 가능합니다"
                     )
             );
         }
 
-        private static OptionRegisterRequest wrap(List<ProductOptionRequest> options) {
-            return OptionRegisterRequest.builder()
-                    .options(options)
+        private static ProductRequest.OptionRegister wrap(List<Long> optionTypeIds) {
+            return ProductRequest.OptionRegister.builder()
+                    .optionTypeIds(optionTypeIds)
                     .build();
         }
     }
@@ -281,11 +252,11 @@ class ProductControllerTest extends ControllerTestSupport {
         @WithCustomMockUser
         void createVariants() throws Exception {
             //given
-            AddVariantRequest request = fixtureMonkey.giveMeOne(AddVariantRequest.class);
-            AddVariantResult result = fixtureMonkey.giveMeOne(AddVariantResult.class);
+            ProductRequest.AddVariant request = fixtureMonkey.giveMeOne(ProductRequest.AddVariant.class);
+            ProductResult.AddVariant result = fixtureMonkey.giveMeOne(ProductResult.AddVariant.class);
             assert result != null;
-            AddVariantResponse response = AddVariantResponse.from(result);
-            given(productService.createVariants(any(ProductVariantsCreateCommand.class)))
+            ProductResponse.AddVariant response = ProductResponse.AddVariant.from(result);
+            given(productService.createVariants(any(ProductCommand.AddVariant.class)))
                     .willReturn(result);
             //when
             //then
@@ -302,7 +273,7 @@ class ProductControllerTest extends ControllerTestSupport {
         @WithCustomMockUser(userRole = UserRole.ROLE_USER)
         void createVariants_user_role() throws Exception {
             //given
-            AddVariantRequest request = fixtureMonkey.giveMeOne(AddVariantRequest.class);
+            ProductRequest.AddVariant request = fixtureMonkey.giveMeOne(ProductRequest.AddVariant.class);
             //when
             //then
             mockMvc.perform(post("/products/{productId}/variants", 1L)
@@ -320,7 +291,7 @@ class ProductControllerTest extends ControllerTestSupport {
         @DisplayName("로그인 하지 않은 사용자는 상품 변형을 추가할 수 없다")
         void createVariants_unAuthorized() throws Exception {
             //given
-            AddVariantRequest request = fixtureMonkey.giveMeOne(AddVariantRequest.class);
+            ProductRequest.AddVariant request = fixtureMonkey.giveMeOne(ProductRequest.AddVariant.class);
             //when
             //then
             mockMvc.perform(post("/products/{productId}/variants", 1L)
@@ -338,7 +309,7 @@ class ProductControllerTest extends ControllerTestSupport {
         @MethodSource("provideInvalidCreateVariantsRequest")
         @DisplayName("상품 변형 추가 요청 검증")
         @WithCustomMockUser
-        void createVariants_validation(String description, AddVariantRequest request, String message) throws Exception {
+        void createVariants_validation(String description, ProductRequest.AddVariant request, String message) throws Exception {
             //given
             //when
             //then
@@ -354,8 +325,8 @@ class ProductControllerTest extends ControllerTestSupport {
         }
 
         private static Stream<Arguments> provideInvalidCreateVariantsRequest() {
-            VariantRequest VALID_BASE_VARIANT =
-                    VariantRequest.builder()
+            ProductRequest.VariantDetail VALID_BASE_VARIANT =
+                    ProductRequest.VariantDetail.builder()
                             .originalPrice(10000L)
                             .discountRate(10)
                             .stockQuantity(100)
@@ -405,9 +376,9 @@ class ProductControllerTest extends ControllerTestSupport {
             );
         }
 
-        private static AddVariantRequest wrap(VariantRequest variantRequest) {
-            return AddVariantRequest.builder()
-                    .variants(variantRequest == null ? null : List.of(variantRequest))
+        private static ProductRequest.AddVariant wrap(ProductRequest.VariantDetail variantDetail) {
+            return ProductRequest.AddVariant.builder()
+                    .variants(variantDetail == null ? null : List.of(variantDetail))
                     .build();
         }
     }
