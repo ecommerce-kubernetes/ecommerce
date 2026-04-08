@@ -3,26 +3,18 @@ package com.example.product_service.api.product.controller;
 import com.example.product_service.api.common.dto.PageDto;
 import com.example.product_service.api.product.controller.dto.ProductSearchCondition;
 import com.example.product_service.api.product.controller.dto.request.ProductRequest;
-import com.example.product_service.api.product.controller.dto.request.ProductRequest.AddDescriptionImageRequest;
-import com.example.product_service.api.product.controller.dto.request.ProductRequest.AddImageRequest;
-import com.example.product_service.api.product.controller.dto.request.ProductRequest.UpdateRequest;
 import com.example.product_service.api.product.controller.dto.response.ProductResponse;
-import com.example.product_service.api.product.controller.dto.response.ProductResponse.AddDescriptionImageResponse;
-import com.example.product_service.api.product.controller.dto.response.ProductResponse.AddImageResponse;
-import com.example.product_service.api.product.controller.dto.response.ProductResponse.CloseResponse;
-import com.example.product_service.api.product.controller.dto.response.ProductResponse.PublishResponse;
 import com.example.product_service.api.product.service.ProductService;
 import com.example.product_service.api.product.service.dto.command.ProductCommand;
-import com.example.product_service.api.product.service.dto.command.ProductUpdateCommand;
-import com.example.product_service.api.product.service.dto.result.*;
+import com.example.product_service.api.product.service.dto.result.ProductDetailResponse;
+import com.example.product_service.api.product.service.dto.result.ProductResult;
+import com.example.product_service.api.product.service.dto.result.ProductSummaryResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -63,39 +55,37 @@ public class ProductController {
 
     @PutMapping("/{productId}/images")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<AddImageResponse> updateImages(@PathVariable("productId") Long productId,
-                                                         @RequestBody @Validated AddImageRequest request) {
-        //TODO command 객체 사용
-        List<String> images = request.images().stream().map((image) -> image.imagePath()).toList();
-        ProductImageCreateResult result = productService.updateImages(productId, images);
-        AddImageResponse response = AddImageResponse.from(result);
+    public ResponseEntity<ProductResponse.AddImage> updateImages(@PathVariable("productId") Long productId,
+                                                 @RequestBody @Validated ProductRequest.AddImage request) {
+        ProductCommand.AddImage command = request.toCommand(productId);
+        ProductResult.AddImage result = productService.updateImages(command);
+        ProductResponse.AddImage response = ProductResponse.AddImage.from(result);
         return ResponseEntity.ok(response);
     }
 
     @PutMapping("/{productId}/description-images")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<AddDescriptionImageResponse> updateDescriptionImage(@PathVariable("productId") Long productId,
-                                                                           @RequestBody @Validated AddDescriptionImageRequest request) {
-        //TODO command 객체로 변경
-        List<String> list = request.images().stream().map((image) -> image.imagePath()).toList();
-        ProductDescriptionImageResult result = productService.updateDescriptionImages(productId, list);
-        AddDescriptionImageResponse response = AddDescriptionImageResponse.from(result);
+    public ResponseEntity<ProductResponse.AddDescriptionImage> updateDescriptionImage(@PathVariable("productId") Long productId,
+                                                                      @RequestBody @Validated ProductRequest.AddDescriptionImage request) {
+        ProductCommand.AddDescriptionImage command = request.toCommand(productId);
+        ProductResult.AddDescriptionImage result = productService.updateDescriptionImages(command);
+        ProductResponse.AddDescriptionImage response = ProductResponse.AddDescriptionImage.from(result);
         return ResponseEntity.ok(response);
     }
 
     @PatchMapping("/{productId}/publish")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<PublishResponse> publishProduct(@PathVariable("productId") Long productId) {
-        ProductStatusResult result = productService.publish(productId);
-        PublishResponse response = PublishResponse.from(result);
+    public ResponseEntity<ProductResponse.Publish> publishProduct(@PathVariable("productId") Long productId) {
+        ProductResult.Publish result = productService.publish(productId);
+        ProductResponse.Publish response = ProductResponse.Publish.from(result);
         return ResponseEntity.ok(response);
     }
 
     @PatchMapping("/{productId}/close")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<CloseResponse> closeProduct(@PathVariable("productId") Long productId) {
-        ProductStatusResult result = productService.closedProduct(productId);
-        CloseResponse response = CloseResponse.from(result);
+    public ResponseEntity<ProductResponse.Close> closeProduct(@PathVariable("productId") Long productId) {
+        ProductResult.Close result = productService.closedProduct(productId);
+        ProductResponse.Close response = ProductResponse.Close.from(result);
         return ResponseEntity.ok(response);
     }
 
@@ -113,11 +103,11 @@ public class ProductController {
 
     @PutMapping("/{productId}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ProductUpdateResponse> updateProduct(@PathVariable("productId") Long productId,
-                                                               @RequestBody @Validated UpdateRequest request) {
-
-        ProductUpdateCommand command = request.toCommand(productId);
-        ProductUpdateResponse response = productService.updateProduct(command);
+    public ResponseEntity<ProductResponse.Update> updateProduct(@PathVariable("productId") Long productId,
+                                                               @RequestBody @Validated ProductRequest.Update request) {
+        ProductCommand.Update command = request.toCommand(productId);
+        ProductResult.Update result = productService.updateProduct(command);
+        ProductResponse.Update response = ProductResponse.Update.from(result);
         return ResponseEntity.ok(response);
     }
 

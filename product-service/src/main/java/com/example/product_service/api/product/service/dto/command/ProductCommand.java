@@ -32,4 +32,24 @@ public class ProductCommand {
             Integer stockQuantity,
             List<Long> optionValueIds
     ) { }
+
+    @Builder
+    public record AddImage (
+            Long productId,
+            List<String> images
+    ) { }
+
+    @Builder
+    public record AddDescriptionImage (
+            Long productId,
+            List<String> images
+    ) { }
+
+    @Builder
+    public record Update (
+            Long productId,
+            String name,
+            Long categoryId,
+            String description
+    ) { }
 }

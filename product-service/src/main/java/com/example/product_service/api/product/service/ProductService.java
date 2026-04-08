@@ -16,8 +16,9 @@ import com.example.product_service.api.product.domain.model.Product;
 import com.example.product_service.api.product.domain.model.ProductVariant;
 import com.example.product_service.api.product.domain.repository.ProductRepository;
 import com.example.product_service.api.product.service.dto.command.ProductCommand;
-import com.example.product_service.api.product.service.dto.command.ProductUpdateCommand;
-import com.example.product_service.api.product.service.dto.result.*;
+import com.example.product_service.api.product.service.dto.result.ProductDetailResponse;
+import com.example.product_service.api.product.service.dto.result.ProductResult;
+import com.example.product_service.api.product.service.dto.result.ProductSummaryResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
@@ -77,22 +78,24 @@ public class ProductService {
         return ProductResult.AddVariant.of(product.getId(), newlyCreatedVariants);
     }
 
-    public ProductImageCreateResult updateImages(Long productId, List<String> images) {
-        Product product = findProductByIdOrThrow(productId);
-        product.replaceImages(images);
-        return ProductImageCreateResult.of(product.getId(), product.getImages());
+    public ProductResult.AddImage updateImages(ProductCommand.AddImage command) {
+        Product product = findProductByIdOrThrow(command.productId());
+        product.replaceImages(command.images());
+        productRepository.flush();
+        return ProductResult.AddImage.of(product.getId(), product.getImages());
     }
 
-    public ProductDescriptionImageResult updateDescriptionImages(Long productId, List<String> images) {
-        Product product = findProductByIdOrThrow(productId);
-        product.replaceDescriptionImage(images);
-        return ProductDescriptionImageResult.of(productId, product.getDescriptionImages());
+    public ProductResult.AddDescriptionImage updateDescriptionImages(ProductCommand.AddDescriptionImage command) {
+        Product product = findProductByIdOrThrow(command.productId());
+        product.replaceDescriptionImage(command.images());
+        productRepository.flush();
+        return ProductResult.AddDescriptionImage.of(command.productId(), product.getDescriptionImages());
     }
 
-    public ProductStatusResult publish(Long productId) {
+    public ProductResult.Publish publish(Long productId) {
         Product product = findProductByIdOrThrow(productId);
         product.publish();
-        return ProductStatusResult.publish(product);
+        return ProductResult.Publish.from(product);
     }
 
     @Transactional(readOnly = true)
@@ -107,11 +110,11 @@ public class ProductService {
         return PageDto.of(products, ProductSummaryResponse::from);
     }
 
-    public ProductUpdateResponse updateProduct(ProductUpdateCommand command) {
-        Product product = findProductByIdOrThrow(command.getProductId());
-        Category category = findCategoryByIdOrThrow(command.getCategoryId());
-        product.updateProductInfo(command.getName(), command.getDescription(), category);
-        return ProductUpdateResponse.from(product);
+    public ProductResult.Update updateProduct(ProductCommand.Update command) {
+        Product product = findProductByIdOrThrow(command.productId());
+        Category category = findCategoryByIdOrThrow(command.categoryId());
+        product.updateProductInfo(command.name(), command.description(), category);
+        return ProductResult.Update.from(product);
     }
 
     public void deleteProduct(Long productId) {
@@ -119,10 +122,10 @@ public class ProductService {
         product.deleted();
     }
 
-    public ProductStatusResult closedProduct(Long productId) {
+    public ProductResult.Close closedProduct(Long productId) {
         Product product = findProductByIdOrThrow(productId);
         product.closed();
-        return ProductStatusResult.closed(product);
+        return ProductResult.Close.from(product);
     }
 
     private List<OptionType> findOptionTypes(List<Long> optionTypeIds) {

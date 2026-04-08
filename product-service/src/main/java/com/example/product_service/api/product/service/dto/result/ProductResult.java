@@ -1,11 +1,9 @@
 package com.example.product_service.api.product.service.dto.result;
 
-import com.example.product_service.api.product.domain.model.Product;
-import com.example.product_service.api.product.domain.model.ProductOption;
-import com.example.product_service.api.product.domain.model.ProductVariant;
-import com.example.product_service.api.product.domain.model.ProductVariantOption;
+import com.example.product_service.api.product.domain.model.*;
 import lombok.Builder;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public class ProductResult {
@@ -97,6 +95,121 @@ public class ProductResult {
 
         private static List<Long> mappingOptionValueIds(List<ProductVariantOption> variantOptions) {
             return variantOptions.stream().map(option -> option.getOptionValue().getId()).toList();
+        }
+    }
+
+    @Builder
+    public record AddImage (
+            Long productId,
+            List<ImageDetail> images
+    ) {
+        public static AddImage of(Long productId, List<ProductImage> images) {
+            List<ImageDetail> imageDetails = mappingImageDetail(images);
+            return AddImage.builder()
+                    .productId(productId)
+                    .images(imageDetails)
+                    .build();
+        }
+
+        private static List<ImageDetail> mappingImageDetail(List<ProductImage> images) {
+            return images.stream().map(ImageDetail::from).toList();
+        }
+    }
+
+    @Builder
+    public record ImageDetail (
+            Long imageId,
+            String imagePath,
+            Integer sortOrder,
+            boolean isThumbnail
+    ) {
+        public static ImageDetail from(ProductImage image) {
+            return ImageDetail.builder()
+                    .imageId(image.getId())
+                    .imagePath(image.getImageUrl())
+                    .sortOrder(image.getSortOrder())
+                    .isThumbnail(image.isThumbnail())
+                    .build();
+        }
+    }
+
+    @Builder
+    public record AddDescriptionImage (
+            Long productId,
+            List<DescriptionImageDetail> images
+    ) {
+        public static AddDescriptionImage of(Long productId, List<ProductDescriptionImage> images) {
+            List<DescriptionImageDetail> descriptionImageDetails = mappingDescriptionImages(images);
+            return AddDescriptionImage.builder()
+                    .productId(productId)
+                    .images(descriptionImageDetails)
+                    .build();
+        }
+
+        private static List<DescriptionImageDetail> mappingDescriptionImages(List<ProductDescriptionImage> images) {
+            return images.stream().map(DescriptionImageDetail::from).toList();
+        }
+    }
+
+    @Builder
+    public record DescriptionImageDetail (
+            Long imageId,
+            String imagePath,
+            Integer sortOrder
+    ) {
+        public static DescriptionImageDetail from(ProductDescriptionImage image) {
+            return DescriptionImageDetail.builder()
+                    .imageId(image.getId())
+                    .imagePath(image.getImageUrl())
+                    .sortOrder(image.getSortOrder())
+                    .build();
+        }
+    }
+
+    @Builder
+    public record Publish (
+            Long productId,
+            ProductStatus status,
+            LocalDateTime publishedAt
+    ) {
+        public static Publish from(Product product) {
+            return Publish.builder()
+                    .productId(product.getId())
+                    .status(product.getStatus())
+                    .publishedAt(product.getPublishedAt())
+                    .build();
+        }
+    }
+
+    @Builder
+    public record Close (
+            Long productId,
+            ProductStatus status,
+            LocalDateTime saleStoppedAt
+    ) {
+        public static Close from(Product product) {
+            return Close.builder()
+                    .productId(product.getId())
+                    .status(product.getStatus())
+                    .saleStoppedAt(product.getSaleStoppedAt())
+                    .build();
+        }
+    }
+
+    @Builder
+    public record Update (
+            Long productId,
+            String name,
+            String description,
+            Long categoryId
+    ) {
+        public static Update from(Product product) {
+            return Update.builder()
+                    .productId(product.getId())
+                    .name(product.getName())
+                    .description(product.getDescription())
+                    .categoryId(product.getCategory().getId())
+                    .build();
         }
     }
 }

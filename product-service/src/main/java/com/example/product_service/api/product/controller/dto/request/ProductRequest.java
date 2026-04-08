@@ -1,7 +1,6 @@
 package com.example.product_service.api.product.controller.dto.request;
 
 import com.example.product_service.api.product.service.dto.command.ProductCommand;
-import com.example.product_service.api.product.service.dto.command.ProductUpdateCommand;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.Builder;
@@ -88,61 +87,49 @@ public class ProductRequest {
     ) { }
 
     @Builder
-    public record AddImageRequest (
-        @Valid
+    public record AddImage(
         @NotEmpty(message = "최소 1장의 이미지를 등록해야 합니다")
-        List<ImageRequest> images
-    ) { }
-
-    @Builder(toBuilder = true)
-    public record ImageRequest (
-            @NotBlank(message = "이미지 경로는 필수 입니다")
-            @Pattern(
-                    regexp = "^/[\\w\\-/]+\\.(jpg|jpeg|png|gif|webp|JPG|JPEG|PNG|GIF|WEBP)$",
-                    message = "이미지 경로는 '/'로 시작하는 유효한 이미지 파일이어야 합니다"
-            )
-            String imagePath,
-            @NotNull(message = "썸네일 여부는 필수 입니다")
-            Boolean isThumbnail,
-            @NotNull(message = "정렬 순서는 필수 입니다")
-            @Min(value = 1, message = "정렬 순서는 1 이상이여야 합니다")
-            Integer sortOrder
-    ) {}
+        List<@Pattern(
+                regexp = "^/[\\w\\-/]+\\.(jpg|jpeg|png|gif|webp|JPG|JPEG|PNG|GIF|WEBP)$",
+                message = "이미지 경로는 '/'로 시작하는 유효한 이미지 파일이어야 합니다") String> images
+    ) {
+        public ProductCommand.AddImage toCommand(Long productId) {
+            return ProductCommand.AddImage.builder()
+                    .productId(productId)
+                    .images(images)
+                    .build();
+        }
+    }
 
     @Builder
-    public record AddDescriptionImageRequest (
-            @Valid
+    public record AddDescriptionImage(
             @NotEmpty(message = "최소 1장의 이미지를 등록해야 합니다")
-            List<DescriptionImageRequest> images
-    ) { }
-
-    @Builder(toBuilder = true)
-    public record DescriptionImageRequest (
-            @NotBlank(message = "이미지 경로는 필수 입니다")
-            @Pattern(
+            List<@Pattern(
                     regexp = "^/[\\w\\-/]+\\.(jpg|jpeg|png|gif|webp|JPG|JPEG|PNG|GIF|WEBP)$",
-                    message = "이미지 경로는 '/'로 시작하는 유효한 이미지 파일이어야 합니다"
-            )
-            String imagePath,
-            @NotNull(message = "정렬 순서는 필수 입니다")
-            @Min(value = 1, message = "정렬 순서는 1 이상이여야 합니다")
-            Integer sortOrder
-    ) {}
+                    message = "이미지 경로는 '/'로 시작하는 유효한 이미지 파일이어야 합니다") String> images
+    ) {
+        public ProductCommand.AddDescriptionImage toCommand(Long productId) {
+            return ProductCommand.AddDescriptionImage.builder()
+                    .productId(productId)
+                    .images(images)
+                    .build();
+        }
+    }
 
     @Builder(toBuilder = true)
-    public record UpdateRequest(
+    public record Update(
             @NotBlank(message = "상품 이름은 필수 입니다")
             String name,
             @NotNull(message = "카테고리 id는 필수 입니다")
             Long categoryId,
             String description
     ) {
-        public ProductUpdateCommand toCommand(Long productId) {
-            return ProductUpdateCommand.builder()
+        public ProductCommand.Update toCommand(Long productId) {
+            return ProductCommand.Update.builder()
                     .productId(productId)
-                    .name(this.name())
-                    .categoryId(this.categoryId())
-                    .description(this.description())
+                    .name(name)
+                    .categoryId(categoryId)
+                    .description(description)
                     .build();
         }
     }

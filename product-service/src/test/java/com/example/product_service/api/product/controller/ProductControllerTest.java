@@ -4,12 +4,11 @@ import com.example.product_service.api.common.dto.PageDto;
 import com.example.product_service.api.common.security.model.UserRole;
 import com.example.product_service.api.product.controller.dto.ProductSearchCondition;
 import com.example.product_service.api.product.controller.dto.request.ProductRequest;
-import com.example.product_service.api.product.controller.dto.request.ProductRequest.*;
 import com.example.product_service.api.product.controller.dto.response.ProductResponse;
-import com.example.product_service.api.product.controller.dto.response.ProductResponse.*;
 import com.example.product_service.api.product.service.dto.command.ProductCommand;
-import com.example.product_service.api.product.service.dto.command.ProductUpdateCommand;
-import com.example.product_service.api.product.service.dto.result.*;
+import com.example.product_service.api.product.service.dto.result.ProductDetailResponse;
+import com.example.product_service.api.product.service.dto.result.ProductResult;
+import com.example.product_service.api.product.service.dto.result.ProductSummaryResponse;
 import com.example.product_service.support.ControllerTestSupport;
 import com.example.product_service.support.security.annotation.WithCustomMockUser;
 import com.example.product_service.support.security.config.TestSecurityConfig;
@@ -29,7 +28,8 @@ import java.util.stream.Stream;
 
 import static com.example.product_service.support.fixture.ProductControllerFixture.mockDetailResponse;
 import static com.example.product_service.support.fixture.ProductControllerFixture.mockSummaryResponse;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -391,11 +391,11 @@ class ProductControllerTest extends ControllerTestSupport {
         @WithCustomMockUser
         void addImage() throws Exception {
             //given
-            AddImageRequest request = fixtureMonkey.giveMeOne(AddImageRequest.class);
-            ProductImageCreateResult result = fixtureMonkey.giveMeOne(ProductImageCreateResult.class);
+            ProductRequest.AddImage request = fixtureMonkey.giveMeOne(ProductRequest.AddImage.class);
+            ProductResult.AddImage result = fixtureMonkey.giveMeOne(ProductResult.AddImage.class);
             assert result != null;
-            AddImageResponse response = AddImageResponse.from(result);
-            given(productService.updateImages(anyLong(), anyList()))
+            ProductResponse.AddImage response = ProductResponse.AddImage.from(result);
+            given(productService.updateImages(any(ProductCommand.AddImage.class)))
                     .willReturn(result);
             //when
             //then
@@ -412,7 +412,7 @@ class ProductControllerTest extends ControllerTestSupport {
         @WithCustomMockUser(userRole = UserRole.ROLE_USER)
         void addImage_user_role() throws Exception {
             //given
-            AddImageRequest request = fixtureMonkey.giveMeOne(AddImageRequest.class);
+            ProductRequest.AddImage request = fixtureMonkey.giveMeOne(ProductRequest.AddImage.class);
             //when
             //then
             mockMvc.perform(put("/products/{productId}/images", 1L)
@@ -430,7 +430,7 @@ class ProductControllerTest extends ControllerTestSupport {
         @DisplayName("로그인 하지 않은 사용자는 상품 이미지를 추가할 수 없다")
         void addImage_unAuthorized() throws Exception {
             //given
-            AddImageRequest request = fixtureMonkey.giveMeOne(AddImageRequest.class);
+            ProductRequest.AddImage request = fixtureMonkey.giveMeOne(ProductRequest.AddImage.class);
             //when
             //then
             mockMvc.perform(put("/products/{productId}/images", 1L)
@@ -448,7 +448,7 @@ class ProductControllerTest extends ControllerTestSupport {
         @DisplayName("상품 이미지 추가 요청 검증")
         @MethodSource("provideInvalidAddImageRequest")
         @WithCustomMockUser
-        void addImage_invalidRequest(String description, AddImageRequest request, String message) throws Exception {
+        void addImage_invalidRequest(String description, ProductRequest.AddImage request, String message) throws Exception {
             //given
             //when
             //then
@@ -464,11 +464,6 @@ class ProductControllerTest extends ControllerTestSupport {
         }
 
         private static Stream<Arguments> provideInvalidAddImageRequest() {
-            ImageRequest VALID_BASE_IMAGE = ImageRequest.builder()
-                    .imagePath("/test/image.jpg")
-                    .isThumbnail(true)
-                    .sortOrder(1)
-                    .build();
             return Stream.of(
                     Arguments.of(
                             "이미지 리스트가 null",
@@ -476,36 +471,16 @@ class ProductControllerTest extends ControllerTestSupport {
                             "최소 1장의 이미지를 등록해야 합니다"
                     ),
                     Arguments.of(
-                            "이미지 Path가 null",
-                            wrap(VALID_BASE_IMAGE.toBuilder().imagePath(null).build()),
-                            "이미지 경로는 필수 입니다"
-                    ),
-                    Arguments.of(
                             "잘못된 형식의 path",
-                            wrap(VALID_BASE_IMAGE.toBuilder().imagePath("invalidPath").build()),
+                            wrap(List.of("invalidPath")),
                             "이미지 경로는 '/'로 시작하는 유효한 이미지 파일이어야 합니다"
-                    ),
-                    Arguments.of(
-                            "썸네일 여부가 null",
-                            wrap(VALID_BASE_IMAGE.toBuilder().isThumbnail(null).build()),
-                            "썸네일 여부는 필수 입니다"
-                    ),
-                    Arguments.of(
-                            "정렬 순서가 null",
-                            wrap(VALID_BASE_IMAGE.toBuilder().sortOrder(null).build()),
-                            "정렬 순서는 필수 입니다"
-                    ),
-                    Arguments.of(
-                            "정렬 순서가 1미만",
-                            wrap(VALID_BASE_IMAGE.toBuilder().sortOrder(0).build()),
-                            "정렬 순서는 1 이상이여야 합니다"
                     )
             );
         }
 
-        private static AddImageRequest wrap(ImageRequest imageRequest) {
-            return AddImageRequest.builder()
-                    .images(imageRequest == null ? null : List.of(imageRequest))
+        private static ProductRequest.AddImage wrap(List<String> imagePaths) {
+            return ProductRequest.AddImage.builder()
+                    .images(imagePaths)
                     .build();
         }
     }
@@ -518,12 +493,12 @@ class ProductControllerTest extends ControllerTestSupport {
         @WithCustomMockUser
         void updateDescriptionImage() throws Exception {
             //given
-            AddDescriptionImageRequest request = fixtureMonkey.giveMeOne(AddDescriptionImageRequest.class);
-            ProductDescriptionImageResult result = fixtureMonkey.giveMeOne(ProductDescriptionImageResult.class);
+            ProductRequest.AddDescriptionImage request = fixtureMonkey.giveMeOne(ProductRequest.AddDescriptionImage.class);
+            ProductResult.AddDescriptionImage result = fixtureMonkey.giveMeOne(ProductResult.AddDescriptionImage.class);
             assert result != null;
-            given(productService.updateDescriptionImages(anyLong(), anyList()))
+            given(productService.updateDescriptionImages(any(ProductCommand.AddDescriptionImage.class)))
                     .willReturn(result);
-            AddDescriptionImageResponse response = AddDescriptionImageResponse.from(result);
+            ProductResponse.AddDescriptionImage response = ProductResponse.AddDescriptionImage.from(result);
             //when
             //then
             mockMvc.perform(put("/products/{productId}/description-images", 1L)
@@ -539,7 +514,7 @@ class ProductControllerTest extends ControllerTestSupport {
         @WithCustomMockUser(userRole = UserRole.ROLE_USER)
         void updateDescriptionImage_user_role() throws Exception {
             //given
-            AddDescriptionImageRequest request = fixtureMonkey.giveMeOne(AddDescriptionImageRequest.class);
+            ProductRequest.AddDescriptionImage request = fixtureMonkey.giveMeOne(ProductRequest.AddDescriptionImage.class);
             //when
             //then
             mockMvc.perform(put("/products/{productId}/description-images", 1L)
@@ -557,7 +532,7 @@ class ProductControllerTest extends ControllerTestSupport {
         @DisplayName("로그인 하지 않은 사용자는 상품 설명 이미지를 추가할 수 없다")
         void updateDescriptionImage_unAuthorized() throws Exception {
             //given
-            AddDescriptionImageRequest request = fixtureMonkey.giveMeOne(AddDescriptionImageRequest.class);
+            ProductRequest.AddDescriptionImage request = fixtureMonkey.giveMeOne(ProductRequest.AddDescriptionImage.class);
             //when
             //then
             mockMvc.perform(put("/products/{productId}/description-images", 1L)
@@ -575,7 +550,7 @@ class ProductControllerTest extends ControllerTestSupport {
         @DisplayName("상품 설명 이미지 요청 검증")
         @MethodSource("provideInvalidDescriptionImageRequest")
         @WithCustomMockUser
-        void updateDescriptionImage_Validation(String description, AddDescriptionImageRequest request, String message) throws Exception {
+        void updateDescriptionImage_Validation(String description, ProductRequest.AddDescriptionImage request, String message) throws Exception {
             //given
             //when
             //then
@@ -591,10 +566,6 @@ class ProductControllerTest extends ControllerTestSupport {
         }
 
         private static Stream<Arguments> provideInvalidDescriptionImageRequest() {
-            DescriptionImageRequest VALID_BASE_IMAGE = DescriptionImageRequest.builder()
-                    .imagePath("/test/image.jpg")
-                    .sortOrder(1)
-                    .build();
             return Stream.of(
                     Arguments.of(
                             "images 가 null",
@@ -602,31 +573,16 @@ class ProductControllerTest extends ControllerTestSupport {
                             "최소 1장의 이미지를 등록해야 합니다"
                     ),
                     Arguments.of(
-                            "imagePath가 null",
-                            wrap(VALID_BASE_IMAGE.toBuilder().imagePath(null).build()),
-                            "이미지 경로는 필수 입니다"
-                    ),
-                    Arguments.of(
                             "잘못된 형식의 path",
-                            wrap(VALID_BASE_IMAGE.toBuilder().imagePath("invalidPath").build()),
+                            wrap(List.of("invalidPath")),
                             "이미지 경로는 '/'로 시작하는 유효한 이미지 파일이어야 합니다"
-                    ),
-                    Arguments.of(
-                            "정렬 순서가 null",
-                            wrap(VALID_BASE_IMAGE.toBuilder().sortOrder(null).build()),
-                            "정렬 순서는 필수 입니다"
-                    ),
-                    Arguments.of(
-                            "정렬 순서가 1미만",
-                            wrap(VALID_BASE_IMAGE.toBuilder().sortOrder(0).build()),
-                            "정렬 순서는 1 이상이여야 합니다"
                     )
             );
         }
 
-        private static AddDescriptionImageRequest wrap(DescriptionImageRequest request) {
-            return AddDescriptionImageRequest.builder()
-                    .images(request == null ? null : List.of(request))
+        private static ProductRequest.AddDescriptionImage wrap(List<String> images) {
+            return ProductRequest.AddDescriptionImage.builder()
+                    .images(images)
                     .build();
         }
     }
@@ -639,11 +595,11 @@ class ProductControllerTest extends ControllerTestSupport {
         @WithCustomMockUser
         void publishProduct() throws Exception {
             //given
-            ProductStatusResult result = fixtureMonkey.giveMeOne(ProductStatusResult.class);
+            ProductResult.Publish result = fixtureMonkey.giveMeOne(ProductResult.Publish.class);
             assert result != null;
             given(productService.publish(anyLong()))
                     .willReturn(result);
-            PublishResponse response = PublishResponse.from(result);
+            ProductResponse.Publish response = ProductResponse.Publish.from(result);
             //when
             //then
             mockMvc.perform(patch("/products/{productId}/publish", 1L)
@@ -692,11 +648,11 @@ class ProductControllerTest extends ControllerTestSupport {
         @WithCustomMockUser
         void closeProduct() throws Exception {
             //given
-            ProductStatusResult result = fixtureMonkey.giveMeOne(ProductStatusResult.class);
+            ProductResult.Close result = fixtureMonkey.giveMeOne(ProductResult.Close.class);
             assert result != null;
             given(productService.closedProduct(anyLong()))
                     .willReturn(result);
-            CloseResponse response = CloseResponse.from(result);
+            ProductResponse.Close response = ProductResponse.Close.from(result);
             //when
             //then
             mockMvc.perform(patch("/products/{productId}/close", 1L)
@@ -841,12 +797,12 @@ class ProductControllerTest extends ControllerTestSupport {
         @WithCustomMockUser
         void updateProduct() throws Exception {
             //given
-            UpdateRequest request = fixtureMonkey.giveMeOne(UpdateRequest.class);
-            ProductUpdateResponse result = fixtureMonkey.giveMeOne(ProductUpdateResponse.class);
+            ProductRequest.Update request = fixtureMonkey.giveMeOne(ProductRequest.Update.class);
+            ProductResult.Update result = fixtureMonkey.giveMeOne(ProductResult.Update.class);
             assert result != null;
-            given(productService.updateProduct(any(ProductUpdateCommand.class)))
+            given(productService.updateProduct(any(ProductCommand.Update.class)))
                     .willReturn(result);
-            UpdateResponse response = UpdateResponse.from(result);
+            ProductResponse.Update response = ProductResponse.Update.from(result);
             //when
             //then
             mockMvc.perform(put("/products/{productId}", 1L)
@@ -862,7 +818,7 @@ class ProductControllerTest extends ControllerTestSupport {
         @WithCustomMockUser(userRole = UserRole.ROLE_USER)
         void updateProduct_user_role() throws Exception {
             //given
-            UpdateRequest request = fixtureMonkey.giveMeOne(UpdateRequest.class);
+            ProductRequest.Update request = fixtureMonkey.giveMeOne(ProductRequest.Update.class);
             //when
             //then
             mockMvc.perform(put("/products/{productId}", 1L)
@@ -880,7 +836,7 @@ class ProductControllerTest extends ControllerTestSupport {
         @DisplayName("로그인 하지 않은 사용자는 상품을 수정할 수 없다")
         void updateProduct_unAuthorized() throws Exception {
             //given
-            UpdateRequest request = fixtureMonkey.giveMeOne(UpdateRequest.class);
+            ProductRequest.Update request = fixtureMonkey.giveMeOne(ProductRequest.Update.class);
             //when
             //then
             mockMvc.perform(put("/products/{productId}", 1L)
@@ -898,7 +854,7 @@ class ProductControllerTest extends ControllerTestSupport {
         @MethodSource("provideInvalidUpdateRequest")
         @WithCustomMockUser
         @DisplayName("상품 수정 요청 검증")
-        void updateProduct_validation(String description, UpdateRequest request, String message) throws Exception {
+        void updateProduct_validation(String description, ProductRequest.Update request, String message) throws Exception {
             //given
             //when
             //then
@@ -914,7 +870,7 @@ class ProductControllerTest extends ControllerTestSupport {
         }
 
         private static Stream<Arguments> provideInvalidUpdateRequest(){
-            UpdateRequest VALID_BASE_UPDATE = UpdateRequest.builder()
+            ProductRequest.Update VALID_BASE_UPDATE = ProductRequest.Update.builder()
                     .name("새 이름")
                     .categoryId(1L)
                     .description("상품 설명")

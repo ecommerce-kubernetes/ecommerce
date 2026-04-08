@@ -59,9 +59,7 @@ public class ProductDescriptor {
 
     public static FieldDescriptor[] getAddImageRequest() {
         return new FieldDescriptor[] {
-                fieldWithPath("images[].imagePath").description("이미지 경로"),
-                fieldWithPath("images[].isThumbnail").description("썸네일 여부"),
-                fieldWithPath("images[].sortOrder").description("정렬 순서")
+                fieldWithPath("images").description("이미지 경로")
         };
     }
 
@@ -77,8 +75,7 @@ public class ProductDescriptor {
 
     public static FieldDescriptor[] getAddDescriptionImageRequest() {
         return new FieldDescriptor[] {
-                fieldWithPath("images[].imagePath").description("이미지 경로"),
-                fieldWithPath("images[].sortOrder").description("정렬 순서")
+                fieldWithPath("images").description("이미지 경로")
         };
     }
 

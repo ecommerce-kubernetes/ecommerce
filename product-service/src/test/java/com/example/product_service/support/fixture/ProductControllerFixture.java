@@ -11,14 +11,6 @@ public class ProductControllerFixture {
     public static final Long PRICE = 3000L;
     public static final Integer DISCOUNT_RATE = 10;
 
-    public static ProductUpdateResponse.ProductUpdateResponseBuilder mockUpdateResponse() {
-        return ProductUpdateResponse.builder()
-                .productId(PRODUCT_ID)
-                .name("새상품")
-                .description("상품 설명")
-                .categoryId(1L);
-    }
-
     public static ProductSummaryResponse.ProductSummaryResponseBuilder mockSummaryResponse() {
         return ProductSummaryResponse.builder()
                 .productId(PRODUCT_ID)

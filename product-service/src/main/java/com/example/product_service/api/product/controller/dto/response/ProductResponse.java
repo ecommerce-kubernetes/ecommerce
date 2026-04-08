@@ -1,6 +1,7 @@
 package com.example.product_service.api.product.controller.dto.response;
 
-import com.example.product_service.api.product.service.dto.result.*;
+import com.example.product_service.api.product.domain.model.ProductStatus;
+import com.example.product_service.api.product.service.dto.result.ProductResult;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 
@@ -95,118 +96,118 @@ public class ProductResponse {
     }
 
     @Builder
-    public record AddImageResponse(
+    public record AddImage(
             Long productId,
-            List<ImageResponse> images
+            List<ImageDetail> images
     ) {
-        public static AddImageResponse from(ProductImageCreateResult result) {
-            List<ImageResponse> images = mappingImageResponse(result.getImages());
-            return AddImageResponse.builder()
-                    .productId(result.getProductId())
+        public static AddImage from(ProductResult.AddImage result) {
+            List<ImageDetail> images = mappingImageResponse(result.images());
+            return AddImage.builder()
+                    .productId(result.productId())
                     .images(images)
                     .build();
         }
 
-        public static List<ImageResponse> mappingImageResponse(List<ProductImageResult> images) {
-            return images.stream().map(ImageResponse::from).toList();
+        public static List<ImageDetail> mappingImageResponse(List<ProductResult.ImageDetail> images) {
+            return images.stream().map(ImageDetail::from).toList();
         }
     }
 
     @Builder
-    public record ImageResponse(
+    public record ImageDetail(
             Long imageId,
             String imagePath,
             Boolean isThumbnail,
             Integer sortOrder
     ) {
-        public static ImageResponse from(ProductImageResult image) {
-            return ImageResponse.builder()
-                    .imageId(image.getImageId())
-                    .imagePath(image.getImagePath())
+        public static ImageDetail from(ProductResult.ImageDetail image) {
+            return ImageDetail.builder()
+                    .imageId(image.imageId())
+                    .imagePath(image.imagePath())
                     .isThumbnail(image.isThumbnail())
-                    .sortOrder(image.getSortOrder())
+                    .sortOrder(image.sortOrder())
                     .build();
         }
     }
 
     @Builder
-    public record AddDescriptionImageResponse(
+    public record AddDescriptionImage(
             Long productId,
-            List<DescriptionImageResponse> descriptionImages
+            List<DescriptionImageDetail> descriptionImages
     ) {
-        public static AddDescriptionImageResponse from(ProductDescriptionImageResult result) {
-            List<DescriptionImageResponse> images = mappingDescriptionImages(result.getDescriptionImages());
-            return AddDescriptionImageResponse.builder()
-                    .productId(result.getProductId())
+        public static AddDescriptionImage from(ProductResult.AddDescriptionImage result) {
+            List<DescriptionImageDetail> images = mappingDescriptionImages(result.images());
+            return AddDescriptionImage.builder()
+                    .productId(result.productId())
                     .descriptionImages(images)
                     .build();
         }
 
-        private static List<DescriptionImageResponse> mappingDescriptionImages(List<ProductDescriptionImageResponse> images) {
-            return images.stream().map(DescriptionImageResponse::from).toList();
+        private static List<DescriptionImageDetail> mappingDescriptionImages(List<ProductResult.DescriptionImageDetail> images) {
+            return images.stream().map(DescriptionImageDetail::from).toList();
         }
     }
 
     @Builder
-    public record DescriptionImageResponse(
+    public record DescriptionImageDetail(
             Long imageId,
             String imagePath,
             Integer sortOrder
     ) {
-        public static DescriptionImageResponse from(ProductDescriptionImageResponse image) {
-            return DescriptionImageResponse.builder()
-                    .imageId(image.getImageId())
-                    .imagePath(image.getImagePath())
-                    .sortOrder(image.getSortOrder())
+        public static DescriptionImageDetail from(ProductResult.DescriptionImageDetail image) {
+            return DescriptionImageDetail.builder()
+                    .imageId(image.imageId())
+                    .imagePath(image.imagePath())
+                    .sortOrder(image.sortOrder())
                     .build();
         }
     }
 
     @Builder
-    public record PublishResponse (
+    public record Publish(
             Long productId,
-            String status,
-            @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-mm-dd HH:mm:ss", timezone = "Asia/Seoul")
+            ProductStatus status,
+            @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
             LocalDateTime publishedAt
     ) {
-        public static PublishResponse from(ProductStatusResult result) {
-            return PublishResponse.builder()
-                    .productId(result.getProductId())
-                    .status(result.getStatus())
-                    .publishedAt(result.getPublishedAt())
+        public static Publish from(ProductResult.Publish result) {
+            return Publish.builder()
+                    .productId(result.productId())
+                    .status(result.status())
+                    .publishedAt(result.publishedAt())
                     .build();
         }
     }
 
     @Builder
-    public record CloseResponse (
+    public record Close(
             Long productId,
-            String status,
-            @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-mm-dd HH:mm:ss", timezone = "Asia/Seoul")
+            ProductStatus status,
+            @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
             LocalDateTime saleStoppedAt
     ) {
-        public static CloseResponse from(ProductStatusResult result) {
-            return CloseResponse.builder()
-                    .productId(result.getProductId())
-                    .status(result.getStatus())
-                    .saleStoppedAt(result.getSaleStoppedAt())
+        public static Close from(ProductResult.Close result) {
+            return Close.builder()
+                    .productId(result.productId())
+                    .status(result.status())
+                    .saleStoppedAt(result.saleStoppedAt())
                     .build();
         }
     }
 
     @Builder
-    public record UpdateResponse (
+    public record Update(
             Long productId,
             String name,
             String description,
             Long categoryId
     ) {
-        public static UpdateResponse from (ProductUpdateResponse result) {
-            return UpdateResponse.builder()
-                    .productId(result.getProductId())
-                    .name(result.getName())
-                    .description(result.getDescription())
-                    .categoryId(result.getCategoryId())
+        public static Update from (ProductResult.Update result) {
+            return Update.builder()
+                    .productId(result.productId())
+                    .name(result.name())
+                    .description(result.description())
+                    .categoryId(result.categoryId())
                     .build();
         }
     }

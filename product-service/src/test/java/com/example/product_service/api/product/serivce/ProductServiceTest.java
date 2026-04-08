@@ -17,7 +17,6 @@ import com.example.product_service.api.product.domain.model.ProductVariant;
 import com.example.product_service.api.product.domain.repository.ProductRepository;
 import com.example.product_service.api.product.service.ProductService;
 import com.example.product_service.api.product.service.dto.command.ProductCommand;
-import com.example.product_service.api.product.service.dto.command.ProductUpdateCommand;
 import com.example.product_service.api.product.service.dto.result.*;
 import com.example.product_service.support.ExcludeInfraTest;
 import org.junit.jupiter.api.DisplayName;
@@ -328,10 +327,13 @@ public class ProductServiceTest extends ExcludeInfraTest {
         @DisplayName("상품을 찾을 수 없으면 예외를 던진다")
         void addImages_notFound_product(){
             //given
-            List<String> images = List.of("http://image1.jpg", "http://image2.jpg");
+            ProductCommand.AddImage command = ProductCommand.AddImage.builder()
+                    .productId(999L)
+                    .images(List.of("/test/image1.jpg", "/test/image2.jpg"))
+                    .build();
             //when
             //then
-            assertThatThrownBy(() -> productService.updateImages(999L, images))
+            assertThatThrownBy(() -> productService.updateImages(command))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(ProductErrorCode.PRODUCT_NOT_FOUND);
@@ -344,15 +346,20 @@ public class ProductServiceTest extends ExcludeInfraTest {
             Category category = saveCategory();
             Product product = Product.create("상품", "상품 설명", category);
             productRepository.save(product);
+            ProductCommand.AddImage command = ProductCommand.AddImage.builder()
+                    .productId(product.getId())
+                    .images(List.of("/test/image1.jpg", "/test/image2.jpg"))
+                    .build();
             //when
-            ProductImageCreateResult result = productService.updateImages(product.getId(), List.of("http://prod1.jpg", "http://prod2.jpg"));
+            ProductResult.AddImage result = productService.updateImages(command);
             //then
-            assertThat(result.getProductId()).isEqualTo(product.getId());
-            assertThat(result.getImages())
-                    .extracting(ProductImageResult::getImagePath, ProductImageResult::getSortOrder, ProductImageResult::isThumbnail)
+            assertThat(result.productId()).isEqualTo(product.getId());
+            assertThat(result.images())
+                    .allSatisfy(image -> assertThat(image.imageId()).isNotNull())
+                    .extracting(ProductResult.ImageDetail::imagePath, ProductResult.ImageDetail::sortOrder, ProductResult.ImageDetail::isThumbnail)
                     .containsExactlyInAnyOrder(
-                            tuple("http://prod1.jpg", 1, true),
-                            tuple("http://prod2.jpg", 2, false)
+                            tuple("/test/image1.jpg", 1, true),
+                            tuple("/test/image2.jpg", 2, false)
                     );
         }
     }
@@ -364,31 +371,39 @@ public class ProductServiceTest extends ExcludeInfraTest {
         @DisplayName("상품을 찾을 수 없으면 예외를 던진다")
         void updateDescriptionImages_notFound_product(){
             //given
-            List<String> images = List.of("http://image1.jpg", "http://image2.jpg");
+            ProductCommand.AddDescriptionImage command = ProductCommand.AddDescriptionImage.builder()
+                    .productId(999L)
+                    .images(List.of("/test/image1.jpg", "/test/image2.jpg"))
+                    .build();
             //when
             //then
-            assertThatThrownBy(() -> productService.updateDescriptionImages(999L, images))
+            assertThatThrownBy(() -> productService.updateDescriptionImages(command))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(ProductErrorCode.PRODUCT_NOT_FOUND);
         }
 
         @Test
-        @DisplayName("상품 이미지를 추가한다")
+        @DisplayName("상품 설명 이미지를 추가한다")
         void updateDescriptionImages(){
             //given
             Category category = saveCategory();
             Product product = Product.create("상품", "상품 설명", category);
             productRepository.save(product);
+            ProductCommand.AddDescriptionImage command = ProductCommand.AddDescriptionImage.builder()
+                    .productId(product.getId())
+                    .images(List.of("/test/image1.jpg", "/test/image2.jpg"))
+                    .build();
             //when
-            ProductDescriptionImageResult result = productService.updateDescriptionImages(product.getId(), List.of("http://prod1.jpg", "http://prod2.jpg"));
+            ProductResult.AddDescriptionImage result = productService.updateDescriptionImages(command);
             //then
-            assertThat(result.getProductId()).isEqualTo(product.getId());
-            assertThat(result.getDescriptionImages())
-                    .extracting(ProductDescriptionImageResponse::getImagePath, ProductDescriptionImageResponse::getSortOrder)
+            assertThat(result.productId()).isEqualTo(product.getId());
+            assertThat(result.images())
+                    .allSatisfy(image -> assertThat(image.imageId()).isNotNull())
+                    .extracting(ProductResult.DescriptionImageDetail::imagePath, ProductResult.DescriptionImageDetail::sortOrder)
                     .containsExactlyInAnyOrder(
-                            tuple("http://prod1.jpg", 1),
-                            tuple("http://prod2.jpg", 2)
+                            tuple("/test/image1.jpg", 1),
+                            tuple("/test/image2.jpg", 2)
                     );
         }
     }
@@ -409,11 +424,11 @@ public class ProductServiceTest extends ExcludeInfraTest {
             product.replaceDescriptionImage(List.of("http://description.jpg"));
             productRepository.save(product);
             //when
-            ProductStatusResult result = productService.publish(product.getId());
+            ProductResult.Publish result = productService.publish(product.getId());
             //then
-            assertThat(result.getProductId()).isEqualTo(product.getId());
-            assertThat(result.getStatus()).isEqualTo("ON_SALE");
-            assertThat(result.getPublishedAt()).isNotNull();
+            assertThat(result.productId()).isEqualTo(product.getId());
+            assertThat(result.status()).isEqualTo(ProductStatus.ON_SALE);
+            assertThat(result.publishedAt()).isNotNull();
         }
 
         @Test
@@ -556,7 +571,7 @@ public class ProductServiceTest extends ExcludeInfraTest {
         @DisplayName("상품을 찾을 수 없으면 예외를 던진다")
         void updateProduct_product_not_found() {
             //given
-            ProductUpdateCommand command = ProductUpdateCommand.builder()
+            ProductCommand.Update command = ProductCommand.Update.builder()
                     .productId(999L)
                     .name("새 이름")
                     .description("새 설명")
@@ -576,7 +591,7 @@ public class ProductServiceTest extends ExcludeInfraTest {
             //given
             Category category = saveCategory();
             Product product = saveProduct(category);
-            ProductUpdateCommand command = ProductUpdateCommand.builder()
+            ProductCommand.Update command = ProductCommand.Update.builder()
                     .productId(product.getId())
                     .name("새 이름")
                     .description("새 설명")
@@ -597,19 +612,19 @@ public class ProductServiceTest extends ExcludeInfraTest {
             Category category = saveCategory();
             Category newCategory = saveCategory();
             Product product = saveProduct(category);
-            ProductUpdateCommand command = ProductUpdateCommand.builder()
+            ProductCommand.Update command = ProductCommand.Update.builder()
                     .productId(product.getId())
                     .name("새 이름")
                     .description("새 설명")
                     .categoryId(newCategory.getId())
                     .build();
             //when
-            ProductUpdateResponse result = productService.updateProduct(command);
+            ProductResult.Update result = productService.updateProduct(command);
             //then
-            assertThat(result.getProductId()).isEqualTo(product.getId());
-            assertThat(result.getCategoryId()).isEqualTo(newCategory.getId());
-            assertThat(result.getName()).isEqualTo("새 이름");
-            assertThat(result.getDescription()).isEqualTo("새 설명");
+            assertThat(result.productId()).isEqualTo(product.getId());
+            assertThat(result.categoryId()).isEqualTo(newCategory.getId());
+            assertThat(result.name()).isEqualTo("새 이름");
+            assertThat(result.description()).isEqualTo("새 설명");
         }
     }
 
@@ -659,11 +674,11 @@ public class ProductServiceTest extends ExcludeInfraTest {
             product.publish();
             productRepository.save(product);
             //when
-            ProductStatusResult result = productService.closedProduct(product.getId());
+            ProductResult.Close result = productService.closedProduct(product.getId());
             //then
-            assertThat(result.getProductId()).isEqualTo(product.getId());
-            assertThat(result.getStatus()).isEqualTo("STOP_SALE");
-            assertThat(result.getSaleStoppedAt()).isNotNull();
+            assertThat(result.productId()).isEqualTo(product.getId());
+            assertThat(result.status()).isEqualTo(ProductStatus.STOP_SALE);
+            assertThat(result.saleStoppedAt()).isNotNull();
         }
     }
 }

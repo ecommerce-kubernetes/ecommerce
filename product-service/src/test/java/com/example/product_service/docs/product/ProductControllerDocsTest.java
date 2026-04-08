@@ -5,15 +5,13 @@ import com.example.product_service.api.common.dto.PageDto;
 import com.example.product_service.api.product.controller.ProductController;
 import com.example.product_service.api.product.controller.dto.ProductSearchCondition;
 import com.example.product_service.api.product.controller.dto.request.ProductRequest;
-import com.example.product_service.api.product.controller.dto.request.ProductRequest.AddDescriptionImageRequest;
-import com.example.product_service.api.product.controller.dto.request.ProductRequest.AddImageRequest;
-import com.example.product_service.api.product.controller.dto.request.ProductRequest.UpdateRequest;
 import com.example.product_service.api.product.controller.dto.response.ProductResponse;
-import com.example.product_service.api.product.controller.dto.response.ProductResponse.*;
+import com.example.product_service.api.product.domain.model.ProductStatus;
 import com.example.product_service.api.product.service.ProductService;
 import com.example.product_service.api.product.service.dto.command.ProductCommand;
-import com.example.product_service.api.product.service.dto.command.ProductUpdateCommand;
-import com.example.product_service.api.product.service.dto.result.*;
+import com.example.product_service.api.product.service.dto.result.ProductDetailResponse;
+import com.example.product_service.api.product.service.dto.result.ProductResult;
+import com.example.product_service.api.product.service.dto.result.ProductSummaryResponse;
 import com.example.product_service.docs.RestDocsSupport;
 import com.example.product_service.docs.descriptor.ProductDescriptor;
 import org.junit.jupiter.api.DisplayName;
@@ -29,8 +27,10 @@ import java.util.List;
 
 import static com.epages.restdocs.apispec.MockMvcRestDocumentationWrapper.document;
 import static com.epages.restdocs.apispec.ResourceDocumentation.resource;
-import static com.example.product_service.support.fixture.ProductControllerFixture.*;
-import static org.mockito.ArgumentMatchers.*;
+import static com.example.product_service.support.fixture.ProductControllerFixture.mockDetailResponse;
+import static com.example.product_service.support.fixture.ProductControllerFixture.mockSummaryResponse;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willDoNothing;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
@@ -160,8 +160,7 @@ class ProductControllerDocsTest extends RestDocsSupport {
                                         .build()
                         )
                 ).build();
-        assert result != null;
-        AddVariant response = AddVariant.from(result);
+        ProductResponse.AddVariant response = ProductResponse.AddVariant.from(result);
         HttpHeaders adminHeader = createAdminHeader();
         given(productService.createVariants(any(ProductCommand.AddVariant.class)))
                 .willReturn(result);
@@ -188,24 +187,24 @@ class ProductControllerDocsTest extends RestDocsSupport {
     @DisplayName("상품 이미지 추가")
     void updateImages() throws Exception {
         //given
-        AddImageRequest request = fixtureMonkey.giveMeBuilder(AddImageRequest.class)
-                .size("images", 1)
-                .set("images[0].imagePath", "/test/image.jpg")
-                .set("images[0].isThumbnail", true)
-                .set("images[0].sortOrder", 1)
-                .sample();
-        ProductImageCreateResult result = fixtureMonkey.giveMeBuilder(ProductImageCreateResult.class)
-                .size("images", 1)
-                .set("productId", 1L)
-                .set("images[0].imageId", 1L)
-                .set("images[0].imagePath", "/test/image.jpg")
-                .set("images[0].isThumbnail", true)
-                .set("images[0].sortOrder", 1)
-                .sample();
-        assert result != null;
-        AddImageResponse response = AddImageResponse.from(result);
+        ProductRequest.AddImage request = ProductRequest.AddImage.builder()
+                .images(List.of("/test/image.jpg"))
+                .build();
+        ProductResult.AddImage result = ProductResult.AddImage.builder()
+                .productId(1L)
+                .images(
+                        List.of(
+                                ProductResult.ImageDetail.builder()
+                                        .imageId(1L)
+                                        .imagePath("/test/image.jpg")
+                                        .isThumbnail(true)
+                                        .sortOrder(1)
+                                        .build()
+                        )
+                ).build();
+        ProductResponse.AddImage response = ProductResponse.AddImage.from(result);
         HttpHeaders adminHeader = createAdminHeader();
-        given(productService.updateImages(anyLong(), anyList()))
+        given(productService.updateImages(any(ProductCommand.AddImage.class)))
                 .willReturn(result);
         //when
         //then
@@ -228,23 +227,23 @@ class ProductControllerDocsTest extends RestDocsSupport {
     @Test
     @DisplayName("상품 설명 이미지 추가")
     void updateDescriptionImage() throws Exception {
-        AddDescriptionImageRequest request = fixtureMonkey.giveMeBuilder(AddDescriptionImageRequest.class)
-                .size("images", 1)
-                .set("images[0].imagePath", "/test/image.jpg")
-                .set("images[0].sortOrder", 1)
-                .sample();
-        ProductDescriptionImageResult result = fixtureMonkey.giveMeBuilder(ProductDescriptionImageResult.class)
-                .size("descriptionImages", 1)
-                .set("productId", 1L)
-                .set("descriptionImages[0].imageId", 1L)
-                .set("descriptionImages[0].imagePath", "/test/image.jpg")
-                .set("descriptionImages[0].sortOrder", 1)
-                .sample();
-        assert result != null;
+        ProductRequest.AddDescriptionImage request = ProductRequest.AddDescriptionImage.builder()
+                .images(
+                        List.of("/test/image.jpg")
+                ).build();
+        ProductResult.AddDescriptionImage result = ProductResult.AddDescriptionImage.builder()
+                .productId(1L)
+                .images(
+                        List.of(ProductResult.DescriptionImageDetail.builder()
+                                .imageId(1L)
+                                .imagePath("/test/image.jpg")
+                                .sortOrder(1)
+                                .build())
+                ).build();
         HttpHeaders adminHeader = createAdminHeader();
-        given(productService.updateDescriptionImages(anyLong(), anyList()))
+        given(productService.updateDescriptionImages(any(ProductCommand.AddDescriptionImage.class)))
                 .willReturn(result);
-        AddDescriptionImageResponse response = AddDescriptionImageResponse.from(result);
+        ProductResponse.AddDescriptionImage response = ProductResponse.AddDescriptionImage.from(result);
         mockMvc.perform(put("/products/{productId}/description-images", 1L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
@@ -266,16 +265,15 @@ class ProductControllerDocsTest extends RestDocsSupport {
     @DisplayName("상품을 게시한다")
     void publishProduct() throws Exception {
         //given
-        ProductStatusResult result = fixtureMonkey.giveMeBuilder(ProductStatusResult.class)
-                .set("productId", 1L)
-                .set("status", "ON_SALE")
-                .set("publishedAt", LocalDateTime.now())
-                .sample();
-        assert result != null;
+        ProductResult.Publish result = ProductResult.Publish.builder()
+                .productId(1L)
+                .status(ProductStatus.ON_SALE)
+                .publishedAt(LocalDateTime.now())
+                .build();
         HttpHeaders adminHeader = createAdminHeader();
         given(productService.publish(anyLong()))
                 .willReturn(result);
-        PublishResponse response = PublishResponse.from(result);
+        ProductResponse.Publish response = ProductResponse.Publish.from(result);
         //when
         //then
         mockMvc.perform(patch("/products/{productId}/publish", 1L)
@@ -296,16 +294,15 @@ class ProductControllerDocsTest extends RestDocsSupport {
     @DisplayName("상품을 판매 중지로 변경한다")
     void closeProduct() throws Exception {
         //given
-        ProductStatusResult result = fixtureMonkey.giveMeBuilder(ProductStatusResult.class)
-                .set("productId", 1L)
-                .set("status", "STOP_SALE")
-                .set("saleStoppedAt", LocalDateTime.now())
-                .sample();
-        assert result != null;
+        ProductResult.Close result = ProductResult.Close.builder()
+                .productId(1L)
+                .status(ProductStatus.STOP_SALE)
+                .saleStoppedAt(LocalDateTime.now())
+                .build();
         HttpHeaders adminHeader = createAdminHeader();
         given(productService.closedProduct(anyLong()))
                 .willReturn(result);
-        CloseResponse response = CloseResponse.from(result);
+        ProductResponse.Close response = ProductResponse.Close.from(result);
         //when
         //then
         mockMvc.perform(patch("/products/{productId}/close", 1L)
@@ -465,15 +462,21 @@ class ProductControllerDocsTest extends RestDocsSupport {
     @DisplayName("상품 정보를 수정한다")
     void updateProduct() throws Exception {
         //given
-        UpdateRequest request = fixtureMonkey.giveMeBuilder(UpdateRequest.class)
-                .set("name", "새 이름")
-                .set("categoryId", 1L)
-                .set("description", "상품 설명")
-                .sample();
-        ProductUpdateResponse response = mockUpdateResponse().build();
+        ProductRequest.Update request = ProductRequest.Update.builder()
+                .name("새 이름")
+                .categoryId(1L)
+                .description("상품 설명")
+                .build();
+        ProductResult.Update result = ProductResult.Update.builder()
+                .productId(1L)
+                .name("새 상품")
+                .description("상품 설명")
+                .categoryId(1L)
+                .build();
         HttpHeaders adminHeader = createAdminHeader();
-        given(productService.updateProduct(any(ProductUpdateCommand.class)))
-                .willReturn(response);
+        given(productService.updateProduct(any(ProductCommand.Update.class)))
+                .willReturn(result);
+        ProductResponse.Update response = ProductResponse.Update.from(result);
         //when
         //then
         mockMvc.perform(put("/products/{productId}", 1L)
@@ -482,6 +485,7 @@ class ProductControllerDocsTest extends RestDocsSupport {
                         .headers(adminHeader))
                 .andDo(print())
                 .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(response)))
                 .andDo(createSecuredDocument("03-product-09-update",
                         "상품 정보 수정",
                         "상품 기본 정보를 수정한다",
