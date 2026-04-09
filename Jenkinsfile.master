@@ -26,8 +26,16 @@ pipeline {
                             branch 'develop'
                             allOf {
                                 changeRequest()
+<<<<<<< HEAD
                                 expression {
                                     return sh(script: "git diff --name-only origin/${env.CHANGE_TARGET}...HEAD | grep -q '^order-service/'", returnStatus: true) == 0
+=======
+                                anyOf {
+                                    changeset "order-service/**"
+                                    expression {
+                                        return sh(script: "git diff --name-only origin/${env.CHANGE_TARGET}...HEAD | grep -q '^order-service/'", returnStatus: true) == 0
+                                    }
+>>>>>>> d1b4bc0bd4cb95ff93354a62452d2c10357efedc
                                 }
                             }
                         }
@@ -75,8 +83,16 @@ pipeline {
                             branch 'develop'
                             allOf {
                                 changeRequest()
+<<<<<<< HEAD
                                 expression {
                                     return sh(script: "git diff --name-only origin/${env.CHANGE_TARGET}...HEAD | grep -q '^user-service/'", returnStatus: true) == 0
+=======
+                                anyOf {
+                                    changeset "user-service/**"
+                                    expression {
+                                        return sh(script: "git diff --name-only origin/${env.CHANGE_TARGET}...HEAD | grep -q '^user-service/'", returnStatus: true) == 0
+                                    }
+>>>>>>> d1b4bc0bd4cb95ff93354a62452d2c10357efedc
                                 }
                             }
                         }
@@ -119,8 +135,16 @@ pipeline {
                             branch 'develop'
                             allOf {
                                 changeRequest()
+<<<<<<< HEAD
                                 expression {
                                     return sh(script: "git diff --name-only origin/${env.CHANGE_TARGET}...HEAD | grep -q '^product-service/'", returnStatus: true) == 0
+=======
+                                anyOf {
+                                    changeset "product-service/**"
+                                    expression {
+                                        return sh(script: "git diff --name-only origin/${env.CHANGE_TARGET}...HEAD | grep -q '^product-service/'", returnStatus: true) == 0
+                                    }
+>>>>>>> d1b4bc0bd4cb95ff93354a62452d2c10357efedc
                                 }
                             }
                         }
@@ -154,6 +178,7 @@ pipeline {
                         }
                     }
                 }
+<<<<<<< HEAD
 
                 stage('check image service') {
                     when {
@@ -196,6 +221,8 @@ pipeline {
                         }
                     }
                 }
+=======
+>>>>>>> d1b4bc0bd4cb95ff93354a62452d2c10357efedc
             }
         }
 
@@ -227,7 +254,7 @@ pipeline {
 
         stage('2. Deploy Discovery Service') {
             when {
-                allOf {
+                anyOf {
                     branch 'main'
                     anyOf{
                         changeset "discovery-service/**"
