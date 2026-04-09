@@ -299,6 +299,18 @@ pipeline {
                         }
                     }
                 }
+
+                stage('Image Service') {
+                    when {
+                        allOf {
+                            branch 'main'
+                            anyOf {
+                                changeset "image-service/**"
+                                changeset "config-service/**"
+                            }
+                        }
+                    }
+                }
             }
         }
 
@@ -312,6 +324,7 @@ pipeline {
                         changeset "product-service/**"
                         changeset "order-service/**"
                         changeset "config-service/**"
+                        changeset "image-service/**"
                     }
                 }
             }
