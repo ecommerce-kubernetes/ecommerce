@@ -351,41 +351,6 @@ class ProductControllerDocsTest extends RestDocsSupport {
         given(productService.getProduct(anyLong()))
                 .willReturn(result);
         ProductResponse.Detail response = ProductResponse.Detail.from(result);
-        ParameterDescriptor[] pathParameters = new ParameterDescriptor[] {
-                parameterWithName("productId").description("조회할 상품 ID")
-        };
-        FieldDescriptor[] responseFields = new FieldDescriptor[] {
-                fieldWithPath("productId").description("상품 ID"),
-                fieldWithPath("name").description("상품 이름"),
-                fieldWithPath("status").description("상품 상태"),
-                fieldWithPath("categoryId").description("카테고리 Id"),
-                fieldWithPath("description").description("상품 설명"),
-                fieldWithPath("displayPrice").description("대표 상품 판매 가격"),
-                fieldWithPath("originalPrice").description("대표 상품 원본 가격"),
-                fieldWithPath("maxDiscountRate").description("최대 할인율"),
-                fieldWithPath("rating").description("평점"),
-                fieldWithPath("reviewCount").description("리뷰 갯수"),
-                fieldWithPath("popularityScore").description("인기 점수"),
-                fieldWithPath("optionGroups[].optionTypeId").description("상품 옵션 타입 Id"),
-                fieldWithPath("optionGroups[].name").description("상품 옵션 타입 이름"),
-                fieldWithPath("optionGroups[].priority").description("상품 옵션 우선순위"),
-                fieldWithPath("optionGroups[].values[].optionValueId").description("상품 옵션 값 ID"),
-                fieldWithPath("optionGroups[].values[].name").description("상품 옵션 값 이름"),
-                fieldWithPath("images[].imageId").description("상품 이미지 Id"),
-                fieldWithPath("images[].imagePath").description("상품 이미지 URL"),
-                fieldWithPath("images[].sortOrder").description("상품 이미지 순서"),
-                fieldWithPath("images[].thumbnail").description("썸네일 여부"),
-                fieldWithPath("descriptionImages[].imageId").description("상품 설명 이미지 ID"),
-                fieldWithPath("descriptionImages[].imagePath").description("상품 설명 이미지 URL"),
-                fieldWithPath("descriptionImages[].sortOrder").description("상품 설명 이미지 순서"),
-                fieldWithPath("variants[].variantId").description("상품 변형 ID"),
-                fieldWithPath("variants[].sku").description("상품 변형 SKU"),
-                fieldWithPath("variants[].optionValueIds").description("상품 변형 옵션 값 Id 리스트"),
-                fieldWithPath("variants[].originalPrice").description("상품 변형 원본 가격"),
-                fieldWithPath("variants[].discountedPrice").description("상품 변형 할인 가격"),
-                fieldWithPath("variants[].discountRate").description("상품 변형 할인율"),
-                fieldWithPath("variants[].stockQuantity").description("상품 변형 재고 수량")
-        };
         //when
         //then
         mockMvc.perform(get("/products/{productId}", 1L)
