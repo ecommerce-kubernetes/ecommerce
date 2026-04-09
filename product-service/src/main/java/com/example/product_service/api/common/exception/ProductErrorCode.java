@@ -30,6 +30,7 @@ public enum ProductErrorCode implements ErrorCode {
 
     THUMBNAIL_IMAGE_REQUIRED(409, "PRODUCT_030", "대표 이미지가 없는 상품은 게시할 수 없습니다"),
     IMAGE_REQUIRED_ON_SALE(409, "PRODUCT_031", "판매중인 상품은 최소 1개 이상의 이미지가 필요합니다"),
+    DESCRIPTION_IMAGE_REQUIRED_ON_SALE(409, "PRODUCT_032", "판매 상품은 최소 1개 이상의 상품 설명 이미지가 필요합니다"),
 
     DISPLAY_PRICE_INVALID(409, "PRODUCT_040", "판매가가 유효하지 않습니다"),
     ORIGINAL_PRICE_INVALID(409, "PRODUCT_041", "정가가 유효하지 않습니다"),

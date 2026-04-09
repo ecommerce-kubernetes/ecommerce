@@ -2,14 +2,14 @@ package com.example.product_service.api.category.service;
 
 import com.example.product_service.api.category.domain.model.Category;
 import com.example.product_service.api.category.domain.repository.CategoryRepository;
-import com.example.product_service.api.category.service.dto.result.CategoryNavigationResponse;
-import com.example.product_service.api.category.service.dto.result.CategoryResponse;
-import com.example.product_service.api.category.service.dto.result.CategoryTreeResponse;
+import com.example.product_service.api.category.service.dto.command.CategoryCommand;
+import com.example.product_service.api.category.service.dto.result.CategoryResult;
 import com.example.product_service.api.common.exception.BusinessException;
 import com.example.product_service.api.common.exception.CategoryErrorCode;
 import com.example.product_service.api.product.domain.model.Product;
 import com.example.product_service.api.product.domain.repository.ProductRepository;
 import com.example.product_service.support.ExcludeInfraTest;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -24,17 +24,24 @@ import static org.assertj.core.api.Assertions.*;
 @Transactional
 public class CategoryServiceTest extends ExcludeInfraTest {
 
+    private static final Long NOT_FOUNT_ID = 9999L;
+    private static final String DEFAULT_IMAGE_PATH = "/test/image.jpg";
+
     @Autowired
     private CategoryService categoryService;
     @Autowired
     private CategoryRepository categoryRepository;
     @Autowired
     private ProductRepository productRepository;
+    @Autowired
+    private EntityManager em;
 
     private Category setupCategory(String name, Category parent) {
-        Category category = Category.create(name, parent, "http://test.jpg");
+        Category category = Category.create(name, parent, DEFAULT_IMAGE_PATH);
         categoryRepository.save(category);
         category.generatePath();
+        em.flush();
+        em.clear();
         return category;
     }
 
@@ -45,7 +52,7 @@ public class CategoryServiceTest extends ExcludeInfraTest {
 
     @Nested
     @DisplayName("카테고리 생성시")
-    class Create {
+    class CategoryCreate {
 
         @Test
         @DisplayName("부모 카테고리를 찾을 수 없는 경우 카테고리를 생성할 수 없다")
@@ -53,7 +60,12 @@ public class CategoryServiceTest extends ExcludeInfraTest {
             //given
             //when
             //then
-            assertThatThrownBy(() -> categoryService.saveCategory("자식", 999L, "http://child.jpg"))
+            CategoryCommand.Create command = CategoryCommand.Create.builder()
+                    .name("자식")
+                    .parentId(NOT_FOUNT_ID)
+                    .imagePath(DEFAULT_IMAGE_PATH)
+                    .build();
+            assertThatThrownBy(() -> categoryService.saveCategory(command))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(CategoryErrorCode.CATEGORY_NOT_FOUND);
@@ -65,9 +77,14 @@ public class CategoryServiceTest extends ExcludeInfraTest {
             //given
             Category food = setupCategory("식품", null);
             setupProduct("카레", food);
+            CategoryCommand.Create command = CategoryCommand.Create.builder()
+                    .name("육류")
+                    .parentId(food.getId())
+                    .imagePath(DEFAULT_IMAGE_PATH)
+                    .build();
             //when
             //then
-            assertThatThrownBy(() -> categoryService.saveCategory("육류", food.getId(), "http://image.jpg"))
+            assertThatThrownBy(() -> categoryService.saveCategory(command))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(CategoryErrorCode.HAS_PRODUCT);
@@ -78,9 +95,14 @@ public class CategoryServiceTest extends ExcludeInfraTest {
         void save_duplicate_name_root(){
             //given
             setupCategory("가전", null);
+            CategoryCommand.Create command = CategoryCommand.Create.builder()
+                    .name("가전")
+                    .parentId(null)
+                    .imagePath(DEFAULT_IMAGE_PATH)
+                    .build();
             //when
             //then
-            assertThatThrownBy(() -> categoryService.saveCategory("가전", null, "http://image.jpg"))
+            assertThatThrownBy(() -> categoryService.saveCategory(command))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(CategoryErrorCode.DUPLICATE_NAME);
@@ -93,9 +115,14 @@ public class CategoryServiceTest extends ExcludeInfraTest {
             Category food = setupCategory("식품", null);
             setupCategory("육류", food);
             Long categoryId = food.getId();
+            CategoryCommand.Create command = CategoryCommand.Create.builder()
+                    .name("육류")
+                    .parentId(categoryId)
+                    .imagePath(DEFAULT_IMAGE_PATH)
+                    .build();
             //when
             //then
-            assertThatThrownBy(() -> categoryService.saveCategory("육류", categoryId, "http://test.jpg"))
+            assertThatThrownBy(() -> categoryService.saveCategory(command))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(CategoryErrorCode.DUPLICATE_NAME);
@@ -105,13 +132,18 @@ public class CategoryServiceTest extends ExcludeInfraTest {
         @DisplayName("최상위 카테고리를 생성한다")
         void save_root(){
             //when
-            CategoryResponse result = categoryService.saveCategory("가전", null, "http://img.jpg");
+            CategoryCommand.Create command = CategoryCommand.Create.builder()
+                    .name("가전")
+                    .parentId(null)
+                    .imagePath(DEFAULT_IMAGE_PATH)
+                    .build();
+            CategoryResult.Detail result = categoryService.saveCategory(command);
             //then
             assertThat(result)
-                    .extracting(CategoryResponse::getName, CategoryResponse::getParentId, CategoryResponse::getDepth)
-                    .containsExactly("가전", null, 1);
+                    .extracting(CategoryResult.Detail::name, CategoryResult.Detail::parentId, CategoryResult.Detail::depth, CategoryResult.Detail::imagePath)
+                    .containsExactly("가전", null, 1, DEFAULT_IMAGE_PATH);
 
-            Category saved = categoryRepository.findById(result.getId()).orElseThrow();
+            Category saved = categoryRepository.findById(result.id()).orElseThrow();
             assertThat(saved.getPath()).isEqualTo(String.valueOf(saved.getId()));
         }
 
@@ -120,14 +152,19 @@ public class CategoryServiceTest extends ExcludeInfraTest {
         void save_child(){
             //given
             Category food = setupCategory("식품", null);
+            CategoryCommand.Create command = CategoryCommand.Create.builder()
+                    .name("육류")
+                    .parentId(food.getId())
+                    .imagePath(DEFAULT_IMAGE_PATH)
+                    .build();
             //when
-            CategoryResponse result = categoryService.saveCategory("육류", food.getId(), "http://test.jpg");
+            CategoryResult.Detail result = categoryService.saveCategory(command);
             //then
             assertThat(result)
-                    .extracting(CategoryResponse::getName, CategoryResponse::getParentId, CategoryResponse::getDepth, CategoryResponse::getImageUrl)
-                    .containsExactly("육류", food.getId(), 2, "http://test.jpg");
+                    .extracting(CategoryResult.Detail::name, CategoryResult.Detail::parentId, CategoryResult.Detail::depth, CategoryResult.Detail::imagePath)
+                    .containsExactly("육류", food.getId(), 2, DEFAULT_IMAGE_PATH);
 
-            Category saved = categoryRepository.findById(result.getId()).orElseThrow();
+            Category saved = categoryRepository.findById(result.id()).orElseThrow();
             assertThat(saved.getPath()).isEqualTo(food.getId() + "/" + saved.getId());
         }
     }
@@ -142,11 +179,11 @@ public class CategoryServiceTest extends ExcludeInfraTest {
             //given
             Category category = setupCategory("카테고리", null);
             //when
-            CategoryResponse result = categoryService.getCategory(category.getId());
+            CategoryResult.Detail result = categoryService.getCategory(category.getId());
             //then
             assertThat(result)
-                    .extracting(CategoryResponse::getId, CategoryResponse::getName, CategoryResponse::getParentId, CategoryResponse::getDepth, CategoryResponse::getImageUrl)
-                    .containsExactly(category.getId(), "카테고리", null, 1, "http://test.jpg");
+                    .extracting(CategoryResult.Detail::id, CategoryResult.Detail::name, CategoryResult.Detail::parentId, CategoryResult.Detail::depth, CategoryResult.Detail::imagePath)
+                    .containsExactly(category.getId(), "카테고리", null, 1, DEFAULT_IMAGE_PATH);
         }
 
         @Test
@@ -155,7 +192,7 @@ public class CategoryServiceTest extends ExcludeInfraTest {
             //given
             //when
             //then
-            assertThatThrownBy(() -> categoryService.getCategory(999L))
+            assertThatThrownBy(() -> categoryService.getCategory(NOT_FOUNT_ID))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(CategoryErrorCode.CATEGORY_NOT_FOUND);
@@ -171,16 +208,16 @@ public class CategoryServiceTest extends ExcludeInfraTest {
             setupCategory("노트북", root1);
             setupCategory("냉장고", root1);
             //when
-            List<CategoryTreeResponse> result = categoryService.getTree();
+            List<CategoryResult.Tree> result = categoryService.getTree();
             //then
-            assertThat(result).extracting(CategoryTreeResponse::getName, CategoryTreeResponse::getDepth, CategoryTreeResponse::getImageUrl)
+            assertThat(result).extracting(CategoryResult.Tree::getName, CategoryResult.Tree::getDepth, CategoryResult.Tree::getImagePath)
                     .containsExactly(
-                            tuple("전자", 1, "http://test.jpg"),
-                            tuple("식품", 1, "http://test.jpg")
+                            tuple("전자", 1, DEFAULT_IMAGE_PATH),
+                            tuple("식품", 1, DEFAULT_IMAGE_PATH)
                     );
 
-            CategoryTreeResponse electronics = result.get(0);
-            assertThat(electronics.getChildren()).extracting(CategoryTreeResponse::getName, CategoryTreeResponse::getDepth)
+            CategoryResult.Tree electronics = result.getFirst();
+            assertThat(electronics.getChildren()).extracting(CategoryResult.Tree::getName, CategoryResult.Tree::getDepth)
                     .containsExactly(
                             tuple("노트북", 2),
                             tuple("냉장고", 2)
@@ -197,29 +234,29 @@ public class CategoryServiceTest extends ExcludeInfraTest {
             setupCategory("데스크탑", depth2);
             setupCategory("삼성", target);
             //when
-            CategoryNavigationResponse result = categoryService.getNavigation(target.getId());
+            CategoryResult.Navigation result = categoryService.getNavigation(target.getId());
             //then
-            assertThat(result.getCurrent())
-                    .extracting(CategoryResponse::getName, CategoryResponse::getDepth)
+            assertThat(result.current())
+                    .extracting(CategoryResult.Detail::name, CategoryResult.Detail::depth)
                     .containsExactly("노트북", 3);
 
-            assertThat(result.getPath())
-                    .extracting(CategoryResponse::getName, CategoryResponse::getDepth)
+            assertThat(result.path())
+                    .extracting(CategoryResult.Detail::name, CategoryResult.Detail::depth)
                     .containsExactly(
                             tuple("전자", 1),
                             tuple("컴퓨터", 2),
                             tuple("노트북", 3)
                     );
 
-            assertThat(result.getSiblings())
-                    .extracting(CategoryResponse::getName, CategoryResponse::getDepth)
+            assertThat(result.siblings())
+                    .extracting(CategoryResult.Detail::name, CategoryResult.Detail::depth)
                     .containsExactly(
                             tuple("노트북", 3),
                             tuple("데스크탑", 3)
                     );
 
-            assertThat(result.getChildren())
-                    .extracting(CategoryResponse::getName, CategoryResponse::getDepth)
+            assertThat(result.children())
+                    .extracting(CategoryResult.Detail::name, CategoryResult.Detail::depth)
                     .containsExactly(
                             tuple("삼성", 4)
                     );
@@ -235,21 +272,31 @@ public class CategoryServiceTest extends ExcludeInfraTest {
         void update(){
             //given
             Category category = setupCategory("기존", null);
+            CategoryCommand.Update command = CategoryCommand.Update.builder()
+                    .id(category.getId())
+                    .name("변경")
+                    .imagePath("/test/newImage.jpg")
+                    .build();
             //when
-            CategoryResponse result = categoryService.updateCategory(category.getId(), "변경", "http://newimage.jpg");
+            CategoryResult.Detail result = categoryService.updateCategory(command);
             //then
             assertThat(result)
-                    .extracting(CategoryResponse::getName, CategoryResponse::getImageUrl)
-                    .containsExactly("변경", "http://newimage.jpg");
+                    .extracting(CategoryResult.Detail::name, CategoryResult.Detail::imagePath)
+                    .containsExactly("변경", "/test/newImage.jpg");
         }
 
         @Test
         @DisplayName("변경할 카테고리를 찾을 수 없으면 예외를 던진다")
         void update_notFound(){
             //given
+            CategoryCommand.Update command = CategoryCommand.Update.builder()
+                    .id(NOT_FOUNT_ID)
+                    .name("변경")
+                    .imagePath("/test/newImage.jpg")
+                    .build();
             //when
             //then
-            assertThatThrownBy(() -> categoryService.updateCategory(999L, "변경", "http://newImage.jpg"))
+            assertThatThrownBy(() -> categoryService.updateCategory(command))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(CategoryErrorCode.CATEGORY_NOT_FOUND);
@@ -262,9 +309,14 @@ public class CategoryServiceTest extends ExcludeInfraTest {
             setupCategory("동일한 이름", null);
             Category target = setupCategory("타깃 카테고리", null);
             Long categoryId = target.getId();
+            CategoryCommand.Update command = CategoryCommand.Update.builder()
+                    .id(categoryId)
+                    .name("동일한 이름")
+                    .imagePath("/test/newImage.jpg")
+                    .build();
             //when
             //then
-            assertThatThrownBy(() -> categoryService.updateCategory(categoryId, "동일한 이름", "http://image.jpg"))
+            assertThatThrownBy(() -> categoryService.updateCategory(command))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(CategoryErrorCode.DUPLICATE_NAME);
@@ -278,9 +330,14 @@ public class CategoryServiceTest extends ExcludeInfraTest {
             setupCategory("동일한 이름", root);
             Category target = setupCategory("타깃 카테고리", root);
             Long categoryId = target.getId();
+            CategoryCommand.Update command = CategoryCommand.Update.builder()
+                    .id(categoryId)
+                    .name("동일한 이름")
+                    .imagePath("/test/newImage.jpg")
+                    .build();
             //when
             //then
-            assertThatThrownBy(() -> categoryService.updateCategory(categoryId, "동일한 이름", "http://image.jpg"))
+            assertThatThrownBy(() -> categoryService.updateCategory(command))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(CategoryErrorCode.DUPLICATE_NAME);
@@ -301,10 +358,10 @@ public class CategoryServiceTest extends ExcludeInfraTest {
 
             Category root2 = setupCategory("식품", null);
             //when
-            CategoryResponse result = categoryService.moveParent(target.getId(), root2.getId());
+            CategoryResult.Detail result = categoryService.moveParent(target.getId(), root2.getId());
             //then
             assertThat(result)
-                    .extracting(CategoryResponse::getName, CategoryResponse::getParentId, CategoryResponse::getDepth)
+                    .extracting(CategoryResult.Detail::name, CategoryResult.Detail::parentId, CategoryResult.Detail::depth)
                     .containsExactly("컴퓨터", root2.getId(), 2);
 
             Category updatedChild = categoryRepository.findById(child.getId()).orElseThrow();
@@ -319,10 +376,10 @@ public class CategoryServiceTest extends ExcludeInfraTest {
             Category root = setupCategory("전자", null);
             Category target = setupCategory("노트북", root);
             //when
-            CategoryResponse result = categoryService.moveParent(target.getId(), null);
+            CategoryResult.Detail result = categoryService.moveParent(target.getId(), null);
             //then
             assertThat(result)
-                    .extracting(CategoryResponse::getName, CategoryResponse::getParentId, CategoryResponse::getDepth)
+                    .extracting(CategoryResult.Detail::name, CategoryResult.Detail::parentId, CategoryResult.Detail::depth)
                     .containsExactly("노트북", null, 1);
 
             Category find = categoryRepository.findById(target.getId()).orElseThrow();

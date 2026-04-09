@@ -6,8 +6,9 @@ import com.example.product_service.api.option.domain.model.OptionType;
 import com.example.product_service.api.option.domain.model.OptionValue;
 import com.example.product_service.api.option.domain.repository.OptionTypeRepository;
 import com.example.product_service.api.option.domain.repository.OptionValueRepository;
-import com.example.product_service.api.option.service.dto.OptionResponse;
-import com.example.product_service.api.option.service.dto.OptionValueResponse;
+import com.example.product_service.api.option.service.dto.command.OptionCommand;
+import com.example.product_service.api.option.service.dto.result.OptionResult;
+import com.example.product_service.api.option.service.dto.result.OptionValueResult;
 import com.example.product_service.api.product.domain.repository.ProductOptionRepository;
 import com.example.product_service.api.product.domain.repository.ProductVariantOptionRepository;
 import lombok.RequiredArgsConstructor;
@@ -26,36 +27,35 @@ public class OptionService {
     private final ProductOptionRepository productOptionRepository;
     private final ProductVariantOptionRepository productVariantOptionRepository;
 
-    public OptionResponse saveOption(String name, List<String> values) {
-        validateDuplicateTypeName(name);
-        OptionType optionType = OptionType.create(name, values);
+    public OptionResult saveOption(OptionCommand.Create command) {
+        validateDuplicateTypeName(command.name());
+        OptionType optionType = OptionType.create(command.name(), command.valueNames());
         OptionType savedOptionType = optionTypeRepository.save(optionType);
-        return OptionResponse.from(savedOptionType);
+        return OptionResult.from(savedOptionType);
     }
 
-    public OptionResponse getOption(Long optionTypeId) {
+    public OptionResult getOption(Long optionTypeId) {
         OptionType optionType = findOptionTypeOrThrow(optionTypeId);
-        return OptionResponse.from(optionType);
+        return OptionResult.from(optionType);
     }
 
-    public List<OptionResponse> getOptions() {
+    public List<OptionResult> getOptions() {
         List<OptionType> optionTypes = optionTypeRepository.findAll();
-        return optionTypes.stream().map(OptionResponse::from).toList();
+        return optionTypes.stream().map(OptionResult::from).toList();
     }
 
-    public OptionResponse updateOptionTypeName(Long optionTypeId, String name) {
-        String trimName = name.trim();
-        OptionType optionType = findOptionTypeOrThrow(optionTypeId);
-        validateDuplicateTypeName(trimName);
-        optionType.rename(trimName);
-        return OptionResponse.from(optionType);
+    public OptionResult updateOptionTypeName(OptionCommand.UpdateOptionType command) {
+        OptionType optionType = findOptionTypeOrThrow(command.id());
+        validateDuplicateTypeName(command.name().trim());
+        optionType.rename(command.name());
+        return OptionResult.from(optionType);
     }
 
-    public OptionValueResponse updateOptionValueName(Long optionValueId, String name) {
-        OptionValue optionValue = findOptionValueOrThrow(optionValueId);
-        validateDuplicateValueName(optionValue.getOptionType(), name);
-        optionValue.rename(name);
-        return OptionValueResponse.from(optionValue);
+    public OptionValueResult updateOptionValueName(OptionCommand.UpdateOptionValue command) {
+        OptionValue optionValue = findOptionValueOrThrow(command.id());
+        validateDuplicateValueName(optionValue.getOptionType(), command.name());
+        optionValue.rename(command.name());
+        return OptionValueResult.from(optionValue);
     }
 
     public void deleteOption(Long optionTypeId) {

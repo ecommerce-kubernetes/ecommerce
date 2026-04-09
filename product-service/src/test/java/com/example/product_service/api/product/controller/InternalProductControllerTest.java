@@ -85,7 +85,7 @@ class InternalProductControllerTest extends ControllerTestSupport {
                                 .discountedPrice(2700L)
                                 .build())
                 .stockQuantity(100)
-                .thumbnailUrl("http://thumbnail.jpg")
+                .thumbnailUrl("/test/thumbnail.jpg")
                 .itemOptions(
                         List.of(
                                 InternalVariantResponse.ItemOption.builder()

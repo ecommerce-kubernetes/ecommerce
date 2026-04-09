@@ -21,10 +21,10 @@ class CategoryRepositoryTest extends ExcludeInfraTest {
     @DisplayName("최상위 카테고리를 조회한다")
     void findByParentIsNull(){
         //given
-        Category root1 = Category.create("1번", null, "http://image.jpg");
-        Category root2 = Category.create("2번", null, "http://image.jpg");
-        Category root3 = Category.create("3번", null, "http://image.jpg");
-        Category child1 = Category.create("자식", root3, "http://image.jpg");
+        Category root1 = Category.create("1번", null, "/test/image.jpg");
+        Category root2 = Category.create("2번", null, "/test/image.jpg");
+        Category root3 = Category.create("3번", null, "/test/image.jpg");
+        Category child1 = Category.create("자식", root3, "/test/image.jpg");
         repository.saveAll(List.of(root1, root2, root3, child1));
         //when
         List<Category> roots = repository.findByParentIsNull();
@@ -38,9 +38,9 @@ class CategoryRepositoryTest extends ExcludeInfraTest {
     @DisplayName("depth가 낮은 순으로 카테고리를 조회한다")
     void findByInOrderDepth(){
         //given
-        Category root = Category.create("루트", null, "http://image.jpg");
-        Category child = Category.create("자식", root, "http://image.jpg");
-        Category grandson = Category.create("자식", child, "http://image.jpg");
+        Category root = Category.create("루트", null, "/test/image.jpg");
+        Category child = Category.create("자식", root, "/test/image.jpg");
+        Category grandson = Category.create("자식", child, "/test/image.jpg");
         repository.saveAll(List.of(root, child, grandson));
         //when
         List<Category> results = repository.findByInOrderDepth(List.of(root.getId(), child.getId()));
@@ -54,9 +54,9 @@ class CategoryRepositoryTest extends ExcludeInfraTest {
     @DisplayName("특정 부모의 자식 카테고리를 조회한다")
     void findByParentId(){
         //given
-        Category root = Category.create("1번", null, "http://image.jpg");
-        Category child = Category.create("자식", root, "http://image.jpg");
-        Category sibling = Category.create("형제", root, "http://image.jpg");
+        Category root = Category.create("1번", null, "/test/image.jpg");
+        Category child = Category.create("자식", root, "/test/image.jpg");
+        Category sibling = Category.create("형제", root, "/test/image.jpg");
         repository.saveAll(List.of(root, child, sibling));
         //when
         List<Category> results = repository.findByParentId(root.getId());
@@ -70,9 +70,9 @@ class CategoryRepositoryTest extends ExcludeInfraTest {
     @DisplayName("형제중 동일한 이름이 있다면 true 를 반환한다")
     void existsDuplicateName(){
         //given
-        Category root = Category.create("1번", null, "http://image.jpg");
-        Category child = Category.create("자식", root, "http://image.jpg");
-        Category sibling = Category.create("형제", root, "http://image.jpg");
+        Category root = Category.create("1번", null, "/test/image.jpg");
+        Category child = Category.create("자식", root, "/test/image.jpg");
+        Category sibling = Category.create("형제", root, "/test/image.jpg");
         repository.saveAll(List.of(root, child, sibling));
         //when
         boolean isDuplicate = repository.existsDuplicateName(root.getId(), "자식");
