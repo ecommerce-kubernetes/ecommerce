@@ -299,6 +299,24 @@ pipeline {
                         }
                     }
                 }
+
+                stage('Image Service') {
+                    when {
+                        allOf {
+                            branch 'main'
+                            anyOf {
+                                changeset "image-service/**"
+                                changeset "config-service/**"
+                            }
+                        }
+                    }
+                    steps {
+                        script {
+                            echo 'Image Service 배포 시작'
+                            build job: '../buynest-image', wait true
+                        }
+                    }
+                }
             }
         }
 
@@ -312,6 +330,7 @@ pipeline {
                         changeset "product-service/**"
                         changeset "order-service/**"
                         changeset "config-service/**"
+                        changeset "image-service/**"
                     }
                 }
             }
