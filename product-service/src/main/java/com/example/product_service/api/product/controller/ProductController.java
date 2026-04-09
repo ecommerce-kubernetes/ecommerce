@@ -1,15 +1,13 @@
 package com.example.product_service.api.product.controller;
 
 import com.example.product_service.api.common.dto.PageDto;
-import com.example.product_service.api.product.controller.dto.ProductSearchCondition;
 import com.example.product_service.api.product.controller.dto.request.ProductRequest;
 import com.example.product_service.api.product.controller.dto.response.ProductResponse;
 import com.example.product_service.api.product.service.ProductService;
 import com.example.product_service.api.product.service.dto.command.ProductCommand;
-import com.example.product_service.api.product.service.dto.result.ProductDetailResponse;
 import com.example.product_service.api.product.service.dto.result.ProductResult;
-import com.example.product_service.api.product.service.dto.result.ProductSummaryResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -90,14 +88,17 @@ public class ProductController {
     }
 
     @GetMapping
-    public ResponseEntity<PageDto<ProductSummaryResponse>> getProducts(@ModelAttribute @Validated ProductSearchCondition condition) {
-        PageDto<ProductSummaryResponse> response = productService.getProducts(condition);
+    public ResponseEntity<PageDto<ProductResponse.Summary>> getProducts(@ModelAttribute @Validated ProductRequest.Search condition) {
+        ProductCommand.Search command = condition.toCommand();
+        Page<ProductResult.Summary> results = productService.getProducts(command);
+        PageDto<ProductResponse.Summary> response = PageDto.of(results, ProductResponse.Summary::from);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{productId}")
-    public ResponseEntity<ProductDetailResponse> getProductDetail(@PathVariable("productId") Long productId) {
-        ProductDetailResponse response = productService.getProduct(productId);
+    public ResponseEntity<ProductResponse.Detail> getProductDetail(@PathVariable("productId") Long productId) {
+        ProductResult.Detail result = productService.getProduct(productId);
+        ProductResponse.Detail response = ProductResponse.Detail.from(result);
         return ResponseEntity.ok(response);
     }
 

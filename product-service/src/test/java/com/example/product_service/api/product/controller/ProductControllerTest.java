@@ -2,13 +2,11 @@ package com.example.product_service.api.product.controller;
 
 import com.example.product_service.api.common.dto.PageDto;
 import com.example.product_service.api.common.security.model.UserRole;
-import com.example.product_service.api.product.controller.dto.ProductSearchCondition;
 import com.example.product_service.api.product.controller.dto.request.ProductRequest;
 import com.example.product_service.api.product.controller.dto.response.ProductResponse;
+import com.example.product_service.api.product.domain.model.ProductStatus;
 import com.example.product_service.api.product.service.dto.command.ProductCommand;
-import com.example.product_service.api.product.service.dto.result.ProductDetailResponse;
 import com.example.product_service.api.product.service.dto.result.ProductResult;
-import com.example.product_service.api.product.service.dto.result.ProductSummaryResponse;
 import com.example.product_service.support.ControllerTestSupport;
 import com.example.product_service.support.security.annotation.WithCustomMockUser;
 import com.example.product_service.support.security.config.TestSecurityConfig;
@@ -19,15 +17,17 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Stream;
 
-import static com.example.product_service.support.fixture.ProductControllerFixture.mockDetailResponse;
-import static com.example.product_service.support.fixture.ProductControllerFixture.mockSummaryResponse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
@@ -702,14 +702,10 @@ class ProductControllerTest extends ControllerTestSupport {
         @DisplayName("상품 목록을 조회한다")
         void getProducts() throws Exception {
             //given
-            ProductSummaryResponse summary = mockSummaryResponse().build();
-            PageDto<ProductSummaryResponse> response = PageDto.<ProductSummaryResponse>builder().content(List.of(summary))
-                    .currentPage(1)
-                    .totalPage(10)
-                    .pageSize(10)
-                    .totalElement(100)
-                    .build();
-
+            ProductResult.Summary summary = mockSummaryResult();
+            PageRequest pageable = PageRequest.of(0, 10);
+            Page<ProductResult.Summary> results = new PageImpl<>(List.of(summary), pageable, 100L);
+            PageDto<ProductResponse.Summary> response = PageDto.of(results, ProductResponse.Summary::from);
             MultiValueMap<String, String> paramMap = new LinkedMultiValueMap<>();
             paramMap.add("page", "1");
             paramMap.add("size", "10");
@@ -717,8 +713,8 @@ class ProductControllerTest extends ControllerTestSupport {
             paramMap.add("categoryId", "1");
             paramMap.add("name", "상품");
             paramMap.add("rating", "3");
-            given(productService.getProducts(any(ProductSearchCondition.class)))
-                    .willReturn(response);
+            given(productService.getProducts(any(ProductCommand.Search.class)))
+                    .willReturn(results);
             //when
             //then
             mockMvc.perform(get("/products")
@@ -734,15 +730,6 @@ class ProductControllerTest extends ControllerTestSupport {
         @MethodSource("provideInvalidCondition")
         void getProducts_invalidCondition(String description, MultiValueMap<String, String> parameters, String message) throws Exception {
             //given
-            ProductSummaryResponse summary = mockSummaryResponse().build();
-            PageDto<ProductSummaryResponse> response = PageDto.<ProductSummaryResponse>builder().content(List.of(summary))
-                    .currentPage(1)
-                    .totalPage(10)
-                    .pageSize(10)
-                    .totalElement(100)
-                    .build();
-            given(productService.getProducts(any(ProductSearchCondition.class)))
-                    .willReturn(response);
             //when
             //then
             mockMvc.perform(get("/products")
@@ -769,6 +756,22 @@ class ProductControllerTest extends ControllerTestSupport {
             parameterMap.add(key, value);
             return parameterMap;
         }
+
+        private ProductResult.Summary mockSummaryResult() {
+            return ProductResult.Summary.builder()
+                    .productId(1L)
+                    .name("상품")
+                    .thumbnail("/test/image.jpg")
+                    .displayPrice(2700L)
+                    .originalPrice(3000L)
+                    .maxDiscountRate(10)
+                    .categoryId(1L)
+                    .publishedAt(LocalDateTime.now())
+                    .rating(3D)
+                    .reviewCount(100L)
+                    .status(ProductStatus.ON_SALE)
+                    .build();
+        }
     }
 
     @Nested
@@ -778,14 +781,68 @@ class ProductControllerTest extends ControllerTestSupport {
         @DisplayName("상품을 조회한다")
         void getProductDetail() throws Exception {
             //given
-            ProductDetailResponse response = mockDetailResponse().build();
-            given(productService.getProduct(anyLong())).willReturn(response);
+            ProductResult.Detail result = mockDetailResult();
+            given(productService.getProduct(anyLong())).willReturn(result);
+            ProductResponse.Detail response = ProductResponse.Detail.from(result);
             //when
             //then
             mockMvc.perform(get("/products/{productId}", 1L)
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(content().json(objectMapper.writeValueAsString(response)));
+        }
+
+        private ProductResult.Detail mockDetailResult() {
+            return ProductResult.Detail.builder()
+                    .productId(1L)
+                    .name("상품")
+                    .status(ProductStatus.ON_SALE)
+                    .categoryId(1L)
+                    .displayPrice(2700L)
+                    .originalPrice(3000L)
+                    .maxDiscountRate(10)
+                    .rating(3D)
+                    .reviewCount(100L)
+                    .optionGroups(
+                            List.of(
+                                    ProductResult.OptionGroup.builder()
+                                            .optionTypeId(1L)
+                                            .name("사이즈")
+                                            .values(
+                                                    List.of(
+                                                            ProductResult.OptionValueDetail.builder()
+                                                                    .optionValueId(1L)
+                                                                    .name("XL").build()
+                                                    )
+                                            )
+                                            .build()))
+                    .images(
+                            List.of(
+                                    ProductResult.ImageDetail.builder()
+                                            .imagePath("http://image.jpg")
+                                            .sortOrder(1)
+                                            .isThumbnail(true)
+                                            .build()))
+                    .descriptionImages(
+                            List.of(
+                                    ProductResult.DescriptionImageDetail.builder()
+                                            .imagePath("http://description.jpg")
+                                            .sortOrder(1)
+                                            .build()
+                            )
+                    )
+                    .variants(
+                            List.of(
+                                    ProductResult.VariantDetail.builder()
+                                            .variantId(1L)
+                                            .sku("PROD-XL")
+                                            .optionValueIds(List.of(1L))
+                                            .originalPrice(3000L)
+                                            .discountedPrice(2700L)
+                                            .discountRate(10)
+                                            .stockQuantity(100).build()
+                            )
+                    ).build();
         }
     }
 

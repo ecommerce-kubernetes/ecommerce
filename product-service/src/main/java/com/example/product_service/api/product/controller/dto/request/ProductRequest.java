@@ -5,6 +5,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.Builder;
 import org.hibernate.validator.constraints.UniqueElements;
+import org.springframework.data.domain.PageRequest;
 
 import java.util.List;
 
@@ -130,6 +131,32 @@ public class ProductRequest {
                     .name(name)
                     .categoryId(categoryId)
                     .description(description)
+                    .build();
+        }
+    }
+
+    @Builder
+    public static class Search {
+        private Integer page = 1;
+        private Integer size = 20;
+        private String sort = "latest";
+        @Min(value = 1, message = "카테고리 Id는 0 또는 음수일 수 없습니다")
+        private Long categoryId;
+        private String name;
+        @Min(value = 0, message = "평점은 음수일 수 없습니다")
+        @Max(value = 5, message = "최대 평점은 5점입니다")
+        private Integer rating;
+
+        public ProductCommand.Search toCommand() {
+            int validPage = (this.page != null && this.page > 0) ? this.page - 1 : 0;
+            int validSize = (this.size != null && this.size > 0) ? Math.min(this.size, 100) : 20;
+
+            return ProductCommand.Search.builder()
+                    .categoryId(categoryId)
+                    .name(name)
+                    .rating(rating)
+                    .pageable(PageRequest.of(validPage,validSize))
+                    .sort(sort)
                     .build();
         }
     }

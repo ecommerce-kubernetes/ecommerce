@@ -2,7 +2,6 @@ package com.example.product_service.api.product.serivce;
 
 import com.example.product_service.api.category.domain.model.Category;
 import com.example.product_service.api.category.domain.repository.CategoryRepository;
-import com.example.product_service.api.common.dto.PageDto;
 import com.example.product_service.api.common.exception.BusinessException;
 import com.example.product_service.api.common.exception.CategoryErrorCode;
 import com.example.product_service.api.common.exception.OptionErrorCode;
@@ -10,19 +9,21 @@ import com.example.product_service.api.common.exception.ProductErrorCode;
 import com.example.product_service.api.option.domain.model.OptionType;
 import com.example.product_service.api.option.domain.model.OptionValue;
 import com.example.product_service.api.option.domain.repository.OptionTypeRepository;
-import com.example.product_service.api.product.controller.dto.ProductSearchCondition;
 import com.example.product_service.api.product.domain.model.Product;
 import com.example.product_service.api.product.domain.model.ProductStatus;
 import com.example.product_service.api.product.domain.model.ProductVariant;
 import com.example.product_service.api.product.domain.repository.ProductRepository;
 import com.example.product_service.api.product.service.ProductService;
 import com.example.product_service.api.product.service.dto.command.ProductCommand;
-import com.example.product_service.api.product.service.dto.result.*;
+import com.example.product_service.api.product.service.dto.result.ProductResult;
 import com.example.product_service.support.ExcludeInfraTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -471,49 +472,51 @@ public class ProductServiceTest extends ExcludeInfraTest {
             product.publish();
             productRepository.save(product);
             //when
-            ProductDetailResponse result = productService.getProduct(product.getId());
+            ProductResult.Detail result = productService.getProduct(product.getId());
             //then
             assertThat(result)
-                    .extracting(ProductDetailResponse::getProductId, ProductDetailResponse::getName, ProductDetailResponse::getStatus,
-                            ProductDetailResponse::getDisplayPrice, ProductDetailResponse::getOriginalPrice, ProductDetailResponse::getMaxDiscountRate)
-                    .containsExactly(product.getId(), "상품", "ON_SALE",
+                    .extracting(ProductResult.Detail::productId, ProductResult.Detail::name, ProductResult.Detail::status,
+                            ProductResult.Detail::displayPrice, ProductResult.Detail::originalPrice, ProductResult.Detail::maxDiscountRate)
+                    .containsExactly(product.getId(), "상품", ProductStatus.ON_SALE,
                             4500L, 5000L, 20);
-            assertThat(result.getOptionGroups())
-                    .extracting(ProductDetailResponse.OptionGroup::getOptionTypeId, ProductDetailResponse.OptionGroup::getName, ProductDetailResponse.OptionGroup::getPriority)
+            assertThat(result.optionGroups())
+                    .extracting(ProductResult.OptionGroup::optionTypeId, ProductResult.OptionGroup::name, ProductResult.OptionGroup::priority)
                     .containsExactlyInAnyOrder(
                             tuple(size.getId(), size.getName(), 1),
                             tuple(color.getId(), color.getName(), 2)
                     );
-            assertThat(result.getImages())
-                    .extracting(ProductImageResult::getImagePath, ProductImageResult::getSortOrder, ProductImageResult::isThumbnail)
+            assertThat(result.images())
+                    .allSatisfy(image -> assertThat(image.imageId()).isNotNull())
+                    .extracting(ProductResult.ImageDetail::imagePath, ProductResult.ImageDetail::sortOrder, ProductResult.ImageDetail::isThumbnail)
                     .containsExactlyInAnyOrder(
                             tuple("http://thumbnail.jpg", 1, true),
                             tuple("http://image.jpg", 2, false)
                     );
 
-            assertThat(result.getDescriptionImages())
-                    .extracting(ProductDescriptionImageResponse::getImagePath, ProductDescriptionImageResponse::getSortOrder)
+            assertThat(result.descriptionImages())
+                    .allSatisfy(image -> assertThat(image.imageId()).isNotNull())
+                    .extracting(ProductResult.DescriptionImageDetail::imagePath, ProductResult.DescriptionImageDetail::sortOrder)
                             .containsExactlyInAnyOrder(
                                     tuple("http://description.jpg", 1)
                             );
 
-            assertThat(result.getVariants())
+            assertThat(result.variants())
                     .hasSize(2)
                     .satisfiesExactlyInAnyOrder(
                             variantResp1 -> {
-                                assertThat(variantResp1.getVariantId()).isNotNull();
-                                assertThat(variantResp1.getSku()).isEqualTo("TEST-XL-BLUE");
-                                assertThat(variantResp1.getOriginalPrice()).isEqualTo(10000L);
-                                assertThat(variantResp1.getDiscountRate()).isEqualTo(20);
-                                assertThat(variantResp1.getOptionValueIds())
+                                assertThat(variantResp1.variantId()).isNotNull();
+                                assertThat(variantResp1.sku()).isEqualTo("TEST-XL-BLUE");
+                                assertThat(variantResp1.originalPrice()).isEqualTo(10000L);
+                                assertThat(variantResp1.discountRate()).isEqualTo(20);
+                                assertThat(variantResp1.optionValueIds())
                                         .containsExactlyInAnyOrder(xl.getId(), blue.getId());
                             },
                             variantResp2 -> {
-                                assertThat(variantResp2.getVariantId()).isNotNull();
-                                assertThat(variantResp2.getSku()).isEqualTo("TEST-XL-RED");
-                                assertThat(variantResp2.getOriginalPrice()).isEqualTo(5000L);
-                                assertThat(variantResp2.getDiscountRate()).isEqualTo(10);
-                                assertThat(variantResp2.getOptionValueIds())
+                                assertThat(variantResp2.variantId()).isNotNull();
+                                assertThat(variantResp2.sku()).isEqualTo("TEST-XL-RED");
+                                assertThat(variantResp2.originalPrice()).isEqualTo(5000L);
+                                assertThat(variantResp2.discountRate()).isEqualTo(10);
+                                assertThat(variantResp2.optionValueIds())
                                         .containsExactlyInAnyOrder(xl.getId(), red.getId());
                             }
                     );
@@ -543,19 +546,19 @@ public class ProductServiceTest extends ExcludeInfraTest {
             Category category = saveCategory();
             Product product1 = settingProduct(category, "상품1");
             Product product2 = settingProduct(category, "상품2");
-            ProductSearchCondition condition = ProductSearchCondition.builder()
-                    .page(1)
-                    .size(10)
+            Pageable pageable = PageRequest.of(0, 10);
+            ProductCommand.Search command = ProductCommand.Search.builder()
+                    .pageable(pageable)
                     .build();
             //when
-            PageDto<ProductSummaryResponse> result = productService.getProducts(condition);
+            Page<ProductResult.Summary> result = productService.getProducts(command);
             //then
-            assertThat(result.getCurrentPage()).isEqualTo(1);
-            assertThat(result.getPageSize()).isEqualTo(10);
-            assertThat(result.getTotalElement()).isEqualTo(2);
-            assertThat(result.getTotalPage()).isEqualTo(1);
+            assertThat(result.getNumber()).isEqualTo(0);
+            assertThat(result.getSize()).isEqualTo(10);
+            assertThat(result.getTotalElements()).isEqualTo(2);
+            assertThat(result.getTotalPages()).isEqualTo(1);
             assertThat(result.getContent())
-                    .extracting(ProductSummaryResponse::getProductId, ProductSummaryResponse::getName)
+                    .extracting(ProductResult.Summary::productId, ProductResult.Summary::name)
                     .containsExactly(
                             tuple(product2.getId(), product2.getName()),
                             tuple(product1.getId(), product1.getName())

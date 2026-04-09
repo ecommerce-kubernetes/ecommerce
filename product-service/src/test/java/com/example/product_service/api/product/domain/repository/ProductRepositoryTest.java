@@ -2,15 +2,17 @@ package com.example.product_service.api.product.domain.repository;
 
 import com.example.product_service.api.category.domain.model.Category;
 import com.example.product_service.api.category.domain.repository.CategoryRepository;
-import com.example.product_service.api.product.controller.dto.ProductSearchCondition;
 import com.example.product_service.api.product.domain.model.Product;
 import com.example.product_service.api.product.domain.model.ProductStatus;
+import com.example.product_service.api.product.service.dto.command.ProductCommand;
 import com.example.product_service.support.ExcludeInfraTest;
 import com.example.product_service.support.fixture.builder.ProductTestBuilder;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -35,15 +37,15 @@ class ProductRepositoryTest extends ExcludeInfraTest {
         Product galaxy23 = saveProduct(phone, ProductStatus.ON_SALE,"갤럭시 23", 11000L, 12000L, 10, 4.0, 3.5);
         Product galaxy24 = saveProduct(phone, ProductStatus.ON_SALE,"갤럭시 24", 12000L, 13000L, 10, 2.0, 3.5);
         Product orange = saveProduct(food, ProductStatus.ON_SALE,"오렌지", 9000L, 12000L, 10, 3.9, 4.0);
-        ProductSearchCondition condition = ProductSearchCondition.builder()
-                .page(1)
-                .size(10)
+        Pageable pageable = PageRequest.of(0, 10);
+        ProductCommand.Search command = ProductCommand.Search.builder()
+                .pageable(pageable)
                 .categoryId(phone.getId())
                 .rating(4)
                 .name("갤럭시")
                 .build();
         //when
-        Page<Product> result = productRepository.findProductsByCondition(condition);
+        Page<Product> result = productRepository.findProductsByCondition(command);
         //then
         assertThat(result.getNumber()).isEqualTo(0);
         assertThat(result.getSize()).isEqualTo(10);
@@ -64,13 +66,13 @@ class ProductRepositoryTest extends ExcludeInfraTest {
         Category phone = saveCategory("핸드폰");
         Product galaxy23 = saveProduct(phone, ProductStatus.ON_SALE,"갤럭시 23", 11000L, 12000L, 10, 4.0, 3.5);
         Product galaxy24 = saveProduct(phone, ProductStatus.ON_SALE,"갤럭시 24", 12000L, 13000L, 10, 4.5, 3.5);
-        ProductSearchCondition condition = ProductSearchCondition.builder()
-                .page(1)
-                .size(10)
+        Pageable pageable = PageRequest.of(0, 10);
+        ProductCommand.Search command = ProductCommand.Search.builder()
+                .pageable(pageable)
                 .sort("latest")
                 .build();
         //when
-        Page<Product> result = productRepository.findProductsByCondition(condition);
+        Page<Product> result = productRepository.findProductsByCondition(command);
         //then
         assertThat(result.getNumber()).isEqualTo(0);
         assertThat(result.getSize()).isEqualTo(10);
@@ -86,7 +88,7 @@ class ProductRepositoryTest extends ExcludeInfraTest {
     }
 
     private Category saveCategory(String name) {
-        return categoryRepository.save(Category.create(name, null, "http://image.jpg"));
+        return categoryRepository.save(Category.create(name, null, "/test/image.jpg"));
     }
 
     private Product saveProduct(Category category, ProductStatus status, String name, Long lowest, Long original, Integer discountRate,
@@ -96,7 +98,7 @@ class ProductRepositoryTest extends ExcludeInfraTest {
                 .withStatus(status)
                 .withCategory(category)
                 .withName(name)
-                .withImages(List.of("http://test.jpg"))
+                .withImages(List.of("/test/image.jpg"))
                 .withPrice(lowest, original, discountRate)
                 .withScore(rating, 200L, score)
                 .build();

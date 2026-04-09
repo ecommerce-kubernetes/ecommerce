@@ -211,4 +211,105 @@ public class ProductResponse {
                     .build();
         }
     }
+
+    @Builder
+    public record Summary(
+            Long productId,
+            String name,
+            String thumbnail,
+            Long displayPrice,
+            Long originalPrice,
+            Integer maxDiscountRate,
+            Long categoryId,
+            @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
+            LocalDateTime publishedAt,
+            Double rating,
+            Long reviewCount,
+            ProductStatus status
+    ) {
+        public static Summary from(ProductResult.Summary result) {
+            return Summary.builder()
+                    .productId(result.productId())
+                    .name(result.name())
+                    .thumbnail(result.thumbnail())
+                    .displayPrice(result.displayPrice())
+                    .originalPrice(result.originalPrice())
+                    .maxDiscountRate(result.maxDiscountRate())
+                    .categoryId(result.categoryId())
+                    .publishedAt(result.publishedAt())
+                    .rating(result.rating())
+                    .reviewCount(result.reviewCount())
+                    .status(result.status())
+                    .build();
+        }
+    }
+
+    @Builder
+    public record Detail (
+            Long productId,
+            String name,
+            ProductStatus status,
+            Long categoryId,
+            String description,
+            Long displayPrice,
+            Long originalPrice,
+            Integer maxDiscountRate,
+            Double rating,
+            Long reviewCount,
+            Double popularityScore,
+            List<OptionGroup> optionGroups,
+            List<ImageDetail> images,
+            List<DescriptionImageDetail> descriptionImages,
+            List<VariantDetail> variants
+    ) {
+        public static Detail from(ProductResult.Detail result) {
+            return Detail.builder()
+                    .productId(result.productId())
+                    .name(result.name())
+                    .status(result.status())
+                    .categoryId(result.categoryId())
+                    .description(result.description())
+                    .displayPrice(result.displayPrice())
+                    .originalPrice(result.originalPrice())
+                    .maxDiscountRate(result.maxDiscountRate())
+                    .rating(result.rating())
+                    .reviewCount(result.reviewCount())
+                    .popularityScore(result.popularityScore())
+                    .optionGroups(result.optionGroups().stream().map(OptionGroup::from).toList())
+                    .images(result.images().stream().map(ImageDetail::from).toList())
+                    .descriptionImages(result.descriptionImages().stream().map(DescriptionImageDetail::from).toList())
+                    .variants(result.variants().stream().map(VariantDetail::from).toList())
+                    .build();
+        }
+    }
+
+    @Builder
+    public record OptionGroup(
+            Long optionTypeId,
+            String name,
+            Integer priority,
+            List<OptionValueDetail> values
+    ) {
+        public static OptionGroup from(ProductResult.OptionGroup optionGroup){
+            return OptionGroup.builder()
+                    .optionTypeId(optionGroup.optionTypeId())
+                    .name(optionGroup.name())
+                    .priority(optionGroup.priority())
+                    .values(optionGroup.values().stream().map(OptionValueDetail::from).toList())
+                    .build();
+        }
+    }
+
+    @Builder
+    public record OptionValueDetail(
+            Long optionValueId,
+            String name
+    ) {
+        public static OptionValueDetail from(ProductResult.OptionValueDetail result) {
+            return OptionValueDetail.builder()
+                    .optionValueId(result.optionValueId())
+                    .name(result.name())
+                    .build();
+        }
+    }
 }

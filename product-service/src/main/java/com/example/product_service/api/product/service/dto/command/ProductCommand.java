@@ -1,6 +1,7 @@
 package com.example.product_service.api.product.service.dto.command;
 
 import lombok.Builder;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
@@ -52,4 +53,13 @@ public class ProductCommand {
             Long categoryId,
             String description
     ) { }
+
+    @Builder
+    public record Search (
+            Long categoryId,
+            String name,
+            Integer rating,
+            Pageable pageable,
+            String sort
+    ) {}
 }

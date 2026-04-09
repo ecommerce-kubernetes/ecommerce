@@ -1,22 +1,21 @@
 package com.example.product_service.docs.product;
 
-import com.epages.restdocs.apispec.ResourceSnippetParameters;
 import com.example.product_service.api.common.dto.PageDto;
 import com.example.product_service.api.product.controller.ProductController;
-import com.example.product_service.api.product.controller.dto.ProductSearchCondition;
 import com.example.product_service.api.product.controller.dto.request.ProductRequest;
 import com.example.product_service.api.product.controller.dto.response.ProductResponse;
 import com.example.product_service.api.product.domain.model.ProductStatus;
 import com.example.product_service.api.product.service.ProductService;
 import com.example.product_service.api.product.service.dto.command.ProductCommand;
-import com.example.product_service.api.product.service.dto.result.ProductDetailResponse;
 import com.example.product_service.api.product.service.dto.result.ProductResult;
-import com.example.product_service.api.product.service.dto.result.ProductSummaryResponse;
 import com.example.product_service.docs.RestDocsSupport;
 import com.example.product_service.docs.descriptor.ProductDescriptor;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.restdocs.payload.FieldDescriptor;
@@ -25,18 +24,12 @@ import org.springframework.restdocs.request.ParameterDescriptor;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static com.epages.restdocs.apispec.MockMvcRestDocumentationWrapper.document;
-import static com.epages.restdocs.apispec.ResourceDocumentation.resource;
-import static com.example.product_service.support.fixture.ProductControllerFixture.mockDetailResponse;
-import static com.example.product_service.support.fixture.ProductControllerFixture.mockSummaryResponse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willDoNothing;
-import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
-import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
-import static org.springframework.restdocs.request.RequestDocumentation.*;
+import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -323,43 +316,12 @@ class ProductControllerDocsTest extends RestDocsSupport {
     @DisplayName("상품 목록을 조회한다")
     void getProducts() throws Exception {
         //given
-        ProductSummaryResponse summary = mockSummaryResponse().build();
-        PageDto<ProductSummaryResponse> response = PageDto.<ProductSummaryResponse>builder().content(List.of(summary))
-                .currentPage(1)
-                .totalPage(10)
-                .pageSize(10)
-                .totalElement(100)
-                .build();
-        given(productService.getProducts(any(ProductSearchCondition.class)))
-                .willReturn(response);
-        ParameterDescriptor[] queryParameters = new ParameterDescriptor[] {
-                parameterWithName("page").description("페이지 번호 (기본값: 1)").optional(),
-                parameterWithName("size").description("페이지 크기 (기본값: 20, 최대: 100)").optional(),
-                parameterWithName("sort").description("정렬 기준 (latest: 최신순 등)").optional(),
-                parameterWithName("categoryId").description("카테고리 ID").optional(),
-                parameterWithName("name").description("상품명 검색 키워드").optional(),
-                parameterWithName("rating").description("상품 평점 (이 점수 이상)").optional()
-        };
-
-        FieldDescriptor[] responseFields = new FieldDescriptor[] {
-                fieldWithPath("content[].productId").description("상품 번호"),
-                fieldWithPath("content[].name").description("상품 이름"),
-                fieldWithPath("content[].thumbnail").description("썸네일"),
-                fieldWithPath("content[].displayPrice").description("대표 상품 판매 가격"),
-
-                fieldWithPath("content[].originalPrice").description("대표 상품 원본 가격"),
-                fieldWithPath("content[].maxDiscountRate").description("최대 할인율"),
-                fieldWithPath("content[].categoryId").description("카테고리 Id"),
-                fieldWithPath("content[].publishedAt").description("게시일"),
-                fieldWithPath("content[].rating").description("평점"),
-                fieldWithPath("content[].reviewCount").description("리뷰 개수"),
-                fieldWithPath("content[].status").description("상품 상태"),
-
-                fieldWithPath("currentPage").description("현재 페이지"),
-                fieldWithPath("totalPage").description("총 페이지"),
-                fieldWithPath("pageSize").description("페이지 크기"),
-                fieldWithPath("totalElement").description("총 데이터 양")
-        };
+        ProductResult.Summary summary = mockSummaryResult();
+        PageRequest pageable = PageRequest.of(0, 10);
+        Page<ProductResult.Summary> results = new PageImpl<>(List.of(summary), pageable, 100L);
+        given(productService.getProducts(any(ProductCommand.Search.class)))
+                .willReturn(results);
+        PageDto<ProductResponse.Summary> response = PageDto.of(results, ProductResponse.Summary::from);
         //when
         //then
         mockMvc.perform(get("/products")
@@ -372,22 +334,12 @@ class ProductControllerDocsTest extends RestDocsSupport {
                 .param("rating", "3"))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andDo(
-                        document("03-product-07-get-products",
-                                preprocessRequest(prettyPrint()),
-                                preprocessResponse(prettyPrint()),
-                                resource(
-                                        ResourceSnippetParameters.builder()
-                                                .tag(TAG)
-                                                .summary("상품 목록 조회")
-                                                .description("상품 목록을 조회한다")
-                                                .queryParameters(queryParameters)
-                                                .responseFields(responseFields)
-                                                .build()
-                                ),
-                                queryParameters(queryParameters),
-                                responseFields(responseFields)
-                        )
+                .andExpect(content().json(objectMapper.writeValueAsString(response)))
+                .andDo(createPublicDocument("03-product-07-get-products",
+                                "상품 목록 조회",
+                                "상품 목록을 조회한다",
+                                ProductDescriptor.getSummaryResponse(),
+                                ProductDescriptor.getSearchParams())
                 );
     }
 
@@ -395,9 +347,10 @@ class ProductControllerDocsTest extends RestDocsSupport {
     @DisplayName("상품을 조회한다")
     void getProduct() throws Exception {
         //given
-        ProductDetailResponse response = mockDetailResponse().build();
+        ProductResult.Detail result = mockDetailResult();
         given(productService.getProduct(anyLong()))
-                .willReturn(response);
+                .willReturn(result);
+        ProductResponse.Detail response = ProductResponse.Detail.from(result);
         ParameterDescriptor[] pathParameters = new ParameterDescriptor[] {
                 parameterWithName("productId").description("조회할 상품 ID")
         };
@@ -439,22 +392,12 @@ class ProductControllerDocsTest extends RestDocsSupport {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andDo(
-                        document("03-product-08-get-product",
-                                preprocessRequest(prettyPrint()),
-                                preprocessResponse(prettyPrint()),
-                                resource(
-                                        ResourceSnippetParameters.builder()
-                                                .tag(TAG)
-                                                .summary("상품 상세 조회")
-                                                .description("상품 상세 정보를 조회한다")
-                                                .pathParameters(pathParameters)
-                                                .responseFields(responseFields)
-                                                .build()
-                                ),
-                                pathParameters(pathParameters),
-                                responseFields(responseFields)
-                        )
+                .andExpect(content().json(objectMapper.writeValueAsString(response)))
+                .andDo(createPublicDocument("03-product-08-get-product",
+                                "상품 상세 조회",
+                                "상품 상세 정보를 조회한다",
+                                ProductDescriptor.getDetailResponse(),
+                                parameterWithName("productId").description("조회할 상품 ID"))
                 );
     }
 
@@ -513,5 +456,74 @@ class ProductControllerDocsTest extends RestDocsSupport {
                                 "상품을 삭제한다",
                                 parameterWithName("productId").description("삭제할 상품 ID"))
                 );
+    }
+
+    private ProductResult.Summary mockSummaryResult() {
+        return ProductResult.Summary.builder()
+                .productId(1L)
+                .name("상품")
+                .thumbnail("/test/image.jpg")
+                .displayPrice(2700L)
+                .originalPrice(3000L)
+                .maxDiscountRate(10)
+                .categoryId(1L)
+                .publishedAt(LocalDateTime.now())
+                .rating(3D)
+                .reviewCount(100L)
+                .status(ProductStatus.ON_SALE)
+                .build();
+    }
+
+    private ProductResult.Detail mockDetailResult() {
+        return ProductResult.Detail.builder()
+                .productId(1L)
+                .name("상품")
+                .status(ProductStatus.ON_SALE)
+                .categoryId(1L)
+                .displayPrice(2700L)
+                .originalPrice(3000L)
+                .maxDiscountRate(10)
+                .rating(3D)
+                .reviewCount(100L)
+                .optionGroups(
+                        List.of(
+                                ProductResult.OptionGroup.builder()
+                                        .optionTypeId(1L)
+                                        .name("사이즈")
+                                        .values(
+                                                List.of(
+                                                        ProductResult.OptionValueDetail.builder()
+                                                                .optionValueId(1L)
+                                                                .name("XL").build()
+                                                )
+                                        )
+                                        .build()))
+                .images(
+                        List.of(
+                                ProductResult.ImageDetail.builder()
+                                        .imagePath("http://image.jpg")
+                                        .sortOrder(1)
+                                        .isThumbnail(true)
+                                        .build()))
+                .descriptionImages(
+                        List.of(
+                                ProductResult.DescriptionImageDetail.builder()
+                                        .imagePath("http://description.jpg")
+                                        .sortOrder(1)
+                                        .build()
+                        )
+                )
+                .variants(
+                        List.of(
+                                ProductResult.VariantDetail.builder()
+                                        .variantId(1L)
+                                        .sku("PROD-XL")
+                                        .optionValueIds(List.of(1L))
+                                        .originalPrice(3000L)
+                                        .discountedPrice(2700L)
+                                        .discountRate(10)
+                                        .stockQuantity(100).build()
+                        )
+                ).build();
     }
 }

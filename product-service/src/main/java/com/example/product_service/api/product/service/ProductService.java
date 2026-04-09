@@ -2,7 +2,6 @@ package com.example.product_service.api.product.service;
 
 import com.example.product_service.api.category.domain.model.Category;
 import com.example.product_service.api.category.domain.repository.CategoryRepository;
-import com.example.product_service.api.common.dto.PageDto;
 import com.example.product_service.api.common.exception.BusinessException;
 import com.example.product_service.api.common.exception.CategoryErrorCode;
 import com.example.product_service.api.common.exception.OptionErrorCode;
@@ -11,14 +10,11 @@ import com.example.product_service.api.option.domain.model.OptionType;
 import com.example.product_service.api.option.domain.model.OptionValue;
 import com.example.product_service.api.option.domain.repository.OptionTypeRepository;
 import com.example.product_service.api.option.domain.repository.OptionValueRepository;
-import com.example.product_service.api.product.controller.dto.ProductSearchCondition;
 import com.example.product_service.api.product.domain.model.Product;
 import com.example.product_service.api.product.domain.model.ProductVariant;
 import com.example.product_service.api.product.domain.repository.ProductRepository;
 import com.example.product_service.api.product.service.dto.command.ProductCommand;
-import com.example.product_service.api.product.service.dto.result.ProductDetailResponse;
 import com.example.product_service.api.product.service.dto.result.ProductResult;
-import com.example.product_service.api.product.service.dto.result.ProductSummaryResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
@@ -99,15 +95,15 @@ public class ProductService {
     }
 
     @Transactional(readOnly = true)
-    public ProductDetailResponse getProduct(Long productId){
+    public ProductResult.Detail getProduct(Long productId){
         Product product = findProductByIdOrThrow(productId);
-        return ProductDetailResponse.from(product);
+        return ProductResult.Detail.from(product);
     }
 
     @Transactional(readOnly = true)
-    public PageDto<ProductSummaryResponse> getProducts(ProductSearchCondition condition){
+    public Page<ProductResult.Summary> getProducts(ProductCommand.Search condition){
         Page<Product> products = productRepository.findProductsByCondition(condition);
-        return PageDto.of(products, ProductSummaryResponse::from);
+        return products.map(ProductResult.Summary::from);
     }
 
     public ProductResult.Update updateProduct(ProductCommand.Update command) {

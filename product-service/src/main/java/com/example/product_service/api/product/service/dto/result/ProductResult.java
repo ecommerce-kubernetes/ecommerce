@@ -1,5 +1,6 @@
 package com.example.product_service.api.product.service.dto.result;
 
+import com.example.product_service.api.option.domain.model.OptionValue;
 import com.example.product_service.api.product.domain.model.*;
 import lombok.Builder;
 
@@ -209,6 +210,107 @@ public class ProductResult {
                     .name(product.getName())
                     .description(product.getDescription())
                     .categoryId(product.getCategory().getId())
+                    .build();
+        }
+    }
+
+    @Builder
+    public record Summary (
+            Long productId,
+            String name,
+            String thumbnail,
+            Long displayPrice,
+            Long originalPrice,
+            Integer maxDiscountRate,
+            Long categoryId,
+            LocalDateTime publishedAt,
+            Double rating,
+            Long reviewCount,
+            ProductStatus status
+    ) {
+        public static Summary from(Product product) {
+            return Summary.builder()
+                    .productId(product.getId())
+                    .name(product.getName())
+                    .thumbnail(product.getThumbnail())
+                    .displayPrice(product.getLowestPrice())
+                    .originalPrice(product.getOriginalPrice())
+                    .maxDiscountRate(product.getMaxDiscountRate())
+                    .categoryId(product.getCategory().getId())
+                    .publishedAt(product.getPublishedAt())
+                    .rating(product.getRating())
+                    .reviewCount(product.getReviewCount())
+                    .status(product.getStatus())
+                    .build();
+        }
+    }
+
+    @Builder
+    public record Detail (
+            Long productId,
+            String name,
+            ProductStatus status,
+            Long categoryId,
+            String description,
+            Long displayPrice,
+            Long originalPrice,
+            Integer maxDiscountRate,
+            Double rating,
+            Long reviewCount,
+            Double popularityScore,
+            List<OptionGroup> optionGroups,
+            List<ImageDetail> images,
+            List<DescriptionImageDetail> descriptionImages,
+            List<VariantDetail> variants
+    ) {
+        public static Detail from(Product product) {
+            return Detail.builder()
+                    .productId(product.getId())
+                    .name(product.getName())
+                    .status(product.getStatus())
+                    .categoryId(product.getCategory().getId())
+                    .description(product.getDescription())
+                    .displayPrice(product.getLowestPrice())
+                    .originalPrice(product.getOriginalPrice())
+                    .maxDiscountRate(product.getMaxDiscountRate())
+                    .rating(product.getRating())
+                    .reviewCount(product.getReviewCount())
+                    .popularityScore(product.getPopularityScore())
+                    .optionGroups(product.getOptions().stream().map(OptionGroup::from).toList())
+                    .images(product.getImages().stream().map(ImageDetail::from).toList())
+                    .descriptionImages(product.getDescriptionImages().stream().map(DescriptionImageDetail::from).toList())
+                    .variants(product.getVariants().stream().map(VariantDetail::from).toList())
+                    .build();
+        }
+    }
+
+    @Builder
+    public record OptionGroup (
+            Long optionTypeId,
+            String name,
+            Integer priority,
+            List<OptionValueDetail> values
+    ) {
+        public static OptionGroup from(ProductOption option) {
+            return OptionGroup.builder()
+                    .optionTypeId(option.getOptionType().getId())
+                    .name(option.getOptionType().getName())
+                    .priority(option.getPriority())
+                    .values(option.getOptionType().getOptionValues().stream()
+                            .map(OptionValueDetail::from).toList())
+                    .build();
+        }
+    }
+
+    @Builder
+    public record OptionValueDetail(
+            Long optionValueId,
+            String name
+    ) {
+        public static OptionValueDetail from(OptionValue optionValue) {
+            return OptionValueDetail.builder()
+                    .optionValueId(optionValue.getId())
+                    .name(optionValue.getName())
                     .build();
         }
     }
