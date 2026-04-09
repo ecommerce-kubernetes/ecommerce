@@ -2,6 +2,10 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.4.5'
 	id 'io.spring.dependency-management' version '1.1.7'
+	id "org.asciidoctor.jvm.convert" version "3.3.2"
+	id 'com.epages.restdocs-api-spec' version '0.19.2'
+	id "org.sonarqube" version "7.1.0.6387"
+	id 'jacoco'
 }
 
 group = 'com.example'
@@ -9,7 +13,16 @@ version = '1.2'
 
 java {
 	toolchain {
-		languageVersion = JavaLanguageVersion.of(17)
+		languageVersion = JavaLanguageVersion.of(21)
+	}
+}
+
+sonar {
+	properties {
+		property "sonar.organization", "ecommerce-kubernetes"
+		property "sonar.projectKey", "buynest-image-service"
+		property "sonar.projectName", "Image Service"
+		property "sonar.coverage.jacoco.xmlReportPaths", "build/reports/jacoco/test/jacocoTestReport.xml"
 	}
 }
 
@@ -17,6 +30,7 @@ configurations {
 	compileOnly {
 		extendsFrom annotationProcessor
 	}
+	asciidoctorExt
 }
 
 repositories {
@@ -24,25 +38,78 @@ repositories {
 }
 
 ext {
+	snippetsDir = file('build/generated-snippets')
 	set('springCloudVersion', "2024.0.1")
 }
 
+test {
+	outputs.dir snippetsDir
+	useJUnitPlatform()
+	finalizedBy jacocoTestReport
+}
+
+jacocoTestReport {
+	dependsOn test
+	reports {
+		xml.required = true
+		html.required = true
+	}
+}
+
+asciidoctor {
+	inputs.dir snippetsDir
+	configurations 'asciidoctorExt'
+	dependsOn test
+	sources {
+		include("**/index.adoc")
+	}
+	baseDirFollowsSourceFile()
+
+	doLast {
+		copy {
+			from outputDir
+			into file("build/resources/main/static/docs")
+		}
+	}
+}
+
+bootJar {
+	dependsOn asciidoctor
+	from("${asciidoctor.outputDir}"){
+		into 'static/docs'
+	}
+	from("build/api-spec") {
+		into 'static/docs'
+	}
+}
+
 dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.cloud:spring-cloud-starter-config'
-	implementation 'org.springframework.cloud:spring-cloud-starter-bus-kafka'
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
-	implementation 'org.springframework.cloud:spring-cloud-starter-bootstrap'
-	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.13'
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'org.springframework.cloud:spring-cloud-starter-bus-kafka'
+
+    //S3 SDK
+    implementation 'software.amazon.awssdk:s3:2.42.10'
+
 	compileOnly 'org.projectlombok:lombok'
-	runtimeOnly 'com.mysql:mysql-connector-j'
 	annotationProcessor 'org.projectlombok:lombok'
+
+	//Test
+	testImplementation 'org.springframework.kafka:spring-kafka-test'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testImplementation 'com.h2database:h2'
+	testImplementation 'org.springframework.security:spring-security-test'
+	testImplementation 'org.projectlombok:lombok'
+	testAnnotationProcessor 'org.projectlombok:lombok'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+	//API 명세
+	asciidoctorExt 'org.springframework.restdocs:spring-restdocs-asciidoctor'
+	testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
+	testImplementation 'com.epages:restdocs-api-spec-mockmvc:0.19.2'
 }
 
 dependencyManagement {
@@ -51,6 +118,34 @@ dependencyManagement {
 	}
 }
 
-tasks.named('test') {
-	useJUnitPlatform()
+openapi3 {
+	title = 'BuyNest Image API'
+	description = '이미지 서비스 API 명세서'
+	version = '1.0.0'
+	format = 'json'
+	servers = [
+			{
+				url = 'https://api.buynest.cloud/image-service'
+				description = '운영'
+			},
+	]
+	outputFileNamePrefix = 'image-openapi'
+}
+
+jar {
+	enabled = false
+}
+
+jacocoTestReport {
+	reports { html.required = true }
+}
+
+afterEvaluate {
+	tasks.named('openapi3') {
+		dependsOn tasks.named('test')
+	}
+
+	tasks.named('bootJar') {
+		dependsOn tasks.named('openapi3')
+	}
 }

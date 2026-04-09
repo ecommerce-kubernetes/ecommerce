@@ -3,7 +3,6 @@ package com.example.product_service.api.product.saga.producer;
 import com.example.common.result.SagaProcessResult;
 import com.example.product_service.api.product.saga.properties.ProductTopicProperties;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 

@@ -1,0 +1,30 @@
+services:
+  image-service-blue:
+    image: minsik/image-service:latest
+    container_name: image-service-blue
+    restart: always
+    stop_grace_period: 35s
+    networks:
+      - buynest-network
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-service:8888
+    env_file:
+      - .env
+
+  image-service-green:
+    image: minsik2434/image-service:latest
+    container_name: image-service-green
+    restart: always
+    stop_grace_period: 35s
+    networks:
+      - buynest-network
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-service:8888
+    env_file:
+      - .env
+      
+networks:
+  buynest-network:
+    external: true

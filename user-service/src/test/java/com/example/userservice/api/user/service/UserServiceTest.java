@@ -3,6 +3,7 @@ package com.example.userservice.api.user.service;
 import com.example.userservice.api.common.exception.BusinessException;
 import com.example.userservice.api.common.exception.UserErrorCode;
 import com.example.userservice.api.support.ExcludeInfraTest;
+import com.example.userservice.api.user.controller.dto.EmailAvailableResponse;
 import com.example.userservice.api.user.domain.model.User;
 import com.example.userservice.api.user.domain.repository.UserRepository;
 import com.example.userservice.api.user.service.dto.command.UserCreateCommand;
@@ -21,7 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @Transactional
-public class UserServiceTest extends ExcludeInfraTest {
+class UserServiceTest extends ExcludeInfraTest {
 
     @Autowired
     private UserService userService;
@@ -68,6 +69,33 @@ public class UserServiceTest extends ExcludeInfraTest {
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(UserErrorCode.DUPLICATE_EMAIL);
+        }
+    }
+
+    @Nested
+    @DisplayName("사용 가능 이메일 확인")
+    class CheckEmail {
+        @Test
+        @DisplayName("이메일이 사용 가능한 이메일이면 true를 반환한다")
+        void checkAvailableEmail_available(){
+            //given
+            //when
+            EmailAvailableResponse result = userService.checkAvailableEmail("test@naver.com");
+            //then
+            assertThat(result.isAvailable()).isTrue();
+        }
+
+        @Test
+        @DisplayName("이메일이 사용 불가능한 이메일이면 false를 반환한다")
+        void checkAvailableEmail_unavailable(){
+            //given
+            UserCreateCommand command = anUserCreateCommand().email("test@naver.com").build();
+            User user = User.createUser(command, "$2a$asdfasdcxzvcx");
+            userRepository.save(user);
+            //when
+            EmailAvailableResponse result = userService.checkAvailableEmail("test@naver.com");
+            //then
+            assertThat(result.isAvailable()).isFalse();
         }
     }
 

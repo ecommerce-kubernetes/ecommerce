@@ -1,20 +1,18 @@
 package com.example.product_service.api.product.controller;
 
 import com.example.product_service.api.common.dto.PageDto;
-import com.example.product_service.api.product.controller.dto.*;
+import com.example.product_service.api.product.controller.dto.request.ProductRequest;
+import com.example.product_service.api.product.controller.dto.response.ProductResponse;
 import com.example.product_service.api.product.service.ProductService;
-import com.example.product_service.api.product.service.dto.command.ProductCreateCommand;
-import com.example.product_service.api.product.service.dto.command.ProductUpdateCommand;
-import com.example.product_service.api.product.service.dto.command.ProductVariantsCreateCommand;
-import com.example.product_service.api.product.service.dto.result.*;
+import com.example.product_service.api.product.service.dto.command.ProductCommand;
+import com.example.product_service.api.product.service.dto.result.ProductResult;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -25,91 +23,92 @@ public class ProductController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ProductCreateResponse> createProduct(@RequestBody @Validated ProductCreateRequest request) {
-        ProductCreateCommand command = ProductCreateCommand.builder()
-                .name(request.getName())
-                .categoryId(request.getCategoryId())
-                .description(request.getDescription())
-                .build();
+    public ResponseEntity<ProductResponse.Create> createProduct(@RequestBody @Validated ProductRequest.Create request) {
 
-        ProductCreateResponse response = productService.createProduct(command);
+        ProductCommand.Create command = request.toCommand();
+        ProductResult.Create result = productService.createProduct(command);
+        ProductResponse.Create response = ProductResponse.Create.from(result);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @PutMapping("/{productId}/option")
+    @PutMapping("/{productId}/options")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ProductOptionResponse> registerProductOption(@PathVariable("productId") Long productId,
-                                                                       @RequestBody @Validated ProductOptionRequest request) {
-        ProductOptionResponse response = productService.defineOptions(productId, request.getOptionTypeIds());
+    public ResponseEntity<ProductResponse.OptionRegister> registerProductOption(@PathVariable("productId") Long productId,
+                                                                                @RequestBody @Validated ProductRequest.OptionRegister request) {
+        ProductCommand.OptionRegister command = request.toCommand(productId);
+        ProductResult.OptionRegister result = productService.defineOptions(command);
+        ProductResponse.OptionRegister response = ProductResponse.OptionRegister.from(result);
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/{productId}/variants")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<VariantCreateResponse> createVariants(@PathVariable("productId") Long productId,
-                                                                @RequestBody @Validated VariantCreateRequest request) {
-        List<ProductVariantsCreateCommand.VariantDetail> variantDetails = request.getVariants().stream().map(v -> ProductVariantsCreateCommand.VariantDetail.builder()
-                .originalPrice(v.getOriginalPrice())
-                .discountRate(v.getDiscountRate())
-                .stockQuantity(v.getStockQuantity())
-                .optionValueIds(v.getOptionValueIds())
-                .build()).toList();
-
-        ProductVariantsCreateCommand command = ProductVariantsCreateCommand.builder()
-                .productId(productId)
-                .variants(variantDetails)
-                .build();
-
-        VariantCreateResponse response = productService.createVariants(command);
+    public ResponseEntity<ProductResponse.AddVariant> addVariants(@PathVariable("productId") Long productId,
+                                                  @RequestBody @Validated ProductRequest.AddVariant request) {
+        ProductCommand.AddVariant command = request.toCommand(productId);
+        ProductResult.AddVariant result = productService.createVariants(command);
+        ProductResponse.AddVariant response = ProductResponse.AddVariant.from(result);
         return ResponseEntity.ok(response);
     }
 
     @PutMapping("/{productId}/images")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ProductImageCreateResponse> updateImages(@PathVariable("productId") Long productId,
-                                                                   @RequestBody @Validated ProductImageCreateRequest request) {
-        ProductImageCreateResponse response = productService.updateImages(productId, request.getImages());
+    public ResponseEntity<ProductResponse.AddImage> updateImages(@PathVariable("productId") Long productId,
+                                                 @RequestBody @Validated ProductRequest.AddImage request) {
+        ProductCommand.AddImage command = request.toCommand(productId);
+        ProductResult.AddImage result = productService.updateImages(command);
+        ProductResponse.AddImage response = ProductResponse.AddImage.from(result);
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/{productId}/description-images")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ProductResponse.AddDescriptionImage> updateDescriptionImage(@PathVariable("productId") Long productId,
+                                                                      @RequestBody @Validated ProductRequest.AddDescriptionImage request) {
+        ProductCommand.AddDescriptionImage command = request.toCommand(productId);
+        ProductResult.AddDescriptionImage result = productService.updateDescriptionImages(command);
+        ProductResponse.AddDescriptionImage response = ProductResponse.AddDescriptionImage.from(result);
         return ResponseEntity.ok(response);
     }
 
     @PatchMapping("/{productId}/publish")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ProductStatusResponse> publishProduct(@PathVariable("productId") Long productId) {
-        ProductStatusResponse response = productService.publish(productId);
-        return ResponseEntity.ok(response);
-    }
-
-    @GetMapping
-    public ResponseEntity<PageDto<ProductSummaryResponse>> getProducts(@ModelAttribute @Validated ProductSearchCondition condition) {
-        PageDto<ProductSummaryResponse> response = productService.getProducts(condition);
-        return ResponseEntity.ok(response);
-    }
-
-    @GetMapping("/{productId}")
-    public ResponseEntity<ProductDetailResponse> getProductDetail(@PathVariable("productId") Long productId) {
-        ProductDetailResponse response = productService.getProduct(productId);
-        return ResponseEntity.ok(response);
-    }
-
-    @PutMapping("/{productId}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ProductUpdateResponse> updateProduct(@PathVariable("productId") Long productId,
-                                                               @RequestBody @Validated ProductUpdateRequest request) {
-        ProductUpdateCommand command = ProductUpdateCommand.builder()
-                .productId(productId)
-                .name(request.getName())
-                .categoryId(request.getCategoryId())
-                .description(request.getDescription())
-                .build();
-
-        ProductUpdateResponse response = productService.updateProduct(command);
+    public ResponseEntity<ProductResponse.Publish> publishProduct(@PathVariable("productId") Long productId) {
+        ProductResult.Publish result = productService.publish(productId);
+        ProductResponse.Publish response = ProductResponse.Publish.from(result);
         return ResponseEntity.ok(response);
     }
 
     @PatchMapping("/{productId}/close")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ProductStatusResponse> closeProduct(@PathVariable("productId") Long productId) {
-        ProductStatusResponse response = productService.closedProduct(productId);
+    public ResponseEntity<ProductResponse.Close> closeProduct(@PathVariable("productId") Long productId) {
+        ProductResult.Close result = productService.closedProduct(productId);
+        ProductResponse.Close response = ProductResponse.Close.from(result);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping
+    public ResponseEntity<PageDto<ProductResponse.Summary>> getProducts(@ModelAttribute @Validated ProductRequest.Search condition) {
+        ProductCommand.Search command = condition.toCommand();
+        Page<ProductResult.Summary> results = productService.getProducts(command);
+        PageDto<ProductResponse.Summary> response = PageDto.of(results, ProductResponse.Summary::from);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{productId}")
+    public ResponseEntity<ProductResponse.Detail> getProductDetail(@PathVariable("productId") Long productId) {
+        ProductResult.Detail result = productService.getProduct(productId);
+        ProductResponse.Detail response = ProductResponse.Detail.from(result);
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/{productId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ProductResponse.Update> updateProduct(@PathVariable("productId") Long productId,
+                                                               @RequestBody @Validated ProductRequest.Update request) {
+        ProductCommand.Update command = request.toCommand(productId);
+        ProductResult.Update result = productService.updateProduct(command);
+        ProductResponse.Update response = ProductResponse.Update.from(result);
         return ResponseEntity.ok(response);
     }
 

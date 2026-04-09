@@ -32,7 +32,7 @@ public class ProductQueryMapper {
                     .orElse(LATEST);
         }
     }
-
+    @SuppressWarnings("java:S1452")
     public static OrderSpecifier<?> toOrderSpecifier(String code) {
         return SortType.fromCode(code).getSpecifier();
     }

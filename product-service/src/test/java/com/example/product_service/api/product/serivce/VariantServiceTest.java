@@ -40,7 +40,7 @@ public class VariantServiceTest extends ExcludeInfraTest {
     private EntityManager em;
 
     private Category saveCategory() {
-        return categoryRepository.save(Category.create("카테고리", null, "http://image.jpg"));
+        return categoryRepository.save(Category.create("카테고리", null, "/test/image.jpg"));
     }
 
     private Product saveProduct(Category category) {
@@ -57,7 +57,7 @@ public class VariantServiceTest extends ExcludeInfraTest {
 
     private void settingProduct(Product product, List<OptionType> optionTypes, List<ProductVariant> variants) {
         product.updateOptions(optionTypes);
-        product.replaceImages(List.of("http://image.jpg"));
+        product.replaceImages(List.of("/test/image.jpg"));
         for (ProductVariant variant : variants) {
             product.addVariant(variant);
         }

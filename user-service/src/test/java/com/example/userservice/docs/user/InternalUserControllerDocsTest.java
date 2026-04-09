@@ -23,7 +23,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-public class InternalUserControllerDocsTest extends RestDocsSupport {
+class InternalUserControllerDocsTest extends RestDocsSupport {
 
     private UserService userService = Mockito.mock(UserService.class);
 

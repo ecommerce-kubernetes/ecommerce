@@ -2,6 +2,7 @@ package com.example.userservice.docs.user;
 
 import com.epages.restdocs.apispec.ResourceSnippetParameters;
 import com.example.userservice.api.user.controller.UserController;
+import com.example.userservice.api.user.controller.dto.EmailAvailableResponse;
 import com.example.userservice.api.user.controller.dto.UserCreateRequest;
 import com.example.userservice.api.user.service.UserService;
 import com.example.userservice.api.user.service.dto.command.UserCreateCommand;
@@ -12,21 +13,26 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.restdocs.payload.FieldDescriptor;
 import org.springframework.restdocs.payload.JsonFieldType;
+import org.springframework.restdocs.request.ParameterDescriptor;
 
 import static com.epages.restdocs.apispec.MockMvcRestDocumentationWrapper.document;
 import static com.epages.restdocs.apispec.ResourceDocumentation.resource;
 import static com.example.userservice.api.support.fixture.UserRequestFixture.anUserCreateRequest;
 import static com.example.userservice.api.support.fixture.UserResponseFixture.anUserCreateResponse;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
 import static org.springframework.restdocs.payload.PayloadDocumentation.*;
+import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
+import static org.springframework.restdocs.request.RequestDocumentation.queryParameters;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-public class UserControllerDocsTest extends RestDocsSupport {
+class UserControllerDocsTest extends RestDocsSupport {
     private UserService userService = mock(UserService.class);
 
     private static final String TAG = "USER";
@@ -89,5 +95,43 @@ public class UserControllerDocsTest extends RestDocsSupport {
                         )
                 );
 
+    }
+
+    @Test
+    @DisplayName("이메일 사용 가능 검사")
+    void checkEmailAvailable() throws Exception {
+        //given
+        FieldDescriptor[] responseFields = new FieldDescriptor[] {
+                fieldWithPath("available").description("사용가능 여부"),
+        };
+        ParameterDescriptor[] queryParameters = new ParameterDescriptor[] {
+                parameterWithName("email").description("확인할 이메일")
+        };
+        given(userService.checkAvailableEmail(anyString()))
+                .willReturn(EmailAvailableResponse.builder().available(true).build());
+        //when
+        //then
+        mockMvc.perform(get("/users/email-availability")
+                .contentType(MediaType.APPLICATION_JSON)
+                        .param("email", "test@naver.com"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(
+                        document("01-user-02-email-available", 
+                                preprocessRequest(prettyPrint()),
+                                preprocessResponse(prettyPrint()),
+                                resource(
+                                        ResourceSnippetParameters.builder()
+                                                .tag(TAG)
+                                                .summary("사용 가능한 이메일 확인")
+                                                .description("사용 가능한 이메일인지 확인한다")
+                                                .queryParameters(queryParameters)
+                                                .responseFields(responseFields)
+                                                .build()
+                                ),
+                                queryParameters(queryParameters),
+                                responseFields(responseFields)
+                        )
+                );
     }
 }

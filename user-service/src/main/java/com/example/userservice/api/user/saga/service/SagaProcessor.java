@@ -3,6 +3,7 @@ package com.example.userservice.api.user.saga.service;
 import com.example.common.user.UserCommandType;
 import com.example.common.user.UserSagaCommand;
 import com.example.userservice.api.common.exception.BusinessException;
+import com.example.userservice.api.common.exception.SagaErrorCode;
 import com.example.userservice.api.user.saga.producer.SagaEventProducer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,7 +33,7 @@ public class SagaProcessor {
     private void handleException(UserSagaCommand command, String code, String message) {
         if (command.getType() == UserCommandType.REFUND_POINT) {
             log.error("포인트 복구 실패! 재시도 필요. SagaID: {}", command.getSagaId());
-            throw new RuntimeException("포인트 복구 실패 - 재시도 요망");
+            throw new BusinessException(SagaErrorCode.POINT_REFOUND_FAILED);
         }
 
         log.warn("재고 차감 실패. SagaID: {}", command.getSagaId());

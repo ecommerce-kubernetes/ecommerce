@@ -15,7 +15,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 
 @Import({TestSecurityConfig.class, JacksonConfig.class})
-public class StringTrimmerTest extends ControllerTestSupport {
+class StringTrimmerTest extends ControllerTestSupport {
     @Test
     @DisplayName("")
     void trim() throws Exception {

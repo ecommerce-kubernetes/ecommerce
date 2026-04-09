@@ -1,12 +1,11 @@
 package com.example.product_service.api.category.controller;
 
-import com.example.product_service.api.category.controller.dto.CategoryRequest;
-import com.example.product_service.api.category.controller.dto.MoveCategoryRequest;
-import com.example.product_service.api.category.controller.dto.UpdateCategoryRequest;
+import com.example.product_service.api.category.controller.dto.request.CategoryRequest;
+import com.example.product_service.api.category.controller.dto.response.CategoryResponse;
+import com.example.product_service.api.category.controller.dto.response.CategoryResponse.Tree;
 import com.example.product_service.api.category.service.CategoryService;
-import com.example.product_service.api.category.service.dto.result.CategoryNavigationResponse;
-import com.example.product_service.api.category.service.dto.result.CategoryResponse;
-import com.example.product_service.api.category.service.dto.result.CategoryTreeResponse;
+import com.example.product_service.api.category.service.dto.command.CategoryCommand;
+import com.example.product_service.api.category.service.dto.result.CategoryResult;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -26,43 +25,46 @@ public class CategoryController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<CategoryResponse> saveCategory(@RequestBody @Validated CategoryRequest request) {
-        CategoryResponse response = categoryService.saveCategory(request.getName(), request.getParentId(), request.getImageUrl());
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    public ResponseEntity<CategoryResponse.Detail> saveCategory(@RequestBody @Validated CategoryRequest.Create request) {
+        CategoryCommand.Create command = request.toCommand();
+        CategoryResult.Detail result = categoryService.saveCategory(command);
+        return ResponseEntity.status(HttpStatus.CREATED).body(CategoryResponse.Detail.from(result));
     }
 
     @GetMapping("/tree")
-    public ResponseEntity<List<CategoryTreeResponse>> getCategoryTree(){
-        List<CategoryTreeResponse> response = categoryService.getTree();
-        return ResponseEntity.ok(response);
+    public ResponseEntity<List<CategoryResponse.Tree>> getCategoryTree(){
+        List<CategoryResult.Tree> results = categoryService.getTree();
+        List<Tree> responses = Tree.from(results);
+        return ResponseEntity.ok(responses);
     }
 
     @GetMapping("/navigation/{categoryId}")
-    public ResponseEntity<CategoryNavigationResponse> getCategoryNavigation(@PathVariable("categoryId") Long categoryId) {
-        CategoryNavigationResponse response = categoryService.getNavigation(categoryId);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<CategoryResponse.Navigation> getCategoryNavigation(@PathVariable("categoryId") Long categoryId) {
+        CategoryResult.Navigation result = categoryService.getNavigation(categoryId);
+        return ResponseEntity.ok(CategoryResponse.Navigation.from(result));
     }
 
     @GetMapping("/{categoryId}")
-    public ResponseEntity<CategoryResponse> getCategory(@PathVariable("categoryId") Long categoryId){
-        CategoryResponse response = categoryService.getCategory(categoryId);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<CategoryResponse.Detail> getCategory(@PathVariable("categoryId") Long categoryId){
+        CategoryResult.Detail result = categoryService.getCategory(categoryId);
+        return ResponseEntity.ok(CategoryResponse.Detail.from(result));
     }
 
     @PatchMapping("/{categoryId}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<CategoryResponse> updateCategory(@PathVariable("categoryId") Long categoryId,
-                                                           @RequestBody @Validated UpdateCategoryRequest request) {
-        CategoryResponse response = categoryService.updateCategory(categoryId, request.getName(), request.getImageUrl());
-        return ResponseEntity.ok(response);
+    public ResponseEntity<CategoryResponse.Detail> updateCategory(@PathVariable("categoryId") Long categoryId,
+                                                         @RequestBody @Validated CategoryRequest.Update request) {
+        CategoryCommand.Update command = request.toCommand(categoryId);
+        CategoryResult.Detail result = categoryService.updateCategory(command);
+        return ResponseEntity.ok(CategoryResponse.Detail.from(result));
     }
 
     @PostMapping("/{categoryId}/move")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<CategoryResponse> moveParent(@PathVariable("categoryId") Long categoryId,
-                                                       @RequestBody @Validated MoveCategoryRequest request) {
-        CategoryResponse response = categoryService.moveParent(categoryId, request.getParentId());
-        return ResponseEntity.ok(response);
+    public ResponseEntity<CategoryResponse.Detail> moveParent(@PathVariable("categoryId") Long categoryId,
+                                                     @RequestBody @Validated CategoryRequest.Move request) {
+        CategoryResult.Detail result = categoryService.moveParent(categoryId, request.parentId());
+        return ResponseEntity.ok(CategoryResponse.Detail.from(result));
     }
 
     @DeleteMapping("/{categoryId}")

@@ -36,3 +36,4 @@ out/
 ### VS Code ###
 .vscode/
 src/main/resources/application-secret.yml
+k6/reports/*.html
