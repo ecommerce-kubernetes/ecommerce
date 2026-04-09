@@ -819,14 +819,14 @@ class ProductControllerTest extends ControllerTestSupport {
                     .images(
                             List.of(
                                     ProductResult.ImageDetail.builder()
-                                            .imagePath("http://image.jpg")
+                                            .imagePath("/test/image.jpg")
                                             .sortOrder(1)
                                             .isThumbnail(true)
                                             .build()))
                     .descriptionImages(
                             List.of(
                                     ProductResult.DescriptionImageDetail.builder()
-                                            .imagePath("http://description.jpg")
+                                            .imagePath("/test/description.jpg")
                                             .sortOrder(1)
                                             .build()
                             )

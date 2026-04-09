@@ -127,7 +127,7 @@ public class ProductResult {
         public static ImageDetail from(ProductImage image) {
             return ImageDetail.builder()
                     .imageId(image.getId())
-                    .imagePath(image.getImageUrl())
+                    .imagePath(image.getImagePath())
                     .sortOrder(image.getSortOrder())
                     .isThumbnail(image.isThumbnail())
                     .build();
@@ -161,7 +161,7 @@ public class ProductResult {
         public static DescriptionImageDetail from(ProductDescriptionImage image) {
             return DescriptionImageDetail.builder()
                     .imageId(image.getId())
-                    .imagePath(image.getImageUrl())
+                    .imagePath(image.getImagePath())
                     .sortOrder(image.getSortOrder())
                     .build();
         }

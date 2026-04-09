@@ -53,7 +53,7 @@ public class OptionServiceTest extends ExcludeInfraTest {
     }
 
     private void settingProductOption(OptionType optionType, OptionValue optionValue) {
-        Category category = categoryRepository.save(Category.create("카테고리", null, "http://image.jpg"));
+        Category category = categoryRepository.save(Category.create("카테고리", null, "/test/image.jpg"));
         ProductVariant variant = ProductVariant.create("TEST", 1000L, 100, 10);
         variant.addProductVariantOptions(List.of(optionValue));
         Product product = Product.create("상품", "상품 설명", category);

@@ -18,8 +18,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.restdocs.payload.FieldDescriptor;
-import org.springframework.restdocs.request.ParameterDescriptor;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -28,7 +26,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willDoNothing;
-import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -466,14 +463,14 @@ class ProductControllerDocsTest extends RestDocsSupport {
                 .images(
                         List.of(
                                 ProductResult.ImageDetail.builder()
-                                        .imagePath("http://image.jpg")
+                                        .imagePath("/test/image.jpg")
                                         .sortOrder(1)
                                         .isThumbnail(true)
                                         .build()))
                 .descriptionImages(
                         List.of(
                                 ProductResult.DescriptionImageDetail.builder()
-                                        .imagePath("http://description.jpg")
+                                        .imagePath("/test/description.jpg")
                                         .sortOrder(1)
                                         .build()
                         )

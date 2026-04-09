@@ -63,7 +63,7 @@ public class ProductServiceTest extends ExcludeInfraTest {
     }
 
     private Category saveCategory() {
-        return categoryRepository.save(Category.create("카테고리", null, "http://image.jpg"));
+        return categoryRepository.save(Category.create("카테고리", null, "/test/image.jpg"));
     }
 
     private Product saveProduct(Category category) {
@@ -82,8 +82,8 @@ public class ProductServiceTest extends ExcludeInfraTest {
         Product product = Product.create(name, "상품 설명", category);
         ProductVariant variant = ProductVariant.create("TEST", 10000L, 100, 10);
         product.addVariant(variant);
-        product.replaceImages(List.of("http://image.jpg"));
-        product.replaceDescriptionImage(List.of("http://description.jpg"));
+        product.replaceImages(List.of("/test/image.jpg"));
+        product.replaceDescriptionImage(List.of("/test/description.jpg"));
         product.publish();
         return productRepository.save(product);
     }
@@ -421,8 +421,8 @@ public class ProductServiceTest extends ExcludeInfraTest {
             Product product = Product.create("상품", "상품 설명", category);
             ProductVariant variant = ProductVariant.create("TEST", 3000L, 100, 10);
             product.addVariant(variant);
-            product.replaceImages(List.of("http://image.jpg"));
-            product.replaceDescriptionImage(List.of("http://description.jpg"));
+            product.replaceImages(List.of("/test/image.jpg"));
+            product.replaceDescriptionImage(List.of("/test/description.jpg"));
             productRepository.save(product);
             //when
             ProductResult.Publish result = productService.publish(product.getId());
@@ -467,8 +467,8 @@ public class ProductServiceTest extends ExcludeInfraTest {
             product.updateOptions(List.of(size, color));
             product.addVariant(xl_blue);
             product.addVariant(xl_red);
-            product.replaceImages(List.of("http://thumbnail.jpg", "http://image.jpg"));
-            product.replaceDescriptionImage(List.of("http://description.jpg"));
+            product.replaceImages(List.of("/test/thumbnail.jpg", "/test/image.jpg"));
+            product.replaceDescriptionImage(List.of("/test/description.jpg"));
             product.publish();
             productRepository.save(product);
             //when
@@ -489,15 +489,15 @@ public class ProductServiceTest extends ExcludeInfraTest {
                     .allSatisfy(image -> assertThat(image.imageId()).isNotNull())
                     .extracting(ProductResult.ImageDetail::imagePath, ProductResult.ImageDetail::sortOrder, ProductResult.ImageDetail::isThumbnail)
                     .containsExactlyInAnyOrder(
-                            tuple("http://thumbnail.jpg", 1, true),
-                            tuple("http://image.jpg", 2, false)
+                            tuple("/test/thumbnail.jpg", 1, true),
+                            tuple("/test/image.jpg", 2, false)
                     );
 
             assertThat(result.descriptionImages())
                     .allSatisfy(image -> assertThat(image.imageId()).isNotNull())
                     .extracting(ProductResult.DescriptionImageDetail::imagePath, ProductResult.DescriptionImageDetail::sortOrder)
                             .containsExactlyInAnyOrder(
-                                    tuple("http://description.jpg", 1)
+                                    tuple("/test/description.jpg", 1)
                             );
 
             assertThat(result.variants())
@@ -672,8 +672,8 @@ public class ProductServiceTest extends ExcludeInfraTest {
             Product product = Product.create("상품", "상품 설명", category);
             ProductVariant variant = ProductVariant.create("TEST", 3000L, 100, 10);
             product.addVariant(variant);
-            product.replaceImages(List.of("http://image.jpg"));
-            product.replaceDescriptionImage(List.of("http://description.jpg"));
+            product.replaceImages(List.of("/test/image.jpg"));
+            product.replaceDescriptionImage(List.of("/test/description.jpg"));
             product.publish();
             productRepository.save(product);
             //when

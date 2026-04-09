@@ -25,8 +25,8 @@ public class ProductTestBuilder {
     private Long originalPrice = 10000L;
     private Integer maxDiscountRate = 0;
     private List<ProductVariant> variants = new ArrayList<>();
-    private List<String> imageUrls = new ArrayList<>();
-    private List<String> descriptionImageUrls = new ArrayList<>();
+    private List<String> imagePaths = new ArrayList<>();
+    private List<String> descriptionImagePaths = new ArrayList<>();
     private List<OptionType> optionTypes = new ArrayList<>();
 
     public static ProductTestBuilder aProduct() {
@@ -82,13 +82,13 @@ public class ProductTestBuilder {
         return this;
     }
 
-    public ProductTestBuilder withImages(List<String> imageUrls) {
-        this.imageUrls = imageUrls;
+    public ProductTestBuilder withImages(List<String> imagePaths) {
+        this.imagePaths = imagePaths;
         return this;
     }
 
-    public ProductTestBuilder withDescriptionImages(List<String> imageUrls) {
-        this.descriptionImageUrls = imageUrls;
+    public ProductTestBuilder withDescriptionImages(List<String> imagePaths) {
+        this.descriptionImagePaths = imagePaths;
         return this;
     }
 
@@ -118,22 +118,22 @@ public class ProductTestBuilder {
             ReflectionTestUtils.setField(product, "variants", new ArrayList<>(variants));
         }
 
-        if (!imageUrls.isEmpty()) {
+        if (!imagePaths.isEmpty()) {
             List<ProductImage> productImages = new ArrayList<>();
-            for (int i = 0; i < imageUrls.size(); i++) {
-                ProductImage image = createProductImageByReflection(product, imageUrls.get(i), i + 1);
+            for (int i = 0; i < imagePaths.size(); i++) {
+                ProductImage image = createProductImageByReflection(product, imagePaths.get(i), i + 1);
                 productImages.add(image);
             }
             ReflectionTestUtils.setField(product, "images", productImages);
-            if (!this.imageUrls.isEmpty()) {
-                ReflectionTestUtils.setField(product, "thumbnail", this.imageUrls.get(0));
+            if (!this.imagePaths.isEmpty()) {
+                ReflectionTestUtils.setField(product, "thumbnail", this.imagePaths.get(0));
             }
         }
 
-        if (!descriptionImageUrls.isEmpty()) {
+        if (!descriptionImagePaths.isEmpty()) {
             List<ProductDescriptionImage> productDescriptionImages = new ArrayList<>();
-            for (int i = 0; i < imageUrls.size(); i++) {
-                ProductDescriptionImage image = createProductDescriptionImagesByReflection(product, imageUrls.get(i), i + 1);
+            for (int i = 0; i < imagePaths.size(); i++) {
+                ProductDescriptionImage image = createProductDescriptionImagesByReflection(product, imagePaths.get(i), i + 1);
                 productDescriptionImages.add(image);
             }
             ReflectionTestUtils.setField(product, "descriptionImages", productDescriptionImages);
@@ -158,11 +158,11 @@ public class ProductTestBuilder {
         }
     }
 
-    private ProductImage createProductImageByReflection(Product product, String imageUrl, int sortOrder) {
+    private ProductImage createProductImageByReflection(Product product, String imagePath, int sortOrder) {
         try {
             Constructor<ProductImage> constructor = ProductImage.class.getDeclaredConstructor(String.class, int.class);
             constructor.setAccessible(true);
-            ProductImage productImage = constructor.newInstance(imageUrl, sortOrder);
+            ProductImage productImage = constructor.newInstance(imagePath, sortOrder);
             ReflectionTestUtils.setField(productImage, "product", product);
             return productImage;
         } catch (Exception e) {
@@ -170,11 +170,11 @@ public class ProductTestBuilder {
         }
     }
 
-    private ProductDescriptionImage createProductDescriptionImagesByReflection(Product product, String imageUrl, int sortOrder) {
+    private ProductDescriptionImage createProductDescriptionImagesByReflection(Product product, String imagePath, int sortOrder) {
         try {
             Constructor<ProductDescriptionImage> constructor = ProductDescriptionImage.class.getDeclaredConstructor(String.class, int.class);
             constructor.setAccessible(true);
-            ProductDescriptionImage productDescriptionImage = constructor.newInstance(imageUrl, sortOrder);
+            ProductDescriptionImage productDescriptionImage = constructor.newInstance(imagePath, sortOrder);
             ReflectionTestUtils.setField(productDescriptionImage, "product", product);
             return productDescriptionImage;
         } catch (Exception e) {

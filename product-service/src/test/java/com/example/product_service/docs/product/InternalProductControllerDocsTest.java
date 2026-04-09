@@ -129,7 +129,7 @@ public class InternalProductControllerDocsTest extends RestDocsSupport {
                                 .discountedPrice(2700L)
                                 .build())
                 .stockQuantity(100)
-                .thumbnailUrl("http://thumbnail.jpg")
+                .thumbnailUrl("/test/image.jpg")
                 .itemOptions(
                         List.of(
                                 InternalVariantResponse.ItemOption.builder()

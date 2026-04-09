@@ -120,36 +120,36 @@ public class Product extends BaseEntity {
         replaceOptions(newOptionTypes);
     }
 
-    public void replaceImages(List<String> imageUrls) {
+    public void replaceImages(List<String> imagePaths) {
         // 상품이 삭제된 경우 상품 이미지를 추가할 수 없다
         if (this.status == ProductStatus.DELETED) {
             throw new BusinessException(ProductErrorCode.PRODUCT_NOT_FOUND);
         }
 
         // 판매중인 상품이라면 상품 이미지가 존재해야한다
-        if (this.status == ProductStatus.ON_SALE && (imageUrls == null || imageUrls.isEmpty())) {
+        if (this.status == ProductStatus.ON_SALE && (imagePaths == null || imagePaths.isEmpty())) {
             throw new BusinessException(ProductErrorCode.IMAGE_REQUIRED_ON_SALE);
         }
 
         images.clear();
-        for(int i=0; i<imageUrls.size(); i++) {
-            this.images.add(ProductImage.create(this, imageUrls.get(i), i + 1));
+        for(int i=0; i<imagePaths.size(); i++) {
+            this.images.add(ProductImage.create(this, imagePaths.get(i), i + 1));
         }
         updateThumbnail();
     }
 
-    public void replaceDescriptionImage(List<String> imageUrls) {
+    public void replaceDescriptionImage(List<String> imagePaths) {
         if(this.status == ProductStatus.DELETED) {
             throw new BusinessException(ProductErrorCode.PRODUCT_NOT_FOUND);
         }
 
-        if(this.status == ProductStatus.ON_SALE && (imageUrls == null || imageUrls.isEmpty())){
+        if(this.status == ProductStatus.ON_SALE && (imagePaths == null || imagePaths.isEmpty())){
             throw new BusinessException(ProductErrorCode.DESCRIPTION_IMAGE_REQUIRED_ON_SALE);
         }
 
         descriptionImages.clear();
-        for(int i=0; i<imageUrls.size(); i++) {
-            this.descriptionImages.add(ProductDescriptionImage.create(this, imageUrls.get(i), i+1));
+        for(int i=0; i<imagePaths.size(); i++) {
+            this.descriptionImages.add(ProductDescriptionImage.create(this, imagePaths.get(i), i+1));
         }
     }
 
@@ -182,7 +182,7 @@ public class Product extends BaseEntity {
         this.thumbnail = this.images.stream()
                 .filter(image -> image.getSortOrder() == 1)
                 .findFirst()
-                .map(ProductImage::getImageUrl)
+                .map(ProductImage::getImagePath)
                 .orElse(null);
     }
 

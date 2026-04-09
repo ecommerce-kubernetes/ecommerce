@@ -44,7 +44,7 @@ public class ProductTest {
         @DisplayName("상품을 생성한다")
         void create(){
             //given
-            Category category = Category.create("카테고리", null, "http://image.jpg");
+            Category category = Category.create("카테고리", null, "/test/image.jpg");
             //when
             Product product = Product.create("상품", "상품 설명", category);
             //then
@@ -75,8 +75,8 @@ public class ProductTest {
         @DisplayName("상품은 최하위 카테고리에 속해야 한다")
         void create_category_not_leaf(){
             //given
-            Category electronics = Category.create("전자기기", null, "http://electronics.jpg");
-            Category.create("핸드폰", electronics, "http://cellPhone.jpg");
+            Category electronics = Category.create("전자기기", null, "/test/electronics.jpg");
+            Category.create("핸드폰", electronics, "/test/cellPhone.jpg");
             //when
             //then
             assertThatThrownBy(() -> Product.create("상품", "상품 설명", electronics))
@@ -307,15 +307,15 @@ public class ProductTest {
             //given
             Product product = ProductTestBuilder.aProduct().build();
             //when
-            product.replaceImages(List.of("http://thumbnail.jpg", "http://image2.jpg"));
+            product.replaceImages(List.of("/test/thumbnail.jpg", "/test/image2.jpg"));
             //then
             assertThat(product.getImages()).hasSize(2)
-                    .extracting(ProductImage::getImageUrl, ProductImage::getSortOrder)
+                    .extracting(ProductImage::getImagePath, ProductImage::getSortOrder)
                     .containsExactlyInAnyOrder(
-                            tuple("http://thumbnail.jpg", 1),
-                            tuple("http://image2.jpg", 2)
+                            tuple("/test/thumbnail.jpg", 1),
+                            tuple("/test/image2.jpg", 2)
                     );
-            assertThat(product.getThumbnail()).isEqualTo("http://thumbnail.jpg");
+            assertThat(product.getThumbnail()).isEqualTo("/test/thumbnail.jpg");
         }
 
         @Test
@@ -323,7 +323,7 @@ public class ProductTest {
         void replaceImages_product_deleted(){
             //given
             Product product = ProductTestBuilder.aProduct().withStatus(ProductStatus.DELETED).build();
-            List<String> productImages = List.of("http://image1.jpg", "http://image2.jpg");
+            List<String> productImages = List.of("/test/image1.jpg", "/test/image2.jpg");
             //when
             //then
             assertThatThrownBy(() -> product.replaceImages(productImages))
@@ -356,13 +356,13 @@ public class ProductTest {
             //given
             Product product = ProductTestBuilder.aProduct().build();
             //when
-            product.replaceDescriptionImage(List.of("http://image1.jpg", "http://image2.jpg"));
+            product.replaceDescriptionImage(List.of("/test/image1.jpg", "/test/image2.jpg"));
             //then
             assertThat(product.getDescriptionImages()).hasSize(2)
-                    .extracting(ProductDescriptionImage::getImageUrl, ProductDescriptionImage::getSortOrder)
+                    .extracting(ProductDescriptionImage::getImagePath, ProductDescriptionImage::getSortOrder)
                     .containsExactlyInAnyOrder(
-                            tuple("http://image1.jpg", 1),
-                            tuple("http://image2.jpg", 2)
+                            tuple("/test/image1.jpg", 1),
+                            tuple("/test/image2.jpg", 2)
                     );
         }
 
@@ -371,7 +371,7 @@ public class ProductTest {
         void replaceDescriptionImages_product_deleted(){
             //given
             Product product = ProductTestBuilder.aProduct().withStatus(ProductStatus.DELETED).build();
-            List<String> productDescriptionImages = List.of("http://image1.jpg", "http://image2.jpg");
+            List<String> productDescriptionImages = List.of("/test/image1.jpg", "/test/image2.jpg");
             //when
             //then
             assertThatThrownBy(() -> product.replaceDescriptionImage(productDescriptionImages))
@@ -407,8 +407,8 @@ public class ProductTest {
             Product product = ProductTestBuilder.aProduct()
                     .withStatus(ProductStatus.PREPARING)
                     .withVariants(List.of(variant))
-                    .withImages(List.of("http://image.jpg"))
-                    .withDescriptionImages(List.of("http://description.jpg"))
+                    .withImages(List.of("/test/image.jpg"))
+                    .withDescriptionImages(List.of("/test/description.jpg"))
                     .withPrice(1000L, 1200L, 10).build();
             //when
             product.publish();
@@ -425,8 +425,8 @@ public class ProductTest {
             Product product = ProductTestBuilder.aProduct()
                     .withStatus(ProductStatus.STOP_SALE)
                     .withVariants(List.of(variant))
-                    .withImages(List.of("http://image.jpg"))
-                    .withDescriptionImages(List.of("http://description.jpg"))
+                    .withImages(List.of("/test/image.jpg"))
+                    .withDescriptionImages(List.of("/test/description.jpg"))
                     .withPrice(1000L, 1200L, 10).build();
             ReflectionTestUtils.setField(product, "publishedAt", LocalDateTime.of(2026, 1, 1, 10, 10, 20));
             ReflectionTestUtils.setField(product, "saleStoppedAt", LocalDateTime.of(2026, 1, 2, 10, 10, 20));
@@ -484,7 +484,7 @@ public class ProductTest {
             //given
             ProductVariant variant = ProductVariant.create("TEST", 10000L, 100, 10);
             Product product = ProductTestBuilder.aProduct().withVariants(List.of(variant))
-                    .withImages(List.of("http://image.jpg"))
+                    .withImages(List.of("/test/image.jpg"))
                     .withDescriptionImages(List.of()).build();
             //when
             //then
@@ -502,8 +502,8 @@ public class ProductTest {
             ProductVariant variant = ProductVariant.create("TEST", 10000L, 100, 10);
             Product product = ProductTestBuilder.aProduct()
                     .withVariants(List.of(variant))
-                    .withImages(List.of("http://image.jpg"))
-                    .withDescriptionImages(List.of("http://description.jpg"))
+                    .withImages(List.of("/test/image.jpg"))
+                    .withDescriptionImages(List.of("/test/description.jpg"))
                     .withPrice(0L, 0L, 0).build();
             //when
             //then
@@ -520,8 +520,8 @@ public class ProductTest {
             ProductVariant variant = ProductVariant.create("TEST", 10000L, 100, 10);
             Product product = ProductTestBuilder.aProduct()
                     .withVariants(List.of(variant))
-                    .withImages(List.of("http://image.jpg"))
-                    .withDescriptionImages(List.of("http://description.jpg"))
+                    .withImages(List.of("/test/image.jpg"))
+                    .withDescriptionImages(List.of("/test/description.jpg"))
                     .withPrice(1000L, 0L, 0).build();
             //when
             //then
@@ -538,8 +538,8 @@ public class ProductTest {
             ProductVariant variant = ProductVariant.create("TEST", 10000L, 100, 10);
             Product product = ProductTestBuilder.aProduct()
                     .withVariants(List.of(variant))
-                    .withImages(List.of("http://image.jpg"))
-                    .withDescriptionImages(List.of("http://description.jpg"))
+                    .withImages(List.of("/test/image.jpg"))
+                    .withDescriptionImages(List.of("./test/description.jpg"))
                     .withPrice(1000L, 900L, 0).build();
             //when
             //then
@@ -556,8 +556,8 @@ public class ProductTest {
             ProductVariant variant = ProductVariant.create("TEST", 10000L, 100, 10);
             Product product = ProductTestBuilder.aProduct()
                     .withVariants(List.of(variant))
-                    .withImages(List.of("http://image.jpg"))
-                    .withDescriptionImages(List.of("http://description.jpg"))
+                    .withImages(List.of("/test/image.jpg"))
+                    .withDescriptionImages(List.of("/test/description.jpg"))
                     .withPrice(1000L, 1200L, null).build();
             //when
             //then
@@ -576,8 +576,8 @@ public class ProductTest {
         @DisplayName("상품 정보를 수정")
         void updateProductInfo() {
             //given
-            Category category = Category.create("카테고리", null, "http://image.jpg");
-            Category newCategory = Category.create("새 카테고리", null, "http://image.jpg");
+            Category category = Category.create("카테고리", null, "/test/image.jpg");
+            Category newCategory = Category.create("새 카테고리", null, "/test/image.jpg");
             Product product = ProductTestBuilder.aProduct()
                     .withCategory(category)
                     .withName("상품")
@@ -595,7 +595,7 @@ public class ProductTest {
         @DisplayName("상품이 삭제된 상태라면 예외를 던진다")
         void updateProductInfo_deleted_product() {
             //given
-            Category category = Category.create("새 카테고리", null, "http://image.jpg");
+            Category category = Category.create("새 카테고리", null, "/test/image.jpg");
             Product product = ProductTestBuilder.aProduct()
                     .withStatus(ProductStatus.DELETED)
                     .build();
@@ -624,8 +624,8 @@ public class ProductTest {
         @DisplayName("변경할 상품 카테고리가 최하위 카테고리가 아니면 예외를 던진다")
         void updateProductInfo_parent_category() {
             //given
-            Category parent = Category.create("부모 카테고리", null, "http://image.jpg");
-            Category.create("자식 카테고리", parent, "http://image.jpg");
+            Category parent = Category.create("부모 카테고리", null, "/test/image.jpg");
+            Category.create("자식 카테고리", parent, "/test/image.jpg");
             Product product = ProductTestBuilder.aProduct().build();
             //when
             //then

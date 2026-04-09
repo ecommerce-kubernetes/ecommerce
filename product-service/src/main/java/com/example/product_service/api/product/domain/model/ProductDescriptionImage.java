@@ -19,18 +19,18 @@ public class ProductDescriptionImage extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id")
     private Product product;
-    private String imageUrl;
+    private String imagePath;
     private Integer sortOrder;
 
     @Builder(access = AccessLevel.PRIVATE)
-    private ProductDescriptionImage(String imageUrl, int sortOrder) {
-        this.imageUrl = imageUrl;
+    private ProductDescriptionImage(String imagePath, int sortOrder) {
+        this.imagePath = imagePath;
         this.sortOrder = sortOrder;
     }
 
-    public static ProductDescriptionImage create(Product product, String imageUrl, int sortOrder) {
+    public static ProductDescriptionImage create(Product product, String imagePath, int sortOrder) {
         ProductDescriptionImage image = ProductDescriptionImage.builder()
-                .imageUrl(imageUrl)
+                .imagePath(imagePath)
                 .sortOrder(sortOrder)
                 .build();
 

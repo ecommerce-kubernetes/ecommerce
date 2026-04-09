@@ -136,20 +136,27 @@ public class ProductRequest {
     }
 
     @Builder
-    public static class Search {
-        private Integer page = 1;
-        private Integer size = 20;
-        private String sort = "latest";
-        @Min(value = 1, message = "카테고리 Id는 0 또는 음수일 수 없습니다")
-        private Long categoryId;
-        private String name;
-        @Min(value = 0, message = "평점은 음수일 수 없습니다")
-        @Max(value = 5, message = "최대 평점은 5점입니다")
-        private Integer rating;
+    public record Search (
+            Integer page,
+            Integer size,
+            String sort,
+            @Min(value = 1, message = "카테고리 Id는 0 또는 음수일 수 없습니다")
+            Long categoryId,
+            String name,
+            @Min(value = 0, message = "평점은 음수일 수 없습니다")
+            @Max(value = 5, message = "최대 평점은 5점입니다")
+            Integer rating
+    ) {
+
+        public Search {
+            if (page == null) page = 1;
+            if (size == null) size = 20;
+            if (sort == null || sort.isBlank()) sort = "latest";
+        }
 
         public ProductCommand.Search toCommand() {
-            int validPage = (this.page != null && this.page > 0) ? this.page - 1 : 0;
-            int validSize = (this.size != null && this.size > 0) ? Math.min(this.size, 100) : 20;
+            int validPage = (this.page > 0) ? this.page - 1 : 0;
+            int validSize = (this.size > 0) ? Math.min(this.size, 100) : 20;
 
             return ProductCommand.Search.builder()
                     .categoryId(categoryId)
