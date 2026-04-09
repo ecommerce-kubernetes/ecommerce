@@ -310,6 +310,12 @@ pipeline {
                             }
                         }
                     }
+                    steps {
+                        script {
+                            echo 'Image Service 배포 시작'
+                            build job: '../buynest-image', wait true
+                        }
+                    }
                 }
             }
         }
