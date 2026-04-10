@@ -3,9 +3,8 @@ plugins {
 	id 'org.springframework.boot' version '3.4.4'
 	id 'io.spring.dependency-management' version '1.1.7'
     // api 명세 restdocs 플러그인
-    id "org.asciidoctor.jvm.convert" version "3.3.2"
+	id "org.asciidoctor.jvm.convert" version "3.3.2"
 	id 'com.epages.restdocs-api-spec' version '0.19.2'
-	id "org.sonarqube" version "7.1.0.6387"
 	id 'jacoco'
 }
 
@@ -15,15 +14,6 @@ version = '1.2'
 java {
 	toolchain {
 		languageVersion = JavaLanguageVersion.of(21)
-	}
-}
-
-sonar {
-	properties {
-		property "sonar.organization", "ecommerce-kubernetes"
-		property "sonar.projectKey", "buynest-order-service"
-		property "sonar.projectName", "Order Service"
-		property "sonar.coverage.jacoco.xmlReportPaths", "build/reports/jacoco/test/jacocoTestReport.xml"
 	}
 }
 

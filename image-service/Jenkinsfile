@@ -19,7 +19,7 @@ pipeline {
             steps {
                 dir('image-service') {
                     script {
-                        sh "chmod -x gradlew"
+                        sh "chmod +x gradlew"
                         sh "./gradlew clean build"
                     }
                 }
