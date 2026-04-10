@@ -29,7 +29,7 @@ pipeline {
                         env.TESTCONTAINERS_HOST_OVERRIDE = "localhost"
                         env.TESTCONTAINERS_RYUK_DISABLED = "true"
                         sh "chmod +x gradlew"
-                        sh "./gradlew clean build"
+                        sh "./gradlew clean build --no-daemon -Dorg.gradle.jvmargs='-Xmx512m'"
                         archiveArtifacts artifacts: 'build/api-spec/*.json', allowEmptyArchive: false
                     }
                 }

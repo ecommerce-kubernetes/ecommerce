@@ -23,7 +23,7 @@ pipeline {
                     script {
                         echo "Config Server 빌드"
                         sh "chmod +x gradlew"
-                        sh "./gradlew clean build -x test"
+                        sh "./gradlew clean build -x test --no-daemon -Dorg.gradle.jvmargs='-Xmx512m'"
                     }
                 }
             }
