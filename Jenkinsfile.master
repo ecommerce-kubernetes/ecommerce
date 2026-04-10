@@ -28,7 +28,7 @@ pipeline {
             steps {
                 script {
                     echo 'Config Server 배포 시작'
-                    build job: '../buynest-config', wait: true
+                    build job: 'buynest-config', wait: true
                     sleep 20
                 }
             }
@@ -44,7 +44,7 @@ pipeline {
             steps {
                 script {
                     echo 'Discovery Service 배포 시작'
-                    build job: '../buynest-discovery', wait: true
+                    build job: 'buynest-discovery', wait: true
                     sleep 15
                 }
             }
@@ -62,7 +62,7 @@ pipeline {
                     steps {
                         script {
                             echo 'User Service 배포 시작'
-                            build job: '../buynest-user', wait: true
+                            build job: 'buynest-user', wait: true
                         }
                     }
                 }
@@ -76,7 +76,7 @@ pipeline {
                     steps {
                         script {
                             echo 'Product Service 배포 시작'
-                            build job: '../buynest-product', wait: true
+                            build job: 'buynest-product', wait: true
                         }
                     }
                 }
@@ -90,7 +90,7 @@ pipeline {
                     steps {
                         script {
                             echo "Order Service 배포 시작"
-                            build job: '../buynest-order', wait: true
+                            build job: 'buynest-order', wait: true
                         }
                     }
                 }
@@ -104,7 +104,7 @@ pipeline {
                     steps {
                         script {
                             echo 'Image Service 배포 시작'
-                            build job: '../buynest-image', wait: true
+                            build job: 'buynest-image', wait: true
                         }
                     }
                 }
@@ -125,7 +125,7 @@ pipeline {
             steps {
                 script {
                     echo 'Docs Service 배포'
-                    build job: '../buynest-docs', wait: true
+                    build job: 'buynest-docs', wait: true
                 }
             }
         }
@@ -141,7 +141,7 @@ pipeline {
                 script {
                     echo 'API Gateway 배포 시작'
                     sleep 20
-                    build job: '../buynest-gateway', wait: true
+                    build job: 'buynest-gateway', wait: true
                 }
             }
         }
