@@ -8,56 +8,56 @@ pipeline {
         DOCKER_TAG = "latest"
     }
 
-        stages {
-            stage('Checkout') {
-                steps {
-                    checkout scm
-                }
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
             }
+        }
 
-            stage('Build & Test') {
-                steps {
-                    dir('order-service') {
-                        script {
-                            sh "chmod +x gradlew"
-                            sh "./gradlew clean build"
-                            archiveArtifacts artifacts: 'build/api-spec/*.json', allowEmptyArchive: false
-                        }
-                    }
-                }
-            }
-
-            stage('Build Docker Image') {
-                steps {
-                    dir('order-service') {
-                        echo "Docker 이미지 빌드"
-                        sh "docker build -t ${env.DOCKER_IMAGE}:${env.DOCKER_TAG} ."
-
-                        withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', passwordVariable: 'DOCKER_PW', usernameVariable: 'DOCKER_ID')]) {
-                            sh "echo \$DOCKER_PW | docker login -u \$DOCKER_ID --password-stdin"
-                            sh "docker push ${env.DOCKER_IMAGE}:${env.DOCKER_TAG}"
-                        }
-                    }
-                }
-            }
-
-            stage('Deploy') {
-                steps {
-                    dir('order-service') {
-                        echo "배포 준비"
-                        sh """
-                            echo "SPRING_PROFILES_ACTIVE=prod" > .env
-                            echo "SPRING_CONFIG_IMPORT=optional:configserver:http://config-service:8888" >> .env
-                        """
-
-                        echo "배포"
-                        sh """
-                            ansible-playbook -i ../infra/ansible/inventory.ini ../infra/ansible/deploy.yml \
-                            -e target_service=order-service \
-                            -e workspace=${env.WORKSPACE}
-                        """
+        stage('Build & Test') {
+            steps {
+                dir('order-service') {
+                    script {
+                        sh "chmod +x gradlew"
+                        sh "./gradlew clean build"
+                        archiveArtifacts artifacts: 'build/api-spec/*.json', allowEmptyArchive: false
                     }
                 }
             }
         }
+
+        stage('Build Docker Image') {
+            steps {
+                dir('order-service') {
+                    echo "Docker 이미지 빌드"
+                    sh "docker build -t ${env.DOCKER_IMAGE}:${env.DOCKER_TAG} ."
+
+                    withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', passwordVariable: 'DOCKER_PW', usernameVariable: 'DOCKER_ID')]) {
+                        sh "echo \$DOCKER_PW | docker login -u \$DOCKER_ID --password-stdin"
+                        sh "docker push ${env.DOCKER_IMAGE}:${env.DOCKER_TAG}"
+                    }
+                }
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                dir('order-service') {
+                    echo "배포 준비"
+                    sh """
+                        echo "SPRING_PROFILES_ACTIVE=prod" > .env
+                        echo "SPRING_CONFIG_IMPORT=optional:configserver:http://config-service:8888" >> .env
+                    """
+
+                    echo "배포"
+                    sh """
+                        ansible-playbook -i ../infra/ansible/inventory.ini ../infra/ansible/deploy-bluegreen.yml \
+                        -e target_service=order-service \
+                        -e workspace=${env.WORKSPACE}
+                    """
+                }
+            }
+        }
+    }
 }

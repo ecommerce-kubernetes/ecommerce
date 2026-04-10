@@ -9,3 +9,13 @@ include::{snippets}/01-user-01-create/request-fields.adoc[]
 include::{snippets}/01-user-01-create/http-response.adoc[]
 ===== Response Fields
 include::{snippets}/01-user-01-create/response-fields.adoc[]
+
+=== 이메일 중복 확인
+==== HTTP Request
+include::{snippets}/01-user-02-email-available/http-request.adoc[]
+==== HTTP Param
+include::{snippets}/01-user-02-email-available/query-parameters.adoc[]
+==== HTTP Response
+include::{snippets}/01-user-02-email-available/http-response.adoc[]
+===== Response Fields
+include::{snippets}/01-user-02-email-available/response-fields.adoc[]

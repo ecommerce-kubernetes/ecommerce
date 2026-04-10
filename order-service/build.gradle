@@ -3,7 +3,7 @@ plugins {
 	id 'org.springframework.boot' version '3.4.4'
 	id 'io.spring.dependency-management' version '1.1.7'
     // api 명세 restdocs 플러그인
-    id "org.asciidoctor.jvm.convert" version "3.3.2"
+	id "org.asciidoctor.jvm.convert" version "3.3.2"
 	id 'com.epages.restdocs-api-spec' version '0.19.2'
 	id 'jacoco'
 }
@@ -38,7 +38,18 @@ ext {
 
 test {
     outputs.dir snippetsDir
+	useJUnitPlatform()
+	finalizedBy jacocoTestReport
 }
+
+jacocoTestReport {
+	dependsOn test
+	reports {
+		xml.required = true
+		html.required = true
+	}
+}
+
 
 asciidoctor {
     inputs.dir snippetsDir
@@ -77,7 +88,6 @@ dependencies {
 	implementation 'org.springframework.kafka:spring-kafka'
 	implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
 	implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
-	implementation 'org.springframework.cloud:spring-cloud-starter-bootstrap'
 	implementation 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j'
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 
@@ -93,6 +103,12 @@ dependencies {
 	compileOnly 'org.projectlombok:lombok'
 	runtimeOnly 'com.mysql:mysql-connector-j'
 	annotationProcessor 'org.projectlombok:lombok'
+
+	//Monitoring
+	implementation 'io.micrometer:micrometer-tracing-bridge-brave'
+	implementation 'io.zipkin.reporter2:zipkin-reporter-brave'
+	implementation 'io.micrometer:micrometer-registry-prometheus'
+	implementation 'com.github.loki4j:loki-logback-appender:2.0.3'
 
 	//Test
 	testImplementation 'org.projectlombok:lombok'
@@ -121,10 +137,6 @@ dependencyManagement {
 	}
 }
 
-tasks.named('test') {
-	useJUnitPlatform()
-}
-
 clean {
 	delete file('src/main/generated')
 }
@@ -136,13 +148,9 @@ openapi3 {
 	format = 'json'
 	servers = [
 			{
-				url = 'http://localhost:8000/order-service'
-				description = '로컬'
-			},
-			{
-				url = 'https://api.buynest.com'
+				url = 'https://api.buynest.cloud/order-service'
 				description = '운영'
-			}
+			},
 	]
 	outputFileNamePrefix = 'order-openapi'
 }

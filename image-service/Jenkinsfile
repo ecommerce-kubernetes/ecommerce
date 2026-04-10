@@ -1,127 +1,62 @@
-def hasChanges = true // 전역 변수 선언
-
 pipeline {
     agent any
 
     environment {
-        GIT_REPO = 'https://github.com/ecommerce-kubernetes/ecommerce.git'
-        BRANCH = 'main'
-        TARGET_DIR = 'image-service'
-        SSH_CREDENTIALS_ID = 'ansible-key'
-        REMOTE_HOST = '172.18.4.1'
-        REMOTE_USER = 'root'
-        REMOTE_PATH = '/ansible/playbooks/image-playbook'
+        MY_NETWORK = "buynest-network"
+        DOCKER_HUB_ID = "minsik2434"
+        DOCKER_IMAGE = "${DOCKER_HUB_ID}/image-service"
+        DOCKER_TAB = "latest"
     }
 
     stages {
-        stage('SCM Checkout (with Sparse Path)') {
+        stage('Checkout') {
             steps {
-                echo '📥 image-service 디렉토리만 sparse checkout 중...'
-
-                checkout([$class: 'GitSCM',
-                    branches: [[name: "*/${BRANCH}"]],
-                    userRemoteConfigs: [[
-                        url: "${GIT_REPO}",
-                        credentialsId: 'github_access_token'
-                    ]],
-                    extensions: [
-                        [$class: 'SparseCheckoutPaths',
-                            sparseCheckoutPaths: [[path: "${TARGET_DIR}"]]
-                        ],
-                        [$class: 'CleanCheckout']
-                    ]
-                ])
+                checkout scm
             }
         }
 
-        stage('Check Changes') {
+        stage('Build & Test') {
             steps {
-                script {
-                    hasChanges = hasChangesIn("${TARGET_DIR}")
-                    if (!hasChanges) {
-                        echo "✅ 변경 사항 없음. 이후 단계는 모두 건너뜁니다."
-                        currentBuild.description = "변경 없음 (스킵됨)"
-                    } else {
-                        echo "📂 변경 사항 감지됨. 계속 진행합니다."
+                dir('image-service') {
+                    script {
+                        sh "chmod +x gradlew"
+                        sh "./gradlew clean build"
                     }
                 }
             }
         }
 
-        stage('Gradle Build') {
-            when {
-                expression { return hasChanges }
-            }
+        stage('Build Docker Image') {
             steps {
-                echo '⚙️ Gradle 빌드 시작'
-                dir("${TARGET_DIR}") {
-                    sh '''
-                        chmod +x gradlew
-                        ./gradlew clean build -x test
-                    '''
-                }
-            }
-        }
+                dir('image-service') {
+                    echo "Docker 이미지 빌드"
+                    sh "docker build -t ${env.DOCKER_IMAGE}:${env.DOCKER_TAG} ."
 
-        stage('Copy to Ansible Server') {
-            when {
-                expression { return hasChanges }
-            }
-            steps {
-                echo '🚚 Ansible 서버로 JAR 파일 복사 중...'
-                script {
-                    def jarFiles = findFiles(glob: "${TARGET_DIR}/build/libs/*.jar")
-                    def targetJar = jarFiles.find { file ->
-                        !file.name.contains("plain") && file.name.endsWith(".jar")
-                    }
-
-                    if (targetJar) {
-                        echo "📦 복사할 JAR 파일: ${targetJar.name}"
-                        sshagent (credentials: ["${SSH_CREDENTIALS_ID}"]) {
-                            sh """
-                                ssh -o StrictHostKeyChecking=no ${REMOTE_USER}@${REMOTE_HOST} \\
-                                'rm -f ${REMOTE_PATH}/*.jar'
-                            """
-                            sh """
-                                scp -o StrictHostKeyChecking=no ${targetJar.path} ${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_PATH}/image-service.jar
-                            """
-                        }
-                    } else {
-                        error("❌ plain이 아닌 JAR 파일을 찾을 수 없습니다.")
+                    withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', passwordVariable: 'DOCKER_PW', usernameVariable: 'DOCKER_ID')]) {
+                        sh "echo \$DOCKER_PW | docker login -u \$DOCKER_ID --password-stdin"
+                        sh "docker push ${env.DOCKER_IMAGE}:${env.DOCKER_TAG}"
                     }
                 }
             }
         }
 
-        stage('Run Ansible Playbook') {
-            when {
-                expression { return hasChanges }
-            }
+        stage('Deploy') {
             steps {
-                echo '🚀 Ansible 플레이북 실행 중...'
-                sh """
-                    ssh -o StrictHostKeyChecking=no ${REMOTE_USER}@${REMOTE_HOST} \\
-                    'ansible-playbook -i /ansible/inventory/hosts ${REMOTE_PATH}/image-playbook.yml'
-                """
+                dir('image-service') {
+                    echo "배포 준비"
+                    sh """
+                        echo "SPRING_PROFILES_ACTIVE=prod" > .env
+                        echo "SPRING_CONFIG_IMPORT=optional:configserver:http://config-service:8888" >> .env
+                    """
+
+                    echo "배포"
+                    sh """
+                        ansible-playbook -i ../infra/ansible/inventory.ini ../infra/ansible/deploy-bluegreen.yml \
+                        -e target_service=image-service \
+                        -e workspace=${env.WORKSPACE}
+                    """
+                }
             }
         }
     }
-
-    post {
-        success {
-            echo '✅ 파이프라인 완료!'
-        }
-        failure {
-            echo '❌ 빌드 또는 배포 실패!'
-        }
-    }
-}
-
-def hasChangesIn(String dir) {
-    def previous = env.GIT_PREVIOUS_SUCCESSFUL_COMMIT ?: 'HEAD~1'
-    def current = env.GIT_COMMIT
-    return sh(
-        script: "git diff --name-only ${previous} ${current} | grep ^${dir}/ || true",
-        returnStdout: true
-    ).trim() != ""
 }

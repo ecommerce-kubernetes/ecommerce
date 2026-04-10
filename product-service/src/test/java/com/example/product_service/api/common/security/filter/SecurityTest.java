@@ -35,7 +35,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
                 classes = {ControllerAdvice.class}
         )
 )
-public class SecurityTest {
+class SecurityTest {
     @Autowired
     private MockMvc mockMvc;
 

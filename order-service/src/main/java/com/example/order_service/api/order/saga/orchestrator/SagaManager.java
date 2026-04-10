@@ -28,7 +28,7 @@ public class SagaManager {
     private final ApplicationEventPublisher applicationEventPublisher;
 
     public void startSaga(SagaStartCommand command) {
-        // payload 생성
+        // payload  생성
         Payload payload = Payload.from(command);
         // 첫번째 단계 생성 [상품 재고 감소]
         SagaStep firstStep = SagaFlow.initialStep(payload);

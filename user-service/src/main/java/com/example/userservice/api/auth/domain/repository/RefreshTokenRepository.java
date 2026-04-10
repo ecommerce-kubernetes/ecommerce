@@ -20,4 +20,12 @@ public class RefreshTokenRepository {
                 TimeUnit.MICROSECONDS
         );
     }
+
+    public RefreshToken findById(Long userId) {
+        return (RefreshToken) redisTemplate.opsForValue().get("RT:" + userId);
+    }
+
+    public void deleteById(Long userId) {
+        redisTemplate.delete("RT:" +userId);
+    }
 }

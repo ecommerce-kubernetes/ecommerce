@@ -33,20 +33,6 @@ public abstract class RestDocsSupport {
     protected HandlerMethodArgumentResolver[] getArgumentResolvers() {
         return new HandlerMethodArgumentResolver[]{
                 new PageableHandlerMethodArgumentResolver(),
-//                new MockUserPrincipalArgumentResolver()
         };
     }
-
-//    static class MockUserPrincipalArgumentResolver implements HandlerMethodArgumentResolver {
-//        @Override
-//        public boolean supportsParameter(MethodParameter parameter) {
-//            return UserPrincipal.class.isAssignableFrom(parameter.getParameterType());
-//        }
-//
-//        @Override
-//        public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer, NativeWebRequest webRequest, WebDataBinderFactory binderFactory) throws Exception {
-//            return UserPrincipal.of(1L, UserRole.ROLE_USER);
-//        }
-//    }
-
 }

@@ -22,7 +22,9 @@ pipeline {
         }
 
         stage('1. Deploy Config Server'){
-            when {changeset "config-service/**"}
+            when {
+                changeset "config-service/**"
+            }
             steps {
                 script {
                     echo 'Config Server 배포 시작'
@@ -49,13 +51,13 @@ pipeline {
         }
 
         stage('3. Deploy MicroServices') {
-            parallel {
+            stages {
                 stage('User Service') {
                     when {
                         anyOf {
                             changeset "user-service/**"
                             changeset "config-service/**"
-                        }
+                        }             
                     }
                     steps {
                         script {
@@ -64,7 +66,6 @@ pipeline {
                         }
                     }
                 }
-
                 stage('Product Service') {
                     when {
                         anyOf {
@@ -79,7 +80,6 @@ pipeline {
                         }
                     }
                 }
-
                 stage('Order Service') {
                     when {
                         anyOf {
@@ -89,8 +89,22 @@ pipeline {
                     }
                     steps {
                         script {
-                            echo 'Order Service 배포 시작'
+                            echo "Order Service 배포 시작"
                             build job: 'buynest-order', wait: true
+                        }
+                    }
+                }
+                stage('Image Service') {
+                    when {
+                        anyOf {
+                            changeset "image-service/**"
+                            changeset "config-service/**"
+                        }
+                    }
+                    steps {
+                        script {
+                            echo 'Image Service 배포 시작'
+                            build job: 'buynest-image', wait: true
                         }
                     }
                 }
@@ -105,6 +119,7 @@ pipeline {
                     changeset "product-service/**"
                     changeset "order-service/**"
                     changeset "config-service/**"
+                    changeset "image-service/**"
                 }
             }
             steps {

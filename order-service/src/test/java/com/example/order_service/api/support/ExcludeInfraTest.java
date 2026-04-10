@@ -7,7 +7,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 
-@ActiveProfiles("test-mock")
+@ActiveProfiles("unit-test")
 @SpringBootTest
 public abstract class ExcludeInfraTest {
     @MockitoBean

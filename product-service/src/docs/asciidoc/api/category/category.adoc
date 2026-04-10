@@ -68,7 +68,7 @@ include::{snippets}/01-category-03-get-navigation/http-response.adoc[]
 ===== Response Fields
 include::{snippets}/01-category-03-get-navigation/response-fields.adoc[]
 
-=== 카테고리 조회
+=== 카테고리 단일 조회
 ==== HTTP Request
 include::{snippets}/01-category-04-get/http-request.adoc[]
 ===== HTTP PathParam

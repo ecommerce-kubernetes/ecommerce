@@ -19,22 +19,22 @@ import com.example.order_service.api.order.facade.event.OrderCreatedEvent;
 import com.example.order_service.api.order.facade.event.OrderFailedEvent;
 import com.example.order_service.api.order.facade.event.OrderPaymentReadyEvent;
 import com.example.order_service.api.order.facade.event.PaymentFailedEvent;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
+import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.concurrent.Executor;
 
 import static com.example.order_service.api.support.fixture.order.OrderCommandFixture.*;
 import static com.example.order_service.api.support.fixture.order.OrderCouponFixture.anOrderCouponInfo;
@@ -51,8 +51,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class OrderFacadeTest {
@@ -75,6 +74,8 @@ public class OrderFacadeTest {
     private OrderCreationContextMapper mapper;
     @Mock
     private OrderPriceCalculator calculator;
+    @Spy
+    private Executor applicationTaskExecutor = new SyncTaskExecutor();
 
     @Captor
     private ArgumentCaptor<OrderCreatedEvent> orderCreatedEventCaptor;

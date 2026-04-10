@@ -19,18 +19,18 @@ public class ProductImage extends BaseEntity {
     @JoinColumn(name = "product_id")
     private Product product;
 
-    private String imageUrl;
+    private String imagePath;
     private Integer sortOrder;
 
     @Builder(access = AccessLevel.PRIVATE)
-    private ProductImage(String imageUrl, int sortOrder){
-        this.imageUrl = imageUrl;
+    private ProductImage(String imagePath, int sortOrder){
+        this.imagePath = imagePath;
         this.sortOrder = sortOrder;
     }
 
-    public static ProductImage create(Product product, String imageUrl, int sortOrder) {
+    public static ProductImage create(Product product, String imagePath, int sortOrder) {
         ProductImage image = ProductImage.builder()
-                .imageUrl(imageUrl)
+                .imagePath(imagePath)
                 .sortOrder(sortOrder)
                 .build();
         image.setProduct(product);

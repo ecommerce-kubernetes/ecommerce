@@ -8,9 +8,17 @@ spring:
   cloud:
     config:
       enabled: false
-
   kafka:
     bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    consumer:
+      group-id: products
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
   flyway:
     enabled: false
 
@@ -25,17 +33,10 @@ spring:
 product:
   topics:
     ## 주문 상품 재고 감소 요청 토픽
-    saga-command: "product.saga.command"
+    product-saga-command: "product.saga.command"
     ## 주문 상품 재고 감소 응답 토픽
-    saga-reply: "product.saga.reply"
----
-spring:
-  config:
-    activate:
-      on-profile: test-mock
-  autoconfigure:
-    exclude:
-      - org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration
-  cloud:
-    bus:
-      enabled: false
+    product-saga-reply: "product.saga.reply"
+
+logging:
+  loki:
+    url: http://localhost:3100/loki/api/v1/push

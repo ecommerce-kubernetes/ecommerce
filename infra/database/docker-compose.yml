@@ -38,10 +38,26 @@ services:
     volumes:
       - buynest-product-db-data:/var/lib/mysql
 
+  zipkin-db:
+    image: mysql:8.4
+    container_name: buynest-zipkin-db
+    command: --event-scheduler=ON
+    networks:
+      - buynest-network
+    ports:
+      - "3309:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${ZIPKIN_DB_PASSWORD}
+      MYSQL_DATABASE: buynest_zipkin
+    volumes:
+      - buynest-zipkin-db-data:/var/lib/mysql
+      - ./init-scripts/zipkin-script:/docker-entrypoint-initdb.d
+
 volumes:
   buynest-user-db-data:
   buynest-order-db-data:
   buynest-product-db-data:
+  buynest-zipkin-db-data:
 
 networks:
   buynest-network:

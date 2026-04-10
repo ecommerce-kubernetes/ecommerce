@@ -57,7 +57,7 @@ pipeline {
 
                         echo "배포"
                         sh """
-                            ansible-playbook -i ../infra/ansible/inventory.ini ../infra/ansible/deploy.yml \
+                            ansible-playbook -i ../infra/ansible/inventory.ini ../infra/ansible/deploy-basic.yml \
                             -e target_service=config-service \
                             -e workspace=${env.WORKSPACE}
                         """

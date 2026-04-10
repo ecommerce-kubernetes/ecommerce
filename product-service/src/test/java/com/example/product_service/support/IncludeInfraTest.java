@@ -26,9 +26,9 @@ import org.springframework.test.context.TestPropertySource;
         }
 )
 public abstract class IncludeInfraTest {
-    @Value("${product.topics.saga-command}")
+    @Value("${product.topics.product-saga-command}")
     protected String ORDER_SAGA_COMMAND_TOPIC;
-    @Value("${product.topics.saga-reply}")
+    @Value("${product.topics.product-saga-reply}")
     protected String ORDER_SAGA_REPLY_TOPIC;
 
     @Autowired

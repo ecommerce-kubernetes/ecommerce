@@ -3,7 +3,6 @@ package com.example.userservice.api.user.service.dto.result;
 import com.example.userservice.api.user.domain.model.Gender;
 import com.example.userservice.api.user.domain.model.User;
 import com.fasterxml.jackson.annotation.JsonFormat;
-
 import lombok.Builder;
 import lombok.Getter;
 

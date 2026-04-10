@@ -77,7 +77,7 @@ slug: /intro
 2. **Build & Artifacts** : Jenkins는 애플리케이션을 빌드 하고 이를 **Docker Image**로 패키징 합니다.
 3. **Push to Registry** : 생성된 도커 이미지는 **Docker Hub**에 업로드 됩니다.
 4. **Infrastructure as Code** : Jenkins는 **Ansible**에게 배포 명령을 전달하면 **Ansible**은 Playbook을 실행합니다.
-5. **Deploy**: 운영 서버는 Docker Hub에서 최신 이미지를 **Pull** 받아 컨테이너를 교체해 배포를 완료 합니다.
+5. **Blue-Green Deploy** : 신규 버전(Green) 컨테이너가 실행되면 Green 인스턴스가 Eureka에 등록 되고 트래픽 라우팅 전환 대기 후 기존 버전(Blue) 컨테이너 점진적 종료됩니다.
 
 ### CICD 구조도
 

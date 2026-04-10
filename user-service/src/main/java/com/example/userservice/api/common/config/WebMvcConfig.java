@@ -1,7 +1,6 @@
 package com.example.userservice.api.common.config;
 
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistration;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -9,7 +8,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class WebMvcConfig implements WebMvcConfigurer {
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry resourceHandlerRegistry) {
-        ResourceHandlerRegistration resourceHandlerRegistration = resourceHandlerRegistry.addResourceHandler("/docs/**")
+        resourceHandlerRegistry.addResourceHandler("/docs/**")
                 .addResourceLocations(
                         "classpath:/static/docs/",
                         "file:build/resources/main/static/docs/"

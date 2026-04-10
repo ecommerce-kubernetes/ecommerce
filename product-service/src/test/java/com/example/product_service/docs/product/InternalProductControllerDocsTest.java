@@ -27,6 +27,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 public class InternalProductControllerDocsTest extends RestDocsSupport {
     private VariantService variantService = Mockito.mock(VariantService.class);
+
+    @Override
+    protected String getTag() {
+        return ""; //내부 호출 API
+    }
+
     @Override
     protected Object initController() {
         return new InternalProductController(variantService);
@@ -123,7 +129,7 @@ public class InternalProductControllerDocsTest extends RestDocsSupport {
                                 .discountedPrice(2700L)
                                 .build())
                 .stockQuantity(100)
-                .thumbnailUrl("http://thumbnail.jpg")
+                .thumbnailUrl("/test/image.jpg")
                 .itemOptions(
                         List.of(
                                 InternalVariantResponse.ItemOption.builder()

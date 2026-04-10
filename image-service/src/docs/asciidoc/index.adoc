@@ -1,0 +1,15 @@
+ifndef::snippets[]
+:snippets: ../../build/generated-snippets
+endif::[]
+= ImageService REST API
+:doctype: book
+:icons: font
+:source-highlighter: highlightjs
+:toc: left
+:toclevels: 4
+:sectlinks:
+
+[[IMAGE-SERVICE-API]]
+== ImageService API
+= Image
+include::api/image/image.adoc[]

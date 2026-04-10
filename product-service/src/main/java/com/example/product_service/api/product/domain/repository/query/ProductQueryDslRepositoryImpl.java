@@ -1,8 +1,8 @@
 package com.example.product_service.api.product.domain.repository.query;
 
-import com.example.product_service.api.product.controller.dto.ProductSearchCondition;
 import com.example.product_service.api.product.domain.model.Product;
 import com.example.product_service.api.product.domain.model.ProductStatus;
+import com.example.product_service.api.product.service.dto.command.ProductCommand;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -27,15 +27,15 @@ public class ProductQueryDslRepositoryImpl implements ProductQueryDslRepository{
     }
 
     @Override
-    public Page<Product> findProductsByCondition(ProductSearchCondition condition) {
-        Pageable pageable = condition.getPageable();
-        OrderSpecifier<?> sortOrder = ProductQueryMapper.toOrderSpecifier(condition.getSort());
+    public Page<Product> findProductsByCondition(ProductCommand.Search command) {
+        Pageable pageable = command.pageable();
+        OrderSpecifier<?> sortOrder = ProductQueryMapper.toOrderSpecifier(command.sort());
         List<Product> result = factory.select(product)
                 .from(product)
                 .join(product.category, category).fetchJoin()
-                .where(eqCategory(condition.getCategoryId()),
-                        containName(condition.getName()),
-                        filterRating(condition.getRating()),
+                .where(eqCategory(command.categoryId()),
+                        containName(command.name()),
+                        filterRating(command.rating()),
                         product.status.eq(ProductStatus.ON_SALE))
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
@@ -45,9 +45,9 @@ public class ProductQueryDslRepositoryImpl implements ProductQueryDslRepository{
         Long totalElement = factory.select(product.countDistinct())
                 .from(product)
                 .join(product.category, category)
-                .where(eqCategory(condition.getCategoryId()),
-                        containName(condition.getName()),
-                        filterRating(condition.getRating()),
+                .where(eqCategory(command.categoryId()),
+                        containName(command.name()),
+                        filterRating(command.rating()),
                         product.status.eq(ProductStatus.ON_SALE))
                 .fetchOne();
 

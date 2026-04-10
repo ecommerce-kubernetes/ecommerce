@@ -20,7 +20,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @Import(TestSecurityConfig.class)
-public class InternalProductControllerTest extends ControllerTestSupport {
+class InternalProductControllerTest extends ControllerTestSupport {
 
     @Test
     @DisplayName("상품 변형을 조회한다")
@@ -85,7 +85,7 @@ public class InternalProductControllerTest extends ControllerTestSupport {
                                 .discountedPrice(2700L)
                                 .build())
                 .stockQuantity(100)
-                .thumbnailUrl("http://thumbnail.jpg")
+                .thumbnailUrl("/test/thumbnail.jpg")
                 .itemOptions(
                         List.of(
                                 InternalVariantResponse.ItemOption.builder()

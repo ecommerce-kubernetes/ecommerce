@@ -1,5 +1,6 @@
 package com.example.apigatewayservice.filter;
 
+import com.example.apigatewayservice.filter.properties.TokenProperties;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
@@ -37,13 +38,15 @@ public class AuthorizationHeaderFilter extends AbstractGatewayFilterFactory<Auth
     private static final String HEADER_USER_ROLE = "X-User-Role";
     private static final String KEY_ROLE = "role";
 
+    private final TokenProperties tokenProperties;
+
     private SecretKey secretKey;
     private JwtParser jwtParser;
 
-    public AuthorizationHeaderFilter(@Value("${token.secret}") String secret) {
+    public AuthorizationHeaderFilter(TokenProperties tokenProperties) {
         super(Config.class);
-        byte[] secretKeyBytes = secret.getBytes(StandardCharsets.UTF_8);
-        this.secretKey = Keys.hmacShaKeyFor(secretKeyBytes);
+        this.tokenProperties = tokenProperties;
+        this.secretKey = Keys.hmacShaKeyFor(tokenProperties.getSecret().getBytes(StandardCharsets.UTF_8));
         this.jwtParser = Jwts.parser().verifyWith(this.secretKey).build();
     }
 
