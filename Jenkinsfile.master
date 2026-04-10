@@ -13,7 +13,6 @@ pipeline {
         }
 
         stage('Create Network') {
-            when { branch 'main' }
             steps {
                 script {
                     sh "docker network create ${env.MY_NETWORK} || true"
@@ -24,10 +23,7 @@ pipeline {
 
         stage('1. Deploy Config Server'){
             when {
-                allOf {
-                    branch 'main'
-                    changeset "config-service/**"
-                }
+                changeset "config-service/**"
             }
             steps {
                 script {
@@ -40,12 +36,9 @@ pipeline {
 
         stage('2. Deploy Discovery Service') {
             when {
-                allOf {
-                    branch 'main'
-                    anyOf{
-                        changeset "discovery-service/**"
-                        changeset "config-service/**"
-                    }
+                anyOf {
+                    changeset "discovery-service/**"
+                    changeset "config-service/**"
                 }
             }
             steps {
@@ -61,13 +54,10 @@ pipeline {
             stages {
                 stage('User Service') {
                     when {
-                        allOf {
-                            branch 'main'
-                            anyOf {
-                                changeset "user-service/**"
-                                changeset "config-service/**"
-                            }
-                        }
+                        anyOf {
+                            changeset "user-service/**"
+                            changeset "config-service/**"
+                        }             
                     }
                     steps {
                         script {
@@ -78,12 +68,9 @@ pipeline {
                 }
                 stage('Product Service') {
                     when {
-                        allOf {
-                            branch 'main'
-                            anyOf {
-                                changeset "product-service/**"
-                                changeset "config-service/**"
-                            }
+                        anyOf {
+                            changeset "product-service/**"
+                            changeset "config-service/**"
                         }
                     }
                     steps {
@@ -95,12 +82,9 @@ pipeline {
                 }
                 stage('Order Service') {
                     when {
-                        allOf {
-                            branch 'main'
-                            anyOf {
-                                changeset "order-service/**"
-                                changeset "config-service/**"
-                            }
+                        anyOf {
+                            changeset "order-service/**"
+                            changeset "config-service/**"
                         }
                     }
                     steps {
@@ -112,12 +96,9 @@ pipeline {
                 }
                 stage('Image Service') {
                     when {
-                        allOf {
-                            branch 'main'
-                            anyOf {
-                                changeset "image-service/**"
-                                changeset "config-service/**"
-                            }
+                        anyOf {
+                            changeset "image-service/**"
+                            changeset "config-service/**"
                         }
                     }
                     steps {
@@ -132,16 +113,13 @@ pipeline {
 
         stage('4. Deploy Docs Service') {
             when {
-                allOf {
-                    branch 'main'
-                    anyOf {
-                        changeset "docs-service/**"
-                        changeset "user-service/**"
-                        changeset "product-service/**"
-                        changeset "order-service/**"
-                        changeset "config-service/**"
-                        changeset "image-service/**"
-                    }
+                anyOf {
+                    changeset "docs-service/**"
+                    changeset "user-service/**"
+                    changeset "product-service/**"
+                    changeset "order-service/**"
+                    changeset "config-service/**"
+                    changeset "image-service/**"
                 }
             }
             steps {
@@ -154,12 +132,9 @@ pipeline {
 
         stage('4. Deploy API Gateway') {
             when {
-                allOf {
-                    branch 'main'
-                    anyOf {
-                        changeset "gateway-service/**"
-                        changeset "config-service/**"
-                    }
+                anyOf {
+                    changeset "gateway-service/**"
+                    changeset "config-service/**"
                 }
             }
             steps {
