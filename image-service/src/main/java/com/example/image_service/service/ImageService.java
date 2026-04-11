@@ -21,7 +21,9 @@ public class ImageService {
 
     public PresignedUrlResponse generatePresignedUrl(String domain, String originalFilename) {
         String objectKey = createObjectKey(domain, originalFilename);
-        String presignedUrl = issuedPresignedUrl(objectKey, properties.getBucket(), properties.getPresignDuration());
+        String extension = extractExtension(originalFilename);
+        String contentType = determineContentType(extension);
+        String presignedUrl = issuedPresignedUrl(objectKey, properties.getBucket(), properties.getPresignDuration(), contentType);
         return createPresignedUrlResponse(presignedUrl, objectKey);
     }
 
@@ -32,11 +34,13 @@ public class ImageService {
                 .build();
     }
 
-    private String issuedPresignedUrl(String objectKey, String bucket, int duration) {
+    private String issuedPresignedUrl(String objectKey, String bucket, int duration, String contentType) {
         PutObjectRequest objectRequest = PutObjectRequest.builder()
                 .bucket(bucket)
                 .key(objectKey)
+                .contentType(contentType)
                 .build();
+
         PutObjectPresignRequest presignRequest = PutObjectPresignRequest.builder()
                 .signatureDuration(Duration.ofMinutes(duration))
                 .putObjectRequest(objectRequest)
@@ -54,5 +58,17 @@ public class ImageService {
             return filename.substring(filename.lastIndexOf("."));
         }
         return "";
+    }
+
+    private String determineContentType(String extension) {
+        if (extension == null) return "application/octet-stream";
+
+        return switch (extension.toLowerCase()) {
+            case ".png" -> "image/png";
+            case ".jpg", "jpeg" -> "image/jpeg";
+            case ".gif" -> "image/gif";
+            case ".webp" -> "image/webp";
+            default -> "application/octet-stream";
+        };
     }
 }
