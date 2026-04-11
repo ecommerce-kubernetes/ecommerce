@@ -5,7 +5,7 @@ pipeline {
         MY_NETWORK = "buynest-network"
         DOCKER_HUB_ID = "minsik2434"
         DOCKER_IMAGE = "${DOCKER_HUB_ID}/image-service"
-        DOCKER_TAB = "latest"
+        DOCKER_TAG = "latest"
     }
 
     stages {
