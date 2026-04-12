@@ -4,6 +4,8 @@ import com.example.order_service.api.cart.domain.model.CartItem;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.util.List;
+
 @Getter
 public class CartItemDto {
     private Long id;
@@ -23,5 +25,9 @@ public class CartItemDto {
                 .productVariantId(cartItem.getProductVariantId())
                 .quantity(cartItem.getQuantity())
                 .build();
+    }
+
+    public static List<CartItemDto> from(List<CartItem> cartItems) {
+        return cartItems.stream().map(CartItemDto::from).toList();
     }
 }

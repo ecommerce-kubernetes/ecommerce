@@ -1,12 +1,14 @@
 package com.example.order_service.api.cart.controller;
 
-import com.example.order_service.api.cart.controller.dto.request.CartItemRequest;
+import com.example.order_service.api.cart.controller.dto.request.CartRequest;
 import com.example.order_service.api.cart.controller.dto.request.UpdateQuantityRequest;
+import com.example.order_service.api.cart.controller.dto.response.CartResponse;
 import com.example.order_service.api.cart.facade.CartFacade;
-import com.example.order_service.api.cart.facade.dto.command.AddCartItemCommand;
+import com.example.order_service.api.cart.facade.dto.command.CartCommand;
 import com.example.order_service.api.cart.facade.dto.command.UpdateQuantityCommand;
+import com.example.order_service.api.cart.facade.dto.result.AllCartResponse;
 import com.example.order_service.api.cart.facade.dto.result.CartItemResponse;
-import com.example.order_service.api.cart.facade.dto.result.CartResponse;
+import com.example.order_service.api.cart.facade.dto.result.CartResult;
 import com.example.order_service.api.common.security.model.UserPrincipal;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,16 +29,17 @@ public class CartController {
     private final CartFacade cartFacade;
 
     @PostMapping
-    public ResponseEntity<CartItemResponse> addCartItem(@AuthenticationPrincipal UserPrincipal userPrincipal,
-                                                        @RequestBody @Validated CartItemRequest request){
-        AddCartItemCommand dto = AddCartItemCommand.of(userPrincipal.getUserId(), request.getProductVariantId(), request.getQuantity());
-        CartItemResponse response = cartFacade.addItem(dto);
+    public ResponseEntity<CartResponse.CartItems> addCartItem(@AuthenticationPrincipal UserPrincipal userPrincipal,
+                                                    @RequestBody @Validated CartRequest.AddItems request){
+        CartCommand.AddItems command = request.toCommand(userPrincipal.getUserId());
+        CartResult.CartAddResult result = cartFacade.addItems(command);
+        CartResponse.CartItems response = CartResponse.CartItems.from(result);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @GetMapping
-    public ResponseEntity<CartResponse> getAllCartItem(@AuthenticationPrincipal UserPrincipal userPrincipal) {
-        CartResponse cartItemList = cartFacade.getCartDetails(userPrincipal.getUserId());
+    public ResponseEntity<AllCartResponse> getAllCartItem(@AuthenticationPrincipal UserPrincipal userPrincipal) {
+        AllCartResponse cartItemList = cartFacade.getCartDetails(userPrincipal.getUserId());
         return ResponseEntity.ok(cartItemList);
     }
 

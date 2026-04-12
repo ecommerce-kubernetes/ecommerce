@@ -5,33 +5,31 @@ import com.example.order_service.api.cart.domain.service.CartProductService;
 import com.example.order_service.api.cart.domain.service.CartService;
 import com.example.order_service.api.cart.domain.service.dto.result.CartItemDto;
 import com.example.order_service.api.cart.domain.service.dto.result.CartProductInfo;
-import com.example.order_service.api.cart.facade.dto.command.AddCartItemCommand;
+import com.example.order_service.api.cart.facade.dto.command.CartCommand;
 import com.example.order_service.api.cart.facade.dto.command.UpdateQuantityCommand;
+import com.example.order_service.api.cart.facade.dto.result.AllCartResponse;
 import com.example.order_service.api.cart.facade.dto.result.CartItemResponse;
 import com.example.order_service.api.cart.facade.dto.result.CartItemStatus;
-import com.example.order_service.api.cart.facade.dto.result.CartResponse;
+import com.example.order_service.api.cart.facade.dto.result.CartResult;
+import com.example.order_service.api.common.exception.BusinessException;
+import com.example.order_service.api.common.exception.CartErrorCode;
+import com.example.order_service.api.support.BaseTestSupport;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 
-import static com.example.order_service.api.support.fixture.cart.CartCommandFixture.anAddCartItemCommand;
 import static com.example.order_service.api.support.fixture.cart.CartCommandFixture.anUpdateQuantityCommand;
 import static com.example.order_service.api.support.fixture.cart.CartFixture.anCartItemDto;
 import static com.example.order_service.api.support.fixture.cart.CartProductFixture.anCartProductInfo;
-import static com.example.order_service.api.support.fixture.cart.CartResponseFixture.anCartItemResponse;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.*;
 
-@ExtendWith(MockitoExtension.class)
-public class CartFacadeTest {
+public class CartFacadeTest extends BaseTestSupport {
 
     @InjectMocks
     private CartFacade cartFacade;
@@ -42,26 +40,80 @@ public class CartFacadeTest {
 
     @Nested
     @DisplayName("장바구니 추가")
-    class AddItem {
+    class AddItems {
+
+        @Test
+        @DisplayName("요청한 상품 중 판매중이 아닌 상품이 있는 경우 예외가 발생한다")
+        void addItem_fail_ProductNotOnSale() {
+            //given
+            CartCommand.AddItems command = sample(fixtureMonkey.giveMeBuilder(CartCommand.AddItems.class)
+                    .size("items", 2));
+            Long firstId = command.items().getFirst().productVariantId();
+            Long secondId = command.items().get(1).productVariantId();
+            CartProductInfo onSaleProduct = sample(fixtureMonkey.giveMeBuilder(CartProductInfo.class)
+                    .set("productVariantId", firstId)
+                    .set("status", ProductStatus.ON_SALE));
+            CartProductInfo stopSaleProduct = sample(fixtureMonkey.giveMeBuilder(CartProductInfo.class)
+                    .set("productVariantId", secondId)
+                    .set("status", ProductStatus.STOP_SALE));
+
+            given(cartProductService.getProductInfos(anyList()))
+                    .willReturn(List.of(onSaleProduct, stopSaleProduct));
+            //when
+            //then
+            assertThatThrownBy(() -> cartFacade.addItems(command))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(CartErrorCode.PRODUCT_NOT_ON_SALE);
+        }
 
         @Test
         @DisplayName("장바구니에 상품이 추가되면 상품 정보가 포함된 응답값을 반환한다")
         void addItem(){
             //given
-            AddCartItemCommand command = anAddCartItemCommand().build();
-            CartProductInfo product = anCartProductInfo().build();
-            CartItemDto cartItemDto = anCartItemDto().build();
-            CartItemResponse expectedResult = anCartItemResponse().build();
-            given(cartProductService.getProductInfo(anyLong()))
-                    .willReturn(product);
-            given(cartService.addItemToCart(anyLong(), anyLong(), anyInt()))
-                    .willReturn(cartItemDto);
+            CartCommand.AddItems command = sample(fixtureMonkey.giveMeBuilder(CartCommand.AddItems.class)
+                    .size("items", 2));
+            Long firstId = command.items().get(0).productVariantId();
+            int firstQuantity = command.items().getFirst().quantity();
+            Long secondId = command.items().get(1).productVariantId();
+            int secondQuantity = command.items().get(1).quantity();
+            CartProductInfo firstProduct = sample(
+                    fixtureMonkey.giveMeBuilder(CartProductInfo.class)
+                            .set("productVariantId", firstId)
+                            .set("status", ProductStatus.ON_SALE) // 통과 조건
+            );
+            CartProductInfo secondProduct = sample(
+                    fixtureMonkey.giveMeBuilder(CartProductInfo.class)
+                            .set("productVariantId", secondId)
+                            .set("status", ProductStatus.ON_SALE)
+            );
+            CartItemDto firstDto = sample(
+                    fixtureMonkey.giveMeBuilder(CartItemDto.class)
+                            .set("productVariantId", firstId)
+                            .set("quantity", firstQuantity)
+            );
+            CartItemDto secondDto = sample(
+                    fixtureMonkey.giveMeBuilder(CartItemDto.class)
+                            .set("productVariantId", secondId)
+                            .set("quantity", secondQuantity)
+            );
+
+            given(cartProductService.getProductInfos(anyList()))
+                    .willReturn(List.of(firstProduct, secondProduct));
+            given(cartService.addItemToCart(any(CartCommand.AddItems.class)))
+                    .willReturn(List.of(firstDto, secondDto));
             //when
-            CartItemResponse result = cartFacade.addItem(command);
+            CartResult.CartAddResult result = cartFacade.addItems(command);
             //then
-            assertThat(result)
-                    .usingRecursiveComparison()
-                    .isEqualTo(expectedResult);
+            assertThat(result.items()).hasSize(2);
+            assertThat(result.items())
+                    .extracting("productVariantId", "quantity")
+                    .containsExactlyInAnyOrder(
+                            tuple(firstId, firstQuantity),
+                            tuple(secondId, secondQuantity)
+                    );
+            verify(cartProductService, times(1)).getProductInfos(anyList());
+            verify(cartService, times(1)).addItemToCart(command);
         }
     }
 
@@ -76,7 +128,7 @@ public class CartFacadeTest {
             given(cartService.getCartItems(anyLong()))
                     .willReturn(List.of());
             //when
-            CartResponse result = cartFacade.getCartDetails(1L);
+            AllCartResponse result = cartFacade.getCartDetails(1L);
             //then
             assertThat(result.getCartTotalPrice()).isEqualTo(0L);
             assertThat(result.getCartItems()).isEmpty();
@@ -108,7 +160,7 @@ public class CartFacadeTest {
             given(cartProductService.getProductInfos(anyList()))
                     .willReturn(List.of(product1, product2, product4, product5, product6));
             //when
-            CartResponse result = cartFacade.getCartDetails(1L);
+            AllCartResponse result = cartFacade.getCartDetails(1L);
             //then
             assertThat(result.getCartTotalPrice()).isEqualTo(72000L);
             assertThat(result.getCartItems()).hasSize(6)

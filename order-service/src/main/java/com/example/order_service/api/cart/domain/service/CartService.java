@@ -5,6 +5,7 @@ import com.example.order_service.api.cart.domain.model.CartItem;
 import com.example.order_service.api.cart.domain.repository.CartItemRepository;
 import com.example.order_service.api.cart.domain.repository.CartRepository;
 import com.example.order_service.api.cart.domain.service.dto.result.CartItemDto;
+import com.example.order_service.api.cart.facade.dto.command.CartCommand;
 import com.example.order_service.api.common.exception.BusinessException;
 import com.example.order_service.api.common.exception.CartErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -22,12 +23,12 @@ public class CartService {
     private final CartRepository cartRepository;
     private final CartItemRepository cartItemRepository;
 
-    public CartItemDto addItemToCart(Long userId, Long productVariantId, int quantity){
-        Cart cart = cartRepository.findWithItemsByUserId(userId)
-                .orElseGet(() -> cartRepository.save(Cart.create(userId)));
-        CartItem cartItem = cart.addItem(productVariantId, quantity);
-        CartItem savedItem = cartItemRepository.save(cartItem);
-        return CartItemDto.from(savedItem);
+    public List<CartItemDto> addItemToCart(CartCommand.AddItems command){
+        Cart cart = cartRepository.findWithItemsByUserId(command.userId())
+                .orElseGet(() -> cartRepository.save(Cart.create(command.userId())));
+        List<CartItem> cartItems = cart.addItems(command.items());
+        cartRepository.flush();
+        return CartItemDto.from(cartItems);
     }
 
     @Transactional(readOnly = true)

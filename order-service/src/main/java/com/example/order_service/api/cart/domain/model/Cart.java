@@ -1,5 +1,6 @@
 package com.example.order_service.api.cart.domain.model;
 
+import com.example.order_service.api.cart.facade.dto.command.CartCommand;
 import com.example.order_service.api.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -33,6 +34,10 @@ public class Cart extends BaseEntity {
         return Cart.builder()
                 .userId(userId)
                 .build();
+    }
+
+    public List<CartItem> addItems(List<CartCommand.Item> items) {
+        return items.stream().map(item -> addItem(item.productVariantId(), item.quantity())).toList();
     }
 
     public CartItem addItem(Long productVariantId, int quantity){
