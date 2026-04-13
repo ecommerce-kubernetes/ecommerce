@@ -4,7 +4,6 @@ import feign.RequestInterceptor;
 import feign.RequestTemplate;
 import io.micrometer.tracing.TraceContext;
 import io.micrometer.tracing.Tracer;
-
 import io.micrometer.tracing.propagation.Propagator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

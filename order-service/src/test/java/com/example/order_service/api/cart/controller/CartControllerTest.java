@@ -1,17 +1,20 @@
 package com.example.order_service.api.cart.controller;
 
-import com.example.order_service.api.cart.controller.dto.request.CartItemRequest;
+import com.example.order_service.api.cart.controller.dto.request.CartRequest;
 import com.example.order_service.api.cart.controller.dto.request.UpdateQuantityRequest;
-import com.example.order_service.api.cart.facade.dto.command.AddCartItemCommand;
+import com.example.order_service.api.cart.controller.dto.response.CartResponse;
+import com.example.order_service.api.cart.facade.dto.command.CartCommand;
 import com.example.order_service.api.cart.facade.dto.command.UpdateQuantityCommand;
+import com.example.order_service.api.cart.facade.dto.result.AllCartResponse;
 import com.example.order_service.api.cart.facade.dto.result.CartItemResponse;
-import com.example.order_service.api.cart.facade.dto.result.CartResponse;
+import com.example.order_service.api.cart.facade.dto.result.CartResult;
 import com.example.order_service.api.common.security.model.UserRole;
 import com.example.order_service.api.support.ControllerTestSupport;
 import com.example.order_service.api.support.security.annotation.WithCustomMockUser;
 import com.example.order_service.api.support.security.config.TestSecurityConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -32,86 +35,108 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import(TestSecurityConfig.class)
 class CartControllerTest extends ControllerTestSupport {
 
-    @Test
-    @DisplayName("장바구니에 상품을 추가한다")
-    @WithCustomMockUser
-    void addCartItem() throws Exception {
-        //given
-        CartItemRequest request = CartItemRequest.builder()
-                .productVariantId(1L)
-                .quantity(1)
-                .build();
+    @Nested
+    @DisplayName("장바구니 상품 추가")
+    class AddCartItems {
 
-        CartItemResponse response = createCartItemResponse().build();
-        given(cartFacade.addItem(any(AddCartItemCommand.class)))
-                .willReturn(response);
-        //when
-        //then
-        mockMvc.perform(post("/carts")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
-                .andDo(print())
-                .andExpect(status().isCreated())
-                .andExpect(content().json(objectMapper.writeValueAsString(response)));
-    }
+        @Test
+        @DisplayName("장바구니에 상품을 추가한다")
+        @WithCustomMockUser
+        void addCartItem() throws Exception {
+            //given
+            CartRequest.AddItems request = fixtureMonkey.giveMeOne(CartRequest.AddItems.class);
+            CartResult.CartAddResult result = fixtureMonkey.giveMeOne(CartResult.CartAddResult.class);
+            assert result != null;
+            given(cartFacade.addItems(any(CartCommand.AddItems.class)))
+                    .willReturn(result);
+            CartResponse.CartItems response = CartResponse.CartItems.from(result);
+            //when
+            //then
+            mockMvc.perform(post("/carts")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andDo(print())
+                    .andExpect(status().isCreated())
+                    .andExpect(content().json(objectMapper.writeValueAsString(response)));
+        }
 
-    @Test
-    @DisplayName("장바구니에 상품을 추가할 때는 유저 권한이여야 한다")
-    @WithCustomMockUser(userRole = UserRole.ROLE_ADMIN)
-    void addCartItemWithAdminPrincipal() throws Exception {
-        //given
-        CartItemRequest request = CartItemRequest.builder()
-                .productVariantId(1L)
-                .quantity(1)
-                .build();
-        //when
-        //then
-        mockMvc.perform(post("/carts")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
-                .andDo(print())
-                .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.code").value("FORBIDDEN"))
-                .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다"))
-                .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.path").value("/carts"));
-    }
+        @Test
+        @DisplayName("장바구니에 상품을 추가할 때는 유저 권한이여야 한다")
+        @WithCustomMockUser(userRole = UserRole.ROLE_ADMIN)
+        void addCartItemWithAdminPrincipal() throws Exception {
+            //given
+            CartRequest.AddItems request = fixtureMonkey.giveMeOne(CartRequest.AddItems.class);
+            //when
+            //then
+            mockMvc.perform(post("/carts")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andDo(print())
+                    .andExpect(status().isForbidden())
+                    .andExpect(jsonPath("$.code").value("FORBIDDEN"))
+                    .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다"))
+                    .andExpect(jsonPath("$.timestamp").exists())
+                    .andExpect(jsonPath("$.path").value("/carts"));
+        }
 
-    @Test
-    @DisplayName("로그인 하지 않은 사용자는 장바구니에 상품을 추가할 수 없다")
-    void addCartItem_unAuthorized() throws Exception {
-        //given
-        CartItemRequest request = CartItemRequest.builder()
-                .productVariantId(1L)
-                .quantity(1)
-                .build();
-        //when
-        //then
-        mockMvc.perform(post("/carts")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andDo(print())
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
-                .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다"))
-                .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.path").value("/carts"));
-    }
+        @Test
+        @DisplayName("로그인 하지 않은 사용자는 장바구니에 상품을 추가할 수 없다")
+        void addCartItem_unAuthorized() throws Exception {
+            //given
+            CartRequest.AddItems request = fixtureMonkey.giveMeOne(CartRequest.AddItems.class);
+            //when
+            //then
+            mockMvc.perform(post("/carts")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andDo(print())
+                    .andExpect(status().isUnauthorized())
+                    .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
+                    .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다"))
+                    .andExpect(jsonPath("$.timestamp").exists())
+                    .andExpect(jsonPath("$.path").value("/carts"));
+        }
 
-    @ParameterizedTest(name = "{0}")
-    @DisplayName("장바구니에 상품 추가시 유효성 검증에 실패하면 400 에러를 반환한다")
-    @MethodSource("provideInvalidAddRequest")
-    @WithCustomMockUser
-    void addCartItem_Validation(String description, CartItemRequest request, String errorMessage) throws Exception {
-        mockMvc.perform(post("/carts")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andDo(print())
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value("VALIDATION"))
-                .andExpect(jsonPath("$.message").value(errorMessage))
-                .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.path").value("/carts"));
+        @ParameterizedTest(name = "{0}")
+        @DisplayName("장바구니에 상품 추가시 유효성 검증에 실패하면 400 에러를 반환한다")
+        @MethodSource("provideInvalidAddRequest")
+        @WithCustomMockUser
+        void addCartItem_Validation(String description, CartRequest.AddItems request, String errorMessage) throws Exception {
+            mockMvc.perform(post("/carts")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andDo(print())
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.code").value("VALIDATION"))
+                    .andExpect(jsonPath("$.message").value(errorMessage))
+                    .andExpect(jsonPath("$.timestamp").exists())
+                    .andExpect(jsonPath("$.path").value("/carts"));
+        }
+
+        private static Stream<Arguments> provideInvalidAddRequest() {
+            CartRequest.Item VALID_BASE_ITEM = CartRequest.Item
+                    .builder()
+                    .productVariantId(1L)
+                    .quantity(1)
+                    .build();
+            return Stream.of(
+                    Arguments.of("추가할 아이템 리스트가 0",
+                            CartRequest.AddItems.builder().items(List.of()).build(),
+                            "장바구니에 추가할 상품이 하나 이상 있어야 합니다."),
+                    Arguments.of("상품 Id null",
+                            CartRequest.AddItems.builder().items(
+                                    List.of(VALID_BASE_ITEM.toBuilder().productVariantId(null).build())).build(),
+                            "productVariantId는 필수값입니다"),
+                    Arguments.of("수량 null",
+                            CartRequest.AddItems.builder().items(
+                                    List.of(VALID_BASE_ITEM.toBuilder().quantity(null).build())).build(),
+                            "quantity는 필수값입니다"),
+                    Arguments.of("요청 수량 0이하",
+                            CartRequest.AddItems.builder().items(
+                                    List.of(VALID_BASE_ITEM.toBuilder().quantity(0).build())).build(),
+                            "quantity는 1이상 이여야 합니다")
+            );
+        }
     }
 
     @Test
@@ -120,7 +145,7 @@ class CartControllerTest extends ControllerTestSupport {
     void getAllCartItem() throws Exception {
         //given
         CartItemResponse cartItemResponse = createCartItemResponse().build();
-        CartResponse response = CartResponse.builder()
+        AllCartResponse response = AllCartResponse.builder()
                 .cartItems(List.of(cartItemResponse))
                 .cartTotalPrice(cartItemResponse.getLineTotal())
                 .build();
@@ -377,15 +402,32 @@ class CartControllerTest extends ControllerTestSupport {
                 .isAvailable(true);
     }
 
-    private static Stream<Arguments> provideInvalidAddRequest() {
-        return Stream.of(
-                Arguments.of("상품 Id null",
-                        CartItemRequest.builder().productVariantId(null).quantity(1).build(), "productVariantId는 필수값입니다"),
-                Arguments.of("수량 null",
-                        CartItemRequest.builder().productVariantId(1L).quantity(null).build(), "quantity는 필수값입니다"),
-                Arguments.of("요청 수량 0이하",
-                        CartItemRequest.builder().productVariantId(1L).quantity(0).build(), "quantity는 1이상 이여야 합니다")
-        );
+    private CartResult.CartAddResult createCartAddResult(){
+        CartResult.CartItemResult cartResult = CartResult.CartItemResult.builder()
+                .id(1L)
+                .productId(1L)
+                .productVariantId(1L)
+                .productName("상품1")
+                .thumbnail("/product/product/PROD1_thumbnail.jpg")
+                .quantity(1)
+                .price(
+                        CartResult.CartItemPrice.builder()
+                                .originalPrice(3000)
+                                .discountedPrice(300)
+                                .discountedPrice(2700)
+                                .discountRate(10)
+                                .build()
+                )
+                .lineTotal(2700)
+                .options(
+                        List.of(
+                                CartResult.CartItemOption.builder()
+                                        .optionTypeName("사이즈")
+                                        .optionValueName("XL")
+                                        .build()
+                        )
+                )
+                .build();
+        return CartResult.CartAddResult.builder().items(List.of(cartResult)).build();
     }
-
 }

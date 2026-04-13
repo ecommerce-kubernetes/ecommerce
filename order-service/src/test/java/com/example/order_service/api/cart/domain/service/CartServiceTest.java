@@ -4,6 +4,7 @@ import com.example.order_service.api.cart.domain.model.Cart;
 import com.example.order_service.api.cart.domain.model.CartItem;
 import com.example.order_service.api.cart.domain.repository.CartRepository;
 import com.example.order_service.api.cart.domain.service.dto.result.CartItemDto;
+import com.example.order_service.api.cart.facade.dto.command.CartCommand;
 import com.example.order_service.api.common.exception.BusinessException;
 import com.example.order_service.api.common.exception.CartErrorCode;
 import com.example.order_service.api.support.ExcludeInfraTest;
@@ -36,16 +37,29 @@ class CartServiceTest extends ExcludeInfraTest {
         @DisplayName("처음 장바구니에 상품을 추가하면 장바구니를 생성하고 상품을 추가한다")
         void AddItemToCart_first_add(){
             //given
+            CartCommand.Item item1 = CartCommand.Item.builder()
+                    .productVariantId(1L)
+                    .quantity(1)
+                    .build();
+            CartCommand.Item item2 = CartCommand.Item.builder()
+                    .productVariantId(2L)
+                    .quantity(1)
+                    .build();
+            CartCommand.AddItems command = CartCommand.AddItems.builder()
+                    .userId(1L)
+                    .items(List.of(item1, item2))
+                    .build();
             //when
-            CartItemDto result = cartService.addItemToCart(1L, 1L, 3);
+            List<CartItemDto> result = cartService.addItemToCart(command);
             //then
-            assertThat(result.getId()).isNotNull();
             assertThat(result)
+                    .allSatisfy(item -> assertThat(item.getId()).isNotNull())
                     .extracting(CartItemDto::getProductVariantId, CartItemDto::getQuantity)
-                    .contains(1L, 3);
-
+                    .containsExactlyInAnyOrder(
+                            tuple(1L, 1),
+                            tuple(2L, 1));
             Optional<Cart> cart = cartRepository.findByUserId(1L);
-            assertThat(cart).isNotNull();
+            assertThat(cart).isPresent();
         }
 
         @Test
@@ -54,13 +68,29 @@ class CartServiceTest extends ExcludeInfraTest {
             //given
             Cart cart = Cart.create(1L);
             cartRepository.save(cart);
+
+            CartCommand.Item item1 = CartCommand.Item.builder()
+                    .productVariantId(1L)
+                    .quantity(1)
+                    .build();
+            CartCommand.Item item2 = CartCommand.Item.builder()
+                    .productVariantId(2L)
+                    .quantity(1)
+                    .build();
+            CartCommand.AddItems command = CartCommand.AddItems.builder()
+                    .userId(1L)
+                    .items(List.of(item1, item2))
+                    .build();
             //when
-            CartItemDto result = cartService.addItemToCart(1L, 1L, 3);
+            List<CartItemDto> result = cartService.addItemToCart(command);
             //then
-            assertThat(result.getId()).isNotNull();
             assertThat(result)
+                    .allSatisfy(item -> assertThat(item.getId()).isNotNull())
                     .extracting(CartItemDto::getProductVariantId, CartItemDto::getQuantity)
-                    .contains(1L, 3);
+                    .containsExactlyInAnyOrder(
+                            tuple(1L, 1),
+                            tuple(2L, 1)
+                    );
         }
 
         @Test
@@ -70,14 +100,25 @@ class CartServiceTest extends ExcludeInfraTest {
             Cart cart = Cart.create(1L);
             CartItem existItem = cart.addItem(1L, 3);
             cartRepository.save(cart);
-            //when
-            CartItemDto result = cartService.addItemToCart(1L, 1L, 2);
-            //then
-            assertThat(result.getId()).isNotNull();
 
+            CartCommand.Item item = CartCommand.Item.builder()
+                    .productVariantId(1L)
+                    .quantity(1)
+                    .build();
+
+            CartCommand.AddItems command = CartCommand.AddItems.builder()
+                    .userId(1L)
+                    .items(List.of(item))
+                    .build();
+
+            //when
+            List<CartItemDto> result = cartService.addItemToCart(command);
+            //then
             assertThat(result)
                     .extracting(CartItemDto::getId, CartItemDto::getProductVariantId, CartItemDto::getQuantity)
-                    .contains(existItem.getId(), 1L, 5);
+                    .containsExactlyInAnyOrder(
+                            tuple(existItem.getId(), 1L, 4)
+                    );
         }
 
         @Test
@@ -86,9 +127,20 @@ class CartServiceTest extends ExcludeInfraTest {
             //given
             Cart cart = Cart.create(1L);
             cartRepository.save(cart);
+            cartRepository.save(cart);
+
+            CartCommand.Item item = CartCommand.Item.builder()
+                    .productVariantId(1L)
+                    .quantity(0)
+                    .build();
+
+            CartCommand.AddItems command = CartCommand.AddItems.builder()
+                    .userId(1L)
+                    .items(List.of(item))
+                    .build();
             //when
             //then
-            assertThatThrownBy(() -> cartService.addItemToCart(1L, 1L, 0))
+            assertThatThrownBy(() -> cartService.addItemToCart(command))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(CartErrorCode.CART_ITEM_MINIMUM_ONE_REQUIRED);
