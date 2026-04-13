@@ -25,9 +25,9 @@ public interface ProductVariantRepository extends JpaRepository<ProductVariant, 
             select distinct pv
             from ProductVariant pv
             join fetch pv.product p
-            join fetch pv.productVariantOptions pvo
-            join fetch pvo.optionValue ov
-            join fetch ov.optionType ot
+            left join fetch pv.productVariantOptions pvo
+            left join fetch pvo.optionValue ov
+            left join fetch ov.optionType ot
             where pv.id in :ids
             """)
     List<ProductVariant> findByIdInWithProductAndOption(@Param("ids") List<Long> ids);
