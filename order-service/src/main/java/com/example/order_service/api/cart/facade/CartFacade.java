@@ -1,13 +1,18 @@
 package com.example.order_service.api.cart.facade;
 
+import com.example.order_service.api.cart.domain.model.ProductStatus;
 import com.example.order_service.api.cart.domain.service.CartProductService;
 import com.example.order_service.api.cart.domain.service.CartService;
 import com.example.order_service.api.cart.domain.service.dto.result.CartItemDto;
 import com.example.order_service.api.cart.domain.service.dto.result.CartProductInfo;
-import com.example.order_service.api.cart.facade.dto.command.AddCartItemCommand;
+import com.example.order_service.api.cart.facade.dto.command.CartCommand;
 import com.example.order_service.api.cart.facade.dto.command.UpdateQuantityCommand;
+import com.example.order_service.api.cart.facade.dto.result.AllCartResponse;
 import com.example.order_service.api.cart.facade.dto.result.CartItemResponse;
-import com.example.order_service.api.cart.facade.dto.result.CartResponse;
+import com.example.order_service.api.cart.facade.dto.result.CartItemStatus;
+import com.example.order_service.api.cart.facade.dto.result.CartResult;
+import com.example.order_service.api.common.exception.BusinessException;
+import com.example.order_service.api.common.exception.CartErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -24,22 +29,86 @@ public class CartFacade {
     private final CartService cartService;
     private final CartProductService cartProductService;
 
-    public CartItemResponse addItem(AddCartItemCommand dto) {
-        CartProductInfo productInfo = cartProductService.getProductInfo(dto.getProductVariantId());
-        CartItemDto result = cartService.addItemToCart(dto.getUserId(), productInfo.getProductVariantId(), dto.getQuantity());
-        return CartItemResponse.available(result, productInfo);
+    public CartResult.CartAddResult addItems(CartCommand.AddItems command) {
+        List<Long> requestedIds = command.items().stream().map(CartCommand.Item::productVariantId).toList();
+        List<CartProductInfo> productInfos = cartProductService.getProductInfos(requestedIds);
+        //검증 로직
+        if (productInfos.size() != requestedIds.size()) {
+            throw new BusinessException(CartErrorCode.PRODUCT_NOT_FOUND);
+        }
+        boolean hasUnorderableProduct = productInfos.stream()
+                .anyMatch(info -> info.getStatus() != ProductStatus.ON_SALE);
+        if (hasUnorderableProduct) {
+            throw new BusinessException(CartErrorCode.PRODUCT_NOT_ON_SALE);
+        }
+        List<CartItemDto> cartItems = cartService.addItemToCart(command);
+        List<CartResult.CartItemResult> cartItemResults = mapToCartItemResult(cartItems, productInfos);
+        return CartResult.CartAddResult.from(cartItemResults);
     }
 
-    public CartResponse getCartDetails(Long userId){
+    private List<CartResult.CartItemResult> mapToCartItemResult(List<CartItemDto> cartItems, List<CartProductInfo> products) {
+        Map<Long, CartProductInfo> productMap = products.stream().collect(Collectors.toMap(
+                CartProductInfo::getProductVariantId,
+                Function.identity()
+        ));
+
+        return cartItems.stream()
+                .map(item -> {
+                    CartProductInfo product = productMap.get(item.getProductVariantId());
+                    return createCartItemResult(item, product);
+                }).toList();
+    }
+
+    private List<CartItemResponse> mapToCartItemResponse_deprecated(List<CartItemDto> cartItems, List<CartProductInfo> products){
+        Map<Long, CartProductInfo> productMap = products.stream().collect(Collectors.toMap(
+                CartProductInfo::getProductVariantId,
+                Function.identity()
+        ));
+
+        return cartItems.stream()
+                .map(item -> {
+                    CartProductInfo product = productMap.get(item.getProductVariantId());
+                    return createCartItemResponse(item, product);
+                }).toList();
+    }
+
+    private CartResult.CartItemResult createCartItemResult(CartItemDto item, CartProductInfo product) {
+        if (product == null) {
+            return CartResult.CartItemResult.unAvailable(item.getId(), item.getProductVariantId(), item.getQuantity());
+        }
+        return switch (product.getStatus()) {
+            case ON_SALE -> CartResult.CartItemResult.of(item, product, CartItemStatus.AVAILABLE);
+            case PREPARING -> CartResult.CartItemResult.of(item, product, CartItemStatus.PREPARING);
+            case STOP_SALE -> CartResult.CartItemResult.of(item, product, CartItemStatus.STOP_SALE);
+            case DELETED -> CartResult.CartItemResult.of(item, product, CartItemStatus.DELETED);
+            case UNKNOWN -> CartResult.CartItemResult.unAvailable(item.getId(), product.getProductVariantId(), item.getQuantity());
+        };
+    }
+
+    private CartItemResponse createCartItemResponse(CartItemDto item, CartProductInfo product){
+        // 상품을 찾을 수 없거나 상품이 판매중이 아닌 상품인 경우 오류 응답
+        if(product == null){
+            return CartItemResponse.unAvailable(item.getId(), item.getProductVariantId(), item.getQuantity());
+        }
+        return switch (product.getStatus()) {
+            case ON_SALE -> CartItemResponse.available(item, product);
+            case PREPARING -> CartItemResponse.preparing(item, product);
+            case STOP_SALE -> CartItemResponse.stop_sale(item, product);
+            case DELETED -> CartItemResponse.deleted(item, product);
+            case UNKNOWN -> CartItemResponse.unAvailable(item.getId(), product.getProductVariantId(), item.getQuantity());
+        };
+    }
+
+    public AllCartResponse getCartDetails(Long userId){
         List<CartItemDto> cartItems = cartService.getCartItems(userId);
         //장바구니에 상품이 없는 경우 빈 장바구니 반환
         if(cartItems.isEmpty()) {
-            return CartResponse.empty();
+            return AllCartResponse.empty();
         }
         List<Long> variantIds = getProductVariantId(cartItems);
         List<CartProductInfo> productInfos = cartProductService.getProductInfos(variantIds);
-        List<CartItemResponse> cartItemResponses = mapToCartItemResponse(cartItems, productInfos);
-        return CartResponse.from(cartItemResponses);
+        List<CartItemResponse> cartItemResponses = mapToCartItemResponse_deprecated(cartItems, productInfos);
+        return AllCartResponse.from(cartItemResponses);
     }
 
     public CartItemResponse updateCartItemQuantity(UpdateQuantityCommand dto){
@@ -63,32 +132,5 @@ public class CartFacade {
 
     private List<Long> getProductVariantId(List<CartItemDto> cartItems){
         return cartItems.stream().map(CartItemDto::getProductVariantId).toList();
-    }
-
-    private List<CartItemResponse> mapToCartItemResponse(List<CartItemDto> cartItems, List<CartProductInfo> products){
-        Map<Long, CartProductInfo> productMap = products.stream().collect(Collectors.toMap(
-                CartProductInfo::getProductVariantId,
-                Function.identity()
-        ));
-
-        return cartItems.stream()
-                .map(item -> {
-                    CartProductInfo product = productMap.get(item.getProductVariantId());
-                    return createCartItemResponse(item, product);
-                }).toList();
-    }
-
-    private CartItemResponse createCartItemResponse(CartItemDto item, CartProductInfo product){
-        // 상품을 찾을 수 없거나 상품이 판매중이 아닌 상품인 경우 오류 응답
-        if(product == null){
-            return CartItemResponse.unAvailable(item.getId(), item.getProductVariantId(), item.getQuantity());
-        }
-        return switch (product.getStatus()) {
-            case ON_SALE -> CartItemResponse.available(item, product);
-            case PREPARING -> CartItemResponse.preparing(item, product);
-            case STOP_SALE -> CartItemResponse.stop_sale(item, product);
-            case DELETED -> CartItemResponse.deleted(item, product);
-            case UNKNOWN -> CartItemResponse.unAvailable(item.getId(), product.getProductVariantId(), item.getQuantity());
-        };
     }
 }

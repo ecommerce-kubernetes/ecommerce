@@ -2,14 +2,18 @@ package com.example.order_service.docs.cart;
 
 import com.epages.restdocs.apispec.ResourceSnippetParameters;
 import com.example.order_service.api.cart.controller.CartController;
-import com.example.order_service.api.cart.controller.dto.request.CartItemRequest;
+import com.example.order_service.api.cart.controller.dto.request.CartRequest;
 import com.example.order_service.api.cart.controller.dto.request.UpdateQuantityRequest;
+import com.example.order_service.api.cart.controller.dto.response.CartResponse;
 import com.example.order_service.api.cart.facade.CartFacade;
-import com.example.order_service.api.cart.facade.dto.command.AddCartItemCommand;
+import com.example.order_service.api.cart.facade.dto.command.CartCommand;
 import com.example.order_service.api.cart.facade.dto.command.UpdateQuantityCommand;
+import com.example.order_service.api.cart.facade.dto.result.AllCartResponse;
 import com.example.order_service.api.cart.facade.dto.result.CartItemResponse;
-import com.example.order_service.api.cart.facade.dto.result.CartResponse;
+import com.example.order_service.api.cart.facade.dto.result.CartItemStatus;
+import com.example.order_service.api.cart.facade.dto.result.CartResult;
 import com.example.order_service.docs.RestDocSupport;
+import com.example.order_service.docs.descriptor.CartDescriptor;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -21,6 +25,7 @@ import org.springframework.restdocs.request.ParameterDescriptor;
 
 import java.util.List;
 
+import static com.epages.restdocs.apispec.MockMvcRestDocumentationWrapper.document;
 import static com.epages.restdocs.apispec.ResourceDocumentation.resource;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -28,18 +33,23 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willDoNothing;
 import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
 import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
-import static com.epages.restdocs.apispec.MockMvcRestDocumentationWrapper.document;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
 import static org.springframework.restdocs.payload.PayloadDocumentation.*;
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
 import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class CartControllerDocsTest extends RestDocSupport {
 
     private CartFacade cartFacade = Mockito.mock(CartFacade.class);
+
+    @Override
+    protected String getTag() {
+        return "Cart";
+    }
 
     private static final String TAG = "CART";
     @Override
@@ -51,44 +61,19 @@ public class CartControllerDocsTest extends RestDocSupport {
     @DisplayName("장바구니 추가 API")
     void addCartItem() throws Exception {
         //given
-        CartItemRequest request = CartItemRequest.builder()
+        CartRequest.Item item = CartRequest.Item.builder()
                 .productVariantId(1L)
-                .quantity(3)
+                .quantity(2)
+                .build();
+        CartRequest.AddItems request = CartRequest.AddItems.builder()
+                .items(List.of(item))
                 .build();
 
-        HttpHeaders roleUser = createUserHeader("ROLE_USER");
-        CartItemResponse cartItemResponse = createCartItemResponse();
-        given(cartFacade.addItem(any(AddCartItemCommand.class)))
-                .willReturn(cartItemResponse);
-
-        HeaderDescriptor[] requestHeaders = new HeaderDescriptor[] {
-                headerWithName("Authorization").description("JWT Access Token")
-        };
-
-        FieldDescriptor[] requestFields = new FieldDescriptor[] {
-                fieldWithPath("productVariantId").description("상품 변형 ID"),
-                fieldWithPath("quantity").description("수량")
-        };
-
-
-        FieldDescriptor[] responseFields = new FieldDescriptor[] {
-                fieldWithPath("id").description("장바구니 상품 ID(장바구니 상품 식별자)"),
-                fieldWithPath("status").description("장바구니 상품 상태[주문 가능, 삭제됨, 준비중]"),
-                fieldWithPath("available").description("주문 가능 여부"),
-                fieldWithPath("productId").description("상품 ID(상품 식별자)"),
-                fieldWithPath("productVariantId").description("상품 변형 ID"),
-                fieldWithPath("productName").description("상품 이름"),
-                fieldWithPath("thumbnailUrl").description("상품 썸네일"),
-                fieldWithPath("quantity").description("수량"),
-                fieldWithPath("price.originalPrice").description("상품 원본 가격"),
-                fieldWithPath("price.discountRate").description("상품 할인율"),
-                fieldWithPath("price.discountAmount").description("상품 할인 금액"),
-                fieldWithPath("price.discountedPrice").description("할인된 가격"),
-                fieldWithPath("lineTotal").description("항목 총액 (상품 할인 가격 X 수량)"),
-                fieldWithPath("options[].optionTypeName").description("상품 옵션 타입 (예: 사이즈)"),
-                fieldWithPath("options[].optionValueName").description("상품 옵션 값 (예: XL)")
-        };
-
+        HttpHeaders roleUser = createAuthHeader("ROLE_USER");
+        CartResult.CartAddResult result = createCartAddResult();
+        given(cartFacade.addItems(any(CartCommand.AddItems.class)))
+                .willReturn(result);
+        CartResponse.CartItems response = CartResponse.CartItems.from(result);
         //when
         //then
         mockMvc.perform(post("/carts")
@@ -97,31 +82,13 @@ public class CartControllerDocsTest extends RestDocSupport {
                 .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
                 .andExpect(status().isCreated())
-                .andDo(
-                        document(
-                                "02-cart-01-add-cartItem",
-                                preprocessRequest(prettyPrint(),
-                                        modifyHeaders()
-                                                .remove("X-User-Id")
-                                                .remove("X-User-Role")
-                                                .add("Authorization", "Bearer {ACCESS_TOKEN}")),
-                                preprocessResponse(prettyPrint()),
-                                resource(
-                                        ResourceSnippetParameters.builder()
-                                                .tag(TAG)
-                                                .summary("장바구니 상품 추가")
-                                                .description("장바구니에 상품을 추가")
-                                                .requestHeaders(requestHeaders)
-                                                .requestFields(requestFields)
-                                                .responseFields(responseFields)
-                                                .build()
-                                ),
-                                requestHeaders(requestHeaders),
-                                requestFields(requestFields),
-                                responseFields(responseFields)
-                        )
+                .andExpect(content().json(objectMapper.writeValueAsString(response)))
+                .andDo(createSecuredDocument("02-cart-01-add-cartItem",
+                                "장바구니 상품 추가",
+                                "장바구니에 상품을 추가",
+                                CartDescriptor.getAddCartItemRequest(),
+                                CartDescriptor.getAddCartItemResponse())
                 );
-
     }
 
     @Test
@@ -131,7 +98,7 @@ public class CartControllerDocsTest extends RestDocSupport {
         HttpHeaders roleUser = createUserHeader("ROLE_USER");
         CartItemResponse cartItem = createCartItemResponse();
 
-        CartResponse response = CartResponse.builder()
+        AllCartResponse response = AllCartResponse.builder()
                 .cartItems(List.of(cartItem))
                 .cartTotalPrice(5700)
                 .build();
@@ -356,7 +323,7 @@ public class CartControllerDocsTest extends RestDocSupport {
                 .productId(1L)
                 .productVariantId(1L)
                 .productName("상품1")
-                .thumbnailUrl("http://thumbnail.jpg")
+                .thumbnailUrl("/product/product/PROD1_thumbnail.jpg")
                 .quantity(2)
                 .price(
                         CartItemResponse.CartItemPrice.builder()
@@ -375,5 +342,35 @@ public class CartControllerDocsTest extends RestDocSupport {
                 ))
                 .build();
 
+    }
+
+    private CartResult.CartAddResult createCartAddResult(){
+        CartResult.CartItemResult cartResult = CartResult.CartItemResult.builder()
+                .id(1L)
+                .productId(1L)
+                .productVariantId(1L)
+                .productName("상품1")
+                .status(CartItemStatus.AVAILABLE)
+                .thumbnail("/product/product/PROD1_thumbnail.jpg")
+                .quantity(2)
+                .price(
+                        CartResult.CartItemPrice.builder()
+                                .originalPrice(3000)
+                                .discountedPrice(300)
+                                .discountedPrice(2700)
+                                .discountRate(10)
+                                .build()
+                )
+                .lineTotal(5400)
+                .options(
+                        List.of(
+                                CartResult.CartItemOption.builder()
+                                        .optionTypeName("사이즈")
+                                        .optionValueName("XL")
+                                        .build()
+                        )
+                )
+                .build();
+        return CartResult.CartAddResult.builder().items(List.of(cartResult)).build();
     }
 }

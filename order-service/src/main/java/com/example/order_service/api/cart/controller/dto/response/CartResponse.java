@@ -1,0 +1,91 @@
+package com.example.order_service.api.cart.controller.dto.response;
+
+import com.example.order_service.api.cart.facade.dto.result.CartItemStatus;
+import com.example.order_service.api.cart.facade.dto.result.CartResult;
+import lombok.Builder;
+
+import java.util.List;
+
+public class CartResponse {
+
+    @Builder
+    public record CartItems(
+            List<Detail> items,
+            int totalItemCount
+    ) {
+        public static CartItems from(CartResult.CartAddResult result) {
+            return CartItems.builder()
+                    .items(mapToDetail(result.items()))
+                    .build();
+        }
+
+        private static List<Detail> mapToDetail(List<CartResult.CartItemResult> results) {
+            return results.stream().map(Detail::from).toList();
+        }
+    }
+
+    @Builder
+    public record Detail (
+            Long id,
+            CartItemStatus status,
+            boolean isAvailable,
+            Long productId,
+            Long productVariantId,
+            String productName,
+            String thumbnail,
+            int quantity,
+            CartItemPrice price,
+            long lineTotal,
+            List<CartItemOption> options
+    ) {
+        public static Detail from(CartResult.CartItemResult result) {
+            return Detail.builder()
+                    .id(result.id())
+                    .status(result.status())
+                    .isAvailable(result.isAvailable())
+                    .productId(result.productId())
+                    .productVariantId(result.productVariantId())
+                    .productName(result.productName())
+                    .thumbnail(result.thumbnail())
+                    .quantity(result.quantity())
+                    .price(CartItemPrice.from(result.price()))
+                    .lineTotal(result.lineTotal())
+                    .options(mapToOptions(result.options()))
+                    .build();
+        }
+
+        private static List<CartItemOption> mapToOptions(List<CartResult.CartItemOption> options) {
+            return options.stream().map(CartItemOption::from).toList();
+        }
+    }
+
+    @Builder
+    public record CartItemPrice (
+            long originalPrice,
+            long discountRate,
+            long discountAmount,
+            long discountedPrice
+    ) {
+        public static CartItemPrice from(CartResult.CartItemPrice price){
+            return CartItemPrice.builder()
+                    .originalPrice(price.originalPrice())
+                    .discountRate(price.discountRate())
+                    .discountAmount(price.discountAmount())
+                    .discountedPrice(price.discountedPrice())
+                    .build();
+        }
+    }
+
+    @Builder
+    public record CartItemOption (
+            String optionTypeName,
+            String optionValueName
+    ) {
+        public static CartItemOption from (CartResult.CartItemOption option) {
+            return CartItemOption.builder()
+                    .optionTypeName(option.optionTypeName())
+                    .optionValueName(option.optionValueName())
+                    .build();
+        }
+    }
+}

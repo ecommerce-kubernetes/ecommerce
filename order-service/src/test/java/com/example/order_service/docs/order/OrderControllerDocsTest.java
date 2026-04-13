@@ -24,6 +24,7 @@ import org.springframework.restdocs.request.ParameterDescriptor;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static com.epages.restdocs.apispec.MockMvcRestDocumentationWrapper.document;
 import static com.epages.restdocs.apispec.ResourceDocumentation.resource;
 import static com.example.order_service.api.support.fixture.order.OrderResponseFixture.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -31,7 +32,6 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
 import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
-import static com.epages.restdocs.apispec.MockMvcRestDocumentationWrapper.document;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
 import static org.springframework.restdocs.payload.PayloadDocumentation.*;
 import static org.springframework.restdocs.request.RequestDocumentation.*;
@@ -45,6 +45,11 @@ public class OrderControllerDocsTest extends RestDocSupport {
     private OrderFacade orderFacade = mock(OrderFacade.class);
 
     private static final String TAG = "ORDER";
+
+    @Override
+    protected String getTag() {
+        return "ORDER";
+    }
 
     @Override
     protected Object initController() {

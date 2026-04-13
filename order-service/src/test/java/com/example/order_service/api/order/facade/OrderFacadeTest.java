@@ -19,7 +19,6 @@ import com.example.order_service.api.order.facade.event.OrderCreatedEvent;
 import com.example.order_service.api.order.facade.event.OrderFailedEvent;
 import com.example.order_service.api.order.facade.event.OrderPaymentReadyEvent;
 import com.example.order_service.api.order.facade.event.PaymentFailedEvent;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -51,7 +50,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 public class OrderFacadeTest {

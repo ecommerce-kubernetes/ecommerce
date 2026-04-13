@@ -10,30 +10,30 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor
-public class CartResponse {
+public class AllCartResponse {
     private List<CartItemResponse> cartItems;
     private long cartTotalPrice;
 
     @Builder
-    private CartResponse(List<CartItemResponse> cartItems, long cartTotalPrice){
+    private AllCartResponse(List<CartItemResponse> cartItems, long cartTotalPrice){
         this.cartItems = cartItems;
         this.cartTotalPrice = cartTotalPrice;
     }
 
-    public static CartResponse empty(){
-        return CartResponse.builder()
+    public static AllCartResponse empty(){
+        return AllCartResponse.builder()
                 .cartItems(List.of())
                 .cartTotalPrice(0)
                 .build();
     }
 
-    public static CartResponse from(List<CartItemResponse> cartItems){
+    public static AllCartResponse from(List<CartItemResponse> cartItems){
         long total = cartItems.stream()
                 .filter(CartItemResponse::isAvailable)
                 .mapToLong(CartItemResponse::getLineTotal)
                 .sum();
 
-        return CartResponse.builder()
+        return AllCartResponse.builder()
                 .cartItems(cartItems)
                 .cartTotalPrice(total)
                 .build();

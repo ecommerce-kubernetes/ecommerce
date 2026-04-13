@@ -116,6 +116,8 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.cloud:spring-cloud-contract-wiremock'
 	testImplementation 'org.springframework.security:spring-security-test'
+	testImplementation 'com.navercorp.fixturemonkey:fixture-monkey-starter:1.1.19'
+	testImplementation 'com.navercorp.fixturemonkey:fixture-monkey-jakarta-validation:1.1.19'
 	testImplementation 'com.h2database:h2'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	testAnnotationProcessor 'org.projectlombok:lombok'
