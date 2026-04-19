@@ -9,18 +9,30 @@ import java.util.List;
 public class CartResponse {
 
     @Builder
-    public record CartItems(
+    public record Cart(
             List<Detail> items,
-            int totalItemCount
+            long totalOriginalPrice,
+            long totalDiscountAmount,
+            long totalFinalPrice
+    ) {
+        public static Cart from(CartResult.Cart result) {
+            return Cart.builder()
+                    .items(Detail.from(result.items()))
+                    .totalOriginalPrice(result.totalOriginalPrice())
+                    .totalDiscountAmount(result.totalDiscountAmount())
+                    .totalFinalPrice(result.totalFinalPrice())
+                    .build();
+        }
+    }
+
+    @Builder
+    public record CartItems(
+            List<Detail> items
     ) {
         public static CartItems from(CartResult.CartAddResult result) {
             return CartItems.builder()
-                    .items(mapToDetail(result.items()))
+                    .items(Detail.from(result.items()))
                     .build();
-        }
-
-        private static List<Detail> mapToDetail(List<CartResult.CartItemResult> results) {
-            return results.stream().map(Detail::from).toList();
         }
     }
 
@@ -52,6 +64,10 @@ public class CartResponse {
                     .lineTotal(result.lineTotal())
                     .options(mapToOptions(result.options()))
                     .build();
+        }
+
+        public static List<Detail> from(List<CartResult.CartItemResult> results) {
+            return results.stream().map(Detail::from).toList();
         }
 
         private static List<CartItemOption> mapToOptions(List<CartResult.CartItemOption> options) {

@@ -9,6 +9,46 @@ import java.util.List;
 public class CartResult {
 
     @Builder
+    public record Cart (
+            List<CartItemResult> items,
+            long totalOriginalPrice,
+            long totalDiscountAmount,
+            long totalFinalPrice
+    ) {
+        public static Cart empty() {
+            return Cart.builder()
+                    .items(List.of())
+                    .totalOriginalPrice(0)
+                    .totalDiscountAmount(0)
+                    .totalFinalPrice(0)
+                    .build();
+        }
+
+        public static Cart from(List<CartItemResult> items) {
+            if(items == null || items.isEmpty()){
+                return empty();
+            }
+
+            long totalOriginalPrice = items.stream()
+                    .filter(CartItemResult::isAvailable)
+                    .mapToLong((item) -> item.price.originalPrice * item.quantity).sum();
+            long totalDiscountAmount = items.stream()
+                    .filter(CartItemResult::isAvailable)
+                    .mapToLong((item) -> item.price.discountAmount * item.quantity).sum();
+            long totalFinalPrice = items.stream()
+                    .filter(CartItemResult::isAvailable)
+                    .mapToLong((item) -> item.lineTotal).sum();
+
+            return Cart.builder()
+                    .items(items)
+                    .totalOriginalPrice(totalOriginalPrice)
+                    .totalDiscountAmount(totalDiscountAmount)
+                    .totalFinalPrice(totalFinalPrice)
+                    .build();
+        }
+    }
+
+    @Builder
     public record CartAddResult (
             List<CartItemResult> items
     ) {
@@ -55,7 +95,6 @@ public class CartResult {
                     .status(CartItemStatus.NOT_FOUND)
                     .isAvailable(false)
                     .productVariantId(productVariantId)
-                    .productName("정보를 불러올 수 없습니다")
                     .quantity(quantity)
                     .lineTotal(0)
                     .build();

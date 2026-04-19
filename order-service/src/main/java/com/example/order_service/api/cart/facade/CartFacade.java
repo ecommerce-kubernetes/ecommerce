@@ -7,7 +7,6 @@ import com.example.order_service.api.cart.domain.service.dto.result.CartItemDto;
 import com.example.order_service.api.cart.domain.service.dto.result.CartProductInfo;
 import com.example.order_service.api.cart.facade.dto.command.CartCommand;
 import com.example.order_service.api.cart.facade.dto.command.UpdateQuantityCommand;
-import com.example.order_service.api.cart.facade.dto.result.AllCartResponse;
 import com.example.order_service.api.cart.facade.dto.result.CartItemResponse;
 import com.example.order_service.api.cart.facade.dto.result.CartItemStatus;
 import com.example.order_service.api.cart.facade.dto.result.CartResult;
@@ -46,69 +45,16 @@ public class CartFacade {
         return CartResult.CartAddResult.from(cartItemResults);
     }
 
-    private List<CartResult.CartItemResult> mapToCartItemResult(List<CartItemDto> cartItems, List<CartProductInfo> products) {
-        Map<Long, CartProductInfo> productMap = products.stream().collect(Collectors.toMap(
-                CartProductInfo::getProductVariantId,
-                Function.identity()
-        ));
-
-        return cartItems.stream()
-                .map(item -> {
-                    CartProductInfo product = productMap.get(item.getProductVariantId());
-                    return createCartItemResult(item, product);
-                }).toList();
-    }
-
-    private List<CartItemResponse> mapToCartItemResponse_deprecated(List<CartItemDto> cartItems, List<CartProductInfo> products){
-        Map<Long, CartProductInfo> productMap = products.stream().collect(Collectors.toMap(
-                CartProductInfo::getProductVariantId,
-                Function.identity()
-        ));
-
-        return cartItems.stream()
-                .map(item -> {
-                    CartProductInfo product = productMap.get(item.getProductVariantId());
-                    return createCartItemResponse(item, product);
-                }).toList();
-    }
-
-    private CartResult.CartItemResult createCartItemResult(CartItemDto item, CartProductInfo product) {
-        if (product == null) {
-            return CartResult.CartItemResult.unAvailable(item.getId(), item.getProductVariantId(), item.getQuantity());
-        }
-        return switch (product.getStatus()) {
-            case ON_SALE -> CartResult.CartItemResult.of(item, product, CartItemStatus.AVAILABLE);
-            case PREPARING -> CartResult.CartItemResult.of(item, product, CartItemStatus.PREPARING);
-            case STOP_SALE -> CartResult.CartItemResult.of(item, product, CartItemStatus.STOP_SALE);
-            case DELETED -> CartResult.CartItemResult.of(item, product, CartItemStatus.DELETED);
-            case UNKNOWN -> CartResult.CartItemResult.unAvailable(item.getId(), product.getProductVariantId(), item.getQuantity());
-        };
-    }
-
-    private CartItemResponse createCartItemResponse(CartItemDto item, CartProductInfo product){
-        // 상품을 찾을 수 없거나 상품이 판매중이 아닌 상품인 경우 오류 응답
-        if(product == null){
-            return CartItemResponse.unAvailable(item.getId(), item.getProductVariantId(), item.getQuantity());
-        }
-        return switch (product.getStatus()) {
-            case ON_SALE -> CartItemResponse.available(item, product);
-            case PREPARING -> CartItemResponse.preparing(item, product);
-            case STOP_SALE -> CartItemResponse.stop_sale(item, product);
-            case DELETED -> CartItemResponse.deleted(item, product);
-            case UNKNOWN -> CartItemResponse.unAvailable(item.getId(), product.getProductVariantId(), item.getQuantity());
-        };
-    }
-
-    public AllCartResponse getCartDetails(Long userId){
+    public CartResult.Cart getCartDetails(Long userId){
         List<CartItemDto> cartItems = cartService.getCartItems(userId);
         //장바구니에 상품이 없는 경우 빈 장바구니 반환
         if(cartItems.isEmpty()) {
-            return AllCartResponse.empty();
+            return CartResult.Cart.empty();
         }
         List<Long> variantIds = getProductVariantId(cartItems);
         List<CartProductInfo> productInfos = cartProductService.getProductInfos(variantIds);
-        List<CartItemResponse> cartItemResponses = mapToCartItemResponse_deprecated(cartItems, productInfos);
-        return AllCartResponse.from(cartItemResponses);
+        List<CartResult.CartItemResult> cartItemResults = mapToCartItemResult(cartItems, productInfos);
+        return CartResult.Cart.from(cartItemResults);
     }
 
     public CartItemResponse updateCartItemQuantity(UpdateQuantityCommand dto){
@@ -132,5 +78,31 @@ public class CartFacade {
 
     private List<Long> getProductVariantId(List<CartItemDto> cartItems){
         return cartItems.stream().map(CartItemDto::getProductVariantId).toList();
+    }
+
+    private List<CartResult.CartItemResult> mapToCartItemResult(List<CartItemDto> cartItems, List<CartProductInfo> products) {
+        Map<Long, CartProductInfo> productMap = products.stream().collect(Collectors.toMap(
+                CartProductInfo::getProductVariantId,
+                Function.identity()
+        ));
+
+        return cartItems.stream()
+                .map(item -> {
+                    CartProductInfo product = productMap.get(item.getProductVariantId());
+                    return createCartItemResult(item, product);
+                }).toList();
+    }
+
+    private CartResult.CartItemResult createCartItemResult(CartItemDto item, CartProductInfo product) {
+        if (product == null) {
+            return CartResult.CartItemResult.unAvailable(item.getId(), item.getProductVariantId(), item.getQuantity());
+        }
+        return switch (product.getStatus()) {
+            case ON_SALE -> CartResult.CartItemResult.of(item, product, CartItemStatus.AVAILABLE);
+            case PREPARING -> CartResult.CartItemResult.of(item, product, CartItemStatus.PREPARING);
+            case STOP_SALE -> CartResult.CartItemResult.of(item, product, CartItemStatus.STOP_SALE);
+            case DELETED -> CartResult.CartItemResult.of(item, product, CartItemStatus.DELETED);
+            case UNKNOWN -> CartResult.CartItemResult.unAvailable(item.getId(), product.getProductVariantId(), item.getQuantity());
+        };
     }
 }
