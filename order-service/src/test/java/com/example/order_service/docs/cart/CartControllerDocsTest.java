@@ -8,7 +8,6 @@ import com.example.order_service.api.cart.controller.dto.response.CartResponse;
 import com.example.order_service.api.cart.facade.CartFacade;
 import com.example.order_service.api.cart.facade.dto.command.CartCommand;
 import com.example.order_service.api.cart.facade.dto.command.UpdateQuantityCommand;
-import com.example.order_service.api.cart.facade.dto.result.AllCartResponse;
 import com.example.order_service.api.cart.facade.dto.result.CartItemResponse;
 import com.example.order_service.api.cart.facade.dto.result.CartItemStatus;
 import com.example.order_service.api.cart.facade.dto.result.CartResult;
@@ -95,39 +94,11 @@ public class CartControllerDocsTest extends RestDocSupport {
     @DisplayName("장바구니 목록 조회")
     void addAllCartItem() throws Exception {
         //given
-        HttpHeaders roleUser = createUserHeader("ROLE_USER");
-        CartItemResponse cartItem = createCartItemResponse();
-
-        AllCartResponse response = AllCartResponse.builder()
-                .cartItems(List.of(cartItem))
-                .cartTotalPrice(5700)
-                .build();
+        HttpHeaders roleUser = createAuthHeader("ROLE_USER");
+        CartResult.Cart result = createCartResult();
+        CartResponse.Cart response = CartResponse.Cart.from(result);
         given(cartFacade.getCartDetails(anyLong()))
-                .willReturn(response);
-
-        HeaderDescriptor[] requestHeaders = new HeaderDescriptor[] {
-                headerWithName("Authorization").description("JWT Access Token")
-        };
-
-        FieldDescriptor[] responseFields = new FieldDescriptor[] {
-                fieldWithPath("cartItems[].id").description("장바구니 상품 ID(장바구니 상품 식별자)"),
-                fieldWithPath("cartItems[].productId").description("상품 ID(상품 식별자)"),
-                fieldWithPath("cartItems[].status").description("장바구니 상품 상태"),
-                fieldWithPath("cartItems[].available").description("주문 가능 여부"),
-                fieldWithPath("cartItems[].productVariantId").description("상품 변형 ID"),
-                fieldWithPath("cartItems[].productName").description("상품 이름"),
-                fieldWithPath("cartItems[].thumbnailUrl").description("상품 썸네일"),
-                fieldWithPath("cartItems[].quantity").description("수량"),
-                fieldWithPath("cartItems[].price.originalPrice").description("상품 원본 가격"),
-                fieldWithPath("cartItems[].price.discountRate").description("상품 할인율"),
-                fieldWithPath("cartItems[].price.discountAmount").description("상품 할인 금액"),
-                fieldWithPath("cartItems[].price.discountedPrice").description("할인된 가격"),
-                fieldWithPath("cartItems[].lineTotal").description("항목 총액 (상품 할인 가격 X 수량)"),
-                fieldWithPath("cartItems[].options[].optionTypeName").description("상품 옵션 타입 (예: 사이즈)"),
-                fieldWithPath("cartItems[].options[].optionValueName").description("상품 옵션 값 (예: XL)"),
-                fieldWithPath("cartItems[].available").description("주문 가능 여부"),
-                fieldWithPath("cartTotalPrice").description("장바구니 총액")
-        };
+                .willReturn(result);
 
         //when
         //then
@@ -136,28 +107,11 @@ public class CartControllerDocsTest extends RestDocSupport {
                 .headers(roleUser))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andDo(
-                        document(
-                                "02-cart-02-get-list",
-                                preprocessRequest(prettyPrint(),
-                                        modifyHeaders()
-                                                .remove("X-User-Id")
-                                                .remove("X-User-Role")
-                                                .add("Authorization", "Bearer {ACCESS_TOKEN}")),
-                                preprocessResponse(prettyPrint()),
-                                resource(
-                                        ResourceSnippetParameters.builder()
-                                                .tag(TAG)
-                                                .summary("장바구니 목록 조회")
-                                                .description("장바구니 상품 목록을 조회한다")
-                                                .requestHeaders(requestHeaders)
-                                                .responseFields(responseFields)
-                                                .build()
-                                ),
-                                requestHeaders(requestHeaders),
-                                responseFields(responseFields)
-                        )
-                );
+                .andExpect(content().json(objectMapper.writeValueAsString(response)))
+                .andDo(createSecuredDocument("02-cart-02-get-list",
+                                "장바구니 목록 조회",
+                                "장바구니 상품 목록을 조회한다",
+                                CartDescriptor.getCartResponse()));
     }
 
     @Test
@@ -351,12 +305,13 @@ public class CartControllerDocsTest extends RestDocSupport {
                 .productVariantId(1L)
                 .productName("상품1")
                 .status(CartItemStatus.AVAILABLE)
+                .isAvailable(true)
                 .thumbnail("/product/product/PROD1_thumbnail.jpg")
                 .quantity(2)
                 .price(
                         CartResult.CartItemPrice.builder()
                                 .originalPrice(3000)
-                                .discountedPrice(300)
+                                .discountAmount(300)
                                 .discountedPrice(2700)
                                 .discountRate(10)
                                 .build()
@@ -372,5 +327,40 @@ public class CartControllerDocsTest extends RestDocSupport {
                 )
                 .build();
         return CartResult.CartAddResult.builder().items(List.of(cartResult)).build();
+    }
+
+    private CartResult.Cart createCartResult() {
+        CartResult.CartItemResult cartResult = CartResult.CartItemResult.builder()
+                .id(1L)
+                .productId(1L)
+                .productVariantId(1L)
+                .productName("상품1")
+                .status(CartItemStatus.AVAILABLE)
+                .isAvailable(true)
+                .thumbnail("/product/product/PROD1_thumbnail.jpg")
+                .quantity(2)
+                .price(
+                        CartResult.CartItemPrice.builder()
+                                .originalPrice(3000)
+                                .discountAmount(300)
+                                .discountedPrice(2700)
+                                .discountRate(10)
+                                .build()
+                )
+                .lineTotal(5400)
+                .options(
+                        List.of(
+                                CartResult.CartItemOption.builder()
+                                        .optionTypeName("사이즈")
+                                        .optionValueName("XL")
+                                        .build()
+                        )
+                )
+                .build();
+        return CartResult.Cart.builder().items(List.of(cartResult))
+                .totalOriginalPrice(6000)
+                .totalDiscountAmount(600)
+                .totalFinalPrice(5400)
+                .build();
     }
 }

@@ -5,11 +5,11 @@ import com.example.order_service.api.cart.controller.dto.request.UpdateQuantityR
 import com.example.order_service.api.cart.controller.dto.response.CartResponse;
 import com.example.order_service.api.cart.facade.dto.command.CartCommand;
 import com.example.order_service.api.cart.facade.dto.command.UpdateQuantityCommand;
-import com.example.order_service.api.cart.facade.dto.result.AllCartResponse;
 import com.example.order_service.api.cart.facade.dto.result.CartItemResponse;
 import com.example.order_service.api.cart.facade.dto.result.CartResult;
 import com.example.order_service.api.common.security.model.UserRole;
 import com.example.order_service.api.support.ControllerTestSupport;
+import com.example.order_service.api.support.TestUtil;
 import com.example.order_service.api.support.security.annotation.WithCustomMockUser;
 import com.example.order_service.api.support.security.config.TestSecurityConfig;
 import lombok.extern.slf4j.Slf4j;
@@ -44,9 +44,8 @@ class CartControllerTest extends ControllerTestSupport {
         @WithCustomMockUser
         void addCartItem() throws Exception {
             //given
-            CartRequest.AddItems request = fixtureMonkey.giveMeOne(CartRequest.AddItems.class);
-            CartResult.CartAddResult result = fixtureMonkey.giveMeOne(CartResult.CartAddResult.class);
-            assert result != null;
+            CartRequest.AddItems request = TestUtil.nonNull(fixtureMonkey.giveMeOne(CartRequest.AddItems.class));
+            CartResult.CartAddResult result = TestUtil.nonNull(fixtureMonkey.giveMeOne(CartResult.CartAddResult.class));
             given(cartFacade.addItems(any(CartCommand.AddItems.class)))
                     .willReturn(result);
             CartResponse.CartItems response = CartResponse.CartItems.from(result);
@@ -139,58 +138,58 @@ class CartControllerTest extends ControllerTestSupport {
         }
     }
 
-    @Test
-    @DisplayName("장바구니 목록을 조회한다")
-    @WithCustomMockUser
-    void getAllCartItem() throws Exception {
-        //given
-        CartItemResponse cartItemResponse = createCartItemResponse().build();
-        AllCartResponse response = AllCartResponse.builder()
-                .cartItems(List.of(cartItemResponse))
-                .cartTotalPrice(cartItemResponse.getLineTotal())
-                .build();
+    @Nested
+    @DisplayName("장바구니 목록 조회")
+    class GetCart {
+        @Test
+        @DisplayName("장바구니 목록을 조회한다")
+        @WithCustomMockUser
+        void getAllCartItem() throws Exception {
+            //given
+            CartResult.Cart result = TestUtil.nonNull(fixtureMonkey.giveMeOne(CartResult.Cart.class));
+            given(cartFacade.getCartDetails(anyLong()))
+                    .willReturn(result);
+            CartResponse.Cart response = CartResponse.Cart.from(result);
+            //when
+            //then
+            mockMvc.perform(get("/carts")
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isOk())
+                    .andExpect(content().json(objectMapper.writeValueAsString(response)));
+        }
 
-        given(cartFacade.getCartDetails(anyLong()))
-                .willReturn(response);
-        //when
-        //then
-        mockMvc.perform(get("/carts")
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(response)));
-    }
+        @Test
+        @DisplayName("장바구니 목록을 조회할때는 유저 권한이여야 한다")
+        @WithCustomMockUser(userRole = UserRole.ROLE_ADMIN)
+        void getAllCartItemWithAdminPrincipal() throws Exception {
+            //given
+            //when
+            //then
+            mockMvc.perform(get("/carts")
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andDo(print())
+                    .andExpect(status().isForbidden())
+                    .andExpect(jsonPath("$.code").value("FORBIDDEN"))
+                    .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다"))
+                    .andExpect(jsonPath("$.timestamp").exists())
+                    .andExpect(jsonPath("$.path").value("/carts"));
+        }
 
-    @Test
-    @DisplayName("장바구니 목록을 조회할때는 유저 권한이여야 한다")
-    @WithCustomMockUser(userRole = UserRole.ROLE_ADMIN)
-    void getAllCartItemWithAdminPrincipal() throws Exception {
-        //given
-        //when
-        //then
-        mockMvc.perform(get("/carts")
-                .contentType(MediaType.APPLICATION_JSON))
-                .andDo(print())
-                .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.code").value("FORBIDDEN"))
-                .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다"))
-                .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.path").value("/carts"));
-    }
-
-    @Test
-    @DisplayName("로그인 하지 않은 회원은 장바구니를 조회할 수 없다")
-    void getAllCartItem_unAuthorized() throws Exception {
-        //given
-        //when
-        //then
-        mockMvc.perform(get("/carts")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andDo(print())
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
-                .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다"))
-                .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.path").value("/carts"));
+        @Test
+        @DisplayName("로그인 하지 않은 회원은 장바구니를 조회할 수 없다")
+        void getAllCartItem_unAuthorized() throws Exception {
+            //given
+            //when
+            //then
+            mockMvc.perform(get("/carts")
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andDo(print())
+                    .andExpect(status().isUnauthorized())
+                    .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
+                    .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다"))
+                    .andExpect(jsonPath("$.timestamp").exists())
+                    .andExpect(jsonPath("$.path").value("/carts"));
+        }
     }
 
     @Test
@@ -400,34 +399,5 @@ class CartControllerTest extends ControllerTestSupport {
                         )
                 )
                 .isAvailable(true);
-    }
-
-    private CartResult.CartAddResult createCartAddResult(){
-        CartResult.CartItemResult cartResult = CartResult.CartItemResult.builder()
-                .id(1L)
-                .productId(1L)
-                .productVariantId(1L)
-                .productName("상품1")
-                .thumbnail("/product/product/PROD1_thumbnail.jpg")
-                .quantity(1)
-                .price(
-                        CartResult.CartItemPrice.builder()
-                                .originalPrice(3000)
-                                .discountedPrice(300)
-                                .discountedPrice(2700)
-                                .discountRate(10)
-                                .build()
-                )
-                .lineTotal(2700)
-                .options(
-                        List.of(
-                                CartResult.CartItemOption.builder()
-                                        .optionTypeName("사이즈")
-                                        .optionValueName("XL")
-                                        .build()
-                        )
-                )
-                .build();
-        return CartResult.CartAddResult.builder().items(List.of(cartResult)).build();
     }
 }
