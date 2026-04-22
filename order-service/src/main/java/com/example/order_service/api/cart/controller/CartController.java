@@ -6,7 +6,6 @@ import com.example.order_service.api.cart.controller.dto.response.CartResponse;
 import com.example.order_service.api.cart.facade.CartFacade;
 import com.example.order_service.api.cart.facade.dto.command.CartCommand;
 import com.example.order_service.api.cart.facade.dto.command.UpdateQuantityCommand;
-import com.example.order_service.api.cart.facade.dto.result.AllCartResponse;
 import com.example.order_service.api.cart.facade.dto.result.CartItemResponse;
 import com.example.order_service.api.cart.facade.dto.result.CartResult;
 import com.example.order_service.api.common.security.model.UserPrincipal;
@@ -38,9 +37,10 @@ public class CartController {
     }
 
     @GetMapping
-    public ResponseEntity<AllCartResponse> getAllCartItem(@AuthenticationPrincipal UserPrincipal userPrincipal) {
-        AllCartResponse cartItemList = cartFacade.getCartDetails(userPrincipal.getUserId());
-        return ResponseEntity.ok(cartItemList);
+    public ResponseEntity<CartResponse.Cart> getAllCartItem(@AuthenticationPrincipal UserPrincipal userPrincipal) {
+        CartResult.Cart result = cartFacade.getCartDetails(userPrincipal.getUserId());
+        CartResponse.Cart response = CartResponse.Cart.from(result);
+        return ResponseEntity.ok(response);
     }
 
     @PatchMapping("/{cartItemId}")
