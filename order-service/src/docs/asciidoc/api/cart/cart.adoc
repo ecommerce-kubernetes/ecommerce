@@ -36,17 +36,6 @@ include::{snippets}/02-cart-03-delete-item/request-headers.adoc[]
 ==== HTTP Response
 include::{snippets}/02-cart-03-delete-item/http-response.adoc[]
 
-
-[[clearCart]]
-=== 장바구니 비우기
-
-==== HTTP Request
-include::{snippets}/02-cart-04-clear/http-request.adoc[]
-===== Request Header
-include::{snippets}/02-cart-04-clear/request-headers.adoc[]
-==== HTTP Response
-include::{snippets}/02-cart-04-clear/http-response.adoc[]
-
 [[update-quantity]]
 === 장바구니 상품 수량 변경
 

@@ -60,12 +60,8 @@ public class CartFacade {
         return CartResult.Update.from(cartItemDto);
     }
 
-    public void removeCartItem(Long userId, Long cartItemId){
-        cartService.deleteCartItem(userId, cartItemId);
-    }
-
-    public void clearCart(Long userId){
-        cartService.clearCart(userId);
+    public void removeCartItems(Long userId, List<Long> cartItemIds){
+        cartService.deleteCartItems(userId, cartItemIds);
     }
 
     public void removePurchasedItems(Long userId, List<Long> productVariantIds) {

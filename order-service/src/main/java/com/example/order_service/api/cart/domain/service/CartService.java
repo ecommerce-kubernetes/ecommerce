@@ -23,7 +23,7 @@ public class CartService {
     private final CartRepository cartRepository;
     private final CartItemRepository cartItemRepository;
 
-    public List<CartItemDto> addItemToCart(CartCommand.AddItems command){
+    public List<CartItemDto> addItemToCart(CartCommand.AddItems command) {
         Cart cart = cartRepository.findWithItemsByUserId(command.userId())
                 .orElseGet(() -> cartRepository.save(Cart.create(command.userId())));
         List<CartItem> cartItems = cart.addItems(command.items());
@@ -32,36 +32,28 @@ public class CartService {
     }
 
     @Transactional(readOnly = true)
-    public CartItemDto getCartItem(Long userId, Long cartItemId){
+    public CartItemDto getCartItem(Long userId, Long cartItemId) {
         CartItem cartItem = getCartItemByCartItemId(cartItemId);
         validateCartUserId(cartItem, userId);
         return CartItemDto.from(cartItem);
     }
 
     @Transactional(readOnly = true)
-    public List<CartItemDto> getCartItems(Long userId){
+    public List<CartItemDto> getCartItems(Long userId) {
         return cartRepository.findWithItemsByUserId(userId)
                 .map(this::createCartItemDtoList)
                 .orElseGet(List::of);
     }
 
-    public CartItemDto updateQuantity(Long userId, Long cartItemId, int quantity){
+    public CartItemDto updateQuantity(Long userId, Long cartItemId, int quantity) {
         CartItem cartItem = getCartItemByCartItemId(cartItemId);
         validateCartUserId(cartItem, userId);
         cartItem.updateQuantity(quantity);
         return CartItemDto.from(cartItem);
     }
 
-    public void deleteCartItem(Long userId, Long cartItemId){
-        CartItem cartItem = getCartItemByCartItemId(cartItemId);
-        validateCartUserId(cartItem, userId);
-        cartItem.removeFromCart();
-        cartItemRepository.delete(cartItem);
-    }
-
-    public void clearCart(Long userId){
-        cartRepository.findWithItemsByUserId(userId)
-                .ifPresent(Cart::clearItems);
+    public void deleteCartItems(Long userId, List<Long> cartItemIds) {
+        cartItemRepository.deleteAllByIdsAndUserId(userId, cartItemIds);
     }
 
     public void deleteByProductVariantIds(Long userId, List<Long> productVariantIds) {
@@ -69,7 +61,7 @@ public class CartService {
                 .ifPresent(cart -> cart.removeItemsByVariantIds(productVariantIds));
     }
 
-    private List<CartItemDto> createCartItemDtoList(Cart cart){
+    private List<CartItemDto> createCartItemDtoList(Cart cart) {
         return cart.getCartItems().stream().map(CartItemDto::from)
                 .toList();
     }

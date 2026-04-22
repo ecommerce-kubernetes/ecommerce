@@ -189,98 +189,60 @@ class CartControllerTest extends ControllerTestSupport {
         }
     }
 
-    @Test
-    @DisplayName("장바구니에서 상품을 삭제한다")
-    @WithCustomMockUser
-    void deleteCartItem() throws Exception {
-        //given
-        willDoNothing().given(cartFacade).removeCartItem(anyLong(), anyLong());
-        //when
-        //then
-        mockMvc.perform(delete("/carts/{cartItemId}", 1)
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andDo(print())
-                .andExpect(status().isNoContent());
-    }
+    @Nested
+    @DisplayName("장바구니 상품 삭제")
+    class DeleteCartItems {
 
-    @Test
-    @DisplayName("장바구에서 상품을 삭제할때는 유저 권한이여야 한다")
-    @WithCustomMockUser(userRole = UserRole.ROLE_ADMIN)
-    void deleteCartItemWithAdminPrincipal() throws Exception {
-        //given
-        //when
-        //then
-        mockMvc.perform(delete("/carts/{cartItemId}", 1)
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andDo(print())
-                .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.code").value("FORBIDDEN"))
-                .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다"))
-                .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.path").value("/carts/1"));
-    }
+        @Test
+        @DisplayName("장바구니에서 상품을 삭제한다")
+        @WithCustomMockUser
+        void deleteCartItems() throws Exception {
+            //given
+            willDoNothing().given(cartFacade).removeCartItems(anyLong(), anyList());
+            //when
+            //then
+            mockMvc.perform(delete("/carts")
+                            .param("cartItemIds", "1,2,3,4")
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andDo(print())
+                    .andExpect(status().isNoContent());
+        }
 
-    @Test
-    @DisplayName("로그인 하지 않은 사용자는 장바구니에 상품을 삭제할 수 없다")
-    void deleteCartItem_unAuthorized() throws Exception {
-        //given
-        //when
-        //then
-        mockMvc.perform(delete("/carts/{cartItemId}", 1)
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andDo(print())
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
-                .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다"))
-                .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.path").value("/carts/1"));
-    }
 
-    @Test
-    @DisplayName("장바구니 상품 전체를 삭제한다")
-    @WithCustomMockUser
-    void clearCart() throws Exception {
-        //given
-        willDoNothing().given(cartFacade).clearCart(anyLong());
-        //when
-        //then
-        mockMvc.perform(delete("/carts")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andDo(print())
-                .andExpect(status().isNoContent());
-    }
+        @Test
+        @DisplayName("장바구에서 상품을 삭제할때는 유저 권한이여야 한다")
+        @WithCustomMockUser(userRole = UserRole.ROLE_ADMIN)
+        void deleteCartItemsWithAdminPrincipal() throws Exception {
+            //given
+            //when
+            //then
+            mockMvc.perform(delete("/carts")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .param("cartItemIds", "1,2,3,4"))
+                    .andDo(print())
+                    .andExpect(status().isForbidden())
+                    .andExpect(jsonPath("$.code").value("FORBIDDEN"))
+                    .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다"))
+                    .andExpect(jsonPath("$.timestamp").exists())
+                    .andExpect(jsonPath("$.path").value("/carts"));
+        }
 
-    @Test
-    @DisplayName("장바구니 비우기는 유저 권한이여야 한다")
-    @WithCustomMockUser(userRole = UserRole.ROLE_ADMIN)
-    void clearCart_Admin_Role() throws Exception {
-        //given
-        //when
-        //then
-        mockMvc.perform(delete("/carts")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andDo(print())
-                .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.code").value("FORBIDDEN"))
-                .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다"))
-                .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.path").value("/carts"));
-    }
-
-    @Test
-    @DisplayName("로그인 하지 않은 사용자는 장바구니를 비울 수 없다")
-    void clearCart_unAuthorized() throws Exception {
-        //given
-        //when
-        //then
-        mockMvc.perform(delete("/carts")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andDo(print())
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
-                .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다"))
-                .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.path").value("/carts"));
+        @Test
+        @DisplayName("로그인 하지 않은 사용자는 장바구니에 상품을 삭제할 수 없다")
+        void deleteCartItems_unAuthorized() throws Exception {
+            //given
+            //when
+            //then
+            mockMvc.perform(delete("/carts")
+                            .param("cartItemIds", "1,2,3,4")
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andDo(print())
+                    .andExpect(status().isUnauthorized())
+                    .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
+                    .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다"))
+                    .andExpect(jsonPath("$.timestamp").exists())
+                    .andExpect(jsonPath("$.path").value("/carts"));
+        }
     }
 
     @Nested

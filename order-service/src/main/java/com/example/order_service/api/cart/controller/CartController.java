@@ -15,6 +15,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 
 @Slf4j
 @RestController
@@ -50,16 +52,10 @@ public class CartController {
         return ResponseEntity.ok(response);
     }
 
-    @DeleteMapping("/{cartItemId}")
-    public ResponseEntity<Void> deleteCartItem(@AuthenticationPrincipal UserPrincipal userPrincipal,
-                                               @PathVariable("cartItemId") Long cartItemId){
-        cartFacade.removeCartItem(userPrincipal.getUserId(), cartItemId);
-        return ResponseEntity.noContent().build();
-    }
-
     @DeleteMapping
-    public ResponseEntity<Void> clearCart(@AuthenticationPrincipal UserPrincipal userPrincipal){
-        cartFacade.clearCart(userPrincipal.getUserId());
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    public ResponseEntity<Void> deleteCartItems(@AuthenticationPrincipal UserPrincipal userPrincipal,
+                                               @RequestParam List<Long> cartItemIds){
+        cartFacade.removeCartItems(userPrincipal.getUserId(), cartItemIds);
+        return ResponseEntity.noContent().build();
     }
 }

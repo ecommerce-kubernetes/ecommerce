@@ -198,23 +198,11 @@ public class CartFacadeTest extends BaseTestSupport {
         @DisplayName("장바구니에 담긴 상품을 삭제한다")
         void removeCartItem() {
             //given
-            willDoNothing().given(cartService).deleteCartItem(anyLong(), anyLong());
+            willDoNothing().given(cartService).deleteCartItems(anyLong(), anyList());
             //when
-            cartFacade.removeCartItem(1L, 1L);
+            cartFacade.removeCartItems(1L, List.of(1L, 2L));
             //then
-            verify(cartService).deleteCartItem(1L, 1L);
-        }
-
-        @Test
-        @DisplayName("장바구니를 비운다")
-        void clearCart() {
-            //given
-            willDoNothing().given(cartService).clearCart(anyLong());
-            //when
-            cartFacade.clearCart(1L);
-            //then
-            verify(cartService)
-                    .clearCart(1L);
+            verify(cartService).deleteCartItems(1L, List.of(1L, 2L));
         }
 
         @Test

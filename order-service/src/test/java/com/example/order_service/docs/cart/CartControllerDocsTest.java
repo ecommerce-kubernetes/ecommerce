@@ -1,6 +1,5 @@
 package com.example.order_service.docs.cart;
 
-import com.epages.restdocs.apispec.ResourceSnippetParameters;
 import com.example.order_service.api.cart.controller.CartController;
 import com.example.order_service.api.cart.controller.dto.request.CartRequest;
 import com.example.order_service.api.cart.controller.dto.response.CartResponse;
@@ -15,22 +14,13 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.restdocs.headers.HeaderDescriptor;
-import org.springframework.restdocs.request.ParameterDescriptor;
 
 import java.util.List;
 
-import static com.epages.restdocs.apispec.MockMvcRestDocumentationWrapper.document;
-import static com.epages.restdocs.apispec.ResourceDocumentation.resource;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willDoNothing;
-import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
-import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
-import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
-import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -114,73 +104,18 @@ public class CartControllerDocsTest extends RestDocSupport {
     @DisplayName("장바구니 상품 삭제")
     void removeCartItem() throws Exception {
         //given
-        HttpHeaders roleUser = createUserHeader("ROLE_USER");
-        willDoNothing().given(cartFacade).removeCartItem(anyLong(), anyLong());
-        HeaderDescriptor[] requestHeaders = new HeaderDescriptor[]{
-                headerWithName("Authorization").description("JWT Access Token")
-        };
-        ParameterDescriptor[] pathParameters = new ParameterDescriptor[]{
-                parameterWithName("cartItemId").description("장바구니 상품 ID(장바구니 상품 식별자)")
-        };
-        //when
-        //then
-        mockMvc.perform(delete("/carts/{cartItemId}", 1)
-                        .headers(roleUser))
-                .andDo(print())
-                .andExpect(status().isNoContent())
-                .andDo(document(
-                        "02-cart-03-delete-item",
-                        preprocessRequest(prettyPrint(),
-                                modifyHeaders()
-                                        .remove("X-User-Id")
-                                        .remove("X-User-Role")
-                                        .add("Authorization", "Bearer {ACCESS_TOKEN}")),
-                        resource(
-                                ResourceSnippetParameters.builder()
-                                        .tag(TAG)
-                                        .summary("장바구니 상품 삭제")
-                                        .description("장바구니 상품을 삭제한다")
-                                        .requestHeaders(requestHeaders)
-                                        .pathParameters(pathParameters)
-                                        .build()
-                        ),
-                        requestHeaders(requestHeaders),
-                        pathParameters(pathParameters)
-                ));
-    }
-
-    @Test
-    @DisplayName("장바구니 비우기")
-    void clearCart() throws Exception {
-        //given
-        HttpHeaders roleUser = createUserHeader("ROLE_USER");
-        willDoNothing().given(cartFacade).clearCart(anyLong());
-        HeaderDescriptor[] requestHeaders = new HeaderDescriptor[]{
-                headerWithName("Authorization").description("JWT Access Token")
-        };
+        HttpHeaders roleUser = createAuthHeader("ROLE_USER");
+        willDoNothing().given(cartFacade).removeCartItems(anyLong(), anyList());
         //when
         //then
         mockMvc.perform(delete("/carts")
-                        .headers(roleUser))
+                        .headers(roleUser)
+                        .param("cartItemIds", "1,2,3,4"))
                 .andDo(print())
                 .andExpect(status().isNoContent())
-                .andDo(document(
-                        "02-cart-04-clear",
-                        preprocessRequest(prettyPrint(),
-                                modifyHeaders()
-                                        .remove("X-User-Id")
-                                        .remove("X-User-Role")
-                                        .add("Authorization", "Bearer {ACCESS_TOKEN}")),
-                        resource(
-                                ResourceSnippetParameters.builder()
-                                        .tag(TAG)
-                                        .summary("장바구니 비우기")
-                                        .description("장바구니에 있는 모든 상품을 삭제한다")
-                                        .requestHeaders(requestHeaders)
-                                        .build()
-                        ),
-                        requestHeaders(requestHeaders)
-                ));
+                .andDo(createSecuredDocument("02-cart-03-delete-item",
+                        "장바구니 상품 삭제",
+                        "장바구니 상품을 삭제한다"));
     }
 
     @Test
