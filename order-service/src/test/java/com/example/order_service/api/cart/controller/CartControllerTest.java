@@ -1,11 +1,8 @@
 package com.example.order_service.api.cart.controller;
 
 import com.example.order_service.api.cart.controller.dto.request.CartRequest;
-import com.example.order_service.api.cart.controller.dto.request.UpdateQuantityRequest;
 import com.example.order_service.api.cart.controller.dto.response.CartResponse;
 import com.example.order_service.api.cart.facade.dto.command.CartCommand;
-import com.example.order_service.api.cart.facade.dto.command.UpdateQuantityCommand;
-import com.example.order_service.api.cart.facade.dto.result.CartItemResponse;
 import com.example.order_service.api.cart.facade.dto.result.CartResult;
 import com.example.order_service.api.common.security.model.UserRole;
 import com.example.order_service.api.support.ControllerTestSupport;
@@ -214,7 +211,7 @@ class CartControllerTest extends ControllerTestSupport {
         //when
         //then
         mockMvc.perform(delete("/carts/{cartItemId}", 1)
-                .contentType(MediaType.APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.code").value("FORBIDDEN"))
@@ -248,7 +245,7 @@ class CartControllerTest extends ControllerTestSupport {
         //when
         //then
         mockMvc.perform(delete("/carts")
-                .contentType(MediaType.APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isNoContent());
     }
@@ -286,118 +283,99 @@ class CartControllerTest extends ControllerTestSupport {
                 .andExpect(jsonPath("$.path").value("/carts"));
     }
 
-    @Test
-    @DisplayName("장바구니에 담긴 상품의 수량을 수정한다")
-    @WithCustomMockUser
-    void updateQuantity() throws Exception {
-        //given
-        UpdateQuantityRequest request = UpdateQuantityRequest.builder()
-                .quantity(3)
-                .build();
+    @Nested
+    @DisplayName("장바구니 상품 수량 변경")
+    class UpdateQuantity {
 
-        CartItemResponse response = createCartItemResponse()
-                .quantity(3).lineTotal(2700L * 3).build();
-        given(cartFacade.updateCartItemQuantity(any(UpdateQuantityCommand.class)))
-                .willReturn(response);
-        //when
-        //then
-        mockMvc.perform(patch("/carts/{cartItemId}", 1)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(response)));
-    }
+        @Test
+        @DisplayName("장바구니에 담긴 상품 수량을 수정한다")
+        @WithCustomMockUser
+        void updateQuantity() throws Exception {
+            //given
+            CartRequest.UpdateQuantity request = TestUtil.nonNull(fixtureMonkey.giveMeOne(CartRequest.UpdateQuantity.class));
+            CartResult.Update result = TestUtil.nonNull(fixtureMonkey.giveMeOne(CartResult.Update.class));
+            given(cartFacade.updateCartItemQuantity(any(CartCommand.UpdateQuantity.class)))
+                    .willReturn(result);
+            CartResponse.Update response = CartResponse.Update.from(result);
+            //when
+            //then
+            mockMvc.perform(patch("/carts/{cartItemId}", 1)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andDo(print())
+                    .andExpect(status().isOk())
+                    .andExpect(content().json(objectMapper.writeValueAsString(response)));
+        }
 
-    @Test
-    @DisplayName("장바구니 상품 수량 수정은 유저 권한이여야 한다")
-    @WithCustomMockUser(userRole = UserRole.ROLE_ADMIN)
-    void updateQuantity_Admin_role() throws Exception {
-        //given
-        UpdateQuantityRequest request = UpdateQuantityRequest.builder()
-                .quantity(3)
-                .build();
-        //when
-        //then
-        mockMvc.perform(patch("/carts/{cartItemId}", 1)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andDo(print())
-                .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.code").value("FORBIDDEN"))
-                .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다"))
-                .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.path").value("/carts/1"));
-    }
+        @Test
+        @DisplayName("장바구니 상품 수량 수정은 유저 권한이여야 한다")
+        @WithCustomMockUser(userRole = UserRole.ROLE_ADMIN)
+        void updateQuantity_Admin_role() throws Exception {
+            //given
+            CartRequest.UpdateQuantity request = TestUtil.nonNull(fixtureMonkey.giveMeOne(CartRequest.UpdateQuantity.class));
+            //when
+            //then
+            mockMvc.perform(patch("/carts/{cartItemId}", 1)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andDo(print())
+                    .andExpect(status().isForbidden())
+                    .andExpect(jsonPath("$.code").value("FORBIDDEN"))
+                    .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다"))
+                    .andExpect(jsonPath("$.timestamp").exists())
+                    .andExpect(jsonPath("$.path").value("/carts/1"));
+        }
 
-    @Test
-    @DisplayName("로그인 하지 않은 사용자는 장바구니 상품의 수량을 수정할 수 없다")
-    void updateQuantity_unAuthorized() throws Exception {
-        //given
-        UpdateQuantityRequest request = UpdateQuantityRequest.builder()
-                .quantity(3)
-                .build();
-        //when
-        //then
-        mockMvc.perform(patch("/carts/{cartItemId}", 1)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andDo(print())
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
-                .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다"))
-                .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.path").value("/carts/1"));
-    }
+        @Test
+        @DisplayName("로그인 하지 않은 사용자는 장바구니 상품의 수량을 수정할 수 없다")
+        void updateQuantity_unAuthorized() throws Exception {
+            //given
+            CartRequest.UpdateQuantity request = TestUtil.nonNull(fixtureMonkey.giveMeOne(CartRequest.UpdateQuantity.class));
+            //when
+            //then
+            mockMvc.perform(patch("/carts/{cartItemId}", 1)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andDo(print())
+                    .andExpect(status().isUnauthorized())
+                    .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
+                    .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다"))
+                    .andExpect(jsonPath("$.timestamp").exists())
+                    .andExpect(jsonPath("$.path").value("/carts/1"));
+        }
 
+        @ParameterizedTest(name = "{0}")
+        @DisplayName("장바구니 상품 수량 변경 검증 테스트")
+        @MethodSource("provideInvalidUpdateRequest")
+        @WithCustomMockUser
+        void updateQuantityValidation(String description, CartRequest.UpdateQuantity request, String message) throws Exception {
+            //given
+            //when
+            //then
+            mockMvc.perform(patch("/carts/{cartItemId}", 1)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andDo(print())
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.code").value("VALIDATION"))
+                    .andExpect(jsonPath("$.message").value(message))
+                    .andExpect(jsonPath("$.timestamp").exists())
+                    .andExpect(jsonPath("$.path").value("/carts/1"));
+        }
 
-    @Test
-    @DisplayName("장바구니 상품 수량을 변경할때 수량은 1이상 이여야 한다")
-    @WithCustomMockUser
-    void updateQuantityWithQuantityLessThan1() throws Exception {
-        //given
-        UpdateQuantityRequest request = UpdateQuantityRequest.builder()
-                .quantity(0)
-                .build();
-        //when
-        //then
-        mockMvc.perform(patch("/carts/{cartItemId}", 1)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
-                .andDo(print())
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value("VALIDATION"))
-                .andExpect(jsonPath("$.message").value("quantity는 1이상 이여야 합니다"))
-                .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.path").value("/carts/1"));
-    }
-
-    private CartItemResponse.CartItemResponseBuilder createCartItemResponse() {
-        return CartItemResponse
-                .builder()
-                .id(1L)
-                .productId(1L)
-                .productVariantId(1L)
-                .productName("상품1")
-                .thumbnailUrl("http://thumbnail.jpg")
-                .quantity(1)
-                .price(
-                        CartItemResponse.CartItemPrice.builder()
-                                .originalPrice(3000L)
-                                .discountRate(10)
-                                .discountAmount(300L)
-                                .discountedPrice(2700L)
-                                .build()
-                )
-                .lineTotal(2700L)
-                .options(
-                        List.of(CartItemResponse.CartItemOption
-                                .builder()
-                                .optionTypeName("사이즈")
-                                .optionValueName("XL")
-                                .build()
-                        )
-                )
-                .isAvailable(true);
+        private static Stream<Arguments> provideInvalidUpdateRequest() {
+            return Stream.of(
+                    Arguments.of(
+                            "수량이 null",
+                            CartRequest.UpdateQuantity.builder().quantity(null).build(),
+                            "수량은 필수값 입니다"
+                    ),
+                    Arguments.of(
+                            "수량이 1미만",
+                            CartRequest.UpdateQuantity.builder().quantity(0).build(),
+                            "수량은 1이상이여야 합니다"
+                    )
+            );
+        }
     }
 }

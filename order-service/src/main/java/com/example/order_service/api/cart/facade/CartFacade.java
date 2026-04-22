@@ -6,8 +6,6 @@ import com.example.order_service.api.cart.domain.service.CartService;
 import com.example.order_service.api.cart.domain.service.dto.result.CartItemDto;
 import com.example.order_service.api.cart.domain.service.dto.result.CartProductInfo;
 import com.example.order_service.api.cart.facade.dto.command.CartCommand;
-import com.example.order_service.api.cart.facade.dto.command.UpdateQuantityCommand;
-import com.example.order_service.api.cart.facade.dto.result.CartItemResponse;
 import com.example.order_service.api.cart.facade.dto.result.CartItemStatus;
 import com.example.order_service.api.cart.facade.dto.result.CartResult;
 import com.example.order_service.api.common.exception.BusinessException;
@@ -57,11 +55,9 @@ public class CartFacade {
         return CartResult.Cart.from(cartItemResults);
     }
 
-    public CartItemResponse updateCartItemQuantity(UpdateQuantityCommand dto){
-        CartItemDto cartItem = cartService.getCartItem(dto.getUserId(), dto.getCartItemId());
-        CartProductInfo productInfo = cartProductService.getProductInfo(cartItem.getProductVariantId());
-        CartItemDto cartItemDto = cartService.updateQuantity(dto.getUserId(), cartItem.getId(), dto.getQuantity());
-        return CartItemResponse.available(cartItemDto, productInfo);
+    public CartResult.Update updateCartItemQuantity(CartCommand.UpdateQuantity command){
+        CartItemDto cartItemDto = cartService.updateQuantity(command.userId(), command.cartItemId(), command.quantity());
+        return CartResult.Update.from(cartItemDto);
     }
 
     public void removeCartItem(Long userId, Long cartItemId){

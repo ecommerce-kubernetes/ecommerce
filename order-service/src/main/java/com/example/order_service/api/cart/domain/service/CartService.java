@@ -34,9 +34,7 @@ public class CartService {
     @Transactional(readOnly = true)
     public CartItemDto getCartItem(Long userId, Long cartItemId){
         CartItem cartItem = getCartItemByCartItemId(cartItemId);
-        if (!cartItem.getCart().isOwner(userId)){
-            throw new BusinessException(CartErrorCode.CART_NO_PERMISSION);
-        }
+        validateCartUserId(cartItem, userId);
         return CartItemDto.from(cartItem);
     }
 

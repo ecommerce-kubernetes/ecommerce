@@ -20,6 +20,19 @@ public class CartResponse {
     }
 
     @Builder
+    public record Update(
+            Long id,
+            int quantity
+    ) {
+        public static Update from(CartResult.Update result) {
+            return Update.builder()
+                    .id(result.id())
+                    .quantity(result.quantity())
+                    .build();
+        }
+    }
+
+    @Builder
     public record Detail (
             Long id,
             CartItemStatus status,

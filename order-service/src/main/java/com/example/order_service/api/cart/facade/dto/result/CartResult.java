@@ -30,6 +30,19 @@ public class CartResult {
     }
 
     @Builder
+    public record Update (
+            Long id,
+            int quantity
+    ) {
+        public static Update from(CartItemDto cartItemDto) {
+            return Update.builder()
+                    .id(cartItemDto.getId())
+                    .quantity(cartItemDto.getQuantity())
+                    .build();
+        }
+    }
+
+    @Builder
     public record CartItemResult(
             Long id,
             CartItemStatus status,

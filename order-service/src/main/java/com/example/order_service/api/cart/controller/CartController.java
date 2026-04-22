@@ -1,12 +1,9 @@
 package com.example.order_service.api.cart.controller;
 
 import com.example.order_service.api.cart.controller.dto.request.CartRequest;
-import com.example.order_service.api.cart.controller.dto.request.UpdateQuantityRequest;
 import com.example.order_service.api.cart.controller.dto.response.CartResponse;
 import com.example.order_service.api.cart.facade.CartFacade;
 import com.example.order_service.api.cart.facade.dto.command.CartCommand;
-import com.example.order_service.api.cart.facade.dto.command.UpdateQuantityCommand;
-import com.example.order_service.api.cart.facade.dto.result.CartItemResponse;
 import com.example.order_service.api.cart.facade.dto.result.CartResult;
 import com.example.order_service.api.common.security.model.UserPrincipal;
 import lombok.RequiredArgsConstructor;
@@ -44,11 +41,12 @@ public class CartController {
     }
 
     @PatchMapping("/{cartItemId}")
-    public ResponseEntity<CartItemResponse> updateQuantity(@AuthenticationPrincipal UserPrincipal userPrincipal,
+    public ResponseEntity<CartResponse.Update> updateQuantity(@AuthenticationPrincipal UserPrincipal userPrincipal,
                                                            @PathVariable("cartItemId") Long cartItemId,
-                                                           @RequestBody @Validated UpdateQuantityRequest request){
-        UpdateQuantityCommand updateQuantityCommand = UpdateQuantityCommand.of(userPrincipal.getUserId(), cartItemId, request);
-        CartItemResponse response = cartFacade.updateCartItemQuantity(updateQuantityCommand);
+                                                           @RequestBody @Validated CartRequest.UpdateQuantity request){
+        CartCommand.UpdateQuantity command = request.toCommand(userPrincipal.getUserId(), cartItemId);
+        CartResult.Update result = cartFacade.updateCartItemQuantity(command);
+        CartResponse.Update response = CartResponse.Update.from(result);
         return ResponseEntity.ok(response);
     }
 
