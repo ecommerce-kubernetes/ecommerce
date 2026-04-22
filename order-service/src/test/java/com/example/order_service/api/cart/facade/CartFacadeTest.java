@@ -103,7 +103,7 @@ public class CartFacadeTest extends BaseTestSupport {
             given(cartService.addItemToCart(any(CartCommand.AddItems.class)))
                     .willReturn(List.of(firstDto, secondDto));
             //when
-            CartResult.CartAddResult result = cartFacade.addItems(command);
+            CartResult.Cart result = cartFacade.addItems(command);
             //then
             assertThat(result.items()).hasSize(2);
             assertThat(result.items())
@@ -131,9 +131,6 @@ public class CartFacadeTest extends BaseTestSupport {
             CartResult.Cart result = cartFacade.getCartDetails(1L);
             //then
             assertThat(result.items()).isEmpty();
-            assertThat(result.totalOriginalPrice()).isEqualTo(0);
-            assertThat(result.totalDiscountAmount()).isEqualTo(0);
-            assertThat(result.totalFinalPrice()).isEqualTo(0);
         }
 
         @Test

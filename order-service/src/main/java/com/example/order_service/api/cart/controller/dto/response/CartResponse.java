@@ -10,27 +10,10 @@ public class CartResponse {
 
     @Builder
     public record Cart(
-            List<Detail> items,
-            long totalOriginalPrice,
-            long totalDiscountAmount,
-            long totalFinalPrice
+            List<Detail> items
     ) {
         public static Cart from(CartResult.Cart result) {
             return Cart.builder()
-                    .items(Detail.from(result.items()))
-                    .totalOriginalPrice(result.totalOriginalPrice())
-                    .totalDiscountAmount(result.totalDiscountAmount())
-                    .totalFinalPrice(result.totalFinalPrice())
-                    .build();
-        }
-    }
-
-    @Builder
-    public record CartItems(
-            List<Detail> items
-    ) {
-        public static CartItems from(CartResult.CartAddResult result) {
-            return CartItems.builder()
                     .items(Detail.from(result.items()))
                     .build();
         }

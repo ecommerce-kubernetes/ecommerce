@@ -28,7 +28,7 @@ public class CartFacade {
     private final CartService cartService;
     private final CartProductService cartProductService;
 
-    public CartResult.CartAddResult addItems(CartCommand.AddItems command) {
+    public CartResult.Cart addItems(CartCommand.AddItems command) {
         List<Long> requestedIds = command.items().stream().map(CartCommand.Item::productVariantId).toList();
         List<CartProductInfo> productInfos = cartProductService.getProductInfos(requestedIds);
         //검증 로직
@@ -42,7 +42,7 @@ public class CartFacade {
         }
         List<CartItemDto> cartItems = cartService.addItemToCart(command);
         List<CartResult.CartItemResult> cartItemResults = mapToCartItemResult(cartItems, productInfos);
-        return CartResult.CartAddResult.from(cartItemResults);
+        return CartResult.Cart.from(cartItemResults);
     }
 
     public CartResult.Cart getCartDetails(Long userId){

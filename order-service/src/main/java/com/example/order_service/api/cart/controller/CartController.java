@@ -28,11 +28,11 @@ public class CartController {
     private final CartFacade cartFacade;
 
     @PostMapping
-    public ResponseEntity<CartResponse.CartItems> addCartItem(@AuthenticationPrincipal UserPrincipal userPrincipal,
+    public ResponseEntity<CartResponse.Cart> addCartItem(@AuthenticationPrincipal UserPrincipal userPrincipal,
                                                     @RequestBody @Validated CartRequest.AddItems request){
         CartCommand.AddItems command = request.toCommand(userPrincipal.getUserId());
-        CartResult.CartAddResult result = cartFacade.addItems(command);
-        CartResponse.CartItems response = CartResponse.CartItems.from(result);
+        CartResult.Cart result = cartFacade.addItems(command);
+        CartResponse.Cart response = CartResponse.Cart.from(result);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 

@@ -69,10 +69,10 @@ public class CartControllerDocsTest extends RestDocSupport {
                 .build();
 
         HttpHeaders roleUser = createAuthHeader("ROLE_USER");
-        CartResult.CartAddResult result = createCartAddResult();
+        CartResult.Cart result = createCartAddResult();
         given(cartFacade.addItems(any(CartCommand.AddItems.class)))
                 .willReturn(result);
-        CartResponse.CartItems response = CartResponse.CartItems.from(result);
+        CartResponse.Cart response = CartResponse.Cart.from(result);
         //when
         //then
         mockMvc.perform(post("/carts")
@@ -298,7 +298,7 @@ public class CartControllerDocsTest extends RestDocSupport {
 
     }
 
-    private CartResult.CartAddResult createCartAddResult(){
+    private CartResult.Cart createCartAddResult(){
         CartResult.CartItemResult cartResult = CartResult.CartItemResult.builder()
                 .id(1L)
                 .productId(1L)
@@ -326,7 +326,7 @@ public class CartControllerDocsTest extends RestDocSupport {
                         )
                 )
                 .build();
-        return CartResult.CartAddResult.builder().items(List.of(cartResult)).build();
+        return CartResult.Cart.builder().items(List.of(cartResult)).build();
     }
 
     private CartResult.Cart createCartResult() {
@@ -358,9 +358,6 @@ public class CartControllerDocsTest extends RestDocSupport {
                 )
                 .build();
         return CartResult.Cart.builder().items(List.of(cartResult))
-                .totalOriginalPrice(6000)
-                .totalDiscountAmount(600)
-                .totalFinalPrice(5400)
                 .build();
     }
 }

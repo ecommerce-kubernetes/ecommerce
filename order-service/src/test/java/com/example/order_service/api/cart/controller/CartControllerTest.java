@@ -45,10 +45,10 @@ class CartControllerTest extends ControllerTestSupport {
         void addCartItem() throws Exception {
             //given
             CartRequest.AddItems request = TestUtil.nonNull(fixtureMonkey.giveMeOne(CartRequest.AddItems.class));
-            CartResult.CartAddResult result = TestUtil.nonNull(fixtureMonkey.giveMeOne(CartResult.CartAddResult.class));
+            CartResult.Cart result = TestUtil.nonNull(fixtureMonkey.giveMeOne(CartResult.Cart.class));
             given(cartFacade.addItems(any(CartCommand.AddItems.class)))
                     .willReturn(result);
-            CartResponse.CartItems response = CartResponse.CartItems.from(result);
+            CartResponse.Cart response = CartResponse.Cart.from(result);
             //when
             //then
             mockMvc.perform(post("/carts")

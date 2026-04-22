@@ -49,10 +49,7 @@ public class CartDescriptor {
                 fieldWithPath("items[].price.discountedPrice").description("할인된 가격"),
                 fieldWithPath("items[].lineTotal").description("항목 총액 (상품 할인 가격 X 수량)"),
                 fieldWithPath("items[].options[].optionTypeName").description("상품 옵션 타입 (예: 사이즈)"),
-                fieldWithPath("items[].options[].optionValueName").description("상품 옵션 값 (예: XL)"),
-                fieldWithPath("totalOriginalPrice").description("총 상품 금액"),
-                fieldWithPath("totalDiscountAmount").description("총 할인 금액"),
-                fieldWithPath("totalFinalPrice").description("총 결제 예상 금액")
+                fieldWithPath("items[].options[].optionValueName").description("상품 옵션 값 (예: XL)")
         };
     }
 }
