@@ -6,9 +6,6 @@ import com.example.order_service.api.cart.domain.service.CartService;
 import com.example.order_service.api.cart.domain.service.dto.result.CartItemDto;
 import com.example.order_service.api.cart.domain.service.dto.result.CartProductInfo;
 import com.example.order_service.api.cart.facade.dto.command.CartCommand;
-import com.example.order_service.api.cart.facade.dto.command.UpdateQuantityCommand;
-import com.example.order_service.api.cart.facade.dto.result.CartItemResponse;
-import com.example.order_service.api.cart.facade.dto.result.CartItemStatus;
 import com.example.order_service.api.cart.facade.dto.result.CartResult;
 import com.example.order_service.api.common.exception.BusinessException;
 import com.example.order_service.api.common.exception.CartErrorCode;
@@ -22,9 +19,6 @@ import org.mockito.Mock;
 
 import java.util.List;
 
-import static com.example.order_service.api.support.fixture.cart.CartCommandFixture.anUpdateQuantityCommand;
-import static com.example.order_service.api.support.fixture.cart.CartFixture.anCartItemDto;
-import static com.example.order_service.api.support.fixture.cart.CartProductFixture.anCartProductInfo;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.*;
@@ -69,7 +63,7 @@ public class CartFacadeTest extends BaseTestSupport {
 
         @Test
         @DisplayName("장바구니에 상품이 추가되면 상품 정보가 포함된 응답값을 반환한다")
-        void addItem(){
+        void addItem() {
             //given
             CartCommand.AddItems command = TestUtil.sample(fixtureMonkey.giveMeBuilder(CartCommand.AddItems.class)
                     .size("items", 2));
@@ -103,7 +97,7 @@ public class CartFacadeTest extends BaseTestSupport {
             given(cartService.addItemToCart(any(CartCommand.AddItems.class)))
                     .willReturn(List.of(firstDto, secondDto));
             //when
-            CartResult.CartAddResult result = cartFacade.addItems(command);
+            CartResult.Cart result = cartFacade.addItems(command);
             //then
             assertThat(result.items()).hasSize(2);
             assertThat(result.items())
@@ -123,7 +117,7 @@ public class CartFacadeTest extends BaseTestSupport {
 
         @Test
         @DisplayName("장바구니에 담긴 상품이 없는 경우 빈 리스트를 반환한다")
-        void getCartDetails_empty_cart(){
+        void getCartDetails_empty_cart() {
             //given
             given(cartService.getCartItems(anyLong()))
                     .willReturn(List.of());
@@ -131,14 +125,11 @@ public class CartFacadeTest extends BaseTestSupport {
             CartResult.Cart result = cartFacade.getCartDetails(1L);
             //then
             assertThat(result.items()).isEmpty();
-            assertThat(result.totalOriginalPrice()).isEqualTo(0);
-            assertThat(result.totalDiscountAmount()).isEqualTo(0);
-            assertThat(result.totalFinalPrice()).isEqualTo(0);
         }
 
         @Test
         @DisplayName("장바구니 목록을 조회한다")
-        void getCartDetails(){
+        void getCartDetails() {
             //given
             List<CartItemDto> cartItems = List.of(
                     TestUtil.sample(fixtureMonkey.giveMeBuilder(CartItemDto.class).set("productVariantId", 1L)),
@@ -176,22 +167,26 @@ public class CartFacadeTest extends BaseTestSupport {
     class Update {
 
         @Test
-        @DisplayName("장바구니에 상품 수량을 수정하고 수정된 상품 정보가 포함된 응답을 반환한다")
+        @DisplayName("장바구니에 상품 수량을 변경한다")
         void updateCartItemQuantity() {
             //given
-            UpdateQuantityCommand command = anUpdateQuantityCommand().quantity(2).build();
-            CartItemDto cartItem = anCartItemDto().build();
-            CartItemDto updatedCartItem = anCartItemDto().quantity(2).build();
-            CartProductInfo product = anCartProductInfo().build();
-            given(cartService.getCartItem(anyLong(), anyLong())).willReturn(cartItem);
-            given(cartProductService.getProductInfo(anyLong())).willReturn(product);
+            CartCommand.UpdateQuantity command = CartCommand.UpdateQuantity.builder()
+                    .userId(1L)
+                    .cartItemId(1L)
+                    .quantity(3)
+                    .build();
+            CartItemDto updatedCartItem = CartItemDto.builder()
+                    .id(1L)
+                    .productVariantId(1L)
+                    .quantity(3)
+                    .build();
             given(cartService.updateQuantity(anyLong(), anyLong(), anyInt())).willReturn(updatedCartItem);
             //when
-            CartItemResponse result = cartFacade.updateCartItemQuantity(command);
+            CartResult.Update result = cartFacade.updateCartItemQuantity(command);
             //then
             assertThat(result)
-                    .extracting(CartItemResponse::getId, CartItemResponse::getQuantity, CartItemResponse::getLineTotal, CartItemResponse::getStatus)
-                    .containsExactly(1L, 2, 18000L, CartItemStatus.AVAILABLE);
+                    .extracting(CartResult.Update::id, CartResult.Update::quantity)
+                    .containsExactly(1L, 3);
         }
     }
 
@@ -201,30 +196,18 @@ public class CartFacadeTest extends BaseTestSupport {
 
         @Test
         @DisplayName("장바구니에 담긴 상품을 삭제한다")
-        void removeCartItem(){
+        void removeCartItem() {
             //given
-            willDoNothing().given(cartService).deleteCartItem(anyLong(), anyLong());
+            willDoNothing().given(cartService).deleteCartItems(anyLong(), anyList());
             //when
-            cartFacade.removeCartItem(1L, 1L);
+            cartFacade.removeCartItems(1L, List.of(1L, 2L));
             //then
-            verify(cartService).deleteCartItem(1L, 1L);
-        }
-
-        @Test
-        @DisplayName("장바구니를 비운다")
-        void clearCart(){
-            //given
-            willDoNothing().given(cartService).clearCart(anyLong());
-            //when
-            cartFacade.clearCart(1L);
-            //then
-            verify(cartService)
-                    .clearCart(1L);
+            verify(cartService).deleteCartItems(1L, List.of(1L, 2L));
         }
 
         @Test
         @DisplayName("결제가 완료하면 주문한 상품을 장바구니에서 지운다")
-        void removePurchasedItems(){
+        void removePurchasedItems() {
             //given
             Long userId = 1L;
             List<Long> productVariantIds = List.of(1L, 2L);

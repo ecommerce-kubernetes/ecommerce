@@ -302,9 +302,10 @@ class CartServiceTest extends ExcludeInfraTest {
             Cart cart = Cart.create(1L);
             CartItem item1 = cart.addItem(1L, 3);
             CartItem item2 = cart.addItem(2L, 2);
+            CartItem item3 = cart.addItem(3L, 1);
             cartRepository.save(cart);
             //when
-            cartService.deleteCartItem(1L, item1.getId());
+            cartService.deleteCartItems(1L, List.of(item1.getId(), item2.getId()));
             em.flush(); em.clear();
             //then
             Optional<Cart> findCart = cartRepository.findByUserId(1L);
@@ -312,35 +313,25 @@ class CartServiceTest extends ExcludeInfraTest {
             assertThat(findCart.get().getCartItems()).hasSize(1)
                     .extracting(CartItem::getId, CartItem::getProductVariantId, CartItem::getQuantity)
                     .containsExactly(
-                            tuple(item2.getId(), item2.getProductVariantId(), item2.getQuantity())
+                            tuple(item3.getId(), item3.getProductVariantId(), item3.getQuantity())
                     );
         }
 
         @Test
-        @DisplayName("찾을 수 없는 상품은 삭제할 수 없다")
-        void deleteCartItem_not_found_cartItem(){
-            //given
-            //when
-            //then
-            assertThatThrownBy(() -> cartService.deleteCartItem(1L, 1L))
-                    .isInstanceOf(BusinessException.class)
-                    .extracting("errorCode")
-                    .isEqualTo(CartErrorCode.CART_ITEM_NOT_FOUND);
-        }
-
-        @Test
-        @DisplayName("자신의 장바구니가 아니면 장바구니 상품을 삭제할 수 없다")
+        @DisplayName("자신의 장바구니가 아니면 장바구니 상품이 삭제 되지 않는다")
         void deleteCartItem_cart_userId_missMatch(){
             //given
             Cart cart = Cart.create(1L);
-            CartItem item = cart.addItem(1L, 3);
+            CartItem item1 = cart.addItem(1L, 3);
+            CartItem item2 = cart.addItem(2L, 3);
             cartRepository.save(cart);
             //when
+            cartService.deleteCartItems(999L, List.of(item1.getId(), item2.getId()));
+            em.flush(); em.clear();
             //then
-            assertThatThrownBy(() -> cartService.deleteCartItem(999L, item.getId()))
-                    .isInstanceOf(BusinessException.class)
-                    .extracting("errorCode")
-                    .isEqualTo(CartErrorCode.CART_NO_PERMISSION);
+            Optional<Cart> findCart = cartRepository.findByUserId(1L);
+            assertThat(findCart).isNotEmpty();
+            assertThat(findCart.get().getCartItems()).hasSize(2);
         }
 
         @Test
@@ -362,27 +353,6 @@ class CartServiceTest extends ExcludeInfraTest {
                     .containsExactly(
                             tuple(item2.getId(), item2.getProductVariantId(), item2.getQuantity())
                     );
-        }
-    }
-
-    @Nested
-    @DisplayName("장바구니 비우기")
-    class ClearCart {
-
-        @Test
-        @DisplayName("장바구니를 모두 비운다")
-        void clearCart(){
-            //given
-            Cart cart = Cart.create(1L);
-            cart.addItem(1L, 2);
-            cart.addItem(2L, 2);
-            cartRepository.save(cart);
-            //when
-            cartService.clearCart(1L);
-            //then
-            Optional<Cart> findCart = cartRepository.findWithItemsByUserId(1L);
-            assertThat(findCart).isNotEmpty();
-            assertThat(findCart.get().getCartItems()).hasSize(0);
         }
     }
 }
