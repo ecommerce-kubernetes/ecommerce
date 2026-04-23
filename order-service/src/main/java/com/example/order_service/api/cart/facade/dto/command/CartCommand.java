@@ -17,4 +17,11 @@ public class CartCommand {
             Long productVariantId,
             Integer quantity
     ) {}
+
+    @Builder
+    public record UpdateQuantity(
+            Long userId,
+            Long cartItemId,
+            Integer quantity
+    ) {}
 }

@@ -6,8 +6,6 @@ import com.example.order_service.api.cart.domain.service.CartService;
 import com.example.order_service.api.cart.domain.service.dto.result.CartItemDto;
 import com.example.order_service.api.cart.domain.service.dto.result.CartProductInfo;
 import com.example.order_service.api.cart.facade.dto.command.CartCommand;
-import com.example.order_service.api.cart.facade.dto.command.UpdateQuantityCommand;
-import com.example.order_service.api.cart.facade.dto.result.CartItemResponse;
 import com.example.order_service.api.cart.facade.dto.result.CartItemStatus;
 import com.example.order_service.api.cart.facade.dto.result.CartResult;
 import com.example.order_service.api.common.exception.BusinessException;
@@ -28,7 +26,7 @@ public class CartFacade {
     private final CartService cartService;
     private final CartProductService cartProductService;
 
-    public CartResult.CartAddResult addItems(CartCommand.AddItems command) {
+    public CartResult.Cart addItems(CartCommand.AddItems command) {
         List<Long> requestedIds = command.items().stream().map(CartCommand.Item::productVariantId).toList();
         List<CartProductInfo> productInfos = cartProductService.getProductInfos(requestedIds);
         //검증 로직
@@ -42,7 +40,7 @@ public class CartFacade {
         }
         List<CartItemDto> cartItems = cartService.addItemToCart(command);
         List<CartResult.CartItemResult> cartItemResults = mapToCartItemResult(cartItems, productInfos);
-        return CartResult.CartAddResult.from(cartItemResults);
+        return CartResult.Cart.from(cartItemResults);
     }
 
     public CartResult.Cart getCartDetails(Long userId){
@@ -57,19 +55,13 @@ public class CartFacade {
         return CartResult.Cart.from(cartItemResults);
     }
 
-    public CartItemResponse updateCartItemQuantity(UpdateQuantityCommand dto){
-        CartItemDto cartItem = cartService.getCartItem(dto.getUserId(), dto.getCartItemId());
-        CartProductInfo productInfo = cartProductService.getProductInfo(cartItem.getProductVariantId());
-        CartItemDto cartItemDto = cartService.updateQuantity(dto.getUserId(), cartItem.getId(), dto.getQuantity());
-        return CartItemResponse.available(cartItemDto, productInfo);
+    public CartResult.Update updateCartItemQuantity(CartCommand.UpdateQuantity command){
+        CartItemDto cartItemDto = cartService.updateQuantity(command.userId(), command.cartItemId(), command.quantity());
+        return CartResult.Update.from(cartItemDto);
     }
 
-    public void removeCartItem(Long userId, Long cartItemId){
-        cartService.deleteCartItem(userId, cartItemId);
-    }
-
-    public void clearCart(Long userId){
-        cartService.clearCart(userId);
+    public void removeCartItems(Long userId, List<Long> cartItemIds){
+        cartService.deleteCartItems(userId, cartItemIds);
     }
 
     public void removePurchasedItems(Long userId, List<Long> productVariantIds) {
