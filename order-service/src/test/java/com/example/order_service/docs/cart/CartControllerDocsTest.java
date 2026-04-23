@@ -1,14 +1,10 @@
 package com.example.order_service.docs.cart;
 
-import com.epages.restdocs.apispec.ResourceSnippetParameters;
 import com.example.order_service.api.cart.controller.CartController;
 import com.example.order_service.api.cart.controller.dto.request.CartRequest;
-import com.example.order_service.api.cart.controller.dto.request.UpdateQuantityRequest;
 import com.example.order_service.api.cart.controller.dto.response.CartResponse;
 import com.example.order_service.api.cart.facade.CartFacade;
 import com.example.order_service.api.cart.facade.dto.command.CartCommand;
-import com.example.order_service.api.cart.facade.dto.command.UpdateQuantityCommand;
-import com.example.order_service.api.cart.facade.dto.result.CartItemResponse;
 import com.example.order_service.api.cart.facade.dto.result.CartItemStatus;
 import com.example.order_service.api.cart.facade.dto.result.CartResult;
 import com.example.order_service.docs.RestDocSupport;
@@ -18,24 +14,13 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.restdocs.headers.HeaderDescriptor;
-import org.springframework.restdocs.payload.FieldDescriptor;
-import org.springframework.restdocs.request.ParameterDescriptor;
 
 import java.util.List;
 
-import static com.epages.restdocs.apispec.MockMvcRestDocumentationWrapper.document;
-import static com.epages.restdocs.apispec.ResourceDocumentation.resource;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willDoNothing;
-import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
-import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
-import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
-import static org.springframework.restdocs.payload.PayloadDocumentation.*;
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
-import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -51,6 +36,7 @@ public class CartControllerDocsTest extends RestDocSupport {
     }
 
     private static final String TAG = "CART";
+
     @Override
     protected Object initController() {
         return new CartController(cartFacade);
@@ -69,24 +55,24 @@ public class CartControllerDocsTest extends RestDocSupport {
                 .build();
 
         HttpHeaders roleUser = createAuthHeader("ROLE_USER");
-        CartResult.CartAddResult result = createCartAddResult();
+        CartResult.Cart result = createCartAddResult();
         given(cartFacade.addItems(any(CartCommand.AddItems.class)))
                 .willReturn(result);
-        CartResponse.CartItems response = CartResponse.CartItems.from(result);
+        CartResponse.Cart response = CartResponse.Cart.from(result);
         //when
         //then
         mockMvc.perform(post("/carts")
-                .contentType(MediaType.APPLICATION_JSON)
-                .headers(roleUser)
-                .content(objectMapper.writeValueAsString(request)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .headers(roleUser)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
                 .andExpect(status().isCreated())
                 .andExpect(content().json(objectMapper.writeValueAsString(response)))
                 .andDo(createSecuredDocument("02-cart-01-add-cartItem",
-                                "장바구니 상품 추가",
-                                "장바구니에 상품을 추가",
-                                CartDescriptor.getAddCartItemRequest(),
-                                CartDescriptor.getAddCartItemResponse())
+                        "장바구니 상품 추가",
+                        "장바구니에 상품을 추가",
+                        CartDescriptor.getAddCartItemRequest(),
+                        CartDescriptor.getCartItemResponse())
                 );
     }
 
@@ -103,202 +89,78 @@ public class CartControllerDocsTest extends RestDocSupport {
         //when
         //then
         mockMvc.perform(get("/carts")
-                .contentType(MediaType.APPLICATION_JSON)
-                .headers(roleUser))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .headers(roleUser))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().json(objectMapper.writeValueAsString(response)))
                 .andDo(createSecuredDocument("02-cart-02-get-list",
-                                "장바구니 목록 조회",
-                                "장바구니 상품 목록을 조회한다",
-                                CartDescriptor.getCartResponse()));
+                        "장바구니 목록 조회",
+                        "장바구니 상품 목록을 조회한다",
+                        CartDescriptor.getCartItemResponse()));
     }
 
     @Test
     @DisplayName("장바구니 상품 삭제")
     void removeCartItem() throws Exception {
         //given
-        HttpHeaders roleUser = createUserHeader("ROLE_USER");
-        willDoNothing().given(cartFacade).removeCartItem(anyLong(), anyLong());
-        HeaderDescriptor[] requestHeaders = new HeaderDescriptor[] {
-                headerWithName("Authorization").description("JWT Access Token")
-        };
-        ParameterDescriptor[] pathParameters = new ParameterDescriptor[] {
-                parameterWithName("cartItemId").description("장바구니 상품 ID(장바구니 상품 식별자)")
-        };
-        //when
-        //then
-        mockMvc.perform(delete("/carts/{cartItemId}", 1)
-                .headers(roleUser))
-                .andDo(print())
-                .andExpect(status().isNoContent())
-                .andDo(document(
-                        "02-cart-03-delete-item",
-                        preprocessRequest(prettyPrint(),
-                                modifyHeaders()
-                                        .remove("X-User-Id")
-                                        .remove("X-User-Role")
-                                        .add("Authorization", "Bearer {ACCESS_TOKEN}")),
-                        resource(
-                                ResourceSnippetParameters.builder()
-                                        .tag(TAG)
-                                        .summary("장바구니 상품 삭제")
-                                        .description("장바구니 상품을 삭제한다")
-                                        .requestHeaders(requestHeaders)
-                                        .pathParameters(pathParameters)
-                                        .build()
-                        ),
-                        requestHeaders(requestHeaders),
-                        pathParameters(pathParameters)
-                ));
-    }
-
-    @Test
-    @DisplayName("장바구니 비우기")
-    void clearCart() throws Exception {
-        //given
-        HttpHeaders roleUser = createUserHeader("ROLE_USER");
-        willDoNothing().given(cartFacade).clearCart(anyLong());
-        HeaderDescriptor[] requestHeaders = new HeaderDescriptor[] {
-                headerWithName("Authorization").description("JWT Access Token")
-        };
+        HttpHeaders roleUser = createAuthHeader("ROLE_USER");
+        willDoNothing().given(cartFacade).removeCartItems(anyLong(), anyList());
         //when
         //then
         mockMvc.perform(delete("/carts")
-                .headers(roleUser))
+                        .headers(roleUser)
+                        .param("cartItemIds", "1,2,3,4"))
                 .andDo(print())
                 .andExpect(status().isNoContent())
-                .andDo(document(
-                        "02-cart-04-clear",
-                        preprocessRequest(prettyPrint(),
-                                modifyHeaders()
-                                        .remove("X-User-Id")
-                                        .remove("X-User-Role")
-                                        .add("Authorization", "Bearer {ACCESS_TOKEN}")),
-                        resource(
-                                ResourceSnippetParameters.builder()
-                                        .tag(TAG)
-                                        .summary("장바구니 비우기")
-                                        .description("장바구니에 있는 모든 상품을 삭제한다")
-                                        .requestHeaders(requestHeaders)
-                                        .build()
-                        ),
-                        requestHeaders(requestHeaders)
-                ));
+                .andDo(createSecuredDocument("02-cart-03-delete-item",
+                        "장바구니 상품 삭제",
+                        "장바구니 상품을 삭제한다"));
     }
 
     @Test
     @DisplayName("장바구니 상품 수량 변경")
     void updateQuantity() throws Exception {
         //given
-        HttpHeaders roleUser = createUserHeader("ROLE_USER");
-        UpdateQuantityRequest request = UpdateQuantityRequest.builder()
+        HttpHeaders roleUser = createAuthHeader("ROLE_USER");
+        CartRequest.UpdateQuantity request = CartRequest.UpdateQuantity.builder()
                 .quantity(3)
                 .build();
-        CartItemResponse cartItemResponse = createCartItemResponse();
-        given(cartFacade.updateCartItemQuantity(any(UpdateQuantityCommand.class)))
-                .willReturn(cartItemResponse);
+        CartResult.Update result = CartResult.Update.builder()
+                .id(1L)
+                .quantity(3)
+                .build();
+        given(cartFacade.updateCartItemQuantity(any(CartCommand.UpdateQuantity.class)))
+                .willReturn(result);
 
-        HeaderDescriptor[] requestHeaders = new HeaderDescriptor[] {
-                headerWithName("Authorization").description("JWT Access Token")
-        };
-
-        ParameterDescriptor[] pathParameters = new ParameterDescriptor[] {
-                parameterWithName("cartItemId").description("장바구니 상품 ID(장바구니 상품 식별자)")
-        };
-
-        FieldDescriptor[] requestFields = new FieldDescriptor[] {
-                fieldWithPath("quantity").description("변경할 수량")
-        };
-
-        FieldDescriptor[] responseFields = new FieldDescriptor[] {
-                fieldWithPath("id").description("장바구니 상품 ID(장바구니 상품 식별자)"),
-                fieldWithPath("status").description("장바구니 상품 상태"),
-                fieldWithPath("productId").description("상품 ID(상품 식별자)"),
-                fieldWithPath("productVariantId").description("상품 변형 ID"),
-                fieldWithPath("productName").description("상품 이름"),
-                fieldWithPath("thumbnailUrl").description("상품 썸네일"),
-                fieldWithPath("quantity").description("수량"),
-                fieldWithPath("price.originalPrice").description("상품 원본 가격"),
-                fieldWithPath("price.discountRate").description("상품 할인율"),
-                fieldWithPath("price.discountAmount").description("상품 할인 금액"),
-                fieldWithPath("price.discountedPrice").description("할인된 가격"),
-                fieldWithPath("lineTotal").description("항목 총액 (상품 할인 가격 X 수량)"),
-                fieldWithPath("options[].optionTypeName").description("상품 옵션 타입 (예: 사이즈)"),
-                fieldWithPath("options[].optionValueName").description("상품 옵션 값 (예: XL)"),
-                fieldWithPath("available").description("주문 가능 여부")
-        };
 
         //when
         //then
         mockMvc.perform(patch("/carts/{cartItemId}", 1)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
-                .headers(roleUser))
+                        .headers(roleUser))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andDo(
-                        document("02-cart-05-update-quantity",
-                                preprocessRequest(prettyPrint(),
-                                        modifyHeaders()
-                                                .remove("X-User-Id")
-                                                .remove("X-User-Role")
-                                                .add("Authorization", "Bearer {ACCESS_TOKEN}")),
-                                preprocessResponse(prettyPrint()),
-                                resource(
-                                        ResourceSnippetParameters.builder()
-                                                .tag(TAG)
-                                                .summary("장바구니 상품 수량 변경")
-                                                .description("장바구니의 상품 수량을 변경한다")
-                                                .requestHeaders(requestHeaders)
-                                                .pathParameters(pathParameters)
-                                                .requestFields(requestFields)
-                                                .responseFields(responseFields)
-                                                .build()
-                                ),
-                                requestHeaders(requestHeaders),
-                                pathParameters(pathParameters),
-                                requestFields(requestFields),
-                                responseFields(responseFields)
+                .andDo(createSecuredDocument(
+                                "02-cart-05-update-quantity",
+                                "장바구니 상품 수량 변경",
+                                "장바구니의 상품 수량을 변경한다",
+                                CartDescriptor.getCartUpdateRequest(),
+                                CartDescriptor.getUpdateCartResponse(),
+                                parameterWithName("cartItemId").description("장바구니 상품 ID(장바구니 상품 식별자)")
                         )
                 );
     }
 
-    private HttpHeaders createUserHeader(String userRole){
+    private HttpHeaders createUserHeader(String userRole) {
         HttpHeaders headers = new HttpHeaders();
         headers.add("X-User-Id", "1");
         headers.add("X-User-Role", userRole);
         return headers;
     }
 
-    private CartItemResponse createCartItemResponse(){
-        return CartItemResponse.builder()
-                .id(1L)
-                .productId(1L)
-                .productVariantId(1L)
-                .productName("상품1")
-                .thumbnailUrl("/product/product/PROD1_thumbnail.jpg")
-                .quantity(2)
-                .price(
-                        CartItemResponse.CartItemPrice.builder()
-                                .originalPrice(3000)
-                                .discountRate(10)
-                                .discountAmount(300)
-                                .discountedPrice(2700)
-                                .build()
-                )
-                .lineTotal(5400)
-                .options(List.of(
-                        CartItemResponse.CartItemOption.builder()
-                                .optionTypeName("사이즈")
-                                .optionValueName("XL")
-                                .build()
-                ))
-                .build();
-
-    }
-
-    private CartResult.CartAddResult createCartAddResult(){
+    private CartResult.Cart createCartAddResult() {
         CartResult.CartItemResult cartResult = CartResult.CartItemResult.builder()
                 .id(1L)
                 .productId(1L)
@@ -326,7 +188,7 @@ public class CartControllerDocsTest extends RestDocSupport {
                         )
                 )
                 .build();
-        return CartResult.CartAddResult.builder().items(List.of(cartResult)).build();
+        return CartResult.Cart.builder().items(List.of(cartResult)).build();
     }
 
     private CartResult.Cart createCartResult() {
@@ -358,9 +220,6 @@ public class CartControllerDocsTest extends RestDocSupport {
                 )
                 .build();
         return CartResult.Cart.builder().items(List.of(cartResult))
-                .totalOriginalPrice(6000)
-                .totalDiscountAmount(600)
-                .totalFinalPrice(5400)
                 .build();
     }
 }
