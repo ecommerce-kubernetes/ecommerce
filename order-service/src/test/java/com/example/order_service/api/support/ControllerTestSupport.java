@@ -7,6 +7,8 @@ import com.example.order_service.api.notification.service.NotificationService;
 import com.example.order_service.api.order.controller.OrderController;
 import com.example.order_service.api.order.facade.OrderFacade;
 import com.example.order_service.api.support.fixture.FixtureMonkeyFactory;
+import com.example.order_service.ordersheet.api.OrderSheetController;
+import com.example.order_service.ordersheet.service.OrderSheetService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.navercorp.fixturemonkey.FixtureMonkey;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +16,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-@WebMvcTest(controllers = {CartController.class, OrderController.class, NotificationController.class, DummyController.class})
+@WebMvcTest(controllers = {CartController.class, OrderController.class, NotificationController.class, DummyController.class, OrderSheetController.class})
 public abstract class ControllerTestSupport {
     protected final FixtureMonkey fixtureMonkey = FixtureMonkeyFactory.get;
     @Autowired
@@ -27,4 +29,6 @@ public abstract class ControllerTestSupport {
     protected OrderFacade orderFacade;
     @MockitoBean
     protected NotificationService notificationService;
+    @MockitoBean
+    protected OrderSheetService orderSheetService;
 }
