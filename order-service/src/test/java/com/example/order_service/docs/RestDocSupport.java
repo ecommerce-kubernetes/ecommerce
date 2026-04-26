@@ -4,6 +4,8 @@ import com.epages.restdocs.apispec.ResourceSnippetParameters;
 import com.example.order_service.api.common.security.model.UserPrincipal;
 import com.example.order_service.api.common.security.model.UserRole;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.core.MethodParameter;
@@ -40,7 +42,9 @@ import static org.springframework.restdocs.request.RequestDocumentation.pathPara
 @ExtendWith(RestDocumentationExtension.class)
 public abstract class RestDocSupport {
     protected MockMvc mockMvc;
-    protected ObjectMapper objectMapper = new ObjectMapper();
+    protected ObjectMapper objectMapper = new ObjectMapper()
+            .registerModule(new JavaTimeModule())
+            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
     @BeforeEach
     void setUp(RestDocumentationContextProvider provider){

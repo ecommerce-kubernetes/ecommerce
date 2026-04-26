@@ -20,7 +20,6 @@ public class OrderSheetResult {
     public record Summary(
             long totalOriginPrice,
             long totalProductDiscount,
-            long totalProductAmount,
             long totalBasePaymentAmount
     ) {
     }
