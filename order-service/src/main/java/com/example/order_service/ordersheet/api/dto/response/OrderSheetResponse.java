@@ -1,6 +1,6 @@
 package com.example.order_service.ordersheet.api.dto.response;
 
-import com.example.order_service.ordersheet.service.dto.result.OrderSheetResult;
+import com.example.order_service.ordersheet.application.dto.result.OrderSheetResult;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 

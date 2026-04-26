@@ -8,7 +8,7 @@ import com.example.order_service.api.order.controller.OrderController;
 import com.example.order_service.api.order.facade.OrderFacade;
 import com.example.order_service.api.support.fixture.FixtureMonkeyFactory;
 import com.example.order_service.ordersheet.api.OrderSheetController;
-import com.example.order_service.ordersheet.service.OrderSheetService;
+import com.example.order_service.ordersheet.application.OrderSheetService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.navercorp.fixturemonkey.FixtureMonkey;
 import org.springframework.beans.factory.annotation.Autowired;

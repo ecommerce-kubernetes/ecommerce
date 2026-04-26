@@ -110,12 +110,13 @@ public class CartControllerDocsTest extends RestDocSupport {
         //then
         mockMvc.perform(delete("/carts")
                         .headers(roleUser)
-                        .param("cartItemIds", "1,2,3,4"))
+                        .queryParam("cartItemIds", "1,2,3,4"))
                 .andDo(print())
                 .andExpect(status().isNoContent())
-                .andDo(createSecuredDocument("02-cart-03-delete-item",
+                .andDo(createSecuredDocumentWithQuery("02-cart-03-delete-item",
                         "장바구니 상품 삭제",
-                        "장바구니 상품을 삭제한다"));
+                        "장바구니 상품을 삭제한다",
+                        parameterWithName("cartItemIds").description("삭제할 장바구니 상품 ID 목록 (콤마로 구분하여 전달)")));
     }
 
     @Test

@@ -34,7 +34,7 @@ public class CartProductServiceTest {
 
     @Nested
     @DisplayName("상품 정보 조회")
-    class GetProductInfo {
+    class GetInfo {
 
         @Test
         @DisplayName("장바구니 상품 정보를 조회한다")
@@ -71,7 +71,7 @@ public class CartProductServiceTest {
 
     @Nested
     @DisplayName("상품 목록 정보 조회")
-    class GetProductInfos {
+    class GetInfos {
 
         @Test
         @DisplayName("상품 목록 정보를 조회한다")

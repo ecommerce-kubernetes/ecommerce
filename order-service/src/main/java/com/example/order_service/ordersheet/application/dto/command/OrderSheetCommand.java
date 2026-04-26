@@ -1,4 +1,4 @@
-package com.example.order_service.ordersheet.service.dto.command;
+package com.example.order_service.ordersheet.application.dto.command;
 
 import lombok.Builder;
 

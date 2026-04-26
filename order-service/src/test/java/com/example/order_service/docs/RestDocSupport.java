@@ -38,6 +38,7 @@ import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
 import static org.springframework.restdocs.payload.PayloadDocumentation.requestFields;
 import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
 import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
+import static org.springframework.restdocs.request.RequestDocumentation.queryParameters;
 
 @ExtendWith(RestDocumentationExtension.class)
 public abstract class RestDocSupport {
@@ -87,7 +88,8 @@ public abstract class RestDocSupport {
             HeaderDescriptor[] requestHeaders,
             FieldDescriptor[] requestFields,
             FieldDescriptor[] responseFields,
-            ParameterDescriptor... pathParameters) {
+            ParameterDescriptor[] pathParameters,
+            ParameterDescriptor[] queryParameters) {
         List<Snippet> snippets = new ArrayList<>();
         snippets.add(resource(ResourceSnippetParameters.builder()
                 .tag(getTag())
@@ -95,11 +97,13 @@ public abstract class RestDocSupport {
                 .description(description)
                 .requestHeaders(requestHeaders)
                 .pathParameters(pathParameters)
+                .queryParameters(queryParameters)
                 .requestFields(requestFields)
                 .responseFields(responseFields)
                 .build()));
         if (requestHeaders.length > 0) snippets.add(requestHeaders(requestHeaders));
         if (pathParameters.length > 0) snippets.add(pathParameters(pathParameters));
+        if (queryParameters.length > 0) snippets.add(queryParameters(queryParameters));
         if (requestFields.length > 0) snippets.add(requestFields(requestFields));
         if (responseFields.length > 0) snippets.add(responseFields(responseFields));
         return document(
@@ -115,29 +119,34 @@ public abstract class RestDocSupport {
             FieldDescriptor[] requestFields,
             FieldDescriptor[] responseFields,
             ParameterDescriptor... pathParameters) {
-        return createDocument(identifier, summary, description, AUTH_HEADER, requestFields, responseFields, pathParameters);
+        return createDocument(identifier, summary, description, AUTH_HEADER, requestFields, responseFields, pathParameters, new ParameterDescriptor[0]);
     }
 
     protected RestDocumentationResultHandler createSecuredDocument(
             String identifier, String summary, String description,
             ParameterDescriptor... pathParameters) {
-        return createDocument(identifier, summary, description, AUTH_HEADER,new FieldDescriptor[0], new FieldDescriptor[0], pathParameters);
+        return createDocument(identifier, summary, description, AUTH_HEADER, new FieldDescriptor[0], new FieldDescriptor[0], pathParameters, new ParameterDescriptor[0]);
     }
 
     protected RestDocumentationResultHandler createSecuredDocument(
             String identifier, String summary, String description,
             FieldDescriptor[] responseFields,
             ParameterDescriptor... pathParameters) {
-        return createDocument(identifier, summary, description, AUTH_HEADER, new FieldDescriptor[0], responseFields, pathParameters);
+        return createDocument(identifier, summary, description, AUTH_HEADER, new FieldDescriptor[0], responseFields, pathParameters, new ParameterDescriptor[0]);
     }
 
+    protected RestDocumentationResultHandler createSecuredDocumentWithQuery(
+            String identifier, String summary, String description,
+            ParameterDescriptor... queryParameters) {
+        return createDocument(identifier, summary, description, AUTH_HEADER, new FieldDescriptor[0], new FieldDescriptor[0], new ParameterDescriptor[0], queryParameters);
+    }
 
     protected RestDocumentationResultHandler createPublicDocument(
             String identifier, String summary, String description,
             FieldDescriptor[] responseFields,
             ParameterDescriptor... pathParameters) {
 
-        return createDocument(identifier, summary, description, new HeaderDescriptor[0], new FieldDescriptor[0], responseFields, pathParameters);
+        return createDocument(identifier, summary, description, new HeaderDescriptor[0], new FieldDescriptor[0], responseFields, pathParameters, new ParameterDescriptor[0]);
     }
 
     protected HttpHeaders createAuthHeader(String role){
