@@ -1,8 +1,11 @@
 package com.example.order_service.ordersheet.application;
 
+import com.example.order_service.api.common.exception.BusinessException;
+import com.example.order_service.api.common.exception.OrderSheetErrorCode;
 import com.example.order_service.ordersheet.application.dto.command.OrderSheetCommand;
 import com.example.order_service.ordersheet.application.dto.result.OrderSheetResult;
 import com.example.order_service.ordersheet.application.dto.result.OrderSheetProductResult;
+import com.example.order_service.ordersheet.application.dto.result.ProductStatus;
 import com.example.order_service.ordersheet.domain.OrderSheet;
 import com.example.order_service.ordersheet.domain.OrderSheetItem;
 import com.example.order_service.ordersheet.domain.OrderSheetRepository;
@@ -10,12 +13,14 @@ import com.example.order_service.ordersheet.domain.vo.OrderSheetItemOptionSnapsh
 import com.example.order_service.ordersheet.domain.vo.OrderSheetItemPriceSnapshot;
 import com.example.order_service.ordersheet.domain.vo.OrderSheetItemProductSnapshot;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class OrderSheetService {
@@ -39,14 +44,27 @@ public class OrderSheetService {
     //상품 아이템 도메인 매핑
     private List<OrderSheetItem> mapToDomainItems(List<OrderSheetProductResult.Info> products, Map<Long, Integer> quantityMap) {
         return products.stream().map(product -> {
+            Integer quantity = quantityMap.get(product.productVariantId());
+            validateAvailableToOrder(product, quantity);
             OrderSheetItemProductSnapshot productSnapshot = OrderSheetItemProductSnapshot.of(product.productId(),
                     product.productVariantId(), product.sku(), product.productName(), product.thumbnail());
             OrderSheetItemPriceSnapshot priceSnapshot = OrderSheetItemPriceSnapshot.of(product.originalPrice(),
                     product.discountRate(), product.discountAmount(), product.discountedPrice());
             List<OrderSheetItemOptionSnapshot> options = mapToOptionSnapshots(product.options());
-            Integer quantity = quantityMap.get(product.productVariantId());
             return OrderSheetItem.create(productSnapshot, priceSnapshot, quantity, options);
         }).toList();
+    }
+
+    //주문 가능한 상품인지 검증
+    private void validateAvailableToOrder(OrderSheetProductResult.Info product, int quantity) {
+        // 판매중인 상품이 아니면 주문할 수 없음
+        if (product.status() != ProductStatus.ON_SALE) {
+            throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_PRODUCT_NOT_ON_SALE);
+        }
+        // 주문 수량이 상품 재고보다 많은 경우 주문할 수 없음
+        if (product.stock() < quantity) {
+            throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_INSUFFICIENT_STOCK);
+        }
     }
 
     //상품 옵션 도메인 매핑

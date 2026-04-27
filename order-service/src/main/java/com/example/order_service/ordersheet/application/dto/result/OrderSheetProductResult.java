@@ -10,10 +10,12 @@ public class OrderSheetProductResult {
     public record Info(
             Long productId,
             Long productVariantId,
+            ProductStatus status,
             String sku,
             String productName,
             Long originalPrice,
             Integer discountRate,
+            Integer stock,
             Long discountAmount,
             Long discountedPrice,
             String thumbnail,
@@ -27,4 +29,6 @@ public class OrderSheetProductResult {
             String optionValueName
     ) {
     }
+
+
 }
