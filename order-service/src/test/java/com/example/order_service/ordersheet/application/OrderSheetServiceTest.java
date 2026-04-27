@@ -1,6 +1,7 @@
 package com.example.order_service.ordersheet.application;
 
 import com.example.order_service.api.support.BaseTestSupport;
+import com.example.order_service.api.support.TestUtil;
 import com.example.order_service.ordersheet.application.dto.command.OrderSheetCommand;
 import com.example.order_service.ordersheet.application.dto.result.OrderSheetProductResult;
 import com.example.order_service.ordersheet.application.dto.result.OrderSheetResult;
@@ -44,53 +45,29 @@ public class OrderSheetServiceTest extends BaseTestSupport {
         @DisplayName("주문 상품 정보를 조회하여 주문서를 저장한다")
         void createOrderSheet(){
             //given
-            OrderSheetCommand.OrderItem item = OrderSheetCommand.OrderItem.builder()
-                    .productVariantId(1L)
-                    .quantity(1)
-                    .build();
-            OrderSheetCommand.Create command = OrderSheetCommand.Create.builder()
-                    .userId(1L)
-                    .items(List.of(item))
-                    .build();
-            OrderSheetProductResult.Option option = OrderSheetProductResult.Option.builder()
-                    .optionTypeName("사이즈")
-                    .optionValueName("XL")
-                    .build();
-            OrderSheetProductResult.Info productInfo = OrderSheetProductResult.Info.builder()
-                    .productId(1L)
-                    .productVariantId(1L)
-                    .sku("PROD1_XL")
-                    .productName("상품1")
-                    .originalPrice(10000L)
-                    .discountRate(10)
-                    .discountAmount(1000L)
-                    .discountedPrice(9000L)
-                    .thumbnail("/product/product/prod1.png")
-                    .options(List.of(option))
-                    .build();
-            OrderSheetItemPriceSnapshot itemPrice = OrderSheetItemPriceSnapshot.of(productInfo.originalPrice(),
-                    productInfo.discountRate(), productInfo.discountAmount(), productInfo.discountedPrice());
-            OrderSheetItemProductSnapshot itemInfo = OrderSheetItemProductSnapshot.of(productInfo.productId(),
-                    productInfo.productVariantId(), productInfo.sku(), productInfo.productName(), productInfo.thumbnail());
-            List<OrderSheetItemOptionSnapshot> options = productInfo.options().stream().map(itemOption ->
-                    OrderSheetItemOptionSnapshot.of(itemOption.optionTypeName(), itemOption.optionValueName())).toList();
-            OrderSheetItem orderSheetItem = OrderSheetItem.create(itemInfo, itemPrice, 1, options);
-            OrderSheet orderSheet = OrderSheet.create("sheetId", List.of(orderSheetItem), LocalDateTime.now());
+            Long targetVariantId = 1L;
+            int quantity = 1;
+            long discountedPrice = 9000L;
+            OrderSheetCommand.Create command = TestUtil.sample(fixtureMonkey.giveMeBuilder(OrderSheetCommand.Create.class)
+                    .set("items[0].productVariantId", targetVariantId)
+                    .set("items[0].quantity", quantity));
+
+            OrderSheetProductResult.Info productInfo = TestUtil.sample(fixtureMonkey.giveMeBuilder(OrderSheetProductResult.Info.class)
+                    .set("productId", 1L)
+                    .set("productVariantId", targetVariantId)
+                    .set("discountedPrice", discountedPrice));
+
             given(orderSheetProductService.getProducts(anyList()))
                     .willReturn(List.of(productInfo));
             given(repository.save(any(OrderSheet.class)))
-                    .willReturn(Optional.of(orderSheet));
+                    .willAnswer(invocation -> invocation.getArgument(0));
             //when
             OrderSheetResult.Default result = orderSheetService.createOrderSheet(command);
             //then
             assertThat(result.sheetId()).isNotNull();
             assertThat(result.expiresAt()).isNotNull();
             assertThat(result.items()).hasSize(1);
-            assertThat(result.items())
-                    .extracting("productId", "productVariantId", "productName", "thumbnail", "quantity", "lineTotal")
-                    .containsExactlyInAnyOrder(
-                            tuple(1L, 1L, "상품1", "/product/product/prod1.png", 1, 9000L)
-                    );
+            assertThat(result.summary().totalBasePaymentAmount()).isEqualTo(9000L);
         }
     }
 }

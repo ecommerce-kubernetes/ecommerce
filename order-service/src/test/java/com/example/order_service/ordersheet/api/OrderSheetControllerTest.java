@@ -9,6 +9,7 @@ import com.example.order_service.ordersheet.api.dto.request.OrderSheetRequest;
 import com.example.order_service.ordersheet.api.dto.response.OrderSheetResponse;
 import com.example.order_service.ordersheet.application.dto.command.OrderSheetCommand;
 import com.example.order_service.ordersheet.application.dto.result.OrderSheetResult;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -90,6 +91,7 @@ class OrderSheetControllerTest extends ControllerTestSupport {
         @ParameterizedTest(name = "{0}")
         @DisplayName("주문서 저장 입력 검증 테스트")
         @MethodSource("provideInvalidCreateRequest")
+        @WithCustomMockUser
         void createOrderSheet_validate(String description, OrderSheetRequest.Create req, String message) throws Exception {
             //given
             //when
@@ -100,6 +102,27 @@ class OrderSheetControllerTest extends ControllerTestSupport {
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.code").value("VALIDATION"))
                     .andExpect(jsonPath("$.message").value(message))
+                    .andExpect(jsonPath("$.timestamp").exists())
+                    .andExpect(jsonPath("$.path").value("/order-sheets"));
+        }
+
+        @Test
+        @DisplayName("중복된 상품 ID 가 존재하면 에러 응답을 보낸다")
+        @WithCustomMockUser
+        void createOrderSheet_duplicateVariantId() throws Exception {
+            //given
+            OrderSheetRequest.Create request = TestUtil.sample(fixtureMonkey.giveMeBuilder(OrderSheetRequest.Create.class)
+                    .size("items", 2)
+                    .set("items[0].productVariantId", 1L)
+                    .set("items[1].productVariantId", 1L));
+            //when
+            //then
+            mockMvc.perform(post("/order-sheets")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.code").value("ORDER-SHEET_001"))
+                    .andExpect(jsonPath("$.message").value("중복된 상품 ID 가 존재합니다"))
                     .andExpect(jsonPath("$.timestamp").exists())
                     .andExpect(jsonPath("$.path").value("/order-sheets"));
         }
