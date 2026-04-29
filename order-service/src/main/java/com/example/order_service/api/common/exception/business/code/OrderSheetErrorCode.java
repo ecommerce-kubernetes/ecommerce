@@ -1,0 +1,22 @@
+package com.example.order_service.api.common.exception.business.code;
+
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
+@Getter
+@RequiredArgsConstructor
+public enum OrderSheetErrorCode implements ErrorCode {
+    ORDER_SHEET_PRODUCT_UNAVAILABLE_SERVER_ERROR(503, "ORDER-SHEET-007", "주문 처리중 일시적인 오류가 발생했습니다 잠시후 재시도 해주세요"),
+    // 해당 코드는 상품 서비스에서 발생한 400번대의 오류를 처리하기 위한 임시 에러 코드 (기능 확장 시 코드 추가하여 매핑)
+    ORDER_SHEET_PRODUCT_CLIENT_ERROR(409, "ORDER-SHEET_006", "주문 처리중 클라이언트 오류가 발생했습니다"),
+    ORDER_SHEET_PRODUCT_SERVER_ERROR(500, "ORDER-SHEET_005", "주문 처리중 오류가 발생했습니다"),
+    ORDER_SHEET_PRODUCT_NOT_ON_SALE(409, "ORDER-SHEET_004", "판매중인 상품이 아닙니다"),
+    ORDER_SHEET_INSUFFICIENT_STOCK(409, "ORDER-SHEET_003", "상품 재고가 부족합니다"),
+    ORDER_SHEET_ITEM_REQUIRED(400, "ORDER-SHEET_002", "주문 상품은 필수 입니다"),
+    ORDER_SHEET_DUPLICATE_ITEMS(400, "ORDER-SHEET_001", "중복된 상품 ID 가 존재합니다");
+
+    private final int status;
+    private final String code;
+    private final String message;
+
+}

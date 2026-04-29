@@ -1,6 +1,6 @@
 package com.example.order_service.api.order.infrastructure.client.product;
 
-import com.example.order_service.api.common.exception.BusinessException;
+import com.example.order_service.api.common.exception.business.BusinessException;
 import com.example.order_service.api.common.exception.ExternalServiceErrorCode;
 import com.example.order_service.api.order.infrastructure.client.product.dto.OrderProductResponse;
 import com.example.order_service.api.order.infrastructure.client.product.dto.OrderProductsRequest;

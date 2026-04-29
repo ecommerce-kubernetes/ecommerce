@@ -1,7 +1,7 @@
 package com.example.order_service.ordersheet.application;
 
-import com.example.order_service.api.common.exception.BusinessException;
-import com.example.order_service.api.common.exception.OrderSheetErrorCode;
+import com.example.order_service.api.common.exception.business.BusinessException;
+import com.example.order_service.api.common.exception.business.code.OrderSheetErrorCode;
 import com.example.order_service.api.support.BaseTestSupport;
 import com.example.order_service.api.support.TestUtil;
 import com.example.order_service.ordersheet.application.dto.command.OrderSheetCommand;
@@ -9,22 +9,14 @@ import com.example.order_service.ordersheet.application.dto.result.OrderSheetPro
 import com.example.order_service.ordersheet.application.dto.result.OrderSheetResult;
 import com.example.order_service.ordersheet.application.dto.result.ProductStatus;
 import com.example.order_service.ordersheet.domain.OrderSheet;
-import com.example.order_service.ordersheet.domain.OrderSheetItem;
 import com.example.order_service.ordersheet.domain.OrderSheetRepository;
-import com.example.order_service.ordersheet.domain.vo.OrderSheetItemOptionSnapshot;
-import com.example.order_service.ordersheet.domain.vo.OrderSheetItemPriceSnapshot;
-import com.example.order_service.ordersheet.domain.vo.OrderSheetItemProductSnapshot;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;

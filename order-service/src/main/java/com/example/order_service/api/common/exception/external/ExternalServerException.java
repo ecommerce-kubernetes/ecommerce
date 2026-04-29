@@ -1,0 +1,11 @@
+package com.example.order_service.api.common.exception.external;
+
+public class ExternalServerException extends ExternalSystemException {
+    public ExternalServerException(String message) {
+        super(message);
+    }
+
+    public ExternalServerException(String message, Throwable throwable) {
+        super(message, throwable);
+    }
+}

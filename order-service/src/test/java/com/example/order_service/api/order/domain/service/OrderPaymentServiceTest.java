@@ -1,7 +1,7 @@
 package com.example.order_service.api.order.domain.service;
 
-import com.example.order_service.api.common.exception.BusinessException;
-import com.example.order_service.api.common.exception.PaymentErrorCode;
+import com.example.order_service.api.common.exception.business.BusinessException;
+import com.example.order_service.api.common.exception.business.code.PaymentErrorCode;
 import com.example.order_service.api.order.domain.service.dto.result.OrderPaymentInfo;
 import com.example.order_service.api.order.infrastructure.client.payment.TossPaymentAdaptor;
 import com.example.order_service.api.order.infrastructure.client.payment.dto.response.TossPaymentConfirmResponse;

@@ -1,7 +1,7 @@
 package com.example.order_service.api.common.client.decoder;
 
 import com.example.order_service.api.common.client.product.ProductErrorDecoder;
-import com.example.order_service.api.common.exception.BusinessException;
+import com.example.order_service.api.common.exception.business.BusinessException;
 import com.example.order_service.api.common.exception.CommonErrorCode;
 import com.example.order_service.api.common.exception.ExternalServiceErrorCode;
 import feign.Request;

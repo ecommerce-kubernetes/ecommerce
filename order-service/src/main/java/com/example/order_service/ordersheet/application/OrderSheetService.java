@@ -1,7 +1,7 @@
 package com.example.order_service.ordersheet.application;
 
-import com.example.order_service.api.common.exception.BusinessException;
-import com.example.order_service.api.common.exception.OrderSheetErrorCode;
+import com.example.order_service.api.common.exception.business.BusinessException;
+import com.example.order_service.api.common.exception.business.code.OrderSheetErrorCode;
 import com.example.order_service.ordersheet.application.dto.command.OrderSheetCommand;
 import com.example.order_service.ordersheet.application.dto.result.OrderSheetResult;
 import com.example.order_service.ordersheet.application.dto.result.OrderSheetProductResult;

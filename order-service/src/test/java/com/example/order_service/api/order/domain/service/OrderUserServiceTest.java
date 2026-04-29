@@ -1,7 +1,7 @@
 package com.example.order_service.api.order.domain.service;
 
-import com.example.order_service.api.common.exception.BusinessException;
-import com.example.order_service.api.common.exception.OrderErrorCode;
+import com.example.order_service.api.common.exception.business.BusinessException;
+import com.example.order_service.api.common.exception.business.code.OrderErrorCode;
 import com.example.order_service.api.order.domain.service.dto.result.OrderUserInfo;
 import com.example.order_service.api.order.infrastructure.client.user.OrderUserAdaptor;
 import com.example.order_service.api.order.infrastructure.client.user.dto.OrderUserResponse;

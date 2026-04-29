@@ -1,11 +1,11 @@
-package com.example.order_service.api.common.exception;
+package com.example.order_service.api.common.exception.business.code;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public enum PaymentErrorCode implements ErrorCode{
+public enum PaymentErrorCode implements ErrorCode {
     PAYMENT_ALREADY_PROCEED_PAYMENT(400, "PAYMENT_001", "이미 결제된 주문입니다"),
     PAYMENT_BAD_REQUEST(400, "PAYMENT_002", "잘못된 결제 요청입니다"),
     PAYMENT_NOT_FOUND(404, "PAYMENT_003", "존재하지 않은 결제 정보입니다"),

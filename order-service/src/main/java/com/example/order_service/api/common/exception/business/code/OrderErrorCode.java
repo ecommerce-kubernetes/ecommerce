@@ -1,4 +1,4 @@
-package com.example.order_service.api.common.exception;
+package com.example.order_service.api.common.exception.business.code;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
