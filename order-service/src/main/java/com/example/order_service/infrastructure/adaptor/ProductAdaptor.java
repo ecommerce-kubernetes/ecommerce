@@ -20,7 +20,7 @@ public class ProductAdaptor {
 
     private final ProductFeignClient client;
 
-    @CircuitBreaker(name = "productService", fallbackMethod = "getProductsByVariantIds")
+    @CircuitBreaker(name = "productService", fallbackMethod = "getProductsByVariantIdsFallback")
     public List<ProductClientResponse.Product> getProductsByVariantIds(List<Long> productVariantIds){
         ProductClientRequest.ProductVariantIds request = ProductClientRequest.ProductVariantIds.of(productVariantIds);
         return client.getProductsByVariantIds(request);

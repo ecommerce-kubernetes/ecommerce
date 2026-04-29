@@ -10,9 +10,11 @@ import com.example.order_service.infrastructure.dto.response.ProductClientRespon
 import com.example.order_service.ordersheet.application.dto.result.OrderSheetProductResult;
 import com.example.order_service.ordersheet.application.mapper.OrderSheetProductMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@Service
 @RequiredArgsConstructor
 public class OrderSheetProductService {
     private final ProductAdaptor productAdaptor;
