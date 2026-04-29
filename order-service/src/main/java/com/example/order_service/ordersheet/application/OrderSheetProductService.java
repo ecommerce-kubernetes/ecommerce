@@ -8,13 +8,11 @@ import com.example.order_service.api.common.exception.external.ExternalSystemUna
 import com.example.order_service.infrastructure.adaptor.ProductAdaptor;
 import com.example.order_service.infrastructure.dto.response.ProductClientResponse;
 import com.example.order_service.ordersheet.application.dto.result.OrderSheetProductResult;
-import com.example.order_service.ordersheet.application.dto.result.ProductStatus;
 import com.example.order_service.ordersheet.application.mapper.OrderSheetProductMapper;
-import com.example.order_service.ordersheet.infrastructure.client.OrderSheetAdaptor;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;
-
+:
 @RequiredArgsConstructor
 public class OrderSheetProductService {
     private final ProductAdaptor productAdaptor;
