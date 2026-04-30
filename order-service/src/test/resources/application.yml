@@ -60,6 +60,8 @@ order:
     user-saga-command: "user.saga.command"
     # 유저 처리 결과 응답
     user-saga-reply: "user.saga.reply"
+  sheet:
+    ttl-minutes: 30
 
 logging:
   loki:

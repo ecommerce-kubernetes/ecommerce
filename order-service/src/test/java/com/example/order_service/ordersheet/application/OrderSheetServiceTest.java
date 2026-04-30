@@ -8,18 +8,23 @@ import com.example.order_service.ordersheet.application.dto.result.OrderSheetRes
 import com.example.order_service.ordersheet.application.dto.result.ProductStatus;
 import com.example.order_service.ordersheet.domain.OrderSheet;
 import com.example.order_service.ordersheet.domain.OrderSheetRepository;
+import com.example.order_service.ordersheet.infrastructure.config.OrderSheetProperties;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.Duration;
 import java.util.List;
 
-import static com.example.order_service.support.TestFixtureUtil.*;
-import static org.assertj.core.api.Assertions.*;
+import static com.example.order_service.support.TestFixtureUtil.fixtureMonkey;
+import static com.example.order_service.support.TestFixtureUtil.sample;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.BDDMockito.given;
@@ -32,6 +37,8 @@ public class OrderSheetServiceTest {
     private OrderSheetProductService orderSheetProductService;
     @Mock
     private OrderSheetRepository repository;
+    @Spy
+    private OrderSheetProperties properties = new OrderSheetProperties(30L);
 
     @Nested
     @DisplayName("주문서 저장")
@@ -44,6 +51,7 @@ public class OrderSheetServiceTest {
             Long targetVariantId = 1L;
             int quantity = 1;
             long discountedPrice = 9000L;
+            long ttl = 30;
             OrderSheetCommand.OrderItem orderItem = OrderSheetCommand.OrderItem.builder()
                     .productVariantId(targetVariantId)
                     .quantity(quantity)
@@ -61,7 +69,7 @@ public class OrderSheetServiceTest {
 
             given(orderSheetProductService.getProducts(anyList()))
                     .willReturn(List.of(productInfo));
-            given(repository.save(any(OrderSheet.class)))
+            given(repository.save(any(OrderSheet.class), any(Duration.class)))
                     .willAnswer(invocation -> invocation.getArgument(0));
             //when
             OrderSheetResult.Default result = orderSheetService.createOrderSheet(command);

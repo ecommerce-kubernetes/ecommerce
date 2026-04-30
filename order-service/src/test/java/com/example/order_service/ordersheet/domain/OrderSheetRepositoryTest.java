@@ -3,7 +3,6 @@ package com.example.order_service.ordersheet.domain;
 import com.example.order_service.ordersheet.domain.vo.OrderSheetItemOptionSnapshot;
 import com.example.order_service.ordersheet.domain.vo.OrderSheetItemPriceSnapshot;
 import com.example.order_service.ordersheet.domain.vo.OrderSheetItemProductSnapshot;
-import com.example.order_service.support.TestFixtureUtil;
 import com.example.order_service.support.annotation.MockKafka;
 import com.example.order_service.support.annotation.WithRedis;
 import org.junit.jupiter.api.DisplayName;
@@ -11,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -29,7 +29,7 @@ class OrderSheetRepositoryTest {
         //given
         OrderSheet orderSheet = createOrderSheet();
         //when
-        OrderSheet savedOrderSheet = repository.save(orderSheet);
+        OrderSheet savedOrderSheet = repository.save(orderSheet, Duration.ofMinutes(30));
         //then
         assertThat(orderSheet)
                 .usingRecursiveComparison()

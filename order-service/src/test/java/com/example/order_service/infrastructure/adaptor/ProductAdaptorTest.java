@@ -14,7 +14,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.util.List;
 
-import static com.example.order_service.support.TestFixtureUtil.*;
+import static com.example.order_service.support.TestFixtureUtil.fixtureMonkey;
+import static com.example.order_service.support.TestFixtureUtil.sample;
 import static io.github.resilience4j.circuitbreaker.CircuitBreaker.ofDefaults;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

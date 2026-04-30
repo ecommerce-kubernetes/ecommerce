@@ -3,8 +3,8 @@ package com.example.order_service.ordersheet.application;
 import com.example.order_service.api.common.exception.business.BusinessException;
 import com.example.order_service.api.common.exception.business.code.OrderSheetErrorCode;
 import com.example.order_service.ordersheet.application.dto.command.OrderSheetCommand;
-import com.example.order_service.ordersheet.application.dto.result.OrderSheetResult;
 import com.example.order_service.ordersheet.application.dto.result.OrderSheetProductResult;
+import com.example.order_service.ordersheet.application.dto.result.OrderSheetResult;
 import com.example.order_service.ordersheet.application.dto.result.ProductStatus;
 import com.example.order_service.ordersheet.domain.OrderSheet;
 import com.example.order_service.ordersheet.domain.OrderSheetItem;
@@ -12,18 +12,24 @@ import com.example.order_service.ordersheet.domain.OrderSheetRepository;
 import com.example.order_service.ordersheet.domain.vo.OrderSheetItemOptionSnapshot;
 import com.example.order_service.ordersheet.domain.vo.OrderSheetItemPriceSnapshot;
 import com.example.order_service.ordersheet.domain.vo.OrderSheetItemProductSnapshot;
+import com.example.order_service.ordersheet.infrastructure.config.OrderSheetProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class OrderSheetService {
+    private final OrderSheetProperties orderSheetProperties;
     private final OrderSheetProductService orderSheetProductService;
     private final OrderSheetRepository repository;
 
@@ -37,7 +43,9 @@ public class OrderSheetService {
         // orderSheet 데이터 생성 및 저장
         List<OrderSheetItem> orderSheetItems = mapToDomainItems(products, quantityMap);
         OrderSheet orderSheet = OrderSheet.create(sheetId, orderSheetItems, LocalDateTime.now());
-        OrderSheet savedOrderSheet = repository.save(orderSheet);
+        // ttl
+        long ttlMinutes = orderSheetProperties.ttlMinutes();
+        OrderSheet savedOrderSheet = repository.save(orderSheet, Duration.ofMinutes(ttlMinutes));
         return OrderSheetResult.Default.from(savedOrderSheet);
     }
 

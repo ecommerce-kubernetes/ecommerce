@@ -1,7 +1,7 @@
 package com.example.order_service.api.order.infrastructure.client.user;
 
-import com.example.order_service.api.common.exception.business.BusinessException;
 import com.example.order_service.api.common.exception.ExternalServiceErrorCode;
+import com.example.order_service.api.common.exception.business.BusinessException;
 import com.example.order_service.api.order.infrastructure.client.user.dto.OrderUserResponse;
 import com.example.order_service.api.support.ExcludeInfraTest;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
