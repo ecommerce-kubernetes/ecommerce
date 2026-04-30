@@ -121,6 +121,7 @@ public class OrderSheetServiceTest {
             //상품 조회 결과
             OrderSheetProductResult.Info productInfo = sample(fixtureMonkey.giveMeBuilder(OrderSheetProductResult.Info.class)
                     .set("productVariantId", targetVariantId)
+                    .set("status", ProductStatus.ON_SALE)
                     .set("stock", 10));
 
             given(orderSheetProductService.getProducts(anyList()))
@@ -130,7 +131,7 @@ public class OrderSheetServiceTest {
             assertThatThrownBy(() -> orderSheetService.createOrderSheet(command))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
-                    .isEqualTo(OrderSheetErrorCode.ORDER_SHEET_PRODUCT_NOT_ON_SALE);
+                    .isEqualTo(OrderSheetErrorCode.ORDER_SHEET_INSUFFICIENT_STOCK);
         }
     }
 }

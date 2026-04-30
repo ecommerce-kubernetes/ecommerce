@@ -123,7 +123,7 @@ dependencies {
     testImplementation 'org.springframework.security:spring-security-test'
     testImplementation 'com.navercorp.fixturemonkey:fixture-monkey-starter:1.1.19'
     testImplementation 'org.springframework.boot:spring-boot-testcontainers'
-    testImplementation 'org.testcontainers:testcontainers'
+    testImplementation 'org.testcontainers:testcontainers:2.0.2'
     testImplementation 'com.navercorp.fixturemonkey:fixture-monkey-jakarta-validation:1.1.19'
     testImplementation 'com.h2database:h2'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
