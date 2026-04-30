@@ -1,6 +1,6 @@
 package com.example.order_service.docs.ordersheet;
 
-import com.example.order_service.docs.RestDocSupport;
+import com.example.order_service.support.RestDocSupport;
 import com.example.order_service.docs.descriptor.OrderSheetDescriptor;
 import com.example.order_service.ordersheet.api.OrderSheetController;
 import com.example.order_service.ordersheet.api.dto.request.OrderSheetRequest;

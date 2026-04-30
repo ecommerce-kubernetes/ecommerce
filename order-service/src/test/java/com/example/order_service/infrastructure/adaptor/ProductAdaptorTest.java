@@ -2,20 +2,19 @@ package com.example.order_service.infrastructure.adaptor;
 
 import com.example.order_service.api.common.exception.external.ExternalSystemException;
 import com.example.order_service.api.common.exception.external.ExternalSystemUnavailableException;
-import com.example.order_service.api.support.ExcludeInfraTest;
 import com.example.order_service.infrastructure.client.ProductFeignClient;
 import com.example.order_service.infrastructure.dto.request.ProductClientRequest;
 import com.example.order_service.infrastructure.dto.response.ProductClientResponse;
+import com.example.order_service.support.annotation.ExcludeInfraTest;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.util.List;
 
+import static com.example.order_service.support.TestFixtureUtil.*;
 import static io.github.resilience4j.circuitbreaker.CircuitBreaker.ofDefaults;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -23,7 +22,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
 
-public class ProductAdaptorTest extends ExcludeInfraTest {
+@ExcludeInfraTest
+public class ProductAdaptorTest {
     @Autowired
     private ProductAdaptor productAdaptor;
     @MockitoBean
@@ -35,9 +35,8 @@ public class ProductAdaptorTest extends ExcludeInfraTest {
         //given
         List<Long> productVariantIds = List.of(1L, 2L);
         List<ProductClientResponse.Product> productResponses = productVariantIds.stream()
-                .map(id -> fixtureMonkey.giveMeBuilder(ProductClientResponse.Product.class)
-                        .set("productVariantId", id)
-                        .sample()).toList();
+                .map(id -> sample(fixtureMonkey.giveMeBuilder(ProductClientResponse.Product.class)
+                        .set("productVariantId", id))).toList();
         given(client.getProductsByVariantIds(any(ProductClientRequest.ProductVariantIds.class)))
                 .willReturn(productResponses);
         //when

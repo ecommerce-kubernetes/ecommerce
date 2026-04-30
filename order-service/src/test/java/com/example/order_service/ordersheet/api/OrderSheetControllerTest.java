@@ -1,34 +1,48 @@
 package com.example.order_service.ordersheet.api;
 
 import com.example.order_service.api.common.security.model.UserRole;
-import com.example.order_service.api.support.ControllerTestSupport;
-import com.example.order_service.api.support.TestUtil;
+import com.example.order_service.ordersheet.application.OrderSheetService;
+import com.example.order_service.support.ControllerTestSupport;
+import com.example.order_service.support.TestFixtureUtil;
 import com.example.order_service.api.support.security.annotation.WithCustomMockUser;
 import com.example.order_service.api.support.security.config.TestSecurityConfig;
 import com.example.order_service.ordersheet.api.dto.request.OrderSheetRequest;
 import com.example.order_service.ordersheet.api.dto.response.OrderSheetResponse;
 import com.example.order_service.ordersheet.application.dto.command.OrderSheetCommand;
 import com.example.order_service.ordersheet.application.dto.result.OrderSheetResult;
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
 import java.util.stream.Stream;
 
+import static com.example.order_service.support.TestFixtureUtil.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @Import(TestSecurityConfig.class)
-class OrderSheetControllerTest extends ControllerTestSupport {
+@WebMvcTest(controllers = OrderSheetController.class)
+class OrderSheetControllerTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+    @Autowired
+    private ObjectMapper objectMapper;
+    @MockitoBean
+    private OrderSheetService orderSheetService;
 
     @Nested
     @DisplayName("주문서 저장")
@@ -39,8 +53,8 @@ class OrderSheetControllerTest extends ControllerTestSupport {
         @WithCustomMockUser
         void createOrderSheet() throws Exception {
             //given
-            OrderSheetRequest.Create request = TestUtil.nonNull(fixtureMonkey.giveMeOne(OrderSheetRequest.Create.class));
-            OrderSheetResult.Default result = TestUtil.nonNull(fixtureMonkey.giveMeOne(OrderSheetResult.Default.class));
+            OrderSheetRequest.Create request = nonNull(fixtureMonkey.giveMeOne(OrderSheetRequest.Create.class));
+            OrderSheetResult.Default result = nonNull(fixtureMonkey.giveMeOne(OrderSheetResult.Default.class));
             given(orderSheetService.createOrderSheet(any(OrderSheetCommand.Create.class)))
                     .willReturn(result);
             OrderSheetResponse.Create response = OrderSheetResponse.Create.from(result);
@@ -57,7 +71,7 @@ class OrderSheetControllerTest extends ControllerTestSupport {
         @DisplayName("로그인 하지 않은 사용자는 주문서를 저장할 수 없다")
         void createOrderSheet_unAuthorized() throws Exception {
             //given
-            OrderSheetRequest.Create request = TestUtil.nonNull(fixtureMonkey.giveMeOne(OrderSheetRequest.Create.class));
+            OrderSheetRequest.Create request = nonNull(fixtureMonkey.giveMeOne(OrderSheetRequest.Create.class));
             //when
             //then
             mockMvc.perform(post("/order-sheets")
@@ -75,7 +89,7 @@ class OrderSheetControllerTest extends ControllerTestSupport {
         @WithCustomMockUser(userRole = UserRole.ROLE_ADMIN)
         void createOrderSheet_forbidden() throws Exception {
             //given
-            OrderSheetRequest.Create request = TestUtil.nonNull(fixtureMonkey.giveMeOne(OrderSheetRequest.Create.class));
+            OrderSheetRequest.Create request = nonNull(fixtureMonkey.giveMeOne(OrderSheetRequest.Create.class));
             //when
             //then
             mockMvc.perform(post("/order-sheets")
@@ -111,7 +125,7 @@ class OrderSheetControllerTest extends ControllerTestSupport {
         @WithCustomMockUser
         void createOrderSheet_duplicateVariantId() throws Exception {
             //given
-            OrderSheetRequest.Create request = TestUtil.sample(fixtureMonkey.giveMeBuilder(OrderSheetRequest.Create.class)
+            OrderSheetRequest.Create request = sample(fixtureMonkey.giveMeBuilder(OrderSheetRequest.Create.class)
                     .size("items", 2)
                     .set("items[0].productVariantId", 1L)
                     .set("items[1].productVariantId", 1L));

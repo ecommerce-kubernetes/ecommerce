@@ -7,7 +7,7 @@ import com.example.order_service.api.cart.facade.CartFacade;
 import com.example.order_service.api.cart.facade.dto.command.CartCommand;
 import com.example.order_service.api.cart.facade.dto.result.CartItemStatus;
 import com.example.order_service.api.cart.facade.dto.result.CartResult;
-import com.example.order_service.docs.RestDocSupport;
+import com.example.order_service.support.RestDocSupport;
 import com.example.order_service.docs.descriptor.CartDescriptor;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

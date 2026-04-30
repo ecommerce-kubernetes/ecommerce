@@ -31,8 +31,7 @@ public class OrderSheet {
             //TODO 커스텀 예외 반환
             throw new RuntimeException();
         }
-        OrderSheet orderSheet = new OrderSheet(sheetId, items, createdAt);
-        return orderSheet;
+        return new OrderSheet(sheetId, items, createdAt);
     }
 
     private Long calcTotalOriginalPrice(List<OrderSheetItem> items) {

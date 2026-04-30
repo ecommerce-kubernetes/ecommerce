@@ -1,4 +1,4 @@
-package com.example.order_service.docs;
+package com.example.order_service.support;
 
 import com.epages.restdocs.apispec.ResourceSnippetParameters;
 import com.example.order_service.api.common.security.model.UserPrincipal;

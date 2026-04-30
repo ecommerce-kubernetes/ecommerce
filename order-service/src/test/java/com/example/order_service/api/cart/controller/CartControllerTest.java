@@ -5,8 +5,8 @@ import com.example.order_service.api.cart.controller.dto.response.CartResponse;
 import com.example.order_service.api.cart.facade.dto.command.CartCommand;
 import com.example.order_service.api.cart.facade.dto.result.CartResult;
 import com.example.order_service.api.common.security.model.UserRole;
-import com.example.order_service.api.support.ControllerTestSupport;
-import com.example.order_service.api.support.TestUtil;
+import com.example.order_service.support.ControllerTestSupport;
+import com.example.order_service.support.TestFixtureUtil;
 import com.example.order_service.api.support.security.annotation.WithCustomMockUser;
 import com.example.order_service.api.support.security.config.TestSecurityConfig;
 import lombok.extern.slf4j.Slf4j;
@@ -41,8 +41,8 @@ class CartControllerTest extends ControllerTestSupport {
         @WithCustomMockUser
         void addCartItem() throws Exception {
             //given
-            CartRequest.AddItems request = TestUtil.nonNull(fixtureMonkey.giveMeOne(CartRequest.AddItems.class));
-            CartResult.Cart result = TestUtil.nonNull(fixtureMonkey.giveMeOne(CartResult.Cart.class));
+            CartRequest.AddItems request = TestFixtureUtil.nonNull(fixtureMonkey.giveMeOne(CartRequest.AddItems.class));
+            CartResult.Cart result = TestFixtureUtil.nonNull(fixtureMonkey.giveMeOne(CartResult.Cart.class));
             given(cartFacade.addItems(any(CartCommand.AddItems.class)))
                     .willReturn(result);
             CartResponse.Cart response = CartResponse.Cart.from(result);
@@ -143,7 +143,7 @@ class CartControllerTest extends ControllerTestSupport {
         @WithCustomMockUser
         void getAllCartItem() throws Exception {
             //given
-            CartResult.Cart result = TestUtil.nonNull(fixtureMonkey.giveMeOne(CartResult.Cart.class));
+            CartResult.Cart result = TestFixtureUtil.nonNull(fixtureMonkey.giveMeOne(CartResult.Cart.class));
             given(cartFacade.getCartDetails(anyLong()))
                     .willReturn(result);
             CartResponse.Cart response = CartResponse.Cart.from(result);
@@ -254,8 +254,8 @@ class CartControllerTest extends ControllerTestSupport {
         @WithCustomMockUser
         void updateQuantity() throws Exception {
             //given
-            CartRequest.UpdateQuantity request = TestUtil.nonNull(fixtureMonkey.giveMeOne(CartRequest.UpdateQuantity.class));
-            CartResult.Update result = TestUtil.nonNull(fixtureMonkey.giveMeOne(CartResult.Update.class));
+            CartRequest.UpdateQuantity request = TestFixtureUtil.nonNull(fixtureMonkey.giveMeOne(CartRequest.UpdateQuantity.class));
+            CartResult.Update result = TestFixtureUtil.nonNull(fixtureMonkey.giveMeOne(CartResult.Update.class));
             given(cartFacade.updateCartItemQuantity(any(CartCommand.UpdateQuantity.class)))
                     .willReturn(result);
             CartResponse.Update response = CartResponse.Update.from(result);
@@ -274,7 +274,7 @@ class CartControllerTest extends ControllerTestSupport {
         @WithCustomMockUser(userRole = UserRole.ROLE_ADMIN)
         void updateQuantity_Admin_role() throws Exception {
             //given
-            CartRequest.UpdateQuantity request = TestUtil.nonNull(fixtureMonkey.giveMeOne(CartRequest.UpdateQuantity.class));
+            CartRequest.UpdateQuantity request = TestFixtureUtil.nonNull(fixtureMonkey.giveMeOne(CartRequest.UpdateQuantity.class));
             //when
             //then
             mockMvc.perform(patch("/carts/{cartItemId}", 1)
@@ -292,7 +292,7 @@ class CartControllerTest extends ControllerTestSupport {
         @DisplayName("로그인 하지 않은 사용자는 장바구니 상품의 수량을 수정할 수 없다")
         void updateQuantity_unAuthorized() throws Exception {
             //given
-            CartRequest.UpdateQuantity request = TestUtil.nonNull(fixtureMonkey.giveMeOne(CartRequest.UpdateQuantity.class));
+            CartRequest.UpdateQuantity request = TestFixtureUtil.nonNull(fixtureMonkey.giveMeOne(CartRequest.UpdateQuantity.class));
             //when
             //then
             mockMvc.perform(patch("/carts/{cartItemId}", 1)

@@ -5,7 +5,7 @@ import com.example.order_service.api.common.security.model.UserPrincipal;
 import com.example.order_service.api.common.security.model.UserRole;
 import com.example.order_service.api.notification.controller.NotificationController;
 import com.example.order_service.api.notification.service.NotificationService;
-import com.example.order_service.docs.RestDocSupport;
+import com.example.order_service.support.RestDocSupport;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.MethodParameter;

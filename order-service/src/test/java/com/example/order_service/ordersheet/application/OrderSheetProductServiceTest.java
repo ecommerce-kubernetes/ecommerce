@@ -5,7 +5,6 @@ import com.example.order_service.api.common.exception.business.code.OrderSheetEr
 import com.example.order_service.api.common.exception.external.ExternalClientException;
 import com.example.order_service.api.common.exception.external.ExternalServerException;
 import com.example.order_service.api.common.exception.external.ExternalSystemUnavailableException;
-import com.example.order_service.api.support.BaseTestSupport;
 import com.example.order_service.infrastructure.adaptor.ProductAdaptor;
 import com.example.order_service.infrastructure.dto.response.ProductClientResponse;
 import com.example.order_service.ordersheet.application.dto.result.OrderSheetProductResult;
@@ -13,20 +12,24 @@ import com.example.order_service.ordersheet.application.mapper.OrderSheetProduct
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mapstruct.factory.Mappers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 
+import static com.example.order_service.support.TestFixtureUtil.fixtureMonkey;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
 
-public class OrderSheetProductServiceTest extends BaseTestSupport {
+@ExtendWith(MockitoExtension.class)
+public class OrderSheetProductServiceTest {
 
     @InjectMocks
     private OrderSheetProductService orderSheetProductService;

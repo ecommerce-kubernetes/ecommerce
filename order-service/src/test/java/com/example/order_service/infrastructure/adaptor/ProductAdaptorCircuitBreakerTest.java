@@ -1,10 +1,9 @@
 package com.example.order_service.infrastructure.adaptor;
 
-
 import com.example.order_service.api.common.exception.external.ExternalClientException;
 import com.example.order_service.api.common.exception.external.ExternalSystemUnavailableException;
-import com.example.order_service.api.support.ExcludeInfraTest;
 import com.example.order_service.infrastructure.client.ProductFeignClient;
+import com.example.order_service.support.annotation.ExcludeInfraTest;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -21,15 +20,15 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+@ExcludeInfraTest
 @TestPropertySource(properties = {
         "resilience4j.circuitbreaker.instances.productService.sliding-window-size=3",
         "resilience4j.circuitbreaker.instances.productService.minimum-number-of-calls=3",
         "resilience4j.circuitbreaker.instances.productService.failure-rate-threshold=100",
         // 서킷 브레이커 카운트 제외
         "resilience4j.circuitbreaker.instances.productService.ignore-exceptions[0]=com.example.order_service.api.common.exception.external.ExternalClientException"
-
 })
-public class ProductAdaptorCircuitBreakerTest extends ExcludeInfraTest {
+public class ProductAdaptorCircuitBreakerTest {
 
     @Autowired
     private ProductAdaptor adaptor;

@@ -2,14 +2,12 @@ package com.example.order_service.infrastructure.client;
 
 import com.example.order_service.api.common.exception.external.ExternalClientException;
 import com.example.order_service.api.common.exception.external.ExternalServerException;
-import com.example.order_service.api.support.ExcludeInfraTest;
-import com.example.order_service.infrastructure.adaptor.ProductAdaptor;
 import com.example.order_service.infrastructure.dto.request.ProductClientRequest;
 import com.example.order_service.infrastructure.dto.response.ClientErrorResponse;
 import com.example.order_service.infrastructure.dto.response.ProductClientResponse;
+import com.example.order_service.support.annotation.ExcludeInfraTest;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,12 +18,14 @@ import org.springframework.http.MediaType;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static com.example.order_service.support.TestFixtureUtil.fixtureMonkey;
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+@ExcludeInfraTest
 @AutoConfigureWireMock(port = 0)
-class ProductFeignClientTest extends ExcludeInfraTest {
+class ProductFeignClientTest {
 
     @Autowired
     private ProductFeignClient client;

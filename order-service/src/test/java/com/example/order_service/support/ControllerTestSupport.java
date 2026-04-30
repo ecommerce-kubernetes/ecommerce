@@ -1,4 +1,4 @@
-package com.example.order_service.api.support;
+package com.example.order_service.support;
 
 import com.example.order_service.api.cart.controller.CartController;
 import com.example.order_service.api.cart.facade.CartFacade;
@@ -6,6 +6,7 @@ import com.example.order_service.api.notification.controller.NotificationControl
 import com.example.order_service.api.notification.service.NotificationService;
 import com.example.order_service.api.order.controller.OrderController;
 import com.example.order_service.api.order.facade.OrderFacade;
+import com.example.order_service.api.support.DummyController;
 import com.example.order_service.api.support.fixture.FixtureMonkeyFactory;
 import com.example.order_service.ordersheet.api.OrderSheetController;
 import com.example.order_service.ordersheet.application.OrderSheetService;

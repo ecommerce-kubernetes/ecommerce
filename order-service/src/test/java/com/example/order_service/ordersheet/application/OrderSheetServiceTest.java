@@ -2,8 +2,6 @@ package com.example.order_service.ordersheet.application;
 
 import com.example.order_service.api.common.exception.business.BusinessException;
 import com.example.order_service.api.common.exception.business.code.OrderSheetErrorCode;
-import com.example.order_service.api.support.BaseTestSupport;
-import com.example.order_service.api.support.TestUtil;
 import com.example.order_service.ordersheet.application.dto.command.OrderSheetCommand;
 import com.example.order_service.ordersheet.application.dto.result.OrderSheetProductResult;
 import com.example.order_service.ordersheet.application.dto.result.OrderSheetResult;
@@ -13,17 +11,21 @@ import com.example.order_service.ordersheet.domain.OrderSheetRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 
+import static com.example.order_service.support.TestFixtureUtil.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.BDDMockito.given;
 
-public class OrderSheetServiceTest extends BaseTestSupport {
+@ExtendWith(MockitoExtension.class)
+public class OrderSheetServiceTest {
     @InjectMocks
     private OrderSheetService orderSheetService;
     @Mock
@@ -50,7 +52,7 @@ public class OrderSheetServiceTest extends BaseTestSupport {
                     .userId(1L)
                     .items(List.of(orderItem))
                     .build();
-            OrderSheetProductResult.Info productInfo = TestUtil.sample(fixtureMonkey.giveMeBuilder(OrderSheetProductResult.Info.class)
+            OrderSheetProductResult.Info productInfo = sample(fixtureMonkey.giveMeBuilder(OrderSheetProductResult.Info.class)
                     .set("productId", 1L)
                     .set("status", ProductStatus.ON_SALE)
                     .set("stock", 100)
@@ -86,7 +88,7 @@ public class OrderSheetServiceTest extends BaseTestSupport {
                     .items(List.of(orderItem))
                     .build();
             // 판매 중지된 상품
-            OrderSheetProductResult.Info productInfo = TestUtil.sample(fixtureMonkey.giveMeBuilder(OrderSheetProductResult.Info.class)
+            OrderSheetProductResult.Info productInfo = sample(fixtureMonkey.giveMeBuilder(OrderSheetProductResult.Info.class)
                     .set("productVariantId", targetVariantId)
                     .set("status", ProductStatus.STOP_SALE)
                     .set("stock", 100));
@@ -117,7 +119,7 @@ public class OrderSheetServiceTest extends BaseTestSupport {
                     .build();
 
             //상품 조회 결과
-            OrderSheetProductResult.Info productInfo = TestUtil.sample(fixtureMonkey.giveMeBuilder(OrderSheetProductResult.Info.class)
+            OrderSheetProductResult.Info productInfo = sample(fixtureMonkey.giveMeBuilder(OrderSheetProductResult.Info.class)
                     .set("productVariantId", targetVariantId)
                     .set("stock", 10));
 

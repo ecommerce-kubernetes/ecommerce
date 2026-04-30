@@ -10,7 +10,7 @@ import com.example.order_service.api.cart.facade.dto.result.CartResult;
 import com.example.order_service.api.common.exception.business.BusinessException;
 import com.example.order_service.api.common.exception.business.code.CartErrorCode;
 import com.example.order_service.api.support.BaseTestSupport;
-import com.example.order_service.api.support.TestUtil;
+import com.example.order_service.support.TestFixtureUtil;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -40,14 +40,14 @@ public class CartFacadeTest extends BaseTestSupport {
         @DisplayName("요청한 상품 중 판매중이 아닌 상품이 있는 경우 예외가 발생한다")
         void addItem_fail_ProductNotOnSale() {
             //given
-            CartCommand.AddItems command = TestUtil.sample(fixtureMonkey.giveMeBuilder(CartCommand.AddItems.class)
+            CartCommand.AddItems command = TestFixtureUtil.sample(fixtureMonkey.giveMeBuilder(CartCommand.AddItems.class)
                     .size("items", 2));
             Long firstId = command.items().getFirst().productVariantId();
             Long secondId = command.items().get(1).productVariantId();
-            CartProductInfo onSaleProduct = TestUtil.sample(fixtureMonkey.giveMeBuilder(CartProductInfo.class)
+            CartProductInfo onSaleProduct = TestFixtureUtil.sample(fixtureMonkey.giveMeBuilder(CartProductInfo.class)
                     .set("productVariantId", firstId)
                     .set("status", ProductStatus.ON_SALE));
-            CartProductInfo stopSaleProduct = TestUtil.sample(fixtureMonkey.giveMeBuilder(CartProductInfo.class)
+            CartProductInfo stopSaleProduct = TestFixtureUtil.sample(fixtureMonkey.giveMeBuilder(CartProductInfo.class)
                     .set("productVariantId", secondId)
                     .set("status", ProductStatus.STOP_SALE));
 
@@ -65,28 +65,28 @@ public class CartFacadeTest extends BaseTestSupport {
         @DisplayName("장바구니에 상품이 추가되면 상품 정보가 포함된 응답값을 반환한다")
         void addItem() {
             //given
-            CartCommand.AddItems command = TestUtil.sample(fixtureMonkey.giveMeBuilder(CartCommand.AddItems.class)
+            CartCommand.AddItems command = TestFixtureUtil.sample(fixtureMonkey.giveMeBuilder(CartCommand.AddItems.class)
                     .size("items", 2));
             Long firstId = command.items().get(0).productVariantId();
             int firstQuantity = command.items().getFirst().quantity();
             Long secondId = command.items().get(1).productVariantId();
             int secondQuantity = command.items().get(1).quantity();
-            CartProductInfo firstProduct = TestUtil.sample(
+            CartProductInfo firstProduct = TestFixtureUtil.sample(
                     fixtureMonkey.giveMeBuilder(CartProductInfo.class)
                             .set("productVariantId", firstId)
                             .set("status", ProductStatus.ON_SALE) // 통과 조건
             );
-            CartProductInfo secondProduct = TestUtil.sample(
+            CartProductInfo secondProduct = TestFixtureUtil.sample(
                     fixtureMonkey.giveMeBuilder(CartProductInfo.class)
                             .set("productVariantId", secondId)
                             .set("status", ProductStatus.ON_SALE)
             );
-            CartItemDto firstDto = TestUtil.sample(
+            CartItemDto firstDto = TestFixtureUtil.sample(
                     fixtureMonkey.giveMeBuilder(CartItemDto.class)
                             .set("productVariantId", firstId)
                             .set("quantity", firstQuantity)
             );
-            CartItemDto secondDto = TestUtil.sample(
+            CartItemDto secondDto = TestFixtureUtil.sample(
                     fixtureMonkey.giveMeBuilder(CartItemDto.class)
                             .set("productVariantId", secondId)
                             .set("quantity", secondQuantity)
@@ -132,16 +132,16 @@ public class CartFacadeTest extends BaseTestSupport {
         void getCartDetails() {
             //given
             List<CartItemDto> cartItems = List.of(
-                    TestUtil.sample(fixtureMonkey.giveMeBuilder(CartItemDto.class).set("productVariantId", 1L)),
-                    TestUtil.sample(fixtureMonkey.giveMeBuilder(CartItemDto.class).set("productVariantId", 2L)),
-                    TestUtil.sample(fixtureMonkey.giveMeBuilder(CartItemDto.class).set("productVariantId", 3L))
+                    TestFixtureUtil.sample(fixtureMonkey.giveMeBuilder(CartItemDto.class).set("productVariantId", 1L)),
+                    TestFixtureUtil.sample(fixtureMonkey.giveMeBuilder(CartItemDto.class).set("productVariantId", 2L)),
+                    TestFixtureUtil.sample(fixtureMonkey.giveMeBuilder(CartItemDto.class).set("productVariantId", 3L))
             );
 
             List<CartProductInfo> productInfos = List.of(
-                    TestUtil.sample(fixtureMonkey.giveMeBuilder(CartProductInfo.class)
+                    TestFixtureUtil.sample(fixtureMonkey.giveMeBuilder(CartProductInfo.class)
                             .set("productVariantId", 1L)
                             .set("status", ProductStatus.ON_SALE)),
-                    TestUtil.sample(fixtureMonkey.giveMeBuilder(CartProductInfo.class)
+                    TestFixtureUtil.sample(fixtureMonkey.giveMeBuilder(CartProductInfo.class)
                             .set("productVariantId", 2L)
                             .set("status", ProductStatus.STOP_SALE))
             );

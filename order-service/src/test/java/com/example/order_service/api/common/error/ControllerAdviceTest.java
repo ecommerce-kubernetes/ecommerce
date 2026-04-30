@@ -1,6 +1,6 @@
 package com.example.order_service.api.common.error;
 
-import com.example.order_service.api.support.ControllerTestSupport;
+import com.example.order_service.support.ControllerTestSupport;
 import com.example.order_service.api.support.security.annotation.WithCustomMockUser;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
