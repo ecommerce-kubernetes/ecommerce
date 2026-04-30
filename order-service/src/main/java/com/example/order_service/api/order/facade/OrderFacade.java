@@ -1,10 +1,10 @@
 package com.example.order_service.api.order.facade;
 
 import com.example.order_service.api.common.dto.PageDto;
-import com.example.order_service.api.common.exception.BusinessException;
-import com.example.order_service.api.common.exception.ErrorCode;
-import com.example.order_service.api.common.exception.OrderErrorCode;
-import com.example.order_service.api.common.exception.PaymentErrorCode;
+import com.example.order_service.api.common.exception.business.BusinessException;
+import com.example.order_service.api.common.exception.business.code.ErrorCode;
+import com.example.order_service.api.common.exception.business.code.OrderErrorCode;
+import com.example.order_service.api.common.exception.business.code.PaymentErrorCode;
 import com.example.order_service.api.common.util.AsyncUtil;
 import com.example.order_service.api.order.controller.dto.request.OrderSearchCondition;
 import com.example.order_service.api.order.domain.model.OrderFailureCode;

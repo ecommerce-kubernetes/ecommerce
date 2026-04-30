@@ -1,7 +1,7 @@
 package com.example.order_service.api.support;
 
-import com.example.order_service.api.common.exception.BusinessException;
-import com.example.order_service.api.common.exception.OrderErrorCode;
+import com.example.order_service.api.common.exception.business.BusinessException;
+import com.example.order_service.api.common.exception.business.code.OrderErrorCode;
 import com.example.order_service.api.common.security.model.UserPrincipal;
 import com.example.order_service.api.common.security.model.UserRole;
 import com.fasterxml.jackson.core.JsonProcessingException;

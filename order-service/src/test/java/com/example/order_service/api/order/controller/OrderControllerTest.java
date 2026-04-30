@@ -10,9 +10,9 @@ import com.example.order_service.api.order.facade.dto.command.CreateOrderCommand
 import com.example.order_service.api.order.facade.dto.result.CreateOrderResponse;
 import com.example.order_service.api.order.facade.dto.result.OrderDetailResponse;
 import com.example.order_service.api.order.facade.dto.result.OrderListResponse;
-import com.example.order_service.api.support.ControllerTestSupport;
 import com.example.order_service.api.support.security.annotation.WithCustomMockUser;
 import com.example.order_service.api.support.security.config.TestSecurityConfig;
+import com.example.order_service.support.ControllerTestSupport;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

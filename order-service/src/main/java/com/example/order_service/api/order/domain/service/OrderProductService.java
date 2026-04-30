@@ -1,8 +1,8 @@
 package com.example.order_service.api.order.domain.service;
 
 
-import com.example.order_service.api.common.exception.BusinessException;
-import com.example.order_service.api.common.exception.OrderErrorCode;
+import com.example.order_service.api.common.exception.business.BusinessException;
+import com.example.order_service.api.common.exception.business.code.OrderErrorCode;
 import com.example.order_service.api.order.domain.model.ProductStatus;
 import com.example.order_service.api.order.domain.service.dto.result.OrderProductInfo;
 import com.example.order_service.api.order.facade.dto.command.CreateOrderItemCommand;

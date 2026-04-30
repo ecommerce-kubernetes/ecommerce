@@ -2,9 +2,9 @@ package com.example.order_service.api.common.client.decoder;
 
 import com.example.order_service.api.common.client.payment.TossErrorResponse;
 import com.example.order_service.api.common.client.payment.TossPaymentErrorDecoder;
-import com.example.order_service.api.common.exception.BusinessException;
-import com.example.order_service.api.common.exception.ErrorCode;
-import com.example.order_service.api.common.exception.PaymentErrorCode;
+import com.example.order_service.api.common.exception.business.BusinessException;
+import com.example.order_service.api.common.exception.business.code.ErrorCode;
+import com.example.order_service.api.common.exception.business.code.PaymentErrorCode;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import feign.Request;

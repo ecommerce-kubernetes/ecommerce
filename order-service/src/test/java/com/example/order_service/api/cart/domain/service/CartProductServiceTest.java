@@ -4,8 +4,8 @@ import com.example.order_service.api.cart.domain.model.ProductStatus;
 import com.example.order_service.api.cart.domain.service.dto.result.CartProductInfo;
 import com.example.order_service.api.cart.infrastructure.client.CartProductAdaptor;
 import com.example.order_service.api.cart.infrastructure.client.dto.CartProductResponse;
-import com.example.order_service.api.common.exception.BusinessException;
-import com.example.order_service.api.common.exception.CartErrorCode;
+import com.example.order_service.api.common.exception.business.BusinessException;
+import com.example.order_service.api.common.exception.business.code.CartErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -34,7 +34,7 @@ public class CartProductServiceTest {
 
     @Nested
     @DisplayName("상품 정보 조회")
-    class GetProductInfo {
+    class GetInfo {
 
         @Test
         @DisplayName("장바구니 상품 정보를 조회한다")
@@ -71,7 +71,7 @@ public class CartProductServiceTest {
 
     @Nested
     @DisplayName("상품 목록 정보 조회")
-    class GetProductInfos {
+    class GetInfos {
 
         @Test
         @DisplayName("상품 목록 정보를 조회한다")
