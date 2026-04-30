@@ -11,7 +11,7 @@ public class MockRedisConfig {
 
     @Bean
     @Primary
-    public RedisTemplate<String, String> mockKafkaTemplate() {
+    public RedisTemplate<String, String> mockRedisTemplate() {
         return Mockito.mock(RedisTemplate.class);
     }
 }
