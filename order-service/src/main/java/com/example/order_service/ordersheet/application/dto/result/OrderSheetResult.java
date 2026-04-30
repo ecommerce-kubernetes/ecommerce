@@ -1,0 +1,109 @@
+package com.example.order_service.ordersheet.application.dto.result;
+
+import com.example.order_service.ordersheet.domain.OrderSheet;
+import com.example.order_service.ordersheet.domain.OrderSheetItem;
+import com.example.order_service.ordersheet.domain.vo.OrderSheetItemOptionSnapshot;
+import com.example.order_service.ordersheet.domain.vo.OrderSheetItemPriceSnapshot;
+import lombok.Builder;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+public class OrderSheetResult {
+
+    @Builder
+    public record Default(
+            String sheetId,
+            LocalDateTime expiresAt,
+            Summary summary,
+            List<OrderItem> items
+    ) {
+        public static Default from(OrderSheet orderSheet) {
+            return Default.builder()
+                    .sheetId(orderSheet.getSheetId())
+                    .expiresAt(orderSheet.getExpiresAt())
+                    .summary(Summary.of(orderSheet.getTotalOriginalPrice(), orderSheet.getTotalProductDiscountAmount(), orderSheet.getTotalPaymentAmount()))
+                    .items(mapToOrderItems(orderSheet.getItems()))
+                    .build();
+        }
+
+        private static List<OrderItem> mapToOrderItems(List<OrderSheetItem> items) {
+            return items.stream().map(OrderItem::from).toList();
+        }
+    }
+
+    @Builder
+    public record Summary(
+            long totalOriginPrice,
+            long totalProductDiscount,
+            long totalBasePaymentAmount
+    ) {
+        public static Summary of(Long totalOriginalPrice, Long totalProductDiscount, Long totalBasePaymentAmount) {
+            return Summary.builder()
+                    .totalOriginPrice(totalOriginalPrice)
+                    .totalProductDiscount(totalProductDiscount)
+                    .totalBasePaymentAmount(totalBasePaymentAmount)
+                    .build();
+        }
+    }
+
+    @Builder
+    public record OrderItem(
+            Long productId,
+            Long productVariantId,
+            String productName,
+            String thumbnail,
+            int quantity,
+            OrderItemPrice unitPrice,
+            long lineTotal,
+            List<OrderItemOption> options
+    ) {
+        public static OrderItem from(OrderSheetItem item) {
+            return OrderItem.builder()
+                    .productId(item.getProductSnapshot().getProductId())
+                    .productVariantId(item.getProductSnapshot().getProductVariantId())
+                    .productName(item.getProductSnapshot().getProductName())
+                    .thumbnail(item.getProductSnapshot().getThumbnail())
+                    .quantity(item.getQuantity())
+                    .unitPrice(OrderItemPrice.from(item.getItemPrice()))
+                    .lineTotal(item.getLineTotal())
+                    .options(mapToOptions(item.getOptions()))
+                    .build();
+
+        }
+        private static List<OrderItemOption> mapToOptions(List<OrderSheetItemOptionSnapshot> options) {
+            return options.stream().map(OrderItemOption::from)
+                    .toList();
+        }
+    }
+
+    @Builder
+    public record OrderItemPrice(
+            long originalPrice,
+            long discountRate,
+            long discountAmount,
+            long discountedPrice
+    ) {
+        public static OrderItemPrice from(OrderSheetItemPriceSnapshot price) {
+            return OrderItemPrice.builder()
+                    .originalPrice(price.getOriginalPrice())
+                    .discountRate(price.getDiscountRate())
+                    .discountAmount(price.getDiscountAmount())
+                    .discountedPrice(price.getDiscountedPrice())
+                    .build();
+        }
+    }
+
+    @Builder
+    public record OrderItemOption(
+            String optionTypeName,
+            String optionValueName
+    ) {
+        public static OrderItemOption from(OrderSheetItemOptionSnapshot option) {
+            return OrderItemOption.builder()
+                    .optionTypeName(option.getOptionTypeName())
+                    .optionValueName(option.getOptionValueName())
+                    .build();
+        }
+    }
+}

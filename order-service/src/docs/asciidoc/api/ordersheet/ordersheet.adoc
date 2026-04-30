@@ -1,0 +1,13 @@
+[[ordersheet-create]]
+=== 주문서 생성
+
+==== HTTP Request
+include::{snippets}/04-ordersheet-01-create/http-request.adoc[]
+===== Request Header
+include::{snippets}/04-ordersheet-01-create/request-headers.adoc[]
+===== Request Fields
+include::{snippets}/04-ordersheet-01-create/request-fields.adoc[]
+==== HTTP Response
+include::{snippets}/04-ordersheet-01-create/http-response.adoc[]
+===== Response Fields
+include::{snippets}/04-ordersheet-01-create/response-fields.adoc[]

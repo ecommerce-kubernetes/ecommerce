@@ -1,7 +1,7 @@
 package com.example.order_service.api.order.saga.orchestrator;
 
-import com.example.order_service.api.common.exception.BusinessException;
 import com.example.order_service.api.common.exception.CommonErrorCode;
+import com.example.order_service.api.common.exception.business.BusinessException;
 import com.example.order_service.api.order.saga.domain.model.SagaStep;
 import com.example.order_service.api.order.saga.domain.model.vo.Payload;
 

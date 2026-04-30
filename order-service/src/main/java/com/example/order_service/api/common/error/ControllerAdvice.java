@@ -1,7 +1,7 @@
 package com.example.order_service.api.common.error;
 
 import com.example.order_service.api.common.error.dto.response.ErrorResponse;
-import com.example.order_service.api.common.exception.BusinessException;
+import com.example.order_service.api.common.exception.business.BusinessException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
