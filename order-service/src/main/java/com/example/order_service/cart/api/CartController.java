@@ -1,9 +1,9 @@
 package com.example.order_service.cart.api;
 
-import com.example.order_service.api.common.security.model.UserPrincipal;
+import com.example.order_service.common.security.model.UserPrincipal;
 import com.example.order_service.cart.api.dto.request.CartRequest;
 import com.example.order_service.cart.api.dto.response.CartResponse;
-import com.example.order_service.cart.application.CartFacade;
+import com.example.order_service.cart.application.CartAppService;
 import com.example.order_service.cart.application.dto.command.CartCommand;
 import com.example.order_service.cart.application.dto.result.CartResult;
 import lombok.RequiredArgsConstructor;
@@ -24,20 +24,20 @@ import java.util.List;
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('USER')")
 public class CartController {
-    private final CartFacade cartFacade;
+    private final CartAppService cartAppService;
 
     @PostMapping
     public ResponseEntity<CartResponse.Cart> addCartItem(@AuthenticationPrincipal UserPrincipal userPrincipal,
                                                     @RequestBody @Validated CartRequest.AddItems request){
         CartCommand.AddItems command = request.toCommand(userPrincipal.getUserId());
-        CartResult.Cart result = cartFacade.addItems(command);
+        CartResult.Cart result = cartAppService.addItems(command);
         CartResponse.Cart response = CartResponse.Cart.from(result);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @GetMapping
     public ResponseEntity<CartResponse.Cart> getAllCartItem(@AuthenticationPrincipal UserPrincipal userPrincipal) {
-        CartResult.Cart result = cartFacade.getCartDetails(userPrincipal.getUserId());
+        CartResult.Cart result = cartAppService.getCartDetails(userPrincipal.getUserId());
         CartResponse.Cart response = CartResponse.Cart.from(result);
         return ResponseEntity.ok(response);
     }
@@ -47,7 +47,7 @@ public class CartController {
                                                            @PathVariable("cartItemId") Long cartItemId,
                                                            @RequestBody @Validated CartRequest.UpdateQuantity request){
         CartCommand.UpdateQuantity command = request.toCommand(userPrincipal.getUserId(), cartItemId);
-        CartResult.Update result = cartFacade.updateCartItemQuantity(command);
+        CartResult.Update result = cartAppService.updateCartItemQuantity(command);
         CartResponse.Update response = CartResponse.Update.from(result);
         return ResponseEntity.ok(response);
     }
@@ -55,7 +55,7 @@ public class CartController {
     @DeleteMapping
     public ResponseEntity<Void> deleteCartItems(@AuthenticationPrincipal UserPrincipal userPrincipal,
                                                @RequestParam List<Long> cartItemIds){
-        cartFacade.removeCartItems(userPrincipal.getUserId(), cartItemIds);
+        cartAppService.removeCartItems(userPrincipal.getUserId(), cartItemIds);
         return ResponseEntity.noContent().build();
     }
 }

@@ -2,35 +2,47 @@ package com.example.order_service.cart.api;
 
 import com.example.order_service.cart.api.dto.request.CartRequest;
 import com.example.order_service.cart.api.dto.response.CartResponse;
+import com.example.order_service.cart.application.CartAppService;
 import com.example.order_service.cart.application.dto.command.CartCommand;
 import com.example.order_service.cart.application.dto.result.CartResult;
-import com.example.order_service.api.common.security.model.UserRole;
+import com.example.order_service.common.security.model.UserRole;
 import com.example.order_service.api.support.security.annotation.WithCustomMockUser;
 import com.example.order_service.api.support.security.config.TestSecurityConfig;
-import com.example.order_service.support.ControllerTestSupport;
-import com.example.order_service.support.TestFixtureUtil;
-import lombok.extern.slf4j.Slf4j;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
 import java.util.stream.Stream;
 
+import static com.example.order_service.support.TestFixtureUtil.fixtureMonkey;
+import static com.example.order_service.support.TestFixtureUtil.nonNull;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@Slf4j
 @Import(TestSecurityConfig.class)
-class CartControllerTest extends ControllerTestSupport {
+@WebMvcTest(controllers = CartController.class)
+class CartControllerTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+    @Autowired
+    private ObjectMapper objectMapper;
+    @MockitoBean
+    private CartAppService cartAppService;
 
     @Nested
     @DisplayName("장바구니 상품 추가")
@@ -41,9 +53,9 @@ class CartControllerTest extends ControllerTestSupport {
         @WithCustomMockUser
         void addCartItem() throws Exception {
             //given
-            CartRequest.AddItems request = TestFixtureUtil.nonNull(fixtureMonkey.giveMeOne(CartRequest.AddItems.class));
-            CartResult.Cart result = TestFixtureUtil.nonNull(fixtureMonkey.giveMeOne(CartResult.Cart.class));
-            given(cartFacade.addItems(any(CartCommand.AddItems.class)))
+            CartRequest.AddItems request = nonNull(fixtureMonkey.giveMeOne(CartRequest.AddItems.class));
+            CartResult.Cart result = nonNull(fixtureMonkey.giveMeOne(CartResult.Cart.class));
+            given(cartAppService.addItems(any(CartCommand.AddItems.class)))
                     .willReturn(result);
             CartResponse.Cart response = CartResponse.Cart.from(result);
             //when
@@ -143,8 +155,8 @@ class CartControllerTest extends ControllerTestSupport {
         @WithCustomMockUser
         void getAllCartItem() throws Exception {
             //given
-            CartResult.Cart result = TestFixtureUtil.nonNull(fixtureMonkey.giveMeOne(CartResult.Cart.class));
-            given(cartFacade.getCartDetails(anyLong()))
+            CartResult.Cart result = nonNull(fixtureMonkey.giveMeOne(CartResult.Cart.class));
+            given(cartAppService.getCartDetails(anyLong()))
                     .willReturn(result);
             CartResponse.Cart response = CartResponse.Cart.from(result);
             //when
@@ -198,7 +210,7 @@ class CartControllerTest extends ControllerTestSupport {
         @WithCustomMockUser
         void deleteCartItems() throws Exception {
             //given
-            willDoNothing().given(cartFacade).removeCartItems(anyLong(), anyList());
+            willDoNothing().given(cartAppService).removeCartItems(anyLong(), anyList());
             //when
             //then
             mockMvc.perform(delete("/carts")
@@ -254,9 +266,9 @@ class CartControllerTest extends ControllerTestSupport {
         @WithCustomMockUser
         void updateQuantity() throws Exception {
             //given
-            CartRequest.UpdateQuantity request = TestFixtureUtil.nonNull(fixtureMonkey.giveMeOne(CartRequest.UpdateQuantity.class));
-            CartResult.Update result = TestFixtureUtil.nonNull(fixtureMonkey.giveMeOne(CartResult.Update.class));
-            given(cartFacade.updateCartItemQuantity(any(CartCommand.UpdateQuantity.class)))
+            CartRequest.UpdateQuantity request = nonNull(fixtureMonkey.giveMeOne(CartRequest.UpdateQuantity.class));
+            CartResult.Update result = nonNull(fixtureMonkey.giveMeOne(CartResult.Update.class));
+            given(cartAppService.updateCartItemQuantity(any(CartCommand.UpdateQuantity.class)))
                     .willReturn(result);
             CartResponse.Update response = CartResponse.Update.from(result);
             //when
@@ -274,7 +286,7 @@ class CartControllerTest extends ControllerTestSupport {
         @WithCustomMockUser(userRole = UserRole.ROLE_ADMIN)
         void updateQuantity_Admin_role() throws Exception {
             //given
-            CartRequest.UpdateQuantity request = TestFixtureUtil.nonNull(fixtureMonkey.giveMeOne(CartRequest.UpdateQuantity.class));
+            CartRequest.UpdateQuantity request = nonNull(fixtureMonkey.giveMeOne(CartRequest.UpdateQuantity.class));
             //when
             //then
             mockMvc.perform(patch("/carts/{cartItemId}", 1)
@@ -292,7 +304,7 @@ class CartControllerTest extends ControllerTestSupport {
         @DisplayName("로그인 하지 않은 사용자는 장바구니 상품의 수량을 수정할 수 없다")
         void updateQuantity_unAuthorized() throws Exception {
             //given
-            CartRequest.UpdateQuantity request = TestFixtureUtil.nonNull(fixtureMonkey.giveMeOne(CartRequest.UpdateQuantity.class));
+            CartRequest.UpdateQuantity request = nonNull(fixtureMonkey.giveMeOne(CartRequest.UpdateQuantity.class));
             //when
             //then
             mockMvc.perform(patch("/carts/{cartItemId}", 1)

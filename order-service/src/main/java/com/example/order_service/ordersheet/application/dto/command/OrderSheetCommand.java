@@ -1,7 +1,7 @@
 package com.example.order_service.ordersheet.application.dto.command;
 
-import com.example.order_service.api.common.exception.business.BusinessException;
-import com.example.order_service.api.common.exception.business.code.OrderSheetErrorCode;
+import com.example.order_service.common.exception.business.BusinessException;
+import com.example.order_service.common.exception.business.code.OrderSheetErrorCode;
 import lombok.Builder;
 
 import java.util.List;

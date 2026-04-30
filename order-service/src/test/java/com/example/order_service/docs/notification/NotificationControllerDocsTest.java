@@ -1,10 +1,10 @@
 package com.example.order_service.docs.notification;
 
 import com.epages.restdocs.apispec.ResourceSnippetParameters;
-import com.example.order_service.api.common.security.model.UserPrincipal;
-import com.example.order_service.api.common.security.model.UserRole;
-import com.example.order_service.api.notification.controller.NotificationController;
-import com.example.order_service.api.notification.service.NotificationService;
+import com.example.order_service.common.security.model.UserPrincipal;
+import com.example.order_service.common.security.model.UserRole;
+import com.example.order_service.notification.controller.NotificationController;
+import com.example.order_service.notification.service.NotificationService;
 import com.example.order_service.support.RestDocSupport;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

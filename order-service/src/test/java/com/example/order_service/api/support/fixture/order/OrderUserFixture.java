@@ -1,7 +1,7 @@
 package com.example.order_service.api.support.fixture.order;
 
-import com.example.order_service.api.order.domain.service.dto.result.OrderUserInfo;
-import com.example.order_service.api.order.infrastructure.client.user.dto.OrderUserResponse;
+import com.example.order_service.order.domain.service.dto.result.OrderUserInfo;
+import com.example.order_service.order.infrastructure.client.user.dto.OrderUserResponse;
 
 public class OrderUserFixture {
     public static OrderUserResponse.OrderUserResponseBuilder anOrderUserResponse(){

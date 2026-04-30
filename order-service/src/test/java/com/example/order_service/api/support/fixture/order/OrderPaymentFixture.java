@@ -1,9 +1,9 @@
 package com.example.order_service.api.support.fixture.order;
 
-import com.example.order_service.api.order.domain.model.PaymentMethod;
-import com.example.order_service.api.order.domain.model.PaymentStatus;
-import com.example.order_service.api.order.domain.service.dto.result.OrderPaymentInfo;
-import com.example.order_service.api.order.infrastructure.client.payment.dto.response.TossPaymentConfirmResponse;
+import com.example.order_service.order.domain.model.PaymentMethod;
+import com.example.order_service.order.domain.model.PaymentStatus;
+import com.example.order_service.order.domain.service.dto.result.OrderPaymentInfo;
+import com.example.order_service.order.infrastructure.client.payment.dto.response.TossPaymentConfirmResponse;
 
 import java.time.LocalDateTime;
 

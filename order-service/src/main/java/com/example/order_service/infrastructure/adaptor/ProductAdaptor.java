@@ -1,7 +1,7 @@
 package com.example.order_service.infrastructure.adaptor;
 
-import com.example.order_service.api.common.exception.external.ExternalSystemException;
-import com.example.order_service.api.common.exception.external.ExternalSystemUnavailableException;
+import com.example.order_service.common.exception.external.ExternalSystemException;
+import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
 import com.example.order_service.infrastructure.client.ProductFeignClient;
 import com.example.order_service.infrastructure.dto.request.ProductClientRequest;
 import com.example.order_service.infrastructure.dto.response.ProductClientResponse;

@@ -1,11 +1,11 @@
 package com.example.order_service.ordersheet.api;
 
-import com.example.order_service.api.common.security.model.UserRole;
+import com.example.order_service.common.security.model.UserRole;
 import com.example.order_service.api.support.security.annotation.WithCustomMockUser;
 import com.example.order_service.api.support.security.config.TestSecurityConfig;
 import com.example.order_service.ordersheet.api.dto.request.OrderSheetRequest;
 import com.example.order_service.ordersheet.api.dto.response.OrderSheetResponse;
-import com.example.order_service.ordersheet.application.OrderSheetService;
+import com.example.order_service.ordersheet.application.OrderSheetAppService;
 import com.example.order_service.ordersheet.application.dto.command.OrderSheetCommand;
 import com.example.order_service.ordersheet.application.dto.result.OrderSheetResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -40,7 +40,7 @@ class OrderSheetControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
     @MockitoBean
-    private OrderSheetService orderSheetService;
+    private OrderSheetAppService orderSheetAppService;
 
     @Nested
     @DisplayName("주문서 저장")
@@ -53,7 +53,7 @@ class OrderSheetControllerTest {
             //given
             OrderSheetRequest.Create request = nonNull(fixtureMonkey.giveMeOne(OrderSheetRequest.Create.class));
             OrderSheetResult.Default result = nonNull(fixtureMonkey.giveMeOne(OrderSheetResult.Default.class));
-            given(orderSheetService.createOrderSheet(any(OrderSheetCommand.Create.class)))
+            given(orderSheetAppService.createOrderSheet(any(OrderSheetCommand.Create.class)))
                     .willReturn(result);
             OrderSheetResponse.Create response = OrderSheetResponse.Create.from(result);
             //when

@@ -1,7 +1,7 @@
 package com.example.order_service.cart.domain.service;
 
-import com.example.order_service.api.common.exception.business.BusinessException;
-import com.example.order_service.api.common.exception.business.code.CartErrorCode;
+import com.example.order_service.common.exception.business.BusinessException;
+import com.example.order_service.common.exception.business.code.CartErrorCode;
 import com.example.order_service.cart.domain.model.Cart;
 import com.example.order_service.cart.domain.model.CartItem;
 import com.example.order_service.cart.domain.repository.CartItemRepository;

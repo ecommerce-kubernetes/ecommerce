@@ -1,8 +1,8 @@
 package com.example.order_service.cart.listener;
 
-import com.example.order_service.cart.application.CartFacade;
+import com.example.order_service.cart.application.CartAppService;
 import com.example.order_service.cart.listener.event.CartEventListener;
-import com.example.order_service.api.order.facade.event.PaymentCompletedEvent;
+import com.example.order_service.order.application.event.PaymentCompletedEvent;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,7 +19,7 @@ public class CartEventListenerTest {
     @InjectMocks
     private CartEventListener cartEventListener;
     @Mock
-    private CartFacade cartFacade;
+    private CartAppService cartAppService;
     public static final String ORDER_NO = "ORD-20260101-AB12FVC";
 
     @Test
@@ -30,7 +30,7 @@ public class CartEventListenerTest {
         //when
         cartEventListener.handlePaymentCompletedEvent(event);
         //then
-        verify(cartFacade).removePurchasedItems(1L, List.of(1L, 2L));
+        verify(cartAppService).removePurchasedItems(1L, List.of(1L, 2L));
     }
 
 }

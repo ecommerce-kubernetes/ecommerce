@@ -1,11 +1,9 @@
 package com.example.order_service.cart.infrastructure.client;
 
-import com.example.order_service.cart.infrastructure.client.CartProductAdaptor;
-import com.example.order_service.cart.infrastructure.client.CartProductClient;
 import com.example.order_service.cart.infrastructure.client.dto.CartProductResponse;
 import com.example.order_service.cart.infrastructure.client.dto.CartProductsRequest;
-import com.example.order_service.api.common.exception.ExternalServiceErrorCode;
-import com.example.order_service.api.common.exception.business.BusinessException;
+import com.example.order_service.common.exception.ExternalServiceErrorCode;
+import com.example.order_service.common.exception.business.BusinessException;
 import com.example.order_service.api.support.ExcludeInfraTest;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import org.junit.jupiter.api.DisplayName;

@@ -1,10 +1,10 @@
 package com.example.order_service.api.support.fixture.order;
 
-import com.example.order_service.api.order.domain.service.dto.result.OrderProductInfo;
-import com.example.order_service.api.order.domain.service.dto.result.OrderProductInfo.ProductOption;
-import com.example.order_service.api.order.infrastructure.client.product.dto.OrderProductResponse;
-import com.example.order_service.api.order.infrastructure.client.product.dto.OrderProductResponse.ProductOptionInfo;
-import com.example.order_service.api.order.infrastructure.client.product.dto.OrderProductResponse.UnitPrice;
+import com.example.order_service.order.domain.service.dto.result.OrderProductInfo;
+import com.example.order_service.order.domain.service.dto.result.OrderProductInfo.ProductOption;
+import com.example.order_service.order.infrastructure.client.product.dto.OrderProductResponse;
+import com.example.order_service.order.infrastructure.client.product.dto.OrderProductResponse.ProductOptionInfo;
+import com.example.order_service.order.infrastructure.client.product.dto.OrderProductResponse.UnitPrice;
 
 import java.util.List;
 

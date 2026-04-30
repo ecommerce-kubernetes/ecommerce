@@ -4,7 +4,7 @@ import com.example.order_service.docs.descriptor.OrderSheetDescriptor;
 import com.example.order_service.ordersheet.api.OrderSheetController;
 import com.example.order_service.ordersheet.api.dto.request.OrderSheetRequest;
 import com.example.order_service.ordersheet.api.dto.response.OrderSheetResponse;
-import com.example.order_service.ordersheet.application.OrderSheetService;
+import com.example.order_service.ordersheet.application.OrderSheetAppService;
 import com.example.order_service.ordersheet.application.dto.command.OrderSheetCommand;
 import com.example.order_service.ordersheet.application.dto.result.OrderSheetResult;
 import com.example.order_service.support.RestDocSupport;
@@ -25,7 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class OrderSheetControllerDocsTest extends RestDocSupport {
-    private OrderSheetService orderSheetService = mock(OrderSheetService.class);
+    private OrderSheetAppService orderSheetAppService = mock(OrderSheetAppService.class);
 
     @Override
     protected String getTag() {
@@ -34,7 +34,7 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
 
     @Override
     protected Object initController() {
-        return new OrderSheetController(orderSheetService);
+        return new OrderSheetController(orderSheetAppService);
     }
 
     @Nested
@@ -53,7 +53,7 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
                     .build();
             OrderSheetResult.Default result = createOrderSheetResult();
             HttpHeaders roleUser = createAuthHeader("ROLE_USER");
-            given(orderSheetService.createOrderSheet(any(OrderSheetCommand.Create.class)))
+            given(orderSheetAppService.createOrderSheet(any(OrderSheetCommand.Create.class)))
                     .willReturn(result);
             OrderSheetResponse.Create response = OrderSheetResponse.Create.from(result);
             //when

@@ -1,7 +1,7 @@
 package com.example.order_service.api.support.fixture.order;
 
-import com.example.order_service.api.order.domain.service.dto.result.OrderCouponInfo;
-import com.example.order_service.api.order.infrastructure.client.coupon.dto.OrderCouponDiscountResponse;
+import com.example.order_service.order.domain.service.dto.result.OrderCouponInfo;
+import com.example.order_service.order.infrastructure.client.coupon.dto.OrderCouponDiscountResponse;
 
 public class OrderCouponFixture {
 

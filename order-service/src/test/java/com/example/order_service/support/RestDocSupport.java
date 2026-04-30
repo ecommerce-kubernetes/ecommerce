@@ -1,8 +1,8 @@
 package com.example.order_service.support;
 
 import com.epages.restdocs.apispec.ResourceSnippetParameters;
-import com.example.order_service.api.common.security.model.UserPrincipal;
-import com.example.order_service.api.common.security.model.UserRole;
+import com.example.order_service.common.security.model.UserPrincipal;
+import com.example.order_service.common.security.model.UserRole;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;

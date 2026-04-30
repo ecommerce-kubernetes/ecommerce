@@ -1,7 +1,7 @@
 package com.example.order_service.cart.infrastructure.client;
 
-import com.example.order_service.api.common.exception.ExternalServiceErrorCode;
-import com.example.order_service.api.common.exception.business.BusinessException;
+import com.example.order_service.common.exception.ExternalServiceErrorCode;
+import com.example.order_service.common.exception.business.BusinessException;
 import com.example.order_service.cart.infrastructure.client.dto.CartProductResponse;
 import com.example.order_service.cart.infrastructure.client.dto.CartProductsRequest;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;

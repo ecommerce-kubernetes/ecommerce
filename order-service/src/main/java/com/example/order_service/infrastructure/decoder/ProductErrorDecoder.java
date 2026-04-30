@@ -1,7 +1,7 @@
 package com.example.order_service.infrastructure.decoder;
 
-import com.example.order_service.api.common.exception.external.ExternalClientException;
-import com.example.order_service.api.common.exception.external.ExternalServerException;
+import com.example.order_service.common.exception.external.ExternalClientException;
+import com.example.order_service.common.exception.external.ExternalServerException;
 import com.example.order_service.infrastructure.dto.response.ClientErrorResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import feign.Response;

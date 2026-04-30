@@ -1,9 +1,9 @@
 package com.example.order_service.api.support;
 
-import com.example.order_service.api.common.exception.business.BusinessException;
-import com.example.order_service.api.common.exception.business.code.OrderErrorCode;
-import com.example.order_service.api.common.security.model.UserPrincipal;
-import com.example.order_service.api.common.security.model.UserRole;
+import com.example.order_service.common.exception.business.BusinessException;
+import com.example.order_service.common.exception.business.code.OrderErrorCode;
+import com.example.order_service.common.security.model.UserPrincipal;
+import com.example.order_service.common.security.model.UserRole;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;

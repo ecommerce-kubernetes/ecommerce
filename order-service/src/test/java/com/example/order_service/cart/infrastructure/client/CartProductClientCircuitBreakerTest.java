@@ -1,9 +1,8 @@
 package com.example.order_service.cart.infrastructure.client;
 
-import com.example.order_service.api.common.exception.ExternalServiceErrorCode;
-import com.example.order_service.api.common.exception.business.BusinessException;
+import com.example.order_service.common.exception.ExternalServiceErrorCode;
+import com.example.order_service.common.exception.business.BusinessException;
 import com.example.order_service.api.support.ExcludeInfraTest;
-import com.example.order_service.cart.infrastructure.client.CartProductAdaptor;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
