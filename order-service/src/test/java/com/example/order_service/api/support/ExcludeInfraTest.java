@@ -1,15 +1,17 @@
 package com.example.order_service.api.support;
 
 
+import com.example.order_service.api.support.fixture.FixtureMonkeyFactory;
+import com.navercorp.fixturemonkey.FixtureMonkey;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-
 
 @ActiveProfiles("unit-test")
 @SpringBootTest
 public abstract class ExcludeInfraTest {
     @MockitoBean
     private KafkaTemplate<String, Object> kafkaTemplate;
+    protected final FixtureMonkey fixtureMonkey = FixtureMonkeyFactory.get;
 }

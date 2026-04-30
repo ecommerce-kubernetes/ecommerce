@@ -5,8 +5,8 @@ import com.example.order_service.api.cart.domain.service.dto.result.CartProductI
 import com.example.order_service.api.cart.domain.service.dto.result.CartProductInfo.ProductOption;
 import com.example.order_service.api.cart.infrastructure.client.CartProductAdaptor;
 import com.example.order_service.api.cart.infrastructure.client.dto.CartProductResponse;
-import com.example.order_service.api.common.exception.BusinessException;
-import com.example.order_service.api.common.exception.CartErrorCode;
+import com.example.order_service.api.common.exception.business.BusinessException;
+import com.example.order_service.api.common.exception.business.code.CartErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

@@ -29,10 +29,10 @@ include::{snippets}/02-cart-02-get-list/response-fields.adoc[]
 
 ==== HTTP Request
 include::{snippets}/02-cart-03-delete-item/http-request.adoc[]
-===== HTTP PathParam
-include::{snippets}/02-cart-03-delete-item/path-parameters.adoc[]
 ===== Request Header
 include::{snippets}/02-cart-03-delete-item/request-headers.adoc[]
+===== Request Param
+include::{snippets}/02-cart-03-delete-item/query-parameters.adoc[]
 ==== HTTP Response
 include::{snippets}/02-cart-03-delete-item/http-response.adoc[]
 

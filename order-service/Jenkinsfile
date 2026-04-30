@@ -16,9 +16,18 @@ pipeline {
         }
 
         stage('Build & Test') {
+            agent {
+                docker {
+                    image 'eclipse-temurin:21-jdk'
+                    args '-v /var/run/docker.sock:/var/run/docker.sock --network host'
+                    reuseNode true
+                }
+            }
             steps {
                 dir('order-service') {
                     script {
+                        env.TESTCONTAINERS_HOST_OVERRIDE = "localhost"
+                        env.TESTCONTAINERS_RYUK_DISABLED = "true"
                         sh "chmod +x gradlew"
                         sh "./gradlew clean build --no-daemon -Dorg.gradle.jvmargs='-Xmx512m'"
                         archiveArtifacts artifacts: 'build/api-spec/*.json', allowEmptyArchive: false

@@ -1,7 +1,7 @@
 package com.example.order_service.api.common.client.payment;
 
-import com.example.order_service.api.common.exception.ErrorCode;
-import com.example.order_service.api.common.exception.PaymentErrorCode;
+import com.example.order_service.api.common.exception.business.code.ErrorCode;
+import com.example.order_service.api.common.exception.business.code.PaymentErrorCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 

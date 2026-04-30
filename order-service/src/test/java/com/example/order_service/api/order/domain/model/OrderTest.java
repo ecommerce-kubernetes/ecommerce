@@ -1,7 +1,7 @@
 package com.example.order_service.api.order.domain.model;
 
-import com.example.order_service.api.common.exception.BusinessException;
-import com.example.order_service.api.common.exception.OrderErrorCode;
+import com.example.order_service.api.common.exception.business.BusinessException;
+import com.example.order_service.api.common.exception.business.code.OrderErrorCode;
 import com.example.order_service.api.order.domain.model.vo.OrderItemPrice;
 import com.example.order_service.api.order.domain.model.vo.OrderPriceDetail;
 import com.example.order_service.api.order.domain.model.vo.OrderedProduct;
