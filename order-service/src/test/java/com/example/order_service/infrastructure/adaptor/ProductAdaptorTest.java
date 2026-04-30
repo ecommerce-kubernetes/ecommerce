@@ -5,7 +5,7 @@ import com.example.order_service.api.common.exception.external.ExternalSystemUna
 import com.example.order_service.infrastructure.client.ProductFeignClient;
 import com.example.order_service.infrastructure.dto.request.ProductClientRequest;
 import com.example.order_service.infrastructure.dto.response.ProductClientResponse;
-import com.example.order_service.support.annotation.ExcludeInfraTest;
+import com.example.order_service.support.annotation.IsolatedTest;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -22,7 +22,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
 
-@ExcludeInfraTest
+@IsolatedTest
 public class ProductAdaptorTest {
     @Autowired
     private ProductAdaptor productAdaptor;

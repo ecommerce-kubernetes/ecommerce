@@ -5,7 +5,7 @@ import com.example.order_service.api.common.exception.external.ExternalServerExc
 import com.example.order_service.infrastructure.dto.request.ProductClientRequest;
 import com.example.order_service.infrastructure.dto.response.ClientErrorResponse;
 import com.example.order_service.infrastructure.dto.response.ProductClientResponse;
-import com.example.order_service.support.annotation.ExcludeInfraTest;
+import com.example.order_service.support.annotation.IsolatedTest;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
@@ -23,7 +23,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-@ExcludeInfraTest
+@IsolatedTest
 @AutoConfigureWireMock(port = 0)
 class ProductFeignClientTest {
 
