@@ -1,12 +1,12 @@
 package com.example.order_service.docs.cart;
 
-import com.example.order_service.api.cart.controller.CartController;
-import com.example.order_service.api.cart.controller.dto.request.CartRequest;
-import com.example.order_service.api.cart.controller.dto.response.CartResponse;
-import com.example.order_service.api.cart.facade.CartFacade;
-import com.example.order_service.api.cart.facade.dto.command.CartCommand;
-import com.example.order_service.api.cart.facade.dto.result.CartItemStatus;
-import com.example.order_service.api.cart.facade.dto.result.CartResult;
+import com.example.order_service.cart.api.CartController;
+import com.example.order_service.cart.api.dto.request.CartRequest;
+import com.example.order_service.cart.api.dto.response.CartResponse;
+import com.example.order_service.cart.application.CartFacade;
+import com.example.order_service.cart.application.dto.command.CartCommand;
+import com.example.order_service.cart.application.dto.result.CartItemStatus;
+import com.example.order_service.cart.application.dto.result.CartResult;
 import com.example.order_service.docs.descriptor.CartDescriptor;
 import com.example.order_service.support.RestDocSupport;
 import org.junit.jupiter.api.DisplayName;

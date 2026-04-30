@@ -1,7 +1,7 @@
 package com.example.order_service.support;
 
-import com.example.order_service.api.cart.controller.CartController;
-import com.example.order_service.api.cart.facade.CartFacade;
+import com.example.order_service.cart.api.CartController;
+import com.example.order_service.cart.application.CartFacade;
 import com.example.order_service.api.notification.controller.NotificationController;
 import com.example.order_service.api.notification.service.NotificationService;
 import com.example.order_service.api.order.controller.OrderController;

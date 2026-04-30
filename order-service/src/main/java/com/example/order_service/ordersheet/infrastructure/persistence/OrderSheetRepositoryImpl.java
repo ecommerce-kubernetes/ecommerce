@@ -1,7 +1,7 @@
 package com.example.order_service.ordersheet.infrastructure.persistence;
 
-import com.example.order_service.ordersheet.domain.OrderSheet;
-import com.example.order_service.ordersheet.domain.OrderSheetRepository;
+import com.example.order_service.ordersheet.domain.model.OrderSheet;
+import com.example.order_service.ordersheet.domain.repository.OrderSheetRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
