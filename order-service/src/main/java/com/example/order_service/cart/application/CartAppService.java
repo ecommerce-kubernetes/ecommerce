@@ -1,15 +1,15 @@
 package com.example.order_service.cart.application;
 
-import com.example.order_service.common.exception.business.BusinessException;
-import com.example.order_service.common.exception.business.code.CartErrorCode;
-import com.example.order_service.cart.application.external.CartProductGateway;
-import com.example.order_service.cart.domain.model.ProductStatus;
-import com.example.order_service.cart.domain.service.CartService;
-import com.example.order_service.cart.domain.service.dto.result.CartItemDto;
-import com.example.order_service.cart.domain.service.dto.result.CartProductInfo;
 import com.example.order_service.cart.application.dto.command.CartCommand;
 import com.example.order_service.cart.application.dto.result.CartItemStatus;
+import com.example.order_service.cart.application.dto.result.CartProductResult;
 import com.example.order_service.cart.application.dto.result.CartResult;
+import com.example.order_service.cart.application.dto.result.ProductStatus;
+import com.example.order_service.cart.application.external.CartProductGateway;
+import com.example.order_service.cart.domain.service.CartService;
+import com.example.order_service.cart.domain.service.dto.result.CartItemDto;
+import com.example.order_service.common.exception.business.BusinessException;
+import com.example.order_service.common.exception.business.code.CartErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -28,18 +28,20 @@ public class CartAppService {
 
     public CartResult.Cart addItems(CartCommand.AddItems command) {
         List<Long> requestedIds = command.items().stream().map(CartCommand.Item::productVariantId).toList();
-        List<CartProductInfo> productInfos = cartProductGateway.getProductInfos(requestedIds);
-        //검증 로직
-        if (productInfos.size() != requestedIds.size()) {
+        List<CartProductResult.Info> products = cartProductGateway.getProducts(requestedIds);
+
+        // 장바구니 추가 요청한 상품 종류와 조회된 상품 종류의 개수가 서로 다른경우 검증
+        if (products.size() != requestedIds.size()) {
             throw new BusinessException(CartErrorCode.PRODUCT_NOT_FOUND);
         }
-        boolean hasUnorderableProduct = productInfos.stream()
-                .anyMatch(info -> info.getStatus() != ProductStatus.ON_SALE);
+        //판매중이 아닌 상품인 경우 검증
+        boolean hasUnorderableProduct = products.stream()
+                .anyMatch(product -> product.status() != ProductStatus.ON_SALE);
         if (hasUnorderableProduct) {
             throw new BusinessException(CartErrorCode.PRODUCT_NOT_ON_SALE);
         }
         List<CartItemDto> cartItems = cartService.addItemToCart(command);
-        List<CartResult.CartItemResult> cartItemResults = mapToCartItemResult(cartItems, productInfos);
+        List<CartResult.CartItemResult> cartItemResults = mapToCartItemResult(cartItems, products);
         return CartResult.Cart.from(cartItemResults);
     }
 
@@ -50,8 +52,8 @@ public class CartAppService {
             return CartResult.Cart.empty();
         }
         List<Long> variantIds = getProductVariantId(cartItems);
-        List<CartProductInfo> productInfos = cartProductGateway.getProductInfos(variantIds);
-        List<CartResult.CartItemResult> cartItemResults = mapToCartItemResult(cartItems, productInfos);
+        List<CartProductResult.Info> products = cartProductGateway.getProducts(variantIds);
+        List<CartResult.CartItemResult> cartItemResults = mapToCartItemResult(cartItems, products);
         return CartResult.Cart.from(cartItemResults);
     }
 
@@ -72,29 +74,29 @@ public class CartAppService {
         return cartItems.stream().map(CartItemDto::getProductVariantId).toList();
     }
 
-    private List<CartResult.CartItemResult> mapToCartItemResult(List<CartItemDto> cartItems, List<CartProductInfo> products) {
-        Map<Long, CartProductInfo> productMap = products.stream().collect(Collectors.toMap(
-                CartProductInfo::getProductVariantId,
+    private List<CartResult.CartItemResult> mapToCartItemResult(List<CartItemDto> cartItems, List<CartProductResult.Info> products) {
+        Map<Long, CartProductResult.Info> productMap = products.stream().collect(Collectors.toMap(
+                CartProductResult.Info::productVariantId,
                 Function.identity()
         ));
 
         return cartItems.stream()
                 .map(item -> {
-                    CartProductInfo product = productMap.get(item.getProductVariantId());
+                    CartProductResult.Info product = productMap.get(item.getProductVariantId());
                     return createCartItemResult(item, product);
                 }).toList();
     }
 
-    private CartResult.CartItemResult createCartItemResult(CartItemDto item, CartProductInfo product) {
+    private CartResult.CartItemResult createCartItemResult(CartItemDto item, CartProductResult.Info product) {
         if (product == null) {
             return CartResult.CartItemResult.unAvailable(item.getId(), item.getProductVariantId(), item.getQuantity());
         }
-        return switch (product.getStatus()) {
+        return switch (product.status()) {
             case ON_SALE -> CartResult.CartItemResult.of(item, product, CartItemStatus.AVAILABLE);
             case PREPARING -> CartResult.CartItemResult.of(item, product, CartItemStatus.PREPARING);
             case STOP_SALE -> CartResult.CartItemResult.of(item, product, CartItemStatus.STOP_SALE);
             case DELETED -> CartResult.CartItemResult.of(item, product, CartItemStatus.DELETED);
-            case UNKNOWN -> CartResult.CartItemResult.unAvailable(item.getId(), product.getProductVariantId(), item.getQuantity());
+            case UNKNOWN -> CartResult.CartItemResult.unAvailable(item.getId(), product.productVariantId(), item.getQuantity());
         };
     }
 }

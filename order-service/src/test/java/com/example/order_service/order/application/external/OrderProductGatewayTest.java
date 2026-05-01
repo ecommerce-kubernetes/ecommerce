@@ -1,12 +1,12 @@
 package com.example.order_service.order.application.external;
 
+import com.example.order_service.api.support.fixture.order.OrderCommandFixture;
 import com.example.order_service.common.exception.business.BusinessException;
 import com.example.order_service.common.exception.business.code.OrderErrorCode;
-import com.example.order_service.order.domain.service.dto.result.OrderProductInfo;
 import com.example.order_service.order.application.dto.command.CreateOrderItemCommand;
+import com.example.order_service.order.domain.service.dto.result.OrderProductInfo;
 import com.example.order_service.order.infrastructure.client.product.OrderProductAdaptor;
 import com.example.order_service.order.infrastructure.client.product.dto.OrderProductResponse;
-import com.example.order_service.api.support.fixture.order.OrderCommandFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

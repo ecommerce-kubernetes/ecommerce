@@ -1,5 +1,6 @@
 package com.example.order_service.order.saga.domain.service;
 
+import com.example.order_service.api.support.ExcludeInfraTest;
 import com.example.order_service.common.exception.SagaErrorCode;
 import com.example.order_service.common.exception.business.BusinessException;
 import com.example.order_service.order.saga.domain.model.OrderSagaInstance;
@@ -8,7 +9,6 @@ import com.example.order_service.order.saga.domain.model.SagaStep;
 import com.example.order_service.order.saga.domain.model.vo.Payload;
 import com.example.order_service.order.saga.domain.repository.OrderSagaInstanceRepository;
 import com.example.order_service.order.saga.domain.service.dto.SagaInstanceDto;
-import com.example.order_service.api.support.ExcludeInfraTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

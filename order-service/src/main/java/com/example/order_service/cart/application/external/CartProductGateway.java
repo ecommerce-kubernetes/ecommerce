@@ -1,12 +1,14 @@
 package com.example.order_service.cart.application.external;
 
+import com.example.order_service.cart.application.dto.result.CartProductResult;
+import com.example.order_service.cart.application.mapper.CartProductMapper;
 import com.example.order_service.common.exception.business.BusinessException;
 import com.example.order_service.common.exception.business.code.CartErrorCode;
-import com.example.order_service.cart.domain.model.ProductStatus;
-import com.example.order_service.cart.domain.service.dto.result.CartProductInfo;
-import com.example.order_service.cart.domain.service.dto.result.CartProductInfo.ProductOption;
-import com.example.order_service.cart.infrastructure.client.CartProductAdaptor;
-import com.example.order_service.cart.infrastructure.client.dto.CartProductResponse;
+import com.example.order_service.common.exception.external.ExternalClientException;
+import com.example.order_service.common.exception.external.ExternalServerException;
+import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
+import com.example.order_service.infrastructure.adaptor.ProductAdaptor;
+import com.example.order_service.infrastructure.dto.response.ProductClientResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -17,40 +19,29 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 public class CartProductGateway {
-    private final CartProductAdaptor cartProductAdaptor;
+    private final ProductAdaptor adaptor;
+    private final CartProductMapper mapper;
 
-    public CartProductInfo getProductInfo(Long productVariantId) {
-        CartProductResponse product = cartProductAdaptor.getProduct(productVariantId);
-        validateProductOnSale(product);
-        return mapToCartProductInfo(product);
-    }
-
-    public List<CartProductInfo> getProductInfos(List<Long> variantIds) {
-        List<CartProductResponse> products = cartProductAdaptor.getProducts(variantIds);
-        return products.stream().map(this::mapToCartProductInfo).toList();
-    }
-
-    private void validateProductOnSale(CartProductResponse product) {
-        ProductStatus status = ProductStatus.from(product.getStatus());
-        if (status != ProductStatus.ON_SALE) {
-            throw new BusinessException(CartErrorCode.PRODUCT_NOT_ON_SALE);
-        }
-    }
-
-    private CartProductInfo mapToCartProductInfo(CartProductResponse product) {
-        List<ProductOption> options = product.getItemOptions().stream().map(o -> ProductOption.of(o.getOptionTypeName(), o.getOptionValueName()))
+    public List<CartProductResult.Info> getProducts(List<Long> variantIds) {
+        List<ProductClientResponse.Product> products = fetchProductWithTranslation(variantIds);
+        return products.stream()
+                .map(mapper::toResult)
                 .toList();
-        return CartProductInfo.builder()
-                .productId(product.getProductId())
-                .productVariantId((product.getProductVariantId()))
-                .status(ProductStatus.from(product.getStatus()))
-                .productName(product.getProductName())
-                .thumbnail(product.getThumbnailUrl())
-                .originalPrice(product.getUnitPrice().getOriginalPrice())
-                .discountRate(product.getUnitPrice().getDiscountRate())
-                .discountAmount(product.getUnitPrice().getDiscountAmount())
-                .discountedPrice(product.getUnitPrice().getDiscountedPrice())
-                .productOption(options)
-                .build();
+    }
+
+    // fallback
+    private List<ProductClientResponse.Product> fetchProductWithTranslation(List<Long> ids) {
+        try {
+            return adaptor.getProductsByVariantIds(ids);
+        } catch (ExternalClientException e) {
+            // Client 에러 변환
+            throw new BusinessException(CartErrorCode.CART_PRODUCT_CLIENT_ERROR);
+        } catch (ExternalServerException e) {
+            // Server 에러 변환
+            throw new BusinessException(CartErrorCode.CART_PRODUCT_SERVER_ERROR);
+        } catch (ExternalSystemUnavailableException e) {
+            // 서킷브레이커 요청 블로킹, 503 에러
+            throw new BusinessException(CartErrorCode.CART_PRODUCT_UNAVAILABLE_SERVER_ERROR);
+        }
     }
 }

@@ -1,11 +1,11 @@
 package com.example.order_service.order.infrastructure.client.payment;
 
+import com.example.order_service.api.support.ExcludeInfraTest;
 import com.example.order_service.common.exception.ExternalServiceErrorCode;
 import com.example.order_service.common.exception.business.BusinessException;
 import com.example.order_service.order.infrastructure.client.payment.dto.request.TossPaymentConfirmRequest;
 import com.example.order_service.order.infrastructure.client.payment.dto.response.TossPaymentCancelResponse;
 import com.example.order_service.order.infrastructure.client.payment.dto.response.TossPaymentConfirmResponse;
-import com.example.order_service.api.support.ExcludeInfraTest;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

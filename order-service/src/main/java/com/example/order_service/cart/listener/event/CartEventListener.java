@@ -1,7 +1,7 @@
 package com.example.order_service.cart.listener.event;
 
-import com.example.order_service.order.application.event.PaymentCompletedEvent;
 import com.example.order_service.cart.application.CartAppService;
+import com.example.order_service.order.application.event.PaymentCompletedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;

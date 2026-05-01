@@ -1,8 +1,5 @@
 package com.example.order_service.order.saga.domain.model;
 
-import com.example.order_service.order.saga.domain.model.OrderSagaInstance;
-import com.example.order_service.order.saga.domain.model.SagaStatus;
-import com.example.order_service.order.saga.domain.model.SagaStep;
 import com.example.order_service.order.saga.domain.model.vo.Payload;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

@@ -1,7 +1,5 @@
 package com.example.order_service.order.domain.model;
 
-import com.example.order_service.order.domain.model.OrderItem;
-import com.example.order_service.order.domain.model.OrderItemOption;
 import com.example.order_service.order.domain.model.vo.OrderItemPrice;
 import com.example.order_service.order.domain.model.vo.OrderedProduct;
 import com.example.order_service.order.domain.service.dto.command.OrderItemCreationContext;

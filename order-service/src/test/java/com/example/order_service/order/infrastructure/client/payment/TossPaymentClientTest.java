@@ -1,8 +1,7 @@
 package com.example.order_service.order.infrastructure.client.payment;
 
-import com.example.order_service.order.infrastructure.client.payment.TossPaymentClient;
-import com.example.order_service.order.infrastructure.client.payment.dto.request.TossPaymentConfirmRequest;
 import com.example.order_service.api.support.ExcludeInfraTest;
+import com.example.order_service.order.infrastructure.client.payment.dto.request.TossPaymentConfirmRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

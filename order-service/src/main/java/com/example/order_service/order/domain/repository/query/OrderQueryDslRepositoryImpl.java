@@ -14,8 +14,8 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static com.example.order_service.api.order.domain.model.QOrder.order;
-import static com.example.order_service.api.order.domain.model.QOrderItem.orderItem;
+import static com.example.order_service.order.domain.model.QOrder.order;
+import static com.example.order_service.order.domain.model.QOrderItem.orderItem;
 
 @Repository
 public class OrderQueryDslRepositoryImpl implements OrderQueryDslRepository{

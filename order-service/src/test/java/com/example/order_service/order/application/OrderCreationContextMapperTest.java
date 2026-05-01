@@ -1,11 +1,11 @@
 package com.example.order_service.order.application;
 
+import com.example.order_service.api.support.fixture.order.OrderCommandFixture;
+import com.example.order_service.api.support.fixture.order.OrderProductFixture;
+import com.example.order_service.order.application.dto.command.CreateOrderCommand;
 import com.example.order_service.order.domain.service.dto.command.OrderCreationContext;
 import com.example.order_service.order.domain.service.dto.command.PaymentCreationContext;
 import com.example.order_service.order.domain.service.dto.result.*;
-import com.example.order_service.order.application.dto.command.CreateOrderCommand;
-import com.example.order_service.api.support.fixture.order.OrderCommandFixture;
-import com.example.order_service.api.support.fixture.order.OrderProductFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

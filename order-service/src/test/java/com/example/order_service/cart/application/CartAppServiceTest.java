@@ -1,12 +1,12 @@
 package com.example.order_service.cart.application;
 
+import com.example.order_service.cart.application.dto.command.CartCommand;
+import com.example.order_service.cart.application.dto.result.CartProductResult;
+import com.example.order_service.cart.application.dto.result.CartResult;
+import com.example.order_service.cart.application.dto.result.ProductStatus;
 import com.example.order_service.cart.application.external.CartProductGateway;
-import com.example.order_service.cart.domain.model.ProductStatus;
 import com.example.order_service.cart.domain.service.CartService;
 import com.example.order_service.cart.domain.service.dto.result.CartItemDto;
-import com.example.order_service.cart.domain.service.dto.result.CartProductInfo;
-import com.example.order_service.cart.application.dto.command.CartCommand;
-import com.example.order_service.cart.application.dto.result.CartResult;
 import com.example.order_service.common.exception.business.BusinessException;
 import com.example.order_service.common.exception.business.code.CartErrorCode;
 import org.junit.jupiter.api.DisplayName;
@@ -47,14 +47,14 @@ public class CartAppServiceTest {
                     .size("items", 2));
             Long firstId = command.items().getFirst().productVariantId();
             Long secondId = command.items().get(1).productVariantId();
-            CartProductInfo onSaleProduct = sample(fixtureMonkey.giveMeBuilder(CartProductInfo.class)
+            CartProductResult.Info onSaleProduct = sample(fixtureMonkey.giveMeBuilder(CartProductResult.Info.class)
                     .set("productVariantId", firstId)
                     .set("status", ProductStatus.ON_SALE));
-            CartProductInfo stopSaleProduct = sample(fixtureMonkey.giveMeBuilder(CartProductInfo.class)
+            CartProductResult.Info stopSaleProduct = sample(fixtureMonkey.giveMeBuilder(CartProductResult.Info.class)
                     .set("productVariantId", secondId)
                     .set("status", ProductStatus.STOP_SALE));
 
-            given(cartProductGateway.getProductInfos(anyList()))
+            given(cartProductGateway.getProducts(anyList()))
                     .willReturn(List.of(onSaleProduct, stopSaleProduct));
             //when
             //then
@@ -74,13 +74,13 @@ public class CartAppServiceTest {
             int firstQuantity = command.items().getFirst().quantity();
             Long secondId = command.items().get(1).productVariantId();
             int secondQuantity = command.items().get(1).quantity();
-            CartProductInfo firstProduct = sample(
-                    fixtureMonkey.giveMeBuilder(CartProductInfo.class)
+            CartProductResult.Info firstProduct = sample(
+                    fixtureMonkey.giveMeBuilder(CartProductResult.Info.class)
                             .set("productVariantId", firstId)
                             .set("status", ProductStatus.ON_SALE) // 통과 조건
             );
-            CartProductInfo secondProduct = sample(
-                    fixtureMonkey.giveMeBuilder(CartProductInfo.class)
+            CartProductResult.Info secondProduct = sample(
+                    fixtureMonkey.giveMeBuilder(CartProductResult.Info.class)
                             .set("productVariantId", secondId)
                             .set("status", ProductStatus.ON_SALE)
             );
@@ -95,7 +95,7 @@ public class CartAppServiceTest {
                             .set("quantity", secondQuantity)
             );
 
-            given(cartProductGateway.getProductInfos(anyList()))
+            given(cartProductGateway.getProducts(anyList()))
                     .willReturn(List.of(firstProduct, secondProduct));
             given(cartService.addItemToCart(any(CartCommand.AddItems.class)))
                     .willReturn(List.of(firstDto, secondDto));
@@ -109,7 +109,7 @@ public class CartAppServiceTest {
                             tuple(firstId, firstQuantity),
                             tuple(secondId, secondQuantity)
                     );
-            verify(cartProductGateway, times(1)).getProductInfos(anyList());
+            verify(cartProductGateway, times(1)).getProducts(anyList());
             verify(cartService, times(1)).addItemToCart(command);
         }
     }
@@ -140,18 +140,18 @@ public class CartAppServiceTest {
                     sample(fixtureMonkey.giveMeBuilder(CartItemDto.class).set("productVariantId", 3L))
             );
 
-            List<CartProductInfo> productInfos = List.of(
-                    sample(fixtureMonkey.giveMeBuilder(CartProductInfo.class)
+            List<CartProductResult.Info> productInfos = List.of(
+                    sample(fixtureMonkey.giveMeBuilder(CartProductResult.Info.class)
                             .set("productVariantId", 1L)
                             .set("status", ProductStatus.ON_SALE)),
-                    sample(fixtureMonkey.giveMeBuilder(CartProductInfo.class)
+                    sample(fixtureMonkey.giveMeBuilder(CartProductResult.Info.class)
                             .set("productVariantId", 2L)
                             .set("status", ProductStatus.STOP_SALE))
             );
 
             given(cartService.getCartItems(1L))
                     .willReturn(cartItems);
-            given(cartProductGateway.getProductInfos(anyList()))
+            given(cartProductGateway.getProducts(anyList()))
                     .willReturn(productInfos);
             //when
             CartResult.Cart result = cartAppService.getCartDetails(1L);

@@ -6,7 +6,7 @@ import lombok.Getter;
 
 import java.util.Arrays;
 
-import static com.example.order_service.api.order.domain.model.QOrder.order;
+import static com.example.order_service.order.domain.model.QOrder.order;
 
 public class OrderQueryMapper {
     @AllArgsConstructor

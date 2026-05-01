@@ -1,9 +1,9 @@
 package com.example.order_service.order.infrastructure.client.payment;
 
+import com.example.order_service.api.support.ExcludeInfraTest;
 import com.example.order_service.common.client.payment.TossErrorResponse;
 import com.example.order_service.common.exception.ExternalServiceErrorCode;
 import com.example.order_service.common.exception.business.BusinessException;
-import com.example.order_service.api.support.ExcludeInfraTest;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.WireMock;
@@ -42,7 +42,7 @@ public class TossPaymentClientCircuitBreakerTest extends ExcludeInfraTest {
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {
         registry.add("resilience4j.circuitbreaker.configs.default.recordFailurePredicate",
-                () -> "com.example.order_service.api.common.config.CircuitBreakerFailurePredicate");
+                () -> "com.example.order_service.common.config.CircuitBreakerFailurePredicate");
         registry.add("resilience4j.circuitbreaker.configs.default.failureRateThreshold", () -> 50);
         registry.add("resilience4j.circuitbreaker.configs.default.slidingWindowSize", () -> 100);
         registry.add("resilience4j.circuitbreaker.instances.tossPaymentService.baseConfig", () -> "default");

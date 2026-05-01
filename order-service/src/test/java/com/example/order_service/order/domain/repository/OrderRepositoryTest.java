@@ -1,10 +1,9 @@
 package com.example.order_service.order.domain.repository;
 
+import com.example.order_service.api.support.ExcludeInfraTest;
 import com.example.order_service.order.api.dto.request.OrderSearchCondition;
 import com.example.order_service.order.domain.model.Order;
-import com.example.order_service.order.domain.repository.OrderRepository;
 import com.example.order_service.order.domain.service.dto.command.OrderCreationContext;
-import com.example.order_service.api.support.ExcludeInfraTest;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

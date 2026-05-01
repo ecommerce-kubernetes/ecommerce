@@ -1,8 +1,8 @@
 package com.example.order_service.order.infrastructure.client.coupon;
 
+import com.example.order_service.api.support.ExcludeInfraTest;
 import com.example.order_service.common.exception.ExternalServiceErrorCode;
 import com.example.order_service.common.exception.business.BusinessException;
-import com.example.order_service.api.support.ExcludeInfraTest;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
@@ -37,7 +37,7 @@ public class OrderCouponClientCircuitBreakerTest extends ExcludeInfraTest {
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {
         registry.add("resilience4j.circuitbreaker.configs.default.recordFailurePredicate",
-                () -> "com.example.order_service.api.common.config.CircuitBreakerFailurePredicate");
+                () -> "com.example.order_service.common.config.CircuitBreakerFailurePredicate");
         registry.add("resilience4j.circuitbreaker.configs.default.failureRateThreshold", () -> 50);
         registry.add("resilience4j.circuitbreaker.configs.default.slidingWindowSize", () -> 100);
         registry.add("resilience4j.circuitbreaker.instances.couponService.baseConfig", () -> "default");

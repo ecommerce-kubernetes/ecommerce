@@ -1,6 +1,5 @@
 package com.example.order_service.notification.service;
 
-import com.example.order_service.notification.service.NotificationService;
 import com.example.order_service.notification.service.dto.command.SendNotificationDto;
 import com.example.order_service.order.application.event.OrderPaymentReadyEvent;
 import org.junit.jupiter.api.DisplayName;

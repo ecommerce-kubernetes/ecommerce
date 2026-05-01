@@ -1,5 +1,6 @@
 package com.example.order_service.order.domain.service;
 
+import com.example.order_service.api.support.ExcludeInfraTest;
 import com.example.order_service.common.exception.business.BusinessException;
 import com.example.order_service.common.exception.business.code.OrderErrorCode;
 import com.example.order_service.order.api.dto.request.OrderSearchCondition;
@@ -13,7 +14,6 @@ import com.example.order_service.order.domain.service.dto.command.OrderCreationC
 import com.example.order_service.order.domain.service.dto.command.PaymentCreationContext;
 import com.example.order_service.order.domain.service.dto.result.OrderDto;
 import com.example.order_service.order.domain.service.dto.result.OrderItemDto;
-import com.example.order_service.api.support.ExcludeInfraTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

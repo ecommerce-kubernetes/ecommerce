@@ -1,7 +1,7 @@
 package com.example.order_service.cart.domain.model;
 
-import com.example.order_service.common.entity.BaseEntity;
 import com.example.order_service.cart.application.dto.command.CartCommand;
+import com.example.order_service.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;

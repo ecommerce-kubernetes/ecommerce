@@ -1,8 +1,8 @@
 package com.example.order_service.api.support.security;
 
+import com.example.order_service.api.support.security.annotation.WithCustomMockUser;
 import com.example.order_service.common.security.model.UserPrincipal;
 import com.example.order_service.common.security.model.UserRole;
-import com.example.order_service.api.support.security.annotation.WithCustomMockUser;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
