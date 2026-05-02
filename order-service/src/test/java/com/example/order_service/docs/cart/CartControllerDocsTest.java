@@ -5,8 +5,8 @@ import com.example.order_service.cart.api.dto.request.CartRequest;
 import com.example.order_service.cart.api.dto.response.CartResponse;
 import com.example.order_service.cart.application.CartAppService;
 import com.example.order_service.cart.application.dto.command.CartCommand;
-import com.example.order_service.cart.application.dto.result.CartItemStatus;
 import com.example.order_service.cart.application.dto.result.CartResult;
+import com.example.order_service.cart.application.dto.result.ProductStatus;
 import com.example.order_service.docs.descriptor.CartDescriptor;
 import com.example.order_service.support.RestDocSupport;
 import org.junit.jupiter.api.DisplayName;
@@ -167,7 +167,7 @@ public class CartControllerDocsTest extends RestDocSupport {
                 .productId(1L)
                 .productVariantId(1L)
                 .productName("상품1")
-                .status(CartItemStatus.AVAILABLE)
+                .status(ProductStatus.AVAILABLE)
                 .isAvailable(true)
                 .thumbnail("/product/product/PROD1_thumbnail.jpg")
                 .quantity(2)
@@ -198,7 +198,7 @@ public class CartControllerDocsTest extends RestDocSupport {
                 .productId(1L)
                 .productVariantId(1L)
                 .productName("상품1")
-                .status(CartItemStatus.AVAILABLE)
+                .status(ProductStatus.AVAILABLE)
                 .isAvailable(true)
                 .thumbnail("/product/product/PROD1_thumbnail.jpg")
                 .quantity(2)

@@ -1,7 +1,6 @@
 package com.example.order_service.cart.application;
 
 import com.example.order_service.cart.application.dto.command.CartCommand;
-import com.example.order_service.cart.application.dto.result.CartItemStatus;
 import com.example.order_service.cart.application.dto.result.CartProductResult;
 import com.example.order_service.cart.application.dto.result.CartResult;
 import com.example.order_service.cart.application.dto.result.ProductStatus;
@@ -27,19 +26,12 @@ public class CartAppService {
     private final CartProductGateway cartProductGateway;
 
     public CartResult.Cart addItems(CartCommand.AddItems command) {
-        List<Long> requestedIds = command.items().stream().map(CartCommand.Item::productVariantId).toList();
+        List<Long> requestedIds = command.toProductVariantIds();
         List<CartProductResult.Info> products = cartProductGateway.getProducts(requestedIds);
 
-        // 장바구니 추가 요청한 상품 종류와 조회된 상품 종류의 개수가 서로 다른경우 검증
-        if (products.size() != requestedIds.size()) {
-            throw new BusinessException(CartErrorCode.PRODUCT_NOT_FOUND);
-        }
-        //판매중이 아닌 상품인 경우 검증
-        boolean hasUnorderableProduct = products.stream()
-                .anyMatch(product -> product.status() != ProductStatus.ON_SALE);
-        if (hasUnorderableProduct) {
-            throw new BusinessException(CartErrorCode.PRODUCT_NOT_ON_SALE);
-        }
+        //상품 검증
+        validateProductForAddCart(products, requestedIds);
+
         List<CartItemDto> cartItems = cartService.addItemToCart(command);
         List<CartResult.CartItemResult> cartItemResults = mapToCartItemResult(cartItems, products);
         return CartResult.Cart.from(cartItemResults);
@@ -70,6 +62,21 @@ public class CartAppService {
         cartService.deleteByProductVariantIds(userId, productVariantIds);
     }
 
+    private void validateProductForAddCart(List<CartProductResult.Info> products, List<Long> variantIds) {
+        // 누락된 상품이 있는지 검증
+        if (products.size() != variantIds.size()){
+            throw new BusinessException(CartErrorCode.CART_PRODUCT_NOT_FOUND);
+        }
+
+        // 추가할 상품이 추가 가능한지 검증
+        for(CartProductResult.Info product: products) {
+            if (product.status() != ProductStatus.AVAILABLE) {
+                throw new BusinessException(CartErrorCode.CART_PRODUCT_CANNOT_ADD);
+            }
+        }
+    }
+
+
     private List<Long> getProductVariantId(List<CartItemDto> cartItems){
         return cartItems.stream().map(CartItemDto::getProductVariantId).toList();
     }
@@ -91,12 +98,6 @@ public class CartAppService {
         if (product == null) {
             return CartResult.CartItemResult.unAvailable(item.getId(), item.getProductVariantId(), item.getQuantity());
         }
-        return switch (product.status()) {
-            case ON_SALE -> CartResult.CartItemResult.of(item, product, CartItemStatus.AVAILABLE);
-            case PREPARING -> CartResult.CartItemResult.of(item, product, CartItemStatus.PREPARING);
-            case STOP_SALE -> CartResult.CartItemResult.of(item, product, CartItemStatus.STOP_SALE);
-            case DELETED -> CartResult.CartItemResult.of(item, product, CartItemStatus.DELETED);
-            case UNKNOWN -> CartResult.CartItemResult.unAvailable(item.getId(), product.productVariantId(), item.getQuantity());
-        };
+        return CartResult.CartItemResult.of(item, product);
     }
 }

@@ -63,7 +63,7 @@ public class OrderSheetAppServiceTest {
                     .build();
             OrderSheetProductResult.Info productInfo = sample(fixtureMonkey.giveMeBuilder(OrderSheetProductResult.Info.class)
                     .set("productId", 1L)
-                    .set("status", ProductStatus.ON_SALE)
+                    .set("status", ProductStatus.ORDERABLE)
                     .set("stock", 100)
                     .set("productVariantId", targetVariantId)
                     .set("discountedPrice", discountedPrice));
@@ -82,7 +82,7 @@ public class OrderSheetAppServiceTest {
         }
 
         @Test
-        @DisplayName("주문 상품이 판매중이 아니면 주문할 수 없다")
+        @DisplayName("주문 상품이 주문 가능이 아니면 주문할 수 없다")
         void createOrderSheet_not_on_sale() {
             //given
             Long targetVariantId = 1L;
@@ -99,7 +99,7 @@ public class OrderSheetAppServiceTest {
             // 판매 중지된 상품
             OrderSheetProductResult.Info productInfo = sample(fixtureMonkey.giveMeBuilder(OrderSheetProductResult.Info.class)
                     .set("productVariantId", targetVariantId)
-                    .set("status", ProductStatus.STOP_SALE)
+                    .set("status", ProductStatus.UNORDERABLE)
                     .set("stock", 100));
             given(orderSheetProductGateway.getProducts(anyList()))
                     .willReturn(List.of(productInfo));
@@ -108,7 +108,7 @@ public class OrderSheetAppServiceTest {
             assertThatThrownBy(() -> orderSheetAppService.createOrderSheet(command))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
-                    .isEqualTo(OrderSheetErrorCode.ORDER_SHEET_PRODUCT_NOT_ON_SALE);
+                    .isEqualTo(OrderSheetErrorCode.ORDER_SHEET_PRODUCT_UNORDERABLE);
         }
 
         @Test
@@ -130,7 +130,7 @@ public class OrderSheetAppServiceTest {
             //상품 조회 결과
             OrderSheetProductResult.Info productInfo = sample(fixtureMonkey.giveMeBuilder(OrderSheetProductResult.Info.class)
                     .set("productVariantId", targetVariantId)
-                    .set("status", ProductStatus.ON_SALE)
+                    .set("status", ProductStatus.ORDERABLE)
                     .set("stock", 10));
 
             given(orderSheetProductGateway.getProducts(anyList()))
@@ -141,6 +141,41 @@ public class OrderSheetAppServiceTest {
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(OrderSheetErrorCode.ORDER_SHEET_INSUFFICIENT_STOCK);
+        }
+
+        @Test
+        @DisplayName("주문 상품이 누락된 경우 주문할 수 없다")
+        void createOrderSheet_product_notFound(){
+            //given
+            Long targetVariantId = 1L;
+            int quantity = 1;
+            //주문 command
+            OrderSheetCommand.OrderItem orderItem1 = OrderSheetCommand.OrderItem.builder()
+                    .productVariantId(targetVariantId)
+                    .quantity(quantity)
+                    .build();
+            OrderSheetCommand.OrderItem orderItem2 = OrderSheetCommand.OrderItem.builder()
+                    .productVariantId(2L)
+                    .quantity(quantity)
+                    .build();
+            OrderSheetCommand.Create command = OrderSheetCommand.Create.builder()
+                    .userId(1L)
+                    .items(List.of(orderItem1, orderItem2))
+                    .build();
+
+            OrderSheetProductResult.Info productInfo = sample(fixtureMonkey.giveMeBuilder(OrderSheetProductResult.Info.class)
+                    .set("productVariantId", targetVariantId)
+                    .set("status", ProductStatus.ORDERABLE)
+                    .set("stock", 10));
+
+            given(orderSheetProductGateway.getProducts(anyList()))
+                    .willReturn(List.of(productInfo));
+            //when
+            //then
+            assertThatThrownBy(() -> orderSheetAppService.createOrderSheet(command))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(OrderSheetErrorCode.ORDER_SHEET_PRODUCT_NOT_FOUND);
         }
     }
 }

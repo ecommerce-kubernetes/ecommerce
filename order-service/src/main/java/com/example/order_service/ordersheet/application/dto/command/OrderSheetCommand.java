@@ -5,6 +5,8 @@ import com.example.order_service.common.exception.business.code.OrderSheetErrorC
 import lombok.Builder;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public class OrderSheetCommand {
 
@@ -24,6 +26,15 @@ public class OrderSheetCommand {
             if (uniqueItemCount != items.size()) {
                 throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_DUPLICATE_ITEMS);
             }
+        }
+
+        public Map<Long, Integer> toQuantityMap() {
+            return items.stream()
+                    .collect(Collectors.toMap(OrderItem::productVariantId, OrderItem::quantity));
+        }
+
+        public List<Long> toProductVariantIds() {
+            return items.stream().map(OrderItem::productVariantId).toList();
         }
     }
 

@@ -44,7 +44,7 @@ public class CartResult {
     @Builder
     public record CartItemResult(
             Long id,
-            CartItemStatus status,
+            ProductStatus status,
             boolean isAvailable,
             Long productId,
             Long productVariantId,
@@ -55,11 +55,11 @@ public class CartResult {
             long lineTotal,
             List<CartItemOption> options
     ) {
-        public static CartItemResult of(CartItemDto cartItemDto, CartProductResult.Info product, CartItemStatus status) {
+        public static CartItemResult of(CartItemDto cartItemDto, CartProductResult.Info product) {
             return CartItemResult.builder()
                     .id(cartItemDto.getId())
-                    .status(status)
-                    .isAvailable(status == CartItemStatus.AVAILABLE)
+                    .status(product.status())
+                    .isAvailable(product.status() == ProductStatus.AVAILABLE)
                     .productId(product.productId())
                     .productVariantId(product.productVariantId())
                     .productName(product.productName())
@@ -74,7 +74,7 @@ public class CartResult {
         public static CartItemResult unAvailable(Long id, Long productVariantId, int quantity) {
             return CartItemResult.builder()
                     .id(id)
-                    .status(CartItemStatus.NOT_FOUND)
+                    .status(ProductStatus.UNAVAILABLE)
                     .isAvailable(false)
                     .productVariantId(productVariantId)
                     .quantity(quantity)

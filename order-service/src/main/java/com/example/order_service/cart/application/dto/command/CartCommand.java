@@ -10,7 +10,11 @@ public class CartCommand {
     public record AddItems (
             Long userId,
             List<Item> items
-    ) { }
+    ) {
+        public List<Long> toProductVariantIds() {
+            return items.stream().map(Item::productVariantId).toList();
+        }
+    }
 
     @Builder
     public record Item(

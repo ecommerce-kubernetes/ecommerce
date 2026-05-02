@@ -40,7 +40,7 @@ public class CartAppServiceTest {
     class AddItems {
 
         @Test
-        @DisplayName("요청한 상품 중 판매중이 아닌 상품이 있는 경우 예외가 발생한다")
+        @DisplayName("요청한 상품 중 장바구니에 추가할 수 없는 상품이 있는 경우 예외가 발생한다")
         void addItem_fail_ProductNotOnSale() {
             //given
             CartCommand.AddItems command = sample(fixtureMonkey.giveMeBuilder(CartCommand.AddItems.class)
@@ -49,10 +49,10 @@ public class CartAppServiceTest {
             Long secondId = command.items().get(1).productVariantId();
             CartProductResult.Info onSaleProduct = sample(fixtureMonkey.giveMeBuilder(CartProductResult.Info.class)
                     .set("productVariantId", firstId)
-                    .set("status", ProductStatus.ON_SALE));
+                    .set("status", ProductStatus.AVAILABLE));
             CartProductResult.Info stopSaleProduct = sample(fixtureMonkey.giveMeBuilder(CartProductResult.Info.class)
                     .set("productVariantId", secondId)
-                    .set("status", ProductStatus.STOP_SALE));
+                    .set("status", ProductStatus.UNAVAILABLE));
 
             given(cartProductGateway.getProducts(anyList()))
                     .willReturn(List.of(onSaleProduct, stopSaleProduct));
@@ -61,7 +61,27 @@ public class CartAppServiceTest {
             assertThatThrownBy(() -> cartAppService.addItems(command))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
-                    .isEqualTo(CartErrorCode.PRODUCT_NOT_ON_SALE);
+                    .isEqualTo(CartErrorCode.CART_PRODUCT_CANNOT_ADD);
+        }
+
+        @Test
+        @DisplayName("상품 정보에 누락된 상품이 있는 경우 예외가 발생한다")
+        void addItem_fail_product_not_found(){
+            //given
+            CartCommand.AddItems command = sample(fixtureMonkey.giveMeBuilder(CartCommand.AddItems.class)
+                    .size("items", 2));
+            Long firstId = command.items().getFirst().productVariantId();
+            CartProductResult.Info onSaleProduct = sample(fixtureMonkey.giveMeBuilder(CartProductResult.Info.class)
+                    .set("productVariantId", firstId)
+                    .set("status", ProductStatus.AVAILABLE));
+            given(cartProductGateway.getProducts(anyList()))
+                    .willReturn(List.of(onSaleProduct));
+            //when
+            //then
+            assertThatThrownBy(() -> cartAppService.addItems(command))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(CartErrorCode.CART_PRODUCT_NOT_FOUND);
         }
 
         @Test
@@ -77,12 +97,12 @@ public class CartAppServiceTest {
             CartProductResult.Info firstProduct = sample(
                     fixtureMonkey.giveMeBuilder(CartProductResult.Info.class)
                             .set("productVariantId", firstId)
-                            .set("status", ProductStatus.ON_SALE) // 통과 조건
+                            .set("status", ProductStatus.AVAILABLE) // 통과 조건
             );
             CartProductResult.Info secondProduct = sample(
                     fixtureMonkey.giveMeBuilder(CartProductResult.Info.class)
                             .set("productVariantId", secondId)
-                            .set("status", ProductStatus.ON_SALE)
+                            .set("status", ProductStatus.AVAILABLE)
             );
             CartItemDto firstDto = sample(
                     fixtureMonkey.giveMeBuilder(CartItemDto.class)
@@ -143,10 +163,10 @@ public class CartAppServiceTest {
             List<CartProductResult.Info> productInfos = List.of(
                     sample(fixtureMonkey.giveMeBuilder(CartProductResult.Info.class)
                             .set("productVariantId", 1L)
-                            .set("status", ProductStatus.ON_SALE)),
+                            .set("status", ProductStatus.AVAILABLE)),
                     sample(fixtureMonkey.giveMeBuilder(CartProductResult.Info.class)
                             .set("productVariantId", 2L)
-                            .set("status", ProductStatus.STOP_SALE))
+                            .set("status", ProductStatus.UNAVAILABLE))
             );
 
             given(cartService.getCartItems(1L))

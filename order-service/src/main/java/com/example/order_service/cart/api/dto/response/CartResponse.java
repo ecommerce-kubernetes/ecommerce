@@ -1,7 +1,7 @@
 package com.example.order_service.cart.api.dto.response;
 
-import com.example.order_service.cart.application.dto.result.CartItemStatus;
 import com.example.order_service.cart.application.dto.result.CartResult;
+import com.example.order_service.cart.application.dto.result.ProductStatus;
 import lombok.Builder;
 
 import java.util.List;
@@ -35,7 +35,7 @@ public class CartResponse {
     @Builder
     public record Detail (
             Long id,
-            CartItemStatus status,
+            ProductStatus status,
             boolean isAvailable,
             Long productId,
             Long productVariantId,

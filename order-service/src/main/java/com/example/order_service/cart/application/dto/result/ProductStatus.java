@@ -4,21 +4,14 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public enum ProductStatus {
-    PREPARING("판매 대기 상품"),
-    ON_SALE("판매중인 상품"),
-    STOP_SALE("판매 중지된 상품"),
-    DELETED("삭제된 상품"),
-    UNKNOWN("알 수 없음");
+    AVAILABLE("구매 가능"),
+    UNAVAILABLE("판매 중지/삭제 (구매 불가)");
     private final String description;
 
     public static ProductStatus from(String status) {
-        if (status == null) {
-            return UNKNOWN;
+        if (status.equals("ON_SALE")) {
+            return AVAILABLE;
         }
-        try {
-            return ProductStatus.valueOf(status);
-        } catch (IllegalArgumentException e) {
-            return UNKNOWN;
-        }
+        return UNAVAILABLE;
     }
 }
