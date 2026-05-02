@@ -169,7 +169,7 @@ public class OrderAppService {
         );
 
         CompletableFuture<List<OrderProductInfo>> productFuture = CompletableFuture.supplyAsync(
-                () -> orderProductGateway.getProducts(command.getOrderItemCommands()),
+                () -> orderProductGateway.getProductsdeprecated(command.getOrderItemCommands()),
                 contextAwareExecutor
         );
         CompletableFuture.allOf(userFuture, productFuture).join();

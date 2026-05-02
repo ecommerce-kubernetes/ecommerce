@@ -120,7 +120,7 @@ public class OrderAppServiceTest {
                     .orderItemCommands(List.of(anOrderItemCommand().productVariantId(1L).build()))
                     .build();
             given(orderUserGateway.getUser(anyLong(), anyLong())).willReturn(anOrderUserInfo().build());
-            given(orderProductGateway.getProducts(anyList())).willReturn(List.of(anOrderProductInfo().build()));
+            given(orderProductGateway.getProductsdeprecated(anyList())).willReturn(List.of(anOrderProductInfo().build()));
             given(calculator.calculateItemAmounts(anyList(), anyList())).willReturn(anOrderProductAmount().build());
             given(orderCouponGateway.calculateCouponDiscount(anyLong(), anyLong(), any(OrderProductAmount.class))).willReturn(anOrderCouponInfo().build());
             given(calculator.calculateOrderPrice(any(OrderProductAmount.class), any(OrderCouponInfo.class), anyLong(), anyLong())).willReturn(anCalculatedOrderAmounts().build());
@@ -155,7 +155,7 @@ public class OrderAppServiceTest {
                     .orderItemCommands(List.of(anOrderItemCommand().productVariantId(1L).build()))
                     .build();
             given(orderUserGateway.getUser(anyLong(), anyLong())).willReturn(anOrderUserInfo().build());
-            given(orderProductGateway.getProducts(anyList())).willReturn(List.of(anOrderProductInfo().build()));
+            given(orderProductGateway.getProductsdeprecated(anyList())).willReturn(List.of(anOrderProductInfo().build()));
             given(calculator.calculateItemAmounts(anyList(), anyList())).willReturn(anOrderProductAmount().build());
             given(orderCouponGateway.calculateCouponDiscount(anyLong(), anyLong(), any(OrderProductAmount.class))).willReturn(anOrderCouponInfo().build());
             given(calculator.calculateOrderPrice(any(OrderProductAmount.class), any(OrderCouponInfo.class), anyLong(), anyLong())).willReturn(anCalculatedOrderAmounts().build());

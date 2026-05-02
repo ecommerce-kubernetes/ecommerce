@@ -1,10 +1,10 @@
-package com.example.order_service.ordersheet.application.dto.result;
+package com.example.order_service.order.application.dto.result;
 
 import lombok.Builder;
 
 import java.util.List;
 
-public class OrderSheetProductResult {
+public class OrderProductResult {
 
     @Builder
     public record Info(
@@ -12,7 +12,6 @@ public class OrderSheetProductResult {
             Long productVariantId,
             ProductStatus status,
             String sku,
-            String productName,
             Integer stock,
             Long originalPrice,
             Integer discountRate,
