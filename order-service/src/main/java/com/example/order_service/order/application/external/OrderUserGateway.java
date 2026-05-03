@@ -2,6 +2,7 @@ package com.example.order_service.order.application.external;
 
 import com.example.order_service.common.exception.business.BusinessException;
 import com.example.order_service.common.exception.business.code.OrderErrorCode;
+import com.example.order_service.infrastructure.adaptor.UserAdaptor;
 import com.example.order_service.order.domain.service.dto.result.OrderUserInfo;
 import com.example.order_service.order.infrastructure.client.user.OrderUserAdaptor;
 import com.example.order_service.order.infrastructure.client.user.dto.OrderUserResponse;
@@ -14,6 +15,9 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class OrderUserGateway {
     private final OrderUserAdaptor orderUserAdaptor;
+    private final UserAdaptor adaptor;
+
+    public
 
     public OrderUserInfo getUser(Long userId, Long pointToUse) {
         OrderUserResponse user = orderUserAdaptor.getUser(userId);

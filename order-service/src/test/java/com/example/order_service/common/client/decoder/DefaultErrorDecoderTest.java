@@ -15,7 +15,7 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class ProductErrorDecoderTest {
+public class DefaultErrorDecoderTest {
 
     private final ProductErrorDecoder decoder = new ProductErrorDecoder();
 

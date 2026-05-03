@@ -14,7 +14,7 @@ import java.io.InputStream;
 
 @Slf4j
 @RequiredArgsConstructor
-public class ProductErrorDecoder implements ErrorDecoder {
+public class DefaultErrorDecoder implements ErrorDecoder {
     private final ObjectMapper objectMapper;
     @Override
     public Exception decode(String methodKey, Response response) {
