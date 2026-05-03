@@ -6,6 +6,9 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum OrderErrorCode implements ErrorCode {
+    ORDER_COUPON_UNAVAILABLE_SERVER_ERROR(503, "ORDER_019", "주문 처리중 일시적인 오류가 발생했습니다 잠시후 재시도 해주세요"),
+    ORDER_COUPON_SERVER_ERROR(500, "ORDER_018", "주문 처리중 오류가 발생했습니다"),
+    ORDER_COUPON_CLIENT_ERROR(409, "ORDER_017", "주문 처리중 클라이언트 오류가 발생했습니다"),
     ORDER_USER_UNAVAILABLE_SERVER_ERROR(503, "ORDER_016", "주문 처리중 일시적인 오류가 발생했습니다 잠시후 재시도 해주세요"),
     ORDER_USER_SERVER_ERROR(500, "ORDER-015", "주문 처리중 오류가 발생했습니다"),
     ORDER_USER_CLIENT_ERROR(409, "ORDER-014", "주문 처리중 클라이언트 오류가 발생했습니다"),

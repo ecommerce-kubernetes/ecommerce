@@ -32,7 +32,6 @@ public class CouponFeignClientTest {
         CouponClientRequest.Calculate request = TestFixtureUtil.giveMeOne(CouponClientRequest.Calculate.class);
         String mockJsonResponse = """
                 {
-                    "isValid": true,
                     "code": "SUCCESS",
                     "discountBenefit": {
                         "couponId": 1,
@@ -50,7 +49,6 @@ public class CouponFeignClientTest {
         //when
         CouponClientResponse.Calculate response = client.calculate(request);
         //then
-        assertThat(response.isValid()).isTrue();
         assertThat(response.code()).isEqualTo("SUCCESS");
         assertThat(response.discountBenefit().couponId()).isEqualTo(1L);
         assertThat(response.discountBenefit().couponName()).isEqualTo("쿠폰 이름");

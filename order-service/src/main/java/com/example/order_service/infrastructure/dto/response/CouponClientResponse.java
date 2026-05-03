@@ -6,7 +6,6 @@ public class CouponClientResponse {
 
     @Builder
     public record Calculate(
-            Boolean isValid,
             String code,
             DiscountBenefit discountBenefit
     ) {
