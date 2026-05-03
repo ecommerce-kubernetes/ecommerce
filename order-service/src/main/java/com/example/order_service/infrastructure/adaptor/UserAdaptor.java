@@ -17,11 +17,11 @@ public class UserAdaptor {
     private final UserFeignClient client;
 
     @CircuitBreaker(name = "userService", fallbackMethod = "getUserInfoForOrderFallback")
-    public UserClientResponse.OrderUserInfo getUserInfoForOrder(Long userId) {
+    public UserClientResponse.UserInfo getUserInfoForOrder(Long userId) {
         return client.getUserInfoForOrder(userId);
     }
     
-    private UserClientResponse.OrderUserInfo getUserInfoForOrderFallback(Long userId, Throwable throwable) throws Throwable {
+    private UserClientResponse.UserInfo getUserInfoForOrderFallback(Long userId, Throwable throwable) throws Throwable {
         if (throwable instanceof CallNotPermittedException) {
             log.error("유저 서비스 장애로 인해 서킷 브레이커 열림");
             throw new ExternalSystemUnavailableException("CircuitBreaker Open", throwable);

@@ -5,7 +5,7 @@ import lombok.Builder;
 public class UserClientResponse {
 
     @Builder
-    public record OrderUserInfo(
+    public record UserInfo(
             Long userId,
             Long pointBalance,
             String userName,

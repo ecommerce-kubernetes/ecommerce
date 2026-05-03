@@ -9,5 +9,5 @@ import org.springframework.web.bind.annotation.PathVariable;
 public interface UserFeignClient {
 
     @GetMapping("/internal/users/{userId}/order-info")
-    UserClientResponse.OrderUserInfo getUserInfoForOrder(@PathVariable("userId") Long userId);
+    UserClientResponse.UserInfo getUserInfoForOrder(@PathVariable("userId") Long userId);
 }

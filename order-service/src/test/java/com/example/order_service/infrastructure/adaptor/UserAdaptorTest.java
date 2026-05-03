@@ -31,11 +31,11 @@ public class UserAdaptorTest {
     void getUserInfoForOrder(){
         //given
         Long userId = 1L;
-        UserClientResponse.OrderUserInfo mockResponse = giveMeOne(UserClientResponse.OrderUserInfo.class);
+        UserClientResponse.UserInfo mockResponse = giveMeOne(UserClientResponse.UserInfo.class);
         given(client.getUserInfoForOrder(anyLong()))
                 .willReturn(mockResponse);
         //when
-        UserClientResponse.OrderUserInfo response = userAdaptor.getUserInfoForOrder(userId);
+        UserClientResponse.UserInfo response = userAdaptor.getUserInfoForOrder(userId);
         //then
         assertThat(response)
                 .usingRecursiveComparison()
@@ -59,7 +59,7 @@ public class UserAdaptorTest {
     }
 
     @Test
-    @DisplayName("상품 서비스에서 상품을 조회할때 external System 예외가 던져지면 그대로 던진다")
+    @DisplayName("유저 서비스에서 유저 정보를 조회할때 external System 예외가 던져지면 그대로 던진다")
     void getUserInfoForOrder_external_system_exception(){
         //given
         Long userId = 1L;
@@ -72,7 +72,7 @@ public class UserAdaptorTest {
     }
 
     @Test
-    @DisplayName("")
+    @DisplayName("유저 서비스에서 유저 정보를 조회할때 알 수 없는 예외(디코더에서 변환 안됨) 예외가 던져지면 시스템 예외로 변환하여 던진다")
     void getUserInfoForOrder_other_exception(){
         //given
         Long userId = 1L;
@@ -81,6 +81,7 @@ public class UserAdaptorTest {
         //when
         //then
         assertThatThrownBy(() -> userAdaptor.getUserInfoForOrder(userId))
-                .isInstanceOf(ExternalSystemException.class);
+                .isInstanceOf(ExternalSystemUnavailableException.class)
+                .hasMessage("유저 서비스 통신 장애");
     }
 }

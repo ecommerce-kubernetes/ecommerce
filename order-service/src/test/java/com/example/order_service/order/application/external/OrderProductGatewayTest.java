@@ -9,6 +9,8 @@ import com.example.order_service.common.exception.external.ExternalSystemUnavail
 import com.example.order_service.infrastructure.adaptor.ProductAdaptor;
 import com.example.order_service.infrastructure.dto.response.ProductClientResponse;
 import com.example.order_service.order.application.dto.command.CreateOrderItemCommand;
+import com.example.order_service.order.application.dto.result.OrderProductResult;
+import com.example.order_service.order.application.dto.result.ProductStatus;
 import com.example.order_service.order.application.mapper.OrderProductMapper;
 import com.example.order_service.order.domain.service.dto.result.OrderProductInfo;
 import com.example.order_service.order.infrastructure.client.product.OrderProductAdaptor;
@@ -30,6 +32,7 @@ import static com.example.order_service.api.support.fixture.order.OrderProductFi
 import static com.example.order_service.support.TestFixtureUtil.fixtureMonkey;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.BDDAssertions.tuple;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
@@ -60,16 +63,18 @@ public class OrderProductGatewayTest {
             List<ProductClientResponse.Product> productResponses = variantIds.stream()
                     .map(id -> fixtureMonkey.giveMeBuilder(ProductClientResponse.Product.class)
                             .set("productVariantId", id)
+                            .set("status", "ON_SALE")
                             .sample()).toList();
             given(adaptor.getProductsByVariantIds(anyList()))
                     .willReturn(productResponses);
             //when
-            List<ProductClientResponse.Product> products = adaptor.getProductsByVariantIds(variantIds);
+            List<OrderProductResult.Info> result = orderProductGateway.getProducts(variantIds);
             //then
-            assertThat(products)
-                    .extracting("productVariantId")
+            assertThat(result)
+                    .extracting("productVariantId", "status")
                     .containsExactlyInAnyOrder(
-                            1L, 2L
+                            tuple(1L, ProductStatus.ORDERABLE),
+                            tuple(2L, ProductStatus.ORDERABLE)
                     );
         }
 

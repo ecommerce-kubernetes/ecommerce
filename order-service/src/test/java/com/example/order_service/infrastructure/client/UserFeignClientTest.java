@@ -27,47 +27,54 @@ public class UserFeignClientTest {
 
     @Autowired
     private UserFeignClient client;
-    @Autowired
-    private ObjectMapper objectMapper;
 
     @Test
     @DisplayName("유저 서비스에서 주문 유저 정보를 조회한다")
-    void getUserInfoForOrder() throws JsonProcessingException {
+    void getUserInfoForOrder() {
         //given
         Long userId = 1L;
-        UserClientResponse.OrderUserInfo mockResponse = TestFixtureUtil.giveMeOne(UserClientResponse.OrderUserInfo.class);
+        String mockJsonResponse = """
+                {
+                    "userId": 1,
+                    "pointBalance": 10000,
+                    "userName": "유저",
+                    "phoneNumber" : "010-1234-5678"
+                }
+                """;
 
         //외부 서비스 호출 모킹
         stubFor(get(urlEqualTo("/internal/users/" + userId + "/order-info"))
                 .willReturn(aResponse()
                         .withStatus(HttpStatus.OK.value())
                         .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
-                        .withBody(objectMapper.writeValueAsString(mockResponse))));
+                        .withBody(mockJsonResponse)));
         //when
-        UserClientResponse.OrderUserInfo response = client.getUserInfoForOrder(userId);
+        UserClientResponse.UserInfo response = client.getUserInfoForOrder(userId);
         //then
-        assertThat(response)
-                .usingRecursiveComparison()
-                .isEqualTo(mockResponse);
+        assertThat(response.userId()).isEqualTo(1L);
+        assertThat(response.pointBalance()).isEqualTo(10000L);
+        assertThat(response.userName()).isEqualTo("유저");
+        assertThat(response.phoneNumber()).isEqualTo("010-1234-5678");
     }
 
     @Test
     @DisplayName("유저 서비스에서 클라이언트 오류 응답 반환시 클라이언트 예외를 던진다")
-    void getUserInfoForOrder_thrown_client_error_response() throws JsonProcessingException {
+    void getUserInfoForOrder_thrown_client_error_response() {
         Long userId = 1L;
         //given
-        ClientErrorResponse errorResponse = ClientErrorResponse.builder()
-                .code("USER_CLIENT_ERROR")
-                .message("잘못된 요청입니다")
-                .timestamp(LocalDateTime.now())
-                .path("/internal/users/" + userId + "/order-info")
-                .build();
-
+        String mockJsonResponse = """
+                {
+                    "code": "USER_CLIENT_ERROR",
+                    "message": "잘못된 요청입니다",
+                    "timestamp": "2026-05-03 19:00:00",
+                    "path": "/internal/users/1/order-info"
+                }
+                """;
         stubFor(get(urlEqualTo("/internal/users/" + userId + "/order-info"))
                 .willReturn(aResponse()
                         .withStatus(HttpStatus.BAD_REQUEST.value())
                         .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
-                        .withBody(objectMapper.writeValueAsString(errorResponse))));
+                        .withBody(mockJsonResponse)));
         //when
         //then
         assertThatThrownBy(() -> client.getUserInfoForOrder(userId))
@@ -77,21 +84,23 @@ public class UserFeignClientTest {
 
     @Test
     @DisplayName("유저 서비스에서 서버 오류 응답 반환시 서버 예외를 던진다")
-    void getUserinfoForOrder_thrown_server_error_response() throws JsonProcessingException {
+    void getUserinfoForOrder_thrown_server_error_response() {
         //given
         Long userId = 1L;
-        ClientErrorResponse errorResponse = ClientErrorResponse.builder()
-                .code("PROD_SERVER_ERROR")
-                .message("에러가 발생했습니다")
-                .timestamp(LocalDateTime.now())
-                .path("/internal/users/" + userId + "/order-info")
-                .build();
+        String mockJsonResponse = """
+                {
+                    "code": "USER_SERVER_ERROR",
+                    "message": "에러가 발생했습니다",
+                    "timestamp": "2026-05-03 19:00:00",
+                    "path": "/internal/users/1/order-info"
+                }
+                """;
 
         stubFor(get(urlEqualTo("/internal/users/" + userId + "/order-info"))
                 .willReturn(aResponse()
                         .withStatus(HttpStatus.INTERNAL_SERVER_ERROR.value())
                         .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
-                        .withBody(objectMapper.writeValueAsString(errorResponse))));
+                        .withBody(mockJsonResponse)));
         //when
         //then
         assertThatThrownBy(() -> client.getUserInfoForOrder(userId))

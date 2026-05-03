@@ -88,6 +88,5 @@ public class ProductAdaptorCircuitBreakerTest {
 
         //반복된 에러가 클라이언트 예외이므로 정상 요청이 실행되어 4번 호출됨
         verify(client, times(4)).getProductsByVariantIds(any());
-
     }
 }
