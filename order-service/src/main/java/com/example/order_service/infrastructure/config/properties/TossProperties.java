@@ -1,4 +1,4 @@
-package com.example.order_service.common.client.payment;
+package com.example.order_service.infrastructure.config.properties;
 
 import lombok.Getter;
 import lombok.Setter;

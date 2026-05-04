@@ -1,7 +1,7 @@
 package com.example.order_service.order.infrastructure.client.payment;
 
 import com.example.order_service.api.support.ExcludeInfraTest;
-import com.example.order_service.common.client.payment.TossErrorResponse;
+import com.example.order_service.infrastructure.dto.response.TossErrorResponse;
 import com.example.order_service.common.exception.ExternalServiceErrorCode;
 import com.example.order_service.common.exception.business.BusinessException;
 import com.fasterxml.jackson.core.JsonProcessingException;

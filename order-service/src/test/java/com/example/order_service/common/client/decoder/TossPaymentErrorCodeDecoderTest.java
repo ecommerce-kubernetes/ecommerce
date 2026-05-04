@@ -1,6 +1,6 @@
 package com.example.order_service.common.client.decoder;
 
-import com.example.order_service.common.client.payment.TossErrorResponse;
+import com.example.order_service.infrastructure.dto.response.TossErrorResponse;
 import com.example.order_service.common.client.payment.TossPaymentErrorDecoder;
 import com.example.order_service.common.exception.business.BusinessException;
 import com.example.order_service.common.exception.business.code.ErrorCode;
