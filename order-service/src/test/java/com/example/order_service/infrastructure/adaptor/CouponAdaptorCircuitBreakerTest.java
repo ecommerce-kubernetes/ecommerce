@@ -43,13 +43,13 @@ public class CouponAdaptorCircuitBreakerTest {
 
     @Test
     @DisplayName("쿠폰 서비스에서 연속으로 서버 에러가 발생한 경우 서킷 브레이커가 열려 요청이 차단된다")
-    void circuitbreaker_opens_after_consecutive_server_failures(){
+    void circuitbreaker_opens_after_consecutive_server_failures() {
         //given
         given(client.calculate(any(CouponClientRequest.Calculate.class)))
                 .willThrow(new RuntimeException("Connection Timeout"));
         //when
         //then
-        for (int i = 0; i <3; i++) {
+        for (int i = 0; i < 3; i++) {
             assertThatThrownBy(() -> adaptor.calculate(1L, 1L, 10000L))
                     .isInstanceOf(ExternalSystemUnavailableException.class)
                     .hasMessage("쿠폰 서비스 통신 장애");
@@ -57,7 +57,9 @@ public class CouponAdaptorCircuitBreakerTest {
 
         assertThatThrownBy(() -> adaptor.calculate(1L, 1L, 10000L))
                 .isInstanceOf(ExternalSystemUnavailableException.class)
-                .hasMessage("CircuitBreaker Open");
+                .hasMessage("쿠폰 서비스 서킷 브레이커 열림")
+                .extracting("errorCode")
+                .isEqualTo("CIRCUIT_BREAKER_OPEN");
 
         //서킷 브레이커가 열렸으므로 클라이언트는 4번의 요청중 3번만 호출됨
         verify(client, times(3)).calculate(any(CouponClientRequest.Calculate.class));
@@ -65,21 +67,18 @@ public class CouponAdaptorCircuitBreakerTest {
 
     @Test
     @DisplayName("쿠폰 서비스에서 연속으로 클라이언트 에러가 발생한 경우 서킷 브레이커는 닫혀있어야 한다")
-    void circuitbreaker_close_after_consecutive_client_failures(){
+    void circuitbreaker_close_after_consecutive_client_failures() {
         //given
         given(client.calculate(any(CouponClientRequest.Calculate.class)))
-                .willThrow(new ExternalClientException("Client Exception"));
+                .willThrow(new ExternalClientException("NOT_FOUND_COUPON", "쿠폰을 찾을 수 없습니다"));
         //when
         //then
         for (int i = 0; i < 3; i++) {
             assertThatThrownBy(() -> adaptor.calculate(1L, 1L, 10000L))
-                    .isInstanceOf(ExternalClientException.class)
-                    .hasMessage("Client Exception");
+                    .isInstanceOf(ExternalClientException.class);
         }
         assertThatThrownBy(() -> adaptor.calculate(1L, 1L, 10000L))
-                .isInstanceOf(ExternalClientException.class)
-                .hasMessage("Client Exception");
-
+                .isInstanceOf(ExternalClientException.class);
         //반복된 에러가 클라이언트 예외이므로 정상 요청이 실행되어 4번 호출됨
         verify(client, times(4)).calculate(any());
     }

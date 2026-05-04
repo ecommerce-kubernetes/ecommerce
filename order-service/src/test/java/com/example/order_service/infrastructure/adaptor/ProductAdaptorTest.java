@@ -63,7 +63,9 @@ public class ProductAdaptorTest {
         //then
         assertThatThrownBy(() -> productAdaptor.getProductsByVariantIds(productVariantIds))
                 .isInstanceOf(ExternalSystemUnavailableException.class)
-                .hasMessage("CircuitBreaker Open");
+                .hasMessage("상품 서비스 서킷 브레이커 열림")
+                .extracting("errorCode")
+                .isEqualTo("CIRCUIT_BREAKER_OPEN");
     }
 
 

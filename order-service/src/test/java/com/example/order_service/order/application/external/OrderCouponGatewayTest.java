@@ -70,7 +70,7 @@ public class OrderCouponGatewayTest {
         @DisplayName("쿠폰 조회중 쿠폰 서비스에서 서버 오류가 발생한 경우 비지니스 예외로 변경하여 던진다")
         void getCoupon_ExternalServerException(){
             //given
-            willThrow(new ExternalServerException("쿠폰 서비스 에러 발생"))
+            willThrow(new ExternalServerException("INTERNAL_SERVER_ERROR", "처리중 오류가 발생했습니다"))
                     .given(adaptor).calculate(anyLong(), anyLong(), anyLong());
             //when
             //then
@@ -84,7 +84,7 @@ public class OrderCouponGatewayTest {
         @DisplayName("쿠폰 조회중 쿠폰 서비스에서 클라이언트 오류가 발생한 경우 비지니스 예외로 변환해 던진다")
         void getCoupon_ExternalClientException(){
             //given
-            willThrow(new ExternalClientException("쿠폰 서비스 에러 발생"))
+            willThrow(new ExternalClientException("NOT_FOUND_COUPON", "쿠폰을 찾을 수 없습니다"))
                     .given(adaptor).calculate(anyLong(), anyLong(), anyLong());
             //when
             //then
@@ -95,10 +95,10 @@ public class OrderCouponGatewayTest {
         }
 
         @Test
-        @DisplayName("")
+        @DisplayName("쿠폰 조회중 서비스 불가 오류가 발생한 경우 비지니스 예외로 변환해 던진다")
         void getCoupon_ExternalUnavailableException(){
             //given
-            willThrow(new ExternalSystemUnavailableException("쿠폰 서비스 에러 발생"))
+            willThrow(new ExternalSystemUnavailableException("SERVICE_UNAVAILABLE", "쿠폰 서비스 통신장애"))
                     .given(adaptor).calculate(anyLong(), anyLong(), anyLong());
             //when
             //then

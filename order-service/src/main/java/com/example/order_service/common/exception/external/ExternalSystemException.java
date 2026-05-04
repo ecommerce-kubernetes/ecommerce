@@ -15,14 +15,4 @@ public class ExternalSystemException extends RuntimeException {
         super(message);
         this.errorCode = errorCode;
     }
-
-    public ExternalSystemException(String message) {
-        super(message);
-        this.errorCode = "";
-    }
-
-    public ExternalSystemException(String message, Throwable cause) {
-        super(message, cause);
-        this.errorCode = "";
-    }
 }

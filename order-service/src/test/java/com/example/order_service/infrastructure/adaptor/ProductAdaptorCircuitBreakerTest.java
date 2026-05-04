@@ -62,7 +62,9 @@ public class ProductAdaptorCircuitBreakerTest {
         //서킷브레이커 open
         assertThatThrownBy(() -> adaptor.getProductsByVariantIds(ids))
                 .isInstanceOf(ExternalSystemUnavailableException.class)
-                .hasMessage("CircuitBreaker Open");
+                .hasMessage("상품 서비스 서킷 브레이커 열림")
+                .extracting("errorCode")
+                .isEqualTo("CIRCUIT_BREAKER_OPEN");
 
         //서킷브레이커가 열렸으므로 클라이언트는 4번의 요청중 3번만 호출됨
         verify(client, times(3)).getProductsByVariantIds(any());
@@ -74,17 +76,15 @@ public class ProductAdaptorCircuitBreakerTest {
         //given
         List<Long> ids = List.of(1L, 2L);
         given(client.getProductsByVariantIds(any()))
-                .willThrow(new ExternalClientException("Client Exception"));
+                .willThrow(new ExternalClientException("NOT_PERMISSION", "조회할 권한이 없습니다"));
         //when
         //then
         for (int i = 0; i < 3; i++) {
             assertThatThrownBy(() -> adaptor.getProductsByVariantIds(ids))
-                    .isInstanceOf(ExternalClientException.class)
-                    .hasMessage("Client Exception");
+                    .isInstanceOf(ExternalClientException.class);
         }
         assertThatThrownBy(() -> adaptor.getProductsByVariantIds(ids))
-                .isInstanceOf(ExternalClientException.class)
-                .hasMessage("Client Exception");
+                .isInstanceOf(ExternalClientException.class);
 
         //반복된 에러가 클라이언트 예외이므로 정상 요청이 실행되어 4번 호출됨
         verify(client, times(4)).getProductsByVariantIds(any());

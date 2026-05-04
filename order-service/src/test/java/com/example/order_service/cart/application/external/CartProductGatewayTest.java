@@ -68,7 +68,7 @@ public class CartProductGatewayTest {
         void getProducts_ExternalServerException() {
             //given
             List<Long> variantIds = List.of(1L, 2L);
-            willThrow(new ExternalServerException("상품 서비스 에러 발생"))
+            willThrow(new ExternalServerException("INTERNAL_SERVER_ERROR", "처리중 오류가 발생했습니다"))
                     .given(adaptor).getProductsByVariantIds(anyList());
             //when
             //then
@@ -83,7 +83,7 @@ public class CartProductGatewayTest {
         void getProducts_ExternalClientException() {
             //given
             List<Long> variantIds = List.of(1L, 2L);
-            willThrow(new ExternalClientException("상품 서비스 에러 발생"))
+            willThrow(new ExternalClientException("NOT_PERMISSION", "조회 권한이 없습니다"))
                     .given(adaptor).getProductsByVariantIds(anyList());
             //when
             //then
@@ -98,7 +98,7 @@ public class CartProductGatewayTest {
         void getProducts_ExternalUnavailableException() {
             //given
             List<Long> variantIds = List.of(1L, 2L);
-            willThrow(new ExternalSystemUnavailableException("상품 서비스 에러 발생"))
+            willThrow(new ExternalSystemUnavailableException("SERVICE_UNAVAILABLE", "상품 서비스 통신 장애"))
                     .given(adaptor).getProductsByVariantIds(anyList());
             //when
             //then

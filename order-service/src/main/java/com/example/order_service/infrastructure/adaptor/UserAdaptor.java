@@ -24,7 +24,7 @@ public class UserAdaptor {
     private UserClientResponse.UserInfo getUserInfoForOrderFallback(Long userId, Throwable throwable) throws Throwable {
         if (throwable instanceof CallNotPermittedException) {
             log.error("유저 서비스 장애로 인해 서킷 브레이커 열림");
-            throw new ExternalSystemUnavailableException("CircuitBreaker Open", throwable);
+            throw new ExternalSystemUnavailableException("CIRCUIT_BREAKER_OPEN", "유저 서비스 서킷 브레이커 열림", throwable);
         }
         
         //에러 디코더에서 던져진 에러
@@ -33,6 +33,6 @@ public class UserAdaptor {
         }
         
         // 에러 디코더를 타지 못한 에러 (타임아웃, 연결 오류, 파싱 등)
-        throw new ExternalSystemUnavailableException("유저 서비스 통신 장애", throwable);
+        throw new ExternalSystemUnavailableException("SERVICE_UNAVAILABLE", "유저 서비스 통신 장애", throwable);
     }
 }

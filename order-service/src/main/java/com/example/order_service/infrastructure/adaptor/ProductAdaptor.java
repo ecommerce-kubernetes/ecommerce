@@ -30,7 +30,7 @@ public class ProductAdaptor {
         // 서킷 브레이커가 열린 경우
         if (throwable instanceof CallNotPermittedException) {
             log.error("상품 서비스 장애로 인해 서킷 브레이커 열림");
-            throw new ExternalSystemUnavailableException("CircuitBreaker Open", throwable);
+            throw new ExternalSystemUnavailableException("CIRCUIT_BREAKER_OPEN", "상품 서비스 서킷 브레이커 열림", throwable);
         }
 
         // 에러 디코더에서 던져진 에러
@@ -39,6 +39,6 @@ public class ProductAdaptor {
         }
 
         // 에러 디코더를 타지 못한 에러 (타임아웃, 연결 오류 등)
-        throw new ExternalSystemUnavailableException("상품 서비스 통신 장애", throwable);
+        throw new ExternalSystemUnavailableException("SERVICE_UNAVAILABLE", "상품 서비스 통신 장애", throwable);
     }
 }

@@ -59,7 +59,9 @@ public class UserAdaptorCircuitBreakerTest {
         // 서킷 브레이커가 열림
         assertThatThrownBy(() -> adaptor.getUserInfoForOrder(userId))
                 .isInstanceOf(ExternalSystemUnavailableException.class)
-                .hasMessage("CircuitBreaker Open");
+                .hasMessage("유저 서비스 서킷 브레이커 열림")
+                .extracting("errorCode")
+                .isEqualTo("CIRCUIT_BREAKER_OPEN");
 
         // 서킷 브레이커가 열렸으므로 클라이언트는 4번의 요청중 3번만 호출됨
         verify(client, times(3)).getUserInfoForOrder(anyLong());
@@ -71,17 +73,15 @@ public class UserAdaptorCircuitBreakerTest {
         //given
         Long userId = 1L;
         given(client.getUserInfoForOrder(anyLong()))
-                .willThrow(new ExternalClientException("Client Exception"));
+                .willThrow(new ExternalClientException("NOT_FOUND_USER", "유저를 찾을 수 없습니다"));
         //when
         //then
         for (int i = 0; i < 3; i++) {
             assertThatThrownBy(() -> adaptor.getUserInfoForOrder(userId))
-                    .isInstanceOf(ExternalClientException.class)
-                    .hasMessage("Client Exception");
+                    .isInstanceOf(ExternalClientException.class);
         }
         assertThatThrownBy(() -> adaptor.getUserInfoForOrder(userId))
-                .isInstanceOf(ExternalClientException.class)
-                .hasMessage("Client Exception");
+                .isInstanceOf(ExternalClientException.class);
 
         // 반복된 에러가 클라이언트 예외이므로 정상 요청이 실행되어 4번 호출됨
         verify(client, times(4)).getUserInfoForOrder(anyLong());

@@ -76,7 +76,7 @@ public class OrderUserGatewayTest {
         void getUser_external_serverException(){
             //given
             Long userId = 1L;
-            willThrow(new ExternalServerException("유저 서비스 에러 발생"))
+            willThrow(new ExternalServerException("INTERNAL_SERVER_ERROR", "처리중 오류가 발생했습니다"))
                     .given(adaptor).getUserInfoForOrder(anyLong());
             //when
             //then
@@ -91,7 +91,7 @@ public class OrderUserGatewayTest {
         void getUser_external_client_exception(){
             //given
             Long userId = 1L;
-            willThrow(new ExternalClientException("유저 서비스 에러 발생"))
+            willThrow(new ExternalClientException("NOT_FOUND_USER", "유저를 찾을 수 없습니다"))
                     .given(adaptor).getUserInfoForOrder(anyLong());
             //when
             //then
@@ -106,7 +106,7 @@ public class OrderUserGatewayTest {
         void getUser_external_unavailable_exception(){
             //given
             Long userId = 1L;
-            willThrow(new ExternalSystemUnavailableException("유저 서비스 에러 발생"))
+            willThrow(new ExternalSystemUnavailableException("SERVICE_UNAVAILABLE", "유저 서비스 통신 장애"))
                     .given(adaptor).getUserInfoForOrder(anyLong());
             //when
             //then

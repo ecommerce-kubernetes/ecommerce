@@ -26,13 +26,13 @@ public class CouponAdaptor {
     private CouponClientResponse.Calculate calculateFallback(Long userId, Long couponId, Long totalAmount, Throwable throwable) throws Throwable {
         if (throwable instanceof CallNotPermittedException) {
             log.error("쿠폰 서비스 장애로 인해 서킷 브레이커 열림");
-            throw new ExternalSystemUnavailableException("CircuitBreaker Open", throwable);
+            throw new ExternalSystemUnavailableException("CIRCUIT_BREAKER_OPEN", "쿠폰 서비스 서킷 브레이커 열림", throwable);
         }
 
         if (throwable instanceof ExternalSystemException) {
             throw throwable;
         }
 
-        throw new ExternalSystemUnavailableException("쿠폰 서비스 통신 장애", throwable);
+        throw new ExternalSystemUnavailableException("SERVICE_UNAVAILABLE", "쿠폰 서비스 통신 장애", throwable);
     }
 }

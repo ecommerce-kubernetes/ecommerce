@@ -57,7 +57,9 @@ public class CouponAdaptorTest {
         //then
         assertThatThrownBy(() -> couponAdaptor.calculate(1L, 1L, 10000L))
                 .isInstanceOf(ExternalSystemUnavailableException.class)
-                .hasMessage("CircuitBreaker Open");
+                .hasMessage("쿠폰 서비스 서킷 브레이커 열림")
+                .extracting("errorCode")
+                .isEqualTo("CIRCUIT_BREAKER_OPEN");
     }
 
     @Test
