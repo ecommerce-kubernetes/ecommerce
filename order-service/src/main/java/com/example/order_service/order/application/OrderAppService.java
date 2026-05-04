@@ -112,7 +112,7 @@ public class OrderAppService {
     private OrderPaymentInfo confirmPayment(String orderNo, String paymentKey, Long amount) {
         try {
             // 결제 서비스를 호출해 결제를 진행
-            return orderPaymentGateway.confirmOrderPayment(orderNo, paymentKey, amount);
+            return orderPaymentGateway.confirmOrderPaymentdeprecated(orderNo, paymentKey, amount);
         } catch (BusinessException e) {
             // 결제 서비스 호출중 예외 발생시 주문 상태를 변경하고 saga 롤백을 위한 이벤트를 발행
             OrderFailureCode orderFailureCode = mapToOrderFailureCode(e.getErrorCode());

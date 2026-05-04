@@ -262,7 +262,7 @@ public class OrderAppServiceTest {
             PaymentCreationContext paymentContext = anPaymentContext().build();
             given(orderService.getOrder(anyString(), anyLong()))
                     .willReturn(getOrderDto);
-            given(orderPaymentGateway.confirmOrderPayment(anyString(), anyString(), anyLong()))
+            given(orderPaymentGateway.confirmOrderPaymentdeprecated(anyString(), anyString(), anyLong()))
                     .willReturn(orderPaymentInfo);
             given(mapper.mapPaymentCreationContext(any(OrderPaymentInfo.class)))
                     .willReturn(paymentContext);
@@ -288,7 +288,7 @@ public class OrderAppServiceTest {
                     .willReturn(getOrderDto);
             OrderDto failOrderDto = returnOrderDto().status(OrderStatus.CANCELED).build();
             willThrow(new BusinessException(PaymentErrorCode.PAYMENT_INSUFFICIENT_BALANCE)).given(orderPaymentGateway)
-                    .confirmOrderPayment(anyString(), anyString(), anyLong());
+                    .confirmOrderPaymentdeprecated(anyString(), anyString(), anyLong());
             given(orderService.failPayment(anyString(), any(OrderFailureCode.class))).willReturn(failOrderDto);
             //when
             //then
