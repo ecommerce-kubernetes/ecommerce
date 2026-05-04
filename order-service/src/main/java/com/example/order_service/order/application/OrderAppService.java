@@ -18,6 +18,8 @@ import com.example.order_service.order.application.external.OrderProductGateway;
 import com.example.order_service.order.application.external.OrderUserGateway;
 import com.example.order_service.order.domain.model.OrderFailureCode;
 import com.example.order_service.order.domain.model.OrderStatus;
+import com.example.order_service.order.domain.model.vo.PaymentStatus;
+import com.example.order_service.order.domain.model.vo.ProductStatus;
 import com.example.order_service.order.domain.service.OrderPriceCalculator;
 import com.example.order_service.order.domain.service.OrderService;
 import com.example.order_service.order.domain.service.dto.command.OrderCreationContext;

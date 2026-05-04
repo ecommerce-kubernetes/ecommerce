@@ -2,7 +2,7 @@ package com.example.order_service.ordersheet.application.mapper;
 
 import com.example.order_service.infrastructure.dto.response.ProductClientResponse;
 import com.example.order_service.ordersheet.application.dto.result.OrderSheetProductResult;
-import com.example.order_service.ordersheet.application.dto.result.ProductStatus;
+import com.example.order_service.ordersheet.domain.model.vo.ProductStatus;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.processing.Generated;
@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-05-05T01:11:55+0900",
+    date = "2026-05-05T07:52:50+0900",
     comments = "version: 1.6.3, compiler: javac, environment: Java 21.0.10 (Eclipse Adoptium)"
 )
 @Component

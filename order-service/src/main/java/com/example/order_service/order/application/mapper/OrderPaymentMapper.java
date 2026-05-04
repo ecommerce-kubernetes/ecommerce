@@ -2,8 +2,8 @@ package com.example.order_service.order.application.mapper;
 
 import com.example.order_service.infrastructure.dto.response.TossClientResponse;
 import com.example.order_service.order.application.dto.result.OrderPaymentResult;
-import com.example.order_service.order.application.dto.result.PaymentMethod;
-import com.example.order_service.order.application.dto.result.PaymentStatus;
+import com.example.order_service.order.domain.model.vo.PaymentMethod;
+import com.example.order_service.order.domain.model.vo.PaymentStatus;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 

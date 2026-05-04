@@ -8,8 +8,8 @@ import com.example.order_service.common.exception.external.ExternalSystemUnavail
 import com.example.order_service.infrastructure.adaptor.TossAdaptor;
 import com.example.order_service.infrastructure.dto.response.TossClientResponse;
 import com.example.order_service.order.application.dto.result.OrderPaymentResult;
-import com.example.order_service.order.application.dto.result.PaymentMethod;
-import com.example.order_service.order.application.dto.result.PaymentStatus;
+import com.example.order_service.order.domain.model.vo.PaymentMethod;
+import com.example.order_service.order.domain.model.vo.PaymentStatus;
 import com.example.order_service.order.application.mapper.OrderPaymentMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;

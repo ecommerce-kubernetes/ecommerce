@@ -1,4 +1,4 @@
-package com.example.order_service.cart.application.dto.result;
+package com.example.order_service.cart.domain.model.vo;
 
 import lombok.RequiredArgsConstructor;
 

@@ -3,7 +3,7 @@ package com.example.order_service.cart.application;
 import com.example.order_service.cart.application.dto.command.CartCommand;
 import com.example.order_service.cart.application.dto.result.CartProductResult;
 import com.example.order_service.cart.application.dto.result.CartResult;
-import com.example.order_service.cart.application.dto.result.ProductStatus;
+import com.example.order_service.cart.domain.model.vo.ProductStatus;
 import com.example.order_service.cart.application.external.CartProductGateway;
 import com.example.order_service.cart.domain.service.CartService;
 import com.example.order_service.cart.domain.service.dto.result.CartItemDto;

@@ -1,7 +1,7 @@
 package com.example.order_service.order.domain.service.dto.result;
 
-import com.example.order_service.order.application.dto.result.PaymentMethod;
-import com.example.order_service.order.application.dto.result.PaymentStatus;
+import com.example.order_service.order.domain.model.vo.PaymentMethod;
+import com.example.order_service.order.domain.model.vo.PaymentStatus;
 import com.example.order_service.order.domain.model.*;
 import com.example.order_service.order.domain.model.vo.OrderPriceDetail;
 import com.example.order_service.order.domain.model.vo.Orderer;

@@ -3,7 +3,7 @@ package com.example.order_service.order.domain.model;
 import com.example.order_service.common.entity.BaseEntity;
 import com.example.order_service.common.exception.business.BusinessException;
 import com.example.order_service.common.exception.business.code.OrderErrorCode;
-import com.example.order_service.order.application.dto.result.PaymentStatus;
+import com.example.order_service.order.domain.model.vo.PaymentStatus;
 import com.example.order_service.order.domain.model.vo.OrderPriceDetail;
 import com.example.order_service.order.domain.model.vo.Orderer;
 import com.example.order_service.order.domain.service.dto.command.OrderCreationContext;

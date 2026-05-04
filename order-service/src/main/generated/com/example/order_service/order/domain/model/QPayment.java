@@ -28,13 +28,13 @@ public class QPayment extends EntityPathBase<Payment> {
 
     public final NumberPath<Long> id = createNumber("id", Long.class);
 
-    public final EnumPath<com.example.order_service.order.application.dto.result.PaymentMethod> method = createEnum("method", com.example.order_service.order.application.dto.result.PaymentMethod.class);
+    public final EnumPath<com.example.order_service.order.domain.model.vo.PaymentMethod> method = createEnum("method", com.example.order_service.order.domain.model.vo.PaymentMethod.class);
 
     public final QOrder order;
 
     public final StringPath paymentKey = createString("paymentKey");
 
-    public final EnumPath<com.example.order_service.order.application.dto.result.PaymentStatus> status = createEnum("status", com.example.order_service.order.application.dto.result.PaymentStatus.class);
+    public final EnumPath<com.example.order_service.order.domain.model.vo.PaymentStatus> status = createEnum("status", com.example.order_service.order.domain.model.vo.PaymentStatus.class);
 
     public QPayment(String variable) {
         this(Payment.class, forVariable(variable), INITS);

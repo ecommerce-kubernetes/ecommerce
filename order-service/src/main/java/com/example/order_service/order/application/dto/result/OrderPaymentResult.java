@@ -1,5 +1,7 @@
 package com.example.order_service.order.application.dto.result;
 
+import com.example.order_service.order.domain.model.vo.PaymentMethod;
+import com.example.order_service.order.domain.model.vo.PaymentStatus;
 import lombok.Builder;
 
 import java.time.LocalDateTime;

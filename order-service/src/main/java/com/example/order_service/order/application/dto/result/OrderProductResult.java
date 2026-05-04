@@ -1,5 +1,6 @@
 package com.example.order_service.order.application.dto.result;
 
+import com.example.order_service.order.domain.model.vo.ProductStatus;
 import lombok.Builder;
 
 import java.util.List;

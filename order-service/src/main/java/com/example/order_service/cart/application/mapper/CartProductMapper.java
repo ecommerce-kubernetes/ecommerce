@@ -1,7 +1,7 @@
 package com.example.order_service.cart.application.mapper;
 
 import com.example.order_service.cart.application.dto.result.CartProductResult;
-import com.example.order_service.cart.application.dto.result.ProductStatus;
+import com.example.order_service.cart.domain.model.vo.ProductStatus;
 import com.example.order_service.infrastructure.dto.response.ProductClientResponse;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

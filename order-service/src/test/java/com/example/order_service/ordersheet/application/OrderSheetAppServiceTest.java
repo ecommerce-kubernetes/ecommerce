@@ -5,7 +5,7 @@ import com.example.order_service.common.exception.business.code.OrderSheetErrorC
 import com.example.order_service.ordersheet.application.dto.command.OrderSheetCommand;
 import com.example.order_service.ordersheet.application.dto.result.OrderSheetProductResult;
 import com.example.order_service.ordersheet.application.dto.result.OrderSheetResult;
-import com.example.order_service.ordersheet.application.dto.result.ProductStatus;
+import com.example.order_service.ordersheet.domain.model.vo.ProductStatus;
 import com.example.order_service.ordersheet.application.external.OrderSheetProductGateway;
 import com.example.order_service.ordersheet.domain.model.OrderSheet;
 import com.example.order_service.ordersheet.domain.repository.OrderSheetRepository;

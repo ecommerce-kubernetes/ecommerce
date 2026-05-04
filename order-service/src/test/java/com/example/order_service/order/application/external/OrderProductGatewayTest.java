@@ -8,7 +8,7 @@ import com.example.order_service.common.exception.external.ExternalSystemUnavail
 import com.example.order_service.infrastructure.adaptor.ProductAdaptor;
 import com.example.order_service.infrastructure.dto.response.ProductClientResponse;
 import com.example.order_service.order.application.dto.result.OrderProductResult;
-import com.example.order_service.order.application.dto.result.ProductStatus;
+import com.example.order_service.order.domain.model.vo.ProductStatus;
 import com.example.order_service.order.application.mapper.OrderProductMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;

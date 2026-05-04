@@ -2,7 +2,7 @@ package com.example.order_service.order.application.mapper;
 
 import com.example.order_service.infrastructure.dto.response.ProductClientResponse;
 import com.example.order_service.order.application.dto.result.OrderProductResult;
-import com.example.order_service.order.application.dto.result.ProductStatus;
+import com.example.order_service.order.domain.model.vo.ProductStatus;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 

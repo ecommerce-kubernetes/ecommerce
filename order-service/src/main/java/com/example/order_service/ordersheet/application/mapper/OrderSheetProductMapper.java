@@ -3,7 +3,7 @@ package com.example.order_service.ordersheet.application.mapper;
 
 import com.example.order_service.infrastructure.dto.response.ProductClientResponse;
 import com.example.order_service.ordersheet.application.dto.result.OrderSheetProductResult;
-import com.example.order_service.ordersheet.application.dto.result.ProductStatus;
+import com.example.order_service.ordersheet.domain.model.vo.ProductStatus;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 

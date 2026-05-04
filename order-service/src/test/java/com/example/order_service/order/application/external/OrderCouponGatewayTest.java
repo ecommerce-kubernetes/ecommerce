@@ -7,7 +7,7 @@ import com.example.order_service.common.exception.external.ExternalServerExcepti
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
 import com.example.order_service.infrastructure.adaptor.CouponAdaptor;
 import com.example.order_service.infrastructure.dto.response.CouponClientResponse;
-import com.example.order_service.order.application.dto.result.CouponValidationStatus;
+import com.example.order_service.order.domain.model.vo.CouponValidationStatus;
 import com.example.order_service.order.application.dto.result.OrderCouponResult;
 import com.example.order_service.order.application.mapper.OrderCouponMapper;
 import org.junit.jupiter.api.DisplayName;
