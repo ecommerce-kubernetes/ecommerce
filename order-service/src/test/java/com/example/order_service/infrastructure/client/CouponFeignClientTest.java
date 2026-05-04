@@ -62,7 +62,7 @@ public class CouponFeignClientTest {
         CouponClientRequest.Calculate request = TestFixtureUtil.giveMeOne(CouponClientRequest.Calculate.class);
         String mockJsonResponse = """
                 {
-                    "code": "COUPON_SERVER_ERROR",
+                    "code": "FAIL_INTERNAL_SYSTEM_PROCESSING",
                     "message": "에러가 발생했습니다",
                     "timestamp": "2026-05-03 19:00:00",
                     "path": "/internal/coupons/calculate"
@@ -78,18 +78,20 @@ public class CouponFeignClientTest {
         //then
         assertThatThrownBy(() -> client.calculate(request))
                 .isInstanceOf(ExternalServerException.class)
-                .hasMessage("에러가 발생했습니다");
+                .hasMessage("에러가 발생했습니다")
+                .extracting("errorCode")
+                .isEqualTo("FAIL_INTERNAL_SYSTEM_PROCESSING");
     }
 
     @Test
-    @DisplayName("")
+    @DisplayName("쿠폰 서비스에서 클라이언트 에러 응답이 반환되면 클라이언트 예외를 던진다")
     void couponService_thrown_client_error_response(){
         //given
         CouponClientRequest.Calculate request = TestFixtureUtil.giveMeOne(CouponClientRequest.Calculate.class);
         String mockJsonResponse = """
                 {
-                    "code": "COUPON_CLIENT_ERROR",
-                    "message": "에러가 발생했습니다",
+                    "code": "NOT_FOUND_COUPON",
+                    "message": "쿠폰을 찾을 수 없습니다",
                     "timestamp": "2026-05-03 19:00:00",
                     "path": "/internal/coupons/calculate"
                 }
@@ -103,6 +105,8 @@ public class CouponFeignClientTest {
         //then
         assertThatThrownBy(() -> client.calculate(request))
                 .isInstanceOf(ExternalClientException.class)
-                .hasMessage("에러가 발생했습니다");
+                .hasMessage("쿠폰을 찾을 수 없습니다")
+                .extracting("errorCode")
+                .isEqualTo("NOT_FOUND_COUPON");
     }
 }

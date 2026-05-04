@@ -111,8 +111,8 @@ class ProductFeignClientTest {
         //클라이언트 에러 응답 모킹
         String mockJsonResponse = """
                 {
-                    "code": "PROD_CLIENT_ERROR",
-                    "message": "에러가 발생했습니다",
+                    "code": "NOT_PERMISSION",
+                    "message": "조회 권한이 없습니다",
                     "timestamp": "2026-05-03 19:00:00",
                     "path": "/internal/variants/by-ids"
                 }
@@ -127,7 +127,9 @@ class ProductFeignClientTest {
         //then
         assertThatThrownBy(() -> client.getProductsByVariantIds(request))
                 .isInstanceOf(ExternalClientException.class)
-                .hasMessage("에러가 발생했습니다");
+                .hasMessage("조회 권한이 없습니다")
+                .extracting("errorCode")
+                .isEqualTo("NOT_PERMISSION");
     }
 
     @Test
@@ -138,8 +140,8 @@ class ProductFeignClientTest {
 
         String mockJsonResponse = """
                 {
-                    "code": "PROD_SERVER_ERROR",
-                    "message": "에러가 발생했습니다",
+                    "code": "FAILED_INTERNAL_SYSTEM_PROCESSING",
+                    "message": "처리중 알 수 없는 오류가 발생했습니다",
                     "timestamp": "2026-05-03 19:00:00",
                     "path": "/internal/variants/by-ids"
                 }
@@ -154,6 +156,8 @@ class ProductFeignClientTest {
         //then
         assertThatThrownBy(() -> client.getProductsByVariantIds(request))
                 .isInstanceOf(ExternalServerException.class)
-                .hasMessage("에러가 발생했습니다");
+                .hasMessage("처리중 알 수 없는 오류가 발생했습니다")
+                .extracting("errorCode")
+                .isEqualTo("FAILED_INTERNAL_SYSTEM_PROCESSING");
     }
 }

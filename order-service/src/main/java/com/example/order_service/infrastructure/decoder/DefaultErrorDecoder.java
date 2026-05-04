@@ -24,16 +24,13 @@ public class DefaultErrorDecoder implements ErrorDecoder {
             if (response.body() != null) {
                 InputStream bodyInputStream = response.body().asInputStream();
                 ClientErrorResponse errorResponse = objectMapper.readValue(bodyInputStream, ClientErrorResponse.class);
-
-                log.error("Product 서비스 에러 - Method: {}, Status: {}, Code: {}, Message: {}",
-                        methodKey, response.status(), errorResponse.getCode(), errorResponse.getMessage());
                 // 에러가 클라이언트 에러인 경우 (400 ~ 500)
                 if (response.status() >= 400 && response.status() < 500) {
-                    return new ExternalClientException(errorResponse.getMessage());
+                    return new ExternalClientException(errorResponse.getCode(), errorResponse.getMessage());
                 }
                 // 에러가 서버 에러인 경우 (500~)
                 if (response.status() >= 500) {
-                    return new ExternalServerException(errorResponse.getMessage());
+                    return new ExternalServerException(errorResponse.getCode(), errorResponse.getMessage());
                 }
             }
         } catch (IOException e) {

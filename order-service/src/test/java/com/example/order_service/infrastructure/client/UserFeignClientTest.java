@@ -64,8 +64,8 @@ public class UserFeignClientTest {
         //given
         String mockJsonResponse = """
                 {
-                    "code": "USER_CLIENT_ERROR",
-                    "message": "잘못된 요청입니다",
+                    "code": "NOT_FOUND_USER",
+                    "message": "유저를 찾을 수 없습니다",
                     "timestamp": "2026-05-03 19:00:00",
                     "path": "/internal/users/1/order-info"
                 }
@@ -79,7 +79,9 @@ public class UserFeignClientTest {
         //then
         assertThatThrownBy(() -> client.getUserInfoForOrder(userId))
                 .isInstanceOf(ExternalClientException.class)
-                .hasMessage("잘못된 요청입니다");
+                .hasMessage("유저를 찾을 수 없습니다")
+                .extracting("errorCode")
+                .isEqualTo("NOT_FOUND_USER");
     }
 
     @Test
@@ -89,8 +91,8 @@ public class UserFeignClientTest {
         Long userId = 1L;
         String mockJsonResponse = """
                 {
-                    "code": "USER_SERVER_ERROR",
-                    "message": "에러가 발생했습니다",
+                    "code": "INTERNAL_SERVER_ERROR",
+                    "message": "처리중 오류가 발생했습니다",
                     "timestamp": "2026-05-03 19:00:00",
                     "path": "/internal/users/1/order-info"
                 }
@@ -105,6 +107,8 @@ public class UserFeignClientTest {
         //then
         assertThatThrownBy(() -> client.getUserInfoForOrder(userId))
                 .isInstanceOf(ExternalServerException.class)
-                .hasMessage("에러가 발생했습니다");
+                .hasMessage("처리중 오류가 발생했습니다")
+                .extracting("errorCode")
+                .isEqualTo("INTERNAL_SERVER_ERROR");
     }
 }
