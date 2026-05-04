@@ -9,19 +9,12 @@ import com.example.order_service.infrastructure.adaptor.CouponAdaptor;
 import com.example.order_service.infrastructure.dto.response.CouponClientResponse;
 import com.example.order_service.order.application.dto.result.OrderCouponResult;
 import com.example.order_service.order.application.mapper.OrderCouponMapper;
-import com.example.order_service.order.domain.service.dto.result.OrderCouponInfo;
-import com.example.order_service.order.domain.service.dto.result.OrderProductAmount;
-import com.example.order_service.order.infrastructure.client.coupon.OrderCouponAdaptor;
-import com.example.order_service.order.infrastructure.client.coupon.dto.OrderCouponDiscountResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class OrderCouponGateway {
-    private final OrderCouponAdaptor orderCouponAdaptor;
     private final CouponAdaptor couponAdaptor;
     private final OrderCouponMapper mapper;
 
@@ -42,20 +35,4 @@ public class OrderCouponGateway {
         }
     }
 
-    public OrderCouponInfo calculateCouponDiscount(Long userId, Long couponId, OrderProductAmount productAmount){
-        if (couponId == null) {
-            return OrderCouponInfo.notUsed();
-        }
-
-        OrderCouponDiscountResponse coupon = orderCouponAdaptor.calculateDiscount(userId, couponId, productAmount.getSubTotalAmount());
-        return mapToInfo(coupon);
-    }
-
-    private OrderCouponInfo mapToInfo(OrderCouponDiscountResponse coupon) {
-        return OrderCouponInfo.builder()
-                .couponId(coupon.getCouponId())
-                .couponName(coupon.getCouponName())
-                .discountAmount(coupon.getDiscountAmount())
-                .build();
-    }
 }

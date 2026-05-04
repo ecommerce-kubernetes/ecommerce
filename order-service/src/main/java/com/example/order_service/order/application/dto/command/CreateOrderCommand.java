@@ -4,6 +4,8 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Getter
 @Builder
@@ -25,5 +27,13 @@ public class CreateOrderCommand {
                 .pointToUse(pointToUse)
                 .expectedPrice(expectedPrice)
                 .build();
+    }
+
+    public List<Long> getProductVariantIds() {
+        return orderItemCommands.stream().map(CreateOrderItemCommand::getProductVariantId).toList();
+    }
+
+    public Map<Long, Integer> getQuantityMap() {
+        return orderItemCommands.stream().collect(Collectors.toMap(CreateOrderItemCommand::getProductVariantId, CreateOrderItemCommand::getQuantity));
     }
 }

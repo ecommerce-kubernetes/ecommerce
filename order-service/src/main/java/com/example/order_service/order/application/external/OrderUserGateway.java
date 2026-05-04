@@ -9,9 +9,6 @@ import com.example.order_service.infrastructure.adaptor.UserAdaptor;
 import com.example.order_service.infrastructure.dto.response.UserClientResponse;
 import com.example.order_service.order.application.dto.result.OrderUserResult;
 import com.example.order_service.order.application.mapper.OrderUserMapper;
-import com.example.order_service.order.domain.service.dto.result.OrderUserInfo;
-import com.example.order_service.order.infrastructure.client.user.OrderUserAdaptor;
-import com.example.order_service.order.infrastructure.client.user.dto.OrderUserResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -20,33 +17,12 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Slf4j
 public class OrderUserGateway {
-    private final OrderUserAdaptor orderUserAdaptor;
     private final UserAdaptor userAdaptor;
     private final OrderUserMapper mapper;
 
     public OrderUserResult.OrdererInfo getUser(Long userId) {
         UserClientResponse.UserInfo userInfo = fetchUserWithTranslation(userId);
         return mapper.toResult(userInfo);
-    }
-
-    public OrderUserInfo getUser(Long userId, Long pointToUse) {
-        OrderUserResponse user = orderUserAdaptor.getUser(userId);
-        validateEnoughPoint(user, pointToUse);
-        return mapToInfo(user);
-    }
-
-    private void validateEnoughPoint(OrderUserResponse user, Long pointToUse) {
-        if (user.getPointBalance() < pointToUse) {
-            throw new BusinessException(OrderErrorCode.ORDER_USER_INSUFFICIENT_POINT_BALANCE);
-        }
-    }
-
-    private OrderUserInfo mapToInfo(OrderUserResponse user) {
-        return OrderUserInfo.builder()
-                .userId(user.getUserId())
-                .userName(user.getUserName())
-                .phoneNumber(user.getPhoneNumber())
-                .build();
     }
 
     private UserClientResponse.UserInfo fetchUserWithTranslation(Long userId) {

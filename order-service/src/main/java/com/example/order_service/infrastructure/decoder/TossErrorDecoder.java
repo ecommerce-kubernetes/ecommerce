@@ -3,7 +3,6 @@ package com.example.order_service.infrastructure.decoder;
 import com.example.order_service.common.exception.external.ExternalClientException;
 import com.example.order_service.common.exception.external.ExternalServerException;
 import com.example.order_service.infrastructure.dto.response.TossClientResponse;
-import com.example.order_service.infrastructure.dto.response.TossErrorResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import feign.Response;
 import feign.codec.ErrorDecoder;

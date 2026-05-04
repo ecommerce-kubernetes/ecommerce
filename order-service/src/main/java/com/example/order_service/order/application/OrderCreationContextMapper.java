@@ -2,13 +2,17 @@ package com.example.order_service.order.application;
 
 import com.example.order_service.order.application.dto.command.CreateOrderCommand;
 import com.example.order_service.order.application.dto.command.CreateOrderItemCommand;
+import com.example.order_service.order.application.dto.result.OrderCouponResult;
+import com.example.order_service.order.application.dto.result.OrderPaymentResult;
+import com.example.order_service.order.application.dto.result.OrderProductResult;
+import com.example.order_service.order.application.dto.result.OrderUserResult;
 import com.example.order_service.order.domain.service.dto.command.OrderCreationContext;
 import com.example.order_service.order.domain.service.dto.command.OrderCreationContext.CouponSpec;
 import com.example.order_service.order.domain.service.dto.command.OrderCreationContext.OrderPriceSpec;
 import com.example.order_service.order.domain.service.dto.command.OrderCreationContext.OrdererSpec;
 import com.example.order_service.order.domain.service.dto.command.OrderItemCreationContext;
 import com.example.order_service.order.domain.service.dto.command.PaymentCreationContext;
-import com.example.order_service.order.domain.service.dto.result.*;
+import com.example.order_service.order.domain.service.dto.result.CalculatedOrderAmounts;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -20,19 +24,19 @@ import static com.example.order_service.order.domain.service.dto.command.OrderIt
 @Component
 public class OrderCreationContextMapper {
 
-    public PaymentCreationContext mapPaymentCreationContext(OrderPaymentInfo orderPaymentInfo) {
+    public PaymentCreationContext mapPaymentCreationContext(OrderPaymentResult.Payment orderPaymentInfo) {
         return PaymentCreationContext.builder()
-                .orderNo(orderPaymentInfo.getOrderNo())
-                .paymentKey(orderPaymentInfo.getPaymentKey())
-                .amount(orderPaymentInfo.getTotalAmount())
-                .status(orderPaymentInfo.getStatus())
-                .method(orderPaymentInfo.getMethod())
-                .approvedAt(orderPaymentInfo.getApprovedAt())
+                .orderNo(orderPaymentInfo.orderNo())
+                .paymentKey(orderPaymentInfo.paymentKey())
+                .amount(orderPaymentInfo.totalAmount())
+                .status(orderPaymentInfo.status())
+                .method(orderPaymentInfo.method())
+                .approvedAt(orderPaymentInfo.approvedAt())
                 .build();
     }
 
-    public OrderCreationContext mapOrderCreationContext(OrderUserInfo user, CalculatedOrderAmounts amounts, OrderCouponInfo coupon,
-                                                        CreateOrderCommand command, List<OrderProductInfo> products) {
+    public OrderCreationContext mapOrderCreationContext(OrderUserResult.OrdererInfo user, CalculatedOrderAmounts amounts, OrderCouponResult.CouponValidation coupon,
+                                                        CreateOrderCommand command, List<OrderProductResult.Info> products) {
         OrdererSpec orderer = mapToOrdererSpec(user);
         OrderPriceSpec orderPrice = mapToOrderPriceSpec(amounts);
         CouponSpec couponInfo = mapToCouponInfo(coupon);
@@ -40,11 +44,11 @@ public class OrderCreationContextMapper {
         return OrderCreationContext.of(orderer, orderPrice, couponInfo, orderItemCreationContexts, command.getDeliveryAddress());
     }
 
-    private OrdererSpec mapToOrdererSpec(OrderUserInfo user) {
+    private OrdererSpec mapToOrdererSpec(OrderUserResult.OrdererInfo user) {
         return OrdererSpec.builder()
-                .userId(user.getUserId())
-                .userName(user.getUserName())
-                .phoneNumber(user.getPhoneNumber())
+                .userId(user.userId())
+                .userName(user.ordererName())
+                .phoneNumber(user.ordererPhone())
                 .build();
     }
 
@@ -57,25 +61,25 @@ public class OrderCreationContextMapper {
                 amounts.getFinalPaymentAmount());
     }
 
-    private CouponSpec mapToCouponInfo(OrderCouponInfo coupon) {
-        if (coupon == null || coupon.getCouponId() == null) {
+    private CouponSpec mapToCouponInfo(OrderCouponResult.CouponValidation coupon) {
+        if (coupon == null || coupon.couponBenefit().couponId() == null) {
             return null;
         }
-        return CouponSpec.of(coupon.getCouponId(), coupon.getCouponName(), coupon.getDiscountAmount());
+        return CouponSpec.of(coupon.couponBenefit().couponId(), coupon.couponBenefit().couponName(), coupon.couponBenefit().discountAmount());
     }
 
     private List<OrderItemCreationContext> mapToItemCreationContexts(List<CreateOrderItemCommand> orderItemCommands,
-                                                                     List<OrderProductInfo> products) {
+                                                                     List<OrderProductResult.Info> products) {
         Map<Long, Integer> qtyMap = mapQtyByVariantId(orderItemCommands);
         return products.stream().map(product -> {
-            Integer qty = qtyMap.get(product.getProductVariantId());
-            ProductSpec productSpec = ProductSpec.of(product.getProductId(), product.getProductVariantId(),
-                    product.getSku(), product.getProductName(), product.getThumbnail());
-            PriceSpec priceSpec = PriceSpec.of(product.getOriginalPrice(), product.getDiscountRate(),
-                    product.getDiscountAmount(), product.getDiscountedPrice());
-            long lineTotal = product.getDiscountedPrice() * qty;
-            List<CreateItemOptionSpec> createItemOptionSpecs = product.getProductOption().stream().map(o ->
-                    CreateItemOptionSpec.of(o.getOptionTypeName(), o.getOptionValueName())).toList();
+            Integer qty = qtyMap.get(product.productVariantId());
+            ProductSpec productSpec = ProductSpec.of(product.productId(), product.productVariantId(),
+                    product.sku(), product.productName(), product.thumbnail());
+            PriceSpec priceSpec = PriceSpec.of(product.originalPrice(), product.discountRate(),
+                    product.discountAmount(), product.discountedPrice());
+            long lineTotal = product.discountedPrice() * qty;
+            List<CreateItemOptionSpec> createItemOptionSpecs = product.options().stream().map(o ->
+                    CreateItemOptionSpec.of(o.optionTypeName(), o.optionValueName())).toList();
             return OrderItemCreationContext.of(productSpec, priceSpec, qty, lineTotal, createItemOptionSpecs);
         }).toList();
     }

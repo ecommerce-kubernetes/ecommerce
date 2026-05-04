@@ -9,23 +9,16 @@ import com.example.order_service.infrastructure.adaptor.UserAdaptor;
 import com.example.order_service.infrastructure.dto.response.UserClientResponse;
 import com.example.order_service.order.application.dto.result.OrderUserResult;
 import com.example.order_service.order.application.mapper.OrderUserMapper;
-import com.example.order_service.order.domain.service.dto.result.OrderUserInfo;
-import com.example.order_service.order.infrastructure.client.user.OrderUserAdaptor;
-import com.example.order_service.order.infrastructure.client.user.dto.OrderUserResponse;
-import com.example.order_service.support.TestFixtureUtil;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mapstruct.factory.Mappers;
-import org.mockito.BDDMockito;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static com.example.order_service.api.support.fixture.order.OrderUserFixture.anOrderUserInfo;
-import static com.example.order_service.api.support.fixture.order.OrderUserFixture.anOrderUserResponse;
 import static com.example.order_service.support.TestFixtureUtil.fixtureMonkey;
 import static com.example.order_service.support.TestFixtureUtil.sample;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -39,10 +32,6 @@ public class OrderUserGatewayTest {
 
     @InjectMocks
     private OrderUserGateway orderUserGateway;
-
-    @Mock
-    private OrderUserAdaptor orderUserAdaptor;
-
     @Mock
     private UserAdaptor adaptor;
     @Spy
@@ -114,37 +103,6 @@ public class OrderUserGatewayTest {
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(OrderErrorCode.ORDER_USER_UNAVAILABLE_SERVER_ERROR);
-        }
-
-        @Test
-        @DisplayName("유저 정보를 조회한다")
-        void getUserdeprecated() {
-            //given
-            OrderUserResponse user = anOrderUserResponse().build();
-            given(orderUserAdaptor.getUser(anyLong()))
-                    .willReturn(user);
-            OrderUserInfo expectedResult = anOrderUserInfo().build();
-            //when
-            OrderUserInfo result = orderUserGateway.getUser(1L, 500L);
-            //then
-            assertThat(result)
-                    .usingRecursiveComparison()
-                    .isEqualTo(expectedResult);
-        }
-
-        @Test
-        @DisplayName("포인트 잔액이 부족하면 예외가 발생한다")
-        void getUser_insufficient_point_balance_deprecated() {
-            //given
-            OrderUserResponse user = anOrderUserResponse().build();
-            given(orderUserAdaptor.getUser(anyLong()))
-                    .willReturn(user);
-            //when
-            //then
-            assertThatThrownBy(() -> orderUserGateway.getUser(1L, 1500L))
-                    .isInstanceOf(BusinessException.class)
-                    .extracting("errorCode")
-                    .isEqualTo(OrderErrorCode.ORDER_USER_INSUFFICIENT_POINT_BALANCE);
         }
     }
 }

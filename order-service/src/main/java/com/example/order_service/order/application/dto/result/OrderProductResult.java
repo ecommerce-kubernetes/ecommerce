@@ -9,6 +9,7 @@ public class OrderProductResult {
     @Builder
     public record Info(
             Long productId,
+            String productName,
             Long productVariantId,
             ProductStatus status,
             String sku,

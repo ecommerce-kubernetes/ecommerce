@@ -1,7 +1,7 @@
 package com.example.order_service.order.domain.service.dto.command;
 
-import com.example.order_service.order.domain.model.PaymentMethod;
-import com.example.order_service.order.domain.model.PaymentStatus;
+import com.example.order_service.order.application.dto.result.PaymentMethod;
+import com.example.order_service.order.application.dto.result.PaymentStatus;
 import lombok.Builder;
 import lombok.Getter;
 
