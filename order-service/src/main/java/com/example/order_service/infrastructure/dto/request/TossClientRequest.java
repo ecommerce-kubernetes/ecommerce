@@ -10,6 +10,13 @@ public class TossClientRequest {
             String paymentKey,
             Long amount
     ) {
+        public static Confirm of(String orderId, String paymentKey, Long amount) {
+            return Confirm.builder()
+                    .orderId(orderId)
+                    .paymentKey(paymentKey)
+                    .amount(amount)
+                    .build();
+        }
     }
 
     @Builder
@@ -17,6 +24,12 @@ public class TossClientRequest {
             String cancelReason,
             Long cancelAmount
     ) {
+        public static Cancel of(String cancelReason, Long cancelAmount) {
+            return Cancel.builder()
+                    .cancelReason(cancelReason)
+                    .cancelAmount(cancelAmount)
+                    .build();
+        }
     }
 
 }
