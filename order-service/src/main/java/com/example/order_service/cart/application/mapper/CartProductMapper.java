@@ -14,6 +14,7 @@ public interface CartProductMapper {
     @Mapping(source = "unitPrice.discountRate", target = "discountRate")
     @Mapping(source = "unitPrice.discountAmount", target = "discountAmount")
     @Mapping(source = "unitPrice.discountedPrice", target = "discountedPrice")
+    @Mapping(source = "itemOptions", target = "options")
     CartProductResult.Info toResult(ProductClientResponse.Product product);
 
     CartProductResult.Option toOption(ProductClientResponse.ProductOption option);

@@ -14,6 +14,7 @@ public interface OrderProductMapper {
     @Mapping(source = "unitPrice.discountRate", target = "discountRate")
     @Mapping(source = "unitPrice.discountAmount", target = "discountAmount")
     @Mapping(source = "unitPrice.discountedPrice", target = "discountedPrice")
+    @Mapping(source = "itemOptions", target = "options")
     OrderProductResult.Info toResult(ProductClientResponse.Product product);
 
     OrderProductResult.Option toOption(ProductClientResponse.ProductOption option);
