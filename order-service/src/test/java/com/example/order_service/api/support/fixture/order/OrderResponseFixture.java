@@ -1,17 +1,17 @@
 package com.example.order_service.api.support.fixture.order;
 
-import com.example.order_service.api.common.dto.PageDto;
-import com.example.order_service.api.order.domain.model.OrderStatus;
-import com.example.order_service.api.order.facade.dto.result.CreateOrderResponse;
-import com.example.order_service.api.order.facade.dto.result.OrderDetailResponse;
-import com.example.order_service.api.order.facade.dto.result.OrderDetailResponse.CouponResponse;
-import com.example.order_service.api.order.facade.dto.result.OrderDetailResponse.OrderPriceResponse;
-import com.example.order_service.api.order.facade.dto.result.OrderDetailResponse.OrdererResponse;
-import com.example.order_service.api.order.facade.dto.result.OrderDetailResponse.PaymentResponse;
-import com.example.order_service.api.order.facade.dto.result.OrderItemResponse;
-import com.example.order_service.api.order.facade.dto.result.OrderItemResponse.OrderItemOptionResponse;
-import com.example.order_service.api.order.facade.dto.result.OrderItemResponse.OrderItemPriceResponse;
-import com.example.order_service.api.order.facade.dto.result.OrderListResponse;
+import com.example.order_service.common.dto.PageDto;
+import com.example.order_service.order.application.dto.result.CreateOrderResponse;
+import com.example.order_service.order.application.dto.result.OrderDetailResponse;
+import com.example.order_service.order.application.dto.result.OrderDetailResponse.CouponResponse;
+import com.example.order_service.order.application.dto.result.OrderDetailResponse.OrderPriceResponse;
+import com.example.order_service.order.application.dto.result.OrderDetailResponse.OrdererResponse;
+import com.example.order_service.order.application.dto.result.OrderDetailResponse.PaymentResponse;
+import com.example.order_service.order.application.dto.result.OrderItemResponse;
+import com.example.order_service.order.application.dto.result.OrderItemResponse.OrderItemOptionResponse;
+import com.example.order_service.order.application.dto.result.OrderItemResponse.OrderItemPriceResponse;
+import com.example.order_service.order.application.dto.result.OrderListResponse;
+import com.example.order_service.order.domain.model.OrderStatus;
 
 import java.time.LocalDateTime;
 import java.util.List;

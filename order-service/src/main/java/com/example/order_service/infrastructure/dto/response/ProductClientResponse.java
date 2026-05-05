@@ -16,7 +16,7 @@ public class ProductClientResponse {
             String thumbnail,
             UnitPrice unitPrice,
             Integer stockQuantity,
-            List<ProductOption> options
+            List<ProductOption> itemOptions
     ) {
     }
 

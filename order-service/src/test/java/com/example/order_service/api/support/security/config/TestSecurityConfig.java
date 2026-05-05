@@ -1,7 +1,7 @@
 package com.example.order_service.api.support.security.config;
 
-import com.example.order_service.api.common.security.filter.CustomAccessDeniedHandler;
-import com.example.order_service.api.common.security.filter.CustomAuthenticationEntryPoint;
+import com.example.order_service.common.security.filter.CustomAccessDeniedHandler;
+import com.example.order_service.common.security.filter.CustomAuthenticationEntryPoint;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;

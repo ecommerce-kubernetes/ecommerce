@@ -1,5 +1,6 @@
 package com.example.order_service.ordersheet.application.dto.result;
 
+import com.example.order_service.ordersheet.domain.model.vo.ProductStatus;
 import lombok.Builder;
 
 import java.util.List;
@@ -29,6 +30,4 @@ public class OrderSheetProductResult {
             String optionValueName
     ) {
     }
-
-
 }

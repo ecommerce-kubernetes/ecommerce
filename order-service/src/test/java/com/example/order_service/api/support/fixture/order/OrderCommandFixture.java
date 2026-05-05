@@ -1,8 +1,8 @@
 package com.example.order_service.api.support.fixture.order;
 
-import com.example.order_service.api.order.controller.dto.request.OrderSearchCondition;
-import com.example.order_service.api.order.facade.dto.command.CreateOrderCommand;
-import com.example.order_service.api.order.facade.dto.command.CreateOrderItemCommand;
+import com.example.order_service.order.api.dto.request.OrderSearchCondition;
+import com.example.order_service.order.application.dto.command.CreateOrderCommand;
+import com.example.order_service.order.application.dto.command.CreateOrderItemCommand;
 
 import java.util.List;
 

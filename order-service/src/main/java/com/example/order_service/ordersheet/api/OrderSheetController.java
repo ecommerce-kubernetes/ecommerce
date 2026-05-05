@@ -1,9 +1,9 @@
 package com.example.order_service.ordersheet.api;
 
-import com.example.order_service.api.common.security.model.UserPrincipal;
+import com.example.order_service.common.security.model.UserPrincipal;
 import com.example.order_service.ordersheet.api.dto.request.OrderSheetRequest;
 import com.example.order_service.ordersheet.api.dto.response.OrderSheetResponse;
-import com.example.order_service.ordersheet.application.OrderSheetService;
+import com.example.order_service.ordersheet.application.OrderSheetAppService;
 import com.example.order_service.ordersheet.application.dto.command.OrderSheetCommand;
 import com.example.order_service.ordersheet.application.dto.result.OrderSheetResult;
 import lombok.RequiredArgsConstructor;
@@ -22,13 +22,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/order-sheets")
 @PreAuthorize("hasRole('USER')")
 public class OrderSheetController {
-    private final OrderSheetService orderSheetService;
+    private final OrderSheetAppService orderSheetAppService;
 
     @PostMapping
     public ResponseEntity<OrderSheetResponse.Create> createOrderSheet(@AuthenticationPrincipal UserPrincipal userPrincipal,
                                                                       @RequestBody @Validated OrderSheetRequest.Create request) {
         OrderSheetCommand.Create command = request.toCommand(userPrincipal.getUserId());
-        OrderSheetResult.Default result = orderSheetService.createOrderSheet(command);
+        OrderSheetResult.Default result = orderSheetAppService.createOrderSheet(command);
         OrderSheetResponse.Create response = OrderSheetResponse.Create.from(result);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }

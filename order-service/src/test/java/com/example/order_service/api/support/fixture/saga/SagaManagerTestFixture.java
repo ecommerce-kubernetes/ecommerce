@@ -1,12 +1,12 @@
 package com.example.order_service.api.support.fixture.saga;
 
-import com.example.order_service.api.order.saga.domain.model.SagaStatus;
-import com.example.order_service.api.order.saga.domain.model.SagaStep;
-import com.example.order_service.api.order.saga.domain.model.vo.Payload;
-import com.example.order_service.api.order.saga.domain.model.vo.Payload.SagaItem;
-import com.example.order_service.api.order.saga.domain.service.dto.SagaInstanceDto;
-import com.example.order_service.api.order.saga.orchestrator.dto.command.SagaStartCommand;
-import com.example.order_service.api.order.saga.orchestrator.dto.command.SagaStartCommand.DeductProduct;
+import com.example.order_service.order.saga.domain.model.SagaStatus;
+import com.example.order_service.order.saga.domain.model.SagaStep;
+import com.example.order_service.order.saga.domain.model.vo.Payload;
+import com.example.order_service.order.saga.domain.model.vo.Payload.SagaItem;
+import com.example.order_service.order.saga.domain.service.dto.SagaInstanceDto;
+import com.example.order_service.order.saga.orchestrator.dto.command.SagaStartCommand;
+import com.example.order_service.order.saga.orchestrator.dto.command.SagaStartCommand.DeductProduct;
 
 import java.time.LocalDateTime;
 import java.util.List;

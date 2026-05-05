@@ -1,17 +1,17 @@
 package com.example.order_service.docs.order;
 
 import com.epages.restdocs.apispec.ResourceSnippetParameters;
-import com.example.order_service.api.common.dto.PageDto;
-import com.example.order_service.api.order.controller.OrderController;
-import com.example.order_service.api.order.controller.dto.request.CreateOrderItemRequest;
-import com.example.order_service.api.order.controller.dto.request.CreateOrderRequest;
-import com.example.order_service.api.order.controller.dto.request.OrderConfirmRequest;
-import com.example.order_service.api.order.controller.dto.request.OrderSearchCondition;
-import com.example.order_service.api.order.facade.OrderFacade;
-import com.example.order_service.api.order.facade.dto.command.CreateOrderCommand;
-import com.example.order_service.api.order.facade.dto.result.CreateOrderResponse;
-import com.example.order_service.api.order.facade.dto.result.OrderDetailResponse;
-import com.example.order_service.api.order.facade.dto.result.OrderListResponse;
+import com.example.order_service.common.dto.PageDto;
+import com.example.order_service.order.api.OrderController;
+import com.example.order_service.order.api.dto.request.CreateOrderItemRequest;
+import com.example.order_service.order.api.dto.request.CreateOrderRequest;
+import com.example.order_service.order.api.dto.request.OrderConfirmRequest;
+import com.example.order_service.order.api.dto.request.OrderSearchCondition;
+import com.example.order_service.order.application.OrderAppService;
+import com.example.order_service.order.application.dto.command.CreateOrderCommand;
+import com.example.order_service.order.application.dto.result.CreateOrderResponse;
+import com.example.order_service.order.application.dto.result.OrderDetailResponse;
+import com.example.order_service.order.application.dto.result.OrderListResponse;
 import com.example.order_service.support.RestDocSupport;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -42,7 +42,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 public class OrderControllerDocsTest extends RestDocSupport {
     private static final String ORDER_NO = "ORD-20260101-AB12FVC";
-    private OrderFacade orderFacade = mock(OrderFacade.class);
+    private OrderAppService orderAppService = mock(OrderAppService.class);
 
     private static final String TAG = "ORDER";
 
@@ -53,7 +53,7 @@ public class OrderControllerDocsTest extends RestDocSupport {
 
     @Override
     protected Object initController() {
-        return new OrderController(orderFacade);
+        return new OrderController(orderAppService);
     }
 
     @Test
@@ -81,7 +81,7 @@ public class OrderControllerDocsTest extends RestDocSupport {
                 .build();
 
         HttpHeaders roleUser = createUserHeader("ROLE_USER");
-        given(orderFacade.initialOrder(any(CreateOrderCommand.class)))
+        given(orderAppService.initialOrder(any(CreateOrderCommand.class)))
                 .willReturn(response);
 
         HeaderDescriptor[] requestHeaders = new HeaderDescriptor[] {
@@ -152,7 +152,7 @@ public class OrderControllerDocsTest extends RestDocSupport {
         HttpHeaders roleUser = createUserHeader("ROLE_USER");
         OrderDetailResponse response = anOrderDetailResponse()
                 .payment(anPaymentResponse().build()).build();
-        given(orderFacade.confirmOrderPayment(anyString(), anyLong(), anyString(), anyLong()))
+        given(orderAppService.confirmOrderPayment(anyString(), anyLong(), anyString(), anyLong()))
                 .willReturn(response);
 
         HeaderDescriptor[] requestHeaders = new HeaderDescriptor[] {
@@ -246,7 +246,7 @@ public class OrderControllerDocsTest extends RestDocSupport {
         OrderDetailResponse response = anOrderDetailResponse()
                 .payment(anPaymentResponse().build()).build();
         HttpHeaders roleUser = createUserHeader("ROLE_USER");
-        given(orderFacade.getOrder(anyLong(), anyString()))
+        given(orderAppService.getOrder(anyLong(), anyString()))
                 .willReturn(response);
 
         HeaderDescriptor[] requestHeaders = new HeaderDescriptor[] {
@@ -343,7 +343,7 @@ public class OrderControllerDocsTest extends RestDocSupport {
                 .pageSize(10)
                 .totalElement(100)
                 .build();
-        given(orderFacade.getOrders(anyLong(), any(OrderSearchCondition.class)))
+        given(orderAppService.getOrders(anyLong(), any(OrderSearchCondition.class)))
                 .willReturn(response);
 
         HeaderDescriptor[] requestHeaders = new HeaderDescriptor[] {

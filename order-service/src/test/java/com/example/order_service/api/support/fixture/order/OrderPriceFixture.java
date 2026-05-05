@@ -1,7 +1,7 @@
 package com.example.order_service.api.support.fixture.order;
 
-import com.example.order_service.api.order.domain.service.dto.result.CalculatedOrderAmounts;
-import com.example.order_service.api.order.domain.service.dto.result.OrderProductAmount;
+import com.example.order_service.order.domain.service.dto.result.CalculatedOrderAmounts;
+import com.example.order_service.order.domain.service.dto.result.OrderProductAmount;
 
 public class OrderPriceFixture {
 

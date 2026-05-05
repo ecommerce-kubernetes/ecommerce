@@ -1,9 +1,9 @@
 package com.example.order_service.api.support.fixture.order;
 
-import com.example.order_service.api.order.domain.model.Order;
-import com.example.order_service.api.order.domain.model.OrderFailureCode;
-import com.example.order_service.api.order.domain.model.OrderItem;
-import com.example.order_service.api.order.domain.model.OrderStatus;
+import com.example.order_service.order.domain.model.Order;
+import com.example.order_service.order.domain.model.OrderFailureCode;
+import com.example.order_service.order.domain.model.OrderItem;
+import com.example.order_service.order.domain.model.OrderStatus;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.lang.reflect.Constructor;

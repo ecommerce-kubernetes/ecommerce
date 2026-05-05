@@ -1,9 +1,9 @@
 package com.example.order_service.ordersheet.application.dto.result;
 
-import com.example.order_service.ordersheet.domain.OrderSheet;
-import com.example.order_service.ordersheet.domain.OrderSheetItem;
-import com.example.order_service.ordersheet.domain.vo.OrderSheetItemOptionSnapshot;
-import com.example.order_service.ordersheet.domain.vo.OrderSheetItemPriceSnapshot;
+import com.example.order_service.ordersheet.domain.model.OrderSheet;
+import com.example.order_service.ordersheet.domain.model.OrderSheetItem;
+import com.example.order_service.ordersheet.domain.model.vo.OrderSheetItemOptionSnapshot;
+import com.example.order_service.ordersheet.domain.model.vo.OrderSheetItemPriceSnapshot;
 import lombok.Builder;
 
 import java.time.LocalDateTime;
