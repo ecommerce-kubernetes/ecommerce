@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-05-05T07:52:50+0900",
+    date = "2026-05-05T17:26:14+0900",
     comments = "version: 1.6.3, compiler: javac, environment: Java 21.0.10 (Eclipse Adoptium)"
 )
 @Component
@@ -32,11 +32,10 @@ public class OrderProductMapperImpl implements OrderProductMapper {
         info.productId( product.productId() );
         info.productName( product.productName() );
         info.productVariantId( product.productVariantId() );
+        info.status( translateStatus( product.status() ) );
         info.sku( product.sku() );
         info.thumbnail( product.thumbnail() );
         info.options( productOptionListToOptionList( product.options() ) );
-
-        info.status( ProductStatus.from(product.status()) );
 
         return info.build();
     }

@@ -14,7 +14,19 @@ public interface OrderProductMapper {
     @Mapping(source = "unitPrice.discountRate", target = "discountRate")
     @Mapping(source = "unitPrice.discountAmount", target = "discountAmount")
     @Mapping(source = "unitPrice.discountedPrice", target = "discountedPrice")
-    @Mapping(target = "status", expression = "java(ProductStatus.from(product.status()))")
     OrderProductResult.Info toResult(ProductClientResponse.Product product);
+
     OrderProductResult.Option toOption(ProductClientResponse.ProductOption option);
+
+    default ProductStatus translateStatus(String status) {
+        if (status == null) {
+            return ProductStatus.UNORDERABLE;
+        }
+
+        if (status.equals("ON_SALE")) {
+            return ProductStatus.ORDERABLE;
+        } else {
+            return ProductStatus.UNORDERABLE;
+        }
+    }
 }

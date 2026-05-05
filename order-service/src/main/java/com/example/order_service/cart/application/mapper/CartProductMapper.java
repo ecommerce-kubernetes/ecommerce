@@ -6,7 +6,7 @@ import com.example.order_service.infrastructure.dto.response.ProductClientRespon
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "spring", imports = ProductStatus.class)
+@Mapper(componentModel = "spring")
 public interface CartProductMapper {
 
     @Mapping(source = "stockQuantity", target = "stock")
@@ -14,8 +14,19 @@ public interface CartProductMapper {
     @Mapping(source = "unitPrice.discountRate", target = "discountRate")
     @Mapping(source = "unitPrice.discountAmount", target = "discountAmount")
     @Mapping(source = "unitPrice.discountedPrice", target = "discountedPrice")
-    @Mapping(target = "status", expression = "java(ProductStatus.from(product.status()))")
     CartProductResult.Info toResult(ProductClientResponse.Product product);
 
     CartProductResult.Option toOption(ProductClientResponse.ProductOption option);
+
+    default ProductStatus translateStatus(String status) {
+        if (status == null) {
+            return ProductStatus.UNAVAILABLE;
+        }
+
+        if (status.equals("ON_SALE")) {
+            return ProductStatus.AVAILABLE;
+        } else {
+            return ProductStatus.UNAVAILABLE;
+        }
+    }
 }

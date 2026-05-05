@@ -1,7 +1,6 @@
 package com.example.order_service.cart.application.mapper;
 
 import com.example.order_service.cart.application.dto.result.CartProductResult;
-import com.example.order_service.cart.domain.model.vo.ProductStatus;
 import com.example.order_service.infrastructure.dto.response.ProductClientResponse;
 import java.util.ArrayList;
 import java.util.List;
@@ -10,7 +9,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-05-05T07:52:50+0900",
+    date = "2026-05-05T17:26:15+0900",
     comments = "version: 1.6.3, compiler: javac, environment: Java 21.0.10 (Eclipse Adoptium)"
 )
 @Component
@@ -31,12 +30,11 @@ public class CartProductMapperImpl implements CartProductMapper {
         info.discountedPrice( productUnitPriceDiscountedPrice( product ) );
         info.productId( product.productId() );
         info.productVariantId( product.productVariantId() );
+        info.status( translateStatus( product.status() ) );
         info.sku( product.sku() );
         info.productName( product.productName() );
         info.thumbnail( product.thumbnail() );
         info.options( productOptionListToOptionList( product.options() ) );
-
-        info.status( ProductStatus.from(product.status()) );
 
         return info.build();
     }
