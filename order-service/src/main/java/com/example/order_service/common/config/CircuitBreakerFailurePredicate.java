@@ -1,7 +1,7 @@
 package com.example.order_service.common.config;
 
 import com.example.order_service.common.exception.business.BusinessException;
-import com.example.order_service.common.exception.business.code.ErrorCode;
+import com.example.order_service.common.exception.business.ErrorCode;
 import com.example.order_service.common.exception.external.ExternalClientException;
 import com.example.order_service.common.exception.external.ExternalServerException;
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;

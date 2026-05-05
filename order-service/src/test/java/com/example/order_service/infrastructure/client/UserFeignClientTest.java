@@ -2,20 +2,14 @@ package com.example.order_service.infrastructure.client;
 
 import com.example.order_service.common.exception.external.ExternalClientException;
 import com.example.order_service.common.exception.external.ExternalServerException;
-import com.example.order_service.infrastructure.dto.response.ClientErrorResponse;
 import com.example.order_service.infrastructure.dto.response.UserClientResponse;
-import com.example.order_service.support.TestFixtureUtil;
 import com.example.order_service.support.annotation.IsolatedTest;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-
-import java.time.LocalDateTime;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

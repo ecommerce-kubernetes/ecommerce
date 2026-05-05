@@ -1,7 +1,6 @@
 package com.example.order_service.order.domain.service;
 
 import com.example.order_service.common.exception.business.BusinessException;
-import com.example.order_service.common.exception.business.code.OrderErrorCode;
 import com.example.order_service.order.api.dto.request.OrderSearchCondition;
 import com.example.order_service.order.domain.model.Order;
 import com.example.order_service.order.domain.model.OrderFailureCode;
@@ -9,6 +8,7 @@ import com.example.order_service.order.domain.repository.OrderRepository;
 import com.example.order_service.order.domain.service.dto.command.OrderCreationContext;
 import com.example.order_service.order.domain.service.dto.command.PaymentCreationContext;
 import com.example.order_service.order.domain.service.dto.result.OrderDto;
+import com.example.order_service.order.exception.OrderErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;

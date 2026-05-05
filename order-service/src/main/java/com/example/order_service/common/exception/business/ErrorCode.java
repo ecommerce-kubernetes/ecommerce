@@ -1,4 +1,4 @@
-package com.example.order_service.common.exception.business.code;
+package com.example.order_service.common.exception.business;
 
 public interface ErrorCode {
     String name();

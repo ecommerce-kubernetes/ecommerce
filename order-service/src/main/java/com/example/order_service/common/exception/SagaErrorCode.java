@@ -1,6 +1,6 @@
 package com.example.order_service.common.exception;
 
-import com.example.order_service.common.exception.business.code.ErrorCode;
+import com.example.order_service.common.exception.business.ErrorCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 

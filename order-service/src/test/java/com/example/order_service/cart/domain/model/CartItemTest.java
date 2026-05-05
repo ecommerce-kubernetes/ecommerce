@@ -1,7 +1,7 @@
 package com.example.order_service.cart.domain.model;
 
+import com.example.order_service.cart.exception.CartErrorCode;
 import com.example.order_service.common.exception.business.BusinessException;
-import com.example.order_service.common.exception.business.code.CartErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

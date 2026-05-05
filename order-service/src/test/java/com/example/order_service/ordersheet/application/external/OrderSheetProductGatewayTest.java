@@ -1,7 +1,6 @@
 package com.example.order_service.ordersheet.application.external;
 
 import com.example.order_service.common.exception.business.BusinessException;
-import com.example.order_service.common.exception.business.code.OrderSheetErrorCode;
 import com.example.order_service.common.exception.external.ExternalClientException;
 import com.example.order_service.common.exception.external.ExternalServerException;
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
@@ -9,6 +8,7 @@ import com.example.order_service.infrastructure.adaptor.ProductAdaptor;
 import com.example.order_service.infrastructure.dto.response.ProductClientResponse;
 import com.example.order_service.ordersheet.application.dto.result.OrderSheetProductResult;
 import com.example.order_service.ordersheet.application.mapper.OrderSheetProductMapper;
+import com.example.order_service.ordersheet.exception.OrderSheetErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

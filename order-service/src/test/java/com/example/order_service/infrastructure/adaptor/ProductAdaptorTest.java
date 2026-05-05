@@ -1,12 +1,10 @@
 package com.example.order_service.infrastructure.adaptor;
 
-import com.example.order_service.common.exception.external.ExternalSystemException;
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
 import com.example.order_service.infrastructure.client.ProductFeignClient;
 import com.example.order_service.infrastructure.dto.request.ProductClientRequest;
 import com.example.order_service.infrastructure.dto.response.ProductClientResponse;
 import com.example.order_service.support.annotation.IsolatedTest;
-import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,12 +14,12 @@ import java.util.List;
 
 import static com.example.order_service.support.TestFixtureUtil.fixtureMonkey;
 import static com.example.order_service.support.TestFixtureUtil.sample;
-import static io.github.resilience4j.circuitbreaker.CircuitBreaker.ofDefaults;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.BDDMockito.*;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willThrow;
 
 @IsolatedTest
 public class ProductAdaptorTest {

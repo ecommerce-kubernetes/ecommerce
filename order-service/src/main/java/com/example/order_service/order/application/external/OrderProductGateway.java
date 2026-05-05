@@ -1,7 +1,6 @@
 package com.example.order_service.order.application.external;
 
 import com.example.order_service.common.exception.business.BusinessException;
-import com.example.order_service.common.exception.business.code.OrderErrorCode;
 import com.example.order_service.common.exception.external.ExternalClientException;
 import com.example.order_service.common.exception.external.ExternalServerException;
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
@@ -9,6 +8,7 @@ import com.example.order_service.infrastructure.adaptor.ProductAdaptor;
 import com.example.order_service.infrastructure.dto.response.ProductClientResponse;
 import com.example.order_service.order.application.dto.result.OrderProductResult;
 import com.example.order_service.order.application.mapper.OrderProductMapper;
+import com.example.order_service.order.exception.OrderErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

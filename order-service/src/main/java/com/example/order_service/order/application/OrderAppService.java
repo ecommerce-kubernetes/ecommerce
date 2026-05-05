@@ -2,9 +2,7 @@ package com.example.order_service.order.application;
 
 import com.example.order_service.common.dto.PageDto;
 import com.example.order_service.common.exception.business.BusinessException;
-import com.example.order_service.common.exception.business.code.ErrorCode;
-import com.example.order_service.common.exception.business.code.OrderErrorCode;
-import com.example.order_service.common.exception.business.code.PaymentErrorCode;
+import com.example.order_service.common.exception.business.ErrorCode;
 import com.example.order_service.common.util.AsyncUtil;
 import com.example.order_service.order.api.dto.request.OrderSearchCondition;
 import com.example.order_service.order.application.dto.OrderPreparationData;
@@ -27,6 +25,8 @@ import com.example.order_service.order.domain.service.dto.command.PaymentCreatio
 import com.example.order_service.order.domain.service.dto.result.CalculatedOrderAmounts;
 import com.example.order_service.order.domain.service.dto.result.OrderDto;
 import com.example.order_service.order.domain.service.dto.result.OrderProductAmount;
+import com.example.order_service.order.exception.OrderErrorCode;
+import com.example.order_service.order.exception.PaymentErrorCode;
 import io.micrometer.context.ContextSnapshot;
 import io.micrometer.context.ContextSnapshotFactory;
 import lombok.RequiredArgsConstructor;

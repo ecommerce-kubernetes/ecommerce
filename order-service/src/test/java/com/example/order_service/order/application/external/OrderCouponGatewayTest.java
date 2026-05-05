@@ -1,15 +1,15 @@
 package com.example.order_service.order.application.external;
 
 import com.example.order_service.common.exception.business.BusinessException;
-import com.example.order_service.common.exception.business.code.OrderErrorCode;
 import com.example.order_service.common.exception.external.ExternalClientException;
 import com.example.order_service.common.exception.external.ExternalServerException;
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
 import com.example.order_service.infrastructure.adaptor.CouponAdaptor;
 import com.example.order_service.infrastructure.dto.response.CouponClientResponse;
-import com.example.order_service.order.domain.model.vo.CouponValidationStatus;
 import com.example.order_service.order.application.dto.result.OrderCouponResult;
 import com.example.order_service.order.application.mapper.OrderCouponMapper;
+import com.example.order_service.order.domain.model.vo.CouponValidationStatus;
+import com.example.order_service.order.exception.OrderErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

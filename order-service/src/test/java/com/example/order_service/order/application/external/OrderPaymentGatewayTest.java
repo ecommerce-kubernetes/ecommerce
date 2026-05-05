@@ -1,16 +1,16 @@
 package com.example.order_service.order.application.external;
 
 import com.example.order_service.common.exception.business.BusinessException;
-import com.example.order_service.common.exception.business.code.OrderErrorCode;
 import com.example.order_service.common.exception.external.ExternalClientException;
 import com.example.order_service.common.exception.external.ExternalServerException;
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
 import com.example.order_service.infrastructure.adaptor.TossAdaptor;
 import com.example.order_service.infrastructure.dto.response.TossClientResponse;
 import com.example.order_service.order.application.dto.result.OrderPaymentResult;
+import com.example.order_service.order.application.mapper.OrderPaymentMapper;
 import com.example.order_service.order.domain.model.vo.PaymentMethod;
 import com.example.order_service.order.domain.model.vo.PaymentStatus;
-import com.example.order_service.order.application.mapper.OrderPaymentMapper;
+import com.example.order_service.order.exception.OrderErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
