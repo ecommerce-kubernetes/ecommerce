@@ -56,13 +56,13 @@ public class ProductAdaptorCircuitBreakerTest {
         for (int i = 0; i < 3; i++) {
             assertThatThrownBy(() -> adaptor.getProductsByVariantIds(ids))
                     .isInstanceOf(ExternalSystemUnavailableException.class)
-                    .hasMessage("상품 서비스 통신 장애");
+                    .hasMessage("PRODUCT-SERVICE 통신 장애");
         }
 
         //서킷브레이커 open
         assertThatThrownBy(() -> adaptor.getProductsByVariantIds(ids))
                 .isInstanceOf(ExternalSystemUnavailableException.class)
-                .hasMessage("상품 서비스 서킷 브레이커 열림")
+                .hasMessage("PRODUCT-SERVICE 서킷 브레이커 열림")
                 .extracting("errorCode")
                 .isEqualTo("CIRCUIT_BREAKER_OPEN");
 

@@ -1,10 +1,7 @@
 package com.example.order_service.infrastructure.adaptor;
 
-import com.example.order_service.common.exception.external.ExternalSystemException;
-import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
 import com.example.order_service.infrastructure.client.UserFeignClient;
 import com.example.order_service.infrastructure.dto.response.UserClientResponse;
-import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +12,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class UserAdaptor {
     private final UserFeignClient client;
+    private final ExternalExceptionTranslator translator;
 
     @CircuitBreaker(name = "userService", fallbackMethod = "getUserInfoForOrderFallback")
     public UserClientResponse.UserInfo getUserInfoForOrder(Long userId) {
@@ -22,17 +20,6 @@ public class UserAdaptor {
     }
     
     private UserClientResponse.UserInfo getUserInfoForOrderFallback(Long userId, Throwable throwable) throws Throwable {
-        if (throwable instanceof CallNotPermittedException) {
-            log.error("유저 서비스 장애로 인해 서킷 브레이커 열림");
-            throw new ExternalSystemUnavailableException("CIRCUIT_BREAKER_OPEN", "유저 서비스 서킷 브레이커 열림", throwable);
-        }
-        
-        //에러 디코더에서 던져진 에러
-        if (throwable instanceof ExternalSystemException) {
-            throw throwable;
-        }
-        
-        // 에러 디코더를 타지 못한 에러 (타임아웃, 연결 오류, 파싱 등)
-        throw new ExternalSystemUnavailableException("SERVICE_UNAVAILABLE", "유저 서비스 통신 장애", throwable);
+        throw translator.translate("USER-SERVICE", throwable);
     }
 }

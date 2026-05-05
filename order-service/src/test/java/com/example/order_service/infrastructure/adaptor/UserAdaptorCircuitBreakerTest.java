@@ -53,13 +53,13 @@ public class UserAdaptorCircuitBreakerTest {
         for (int i = 0; i < 3; i++) {
             assertThatThrownBy(() -> adaptor.getUserInfoForOrder(userId))
                     .isInstanceOf(ExternalSystemUnavailableException.class)
-                    .hasMessage("유저 서비스 통신 장애");
+                    .hasMessage("USER-SERVICE 통신 장애");
         }
 
         // 서킷 브레이커가 열림
         assertThatThrownBy(() -> adaptor.getUserInfoForOrder(userId))
                 .isInstanceOf(ExternalSystemUnavailableException.class)
-                .hasMessage("유저 서비스 서킷 브레이커 열림")
+                .hasMessage("USER-SERVICE 서킷 브레이커 열림")
                 .extracting("errorCode")
                 .isEqualTo("CIRCUIT_BREAKER_OPEN");
 

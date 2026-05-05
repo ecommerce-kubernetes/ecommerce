@@ -16,8 +16,7 @@ import static io.github.resilience4j.circuitbreaker.CircuitBreaker.ofDefaults;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.willThrow;
+import static org.mockito.BDDMockito.*;
 
 @IsolatedTest
 public class UserAdaptorTest {
@@ -25,6 +24,8 @@ public class UserAdaptorTest {
     private UserAdaptor userAdaptor;
     @MockitoBean
     private UserFeignClient client;
+    @MockitoBean
+    private ExternalExceptionTranslator translator;
 
     @Test
     @DisplayName("유저 서비스에 주문에 필요한 유저 정보를 조회한다")
@@ -43,47 +44,20 @@ public class UserAdaptorTest {
     }
 
     @Test
-    @DisplayName("유저 서비스에 유저 정보를 조회할때 서킷 브레이커가 열렸다면 시스템 예외로 변환하여 던진다")
-    void getUserInfoForOrder_circuitbreaker_open() {
+    @DisplayName("유저 조회중 예외 발생시 translator를 호출하여 반환된 예외를 던진다")
+    void getUserInfoForOrder_fallback_delegate_to_translator() throws Throwable {
         //given
-        Long userId = 1L;
-        CallNotPermittedException circuitException = CallNotPermittedException
-                .createCallNotPermittedException(ofDefaults("test"));
-        willThrow(circuitException).given(client)
-                .getUserInfoForOrder(anyLong());
+        //발생한 예외
+        RuntimeException feignException = new RuntimeException("feignClient 예외");
+        //변환된 예외
+        ExternalSystemUnavailableException translatedException =
+                new ExternalSystemUnavailableException("CODE", "변환된 에러", feignException);
+        willThrow(feignException).given(client).getUserInfoForOrder(anyLong());
+        given(translator.translate(anyString(), any(Throwable.class)))
+                .willReturn(translatedException);
         //when
         //then
-        assertThatThrownBy(() -> userAdaptor.getUserInfoForOrder(userId))
-                .isInstanceOf(ExternalSystemUnavailableException.class)
-                .hasMessage("유저 서비스 서킷 브레이커 열림")
-                .extracting("errorCode")
-                .isEqualTo("CIRCUIT_BREAKER_OPEN");
-    }
-
-    @Test
-    @DisplayName("유저 서비스에서 유저 정보를 조회할때 external System 예외가 던져지면 그대로 던진다")
-    void getUserInfoForOrder_external_system_exception(){
-        //given
-        Long userId = 1L;
-        willThrow(ExternalSystemException.class).given(client)
-                .getUserInfoForOrder(anyLong());
-        //when
-        //then
-        assertThatThrownBy(() -> userAdaptor.getUserInfoForOrder(userId))
-                .isInstanceOf(ExternalSystemException.class);
-    }
-
-    @Test
-    @DisplayName("유저 서비스에서 유저 정보를 조회할때 알 수 없는 예외(디코더에서 변환 안됨) 예외가 던져지면 시스템 예외로 변환하여 던진다")
-    void getUserInfoForOrder_other_exception(){
-        //given
-        Long userId = 1L;
-        willThrow(RuntimeException.class).given(client)
-                .getUserInfoForOrder(anyLong());
-        //when
-        //then
-        assertThatThrownBy(() -> userAdaptor.getUserInfoForOrder(userId))
-                .isInstanceOf(ExternalSystemUnavailableException.class)
-                .hasMessage("유저 서비스 통신 장애");
+        assertThatThrownBy(() -> userAdaptor.getUserInfoForOrder(anyLong()))
+                .isInstanceOf(ExternalSystemUnavailableException.class);
     }
 }

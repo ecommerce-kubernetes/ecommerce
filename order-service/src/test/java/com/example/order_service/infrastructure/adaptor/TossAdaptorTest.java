@@ -1,13 +1,10 @@
 package com.example.order_service.infrastructure.adaptor;
 
-import com.example.order_service.common.exception.external.ExternalSystemException;
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
 import com.example.order_service.infrastructure.client.TossFeignClient;
 import com.example.order_service.infrastructure.dto.request.TossClientRequest;
 import com.example.order_service.infrastructure.dto.response.TossClientResponse;
 import com.example.order_service.support.annotation.IsolatedTest;
-import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
-import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -19,8 +16,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.willThrow;
+import static org.mockito.BDDMockito.*;
 
 @IsolatedTest
 public class TossAdaptorTest {
@@ -28,6 +24,8 @@ public class TossAdaptorTest {
     private TossAdaptor tossAdaptor;
     @MockitoBean
     private TossFeignClient client;
+    @MockitoBean
+    private ExternalExceptionTranslator translator;
 
     @Nested
     @DisplayName("결제 승인")
@@ -49,47 +47,24 @@ public class TossAdaptorTest {
         }
 
         @Test
-        @DisplayName("토스 페이먼츠에 결제 승인을 요청할때 서킷브레이커가 열렸다면 시스템 예외로 변환하여 예외를 던진다")
-        void confirmPayment_circuitbreaker_open(){
+        @DisplayName("토스 페이먼츠에 결제 승인 요청중 예외 발생시 translator를 호출하여 반환된 예외를 던진다")
+        void confirmPayment_fallback_delegate_to_translator() throws Throwable {
             //given
-            CallNotPermittedException circuitException = CallNotPermittedException
-                    .createCallNotPermittedException(CircuitBreaker.ofDefaults("test"));
-            willThrow(circuitException).given(client)
-                    .confirmPayment(any(TossClientRequest.Confirm.class));
+            String orderId = "orderNo";
+            String paymentKey = "paymentKey";
+            Long totalAmount = 10000L;
+            //발생한 예외
+            RuntimeException feignException = new RuntimeException("feignClient 예외");
+            //변환된 예외
+            ExternalSystemUnavailableException translatedException =
+                    new ExternalSystemUnavailableException("CODE", "변환된 에러", feignException);
+            willThrow(feignException).given(client).confirmPayment(any(TossClientRequest.Confirm.class));
+            given(translator.translate(anyString(), any(Throwable.class)))
+                    .willReturn(translatedException);
             //when
             //then
-            assertThatThrownBy(() -> tossAdaptor.confirmPayment("orderNo", "paymentKey", 10000L))
-                    .isInstanceOf(ExternalSystemUnavailableException.class)
-                    .hasMessage("토스 페이먼츠 서킷 브레이커 열림")
-                    .extracting("errorCode")
-                    .isEqualTo("CIRCUIT_BREAKER_OPEN");
-        }
-
-        @Test
-        @DisplayName("토스 페이먼츠에서 결제 승인을 요청할때 external system 예외가 던져지면 그대로 던진다")
-        void confirmPayment_external_system_exception(){
-            //given
-            willThrow(ExternalSystemException.class).given(client)
-                    .confirmPayment(any(TossClientRequest.Confirm.class));
-            //when
-            //then
-            assertThatThrownBy(() -> tossAdaptor.confirmPayment("orderNo", "paymentKey", 10000L))
-                    .isInstanceOf(ExternalSystemException.class);
-        }
-
-        @Test
-        @DisplayName("토스 페이먼츠에서 결제 승인을 요청할때 예외(error decoder 변환 x) 가 던져지면 시스템 예외로 변환하여 던진다")
-        void confirmPayment_other_exception(){
-            //given
-            willThrow(RuntimeException.class).given(client)
-                    .confirmPayment(any(TossClientRequest.Confirm.class));
-            //when
-            //then
-            assertThatThrownBy(() -> tossAdaptor.confirmPayment("orderNo", "paymentKey", 10000L))
-                    .isInstanceOf(ExternalSystemUnavailableException.class)
-                    .hasMessage("토스 페이먼츠 통신 장애")
-                    .extracting("errorCode")
-                    .isEqualTo("SERVICE_UNAVAILABLE");
+            assertThatThrownBy(() -> tossAdaptor.confirmPayment(orderId, paymentKey, totalAmount))
+                    .isInstanceOf(ExternalSystemUnavailableException.class);
         }
     }
 
@@ -113,47 +88,24 @@ public class TossAdaptorTest {
         }
 
         @Test
-        @DisplayName("토스 페이먼츠에 결제 취소를 요청할때 서킷브레이커가 열렸다면 시스템 예외로 변환하여 예외를 던진다")
-        void cancelPayment_circuitbreaker_open(){
+        @DisplayName("토스 페이먼츠 결제 취소 예외 발생시 translator를 호출하여 반환된 예외를 던진다")
+        void cancelPayment_fallback_delegate_to_translator() throws Throwable {
             //given
-            CallNotPermittedException circuitException = CallNotPermittedException
-                    .createCallNotPermittedException(CircuitBreaker.ofDefaults("test"));
-            willThrow(circuitException).given(client)
-                    .cancelPayment(anyString(), any(TossClientRequest.Cancel.class));
+            String paymentKey = "paymentKey";
+            String cancelReason = "reason";
+            Long cancelAmount = 10000L;
+            //발생한 예외
+            RuntimeException feignException = new RuntimeException("feignClient 예외");
+            //변환된 예외
+            ExternalSystemUnavailableException translatedException =
+                    new ExternalSystemUnavailableException("CODE", "변환된 에러", feignException);
+            willThrow(feignException).given(client).cancelPayment(anyString(), any(TossClientRequest.Cancel.class));
+            given(translator.translate(anyString(), any(Throwable.class)))
+                    .willReturn(translatedException);
             //when
             //then
-            assertThatThrownBy(() -> tossAdaptor.cancelPayment("paymentKey", "환불요청", 10000L))
-                    .isInstanceOf(ExternalSystemUnavailableException.class)
-                    .hasMessage("토스 페이먼츠 서킷 브레이커 열림")
-                    .extracting("errorCode")
-                    .isEqualTo("CIRCUIT_BREAKER_OPEN");
-        }
-
-        @Test
-        @DisplayName("토스 페이먼츠에서 결제 취소를 요청할때 external system 예외가 던져지면 그대로 던진다")
-        void cancelPayment_external_system_exception(){
-            //given
-            willThrow(ExternalSystemException.class).given(client)
-                    .cancelPayment(anyString(), any(TossClientRequest.Cancel.class));
-            //when
-            //then
-            assertThatThrownBy(() -> tossAdaptor.cancelPayment("paymentKey", "환불요청", 10000L))
-                    .isInstanceOf(ExternalSystemException.class);
-        }
-
-        @Test
-        @DisplayName("토스 페이먼츠에서 결제 취소를 요청할때 예외(error decoder 변환 x) 가 던져지면 시스템 예외로 변환하여 던진다")
-        void cancelPayment_other_exception(){
-            //given
-            willThrow(RuntimeException.class).given(client)
-                    .cancelPayment(anyString(), any(TossClientRequest.Cancel.class));
-            //when
-            //then
-            assertThatThrownBy(() -> tossAdaptor.cancelPayment("paymentKey", "환불요청", 10000L))
-                    .isInstanceOf(ExternalSystemUnavailableException.class)
-                    .hasMessage("토스 페이먼츠 통신 장애")
-                    .extracting("errorCode")
-                    .isEqualTo("SERVICE_UNAVAILABLE");
+            assertThatThrownBy(() -> tossAdaptor.cancelPayment(paymentKey, cancelReason, cancelAmount))
+                    .isInstanceOf(ExternalSystemUnavailableException.class);
         }
     }
 }

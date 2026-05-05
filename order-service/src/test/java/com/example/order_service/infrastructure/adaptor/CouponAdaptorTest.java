@@ -1,14 +1,11 @@
 package com.example.order_service.infrastructure.adaptor;
 
-import com.example.order_service.common.exception.external.ExternalSystemException;
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
 import com.example.order_service.infrastructure.client.CouponFeignClient;
 import com.example.order_service.infrastructure.dto.request.CouponClientRequest;
 import com.example.order_service.infrastructure.dto.response.CouponClientResponse;
 import com.example.order_service.support.TestFixtureUtil;
 import com.example.order_service.support.annotation.IsolatedTest;
-import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
-import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,8 +14,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.willThrow;
+import static org.mockito.BDDMockito.*;
 
 @IsolatedTest
 public class CouponAdaptorTest {
@@ -26,6 +22,8 @@ public class CouponAdaptorTest {
     private CouponAdaptor couponAdaptor;
     @MockitoBean
     private CouponFeignClient client;
+    @MockitoBean
+    private ExternalExceptionTranslator translator;
 
     @Test
     @DisplayName("쿠폰 서비스에 쿠폰 할인 정보를 조회한다")
@@ -46,44 +44,25 @@ public class CouponAdaptorTest {
     }
 
     @Test
-    @DisplayName("쿠폰 서비스에 쿠폰 정보를 조회할때 서킷 브레이커가 열렸다면 시스템 예외로 변환하여 던진다")
-    void calculate_circuitbreaker_open(){
+    @DisplayName("쿠폰 서비스 조회에서 예외 발생시 translator를 호출하여 반환된 예외를 던진다")
+    void calculate_fallback_delegate_to_translator() throws Throwable {
         //given
-        CallNotPermittedException circuitException = CallNotPermittedException
-                .createCallNotPermittedException(CircuitBreaker.ofDefaults("test"));
-        willThrow(circuitException).given(client)
-                .calculate(any(CouponClientRequest.Calculate.class));
+        Long userId = 1L;
+        Long couponId = 1L;
+        Long totalAmount = 10000L;
+        //발생한 예외
+        RuntimeException feignException = new RuntimeException("feignClient 예외");
+        //변환된 예외
+        ExternalSystemUnavailableException translatedException =
+                new ExternalSystemUnavailableException("CODE", "변환된 에러", feignException);
+        // feignClient 가 예외를 던짐
+        willThrow(feignException).given(client).calculate(any(CouponClientRequest.Calculate.class));
+        // translator가 예외를 변환
+        given(translator.translate(anyString(), any(Throwable.class)))
+                .willReturn(translatedException);
         //when
         //then
-        assertThatThrownBy(() -> couponAdaptor.calculate(1L, 1L, 10000L))
-                .isInstanceOf(ExternalSystemUnavailableException.class)
-                .hasMessage("쿠폰 서비스 서킷 브레이커 열림")
-                .extracting("errorCode")
-                .isEqualTo("CIRCUIT_BREAKER_OPEN");
-    }
-
-    @Test
-    @DisplayName("쿠폰 서비스에서 쿠폰 정보를 조회할때 external System 예외가 던져지면 그대로 던진다")
-    void calculate_external_system_exception(){
-        //given
-        willThrow(ExternalSystemException.class).given(client)
-                .calculate(any(CouponClientRequest.Calculate.class));
-        //when
-        //then
-        assertThatThrownBy(() -> couponAdaptor.calculate(1L, 1L, 10000L))
-                .isInstanceOf(ExternalSystemException.class);
-    }
-
-    @Test
-    @DisplayName("쿠폰 서비스에서 쿠폰 정보를 조회할 때 알 수 없는 예외(디코더에서 변환 x) 가 던져지면 시스템 예외로 변환하여 던진다")
-    void calculate_other_exception(){
-        //given
-        willThrow(RuntimeException.class).given(client)
-                .calculate(any(CouponClientRequest.Calculate.class));
-        //when
-        //then
-        assertThatThrownBy(() -> couponAdaptor.calculate(1L, 1L, 10000L))
-                .isInstanceOf(ExternalSystemUnavailableException.class)
-                .hasMessage("쿠폰 서비스 통신 장애");
+        assertThatThrownBy(() -> couponAdaptor.calculate(userId, couponId, totalAmount))
+                .isInstanceOf(ExternalSystemUnavailableException.class);
     }
 }

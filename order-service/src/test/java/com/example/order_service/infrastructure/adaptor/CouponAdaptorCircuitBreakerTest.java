@@ -52,12 +52,12 @@ public class CouponAdaptorCircuitBreakerTest {
         for (int i = 0; i < 3; i++) {
             assertThatThrownBy(() -> adaptor.calculate(1L, 1L, 10000L))
                     .isInstanceOf(ExternalSystemUnavailableException.class)
-                    .hasMessage("쿠폰 서비스 통신 장애");
+                    .hasMessage("COUPON-SERVICE 통신 장애");
         }
 
         assertThatThrownBy(() -> adaptor.calculate(1L, 1L, 10000L))
                 .isInstanceOf(ExternalSystemUnavailableException.class)
-                .hasMessage("쿠폰 서비스 서킷 브레이커 열림")
+                .hasMessage("COUPON-SERVICE 서킷 브레이커 열림")
                 .extracting("errorCode")
                 .isEqualTo("CIRCUIT_BREAKER_OPEN");
 
