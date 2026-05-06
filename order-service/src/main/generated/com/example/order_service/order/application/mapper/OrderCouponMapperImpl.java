@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-05-07T01:27:01+0900",
+    date = "2026-05-07T07:20:19+0900",
     comments = "version: 1.6.3, compiler: javac, environment: Java 21.0.10 (Eclipse Adoptium)"
 )
 @Component
@@ -22,6 +22,7 @@ public class OrderCouponMapperImpl implements OrderCouponMapper {
         OrderCouponResult.CouponValidation.CouponValidationBuilder couponValidation = OrderCouponResult.CouponValidation.builder();
 
         couponValidation.status( translateStatus( coupon.code() ) );
+        couponValidation.couponBenefit( toBenefit( coupon.discountBenefit() ) );
 
         return couponValidation.build();
     }

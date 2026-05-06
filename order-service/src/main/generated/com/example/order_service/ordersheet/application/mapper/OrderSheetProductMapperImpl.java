@@ -1,19 +1,29 @@
 package com.example.order_service.ordersheet.application.mapper;
 
+import com.example.order_service.common.mapper.MoneyMapper;
 import com.example.order_service.infrastructure.dto.response.ProductClientResponse;
 import com.example.order_service.ordersheet.application.dto.result.OrderSheetProductResult;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.processing.Generated;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-05-07T01:27:01+0900",
+    date = "2026-05-07T07:20:19+0900",
     comments = "version: 1.6.3, compiler: javac, environment: Java 21.0.10 (Eclipse Adoptium)"
 )
 @Component
 public class OrderSheetProductMapperImpl implements OrderSheetProductMapper {
+
+    private final MoneyMapper moneyMapper;
+
+    @Autowired
+    public OrderSheetProductMapperImpl(MoneyMapper moneyMapper) {
+
+        this.moneyMapper = moneyMapper;
+    }
 
     @Override
     public OrderSheetProductResult.Info toResult(ProductClientResponse.Product product) {
@@ -24,10 +34,10 @@ public class OrderSheetProductMapperImpl implements OrderSheetProductMapper {
         OrderSheetProductResult.Info.InfoBuilder info = OrderSheetProductResult.Info.builder();
 
         info.stock( product.stockQuantity() );
-        info.originalPrice( productUnitPriceOriginalPrice( product ) );
+        info.originalPrice( moneyMapper.toMoney( productUnitPriceOriginalPrice( product ) ) );
         info.discountRate( productUnitPriceDiscountRate( product ) );
-        info.discountAmount( productUnitPriceDiscountAmount( product ) );
-        info.discountedPrice( productUnitPriceDiscountedPrice( product ) );
+        info.discountAmount( moneyMapper.toMoney( productUnitPriceDiscountAmount( product ) ) );
+        info.discountedPrice( moneyMapper.toMoney( productUnitPriceDiscountedPrice( product ) ) );
         info.options( productOptionListToOptionList( product.itemOptions() ) );
         info.productId( product.productId() );
         info.productVariantId( product.productVariantId() );

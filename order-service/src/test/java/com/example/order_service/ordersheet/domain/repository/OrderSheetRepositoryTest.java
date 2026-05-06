@@ -1,5 +1,6 @@
 package com.example.order_service.ordersheet.domain.repository;
 
+import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.ordersheet.domain.model.OrderSheet;
 import com.example.order_service.ordersheet.domain.model.OrderSheetItem;
 import com.example.order_service.ordersheet.domain.model.vo.OrderSheetItemOptionSnapshot;
@@ -62,7 +63,7 @@ class OrderSheetRepositoryTest {
     }
 
     private OrderSheetItemPriceSnapshot createPriceSnapshot(){
-        return OrderSheetItemPriceSnapshot.of(10000L, 10, 1000L, 9000L);
+        return OrderSheetItemPriceSnapshot.of(Money.wons(10000L), 10, Money.wons(1000L), Money.wons(9000L));
     }
 
     private OrderSheetItemOptionSnapshot createProductOptionSnapshot() {

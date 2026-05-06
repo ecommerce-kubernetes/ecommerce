@@ -1,5 +1,6 @@
 package com.example.order_service.docs.ordersheet;
 
+import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.docs.descriptor.OrderSheetDescriptor;
 import com.example.order_service.ordersheet.api.OrderSheetController;
 import com.example.order_service.ordersheet.api.dto.request.OrderSheetRequest;
@@ -73,19 +74,19 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
 
         private OrderSheetResult.Default createOrderSheetResult() {
             OrderSheetResult.OrderItemPrice unitPrice = OrderSheetResult.OrderItemPrice.builder()
-                    .originalPrice(10000)
+                    .originalPrice(Money.wons(10000L))
                     .discountRate(10)
-                    .discountAmount(1000)
-                    .discountedPrice(9000)
+                    .discountAmount(Money.wons(1000L))
+                    .discountedPrice(Money.wons(9000L))
                     .build();
             OrderSheetResult.OrderItemOption option = OrderSheetResult.OrderItemOption.builder()
                     .optionTypeName("색상")
                     .optionValueName("RED")
                     .build();
             OrderSheetResult.Summary summary = OrderSheetResult.Summary.builder()
-                    .totalOriginPrice(20000)
-                    .totalProductDiscount(2000)
-                    .totalBasePaymentAmount(18000)
+                    .totalOriginPrice(Money.wons(20000L))
+                    .totalProductDiscount(Money.wons(2000L))
+                    .totalBasePaymentAmount(Money.wons(18000L))
                     .build();
 
             OrderSheetResult.OrderItem orderItem = OrderSheetResult.OrderItem.builder()

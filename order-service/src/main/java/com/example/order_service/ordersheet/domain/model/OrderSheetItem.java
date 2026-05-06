@@ -1,5 +1,6 @@
 package com.example.order_service.ordersheet.domain.model;
 
+import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.ordersheet.domain.model.vo.OrderSheetItemOptionSnapshot;
 import com.example.order_service.ordersheet.domain.model.vo.OrderSheetItemPriceSnapshot;
 import com.example.order_service.ordersheet.domain.model.vo.OrderSheetItemProductSnapshot;
@@ -11,14 +12,13 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 
 @Getter
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class OrderSheetItem {
     private OrderSheetItemProductSnapshot productSnapshot;
     private OrderSheetItemPriceSnapshot itemPrice;
     private Integer quantity;
     private List<OrderSheetItemOptionSnapshot> options;
 
-    @Builder(access = AccessLevel.PRIVATE)
+    @Builder(builderMethodName = "reconstitute")
     private OrderSheetItem(OrderSheetItemProductSnapshot productSnapshot, OrderSheetItemPriceSnapshot itemPrice, Integer quantity, List<OrderSheetItemOptionSnapshot> options) {
         this.productSnapshot = productSnapshot;
         this.itemPrice = itemPrice;
@@ -32,7 +32,7 @@ public class OrderSheetItem {
             //TODO 커스텀 예외
             throw new RuntimeException();
         }
-        return OrderSheetItem.builder()
+        return OrderSheetItem.reconstitute()
                 .productSnapshot(productSnapshot)
                 .itemPrice(itemPrice)
                 .quantity(quantity)
@@ -40,15 +40,15 @@ public class OrderSheetItem {
                 .build();
     }
 
-    public Long getLineTotal() {
-        return itemPrice.getDiscountedPrice() * quantity;
+    public Money getLineTotal() {
+        return itemPrice.getDiscountedPrice().multiple(quantity);
     }
 
-    public Long getDiscountLineTotal() {
-        return itemPrice.getDiscountAmount() * quantity;
+    public Money getDiscountLineTotal() {
+        return itemPrice.getDiscountAmount().multiple(quantity);
     }
 
-    public Long getOriginalLineTotal() {
-        return itemPrice.getOriginalPrice() * quantity;
+    public Money getOriginalLineTotal() {
+        return itemPrice.getOriginalPrice().multiple(quantity);
     }
 }

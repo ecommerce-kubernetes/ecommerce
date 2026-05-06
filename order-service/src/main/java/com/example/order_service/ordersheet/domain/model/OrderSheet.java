@@ -1,6 +1,8 @@
 package com.example.order_service.ordersheet.domain.model;
 
+import com.example.order_service.common.domain.vo.Money;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -8,19 +10,19 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class OrderSheet {
     private String sheetId;
     private List<OrderSheetItem> items;
-    private Long totalOriginalPrice;
-    private Long totalProductDiscountAmount;
-    private Long totalPaymentAmount;
+    private Money totalOriginalPrice;
+    private Money totalProductDiscountAmount;
+    private Money totalPaymentAmount;
     private LocalDateTime expiresAt;
 
-    private OrderSheet(String sheetId, List<OrderSheetItem> items, LocalDateTime createdAt) {
+    @Builder(builderMethodName = "reconstitute")
+    private OrderSheet(String sheetId, List<OrderSheetItem> items, LocalDateTime expiresAt) {
         this.sheetId = sheetId;
         this.items = items;
-        this.expiresAt = createdAt.plusMinutes(30);
+        this.expiresAt = expiresAt.plusMinutes(30);
         this.totalOriginalPrice = calcTotalOriginalPrice(items);
         this.totalProductDiscountAmount = calcTotalProductDiscountAmount(items);
         this.totalPaymentAmount = calcTotalPaymentAmount(items);
@@ -34,15 +36,21 @@ public class OrderSheet {
         return new OrderSheet(sheetId, items, createdAt);
     }
 
-    private Long calcTotalOriginalPrice(List<OrderSheetItem> items) {
-        return items.stream().mapToLong(OrderSheetItem::getOriginalLineTotal).sum();
+    private Money calcTotalOriginalPrice(List<OrderSheetItem> items) {
+        return items.stream()
+                .map(OrderSheetItem::getOriginalLineTotal)
+                .reduce(Money.ZERO, Money::add);
     }
 
-    private Long calcTotalProductDiscountAmount(List<OrderSheetItem> items) {
-        return items.stream().mapToLong(OrderSheetItem::getDiscountLineTotal).sum();
+    private Money calcTotalProductDiscountAmount(List<OrderSheetItem> items) {
+        return items.stream()
+                .map(OrderSheetItem::getDiscountLineTotal)
+                .reduce(Money.ZERO, Money::add);
     }
 
-    private Long calcTotalPaymentAmount(List<OrderSheetItem> items) {
-        return items.stream().mapToLong(OrderSheetItem::getLineTotal).sum();
+    private Money calcTotalPaymentAmount(List<OrderSheetItem> items) {
+        return items.stream()
+                .map(OrderSheetItem::getLineTotal)
+                .reduce(Money.ZERO, Money::add);
     }
 }
