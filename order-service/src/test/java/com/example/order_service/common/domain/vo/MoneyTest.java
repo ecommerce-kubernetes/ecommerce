@@ -101,4 +101,41 @@ public class MoneyTest {
                 .isInstanceOf(InvalidDomainValueException.class)
                 .hasMessage("차감 금액이 현재 금액보다 클 수 없습니다.");
     }
+    
+    @Test
+    @DisplayName("금액을 곱한다")
+    void multiple() {
+        //given
+        Money multiplicand = Money.wons(100L);
+        Money result = Money.wons(500L);
+        //when
+        Money multiple = multiplicand.multiple(5);
+        //then
+        assertThat(multiple).isEqualTo(result);
+    }
+
+    @Test
+    @DisplayName("금액에 음수를 곱할 수 없다")
+    void multiple_is_not_less_than_0() {
+        //given
+        Money multiplicand = Money.wons(100L);
+        //when
+        //then
+        assertThatThrownBy(() -> multiplicand.multiple(-1))
+                .isInstanceOf(InvalidDomainValueException.class)
+                .hasMessage("금액에 음수를 곱할 수 없습니다.");
+    }
+    
+    @Test
+    @DisplayName("곱셈 결과 금액의 소수점을 버린다")
+    void multiple_truncate_decimal() {
+        //given
+        Money multiplicand = Money.wons(100L);
+        Money result = Money.wons(501L);
+        //when
+        // 결과 amount = 501.5
+        Money multiple = multiplicand.multiple(5.015);
+        //then
+        assertThat(multiple).isEqualTo(result);
+    }
 }

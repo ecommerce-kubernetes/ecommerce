@@ -49,7 +49,7 @@ class ProductFeignClientTest {
                             "discountedPrice": 9000
                         },
                         "stockQuantity": 100,
-                        "options": [
+                        "itemOptions": [
                             {
                                 "optionTypeName": "사이즈",
                                 "optionValueName": "XL"
@@ -74,7 +74,7 @@ class ProductFeignClientTest {
                             "discountedPrice": 9000
                         },
                         "stockQuantity": 100,
-                        "options": [
+                        "itemOptions": [
                             {
                                 "optionTypeName": "사이즈",
                                 "optionValueName": "XL"

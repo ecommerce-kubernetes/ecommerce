@@ -24,6 +24,7 @@ import java.util.List;
 import static com.example.order_service.support.TestFixtureUtil.fixtureMonkey;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
@@ -35,8 +36,8 @@ public class CartProductGatewayTest {
     private CartProductGateway cartProductGateway;
     @Mock
     private ProductAdaptor adaptor;
-    @Spy
-    private CartProductMapper productMapper = Mappers.getMapper(CartProductMapper.class);
+    @Mock
+    private CartProductMapper productMapper;
 
     @Nested
     @DisplayName("상품 목록 정보 조회")
@@ -51,8 +52,13 @@ public class CartProductGatewayTest {
                     .map(id -> fixtureMonkey.giveMeBuilder(ProductClientResponse.Product.class)
                             .set("productVariantId", id)
                             .sample()).toList();
+            CartProductResult.Info mockInfo1 = fixtureMonkey.giveMeBuilder(CartProductResult.Info.class)
+                    .set("productVariantId", 1L).sample();
+            CartProductResult.Info mockInfo2 = fixtureMonkey.giveMeBuilder(CartProductResult.Info.class)
+                    .set("productVariantId", 2L).sample();
             given(adaptor.getProductsByVariantIds(anyList()))
                     .willReturn(productResponses);
+            given(productMapper.toResult(any())).willReturn(mockInfo1, mockInfo2);
             //when
             List<CartProductResult.Info> result = cartProductGateway.getProducts(variantIds);
             //then

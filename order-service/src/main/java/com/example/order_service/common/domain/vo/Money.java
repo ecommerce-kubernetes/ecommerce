@@ -5,11 +5,12 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Money {
     // 가격이 0 인 상수
-    private static final Money ZERO = new Money(BigDecimal.ZERO);
+    public static final Money ZERO = new Money(BigDecimal.ZERO);
     private BigDecimal amount;
 
     private Money(BigDecimal amount) {
@@ -36,15 +37,45 @@ public class Money {
         return new Money(amount.add(added.amount));
     }
 
-    public long longValue() {
-        return amount.longValue();
-    }
-
     public Money subtract(Money deducted) {
         if (isLessThan(deducted)){
             throw new InvalidDomainValueException("차감 금액이 현재 금액보다 클 수 없습니다.");
         }
         return new Money(amount.subtract(deducted.amount));
+    }
+
+    public Money multiple(long multiplier) {
+        if (multiplier < 0) {
+            throw new InvalidDomainValueException("금액에 음수를 곱할 수 없습니다.");
+        }
+        if (multiplier == 0) {
+            return ZERO;
+        }
+        if (multiplier == 1) {
+            return this;
+        }
+        return new Money(amount.multiply(BigDecimal.valueOf(multiplier)));
+    }
+
+    public Money multiple(double multiplier) {
+        if (multiplier < 0.0) {
+            throw new InvalidDomainValueException("금액에 음수를 곱할 수 없습니다.");
+        }
+        if (multiplier == 0.0){
+            return ZERO;
+        }
+        if (multiplier == 1.0){
+            return this;
+        }
+        // 금액 곱
+        BigDecimal multipliedAmount = amount.multiply(BigDecimal.valueOf(multiplier));
+        // 소수점 버림
+        multipliedAmount = multipliedAmount.setScale(0, RoundingMode.DOWN);
+        return new Money(multipliedAmount);
+    }
+
+    public long longValue() {
+        return amount.longValue();
     }
 
     public boolean isLessThan(Money other) {
@@ -66,5 +97,10 @@ public class Money {
     @Override
     public int hashCode() {
         return this.amount.stripTrailingZeros().hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return amount.stripTrailingZeros().toPlainString() + "원";
     }
 }
