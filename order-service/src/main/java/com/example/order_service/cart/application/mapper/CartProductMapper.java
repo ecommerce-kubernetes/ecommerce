@@ -2,13 +2,13 @@ package com.example.order_service.cart.application.mapper;
 
 import com.example.order_service.cart.application.dto.result.CartProductResult;
 import com.example.order_service.cart.domain.model.vo.ProductStatus;
-import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.mapper.MoneyMapper;
 import com.example.order_service.infrastructure.dto.response.ProductClientResponse;
+import org.mapstruct.InjectionStrategy;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "spring", uses = {MoneyMapper.class})
+@Mapper(componentModel = "spring", uses = {MoneyMapper.class}, injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 public interface CartProductMapper {
 
     @Mapping(source = "stockQuantity", target = "stock")

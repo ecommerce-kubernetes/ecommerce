@@ -1,9 +1,10 @@
 package com.example.order_service.common.mapper;
 
 import com.example.order_service.common.domain.vo.Money;
+import org.mapstruct.InjectionStrategy;
 import org.mapstruct.Mapper;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 public interface MoneyMapper {
     default Money toMoney(Long amount) {
         if (amount == null) {
