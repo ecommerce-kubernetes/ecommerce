@@ -1,6 +1,7 @@
 package com.example.order_service.ordersheet.domain.model;
 
 import com.example.order_service.common.domain.vo.Money;
+import com.example.order_service.common.exception.domain.InvalidDomainValueException;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -10,6 +11,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class OrderSheet {
     private String sheetId;
     private List<OrderSheetItem> items;
@@ -19,36 +21,43 @@ public class OrderSheet {
     private LocalDateTime expiresAt;
 
     @Builder(builderMethodName = "reconstitute")
-    private OrderSheet(String sheetId, List<OrderSheetItem> items, LocalDateTime expiresAt) {
+    private OrderSheet(String sheetId, List<OrderSheetItem> items,
+                       Money totalOriginalPrice, Money totalProductDiscountAmount, Money totalPaymentAmount, LocalDateTime expiresAt) {
         this.sheetId = sheetId;
         this.items = items;
-        this.expiresAt = expiresAt.plusMinutes(30);
-        this.totalOriginalPrice = calcTotalOriginalPrice(items);
-        this.totalProductDiscountAmount = calcTotalProductDiscountAmount(items);
-        this.totalPaymentAmount = calcTotalPaymentAmount(items);
+        this.totalOriginalPrice = totalOriginalPrice;
+        this.totalProductDiscountAmount = totalProductDiscountAmount;
+        this.totalPaymentAmount = totalPaymentAmount;
+        this.expiresAt = expiresAt;
     }
 
-    public static OrderSheet create(String sheetId, List<OrderSheetItem> items, LocalDateTime createdAt) {
+    public static OrderSheet create(String sheetId, List<OrderSheetItem> items, LocalDateTime createdAt, long ttl) {
         if (items == null || items.isEmpty()) {
-            //TODO 커스텀 예외 반환
-            throw new RuntimeException();
+            throw new InvalidDomainValueException("OrderSheet 주문 상품은 필수입니다");
         }
-        return new OrderSheet(sheetId, items, createdAt);
+        return OrderSheet.reconstitute()
+                .sheetId(sheetId)
+                .items(items)
+                .totalOriginalPrice(calcTotalOriginalPrice(items))
+                .totalProductDiscountAmount(calcTotalProductDiscountAmount(items))
+                .totalPaymentAmount(calcTotalPaymentAmount(items))
+                .expiresAt(createdAt.plusMinutes(ttl))
+                .build();
     }
 
-    private Money calcTotalOriginalPrice(List<OrderSheetItem> items) {
+    private static Money calcTotalOriginalPrice(List<OrderSheetItem> items) {
         return items.stream()
                 .map(OrderSheetItem::getOriginalLineTotal)
                 .reduce(Money.ZERO, Money::add);
     }
 
-    private Money calcTotalProductDiscountAmount(List<OrderSheetItem> items) {
+    private static Money calcTotalProductDiscountAmount(List<OrderSheetItem> items) {
         return items.stream()
                 .map(OrderSheetItem::getDiscountLineTotal)
                 .reduce(Money.ZERO, Money::add);
     }
 
-    private Money calcTotalPaymentAmount(List<OrderSheetItem> items) {
+    private static Money calcTotalPaymentAmount(List<OrderSheetItem> items) {
         return items.stream()
                 .map(OrderSheetItem::getLineTotal)
                 .reduce(Money.ZERO, Money::add);

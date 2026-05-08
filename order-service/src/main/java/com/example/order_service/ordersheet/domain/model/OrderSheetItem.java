@@ -1,6 +1,7 @@
 package com.example.order_service.ordersheet.domain.model;
 
 import com.example.order_service.common.domain.vo.Money;
+import com.example.order_service.common.exception.domain.InvalidDomainValueException;
 import com.example.order_service.ordersheet.domain.model.vo.OrderSheetItemOptionSnapshot;
 import com.example.order_service.ordersheet.domain.model.vo.OrderSheetItemPriceSnapshot;
 import com.example.order_service.ordersheet.domain.model.vo.OrderSheetItemProductSnapshot;
@@ -12,6 +13,7 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 
 @Getter
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class OrderSheetItem {
     private OrderSheetItemProductSnapshot productSnapshot;
     private OrderSheetItemPriceSnapshot itemPrice;
@@ -29,8 +31,7 @@ public class OrderSheetItem {
     public static OrderSheetItem create(OrderSheetItemProductSnapshot productSnapshot, OrderSheetItemPriceSnapshot itemPrice,
                                         Integer quantity, List<OrderSheetItemOptionSnapshot> options) {
         if (quantity == null || quantity <= 0) {
-            //TODO 커스텀 예외
-            throw new RuntimeException();
+            throw new InvalidDomainValueException("OrderSheet 상품 주문 수량은 필수입니다");
         }
         return OrderSheetItem.reconstitute()
                 .productSnapshot(productSnapshot)

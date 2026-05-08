@@ -1,10 +1,13 @@
 package com.example.order_service.ordersheet.domain.model.vo;
 
 import com.example.order_service.common.domain.vo.Money;
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class OrderSheetItemPriceSnapshot {
     private Money originalPrice;
     private Integer discountRate;

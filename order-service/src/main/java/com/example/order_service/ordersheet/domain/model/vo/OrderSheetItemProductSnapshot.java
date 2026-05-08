@@ -1,9 +1,12 @@
 package com.example.order_service.ordersheet.domain.model.vo;
 
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class OrderSheetItemProductSnapshot {
     private Long productId;
     private Long productVariantId;

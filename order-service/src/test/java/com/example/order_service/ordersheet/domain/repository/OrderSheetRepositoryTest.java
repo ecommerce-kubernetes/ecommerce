@@ -43,7 +43,8 @@ class OrderSheetRepositoryTest {
         return OrderSheet.create(
                 "test",
                 List.of(createOrderSheetItem()),
-                LocalDateTime.now()
+                LocalDateTime.now(),
+                30
         );
     }
 

@@ -1,5 +1,6 @@
 package com.example.order_service.ordersheet.application;
 
+import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.business.BusinessException;
 import com.example.order_service.ordersheet.application.dto.command.OrderSheetCommand;
 import com.example.order_service.ordersheet.application.dto.result.OrderSheetProductResult;
@@ -51,8 +52,6 @@ public class OrderSheetAppServiceTest {
             //given
             Long targetVariantId = 1L;
             int quantity = 1;
-            long discountedPrice = 9000L;
-            long ttl = 30;
             OrderSheetCommand.OrderItem orderItem = OrderSheetCommand.OrderItem.builder()
                     .productVariantId(targetVariantId)
                     .quantity(quantity)
@@ -61,12 +60,18 @@ public class OrderSheetAppServiceTest {
                     .userId(1L)
                     .items(List.of(orderItem))
                     .build();
-            OrderSheetProductResult.Info productInfo = sample(fixtureMonkey.giveMeBuilder(OrderSheetProductResult.Info.class)
-                    .set("productId", 1L)
-                    .set("status", ProductStatus.ORDERABLE)
-                    .set("stock", 100)
-                    .set("productVariantId", targetVariantId)
-                    .set("discountedPrice", discountedPrice));
+            OrderSheetProductResult.Info productInfo = OrderSheetProductResult.Info.builder()
+                    .productId(1L)
+                    .productVariantId(targetVariantId)
+                    .status(ProductStatus.ORDERABLE)
+                    .sku("TEST-SKU")
+                    .productName("테스트 상품")
+                    .stock(100)
+                    .originalPrice(Money.wons(9000L))
+                    .discountRate(10)
+                    .discountAmount(Money.ZERO)
+                    .discountedPrice(Money.wons(9000L)) // 무조건 9000원 보장
+                    .build();
 
             given(orderSheetProductGateway.getProducts(anyList()))
                     .willReturn(List.of(productInfo));
@@ -78,7 +83,7 @@ public class OrderSheetAppServiceTest {
             assertThat(result.sheetId()).isNotNull();
             assertThat(result.expiresAt()).isNotNull();
             assertThat(result.items()).hasSize(1);
-            assertThat(result.summary().totalBasePaymentAmount()).isEqualTo(9000L);
+            assertThat(result.summary().totalBasePaymentAmount()).isEqualTo(Money.wons(9000L));
         }
 
         @Test

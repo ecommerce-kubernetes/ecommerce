@@ -44,10 +44,9 @@ public class OrderSheetAppService {
         String sheetId = generateSheetId();
         // orderSheet 데이터 생성 및 저장
         List<OrderSheetItem> orderSheetItems = mapToDomainItems(products, quantityMap);
-        OrderSheet orderSheet = OrderSheet.create(sheetId, orderSheetItems, LocalDateTime.now());
+        OrderSheet orderSheet = OrderSheet.create(sheetId, orderSheetItems, LocalDateTime.now(), orderSheetProperties.ttlMinutes());
         // ttl
-        long ttlMinutes = orderSheetProperties.ttlMinutes();
-        OrderSheet savedOrderSheet = repository.save(orderSheet, Duration.ofMinutes(ttlMinutes));
+        OrderSheet savedOrderSheet = repository.save(orderSheet, Duration.ofMinutes(orderSheetProperties.ttlMinutes()));
         return OrderSheetResult.Default.from(savedOrderSheet);
     }
 
