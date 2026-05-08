@@ -75,9 +75,9 @@ public class OrderCreationContextMapper {
             Integer qty = qtyMap.get(product.productVariantId());
             ProductSpec productSpec = ProductSpec.of(product.productId(), product.productVariantId(),
                     product.sku(), product.productName(), product.thumbnail());
-            PriceSpec priceSpec = PriceSpec.of(product.originalPrice(), product.discountRate(),
-                    product.discountAmount(), product.discountedPrice());
-            long lineTotal = product.discountedPrice() * qty;
+            PriceSpec priceSpec = PriceSpec.of(product.originalPrice().longValue(), product.discountRate(),
+                    product.discountAmount().longValue(), product.discountedPrice().longValue());
+            long lineTotal = product.discountedPrice().longValue() * qty;
             List<CreateItemOptionSpec> createItemOptionSpecs = product.options().stream().map(o ->
                     CreateItemOptionSpec.of(o.optionTypeName(), o.optionValueName())).toList();
             return OrderItemCreationContext.of(productSpec, priceSpec, qty, lineTotal, createItemOptionSpecs);

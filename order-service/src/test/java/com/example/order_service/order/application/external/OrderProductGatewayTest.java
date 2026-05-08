@@ -26,6 +26,7 @@ import static com.example.order_service.support.TestFixtureUtil.fixtureMonkey;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.BDDAssertions.tuple;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
@@ -38,8 +39,8 @@ public class OrderProductGatewayTest {
 
     @Mock
     private ProductAdaptor adaptor;
-    @Spy
-    private OrderProductMapper productMapper = Mappers.getMapper(OrderProductMapper.class);
+    @Mock
+    private OrderProductMapper productMapper;
 
     @Nested
     @DisplayName("상품 정보 조회")
@@ -50,22 +51,14 @@ public class OrderProductGatewayTest {
         void getProducts() {
             //given
             List<Long> variantIds = List.of(1L, 2L);
-            List<ProductClientResponse.Product> productResponses = variantIds.stream()
-                    .map(id -> fixtureMonkey.giveMeBuilder(ProductClientResponse.Product.class)
-                            .set("productVariantId", id)
-                            .set("status", "ON_SALE")
-                            .sample()).toList();
-            given(adaptor.getProductsByVariantIds(anyList()))
-                    .willReturn(productResponses);
+            List<ProductClientResponse.Product> productResponses = fixtureMonkey.giveMe(ProductClientResponse.Product.class, 2);
+            List<OrderProductResult.Info> mockInfos = fixtureMonkey.giveMe(OrderProductResult.Info.class, 2);
+            given(adaptor.getProductsByVariantIds(anyList())).willReturn(productResponses);
+            given(productMapper.toResult(any())).willReturn(mockInfos.get(0), mockInfos.get(1));
             //when
             List<OrderProductResult.Info> result = orderProductGateway.getProducts(variantIds);
             //then
-            assertThat(result)
-                    .extracting("productVariantId", "status")
-                    .containsExactlyInAnyOrder(
-                            tuple(1L, ProductStatus.ORDERABLE),
-                            tuple(2L, ProductStatus.ORDERABLE)
-                    );
+            assertThat(result).containsExactlyElementsOf(mockInfos);
         }
 
         @Test

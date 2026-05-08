@@ -1,20 +1,29 @@
 package com.example.order_service.order.application.mapper;
 
+import com.example.order_service.common.mapper.MoneyMapper;
 import com.example.order_service.infrastructure.dto.response.ProductClientResponse;
 import com.example.order_service.order.application.dto.result.OrderProductResult;
-import com.example.order_service.order.domain.model.vo.ProductStatus;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.processing.Generated;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-05-08T16:39:21+0900",
+    date = "2026-05-09T01:27:07+0900",
     comments = "version: 1.6.3, compiler: javac, environment: Java 21.0.10 (Eclipse Adoptium)"
 )
 @Component
 public class OrderProductMapperImpl implements OrderProductMapper {
+
+    private final MoneyMapper moneyMapper;
+
+    @Autowired
+    public OrderProductMapperImpl(MoneyMapper moneyMapper) {
+
+        this.moneyMapper = moneyMapper;
+    }
 
     @Override
     public OrderProductResult.Info toResult(ProductClientResponse.Product product) {
@@ -25,10 +34,10 @@ public class OrderProductMapperImpl implements OrderProductMapper {
         OrderProductResult.Info.InfoBuilder info = OrderProductResult.Info.builder();
 
         info.stock( product.stockQuantity() );
-        info.originalPrice( productUnitPriceOriginalPrice( product ) );
+        info.originalPrice( moneyMapper.toMoney( productUnitPriceOriginalPrice( product ) ) );
         info.discountRate( productUnitPriceDiscountRate( product ) );
-        info.discountAmount( productUnitPriceDiscountAmount( product ) );
-        info.discountedPrice( productUnitPriceDiscountedPrice( product ) );
+        info.discountAmount( moneyMapper.toMoney( productUnitPriceDiscountAmount( product ) ) );
+        info.discountedPrice( moneyMapper.toMoney( productUnitPriceDiscountedPrice( product ) ) );
         info.options( productOptionListToOptionList( product.itemOptions() ) );
         info.productId( product.productId() );
         info.productName( product.productName() );

@@ -23,9 +23,9 @@ public class OrderPriceCalculator {
         long subTotalAmount= 0;
         for(OrderProductResult.Info p : products) {
             Integer qty = qtyByVariantId.get(p.productVariantId());
-            totalOriginalAmount += p.originalPrice() * qty;
-            totalDiscountAmount += p.discountAmount() * qty;
-            subTotalAmount += p.discountedPrice() * qty;
+            totalOriginalAmount += p.originalPrice().longValue() * qty;
+            totalDiscountAmount += p.discountAmount().longValue() * qty;
+            subTotalAmount += p.discountedPrice().longValue() * qty;
         }
         return OrderProductAmount.of(totalOriginalAmount, totalDiscountAmount, subTotalAmount);
     }
