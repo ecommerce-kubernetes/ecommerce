@@ -59,6 +59,15 @@ public class OrderAppService {
     private final ApplicationEventPublisher eventPublisher;
 
     public OrderResult.Create initialOrder(OrderCommand.Create command) {
+        //주문 시트를 조회하여 주문서 정보를 가져옴
+        //유저 서비스 해당 유저 정보를 조회, 쿠폰 서비스에서 쿠폰 정보를 조회 (이때 쿠폰 검증이 수행됨)
+
+        //검증
+        //사용자의 포인트가 요청 포인트를 충족 하는지
+
+        //최종 가격 정보를 계산
+        //주문 생성
+        //saga 이벤트 시작
         return null;
     }
 

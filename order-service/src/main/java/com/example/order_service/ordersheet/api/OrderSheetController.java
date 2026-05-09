@@ -12,10 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -31,5 +28,13 @@ public class OrderSheetController {
         OrderSheetResult.Default result = orderSheetAppService.createOrderSheet(command);
         OrderSheetResponse.Create response = OrderSheetResponse.Create.from(result);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @GetMapping("/{sheetId}")
+    public ResponseEntity<OrderSheetResponse.Detail> getOrderSheet(@AuthenticationPrincipal UserPrincipal userPrincipal,
+                                          @PathVariable("sheetId") String sheetId) {
+        OrderSheetResult.Detail orderSheet = orderSheetAppService.getOrderSheet(sheetId, userPrincipal.getUserId());
+        OrderSheetResponse.Detail response = OrderSheetResponse.Detail.from(orderSheet);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 }

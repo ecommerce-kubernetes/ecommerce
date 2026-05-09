@@ -28,6 +28,7 @@ import java.util.stream.Stream;
 import static com.example.order_service.support.TestFixtureUtil.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -172,6 +173,63 @@ class OrderSheetControllerTest {
                             "quantity는 1이상 이여야 합니다"
                     )
             );
+        }
+    }
+
+    @Nested
+    @DisplayName("주문서 조회")
+    class Get {
+
+        @Test
+        @DisplayName("주문서를 조회한다")
+        @WithCustomMockUser
+        void getOrderSheet() throws Exception {
+            //given
+            Long userId = 1L;
+            String orderSheetId = "sheetId";
+            OrderSheetResult.Detail result = fixtureMonkey.giveMeOne(OrderSheetResult.Detail.class);
+            given(orderSheetAppService.getOrderSheet(orderSheetId, userId))
+                    .willReturn(result);
+            OrderSheetResponse.Detail response = OrderSheetResponse.Detail.from(result);
+            //when
+            //then
+            mockMvc.perform(get("/order-sheets/{sheetId}", orderSheetId)
+                    .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isOk())
+                    .andExpect(content().json(objectMapper.writeValueAsString(response)));
+        }
+
+        @Test
+        @DisplayName("로그인 하지 않은 사용자는 주문서를 조회할 수 없다")
+        void getOrderSheet_unAuthorized() throws Exception {
+            //given
+            String orderSheetId = "sheetId";
+            //when
+            //then
+            mockMvc.perform(get("/order-sheets/{sheetId}", orderSheetId)
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isUnauthorized())
+                    .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
+                    .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다"))
+                    .andExpect(jsonPath("$.timestamp").exists())
+                    .andExpect(jsonPath("$.path").value("/order-sheets/" +orderSheetId));
+        }
+
+        @Test
+        @DisplayName("유저 권한이 아니면 주문서를 조회할 수 없다")
+        @WithCustomMockUser(userRole = UserRole.ROLE_ADMIN)
+        void createOrderSheet_forbidden() throws Exception {
+            //given
+            String orderSheetId = "sheetId";
+            //when
+            //then
+            mockMvc.perform(get("/order-sheets/{sheetId}", "sheetId")
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isForbidden())
+                    .andExpect(jsonPath("$.code").value("FORBIDDEN"))
+                    .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다"))
+                    .andExpect(jsonPath("$.timestamp").exists())
+                    .andExpect(jsonPath("$.path").value("/order-sheets/" + orderSheetId));
         }
     }
 

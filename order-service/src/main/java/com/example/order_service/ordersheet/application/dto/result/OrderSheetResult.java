@@ -34,6 +34,16 @@ public class OrderSheetResult {
     }
 
     @Builder
+    public record Detail(
+            String sheetId,
+            LocalDateTime expiresAt,
+            List<OrderItem> items,
+            Summary paymentSummary,
+            UserAssets userAssets
+    ) {
+    }
+
+    @Builder
     public record Summary(
             Money totalOriginPrice,
             Money totalProductDiscount,
@@ -106,5 +116,20 @@ public class OrderSheetResult {
                     .optionValueName(option.getOptionValueName())
                     .build();
         }
+    }
+
+    @Builder
+    public record UserAssets(
+            Money availablePoint,
+            List<AvailableCoupon> coupons
+    ) {}
+
+    @Builder
+    public record AvailableCoupon (
+            Long couponId,
+            String couponName,
+            Money discountAmount,
+            LocalDateTime expiresAt
+    ) {
     }
 }

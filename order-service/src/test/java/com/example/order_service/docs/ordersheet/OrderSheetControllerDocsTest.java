@@ -18,9 +18,11 @@ import org.springframework.http.MediaType;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
+import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -104,6 +106,85 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
                     .expiresAt(LocalDateTime.now())
                     .summary(summary)
                     .items(List.of(orderItem))
+                    .build();
+        }
+    }
+
+    @Nested
+    @DisplayName("주문서 조회 API")
+    class GetOrderSheet {
+        @Test
+        @DisplayName("주문서를 조회한다")
+        void getOrderSheet() throws Exception {
+            //given
+            OrderSheetResult.Detail result = createOrderSheetResult();
+            HttpHeaders roleUser = createAuthHeader("ROLE_USER");
+            given(orderSheetAppService.getOrderSheet(anyString(), anyLong()))
+                    .willReturn(result);
+            OrderSheetResponse.Detail response = OrderSheetResponse.Detail.from(result);
+            //when
+            //then
+            mockMvc.perform(get("/order-sheets/{sheetId}", "sheetId")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .headers(roleUser))
+                    .andExpect(status().isOk())
+                    .andExpect(content().json(objectMapper.writeValueAsString(response)))
+                    .andDo(createSecuredDocument("04-ordersheet-02-get",
+                            "주문서 조회",
+                            "주문서를 조회한다",
+                            OrderSheetDescriptor.getDetailResponse(),
+                            parameterWithName("sheetId").description("orderSheetId")));
+        }
+
+        private OrderSheetResult.Detail createOrderSheetResult() {
+
+            OrderSheetResult.OrderItemPrice unitPrice = OrderSheetResult.OrderItemPrice.builder()
+                    .originalPrice(Money.wons(10000L))
+                    .discountRate(10)
+                    .discountAmount(Money.wons(1000L))
+                    .discountedPrice(Money.wons(9000L))
+                    .build();
+
+            OrderSheetResult.OrderItemOption option = OrderSheetResult.OrderItemOption.builder()
+                    .optionTypeName("색상")
+                    .optionValueName("RED")
+                    .build();
+
+            OrderSheetResult.OrderItem orderItem = OrderSheetResult.OrderItem.builder()
+                    .productId(1L)
+                    .productVariantId(1L)
+                    .productName("상품 1")
+                    .thumbnail("/product/product/test.jpg")
+                    .lineTotal(Money.wons(18000L))
+                    .quantity(2)
+                    .unitPrice(unitPrice)
+                    .options(List.of(option))
+                    .build();
+
+            OrderSheetResult.AvailableCoupon coupon = OrderSheetResult.AvailableCoupon.builder()
+                    .couponId(1L)
+                    .couponName("1000원 할인 쿠폰")
+                    .discountAmount(Money.wons(1000L))
+                    .expiresAt(LocalDateTime.now().plusDays(5))
+                    .build();
+
+            OrderSheetResult.UserAssets userAssets = OrderSheetResult.UserAssets.builder()
+                    .availablePoint(Money.wons(10000L))
+                    .coupons(List.of(coupon))
+                    .build();
+
+            OrderSheetResult.Summary summary = OrderSheetResult.Summary.builder()
+                    .totalOriginPrice(Money.wons(20000L))
+                    .totalProductDiscount(Money.wons(2000L))
+                    .totalBasePaymentAmount(Money.wons(18000L))
+                    .build();
+
+            return OrderSheetResult.Detail.builder()
+                    .sheetId("sheetId")
+                    .items(List.of(orderItem))
+                    .expiresAt(LocalDateTime.now())
+                    .paymentSummary(summary)
+                    .userAssets(userAssets)
                     .build();
         }
     }

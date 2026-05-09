@@ -50,6 +50,10 @@ public class OrderSheetAppService {
         return OrderSheetResult.Default.from(savedOrderSheet);
     }
 
+    public OrderSheetResult.Detail getOrderSheet(String sheetId, Long userId) {
+        return null;
+    }
+
     private List<OrderSheetItem> mapToDomainItems(List<OrderSheetProductResult.Info> products, Map<Long, Integer> quantityMap) {
         return products.stream().map(product -> {
             Integer quantity = quantityMap.get(product.productVariantId());
