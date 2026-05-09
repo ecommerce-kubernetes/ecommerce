@@ -1,17 +1,20 @@
 package com.example.order_service.docs.order;
 
 import com.epages.restdocs.apispec.ResourceSnippetParameters;
+import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.dto.PageDto;
+import com.example.order_service.docs.descriptor.OrderDescriptor;
 import com.example.order_service.order.api.OrderController;
-import com.example.order_service.order.api.dto.request.CreateOrderItemRequest;
-import com.example.order_service.order.api.dto.request.CreateOrderRequest;
-import com.example.order_service.order.api.dto.request.OrderConfirmRequest;
-import com.example.order_service.order.api.dto.request.OrderSearchCondition;
+import com.example.order_service.order.api.dto.request.*;
+import com.example.order_service.order.api.dto.response.OrderResponse;
 import com.example.order_service.order.application.OrderAppService;
 import com.example.order_service.order.application.dto.command.CreateOrderCommand;
+import com.example.order_service.order.application.dto.command.OrderCommand;
 import com.example.order_service.order.application.dto.result.CreateOrderResponse;
 import com.example.order_service.order.application.dto.result.OrderDetailResponse;
 import com.example.order_service.order.application.dto.result.OrderListResponse;
+import com.example.order_service.order.application.dto.result.OrderResult;
+import com.example.order_service.order.domain.model.OrderStatus;
 import com.example.order_service.support.RestDocSupport;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -38,6 +41,7 @@ import static org.springframework.restdocs.request.RequestDocumentation.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class OrderControllerDocsTest extends RestDocSupport {
@@ -60,83 +64,45 @@ public class OrderControllerDocsTest extends RestDocSupport {
     @DisplayName("주문 생성 API")
     void createOrder() throws Exception {
         //given
-        CreateOrderItemRequest item = CreateOrderItemRequest.builder()
-                .productVariantId(1L)
-                .quantity(3)
-                .build();
-        CreateOrderRequest createOrderRequest = CreateOrderRequest.builder()
-                .items(List.of(item))
-                .deliveryAddress("서울시 테헤란로 123")
-                .couponId(null)
-                .pointToUse(300L)
-                .expectedPrice(5400L)
-                .build();
-
-        CreateOrderResponse response = CreateOrderResponse.builder()
-                .orderNo(ORDER_NO)
-                .status("PENDING")
-                .orderName("상품1 외 1건")
-                .finalPaymentAmount(5400L)
-                .createdAt(LocalDateTime.now().toString())
+        OrderRequest.Create createOrderRequest = OrderRequest.Create.builder()
+                .orderSheetId(1L)
+                .deliveryAddress(
+                        OrderRequest.Delivery.builder()
+                                .receiverName("수령인")
+                                .receiverPhone("010-1234-5678")
+                                .zipCode("1235")
+                                .baseAddress("서울시 테헤란로 123")
+                                .detailAddress("좋은 아파트 1234호").build())
+                .couponId(1L)
+                .pointToUse(1000L)
+                .expectedPrice(10000L)
                 .build();
 
-        HttpHeaders roleUser = createUserHeader("ROLE_USER");
-        given(orderAppService.initialOrder(any(CreateOrderCommand.class)))
-                .willReturn(response);
-
-        HeaderDescriptor[] requestHeaders = new HeaderDescriptor[] {
-                headerWithName("Authorization").description("JWT Access Token")
-        };
-
-        FieldDescriptor[] requestFields = new FieldDescriptor[] {
-                fieldWithPath("items[].productVariantId").description("상품 변형 Id (상품 변형 식별자)"),
-                fieldWithPath("items[].quantity").description("주문 수량"),
-                fieldWithPath("deliveryAddress").description("배송지"),
-                fieldWithPath("couponId").description("사용 쿠폰 Id").optional(),
-                fieldWithPath("pointToUse").description("사용 포인트"),
-                fieldWithPath("expectedPrice").description("예상 결제 금액")
-        };
-
-        FieldDescriptor[] responseFields = new FieldDescriptor[] {
-                fieldWithPath("orderNo").description("주문 번호"),
-                fieldWithPath("status").description("주문 상태"),
-                fieldWithPath("createdAt").description("주문 일시"),
-                fieldWithPath("orderName").description("주문 설명"),
-                fieldWithPath("finalPaymentAmount").description("최종 결제 금액")
-        };
-
+        OrderResult.Create result = OrderResult.Create.builder()
+                .orderNo("ORDER_NO")
+                .status(OrderStatus.PENDING)
+                .orderName("상품 1외 1건")
+                .finalPaymentAmount(Money.wons(9000L))
+                .createdAt(LocalDateTime.now())
+                .build();
+        OrderResponse.Create response = OrderResponse.Create.from(result);
+        HttpHeaders roleUser = createAuthHeader("ROLE_USER");
+        given(orderAppService.initialOrder(any(OrderCommand.Create.class)))
+                .willReturn(result);
         //when
         //then
         mockMvc.perform(post("/orders")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .headers(roleUser)
-                    .content(objectMapper.writeValueAsString(createOrderRequest))
-                )
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .headers(roleUser)
+                        .content(objectMapper.writeValueAsString(createOrderRequest)))
                 .andDo(print())
+                .andExpect(content().json(objectMapper.writeValueAsString(response)))
                 .andExpect(status().isAccepted())
-                .andDo(
-                        document(
-                                "01-order-01-create",
-                                preprocessRequest(prettyPrint(),
-                                        modifyHeaders()
-                                                .remove("X-User-Id")
-                                                .remove("X-User-Role")
-                                                .add("Authorization", "Bearer {ACCESS_TOKEN}")),
-                                preprocessResponse(prettyPrint()),
-                                resource(
-                                        ResourceSnippetParameters.builder()
-                                                .tag(TAG)
-                                                .summary("주문 생성")
-                                                .description("주문을 생성한다, [현재 쿠폰 기능은 구현중이므로 couponId는 null로 요청]")
-                                                .requestHeaders(requestHeaders)
-                                                .requestFields(requestFields)
-                                                .responseFields(responseFields)
-                                                .build()
-                                ),
-                                requestHeaders(requestHeaders),
-                                requestFields(requestFields),
-                                responseFields(responseFields)
-                        )
+                .andDo(createSecuredDocument("01-order-01-create",
+                                "주문 생성",
+                                "주문을 생성한다",
+                                OrderDescriptor.getOrderCreateRequest(),
+                                OrderDescriptor.getOrderCreateResponse())
                 );
     }
 
@@ -155,17 +121,17 @@ public class OrderControllerDocsTest extends RestDocSupport {
         given(orderAppService.confirmOrderPayment(anyString(), anyLong(), anyString(), anyLong()))
                 .willReturn(response);
 
-        HeaderDescriptor[] requestHeaders = new HeaderDescriptor[] {
+        HeaderDescriptor[] requestHeaders = new HeaderDescriptor[]{
                 headerWithName("Authorization").description("JWT Access Token")
         };
 
-        FieldDescriptor[] requestFields = new FieldDescriptor[] {
+        FieldDescriptor[] requestFields = new FieldDescriptor[]{
                 fieldWithPath("orderNo").description("주문 번호"),
                 fieldWithPath("paymentKey").description("결제 키"),
                 fieldWithPath("amount").description("결제 금액")
         };
 
-        FieldDescriptor[] responseFields = new FieldDescriptor[] {
+        FieldDescriptor[] responseFields = new FieldDescriptor[]{
                 fieldWithPath("orderNo").description("주문 번호"),
                 fieldWithPath("status").description("주문 상태"),
                 fieldWithPath("orderName").description("주문 이름"),
@@ -249,14 +215,14 @@ public class OrderControllerDocsTest extends RestDocSupport {
         given(orderAppService.getOrder(anyLong(), anyString()))
                 .willReturn(response);
 
-        HeaderDescriptor[] requestHeaders = new HeaderDescriptor[] {
+        HeaderDescriptor[] requestHeaders = new HeaderDescriptor[]{
                 headerWithName("Authorization").description("JWT Access Token")
         };
 
-        ParameterDescriptor[] pathParameters = new ParameterDescriptor[] {
+        ParameterDescriptor[] pathParameters = new ParameterDescriptor[]{
                 parameterWithName("orderNo").description("조회할 주문 번호")
         };
-        FieldDescriptor[] responseFields = new FieldDescriptor[] {
+        FieldDescriptor[] responseFields = new FieldDescriptor[]{
                 fieldWithPath("orderNo").description("주문 번호"),
                 fieldWithPath("status").description("주문 상태"),
                 fieldWithPath("orderName").description("주문 이름"),
@@ -301,8 +267,8 @@ public class OrderControllerDocsTest extends RestDocSupport {
         //when
         //then
         mockMvc.perform(get("/orders/{orderNo}", ORDER_NO)
-                .contentType(MediaType.APPLICATION_JSON)
-                .headers(roleUser))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .headers(roleUser))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andDo(
@@ -346,11 +312,11 @@ public class OrderControllerDocsTest extends RestDocSupport {
         given(orderAppService.getOrders(anyLong(), any(OrderSearchCondition.class)))
                 .willReturn(response);
 
-        HeaderDescriptor[] requestHeaders = new HeaderDescriptor[] {
+        HeaderDescriptor[] requestHeaders = new HeaderDescriptor[]{
                 headerWithName("Authorization").description("JWT Access Token")
         };
 
-        ParameterDescriptor[] queryParameters = new ParameterDescriptor[] {
+        ParameterDescriptor[] queryParameters = new ParameterDescriptor[]{
                 parameterWithName("page").description("페이지 번호 (기본값: 1)").optional(),
                 parameterWithName("size").description("페이지 크기 (기본값: 20, 최대: 100)").optional(),
                 parameterWithName("sort").description("정렬 기준 (latest: 최신순, price_high: 높은가격순 등)").optional(),
@@ -358,7 +324,7 @@ public class OrderControllerDocsTest extends RestDocSupport {
                 parameterWithName("productName").description("상품명 검색 키워드").optional()
         };
 
-        FieldDescriptor[] responseFields = new FieldDescriptor[] {
+        FieldDescriptor[] responseFields = new FieldDescriptor[]{
                 fieldWithPath("content[].orderNo").description("주문 번호"),
                 fieldWithPath("content[].orderStatus").description("주문 상태"),
                 fieldWithPath("content[].createdAt").description("주문 시각"),
@@ -418,7 +384,7 @@ public class OrderControllerDocsTest extends RestDocSupport {
                 );
     }
 
-    private HttpHeaders createUserHeader(String userRole){
+    private HttpHeaders createUserHeader(String userRole) {
         HttpHeaders headers = new HttpHeaders();
         headers.add("X-User-Id", "1");
         headers.add("X-User-Role", userRole);

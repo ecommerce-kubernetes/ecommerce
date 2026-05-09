@@ -8,6 +8,7 @@ import com.example.order_service.order.api.dto.request.OrderSearchCondition;
 import com.example.order_service.order.application.dto.OrderPreparationData;
 import com.example.order_service.order.application.dto.command.CreateOrderCommand;
 import com.example.order_service.order.application.dto.command.CreateOrderItemCommand;
+import com.example.order_service.order.application.dto.command.OrderCommand;
 import com.example.order_service.order.application.dto.result.*;
 import com.example.order_service.order.application.event.*;
 import com.example.order_service.order.application.external.OrderCouponGateway;
@@ -56,6 +57,10 @@ public class OrderAppService {
     private final OrderCreationContextMapper mapper;
     private final OrderService orderService;
     private final ApplicationEventPublisher eventPublisher;
+
+    public OrderResult.Create initialOrder(OrderCommand.Create command) {
+        return null;
+    }
 
     public CreateOrderResponse initialOrder(CreateOrderCommand command){
         // 중복 상품이 있는지 검증

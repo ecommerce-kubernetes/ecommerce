@@ -4,13 +4,17 @@ import com.example.order_service.common.dto.PageDto;
 import com.example.order_service.common.security.model.UserPrincipal;
 import com.example.order_service.order.api.dto.request.CreateOrderRequest;
 import com.example.order_service.order.api.dto.request.OrderConfirmRequest;
+import com.example.order_service.order.api.dto.request.OrderRequest;
 import com.example.order_service.order.api.dto.request.OrderSearchCondition;
+import com.example.order_service.order.api.dto.response.OrderResponse;
 import com.example.order_service.order.application.OrderAppService;
 import com.example.order_service.order.application.dto.command.CreateOrderCommand;
 import com.example.order_service.order.application.dto.command.CreateOrderItemCommand;
+import com.example.order_service.order.application.dto.command.OrderCommand;
 import com.example.order_service.order.application.dto.result.CreateOrderResponse;
 import com.example.order_service.order.application.dto.result.OrderDetailResponse;
 import com.example.order_service.order.application.dto.result.OrderListResponse;
+import com.example.order_service.order.application.dto.result.OrderResult;
 import lombok.RequiredArgsConstructor;
 import org.apache.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,19 +34,11 @@ public class OrderController {
     private final OrderAppService orderAppService;
 
     @PostMapping
-    public ResponseEntity<CreateOrderResponse> createOrder(@AuthenticationPrincipal UserPrincipal userPrincipal,
-                                                           @RequestBody @Validated CreateOrderRequest request){
-        List<CreateOrderItemCommand> orderItems = mappingCreateOrderItemDto(request);
-        CreateOrderCommand command = CreateOrderCommand.builder()
-                .userId(userPrincipal.getUserId())
-                .orderItemCommands(orderItems)
-                .deliveryAddress(request.getDeliveryAddress())
-                .couponId(request.getCouponId())
-                .pointToUse(request.getPointToUse())
-                .expectedPrice(request.getExpectedPrice())
-                .build();
-
-        CreateOrderResponse response = orderAppService.initialOrder(command);
+    public ResponseEntity<OrderResponse.Create> createOrder(@AuthenticationPrincipal UserPrincipal userPrincipal,
+                                                     @RequestBody @Validated OrderRequest.Create request){
+        OrderCommand.Create command = request.toCommand(userPrincipal.getUserId());
+        OrderResult.Create result = orderAppService.initialOrder(command);
+        OrderResponse.Create response = OrderResponse.Create.from(result);
         return ResponseEntity.status(HttpStatus.SC_ACCEPTED).body(response);
     }
 

@@ -4,24 +4,28 @@ import com.example.order_service.api.support.security.annotation.WithCustomMockU
 import com.example.order_service.api.support.security.config.TestSecurityConfig;
 import com.example.order_service.common.dto.PageDto;
 import com.example.order_service.common.security.model.UserRole;
-import com.example.order_service.order.api.dto.request.CreateOrderItemRequest;
-import com.example.order_service.order.api.dto.request.CreateOrderRequest;
-import com.example.order_service.order.api.dto.request.OrderConfirmRequest;
-import com.example.order_service.order.api.dto.request.OrderSearchCondition;
-import com.example.order_service.order.application.dto.command.CreateOrderCommand;
-import com.example.order_service.order.application.dto.result.CreateOrderResponse;
+import com.example.order_service.order.api.dto.request.*;
+import com.example.order_service.order.api.dto.response.OrderResponse;
+import com.example.order_service.order.application.OrderAppService;
+import com.example.order_service.order.application.dto.command.OrderCommand;
 import com.example.order_service.order.application.dto.result.OrderDetailResponse;
 import com.example.order_service.order.application.dto.result.OrderListResponse;
-import com.example.order_service.support.ControllerTestSupport;
+import com.example.order_service.order.application.dto.result.OrderResult;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
@@ -29,6 +33,7 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import static com.example.order_service.api.support.fixture.order.OrderResponseFixture.*;
+import static com.example.order_service.support.TestFixtureUtil.fixtureMonkey;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
@@ -41,82 +46,227 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @Slf4j
 @Import(TestSecurityConfig.class)
-class OrderControllerTest extends ControllerTestSupport {
+@WebMvcTest(controllers = OrderController.class)
+class OrderControllerTest {
 
+    @Autowired
+    private MockMvc mockMvc;
+    @Autowired
+    private ObjectMapper objectMapper;
+    @MockitoBean
+    private OrderAppService orderAppService;
     private static final String ORDER_NO = "ORD-20260101-AB12FVC";
 
-    @Test
-    @DisplayName("주문을 생성한다")
-    @WithCustomMockUser
-    void createOrder() throws Exception {
-        //given
-        CreateOrderRequest request = createBaseRequest().build();
-        CreateOrderResponse response = anCreateOrderResponse().build();
-        given(orderAppService.initialOrder(any(CreateOrderCommand.class)))
-                .willReturn(response);
-        //when
-        //then
-        mockMvc.perform(post("/orders")
-                .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andDo(print())
-                .andExpect(status().isAccepted())
-                .andExpect(content().json(objectMapper.writeValueAsString(response)));
-    }
+    @Nested
+    @DisplayName("주문 생성")
+    class Create {
 
-    @Test
-    @DisplayName("주문 요청시 권한은 유저여야 한다")
-    @WithCustomMockUser(userRole = UserRole.ROLE_ADMIN)
-    void createOrderWithAdminPrincipal() throws Exception {
-        //given
-        CreateOrderRequest request = createBaseRequest().build();
-        //when
-        //then
-        mockMvc.perform(post("/orders")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
-                .andDo(print())
-                .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.code").value("FORBIDDEN"))
-                .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다"))
-                .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.path").value("/orders"));
-    }
+        @Test
+        @DisplayName("주문을 생성한다")
+        @WithCustomMockUser
+        void createOrder() throws Exception {
+            //given
+            OrderRequest.Create request = fixtureMonkey.giveMeOne(OrderRequest.Create.class);
+            OrderResult.Create result = fixtureMonkey.giveMeOne(OrderResult.Create.class);
+            given(orderAppService.initialOrder(any(OrderCommand.Create.class)))
+                    .willReturn(result);
+            OrderResponse.Create response = OrderResponse.Create.from(result);
+            //when
+            //then
+            mockMvc.perform(post("/orders")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andDo(print())
+                    .andExpect(status().isAccepted())
+                    .andExpect(content().json(objectMapper.writeValueAsString(response)));
+        }
 
-    @Test
-    @DisplayName("로그인 하지 않은 사용자는 주문을 생성할 수 없다")
-    void createOrder_unAuthorized() throws Exception {
-        //given
-        CreateOrderRequest request = createBaseRequest().build();
-        //when
-        //then
-        mockMvc.perform(post("/orders")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andDo(print())
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
-                .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다"))
-                .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.path").value("/orders"));
-    }
+        @Test
+        @DisplayName("주문 요청시 권한은 유저여야 한다")
+        @WithCustomMockUser(userRole = UserRole.ROLE_ADMIN)
+        void createOrderWithAdminPrincipal() throws Exception {
+            //given
+            OrderRequest.Create request = fixtureMonkey.giveMeOne(OrderRequest.Create.class);
+            //when
+            //then
+            mockMvc.perform(post("/orders")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andDo(print())
+                    .andExpect(status().isForbidden())
+                    .andExpect(jsonPath("$.code").value("FORBIDDEN"))
+                    .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다"))
+                    .andExpect(jsonPath("$.timestamp").exists())
+                    .andExpect(jsonPath("$.path").value("/orders"));
+        }
 
-    @ParameterizedTest(name = "{0}")
-    @DisplayName("주문 요청시 유효성 검증에 실패하면 400 에러를 반환한다")
-    @MethodSource("provideInvalidCreateOrderRequest")
-    @WithCustomMockUser
-    void createOrder_validation(String description, CreateOrderRequest request, String errorMessage) throws Exception {
-        //given
-        //when, then
-        mockMvc.perform(post("/orders")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andDo(print())
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value("VALIDATION"))
-                .andExpect(jsonPath("$.message").value(errorMessage))
-                .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.path").value("/orders"));
+        @Test
+        @DisplayName("로그인 하지 않은 사용자는 주문을 생성할 수 없다")
+        void createOrder_unAuthorized() throws Exception {
+            //given
+            OrderRequest.Create request = fixtureMonkey.giveMeOne(OrderRequest.Create.class);
+            //when
+            //then
+            mockMvc.perform(post("/orders")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andDo(print())
+                    .andExpect(status().isUnauthorized())
+                    .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
+                    .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다"))
+                    .andExpect(jsonPath("$.timestamp").exists())
+                    .andExpect(jsonPath("$.path").value("/orders"));
+        }
+
+        @ParameterizedTest(name = "{0}")
+        @DisplayName("주문 요청시 유효성 검증에 실패하면 400 에러를 반환한다")
+        @MethodSource("provideInvalidCreateOrderRequest")
+        @WithCustomMockUser
+        void createOrder_validation(String description, OrderRequest.Create request, String errorMessage) throws Exception {
+            //given
+            //when, then
+            mockMvc.perform(post("/orders")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andDo(print())
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.code").value("VALIDATION"))
+                    .andExpect(jsonPath("$.message").value(errorMessage))
+                    .andExpect(jsonPath("$.timestamp").exists())
+                    .andExpect(jsonPath("$.path").value("/orders"));
+        }
+
+        private static Stream<Arguments> provideInvalidCreateOrderRequest() {
+            OrderRequest.Delivery VALID_BASE_DELIVERY = OrderRequest.Delivery.builder()
+                    .receiverName("수령인")
+                    .receiverPhone("010-1234-5678")
+                    .zipCode("12345")
+                    .baseAddress("서울시 테헤란로 123")
+                    .detailAddress("아파트 1234호")
+                    .build();
+            return Stream.of(
+                    Arguments.of(
+                            "orderSheet id null",
+                            OrderRequest.Create.builder()
+                                    .orderSheetId(null)
+                                    .deliveryAddress(VALID_BASE_DELIVERY)
+                                    .couponId(null)
+                                    .pointToUse(0L)
+                                    .expectedPrice(10000L)
+                                    .build(),
+                            "주문서 ID는 필수 입니다"
+                    ),
+                    Arguments.of("배송지 정보가 null",
+                            OrderRequest.Create.builder()
+                                    .orderSheetId(1L)
+                                    .deliveryAddress(null)
+                                    .couponId(null)
+                                    .pointToUse(0L)
+                                    .expectedPrice(10000L)
+                                    .build(),
+                            "배송지 정보는 필수 입니다"
+                    ),
+                    Arguments.of(
+                            "수령인이 blank",
+                            OrderRequest.Create.builder()
+                                    .orderSheetId(1L)
+                                    .deliveryAddress(VALID_BASE_DELIVERY.toBuilder().receiverName("").build())
+                                    .couponId(null)
+                                    .pointToUse(0L)
+                                    .expectedPrice(10000L)
+                                    .build(),
+                            "수령인 이름은 필수 입니다"
+                    ),
+                    Arguments.of(
+                            "수령인 연락처가 null",
+                            OrderRequest.Create.builder()
+                                    .orderSheetId(1L)
+                                    .deliveryAddress(VALID_BASE_DELIVERY.toBuilder().receiverPhone(null).build())
+                                    .couponId(null)
+                                    .pointToUse(0L)
+                                    .expectedPrice(10000L)
+                                    .build(),
+                            "수령인 연락처는 필수 입니다"
+                    ),
+                    Arguments.of(
+                            "수령인 연락처가 유효하지 않음",
+                            OrderRequest.Create.builder()
+                                    .orderSheetId(1L)
+                                    .deliveryAddress(VALID_BASE_DELIVERY.toBuilder().receiverPhone("123124").build())
+                                    .couponId(null)
+                                    .pointToUse(0L)
+                                    .expectedPrice(10000L)
+                                    .build(),
+                            "전화번호 형식이 올바르지 않습니다 (예: 010-1234-5678)"
+                    ),
+                    Arguments.of(
+                            "우편번호가 null",
+                            OrderRequest.Create.builder()
+                                    .orderSheetId(1L)
+                                    .deliveryAddress(VALID_BASE_DELIVERY.toBuilder().zipCode(null).build())
+                                    .couponId(null)
+                                    .pointToUse(0L)
+                                    .expectedPrice(10000L)
+                                    .build(),
+                            "우편 번호는 필수 입니다"
+                    ),
+                    Arguments.of(
+                            "기본 주소가 null",
+                            OrderRequest.Create.builder()
+                                    .orderSheetId(1L)
+                                    .deliveryAddress(VALID_BASE_DELIVERY.toBuilder().baseAddress(null).build())
+                                    .couponId(null)
+                                    .pointToUse(0L)
+                                    .expectedPrice(10000L)
+                                    .build(),
+                            "기본 주소는 필수 입니다"
+                    ),
+                    Arguments.of(
+                            "상세 주소가 null",
+                            OrderRequest.Create.builder()
+                                    .orderSheetId(1L)
+                                    .deliveryAddress(VALID_BASE_DELIVERY.toBuilder().detailAddress(null).build())
+                                    .couponId(null)
+                                    .pointToUse(0L)
+                                    .expectedPrice(10000L)
+                                    .build(),
+                            "상세 주소는 필수 입니다"
+                    ),
+                    Arguments.of(
+                            "사용 포인트가 null",
+                            OrderRequest.Create.builder()
+                                    .orderSheetId(1L)
+                                    .deliveryAddress(VALID_BASE_DELIVERY)
+                                    .couponId(null)
+                                    .pointToUse(null)
+                                    .expectedPrice(10000L)
+                                    .build(),
+                            "사용할 포인트는 필수 입니다"
+                    ),
+                    Arguments.of(
+                            "사용 포인트가 0이하",
+                            OrderRequest.Create.builder()
+                                    .orderSheetId(1L)
+                                    .deliveryAddress(VALID_BASE_DELIVERY)
+                                    .couponId(null)
+                                    .pointToUse(-1L)
+                                    .expectedPrice(10000L)
+                                    .build(),
+                            "사용할 포인트는 0 이상이여야 합니다"
+                    ),
+                    Arguments.of(
+                            "예상 결제 금액이 1미만",
+                            OrderRequest.Create.builder()
+                                    .orderSheetId(1L)
+                                    .deliveryAddress(VALID_BASE_DELIVERY)
+                                    .couponId(null)
+                                    .pointToUse(0L)
+                                    .expectedPrice(0L)
+                                    .build(),
+                            "예상 결제 금액은 1 이상이여야 합니다"
+                    )
+            );
+        }
     }
 
     @Test
@@ -417,37 +567,6 @@ class OrderControllerTest extends ControllerTestSupport {
                 .extracting(OrderSearchCondition::getPage, OrderSearchCondition::getSize, OrderSearchCondition::getSort, OrderSearchCondition::getYear,
                         OrderSearchCondition::getProductName)
                 .containsExactly(1, 100, "latest", null, null);
-    }
-
-    private static Stream<Arguments> provideInvalidCreateOrderRequest() {
-        return Stream.of(
-                Arguments.of("주문 상품 null", createBaseRequest().items(null).build(), "주문 상품은 필수입니다"),
-                Arguments.of("상품 VariantId null",
-                        createBaseRequest().items(List.of(CreateOrderItemRequest.builder().productVariantId(null).quantity(3).build())).build(),
-                        "productVariantId는 필수입니다"
-                ),
-                Arguments.of("주문 수량 null",
-                        createBaseRequest().items(List.of(CreateOrderItemRequest.builder().productVariantId(1L).quantity(null).build())).build(),
-                        "수량은 필수입니다"),
-                Arguments.of("주문 수량 1미만",
-                        createBaseRequest().items(List.of(CreateOrderItemRequest.builder().productVariantId(1L).quantity(0).build())).build(),
-                        "수량은 1이상이여야 합니다"),
-                Arguments.of("배송지 null",
-                        createBaseRequest().deliveryAddress(null).build(),
-                        "배송지는 필수입니다"),
-                Arguments.of("사용 포인트 null",
-                        createBaseRequest().pointToUse(null).build(),
-                        "사용할 포인트는 필수입니다"),
-                Arguments.of("사용 포인트 0미만",
-                        createBaseRequest().pointToUse(-1L).build(),
-                        "사용할 포인트는 0 이상이여야 합니다"),
-                Arguments.of("예상 결제 금액 null",
-                        createBaseRequest().expectedPrice(null).build(),
-                        "예상 결제 금액은 필수입니다"),
-                Arguments.of("예상 결제 금액 1 미만",
-                        createBaseRequest().expectedPrice(0L).build(),
-                        "예상 결제 금액은 1 이상이여야 합니다")
-        );
     }
 
     private static Stream<Arguments> provideInvalidConfirmRequest(){
