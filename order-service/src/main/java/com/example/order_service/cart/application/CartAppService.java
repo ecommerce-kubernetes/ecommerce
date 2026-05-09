@@ -76,7 +76,6 @@ public class CartAppService {
         }
     }
 
-
     private List<Long> getProductVariantId(List<CartItemDto> cartItems){
         return cartItems.stream().map(CartItemDto::getProductVariantId).toList();
     }

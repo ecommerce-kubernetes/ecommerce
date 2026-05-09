@@ -1,17 +1,36 @@
 package com.example.order_service.support;
 
+import com.example.order_service.common.domain.vo.Money;
 import com.navercorp.fixturemonkey.ArbitraryBuilder;
 import com.navercorp.fixturemonkey.FixtureMonkey;
-import com.navercorp.fixturemonkey.api.introspector.BuilderArbitraryIntrospector;
+import com.navercorp.fixturemonkey.api.arbitrary.CombinableArbitrary;
+import com.navercorp.fixturemonkey.api.introspector.*;
 import com.navercorp.fixturemonkey.jakarta.validation.plugin.JakartaValidationPlugin;
+import net.jqwik.api.Arbitraries;
+import net.jqwik.api.Arbitrary;
 
+import java.util.Arrays;
 import java.util.Objects;
 
 public class TestFixtureUtil {
 
+    private static final Arbitrary<Money> moneyArbitrary =
+            Arbitraries.longs().between(100, 10000000).map(Money::wons);
+
     public static final FixtureMonkey fixtureMonkey = FixtureMonkey.builder()
-            .objectIntrospector(BuilderArbitraryIntrospector.INSTANCE)
+            .objectIntrospector(new FailoverIntrospector(
+                    Arrays.asList(
+                            FieldReflectionArbitraryIntrospector.INSTANCE,
+                            BuilderArbitraryIntrospector.INSTANCE
+                    )
+            ))
             .defaultNotNull(true)
+            .pushExactTypeArbitraryIntrospector(
+                    Money.class,
+                    context -> new ArbitraryIntrospectorResult(
+                            CombinableArbitrary.from(moneyArbitrary::sample)
+                    )
+            )
             .plugin(new JakartaValidationPlugin())
             .build();
 

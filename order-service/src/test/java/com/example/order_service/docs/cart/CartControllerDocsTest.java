@@ -7,6 +7,7 @@ import com.example.order_service.cart.application.CartAppService;
 import com.example.order_service.cart.application.dto.command.CartCommand;
 import com.example.order_service.cart.application.dto.result.CartResult;
 import com.example.order_service.cart.domain.model.vo.ProductStatus;
+import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.docs.descriptor.CartDescriptor;
 import com.example.order_service.support.RestDocSupport;
 import org.junit.jupiter.api.DisplayName;
@@ -154,13 +155,6 @@ public class CartControllerDocsTest extends RestDocSupport {
                 );
     }
 
-    private HttpHeaders createUserHeader(String userRole) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("X-User-Id", "1");
-        headers.add("X-User-Role", userRole);
-        return headers;
-    }
-
     private CartResult.Cart createCartAddResult() {
         CartResult.CartItemResult cartResult = CartResult.CartItemResult.builder()
                 .id(1L)
@@ -173,13 +167,13 @@ public class CartControllerDocsTest extends RestDocSupport {
                 .quantity(2)
                 .price(
                         CartResult.CartItemPrice.builder()
-                                .originalPrice(3000)
-                                .discountAmount(300)
-                                .discountedPrice(2700)
+                                .originalPrice(Money.wons(3000L))
+                                .discountAmount(Money.wons(300L))
+                                .discountedPrice(Money.wons(2700L))
                                 .discountRate(10)
                                 .build()
                 )
-                .lineTotal(5400)
+                .lineTotal(Money.wons(5400L))
                 .options(
                         List.of(
                                 CartResult.CartItemOption.builder()
@@ -204,13 +198,13 @@ public class CartControllerDocsTest extends RestDocSupport {
                 .quantity(2)
                 .price(
                         CartResult.CartItemPrice.builder()
-                                .originalPrice(3000)
-                                .discountAmount(300)
-                                .discountedPrice(2700)
+                                .originalPrice(Money.wons(3000L))
+                                .discountAmount(Money.wons(300L))
+                                .discountedPrice(Money.wons(2700L))
                                 .discountRate(10)
                                 .build()
                 )
-                .lineTotal(5400)
+                .lineTotal(Money.wons(5400L))
                 .options(
                         List.of(
                                 CartResult.CartItemOption.builder()

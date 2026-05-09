@@ -1,5 +1,6 @@
 package com.example.order_service.ordersheet.application.dto.result;
 
+import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.ordersheet.domain.model.vo.ProductStatus;
 import lombok.Builder;
 
@@ -15,10 +16,10 @@ public class OrderSheetProductResult {
             String sku,
             String productName,
             Integer stock,
-            Long originalPrice,
+            Money originalPrice,
             Integer discountRate,
-            Long discountAmount,
-            Long discountedPrice,
+            Money discountAmount,
+            Money discountedPrice,
             String thumbnail,
             List<Option> options
     ) {

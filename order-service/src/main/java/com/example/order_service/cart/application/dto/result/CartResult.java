@@ -2,6 +2,7 @@ package com.example.order_service.cart.application.dto.result;
 
 import com.example.order_service.cart.domain.model.vo.ProductStatus;
 import com.example.order_service.cart.domain.service.dto.result.CartItemDto;
+import com.example.order_service.common.domain.vo.Money;
 import lombok.Builder;
 
 import java.util.List;
@@ -53,7 +54,7 @@ public class CartResult {
             String thumbnail,
             int quantity,
             CartItemPrice price,
-            long lineTotal,
+            Money lineTotal,
             List<CartItemOption> options
     ) {
         public static CartItemResult of(CartItemDto cartItemDto, CartProductResult.Info product) {
@@ -67,7 +68,7 @@ public class CartResult {
                     .thumbnail(product.thumbnail())
                     .quantity(cartItemDto.getQuantity())
                     .price(CartItemPrice.from(product))
-                    .lineTotal(product.discountedPrice() * cartItemDto.getQuantity())
+                    .lineTotal(product.discountedPrice().multiple(cartItemDto.getQuantity()))
                     .options(mapToOptions(product.options()))
                     .build();
         }
@@ -79,7 +80,7 @@ public class CartResult {
                     .isAvailable(false)
                     .productVariantId(productVariantId)
                     .quantity(quantity)
-                    .lineTotal(0)
+                    .lineTotal(Money.ZERO)
                     .build();
         }
 
@@ -90,10 +91,10 @@ public class CartResult {
 
     @Builder
     public record CartItemPrice (
-            long originalPrice,
+            Money originalPrice,
             long discountRate,
-            long discountAmount,
-            long discountedPrice
+            Money discountAmount,
+            Money discountedPrice
     ) {
         public static CartItemPrice from(CartProductResult.Info product) {
             return CartItemPrice.builder()

@@ -1,5 +1,6 @@
 package com.example.order_service.ordersheet.application.dto.result;
 
+import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.ordersheet.domain.model.OrderSheet;
 import com.example.order_service.ordersheet.domain.model.OrderSheetItem;
 import com.example.order_service.ordersheet.domain.model.vo.OrderSheetItemOptionSnapshot;
@@ -34,11 +35,11 @@ public class OrderSheetResult {
 
     @Builder
     public record Summary(
-            long totalOriginPrice,
-            long totalProductDiscount,
-            long totalBasePaymentAmount
+            Money totalOriginPrice,
+            Money totalProductDiscount,
+            Money totalBasePaymentAmount
     ) {
-        public static Summary of(Long totalOriginalPrice, Long totalProductDiscount, Long totalBasePaymentAmount) {
+        public static Summary of(Money totalOriginalPrice, Money totalProductDiscount, Money totalBasePaymentAmount) {
             return Summary.builder()
                     .totalOriginPrice(totalOriginalPrice)
                     .totalProductDiscount(totalProductDiscount)
@@ -55,7 +56,7 @@ public class OrderSheetResult {
             String thumbnail,
             int quantity,
             OrderItemPrice unitPrice,
-            long lineTotal,
+            Money lineTotal,
             List<OrderItemOption> options
     ) {
         public static OrderItem from(OrderSheetItem item) {
@@ -79,10 +80,10 @@ public class OrderSheetResult {
 
     @Builder
     public record OrderItemPrice(
-            long originalPrice,
-            long discountRate,
-            long discountAmount,
-            long discountedPrice
+            Money originalPrice,
+            int discountRate,
+            Money discountAmount,
+            Money discountedPrice
     ) {
         public static OrderItemPrice from(OrderSheetItemPriceSnapshot price) {
             return OrderItemPrice.builder()

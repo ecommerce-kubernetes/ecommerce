@@ -1,6 +1,7 @@
 package com.example.order_service.cart.application.dto.result;
 
 import com.example.order_service.cart.domain.model.vo.ProductStatus;
+import com.example.order_service.common.domain.vo.Money;
 import lombok.Builder;
 
 import java.util.List;
@@ -15,10 +16,10 @@ public class CartProductResult {
             String sku,
             String productName,
             Integer stock,
-            Long originalPrice,
+            Money originalPrice,
             Integer discountRate,
-            Long discountAmount,
-            Long discountedPrice,
+            Money discountAmount,
+            Money discountedPrice,
             String thumbnail,
             List<Option> options
     ) {

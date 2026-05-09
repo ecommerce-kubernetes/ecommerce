@@ -35,19 +35,14 @@ public class ProductAdaptorTest {
     void getProductsByVariantIds() {
         //given
         List<Long> productVariantIds = List.of(1L, 2L);
-        List<ProductClientResponse.Product> productResponses = productVariantIds.stream()
-                .map(id -> sample(fixtureMonkey.giveMeBuilder(ProductClientResponse.Product.class)
-                        .set("productVariantId", id))).toList();
+        List<ProductClientResponse.Product> mockResponses =
+                fixtureMonkey.giveMe(ProductClientResponse.Product.class, 2);
         given(client.getProductsByVariantIds(any(ProductClientRequest.ProductVariantIds.class)))
-                .willReturn(productResponses);
+                .willReturn(mockResponses);
         //when
         List<ProductClientResponse.Product> response = productAdaptor.getProductsByVariantIds(productVariantIds);
         //then
-        assertThat(response)
-                .extracting("productVariantId")
-                .containsExactlyInAnyOrder(
-                        1L, 2L
-                );
+        assertThat(response).containsExactlyElementsOf(mockResponses);
     }
 
     @Test

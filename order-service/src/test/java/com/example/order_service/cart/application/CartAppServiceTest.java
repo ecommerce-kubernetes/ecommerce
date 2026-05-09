@@ -155,9 +155,12 @@ public class CartAppServiceTest {
         void getCartDetails() {
             //given
             List<CartItemDto> cartItems = List.of(
-                    sample(fixtureMonkey.giveMeBuilder(CartItemDto.class).set("productVariantId", 1L)),
-                    sample(fixtureMonkey.giveMeBuilder(CartItemDto.class).set("productVariantId", 2L)),
-                    sample(fixtureMonkey.giveMeBuilder(CartItemDto.class).set("productVariantId", 3L))
+                    sample(fixtureMonkey.giveMeBuilder(CartItemDto.class).set("productVariantId", 1L)
+                            .set("quantity", 1)),
+                    sample(fixtureMonkey.giveMeBuilder(CartItemDto.class).set("productVariantId", 2L)
+                            .set("quantity", 1)),
+                    sample(fixtureMonkey.giveMeBuilder(CartItemDto.class).set("productVariantId", 3L)
+                            .set("quantity", 1))
             );
 
             List<CartProductResult.Info> productInfos = List.of(

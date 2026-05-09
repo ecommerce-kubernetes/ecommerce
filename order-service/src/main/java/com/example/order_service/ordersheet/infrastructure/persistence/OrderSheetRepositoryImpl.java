@@ -16,20 +16,22 @@ public class OrderSheetRepositoryImpl implements OrderSheetRepository {
     private static final String PREFIX_ORDER_SHEET = "order:sheet:";
     private final StringRedisTemplate redisTemplate;
     private final ObjectMapper objectMapper;
+    private final OrderSheetRedisMapper redisMapper;
 
     @Override
     public OrderSheet save(OrderSheet orderSheet, Duration ttl) {
         String key = PREFIX_ORDER_SHEET + orderSheet.getSheetId();
-        String value = orderSheetToString(orderSheet);
+        OrderSheetRedisEntity entity = redisMapper.toEntity(orderSheet);
+        String value = entityToString(entity);
         redisTemplate.opsForValue().set(key, value, ttl);
         return orderSheet;
     }
 
-    private String orderSheetToString(OrderSheet orderSheet) {
+    private String entityToString(OrderSheetRedisEntity entity) {
         try {
-            return objectMapper.writeValueAsString(orderSheet);
+            return objectMapper.writeValueAsString(entity);
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("orderSheet 변환 실패");
+            throw new RuntimeException("엔티티 변환 실패");
         }
     }
 }

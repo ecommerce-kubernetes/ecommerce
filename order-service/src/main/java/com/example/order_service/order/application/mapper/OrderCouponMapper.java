@@ -10,6 +10,7 @@ import org.mapstruct.Mapping;
 public interface OrderCouponMapper {
 
     @Mapping(source = "code", target = "status")
+    @Mapping(source = "discountBenefit", target = "couponBenefit")
     OrderCouponResult.CouponValidation toResult(CouponClientResponse.Calculate coupon);
     OrderCouponResult.CouponBenefit toBenefit(CouponClientResponse.DiscountBenefit benefit);
 

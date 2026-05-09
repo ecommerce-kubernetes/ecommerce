@@ -1,22 +1,28 @@
 package com.example.order_service.ordersheet.domain.model.vo;
 
+import com.example.order_service.common.domain.vo.Money;
+import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class OrderSheetItemPriceSnapshot {
-    private Long originalPrice;
+    private Money originalPrice;
     private Integer discountRate;
-    private Long discountAmount;
-    private Long discountedPrice;
+    private Money discountAmount;
+    private Money discountedPrice;
 
-    private OrderSheetItemPriceSnapshot(Long originalPrice, Integer discountRate, Long discountAmount, Long discountedPrice) {
+    @Builder(builderMethodName = "reconstitute")
+    private OrderSheetItemPriceSnapshot(Money originalPrice, Integer discountRate, Money discountAmount, Money discountedPrice) {
         this.originalPrice = originalPrice;
         this.discountRate = discountRate;
         this.discountAmount = discountAmount;
         this.discountedPrice =discountedPrice;
     }
 
-    public static OrderSheetItemPriceSnapshot of(Long originalPrice, Integer discountRate, Long discountAmount, Long discountedPrice) {
+    public static OrderSheetItemPriceSnapshot of(Money originalPrice, Integer discountRate, Money discountAmount, Money discountedPrice) {
         return new OrderSheetItemPriceSnapshot(originalPrice, discountRate, discountAmount, discountedPrice);
     }
 }

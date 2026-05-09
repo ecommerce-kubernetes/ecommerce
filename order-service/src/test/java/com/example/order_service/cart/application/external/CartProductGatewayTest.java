@@ -24,6 +24,7 @@ import java.util.List;
 import static com.example.order_service.support.TestFixtureUtil.fixtureMonkey;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
@@ -35,8 +36,8 @@ public class CartProductGatewayTest {
     private CartProductGateway cartProductGateway;
     @Mock
     private ProductAdaptor adaptor;
-    @Spy
-    private CartProductMapper productMapper = Mappers.getMapper(CartProductMapper.class);
+    @Mock
+    private CartProductMapper productMapper;
 
     @Nested
     @DisplayName("상품 목록 정보 조회")
@@ -47,20 +48,14 @@ public class CartProductGatewayTest {
         void getProducts(){
             //given
             List<Long> variantIds = List.of(1L, 2L);
-            List<ProductClientResponse.Product> productResponses = variantIds.stream()
-                    .map(id -> fixtureMonkey.giveMeBuilder(ProductClientResponse.Product.class)
-                            .set("productVariantId", id)
-                            .sample()).toList();
-            given(adaptor.getProductsByVariantIds(anyList()))
-                    .willReturn(productResponses);
+            List<ProductClientResponse.Product> productResponses = fixtureMonkey.giveMe(ProductClientResponse.Product.class, 2);
+            List<CartProductResult.Info> mockInfos = fixtureMonkey.giveMe(CartProductResult.Info.class, 2);
+            given(adaptor.getProductsByVariantIds(anyList())).willReturn(productResponses);
+            given(productMapper.toResult(any())).willReturn(mockInfos.get(0), mockInfos.get(1));
             //when
             List<CartProductResult.Info> result = cartProductGateway.getProducts(variantIds);
             //then
-            assertThat(result)
-                    .extracting("productVariantId")
-                    .containsExactlyInAnyOrder(
-                            1L, 2L
-                    );
+            assertThat(result).containsExactlyElementsOf(mockInfos);
         }
 
         @Test

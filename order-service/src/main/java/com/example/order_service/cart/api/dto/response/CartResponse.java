@@ -57,7 +57,7 @@ public class CartResponse {
                     .thumbnail(result.thumbnail())
                     .quantity(result.quantity())
                     .price(CartItemPrice.from(result.price()))
-                    .lineTotal(result.lineTotal())
+                    .lineTotal(result.lineTotal().longValue())
                     .options(mapToOptions(result.options()))
                     .build();
         }
@@ -80,10 +80,10 @@ public class CartResponse {
     ) {
         public static CartItemPrice from(CartResult.CartItemPrice price){
             return CartItemPrice.builder()
-                    .originalPrice(price.originalPrice())
+                    .originalPrice(price.originalPrice().longValue())
                     .discountRate(price.discountRate())
-                    .discountAmount(price.discountAmount())
-                    .discountedPrice(price.discountedPrice())
+                    .discountAmount(price.discountAmount().longValue())
+                    .discountedPrice(price.discountedPrice().longValue())
                     .build();
         }
     }

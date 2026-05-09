@@ -39,17 +39,14 @@ public class OrderSheetAppService {
         Map<Long, Integer> quantityMap = command.toQuantityMap();
         // 상품 정보 조회
         List<OrderSheetProductResult.Info> products = orderSheetProductGateway.getProducts(variantIds);
-
         // 주문 상품 검증
         validateProductsForOrder(products, quantityMap);
-
         String sheetId = generateSheetId();
         // orderSheet 데이터 생성 및 저장
         List<OrderSheetItem> orderSheetItems = mapToDomainItems(products, quantityMap);
-        OrderSheet orderSheet = OrderSheet.create(sheetId, orderSheetItems, LocalDateTime.now());
+        OrderSheet orderSheet = OrderSheet.create(sheetId, orderSheetItems, LocalDateTime.now(), orderSheetProperties.ttlMinutes());
         // ttl
-        long ttlMinutes = orderSheetProperties.ttlMinutes();
-        OrderSheet savedOrderSheet = repository.save(orderSheet, Duration.ofMinutes(ttlMinutes));
+        OrderSheet savedOrderSheet = repository.save(orderSheet, Duration.ofMinutes(orderSheetProperties.ttlMinutes()));
         return OrderSheetResult.Default.from(savedOrderSheet);
     }
 
