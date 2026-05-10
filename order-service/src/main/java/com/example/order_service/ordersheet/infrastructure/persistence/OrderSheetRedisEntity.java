@@ -10,6 +10,7 @@ import java.util.List;
 @Builder
 class OrderSheetRedisEntity {
     private String sheetId;
+    private Long userId;
     private List<OrderSheetItemRedisEntity> items;
     private long totalOriginalPrice;
     private long totalProductDiscountAmount;

@@ -14,6 +14,7 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class OrderSheet {
     private String sheetId;
+    private Long userId;
     private List<OrderSheetItem> items;
     private Money totalOriginalPrice;
     private Money totalProductDiscountAmount;
@@ -21,9 +22,10 @@ public class OrderSheet {
     private LocalDateTime expiresAt;
 
     @Builder(builderMethodName = "reconstitute")
-    private OrderSheet(String sheetId, List<OrderSheetItem> items,
+    private OrderSheet(String sheetId, Long userId, List<OrderSheetItem> items,
                        Money totalOriginalPrice, Money totalProductDiscountAmount, Money totalPaymentAmount, LocalDateTime expiresAt) {
         this.sheetId = sheetId;
+        this.userId = userId;
         this.items = items;
         this.totalOriginalPrice = totalOriginalPrice;
         this.totalProductDiscountAmount = totalProductDiscountAmount;
@@ -31,12 +33,13 @@ public class OrderSheet {
         this.expiresAt = expiresAt;
     }
 
-    public static OrderSheet create(String sheetId, List<OrderSheetItem> items, LocalDateTime createdAt, long ttl) {
+    public static OrderSheet create(String sheetId, Long userId, List<OrderSheetItem> items, LocalDateTime createdAt, long ttl) {
         if (items == null || items.isEmpty()) {
             throw new InvalidDomainValueException("OrderSheet 주문 상품은 필수입니다");
         }
         return OrderSheet.reconstitute()
                 .sheetId(sheetId)
+                .userId(userId)
                 .items(items)
                 .totalOriginalPrice(calcTotalOriginalPrice(items))
                 .totalProductDiscountAmount(calcTotalProductDiscountAmount(items))

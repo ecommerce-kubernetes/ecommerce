@@ -4,6 +4,7 @@ import lombok.Builder;
 
 public class CouponClientResponse {
 
+    //TODO Deprecated
     @Builder
     public record Calculate(
             String code,
@@ -18,4 +19,14 @@ public class CouponClientResponse {
             Long discountAmount
     ) {
     }
+
+    @Builder
+    public record CouponInfo(
+            Long couponId,
+            String couponName,
+            Boolean available,
+            Long discountAmount,
+            String code
+    ) {}
+
 }

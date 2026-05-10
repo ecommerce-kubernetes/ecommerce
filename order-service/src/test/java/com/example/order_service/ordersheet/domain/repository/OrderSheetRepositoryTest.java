@@ -16,6 +16,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -39,9 +40,34 @@ class OrderSheetRepositoryTest {
                 .isEqualTo(savedOrderSheet);
     }
 
+    @Test
+    @DisplayName("주문서 데이터를 조회한다")
+    void findById() {
+        //given
+        OrderSheet saved = repository.save(createOrderSheet(), Duration.ofMinutes(30));
+        //when
+        Optional<OrderSheet> find = repository.findById(saved.getSheetId());
+        //then
+        assertThat(find).isPresent();
+        assertThat(find).get()
+                .usingRecursiveComparison()
+                .isEqualTo(saved);
+    }
+
+    @Test
+    @DisplayName("주문서 데이터가 없으면 빈 optional 이 반환된다")
+    void findById_not_found() {
+        //given
+        //when
+        Optional<OrderSheet> find = repository.findById("sheetId");
+        //then
+        assertThat(find).isEmpty();
+    }
+
     private OrderSheet createOrderSheet() {
         return OrderSheet.create(
                 "test",
+                1L,
                 List.of(createOrderSheetItem()),
                 LocalDateTime.now(),
                 30

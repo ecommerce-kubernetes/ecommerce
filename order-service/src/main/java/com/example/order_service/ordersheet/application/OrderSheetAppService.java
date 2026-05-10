@@ -20,10 +20,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -44,13 +41,19 @@ public class OrderSheetAppService {
         String sheetId = generateSheetId();
         // orderSheet 데이터 생성 및 저장
         List<OrderSheetItem> orderSheetItems = mapToDomainItems(products, quantityMap);
-        OrderSheet orderSheet = OrderSheet.create(sheetId, orderSheetItems, LocalDateTime.now(), orderSheetProperties.ttlMinutes());
+        OrderSheet orderSheet = OrderSheet.create(sheetId, command.userId(), orderSheetItems,
+                LocalDateTime.now(), orderSheetProperties.ttlMinutes());
         // ttl
         OrderSheet savedOrderSheet = repository.save(orderSheet, Duration.ofMinutes(orderSheetProperties.ttlMinutes()));
         return OrderSheetResult.Default.from(savedOrderSheet);
     }
 
     public OrderSheetResult.Detail getOrderSheet(String sheetId, Long userId) {
+        OrderSheet orderSheet = findByOrThrow(sheetId);
+        // 주문서 생성 유저와 조회 유저가 일치하지 않음
+        if (!orderSheet.getUserId().equals(userId)) {
+            throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_NO_PERMISSION);
+        }
         return null;
     }
 
@@ -97,6 +100,15 @@ public class OrderSheetAppService {
     // UUID 로 id 생성
     private String generateSheetId() {
         return UUID.randomUUID().toString();
+    }
+
+    private OrderSheet findByOrThrow(String sheetId) {
+        Optional<OrderSheet> sheetOptional = repository.findById(sheetId);
+        if (sheetOptional.isPresent()) {
+            return sheetOptional.get();
+        } else {
+            throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_NOT_FOUND);
+        }
     }
 
 }

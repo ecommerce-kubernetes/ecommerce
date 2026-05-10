@@ -9,6 +9,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.time.Duration;
+import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor
@@ -27,10 +28,29 @@ public class OrderSheetRepositoryImpl implements OrderSheetRepository {
         return orderSheet;
     }
 
+    @Override
+    public Optional<OrderSheet> findById(String sheetId) {
+        String key = PREFIX_ORDER_SHEET + sheetId;
+        String value = redisTemplate.opsForValue().get(key);
+        if (value == null) {
+            return Optional.empty();
+        }
+        OrderSheetRedisEntity entity = stringToEntity(value);
+        return Optional.of(redisMapper.toDomain(entity));
+    }
+
     private String entityToString(OrderSheetRedisEntity entity) {
         try {
             return objectMapper.writeValueAsString(entity);
         } catch (JsonProcessingException e) {
+            throw new RuntimeException("엔티티 변환 실패");
+        }
+    }
+
+    private OrderSheetRedisEntity stringToEntity(String str) {
+        try {
+            return objectMapper.readValue(str, OrderSheetRedisEntity.class);
+        } catch (JsonProcessingException e){
             throw new RuntimeException("엔티티 변환 실패");
         }
     }
