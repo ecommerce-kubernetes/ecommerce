@@ -39,7 +39,6 @@ public class CouponClientRequest {
 
     @Builder
     public record EvaluationItem(
-            String itemId,
             Long productId,
             Long productVariantId,
             Long price,
@@ -48,7 +47,6 @@ public class CouponClientRequest {
 
         public static EvaluationItem from(CouponCommand.Item item) {
             return EvaluationItem.builder()
-                    .itemId(item.itemId())
                     .productId(item.productId())
                     .productVariantId(item.productVariantId())
                     .price(item.price())
@@ -59,6 +57,5 @@ public class CouponClientRequest {
         public static List<EvaluationItem> from(List<CouponCommand.Item> items) {
             return items.stream().map(EvaluationItem::from).toList();
         }
-
     }
 }

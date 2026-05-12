@@ -30,7 +30,7 @@ public class CouponClientResponse {
             Boolean available,
             Long discountAmount,
             String code,
-            List<String> applicableItemIds
+            List<Long> applicableVariantIds
     ) {}
 
 }
