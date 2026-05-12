@@ -13,6 +13,9 @@ import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 
+import java.util.List;
+
+import static com.example.order_service.support.TestFixtureUtil.fixtureMonkey;
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -108,5 +111,46 @@ public class CouponFeignClientTest {
                 .hasMessage("쿠폰을 찾을 수 없습니다")
                 .extracting("errorCode")
                 .isEqualTo("NOT_FOUND_COUPON");
+    }
+
+    @Test
+    @DisplayName("쿠폰 서비스에서 쿠폰 정보를 조회한다")
+    void evaluate(){
+        //given
+        CouponClientRequest.CouponEvaluate request = fixtureMonkey.giveMeOne(CouponClientRequest.CouponEvaluate.class);
+        String mockJsonResponse = """
+                [
+                    {
+                        "couponId": 1,
+                        "couponName": "봄맞이 10% 아우터 할인 쿠폰",
+                        "scope": "ITEM",
+                        "discountAmount": 9000,
+                        "available": true,
+                        "code": "AVAILABLE",
+                        "applicableItemIds" : ["item1", "item2"]
+                    },
+                    {
+                        "couponId": 2,
+                        "couponName": "전 품목 10만원 이상 5천원 할인",
+                        "scope": "ORDER",
+                        "discountAmount": 5000,
+                        "available": true,
+                        "code": "AVAILABLE",
+                        "applicableItemIds" : []
+                    }
+                ]
+                """;
+
+        stubFor(post(urlEqualTo("/internal/coupons/evaluate"))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                        .withBody(mockJsonResponse)));
+        //when
+        List<CouponClientResponse.CouponInfo> response = client.evaluate(request);
+        //then
+        CouponClientResponse.CouponInfo coupon = response.get(0);
+        assertThat(coupon).hasNoNullFieldsOrProperties();
+        assertThat(coupon.applicableItemIds()).isNotNull();
     }
 }

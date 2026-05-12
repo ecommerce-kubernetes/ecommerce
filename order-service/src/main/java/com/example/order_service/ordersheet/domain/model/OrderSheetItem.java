@@ -15,25 +15,28 @@ import java.util.List;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class OrderSheetItem {
+    private String sheetItemId;
     private OrderSheetItemProductSnapshot productSnapshot;
     private OrderSheetItemPriceSnapshot itemPrice;
     private Integer quantity;
     private List<OrderSheetItemOptionSnapshot> options;
 
     @Builder(builderMethodName = "reconstitute")
-    private OrderSheetItem(OrderSheetItemProductSnapshot productSnapshot, OrderSheetItemPriceSnapshot itemPrice, Integer quantity, List<OrderSheetItemOptionSnapshot> options) {
+    private OrderSheetItem(String sheetItemId, OrderSheetItemProductSnapshot productSnapshot, OrderSheetItemPriceSnapshot itemPrice, Integer quantity, List<OrderSheetItemOptionSnapshot> options) {
+        this.sheetItemId = sheetItemId;
         this.productSnapshot = productSnapshot;
         this.itemPrice = itemPrice;
         this.quantity = quantity;
         this.options = options;
     }
 
-    public static OrderSheetItem create(OrderSheetItemProductSnapshot productSnapshot, OrderSheetItemPriceSnapshot itemPrice,
+    public static OrderSheetItem create(String sheetItemId, OrderSheetItemProductSnapshot productSnapshot, OrderSheetItemPriceSnapshot itemPrice,
                                         Integer quantity, List<OrderSheetItemOptionSnapshot> options) {
         if (quantity == null || quantity <= 0) {
             throw new InvalidDomainValueException("OrderSheet 상품 주문 수량은 필수입니다");
         }
         return OrderSheetItem.reconstitute()
+                .sheetItemId(sheetItemId)
                 .productSnapshot(productSnapshot)
                 .itemPrice(itemPrice)
                 .quantity(quantity)

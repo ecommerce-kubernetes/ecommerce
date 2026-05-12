@@ -2,6 +2,7 @@ package com.example.order_service.infrastructure.adaptor;
 
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
 import com.example.order_service.infrastructure.client.CouponFeignClient;
+import com.example.order_service.infrastructure.dto.command.CouponCommand;
 import com.example.order_service.infrastructure.dto.request.CouponClientRequest;
 import com.example.order_service.infrastructure.dto.response.CouponClientResponse;
 import com.example.order_service.support.TestFixtureUtil;
@@ -11,6 +12,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
+import java.util.List;
+
+import static com.example.order_service.support.TestFixtureUtil.fixtureMonkey;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -63,6 +67,39 @@ public class CouponAdaptorTest {
         //when
         //then
         assertThatThrownBy(() -> couponAdaptor.calculate(userId, couponId, totalAmount))
+                .isInstanceOf(ExternalSystemUnavailableException.class);
+    }
+
+    @Test
+    @DisplayName("쿠폰 서비스에서 쿠폰 정보를 조회한다")
+    void evaluate(){
+        //given
+        CouponCommand.CouponEvaluate command = fixtureMonkey.giveMeOne(CouponCommand.CouponEvaluate.class);
+        List<CouponClientResponse.CouponInfo> mockResponses = fixtureMonkey.giveMe(CouponClientResponse.CouponInfo.class, 2);
+        given(client.evaluate(any(CouponClientRequest.CouponEvaluate.class)))
+                .willReturn(mockResponses);
+        //when
+        List<CouponClientResponse.CouponInfo> responses = couponAdaptor.evaluate(command);
+        //then
+        assertThat(responses)
+                .usingRecursiveComparison()
+                .isEqualTo(mockResponses);
+    }
+
+    @Test
+    @DisplayName("쿠폰 서비스 조회에서 예외 발생시 translator를 호출하여 반환된 예외를 던진다")
+    void evaluate_fallback_delegate_to_translator() throws Throwable {
+        //given
+        CouponCommand.CouponEvaluate command = fixtureMonkey.giveMeOne(CouponCommand.CouponEvaluate.class);
+        RuntimeException feignException = new RuntimeException("feignClient 예외");
+        ExternalSystemUnavailableException translatedException =
+                new ExternalSystemUnavailableException("CODE", "변환된 에러", feignException);
+        willThrow(feignException).given(client).evaluate(any(CouponClientRequest.CouponEvaluate.class));
+        given(translator.translate(anyString(), any(Throwable.class)))
+                .willReturn(translatedException);
+        //when
+        //then
+        assertThatThrownBy(() -> couponAdaptor.evaluate(command))
                 .isInstanceOf(ExternalSystemUnavailableException.class);
     }
 }

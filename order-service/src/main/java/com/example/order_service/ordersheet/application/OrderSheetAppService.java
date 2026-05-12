@@ -38,7 +38,7 @@ public class OrderSheetAppService {
         List<OrderSheetProductResult.Info> products = orderSheetProductGateway.getProducts(variantIds);
         // 주문 상품 검증
         validateProductsForOrder(products, quantityMap);
-        String sheetId = generateSheetId();
+        String sheetId = generateId();
         // orderSheet 데이터 생성 및 저장
         List<OrderSheetItem> orderSheetItems = mapToDomainItems(products, quantityMap);
         OrderSheet orderSheet = OrderSheet.create(sheetId, command.userId(), orderSheetItems,
@@ -59,13 +59,14 @@ public class OrderSheetAppService {
 
     private List<OrderSheetItem> mapToDomainItems(List<OrderSheetProductResult.Info> products, Map<Long, Integer> quantityMap) {
         return products.stream().map(product -> {
+            String sheetItemId = generateId();
             Integer quantity = quantityMap.get(product.productVariantId());
             OrderSheetItemProductSnapshot productSnapshot = OrderSheetItemProductSnapshot.of(product.productId(),
                     product.productVariantId(), product.sku(), product.productName(), product.thumbnail());
             OrderSheetItemPriceSnapshot priceSnapshot = OrderSheetItemPriceSnapshot.of(product.originalPrice(),
                     product.discountRate(), product.discountAmount(), product.discountedPrice());
             List<OrderSheetItemOptionSnapshot> options = mapToOptionSnapshots(product.options());
-            return OrderSheetItem.create(productSnapshot, priceSnapshot, quantity, options);
+            return OrderSheetItem.create(sheetItemId, productSnapshot, priceSnapshot, quantity, options);
         }).toList();
     }
 
@@ -98,7 +99,7 @@ public class OrderSheetAppService {
     }
 
     // UUID 로 id 생성
-    private String generateSheetId() {
+    private String generateId() {
         return UUID.randomUUID().toString();
     }
 

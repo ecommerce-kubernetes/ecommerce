@@ -76,6 +76,7 @@ class OrderSheetRepositoryTest {
 
     private OrderSheetItem createOrderSheetItem() {
         return OrderSheetItem.create(
+                "sheetItemId",
                 createProductSnapshot(),
                 createPriceSnapshot(),
                 1,

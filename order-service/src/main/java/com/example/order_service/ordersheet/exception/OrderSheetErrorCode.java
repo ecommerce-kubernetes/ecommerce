@@ -7,6 +7,9 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum OrderSheetErrorCode implements ErrorCode {
+    ORDER_SHEET_COUPON_UNAVAILABLE_SERVER_ERROR(503, "ORDER-SHEET-013", "주문 처리중 일시적인 오류가 발생했습니다 잠시후 재시도 해주세요"),
+    ORDER_SHEET_COUPON_SERVER_ERROR(500,"ORDER-SHEET_012", "주문 처리중 오류가 발생했습니다"),
+    ORDER_SHEET_COUPON_CLIENT_ERROR(409, "ORDER-SHEET_011", "주문 처리중 클라이언트 오류가 발생했습니다"),
     ORDER_SHEET_NO_PERMISSION(403, "ORDER-SHEET-010", "주문서에 대한 접근 권한이 없습니다"),
     ORDER_SHEET_NOT_FOUND(404, "ORDER-SHEET-009", "주문서를 찾을 수 없습니다"),
     ORDER_SHEET_PRODUCT_NOT_FOUND(404, "ORDER-SHEET-008", "주문 상품을 찾을 수 없습니다"),
