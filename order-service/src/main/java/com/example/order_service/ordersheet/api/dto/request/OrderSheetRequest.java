@@ -15,18 +15,28 @@ public class OrderSheetRequest {
     public record Create(
             @Valid
             @NotEmpty(message = "주문 상품은 한개 이상이여야 합니다")
-            List<OrderItem> items
+            List<OrderItem> items,
+            Long cartCouponId,
+            @Valid
+            @NotNull(message = "상품 쿠폰은 필수값 입니다")
+            List<ItemCoupon> itemCoupons
     ) {
 
         public OrderSheetCommand.Create toCommand(Long userId) {
             return OrderSheetCommand.Create.builder()
                     .userId(userId)
                     .items(itemsMapToCommand(items))
+                    .cartCouponId(cartCouponId)
+                    .itemCoupons(couponsMapToCommand(itemCoupons))
                     .build();
         }
 
         private List<OrderSheetCommand.OrderItem> itemsMapToCommand(List<OrderItem> items) {
             return items.stream().map(OrderItem::toCommand).toList();
+        }
+
+        private List<OrderSheetCommand.ItemCoupon> couponsMapToCommand(List<ItemCoupon> coupons) {
+            return coupons.stream().map(ItemCoupon::toCommand).toList();
         }
     }
 
@@ -42,6 +52,21 @@ public class OrderSheetRequest {
             return OrderSheetCommand.OrderItem.builder()
                     .productVariantId(productVariantId)
                     .quantity(quantity)
+                    .build();
+        }
+    }
+
+    @Builder(toBuilder = true)
+    public record ItemCoupon(
+            @NotNull(message = "쿠폰을 적용할 상품 변형 아이디는 필수값 입니다")
+            Long productVariantId,
+            @NotNull(message = "적용할 쿠폰 아이디는 필수값 입니다")
+            Long couponId
+    ) {
+        public OrderSheetCommand.ItemCoupon toCommand() {
+            return OrderSheetCommand.ItemCoupon.builder()
+                    .productVariantId(productVariantId)
+                    .couponId(couponId)
                     .build();
         }
     }

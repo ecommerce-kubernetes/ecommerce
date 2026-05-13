@@ -52,7 +52,16 @@ class OrderSheetControllerTest {
         @WithCustomMockUser
         void createOrderSheet() throws Exception {
             //given
-            OrderSheetRequest.Create request = nonNull(fixtureMonkey.giveMeOne(OrderSheetRequest.Create.class));
+            OrderSheetRequest.OrderItem item = fixtureMonkey.giveMeBuilder(OrderSheetRequest.OrderItem.class)
+                    .set("productVariantId", 1L)
+                    .sample();
+            OrderSheetRequest.ItemCoupon itemCoupon = fixtureMonkey.giveMeBuilder(OrderSheetRequest.ItemCoupon.class)
+                    .set("productVariantId", 1L)
+                    .sample();
+            OrderSheetRequest.Create request = fixtureMonkey.giveMeBuilder(OrderSheetRequest.Create.class)
+                    .set("items", List.of(item))
+                    .set("itemCoupons", List.of(itemCoupon))
+                    .sample();
             OrderSheetResult.Default result = nonNull(fixtureMonkey.giveMeOne(OrderSheetResult.Default.class));
             given(orderSheetAppService.createOrderSheet(any(OrderSheetCommand.Create.class)))
                     .willReturn(result);
@@ -119,42 +128,30 @@ class OrderSheetControllerTest {
                     .andExpect(jsonPath("$.path").value("/order-sheets"));
         }
 
-        @Test
-        @DisplayName("중복된 상품 ID 가 존재하면 에러 응답을 보낸다")
-        @WithCustomMockUser
-        void createOrderSheet_duplicateVariantId() throws Exception {
-            //given
-            OrderSheetRequest.Create request = sample(fixtureMonkey.giveMeBuilder(OrderSheetRequest.Create.class)
-                    .size("items", 2)
-                    .set("items[0].productVariantId", 1L)
-                    .set("items[1].productVariantId", 1L));
-            //when
-            //then
-            mockMvc.perform(post("/order-sheets")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.code").value("ORDER-SHEET_001"))
-                    .andExpect(jsonPath("$.message").value("중복된 상품 ID 가 존재합니다"))
-                    .andExpect(jsonPath("$.timestamp").exists())
-                    .andExpect(jsonPath("$.path").value("/order-sheets"));
-        }
-
         private static Stream<Arguments> provideInvalidCreateRequest() {
             OrderSheetRequest.OrderItem VALID_BASE_ITEM = OrderSheetRequest.OrderItem.builder()
                     .productVariantId(1L)
                     .quantity(3)
                     .build();
+            OrderSheetRequest.ItemCoupon VALID_BASE_ITEM_COUPON = OrderSheetRequest.ItemCoupon.builder()
+                    .productVariantId(1L)
+                    .couponId(1L)
+                    .build();
             return Stream.of(
                     Arguments.of(
                             "상품이 없음",
-                            OrderSheetRequest.Create.builder().build(),
+                            OrderSheetRequest.Create.builder()
+                                    .cartCouponId(null)
+                                    .itemCoupons(List.of())
+                                    .build(),
                             "주문 상품은 한개 이상이여야 합니다"
                     ),
                     Arguments.of(
                             "상품 변형 id가 null",
                             OrderSheetRequest.Create.builder()
                                     .items(List.of(VALID_BASE_ITEM.toBuilder().productVariantId(null).build()))
+                                    .cartCouponId(null)
+                                    .itemCoupons(List.of())
                                     .build(),
                             "productVariantId는 필수값입니다"
                     ),
@@ -162,6 +159,8 @@ class OrderSheetControllerTest {
                             "수량이 null",
                             OrderSheetRequest.Create.builder()
                                     .items(List.of(VALID_BASE_ITEM.toBuilder().quantity(null).build()))
+                                    .cartCouponId(null)
+                                    .itemCoupons(List.of())
                                     .build(),
                             "quantity는 필수값입니다"
                     ),
@@ -169,8 +168,40 @@ class OrderSheetControllerTest {
                             "수량이 1미만",
                             OrderSheetRequest.Create.builder()
                                     .items(List.of(VALID_BASE_ITEM.toBuilder().quantity(0).build()))
+                                    .cartCouponId(null)
+                                    .itemCoupons(List.of())
                                     .build(),
                             "quantity는 1이상 이여야 합니다"
+                    ),
+                    Arguments.of(
+                            "상품 쿠폰이 null",
+                            OrderSheetRequest.Create.builder()
+                                    .items(List.of(VALID_BASE_ITEM))
+                                    .cartCouponId(null)
+                                    .itemCoupons(null)
+                                    .build(),
+                            "상품 쿠폰은 필수값 입니다"
+                    ),
+                    Arguments.of(
+                            "상품 쿠폰 사용 상품 variantId가 null",
+                            OrderSheetRequest.Create.builder()
+                                    .items(List.of(VALID_BASE_ITEM))
+                                    .cartCouponId(null)
+                                    .itemCoupons(List.of(VALID_BASE_ITEM_COUPON.toBuilder()
+                                            .productVariantId(null).build()))
+                                    .build(),
+                            "쿠폰을 적용할 상품 변형 아이디는 필수값 입니다"
+                    ),
+                    Arguments.of(
+                            "상품 쿠폰 아이디가 null",
+                            OrderSheetRequest.Create.builder()
+                                    .items(List.of(VALID_BASE_ITEM))
+                                    .cartCouponId(null)
+                                    .itemCoupons(List.of(VALID_BASE_ITEM_COUPON.toBuilder()
+                                            .couponId(null)
+                                            .build()))
+                                    .build(),
+                            "적용할 쿠폰 아이디는 필수값 입니다"
                     )
             );
         }

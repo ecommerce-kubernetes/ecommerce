@@ -4,8 +4,10 @@ import com.example.order_service.common.exception.business.BusinessException;
 import com.example.order_service.ordersheet.exception.OrderSheetErrorCode;
 import lombok.Builder;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class OrderSheetCommand {
@@ -13,18 +15,34 @@ public class OrderSheetCommand {
     @Builder
     public record Create(
             Long userId,
-            List<OrderItem> items
+            List<OrderItem> items,
+            Long cartCouponId,
+            List<ItemCoupon> itemCoupons
     ) {
         public Create {
             if (items == null || items.isEmpty()) {
-                throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_ITEM_REQUIRED);
+                throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_ITEMS_REQUIRED);
             }
-            //variantIds 중복 검사
-            long uniqueItemCount = items.stream().map(OrderItem::productVariantId)
-                    .distinct()
-                    .count();
-            if (uniqueItemCount != items.size()) {
-                throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_DUPLICATE_ITEMS);
+            Set<Long> orderItemVariantIds = new HashSet<>();
+            for (OrderItem item : items) {
+                if (!orderItemVariantIds.add(item.productVariantId())) {
+                    throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_ITEMS_DUPLICATE);
+                }
+            }
+            if (itemCoupons != null && !itemCoupons.isEmpty()) {
+                Set<Long> couponItemIds = new HashSet<>();
+                Set<Long> itemCouponIds = new HashSet<>();
+                for(ItemCoupon coupon: itemCoupons) {
+                    if (!orderItemVariantIds.contains(coupon.productVariantId())) {
+                        throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_COUPON_ITEM_NOT_IN_ITEMS);
+                    }
+                    if (!couponItemIds.add(coupon.productVariantId())) {
+                        throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_DUPLICATE_COUPON_APPLICATION);
+                    }
+                    if (!itemCouponIds.add(coupon.couponId())) {
+                        throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_ALREADY_APPLIED_TO_ANOTHER_ITEM);
+                    }
+                }
             }
         }
 
@@ -42,6 +60,13 @@ public class OrderSheetCommand {
     public record OrderItem(
             Long productVariantId,
             Integer quantity
+    ) {
+    }
+
+    @Builder
+    public record ItemCoupon(
+            Long productVariantId,
+            Long couponId
     ) {
     }
 }

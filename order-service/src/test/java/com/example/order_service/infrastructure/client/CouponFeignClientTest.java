@@ -127,7 +127,7 @@ public class CouponFeignClientTest {
                         "discountAmount": 9000,
                         "available": true,
                         "code": "AVAILABLE",
-                        "applicableItemIds" : ["item1", "item2"]
+                        "applicableVariantIds" : ["item1", "item2"]
                     },
                     {
                         "couponId": 2,
@@ -136,7 +136,7 @@ public class CouponFeignClientTest {
                         "discountAmount": 5000,
                         "available": true,
                         "code": "AVAILABLE",
-                        "applicableItemIds" : []
+                        "applicableVariantIds" : []
                     }
                 ]
                 """;
@@ -151,6 +151,6 @@ public class CouponFeignClientTest {
         //then
         CouponClientResponse.CouponInfo coupon = response.get(0);
         assertThat(coupon).hasNoNullFieldsOrProperties();
-        assertThat(coupon.applicableItemIds()).isNotNull();
+        assertThat(coupon.applicableVariantIds()).isNotNull();
     }
 }
