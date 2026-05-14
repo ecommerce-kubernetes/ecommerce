@@ -4,7 +4,6 @@ import com.example.order_service.common.exception.external.ExternalClientExcepti
 import com.example.order_service.common.exception.external.ExternalServerException;
 import com.example.order_service.infrastructure.dto.request.CouponClientRequest;
 import com.example.order_service.infrastructure.dto.response.CouponClientResponse;
-import com.example.order_service.support.TestFixtureUtil;
 import com.example.order_service.support.annotation.IsolatedTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -15,10 +14,8 @@ import org.springframework.http.MediaType;
 
 import java.util.List;
 
-import static com.example.order_service.support.TestFixtureUtil.fixtureMonkey;
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.*;
 
 @IsolatedTest
 @AutoConfigureWireMock(port = 0)
@@ -28,22 +25,37 @@ public class CouponFeignClientTest {
     private CouponFeignClient client;
 
     @Test
-    @DisplayName("쿠폰 서비스에서 쿠폰 정보를 조회한다")
+    @DisplayName("적용하려는 쿠폰의 할인 정보와 적용 가능 여부를 계산한다")
     void calculate() {
         //given
-        // 요청 응답 모킹
-        CouponClientRequest.Calculate request = TestFixtureUtil.giveMeOne(CouponClientRequest.Calculate.class);
+        CouponClientRequest.Item item = CouponClientRequest.Item.builder()
+                .productVariantId(1L)
+                .price(10000L)
+                .quantity(3)
+                .itemCouponId(5L)
+                .build();
+        CouponClientRequest.Calculate request = CouponClientRequest.Calculate.builder()
+                .userId(1L)
+                .cartCouponId(1L)
+                .items(List.of(item))
+                .build();
         String mockJsonResponse = """
                 {
-                    "code": "SUCCESS",
-                    "discountBenefit": {
+                    "cartCoupon": {
                         "couponId": 1,
-                        "couponName": "쿠폰 이름",
-                        "discountAmount": 5000
-                    }
+                        "couponName": "최초 주문 10% 할인",
+                        "discountAmount": 15000
+                    },
+                    "itemCoupons": [
+                        {
+                            "productVariantId": 1,
+                            "couponId": 2,
+                            "couponName": "아우터 1000원 할인",
+                            "discountAmount": 1000
+                        }
+                    ]
                 }
                 """;
-
         stubFor(post(urlEqualTo("/internal/coupons/calculate"))
                 .willReturn(aResponse()
                         .withStatus(HttpStatus.OK.value())
@@ -52,49 +64,37 @@ public class CouponFeignClientTest {
         //when
         CouponClientResponse.Calculate response = client.calculate(request);
         //then
-        assertThat(response.code()).isEqualTo("SUCCESS");
-        assertThat(response.discountBenefit().couponId()).isEqualTo(1L);
-        assertThat(response.discountBenefit().couponName()).isEqualTo("쿠폰 이름");
-        assertThat(response.discountBenefit().discountAmount()).isEqualTo(5000L);
+        assertThat(response.cartCoupon())
+                .extracting("couponId", "couponName", "discountAmount")
+                .containsExactlyInAnyOrder(1L, "최초 주문 10% 할인", 15000L);
+
+        assertThat(response.itemCoupons())
+                .extracting("productVariantId", "couponId", "couponName", "discountAmount")
+                .containsExactlyInAnyOrder(
+                        tuple(1L, 2L, "아우터 1000원 할인", 1000L)
+                );
     }
 
     @Test
-    @DisplayName("쿠폰 서비스에서 서버 오류 응답 반환시 서버 예외를 던진다")
-    void couponService_thrown_server_error_response(){
+    @DisplayName("쿠폰 검증 클라이언트 오류 응답 반환시 예외가 발생한다")
+    void calculate_thrown_client_error() {
         //given
-        CouponClientRequest.Calculate request = TestFixtureUtil.giveMeOne(CouponClientRequest.Calculate.class);
+        CouponClientRequest.Item item = CouponClientRequest.Item.builder()
+                .productVariantId(1L)
+                .price(10000L)
+                .quantity(3)
+                .itemCouponId(5L)
+                .build();
+        CouponClientRequest.Calculate request = CouponClientRequest.Calculate.builder()
+                .userId(1L)
+                .cartCouponId(1L)
+                .items(List.of(item))
+                .build();
+
         String mockJsonResponse = """
                 {
-                    "code": "FAIL_INTERNAL_SYSTEM_PROCESSING",
-                    "message": "에러가 발생했습니다",
-                    "timestamp": "2026-05-03 19:00:00",
-                    "path": "/internal/coupons/calculate"
-                }
-                """;
-
-        stubFor(post(urlEqualTo("/internal/coupons/calculate"))
-                .willReturn(aResponse()
-                        .withStatus(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                        .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
-                        .withBody(mockJsonResponse)));
-        //when
-        //then
-        assertThatThrownBy(() -> client.calculate(request))
-                .isInstanceOf(ExternalServerException.class)
-                .hasMessage("에러가 발생했습니다")
-                .extracting("errorCode")
-                .isEqualTo("FAIL_INTERNAL_SYSTEM_PROCESSING");
-    }
-
-    @Test
-    @DisplayName("쿠폰 서비스에서 클라이언트 에러 응답이 반환되면 클라이언트 예외를 던진다")
-    void couponService_thrown_client_error_response(){
-        //given
-        CouponClientRequest.Calculate request = TestFixtureUtil.giveMeOne(CouponClientRequest.Calculate.class);
-        String mockJsonResponse = """
-                {
-                    "code": "NOT_FOUND_COUPON",
-                    "message": "쿠폰을 찾을 수 없습니다",
+                    "code": "COUPON_EXPIRED",
+                    "message": "쿠폰이 만료되었습니다",
                     "timestamp": "2026-05-03 19:00:00",
                     "path": "/internal/coupons/calculate"
                 }
@@ -108,49 +108,46 @@ public class CouponFeignClientTest {
         //then
         assertThatThrownBy(() -> client.calculate(request))
                 .isInstanceOf(ExternalClientException.class)
-                .hasMessage("쿠폰을 찾을 수 없습니다")
+                .hasMessage("쿠폰이 만료되었습니다")
                 .extracting("errorCode")
-                .isEqualTo("NOT_FOUND_COUPON");
+                .isEqualTo("COUPON_EXPIRED");
     }
 
     @Test
-    @DisplayName("쿠폰 서비스에서 쿠폰 정보를 조회한다")
-    void evaluate(){
+    @DisplayName("쿠폰 검증 서버 오류 응답 반환시 예외가 발생한다")
+    void calculate_thrown_server_error() {
         //given
-        CouponClientRequest.CouponEvaluate request = fixtureMonkey.giveMeOne(CouponClientRequest.CouponEvaluate.class);
-        String mockJsonResponse = """
-                [
-                    {
-                        "couponId": 1,
-                        "couponName": "봄맞이 10% 아우터 할인 쿠폰",
-                        "scope": "ITEM",
-                        "discountAmount": 9000,
-                        "available": true,
-                        "code": "AVAILABLE",
-                        "applicableVariantIds" : ["item1", "item2"]
-                    },
-                    {
-                        "couponId": 2,
-                        "couponName": "전 품목 10만원 이상 5천원 할인",
-                        "scope": "ORDER",
-                        "discountAmount": 5000,
-                        "available": true,
-                        "code": "AVAILABLE",
-                        "applicableVariantIds" : []
-                    }
-                ]
-                """;
+        CouponClientRequest.Item item = CouponClientRequest.Item.builder()
+                .productVariantId(1L)
+                .price(10000L)
+                .quantity(3)
+                .itemCouponId(5L)
+                .build();
+        CouponClientRequest.Calculate request = CouponClientRequest.Calculate.builder()
+                .userId(1L)
+                .cartCouponId(1L)
+                .items(List.of(item))
+                .build();
 
-        stubFor(post(urlEqualTo("/internal/coupons/evaluate"))
+        String mockJsonResponse = """
+                {
+                    "code": "FAILED_INTERNAL_SYSTEM_PROCESSING",
+                    "message": "처리중 알 수 없는 오류가 발생했습니다",
+                    "timestamp": "2026-05-03 19:00:00",
+                    "path": "/internal/coupons/calculate"
+                }
+                """;
+        stubFor(post(urlEqualTo("/internal/coupons/calculate"))
                 .willReturn(aResponse()
-                        .withStatus(HttpStatus.OK.value())
+                        .withStatus(HttpStatus.INTERNAL_SERVER_ERROR.value())
                         .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
                         .withBody(mockJsonResponse)));
         //when
-        List<CouponClientResponse.CouponInfo> response = client.evaluate(request);
         //then
-        CouponClientResponse.CouponInfo coupon = response.get(0);
-        assertThat(coupon).hasNoNullFieldsOrProperties();
-        assertThat(coupon.applicableVariantIds()).isNotNull();
+        assertThatThrownBy(() -> client.calculate(request))
+                .isInstanceOf(ExternalServerException.class)
+                .hasMessage("처리중 알 수 없는 오류가 발생했습니다")
+                .extracting("errorCode")
+                .isEqualTo("FAILED_INTERNAL_SYSTEM_PROCESSING");
     }
 }

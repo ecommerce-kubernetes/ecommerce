@@ -22,19 +22,4 @@ public class OrderSheetCouponGateway {
     private final CouponAdaptor couponAdaptor;
     private final OrderSheetCouponMapper mapper;
 
-    public List<OrderSheetCouponResult.Info> getCoupons(OrderSheet orderSheet) {
-        return null;
-    }
-
-    private List<CouponClientResponse.CouponInfo> fetchCouponsWithTranslation(CouponCommand.CouponEvaluate command) {
-        try {
-            return couponAdaptor.evaluate(command);
-        } catch (ExternalClientException e) {
-            throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_COUPON_CLIENT_ERROR);
-        } catch (ExternalServerException e) {
-            throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_COUPON_SERVER_ERROR);
-        } catch (ExternalSystemUnavailableException e) {
-            throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_COUPON_UNAVAILABLE_SERVER_ERROR);
-        }
-    }
 }

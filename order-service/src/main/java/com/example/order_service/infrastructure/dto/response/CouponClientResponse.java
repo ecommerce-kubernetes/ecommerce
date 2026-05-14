@@ -6,16 +6,15 @@ import java.util.List;
 
 public class CouponClientResponse {
 
-    //TODO Deprecated
     @Builder
     public record Calculate(
-            String code,
-            DiscountBenefit discountBenefit
+            CartCoupon cartCoupon,
+            List<ItemCoupon> itemCoupons
     ) {
     }
 
     @Builder
-    public record DiscountBenefit(
+    public record CartCoupon(
             Long couponId,
             String couponName,
             Long discountAmount
@@ -23,14 +22,11 @@ public class CouponClientResponse {
     }
 
     @Builder
-    public record CouponInfo(
+    public record ItemCoupon(
+            Long productVariantId,
             Long couponId,
             String couponName,
-            String scope,
-            Boolean available,
-            Long discountAmount,
-            String code,
-            List<Long> applicableVariantIds
-    ) {}
-
+            Long discountAmount
+    ) {
+    }
 }

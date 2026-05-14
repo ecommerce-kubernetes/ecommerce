@@ -12,11 +12,7 @@ import java.util.List;
 @FeignClient(name = "coupon-service", contextId = "couponClient", configuration = DefaultFeignConfig.class)
 public interface CouponFeignClient {
 
-    //TODO deprecated
     @PostMapping("/internal/coupons/calculate")
     CouponClientResponse.Calculate calculate(@RequestBody CouponClientRequest.Calculate request);
-
-    @PostMapping("/internal/coupons/evaluate")
-    List<CouponClientResponse.CouponInfo> evaluate(@RequestBody CouponClientRequest.CouponEvaluate request);
 
 }

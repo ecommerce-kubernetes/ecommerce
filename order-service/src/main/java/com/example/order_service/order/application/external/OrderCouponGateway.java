@@ -20,7 +20,7 @@ public class OrderCouponGateway {
 
     public OrderCouponResult.CouponValidation calculateCouponDiscount(Long userId, Long couponId, Long totalAmount) {
         CouponClientResponse.Calculate couponValidation = fetchCouponWithTranslation(userId, couponId, totalAmount);
-        return mapper.toResult(couponValidation);
+        return null;
     }
 
     private CouponClientResponse.Calculate fetchCouponWithTranslation(Long userId, Long couponId, Long totalAmount) {

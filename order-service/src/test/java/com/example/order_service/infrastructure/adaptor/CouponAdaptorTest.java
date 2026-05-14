@@ -69,37 +69,4 @@ public class CouponAdaptorTest {
         assertThatThrownBy(() -> couponAdaptor.calculate(userId, couponId, totalAmount))
                 .isInstanceOf(ExternalSystemUnavailableException.class);
     }
-
-    @Test
-    @DisplayName("쿠폰 서비스에서 쿠폰 정보를 조회한다")
-    void evaluate(){
-        //given
-        CouponCommand.CouponEvaluate command = fixtureMonkey.giveMeOne(CouponCommand.CouponEvaluate.class);
-        List<CouponClientResponse.CouponInfo> mockResponses = fixtureMonkey.giveMe(CouponClientResponse.CouponInfo.class, 2);
-        given(client.evaluate(any(CouponClientRequest.CouponEvaluate.class)))
-                .willReturn(mockResponses);
-        //when
-        List<CouponClientResponse.CouponInfo> responses = couponAdaptor.evaluate(command);
-        //then
-        assertThat(responses)
-                .usingRecursiveComparison()
-                .isEqualTo(mockResponses);
-    }
-
-    @Test
-    @DisplayName("쿠폰 서비스 조회에서 예외 발생시 translator를 호출하여 반환된 예외를 던진다")
-    void evaluate_fallback_delegate_to_translator() throws Throwable {
-        //given
-        CouponCommand.CouponEvaluate command = fixtureMonkey.giveMeOne(CouponCommand.CouponEvaluate.class);
-        RuntimeException feignException = new RuntimeException("feignClient 예외");
-        ExternalSystemUnavailableException translatedException =
-                new ExternalSystemUnavailableException("CODE", "변환된 에러", feignException);
-        willThrow(feignException).given(client).evaluate(any(CouponClientRequest.CouponEvaluate.class));
-        given(translator.translate(anyString(), any(Throwable.class)))
-                .willReturn(translatedException);
-        //when
-        //then
-        assertThatThrownBy(() -> couponAdaptor.evaluate(command))
-                .isInstanceOf(ExternalSystemUnavailableException.class);
-    }
 }
