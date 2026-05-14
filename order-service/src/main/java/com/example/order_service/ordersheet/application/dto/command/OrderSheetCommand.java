@@ -1,5 +1,6 @@
 package com.example.order_service.ordersheet.application.dto.command;
 
+import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.business.BusinessException;
 import com.example.order_service.ordersheet.exception.OrderSheetErrorCode;
 import lombok.Builder;
@@ -32,7 +33,7 @@ public class OrderSheetCommand {
             if (itemCoupons != null && !itemCoupons.isEmpty()) {
                 Set<Long> couponItemIds = new HashSet<>();
                 Set<Long> itemCouponIds = new HashSet<>();
-                for(ItemCoupon coupon: itemCoupons) {
+                for (ItemCoupon coupon : itemCoupons) {
                     if (!orderItemVariantIds.contains(coupon.productVariantId())) {
                         throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_COUPON_ITEM_NOT_IN_ITEMS);
                     }
@@ -49,6 +50,11 @@ public class OrderSheetCommand {
         public Map<Long, Integer> toQuantityMap() {
             return items.stream()
                     .collect(Collectors.toMap(OrderItem::productVariantId, OrderItem::quantity));
+        }
+
+        public Map<Long, Long> toCouponMap() {
+            return itemCoupons.stream()
+                    .collect(Collectors.toMap(ItemCoupon::productVariantId, ItemCoupon::couponId));
         }
 
         public List<Long> toProductVariantIds() {
@@ -69,4 +75,22 @@ public class OrderSheetCommand {
             Long couponId
     ) {
     }
+
+    @Builder
+    public record CouponCalculate(
+            Long userId,
+            Long cartCouponId,
+            List<AppliedCouponItem> items
+    ) {
+    }
+
+    @Builder
+    public record AppliedCouponItem(
+            Long productVariantId,
+            Money discountedPrice,
+            Integer quantity,
+            Long itemCouponId
+    ) {
+    }
+
 }

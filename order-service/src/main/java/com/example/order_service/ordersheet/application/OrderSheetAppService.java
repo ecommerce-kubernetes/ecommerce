@@ -2,8 +2,10 @@ package com.example.order_service.ordersheet.application;
 
 import com.example.order_service.common.exception.business.BusinessException;
 import com.example.order_service.ordersheet.application.dto.command.OrderSheetCommand;
+import com.example.order_service.ordersheet.application.dto.result.OrderSheetCouponResult;
 import com.example.order_service.ordersheet.application.dto.result.OrderSheetProductResult;
 import com.example.order_service.ordersheet.application.dto.result.OrderSheetResult;
+import com.example.order_service.ordersheet.application.external.OrderSheetCouponGateway;
 import com.example.order_service.ordersheet.application.external.OrderSheetProductGateway;
 import com.example.order_service.ordersheet.domain.model.OrderSheet;
 import com.example.order_service.ordersheet.domain.model.OrderSheetItem;
@@ -21,6 +23,8 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -28,24 +32,55 @@ import java.util.*;
 public class OrderSheetAppService {
     private final OrderSheetProperties orderSheetProperties;
     private final OrderSheetProductGateway orderSheetProductGateway;
+    private final OrderSheetCouponGateway orderSheetCouponGateway;
     private final OrderSheetRepository repository;
 
     public OrderSheetResult.Default createOrderSheet(OrderSheetCommand.Create command) {
-        // 주문 상품 정보 추출
+        List<OrderSheetProductResult.Info> orderProducts = getOrderProducts(command);
+        OrderSheetCouponResult.Calculate appliedCoupons = getAppliedCoupons(command, orderProducts);
+        return null;
+    }
+
+    private List<OrderSheetProductResult.Info> getOrderProducts(OrderSheetCommand.Create command) {
         List<Long> variantIds = command.toProductVariantIds();
         Map<Long, Integer> quantityMap = command.toQuantityMap();
-        // 상품 정보 조회
         List<OrderSheetProductResult.Info> products = orderSheetProductGateway.getProducts(variantIds);
-        // 주문 상품 검증
         validateProductsForOrder(products, quantityMap);
-        String sheetId = generateId();
-        // orderSheet 데이터 생성 및 저장
-        List<OrderSheetItem> orderSheetItems = mapToDomainItems(products, quantityMap);
-        OrderSheet orderSheet = OrderSheet.create(sheetId, command.userId(), orderSheetItems,
-                LocalDateTime.now(), orderSheetProperties.ttlMinutes());
-        // ttl
-        OrderSheet savedOrderSheet = repository.save(orderSheet, Duration.ofMinutes(orderSheetProperties.ttlMinutes()));
-        return OrderSheetResult.Default.from(savedOrderSheet);
+        return products;
+    }
+
+    private OrderSheetCouponResult.Calculate getAppliedCoupons(OrderSheetCommand.Create command, List<OrderSheetProductResult.Info> products) {
+        boolean couponUsed = isCouponUsed(command);
+        if (!couponUsed) {
+            return null;
+        }
+        Map<Long, OrderSheetProductResult.Info> productMap = products.stream().collect(Collectors.toMap(OrderSheetProductResult.Info::productVariantId, Function.identity()));
+        Map<Long, Long> couponMap = command.toCouponMap();
+        List<OrderSheetCommand.AppliedCouponItem> appliedCouponItems = new ArrayList<>();
+        for(OrderSheetCommand.OrderItem item: command.items()) {
+            OrderSheetCommand.AppliedCouponItem coupon = OrderSheetCommand.AppliedCouponItem.builder()
+                    .productVariantId(item.productVariantId())
+                    .discountedPrice(productMap.get(item.productVariantId()).discountedPrice())
+                    .quantity(item.quantity())
+                    .itemCouponId(couponMap.get(item.productVariantId()))
+                    .build();
+            appliedCouponItems.add(coupon);
+        }
+
+        OrderSheetCommand.CouponCalculate couponCommand = OrderSheetCommand.CouponCalculate.builder()
+                .userId(command.userId())
+                .cartCouponId(command.cartCouponId())
+                .items(appliedCouponItems)
+                .build();
+
+        return orderSheetCouponGateway.calculate(couponCommand);
+    }
+
+    private boolean isCouponUsed(OrderSheetCommand.Create command) {
+        if (command.cartCouponId() == null && command.itemCoupons().isEmpty()) {
+            return false;
+        }
+        return true;
     }
 
     public OrderSheetResult.Detail getOrderSheet(String sheetId, Long userId) {

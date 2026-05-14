@@ -9,14 +9,27 @@ import java.util.List;
 public class OrderSheetCouponResult {
 
     @Builder
-    public record Info(
-            Long couponId,
-            String couponName,
-            String scope,
-            Boolean available,
-            Money discountAmount,
-            CouponStatus status,
-            List<String> applicableItemIds
+    public record Calculate(
+            CartCoupon cartCoupon,
+            List<ItemCoupon> itemCoupons
     ) {
     }
+
+    @Builder
+    public record CartCoupon(
+            Long couponId,
+            String couponName,
+            Money discountAmount
+    ) {
+    }
+
+    @Builder
+    public record ItemCoupon(
+            Long productVariantId,
+            Long couponId,
+            String couponName,
+            Money discountAmount
+    ) {
+    }
+
 }

@@ -7,11 +7,8 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum OrderSheetErrorCode implements ErrorCode {
-
-    ORDER_SHEET_USER_ID_REQUIRED(400, "ORDER_SHEET_USER_ID_REQUIRED", "유저 아이디는 필수 입니다"),
     ORDER_SHEET_ITEMS_REQUIRED(400, "ORDER_SHEET_ITEMS_REQUIRED", "주문 상품은 필수 입니다"),
     ORDER_SHEET_ITEMS_DUPLICATE(400, "ORDER_SHEET_ITEMS_DUPLICATE", "중복된 상품 아이디가 존재합니다"),
-    ORDER_SHEET_ITEMS_INVALID_QUANTITY(400, "ORDER_SHEET_ITEMS_INVALID_QUANTITY", "주문 상품 수량은 1개 이상이여야 합니다"),
     ORDER_SHEET_COUPON_ITEM_NOT_IN_ITEMS(400, "ORDER_SHEET_COUPON_ITEM_NOT_IN_ITEMS", "쿠폰 적용 대상 상품이 주문 상품에 존재하지 않습니다"),
     ORDER_SHEET_DUPLICATE_COUPON_APPLICATION(400, "ORDER_SHEET_DUPLICATE_COUPON_APPLICATION", "하나의 상품에는 하나의 쿠폰만 적용 가능합니다"),
     ORDER_SHEET_ALREADY_APPLIED_TO_ANOTHER_ITEM(400, "ORDER_SHEET_ALREADY_APPLIED_TO_ANOTHER_ITEM", "하나의 쿠폰은 하나의 상품에만 적용 가능합니다"),
