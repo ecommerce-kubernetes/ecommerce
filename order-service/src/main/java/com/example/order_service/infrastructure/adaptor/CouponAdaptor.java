@@ -19,12 +19,12 @@ public class CouponAdaptor {
     private final ExternalExceptionTranslator translator;
 
     @CircuitBreaker(name = "couponService", fallbackMethod = "calculateFallback")
-    public CouponClientResponse.Calculate calculate(Long userId, Long couponId, Long totalPrice){
-        return null;
+    public CouponClientResponse.Calculate calculate(CouponCommand.Calculate command) {
+        CouponClientRequest.Calculate request = CouponClientRequest.Calculate.from(command);
+        return client.calculate(request);
     }
 
-
-    private CouponClientResponse.Calculate calculateFallback(Long userId, Long couponId, Long totalAmount, Throwable throwable) throws Throwable {
+    private CouponClientResponse.Calculate calculateFallback(CouponCommand.Calculate command, Throwable throwable) throws Throwable {
         throw translator.translate("COUPON-SERVICE", throwable);
     }
 }

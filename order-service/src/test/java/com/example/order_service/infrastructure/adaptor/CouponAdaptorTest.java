@@ -33,14 +33,12 @@ public class CouponAdaptorTest {
     @DisplayName("쿠폰 서비스에 쿠폰 할인 정보를 조회한다")
     void calculate(){
         //given
-        Long userId = 1L;
-        Long couponId = 1L;
-        Long totalPrice = 10000L;
-        CouponClientResponse.Calculate mockResponse = TestFixtureUtil.giveMeOne(CouponClientResponse.Calculate.class);
+        CouponCommand.Calculate command = fixtureMonkey.giveMeOne(CouponCommand.Calculate.class);
+        CouponClientResponse.Calculate mockResponse = fixtureMonkey.giveMeOne(CouponClientResponse.Calculate.class);
         given(client.calculate(any(CouponClientRequest.Calculate.class)))
                 .willReturn(mockResponse);
         //when
-        CouponClientResponse.Calculate response = couponAdaptor.calculate(userId, couponId, totalPrice);
+        CouponClientResponse.Calculate response = couponAdaptor.calculate(command);
         //then
         assertThat(response)
                 .usingRecursiveComparison()
@@ -51,9 +49,7 @@ public class CouponAdaptorTest {
     @DisplayName("쿠폰 서비스 조회에서 예외 발생시 translator를 호출하여 반환된 예외를 던진다")
     void calculate_fallback_delegate_to_translator() throws Throwable {
         //given
-        Long userId = 1L;
-        Long couponId = 1L;
-        Long totalAmount = 10000L;
+        CouponCommand.Calculate command = fixtureMonkey.giveMeOne(CouponCommand.Calculate.class);
         //발생한 예외
         RuntimeException feignException = new RuntimeException("feignClient 예외");
         //변환된 예외
@@ -66,7 +62,7 @@ public class CouponAdaptorTest {
                 .willReturn(translatedException);
         //when
         //then
-        assertThatThrownBy(() -> couponAdaptor.calculate(userId, couponId, totalAmount))
+        assertThatThrownBy(() -> couponAdaptor.calculate(command))
                 .isInstanceOf(ExternalSystemUnavailableException.class);
     }
 }

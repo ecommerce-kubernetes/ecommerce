@@ -7,18 +7,17 @@ import java.util.List;
 public class CouponCommand {
 
     @Builder
-    public record CouponEvaluate(
+    public record Calculate(
             Long userId,
-            Long totalAmount,
+            Long cartCouponId,
             List<Item> items
     ) {}
 
     @Builder
     public record Item(
-            String itemId,
-            Long productId,
             Long productVariantId,
             Long price,
-            Integer quantity
+            Integer quantity,
+            Long itemCouponId
     ) {}
 }

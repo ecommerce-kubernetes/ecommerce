@@ -24,15 +24,16 @@ public class OrderCouponGateway {
     }
 
     private CouponClientResponse.Calculate fetchCouponWithTranslation(Long userId, Long couponId, Long totalAmount) {
-        try {
-            return couponAdaptor.calculate(userId, couponId, totalAmount);
-        } catch (ExternalClientException e) {
-            throw new BusinessException(OrderErrorCode.ORDER_COUPON_CLIENT_ERROR);
-        } catch (ExternalServerException e) {
-            throw new BusinessException(OrderErrorCode.ORDER_COUPON_SERVER_ERROR);
-        } catch (ExternalSystemUnavailableException e) {
-            throw new BusinessException(OrderErrorCode.ORDER_COUPON_UNAVAILABLE_SERVER_ERROR);
-        }
+//        try {
+//            return couponAdaptor.calculate(userId, couponId, totalAmount);
+//        } catch (ExternalClientException e) {
+//            throw new BusinessException(OrderErrorCode.ORDER_COUPON_CLIENT_ERROR);
+//        } catch (ExternalServerException e) {
+//            throw new BusinessException(OrderErrorCode.ORDER_COUPON_SERVER_ERROR);
+//        } catch (ExternalSystemUnavailableException e) {
+//            throw new BusinessException(OrderErrorCode.ORDER_COUPON_UNAVAILABLE_SERVER_ERROR);
+//        }
+        return null;
     }
 
 }

@@ -23,6 +23,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static com.example.order_service.support.TestFixtureUtil.fixtureMonkey;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
@@ -48,7 +49,7 @@ public class OrderCouponGatewayTest {
             //given
             CouponClientResponse.Calculate response = fixtureMonkey.giveMeBuilder(CouponClientResponse.Calculate.class)
                     .set("code", "SUCCESS").sample();
-            given(adaptor.calculate(anyLong(), anyLong(), anyLong()))
+            given(adaptor.calculate(any()))
                     .willReturn(response);
             //when
             OrderCouponResult.CouponValidation result = orderCouponGateway.calculateCouponDiscount(1L, 1L, 10000L);
@@ -61,7 +62,7 @@ public class OrderCouponGatewayTest {
         void getCoupon_ExternalServerException(){
             //given
             willThrow(new ExternalServerException("INTERNAL_SERVER_ERROR", "처리중 오류가 발생했습니다"))
-                    .given(adaptor).calculate(anyLong(), anyLong(), anyLong());
+                    .given(adaptor).calculate(any());
             //when
             //then
             assertThatThrownBy(() -> orderCouponGateway.calculateCouponDiscount(1L, 1L, 10000L))
@@ -75,7 +76,7 @@ public class OrderCouponGatewayTest {
         void getCoupon_ExternalClientException(){
             //given
             willThrow(new ExternalClientException("NOT_FOUND_COUPON", "쿠폰을 찾을 수 없습니다"))
-                    .given(adaptor).calculate(anyLong(), anyLong(), anyLong());
+                    .given(adaptor).calculate(any());
             //when
             //then
             assertThatThrownBy(() -> orderCouponGateway.calculateCouponDiscount(1L, 1L, 10000L))
@@ -89,7 +90,7 @@ public class OrderCouponGatewayTest {
         void getCoupon_ExternalUnavailableException(){
             //given
             willThrow(new ExternalSystemUnavailableException("SERVICE_UNAVAILABLE", "쿠폰 서비스 통신장애"))
-                    .given(adaptor).calculate(anyLong(), anyLong(), anyLong());
+                    .given(adaptor).calculate(any());
             //when
             //then
             assertThatThrownBy(() -> orderCouponGateway.calculateCouponDiscount(1L, 1L, 10000L))
