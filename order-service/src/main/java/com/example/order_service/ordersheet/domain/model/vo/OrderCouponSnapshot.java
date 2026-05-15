@@ -28,4 +28,12 @@ public class OrderCouponSnapshot {
                 .discountAmount(discountAmount)
                 .build();
     }
+
+    public static OrderCouponSnapshot empty() {
+        return OrderCouponSnapshot.reconstitute()
+                .couponId(null)
+                .couponName("쿠폰 미적용")
+                .discountAmount(Money.ZERO)
+                .build();
+    }
 }

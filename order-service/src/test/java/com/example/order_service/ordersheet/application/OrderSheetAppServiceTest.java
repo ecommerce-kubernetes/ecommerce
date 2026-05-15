@@ -77,9 +77,9 @@ public class OrderSheetAppServiceTest {
                     .sku("TEST-SKU")
                     .productName("테스트 상품")
                     .stock(100)
-                    .originalPrice(Money.wons(9000L))
+                    .originalPrice(Money.wons(10000L))
                     .discountRate(10)
-                    .discountAmount(Money.ZERO)
+                    .discountAmount(Money.wons(1000L))
                     .discountedPrice(Money.wons(9000L))
                     .build();
             OrderSheetCouponResult.CartCoupon cartCouponResult = OrderSheetCouponResult.CartCoupon.builder()

@@ -21,12 +21,14 @@ public class OrderSheet {
     private Money totalOriginalPrice;
     private Money totalProductDiscountAmount;
     private Money totalCouponDiscountAmount;
+    private Money usedPoints;
     private Money totalPaymentAmount;
     private LocalDateTime expiresAt;
 
     @Builder(builderMethodName = "reconstitute")
     private OrderSheet(String sheetId, Long userId, List<OrderSheetItem> items, OrderCouponSnapshot coupon,
-                       Money totalOriginalPrice, Money totalProductDiscountAmount, Money totalCouponDiscountAmount, Money totalPaymentAmount, LocalDateTime expiresAt) {
+                       Money totalOriginalPrice, Money totalProductDiscountAmount, Money totalCouponDiscountAmount,
+                       Money usedPoints, Money totalPaymentAmount, LocalDateTime expiresAt) {
         this.sheetId = sheetId;
         this.userId = userId;
         this.items = items;
@@ -34,6 +36,7 @@ public class OrderSheet {
         this.totalOriginalPrice = totalOriginalPrice;
         this.totalProductDiscountAmount = totalProductDiscountAmount;
         this.totalCouponDiscountAmount = totalCouponDiscountAmount;
+        this.usedPoints = usedPoints;
         this.totalPaymentAmount = totalPaymentAmount;
         this.expiresAt = expiresAt;
     }
@@ -50,7 +53,8 @@ public class OrderSheet {
                 .totalOriginalPrice(calcTotalOriginalPrice(items))
                 .totalProductDiscountAmount(calcTotalProductDiscountAmount(items))
                 .totalCouponDiscountAmount(coupon.getDiscountAmount().add(calcTotalItemCouponDiscountAmount(items)))
-                .totalPaymentAmount(calcTotalPaymentAmount(items, coupon))
+                .usedPoints(Money.ZERO)
+                .totalPaymentAmount(calcTotalPaymentAmount(items, coupon, Money.ZERO))
                 .expiresAt(createdAt.plusMinutes(ttl))
                 .build();
     }
@@ -67,11 +71,12 @@ public class OrderSheet {
                 .reduce(Money.ZERO, Money::add);
     }
 
-    private static Money calcTotalPaymentAmount(List<OrderSheetItem> items, OrderCouponSnapshot coupon) {
+    private static Money calcTotalPaymentAmount(List<OrderSheetItem> items, OrderCouponSnapshot coupon, Money usedPoints) {
         Money itemFinalPrice = items.stream()
                 .map(OrderSheetItem::getFinalLineTotal)
                 .reduce(Money.ZERO, Money::add);
-        return itemFinalPrice.subtract(coupon.getDiscountAmount());
+        Money subTotal = itemFinalPrice.subtract(coupon.getDiscountAmount());
+        return subTotal.subtract(usedPoints);
     }
 
     private static Money calcTotalItemCouponDiscountAmount(List<OrderSheetItem> items) {
