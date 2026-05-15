@@ -3,8 +3,10 @@ package com.example.order_service.ordersheet.application;
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.business.BusinessException;
 import com.example.order_service.ordersheet.application.dto.command.OrderSheetCommand;
+import com.example.order_service.ordersheet.application.dto.result.OrderSheetCouponResult;
 import com.example.order_service.ordersheet.application.dto.result.OrderSheetProductResult;
 import com.example.order_service.ordersheet.application.dto.result.OrderSheetResult;
+import com.example.order_service.ordersheet.application.external.OrderSheetCouponGateway;
 import com.example.order_service.ordersheet.application.external.OrderSheetProductGateway;
 import com.example.order_service.ordersheet.domain.model.OrderSheet;
 import com.example.order_service.ordersheet.domain.model.vo.ProductStatus;
@@ -38,6 +40,8 @@ public class OrderSheetAppServiceTest {
     @Mock
     private OrderSheetProductGateway orderSheetProductGateway;
     @Mock
+    private OrderSheetCouponGateway orderSheetCouponGateway;
+    @Mock
     private OrderSheetRepository repository;
     @Spy
     private OrderSheetProperties properties = new OrderSheetProperties(30L);
@@ -56,9 +60,15 @@ public class OrderSheetAppServiceTest {
                     .productVariantId(targetVariantId)
                     .quantity(quantity)
                     .build();
+            OrderSheetCommand.ItemCoupon itemCoupon = OrderSheetCommand.ItemCoupon.builder()
+                    .productVariantId(1L)
+                    .couponId(2L)
+                    .build();
             OrderSheetCommand.Create command = OrderSheetCommand.Create.builder()
                     .userId(1L)
                     .items(List.of(orderItem))
+                    .cartCouponId(1L)
+                    .itemCoupons(List.of(itemCoupon))
                     .build();
             OrderSheetProductResult.Info productInfo = OrderSheetProductResult.Info.builder()
                     .productId(1L)
@@ -70,11 +80,27 @@ public class OrderSheetAppServiceTest {
                     .originalPrice(Money.wons(9000L))
                     .discountRate(10)
                     .discountAmount(Money.ZERO)
-                    .discountedPrice(Money.wons(9000L)) // 무조건 9000원 보장
+                    .discountedPrice(Money.wons(9000L))
+                    .build();
+            OrderSheetCouponResult.CartCoupon cartCouponResult = OrderSheetCouponResult.CartCoupon.builder()
+                    .couponId(1L)
+                    .couponName("1000원 할인 쿠폰")
+                    .discountAmount(Money.wons(1000L))
+                    .build();
+            OrderSheetCouponResult.ItemCoupon itemCouponResult = OrderSheetCouponResult.ItemCoupon.builder()
+                    .productVariantId(1L)
+                    .couponId(2L)
+                    .couponName("1000원 할인 쿠폰")
+                    .discountAmount(Money.wons(1000L))
+                    .build();
+            OrderSheetCouponResult.Calculate couponResult = OrderSheetCouponResult.Calculate.builder()
+                    .cartCoupon(cartCouponResult)
+                    .itemCoupons(List.of(itemCouponResult))
                     .build();
 
             given(orderSheetProductGateway.getProducts(anyList()))
                     .willReturn(List.of(productInfo));
+            given(orderSheetCouponGateway.calculate(any())).willReturn(couponResult);
             given(repository.save(any(OrderSheet.class), any(Duration.class)))
                     .willAnswer(invocation -> invocation.getArgument(0));
             //when
@@ -83,7 +109,7 @@ public class OrderSheetAppServiceTest {
             assertThat(result.sheetId()).isNotNull();
             assertThat(result.expiresAt()).isNotNull();
             assertThat(result.items()).hasSize(1);
-            assertThat(result.summary().totalBasePaymentAmount()).isEqualTo(Money.wons(9000L));
+            assertThat(result.summary().totalBasePaymentAmount()).isEqualTo(Money.wons(7000L));
         }
 
         @Test

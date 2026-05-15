@@ -3,6 +3,7 @@ package com.example.order_service.ordersheet.domain.repository;
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.ordersheet.domain.model.OrderSheet;
 import com.example.order_service.ordersheet.domain.model.OrderSheetItem;
+import com.example.order_service.ordersheet.domain.model.vo.OrderCouponSnapshot;
 import com.example.order_service.ordersheet.domain.model.vo.OrderSheetItemOptionSnapshot;
 import com.example.order_service.ordersheet.domain.model.vo.OrderSheetItemPriceSnapshot;
 import com.example.order_service.ordersheet.domain.model.vo.OrderSheetItemProductSnapshot;
@@ -69,6 +70,7 @@ class OrderSheetRepositoryTest {
                 "test",
                 1L,
                 List.of(createOrderSheetItem()),
+                createOrderCouponSnapshot(),
                 LocalDateTime.now(),
                 30
         );
@@ -79,9 +81,14 @@ class OrderSheetRepositoryTest {
                 "sheetItemId",
                 createProductSnapshot(),
                 createPriceSnapshot(),
+                createOrderCouponSnapshot(),
                 1,
                 List.of(createProductOptionSnapshot())
         );
+    }
+
+    private OrderCouponSnapshot createOrderCouponSnapshot() {
+        return OrderCouponSnapshot.of(1L, "1000원 할인 쿠폰", Money.wons(1000L));
     }
 
     private OrderSheetItemProductSnapshot createProductSnapshot() {

@@ -2,6 +2,7 @@ package com.example.order_service.ordersheet.domain.model;
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.domain.InvalidDomainValueException;
+import com.example.order_service.ordersheet.domain.model.vo.OrderCouponSnapshot;
 import com.example.order_service.ordersheet.domain.model.vo.OrderSheetItemOptionSnapshot;
 import com.example.order_service.ordersheet.domain.model.vo.OrderSheetItemPriceSnapshot;
 import com.example.order_service.ordersheet.domain.model.vo.OrderSheetItemProductSnapshot;
@@ -18,20 +19,22 @@ public class OrderSheetItem {
     private String sheetItemId;
     private OrderSheetItemProductSnapshot productSnapshot;
     private OrderSheetItemPriceSnapshot itemPrice;
+    private OrderCouponSnapshot coupon;
     private Integer quantity;
     private List<OrderSheetItemOptionSnapshot> options;
 
     @Builder(builderMethodName = "reconstitute")
-    private OrderSheetItem(String sheetItemId, OrderSheetItemProductSnapshot productSnapshot, OrderSheetItemPriceSnapshot itemPrice, Integer quantity, List<OrderSheetItemOptionSnapshot> options) {
+    private OrderSheetItem(String sheetItemId, OrderSheetItemProductSnapshot productSnapshot, OrderSheetItemPriceSnapshot itemPrice, OrderCouponSnapshot coupon, Integer quantity, List<OrderSheetItemOptionSnapshot> options) {
         this.sheetItemId = sheetItemId;
         this.productSnapshot = productSnapshot;
         this.itemPrice = itemPrice;
+        this.coupon = coupon;
         this.quantity = quantity;
         this.options = options;
     }
 
     public static OrderSheetItem create(String sheetItemId, OrderSheetItemProductSnapshot productSnapshot, OrderSheetItemPriceSnapshot itemPrice,
-                                        Integer quantity, List<OrderSheetItemOptionSnapshot> options) {
+                                        OrderCouponSnapshot coupon, Integer quantity, List<OrderSheetItemOptionSnapshot> options) {
         if (quantity == null || quantity <= 0) {
             throw new InvalidDomainValueException("OrderSheet 상품 주문 수량은 필수입니다");
         }
@@ -39,12 +42,13 @@ public class OrderSheetItem {
                 .sheetItemId(sheetItemId)
                 .productSnapshot(productSnapshot)
                 .itemPrice(itemPrice)
+                .coupon(coupon)
                 .quantity(quantity)
                 .options(options)
                 .build();
     }
 
-    public Money getLineTotal() {
+    public Money getProductLineTotal() {
         return itemPrice.getDiscountedPrice().multiple(quantity);
     }
 
@@ -52,7 +56,16 @@ public class OrderSheetItem {
         return itemPrice.getDiscountAmount().multiple(quantity);
     }
 
+    public Money getCouponDiscount() {
+        return coupon.getDiscountAmount();
+    }
+
     public Money getOriginalLineTotal() {
         return itemPrice.getOriginalPrice().multiple(quantity);
+    }
+
+    public Money getFinalLineTotal() {
+        Money productLineTotal = getProductLineTotal();
+        return productLineTotal.subtract(coupon.getDiscountAmount());
     }
 }

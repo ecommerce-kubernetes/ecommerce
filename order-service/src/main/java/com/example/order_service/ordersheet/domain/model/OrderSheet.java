@@ -2,6 +2,7 @@ package com.example.order_service.ordersheet.domain.model;
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.domain.InvalidDomainValueException;
+import com.example.order_service.ordersheet.domain.model.vo.OrderCouponSnapshot;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -16,24 +17,28 @@ public class OrderSheet {
     private String sheetId;
     private Long userId;
     private List<OrderSheetItem> items;
+    private OrderCouponSnapshot coupon;
     private Money totalOriginalPrice;
     private Money totalProductDiscountAmount;
+    private Money totalCouponDiscountAmount;
     private Money totalPaymentAmount;
     private LocalDateTime expiresAt;
 
     @Builder(builderMethodName = "reconstitute")
-    private OrderSheet(String sheetId, Long userId, List<OrderSheetItem> items,
-                       Money totalOriginalPrice, Money totalProductDiscountAmount, Money totalPaymentAmount, LocalDateTime expiresAt) {
+    private OrderSheet(String sheetId, Long userId, List<OrderSheetItem> items, OrderCouponSnapshot coupon,
+                       Money totalOriginalPrice, Money totalProductDiscountAmount, Money totalCouponDiscountAmount, Money totalPaymentAmount, LocalDateTime expiresAt) {
         this.sheetId = sheetId;
         this.userId = userId;
         this.items = items;
+        this.coupon = coupon;
         this.totalOriginalPrice = totalOriginalPrice;
         this.totalProductDiscountAmount = totalProductDiscountAmount;
+        this.totalCouponDiscountAmount = totalCouponDiscountAmount;
         this.totalPaymentAmount = totalPaymentAmount;
         this.expiresAt = expiresAt;
     }
 
-    public static OrderSheet create(String sheetId, Long userId, List<OrderSheetItem> items, LocalDateTime createdAt, long ttl) {
+    public static OrderSheet create(String sheetId, Long userId, List<OrderSheetItem> items, OrderCouponSnapshot coupon, LocalDateTime createdAt, long ttl) {
         if (items == null || items.isEmpty()) {
             throw new InvalidDomainValueException("OrderSheet 주문 상품은 필수입니다");
         }
@@ -41,9 +46,11 @@ public class OrderSheet {
                 .sheetId(sheetId)
                 .userId(userId)
                 .items(items)
+                .coupon(coupon)
                 .totalOriginalPrice(calcTotalOriginalPrice(items))
                 .totalProductDiscountAmount(calcTotalProductDiscountAmount(items))
-                .totalPaymentAmount(calcTotalPaymentAmount(items))
+                .totalCouponDiscountAmount(coupon.getDiscountAmount().add(calcTotalItemCouponDiscountAmount(items)))
+                .totalPaymentAmount(calcTotalPaymentAmount(items, coupon))
                 .expiresAt(createdAt.plusMinutes(ttl))
                 .build();
     }
@@ -60,9 +67,16 @@ public class OrderSheet {
                 .reduce(Money.ZERO, Money::add);
     }
 
-    private static Money calcTotalPaymentAmount(List<OrderSheetItem> items) {
+    private static Money calcTotalPaymentAmount(List<OrderSheetItem> items, OrderCouponSnapshot coupon) {
+        Money itemFinalPrice = items.stream()
+                .map(OrderSheetItem::getFinalLineTotal)
+                .reduce(Money.ZERO, Money::add);
+        return itemFinalPrice.subtract(coupon.getDiscountAmount());
+    }
+
+    private static Money calcTotalItemCouponDiscountAmount(List<OrderSheetItem> items) {
         return items.stream()
-                .map(OrderSheetItem::getLineTotal)
+                .map(OrderSheetItem::getCouponDiscount)
                 .reduce(Money.ZERO, Money::add);
     }
 }

@@ -77,7 +77,7 @@ public class OrderSheetResult {
                     .thumbnail(item.getProductSnapshot().getThumbnail())
                     .quantity(item.getQuantity())
                     .unitPrice(OrderItemPrice.from(item.getItemPrice()))
-                    .lineTotal(item.getLineTotal())
+                    .lineTotal(item.getProductLineTotal())
                     .options(mapToOptions(item.getOptions()))
                     .build();
 

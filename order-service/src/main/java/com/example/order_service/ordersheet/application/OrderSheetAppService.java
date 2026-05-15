@@ -9,10 +9,7 @@ import com.example.order_service.ordersheet.application.external.OrderSheetCoupo
 import com.example.order_service.ordersheet.application.external.OrderSheetProductGateway;
 import com.example.order_service.ordersheet.domain.model.OrderSheet;
 import com.example.order_service.ordersheet.domain.model.OrderSheetItem;
-import com.example.order_service.ordersheet.domain.model.vo.OrderSheetItemOptionSnapshot;
-import com.example.order_service.ordersheet.domain.model.vo.OrderSheetItemPriceSnapshot;
-import com.example.order_service.ordersheet.domain.model.vo.OrderSheetItemProductSnapshot;
-import com.example.order_service.ordersheet.domain.model.vo.ProductStatus;
+import com.example.order_service.ordersheet.domain.model.vo.*;
 import com.example.order_service.ordersheet.domain.repository.OrderSheetRepository;
 import com.example.order_service.ordersheet.exception.OrderSheetErrorCode;
 import com.example.order_service.ordersheet.infrastructure.config.OrderSheetProperties;
@@ -25,6 +22,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 @Service
@@ -38,7 +36,13 @@ public class OrderSheetAppService {
     public OrderSheetResult.Default createOrderSheet(OrderSheetCommand.Create command) {
         List<OrderSheetProductResult.Info> orderProducts = getOrderProducts(command);
         OrderSheetCouponResult.Calculate appliedCoupons = getAppliedCoupons(command, orderProducts);
-        return null;
+        List<OrderSheetItem> orderSheetItems = mapToOrderSheetItems(command, orderProducts, appliedCoupons);
+        String sheetId = generateId();
+        OrderSheetCouponResult.CartCoupon cartCoupon = appliedCoupons.cartCoupon();
+        OrderCouponSnapshot cartCouponSnapshot = OrderCouponSnapshot.of(cartCoupon.couponId(), cartCoupon.couponName(), cartCoupon.discountAmount());
+        OrderSheet orderSheet = OrderSheet.create(sheetId, command.userId(), orderSheetItems, cartCouponSnapshot, LocalDateTime.now(), orderSheetProperties.ttlMinutes());
+        OrderSheet save = repository.save(orderSheet, Duration.ofMinutes(orderSheetProperties.ttlMinutes()));
+        return OrderSheetResult.Default.from(save);
     }
 
     private List<OrderSheetProductResult.Info> getOrderProducts(OrderSheetCommand.Create command) {
@@ -52,7 +56,7 @@ public class OrderSheetAppService {
     private OrderSheetCouponResult.Calculate getAppliedCoupons(OrderSheetCommand.Create command, List<OrderSheetProductResult.Info> products) {
         boolean couponUsed = isCouponUsed(command);
         if (!couponUsed) {
-            return null;
+            OrderSheetCouponResult.Calculate.empty();
         }
         Map<Long, OrderSheetProductResult.Info> productMap = products.stream().collect(Collectors.toMap(OrderSheetProductResult.Info::productVariantId, Function.identity()));
         Map<Long, Long> couponMap = command.toCouponMap();
@@ -77,10 +81,7 @@ public class OrderSheetAppService {
     }
 
     private boolean isCouponUsed(OrderSheetCommand.Create command) {
-        if (command.cartCouponId() == null && command.itemCoupons().isEmpty()) {
-            return false;
-        }
-        return true;
+        return command.cartCouponId() != null || !command.itemCoupons().isEmpty();
     }
 
     public OrderSheetResult.Detail getOrderSheet(String sheetId, Long userId) {
@@ -92,17 +93,25 @@ public class OrderSheetAppService {
         return null;
     }
 
-    private List<OrderSheetItem> mapToDomainItems(List<OrderSheetProductResult.Info> products, Map<Long, Integer> quantityMap) {
-        return products.stream().map(product -> {
+    private List<OrderSheetItem> mapToOrderSheetItems(OrderSheetCommand.Create command, List<OrderSheetProductResult.Info> products, OrderSheetCouponResult.Calculate coupon) {
+        Map<Long, OrderSheetProductResult.Info> productMap = products.stream().collect(Collectors.toMap(OrderSheetProductResult.Info::productVariantId, Function.identity()));
+        Map<Long, OrderSheetCouponResult.ItemCoupon> couponMap = coupon.toItemCouponMap();
+        List<OrderSheetItem> orderSheetItems = new ArrayList<>();
+        for(OrderSheetCommand.OrderItem orderItem : command.items()) {
+            OrderSheetProductResult.Info product = productMap.get(orderItem.productVariantId());
+            OrderSheetItemProductSnapshot productSnapshot = OrderSheetItemProductSnapshot.of(product.productId(), product.productVariantId(), product.sku(), product.productName(), product.thumbnail());
+            OrderSheetItemPriceSnapshot priceSnapshot = OrderSheetItemPriceSnapshot.of(product.originalPrice(), product.discountRate(), product.discountAmount(), product.discountedPrice());
+            List<OrderSheetItemOptionSnapshot> optionSnapshots = mapToOptionSnapshots(product.options());
+            OrderCouponSnapshot couponSnapshot = null;
+            if (couponMap.containsKey(orderItem.productVariantId())) {
+                OrderSheetCouponResult.ItemCoupon itemCoupon = couponMap.get(orderItem.productVariantId());
+                couponSnapshot = OrderCouponSnapshot.of(itemCoupon.couponId(), itemCoupon.couponName(), itemCoupon.discountAmount());
+            }
             String sheetItemId = generateId();
-            Integer quantity = quantityMap.get(product.productVariantId());
-            OrderSheetItemProductSnapshot productSnapshot = OrderSheetItemProductSnapshot.of(product.productId(),
-                    product.productVariantId(), product.sku(), product.productName(), product.thumbnail());
-            OrderSheetItemPriceSnapshot priceSnapshot = OrderSheetItemPriceSnapshot.of(product.originalPrice(),
-                    product.discountRate(), product.discountAmount(), product.discountedPrice());
-            List<OrderSheetItemOptionSnapshot> options = mapToOptionSnapshots(product.options());
-            return OrderSheetItem.create(sheetItemId, productSnapshot, priceSnapshot, quantity, options);
-        }).toList();
+            OrderSheetItem sheetItem = OrderSheetItem.create(sheetItemId, productSnapshot, priceSnapshot, couponSnapshot, orderItem.quantity(), optionSnapshots);
+            orderSheetItems.add(sheetItem);
+        }
+        return orderSheetItems;
     }
 
     //상품 아이템 도메인 매핑
