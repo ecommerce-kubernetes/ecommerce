@@ -28,7 +28,7 @@ import static org.mockito.Mockito.verify;
         // 서킷 브레이커 카운트 제외
         "resilience4j.circuitbreaker.instances.productService.ignore-exceptions[0]=com.example.order_service.common.exception.external.ExternalClientException"
 })
-public class ProductDeprecatedAdaptorCircuitBreakerTest {
+public class ProductAdaptorCircuitBreakerTest {
 
     @Autowired
     private ProductAdaptor adaptor;

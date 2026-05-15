@@ -18,7 +18,13 @@ public interface OrderSheetProductMapper {
     @Mapping(source = "unitPrice.discountAmount", target = "discountAmount")
     @Mapping(source = "unitPrice.discountedPrice", target = "discountedPrice")
     @Mapping(source = "itemOptions", target = "options")
-    OrderSheetProductResult.Info toResult(ProductClientResponse.ProductDeprecated productDeprecated);
+    OrderSheetProductResult.InfoDeprecated toResult(ProductClientResponse.ProductDeprecated productDeprecated);
+
+    @Mapping(source = "unitPrice.originalPrice", target = "originalPrice")
+    @Mapping(source = "unitPrice.discountRate", target = "discountRate")
+    @Mapping(source = "unitPrice.discountAmount", target = "discountAmount")
+    @Mapping(source = "unitPrice.discountedPrice", target = "discountedPrice")
+    OrderSheetProductResult.Info toResult(ProductClientResponse.Product product);
 
     OrderSheetProductResult.Option toOption(ProductClientResponse.ProductOption option);
 

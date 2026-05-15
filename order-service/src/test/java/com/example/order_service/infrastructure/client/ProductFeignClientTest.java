@@ -137,7 +137,7 @@ class ProductFeignClientTest {
                     .productName("청바지")
                     .thumbnail("/product/product/jean_1.jpg")
                     .unitPrice(unitPrice)
-                    .itemOptions(List.of(xl, blue))
+                    .options(List.of(xl, blue))
                     .build();
         }
     }
@@ -244,7 +244,7 @@ class ProductFeignClientTest {
                     .productName("청바지")
                     .thumbnail("/product/product/jean_1.jpg")
                     .unitPrice(unitPrice)
-                    .itemOptions(List.of(xl, blue))
+                    .options(List.of(xl, blue))
                     .build();
         }
     }

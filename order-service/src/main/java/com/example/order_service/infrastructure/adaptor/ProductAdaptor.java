@@ -1,6 +1,7 @@
 package com.example.order_service.infrastructure.adaptor;
 
 import com.example.order_service.infrastructure.client.ProductFeignClient;
+import com.example.order_service.infrastructure.dto.command.ProductCommand;
 import com.example.order_service.infrastructure.dto.request.ProductClientRequest;
 import com.example.order_service.infrastructure.dto.response.ProductClientResponse;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
@@ -21,6 +22,16 @@ public class ProductAdaptor {
     public List<ProductClientResponse.ProductDeprecated> getProductsByVariantIds(List<Long> productVariantIds) {
         ProductClientRequest.ProductVariantIds request = ProductClientRequest.ProductVariantIds.of(productVariantIds);
         return client.getProductsByVariantIds(request);
+    }
+
+    @CircuitBreaker(name = "productService", fallbackMethod = "getProductsForOrderFallback")
+    public List<ProductClientResponse.Product> getProductsForOrder(ProductCommand.Validate command) {
+        ProductClientRequest.Validate request = ProductClientRequest.Validate.from(command);
+        return client.getProductsForOrder(request);
+    }
+
+    private List<ProductClientResponse.Product> getProductsForOrderFallback(ProductCommand.Validate command, Throwable throwable) throws Throwable {
+        throw translator.translate("PRODUCT-SERVICE", throwable);
     }
 
     private List<ProductClientResponse.ProductDeprecated> getProductsByVariantIdsFallback(List<Long> productVariantIds, Throwable throwable) throws Throwable {

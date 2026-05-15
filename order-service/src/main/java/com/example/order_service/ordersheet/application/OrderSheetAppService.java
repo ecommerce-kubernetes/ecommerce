@@ -34,11 +34,11 @@ public class OrderSheetAppService {
 
     public OrderSheetResult.Default createOrderSheet(OrderSheetCommand.Create command) {
         // 주문 상품 조회
-        List<OrderSheetProductResult.Info> orderProducts = getOrderProducts(command);
+        List<OrderSheetProductResult.Info> products = orderSheetProductGateway.getProducts(command.items());
         // 적용 쿠폰 조회
-        OrderSheetCouponResult.Calculate appliedCoupons = getAppliedCoupons(command, orderProducts);
+        OrderSheetCouponResult.Calculate appliedCoupons = getAppliedCoupons(command, products);
         // 주문서 아이템 생성
-        List<OrderSheetItem> orderSheetItems = mapToOrderSheetItems(command, orderProducts, appliedCoupons);
+        List<OrderSheetItem> orderSheetItems = mapToOrderSheetItems(command, products, appliedCoupons);
         // 주문서 생성
         OrderSheet orderSheet = createOrderSheet(command, orderSheetItems, appliedCoupons.cartCoupon());
         // 주문서 저장
@@ -56,10 +56,9 @@ public class OrderSheetAppService {
 
     //주문 상품 조회
     private List<OrderSheetProductResult.Info> getOrderProducts(OrderSheetCommand.Create command) {
-        List<Long> variantIds = command.toProductVariantIds();
         Map<Long, Integer> quantityMap = command.toQuantityMap();
-        List<OrderSheetProductResult.Info> products = orderSheetProductGateway.getProducts(variantIds);
-        validateProductsForOrder(products, quantityMap);
+        List<OrderSheetProductResult.Info> products = orderSheetProductGateway.getProducts(command.items());
+//        validateProductsForOrder(products, quantityMap);
         return products;
     }
 
@@ -115,12 +114,12 @@ public class OrderSheetAppService {
     }
 
     // 주문 상품 검증
-    private void validateProductsForOrder(List<OrderSheetProductResult.Info> products, Map<Long, Integer> quantityMap) {
+    private void validateProductsForOrder(List<OrderSheetProductResult.InfoDeprecated> products, Map<Long, Integer> quantityMap) {
         if (products.size() != quantityMap.size()) {
             throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_PRODUCT_NOT_FOUND);
         }
 
-        for (OrderSheetProductResult.Info product : products) {
+        for (OrderSheetProductResult.InfoDeprecated product : products) {
             Integer requestedQuantity = quantityMap.get(product.productVariantId());
             // 주문 불가 상품 검증
             if (product.status() != ProductStatus.ORDERABLE) {

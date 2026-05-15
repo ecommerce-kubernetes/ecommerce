@@ -15,14 +15,53 @@ import java.util.List;
 import static com.example.order_service.support.TestFixtureUtil.fixtureMonkey;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class OrderSheetProductDeprecatedMapperTest {
+public class OrderSheetProductMapperTest {
 
     private final MoneyMapper moneyMapper = Mappers.getMapper(MoneyMapper.class);
     private final OrderSheetProductMapper mapper = new OrderSheetProductMapperImpl(moneyMapper);
 
     @Test
     @DisplayName("상품 응답을 Result로 매핑한다")
-    void toResult() {
+    void toResult(){
+        //given
+        ProductClientResponse.Product response = fixtureMonkey.giveMeBuilder(ProductClientResponse.Product.class)
+                .set("unitPrice.originalPrice", 10000L)
+                .set("unitPrice.discountRate", 10)
+                .set("unitPrice.discountAmount", 1000L)
+                .set("unitPrice.discountedPrice", 9000L)
+                .sample();
+
+        List<OrderSheetProductResult.Option> expectedOptions = response.options().stream()
+                .map(opt -> OrderSheetProductResult.Option.builder()
+                        .optionTypeName(opt.optionTypeName())
+                        .optionValueName(opt.optionValueName())
+                        .build())
+                .toList();
+
+        OrderSheetProductResult.Info expectedResult = OrderSheetProductResult.Info.builder()
+                .productId(response.productId())
+                .productVariantId(response.productVariantId())
+                .sku(response.sku())
+                .productName(response.productName())
+                .thumbnail(response.thumbnail())
+                .originalPrice(Money.wons(response.unitPrice().originalPrice()))
+                .discountRate(response.unitPrice().discountRate())
+                .discountAmount(Money.wons(response.unitPrice().discountAmount()))
+                .discountedPrice(Money.wons(response.unitPrice().discountedPrice()))
+                .options(expectedOptions)
+                .build();
+        //when
+        OrderSheetProductResult.Info result = mapper.toResult(response);
+        //then
+        assertThat(result)
+                .usingRecursiveComparison()
+                .withEqualsForType(Money::equals, Money.class)
+                .isEqualTo(expectedResult);
+    }
+
+    @Test
+    @DisplayName("상품 응답을 Result로 매핑한다")
+    void toResultDeprecated() {
         //given
         ProductClientResponse.ProductDeprecated response = TestFixtureUtil.sample(fixtureMonkey.giveMeBuilder(ProductClientResponse.ProductDeprecated.class)
                 .set("status", "ON_SALE")
@@ -39,7 +78,7 @@ public class OrderSheetProductDeprecatedMapperTest {
                         .build())
                 .toList();
 
-        OrderSheetProductResult.Info expectedResult = OrderSheetProductResult.Info.builder()
+        OrderSheetProductResult.InfoDeprecated expectedResult = OrderSheetProductResult.InfoDeprecated.builder()
                 .productId(response.productId())
                 .productVariantId(response.productVariantId())
                 .status(ProductStatus.ORDERABLE)
@@ -54,7 +93,7 @@ public class OrderSheetProductDeprecatedMapperTest {
                 .options(expectedOptions)
                 .build();
         //when
-        OrderSheetProductResult.Info result = mapper.toResult(response);
+        OrderSheetProductResult.InfoDeprecated result = mapper.toResult(response);
         //then
         assertThat(result)
                 .usingRecursiveComparison()

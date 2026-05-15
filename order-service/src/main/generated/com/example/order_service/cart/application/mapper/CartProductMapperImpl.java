@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-05-09T19:29:53+0900",
+    date = "2026-05-16T02:59:03+0900",
     comments = "version: 1.6.3, compiler: javac, environment: Java 21.0.10 (Eclipse Adoptium)"
 )
 @Component
@@ -26,25 +26,25 @@ public class CartProductMapperImpl implements CartProductMapper {
     }
 
     @Override
-    public CartProductResult.Info toResult(ProductClientResponse.Product product) {
-        if ( product == null ) {
+    public CartProductResult.Info toResult(ProductClientResponse.ProductDeprecated productDeprecated) {
+        if ( productDeprecated == null ) {
             return null;
         }
 
         CartProductResult.Info.InfoBuilder info = CartProductResult.Info.builder();
 
-        info.stock( product.stockQuantity() );
-        info.originalPrice( moneyMapper.toMoney( productUnitPriceOriginalPrice( product ) ) );
-        info.discountRate( productUnitPriceDiscountRate( product ) );
-        info.discountAmount( moneyMapper.toMoney( productUnitPriceDiscountAmount( product ) ) );
-        info.discountedPrice( moneyMapper.toMoney( productUnitPriceDiscountedPrice( product ) ) );
-        info.options( productOptionListToOptionList( product.itemOptions() ) );
-        info.productId( product.productId() );
-        info.productVariantId( product.productVariantId() );
-        info.status( translateStatus( product.status() ) );
-        info.sku( product.sku() );
-        info.productName( product.productName() );
-        info.thumbnail( product.thumbnail() );
+        info.stock( productDeprecated.stockQuantity() );
+        info.originalPrice( moneyMapper.toMoney( productDeprecatedUnitPriceOriginalPrice( productDeprecated ) ) );
+        info.discountRate( productDeprecatedUnitPriceDiscountRate( productDeprecated ) );
+        info.discountAmount( moneyMapper.toMoney( productDeprecatedUnitPriceDiscountAmount( productDeprecated ) ) );
+        info.discountedPrice( moneyMapper.toMoney( productDeprecatedUnitPriceDiscountedPrice( productDeprecated ) ) );
+        info.options( productOptionListToOptionList( productDeprecated.itemOptions() ) );
+        info.productId( productDeprecated.productId() );
+        info.productVariantId( productDeprecated.productVariantId() );
+        info.status( translateStatus( productDeprecated.status() ) );
+        info.sku( productDeprecated.sku() );
+        info.productName( productDeprecated.productName() );
+        info.thumbnail( productDeprecated.thumbnail() );
 
         return info.build();
     }
@@ -63,32 +63,32 @@ public class CartProductMapperImpl implements CartProductMapper {
         return option1.build();
     }
 
-    private Long productUnitPriceOriginalPrice(ProductClientResponse.Product product) {
-        ProductClientResponse.UnitPrice unitPrice = product.unitPrice();
+    private Long productDeprecatedUnitPriceOriginalPrice(ProductClientResponse.ProductDeprecated productDeprecated) {
+        ProductClientResponse.UnitPrice unitPrice = productDeprecated.unitPrice();
         if ( unitPrice == null ) {
             return null;
         }
         return unitPrice.originalPrice();
     }
 
-    private Integer productUnitPriceDiscountRate(ProductClientResponse.Product product) {
-        ProductClientResponse.UnitPrice unitPrice = product.unitPrice();
+    private Integer productDeprecatedUnitPriceDiscountRate(ProductClientResponse.ProductDeprecated productDeprecated) {
+        ProductClientResponse.UnitPrice unitPrice = productDeprecated.unitPrice();
         if ( unitPrice == null ) {
             return null;
         }
         return unitPrice.discountRate();
     }
 
-    private Long productUnitPriceDiscountAmount(ProductClientResponse.Product product) {
-        ProductClientResponse.UnitPrice unitPrice = product.unitPrice();
+    private Long productDeprecatedUnitPriceDiscountAmount(ProductClientResponse.ProductDeprecated productDeprecated) {
+        ProductClientResponse.UnitPrice unitPrice = productDeprecated.unitPrice();
         if ( unitPrice == null ) {
             return null;
         }
         return unitPrice.discountAmount();
     }
 
-    private Long productUnitPriceDiscountedPrice(ProductClientResponse.Product product) {
-        ProductClientResponse.UnitPrice unitPrice = product.unitPrice();
+    private Long productDeprecatedUnitPriceDiscountedPrice(ProductClientResponse.ProductDeprecated productDeprecated) {
+        ProductClientResponse.UnitPrice unitPrice = productDeprecated.unitPrice();
         if ( unitPrice == null ) {
             return null;
         }

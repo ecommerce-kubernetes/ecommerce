@@ -28,7 +28,7 @@ public class ProductClientResponse {
             String productName,
             String thumbnail,
             UnitPrice unitPrice,
-            List<ProductOption> itemOptions
+            List<ProductOption> options
     ) {
     }
 
