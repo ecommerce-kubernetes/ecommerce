@@ -161,7 +161,7 @@ public class OrderControllerDocsTest extends RestDocSupport {
 
                 fieldWithPath("createdAt").description("주문 시각"),
 
-                fieldWithPath("orderItems[].productId").description("주문 상품 ID(상품(Product) 식별자)"),
+                fieldWithPath("orderItems[].productId").description("주문 상품 ID(상품(ProductDeprecated) 식별자)"),
                 fieldWithPath("orderItems[].productVariantId").description("주문 상품 변형 ID"),
                 fieldWithPath("orderItems[].productName").description("주문 상품 이름"),
                 fieldWithPath("orderItems[].thumbnailUrl").description("주문 상품 썸네일"),
@@ -250,7 +250,7 @@ public class OrderControllerDocsTest extends RestDocSupport {
                 fieldWithPath("coupon.couponName").description("쿠폰 이름").optional(),
                 fieldWithPath("coupon.couponDiscount").description("쿠폰 할인 금액").optional(),
 
-                fieldWithPath("orderItems[].productId").description("주문 상품 ID(상품(Product) 식별자)"),
+                fieldWithPath("orderItems[].productId").description("주문 상품 ID(상품(ProductDeprecated) 식별자)"),
                 fieldWithPath("orderItems[].productVariantId").description("주문 상품 변형 ID"),
                 fieldWithPath("orderItems[].productName").description("주문 상품 이름"),
                 fieldWithPath("orderItems[].thumbnailUrl").description("주문 상품 썸네일"),
@@ -329,7 +329,7 @@ public class OrderControllerDocsTest extends RestDocSupport {
                 fieldWithPath("content[].orderStatus").description("주문 상태"),
                 fieldWithPath("content[].createdAt").description("주문 시각"),
 
-                fieldWithPath("content[].orderItems[].productId").description("주문 상품 ID(상품(Product) 식별자)"),
+                fieldWithPath("content[].orderItems[].productId").description("주문 상품 ID(상품(ProductDeprecated) 식별자)"),
                 fieldWithPath("content[].orderItems[].productVariantId").description("주문 상품 변형 ID"),
                 fieldWithPath("content[].orderItems[].productName").description("주문 상품 이름"),
                 fieldWithPath("content[].orderItems[].thumbnailUrl").description("주문 상품 썸네일"),

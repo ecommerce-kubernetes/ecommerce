@@ -23,14 +23,14 @@ public class CartProductGateway {
     private final CartProductMapper mapper;
 
     public List<CartProductResult.Info> getProducts(List<Long> variantIds) {
-        List<ProductClientResponse.Product> products = fetchProductWithTranslation(variantIds);
-        return products.stream()
+        List<ProductClientResponse.ProductDeprecated> productDeprecateds = fetchProductWithTranslation(variantIds);
+        return productDeprecateds.stream()
                 .map(mapper::toResult)
                 .toList();
     }
 
     // fallback
-    private List<ProductClientResponse.Product> fetchProductWithTranslation(List<Long> ids) {
+    private List<ProductClientResponse.ProductDeprecated> fetchProductWithTranslation(List<Long> ids) {
         try {
             return adaptor.getProductsByVariantIds(ids);
         } catch (ExternalClientException e) {

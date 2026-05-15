@@ -17,7 +17,7 @@ public interface CartProductMapper {
     @Mapping(source = "unitPrice.discountAmount", target = "discountAmount")
     @Mapping(source = "unitPrice.discountedPrice", target = "discountedPrice")
     @Mapping(source = "itemOptions", target = "options")
-    CartProductResult.Info toResult(ProductClientResponse.Product product);
+    CartProductResult.Info toResult(ProductClientResponse.ProductDeprecated productDeprecated);
 
     CartProductResult.Option toOption(ProductClientResponse.ProductOption option);
 

@@ -1,10 +1,10 @@
-package com.example.order_service.ordersheet.application.mapper;
+package com.example.order_service.order.application.mapper;
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.mapper.MoneyMapper;
 import com.example.order_service.infrastructure.dto.response.ProductClientResponse;
-import com.example.order_service.ordersheet.application.dto.result.OrderSheetProductResult;
-import com.example.order_service.ordersheet.domain.model.vo.ProductStatus;
+import com.example.order_service.order.application.dto.result.OrderProductResult;
+import com.example.order_service.order.domain.model.vo.ProductStatus;
 import com.example.order_service.support.TestFixtureUtil;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -15,31 +15,30 @@ import java.util.List;
 import static com.example.order_service.support.TestFixtureUtil.fixtureMonkey;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class OrderSheetProductMapperTest {
+public class OrderProductDeprecatedMapperTest {
 
     private final MoneyMapper moneyMapper = Mappers.getMapper(MoneyMapper.class);
-    private final OrderSheetProductMapper mapper = new OrderSheetProductMapperImpl(moneyMapper);
+    private final OrderProductMapper mapper = new OrderProductMapperImpl(moneyMapper);
 
     @Test
     @DisplayName("상품 응답을 Result로 매핑한다")
-    void toResult() {
+    void toResult(){
         //given
-        ProductClientResponse.Product response = TestFixtureUtil.sample(fixtureMonkey.giveMeBuilder(ProductClientResponse.Product.class)
+        ProductClientResponse.ProductDeprecated response = TestFixtureUtil.sample(fixtureMonkey.giveMeBuilder(ProductClientResponse.ProductDeprecated.class)
                 .set("status", "ON_SALE")
                 .set("unitPrice.originalPrice", 10000L)
                 .set("unitPrice.discountRate", 10)
                 .set("unitPrice.discountAmount", 1000L)
                 .set("unitPrice.discountedPrice", 9000L));
 
-        //변환된 result
-        List<OrderSheetProductResult.Option> expectedOptions = response.itemOptions().stream()
-                .map(opt -> OrderSheetProductResult.Option.builder()
+        List<OrderProductResult.Option> expectedOptions = response.itemOptions().stream()
+                .map(opt -> OrderProductResult.Option.builder()
                         .optionTypeName(opt.optionTypeName())
                         .optionValueName(opt.optionValueName())
                         .build())
                 .toList();
 
-        OrderSheetProductResult.Info expectedResult = OrderSheetProductResult.Info.builder()
+        OrderProductResult.Info expectedResult = OrderProductResult.Info.builder()
                 .productId(response.productId())
                 .productVariantId(response.productVariantId())
                 .status(ProductStatus.ORDERABLE)
@@ -54,7 +53,7 @@ public class OrderSheetProductMapperTest {
                 .options(expectedOptions)
                 .build();
         //when
-        OrderSheetProductResult.Info result = mapper.toResult(response);
+        OrderProductResult.Info result = mapper.toResult(response);
         //then
         assertThat(result)
                 .usingRecursiveComparison()

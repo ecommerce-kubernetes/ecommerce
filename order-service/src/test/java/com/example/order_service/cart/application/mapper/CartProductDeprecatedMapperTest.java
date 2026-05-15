@@ -15,7 +15,7 @@ import java.util.List;
 import static com.example.order_service.support.TestFixtureUtil.fixtureMonkey;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class CartProductMapperTest {
+public class CartProductDeprecatedMapperTest {
 
     private final MoneyMapper moneyMapper = Mappers.getMapper(MoneyMapper.class);
     private final CartProductMapper mapper = new CartProductMapperImpl(moneyMapper);
@@ -25,7 +25,7 @@ public class CartProductMapperTest {
     void toResult() {
         //given
         // source 데이터
-        ProductClientResponse.Product source = TestFixtureUtil.sample(fixtureMonkey.giveMeBuilder(ProductClientResponse.Product.class)
+        ProductClientResponse.ProductDeprecated source = TestFixtureUtil.sample(fixtureMonkey.giveMeBuilder(ProductClientResponse.ProductDeprecated.class)
                 .set("status", "ON_SALE")
                 .set("unitPrice.originalPrice", 10000L)
                 .set("unitPrice.discountRate", 10)

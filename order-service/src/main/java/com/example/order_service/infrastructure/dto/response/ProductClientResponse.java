@@ -7,7 +7,7 @@ import java.util.List;
 public class ProductClientResponse {
 
     @Builder
-    public record Product(
+    public record ProductDeprecated(
             Long productId,
             Long productVariantId,
             String status,
@@ -16,6 +16,18 @@ public class ProductClientResponse {
             String thumbnail,
             UnitPrice unitPrice,
             Integer stockQuantity,
+            List<ProductOption> itemOptions
+    ) {
+    }
+
+    @Builder
+    public record Product(
+            Long productId,
+            Long productVariantId,
+            String sku,
+            String productName,
+            String thumbnail,
+            UnitPrice unitPrice,
             List<ProductOption> itemOptions
     ) {
     }

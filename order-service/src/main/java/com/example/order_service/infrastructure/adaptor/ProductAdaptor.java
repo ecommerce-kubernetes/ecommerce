@@ -18,12 +18,12 @@ public class ProductAdaptor {
     private final ExternalExceptionTranslator translator;
 
     @CircuitBreaker(name = "productService", fallbackMethod = "getProductsByVariantIdsFallback")
-    public List<ProductClientResponse.Product> getProductsByVariantIds(List<Long> productVariantIds) {
+    public List<ProductClientResponse.ProductDeprecated> getProductsByVariantIds(List<Long> productVariantIds) {
         ProductClientRequest.ProductVariantIds request = ProductClientRequest.ProductVariantIds.of(productVariantIds);
         return client.getProductsByVariantIds(request);
     }
 
-    private List<ProductClientResponse.Product> getProductsByVariantIdsFallback(List<Long> productVariantIds, Throwable throwable) throws Throwable {
+    private List<ProductClientResponse.ProductDeprecated> getProductsByVariantIdsFallback(List<Long> productVariantIds, Throwable throwable) throws Throwable {
         throw translator.translate("PRODUCT-SERVICE", throwable);
     }
 }

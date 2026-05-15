@@ -86,7 +86,7 @@ public class SagaManagerTest {
 
     @Nested
     @DisplayName("재고 감소 성공")
-    class SuccessProductStockDeduct {
+    class SuccessProductDeprecatedStockDeduct {
 
         @Test
         @DisplayName("재고감소 성공 후 쿠폰과 포인트를 모두 사용한다면 다음 단계인 쿠폰 단계를 실행한다")
@@ -180,7 +180,7 @@ public class SagaManagerTest {
 
     @Nested
     @DisplayName("재고 감소 실패")
-    class FailProductStockDeduct {
+    class FailProductDeprecatedStockDeduct {
 
         @Test
         @DisplayName("재고감소가 실패한 경우 saga를 실패 처리한다")
@@ -212,7 +212,7 @@ public class SagaManagerTest {
 
     @Nested
     @DisplayName("재고 복구 성공")
-    class SuccessProductStockRestore {
+    class SuccessProductDeprecatedStockRestore {
 
         @Test
         @DisplayName("상품 재고 보상이 완료되면 Saga를 마친다")

@@ -17,7 +17,7 @@ public interface OrderProductMapper {
     @Mapping(source = "unitPrice.discountAmount", target = "discountAmount")
     @Mapping(source = "unitPrice.discountedPrice", target = "discountedPrice")
     @Mapping(source = "itemOptions", target = "options")
-    OrderProductResult.Info toResult(ProductClientResponse.Product product);
+    OrderProductResult.Info toResult(ProductClientResponse.ProductDeprecated productDeprecated);
 
     OrderProductResult.Option toOption(ProductClientResponse.ProductOption option);
 

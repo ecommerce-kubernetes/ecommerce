@@ -21,14 +21,14 @@ public class OrderSheetProductGateway {
     private final OrderSheetProductMapper mapper;
 
     public List<OrderSheetProductResult.Info> getProducts(List<Long> productVariantIds) {
-        List<ProductClientResponse.Product> products = fetchProductsWithTranslation(productVariantIds);
-        return products.stream()
+        List<ProductClientResponse.ProductDeprecated> productDeprecateds = fetchProductsWithTranslation(productVariantIds);
+        return productDeprecateds.stream()
                 .map(mapper::toResult)
                 .toList();
     }
 
     // fallback 메서드 (예외 변환 및 fallback)
-    private List<ProductClientResponse.Product> fetchProductsWithTranslation(List<Long> ids) {
+    private List<ProductClientResponse.ProductDeprecated> fetchProductsWithTranslation(List<Long> ids) {
         try {
             //정상 응답
             return productAdaptor.getProductsByVariantIds(ids);

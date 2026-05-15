@@ -27,7 +27,7 @@ public class SagaEventListenerTest extends IncludeInfraTest {
 
     @Nested
     @DisplayName("상품 서비스 응답 수신")
-    class HandleProductResult {
+    class HandleProductDeprecatedResult {
 
         @Test
         @DisplayName("상품 성공 이벤트를 수신하면 sagaManager를 통해 Saga를 진행한다")

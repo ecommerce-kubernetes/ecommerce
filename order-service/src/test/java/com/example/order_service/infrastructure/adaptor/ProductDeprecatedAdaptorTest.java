@@ -13,7 +13,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import java.util.List;
 
 import static com.example.order_service.support.TestFixtureUtil.fixtureMonkey;
-import static com.example.order_service.support.TestFixtureUtil.sample;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -22,7 +21,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
 
 @IsolatedTest
-public class ProductAdaptorTest {
+public class ProductDeprecatedAdaptorTest {
     @Autowired
     private ProductAdaptor productAdaptor;
     @MockitoBean
@@ -35,12 +34,12 @@ public class ProductAdaptorTest {
     void getProductsByVariantIds() {
         //given
         List<Long> productVariantIds = List.of(1L, 2L);
-        List<ProductClientResponse.Product> mockResponses =
-                fixtureMonkey.giveMe(ProductClientResponse.Product.class, 2);
+        List<ProductClientResponse.ProductDeprecated> mockResponses =
+                fixtureMonkey.giveMe(ProductClientResponse.ProductDeprecated.class, 2);
         given(client.getProductsByVariantIds(any(ProductClientRequest.ProductVariantIds.class)))
                 .willReturn(mockResponses);
         //when
-        List<ProductClientResponse.Product> response = productAdaptor.getProductsByVariantIds(productVariantIds);
+        List<ProductClientResponse.ProductDeprecated> response = productAdaptor.getProductsByVariantIds(productVariantIds);
         //then
         assertThat(response).containsExactlyElementsOf(mockResponses);
     }

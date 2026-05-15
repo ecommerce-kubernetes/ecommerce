@@ -17,4 +17,17 @@ public class ProductClientRequest {
                     .build();
         }
     }
+
+    @Builder
+    public record Validate(
+            List<Item> items
+    ) {
+    }
+
+    @Builder
+    public record Item(
+            Long productVariantId,
+            Integer quantity
+    ) {
+    }
 }

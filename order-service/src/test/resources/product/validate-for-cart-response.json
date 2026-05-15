@@ -1,0 +1,48 @@
+[
+  {
+    "productId": 1,
+    "productVariantId": 1,
+    "sku": "PROD-XL-BLUE",
+    "productName": "청바지",
+    "thumbnail": "/product/product/jean_1.jpg",
+    "unitPrice": {
+      "originalPrice": 10000,
+      "discountRate": 10,
+      "discountAmount": 1000,
+      "discountedPrice": 9000
+    },
+    "itemOptions": [
+      {
+        "optionTypeName": "사이즈",
+        "optionValueName": "XL"
+      },
+      {
+        "optionTypeName": "색상",
+        "optionValueName": "BLUE"
+      }
+    ]
+  },
+  {
+    "productId": 1,
+    "productVariantId": 2,
+    "sku": "PROD-XL-RED",
+    "productName": "청바지",
+    "thumbnail": "/product/product/jean_1.jpg",
+    "unitPrice": {
+      "originalPrice": 10000,
+      "discountRate": 10,
+      "discountAmount": 1000,
+      "discountedPrice": 9000
+    },
+    "itemOptions": [
+      {
+        "optionTypeName": "사이즈",
+        "optionValueName": "XL"
+      },
+      {
+        "optionTypeName": "색상",
+        "optionValueName": "RED"
+      }
+    ]
+  }
+]

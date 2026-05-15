@@ -23,13 +23,13 @@ public class OrderProductGateway {
     private final OrderProductMapper mapper;
 
     public List<OrderProductResult.Info> getProducts(List<Long> productVariantIds) {
-        List<ProductClientResponse.Product> products = fetchProductsWithTranslation(productVariantIds);
-        return products.stream()
+        List<ProductClientResponse.ProductDeprecated> productDeprecateds = fetchProductsWithTranslation(productVariantIds);
+        return productDeprecateds.stream()
                 .map(mapper::toResult)
                 .toList();
     }
 
-    private List<ProductClientResponse.Product> fetchProductsWithTranslation(List<Long> ids) {
+    private List<ProductClientResponse.ProductDeprecated> fetchProductsWithTranslation(List<Long> ids) {
         try {
             return productAdaptor.getProductsByVariantIds(ids);
         } catch (ExternalClientException e) {
