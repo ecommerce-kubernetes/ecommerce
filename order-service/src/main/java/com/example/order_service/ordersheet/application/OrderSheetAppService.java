@@ -5,8 +5,10 @@ import com.example.order_service.ordersheet.application.dto.command.OrderSheetCo
 import com.example.order_service.ordersheet.application.dto.result.OrderSheetCouponResult;
 import com.example.order_service.ordersheet.application.dto.result.OrderSheetProductResult;
 import com.example.order_service.ordersheet.application.dto.result.OrderSheetResult;
+import com.example.order_service.ordersheet.application.dto.result.OrderSheetUserResult;
 import com.example.order_service.ordersheet.application.external.OrderSheetCouponGateway;
 import com.example.order_service.ordersheet.application.external.OrderSheetProductGateway;
+import com.example.order_service.ordersheet.application.external.OrderSheetUserGateway;
 import com.example.order_service.ordersheet.domain.model.OrderSheet;
 import com.example.order_service.ordersheet.domain.model.OrderSheetItem;
 import com.example.order_service.ordersheet.domain.model.vo.OrderCouponSnapshot;
@@ -33,9 +35,11 @@ public class OrderSheetAppService {
     private final OrderSheetProperties orderSheetProperties;
     private final OrderSheetProductGateway orderSheetProductGateway;
     private final OrderSheetCouponGateway orderSheetCouponGateway;
+    private final OrderSheetUserGateway orderSheetUserGateway;
     private final OrderSheetRepository repository;
 
     public OrderSheetResult.Create createOrderSheet(OrderSheetCommand.Create command) {
+        OrderSheetUserResult.Profile userProfile = orderSheetUserGateway.getUserProfile(command.userId());
         // 주문 상품 조회
         List<OrderSheetProductResult.Info> products = orderSheetProductGateway.getProducts(command.items());
         // 적용 쿠폰 조회
