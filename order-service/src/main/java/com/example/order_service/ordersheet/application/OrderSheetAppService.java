@@ -9,7 +9,10 @@ import com.example.order_service.ordersheet.application.external.OrderSheetCoupo
 import com.example.order_service.ordersheet.application.external.OrderSheetProductGateway;
 import com.example.order_service.ordersheet.domain.model.OrderSheet;
 import com.example.order_service.ordersheet.domain.model.OrderSheetItem;
-import com.example.order_service.ordersheet.domain.model.vo.*;
+import com.example.order_service.ordersheet.domain.model.vo.OrderCouponSnapshot;
+import com.example.order_service.ordersheet.domain.model.vo.OrderSheetItemOptionSnapshot;
+import com.example.order_service.ordersheet.domain.model.vo.OrderSheetItemPriceSnapshot;
+import com.example.order_service.ordersheet.domain.model.vo.OrderSheetItemProductSnapshot;
 import com.example.order_service.ordersheet.domain.repository.OrderSheetRepository;
 import com.example.order_service.ordersheet.exception.OrderSheetErrorCode;
 import com.example.order_service.ordersheet.infrastructure.config.OrderSheetProperties;
@@ -32,7 +35,7 @@ public class OrderSheetAppService {
     private final OrderSheetCouponGateway orderSheetCouponGateway;
     private final OrderSheetRepository repository;
 
-    public OrderSheetResult.Default createOrderSheet(OrderSheetCommand.Create command) {
+    public OrderSheetResult.Create createOrderSheet(OrderSheetCommand.Create command) {
         // 주문 상품 조회
         List<OrderSheetProductResult.Info> products = orderSheetProductGateway.getProducts(command.items());
         // 적용 쿠폰 조회
@@ -43,7 +46,7 @@ public class OrderSheetAppService {
         OrderSheet orderSheet = createOrderSheet(command, orderSheetItems, appliedCoupons.cartCoupon());
         // 주문서 저장
         OrderSheet save = repository.save(orderSheet, Duration.ofMinutes(orderSheetProperties.ttlMinutes()));
-        return OrderSheetResult.Default.from(save);
+        return OrderSheetResult.Create.from(save);
     }
 
     // 주문 시트 도메인 생성
@@ -52,14 +55,6 @@ public class OrderSheetAppService {
                 .map(coupon -> OrderCouponSnapshot.of(coupon.couponId(), coupon.couponName(), coupon.discountAmount()))
                 .orElseGet(OrderCouponSnapshot::empty);
         return OrderSheet.create(generateId(), command.userId(), items, cartCouponSnapshot, LocalDateTime.now(), orderSheetProperties.ttlMinutes());
-    }
-
-    //주문 상품 조회
-    private List<OrderSheetProductResult.Info> getOrderProducts(OrderSheetCommand.Create command) {
-        Map<Long, Integer> quantityMap = command.toQuantityMap();
-        List<OrderSheetProductResult.Info> products = orderSheetProductGateway.getProducts(command.items());
-//        validateProductsForOrder(products, quantityMap);
-        return products;
     }
 
     //적용 쿠폰 조회
@@ -111,25 +106,6 @@ public class OrderSheetAppService {
                 .orElseGet(OrderCouponSnapshot::empty);
         String sheetItemId = generateId();
         return OrderSheetItem.create(sheetItemId, productSnapshot, priceSnapshot, couponSnapshot, orderItem.quantity(), optionSnapshots);
-    }
-
-    // 주문 상품 검증
-    private void validateProductsForOrder(List<OrderSheetProductResult.InfoDeprecated> products, Map<Long, Integer> quantityMap) {
-        if (products.size() != quantityMap.size()) {
-            throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_PRODUCT_NOT_FOUND);
-        }
-
-        for (OrderSheetProductResult.InfoDeprecated product : products) {
-            Integer requestedQuantity = quantityMap.get(product.productVariantId());
-            // 주문 불가 상품 검증
-            if (product.status() != ProductStatus.ORDERABLE) {
-                throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_PRODUCT_UNORDERABLE);
-            }
-            //
-            if (product.stock() < requestedQuantity) {
-                throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_INSUFFICIENT_STOCK);
-            }
-        }
     }
 
     //상품 옵션 매핑

@@ -25,7 +25,7 @@ public class OrderSheetController {
     public ResponseEntity<OrderSheetResponse.Create> createOrderSheet(@AuthenticationPrincipal UserPrincipal userPrincipal,
                                                                       @RequestBody @Validated OrderSheetRequest.Create request) {
         OrderSheetCommand.Create command = request.toCommand(userPrincipal.getUserId());
-        OrderSheetResult.Default result = orderSheetAppService.createOrderSheet(command);
+        OrderSheetResult.Create result = orderSheetAppService.createOrderSheet(command);
         OrderSheetResponse.Create response = OrderSheetResponse.Create.from(result);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }

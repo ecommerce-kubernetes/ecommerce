@@ -17,7 +17,7 @@ public class OrderSheet {
     private String sheetId;
     private Long userId;
     private List<OrderSheetItem> items;
-    private OrderCouponSnapshot coupon;
+    private OrderCouponSnapshot cartCoupon;
     private Money totalOriginalPrice;
     private Money totalProductDiscountAmount;
     private Money totalCouponDiscountAmount;
@@ -26,13 +26,13 @@ public class OrderSheet {
     private LocalDateTime expiresAt;
 
     @Builder(builderMethodName = "reconstitute")
-    private OrderSheet(String sheetId, Long userId, List<OrderSheetItem> items, OrderCouponSnapshot coupon,
+    private OrderSheet(String sheetId, Long userId, List<OrderSheetItem> items, OrderCouponSnapshot cartCoupon,
                        Money totalOriginalPrice, Money totalProductDiscountAmount, Money totalCouponDiscountAmount,
                        Money usedPoints, Money totalPaymentAmount, LocalDateTime expiresAt) {
         this.sheetId = sheetId;
         this.userId = userId;
         this.items = items;
-        this.coupon = coupon;
+        this.cartCoupon = cartCoupon;
         this.totalOriginalPrice = totalOriginalPrice;
         this.totalProductDiscountAmount = totalProductDiscountAmount;
         this.totalCouponDiscountAmount = totalCouponDiscountAmount;
@@ -49,7 +49,7 @@ public class OrderSheet {
                 .sheetId(sheetId)
                 .userId(userId)
                 .items(items)
-                .coupon(coupon)
+                .cartCoupon(coupon)
                 .totalOriginalPrice(calcTotalOriginalPrice(items))
                 .totalProductDiscountAmount(calcTotalProductDiscountAmount(items))
                 .totalCouponDiscountAmount(coupon.getDiscountAmount().add(calcTotalItemCouponDiscountAmount(items)))

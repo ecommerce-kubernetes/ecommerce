@@ -3,6 +3,7 @@ package com.example.order_service.ordersheet.infrastructure.persistence;
 import com.example.order_service.common.mapper.MoneyMapper;
 import com.example.order_service.ordersheet.domain.model.OrderSheet;
 import com.example.order_service.ordersheet.domain.model.OrderSheetItem;
+import com.example.order_service.ordersheet.domain.model.vo.OrderCouponSnapshot;
 import com.example.order_service.ordersheet.domain.model.vo.OrderSheetItemOptionSnapshot;
 import com.example.order_service.ordersheet.domain.model.vo.OrderSheetItemPriceSnapshot;
 import com.example.order_service.ordersheet.domain.model.vo.OrderSheetItemProductSnapshot;
@@ -14,7 +15,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-05-09T19:29:53+0900",
+    date = "2026-05-16T13:15:04+0900",
     comments = "version: 1.6.3, compiler: javac, environment: Java 21.0.10 (Eclipse Adoptium)"
 )
 @Component
@@ -37,9 +38,13 @@ class OrderSheetRedisMapperImpl implements OrderSheetRedisMapper {
         OrderSheetRedisEntity.OrderSheetRedisEntityBuilder orderSheetRedisEntity = OrderSheetRedisEntity.builder();
 
         orderSheetRedisEntity.sheetId( domain.getSheetId() );
+        orderSheetRedisEntity.userId( domain.getUserId() );
         orderSheetRedisEntity.items( orderSheetItemListToOrderSheetItemRedisEntityList( domain.getItems() ) );
+        orderSheetRedisEntity.cartCoupon( orderCouponSnapshotToCouponSnapshotRedisEntity( domain.getCartCoupon() ) );
         orderSheetRedisEntity.totalOriginalPrice( moneyMapper.toLong( domain.getTotalOriginalPrice() ) );
         orderSheetRedisEntity.totalProductDiscountAmount( moneyMapper.toLong( domain.getTotalProductDiscountAmount() ) );
+        orderSheetRedisEntity.totalCouponDiscountAmount( moneyMapper.toLong( domain.getTotalCouponDiscountAmount() ) );
+        orderSheetRedisEntity.usedPoints( moneyMapper.toLong( domain.getUsedPoints() ) );
         orderSheetRedisEntity.totalPaymentAmount( moneyMapper.toLong( domain.getTotalPaymentAmount() ) );
         orderSheetRedisEntity.expiresAt( domain.getExpiresAt() );
 
@@ -52,12 +57,16 @@ class OrderSheetRedisMapperImpl implements OrderSheetRedisMapper {
             return null;
         }
 
-        OrderSheet.OrderSheetBuilder orderSheet = OrderSheet.reconstitute();
+        OrderSheet.OrderSheetBuilder orderSheet = createOrderSheetBuilder();
 
         orderSheet.sheetId( entity.getSheetId() );
+        orderSheet.userId( entity.getUserId() );
         orderSheet.items( orderSheetItemRedisEntityListToOrderSheetItemList( entity.getItems() ) );
+        orderSheet.cartCoupon( couponSnapshotRedisEntityToOrderCouponSnapshot( entity.getCartCoupon() ) );
         orderSheet.totalOriginalPrice( moneyMapper.toMoney( entity.getTotalOriginalPrice() ) );
         orderSheet.totalProductDiscountAmount( moneyMapper.toMoney( entity.getTotalProductDiscountAmount() ) );
+        orderSheet.totalCouponDiscountAmount( moneyMapper.toMoney( entity.getTotalCouponDiscountAmount() ) );
+        orderSheet.usedPoints( moneyMapper.toMoney( entity.getUsedPoints() ) );
         orderSheet.totalPaymentAmount( moneyMapper.toMoney( entity.getTotalPaymentAmount() ) );
         orderSheet.expiresAt( entity.getExpiresAt() );
 
@@ -73,7 +82,9 @@ class OrderSheetRedisMapperImpl implements OrderSheetRedisMapper {
         OrderSheetRedisEntity.OrderSheetItemRedisEntity.OrderSheetItemRedisEntityBuilder orderSheetItemRedisEntity = OrderSheetRedisEntity.OrderSheetItemRedisEntity.builder();
 
         orderSheetItemRedisEntity.priceSnapshot( orderSheetItemPriceSnapshotToPriceSnapshotRedisEntity( domain.getItemPrice() ) );
+        orderSheetItemRedisEntity.sheetItemId( domain.getSheetItemId() );
         orderSheetItemRedisEntity.productSnapshot( orderSheetItemProductSnapshotToProductSnapshotRedisEntity( domain.getProductSnapshot() ) );
+        orderSheetItemRedisEntity.itemCoupon( orderCouponSnapshotToCouponSnapshotRedisEntity( domain.getItemCoupon() ) );
         if ( domain.getQuantity() != null ) {
             orderSheetItemRedisEntity.quantity( domain.getQuantity() );
         }
@@ -88,10 +99,12 @@ class OrderSheetRedisMapperImpl implements OrderSheetRedisMapper {
             return null;
         }
 
-        OrderSheetItem.OrderSheetItemBuilder orderSheetItem = OrderSheetItem.reconstitute();
+        OrderSheetItem.OrderSheetItemBuilder orderSheetItem = createOrderSheetItemBuilder();
 
         orderSheetItem.itemPrice( priceSnapshotRedisEntityToOrderSheetItemPriceSnapshot( entity.getPriceSnapshot() ) );
+        orderSheetItem.sheetItemId( entity.getSheetItemId() );
         orderSheetItem.productSnapshot( productSnapshotRedisEntityToOrderSheetItemProductSnapshot( entity.getProductSnapshot() ) );
+        orderSheetItem.itemCoupon( couponSnapshotRedisEntityToOrderCouponSnapshot( entity.getItemCoupon() ) );
         orderSheetItem.quantity( entity.getQuantity() );
         orderSheetItem.options( optionSnapshotListToOrderSheetItemOptionSnapshotList( entity.getOptions() ) );
 
@@ -111,6 +124,20 @@ class OrderSheetRedisMapperImpl implements OrderSheetRedisMapper {
         return list1;
     }
 
+    protected OrderSheetRedisEntity.CouponSnapshotRedisEntity orderCouponSnapshotToCouponSnapshotRedisEntity(OrderCouponSnapshot orderCouponSnapshot) {
+        if ( orderCouponSnapshot == null ) {
+            return null;
+        }
+
+        OrderSheetRedisEntity.CouponSnapshotRedisEntity.CouponSnapshotRedisEntityBuilder couponSnapshotRedisEntity = OrderSheetRedisEntity.CouponSnapshotRedisEntity.builder();
+
+        couponSnapshotRedisEntity.couponId( orderCouponSnapshot.getCouponId() );
+        couponSnapshotRedisEntity.couponName( orderCouponSnapshot.getCouponName() );
+        couponSnapshotRedisEntity.discountAmount( moneyMapper.toLong( orderCouponSnapshot.getDiscountAmount() ) );
+
+        return couponSnapshotRedisEntity.build();
+    }
+
     protected List<OrderSheetItem> orderSheetItemRedisEntityListToOrderSheetItemList(List<OrderSheetRedisEntity.OrderSheetItemRedisEntity> list) {
         if ( list == null ) {
             return null;
@@ -122,6 +149,20 @@ class OrderSheetRedisMapperImpl implements OrderSheetRedisMapper {
         }
 
         return list1;
+    }
+
+    protected OrderCouponSnapshot couponSnapshotRedisEntityToOrderCouponSnapshot(OrderSheetRedisEntity.CouponSnapshotRedisEntity couponSnapshotRedisEntity) {
+        if ( couponSnapshotRedisEntity == null ) {
+            return null;
+        }
+
+        OrderCouponSnapshot.OrderCouponSnapshotBuilder orderCouponSnapshot = OrderCouponSnapshot.reconstitute();
+
+        orderCouponSnapshot.couponId( couponSnapshotRedisEntity.getCouponId() );
+        orderCouponSnapshot.couponName( couponSnapshotRedisEntity.getCouponName() );
+        orderCouponSnapshot.discountAmount( moneyMapper.toMoney( couponSnapshotRedisEntity.getDiscountAmount() ) );
+
+        return orderCouponSnapshot.build();
     }
 
     protected OrderSheetRedisEntity.PriceSnapshotRedisEntity orderSheetItemPriceSnapshotToPriceSnapshotRedisEntity(OrderSheetItemPriceSnapshot orderSheetItemPriceSnapshot) {

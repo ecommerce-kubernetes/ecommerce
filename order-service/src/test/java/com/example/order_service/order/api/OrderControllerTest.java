@@ -32,7 +32,8 @@ import org.springframework.util.MultiValueMap;
 import java.util.List;
 import java.util.stream.Stream;
 
-import static com.example.order_service.api.support.fixture.order.OrderResponseFixture.*;
+import static com.example.order_service.api.support.fixture.order.OrderResponseFixture.anOrderDetailResponse;
+import static com.example.order_service.api.support.fixture.order.OrderResponseFixture.anOrderListResponse;
 import static com.example.order_service.support.TestFixtureUtil.fixtureMonkey;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.*;

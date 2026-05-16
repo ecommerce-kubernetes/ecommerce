@@ -25,7 +25,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.List;
 import java.util.stream.Stream;
 
-import static com.example.order_service.support.TestFixtureUtil.*;
+import static com.example.order_service.support.TestFixtureUtil.fixtureMonkey;
+import static com.example.order_service.support.TestFixtureUtil.nonNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -62,7 +63,7 @@ class OrderSheetControllerTest {
                     .set("items", List.of(item))
                     .set("itemCoupons", List.of(itemCoupon))
                     .sample();
-            OrderSheetResult.Default result = nonNull(fixtureMonkey.giveMeOne(OrderSheetResult.Default.class));
+            OrderSheetResult.Create result = nonNull(fixtureMonkey.giveMeOne(OrderSheetResult.Create.class));
             given(orderSheetAppService.createOrderSheet(any(OrderSheetCommand.Create.class)))
                     .willReturn(result);
             OrderSheetResponse.Create response = OrderSheetResponse.Create.from(result);

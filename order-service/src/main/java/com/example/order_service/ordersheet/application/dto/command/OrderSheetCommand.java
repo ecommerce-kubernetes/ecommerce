@@ -47,22 +47,13 @@ public class OrderSheetCommand {
             }
         }
 
-        public Map<Long, Integer> toQuantityMap() {
-            return items.stream()
-                    .collect(Collectors.toMap(OrderItem::productVariantId, OrderItem::quantity));
-        }
-
         public Map<Long, Long> toCouponMap() {
             return itemCoupons.stream()
                     .collect(Collectors.toMap(ItemCoupon::productVariantId, ItemCoupon::couponId));
         }
 
         public boolean hasCoupons() {
-            return this.cartCouponId != null || (this.itemCoupons != null && this.itemCoupons.isEmpty());
-        }
-
-        public List<Long> toProductVariantIds() {
-            return items.stream().map(OrderItem::productVariantId).toList();
+            return this.cartCouponId != null || (this.itemCoupons != null && !this.itemCoupons.isEmpty());
         }
     }
 

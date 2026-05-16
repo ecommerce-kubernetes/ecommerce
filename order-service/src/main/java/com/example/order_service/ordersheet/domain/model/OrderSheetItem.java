@@ -19,16 +19,16 @@ public class OrderSheetItem {
     private String sheetItemId;
     private OrderSheetItemProductSnapshot productSnapshot;
     private OrderSheetItemPriceSnapshot itemPrice;
-    private OrderCouponSnapshot coupon;
+    private OrderCouponSnapshot itemCoupon;
     private Integer quantity;
     private List<OrderSheetItemOptionSnapshot> options;
 
     @Builder(builderMethodName = "reconstitute")
-    private OrderSheetItem(String sheetItemId, OrderSheetItemProductSnapshot productSnapshot, OrderSheetItemPriceSnapshot itemPrice, OrderCouponSnapshot coupon, Integer quantity, List<OrderSheetItemOptionSnapshot> options) {
+    private OrderSheetItem(String sheetItemId, OrderSheetItemProductSnapshot productSnapshot, OrderSheetItemPriceSnapshot itemPrice, OrderCouponSnapshot itemCoupon, Integer quantity, List<OrderSheetItemOptionSnapshot> options) {
         this.sheetItemId = sheetItemId;
         this.productSnapshot = productSnapshot;
         this.itemPrice = itemPrice;
-        this.coupon = coupon;
+        this.itemCoupon = itemCoupon;
         this.quantity = quantity;
         this.options = options;
     }
@@ -42,7 +42,7 @@ public class OrderSheetItem {
                 .sheetItemId(sheetItemId)
                 .productSnapshot(productSnapshot)
                 .itemPrice(itemPrice)
-                .coupon(coupon)
+                .itemCoupon(coupon)
                 .quantity(quantity)
                 .options(options)
                 .build();
@@ -57,7 +57,7 @@ public class OrderSheetItem {
     }
 
     public Money getCouponDiscount() {
-        return coupon.getDiscountAmount();
+        return itemCoupon.getDiscountAmount();
     }
 
     public Money getOriginalLineTotal() {
@@ -66,6 +66,6 @@ public class OrderSheetItem {
 
     public Money getFinalLineTotal() {
         Money productLineTotal = getProductLineTotal();
-        return productLineTotal.subtract(coupon.getDiscountAmount());
+        return productLineTotal.subtract(itemCoupon.getDiscountAmount());
     }
 }

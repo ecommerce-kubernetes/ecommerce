@@ -54,7 +54,7 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
             OrderSheetRequest.Create request = OrderSheetRequest.Create.builder()
                     .items(List.of(item))
                     .build();
-            OrderSheetResult.Default result = createOrderSheetResult();
+            OrderSheetResult.Create result = createOrderSheetResult();
             HttpHeaders roleUser = createAuthHeader("ROLE_USER");
             given(orderSheetAppService.createOrderSheet(any(OrderSheetCommand.Create.class)))
                     .willReturn(result);
@@ -74,7 +74,7 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
                             OrderSheetDescriptor.getCreateResponse()));
         }
 
-        private OrderSheetResult.Default createOrderSheetResult() {
+        private OrderSheetResult.Create createOrderSheetResult() {
             OrderSheetResult.OrderItemPrice unitPrice = OrderSheetResult.OrderItemPrice.builder()
                     .originalPrice(Money.wons(10000L))
                     .discountRate(10)
@@ -101,11 +101,9 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
                     .options(List.of(option))
                     .build();
 
-            return OrderSheetResult.Default.builder()
+            return OrderSheetResult.Create.builder()
                     .sheetId("sheetId")
                     .expiresAt(LocalDateTime.now())
-                    .summary(summary)
-                    .items(List.of(orderItem))
                     .build();
         }
     }

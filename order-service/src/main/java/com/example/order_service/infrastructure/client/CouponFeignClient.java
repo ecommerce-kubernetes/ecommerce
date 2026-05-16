@@ -7,8 +7,6 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-import java.util.List;
-
 @FeignClient(name = "coupon-service", contextId = "couponClient", configuration = DefaultFeignConfig.class)
 public interface CouponFeignClient {
 

@@ -25,7 +25,7 @@ public class OrderSheetProductResult {
     ) {
     }
 
-    @Builder
+    @Builder(toBuilder = true)
     public record Info(
             Long productId,
             Long productVariantId,

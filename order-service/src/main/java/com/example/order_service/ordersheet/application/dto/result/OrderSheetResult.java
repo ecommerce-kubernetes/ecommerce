@@ -13,23 +13,15 @@ import java.util.List;
 public class OrderSheetResult {
 
     @Builder
-    public record Default(
+    public record Create(
             String sheetId,
-            LocalDateTime expiresAt,
-            Summary summary,
-            List<OrderItem> items
+            LocalDateTime expiresAt
     ) {
-        public static Default from(OrderSheet orderSheet) {
-            return Default.builder()
+        public static Create from(OrderSheet orderSheet) {
+            return Create.builder()
                     .sheetId(orderSheet.getSheetId())
                     .expiresAt(orderSheet.getExpiresAt())
-                    .summary(Summary.of(orderSheet.getTotalOriginalPrice(), orderSheet.getTotalProductDiscountAmount(), orderSheet.getTotalPaymentAmount()))
-                    .items(mapToOrderItems(orderSheet.getItems()))
                     .build();
-        }
-
-        private static List<OrderItem> mapToOrderItems(List<OrderSheetItem> items) {
-            return items.stream().map(OrderItem::from).toList();
         }
     }
 

@@ -1,7 +1,6 @@
 package com.example.order_service.ordersheet.api.dto.response;
 
 import com.example.order_service.ordersheet.application.dto.result.OrderSheetResult;
-import com.example.order_service.ordersheet.domain.model.OrderSheet;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 
@@ -16,8 +15,8 @@ public class OrderSheetResponse {
             @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
             LocalDateTime expiresAt
     ) {
-        public static Create from(OrderSheetResult.Default result) {
-            return Create.builder()
+        public static Create from(OrderSheetResult.Create result) {
+            return OrderSheetResponse.Create.builder()
                     .sheetId(result.sheetId())
                     .expiresAt(result.expiresAt())
                     .build();

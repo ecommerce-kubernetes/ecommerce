@@ -6,9 +6,11 @@ import com.example.order_service.ordersheet.domain.model.OrderSheetItem;
 import org.mapstruct.InjectionStrategy;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.ObjectFactory;
 
 @Mapper(componentModel = "spring", uses = {MoneyMapper.class}, injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 interface OrderSheetRedisMapper {
+
     OrderSheetRedisEntity toEntity(OrderSheet domain);
     OrderSheet toDomain(OrderSheetRedisEntity entity);
 
@@ -17,5 +19,14 @@ interface OrderSheetRedisMapper {
     @Mapping(source = "priceSnapshot", target = "itemPrice")
     OrderSheetItem toItemDomain(OrderSheetRedisEntity.OrderSheetItemRedisEntity entity);
 
+    @ObjectFactory
+    default OrderSheet.OrderSheetBuilder createOrderSheetBuilder() {
+        return OrderSheet.reconstitute();
+    }
+
+    @ObjectFactory
+    default OrderSheetItem.OrderSheetItemBuilder createOrderSheetItemBuilder() {
+        return OrderSheetItem.reconstitute();
+    }
 
 }
