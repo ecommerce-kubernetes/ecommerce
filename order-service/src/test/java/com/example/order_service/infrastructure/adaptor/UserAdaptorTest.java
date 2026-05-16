@@ -26,6 +26,39 @@ public class UserAdaptorTest {
     private ExternalExceptionTranslator translator;
 
     @Test
+    @DisplayName("유저 프로필을 조회한다")
+    void getUserProfile() {
+        //given
+        Long userId = 1L;
+        UserClientResponse.Profile mockResponse = giveMeOne(UserClientResponse.Profile.class);
+        given(client.getUserProfile(anyLong()))
+                .willReturn(mockResponse);
+        //when
+        UserClientResponse.Profile response = userAdaptor.getUserProfile(userId);
+        //then
+        assertThat(response)
+                .usingRecursiveComparison()
+                .isEqualTo(mockResponse);
+    }
+
+    @Test
+    @DisplayName("유저 프로필 조회중 예외 발생시 translator를 호출하여 변환된 예외가 발생한다")
+    void getUserProfile_fallback_delegate_to_translator() throws Throwable {
+        //given
+        Long userId = 1L;
+        RuntimeException feignException = new RuntimeException("feignClient 예외");
+        ExternalSystemUnavailableException translatedException =
+                new ExternalSystemUnavailableException("CODE", "변환된 에러", feignException);
+        willThrow(feignException).given(userAdaptor.getUserProfile(any()));
+        given(translator.translate(anyString(), any(Throwable.class)))
+                .willReturn(translatedException);
+        //when
+        //then
+        assertThatThrownBy(() -> userAdaptor.getUserProfile(userId))
+                .isInstanceOf(ExternalSystemUnavailableException.class);
+    }
+
+    @Test
     @DisplayName("유저 서비스에 주문에 필요한 유저 정보를 조회한다")
     void getUserInfoForOrder(){
         //given

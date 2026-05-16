@@ -10,5 +10,26 @@ public class UserClientResponse {
             Long pointBalance,
             String userName,
             String phoneNumber
-    ) {}
+    ) {
+    }
+
+    @Builder
+    public record Profile(
+            Long userId,
+            String userName,
+            String phoneNumber,
+            ShippingAddress defaultShippingAddress
+    ) {
+    }
+
+    @Builder
+    public record ShippingAddress(
+            String receiverName,
+            String receiverPhone,
+            String zipCode,
+            String address,
+            String addressDetail
+    ) {
+    }
+
 }

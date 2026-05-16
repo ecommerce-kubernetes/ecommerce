@@ -18,7 +18,16 @@ public class UserAdaptor {
     public UserClientResponse.UserInfo getUserInfoForOrder(Long userId) {
         return client.getUserInfoForOrder(userId);
     }
-    
+
+    @CircuitBreaker(name = "userService", fallbackMethod = "getUserProfileFallback")
+    public UserClientResponse.Profile getUserProfile(Long userId) {
+        return client.getUserProfile(userId);
+    }
+
+    private UserClientResponse.Profile getUserProfileFallback(Long userId, Throwable throwable) throws Throwable {
+        throw translator.translate("USER-SERVICE", throwable);
+    }
+
     private UserClientResponse.UserInfo getUserInfoForOrderFallback(Long userId, Throwable throwable) throws Throwable {
         throw translator.translate("USER-SERVICE", throwable);
     }
