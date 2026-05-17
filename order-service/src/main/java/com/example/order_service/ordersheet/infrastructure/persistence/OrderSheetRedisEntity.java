@@ -10,7 +10,8 @@ import java.util.List;
 @Builder
 class OrderSheetRedisEntity {
     private String sheetId;
-    private Long userId;
+    private OrderSheetOrdererRedisEntity orderer;
+    private OrderSheetShippingAddressRedisEntity shippingAddress;
     private List<OrderSheetItemRedisEntity> items;
     private CouponSnapshotRedisEntity cartCoupon;
     private long totalOriginalPrice;
@@ -19,6 +20,24 @@ class OrderSheetRedisEntity {
     private long usedPoints;
     private long totalPaymentAmount;
     private LocalDateTime expiresAt;
+
+    @Getter
+    @Builder
+    static class OrderSheetOrdererRedisEntity {
+        private Long userId;
+        private String userName;
+        private String phoneNumber;
+    }
+
+    @Getter
+    @Builder
+    static class OrderSheetShippingAddressRedisEntity {
+        private String receiverName;
+        private String receiverPhone;
+        private String zipCode;
+        private String address;
+        private String addressDetail;
+    }
 
     @Getter
     @Builder

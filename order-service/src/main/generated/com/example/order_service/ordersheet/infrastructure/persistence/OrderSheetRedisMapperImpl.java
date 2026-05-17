@@ -7,6 +7,8 @@ import com.example.order_service.ordersheet.domain.model.vo.OrderCouponSnapshot;
 import com.example.order_service.ordersheet.domain.model.vo.OrderSheetItemOptionSnapshot;
 import com.example.order_service.ordersheet.domain.model.vo.OrderSheetItemPriceSnapshot;
 import com.example.order_service.ordersheet.domain.model.vo.OrderSheetItemProductSnapshot;
+import com.example.order_service.ordersheet.domain.model.vo.Orderer;
+import com.example.order_service.ordersheet.domain.model.vo.ShippingAddress;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.processing.Generated;
@@ -15,7 +17,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-05-16T13:15:04+0900",
+    date = "2026-05-17T19:51:02+0900",
     comments = "version: 1.6.3, compiler: javac, environment: Java 21.0.10 (Eclipse Adoptium)"
 )
 @Component
@@ -38,7 +40,8 @@ class OrderSheetRedisMapperImpl implements OrderSheetRedisMapper {
         OrderSheetRedisEntity.OrderSheetRedisEntityBuilder orderSheetRedisEntity = OrderSheetRedisEntity.builder();
 
         orderSheetRedisEntity.sheetId( domain.getSheetId() );
-        orderSheetRedisEntity.userId( domain.getUserId() );
+        orderSheetRedisEntity.orderer( toOrdererEntity( domain.getOrderer() ) );
+        orderSheetRedisEntity.shippingAddress( toShippingAddressEntity( domain.getShippingAddress() ) );
         orderSheetRedisEntity.items( orderSheetItemListToOrderSheetItemRedisEntityList( domain.getItems() ) );
         orderSheetRedisEntity.cartCoupon( orderCouponSnapshotToCouponSnapshotRedisEntity( domain.getCartCoupon() ) );
         orderSheetRedisEntity.totalOriginalPrice( moneyMapper.toLong( domain.getTotalOriginalPrice() ) );
@@ -60,7 +63,8 @@ class OrderSheetRedisMapperImpl implements OrderSheetRedisMapper {
         OrderSheet.OrderSheetBuilder orderSheet = createOrderSheetBuilder();
 
         orderSheet.sheetId( entity.getSheetId() );
-        orderSheet.userId( entity.getUserId() );
+        orderSheet.orderer( toOrdererDomain( entity.getOrderer() ) );
+        orderSheet.shippingAddress( toShippingAddressDomain( entity.getShippingAddress() ) );
         orderSheet.items( orderSheetItemRedisEntityListToOrderSheetItemList( entity.getItems() ) );
         orderSheet.cartCoupon( couponSnapshotRedisEntityToOrderCouponSnapshot( entity.getCartCoupon() ) );
         orderSheet.totalOriginalPrice( moneyMapper.toMoney( entity.getTotalOriginalPrice() ) );
@@ -109,6 +113,70 @@ class OrderSheetRedisMapperImpl implements OrderSheetRedisMapper {
         orderSheetItem.options( optionSnapshotListToOrderSheetItemOptionSnapshotList( entity.getOptions() ) );
 
         return orderSheetItem.build();
+    }
+
+    @Override
+    public OrderSheetRedisEntity.OrderSheetOrdererRedisEntity toOrdererEntity(Orderer domain) {
+        if ( domain == null ) {
+            return null;
+        }
+
+        OrderSheetRedisEntity.OrderSheetOrdererRedisEntity.OrderSheetOrdererRedisEntityBuilder orderSheetOrdererRedisEntity = OrderSheetRedisEntity.OrderSheetOrdererRedisEntity.builder();
+
+        orderSheetOrdererRedisEntity.userId( domain.getUserId() );
+        orderSheetOrdererRedisEntity.userName( domain.getUserName() );
+        orderSheetOrdererRedisEntity.phoneNumber( domain.getPhoneNumber() );
+
+        return orderSheetOrdererRedisEntity.build();
+    }
+
+    @Override
+    public Orderer toOrdererDomain(OrderSheetRedisEntity.OrderSheetOrdererRedisEntity entity) {
+        if ( entity == null ) {
+            return null;
+        }
+
+        Orderer.OrdererBuilder orderer = Orderer.reconstitute();
+
+        orderer.userId( entity.getUserId() );
+        orderer.userName( entity.getUserName() );
+        orderer.phoneNumber( entity.getPhoneNumber() );
+
+        return orderer.build();
+    }
+
+    @Override
+    public OrderSheetRedisEntity.OrderSheetShippingAddressRedisEntity toShippingAddressEntity(ShippingAddress domain) {
+        if ( domain == null ) {
+            return null;
+        }
+
+        OrderSheetRedisEntity.OrderSheetShippingAddressRedisEntity.OrderSheetShippingAddressRedisEntityBuilder orderSheetShippingAddressRedisEntity = OrderSheetRedisEntity.OrderSheetShippingAddressRedisEntity.builder();
+
+        orderSheetShippingAddressRedisEntity.receiverName( domain.getReceiverName() );
+        orderSheetShippingAddressRedisEntity.receiverPhone( domain.getReceiverPhone() );
+        orderSheetShippingAddressRedisEntity.zipCode( domain.getZipCode() );
+        orderSheetShippingAddressRedisEntity.address( domain.getAddress() );
+        orderSheetShippingAddressRedisEntity.addressDetail( domain.getAddressDetail() );
+
+        return orderSheetShippingAddressRedisEntity.build();
+    }
+
+    @Override
+    public ShippingAddress toShippingAddressDomain(OrderSheetRedisEntity.OrderSheetShippingAddressRedisEntity entity) {
+        if ( entity == null ) {
+            return null;
+        }
+
+        ShippingAddress.ShippingAddressBuilder shippingAddress = ShippingAddress.reconstitute();
+
+        shippingAddress.receiverName( entity.getReceiverName() );
+        shippingAddress.receiverPhone( entity.getReceiverPhone() );
+        shippingAddress.zipCode( entity.getZipCode() );
+        shippingAddress.address( entity.getAddress() );
+        shippingAddress.addressDetail( entity.getAddressDetail() );
+
+        return shippingAddress.build();
     }
 
     protected List<OrderSheetRedisEntity.OrderSheetItemRedisEntity> orderSheetItemListToOrderSheetItemRedisEntityList(List<OrderSheetItem> list) {

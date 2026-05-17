@@ -3,10 +3,7 @@ package com.example.order_service.ordersheet.domain.repository;
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.ordersheet.domain.model.OrderSheet;
 import com.example.order_service.ordersheet.domain.model.OrderSheetItem;
-import com.example.order_service.ordersheet.domain.model.vo.OrderCouponSnapshot;
-import com.example.order_service.ordersheet.domain.model.vo.OrderSheetItemOptionSnapshot;
-import com.example.order_service.ordersheet.domain.model.vo.OrderSheetItemPriceSnapshot;
-import com.example.order_service.ordersheet.domain.model.vo.OrderSheetItemProductSnapshot;
+import com.example.order_service.ordersheet.domain.model.vo.*;
 import com.example.order_service.support.annotation.MockKafka;
 import com.example.order_service.support.annotation.WithRedis;
 import org.junit.jupiter.api.DisplayName;
@@ -66,14 +63,25 @@ class OrderSheetRepositoryTest {
     }
 
     private OrderSheet createOrderSheet() {
+        Orderer orderer = createOrderer();
+        ShippingAddress shippingAddress = createShippingAddress();
         return OrderSheet.create(
                 "test",
-                1L,
+                orderer,
+                shippingAddress,
                 List.of(createOrderSheetItem()),
                 createOrderCouponSnapshot(),
                 LocalDateTime.now(),
                 30
         );
+    }
+
+    private Orderer createOrderer() {
+        return Orderer.of(1L, "주문자", "010-1234-5678");
+    }
+
+    private ShippingAddress createShippingAddress() {
+        return ShippingAddress.of("수령인", "010-1234-5678", "12345", "서울시 테헤란로 123", "123동 1234호");
     }
 
     private OrderSheetItem createOrderSheetItem() {

@@ -5,8 +5,11 @@ import com.example.order_service.ordersheet.application.dto.command.OrderSheetCo
 import com.example.order_service.ordersheet.application.dto.result.OrderSheetCouponResult;
 import com.example.order_service.ordersheet.application.dto.result.OrderSheetProductResult;
 import com.example.order_service.ordersheet.application.dto.result.OrderSheetResult;
+import com.example.order_service.ordersheet.application.dto.result.OrderSheetUserResult;
 import com.example.order_service.ordersheet.application.external.OrderSheetCouponGateway;
 import com.example.order_service.ordersheet.application.external.OrderSheetProductGateway;
+import com.example.order_service.ordersheet.application.external.OrderSheetUserGateway;
+import com.example.order_service.ordersheet.domain.model.vo.Orderer;
 import com.example.order_service.ordersheet.domain.repository.OrderSheetRepository;
 import com.example.order_service.ordersheet.infrastructure.config.OrderSheetProperties;
 import lombok.extern.slf4j.Slf4j;
@@ -38,6 +41,8 @@ public class OrderSheetAppServiceTest {
     @Mock
     private OrderSheetCouponGateway orderSheetCouponGateway;
     @Mock
+    private OrderSheetUserGateway orderSheetUserGateway;
+    @Mock
     private OrderSheetRepository repository;
     @Spy
     private OrderSheetProperties properties = new OrderSheetProperties(30L);
@@ -53,6 +58,8 @@ public class OrderSheetAppServiceTest {
             OrderSheetCommand.Create command = createCouponAppliedCommand();
             List<OrderSheetProductResult.Info> products = createProducts();
             OrderSheetCouponResult.Calculate coupon = createCoupon();
+            OrderSheetUserResult.Profile userProfile = createUserProfile();
+            given(orderSheetUserGateway.getUserProfile(any())).willReturn(userProfile);
             given(orderSheetProductGateway.getProducts(anyList())).willReturn(products);
             given(orderSheetCouponGateway.calculate(any())).willReturn(coupon);
             when(repository.save(any(), any())).then(returnsFirstArg());
@@ -71,6 +78,8 @@ public class OrderSheetAppServiceTest {
             //given
             OrderSheetCommand.Create command = createNotCouponAppliedCommand();
             List<OrderSheetProductResult.Info> products = createProducts();
+            OrderSheetUserResult.Profile userProfile = createUserProfile();
+            given(orderSheetUserGateway.getUserProfile(any())).willReturn(userProfile);
             given(orderSheetProductGateway.getProducts(anyList())).willReturn(products);
             when(repository.save(any(), any())).then(returnsFirstArg());
             //when
@@ -110,6 +119,22 @@ public class OrderSheetAppServiceTest {
                     .items(List.of(item))
                     .cartCouponId(null)
                     .itemCoupons(List.of())
+                    .build();
+        }
+
+        private OrderSheetUserResult.Profile createUserProfile() {
+            OrderSheetUserResult.ShippingAddress shippingAddress = OrderSheetUserResult.ShippingAddress.builder()
+                    .receiverName("수령인")
+                    .receiverPhone("010-1234-5678")
+                    .zipCode("12345")
+                    .address("서울시 테헤란로 123")
+                    .addressDetail("123동 1234호")
+                    .build();
+            return OrderSheetUserResult.Profile.builder()
+                    .userId(1L)
+                    .userName("주문자")
+                    .phoneNumber("010-1234-5678")
+                    .shippingAddress(shippingAddress)
                     .build();
         }
 

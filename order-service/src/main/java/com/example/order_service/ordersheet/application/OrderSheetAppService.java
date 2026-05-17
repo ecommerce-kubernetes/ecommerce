@@ -11,10 +11,7 @@ import com.example.order_service.ordersheet.application.external.OrderSheetProdu
 import com.example.order_service.ordersheet.application.external.OrderSheetUserGateway;
 import com.example.order_service.ordersheet.domain.model.OrderSheet;
 import com.example.order_service.ordersheet.domain.model.OrderSheetItem;
-import com.example.order_service.ordersheet.domain.model.vo.OrderCouponSnapshot;
-import com.example.order_service.ordersheet.domain.model.vo.OrderSheetItemOptionSnapshot;
-import com.example.order_service.ordersheet.domain.model.vo.OrderSheetItemPriceSnapshot;
-import com.example.order_service.ordersheet.domain.model.vo.OrderSheetItemProductSnapshot;
+import com.example.order_service.ordersheet.domain.model.vo.*;
 import com.example.order_service.ordersheet.domain.repository.OrderSheetRepository;
 import com.example.order_service.ordersheet.exception.OrderSheetErrorCode;
 import com.example.order_service.ordersheet.infrastructure.config.OrderSheetProperties;
@@ -47,18 +44,21 @@ public class OrderSheetAppService {
         // 주문서 아이템 생성
         List<OrderSheetItem> orderSheetItems = mapToOrderSheetItems(command, products, appliedCoupons);
         // 주문서 생성
-        OrderSheet orderSheet = createOrderSheet(command, orderSheetItems, appliedCoupons.cartCoupon());
+        OrderSheet orderSheet = createOrderSheet(userProfile, orderSheetItems, appliedCoupons.cartCoupon());
         // 주문서 저장
         OrderSheet save = repository.save(orderSheet, Duration.ofMinutes(orderSheetProperties.ttlMinutes()));
         return OrderSheetResult.Create.from(save);
     }
 
     // 주문 시트 도메인 생성
-    private OrderSheet createOrderSheet(OrderSheetCommand.Create command, List<OrderSheetItem> items, OrderSheetCouponResult.CartCoupon cartCoupon) {
+    private OrderSheet createOrderSheet(OrderSheetUserResult.Profile profile, List<OrderSheetItem> items, OrderSheetCouponResult.CartCoupon cartCoupon) {
         OrderCouponSnapshot cartCouponSnapshot = Optional.ofNullable(cartCoupon)
                 .map(coupon -> OrderCouponSnapshot.of(coupon.couponId(), coupon.couponName(), coupon.discountAmount()))
                 .orElseGet(OrderCouponSnapshot::empty);
-        return OrderSheet.create(generateId(), command.userId(), items, cartCouponSnapshot, LocalDateTime.now(), orderSheetProperties.ttlMinutes());
+        Orderer orderer = Orderer.of(profile.userId(), profile.userName(), profile.phoneNumber());
+        ShippingAddress shippingAddress = ShippingAddress.of(profile.shippingAddress().receiverName(),
+                profile.shippingAddress().receiverPhone(), profile.shippingAddress().zipCode(), profile.shippingAddress().address(), profile.shippingAddress().addressDetail());
+        return OrderSheet.create(generateId(), orderer, shippingAddress, items, cartCouponSnapshot, LocalDateTime.now(), orderSheetProperties.ttlMinutes());
     }
 
     //적용 쿠폰 조회
@@ -128,7 +128,7 @@ public class OrderSheetAppService {
     public OrderSheetResult.Detail getOrderSheet(String sheetId, Long userId) {
         OrderSheet orderSheet = findByOrThrow(sheetId);
         // 주문서 생성 유저와 조회 유저가 일치하지 않음
-        if (!orderSheet.getUserId().equals(userId)) {
+        if (!orderSheet.getOrderer().getUserId().equals(userId)) {
             throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_NO_PERMISSION);
         }
         return null;

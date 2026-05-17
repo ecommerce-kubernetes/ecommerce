@@ -3,6 +3,8 @@ package com.example.order_service.ordersheet.infrastructure.persistence;
 import com.example.order_service.common.mapper.MoneyMapper;
 import com.example.order_service.ordersheet.domain.model.OrderSheet;
 import com.example.order_service.ordersheet.domain.model.OrderSheetItem;
+import com.example.order_service.ordersheet.domain.model.vo.Orderer;
+import com.example.order_service.ordersheet.domain.model.vo.ShippingAddress;
 import org.mapstruct.InjectionStrategy;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -18,6 +20,12 @@ interface OrderSheetRedisMapper {
     OrderSheetRedisEntity.OrderSheetItemRedisEntity toItemEntity(OrderSheetItem domain);
     @Mapping(source = "priceSnapshot", target = "itemPrice")
     OrderSheetItem toItemDomain(OrderSheetRedisEntity.OrderSheetItemRedisEntity entity);
+
+    OrderSheetRedisEntity.OrderSheetOrdererRedisEntity toOrdererEntity(Orderer domain);
+    Orderer toOrdererDomain(OrderSheetRedisEntity.OrderSheetOrdererRedisEntity entity);
+
+    OrderSheetRedisEntity.OrderSheetShippingAddressRedisEntity toShippingAddressEntity(ShippingAddress domain);
+    ShippingAddress toShippingAddressDomain(OrderSheetRedisEntity.OrderSheetShippingAddressRedisEntity entity);
 
     @ObjectFactory
     default OrderSheet.OrderSheetBuilder createOrderSheetBuilder() {
