@@ -103,4 +103,22 @@ public class OrderSheetCommand {
         }
     }
 
+    @Builder
+    public record UpdateShippingAddress(
+            String receiverName,
+            String receiverPhone,
+            String zipCode,
+            String address,
+            String addressDetail
+    ) {
+        public static UpdateShippingAddress of(String receiverName, String receiverPhone, String zipCode, String address, String addressDetail) {
+            return UpdateShippingAddress.builder()
+                    .receiverName(receiverName)
+                    .receiverPhone(receiverPhone)
+                    .zipCode(zipCode)
+                    .address(address)
+                    .addressDetail(addressDetail)
+                    .build();
+        }
+    }
 }

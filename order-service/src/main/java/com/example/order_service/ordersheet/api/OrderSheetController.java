@@ -37,4 +37,16 @@ public class OrderSheetController {
         OrderSheetResponse.Detail response = OrderSheetResponse.Detail.from(orderSheet);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
+
+    @PatchMapping("/{sheetId}/shipping-address")
+    public ResponseEntity<OrderSheetResponse.Detail> updateShippingAddress(@AuthenticationPrincipal UserPrincipal userPrincipal,
+                                                                           @PathVariable("sheetId") String sheetId,
+                                                                           @RequestBody @Validated OrderSheetRequest.UpdateShippingAddress request) {
+        OrderSheetCommand.UpdateShippingAddress command =
+                OrderSheetCommand.UpdateShippingAddress.of(request.receiverName(),
+                        request.receiverPhone(), request.zipCode(), request.address(), request.addressDetail());
+        OrderSheetResult.Detail result = orderSheetAppService.updateShippingAddress(sheetId, userPrincipal.getUserId(), command);
+        OrderSheetResponse.Detail response = OrderSheetResponse.Detail.from(result);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
 }

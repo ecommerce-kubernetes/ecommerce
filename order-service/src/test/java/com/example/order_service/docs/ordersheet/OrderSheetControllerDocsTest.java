@@ -9,6 +9,7 @@ import com.example.order_service.ordersheet.application.OrderSheetAppService;
 import com.example.order_service.ordersheet.application.dto.command.OrderSheetCommand;
 import com.example.order_service.ordersheet.application.dto.result.OrderSheetResult;
 import com.example.order_service.support.RestDocSupport;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -22,8 +23,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -110,30 +110,42 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
                                     parameterWithName("sheetId").description("조회 주문서 아이디"))
                     );
         }
+    }
 
-        private OrderSheetResult.Detail createOrderSheetResult() {
-            return OrderSheetResult.Detail.builder()
-                    .sheetId("sheetId")
-                    .expiresAt(LocalDateTime.now().plusMinutes(30))
-                    .orderer(createOrderer())
-                    .shippingAddress(createShippingAddress())
-                    .items(createItems())
-                    .cartCoupon(createCartCoupon())
-                    .point(createPoint())
-                    .paymentSummary(createPaymentSummary())
-                    .build();
+    @Nested
+    @DisplayName("배송 정보 수정")
+    class UpdateShippingAddress {
+        @Test
+        @DisplayName("배송 정보를 수정한다")
+        void updateShippingAddress() throws Exception {
+            //given
+            String sheetId = "sheetId";
+            OrderSheetRequest.UpdateShippingAddress request = createOrderSheetRequest();
+            HttpHeaders roleUser = createAuthHeader("ROLE_USER");
+            OrderSheetResult.Detail result = createOrderSheetResult();
+            given(orderSheetAppService.updateShippingAddress(anyString(), anyLong(), any(OrderSheetCommand.UpdateShippingAddress.class)))
+                    .willReturn(result);
+            OrderSheetResponse.Detail response = OrderSheetResponse.Detail.from(result);
+            //when
+            //then
+            mockMvc.perform(patch("/order-sheets/{sheetId}/shipping-address", sheetId)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .headers(roleUser)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isOk())
+                    .andExpect(content().json(objectMapper.writeValueAsString(response)))
+                    .andDo(
+                            createSecuredDocument("04-ordersheet-03-update-shipping-address",
+                                    "배송 정보 수정",
+                                    "배송 정보를 수정한다",
+                                    OrderSheetDescriptor.getShippingAddressRequest(),
+                                    OrderSheetDescriptor.getDetailResponse(),
+                                    parameterWithName("sheetId").description("주문서 아이디"))
+                    );
         }
 
-        private OrderSheetResult.OrdererInfo createOrderer() {
-            return OrderSheetResult.OrdererInfo.builder()
-                    .userId(1L)
-                    .userName("주문자")
-                    .phoneNumber("010-1234-5678")
-                    .build();
-        }
-
-        private OrderSheetResult.ShippingInfo createShippingAddress() {
-            return OrderSheetResult.ShippingInfo.builder()
+        private OrderSheetRequest.UpdateShippingAddress createOrderSheetRequest() {
+            return OrderSheetRequest.UpdateShippingAddress.builder()
                     .receiverName("수령인")
                     .receiverPhone("010-1234-5678")
                     .zipCode("12345")
@@ -141,77 +153,108 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
                     .addressDetail("123동 1234호")
                     .build();
         }
+    }
 
-        private OrderSheetResult.PaymentSummary createPaymentSummary() {
-            return OrderSheetResult.PaymentSummary.builder()
-                    .totalOriginPrice(Money.wons(10000L))
-                    .totalProductDiscount(Money.wons(1000L))
-                    .totalCouponDiscount(Money.wons(2000L))
-                    .usedPoints(Money.wons(1000L))
-                    .totalPaymentAmount(Money.wons(6000L))
-                    .build();
-        }
+    private OrderSheetResult.Detail createOrderSheetResult() {
+        return OrderSheetResult.Detail.builder()
+                .sheetId("sheetId")
+                .expiresAt(LocalDateTime.now().plusMinutes(30))
+                .orderer(createOrderer())
+                .shippingAddress(createShippingAddress())
+                .items(createItems())
+                .cartCoupon(createCartCoupon())
+                .point(createPoint())
+                .paymentSummary(createPaymentSummary())
+                .build();
+    }
 
-        private OrderSheetResult.Point createPoint() {
-            return OrderSheetResult.Point.builder()
-                    .availablePoints(Money.wons(10000L))
-                    .usedPoints(Money.wons(1000L))
-                    .build();
-        }
+    private OrderSheetResult.OrdererInfo createOrderer() {
+        return OrderSheetResult.OrdererInfo.builder()
+                .userId(1L)
+                .userName("주문자")
+                .phoneNumber("010-1234-5678")
+                .build();
+    }
 
-        private List<OrderSheetResult.OrderItem> createItems() {
-            return List.of(
-                    OrderSheetResult.OrderItem.builder()
-                            .sheetItemId("sheetItemId")
-                            .productId(1L)
-                            .productVariantId(1L)
-                            .productName("청바지")
-                            .thumbnail("/product/product/jean_1.jpg")
-                            .quantity(1)
-                            .unitPrice(createItemPrice())
-                            .lineTotal(Money.wons(8000L))
-                            .appliedItemCoupon(createItemCoupon())
-                            .options(createItemOption())
-                            .build()
-            );
-        }
+    private OrderSheetResult.ShippingInfo createShippingAddress() {
+        return OrderSheetResult.ShippingInfo.builder()
+                .receiverName("수령인")
+                .receiverPhone("010-1234-5678")
+                .zipCode("12345")
+                .address("서울시 테헤란로 123")
+                .addressDetail("123동 1234호")
+                .build();
+    }
 
-        private OrderSheetResult.OrderItemPrice createItemPrice() {
-            return OrderSheetResult.OrderItemPrice.builder()
-                    .originalPrice(Money.wons(10000L))
-                    .discountRate(10)
-                    .discountAmount(Money.wons(1000L))
-                    .discountedPrice(Money.wons(9000L))
-                    .build();
-        }
+    private OrderSheetResult.PaymentSummary createPaymentSummary() {
+        return OrderSheetResult.PaymentSummary.builder()
+                .totalOriginPrice(Money.wons(10000L))
+                .totalProductDiscount(Money.wons(1000L))
+                .totalCouponDiscount(Money.wons(2000L))
+                .usedPoints(Money.wons(1000L))
+                .totalPaymentAmount(Money.wons(6000L))
+                .build();
+    }
 
-        private OrderSheetResult.Coupon createItemCoupon() {
-            return OrderSheetResult.Coupon.builder()
-                    .couponId(1L)
-                    .couponName("하의 1000원 할인")
-                    .discountAmount(Money.wons(1000L))
-                    .build();
-        }
+    private OrderSheetResult.Point createPoint() {
+        return OrderSheetResult.Point.builder()
+                .availablePoints(Money.wons(10000L))
+                .usedPoints(Money.wons(1000L))
+                .build();
+    }
 
-        private OrderSheetResult.Coupon createCartCoupon() {
-            return OrderSheetResult.Coupon.builder()
-                    .couponId(1L)
-                    .couponName("첫 구매 1000원 할인")
-                    .discountAmount(Money.wons(1000L))
-                    .build();
-        }
+    private List<OrderSheetResult.OrderItem> createItems() {
+        return List.of(
+                OrderSheetResult.OrderItem.builder()
+                        .sheetItemId("sheetItemId")
+                        .productId(1L)
+                        .productVariantId(1L)
+                        .productName("청바지")
+                        .thumbnail("/product/product/jean_1.jpg")
+                        .quantity(1)
+                        .unitPrice(createItemPrice())
+                        .lineTotal(Money.wons(8000L))
+                        .appliedItemCoupon(createItemCoupon())
+                        .options(createItemOption())
+                        .build()
+        );
+    }
 
-        private List<OrderSheetResult.OrderItemOption> createItemOption() {
-            return List.of(
-                    OrderSheetResult.OrderItemOption.builder()
-                            .optionTypeName("사이즈")
-                            .optionValueName("XL")
-                            .build(),
-                    OrderSheetResult.OrderItemOption.builder()
-                            .optionTypeName("색상")
-                            .optionValueName("BLUE")
-                            .build()
-            );
-        }
+    private OrderSheetResult.OrderItemPrice createItemPrice() {
+        return OrderSheetResult.OrderItemPrice.builder()
+                .originalPrice(Money.wons(10000L))
+                .discountRate(10)
+                .discountAmount(Money.wons(1000L))
+                .discountedPrice(Money.wons(9000L))
+                .build();
+    }
+
+    private OrderSheetResult.Coupon createItemCoupon() {
+        return OrderSheetResult.Coupon.builder()
+                .couponId(1L)
+                .couponName("하의 1000원 할인")
+                .discountAmount(Money.wons(1000L))
+                .build();
+    }
+
+    private OrderSheetResult.Coupon createCartCoupon() {
+        return OrderSheetResult.Coupon.builder()
+                .couponId(1L)
+                .couponName("첫 구매 1000원 할인")
+                .discountAmount(Money.wons(1000L))
+                .build();
+    }
+
+    private List<OrderSheetResult.OrderItemOption> createItemOption() {
+        return List.of(
+                OrderSheetResult.OrderItemOption.builder()
+                        .optionTypeName("사이즈")
+                        .optionValueName("XL")
+                        .build(),
+                OrderSheetResult.OrderItemOption.builder()
+                        .optionTypeName("색상")
+                        .optionValueName("BLUE")
+                        .build()
+        );
     }
 }

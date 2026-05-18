@@ -10,6 +10,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -88,5 +89,21 @@ public class OrderSheet {
         return items.stream()
                 .map(OrderSheetItem::getCouponDiscount)
                 .reduce(Money.ZERO, Money::add);
+    }
+
+    public boolean isOwner(Long userId) {
+        return this.orderer.getUserId().equals(userId);
+    }
+
+    public boolean isExpired() {
+        return LocalDateTime.now().isAfter(this.expiresAt);
+    }
+
+    public Duration getRemainingTtl() {
+        return Duration.between(LocalDateTime.now(), this.expiresAt);
+    }
+
+    public void changeShippingAddress(ShippingAddress newAddress) {
+        this.shippingAddress = newAddress;
     }
 }

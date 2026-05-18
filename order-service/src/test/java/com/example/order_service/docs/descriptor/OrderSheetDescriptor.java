@@ -14,6 +14,16 @@ public class OrderSheetDescriptor {
         };
     }
 
+    public static FieldDescriptor[] getShippingAddressRequest() {
+        return new FieldDescriptor[] {
+                fieldWithPath("receiverName").description("수령인 이름"),
+                fieldWithPath("receiverPhone").description("수령인 전화번호"),
+                fieldWithPath("zipCode").description("우편 번호"),
+                fieldWithPath("address").description("기본 주소"),
+                fieldWithPath("addressDetail").description("상세 주소")
+        };
+    }
+
     public static FieldDescriptor[] getCreateResponse() {
         return new FieldDescriptor[] {
                 fieldWithPath("sheetId").description("주문서 id"),

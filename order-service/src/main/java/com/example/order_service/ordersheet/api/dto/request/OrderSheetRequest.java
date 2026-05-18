@@ -2,9 +2,7 @@ package com.example.order_service.ordersheet.api.dto.request;
 
 import com.example.order_service.ordersheet.application.dto.command.OrderSheetCommand;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.*;
 import lombok.Builder;
 
 import java.util.List;
@@ -70,4 +68,20 @@ public class OrderSheetRequest {
                     .build();
         }
     }
+
+    @Builder
+    public record UpdateShippingAddress(
+            @NotBlank(message = "수령인 이름은 필수입니다")
+            String receiverName,
+            @Pattern(regexp = "^01[016-9]-\\d{3,4}-\\d{4}$", message = "전화번호 형식이 올바르지 않습니다 (예: 010-1234-5678)")
+            @NotBlank(message = "수령인 전화번호는 필수입니다")
+            String receiverPhone,
+            @NotBlank(message = "우편 번호는 필수 입니다")
+            @Pattern(regexp = "^[0-9]{5}$", message = "우편번호는 5자리 숫자여야 합니다.")
+            String zipCode,
+            @NotBlank(message = "기본 주소는 필수입니다")
+            String address,
+            @NotBlank(message = "상세 주소는 필수입니다")
+            String addressDetail
+    ) {}
 }

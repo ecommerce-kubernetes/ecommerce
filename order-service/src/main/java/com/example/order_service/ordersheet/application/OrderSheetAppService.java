@@ -53,10 +53,26 @@ public class OrderSheetAppService {
     public OrderSheetResult.Detail getOrderSheet(String sheetId, Long userId) {
         OrderSheet orderSheet = findByOrThrow(sheetId);
         // 주문서 생성 유저와 조회 유저가 일치하지 않음
-        if (!orderSheet.getOrderer().getUserId().equals(userId)) {
+        if (!orderSheet.isOwner(userId)) {
             throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_NO_PERMISSION);
         }
         OrderSheetUserResult.UserPoint userPoints = orderSheetUserGateway.getUserPoints(userId);
+        return OrderSheetResult.Detail.of(orderSheet, userPoints.availablePoints());
+    }
+
+    public OrderSheetResult.Detail updateShippingAddress(String sheetId, Long userId, OrderSheetCommand.UpdateShippingAddress command) {
+        OrderSheet orderSheet = findByOrThrow(sheetId);
+        if (!orderSheet.isOwner(userId)) {
+            throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_NOT_FOUND);
+        }
+        if (orderSheet.isExpired()) {
+            throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_EXPIRED);
+        }
+        Duration remainingTtl = orderSheet.getRemainingTtl();
+        ShippingAddress newAddress = ShippingAddress.of(command.receiverName(), command.receiverPhone(), command.zipCode(), command.address(), command.addressDetail());
+        orderSheet.changeShippingAddress(newAddress);
+        OrderSheetUserResult.UserPoint userPoints = orderSheetUserGateway.getUserPoints(userId);
+        repository.save(orderSheet, remainingTtl);
         return OrderSheetResult.Detail.of(orderSheet, userPoints.availablePoints());
     }
 

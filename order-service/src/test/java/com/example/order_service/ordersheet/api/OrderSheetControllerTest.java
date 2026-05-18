@@ -8,6 +8,7 @@ import com.example.order_service.ordersheet.api.dto.response.OrderSheetResponse;
 import com.example.order_service.ordersheet.application.OrderSheetAppService;
 import com.example.order_service.ordersheet.application.dto.command.OrderSheetCommand;
 import com.example.order_service.ordersheet.application.dto.result.OrderSheetResult;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -27,10 +28,9 @@ import java.util.stream.Stream;
 
 import static com.example.order_service.support.TestFixtureUtil.fixtureMonkey;
 import static com.example.order_service.support.TestFixtureUtil.nonNull;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @Import(TestSecurityConfig.class)
@@ -262,6 +262,67 @@ class OrderSheetControllerTest {
                     .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다"))
                     .andExpect(jsonPath("$.timestamp").exists())
                     .andExpect(jsonPath("$.path").value("/order-sheets/" + orderSheetId));
+        }
+    }
+
+    @Nested
+    @DisplayName("배송 정보 수정")
+    class UpdateShippingAddress {
+
+        @Test
+        @DisplayName("배송 정보를 수정한다")
+        @WithCustomMockUser
+        void updateShippingAddress() throws Exception {
+            //given
+            OrderSheetRequest.UpdateShippingAddress request = fixtureMonkey.giveMeOne(OrderSheetRequest.UpdateShippingAddress.class);
+            OrderSheetResult.Detail result = fixtureMonkey.giveMeOne(OrderSheetResult.Detail.class);
+            given(orderSheetAppService.updateShippingAddress(anyString(), anyLong(), any(OrderSheetCommand.UpdateShippingAddress.class)))
+                    .willReturn(result);
+            OrderSheetResponse.Detail response = OrderSheetResponse.Detail.from(result);
+            //when
+            //then
+            mockMvc.perform(patch("/order-sheets/{sheetId}/shipping-address", "sheetId")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isOk())
+                    .andExpect(content().json(objectMapper.writeValueAsString(response)));
+        }
+
+        @Test
+        @DisplayName("로그인 하지 않은 사용자는 배송 정보를 수정할 수 없다")
+        void updateShippingAddress_unAuthorized() throws Exception {
+            //given
+            String sheetId = "sheetId";
+            OrderSheetRequest.UpdateShippingAddress request = fixtureMonkey.giveMeOne(OrderSheetRequest.UpdateShippingAddress.class);
+            //when
+            //then
+            mockMvc.perform(patch("/order-sheets/{sheetId}/shipping-address", "sheetId")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isUnauthorized())
+                    .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
+                    .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다"))
+                    .andExpect(jsonPath("$.timestamp").exists())
+                    .andExpect(jsonPath("$.path").value("/order-sheets/" + sheetId + "/shipping-address"));
+        }
+
+        @Test
+        @DisplayName("사용자 권한이 아니면 배송정보를 수정할 수 없다")
+        @WithCustomMockUser(userRole = UserRole.ROLE_ADMIN)
+        void updateShippingAddress_forbidden() throws Exception {
+            //given
+            String sheetId = "sheetId";
+            OrderSheetRequest.UpdateShippingAddress request = fixtureMonkey.giveMeOne(OrderSheetRequest.UpdateShippingAddress.class);
+            //when
+            //then
+            mockMvc.perform(patch("/order-sheets/{sheetId}/shipping-address", "sheetId")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isForbidden())
+                    .andExpect(jsonPath("$.code").value("FORBIDDEN"))
+                    .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다"))
+                    .andExpect(jsonPath("$.timestamp").exists())
+                    .andExpect(jsonPath("$.path").value("/order-sheets/" + sheetId + "/shipping-address"));
         }
     }
 }

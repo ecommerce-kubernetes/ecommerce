@@ -17,10 +17,28 @@ include::{snippets}/04-ordersheet-01-create/response-fields.adoc[]
 
 ==== HTTP Request
 include::{snippets}/04-ordersheet-02-get/http-request.adoc[]
+===== Request Param
+include::{snippets}/04-ordersheet-02-get/path-parameters.adoc[]
 ===== Request Header
 include::{snippets}/04-ordersheet-02-get/request-headers.adoc[]
 ==== HTTP Response
 include::{snippets}/04-ordersheet-02-get/http-response.adoc[]
 ===== Response Fields
 include::{snippets}/04-ordersheet-02-get/response-fields.adoc[]
+
+[[ordersheet-update-shipping-address]]
+
+=== 배송 정보 수정
+==== HTTP Request
+include::{snippets}/04-ordersheet-03-update-shipping-address/http-request.adoc[]
+===== Request Param
+include::{snippets}/04-ordersheet-03-update-shipping-address/path-parameters.adoc[]
+===== Request Header
+include::{snippets}/04-ordersheet-03-update-shipping-address/request-headers.adoc[]
+===== Request Fields
+include::{snippets}/04-ordersheet-03-update-shipping-address/request-fields.adoc[]
+==== HTTP Response
+include::{snippets}/04-ordersheet-03-update-shipping-address/http-response.adoc[]
+===== Response Fields
+include::{snippets}/04-ordersheet-03-update-shipping-address/response-fields.adoc[]
 
