@@ -23,12 +23,29 @@ public class OrderSheetUserGateway {
         return mapper.toResult(profile);
     }
 
+    public OrderSheetUserResult.UserPoint getUserPoints(Long userId) {
+        UserClientResponse.UserPoints userPoints = fetchUserPointsWithTranslation(userId);
+        return mapper.toResult(userPoints);
+    }
+
     private UserClientResponse.Profile fetchUserProfileWithTranslation(Long userId) {
         try {
             return userAdaptor.getUserProfile(userId);
         } catch (ExternalClientException e) {
             throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_USER_CLIENT_ERROR);
         } catch (ExternalServerException e) {
+            throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_USER_SERVER_ERROR);
+        } catch (ExternalSystemUnavailableException e) {
+            throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_USER_UNAVAILABLE_SERVER_ERROR);
+        }
+    }
+
+    private UserClientResponse.UserPoints fetchUserPointsWithTranslation(Long userId) {
+        try {
+            return userAdaptor.getUserPoints(userId);
+        } catch (ExternalClientException e) {
+            throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_USER_CLIENT_ERROR);
+        } catch (ExternalServerException e){
             throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_USER_SERVER_ERROR);
         } catch (ExternalSystemUnavailableException e) {
             throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_USER_UNAVAILABLE_SERVER_ERROR);

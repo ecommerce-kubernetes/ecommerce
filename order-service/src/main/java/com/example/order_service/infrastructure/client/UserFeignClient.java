@@ -14,4 +14,7 @@ public interface UserFeignClient {
 
     @GetMapping("/internal/users/{userId}/profile")
     UserClientResponse.Profile getUserProfile(@PathVariable("userId") Long userId);
+
+    @GetMapping("/internal/users/{userId}/points")
+    UserClientResponse.UserPoints getUserPoints(@PathVariable("userId") Long userId);
 }

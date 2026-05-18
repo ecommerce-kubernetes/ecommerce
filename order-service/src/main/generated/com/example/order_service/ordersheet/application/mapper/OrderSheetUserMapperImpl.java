@@ -1,17 +1,27 @@
 package com.example.order_service.ordersheet.application.mapper;
 
+import com.example.order_service.common.mapper.MoneyMapper;
 import com.example.order_service.infrastructure.dto.response.UserClientResponse;
 import com.example.order_service.ordersheet.application.dto.result.OrderSheetUserResult;
 import javax.annotation.processing.Generated;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-05-17T18:49:09+0900",
+    date = "2026-05-18T05:11:16+0900",
     comments = "version: 1.6.3, compiler: javac, environment: Java 21.0.10 (Eclipse Adoptium)"
 )
 @Component
 public class OrderSheetUserMapperImpl implements OrderSheetUserMapper {
+
+    private final MoneyMapper moneyMapper;
+
+    @Autowired
+    public OrderSheetUserMapperImpl(MoneyMapper moneyMapper) {
+
+        this.moneyMapper = moneyMapper;
+    }
 
     @Override
     public OrderSheetUserResult.Profile toResult(UserClientResponse.Profile profile) {
@@ -44,5 +54,19 @@ public class OrderSheetUserMapperImpl implements OrderSheetUserMapper {
         shippingAddress1.addressDetail( shippingAddress.addressDetail() );
 
         return shippingAddress1.build();
+    }
+
+    @Override
+    public OrderSheetUserResult.UserPoint toResult(UserClientResponse.UserPoints points) {
+        if ( points == null ) {
+            return null;
+        }
+
+        OrderSheetUserResult.UserPoint.UserPointBuilder userPoint = OrderSheetUserResult.UserPoint.builder();
+
+        userPoint.userId( points.userId() );
+        userPoint.availablePoints( moneyMapper.toMoney( points.availablePoints() ) );
+
+        return userPoint.build();
     }
 }

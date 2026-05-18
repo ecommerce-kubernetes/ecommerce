@@ -23,6 +23,13 @@ public class UserClientResponse {
     }
 
     @Builder
+    public record UserPoints(
+            Long userId,
+            Long availablePoints
+    ) {
+    }
+
+    @Builder
     public record ShippingAddress(
             String receiverName,
             String receiverPhone,

@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-05-17T18:49:09+0900",
+    date = "2026-05-17T20:02:30+0900",
     comments = "version: 1.6.3, compiler: javac, environment: Java 21.0.10 (Eclipse Adoptium)"
 )
 @Component
@@ -23,30 +23,6 @@ public class OrderSheetProductMapperImpl implements OrderSheetProductMapper {
     public OrderSheetProductMapperImpl(MoneyMapper moneyMapper) {
 
         this.moneyMapper = moneyMapper;
-    }
-
-    @Override
-    public OrderSheetProductResult.InfoDeprecated toResult(ProductClientResponse.ProductDeprecated productDeprecated) {
-        if ( productDeprecated == null ) {
-            return null;
-        }
-
-        OrderSheetProductResult.InfoDeprecated.InfoDeprecatedBuilder infoDeprecated = OrderSheetProductResult.InfoDeprecated.builder();
-
-        infoDeprecated.stock( productDeprecated.stockQuantity() );
-        infoDeprecated.originalPrice( moneyMapper.toMoney( productDeprecatedUnitPriceOriginalPrice( productDeprecated ) ) );
-        infoDeprecated.discountRate( productDeprecatedUnitPriceDiscountRate( productDeprecated ) );
-        infoDeprecated.discountAmount( moneyMapper.toMoney( productDeprecatedUnitPriceDiscountAmount( productDeprecated ) ) );
-        infoDeprecated.discountedPrice( moneyMapper.toMoney( productDeprecatedUnitPriceDiscountedPrice( productDeprecated ) ) );
-        infoDeprecated.options( productOptionListToOptionList( productDeprecated.itemOptions() ) );
-        infoDeprecated.productId( productDeprecated.productId() );
-        infoDeprecated.productVariantId( productDeprecated.productVariantId() );
-        infoDeprecated.status( translateStatus( productDeprecated.status() ) );
-        infoDeprecated.sku( productDeprecated.sku() );
-        infoDeprecated.productName( productDeprecated.productName() );
-        infoDeprecated.thumbnail( productDeprecated.thumbnail() );
-
-        return infoDeprecated.build();
     }
 
     @Override
@@ -85,51 +61,6 @@ public class OrderSheetProductMapperImpl implements OrderSheetProductMapper {
         return option1.build();
     }
 
-    private Long productDeprecatedUnitPriceOriginalPrice(ProductClientResponse.ProductDeprecated productDeprecated) {
-        ProductClientResponse.UnitPrice unitPrice = productDeprecated.unitPrice();
-        if ( unitPrice == null ) {
-            return null;
-        }
-        return unitPrice.originalPrice();
-    }
-
-    private Integer productDeprecatedUnitPriceDiscountRate(ProductClientResponse.ProductDeprecated productDeprecated) {
-        ProductClientResponse.UnitPrice unitPrice = productDeprecated.unitPrice();
-        if ( unitPrice == null ) {
-            return null;
-        }
-        return unitPrice.discountRate();
-    }
-
-    private Long productDeprecatedUnitPriceDiscountAmount(ProductClientResponse.ProductDeprecated productDeprecated) {
-        ProductClientResponse.UnitPrice unitPrice = productDeprecated.unitPrice();
-        if ( unitPrice == null ) {
-            return null;
-        }
-        return unitPrice.discountAmount();
-    }
-
-    private Long productDeprecatedUnitPriceDiscountedPrice(ProductClientResponse.ProductDeprecated productDeprecated) {
-        ProductClientResponse.UnitPrice unitPrice = productDeprecated.unitPrice();
-        if ( unitPrice == null ) {
-            return null;
-        }
-        return unitPrice.discountedPrice();
-    }
-
-    protected List<OrderSheetProductResult.Option> productOptionListToOptionList(List<ProductClientResponse.ProductOption> list) {
-        if ( list == null ) {
-            return null;
-        }
-
-        List<OrderSheetProductResult.Option> list1 = new ArrayList<OrderSheetProductResult.Option>( list.size() );
-        for ( ProductClientResponse.ProductOption productOption : list ) {
-            list1.add( toOption( productOption ) );
-        }
-
-        return list1;
-    }
-
     private Long productUnitPriceOriginalPrice(ProductClientResponse.Product product) {
         ProductClientResponse.UnitPrice unitPrice = product.unitPrice();
         if ( unitPrice == null ) {
@@ -160,5 +91,18 @@ public class OrderSheetProductMapperImpl implements OrderSheetProductMapper {
             return null;
         }
         return unitPrice.discountedPrice();
+    }
+
+    protected List<OrderSheetProductResult.Option> productOptionListToOptionList(List<ProductClientResponse.ProductOption> list) {
+        if ( list == null ) {
+            return null;
+        }
+
+        List<OrderSheetProductResult.Option> list1 = new ArrayList<OrderSheetProductResult.Option>( list.size() );
+        for ( ProductClientResponse.ProductOption productOption : list ) {
+            list1.add( toOption( productOption ) );
+        }
+
+        return list1;
     }
 }

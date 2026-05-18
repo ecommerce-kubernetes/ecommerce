@@ -128,6 +128,93 @@ public class UserFeignClientTest {
         }
     }
 
+    @Nested
+    @DisplayName("포인트 잔액 조회")
+    class GetUserPoints {
+
+        @Test
+        @DisplayName("사용자의 포인트 잔액을 조회한다")
+        void getUserPoints(){
+            //given
+            Long userId = 1L;
+            String mockJsonResponse = """
+                    {
+                        "userId": 1,
+                        "availablePoints": 10000
+                    }
+                    """;
+            UserClientResponse.UserPoints expected = UserClientResponse.UserPoints.builder()
+                    .userId(1L)
+                    .availablePoints(10000L)
+                    .build();
+            stubFor(get(urlEqualTo("/internal/users/" + userId + "/points"))
+                    .willReturn(aResponse()
+                            .withStatus(HttpStatus.OK.value())
+                            .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                            .withBody(mockJsonResponse)));
+            //when
+            UserClientResponse.UserPoints response = client.getUserPoints(userId);
+            //then
+            assertThat(response)
+                    .usingRecursiveComparison()
+                    .isEqualTo(expected);
+        }
+
+        @Test
+        @DisplayName("사용자 포인트 잔액 조회시 클라이언트 에러 응답이 반환되면 예외가 발생한다")
+        void getUserPoints_thrown_client_error_response(){
+            //given
+            Long userId = 1L;
+            String mockJsonResponse = """
+                {
+                    "code": "NOT_FOUND_USER",
+                    "message": "유저를 찾을 수 없습니다",
+                    "timestamp": "2026-05-03 19:00:00",
+                    "path": "/internal/users/1/points"
+                }
+                """;
+            stubFor(get(urlEqualTo("/internal/users/" + userId + "/points"))
+                    .willReturn(aResponse()
+                            .withStatus(HttpStatus.NOT_FOUND.value())
+                            .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                            .withBody(mockJsonResponse)));
+            //when
+            //then
+            assertThatThrownBy(() -> client.getUserPoints(userId))
+                    .isInstanceOf(ExternalClientException.class)
+                    .hasMessage("유저를 찾을 수 없습니다")
+                    .extracting("errorCode")
+                    .isEqualTo("NOT_FOUND_USER");
+        }
+
+        @Test
+        @DisplayName("사용자 포인트 잔액 조회시 서버 에러 응답이 반환되면 예외가 발생한다")
+        void getUserPoints_thrown_server_error_response(){
+            //given
+            Long userId = 1L;
+            String mockJsonResponse = """
+                {
+                    "code": "INTERNAL_SERVER_ERROR",
+                    "message": "알 수 없는 에러가 발생했습니다",
+                    "timestamp": "2026-05-03 19:00:00",
+                    "path": "/internal/users/1/points"
+                }
+                """;
+            stubFor(get(urlEqualTo("/internal/users/" + userId + "/points"))
+                    .willReturn(aResponse()
+                            .withStatus(HttpStatus.NOT_FOUND.value())
+                            .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                            .withBody(mockJsonResponse)));
+            //when
+            //then
+            assertThatThrownBy(() -> client.getUserPoints(userId))
+                    .isInstanceOf(ExternalClientException.class)
+                    .hasMessage("알 수 없는 에러가 발생했습니다")
+                    .extracting("errorCode")
+                    .isEqualTo("INTERNAL_SERVER_ERROR");
+        }
+    }
+
     @Test
     @DisplayName("유저 서비스에서 주문 유저 정보를 조회한다")
     void getUserInfoForOrder() {
@@ -172,7 +259,7 @@ public class UserFeignClientTest {
                 """;
         stubFor(get(urlEqualTo("/internal/users/" + userId + "/order-info"))
                 .willReturn(aResponse()
-                        .withStatus(HttpStatus.BAD_REQUEST.value())
+                        .withStatus(HttpStatus.NOT_FOUND.value())
                         .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
                         .withBody(mockJsonResponse)));
         //when

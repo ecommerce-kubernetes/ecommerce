@@ -48,7 +48,7 @@ public class OrderSheetUserGatewayTest {
             UserClientResponse.Profile userResponse = fixtureMonkey.giveMeOne(UserClientResponse.Profile.class);
             OrderSheetUserResult.Profile profile = fixtureMonkey.giveMeOne(OrderSheetUserResult.Profile.class);
             given(adaptor.getUserProfile(anyLong())).willReturn(userResponse);
-            given(userMapper.toResult(any())).willReturn(profile);
+            given(userMapper.toResult(any(UserClientResponse.Profile.class))).willReturn(profile);
             //when
             OrderSheetUserResult.Profile userProfile = orderSheetUserGateway.getUserProfile(userId);
             //then
@@ -95,6 +95,71 @@ public class OrderSheetUserGatewayTest {
             //when
             //then
             assertThatThrownBy(() -> orderSheetUserGateway.getUserProfile(userId))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(OrderSheetErrorCode.ORDER_SHEET_USER_UNAVAILABLE_SERVER_ERROR);
+        }
+    }
+
+    @Nested
+    @DisplayName("유저 포인트 잔액 조회")
+    class GetUserPoints {
+
+        @Test
+        @DisplayName("사용자의 포인트 잔액을 조회한다")
+        void getUserPoints(){
+            //given
+            Long userId = 1L;
+            UserClientResponse.UserPoints response = fixtureMonkey.giveMeOne(UserClientResponse.UserPoints.class);
+            OrderSheetUserResult.UserPoint userPoint = fixtureMonkey.giveMeOne(OrderSheetUserResult.UserPoint.class);
+            given(adaptor.getUserPoints(anyLong())).willReturn(response);
+            given(userMapper.toResult(any(UserClientResponse.UserPoints.class))).willReturn(userPoint);
+            //when
+            OrderSheetUserResult.UserPoint result = orderSheetUserGateway.getUserPoints(userId);
+            //then
+            assertThat(result).isNotNull();
+        }
+
+        @Test
+        @DisplayName("유저 포인트 잔액 조회중 클라이언트 오류가 발생한 경우 비지니스 예외가 발생한다")
+        void getUserPoints_ExternalClientException(){
+            //given
+            Long userId = 1L;
+            willThrow(new ExternalClientException("NOT_FOUND_USER", "유저를 찾을 수 없습니다"))
+                    .given(adaptor).getUserPoints(anyLong());
+            //when
+            //then
+            assertThatThrownBy(() -> orderSheetUserGateway.getUserPoints(userId))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(OrderSheetErrorCode.ORDER_SHEET_USER_CLIENT_ERROR);
+        }
+
+        @Test
+        @DisplayName("유저 포인트 잔액 조회중 서버 오류가 발생한 경우 비지니스 예외로 변환된다")
+        void getUserPoints_ExternalServerException() {
+            //given
+            Long userId = 1L;
+            willThrow(new ExternalServerException("INTERNAL_SERVER_ERROR", "알 수 없는 오류가 발생했습니다"))
+                    .given(adaptor).getUserPoints(anyLong());
+            //when
+            //then
+            assertThatThrownBy(() -> orderSheetUserGateway.getUserPoints(userId))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(OrderSheetErrorCode.ORDER_SHEET_USER_SERVER_ERROR);
+        }
+
+        @Test
+        @DisplayName("유저 포인트 잔액 조회중 서버 오류가 발생한 경우 비지니스 예외로 변환된다")
+        void getUserPoints_ExternalUnavailableServerException() {
+            //given
+            Long userId = 1L;
+            willThrow(new ExternalSystemUnavailableException("SERVICE_UNAVAILABLE", "유저 서비스 통신 장애"))
+                    .given(adaptor).getUserPoints(anyLong());
+            //when
+            //then
+            assertThatThrownBy(() -> orderSheetUserGateway.getUserPoints(userId))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(OrderSheetErrorCode.ORDER_SHEET_USER_UNAVAILABLE_SERVER_ERROR);

@@ -50,6 +50,16 @@ public class OrderSheetAppService {
         return OrderSheetResult.Create.from(save);
     }
 
+    public OrderSheetResult.Detail getOrderSheet(String sheetId, Long userId) {
+        OrderSheet orderSheet = findByOrThrow(sheetId);
+        // 주문서 생성 유저와 조회 유저가 일치하지 않음
+        if (!orderSheet.getOrderer().getUserId().equals(userId)) {
+            throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_NO_PERMISSION);
+        }
+        OrderSheetUserResult.UserPoint userPoints = orderSheetUserGateway.getUserPoints(userId);
+        return OrderSheetResult.Detail.of(orderSheet, userPoints.availablePoints());
+    }
+
     // 주문 시트 도메인 생성
     private OrderSheet createOrderSheet(OrderSheetUserResult.Profile profile, List<OrderSheetItem> items, OrderSheetCouponResult.CartCoupon cartCoupon) {
         OrderCouponSnapshot cartCouponSnapshot = Optional.ofNullable(cartCoupon)
@@ -123,15 +133,6 @@ public class OrderSheetAppService {
 
     private String generateId() {
         return UUID.randomUUID().toString();
-    }
-
-    public OrderSheetResult.Detail getOrderSheet(String sheetId, Long userId) {
-        OrderSheet orderSheet = findByOrThrow(sheetId);
-        // 주문서 생성 유저와 조회 유저가 일치하지 않음
-        if (!orderSheet.getOrderer().getUserId().equals(userId)) {
-            throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_NO_PERMISSION);
-        }
-        return null;
     }
 
     private OrderSheet findByOrThrow(String sheetId) {

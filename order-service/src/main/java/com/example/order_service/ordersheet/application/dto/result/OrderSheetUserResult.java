@@ -1,5 +1,6 @@
 package com.example.order_service.ordersheet.application.dto.result;
 
+import com.example.order_service.common.domain.vo.Money;
 import lombok.Builder;
 
 public class OrderSheetUserResult {
@@ -20,6 +21,13 @@ public class OrderSheetUserResult {
             String zipCode,
             String address,
             String addressDetail
+    ) {
+    }
+
+    @Builder
+    public record UserPoint(
+            Long userId,
+            Money availablePoints
     ) {
     }
 }

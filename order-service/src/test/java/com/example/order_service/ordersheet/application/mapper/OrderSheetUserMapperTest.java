@@ -1,5 +1,7 @@
 package com.example.order_service.ordersheet.application.mapper;
 
+import com.example.order_service.common.mapper.MoneyMapper;
+import com.example.order_service.common.mapper.MoneyMapperImpl;
 import com.example.order_service.infrastructure.dto.response.UserClientResponse;
 import com.example.order_service.ordersheet.application.dto.result.OrderSheetUserResult;
 import org.junit.jupiter.api.DisplayName;
@@ -10,7 +12,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class OrderSheetUserMapperTest {
 
-    private final OrderSheetUserMapper mapper = new OrderSheetUserMapperImpl();
+    private final MoneyMapper moneyMapper = new MoneyMapperImpl();
+    private final OrderSheetUserMapper mapper = new OrderSheetUserMapperImpl(moneyMapper);
 
     @Test
     @DisplayName("유저 응답을 Result로 매핑한다")

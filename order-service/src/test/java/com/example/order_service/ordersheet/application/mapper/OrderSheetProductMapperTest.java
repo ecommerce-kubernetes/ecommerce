@@ -58,46 +58,4 @@ public class OrderSheetProductMapperTest {
                 .withEqualsForType(Money::equals, Money.class)
                 .isEqualTo(expectedResult);
     }
-
-    @Test
-    @DisplayName("상품 응답을 Result로 매핑한다")
-    void toResultDeprecated() {
-        //given
-        ProductClientResponse.ProductDeprecated response = TestFixtureUtil.sample(fixtureMonkey.giveMeBuilder(ProductClientResponse.ProductDeprecated.class)
-                .set("status", "ON_SALE")
-                .set("unitPrice.originalPrice", 10000L)
-                .set("unitPrice.discountRate", 10)
-                .set("unitPrice.discountAmount", 1000L)
-                .set("unitPrice.discountedPrice", 9000L));
-
-        //변환된 result
-        List<OrderSheetProductResult.Option> expectedOptions = response.itemOptions().stream()
-                .map(opt -> OrderSheetProductResult.Option.builder()
-                        .optionTypeName(opt.optionTypeName())
-                        .optionValueName(opt.optionValueName())
-                        .build())
-                .toList();
-
-        OrderSheetProductResult.InfoDeprecated expectedResult = OrderSheetProductResult.InfoDeprecated.builder()
-                .productId(response.productId())
-                .productVariantId(response.productVariantId())
-                .status(ProductStatus.ORDERABLE)
-                .sku(response.sku())
-                .productName(response.productName())
-                .thumbnail(response.thumbnail())
-                .originalPrice(Money.wons(response.unitPrice().originalPrice()))
-                .discountRate(response.unitPrice().discountRate())
-                .discountAmount(Money.wons(response.unitPrice().discountAmount()))
-                .discountedPrice(Money.wons(response.unitPrice().discountedPrice()))
-                .stock(response.stockQuantity())
-                .options(expectedOptions)
-                .build();
-        //when
-        OrderSheetProductResult.InfoDeprecated result = mapper.toResult(response);
-        //then
-        assertThat(result)
-                .usingRecursiveComparison()
-                .withEqualsForType(Money::equals, Money.class)
-                .isEqualTo(expectedResult);
-    }
 }

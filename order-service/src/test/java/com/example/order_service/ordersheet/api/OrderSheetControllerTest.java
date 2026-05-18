@@ -217,16 +217,16 @@ class OrderSheetControllerTest {
         @WithCustomMockUser
         void getOrderSheet() throws Exception {
             //given
-            Long userId = 1L;
             String orderSheetId = "sheetId";
+            Long userId = 1L;
             OrderSheetResult.Detail result = fixtureMonkey.giveMeOne(OrderSheetResult.Detail.class);
+            OrderSheetResponse.Detail response = OrderSheetResponse.Detail.from(result);
             given(orderSheetAppService.getOrderSheet(orderSheetId, userId))
                     .willReturn(result);
-            OrderSheetResponse.Detail response = OrderSheetResponse.Detail.from(result);
             //when
             //then
             mockMvc.perform(get("/order-sheets/{sheetId}", orderSheetId)
-                    .contentType(MediaType.APPLICATION_JSON))
+                            .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(content().json(objectMapper.writeValueAsString(response)));
         }
@@ -244,7 +244,7 @@ class OrderSheetControllerTest {
                     .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
                     .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다"))
                     .andExpect(jsonPath("$.timestamp").exists())
-                    .andExpect(jsonPath("$.path").value("/order-sheets/" +orderSheetId));
+                    .andExpect(jsonPath("$.path").value("/order-sheets/" + orderSheetId));
         }
 
         @Test
@@ -264,5 +264,4 @@ class OrderSheetControllerTest {
                     .andExpect(jsonPath("$.path").value("/order-sheets/" + orderSheetId));
         }
     }
-
 }
