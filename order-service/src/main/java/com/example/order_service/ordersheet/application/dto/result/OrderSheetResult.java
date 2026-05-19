@@ -35,7 +35,7 @@ public class OrderSheetResult {
             Point point,
             PaymentSummary paymentSummary
     ) {
-        public static Detail of(OrderSheet orderSheet, Money availablePoints) {
+        public static Detail of(OrderSheet orderSheet, Money ownedPoints, Money availablePoints) {
             return Detail.builder()
                     .sheetId(orderSheet.getSheetId())
                     .expiresAt(orderSheet.getExpiresAt())
@@ -43,7 +43,7 @@ public class OrderSheetResult {
                     .shippingAddress(ShippingInfo.from(orderSheet.getShippingAddress()))
                     .items(OrderItem.from(orderSheet.getItems()))
                     .cartCoupon(Coupon.from(orderSheet.getCartCoupon()))
-                    .point(Point.of(orderSheet, availablePoints))
+                    .point(Point.of(orderSheet, ownedPoints, availablePoints))
                     .paymentSummary(PaymentSummary.from(orderSheet))
                     .build();
         }
@@ -66,11 +66,13 @@ public class OrderSheetResult {
 
     @Builder
     public record Point(
+            Money ownedPoints,
             Money availablePoints,
             Money usedPoints
     ) {
-        public static Point of(OrderSheet orderSheet, Money availablePoints) {
+        public static Point of(OrderSheet orderSheet, Money ownedPoints, Money availablePoints) {
             return Point.builder()
+                    .ownedPoints(ownedPoints)
                     .availablePoints(availablePoints)
                     .usedPoints(orderSheet.getUsedPoints())
                     .build();

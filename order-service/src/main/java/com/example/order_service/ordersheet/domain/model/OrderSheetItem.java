@@ -52,6 +52,12 @@ public class OrderSheetItem {
         return itemPrice.getDiscountedPrice().multiple(quantity);
     }
 
+    public Money getAppliedCouponDiscount() {
+        Money productTotal = getProductLineTotal();
+        Money couponAmount = itemCoupon.getDiscountAmount();
+        return productTotal.isLessThan(couponAmount) ? productTotal : couponAmount;
+    }
+
     public Money getDiscountLineTotal() {
         return itemPrice.getDiscountAmount().multiple(quantity);
     }
@@ -65,7 +71,6 @@ public class OrderSheetItem {
     }
 
     public Money getFinalLineTotal() {
-        Money productLineTotal = getProductLineTotal();
-        return productLineTotal.subtract(itemCoupon.getDiscountAmount());
+        return getProductLineTotal().subtract(getAppliedCouponDiscount());
     }
 }

@@ -100,11 +100,13 @@ public class OrderSheetResponse {
 
     @Builder
     public record Point(
+            Long ownedPoints,
             Long availablePoints,
             Long usedPoints
     ) {
         public static Point from(OrderSheetResult.Point result) {
             return Point.builder()
+                    .ownedPoints(result.ownedPoints().longValue())
                     .availablePoints(result.availablePoints().longValue())
                     .usedPoints(result.usedPoints().longValue())
                     .build();

@@ -10,7 +10,10 @@ public class OrderSheetDescriptor {
     public static FieldDescriptor[] getCreateRequest() {
         return new FieldDescriptor[] {
                 fieldWithPath("items[].productVariantId").description("상품 변형 아이디"),
-                fieldWithPath("items[].quantity").description("주문 수량")
+                fieldWithPath("items[].quantity").description("주문 수량"),
+                fieldWithPath("cartCouponId").description("장바구니 쿠폰 아이디"),
+                fieldWithPath("itemCoupons[].productVariantId").description("상품 쿠폰 적용 상품 아이디"),
+                fieldWithPath("itemCoupons[].couponId").description("상품 쿠폰 아이디")
         };
     }
 
@@ -62,6 +65,7 @@ public class OrderSheetDescriptor {
                 fieldWithPath("cartCoupon.couponId").description("장바구니 쿠폰 아이디"),
                 fieldWithPath("cartCoupon.couponName").description("장바구니 쿠폰 이름"),
                 fieldWithPath("cartCoupon.discountAmount").description("장바구니 쿠폰 할인금"),
+                fieldWithPath("point.ownedPoints").description("보유 포인트"),
                 fieldWithPath("point.availablePoints").description("사용 가능 포인트"),
                 fieldWithPath("point.usedPoints").description("사용 포인트"),
                 fieldWithPath("paymentSummary.totalOriginalPrice").description("총 상품 가격"),

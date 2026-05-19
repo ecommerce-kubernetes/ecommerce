@@ -51,8 +51,14 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
                     .productVariantId(1L)
                     .quantity(2)
                     .build();
+            OrderSheetRequest.ItemCoupon itemCoupon = OrderSheetRequest.ItemCoupon.builder()
+                    .productVariantId(1L)
+                    .couponId(2L)
+                    .build();
             OrderSheetRequest.Create request = OrderSheetRequest.Create.builder()
                     .items(List.of(item))
+                    .cartCouponId(1L)
+                    .itemCoupons(List.of(itemCoupon))
                     .build();
             OrderSheetResult.Create result = createOrderSheetResult();
             HttpHeaders roleUser = createAuthHeader("ROLE_USER");
@@ -198,7 +204,8 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
 
     private OrderSheetResult.Point createPoint() {
         return OrderSheetResult.Point.builder()
-                .availablePoints(Money.wons(10000L))
+                .ownedPoints(Money.wons(10000L))
+                .availablePoints(Money.wons(4000L))
                 .usedPoints(Money.wons(1000L))
                 .build();
     }

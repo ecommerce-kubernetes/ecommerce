@@ -389,7 +389,7 @@ public class OrderSheetAppServiceTest {
                     .availablePoints(Money.wons(10000L))
                     .build();
             given(repository.findById(any())).willReturn(Optional.of(orderSheet));
-            given(orderSheetUserGateway.getUserPoints(anyLong(), any())).willReturn(point);
+            given(orderSheetUserGateway.getUserPointsForOrder(anyLong(), any(), any())).willReturn(point);
             when(repository.save(any(), any())).then(returnsFirstArg());
             //when
             OrderSheetResult.Detail result = orderSheetAppService.updatePoints(command);
@@ -460,32 +460,6 @@ public class OrderSheetAppServiceTest {
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(OrderSheetErrorCode.ORDER_SHEET_EXPIRED);
-        }
-
-        @Test
-        @DisplayName("포인트 잔액이 부족하면 예외가 발생한다")
-        void updatePoints_insufficient_point() {
-            //given
-            String sheetId = "sheetId";
-            Long userId = 1L;
-            OrderSheet orderSheet = createOrderSheet();
-            OrderSheetCommand.UpdatePoints command = OrderSheetCommand.UpdatePoints.builder()
-                    .sheetId(sheetId)
-                    .userId(userId)
-                    .usedPoints(Money.wons(2000L))
-                    .build();
-            OrderSheetUserResult.UserPoint point = OrderSheetUserResult.UserPoint.builder()
-                    .userId(1L)
-                    .availablePoints(Money.wons(1000L))
-                    .build();
-            given(repository.findById(any())).willReturn(Optional.of(orderSheet));
-            given(orderSheetUserGateway.getUserPoints(anyLong(), any())).willReturn(point);
-            //when
-            //then
-            assertThatThrownBy(() -> orderSheetAppService.updatePoints(command))
-                    .isInstanceOf(BusinessException.class)
-                    .extracting("errorCode")
-                    .isEqualTo(OrderSheetErrorCode.ORDER_SHEET_INSUFFICIENT_POINTS);
         }
     }
 

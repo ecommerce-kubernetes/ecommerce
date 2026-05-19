@@ -50,6 +50,9 @@ public class OrderSheet {
         if (items == null || items.isEmpty()) {
             throw new InvalidDomainValueException("OrderSheet 주문 상품은 필수입니다");
         }
+
+        Money pointEligibleAmount = calcPointEligibleAmount(items, coupon);
+
         return OrderSheet.reconstitute()
                 .sheetId(sheetId)
                 .orderer(orderer)
@@ -58,11 +61,32 @@ public class OrderSheet {
                 .cartCoupon(coupon)
                 .totalOriginalPrice(calcTotalOriginalPrice(items))
                 .totalProductDiscountAmount(calcTotalProductDiscountAmount(items))
-                .totalCouponDiscountAmount(coupon.getDiscountAmount().add(calcTotalItemCouponDiscountAmount(items)))
+                .totalCouponDiscountAmount(calcAppliedCartCouponDiscount(items, coupon).add(calcTotalItemCouponDiscountAmount(items)))
                 .usedPoints(Money.ZERO)
-                .totalPaymentAmount(calcTotalPaymentAmount(items, coupon, Money.ZERO))
+                .totalPaymentAmount(pointEligibleAmount)
                 .expiresAt(createdAt.plusMinutes(ttl))
                 .build();
+    }
+
+    public Money getPointEligibleAmount() {
+        return calcPointEligibleAmount(this.items, this.cartCoupon);
+    }
+
+    private static Money calcTotalItemFinalPrice(List<OrderSheetItem> items) {
+        return items.stream()
+                .map(OrderSheetItem::getFinalLineTotal)
+                .reduce(Money.ZERO, Money::add);
+    }
+
+    private static Money calcPointEligibleAmount(List<OrderSheetItem> items, OrderCouponSnapshot coupon) {
+        Money itemFinalPrice = calcTotalItemFinalPrice(items);
+        return itemFinalPrice.isLessThan(coupon.getDiscountAmount()) ?
+                Money.ZERO : itemFinalPrice.subtract(coupon.getDiscountAmount());
+    }
+
+    private static Money calcAppliedCartCouponDiscount(List<OrderSheetItem> items, OrderCouponSnapshot coupon) {
+        Money itemFinalPrice = calcTotalItemFinalPrice(items);
+        return itemFinalPrice.isLessThan(coupon.getDiscountAmount()) ? itemFinalPrice : coupon.getDiscountAmount();
     }
 
     private static Money calcTotalOriginalPrice(List<OrderSheetItem> items) {
@@ -77,19 +101,9 @@ public class OrderSheet {
                 .reduce(Money.ZERO, Money::add);
     }
 
-    private static Money calcTotalPaymentAmount(List<OrderSheetItem> items, OrderCouponSnapshot coupon, Money usedPoints) {
-        Money itemFinalPrice = items.stream()
-                .map(OrderSheetItem::getFinalLineTotal)
-                .reduce(Money.ZERO, Money::add);
-        Money subTotal = itemFinalPrice.isLessThan(coupon.getDiscountAmount()) ?
-                Money.ZERO : itemFinalPrice.subtract(coupon.getDiscountAmount());
-        return subTotal.isLessThan(usedPoints) ?
-                Money.ZERO : subTotal.subtract(usedPoints);
-    }
-
     private static Money calcTotalItemCouponDiscountAmount(List<OrderSheetItem> items) {
         return items.stream()
-                .map(OrderSheetItem::getCouponDiscount)
+                .map(OrderSheetItem::getAppliedCouponDiscount)
                 .reduce(Money.ZERO, Money::add);
     }
 
@@ -111,6 +125,8 @@ public class OrderSheet {
 
     public void changeUsedPoints(Money usedPoints) {
         this.usedPoints = usedPoints;
-        this.totalPaymentAmount = calcTotalPaymentAmount(items, cartCoupon, usedPoints);
+        Money eligibleAmount = getPointEligibleAmount();
+        this.totalPaymentAmount = eligibleAmount.isLessThan(usedPoints) ?
+                Money.ZERO : eligibleAmount.subtract(usedPoints);
     }
 }

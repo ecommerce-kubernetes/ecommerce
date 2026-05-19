@@ -59,7 +59,7 @@ public class OrderSheetAppService {
             throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_NO_PERMISSION);
         }
         OrderSheetUserResult.UserPoint userPoints = orderSheetUserGateway.getUserPoints(userId, Money.wons(1000L));
-        return OrderSheetResult.Detail.of(orderSheet, userPoints.availablePoints());
+        return OrderSheetResult.Detail.of(orderSheet, userPoints.ownedPoints(), userPoints.availablePoints());
     }
 
     // 배송 정보 수정
@@ -74,9 +74,9 @@ public class OrderSheetAppService {
         Duration remainingTtl = orderSheet.getRemainingTtl();
         ShippingAddress newAddress = ShippingAddress.of(command.receiverName(), command.receiverPhone(), command.zipCode(), command.address(), command.addressDetail());
         orderSheet.changeShippingAddress(newAddress);
-        OrderSheetUserResult.UserPoint userPoints = orderSheetUserGateway.getUserPoints(command.userId(), Money.wons(1000L));
+        OrderSheetUserResult.UserPoint userPoints = orderSheetUserGateway.getUserPoints(command.userId(), orderSheet.getPointEligibleAmount());
         repository.save(orderSheet, remainingTtl);
-        return OrderSheetResult.Detail.of(orderSheet, userPoints.availablePoints());
+        return OrderSheetResult.Detail.of(orderSheet, userPoints.ownedPoints(), userPoints.availablePoints());
     }
 
     // 사용 포인트 수정
@@ -88,14 +88,11 @@ public class OrderSheetAppService {
         if (orderSheet.isExpired()) {
             throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_EXPIRED);
         }
-        OrderSheetUserResult.UserPoint userPoints = orderSheetUserGateway.getUserPoints(orderSheet.getOrderer().getUserId(),Money.wons(1000L));
-        if (userPoints.availablePoints().isLessThan(command.usedPoints())) {
-            throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_INSUFFICIENT_POINTS);
-        }
+        OrderSheetUserResult.UserPoint userPoints = orderSheetUserGateway.getUserPointsForOrder(orderSheet.getOrderer().getUserId(), orderSheet.getPointEligibleAmount(), command.usedPoints());
         Duration remainingTtl = orderSheet.getRemainingTtl();
         orderSheet.changeUsedPoints(command.usedPoints());
         repository.save(orderSheet, remainingTtl);
-        return OrderSheetResult.Detail.of(orderSheet, userPoints.availablePoints());
+        return OrderSheetResult.Detail.of(orderSheet, userPoints.ownedPoints(), userPoints.availablePoints());
     }
 
     // 주문 시트 도메인 생성
