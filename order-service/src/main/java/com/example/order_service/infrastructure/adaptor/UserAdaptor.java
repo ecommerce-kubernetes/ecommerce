@@ -26,7 +26,7 @@ public class UserAdaptor {
 
     @CircuitBreaker(name = "userService", fallbackMethod = "getUserPointsFallback")
     public UserClientResponse.UserPoints getUserPoints(Long userId) {
-        return client.getUserPoints(userId);
+        return client.getUserPoints(userId, 1000L);
     }
 
     private UserClientResponse.Profile getUserProfileFallback(Long userId, Throwable throwable) throws Throwable {

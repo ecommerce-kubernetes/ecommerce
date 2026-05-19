@@ -65,7 +65,7 @@ public class UserAdaptorTest {
         //given
         Long userId = 1L;
         UserClientResponse.UserPoints mockResponse = fixtureMonkey.giveMeOne(UserClientResponse.UserPoints.class);
-        given(client.getUserPoints(any())).willReturn(mockResponse);
+        given(client.getUserPoints(any(), any())).willReturn(mockResponse);
         //when
         UserClientResponse.UserPoints response = userAdaptor.getUserPoints(userId);
         //then
@@ -81,7 +81,7 @@ public class UserAdaptorTest {
         RuntimeException feignException = new RuntimeException("feignClient 예외");
         ExternalSystemUnavailableException translatedException =
                 new ExternalSystemUnavailableException("CODE", "변환된 에러", feignException);
-        given(client.getUserPoints(any())).willThrow(feignException);
+        given(client.getUserPoints(any(), any())).willThrow(feignException);
         given(translator.translate(anyString(), any(Throwable.class)))
                 .willReturn(translatedException);
         //when
