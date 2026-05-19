@@ -81,8 +81,10 @@ public class OrderSheet {
         Money itemFinalPrice = items.stream()
                 .map(OrderSheetItem::getFinalLineTotal)
                 .reduce(Money.ZERO, Money::add);
-        Money subTotal = itemFinalPrice.subtract(coupon.getDiscountAmount());
-        return subTotal.subtract(usedPoints);
+        Money subTotal = itemFinalPrice.isLessThan(coupon.getDiscountAmount()) ?
+                Money.ZERO : itemFinalPrice.subtract(coupon.getDiscountAmount());
+        return subTotal.isLessThan(usedPoints) ?
+                Money.ZERO : subTotal.subtract(usedPoints);
     }
 
     private static Money calcTotalItemCouponDiscountAmount(List<OrderSheetItem> items) {
@@ -105,5 +107,10 @@ public class OrderSheet {
 
     public void changeShippingAddress(ShippingAddress newAddress) {
         this.shippingAddress = newAddress;
+    }
+
+    public void changeUsedPoints(Money usedPoints) {
+        this.usedPoints = usedPoints;
+        this.totalPaymentAmount = calcTotalPaymentAmount(items, cartCoupon, usedPoints);
     }
 }

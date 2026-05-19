@@ -78,6 +78,7 @@ public class OrderSheetAppService {
         return OrderSheetResult.Detail.of(orderSheet, userPoints.availablePoints());
     }
 
+    // 사용 포인트 수정
     public OrderSheetResult.Detail updatePoints(OrderSheetCommand.UpdatePoints command) {
         OrderSheet orderSheet = findByOrThrow(command.sheetId());
         if (!orderSheet.isOwner(command.userId())) {
@@ -87,8 +88,13 @@ public class OrderSheetAppService {
             throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_EXPIRED);
         }
         OrderSheetUserResult.UserPoint userPoints = orderSheetUserGateway.getUserPoints(orderSheet.getOrderer().getUserId());
+        if (userPoints.availablePoints().isLessThan(command.usedPoints())) {
+            throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_INSUFFICIENT_POINTS);
+        }
         Duration remainingTtl = orderSheet.getRemainingTtl();
-        return null;
+        orderSheet.changeUsedPoints(command.usedPoints());
+        repository.save(orderSheet, remainingTtl);
+        return OrderSheetResult.Detail.of(orderSheet, userPoints.availablePoints());
     }
 
     // 주문 시트 도메인 생성

@@ -368,6 +368,127 @@ public class OrderSheetAppServiceTest {
         }
     }
 
+    @Nested
+    @DisplayName("사용 포인트 수정")
+    class UpdatePoints {
+
+        @Test
+        @DisplayName("사용 포인트를 수정한다")
+        void updatePoints() {
+            //given
+            String sheetId = "sheetId";
+            Long userId = 1L;
+            OrderSheet orderSheet = createOrderSheet();
+            OrderSheetCommand.UpdatePoints command = OrderSheetCommand.UpdatePoints.builder()
+                    .sheetId(sheetId)
+                    .userId(userId)
+                    .usedPoints(Money.wons(2000L))
+                    .build();
+            OrderSheetUserResult.UserPoint point = OrderSheetUserResult.UserPoint.builder()
+                    .userId(1L)
+                    .availablePoints(Money.wons(10000L))
+                    .build();
+            given(repository.findById(any())).willReturn(Optional.of(orderSheet));
+            given(orderSheetUserGateway.getUserPoints(anyLong())).willReturn(point);
+            when(repository.save(any(), any())).then(returnsFirstArg());
+            //when
+            OrderSheetResult.Detail result = orderSheetAppService.updatePoints(command);
+            //then
+            assertThat(result.point().usedPoints()).isEqualTo(Money.wons(2000L));
+            assertThat(result.paymentSummary().usedPoints()).isEqualTo(Money.wons(2000L));
+            assertThat(result.paymentSummary().totalPaymentAmount()).isEqualTo(Money.wons(5000L));
+        }
+
+        @Test
+        @DisplayName("주문서를 찾을 수 없으면 예외가 발생한다")
+        void updatePoints_notFound() {
+            //given
+            String sheetId = "sheetId";
+            Long userId = 1L;
+            OrderSheetCommand.UpdatePoints command = OrderSheetCommand.UpdatePoints.builder()
+                    .sheetId(sheetId)
+                    .userId(userId)
+                    .usedPoints(Money.wons(2000L))
+                    .build();
+            given(repository.findById(any())).willReturn(Optional.empty());
+            //when
+            //then
+            assertThatThrownBy(() -> orderSheetAppService.updatePoints(command))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(OrderSheetErrorCode.ORDER_SHEET_NOT_FOUND);
+        }
+
+        @Test
+        @DisplayName("주문자가 아니면 예외가 발생한다")
+        void updatePoints_no_permission() {
+            //given
+            String sheetId = "sheetId";
+            Long userId = 999L;
+            OrderSheet orderSheet = createOrderSheet();
+            OrderSheetCommand.UpdatePoints command = OrderSheetCommand.UpdatePoints.builder()
+                    .sheetId(sheetId)
+                    .userId(userId)
+                    .usedPoints(Money.wons(2000L))
+                    .build();
+            given(repository.findById(any())).willReturn(Optional.of(orderSheet));
+            //when
+            //then
+            assertThatThrownBy(() -> orderSheetAppService.updatePoints(command))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(OrderSheetErrorCode.ORDER_SHEET_NO_PERMISSION);
+        }
+
+        @Test
+        @DisplayName("주문서가 만료되었으면 예외가 발생한다")
+        void updatePoints_expired() {
+            //given
+            String sheetId = "sheetId";
+            Long userId = 1L;
+            OrderSheet orderSheet = createOrderSheet();
+            OrderSheetCommand.UpdatePoints command = OrderSheetCommand.UpdatePoints.builder()
+                    .sheetId(sheetId)
+                    .userId(userId)
+                    .usedPoints(Money.wons(2000L))
+                    .build();
+            ReflectionTestUtils.setField(orderSheet, "expiresAt", LocalDateTime.now().minusMinutes(20));
+            given(repository.findById(any())).willReturn(Optional.of(orderSheet));
+            //when
+            //then
+            assertThatThrownBy(() -> orderSheetAppService.updatePoints(command))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(OrderSheetErrorCode.ORDER_SHEET_EXPIRED);
+        }
+
+        @Test
+        @DisplayName("포인트 잔액이 부족하면 예외가 발생한다")
+        void updatePoints_insufficient_point() {
+            //given
+            String sheetId = "sheetId";
+            Long userId = 1L;
+            OrderSheet orderSheet = createOrderSheet();
+            OrderSheetCommand.UpdatePoints command = OrderSheetCommand.UpdatePoints.builder()
+                    .sheetId(sheetId)
+                    .userId(userId)
+                    .usedPoints(Money.wons(2000L))
+                    .build();
+            OrderSheetUserResult.UserPoint point = OrderSheetUserResult.UserPoint.builder()
+                    .userId(1L)
+                    .availablePoints(Money.wons(1000L))
+                    .build();
+            given(repository.findById(any())).willReturn(Optional.of(orderSheet));
+            given(orderSheetUserGateway.getUserPoints(anyLong())).willReturn(point);
+            //when
+            //then
+            assertThatThrownBy(() -> orderSheetAppService.updatePoints(command))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(OrderSheetErrorCode.ORDER_SHEET_INSUFFICIENT_POINTS);
+        }
+    }
+
     private OrderSheet createOrderSheet() {
         Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
         ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678", "12345", "서울시 테헤란로 123", "123동 1234호");

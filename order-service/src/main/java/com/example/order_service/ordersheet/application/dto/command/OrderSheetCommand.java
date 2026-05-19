@@ -130,13 +130,13 @@ public class OrderSheetCommand {
     public record UpdatePoints(
             String sheetId,
             Long userId,
-            Long usedPoints
+            Money usedPoints
     ) {
         public static UpdatePoints of(String sheetId, Long userId, Long usedPoints) {
             return UpdatePoints.builder()
                     .sheetId(sheetId)
                     .userId(userId)
-                    .usedPoints(usedPoints)
+                    .usedPoints(Money.wons(usedPoints))
                     .build();
         }
     }
