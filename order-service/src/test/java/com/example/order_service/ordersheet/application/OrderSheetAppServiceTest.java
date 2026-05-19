@@ -207,7 +207,7 @@ public class OrderSheetAppServiceTest {
                     .build();
 
             given(repository.findById(anyString())).willReturn(Optional.of(orderSheet));
-            given(orderSheetUserGateway.getUserPoints(anyLong())).willReturn(point);
+            given(orderSheetUserGateway.getUserPoints(anyLong(), any())).willReturn(point);
             //when
             OrderSheetResult.Detail result = orderSheetAppService.getOrderSheet("sheetId", 1L);
             //then
@@ -270,7 +270,7 @@ public class OrderSheetAppServiceTest {
                     .availablePoints(Money.wons(10000L))
                     .build();
             given(repository.findById(any())).willReturn(Optional.of(orderSheet));
-            given(orderSheetUserGateway.getUserPoints(any())).willReturn(point);
+            given(orderSheetUserGateway.getUserPoints(any(), any())).willReturn(point);
             when(repository.save(any(), any())).then(returnsFirstArg());
             //when
             OrderSheetResult.Detail result = orderSheetAppService.updateShippingAddress(command);
@@ -389,7 +389,7 @@ public class OrderSheetAppServiceTest {
                     .availablePoints(Money.wons(10000L))
                     .build();
             given(repository.findById(any())).willReturn(Optional.of(orderSheet));
-            given(orderSheetUserGateway.getUserPoints(anyLong())).willReturn(point);
+            given(orderSheetUserGateway.getUserPoints(anyLong(), any())).willReturn(point);
             when(repository.save(any(), any())).then(returnsFirstArg());
             //when
             OrderSheetResult.Detail result = orderSheetAppService.updatePoints(command);
@@ -479,7 +479,7 @@ public class OrderSheetAppServiceTest {
                     .availablePoints(Money.wons(1000L))
                     .build();
             given(repository.findById(any())).willReturn(Optional.of(orderSheet));
-            given(orderSheetUserGateway.getUserPoints(anyLong())).willReturn(point);
+            given(orderSheetUserGateway.getUserPoints(anyLong(), any())).willReturn(point);
             //when
             //then
             assertThatThrownBy(() -> orderSheetAppService.updatePoints(command))

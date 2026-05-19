@@ -9,5 +9,11 @@ public class UserClientRequest {
             Long orderAmount,
             Long usedPoints
     ) {
+        public static ValidatePoints of(Long orderAmount, Long usedPoints) {
+            return ValidatePoints.builder()
+                    .orderAmount(orderAmount)
+                    .usedPoints(usedPoints)
+                    .build();
+        }
     }
 }

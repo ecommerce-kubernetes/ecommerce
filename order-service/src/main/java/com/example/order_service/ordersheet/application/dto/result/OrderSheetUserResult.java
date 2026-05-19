@@ -27,6 +27,7 @@ public class OrderSheetUserResult {
     @Builder
     public record UserPoint(
             Long userId,
+            Money ownedPoints,
             Money availablePoints
     ) {
     }

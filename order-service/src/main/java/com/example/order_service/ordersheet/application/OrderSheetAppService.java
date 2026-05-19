@@ -1,5 +1,6 @@
 package com.example.order_service.ordersheet.application;
 
+import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.business.BusinessException;
 import com.example.order_service.ordersheet.application.dto.command.OrderSheetCommand;
 import com.example.order_service.ordersheet.application.dto.result.OrderSheetCouponResult;
@@ -57,7 +58,7 @@ public class OrderSheetAppService {
         if (!orderSheet.isOwner(userId)) {
             throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_NO_PERMISSION);
         }
-        OrderSheetUserResult.UserPoint userPoints = orderSheetUserGateway.getUserPoints(userId);
+        OrderSheetUserResult.UserPoint userPoints = orderSheetUserGateway.getUserPoints(userId, Money.wons(1000L));
         return OrderSheetResult.Detail.of(orderSheet, userPoints.availablePoints());
     }
 
@@ -73,7 +74,7 @@ public class OrderSheetAppService {
         Duration remainingTtl = orderSheet.getRemainingTtl();
         ShippingAddress newAddress = ShippingAddress.of(command.receiverName(), command.receiverPhone(), command.zipCode(), command.address(), command.addressDetail());
         orderSheet.changeShippingAddress(newAddress);
-        OrderSheetUserResult.UserPoint userPoints = orderSheetUserGateway.getUserPoints(command.userId());
+        OrderSheetUserResult.UserPoint userPoints = orderSheetUserGateway.getUserPoints(command.userId(), Money.wons(1000L));
         repository.save(orderSheet, remainingTtl);
         return OrderSheetResult.Detail.of(orderSheet, userPoints.availablePoints());
     }
@@ -87,7 +88,7 @@ public class OrderSheetAppService {
         if (orderSheet.isExpired()) {
             throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_EXPIRED);
         }
-        OrderSheetUserResult.UserPoint userPoints = orderSheetUserGateway.getUserPoints(orderSheet.getOrderer().getUserId());
+        OrderSheetUserResult.UserPoint userPoints = orderSheetUserGateway.getUserPoints(orderSheet.getOrderer().getUserId(),Money.wons(1000L));
         if (userPoints.availablePoints().isLessThan(command.usedPoints())) {
             throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_INSUFFICIENT_POINTS);
         }

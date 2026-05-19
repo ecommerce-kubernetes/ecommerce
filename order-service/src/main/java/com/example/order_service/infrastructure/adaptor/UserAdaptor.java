@@ -1,6 +1,7 @@
 package com.example.order_service.infrastructure.adaptor;
 
 import com.example.order_service.infrastructure.client.UserFeignClient;
+import com.example.order_service.infrastructure.dto.request.UserClientRequest;
 import com.example.order_service.infrastructure.dto.response.UserClientResponse;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.RequiredArgsConstructor;
@@ -25,8 +26,14 @@ public class UserAdaptor {
     }
 
     @CircuitBreaker(name = "userService", fallbackMethod = "getUserPointsFallback")
-    public UserClientResponse.UserPoints getUserPoints(Long userId) {
-        return client.getUserPoints(userId, 1000L);
+    public UserClientResponse.UserPoints getUserPoints(Long userId, Long orderAmount) {
+        return client.getUserPoints(userId, orderAmount);
+    }
+
+    @CircuitBreaker(name = "userService", fallbackMethod = "getUserPointsForOrderFallback")
+    public UserClientResponse.UserPoints getUserPointsForOrder(Long userId, Long orderAmount, Long usedPoints) {
+        UserClientRequest.ValidatePoints request = UserClientRequest.ValidatePoints.of(orderAmount, usedPoints);
+        return client.getUserPointsForOrder(userId, request);
     }
 
     private UserClientResponse.Profile getUserProfileFallback(Long userId, Throwable throwable) throws Throwable {
@@ -37,7 +44,11 @@ public class UserAdaptor {
         throw translator.translate("USER-SERVICE", throwable);
     }
 
-    private UserClientResponse.UserPoints getUserPointsFallback(Long userId, Throwable throwable) throws Throwable {
+    private UserClientResponse.UserPoints getUserPointsFallback(Long userId, Long orderAmount, Throwable throwable) throws Throwable {
+        throw translator.translate("USER-SERVICE", throwable);
+    }
+
+    private UserClientResponse.UserPoints getUserPointsForOrderFallback(Long userId, Long orderAmount, Long usedPoints, Throwable throwable) throws Throwable {
         throw translator.translate("USER-SERVICE", throwable);
     }
 }
