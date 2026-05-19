@@ -256,6 +256,8 @@ public class OrderSheetAppServiceTest {
             Long userId = 1L;
 
             OrderSheetCommand.UpdateShippingAddress command = OrderSheetCommand.UpdateShippingAddress.builder()
+                    .sheetId(sheetId)
+                    .userId(userId)
                     .receiverName("새 수령인")
                     .receiverPhone("010-9876-5432")
                     .zipCode("54321")
@@ -271,7 +273,7 @@ public class OrderSheetAppServiceTest {
             given(orderSheetUserGateway.getUserPoints(any())).willReturn(point);
             when(repository.save(any(), any())).then(returnsFirstArg());
             //when
-            OrderSheetResult.Detail result = orderSheetAppService.updateShippingAddress(sheetId, userId, command);
+            OrderSheetResult.Detail result = orderSheetAppService.updateShippingAddress(command);
             //then
             assertThat(result.shippingAddress())
                     .extracting("receiverName", "receiverPhone", "zipCode", "address", "addressDetail")
@@ -297,6 +299,8 @@ public class OrderSheetAppServiceTest {
             Long userId = 1L;
 
             OrderSheetCommand.UpdateShippingAddress command = OrderSheetCommand.UpdateShippingAddress.builder()
+                    .sheetId(sheetId)
+                    .userId(userId)
                     .receiverName("새 수령인")
                     .receiverPhone("010-9876-5432")
                     .zipCode("54321")
@@ -306,7 +310,7 @@ public class OrderSheetAppServiceTest {
             given(repository.findById(any())).willReturn(Optional.empty());
             //when
             //then
-            assertThatThrownBy(() -> orderSheetAppService.updateShippingAddress(sheetId, userId, command))
+            assertThatThrownBy(() -> orderSheetAppService.updateShippingAddress(command))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(OrderSheetErrorCode.ORDER_SHEET_NOT_FOUND);
@@ -321,6 +325,8 @@ public class OrderSheetAppServiceTest {
             OrderSheet orderSheet = createOrderSheet();
             ReflectionTestUtils.setField(orderSheet, "expiresAt", LocalDateTime.now().minusMinutes(20));
             OrderSheetCommand.UpdateShippingAddress command = OrderSheetCommand.UpdateShippingAddress.builder()
+                    .sheetId(sheetId)
+                    .userId(userId)
                     .receiverName("새 수령인")
                     .receiverPhone("010-9876-5432")
                     .zipCode("54321")
@@ -330,10 +336,35 @@ public class OrderSheetAppServiceTest {
             given(repository.findById(any())).willReturn(Optional.of(orderSheet));
             //when
             //then
-            assertThatThrownBy(() -> orderSheetAppService.updateShippingAddress(sheetId, userId, command))
+            assertThatThrownBy(() -> orderSheetAppService.updateShippingAddress(command))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(OrderSheetErrorCode.ORDER_SHEET_EXPIRED);
+        }
+
+        @Test
+        @DisplayName("주문자가 아니면 예외가 발생한다")
+        void updateShippingAddress_no_permission(){
+            //given
+            String sheetId = "sheetId";
+            Long userId = 999L;
+            OrderSheet orderSheet = createOrderSheet();
+            OrderSheetCommand.UpdateShippingAddress command = OrderSheetCommand.UpdateShippingAddress.builder()
+                    .sheetId(sheetId)
+                    .userId(userId)
+                    .receiverName("새 수령인")
+                    .receiverPhone("010-9876-5432")
+                    .zipCode("54321")
+                    .address("서울시 테헤란로 321")
+                    .addressDetail("321동 4321호")
+                    .build();
+            given(repository.findById(any())).willReturn(Optional.of(orderSheet));
+            //when
+            //then
+            assertThatThrownBy(() -> orderSheetAppService.updateShippingAddress(command))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(OrderSheetErrorCode.ORDER_SHEET_NO_PERMISSION);
         }
     }
 

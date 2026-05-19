@@ -50,6 +50,7 @@ public class OrderSheetAppService {
         return OrderSheetResult.Create.from(save);
     }
 
+    // 주문서 조회
     public OrderSheetResult.Detail getOrderSheet(String sheetId, Long userId) {
         OrderSheet orderSheet = findByOrThrow(sheetId);
         // 주문서 생성 유저와 조회 유저가 일치하지 않음
@@ -60,10 +61,11 @@ public class OrderSheetAppService {
         return OrderSheetResult.Detail.of(orderSheet, userPoints.availablePoints());
     }
 
-    public OrderSheetResult.Detail updateShippingAddress(String sheetId, Long userId, OrderSheetCommand.UpdateShippingAddress command) {
-        OrderSheet orderSheet = findByOrThrow(sheetId);
-        if (!orderSheet.isOwner(userId)) {
-            throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_NOT_FOUND);
+    // 배송 정보 수정
+    public OrderSheetResult.Detail updateShippingAddress(OrderSheetCommand.UpdateShippingAddress command) {
+        OrderSheet orderSheet = findByOrThrow(command.sheetId());
+        if (!orderSheet.isOwner(command.userId())) {
+            throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_NO_PERMISSION);
         }
         if (orderSheet.isExpired()) {
             throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_EXPIRED);
@@ -71,9 +73,22 @@ public class OrderSheetAppService {
         Duration remainingTtl = orderSheet.getRemainingTtl();
         ShippingAddress newAddress = ShippingAddress.of(command.receiverName(), command.receiverPhone(), command.zipCode(), command.address(), command.addressDetail());
         orderSheet.changeShippingAddress(newAddress);
-        OrderSheetUserResult.UserPoint userPoints = orderSheetUserGateway.getUserPoints(userId);
+        OrderSheetUserResult.UserPoint userPoints = orderSheetUserGateway.getUserPoints(command.userId());
         repository.save(orderSheet, remainingTtl);
         return OrderSheetResult.Detail.of(orderSheet, userPoints.availablePoints());
+    }
+
+    public OrderSheetResult.Detail updatePoints(OrderSheetCommand.UpdatePoints command) {
+        OrderSheet orderSheet = findByOrThrow(command.sheetId());
+        if (!orderSheet.isOwner(command.userId())) {
+            throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_NO_PERMISSION);
+        }
+        if (orderSheet.isExpired()) {
+            throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_EXPIRED);
+        }
+        OrderSheetUserResult.UserPoint userPoints = orderSheetUserGateway.getUserPoints(orderSheet.getOrderer().getUserId());
+        Duration remainingTtl = orderSheet.getRemainingTtl();
+        return null;
     }
 
     // 주문 시트 도메인 생성

@@ -105,19 +105,38 @@ public class OrderSheetCommand {
 
     @Builder
     public record UpdateShippingAddress(
+            String sheetId,
+            Long userId,
             String receiverName,
             String receiverPhone,
             String zipCode,
             String address,
             String addressDetail
     ) {
-        public static UpdateShippingAddress of(String receiverName, String receiverPhone, String zipCode, String address, String addressDetail) {
+        public static UpdateShippingAddress of(String sheetId, Long userId, String receiverName, String receiverPhone, String zipCode, String address, String addressDetail) {
             return UpdateShippingAddress.builder()
+                    .sheetId(sheetId)
+                    .userId(userId)
                     .receiverName(receiverName)
                     .receiverPhone(receiverPhone)
                     .zipCode(zipCode)
                     .address(address)
                     .addressDetail(addressDetail)
+                    .build();
+        }
+    }
+
+    @Builder
+    public record UpdatePoints(
+            String sheetId,
+            Long userId,
+            Long usedPoints
+    ) {
+        public static UpdatePoints of(String sheetId, Long userId, Long usedPoints) {
+            return UpdatePoints.builder()
+                    .sheetId(sheetId)
+                    .userId(userId)
+                    .usedPoints(usedPoints)
                     .build();
         }
     }

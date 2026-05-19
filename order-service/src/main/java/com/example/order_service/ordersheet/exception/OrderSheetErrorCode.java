@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum OrderSheetErrorCode implements ErrorCode {
+    ORDER_SHEET_INSUFFICIENT_POINTS(409, "ORDER-SHEET_INSUFFICIENT_POINTS", "포인트 잔액이 부족합니다"),
     ORDER_SHEET_EXPIRED(409, "ORDER-SHEET_EXPIRED", "주문서가 만료되었습니다 주문서를 다시 생성해주세요"),
     ORDER_SHEET_USER_UNAVAILABLE_SERVER_ERROR(503, "ORDER-SHEET_015", "주문 처리중 일시적인 오류가 발생했습니다 잠시후 재시도 해주세요"),
     ORDER_SHEET_USER_SERVER_ERROR(500, "ORDER-SHEET_014", "주문 처리중 오류가 발생했습니다"),

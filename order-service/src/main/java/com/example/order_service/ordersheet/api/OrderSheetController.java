@@ -43,10 +43,24 @@ public class OrderSheetController {
                                                                            @PathVariable("sheetId") String sheetId,
                                                                            @RequestBody @Validated OrderSheetRequest.UpdateShippingAddress request) {
         OrderSheetCommand.UpdateShippingAddress command =
-                OrderSheetCommand.UpdateShippingAddress.of(request.receiverName(),
+                OrderSheetCommand.UpdateShippingAddress.of(
+                        sheetId,
+                        userPrincipal.getUserId(),
+                        request.receiverName(),
                         request.receiverPhone(), request.zipCode(), request.address(), request.addressDetail());
-        OrderSheetResult.Detail result = orderSheetAppService.updateShippingAddress(sheetId, userPrincipal.getUserId(), command);
+        OrderSheetResult.Detail result = orderSheetAppService.updateShippingAddress(command);
         OrderSheetResponse.Detail response = OrderSheetResponse.Detail.from(result);
-        return ResponseEntity.status(HttpStatus.OK).body(response);
+        return ResponseEntity.ok(response);
+    }
+
+    @PatchMapping("/{sheetId}/points")
+    public ResponseEntity<OrderSheetResponse.Detail> updateUsedPoints(@AuthenticationPrincipal UserPrincipal userPrincipal,
+                                                                      @PathVariable("sheetId") String sheetId,
+                                                                      @RequestBody @Validated OrderSheetRequest.UpdateUsedPoints request) {
+        OrderSheetCommand.UpdatePoints command = OrderSheetCommand.UpdatePoints.of(sheetId, userPrincipal.getUserId(),
+                request.usedPoints());
+        OrderSheetResult.Detail result = orderSheetAppService.updatePoints(command);
+        OrderSheetResponse.Detail response = OrderSheetResponse.Detail.from(result);
+        return ResponseEntity.ok(response);
     }
 }

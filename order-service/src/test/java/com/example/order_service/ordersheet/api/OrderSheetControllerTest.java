@@ -10,6 +10,7 @@ import com.example.order_service.ordersheet.application.dto.command.OrderSheetCo
 import com.example.order_service.ordersheet.application.dto.result.OrderSheetResult;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.codehaus.plexus.util.cli.Arg;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -276,7 +277,7 @@ class OrderSheetControllerTest {
             //given
             OrderSheetRequest.UpdateShippingAddress request = fixtureMonkey.giveMeOne(OrderSheetRequest.UpdateShippingAddress.class);
             OrderSheetResult.Detail result = fixtureMonkey.giveMeOne(OrderSheetResult.Detail.class);
-            given(orderSheetAppService.updateShippingAddress(anyString(), anyLong(), any(OrderSheetCommand.UpdateShippingAddress.class)))
+            given(orderSheetAppService.updateShippingAddress(any(OrderSheetCommand.UpdateShippingAddress.class)))
                     .willReturn(result);
             OrderSheetResponse.Detail response = OrderSheetResponse.Detail.from(result);
             //when
@@ -315,7 +316,7 @@ class OrderSheetControllerTest {
             OrderSheetRequest.UpdateShippingAddress request = fixtureMonkey.giveMeOne(OrderSheetRequest.UpdateShippingAddress.class);
             //when
             //then
-            mockMvc.perform(patch("/order-sheets/{sheetId}/shipping-address", "sheetId")
+            mockMvc.perform(patch("/order-sheets/{sheetId}/shipping-address", sheetId)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isForbidden())
@@ -323,6 +324,164 @@ class OrderSheetControllerTest {
                     .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다"))
                     .andExpect(jsonPath("$.timestamp").exists())
                     .andExpect(jsonPath("$.path").value("/order-sheets/" + sheetId + "/shipping-address"));
+        }
+
+        @ParameterizedTest(name = "{0}")
+        @DisplayName("배송 정보 수정 입력 검증 테스트")
+        @MethodSource("provideInvalidRequest")
+        @WithCustomMockUser
+        void updateShippingAddress_validate(String description, OrderSheetRequest.UpdateShippingAddress req, String message) throws Exception {
+            //given
+            String sheetId = "sheetId";
+            //when
+            //then
+            mockMvc.perform(patch("/order-sheets/{sheetId}/shipping-address", sheetId)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(req)))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.code").value("VALIDATION"))
+                    .andExpect(jsonPath("$.message").value(message))
+                    .andExpect(jsonPath("$.timestamp").exists())
+                    .andExpect(jsonPath("$.path").value("/order-sheets/" + sheetId + "/shipping-address"));
+        }
+
+        private static Stream<Arguments> provideInvalidRequest() {
+            OrderSheetRequest.UpdateShippingAddress VALID_REQUEST = OrderSheetRequest.UpdateShippingAddress.builder()
+                    .receiverName("수령인")
+                    .receiverPhone("010-1234-5678")
+                    .zipCode("12345")
+                    .address("서울시 테헤란로 123")
+                    .addressDetail("123동 1234호")
+                    .build();
+            return Stream.of(
+                    Arguments.of(
+                            "수령인 미입력",
+                            VALID_REQUEST.toBuilder().receiverName(null).build(),
+                            "수령인 이름은 필수입니다"
+                    ),
+                    Arguments.of(
+                            "수령인 전화번호 미입력",
+                            VALID_REQUEST.toBuilder().receiverPhone(null).build(),
+                            "수령인 전화번호는 필수입니다"
+                    ),
+                    Arguments.of(
+                            "수령인 전화번호 형식 오류",
+                            VALID_REQUEST.toBuilder().receiverPhone("123123").build(),
+                            "전화번호 형식이 올바르지 않습니다 (예: 010-1234-5678)"
+                    ),
+                    Arguments.of(
+                            "우편 번호 미입력",
+                            VALID_REQUEST.toBuilder().zipCode(null).build(),
+                            "우편 번호는 필수입니다"
+                    ),
+                    Arguments.of(
+                            "기본 주소 미입력",
+                            VALID_REQUEST.toBuilder().address(null).build(),
+                            "기본 주소는 필수입니다"
+                    ),
+                    Arguments.of(
+                            "상세 주소 미입력",
+                            VALID_REQUEST.toBuilder().addressDetail(null).build(),
+                            "상세 주소는 필수입니다"
+                    )
+            );
+        }
+    }
+
+    @Nested
+    @DisplayName("사용 포인트 수정")
+    class UpdatePoints {
+
+        @Test
+        @DisplayName("사용 포인트를 수정한다")
+        @WithCustomMockUser
+        void updatePoints() throws Exception {
+            //given
+            String sheetId = "sheetId";
+            OrderSheetRequest.UpdateUsedPoints request = fixtureMonkey.giveMeOne(OrderSheetRequest.UpdateUsedPoints.class);
+            OrderSheetResult.Detail result = fixtureMonkey.giveMeOne(OrderSheetResult.Detail.class);
+            OrderSheetResponse.Detail response = OrderSheetResponse.Detail.from(result);
+            given(orderSheetAppService.updatePoints(any())).willReturn(result);
+            //when
+            //then
+            mockMvc.perform(patch("/order-sheets/{sheetId}/points", sheetId)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isOk())
+                    .andExpect(content().json(objectMapper.writeValueAsString(response)));
+        }
+
+        @Test
+        @DisplayName("로그인되지 않은 사용자는 사용 포인트를 수정할 수 없다")
+        void updatePoints_unAuthorized() throws Exception {
+            //given
+            String sheetId = "sheetId";
+            OrderSheetRequest.UpdateUsedPoints request = fixtureMonkey.giveMeOne(OrderSheetRequest.UpdateUsedPoints.class);
+            //when
+            //then
+            mockMvc.perform(patch("/order-sheets/{sheetId}/points", "sheetId")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isUnauthorized())
+                    .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
+                    .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다"))
+                    .andExpect(jsonPath("$.timestamp").exists())
+                    .andExpect(jsonPath("$.path").value("/order-sheets/" + sheetId + "/points"));
+        }
+
+        @Test
+        @DisplayName("유저 권한이 아니라면 포인트를 수정할 수 없다")
+        @WithCustomMockUser(userRole = UserRole.ROLE_ADMIN)
+        void updatePoints_forbidden() throws Exception {
+            //given
+            String sheetId = "sheetId";
+            OrderSheetRequest.UpdateUsedPoints request = fixtureMonkey.giveMeOne(OrderSheetRequest.UpdateUsedPoints.class);
+            //when
+            //then
+            mockMvc.perform(patch("/order-sheets/{sheetId}/points", "sheetId")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isForbidden())
+                    .andExpect(jsonPath("$.code").value("FORBIDDEN"))
+                    .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다"))
+                    .andExpect(jsonPath("$.timestamp").exists())
+                    .andExpect(jsonPath("$.path").value("/order-sheets/" + sheetId + "/points"));
+        }
+
+        @ParameterizedTest(name = "{0}")
+        @MethodSource("provideInvalidRequest")
+        @DisplayName("사용 포인트 수정 입력 검증 테스트")
+        @WithCustomMockUser
+        void updatePoints_validate(String description, OrderSheetRequest.UpdateUsedPoints req, String message) throws Exception {
+            //given
+            String sheetId = "sheetId";
+            //when
+            //then
+            mockMvc.perform(patch("/order-sheets/{sheetId}/points", sheetId)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(req)))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.code").value("VALIDATION"))
+                    .andExpect(jsonPath("$.message").value(message))
+                    .andExpect(jsonPath("$.timestamp").exists())
+                    .andExpect(jsonPath("$.path").value("/order-sheets/" + sheetId + "/points"));
+        }
+
+        private static Stream<Arguments> provideInvalidRequest() {
+            return Stream.of(
+                    Arguments.of(
+                            "포인트 미입력",
+                            OrderSheetRequest.UpdateUsedPoints.builder()
+                                    .usedPoints(null).build(),
+                            "사용 포인트는 필수입니다"
+                    ),
+                    Arguments.of(
+                            "포인트 0 미만",
+                            OrderSheetRequest.UpdateUsedPoints.builder()
+                                    .usedPoints(-1L).build(),
+                            "사용 포인트는 0 미만일 수 없습니다"
+                    )
+            );
         }
     }
 }

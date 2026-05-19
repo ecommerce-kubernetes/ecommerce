@@ -123,7 +123,7 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
             OrderSheetRequest.UpdateShippingAddress request = createOrderSheetRequest();
             HttpHeaders roleUser = createAuthHeader("ROLE_USER");
             OrderSheetResult.Detail result = createOrderSheetResult();
-            given(orderSheetAppService.updateShippingAddress(anyString(), anyLong(), any(OrderSheetCommand.UpdateShippingAddress.class)))
+            given(orderSheetAppService.updateShippingAddress(any(OrderSheetCommand.UpdateShippingAddress.class)))
                     .willReturn(result);
             OrderSheetResponse.Detail response = OrderSheetResponse.Detail.from(result);
             //when
