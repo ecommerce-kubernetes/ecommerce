@@ -42,12 +42,7 @@ public class OrderSheetController {
     public ResponseEntity<OrderSheetResponse.Detail> updateShippingAddress(@AuthenticationPrincipal UserPrincipal userPrincipal,
                                                                            @PathVariable("sheetId") String sheetId,
                                                                            @RequestBody @Validated OrderSheetRequest.UpdateShippingAddress request) {
-        OrderSheetCommand.UpdateShippingAddress command =
-                OrderSheetCommand.UpdateShippingAddress.of(
-                        sheetId,
-                        userPrincipal.getUserId(),
-                        request.receiverName(),
-                        request.receiverPhone(), request.zipCode(), request.address(), request.addressDetail());
+        OrderSheetCommand.UpdateShippingAddress command = request.toCommand(sheetId, userPrincipal.getUserId());
         OrderSheetResult.Detail result = orderSheetAppService.updateShippingAddress(command);
         OrderSheetResponse.Detail response = OrderSheetResponse.Detail.from(result);
         return ResponseEntity.ok(response);
@@ -57,9 +52,19 @@ public class OrderSheetController {
     public ResponseEntity<OrderSheetResponse.Detail> updateUsedPoints(@AuthenticationPrincipal UserPrincipal userPrincipal,
                                                                       @PathVariable("sheetId") String sheetId,
                                                                       @RequestBody @Validated OrderSheetRequest.UpdateUsedPoints request) {
-        OrderSheetCommand.UpdatePoints command = OrderSheetCommand.UpdatePoints.of(sheetId, userPrincipal.getUserId(),
-                request.usedPoints());
+        OrderSheetCommand.UpdatePoints command = request.toCommand(sheetId, userPrincipal.getUserId());
         OrderSheetResult.Detail result = orderSheetAppService.updatePoints(command);
+        OrderSheetResponse.Detail response = OrderSheetResponse.Detail.from(result);
+        return ResponseEntity.ok(response);
+    }
+
+    @PatchMapping("/{sheetId}/sheet-items/{sheetItemId}/coupon")
+    public ResponseEntity<OrderSheetResponse.Detail> updateItemCoupon(@AuthenticationPrincipal UserPrincipal userPrincipal,
+                                                                      @PathVariable("sheetId") String sheetId,
+                                                                      @PathVariable("sheetItemId") String sheetItemId,
+                                                                      @RequestBody @Validated OrderSheetRequest.UpdateCoupon request) {
+        OrderSheetCommand.UpdateItemCoupon command = request.toCommand(sheetId, sheetItemId, userPrincipal.getUserId());
+        OrderSheetResult.Detail result = orderSheetAppService.updateItemCoupon(command);
         OrderSheetResponse.Detail response = OrderSheetResponse.Detail.from(result);
         return ResponseEntity.ok(response);
     }

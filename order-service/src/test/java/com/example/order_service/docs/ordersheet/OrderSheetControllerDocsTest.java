@@ -161,6 +161,86 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
         }
     }
 
+    @Nested
+    @DisplayName("포인트 수정")
+    class UpdatePoints {
+
+        @Test
+        @DisplayName("사용 포인트를 수정한다")
+        void updatePoints() throws Exception {
+            //given
+            String sheetId = "sheetId";
+            OrderSheetRequest.UpdateUsedPoints request = createOrderSheetRequest();
+            HttpHeaders roleUser = createAuthHeader("ROLE_USER");
+            OrderSheetResult.Detail result = createOrderSheetResult();
+            given(orderSheetAppService.updatePoints(any())).willReturn(result);
+            OrderSheetResponse.Detail response = OrderSheetResponse.Detail.from(result);
+            //when
+            //then
+            mockMvc.perform(patch("/order-sheets/{sheetId}/points", sheetId)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .headers(roleUser)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isOk())
+                    .andExpect(content().json(objectMapper.writeValueAsString(response)))
+                    .andDo(
+                            createSecuredDocument("04-ordersheet-04-update-points",
+                                    "사용 포인트 수정",
+                                    "사용 포인트를 수정한다",
+                                    OrderSheetDescriptor.getUpdatePointsRequest(),
+                                    OrderSheetDescriptor.getDetailResponse(),
+                                    parameterWithName("sheetId").description("주문서 아이디"))
+                    );
+        }
+
+        private OrderSheetRequest.UpdateUsedPoints createOrderSheetRequest() {
+            return OrderSheetRequest.UpdateUsedPoints.builder()
+                    .usedPoints(1000L)
+                    .build();
+        }
+    }
+
+    @Nested
+    @DisplayName("상품 쿠폰 변경")
+    class UpdateItemCoupon {
+
+        @Test
+        @DisplayName("상품 쿠폰을 변경한다")
+        void updateItemCoupon() throws Exception {
+            //given
+            String sheetId = "sheetId";
+            String sheetItemId = "sheetItemId";
+            OrderSheetRequest.UpdateCoupon request = createRequest();
+            HttpHeaders roleUser = createAuthHeader("ROLE_USER");
+            OrderSheetResult.Detail result = createOrderSheetResult();
+            given(orderSheetAppService.updateItemCoupon(any())).willReturn(result);
+            OrderSheetResponse.Detail response = OrderSheetResponse.Detail.from(result);
+            //when
+            //then
+            mockMvc.perform(patch("/order-sheets/{sheetId}/sheet-items/{sheetItemId}/coupon", sheetId, sheetItemId)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .headers(roleUser)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isOk())
+                    .andExpect(content().json(objectMapper.writeValueAsString(response)))
+                    .andDo(
+                            createSecuredDocument("04-ordersheet-05-update-item-coupon",
+                                    "상품 쿠폰 수정",
+                                    "상품 쿠폰을 수정한다",
+                                    OrderSheetDescriptor.getUpdateItemCouponRequest(),
+                                    OrderSheetDescriptor.getDetailResponse(),
+                                    parameterWithName("sheetId").description("주문서 아이디"),
+                                    parameterWithName("sheetItemId").description("주문 상품 아이디"))
+                    );
+        }
+
+        private OrderSheetRequest.UpdateCoupon createRequest(){
+            return OrderSheetRequest.UpdateCoupon.builder()
+                    .couponId(1L)
+                    .build();
+        }
+    }
+
     private OrderSheetResult.Detail createOrderSheetResult() {
         return OrderSheetResult.Detail.builder()
                 .sheetId("sheetId")

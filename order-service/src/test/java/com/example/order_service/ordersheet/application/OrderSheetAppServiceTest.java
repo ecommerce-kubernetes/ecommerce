@@ -463,6 +463,62 @@ public class OrderSheetAppServiceTest {
         }
     }
 
+    @Nested
+    @DisplayName("상품 쿠폰 수정")
+    class UpdateItemCoupon {
+
+        @Test
+        @DisplayName("상품 쿠폰을 수정한다")
+        void updateItemCoupon(){
+            //given
+            OrderSheet orderSheet = createOrderSheet();
+            orderSheet.changeUsedPoints(Money.wons(1000L));
+            String sheetId = "sheetId";
+            String sheetItemId = "sheetItemId";
+            Long userId = 1L;
+            Long couponId = 10L;
+            OrderSheetCommand.UpdateItemCoupon command = OrderSheetCommand.UpdateItemCoupon.of(sheetId, sheetItemId, userId, couponId);
+            OrderSheetCouponResult.Calculate couponResult = createCouponResult();
+            OrderSheetUserResult.UserPoint pointResult = createUserResult();
+            given(repository.findById(any())).willReturn(Optional.of(orderSheet));
+            given(orderSheetCouponGateway.calculate(any())).willReturn(couponResult);
+            given(orderSheetUserGateway.getUserPoints(any(), any())).willReturn(pointResult);
+            when(repository.save(any(), any())).then(returnsFirstArg());
+            //when
+            OrderSheetResult.Detail result = orderSheetAppService.updateItemCoupon(command);
+            //then
+            assertThat(result.paymentSummary().totalCouponDiscount()).isEqualTo(Money.wons(3000L));
+            assertThat(result.paymentSummary().usedPoints()).isEqualTo(Money.wons(500L));
+            assertThat(result.paymentSummary().totalPaymentAmount()).isEqualTo(Money.wons(5500L));
+        }
+
+        private OrderSheetCouponResult.Calculate createCouponResult() {
+            OrderSheetCouponResult.CartCoupon cartCoupon = OrderSheetCouponResult.CartCoupon.builder()
+                    .couponId(2L)
+                    .couponName("첫구매 1000원 할인 쿠폰")
+                    .discountAmount(Money.wons(1000L))
+                    .build();
+            OrderSheetCouponResult.ItemCoupon itemCoupon = OrderSheetCouponResult.ItemCoupon.builder()
+                    .productVariantId(1L)
+                    .couponId(10L)
+                    .couponName("전 품목 2000원 할인 쿠폰")
+                    .discountAmount(Money.wons(2000L))
+                    .build();
+            return OrderSheetCouponResult.Calculate.builder()
+                    .cartCoupon(cartCoupon)
+                    .itemCoupons(List.of(itemCoupon))
+                    .build();
+        }
+
+        private OrderSheetUserResult.UserPoint createUserResult() {
+            return OrderSheetUserResult.UserPoint.builder()
+                    .userId(1L)
+                    .ownedPoints(Money.wons(10000L))
+                    .availablePoints(Money.wons(500L))
+                    .build();
+        }
+    }
+
     private OrderSheet createOrderSheet() {
         Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
         ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678", "12345", "서울시 테헤란로 123", "123동 1234호");

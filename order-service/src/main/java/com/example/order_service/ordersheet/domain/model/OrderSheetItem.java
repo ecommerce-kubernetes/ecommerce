@@ -62,15 +62,15 @@ public class OrderSheetItem {
         return itemPrice.getDiscountAmount().multiple(quantity);
     }
 
-    public Money getCouponDiscount() {
-        return itemCoupon.getDiscountAmount();
-    }
-
     public Money getOriginalLineTotal() {
         return itemPrice.getOriginalPrice().multiple(quantity);
     }
 
     public Money getFinalLineTotal() {
         return getProductLineTotal().subtract(getAppliedCouponDiscount());
+    }
+
+    public void changeCoupon(OrderCouponSnapshot itemCoupon) {
+        this.itemCoupon = itemCoupon;
     }
 }

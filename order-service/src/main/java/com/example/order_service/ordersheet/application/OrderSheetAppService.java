@@ -1,6 +1,5 @@
 package com.example.order_service.ordersheet.application;
 
-import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.business.BusinessException;
 import com.example.order_service.ordersheet.application.dto.command.OrderSheetCommand;
 import com.example.order_service.ordersheet.application.dto.result.OrderSheetCouponResult;
@@ -26,6 +25,15 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+/**
+ *  주문서(OrderSheet) Workflow 를 담당하는 애플리케이션 서비스
+ *  <p>
+ *      사용자의 최종 주문 전 까지의 주문서 상태를 관리
+ *      외부 MSA 도메인과의 네트워크 통신을 통해 주문서를 관리
+ *  </p>
+ * @author 최민식
+ * @since 2026. 05. 21
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -36,63 +44,123 @@ public class OrderSheetAppService {
     private final OrderSheetUserGateway orderSheetUserGateway;
     private final OrderSheetRepository repository;
 
+    /**
+     * 사용자 주문서 생성
+     * <p>
+     *     주문서를 생성하기 위해 상품, 쿠폰, 유저의 최신 상태를 스냅샷으로 저장
+     * </p>
+     * @param command 주문 대상 상품 및 초기 적용 쿠폰 목록
+     * @return 생성 후 저장이 완료된 주문서의 정보(주문서 아이디, 만료 시간)
+     */
     public OrderSheetResult.Create createOrderSheet(OrderSheetCommand.Create command) {
         OrderSheetUserResult.Profile userProfile = orderSheetUserGateway.getUserProfile(command.userId());
-        // 주문 상품 조회
         List<OrderSheetProductResult.Info> products = orderSheetProductGateway.getProducts(command.items());
-        // 적용 쿠폰 조회
         OrderSheetCouponResult.Calculate appliedCoupons = getAppliedCoupons(command, products);
-        // 주문서 아이템 생성
         List<OrderSheetItem> orderSheetItems = mapToOrderSheetItems(command, products, appliedCoupons);
-        // 주문서 생성
         OrderSheet orderSheet = createOrderSheet(userProfile, orderSheetItems, appliedCoupons.cartCoupon());
-        // 주문서 저장
         OrderSheet save = repository.save(orderSheet, Duration.ofMinutes(orderSheetProperties.ttlMinutes()));
         return OrderSheetResult.Create.from(save);
     }
 
     // 주문서 조회
     public OrderSheetResult.Detail getOrderSheet(String sheetId, Long userId) {
-        OrderSheet orderSheet = findByOrThrow(sheetId);
-        // 주문서 생성 유저와 조회 유저가 일치하지 않음
-        if (!orderSheet.isOwner(userId)) {
-            throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_NO_PERMISSION);
-        }
-        OrderSheetUserResult.UserPoint userPoints = orderSheetUserGateway.getUserPoints(userId, Money.wons(1000L));
+        // 주문서 조회
+        OrderSheet orderSheet = getValidateOrderSheet(sheetId, userId);
+        // 유저 포인트 조회
+        OrderSheetUserResult.UserPoint userPoints = orderSheetUserGateway.getUserPoints(userId, orderSheet.getPointEligibleAmount());
         return OrderSheetResult.Detail.of(orderSheet, userPoints.ownedPoints(), userPoints.availablePoints());
     }
 
     // 배송 정보 수정
     public OrderSheetResult.Detail updateShippingAddress(OrderSheetCommand.UpdateShippingAddress command) {
-        OrderSheet orderSheet = findByOrThrow(command.sheetId());
-        if (!orderSheet.isOwner(command.userId())) {
-            throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_NO_PERMISSION);
-        }
-        if (orderSheet.isExpired()) {
-            throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_EXPIRED);
-        }
-        Duration remainingTtl = orderSheet.getRemainingTtl();
+        // 주문서 조회
+        OrderSheet orderSheet = getValidateOrderSheet(command.sheetId(), command.userId());
+        // 새 배송 정보 생성
         ShippingAddress newAddress = ShippingAddress.of(command.receiverName(), command.receiverPhone(), command.zipCode(), command.address(), command.addressDetail());
+        // 배송 정보 변경
         orderSheet.changeShippingAddress(newAddress);
+        // 유저 포인트 조회
         OrderSheetUserResult.UserPoint userPoints = orderSheetUserGateway.getUserPoints(command.userId(), orderSheet.getPointEligibleAmount());
-        repository.save(orderSheet, remainingTtl);
+        // 변경 사항 저장
+        repository.save(orderSheet, orderSheet.getRemainingTtl());
         return OrderSheetResult.Detail.of(orderSheet, userPoints.ownedPoints(), userPoints.availablePoints());
     }
 
     // 사용 포인트 수정
     public OrderSheetResult.Detail updatePoints(OrderSheetCommand.UpdatePoints command) {
-        OrderSheet orderSheet = findByOrThrow(command.sheetId());
-        if (!orderSheet.isOwner(command.userId())) {
+        // 주문서 조회
+        OrderSheet orderSheet = getValidateOrderSheet(command.sheetId(), command.userId());
+        // 유저 포인트 검증
+        OrderSheetUserResult.UserPoint userPoints = orderSheetUserGateway.getUserPointsForOrder(orderSheet.getOrderer().getUserId(),
+                orderSheet.getPointEligibleAmount(), command.usedPoints());
+        // 포인트 수정
+        orderSheet.changeUsedPoints(command.usedPoints());
+        // 변경 사항 저장
+        repository.save(orderSheet, orderSheet.getRemainingTtl());
+        return OrderSheetResult.Detail.of(orderSheet, userPoints.ownedPoints(), userPoints.availablePoints());
+    }
+
+    // 상품 쿠폰 수정
+    public OrderSheetResult.Detail updateItemCoupon(OrderSheetCommand.UpdateItemCoupon command) {
+        // 주문서 조회
+        OrderSheet orderSheet = getValidateOrderSheet(command.sheetId(), command.userId());
+        OrderCouponSnapshot newCouponSnapshot = getNewItemCouponSnapshot(orderSheet, command.sheetItemId(), command.couponId());
+        OrderSheetUserResult.UserPoint userPoints = orderSheetUserGateway.getUserPoints(orderSheet.getOrderer().getUserId(),
+                orderSheet.getPointEligibleAmount());
+        orderSheet.changeItemCoupon(command.sheetItemId(), newCouponSnapshot, userPoints.availablePoints());
+        repository.save(orderSheet, orderSheet.getRemainingTtl());
+        return OrderSheetResult.Detail.of(orderSheet, userPoints.ownedPoints(), userPoints.availablePoints());
+    }
+
+    private OrderCouponSnapshot getNewItemCouponSnapshot(OrderSheet orderSheet, String sheetItemId, Long newCouponId) {
+        OrderSheetItem sheetItem = orderSheet.getItem(sheetItemId);
+        OrderSheetCouponResult.Calculate appliedCoupons = calculateCouponsForUpdate(orderSheet, sheetItemId, newCouponId, orderSheet.getCartCoupon().getCouponId());
+        Map<Long, OrderSheetCouponResult.ItemCoupon> couponMap = appliedCoupons.toItemCouponMap();
+        return Optional.ofNullable(couponMap.get(sheetItem.getProductSnapshot().getProductVariantId()))
+                .map(coupon -> OrderCouponSnapshot.of(coupon.couponId(), coupon.couponName(), coupon.discountAmount()))
+                .orElseGet(OrderCouponSnapshot::empty);
+    }
+
+    private OrderSheetCouponResult.Calculate calculateCouponsForUpdate(
+            OrderSheet orderSheet,
+            String sheetItemId,
+            Long targetItemCouponId,
+            Long targetCartCouponId
+    ) {
+        List<OrderSheetCommand.AppliedCouponItem> appliedItems = orderSheet.getItems().stream().map(item -> {
+            Long couponId = item.getSheetItemId().equals(sheetItemId) ? targetItemCouponId : item.getItemCoupon().getCouponId();
+            return OrderSheetCommand.AppliedCouponItem.of(
+                    item.getProductSnapshot().getProductVariantId(),
+                    item.getItemPrice().getDiscountedPrice(),
+                    item.getQuantity(),
+                    couponId
+            );
+        }).toList();
+        boolean hasAnyItemCoupon = appliedItems.stream().anyMatch(item -> item.itemCouponId() != null);
+        if (targetCartCouponId == null && !hasAnyItemCoupon) {
+            return OrderSheetCouponResult.Calculate.empty();
+        }
+        OrderSheetCommand.CouponCalculate command = OrderSheetCommand.CouponCalculate.of(
+                orderSheet.getOrderer().getUserId(),
+                targetCartCouponId,
+                appliedItems);
+        return orderSheetCouponGateway.calculate(command);
+    }
+
+    // 주문서 검증
+    private OrderSheet getValidateOrderSheet(String sheetId, Long userId) {
+        //주문서 조회
+        OrderSheet orderSheet = repository.findById(sheetId)
+                .orElseThrow(() -> new BusinessException(OrderSheetErrorCode.ORDER_SHEET_NOT_FOUND));
+        // 주문자 검증
+        if (!orderSheet.isOwner(userId)) {
             throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_NO_PERMISSION);
         }
+        // 주문서 만료 여부 검증
         if (orderSheet.isExpired()) {
             throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_EXPIRED);
         }
-        OrderSheetUserResult.UserPoint userPoints = orderSheetUserGateway.getUserPointsForOrder(orderSheet.getOrderer().getUserId(), orderSheet.getPointEligibleAmount(), command.usedPoints());
-        Duration remainingTtl = orderSheet.getRemainingTtl();
-        orderSheet.changeUsedPoints(command.usedPoints());
-        repository.save(orderSheet, remainingTtl);
-        return OrderSheetResult.Detail.of(orderSheet, userPoints.ownedPoints(), userPoints.availablePoints());
+        return orderSheet;
     }
 
     // 주문 시트 도메인 생성
@@ -168,14 +236,5 @@ public class OrderSheetAppService {
 
     private String generateId() {
         return UUID.randomUUID().toString();
-    }
-
-    private OrderSheet findByOrThrow(String sheetId) {
-        Optional<OrderSheet> sheetOptional = repository.findById(sheetId);
-        if (sheetOptional.isPresent()) {
-            return sheetOptional.get();
-        } else {
-            throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_NOT_FOUND);
-        }
     }
 }

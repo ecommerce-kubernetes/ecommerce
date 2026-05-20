@@ -129,4 +129,27 @@ public class OrderSheet {
         this.totalPaymentAmount = eligibleAmount.isLessThan(usedPoints) ?
                 Money.ZERO : eligibleAmount.subtract(usedPoints);
     }
+
+    public OrderSheetItem getItem(String sheetItemId) {
+        return this.items.stream()
+                .filter(item -> item.getSheetItemId().equals(sheetItemId))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("주문 상품을 찾을 수 없음"));
+    }
+
+    public void changeItemCoupon(String sheetItemId, OrderCouponSnapshot newCouponSnapshot, Money maxAvailablePoints) {
+        OrderSheetItem sheetItem = this.items.stream()
+                .filter(item -> item.getSheetItemId().equals(sheetItemId))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("주문시트 아이템을 찾을 수 없음"));
+        sheetItem.changeCoupon(newCouponSnapshot);
+        this.totalCouponDiscountAmount = calcAppliedCartCouponDiscount(items, cartCoupon).add(calcTotalItemCouponDiscountAmount(items));
+        if (this.usedPoints.equals(Money.ZERO)) return;
+        Money pointEligibleAmount = getPointEligibleAmount();
+        Money trueMaxLimit = pointEligibleAmount.isLessThan(maxAvailablePoints) ? pointEligibleAmount : maxAvailablePoints;
+        if (this.usedPoints.isGreaterThan(trueMaxLimit)) {
+            this.usedPoints = trueMaxLimit;
+        }
+        this.totalPaymentAmount = pointEligibleAmount.subtract(usedPoints);
+    }
 }

@@ -83,6 +83,11 @@ public class Money {
         return amount.compareTo(other.amount) < 0;
     }
 
+    public boolean isGreaterThan(Money other) {
+        // other 보다 금액이 많으면 true
+        return amount.compareTo(other.amount) > 0;
+    }
+
     @Override
     public boolean equals(Object o) {
         // 같은 객체이면 true

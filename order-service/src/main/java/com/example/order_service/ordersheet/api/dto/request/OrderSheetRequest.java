@@ -1,6 +1,7 @@
 package com.example.order_service.ordersheet.api.dto.request;
 
 import com.example.order_service.ordersheet.application.dto.command.OrderSheetCommand;
+import com.example.order_service.ordersheet.domain.model.OrderSheet;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.Builder;
@@ -84,6 +85,9 @@ public class OrderSheetRequest {
             @NotBlank(message = "상세 주소는 필수입니다")
             String addressDetail
     ) {
+        public OrderSheetCommand.UpdateShippingAddress toCommand(String sheetId, Long userId) {
+            return OrderSheetCommand.UpdateShippingAddress.of(sheetId, userId, receiverName, receiverPhone, zipCode, address, addressDetail);
+        }
     }
 
     @Builder
@@ -92,5 +96,17 @@ public class OrderSheetRequest {
             @Min(value = 0, message = "사용 포인트는 0 미만일 수 없습니다")
             Long usedPoints
     ) {
+        public OrderSheetCommand.UpdatePoints toCommand(String sheetId, Long userId) {
+            return OrderSheetCommand.UpdatePoints.of(sheetId, userId, usedPoints);
+        }
+    }
+
+    @Builder
+    public record UpdateCoupon(
+            Long couponId
+    ) {
+        public OrderSheetCommand.UpdateItemCoupon toCommand(String sheetId, String sheetItemId, Long userId) {
+            return OrderSheetCommand.UpdateItemCoupon.of(sheetId, sheetItemId, userId, couponId);
+        }
     }
 }

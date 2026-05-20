@@ -27,6 +27,18 @@ public class OrderSheetDescriptor {
         };
     }
 
+    public static FieldDescriptor[] getUpdatePointsRequest() {
+        return new FieldDescriptor[] {
+                fieldWithPath("usedPoints").description("사용 포인트")
+        };
+    }
+
+    public static FieldDescriptor[] getUpdateItemCouponRequest() {
+        return new FieldDescriptor[] {
+                fieldWithPath("couponId").description("쿠폰 아이디")
+        };
+    }
+
     public static FieldDescriptor[] getCreateResponse() {
         return new FieldDescriptor[] {
                 fieldWithPath("sheetId").description("주문서 id"),
