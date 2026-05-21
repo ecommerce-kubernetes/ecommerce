@@ -405,8 +405,8 @@ class OrderSheetControllerTest {
             //when
             //then
             mockMvc.perform(patch("/order-sheets/{sheetId}/points", sheetId)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request)))
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
                     .andExpect(content().json(objectMapper.writeValueAsString(response)));
         }
@@ -525,7 +525,7 @@ class OrderSheetControllerTest {
                     .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
                     .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다"))
                     .andExpect(jsonPath("$.timestamp").exists())
-                    .andExpect(jsonPath("$.path").value("/order-sheets/" + sheetId + "/sheet-items/" + sheetItemId +"/coupon"));
+                    .andExpect(jsonPath("$.path").value("/order-sheets/" + sheetId + "/sheet-items/" + sheetItemId + "/coupon"));
         }
 
         @Test
@@ -539,13 +539,75 @@ class OrderSheetControllerTest {
             //when
             //then
             mockMvc.perform(patch("/order-sheets/{sheetId}/sheet-items/{sheetItemId}/coupon", sheetId, sheetItemId)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request)))
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isForbidden())
                     .andExpect(jsonPath("$.code").value("FORBIDDEN"))
                     .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다"))
                     .andExpect(jsonPath("$.timestamp").exists())
-                    .andExpect(jsonPath("$.path").value("/order-sheets/" + sheetId + "/sheet-items/" + sheetItemId +"/coupon"));
+                    .andExpect(jsonPath("$.path").value("/order-sheets/" + sheetId + "/sheet-items/" + sheetItemId + "/coupon"));
+        }
+    }
+
+    @Nested
+    @DisplayName("장바구니 쿠폰 변경")
+    class UpdateCartCoupon {
+
+        @Test
+        @DisplayName("장바구니 쿠폰을 변경한다")
+        @WithCustomMockUser
+        void updateCartCoupon() throws Exception {
+            //given
+            String sheetId = "sheetId";
+            OrderSheetRequest.UpdateCoupon request = fixtureMonkey.giveMeOne(OrderSheetRequest.UpdateCoupon.class);
+            OrderSheetResult.Detail result = fixtureMonkey.giveMeOne(OrderSheetResult.Detail.class);
+            OrderSheetResponse.Detail response = OrderSheetResponse.Detail.from(result);
+            given(orderSheetAppService.updateCartCoupon(any())).willReturn(result);
+            //when
+            //then
+            mockMvc.perform(patch("/order-sheets/" + sheetId + "/cart-coupon")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isOk())
+                    .andExpect(content().json(objectMapper.writeValueAsString(response)));
+        }
+
+        @Test
+        @DisplayName("로그인 되지 않은 사용자는 장바구니 쿠폰을 변경할 수 없다")
+        void updateCartCoupon_unAuthorized() throws Exception {
+            //given
+            String sheetId = "sheetId";
+            OrderSheetRequest.UpdateCoupon request = fixtureMonkey.giveMeOne(OrderSheetRequest.UpdateCoupon.class);
+            //when
+            //then
+            mockMvc.perform(patch("/order-sheets/" + sheetId + "/cart-coupon")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isUnauthorized())
+                    .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
+                    .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다"))
+                    .andExpect(jsonPath("$.timestamp").exists())
+                    .andExpect(jsonPath("$.path").value("/order-sheets/" + sheetId + "/cart-coupon"));
+        }
+
+        @Test
+        @DisplayName("유저 권한이 아니면 장바구니 쿠폰을 변경할 수 없다")
+        @WithCustomMockUser(userRole = UserRole.ROLE_ADMIN)
+        void updateCartCoupon_forbidden() throws Exception {
+            //given
+            String sheetId = "sheetId";
+            OrderSheetRequest.UpdateCoupon request = fixtureMonkey.giveMeOne(OrderSheetRequest.UpdateCoupon.class);
+            //when
+            //then
+            mockMvc.perform(patch("/order-sheets/" + sheetId + "/cart-coupon")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isForbidden())
+                    .andExpect(jsonPath("$.code").value("FORBIDDEN"))
+                    .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다"))
+                    .andExpect(jsonPath("$.timestamp").exists())
+                    .andExpect(jsonPath("$.path").value("/order-sheets/" + sheetId + "/cart-coupon"));
+
         }
     }
 }

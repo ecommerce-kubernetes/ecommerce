@@ -74,6 +74,10 @@ public class OrderSheetItem {
         return this.productSnapshot.getProductVariantId();
     }
 
+    public Long getCouponId() {
+        return this.getItemCoupon().getCouponId();
+    }
+
     public Money getDiscountedPrice() {
         return this.getItemPrice().getDiscountedPrice();
     }

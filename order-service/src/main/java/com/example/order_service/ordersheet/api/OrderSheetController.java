@@ -68,4 +68,14 @@ public class OrderSheetController {
         OrderSheetResponse.Detail response = OrderSheetResponse.Detail.from(result);
         return ResponseEntity.ok(response);
     }
+
+    @PatchMapping("/{sheetId}/cart-coupon")
+    public ResponseEntity<OrderSheetResponse.Detail> updateCartCoupon(@AuthenticationPrincipal UserPrincipal userPrincipal,
+                                                                      @PathVariable("sheetId") String sheetId,
+                                                                      @RequestBody @Validated OrderSheetRequest.UpdateCoupon request) {
+        OrderSheetCommand.UpdateCartCoupon command = request.toCommand(sheetId, userPrincipal.getUserId());
+        OrderSheetResult.Detail result = orderSheetAppService.updateCartCoupon(command);
+        OrderSheetResponse.Detail response = OrderSheetResponse.Detail.from(result);
+        return ResponseEntity.ok(response);
+    }
 }

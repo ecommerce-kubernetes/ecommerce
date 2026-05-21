@@ -17,12 +17,30 @@ import org.springframework.stereotype.Service;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * 주문서 상품 도메인 통신을 담당하는 Gateway 서비스
+ * <p>
+ * 상품 도메인의 응답을 서비스 레이어의 Result로 매핑하여 반환
+ * 상품 도메인 통신중 발생하는 예외를 비지니스 예외로 변환
+ * </p>
+ *
+ * @author 최민식
+ * @since 2026. 05. 22
+ */
 @Service
 @RequiredArgsConstructor
 public class OrderSheetProductGateway {
     private final ProductAdaptor productAdaptor;
     private final OrderSheetProductMapper mapper;
 
+
+    /**
+     * 상품 도메인에 주문 상품 정보를 요청하여 상품의 정보를 반환
+     *
+     * @param items 주문 상품 정보
+     * @return 상품 정보 결과를 반환
+     * @throws BusinessException 상품 도메인 통신중 발생한 예외를 비지니스 예외로 변환
+     */
     public OrderSheetProductResult.ProductList getProducts(List<OrderSheetCommand.OrderItem> items) {
         List<ProductCommand.Item> commandItems = items.stream()
                 .map(item -> ProductCommand.Item.of(item.productVariantId(), item.quantity())).toList();
@@ -31,7 +49,6 @@ public class OrderSheetProductGateway {
         return mapper.toResult(productList);
     }
 
-    // fallback 메서드 (예외 변환 및 fallback)
     private ProductClientResponse.ProductList fetchProductsWithTranslation(ProductCommand.Validate command) {
         try {
             //정상 응답

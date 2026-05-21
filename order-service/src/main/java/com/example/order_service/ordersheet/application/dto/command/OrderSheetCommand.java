@@ -157,4 +157,19 @@ public class OrderSheetCommand {
                     .build();
         }
     }
+
+    @Builder
+    public record UpdateCartCoupon(
+            String sheetId,
+            Long userId,
+            Long couponId
+    ) {
+        public static UpdateCartCoupon of(String sheetId, Long userId, Long couponId) {
+            return UpdateCartCoupon.builder()
+                    .sheetId(sheetId)
+                    .userId(userId)
+                    .couponId(couponId)
+                    .build();
+        }
+    }
 }

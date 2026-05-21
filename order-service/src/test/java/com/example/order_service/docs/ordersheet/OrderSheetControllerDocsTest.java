@@ -9,7 +9,6 @@ import com.example.order_service.ordersheet.application.OrderSheetAppService;
 import com.example.order_service.ordersheet.application.dto.command.OrderSheetCommand;
 import com.example.order_service.ordersheet.application.dto.result.OrderSheetResult;
 import com.example.order_service.support.RestDocSupport;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -227,7 +226,7 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
                             createSecuredDocument("04-ordersheet-05-update-item-coupon",
                                     "상품 쿠폰 수정",
                                     "상품 쿠폰을 수정한다",
-                                    OrderSheetDescriptor.getUpdateItemCouponRequest(),
+                                    OrderSheetDescriptor.getUpdateCouponRequest(),
                                     OrderSheetDescriptor.getDetailResponse(),
                                     parameterWithName("sheetId").description("주문서 아이디"),
                                     parameterWithName("sheetItemId").description("주문 상품 아이디"))
@@ -235,6 +234,45 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
         }
 
         private OrderSheetRequest.UpdateCoupon createRequest(){
+            return OrderSheetRequest.UpdateCoupon.builder()
+                    .couponId(2L)
+                    .build();
+        }
+    }
+
+    @Nested
+    @DisplayName("장바구니 쿠폰 변경")
+    class UpdateCartCoupon {
+
+        @Test
+        @DisplayName("장바구니 쿠폰을 변경한다")
+        void updateCartCoupon() throws Exception {
+            //given
+            String sheetId = "sheetId";
+            HttpHeaders roleUser = createAuthHeader("ROLE_USER");
+            OrderSheetRequest.UpdateCoupon request = createRequest();
+            OrderSheetResult.Detail result = createOrderSheetResult();
+            OrderSheetResponse.Detail response = OrderSheetResponse.Detail.from(result);
+            given(orderSheetAppService.updateCartCoupon(any())).willReturn(result);
+            //when
+            //then
+            mockMvc.perform(patch("/order-sheets/{sheetId}/cart-coupon", sheetId)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .headers(roleUser)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isOk())
+                    .andExpect(content().json(objectMapper.writeValueAsString(response)))
+                    .andDo(
+                            createSecuredDocument("04-ordersheet-06-update-cart-coupon",
+                                    "장바구니 쿠폰 수정",
+                                    "장바구니 쿠폰을 수정한다",
+                                    OrderSheetDescriptor.getUpdateCouponRequest(),
+                                    OrderSheetDescriptor.getDetailResponse(),
+                                    parameterWithName("sheetId").description("주문서 아이디"))
+                    );
+        }
+
+        private OrderSheetRequest.UpdateCoupon createRequest() {
             return OrderSheetRequest.UpdateCoupon.builder()
                     .couponId(1L)
                     .build();
@@ -318,7 +356,7 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
 
     private OrderSheetResult.Coupon createItemCoupon() {
         return OrderSheetResult.Coupon.builder()
-                .couponId(1L)
+                .couponId(2L)
                 .couponName("하의 1000원 할인")
                 .discountAmount(Money.wons(1000L))
                 .build();

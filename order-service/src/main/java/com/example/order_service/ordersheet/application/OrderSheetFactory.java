@@ -30,6 +30,13 @@ public class OrderSheetFactory {
         return createItemCoupon(itemCouponMap.get(variantId));
     }
 
+    public OrderCouponSnapshot createCartCouponSnapshot(OrderSheetCouponResult.CartCoupon coupon) {
+        if (coupon == null) {
+            return OrderCouponSnapshot.empty();
+        }
+        return OrderCouponSnapshot.of(coupon.couponId(), coupon.couponName(), coupon.discountAmount());
+    }
+
     public ShippingAddress createShippingAddress(OrderSheetCommand.UpdateShippingAddress command) {
         return ShippingAddress.of(command.receiverName(), command.receiverPhone(), command.zipCode(), command.address(),
                 command.addressDetail());

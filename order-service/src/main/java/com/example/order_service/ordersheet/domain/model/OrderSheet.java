@@ -152,4 +152,16 @@ public class OrderSheet {
         }
         this.totalPaymentAmount = pointEligibleAmount.subtract(usedPoints);
     }
+
+    public void changeCartCoupon(OrderCouponSnapshot newCartCouponSnapshot, Money maxAvailablePoints) {
+        this.cartCoupon = newCartCouponSnapshot;
+        this.totalCouponDiscountAmount = calcAppliedCartCouponDiscount(items, cartCoupon).add(calcTotalItemCouponDiscountAmount(items));
+        if (this.usedPoints.equals(Money.ZERO)) return;;
+        Money pointEligibleAmount = getPointEligibleAmount();
+        Money trueMaxLimit = pointEligibleAmount.isLessThan(maxAvailablePoints) ? pointEligibleAmount : maxAvailablePoints;
+        if (this.usedPoints.isGreaterThan(trueMaxLimit)) {
+            this.usedPoints = trueMaxLimit;
+        }
+        this.totalPaymentAmount = pointEligibleAmount.subtract(usedPoints);
+    }
 }

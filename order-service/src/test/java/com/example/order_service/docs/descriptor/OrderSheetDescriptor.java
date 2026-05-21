@@ -1,7 +1,6 @@
 package com.example.order_service.docs.descriptor;
 
 import org.springframework.restdocs.payload.FieldDescriptor;
-import org.springframework.restdocs.payload.JsonFieldType;
 
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
 
@@ -33,7 +32,7 @@ public class OrderSheetDescriptor {
         };
     }
 
-    public static FieldDescriptor[] getUpdateItemCouponRequest() {
+    public static FieldDescriptor[] getUpdateCouponRequest() {
         return new FieldDescriptor[] {
                 fieldWithPath("couponId").description("쿠폰 아이디")
         };

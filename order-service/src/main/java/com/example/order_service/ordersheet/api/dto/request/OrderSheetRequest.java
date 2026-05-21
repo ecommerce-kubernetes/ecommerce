@@ -108,5 +108,9 @@ public class OrderSheetRequest {
         public OrderSheetCommand.UpdateItemCoupon toCommand(String sheetId, String sheetItemId, Long userId) {
             return OrderSheetCommand.UpdateItemCoupon.of(sheetId, sheetItemId, userId, couponId);
         }
+
+        public OrderSheetCommand.UpdateCartCoupon toCommand(String sheetId, Long userId) {
+            return OrderSheetCommand.UpdateCartCoupon.of(sheetId, userId, couponId);
+        }
     }
 }

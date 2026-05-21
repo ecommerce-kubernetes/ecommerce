@@ -23,11 +23,12 @@ import java.time.Duration;
 import java.util.*;
 
 /**
- *  주문서(OrderSheet) Workflow 를 담당하는 애플리케이션 서비스
- *  <p>
- *      사용자의 최종 주문 전 까지의 주문서 상태를 관리
- *      외부 MSA 도메인과의 네트워크 통신을 통해 주문서를 관리
- *  </p>
+ * 주문서(OrderSheet) Workflow 를 담당하는 애플리케이션 서비스
+ * <p>
+ * 사용자의 최종 주문 전 까지의 주문서 상태를 관리
+ * 외부 MSA 도메인과의 네트워크 통신을 통해 주문서를 관리
+ * </p>
+ *
  * @author 최민식
  * @since 2026. 05. 21
  */
@@ -45,8 +46,9 @@ public class OrderSheetAppService {
     /**
      * 사용자 주문서 생성
      * <p>
-     *     주문서를 생성하기 위해 상품, 쿠폰, 유저의 최신 상태를 스냅샷으로 저장
+     * 주문서를 생성하기 위해 상품, 쿠폰, 유저의 최신 상태를 스냅샷으로 저장
      * </p>
+     *
      * @param command 주문 대상 상품 및 초기 적용 쿠폰 목록
      * @return 생성 후 저장이 완료된 주문서의 정보(주문서 아이디, 만료 시간)
      */
@@ -59,13 +61,41 @@ public class OrderSheetAppService {
         return OrderSheetResult.Create.from(save);
     }
 
+    private OrderSheetCouponResult.Calculate getAppliedCoupons(OrderSheetCommand.Create command,
+                                                               OrderSheetProductResult.ProductList products) {
+        if (!command.hasCoupons()) {
+            return OrderSheetCouponResult.Calculate.empty();
+        }
+        Map<Long, OrderSheetProductResult.Info> productMap = products.getProductsMap();
+        Map<Long, Long> couponMap = command.toCouponMap();
+        OrderSheetCommand.CouponCalculate couponCommand = mapToCouponCommand(command, productMap, couponMap);
+        return orderSheetCouponGateway.calculate(couponCommand);
+    }
+
+    private OrderSheetCommand.CouponCalculate mapToCouponCommand(OrderSheetCommand.Create command,
+                                                                 Map<Long, OrderSheetProductResult.Info> productMap,
+                                                                 Map<Long, Long> couponMap) {
+        List<OrderSheetCommand.AppliedCouponItem> appliedCouponItems = command.items().stream().map(item -> {
+            OrderSheetProductResult.Info product = productMap.get(item.productVariantId());
+            Long itemCouponId = couponMap.get(item.productVariantId());
+            return OrderSheetCommand.AppliedCouponItem.of(
+                    item.productVariantId(),
+                    product.discountedPrice(),
+                    item.quantity(),
+                    itemCouponId
+            );
+        }).toList();
+        return OrderSheetCommand.CouponCalculate.of(command.userId(), command.cartCouponId(), appliedCouponItems);
+    }
+
     /**
      * 사용자 주문서 조회
      * <p>
-     *     유저 포인트 정보를 반환하기 위해 BFF 방식으로 유저 도메인에서 요청 유저의 포인트 정보를 조회하여 결과에 포함해 반환
+     * 유저 포인트 정보를 반환하기 위해 BFF 방식으로 유저 도메인에서 요청 유저의 포인트 정보를 조회하여 결과에 포함해 반환
      * </p>
+     *
      * @param sheetId 조회 주문서 아이디
-     * @param userId 조회 유저 아이디
+     * @param userId  조회 유저 아이디
      * @return 저장된 주문서의 전체 정보(상품, 쿠폰, 배송 정보 등등)
      */
     public OrderSheetResult.Detail getOrderSheet(String sheetId, Long userId) {
@@ -77,8 +107,9 @@ public class OrderSheetAppService {
     /**
      * 사용자 주문서 배송 정보 수정
      * <p>
-     *     유저 포인트 정보를 반환하기 위해 BFF 방식으로 유저 도메인에서 요청 유저의 포인트 정보를 조회하여 결과에 포함해 반환
+     * 유저 포인트 정보를 반환하기 위해 BFF 방식으로 유저 도메인에서 요청 유저의 포인트 정보를 조회하여 결과에 포함해 반환
      * </p>
+     *
      * @param command 수정 배송 정보
      * @return 배송 정보가 수정되어 저장이 완료된 주문서의 정보
      */
@@ -95,8 +126,9 @@ public class OrderSheetAppService {
     /**
      * 주문서 사용 포인트 변경
      * <p>
-     *     주문서의 사용 포인트를 반영하고 주문서의 가격 정보를 적용 포인트에 맞추어 변경됨
+     * 주문서의 사용 포인트를 반영하고 주문서의 가격 정보를 적용 포인트에 맞추어 변경됨
      * </p>
+     *
      * @param command 변경 포인트 정보
      * @return 사용 포인트가 수정되어 저장이 완료된 주문서의 정보
      */
@@ -113,8 +145,9 @@ public class OrderSheetAppService {
     /**
      * 주문서 상품 쿠폰 변경
      * <p>
-     *     주문서 상품 쿠폰을 변경하고 변경된 쿠폰 정보에 맞추어 주문서의 가격 정보가 변경됨
+     * 주문서 상품 쿠폰을 변경하고 변경된 쿠폰 정보에 맞추어 주문서의 가격 정보가 변경됨
      * </p>
+     *
      * @param command 변경 아이템 쿠폰 정보
      * @return 쿠폰 정보가 수정되어 저장이 완료된 주문서의 정보
      */
@@ -123,31 +156,74 @@ public class OrderSheetAppService {
         OrderCouponSnapshot newCouponSnapshot = getNewItemCouponSnapshot(orderSheet, command.sheetItemId(), command.couponId());
         OrderSheetUserResult.UserPoint userPoints = orderSheetUserGateway.getUserPoints(orderSheet.getOrderer().getUserId(),
                 orderSheet.getPointEligibleAmount());
+        // [NOTE] 상품 쿠폰 변경으로 인해 적용된 포인트가 사용 가능 포인트를 초과되는 경우 사용가능 포인트로 조정됨
         orderSheet.changeItemCoupon(command.sheetItemId(), newCouponSnapshot, userPoints.availablePoints());
         repository.save(orderSheet, orderSheet.getRemainingTtl());
         return OrderSheetResult.Detail.of(orderSheet, userPoints.ownedPoints(), userPoints.availablePoints());
     }
 
-    private OrderCouponSnapshot getNewItemCouponSnapshot(OrderSheet orderSheet, String sheetItemId, Long newCouponId) {
+    private OrderCouponSnapshot getNewItemCouponSnapshot(OrderSheet orderSheet, String sheetItemId, Long newItemCouponId) {
+        List<OrderSheetCommand.AppliedCouponItem> appliedItems = createAppliedItemsWithTarget(orderSheet, sheetItemId, newItemCouponId);
+        OrderSheetCouponResult.Calculate calculate =
+                requestCouponCalculation(orderSheet.getOrderer().getUserId(), orderSheet.getCartCoupon().getCouponId(), appliedItems);
         OrderSheetItem sheetItem = orderSheet.getItem(sheetItemId);
-        OrderSheetCouponResult.Calculate appliedCoupons =
-                calculateCouponsForUpdate(orderSheet, sheetItemId, newCouponId, orderSheet.getCartCoupon().getCouponId());
-        return factory.createItemCouponSnapshot(appliedCoupons, sheetItem.getProductSnapshot().getProductVariantId());
+        return factory.createItemCouponSnapshot(calculate, sheetItem.getProductVariantId());
     }
 
-    private OrderSheetCouponResult.Calculate calculateCouponsForUpdate(
-            OrderSheet orderSheet,
-            String sheetItemId,
-            Long targetItemCouponId,
-            Long targetCartCouponId
+    private List<OrderSheetCommand.AppliedCouponItem> createAppliedItemsWithTarget(
+            OrderSheet orderSheet, String targetSheetItemId, Long targetCouponId
     ) {
-        List<OrderSheetCommand.AppliedCouponItem> appliedItems = createAppliedCouponItems(orderSheet, sheetItemId, targetItemCouponId);
+        return orderSheet.getItems().stream()
+                .map(item -> {
+                    Long couponId = item.getSheetItemId().equals(targetSheetItemId) ? targetCouponId : item.getCouponId();
+                    return OrderSheetCommand.AppliedCouponItem.of(
+                            item.getProductVariantId(), item.getDiscountedPrice(), item.getQuantity(), couponId
+                    );
+                }).toList();
+    }
+
+    /**
+     * 주문서 장바구니 쿠폰 변경
+     * <p>
+     * 주문서 장바구니 쿠폰을 변경하고 변경된 쿠폰 정보에 맞추어 주문서 가격 정보가 변경됨
+     * </p>
+     *
+     * @param command 변경 장바구니 쿠폰 정보
+     * @return 쿠폰 정보가 수정되어 저장이 완료된 주문서의 정보
+     */
+    public OrderSheetResult.Detail updateCartCoupon(OrderSheetCommand.UpdateCartCoupon command) {
+        OrderSheet orderSheet = getValidateOrderSheet(command.sheetId(), command.userId());
+        OrderCouponSnapshot newCartCouponSnapshot = getNewCartCouponSnapshot(orderSheet, command.couponId());
+        OrderSheetUserResult.UserPoint userPoints =
+                orderSheetUserGateway.getUserPoints(orderSheet.getOrderer().getUserId(), orderSheet.getPointEligibleAmount());
+        // [NOTE] 장바구니 쿠폰 변경으로 인해 적용된 포인트가 사용 가능 포인트를 초과되는 경우 사용 가능 포인트로 조정됨
+        orderSheet.changeCartCoupon(newCartCouponSnapshot, userPoints.availablePoints());
+        repository.save(orderSheet, orderSheet.getRemainingTtl());
+        return OrderSheetResult.Detail.of(orderSheet, userPoints.ownedPoints(), userPoints.availablePoints());
+    }
+
+    private OrderCouponSnapshot getNewCartCouponSnapshot(OrderSheet orderSheet, Long newCartCouponId) {
+        List<OrderSheetCommand.AppliedCouponItem> appliedItems = createCurrentAppliedItems(orderSheet);
+        OrderSheetCouponResult.Calculate calculate =
+                requestCouponCalculation(orderSheet.getOrderer().getUserId(), newCartCouponId, appliedItems);
+        return factory.createCartCouponSnapshot(calculate.cartCoupon());
+    }
+
+    private List<OrderSheetCommand.AppliedCouponItem> createCurrentAppliedItems(OrderSheet orderSheet) {
+        return orderSheet.getItems().stream()
+                .map(item -> OrderSheetCommand.AppliedCouponItem.of(
+                        item.getProductVariantId(), item.getDiscountedPrice(), item.getQuantity(), item.getCouponId()
+                )).toList();
+    }
+
+    private OrderSheetCouponResult.Calculate requestCouponCalculation(
+            Long userId, Long cartCouponId, List<OrderSheetCommand.AppliedCouponItem> appliedItems
+    ) {
         boolean hasAnyItemCoupon = appliedItems.stream().anyMatch(item -> item.itemCouponId() != null);
-        if (targetCartCouponId == null && !hasAnyItemCoupon) {
+        if (cartCouponId == null && !hasAnyItemCoupon) {
             return OrderSheetCouponResult.Calculate.empty();
         }
-        OrderSheetCommand.CouponCalculate command = OrderSheetCommand.CouponCalculate.of(
-                orderSheet.getOrderer().getUserId(), targetCartCouponId, appliedItems);
+        OrderSheetCommand.CouponCalculate command = OrderSheetCommand.CouponCalculate.of(userId, cartCouponId, appliedItems);
         return orderSheetCouponGateway.calculate(command);
     }
 
@@ -161,49 +237,5 @@ public class OrderSheetAppService {
             throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_EXPIRED);
         }
         return orderSheet;
-    }
-
-    private List<OrderSheetCommand.AppliedCouponItem> createAppliedCouponItems(
-            OrderSheet orderSheet,
-            String sheetItemId,
-            Long targetItemCouponId
-    ) {
-        return orderSheet.getItems().stream()
-                .map(item -> {
-                    Long couponId = item.getSheetItemId().equals(sheetItemId)
-                            ? targetItemCouponId
-                            : item.getItemCoupon().getCouponId();
-                    return OrderSheetCommand.AppliedCouponItem.of(
-                            item.getProductVariantId(),
-                            item.getDiscountedPrice(),
-                            item.getQuantity(),
-                            couponId
-                    );
-                }).toList();
-    }
-
-    private OrderSheetCouponResult.Calculate getAppliedCoupons(OrderSheetCommand.Create command, OrderSheetProductResult.ProductList products) {
-        if (!command.hasCoupons()) {
-            return OrderSheetCouponResult.Calculate.empty();
-        }
-        Map<Long, OrderSheetProductResult.Info> productMap = products.getProductsMap();
-        Map<Long, Long> couponMap = command.toCouponMap();
-        OrderSheetCommand.CouponCalculate couponCommand = mapToCouponCommand(command, productMap, couponMap);
-        return orderSheetCouponGateway.calculate(couponCommand);
-    }
-
-    private OrderSheetCommand.CouponCalculate mapToCouponCommand(OrderSheetCommand.Create command, Map<Long, OrderSheetProductResult.Info> productMap,
-                                                                 Map<Long, Long> couponMap) {
-        List<OrderSheetCommand.AppliedCouponItem> appliedCouponItems = command.items().stream().map(item -> {
-            OrderSheetProductResult.Info product = productMap.get(item.productVariantId());
-            Long itemCouponId = couponMap.get(item.productVariantId());
-            return OrderSheetCommand.AppliedCouponItem.of(
-                    item.productVariantId(),
-                    product.discountedPrice(),
-                    item.quantity(),
-                    itemCouponId
-            );
-        }).toList();
-        return OrderSheetCommand.CouponCalculate.of(command.userId(), command.cartCouponId(), appliedCouponItems);
     }
 }
