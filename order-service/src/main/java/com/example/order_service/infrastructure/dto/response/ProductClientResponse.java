@@ -21,6 +21,12 @@ public class ProductClientResponse {
     }
 
     @Builder
+    public record ProductList(
+            List<Product> products
+    ) {
+    }
+
+    @Builder
     public record Product(
             Long productId,
             Long productVariantId,

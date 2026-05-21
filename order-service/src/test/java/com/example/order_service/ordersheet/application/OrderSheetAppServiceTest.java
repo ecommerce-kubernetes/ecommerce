@@ -66,7 +66,7 @@ public class OrderSheetAppServiceTest {
         void createOrderSheet_coupon_applied(){
             //given
             OrderSheetCommand.Create command = createCouponAppliedCommand();
-            List<OrderSheetProductResult.Info> products = createProducts();
+            OrderSheetProductResult.ProductList products = createProducts();
             OrderSheetCouponResult.Calculate coupon = createCoupon();
             OrderSheetUserResult.Profile userProfile = createUserProfile();
             given(orderSheetUserGateway.getUserProfile(any())).willReturn(userProfile);
@@ -87,7 +87,7 @@ public class OrderSheetAppServiceTest {
         void createOrderSheet_coupon_not_applied(){
             //given
             OrderSheetCommand.Create command = createNotCouponAppliedCommand();
-            List<OrderSheetProductResult.Info> products = createProducts();
+            OrderSheetProductResult.ProductList products = createProducts();
             OrderSheetUserResult.Profile userProfile = createUserProfile();
             given(orderSheetUserGateway.getUserProfile(any())).willReturn(userProfile);
             given(orderSheetProductGateway.getProducts(anyList())).willReturn(products);
@@ -148,7 +148,7 @@ public class OrderSheetAppServiceTest {
                     .build();
         }
 
-        private List<OrderSheetProductResult.Info> createProducts() {
+        private OrderSheetProductResult.ProductList createProducts() {
             OrderSheetProductResult.Option size = OrderSheetProductResult.Option.builder()
                     .optionTypeName("사이즈")
                     .optionValueName("XL")
@@ -169,7 +169,9 @@ public class OrderSheetAppServiceTest {
                     .thumbnail("/product/product/jean_1.jpg")
                     .options(List.of(size, blue))
                     .build();
-            return List.of(product);
+            return OrderSheetProductResult.ProductList.builder()
+                    .products(List.of(product))
+                    .build();
         }
 
         private OrderSheetCouponResult.Calculate createCoupon() {

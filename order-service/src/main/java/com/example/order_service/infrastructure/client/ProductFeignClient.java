@@ -14,8 +14,8 @@ public interface ProductFeignClient {
     List<ProductClientResponse.ProductDeprecated> getProductsByVariantIds(ProductClientRequest.ProductVariantIds req);
 
     @PostMapping("/internal/variants/validate-for-order")
-    List<ProductClientResponse.Product> getProductsForOrder(ProductClientRequest.Validate request);
+    ProductClientResponse.ProductList getProductsForOrder(ProductClientRequest.Validate request);
 
     @PostMapping("/internal/variants/validate-for-cart")
-    List<ProductClientResponse.Product> getProductsForCart(ProductClientRequest.Validate request);
+    ProductClientResponse.ProductList getProductsForCart(ProductClientRequest.Validate request);
 }

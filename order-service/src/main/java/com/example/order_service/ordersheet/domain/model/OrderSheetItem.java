@@ -70,6 +70,14 @@ public class OrderSheetItem {
         return getProductLineTotal().subtract(getAppliedCouponDiscount());
     }
 
+    public Long getProductVariantId() {
+        return this.productSnapshot.getProductVariantId();
+    }
+
+    public Money getDiscountedPrice() {
+        return this.getItemPrice().getDiscountedPrice();
+    }
+
     public void changeCoupon(OrderCouponSnapshot itemCoupon) {
         this.itemCoupon = itemCoupon;
     }

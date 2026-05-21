@@ -4,15 +4,12 @@ import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.mapper.MoneyMapper;
 import com.example.order_service.infrastructure.dto.response.ProductClientResponse;
 import com.example.order_service.ordersheet.application.dto.result.OrderSheetProductResult;
-import com.example.order_service.ordersheet.domain.model.vo.ProductStatus;
-import com.example.order_service.support.TestFixtureUtil;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 
 import java.util.List;
 
-import static com.example.order_service.support.TestFixtureUtil.fixtureMonkey;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class OrderSheetProductMapperTest {
@@ -24,38 +21,68 @@ public class OrderSheetProductMapperTest {
     @DisplayName("상품 응답을 Result로 매핑한다")
     void toResult(){
         //given
-        ProductClientResponse.Product response = fixtureMonkey.giveMeBuilder(ProductClientResponse.Product.class)
-                .set("unitPrice.originalPrice", 10000L)
-                .set("unitPrice.discountRate", 10)
-                .set("unitPrice.discountAmount", 1000L)
-                .set("unitPrice.discountedPrice", 9000L)
-                .sample();
-
-        List<OrderSheetProductResult.Option> expectedOptions = response.options().stream()
-                .map(opt -> OrderSheetProductResult.Option.builder()
-                        .optionTypeName(opt.optionTypeName())
-                        .optionValueName(opt.optionValueName())
-                        .build())
-                .toList();
-
-        OrderSheetProductResult.Info expectedResult = OrderSheetProductResult.Info.builder()
-                .productId(response.productId())
-                .productVariantId(response.productVariantId())
-                .sku(response.sku())
-                .productName(response.productName())
-                .thumbnail(response.thumbnail())
-                .originalPrice(Money.wons(response.unitPrice().originalPrice()))
-                .discountRate(response.unitPrice().discountRate())
-                .discountAmount(Money.wons(response.unitPrice().discountAmount()))
-                .discountedPrice(Money.wons(response.unitPrice().discountedPrice()))
-                .options(expectedOptions)
-                .build();
+        ProductClientResponse.ProductList response = getProductResponse();
+        OrderSheetProductResult.ProductList expectedResult = getExpectedResult();
         //when
-        OrderSheetProductResult.Info result = mapper.toResult(response);
+        OrderSheetProductResult.ProductList result = mapper.toResult(response);
         //then
         assertThat(result)
                 .usingRecursiveComparison()
-                .withEqualsForType(Money::equals, Money.class)
                 .isEqualTo(expectedResult);
+    }
+
+    private ProductClientResponse.ProductList getProductResponse() {
+        ProductClientResponse.UnitPrice unitPrice = ProductClientResponse.UnitPrice.builder()
+                .originalPrice(10000L)
+                .discountRate(10)
+                .discountAmount(1000L)
+                .discountedPrice(9000L)
+                .build();
+        ProductClientResponse.ProductOption xl = ProductClientResponse.ProductOption.builder()
+                .optionTypeName("사이즈")
+                .optionValueName("XL")
+                .build();
+        ProductClientResponse.ProductOption blue = ProductClientResponse.ProductOption.builder()
+                .optionTypeName("색상")
+                .optionValueName("BLUE")
+                .build();
+        ProductClientResponse.Product product = ProductClientResponse.Product.builder()
+                .productId(1L)
+                .productVariantId(1L)
+                .sku("PROD1-XL-BLUE")
+                .productName("청바지")
+                .thumbnail("/product/product/jean_1.jpg")
+                .unitPrice(unitPrice)
+                .options(List.of(xl, blue))
+                .build();
+        return ProductClientResponse.ProductList.builder()
+                .products(List.of(product))
+                .build();
+    }
+
+    private OrderSheetProductResult.ProductList getExpectedResult() {
+        OrderSheetProductResult.Option xl = OrderSheetProductResult.Option.builder()
+                .optionTypeName("사이즈")
+                .optionValueName("XL")
+                .build();
+        OrderSheetProductResult.Option blue = OrderSheetProductResult.Option.builder()
+                .optionTypeName("색상")
+                .optionValueName("BLUE")
+                .build();
+        OrderSheetProductResult.Info product = OrderSheetProductResult.Info.builder()
+                .productId(1L)
+                .productVariantId(1L)
+                .sku("PROD1-XL-BLUE")
+                .productName("청바지")
+                .originalPrice(Money.wons(10000L))
+                .discountRate(10)
+                .discountAmount(Money.wons(1000L))
+                .discountedPrice(Money.wons(9000L))
+                .thumbnail("/product/product/jean_1.jpg")
+                .options(List.of(xl, blue))
+                .build();
+        return OrderSheetProductResult.ProductList.builder()
+                .products(List.of(product))
+                .build();
     }
 }

@@ -53,10 +53,10 @@ class ProductFeignClientTest {
                             .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
                             .withBody(mockJsonResponse)));
             //when
-            List<ProductClientResponse.Product> responses = client.getProductsForOrder(request);
+            ProductClientResponse.ProductList response = client.getProductsForOrder(request);
             //then
-            assertThat(responses).hasSize(2);
-            assertThat(responses.get(0))
+            assertThat(response.products()).hasSize(2);
+            assertThat(response.products().get(0))
                     .usingRecursiveComparison()
                     .isEqualTo(expected);
         }
@@ -160,10 +160,10 @@ class ProductFeignClientTest {
                             .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
                             .withBody(mockJsonResponse)));
             //when
-            List<ProductClientResponse.Product> responses = client.getProductsForCart(request);
+            ProductClientResponse.ProductList response = client.getProductsForCart(request);
             //then
-            assertThat(responses).hasSize(2);
-            assertThat(responses.get(0))
+            assertThat(response.products()).hasSize(2);
+            assertThat(response.products().get(0))
                     .usingRecursiveComparison()
                     .isEqualTo(expected);
         }

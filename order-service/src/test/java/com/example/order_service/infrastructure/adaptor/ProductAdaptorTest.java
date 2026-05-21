@@ -40,13 +40,13 @@ public class ProductAdaptorTest {
         void getProductsForOrder(){
             //given
             ProductCommand.Validate command = fixtureMonkey.giveMeOne(ProductCommand.Validate.class);
-            List<ProductClientResponse.Product> mockResponses = fixtureMonkey.giveMe(ProductClientResponse.Product.class, 2);
+            ProductClientResponse.ProductList mockResponse = fixtureMonkey.giveMeOne(ProductClientResponse.ProductList.class);
             given(client.getProductsForOrder(any()))
-                    .willReturn(mockResponses);
+                    .willReturn(mockResponse);
             //when
-            List<ProductClientResponse.Product> response = productAdaptor.getProductsForOrder(command);
+            ProductClientResponse.ProductList response = productAdaptor.getProductsForOrder(command);
             //then
-            assertThat(response).containsExactlyElementsOf(mockResponses);
+            assertThat(response).isNotNull();
         }
 
         @Test

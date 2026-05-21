@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
 import java.util.List;
 
 @Slf4j
@@ -25,12 +26,12 @@ public class ProductAdaptor {
     }
 
     @CircuitBreaker(name = "productService", fallbackMethod = "getProductsForOrderFallback")
-    public List<ProductClientResponse.Product> getProductsForOrder(ProductCommand.Validate command) {
+    public ProductClientResponse.ProductList getProductsForOrder(ProductCommand.Validate command) {
         ProductClientRequest.Validate request = ProductClientRequest.Validate.from(command);
         return client.getProductsForOrder(request);
     }
 
-    private List<ProductClientResponse.Product> getProductsForOrderFallback(ProductCommand.Validate command, Throwable throwable) throws Throwable {
+    private ProductClientResponse.ProductList getProductsForOrderFallback(ProductCommand.Validate command, Throwable throwable) throws Throwable {
         throw translator.translate("PRODUCT-SERVICE", throwable);
     }
 

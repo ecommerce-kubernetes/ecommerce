@@ -5,6 +5,9 @@ import com.example.order_service.ordersheet.domain.model.vo.ProductStatus;
 import lombok.Builder;
 
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class OrderSheetProductResult {
 
@@ -23,6 +26,15 @@ public class OrderSheetProductResult {
             String thumbnail,
             List<Option> options
     ) {
+    }
+
+    @Builder
+    public record ProductList(
+            List<Info> products
+    ) {
+        public Map<Long, Info> getProductsMap() {
+            return products.stream().collect(Collectors.toMap(Info::productVariantId, Function.identity()));
+        }
     }
 
     @Builder(toBuilder = true)

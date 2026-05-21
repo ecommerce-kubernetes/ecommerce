@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-05-17T20:02:30+0900",
+    date = "2026-05-21T06:13:20+0900",
     comments = "version: 1.6.3, compiler: javac, environment: Java 21.0.10 (Eclipse Adoptium)"
 )
 @Component
@@ -26,7 +26,20 @@ public class OrderSheetProductMapperImpl implements OrderSheetProductMapper {
     }
 
     @Override
-    public OrderSheetProductResult.Info toResult(ProductClientResponse.Product product) {
+    public OrderSheetProductResult.ProductList toResult(ProductClientResponse.ProductList productList) {
+        if ( productList == null ) {
+            return null;
+        }
+
+        OrderSheetProductResult.ProductList.ProductListBuilder productList1 = OrderSheetProductResult.ProductList.builder();
+
+        productList1.products( productListToInfoList( productList.products() ) );
+
+        return productList1.build();
+    }
+
+    @Override
+    public OrderSheetProductResult.Info toProduct(ProductClientResponse.Product product) {
         if ( product == null ) {
             return null;
         }
@@ -59,6 +72,19 @@ public class OrderSheetProductMapperImpl implements OrderSheetProductMapper {
         option1.optionValueName( option.optionValueName() );
 
         return option1.build();
+    }
+
+    protected List<OrderSheetProductResult.Info> productListToInfoList(List<ProductClientResponse.Product> list) {
+        if ( list == null ) {
+            return null;
+        }
+
+        List<OrderSheetProductResult.Info> list1 = new ArrayList<OrderSheetProductResult.Info>( list.size() );
+        for ( ProductClientResponse.Product product : list ) {
+            list1.add( toProduct( product ) );
+        }
+
+        return list1;
     }
 
     private Long productUnitPriceOriginalPrice(ProductClientResponse.Product product) {

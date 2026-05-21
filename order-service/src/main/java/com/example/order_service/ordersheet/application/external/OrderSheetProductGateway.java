@@ -14,6 +14,7 @@ import com.example.order_service.ordersheet.exception.OrderSheetErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -22,18 +23,16 @@ public class OrderSheetProductGateway {
     private final ProductAdaptor productAdaptor;
     private final OrderSheetProductMapper mapper;
 
-    public List<OrderSheetProductResult.Info> getProducts(List<OrderSheetCommand.OrderItem> items) {
+    public OrderSheetProductResult.ProductList getProducts(List<OrderSheetCommand.OrderItem> items) {
         List<ProductCommand.Item> commandItems = items.stream()
                 .map(item -> ProductCommand.Item.of(item.productVariantId(), item.quantity())).toList();
         ProductCommand.Validate command = ProductCommand.Validate.of(commandItems);
-        List<ProductClientResponse.Product> products = fetchProductsWithTranslation(command);
-        return products.stream()
-                .map(mapper::toResult)
-                .toList();
+        ProductClientResponse.ProductList productList = fetchProductsWithTranslation(command);
+        return mapper.toResult(productList);
     }
 
     // fallback 메서드 (예외 변환 및 fallback)
-    private List<ProductClientResponse.Product> fetchProductsWithTranslation(ProductCommand.Validate command) {
+    private ProductClientResponse.ProductList fetchProductsWithTranslation(ProductCommand.Validate command) {
         try {
             //정상 응답
             return productAdaptor.getProductsForOrder(command);

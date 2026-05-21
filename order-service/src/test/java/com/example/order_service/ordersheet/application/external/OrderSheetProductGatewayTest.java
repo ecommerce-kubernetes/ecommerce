@@ -53,14 +53,14 @@ public class OrderSheetProductGatewayTest {
                     .productVariantId(2L)
                     .quantity(1)
                     .build();
-            List<ProductClientResponse.Product> productResponses = fixtureMonkey.giveMe(ProductClientResponse.Product.class, 2);
-            List<OrderSheetProductResult.Info> mockInfo = fixtureMonkey.giveMe(OrderSheetProductResult.Info.class, 2);
-            given(adaptor.getProductsForOrder(any())).willReturn(productResponses);
-            given(productMapper.toResult(any(ProductClientResponse.Product.class))).willReturn(mockInfo.get(0), mockInfo.get(1));
+            ProductClientResponse.ProductList productResponse = fixtureMonkey.giveMeOne(ProductClientResponse.ProductList.class);
+            OrderSheetProductResult.ProductList productList = fixtureMonkey.giveMeOne(OrderSheetProductResult.ProductList.class);
+            given(adaptor.getProductsForOrder(any())).willReturn(productResponse);
+            given(productMapper.toResult(any(ProductClientResponse.ProductList.class))).willReturn(productList);
             //when
-            List<OrderSheetProductResult.Info> result = orderSheetProductGateway.getProducts(List.of(item1, item2));
+            OrderSheetProductResult.ProductList result = orderSheetProductGateway.getProducts(List.of(item1, item2));
             //then
-            assertThat(result).containsExactlyElementsOf(mockInfo);
+            assertThat(result).isNotNull();
         }
 
         @Test

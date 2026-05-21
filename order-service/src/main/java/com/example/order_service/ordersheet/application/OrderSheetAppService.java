@@ -20,10 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 /**
  *  주문서(OrderSheet) Workflow 를 담당하는 애플리케이션 서비스
@@ -42,6 +39,7 @@ public class OrderSheetAppService {
     private final OrderSheetProductGateway orderSheetProductGateway;
     private final OrderSheetCouponGateway orderSheetCouponGateway;
     private final OrderSheetUserGateway orderSheetUserGateway;
+    private final OrderSheetFactory factory;
     private final OrderSheetRepository repository;
 
     /**
@@ -54,55 +52,73 @@ public class OrderSheetAppService {
      */
     public OrderSheetResult.Create createOrderSheet(OrderSheetCommand.Create command) {
         OrderSheetUserResult.Profile userProfile = orderSheetUserGateway.getUserProfile(command.userId());
-        List<OrderSheetProductResult.Info> products = orderSheetProductGateway.getProducts(command.items());
+        OrderSheetProductResult.ProductList products = orderSheetProductGateway.getProducts(command.items());
         OrderSheetCouponResult.Calculate appliedCoupons = getAppliedCoupons(command, products);
-        List<OrderSheetItem> orderSheetItems = mapToOrderSheetItems(command, products, appliedCoupons);
-        OrderSheet orderSheet = createOrderSheet(userProfile, orderSheetItems, appliedCoupons.cartCoupon());
+        OrderSheet orderSheet = factory.createSheet(command, userProfile, products, appliedCoupons, orderSheetProperties.ttlMinutes());
         OrderSheet save = repository.save(orderSheet, Duration.ofMinutes(orderSheetProperties.ttlMinutes()));
         return OrderSheetResult.Create.from(save);
     }
 
-    // 주문서 조회
+    /**
+     * 사용자 주문서 조회
+     * <p>
+     *     유저 포인트 정보를 반환하기 위해 BFF 방식으로 유저 도메인에서 요청 유저의 포인트 정보를 조회하여 결과에 포함해 반환
+     * </p>
+     * @param sheetId 조회 주문서 아이디
+     * @param userId 조회 유저 아이디
+     * @return 저장된 주문서의 전체 정보(상품, 쿠폰, 배송 정보 등등)
+     */
     public OrderSheetResult.Detail getOrderSheet(String sheetId, Long userId) {
-        // 주문서 조회
         OrderSheet orderSheet = getValidateOrderSheet(sheetId, userId);
-        // 유저 포인트 조회
         OrderSheetUserResult.UserPoint userPoints = orderSheetUserGateway.getUserPoints(userId, orderSheet.getPointEligibleAmount());
         return OrderSheetResult.Detail.of(orderSheet, userPoints.ownedPoints(), userPoints.availablePoints());
     }
 
-    // 배송 정보 수정
+    /**
+     * 사용자 주문서 배송 정보 수정
+     * <p>
+     *     유저 포인트 정보를 반환하기 위해 BFF 방식으로 유저 도메인에서 요청 유저의 포인트 정보를 조회하여 결과에 포함해 반환
+     * </p>
+     * @param command 수정 배송 정보
+     * @return 배송 정보가 수정되어 저장이 완료된 주문서의 정보
+     */
     public OrderSheetResult.Detail updateShippingAddress(OrderSheetCommand.UpdateShippingAddress command) {
-        // 주문서 조회
         OrderSheet orderSheet = getValidateOrderSheet(command.sheetId(), command.userId());
-        // 새 배송 정보 생성
-        ShippingAddress newAddress = ShippingAddress.of(command.receiverName(), command.receiverPhone(), command.zipCode(), command.address(), command.addressDetail());
-        // 배송 정보 변경
+        ShippingAddress newAddress = factory.createShippingAddress(command);
         orderSheet.changeShippingAddress(newAddress);
-        // 유저 포인트 조회
-        OrderSheetUserResult.UserPoint userPoints = orderSheetUserGateway.getUserPoints(command.userId(), orderSheet.getPointEligibleAmount());
-        // 변경 사항 저장
+        OrderSheetUserResult.UserPoint userPoints =
+                orderSheetUserGateway.getUserPoints(command.userId(), orderSheet.getPointEligibleAmount());
         repository.save(orderSheet, orderSheet.getRemainingTtl());
         return OrderSheetResult.Detail.of(orderSheet, userPoints.ownedPoints(), userPoints.availablePoints());
     }
 
-    // 사용 포인트 수정
+    /**
+     * 주문서 사용 포인트 변경
+     * <p>
+     *     주문서의 사용 포인트를 반영하고 주문서의 가격 정보를 적용 포인트에 맞추어 변경됨
+     * </p>
+     * @param command 변경 포인트 정보
+     * @return 사용 포인트가 수정되어 저장이 완료된 주문서의 정보
+     */
     public OrderSheetResult.Detail updatePoints(OrderSheetCommand.UpdatePoints command) {
-        // 주문서 조회
         OrderSheet orderSheet = getValidateOrderSheet(command.sheetId(), command.userId());
-        // 유저 포인트 검증
         OrderSheetUserResult.UserPoint userPoints = orderSheetUserGateway.getUserPointsForOrder(orderSheet.getOrderer().getUserId(),
                 orderSheet.getPointEligibleAmount(), command.usedPoints());
-        // 포인트 수정
+        // [NOTE] 주문 가격 정보가 사용포인트에 맞추어 수정됨
         orderSheet.changeUsedPoints(command.usedPoints());
-        // 변경 사항 저장
         repository.save(orderSheet, orderSheet.getRemainingTtl());
         return OrderSheetResult.Detail.of(orderSheet, userPoints.ownedPoints(), userPoints.availablePoints());
     }
 
-    // 상품 쿠폰 수정
+    /**
+     * 주문서 상품 쿠폰 변경
+     * <p>
+     *     주문서 상품 쿠폰을 변경하고 변경된 쿠폰 정보에 맞추어 주문서의 가격 정보가 변경됨
+     * </p>
+     * @param command 변경 아이템 쿠폰 정보
+     * @return 쿠폰 정보가 수정되어 저장이 완료된 주문서의 정보
+     */
     public OrderSheetResult.Detail updateItemCoupon(OrderSheetCommand.UpdateItemCoupon command) {
-        // 주문서 조회
         OrderSheet orderSheet = getValidateOrderSheet(command.sheetId(), command.userId());
         OrderCouponSnapshot newCouponSnapshot = getNewItemCouponSnapshot(orderSheet, command.sheetItemId(), command.couponId());
         OrderSheetUserResult.UserPoint userPoints = orderSheetUserGateway.getUserPoints(orderSheet.getOrderer().getUserId(),
@@ -114,11 +130,9 @@ public class OrderSheetAppService {
 
     private OrderCouponSnapshot getNewItemCouponSnapshot(OrderSheet orderSheet, String sheetItemId, Long newCouponId) {
         OrderSheetItem sheetItem = orderSheet.getItem(sheetItemId);
-        OrderSheetCouponResult.Calculate appliedCoupons = calculateCouponsForUpdate(orderSheet, sheetItemId, newCouponId, orderSheet.getCartCoupon().getCouponId());
-        Map<Long, OrderSheetCouponResult.ItemCoupon> couponMap = appliedCoupons.toItemCouponMap();
-        return Optional.ofNullable(couponMap.get(sheetItem.getProductSnapshot().getProductVariantId()))
-                .map(coupon -> OrderCouponSnapshot.of(coupon.couponId(), coupon.couponName(), coupon.discountAmount()))
-                .orElseGet(OrderCouponSnapshot::empty);
+        OrderSheetCouponResult.Calculate appliedCoupons =
+                calculateCouponsForUpdate(orderSheet, sheetItemId, newCouponId, orderSheet.getCartCoupon().getCouponId());
+        return factory.createItemCouponSnapshot(appliedCoupons, sheetItem.getProductSnapshot().getProductVariantId());
     }
 
     private OrderSheetCouponResult.Calculate calculateCouponsForUpdate(
@@ -127,66 +141,57 @@ public class OrderSheetAppService {
             Long targetItemCouponId,
             Long targetCartCouponId
     ) {
-        List<OrderSheetCommand.AppliedCouponItem> appliedItems = orderSheet.getItems().stream().map(item -> {
-            Long couponId = item.getSheetItemId().equals(sheetItemId) ? targetItemCouponId : item.getItemCoupon().getCouponId();
-            return OrderSheetCommand.AppliedCouponItem.of(
-                    item.getProductSnapshot().getProductVariantId(),
-                    item.getItemPrice().getDiscountedPrice(),
-                    item.getQuantity(),
-                    couponId
-            );
-        }).toList();
+        List<OrderSheetCommand.AppliedCouponItem> appliedItems = createAppliedCouponItems(orderSheet, sheetItemId, targetItemCouponId);
         boolean hasAnyItemCoupon = appliedItems.stream().anyMatch(item -> item.itemCouponId() != null);
         if (targetCartCouponId == null && !hasAnyItemCoupon) {
             return OrderSheetCouponResult.Calculate.empty();
         }
         OrderSheetCommand.CouponCalculate command = OrderSheetCommand.CouponCalculate.of(
-                orderSheet.getOrderer().getUserId(),
-                targetCartCouponId,
-                appliedItems);
+                orderSheet.getOrderer().getUserId(), targetCartCouponId, appliedItems);
         return orderSheetCouponGateway.calculate(command);
     }
 
-    // 주문서 검증
     private OrderSheet getValidateOrderSheet(String sheetId, Long userId) {
-        //주문서 조회
         OrderSheet orderSheet = repository.findById(sheetId)
                 .orElseThrow(() -> new BusinessException(OrderSheetErrorCode.ORDER_SHEET_NOT_FOUND));
-        // 주문자 검증
         if (!orderSheet.isOwner(userId)) {
             throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_NO_PERMISSION);
         }
-        // 주문서 만료 여부 검증
         if (orderSheet.isExpired()) {
             throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_EXPIRED);
         }
         return orderSheet;
     }
 
-    // 주문 시트 도메인 생성
-    private OrderSheet createOrderSheet(OrderSheetUserResult.Profile profile, List<OrderSheetItem> items, OrderSheetCouponResult.CartCoupon cartCoupon) {
-        OrderCouponSnapshot cartCouponSnapshot = Optional.ofNullable(cartCoupon)
-                .map(coupon -> OrderCouponSnapshot.of(coupon.couponId(), coupon.couponName(), coupon.discountAmount()))
-                .orElseGet(OrderCouponSnapshot::empty);
-        Orderer orderer = Orderer.of(profile.userId(), profile.userName(), profile.phoneNumber());
-        ShippingAddress shippingAddress = ShippingAddress.of(profile.shippingAddress().receiverName(),
-                profile.shippingAddress().receiverPhone(), profile.shippingAddress().zipCode(), profile.shippingAddress().address(), profile.shippingAddress().addressDetail());
-        return OrderSheet.create(generateId(), orderer, shippingAddress, items, cartCouponSnapshot, LocalDateTime.now(), orderSheetProperties.ttlMinutes());
+    private List<OrderSheetCommand.AppliedCouponItem> createAppliedCouponItems(
+            OrderSheet orderSheet,
+            String sheetItemId,
+            Long targetItemCouponId
+    ) {
+        return orderSheet.getItems().stream()
+                .map(item -> {
+                    Long couponId = item.getSheetItemId().equals(sheetItemId)
+                            ? targetItemCouponId
+                            : item.getItemCoupon().getCouponId();
+                    return OrderSheetCommand.AppliedCouponItem.of(
+                            item.getProductVariantId(),
+                            item.getDiscountedPrice(),
+                            item.getQuantity(),
+                            couponId
+                    );
+                }).toList();
     }
 
-    //적용 쿠폰 조회
-    private OrderSheetCouponResult.Calculate getAppliedCoupons(OrderSheetCommand.Create command, List<OrderSheetProductResult.Info> products) {
+    private OrderSheetCouponResult.Calculate getAppliedCoupons(OrderSheetCommand.Create command, OrderSheetProductResult.ProductList products) {
         if (!command.hasCoupons()) {
             return OrderSheetCouponResult.Calculate.empty();
         }
-        Map<Long, OrderSheetProductResult.Info> productMap = products.stream()
-                .collect(Collectors.toMap(OrderSheetProductResult.Info::productVariantId, Function.identity()));
+        Map<Long, OrderSheetProductResult.Info> productMap = products.getProductsMap();
         Map<Long, Long> couponMap = command.toCouponMap();
         OrderSheetCommand.CouponCalculate couponCommand = mapToCouponCommand(command, productMap, couponMap);
         return orderSheetCouponGateway.calculate(couponCommand);
     }
 
-    //쿠폰 커맨드 매핑
     private OrderSheetCommand.CouponCalculate mapToCouponCommand(OrderSheetCommand.Create command, Map<Long, OrderSheetProductResult.Info> productMap,
                                                                  Map<Long, Long> couponMap) {
         List<OrderSheetCommand.AppliedCouponItem> appliedCouponItems = command.items().stream().map(item -> {
@@ -200,41 +205,5 @@ public class OrderSheetAppService {
             );
         }).toList();
         return OrderSheetCommand.CouponCalculate.of(command.userId(), command.cartCouponId(), appliedCouponItems);
-    }
-
-    //주문 시트 아이템 매핑
-    private List<OrderSheetItem> mapToOrderSheetItems(OrderSheetCommand.Create command, List<OrderSheetProductResult.Info> products, OrderSheetCouponResult.Calculate coupon) {
-        Map<Long, OrderSheetProductResult.Info> productMap = products.stream().collect(Collectors.toMap(OrderSheetProductResult.Info::productVariantId, Function.identity()));
-        Map<Long, OrderSheetCouponResult.ItemCoupon> couponMap = coupon.toItemCouponMap();
-        return command.items().stream()
-                .map(orderItem -> createOrderSheetItem(orderItem, productMap, couponMap)).toList();
-    }
-
-    //주문 시트 아이템 생성
-    private OrderSheetItem createOrderSheetItem(OrderSheetCommand.OrderItem orderItem,
-                                                Map<Long, OrderSheetProductResult.Info> productMap,
-                                                Map<Long, OrderSheetCouponResult.ItemCoupon> couponMap) {
-        OrderSheetProductResult.Info product = productMap.get(orderItem.productVariantId());
-        OrderSheetItemProductSnapshot productSnapshot = OrderSheetItemProductSnapshot.of(product.productId(), product.productVariantId(), product.sku(), product.productName(), product.thumbnail());
-        OrderSheetItemPriceSnapshot priceSnapshot = OrderSheetItemPriceSnapshot.of(product.originalPrice(), product.discountRate(), product.discountAmount(), product.discountedPrice());
-        List<OrderSheetItemOptionSnapshot> optionSnapshots = mapToOptionSnapshots(product.options());
-        OrderCouponSnapshot couponSnapshot = Optional.ofNullable(couponMap.get(orderItem.productVariantId()))
-                .map(itemCoupon -> OrderCouponSnapshot.of(itemCoupon.couponId(), itemCoupon.couponName(), itemCoupon.discountAmount()))
-                .orElseGet(OrderCouponSnapshot::empty);
-        String sheetItemId = generateId();
-        return OrderSheetItem.create(sheetItemId, productSnapshot, priceSnapshot, couponSnapshot, orderItem.quantity(), optionSnapshots);
-    }
-
-    //상품 옵션 매핑
-    private List<OrderSheetItemOptionSnapshot> mapToOptionSnapshots(List<OrderSheetProductResult.Option> options) {
-        if (options == null || options.isEmpty()) {
-            return Collections.emptyList();
-        }
-        return options.stream().map(option ->
-                OrderSheetItemOptionSnapshot.of(option.optionTypeName(), option.optionValueName())).toList();
-    }
-
-    private String generateId() {
-        return UUID.randomUUID().toString();
     }
 }
