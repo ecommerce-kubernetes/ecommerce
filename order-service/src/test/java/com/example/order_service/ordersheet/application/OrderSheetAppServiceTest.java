@@ -56,6 +56,8 @@ public class OrderSheetAppServiceTest {
     private OrderSheetRepository repository;
     @Spy
     private OrderSheetProperties properties = new OrderSheetProperties(30L);
+    @Spy
+    private OrderSheetFactory factory = new OrderSheetFactory();
 
     @Nested
     @DisplayName("주문서 저장")
