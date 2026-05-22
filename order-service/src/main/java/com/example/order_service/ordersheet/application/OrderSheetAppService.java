@@ -1,5 +1,6 @@
 package com.example.order_service.ordersheet.application;
 
+import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.business.BusinessException;
 import com.example.order_service.ordersheet.application.dto.command.OrderSheetCommand;
 import com.example.order_service.ordersheet.application.dto.result.OrderSheetCouponResult;
@@ -134,8 +135,11 @@ public class OrderSheetAppService {
      */
     public OrderSheetResult.Detail updatePoints(OrderSheetCommand.UpdatePoints command) {
         OrderSheet orderSheet = getValidateOrderSheet(command.sheetId(), command.userId());
-        OrderSheetUserResult.UserPoint userPoints = orderSheetUserGateway.getUserPointsForOrder(orderSheet.getOrderer().getUserId(),
-                orderSheet.getPointEligibleAmount(), command.usedPoints());
+        OrderSheetUserResult.UserPoint userPoints = orderSheetUserGateway.getUserPointsForOrder(
+                orderSheet.getOrderer().getUserId(),
+                orderSheet.getPointEligibleAmount(),
+                command.usedPoints()
+        );
         // [NOTE] 주문 가격 정보가 사용포인트에 맞추어 수정됨
         orderSheet.changeUsedPoints(command.usedPoints());
         repository.save(orderSheet, orderSheet.getRemainingTtl());
@@ -146,6 +150,7 @@ public class OrderSheetAppService {
      * 주문서 상품 쿠폰 변경
      * <p>
      * 주문서 상품 쿠폰을 변경하고 변경된 쿠폰 정보에 맞추어 주문서의 가격 정보가 변경됨
+     * 쿠폰 변경으로 인해 주문서 적용 포인트가 사용 가능 포인트를 초과하는 경우 사용 가능 포인트로 주문서 적용 포인트가 조정됨
      * </p>
      *
      * @param command 변경 아이템 쿠폰 정보
@@ -154,8 +159,9 @@ public class OrderSheetAppService {
     public OrderSheetResult.Detail updateItemCoupon(OrderSheetCommand.UpdateItemCoupon command) {
         OrderSheet orderSheet = getValidateOrderSheet(command.sheetId(), command.userId());
         OrderCouponSnapshot newCouponSnapshot = getNewItemCouponSnapshot(orderSheet, command.sheetItemId(), command.couponId());
+        Money estimatedEligibleAmount = orderSheet.calcEstimatedPointEligibleAmount(command.sheetItemId(), newCouponSnapshot);
         OrderSheetUserResult.UserPoint userPoints = orderSheetUserGateway.getUserPoints(orderSheet.getOrderer().getUserId(),
-                orderSheet.getPointEligibleAmount());
+                estimatedEligibleAmount);
         // [NOTE] 상품 쿠폰 변경으로 인해 적용된 포인트가 사용 가능 포인트를 초과되는 경우 사용가능 포인트로 조정됨
         orderSheet.changeItemCoupon(command.sheetItemId(), newCouponSnapshot, userPoints.availablePoints());
         repository.save(orderSheet, orderSheet.getRemainingTtl());
@@ -186,6 +192,7 @@ public class OrderSheetAppService {
      * 주문서 장바구니 쿠폰 변경
      * <p>
      * 주문서 장바구니 쿠폰을 변경하고 변경된 쿠폰 정보에 맞추어 주문서 가격 정보가 변경됨
+     * 장바구니 쿠폰 변경으로 인해 주문서에 적용된 포인트가 사용 가능 포인트를 초과되는 경우 사용 가능 포인트로 조정됨
      * </p>
      *
      * @param command 변경 장바구니 쿠폰 정보
@@ -194,8 +201,9 @@ public class OrderSheetAppService {
     public OrderSheetResult.Detail updateCartCoupon(OrderSheetCommand.UpdateCartCoupon command) {
         OrderSheet orderSheet = getValidateOrderSheet(command.sheetId(), command.userId());
         OrderCouponSnapshot newCartCouponSnapshot = getNewCartCouponSnapshot(orderSheet, command.couponId());
+        Money estimatedEligibleAmount = orderSheet.calcEstimatedPointEligibleAmount(newCartCouponSnapshot);
         OrderSheetUserResult.UserPoint userPoints =
-                orderSheetUserGateway.getUserPoints(orderSheet.getOrderer().getUserId(), orderSheet.getPointEligibleAmount());
+                orderSheetUserGateway.getUserPoints(orderSheet.getOrderer().getUserId(), estimatedEligibleAmount);
         // [NOTE] 장바구니 쿠폰 변경으로 인해 적용된 포인트가 사용 가능 포인트를 초과되는 경우 사용 가능 포인트로 조정됨
         orderSheet.changeCartCoupon(newCartCouponSnapshot, userPoints.availablePoints());
         repository.save(orderSheet, orderSheet.getRemainingTtl());
