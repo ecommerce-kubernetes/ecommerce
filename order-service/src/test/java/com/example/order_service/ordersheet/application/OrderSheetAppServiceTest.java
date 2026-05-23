@@ -472,6 +472,29 @@ public class OrderSheetAppServiceTest {
     class UpdateItemCoupon {
 
         @Test
+        @DisplayName("상품 쿠폰을 해제한다")
+        void updateItemCoupon_clear_coupon(){
+            //given
+            OrderSheet orderSheet = createOrderSheet();
+            String sheetId = "sheetId";
+            String sheetItemId = "sheetItemId";
+            Long userId = 1L;
+            OrderSheetCommand.UpdateItemCoupon command = OrderSheetCommand.UpdateItemCoupon.of(sheetId, sheetItemId, userId, null);
+            OrderSheetCouponResult.Calculate couponResult = createCouponNotUsedResult();
+            OrderSheetUserResult.UserPoint pointResult = createUserResult();
+            given(repository.findById(any())).willReturn(Optional.of(orderSheet));
+            given(orderSheetCouponGateway.calculate(any())).willReturn(couponResult);
+            given(orderSheetUserGateway.getUserPoints(any(), any())).willReturn(pointResult);
+            when(repository.save(any(), any())).then(returnsFirstArg());
+            //when
+            OrderSheetResult.Detail result = orderSheetAppService.updateItemCoupon(command);
+            //then
+            assertThat(result.paymentSummary().totalCouponDiscount()).isEqualTo(Money.wons(1000L));
+            assertThat(result.paymentSummary().usedPoints()).isEqualTo(Money.ZERO);
+            assertThat(result.paymentSummary().totalPaymentAmount()).isEqualTo(Money.wons(8000L));
+        }
+
+        @Test
         @DisplayName("상품 쿠폰을 수정한다")
         void updateItemCoupon(){
             //given
@@ -514,6 +537,18 @@ public class OrderSheetAppServiceTest {
                     .build();
         }
 
+        private OrderSheetCouponResult.Calculate createCouponNotUsedResult() {
+            OrderSheetCouponResult.CartCoupon cartCoupon = OrderSheetCouponResult.CartCoupon.builder()
+                    .couponId(2L)
+                    .couponName("첫구매 1000원 할인 쿠폰")
+                    .discountAmount(Money.wons(1000L))
+                    .build();
+            return OrderSheetCouponResult.Calculate.builder()
+                    .cartCoupon(cartCoupon)
+                    .itemCoupons(List.of())
+                    .build();
+        }
+
         private OrderSheetUserResult.UserPoint createUserResult() {
             return OrderSheetUserResult.UserPoint.builder()
                     .userId(1L)
@@ -528,7 +563,54 @@ public class OrderSheetAppServiceTest {
     class UpdateCartCoupon {
 
         @Test
-        @DisplayName("장바구니 쿠폰을 수정한다")
+        @DisplayName("장바구니 쿠폰 해제")
+        void updateCartCoupon_clear_coupon(){
+            //given
+            OrderSheet orderSheet = createOrderSheet();
+            String sheetId = "sheetId";
+            Long userId = 1L;
+            OrderSheetCommand.UpdateCartCoupon command = OrderSheetCommand.UpdateCartCoupon.of(sheetId, userId, null);
+            OrderSheetCouponResult.Calculate couponResult = createCartCouponNotUsedResult();
+            OrderSheetUserResult.UserPoint userResult = createUserResult();
+            given(repository.findById(any())).willReturn(Optional.of(orderSheet));
+            given(orderSheetCouponGateway.calculate(any())).willReturn(couponResult);
+            given(orderSheetUserGateway.getUserPoints(any(), any())).willReturn(userResult);
+            when(repository.save(any(), any())).then(returnsFirstArg());
+            //when
+            OrderSheetResult.Detail result = orderSheetAppService.updateCartCoupon(command);
+            //then
+            assertThat(result.cartCoupon().couponId()).isEqualTo(null);
+            assertThat(result.paymentSummary().totalCouponDiscount()).isEqualTo(Money.wons(1000L));
+            assertThat(result.paymentSummary().usedPoints()).isEqualTo(Money.ZERO);
+            assertThat(result.paymentSummary().totalPaymentAmount()).isEqualTo(Money.wons(8000L));
+        }
+
+        @Test
+        @DisplayName("장바구니 쿠폰을 수정한다 (포인트 미사용)")
+        void updateCartCoupon_point_not_used(){
+            //given
+            OrderSheet orderSheet = createOrderSheet();
+            String sheetId = "sheetId";
+            Long userId = 1L;
+            Long newCouponId = 10L;
+            OrderSheetCommand.UpdateCartCoupon command = OrderSheetCommand.UpdateCartCoupon.of(sheetId, userId, newCouponId);
+            OrderSheetCouponResult.Calculate couponResult = createCouponResult();
+            OrderSheetUserResult.UserPoint userResult = createUserResult();
+            given(repository.findById(any())).willReturn(Optional.of(orderSheet));
+            given(orderSheetCouponGateway.calculate(any())).willReturn(couponResult);
+            given(orderSheetUserGateway.getUserPoints(any(), any())).willReturn(userResult);
+            when(repository.save(any(), any())).then(returnsFirstArg());
+            //when
+            OrderSheetResult.Detail result = orderSheetAppService.updateCartCoupon(command);
+            //then
+            assertThat(result.cartCoupon().couponId()).isEqualTo(10L);
+            assertThat(result.paymentSummary().totalCouponDiscount()).isEqualTo(Money.wons(3000L));
+            assertThat(result.paymentSummary().usedPoints()).isEqualTo(Money.ZERO);
+            assertThat(result.paymentSummary().totalPaymentAmount()).isEqualTo(Money.wons(6000L));
+        }
+
+        @Test
+        @DisplayName("장바구니 쿠폰을 수정한다 (포인트 조정)")
         void updateCartCoupon(){
             //given
             OrderSheet orderSheet = createOrderSheet();
@@ -546,9 +628,23 @@ public class OrderSheetAppServiceTest {
             //when
             OrderSheetResult.Detail result = orderSheetAppService.updateCartCoupon(command);
             //then
+            assertThat(result.cartCoupon().couponId()).isEqualTo(10L);
             assertThat(result.paymentSummary().totalCouponDiscount()).isEqualTo(Money.wons(3000L));
             assertThat(result.paymentSummary().usedPoints()).isEqualTo(Money.wons(500L));
             assertThat(result.paymentSummary().totalPaymentAmount()).isEqualTo(Money.wons(5500L));
+        }
+
+        private OrderSheetCouponResult.Calculate createCartCouponNotUsedResult() {
+            OrderSheetCouponResult.ItemCoupon itemCoupon = OrderSheetCouponResult.ItemCoupon.builder()
+                    .productVariantId(1L)
+                    .couponId(1L)
+                    .couponName("하의 1000원 쿠폰")
+                    .discountAmount(Money.wons(1000L))
+                    .build();
+            return OrderSheetCouponResult.Calculate.builder()
+                    .cartCoupon(null)
+                    .itemCoupons(List.of(itemCoupon))
+                    .build();
         }
 
         private OrderSheetCouponResult.Calculate createCouponResult() {

@@ -75,43 +75,24 @@ public class OrderSheet {
         if (items == null || items.isEmpty()) {
             throw new InvalidDomainValueException("OrderSheet 주문 상품은 필수입니다");
         }
-
+        Money totalOriginalPrice = calcTotalOriginalPrice(items);
+        Money totalProductDiscount = calcTotalProductDiscountAmount(items);
+        Money totalItemCouponDiscount = calcTotalItemCouponDiscountAmount(items);
+        Money appliedCartDiscount = calcAppliedCartCouponDiscount(items, coupon);
         Money pointEligibleAmount = calcPointEligibleAmount(items, coupon);
-
         return OrderSheet.reconstitute()
                 .sheetId(sheetId)
                 .orderer(orderer)
                 .shippingAddress(shippingAddress)
                 .items(items)
                 .cartCoupon(coupon)
-                .totalOriginalPrice(calcTotalOriginalPrice(items))
-                .totalProductDiscountAmount(calcTotalProductDiscountAmount(items))
-                .totalCouponDiscountAmount(calcAppliedCartCouponDiscount(items, coupon).add(calcTotalItemCouponDiscountAmount(items)))
+                .totalOriginalPrice(totalOriginalPrice)
+                .totalProductDiscountAmount(totalProductDiscount)
+                .totalCouponDiscountAmount(appliedCartDiscount.add(totalItemCouponDiscount))
                 .usedPoints(Money.ZERO)
                 .totalPaymentAmount(pointEligibleAmount)
                 .expiresAt(createdAt.plusMinutes(ttl))
                 .build();
-    }
-
-    public Money getPointEligibleAmount() {
-        return calcPointEligibleAmount(this.items, this.cartCoupon);
-    }
-
-    private static Money calcTotalItemFinalPrice(List<OrderSheetItem> items) {
-        return items.stream()
-                .map(OrderSheetItem::getFinalLineTotal)
-                .reduce(Money.ZERO, Money::add);
-    }
-
-    private static Money calcPointEligibleAmount(List<OrderSheetItem> items, OrderCouponSnapshot coupon) {
-        Money itemFinalPrice = calcTotalItemFinalPrice(items);
-        return itemFinalPrice.isLessThan(coupon.getDiscountAmount()) ?
-                Money.ZERO : itemFinalPrice.subtract(coupon.getDiscountAmount());
-    }
-
-    private static Money calcAppliedCartCouponDiscount(List<OrderSheetItem> items, OrderCouponSnapshot coupon) {
-        Money itemFinalPrice = calcTotalItemFinalPrice(items);
-        return itemFinalPrice.isLessThan(coupon.getDiscountAmount()) ? itemFinalPrice : coupon.getDiscountAmount();
     }
 
     private static Money calcTotalOriginalPrice(List<OrderSheetItem> items) {
@@ -129,6 +110,26 @@ public class OrderSheet {
     private static Money calcTotalItemCouponDiscountAmount(List<OrderSheetItem> items) {
         return items.stream()
                 .map(OrderSheetItem::getAppliedCouponDiscount)
+                .reduce(Money.ZERO, Money::add);
+    }
+
+    private static Money calcAppliedCartCouponDiscount(List<OrderSheetItem> items, OrderCouponSnapshot coupon) {
+        Money itemFinalPrice = calcTotalItemFinalPrice(items);
+        // [NOTE]
+        // 총 상품 쿠폰 적용 금액(상품 할인금액 - 상품 쿠폰할인금)이 장바구니 쿠폰 할인금보다 작은 경우
+        // 장바구니 쿠폰 할인금액은 총 상품 쿠폰 적용 금액이 된다
+        return itemFinalPrice.min(coupon.getDiscountAmount());
+    }
+
+    private static Money calcPointEligibleAmount(List<OrderSheetItem> items, OrderCouponSnapshot coupon) {
+        Money itemFinalPrice = calcTotalItemFinalPrice(items);
+        Money appliedCartDiscount = calcAppliedCartCouponDiscount(items, coupon);
+        return itemFinalPrice.subtract(appliedCartDiscount);
+    }
+
+    private static Money calcTotalItemFinalPrice(List<OrderSheetItem> items) {
+        return items.stream()
+                .map(OrderSheetItem::getFinalLineTotal)
                 .reduce(Money.ZERO, Money::add);
     }
 
@@ -216,45 +217,91 @@ public class OrderSheet {
                 .orElseThrow(() -> new InvalidDomainValueException("주문 상품을 찾을 수 없음"));
     }
 
+    /**
+     * 상품 쿠폰 적용 후 포인트 사용 전 예상 주문 금액 반환
+     * <p>
+     * sheetItemId 주문 상품을 itemCouponSnapshot 을 적용했을 때의
+     * 포인트 사용 전 예상 주문 금액을 반환한다
+     * </p>
+     *
+     * @param sheetItemId        주문 상품 아이디
+     * @param itemCouponSnapshot 쿠폰 정보
+     * @return 포인트 사용 전 예상 주문 금액
+     */
     public Money calcEstimatedPointEligibleAmount(String sheetItemId, OrderCouponSnapshot itemCouponSnapshot) {
-        Money estimatedItemFinalPrice = this.items.stream().map(item -> {
-            if (item.getSheetItemId().equals(sheetItemId)) {
-                Money productLineTotal = item.getProductLineTotal();
-                Money discount = productLineTotal.subtract(itemCouponSnapshot.getDiscountAmount());
-                return productLineTotal.subtract(discount);
-            }
-            return item.getFinalLineTotal();
-        }).reduce(Money.ZERO, Money::add);
-        return estimatedItemFinalPrice.subtract(cartCoupon.getDiscountAmount());
+        Money estimatedItemFinalPrice = this.items.stream().map(item ->
+                item.getSheetItemId().equals(sheetItemId)
+                        ? item.calcEstimatedFinalLineTotal(itemCouponSnapshot) : item.getFinalLineTotal()).reduce(Money.ZERO, Money::add);
+        return estimatedItemFinalPrice.subtract(estimatedItemFinalPrice.min(cartCoupon.getDiscountAmount()));
     }
 
+    /**
+     * 장바구니 쿠폰 적용 후 포인트 사용 전 예상 주문 금액 반환
+     * <p>
+     * 장바구니 쿠폰을 itemCouponSnapshot을 적용했을때의 포인트 사용 전 예상 주문 금액을 반환한다
+     * </p>
+     *
+     * @param cartCoupon 장바구니 쿠폰 정보
+     * @return 포인트 사용 전 예상 주문 금액
+     */
     public Money calcEstimatedPointEligibleAmount(OrderCouponSnapshot cartCoupon) {
-        Money itemFinalPrice = this.items.stream().map(OrderSheetItem::getFinalLineTotal).reduce(Money.ZERO, Money::add);
-        return itemFinalPrice.subtract(cartCoupon.getDiscountAmount());
+        return calcPointEligibleAmount(this.items, cartCoupon);
     }
 
+    /**
+     * 포인트 적용 전 주문 금액
+     * <p>
+     * 포인트를 사용하기 전 주문 금액을 반환한다
+     * </p>
+     *
+     * @return 포인트 사용 전 주문 금액
+     */
+    public Money getPointEligibleAmount() {
+        return calcPointEligibleAmount(this.items, this.cartCoupon);
+    }
+
+    /**
+     * 상품 쿠폰을 변경한다
+     * <p>
+     * 상품에 적용된 상품 쿠폰을 새로운 상품 쿠폰으로 변경한다
+     * 상품 쿠폰을 변경하여 주문서에 적용된 포인트가 적용 가능 최대 포인트를 초과하는 경우 적용 가능 최대 포인트로 조정된다
+     * </p>
+     *
+     * @param sheetItemId        주문 상품 아이디
+     * @param newCouponSnapshot  새 쿠폰 정보
+     * @param maxAvailablePoints 적용 가능 포인트
+     */
     public void changeItemCoupon(String sheetItemId, OrderCouponSnapshot newCouponSnapshot, Money maxAvailablePoints) {
         OrderSheetItem sheetItem = getItem(sheetItemId);
         sheetItem.changeCoupon(newCouponSnapshot);
-        this.totalCouponDiscountAmount = calcAppliedCartCouponDiscount(items, cartCoupon).add(calcTotalItemCouponDiscountAmount(items));
-        if (this.usedPoints.equals(Money.ZERO)) return;
-        Money pointEligibleAmount = getPointEligibleAmount();
-        Money trueMaxLimit = pointEligibleAmount.isLessThan(maxAvailablePoints) ? pointEligibleAmount : maxAvailablePoints;
-        if (this.usedPoints.isGreaterThan(trueMaxLimit)) {
-            this.usedPoints = trueMaxLimit;
-        }
-        this.totalPaymentAmount = pointEligibleAmount.subtract(usedPoints);
+        recalculateTotals(maxAvailablePoints);
     }
 
+    /**
+     * 장바구니 쿠폰을 변경한다
+     * <p>
+     * 주문서에 적용된 장바구니 쿠폰을 새로운 장바구니 쿠폰으로 변경한다
+     * 장바구니 쿠폰을 변경하여 주문서에 적용된 포인트가 적용 가능 최대 포인트를 초과하는 경우 적용 가능 최대 포인트로 조정된다
+     * </p>
+     *
+     * @param newCartCouponSnapshot 새 장바구니 쿠폰 정보
+     * @param maxAvailablePoints    적용 가능 포인트
+     */
     public void changeCartCoupon(OrderCouponSnapshot newCartCouponSnapshot, Money maxAvailablePoints) {
         this.cartCoupon = newCartCouponSnapshot;
-        this.totalCouponDiscountAmount = calcAppliedCartCouponDiscount(items, cartCoupon).add(calcTotalItemCouponDiscountAmount(items));
-        if (this.usedPoints.equals(Money.ZERO)) return;
+        recalculateTotals(maxAvailablePoints);
+    }
+
+    private void recalculateTotals(Money maxAvailablePoints) {
+        this.totalCouponDiscountAmount = calcAppliedCartCouponDiscount(this.items, this.cartCoupon)
+                .add(calcTotalItemCouponDiscountAmount(this.items));
         Money pointEligibleAmount = getPointEligibleAmount();
-        Money trueMaxLimit = pointEligibleAmount.isLessThan(maxAvailablePoints) ? pointEligibleAmount : maxAvailablePoints;
-        if (this.usedPoints.isGreaterThan(trueMaxLimit)) {
-            this.usedPoints = trueMaxLimit;
+        if (!this.usedPoints.equals(Money.ZERO)) {
+            Money trueMaxLimit = pointEligibleAmount.min(maxAvailablePoints);
+            if (this.usedPoints.isGreaterThan(trueMaxLimit)) {
+                this.usedPoints = trueMaxLimit;
+            }
         }
-        this.totalPaymentAmount = pointEligibleAmount.subtract(usedPoints);
+        this.totalPaymentAmount = pointEligibleAmount.subtract(this.usedPoints);
     }
 }
