@@ -1,0 +1,34 @@
+package com.example.order_service.order.application.dto.result;
+
+import com.example.order_service.common.domain.vo.Money;
+import lombok.Builder;
+
+public class OrderSheetUserResult {
+
+    @Builder
+    public record Profile(
+            Long userId,
+            String userName,
+            String phoneNumber,
+            ShippingAddress shippingAddress
+    ) {
+    }
+
+    @Builder
+    public record ShippingAddress(
+            String receiverName,
+            String receiverPhone,
+            String zipCode,
+            String address,
+            String addressDetail
+    ) {
+    }
+
+    @Builder
+    public record UserPoint(
+            Long userId,
+            Money ownedPoints,
+            Money availablePoints
+    ) {
+    }
+}

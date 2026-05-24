@@ -41,7 +41,6 @@ public class OrderProductDeprecatedMapperTest {
         OrderProductResult.Info expectedResult = OrderProductResult.Info.builder()
                 .productId(response.productId())
                 .productVariantId(response.productVariantId())
-                .status(ProductStatus.ORDERABLE)
                 .sku(response.sku())
                 .productName(response.productName())
                 .thumbnail(response.thumbnail())
@@ -49,7 +48,6 @@ public class OrderProductDeprecatedMapperTest {
                 .discountRate(response.unitPrice().discountRate())
                 .discountAmount(Money.wons(response.unitPrice().discountAmount()))
                 .discountedPrice(Money.wons(response.unitPrice().discountedPrice()))
-                .stock(response.stockQuantity())
                 .options(expectedOptions)
                 .build();
         //when

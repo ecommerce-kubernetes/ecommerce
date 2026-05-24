@@ -19,9 +19,9 @@ import com.example.order_service.order.domain.service.dto.command.PaymentCreatio
 import com.example.order_service.order.domain.service.dto.result.OrderDto;
 import com.example.order_service.order.exception.OrderErrorCode;
 import com.example.order_service.order.exception.PaymentErrorCode;
-import com.example.order_service.ordersheet.domain.model.OrderSheet;
-import com.example.order_service.ordersheet.domain.model.OrderSheetItem;
-import com.example.order_service.ordersheet.domain.repository.OrderSheetRepository;
+import com.example.order_service.order.domain.model.OrderSheet;
+import com.example.order_service.order.domain.model.OrderSheetItem;
+import com.example.order_service.order.domain.repository.OrderSheetRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
