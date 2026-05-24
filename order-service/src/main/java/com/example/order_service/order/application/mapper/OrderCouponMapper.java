@@ -1,8 +1,23 @@
 package com.example.order_service.order.application.mapper;
 
+import com.example.order_service.common.mapper.MoneyMapper;
+import com.example.order_service.infrastructure.dto.command.CouponCommand;
+import com.example.order_service.infrastructure.dto.response.CouponClientResponse;
+import com.example.order_service.order.application.dto.command.OrderCommand;
+import com.example.order_service.order.application.dto.result.OrderCouponResult;
+import org.mapstruct.InjectionStrategy;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = {MoneyMapper.class}, injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 public interface OrderCouponMapper {
+    CouponCommand.Calculate toCommand(OrderCommand.CouponCalculate command);
+
+    @Mapping(source = "discountedPrice", target = "price")
+    CouponCommand.Item toItemCommand(OrderCommand.AppliedCouponItem command);
+
+    OrderCouponResult.Calculate toResult(CouponClientResponse.Calculate response);
+    OrderCouponResult.CartCoupon toCartCouponResult(CouponClientResponse.CartCoupon response);
+    OrderCouponResult.ItemCoupon toItemCouponResult(CouponClientResponse.ItemCoupon response);
 
 }

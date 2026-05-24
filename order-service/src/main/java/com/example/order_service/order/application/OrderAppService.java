@@ -3,11 +3,7 @@ package com.example.order_service.order.application;
 import com.example.order_service.common.dto.PageDto;
 import com.example.order_service.common.exception.business.BusinessException;
 import com.example.order_service.common.exception.business.ErrorCode;
-import com.example.order_service.common.util.AsyncUtil;
 import com.example.order_service.order.api.dto.request.OrderSearchCondition;
-import com.example.order_service.order.application.dto.OrderPreparationData;
-import com.example.order_service.order.application.dto.command.CreateOrderCommand;
-import com.example.order_service.order.application.dto.command.CreateOrderItemCommand;
 import com.example.order_service.order.application.dto.command.OrderCommand;
 import com.example.order_service.order.application.dto.result.*;
 import com.example.order_service.order.application.event.*;
@@ -18,20 +14,14 @@ import com.example.order_service.order.application.external.OrderUserGateway;
 import com.example.order_service.order.domain.model.OrderFailureCode;
 import com.example.order_service.order.domain.model.OrderStatus;
 import com.example.order_service.order.domain.model.vo.PaymentStatus;
-import com.example.order_service.order.domain.model.vo.ProductStatus;
-import com.example.order_service.order.domain.service.OrderPriceCalculator;
 import com.example.order_service.order.domain.service.OrderService;
-import com.example.order_service.order.domain.service.dto.command.OrderCreationContext;
 import com.example.order_service.order.domain.service.dto.command.PaymentCreationContext;
-import com.example.order_service.order.domain.service.dto.result.CalculatedOrderAmounts;
 import com.example.order_service.order.domain.service.dto.result.OrderDto;
-import com.example.order_service.order.domain.service.dto.result.OrderProductAmount;
 import com.example.order_service.order.exception.OrderErrorCode;
 import com.example.order_service.order.exception.PaymentErrorCode;
 import com.example.order_service.ordersheet.domain.model.OrderSheet;
+import com.example.order_service.ordersheet.domain.model.OrderSheetItem;
 import com.example.order_service.ordersheet.domain.repository.OrderSheetRepository;
-import io.micrometer.context.ContextSnapshot;
-import io.micrometer.context.ContextSnapshotFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -39,21 +29,16 @@ import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class OrderAppService {
 
-    private final OrderPaymentGateway orderPaymentGateway;
     private final OrderUserGateway orderUserGateway;
-    private final Executor applicationTaskExecutor;
     private final OrderProductGateway orderProductGateway;
+    private final OrderPaymentGateway orderPaymentGateway;
+    private final OrderCouponGateway orderCouponGateway;
     private final OrderSheetRepository orderSheetRepository;
     private final OrderCreationContextMapper mapper;
     private final OrderService orderService;
@@ -62,10 +47,39 @@ public class OrderAppService {
     public OrderResult.Create initialOrder(OrderCommand.Create command) {
         //주문 시트를 조회하여 주문서 정보를 가져옴
         OrderSheet orderSheet = findOrderSheetById(command.orderSheetId());
-        //최종 가격 정보를 계산
+        if (!orderSheet.isOwner(command.userId())) {
+            throw new BusinessException(OrderErrorCode.ORDER_SHEET_ACCESS_DENIED);
+        }
+        if (orderSheet.isExpired()){
+            throw new BusinessException(OrderErrorCode.ORDER_SHEET_EXPIRED);
+        }
+        OrderUserResult.UserPoint userPoints = orderUserGateway.getUserPointsForOrder(orderSheet.getOrderer().getUserId(),
+                orderSheet.getPointEligibleAmount(), orderSheet.getUsedPoints());
+        OrderProductResult.ProductList products = getProducts(orderSheet.getItems());
+        OrderCouponResult.Calculate appliedCoupon = getAppliedCoupon(orderSheet);
         //주문 생성
         //saga 이벤트 시작
         return null;
+    }
+
+    private OrderProductResult.ProductList getProducts(List<OrderSheetItem> items){
+        List<OrderCommand.OrderItem> itemCommands = items.stream().map(item ->
+                        OrderCommand.OrderItem.of(item.getProductVariantId(), item.getQuantity())).toList();
+        return orderProductGateway.getProductsForOrder(itemCommands);
+    }
+
+    private OrderCouponResult.Calculate getAppliedCoupon(OrderSheet orderSheet) {
+        List<OrderCommand.AppliedCouponItem> appliedItems = orderSheet.getItems().stream().map(
+                item -> OrderCommand.AppliedCouponItem.of(
+                        item.getProductVariantId(),
+                        item.getDiscountedPrice(),
+                        item.getQuantity(),
+                        item.getCouponId()
+                )
+        ).toList();
+        OrderCommand.CouponCalculate couponCalculate = OrderCommand.CouponCalculate.of(orderSheet.getOrderer().getUserId(),
+                orderSheet.getCartCoupon().getCouponId(), appliedItems);
+        return orderCouponGateway.calculate(couponCalculate);
     }
 
     public void preparePayment(String orderNo) {
@@ -144,37 +158,6 @@ public class OrderAppService {
             return OrderFailureCode.PAYMENT_NOT_FOUND;
         }
         return OrderFailureCode.UNKNOWN;
-    }
-
-    private void validateUniqueItems(List<CreateOrderItemCommand> items) {
-        Set<Long> setIds = items.stream().map(CreateOrderItemCommand::getProductVariantId).collect(Collectors.toSet());
-        if (items.size() != setIds.size()) {
-            throw new BusinessException(OrderErrorCode.ORDER_DUPLICATE_ORDER_PRODUCT);
-        }
-    }
-
-    // 유저정보, 상품 정보를 비동기로 동시 조회
-    private OrderPreparationData getOrderPreparationData(CreateOrderCommand command) {
-        Executor contextAwareExecutor = task -> {
-            ContextSnapshot snapshot = ContextSnapshotFactory.builder().build().captureAll();
-            applicationTaskExecutor.execute(snapshot.wrap(task));
-        };
-
-        CompletableFuture<OrderUserResult.OrdererInfo> userFuture = CompletableFuture.supplyAsync(
-                () -> orderUserGateway.getUser(command.getUserId()),
-                contextAwareExecutor
-        );
-
-        CompletableFuture<List<OrderProductResult.Info>> productFuture = CompletableFuture.supplyAsync(
-                () -> orderProductGateway.getProducts(command.getProductVariantIds()),
-                contextAwareExecutor
-        );
-        CompletableFuture.allOf(userFuture, productFuture).join();
-
-        return OrderPreparationData.builder()
-                .user(AsyncUtil.join(userFuture))
-                .products(AsyncUtil.join(productFuture))
-                .build();
     }
 
     private OrderSheet findOrderSheetById(String sheetId) {

@@ -1,5 +1,6 @@
 package com.example.order_service.order.application.external;
 
+import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.business.BusinessException;
 import com.example.order_service.common.exception.external.ExternalClientException;
 import com.example.order_service.common.exception.external.ExternalServerException;
@@ -25,9 +26,26 @@ public class OrderUserGateway {
         return mapper.toResult(userInfo);
     }
 
+    public OrderUserResult.UserPoint getUserPointsForOrder(Long userId, Money orderAmount, Money usedPoints) {
+        UserClientResponse.UserPoints userPoints = fetchUserPointsForOrderWithTranslation(userId, orderAmount, usedPoints);
+        return mapper.toResult(userPoints);
+    }
+
     private UserClientResponse.UserInfo fetchUserWithTranslation(Long userId) {
         try {
             return userAdaptor.getUserInfoForOrder(userId);
+        } catch (ExternalClientException e) {
+            throw new BusinessException(OrderErrorCode.ORDER_USER_CLIENT_ERROR);
+        } catch (ExternalServerException e) {
+            throw new BusinessException(OrderErrorCode.ORDER_USER_SERVER_ERROR);
+        } catch (ExternalSystemUnavailableException e) {
+            throw new BusinessException(OrderErrorCode.ORDER_USER_UNAVAILABLE_SERVER_ERROR);
+        }
+    }
+
+    private UserClientResponse.UserPoints fetchUserPointsForOrderWithTranslation(Long userId, Money orderAmount, Money usedPoints) {
+        try {
+            return userAdaptor.getUserPointsForOrder(userId, orderAmount.longValue(), usedPoints.longValue());
         } catch (ExternalClientException e) {
             throw new BusinessException(OrderErrorCode.ORDER_USER_CLIENT_ERROR);
         } catch (ExternalServerException e) {

@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum OrderErrorCode implements ErrorCode {
+    ORDER_SHEET_EXPIRED(409, "ORDER_SHEET_ACCESS_DENIED", "주문이 만료되었습니다"),
+    ORDER_SHEET_ACCESS_DENIED(403, "ORDER_SHEET_ACCESS_DENIED", "주문 권한이 없습니다"),
     ORDER_SHEET_NOT_FOUND(404, "ORDER-SHEET_NOT_FOUND", "주문서를 찾을 수 없습니다"),
     ORDER_PAYMENT_UNAVAILABLE_SERVER_ERROR(503, "ORDER_022", "결제 승인 처리중 일시적인 오류가 발생했습니다 잠시후 재시도 해주세요"),
     ORDER_PAYMENT_SERVER_ERROR(500, "ORDER_021", "결제 승인 처리중 서버 에러가 발생했습니다"),
@@ -24,8 +26,7 @@ public enum OrderErrorCode implements ErrorCode {
     ORDER_NOT_PAYABLE(409, "ORDER_002", "결제할 수 없는 주문입니다"),
     ORDER_NO_PERMISSION(403, "ORDER_003", "주문에 접근할 권한이 없습니다"),
     ORDER_PRICE_MISMATCH(409, "ORDER_007", "주문 금액이 변동되었습니다"),
-    ORDER_ITEM_MINIMUM_ONE_REQUIRED(400, "ORDER_008", "주문 상품은 1개 이상이여야 합니다"),
-    ORDER_DUPLICATE_ORDER_PRODUCT(400, "ORDER_009", "중복된 주문 상품이 존재합니다");
+    ORDER_ITEM_MINIMUM_ONE_REQUIRED(400, "ORDER_008", "주문 상품은 1개 이상이여야 합니다");
     private final int status;
     private final String code;
     private final String message;

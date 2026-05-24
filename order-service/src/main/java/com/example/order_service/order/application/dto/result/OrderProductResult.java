@@ -9,13 +9,17 @@ import java.util.List;
 public class OrderProductResult {
 
     @Builder
+    public record ProductList(
+            List<Info> products
+    ) {
+    }
+
+    @Builder
     public record Info(
             Long productId,
-            String productName,
             Long productVariantId,
-            ProductStatus status,
             String sku,
-            Integer stock,
+            String productName,
             Money originalPrice,
             Integer discountRate,
             Money discountAmount,

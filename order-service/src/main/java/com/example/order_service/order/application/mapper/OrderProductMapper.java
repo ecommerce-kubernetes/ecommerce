@@ -11,25 +11,11 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring", uses = {MoneyMapper.class}, injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 public interface OrderProductMapper {
 
-    @Mapping(source = "stockQuantity", target = "stock")
+    OrderProductResult.ProductList toResult(ProductClientResponse.ProductList productList);
     @Mapping(source = "unitPrice.originalPrice", target = "originalPrice")
     @Mapping(source = "unitPrice.discountRate", target = "discountRate")
     @Mapping(source = "unitPrice.discountAmount", target = "discountAmount")
     @Mapping(source = "unitPrice.discountedPrice", target = "discountedPrice")
-    @Mapping(source = "itemOptions", target = "options")
-    OrderProductResult.Info toResult(ProductClientResponse.ProductDeprecated productDeprecated);
-
+    OrderProductResult.Info toProduct(ProductClientResponse.Product product);
     OrderProductResult.Option toOption(ProductClientResponse.ProductOption option);
-
-    default ProductStatus translateStatus(String status) {
-        if (status == null) {
-            return ProductStatus.UNORDERABLE;
-        }
-
-        if (status.equals("ON_SALE")) {
-            return ProductStatus.ORDERABLE;
-        } else {
-            return ProductStatus.UNORDERABLE;
-        }
-    }
 }
