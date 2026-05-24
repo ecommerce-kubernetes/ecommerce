@@ -28,6 +28,8 @@ import com.example.order_service.order.domain.service.dto.result.OrderDto;
 import com.example.order_service.order.domain.service.dto.result.OrderProductAmount;
 import com.example.order_service.order.exception.OrderErrorCode;
 import com.example.order_service.order.exception.PaymentErrorCode;
+import com.example.order_service.ordersheet.domain.model.OrderSheet;
+import com.example.order_service.ordersheet.domain.repository.OrderSheetRepository;
 import io.micrometer.context.ContextSnapshot;
 import io.micrometer.context.ContextSnapshotFactory;
 import lombok.RequiredArgsConstructor;
@@ -52,62 +54,18 @@ public class OrderAppService {
     private final OrderUserGateway orderUserGateway;
     private final Executor applicationTaskExecutor;
     private final OrderProductGateway orderProductGateway;
-    private final OrderCouponGateway orderCouponGateway;
-    private final OrderPriceCalculator calculator;
+    private final OrderSheetRepository orderSheetRepository;
     private final OrderCreationContextMapper mapper;
     private final OrderService orderService;
     private final ApplicationEventPublisher eventPublisher;
 
     public OrderResult.Create initialOrder(OrderCommand.Create command) {
         //주문 시트를 조회하여 주문서 정보를 가져옴
-        //유저 서비스 해당 유저 정보를 조회, 쿠폰 서비스에서 쿠폰 정보를 조회 (이때 쿠폰 검증이 수행됨)
-
-        //검증
-        //사용자의 포인트가 요청 포인트를 충족 하는지
-
+        OrderSheet orderSheet = findOrderSheetById(command.orderSheetId());
         //최종 가격 정보를 계산
         //주문 생성
         //saga 이벤트 시작
         return null;
-    }
-
-    public CreateOrderResponse initialOrder(CreateOrderCommand command){
-        // 중복 상품이 있는지 검증
-        validateUniqueItems(command.getOrderItemCommands());
-        //CompletableFuture 을 사용해서 상품, 유저 요청을 비동기로 동시에 조회
-        OrderPreparationData orderPreparationData = getOrderPreparationData(command);
-
-        if (orderPreparationData.getUser().availablePoints() < command.getPointToUse()){
-            throw new BusinessException(OrderErrorCode.ORDER_USER_INSUFFICIENT_POINT_BALANCE);
-        }
-
-        if (orderPreparationData.getProducts().size() != command.getProductVariantIds().size()) {
-            throw new BusinessException(OrderErrorCode.ORDER_PRODUCT_NOT_FOUND);
-        }
-
-        for(OrderProductResult.Info product: orderPreparationData.getProducts()) {
-            Map<Long, Integer> quantityMap = command.getQuantityMap();
-            if (!product.status().equals(ProductStatus.ORDERABLE)) {
-                throw new BusinessException(OrderErrorCode.ORDER_PRODUCT_NOT_ON_SALE);
-            }
-            if (quantityMap.get(product.productVariantId()) > product.stock()) {
-                throw new BusinessException(OrderErrorCode.ORDER_PRODUCT_INSUFFICIENT_STOCK);
-            }
-        }
-
-        //주문 상품 가격 정보 계산
-        OrderProductAmount productAmount = calculator.calculateItemAmounts(command.getOrderItemCommands(), orderPreparationData.getProducts());
-        OrderCouponResult.CouponValidation coupon = orderCouponGateway.calculateCouponDiscount(command.getUserId(), command.getCouponId(), productAmount.getSubTotalAmount());
-        //할인 적용 최종 금액 계산
-        CalculatedOrderAmounts calculatedOrderAmounts = calculator.calculateOrderPrice(productAmount, coupon, command.getPointToUse(), command.getExpectedPrice());
-        // 주문 생성 Context 매핑
-        OrderCreationContext creationContext =
-                mapper.mapOrderCreationContext(orderPreparationData.getUser(), calculatedOrderAmounts, coupon, command, orderPreparationData.getProducts());
-        // 주문 저장
-        OrderDto orderDto = orderService.saveOrder(creationContext);
-        //SAGA 진행을 위한 이벤트 발행
-        eventPublisher.publishEvent(OrderCreatedEvent.from(orderDto));
-        return CreateOrderResponse.from(orderDto);
     }
 
     public void preparePayment(String orderNo) {
@@ -217,5 +175,10 @@ public class OrderAppService {
                 .user(AsyncUtil.join(userFuture))
                 .products(AsyncUtil.join(productFuture))
                 .build();
+    }
+
+    private OrderSheet findOrderSheetById(String sheetId) {
+        return orderSheetRepository.findById(sheetId)
+                .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_SHEET_NOT_FOUND));
     }
 }

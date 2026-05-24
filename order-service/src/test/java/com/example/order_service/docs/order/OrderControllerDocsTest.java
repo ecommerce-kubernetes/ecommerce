@@ -66,16 +66,6 @@ public class OrderControllerDocsTest extends RestDocSupport {
         //given
         OrderRequest.Create createOrderRequest = OrderRequest.Create.builder()
                 .orderSheetId(1L)
-                .deliveryAddress(
-                        OrderRequest.Delivery.builder()
-                                .receiverName("수령인")
-                                .receiverPhone("010-1234-5678")
-                                .zipCode("1235")
-                                .baseAddress("서울시 테헤란로 123")
-                                .detailAddress("좋은 아파트 1234호").build())
-                .couponId(1L)
-                .pointToUse(1000L)
-                .expectedPrice(10000L)
                 .build();
 
         OrderResult.Create result = OrderResult.Create.builder()

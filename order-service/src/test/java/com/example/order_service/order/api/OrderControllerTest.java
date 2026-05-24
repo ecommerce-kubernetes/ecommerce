@@ -138,133 +138,13 @@ class OrderControllerTest {
         }
 
         private static Stream<Arguments> provideInvalidCreateOrderRequest() {
-            OrderRequest.Delivery VALID_BASE_DELIVERY = OrderRequest.Delivery.builder()
-                    .receiverName("수령인")
-                    .receiverPhone("010-1234-5678")
-                    .zipCode("12345")
-                    .baseAddress("서울시 테헤란로 123")
-                    .detailAddress("아파트 1234호")
-                    .build();
             return Stream.of(
                     Arguments.of(
                             "orderSheet id null",
                             OrderRequest.Create.builder()
                                     .orderSheetId(null)
-                                    .deliveryAddress(VALID_BASE_DELIVERY)
-                                    .couponId(null)
-                                    .pointToUse(0L)
-                                    .expectedPrice(10000L)
                                     .build(),
                             "주문서 ID는 필수 입니다"
-                    ),
-                    Arguments.of("배송지 정보가 null",
-                            OrderRequest.Create.builder()
-                                    .orderSheetId(1L)
-                                    .deliveryAddress(null)
-                                    .couponId(null)
-                                    .pointToUse(0L)
-                                    .expectedPrice(10000L)
-                                    .build(),
-                            "배송지 정보는 필수 입니다"
-                    ),
-                    Arguments.of(
-                            "수령인이 blank",
-                            OrderRequest.Create.builder()
-                                    .orderSheetId(1L)
-                                    .deliveryAddress(VALID_BASE_DELIVERY.toBuilder().receiverName("").build())
-                                    .couponId(null)
-                                    .pointToUse(0L)
-                                    .expectedPrice(10000L)
-                                    .build(),
-                            "수령인 이름은 필수 입니다"
-                    ),
-                    Arguments.of(
-                            "수령인 연락처가 null",
-                            OrderRequest.Create.builder()
-                                    .orderSheetId(1L)
-                                    .deliveryAddress(VALID_BASE_DELIVERY.toBuilder().receiverPhone(null).build())
-                                    .couponId(null)
-                                    .pointToUse(0L)
-                                    .expectedPrice(10000L)
-                                    .build(),
-                            "수령인 연락처는 필수 입니다"
-                    ),
-                    Arguments.of(
-                            "수령인 연락처가 유효하지 않음",
-                            OrderRequest.Create.builder()
-                                    .orderSheetId(1L)
-                                    .deliveryAddress(VALID_BASE_DELIVERY.toBuilder().receiverPhone("123124").build())
-                                    .couponId(null)
-                                    .pointToUse(0L)
-                                    .expectedPrice(10000L)
-                                    .build(),
-                            "전화번호 형식이 올바르지 않습니다 (예: 010-1234-5678)"
-                    ),
-                    Arguments.of(
-                            "우편번호가 null",
-                            OrderRequest.Create.builder()
-                                    .orderSheetId(1L)
-                                    .deliveryAddress(VALID_BASE_DELIVERY.toBuilder().zipCode(null).build())
-                                    .couponId(null)
-                                    .pointToUse(0L)
-                                    .expectedPrice(10000L)
-                                    .build(),
-                            "우편 번호는 필수 입니다"
-                    ),
-                    Arguments.of(
-                            "기본 주소가 null",
-                            OrderRequest.Create.builder()
-                                    .orderSheetId(1L)
-                                    .deliveryAddress(VALID_BASE_DELIVERY.toBuilder().baseAddress(null).build())
-                                    .couponId(null)
-                                    .pointToUse(0L)
-                                    .expectedPrice(10000L)
-                                    .build(),
-                            "기본 주소는 필수 입니다"
-                    ),
-                    Arguments.of(
-                            "상세 주소가 null",
-                            OrderRequest.Create.builder()
-                                    .orderSheetId(1L)
-                                    .deliveryAddress(VALID_BASE_DELIVERY.toBuilder().detailAddress(null).build())
-                                    .couponId(null)
-                                    .pointToUse(0L)
-                                    .expectedPrice(10000L)
-                                    .build(),
-                            "상세 주소는 필수 입니다"
-                    ),
-                    Arguments.of(
-                            "사용 포인트가 null",
-                            OrderRequest.Create.builder()
-                                    .orderSheetId(1L)
-                                    .deliveryAddress(VALID_BASE_DELIVERY)
-                                    .couponId(null)
-                                    .pointToUse(null)
-                                    .expectedPrice(10000L)
-                                    .build(),
-                            "사용할 포인트는 필수 입니다"
-                    ),
-                    Arguments.of(
-                            "사용 포인트가 0이하",
-                            OrderRequest.Create.builder()
-                                    .orderSheetId(1L)
-                                    .deliveryAddress(VALID_BASE_DELIVERY)
-                                    .couponId(null)
-                                    .pointToUse(-1L)
-                                    .expectedPrice(10000L)
-                                    .build(),
-                            "사용할 포인트는 0 이상이여야 합니다"
-                    ),
-                    Arguments.of(
-                            "예상 결제 금액이 1미만",
-                            OrderRequest.Create.builder()
-                                    .orderSheetId(1L)
-                                    .deliveryAddress(VALID_BASE_DELIVERY)
-                                    .couponId(null)
-                                    .pointToUse(0L)
-                                    .expectedPrice(0L)
-                                    .build(),
-                            "예상 결제 금액은 1 이상이여야 합니다"
                     )
             );
         }
