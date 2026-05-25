@@ -1,16 +1,19 @@
 package com.example.order_service.order.application;
 
 import com.example.order_service.order.application.dto.command.OrderSheetCommand;
-import com.example.order_service.order.application.dto.result.OrderSheetCouponResult;
-import com.example.order_service.order.application.dto.result.OrderSheetProductResult;
 import com.example.order_service.order.application.dto.result.OrderSheetUserResult;
-import com.example.order_service.order.domain.vo.*;
+import com.example.order_service.order.application.external.dto.result.OrderCouponResult;
+import com.example.order_service.order.application.external.dto.result.OrderProductResult;
 import com.example.order_service.order.domain.model.OrderSheet;
 import com.example.order_service.order.domain.model.OrderSheetItem;
+import com.example.order_service.order.domain.vo.*;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 /**
  * 주문서(OrderSheet) 도메인 생성 팩토리
@@ -38,7 +41,7 @@ public class OrderSheetFactory {
      * @return 주문서 애그리거트 루트
      */
     public OrderSheet createSheet(OrderSheetCommand.Create command, OrderSheetUserResult.Profile userResult,
-                                  OrderSheetProductResult.ProductList productResult, OrderSheetCouponResult.Calculate couponResult, long ttlMinute) {
+                                  OrderProductResult.ProductList productResult, OrderCouponResult.Calculate couponResult, long ttlMinute) {
         String sheetId = generateId();
         Orderer orderer = createOrderer(userResult);
         ShippingAddress shippingAddress = createShippingAddress(userResult);
@@ -59,24 +62,24 @@ public class OrderSheetFactory {
         );
     }
 
-    private OrderCouponSnapshot createCartCoupon(OrderSheetCouponResult.CartCoupon cartCoupon) {
+    private OrderCouponSnapshot createCartCoupon(OrderCouponResult.CartCoupon cartCoupon) {
         if (cartCoupon == null) {
             return OrderCouponSnapshot.empty();
         }
         return OrderCouponSnapshot.of(cartCoupon.couponId(), cartCoupon.couponName(), cartCoupon.discountAmount());
     }
 
-    private List<OrderSheetItem> createItems(OrderSheetCommand.Create command, OrderSheetProductResult.ProductList productResult, OrderSheetCouponResult.Calculate couponResult) {
-        Map<Long, OrderSheetProductResult.Info> productsMap = productResult.getProductsMap();
-        Map<Long, OrderSheetCouponResult.ItemCoupon> itemCouponMap = couponResult.toItemCouponMap();
+    private List<OrderSheetItem> createItems(OrderSheetCommand.Create command, OrderProductResult.ProductList productResult, OrderCouponResult.Calculate couponResult) {
+        Map<Long, OrderProductResult.Info> productsMap = productResult.getProductsMap();
+        Map<Long, OrderCouponResult.ItemCoupon> itemCouponMap = couponResult.toItemCouponMap();
         return command.items().stream().map(item -> createItem(item, productsMap, itemCouponMap)).toList();
     }
 
-    private OrderSheetItem createItem(OrderSheetCommand.OrderItem command, Map<Long, OrderSheetProductResult.Info> productsMap,
-                                      Map<Long, OrderSheetCouponResult.ItemCoupon> itemCouponMap) {
+    private OrderSheetItem createItem(OrderSheetCommand.OrderItem command, Map<Long, OrderProductResult.Info> productsMap,
+                                      Map<Long, OrderCouponResult.ItemCoupon> itemCouponMap) {
         Long orderedVariantId = command.productVariantId();
         String sheetItemId = generateId();
-        OrderSheetProductResult.Info product = productsMap.get(orderedVariantId);
+        OrderProductResult.Info product = productsMap.get(orderedVariantId);
         OrderSheetItemProductSnapshot productSnapshot = OrderSheetItemProductSnapshot.of(product.productId(),
                 product.productVariantId(), product.sku(), product.productName(), product.thumbnail());
         OrderSheetItemPriceSnapshot priceSnapshot = OrderSheetItemPriceSnapshot.of(
@@ -86,7 +89,7 @@ public class OrderSheetFactory {
         return OrderSheetItem.create(sheetItemId, productSnapshot, priceSnapshot, couponSnapshot, command.quantity(), optionSnapshots);
     }
 
-    private List<OrderSheetItemOptionSnapshot> createOptions(List<OrderSheetProductResult.Option> options) {
+    private List<OrderSheetItemOptionSnapshot> createOptions(List<OrderProductResult.Option> options) {
         if (options == null || options.isEmpty()) {
             return Collections.emptyList();
         }
@@ -108,12 +111,12 @@ public class OrderSheetFactory {
      * @param variantId      주문서 상품 아이디
      * @return 상품 쿠폰 스냅샷 VO
      */
-    public OrderCouponSnapshot createItemCouponSnapshot(OrderSheetCouponResult.Calculate appliedCoupons, Long variantId) {
-        Map<Long, OrderSheetCouponResult.ItemCoupon> itemCouponMap = appliedCoupons.toItemCouponMap();
+    public OrderCouponSnapshot createItemCouponSnapshot(OrderCouponResult.Calculate appliedCoupons, Long variantId) {
+        Map<Long, OrderCouponResult.ItemCoupon> itemCouponMap = appliedCoupons.toItemCouponMap();
         return createItemCoupon(itemCouponMap.get(variantId));
     }
 
-    private OrderCouponSnapshot createItemCoupon(OrderSheetCouponResult.ItemCoupon itemCoupon) {
+    private OrderCouponSnapshot createItemCoupon(OrderCouponResult.ItemCoupon itemCoupon) {
         if (itemCoupon == null) {
             return OrderCouponSnapshot.empty();
         }
@@ -129,7 +132,7 @@ public class OrderSheetFactory {
      * @param coupon 쿠폰 검증 결과
      * @return 장바구니 쿠폰 VO
      */
-    public OrderCouponSnapshot createCartCouponSnapshot(OrderSheetCouponResult.CartCoupon coupon) {
+    public OrderCouponSnapshot createCartCouponSnapshot(OrderCouponResult.CartCoupon coupon) {
         if (coupon == null) {
             return OrderCouponSnapshot.empty();
         }

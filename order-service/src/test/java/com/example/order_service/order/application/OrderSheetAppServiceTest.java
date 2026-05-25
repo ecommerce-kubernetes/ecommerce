@@ -3,13 +3,12 @@ package com.example.order_service.order.application;
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.business.BusinessException;
 import com.example.order_service.order.application.dto.command.OrderSheetCommand;
-import com.example.order_service.order.application.dto.result.OrderSheetCouponResult;
-import com.example.order_service.order.application.dto.result.OrderSheetProductResult;
-import com.example.order_service.order.application.dto.result.OrderSheetResult;
-import com.example.order_service.order.application.dto.result.OrderSheetUserResult;
+import com.example.order_service.order.application.dto.result.*;
 import com.example.order_service.order.application.external.OrderCouponGateway;
 import com.example.order_service.order.application.external.OrderProductGateway;
 import com.example.order_service.order.application.external.OrderUserGateway;
+import com.example.order_service.order.application.external.dto.result.OrderCouponResult;
+import com.example.order_service.order.application.external.dto.result.OrderProductResult;
 import com.example.order_service.order.domain.vo.*;
 import com.example.order_service.order.domain.model.OrderSheet;
 import com.example.order_service.order.domain.model.OrderSheetItem;
@@ -68,8 +67,8 @@ public class OrderSheetAppServiceTest {
         void createOrderSheet_coupon_applied(){
             //given
             OrderSheetCommand.Create command = createCouponAppliedCommand();
-            OrderSheetProductResult.ProductList products = createProducts();
-            OrderSheetCouponResult.Calculate coupon = createCoupon();
+            OrderProductResult.ProductList products = createProducts();
+            OrderCouponResult.Calculate coupon = createCoupon();
             OrderSheetUserResult.Profile userProfile = createUserProfile();
             given(orderUserGateway.getUserProfile(any())).willReturn(userProfile);
             given(orderProductGateway.getProducts(anyList())).willReturn(products);
@@ -89,7 +88,7 @@ public class OrderSheetAppServiceTest {
         void createOrderSheet_coupon_not_applied(){
             //given
             OrderSheetCommand.Create command = createNotCouponAppliedCommand();
-            OrderSheetProductResult.ProductList products = createProducts();
+            OrderProductResult.ProductList products = createProducts();
             OrderSheetUserResult.Profile userProfile = createUserProfile();
             given(orderUserGateway.getUserProfile(any())).willReturn(userProfile);
             given(orderProductGateway.getProducts(anyList())).willReturn(products);
@@ -150,16 +149,16 @@ public class OrderSheetAppServiceTest {
                     .build();
         }
 
-        private OrderSheetProductResult.ProductList createProducts() {
-            OrderSheetProductResult.Option size = OrderSheetProductResult.Option.builder()
+        private OrderProductResult.ProductList createProducts() {
+            OrderProductResult.Option size = OrderProductResult.Option.builder()
                     .optionTypeName("사이즈")
                     .optionValueName("XL")
                     .build();
-            OrderSheetProductResult.Option blue = OrderSheetProductResult.Option.builder()
+            OrderProductResult.Option blue = OrderProductResult.Option.builder()
                     .optionTypeName("색상")
                     .optionValueName("BLUE")
                     .build();
-            OrderSheetProductResult.Info product = OrderSheetProductResult.Info.builder()
+            OrderProductResult.Info product = OrderProductResult.Info.builder()
                     .productId(1L)
                     .productVariantId(1L)
                     .sku("PROD-XL-BLUE")
@@ -171,24 +170,24 @@ public class OrderSheetAppServiceTest {
                     .thumbnail("/product/product/jean_1.jpg")
                     .options(List.of(size, blue))
                     .build();
-            return OrderSheetProductResult.ProductList.builder()
+            return OrderProductResult.ProductList.builder()
                     .products(List.of(product))
                     .build();
         }
 
-        private OrderSheetCouponResult.Calculate createCoupon() {
-            OrderSheetCouponResult.CartCoupon cartCoupon = OrderSheetCouponResult.CartCoupon.builder()
+        private OrderCouponResult.Calculate createCoupon() {
+            OrderCouponResult.CartCoupon cartCoupon = OrderCouponResult.CartCoupon.builder()
                     .couponId(1L)
                     .couponName("1000원 할인 쿠폰")
                     .discountAmount(Money.wons(1000L))
                     .build();
-            OrderSheetCouponResult.ItemCoupon itemCoupon = OrderSheetCouponResult.ItemCoupon.builder()
+            OrderCouponResult.ItemCoupon itemCoupon = OrderCouponResult.ItemCoupon.builder()
                     .productVariantId(1L)
                     .couponId(2L)
                     .couponName("1000원 할인 쿠폰")
                     .discountAmount(Money.wons(1000L))
                     .build();
-            return OrderSheetCouponResult.Calculate
+            return OrderCouponResult.Calculate
                     .builder()
                     .cartCoupon(cartCoupon)
                     .itemCoupons(List.of(itemCoupon))
@@ -480,7 +479,7 @@ public class OrderSheetAppServiceTest {
             String sheetItemId = "sheetItemId";
             Long userId = 1L;
             OrderSheetCommand.UpdateItemCoupon command = OrderSheetCommand.UpdateItemCoupon.of(sheetId, sheetItemId, userId, null);
-            OrderSheetCouponResult.Calculate couponResult = createCouponNotUsedResult();
+            OrderCouponResult.Calculate couponResult = createCouponNotUsedResult();
             OrderSheetUserResult.UserPoint pointResult = createUserResult();
             given(repository.findById(any())).willReturn(Optional.of(orderSheet));
             given(orderCouponGateway.calculate(any())).willReturn(couponResult);
@@ -505,7 +504,7 @@ public class OrderSheetAppServiceTest {
             Long userId = 1L;
             Long couponId = 10L;
             OrderSheetCommand.UpdateItemCoupon command = OrderSheetCommand.UpdateItemCoupon.of(sheetId, sheetItemId, userId, couponId);
-            OrderSheetCouponResult.Calculate couponResult = createCouponResult();
+            OrderCouponResult.Calculate couponResult = createCouponResult();
             OrderSheetUserResult.UserPoint pointResult = createUserResult();
             given(repository.findById(any())).willReturn(Optional.of(orderSheet));
             given(orderCouponGateway.calculate(any())).willReturn(couponResult);
@@ -519,31 +518,31 @@ public class OrderSheetAppServiceTest {
             assertThat(result.paymentSummary().totalPaymentAmount()).isEqualTo(Money.wons(5500L));
         }
 
-        private OrderSheetCouponResult.Calculate createCouponResult() {
-            OrderSheetCouponResult.CartCoupon cartCoupon = OrderSheetCouponResult.CartCoupon.builder()
+        private OrderCouponResult.Calculate createCouponResult() {
+            OrderCouponResult.CartCoupon cartCoupon = OrderCouponResult.CartCoupon.builder()
                     .couponId(2L)
                     .couponName("첫구매 1000원 할인 쿠폰")
                     .discountAmount(Money.wons(1000L))
                     .build();
-            OrderSheetCouponResult.ItemCoupon itemCoupon = OrderSheetCouponResult.ItemCoupon.builder()
+            OrderCouponResult.ItemCoupon itemCoupon = OrderCouponResult.ItemCoupon.builder()
                     .productVariantId(1L)
                     .couponId(10L)
                     .couponName("전 품목 2000원 할인 쿠폰")
                     .discountAmount(Money.wons(2000L))
                     .build();
-            return OrderSheetCouponResult.Calculate.builder()
+            return OrderCouponResult.Calculate.builder()
                     .cartCoupon(cartCoupon)
                     .itemCoupons(List.of(itemCoupon))
                     .build();
         }
 
-        private OrderSheetCouponResult.Calculate createCouponNotUsedResult() {
-            OrderSheetCouponResult.CartCoupon cartCoupon = OrderSheetCouponResult.CartCoupon.builder()
+        private OrderCouponResult.Calculate createCouponNotUsedResult() {
+            OrderCouponResult.CartCoupon cartCoupon = OrderCouponResult.CartCoupon.builder()
                     .couponId(2L)
                     .couponName("첫구매 1000원 할인 쿠폰")
                     .discountAmount(Money.wons(1000L))
                     .build();
-            return OrderSheetCouponResult.Calculate.builder()
+            return OrderCouponResult.Calculate.builder()
                     .cartCoupon(cartCoupon)
                     .itemCoupons(List.of())
                     .build();
@@ -570,7 +569,7 @@ public class OrderSheetAppServiceTest {
             String sheetId = "sheetId";
             Long userId = 1L;
             OrderSheetCommand.UpdateCartCoupon command = OrderSheetCommand.UpdateCartCoupon.of(sheetId, userId, null);
-            OrderSheetCouponResult.Calculate couponResult = createCartCouponNotUsedResult();
+            OrderCouponResult.Calculate couponResult = createCartCouponNotUsedResult();
             OrderSheetUserResult.UserPoint userResult = createUserResult();
             given(repository.findById(any())).willReturn(Optional.of(orderSheet));
             given(orderCouponGateway.calculate(any())).willReturn(couponResult);
@@ -594,7 +593,7 @@ public class OrderSheetAppServiceTest {
             Long userId = 1L;
             Long newCouponId = 10L;
             OrderSheetCommand.UpdateCartCoupon command = OrderSheetCommand.UpdateCartCoupon.of(sheetId, userId, newCouponId);
-            OrderSheetCouponResult.Calculate couponResult = createCouponResult();
+            OrderCouponResult.Calculate couponResult = createCouponResult();
             OrderSheetUserResult.UserPoint userResult = createUserResult();
             given(repository.findById(any())).willReturn(Optional.of(orderSheet));
             given(orderCouponGateway.calculate(any())).willReturn(couponResult);
@@ -619,7 +618,7 @@ public class OrderSheetAppServiceTest {
             Long userId = 1L;
             Long newCouponId = 10L;
             OrderSheetCommand.UpdateCartCoupon command = OrderSheetCommand.UpdateCartCoupon.of(sheetId, userId, newCouponId);
-            OrderSheetCouponResult.Calculate couponResult = createCouponResult();
+            OrderCouponResult.Calculate couponResult = createCouponResult();
             OrderSheetUserResult.UserPoint userResult = createUserResult();
             given(repository.findById(any())).willReturn(Optional.of(orderSheet));
             given(orderCouponGateway.calculate(any())).willReturn(couponResult);
@@ -634,32 +633,32 @@ public class OrderSheetAppServiceTest {
             assertThat(result.paymentSummary().totalPaymentAmount()).isEqualTo(Money.wons(5500L));
         }
 
-        private OrderSheetCouponResult.Calculate createCartCouponNotUsedResult() {
-            OrderSheetCouponResult.ItemCoupon itemCoupon = OrderSheetCouponResult.ItemCoupon.builder()
+        private OrderCouponResult.Calculate createCartCouponNotUsedResult() {
+            OrderCouponResult.ItemCoupon itemCoupon = OrderCouponResult.ItemCoupon.builder()
                     .productVariantId(1L)
                     .couponId(1L)
                     .couponName("하의 1000원 쿠폰")
                     .discountAmount(Money.wons(1000L))
                     .build();
-            return OrderSheetCouponResult.Calculate.builder()
+            return OrderCouponResult.Calculate.builder()
                     .cartCoupon(null)
                     .itemCoupons(List.of(itemCoupon))
                     .build();
         }
 
-        private OrderSheetCouponResult.Calculate createCouponResult() {
-            OrderSheetCouponResult.CartCoupon cartCoupon = OrderSheetCouponResult.CartCoupon.builder()
+        private OrderCouponResult.Calculate createCouponResult() {
+            OrderCouponResult.CartCoupon cartCoupon = OrderCouponResult.CartCoupon.builder()
                     .couponId(10L)
                     .couponName("첫구매 2000원 할인 쿠폰")
                     .discountAmount(Money.wons(2000L))
                     .build();
-            OrderSheetCouponResult.ItemCoupon itemCoupon = OrderSheetCouponResult.ItemCoupon.builder()
+            OrderCouponResult.ItemCoupon itemCoupon = OrderCouponResult.ItemCoupon.builder()
                     .productVariantId(1L)
                     .couponId(1L)
                     .couponName("하의 1000원 쿠폰")
                     .discountAmount(Money.wons(1000L))
                     .build();
-            return OrderSheetCouponResult.Calculate.builder()
+            return OrderCouponResult.Calculate.builder()
                     .cartCoupon(cartCoupon)
                     .itemCoupons(List.of(itemCoupon))
                     .build();

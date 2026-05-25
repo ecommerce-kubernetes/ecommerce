@@ -3,7 +3,9 @@ package com.example.order_service.order.application.mapper;
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.mapper.MoneyMapper;
 import com.example.order_service.infrastructure.dto.response.ProductClientResponse;
-import com.example.order_service.order.application.dto.result.OrderSheetProductResult;
+import com.example.order_service.order.application.external.dto.result.OrderProductResult;
+import com.example.order_service.order.application.external.mapper.OrderProductMapper;
+import com.example.order_service.order.application.external.mapper.OrderProductMapperImpl;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
@@ -15,16 +17,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class OrderSheetProductMapperTest {
 
     private final MoneyMapper moneyMapper = Mappers.getMapper(MoneyMapper.class);
-    private final OrderSheetProductMapper mapper = new OrderSheetProductMapperImpl(moneyMapper);
+    private final OrderProductMapper mapper = new OrderProductMapperImpl(moneyMapper);
 
     @Test
     @DisplayName("상품 응답을 Result로 매핑한다")
     void toResult(){
         //given
         ProductClientResponse.ProductList response = getProductResponse();
-        OrderSheetProductResult.ProductList expectedResult = getExpectedResult();
+        OrderProductResult.ProductList expectedResult = getExpectedResult();
         //when
-        OrderSheetProductResult.ProductList result = mapper.toResult(response);
+        OrderProductResult.ProductList result = mapper.toResult(response);
         //then
         assertThat(result)
                 .usingRecursiveComparison()
@@ -60,16 +62,16 @@ public class OrderSheetProductMapperTest {
                 .build();
     }
 
-    private OrderSheetProductResult.ProductList getExpectedResult() {
-        OrderSheetProductResult.Option xl = OrderSheetProductResult.Option.builder()
+    private OrderProductResult.ProductList getExpectedResult() {
+        OrderProductResult.Option xl = OrderProductResult.Option.builder()
                 .optionTypeName("사이즈")
                 .optionValueName("XL")
                 .build();
-        OrderSheetProductResult.Option blue = OrderSheetProductResult.Option.builder()
+        OrderProductResult.Option blue = OrderProductResult.Option.builder()
                 .optionTypeName("색상")
                 .optionValueName("BLUE")
                 .build();
-        OrderSheetProductResult.Info product = OrderSheetProductResult.Info.builder()
+        OrderProductResult.Info product = OrderProductResult.Info.builder()
                 .productId(1L)
                 .productVariantId(1L)
                 .sku("PROD1-XL-BLUE")
@@ -81,7 +83,7 @@ public class OrderSheetProductMapperTest {
                 .thumbnail("/product/product/jean_1.jpg")
                 .options(List.of(xl, blue))
                 .build();
-        return OrderSheetProductResult.ProductList.builder()
+        return OrderProductResult.ProductList.builder()
                 .products(List.of(product))
                 .build();
     }

@@ -6,9 +6,9 @@ import com.example.order_service.common.exception.external.ExternalServerExcepti
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
 import com.example.order_service.infrastructure.adaptor.CouponAdaptor;
 import com.example.order_service.infrastructure.dto.response.CouponClientResponse;
-import com.example.order_service.order.application.dto.command.OrderSheetCommand;
-import com.example.order_service.order.application.dto.result.OrderSheetCouponResult;
-import com.example.order_service.order.application.mapper.OrderSheetCouponMapper;
+import com.example.order_service.order.application.external.dto.command.OrderCouponCommand;
+import com.example.order_service.order.application.external.dto.result.OrderCouponResult;
+import com.example.order_service.order.application.external.mapper.OrderCouponMapper;
 import com.example.order_service.order.exception.OrderSheetErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -33,7 +33,7 @@ public class OrderCouponGatewayTest {
     @Mock
     private CouponAdaptor adaptor;
     @Mock
-    private OrderSheetCouponMapper couponMapper;
+    private OrderCouponMapper couponMapper;
 
     @Nested
     @DisplayName("쿠폰 검증")
@@ -42,13 +42,13 @@ public class OrderCouponGatewayTest {
         @DisplayName("쿠폰 정보를 조회한다")
         void calculate() {
             //given
-            OrderSheetCommand.CouponCalculate command = fixtureMonkey.giveMeOne(OrderSheetCommand.CouponCalculate.class);
+            OrderCouponCommand.Calculate command = fixtureMonkey.giveMeOne(OrderCouponCommand.Calculate.class);
             CouponClientResponse.Calculate response = fixtureMonkey.giveMeOne(CouponClientResponse.Calculate.class);
-            OrderSheetCouponResult.Calculate result = fixtureMonkey.giveMeOne(OrderSheetCouponResult.Calculate.class);
+            OrderCouponResult.Calculate result = fixtureMonkey.giveMeOne(OrderCouponResult.Calculate.class);
             given(adaptor.calculate(any())).willReturn(response);
             given(couponMapper.toResult(any())).willReturn(result);
             //when
-            OrderSheetCouponResult.Calculate calculate = orderCouponGateway.calculate(command);
+            OrderCouponResult.Calculate calculate = orderCouponGateway.calculate(command);
             //then
             assertThat(calculate).isNotNull();
         }
@@ -57,7 +57,7 @@ public class OrderCouponGatewayTest {
         @DisplayName("쿠폰 조회중 쿠폰 서비스에서 서버 오류가 발생한 경우 비지니스 예외가 발생한다")
         void calculate_ExternalServerException() {
             //given
-            OrderSheetCommand.CouponCalculate command = fixtureMonkey.giveMeOne(OrderSheetCommand.CouponCalculate.class);
+            OrderCouponCommand.Calculate command = fixtureMonkey.giveMeOne(OrderCouponCommand.Calculate.class);
             willThrow(new ExternalServerException("INTERNAL_SERVER_ERROR", "처리중 오류가 발생했습니다"))
                     .given(adaptor).calculate(any());
             //when
@@ -72,7 +72,7 @@ public class OrderCouponGatewayTest {
         @DisplayName("쿠폰 조회중 쿠폰 서비스에서 클라이언트 오류가 발생한 경우 비지니스 예외가 발생한다")
         void calculate_ExternalClientException() {
             //given
-            OrderSheetCommand.CouponCalculate command = fixtureMonkey.giveMeOne(OrderSheetCommand.CouponCalculate.class);
+            OrderCouponCommand.Calculate command = fixtureMonkey.giveMeOne(OrderCouponCommand.Calculate.class);
             willThrow(new ExternalClientException("COUPON_EXPIRED", "쿠폰이 만료되었습니다"))
                     .given(adaptor).calculate(any());
             //when
@@ -87,7 +87,7 @@ public class OrderCouponGatewayTest {
         @DisplayName("쿠폰 조회중 쿠폰 서비스에서 사용 불가 오류가 발생한 경우 비지니스 예외가 발생한다")
         void calculate_ExternalUnavailableServerException() {
             //given
-            OrderSheetCommand.CouponCalculate command = fixtureMonkey.giveMeOne(OrderSheetCommand.CouponCalculate.class);
+            OrderCouponCommand.Calculate command = fixtureMonkey.giveMeOne(OrderCouponCommand.Calculate.class);
             willThrow(new ExternalSystemUnavailableException("SERVICE_UNAVAILABLE", "쿠폰 서비스 통신 장애"))
                     .given(adaptor).calculate(any());
             //when

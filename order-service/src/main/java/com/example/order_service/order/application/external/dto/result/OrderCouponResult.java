@@ -4,6 +4,9 @@ import com.example.order_service.common.domain.vo.Money;
 import lombok.Builder;
 
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class OrderCouponResult {
 
@@ -17,6 +20,10 @@ public class OrderCouponResult {
                     .cartCoupon(null)
                     .itemCoupons(List.of())
                     .build();
+        }
+
+        public Map<Long, ItemCoupon> toItemCouponMap() {
+            return itemCoupons.stream().collect(Collectors.toMap(ItemCoupon::productVariantId, Function.identity()));
         }
     }
 

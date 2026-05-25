@@ -7,9 +7,9 @@ import com.example.order_service.common.exception.external.ExternalSystemUnavail
 import com.example.order_service.infrastructure.adaptor.ProductAdaptor;
 import com.example.order_service.infrastructure.dto.command.ProductCommand;
 import com.example.order_service.infrastructure.dto.response.ProductClientResponse;
-import com.example.order_service.order.application.dto.command.OrderSheetCommand;
-import com.example.order_service.order.application.dto.result.OrderSheetProductResult;
-import com.example.order_service.order.application.mapper.OrderSheetProductMapper;
+import com.example.order_service.order.application.external.dto.command.OrderProductCommand;
+import com.example.order_service.order.application.external.dto.result.OrderProductResult;
+import com.example.order_service.order.application.external.mapper.OrderProductMapper;
 import com.example.order_service.order.exception.OrderSheetErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -30,7 +30,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class OrderProductGateway {
     private final ProductAdaptor productAdaptor;
-    private final OrderSheetProductMapper mapper;
+    private final OrderProductMapper mapper;
 
 
     /**
@@ -40,7 +40,7 @@ public class OrderProductGateway {
      * @return 상품 정보 결과를 반환
      * @throws BusinessException 상품 도메인 통신중 발생한 예외를 비지니스 예외로 변환
      */
-    public OrderSheetProductResult.ProductList getProducts(List<OrderSheetCommand.OrderItem> items) {
+    public OrderProductResult.ProductList getProducts(List<OrderProductCommand.OrderItem> items) {
         List<ProductCommand.Item> commandItems = items.stream()
                 .map(item -> ProductCommand.Item.of(item.productVariantId(), item.quantity())).toList();
         ProductCommand.Validate command = ProductCommand.Validate.of(commandItems);

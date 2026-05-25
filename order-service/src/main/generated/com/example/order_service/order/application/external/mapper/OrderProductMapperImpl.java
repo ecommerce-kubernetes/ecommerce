@@ -1,8 +1,8 @@
-package com.example.order_service.order.application.mapper;
+package com.example.order_service.order.application.external.mapper;
 
 import com.example.order_service.common.mapper.MoneyMapper;
 import com.example.order_service.infrastructure.dto.response.ProductClientResponse;
-import com.example.order_service.order.application.dto.result.OrderProductResult;
+import com.example.order_service.order.application.external.dto.result.OrderProductResult;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.processing.Generated;
@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-05-25T20:24:37+0900",
+    date = "2026-05-25T22:04:19+0900",
     comments = "version: 1.6.3, compiler: javac, environment: Java 21.0.10 (Eclipse Adoptium)"
 )
 @Component

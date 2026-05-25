@@ -1,10 +1,10 @@
-package com.example.order_service.order.application.mapper;
+package com.example.order_service.order.application.external.mapper;
 
 import com.example.order_service.common.mapper.MoneyMapper;
 import com.example.order_service.infrastructure.dto.command.CouponCommand;
 import com.example.order_service.infrastructure.dto.response.CouponClientResponse;
-import com.example.order_service.order.application.dto.command.OrderCommand;
-import com.example.order_service.order.application.dto.result.OrderCouponResult;
+import com.example.order_service.order.application.external.dto.command.OrderCouponCommand;
+import com.example.order_service.order.application.external.dto.result.OrderCouponResult;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.processing.Generated;
@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-05-25T20:24:37+0900",
+    date = "2026-05-25T22:04:19+0900",
     comments = "version: 1.6.3, compiler: javac, environment: Java 21.0.10 (Eclipse Adoptium)"
 )
 @Component
@@ -28,7 +28,7 @@ public class OrderCouponMapperImpl implements OrderCouponMapper {
     }
 
     @Override
-    public CouponCommand.Calculate toCommand(OrderCommand.CouponCalculate command) {
+    public CouponCommand.Calculate toCommand(OrderCouponCommand.Calculate command) {
         if ( command == null ) {
             return null;
         }
@@ -43,7 +43,7 @@ public class OrderCouponMapperImpl implements OrderCouponMapper {
     }
 
     @Override
-    public CouponCommand.Item toItemCommand(OrderCommand.AppliedCouponItem command) {
+    public CouponCommand.Item toItemCommand(OrderCouponCommand.AppliedCouponItem command) {
         if ( command == null ) {
             return null;
         }
@@ -103,13 +103,13 @@ public class OrderCouponMapperImpl implements OrderCouponMapper {
         return itemCoupon.build();
     }
 
-    protected List<CouponCommand.Item> appliedCouponItemListToItemList(List<OrderCommand.AppliedCouponItem> list) {
+    protected List<CouponCommand.Item> appliedCouponItemListToItemList(List<OrderCouponCommand.AppliedCouponItem> list) {
         if ( list == null ) {
             return null;
         }
 
         List<CouponCommand.Item> list1 = new ArrayList<CouponCommand.Item>( list.size() );
-        for ( OrderCommand.AppliedCouponItem appliedCouponItem : list ) {
+        for ( OrderCouponCommand.AppliedCouponItem appliedCouponItem : list ) {
             list1.add( toItemCommand( appliedCouponItem ) );
         }
 

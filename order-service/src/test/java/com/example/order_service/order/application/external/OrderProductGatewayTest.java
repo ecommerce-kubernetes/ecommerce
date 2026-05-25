@@ -6,9 +6,9 @@ import com.example.order_service.common.exception.external.ExternalServerExcepti
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
 import com.example.order_service.infrastructure.adaptor.ProductAdaptor;
 import com.example.order_service.infrastructure.dto.response.ProductClientResponse;
-import com.example.order_service.order.application.dto.command.OrderSheetCommand;
-import com.example.order_service.order.application.dto.result.OrderSheetProductResult;
-import com.example.order_service.order.application.mapper.OrderSheetProductMapper;
+import com.example.order_service.order.application.external.dto.command.OrderProductCommand;
+import com.example.order_service.order.application.external.dto.result.OrderProductResult;
+import com.example.order_service.order.application.external.mapper.OrderProductMapper;
 import com.example.order_service.order.exception.OrderSheetErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -35,7 +35,7 @@ public class OrderProductGatewayTest {
     @Mock
     private ProductAdaptor adaptor;
     @Mock
-    private OrderSheetProductMapper productMapper;
+    private OrderProductMapper productMapper;
 
     @Nested
     @DisplayName("상품 조회")
@@ -45,20 +45,20 @@ public class OrderProductGatewayTest {
         @DisplayName("주문 상품 정보를 조회한다")
         void getProducts(){
             //given
-            OrderSheetCommand.OrderItem item1 = OrderSheetCommand.OrderItem.builder()
+            OrderProductCommand.OrderItem item1 = OrderProductCommand.OrderItem.builder()
                     .productVariantId(1L)
                     .quantity(1)
                     .build();
-            OrderSheetCommand.OrderItem item2 = OrderSheetCommand.OrderItem.builder()
+            OrderProductCommand.OrderItem item2 = OrderProductCommand.OrderItem.builder()
                     .productVariantId(2L)
                     .quantity(1)
                     .build();
             ProductClientResponse.ProductList productResponse = fixtureMonkey.giveMeOne(ProductClientResponse.ProductList.class);
-            OrderSheetProductResult.ProductList productList = fixtureMonkey.giveMeOne(OrderSheetProductResult.ProductList.class);
+            OrderProductResult.ProductList productList = fixtureMonkey.giveMeOne(OrderProductResult.ProductList.class);
             given(adaptor.getProductsForOrder(any())).willReturn(productResponse);
             given(productMapper.toResult(any(ProductClientResponse.ProductList.class))).willReturn(productList);
             //when
-            OrderSheetProductResult.ProductList result = orderProductGateway.getProducts(List.of(item1, item2));
+            OrderProductResult.ProductList result = orderProductGateway.getProducts(List.of(item1, item2));
             //then
             assertThat(result).isNotNull();
         }
@@ -67,11 +67,11 @@ public class OrderProductGatewayTest {
         @DisplayName("상품 조회중 상품 서비스에서 서버 오류가 발생한 경우 비지니스 예외로 변경하여 던진다")
         void getProducts_ExternalServerException(){
             //given
-            OrderSheetCommand.OrderItem item1 = OrderSheetCommand.OrderItem.builder()
+            OrderProductCommand.OrderItem item1 = OrderProductCommand.OrderItem.builder()
                     .productVariantId(1L)
                     .quantity(1)
                     .build();
-            OrderSheetCommand.OrderItem item2 = OrderSheetCommand.OrderItem.builder()
+            OrderProductCommand.OrderItem item2 = OrderProductCommand.OrderItem.builder()
                     .productVariantId(2L)
                     .quantity(1)
                     .build();
@@ -89,11 +89,11 @@ public class OrderProductGatewayTest {
         @DisplayName("상품 조회중 상품 서비스에서 클라이언트 오류가 발생한 경우 비지니스 예외로 변경하여 던진다")
         void getProducts_ExternalClientException() {
             //given
-            OrderSheetCommand.OrderItem item1 = OrderSheetCommand.OrderItem.builder()
+            OrderProductCommand.OrderItem item1 = OrderProductCommand.OrderItem.builder()
                     .productVariantId(1L)
                     .quantity(1)
                     .build();
-            OrderSheetCommand.OrderItem item2 = OrderSheetCommand.OrderItem.builder()
+            OrderProductCommand.OrderItem item2 = OrderProductCommand.OrderItem.builder()
                     .productVariantId(2L)
                     .quantity(1)
                     .build();
@@ -111,11 +111,11 @@ public class OrderProductGatewayTest {
         @DisplayName("상품 조회중 상품 서비스에서 사용 불가 오류가 발생한 경우 비지니스 예외로 변경하여 던진다")
         void getProducts_ExternalUnavailableException(){
             //given
-            OrderSheetCommand.OrderItem item1 = OrderSheetCommand.OrderItem.builder()
+            OrderProductCommand.OrderItem item1 = OrderProductCommand.OrderItem.builder()
                     .productVariantId(1L)
                     .quantity(1)
                     .build();
-            OrderSheetCommand.OrderItem item2 = OrderSheetCommand.OrderItem.builder()
+            OrderProductCommand.OrderItem item2 = OrderProductCommand.OrderItem.builder()
                     .productVariantId(2L)
                     .quantity(1)
                     .build();

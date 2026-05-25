@@ -4,8 +4,10 @@ import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.mapper.MoneyMapper;
 import com.example.order_service.infrastructure.dto.command.CouponCommand;
 import com.example.order_service.infrastructure.dto.response.CouponClientResponse;
-import com.example.order_service.order.application.dto.command.OrderSheetCommand;
-import com.example.order_service.order.application.dto.result.OrderSheetCouponResult;
+import com.example.order_service.order.application.external.dto.command.OrderCouponCommand;
+import com.example.order_service.order.application.external.dto.result.OrderCouponResult;
+import com.example.order_service.order.application.external.mapper.OrderCouponMapper;
+import com.example.order_service.order.application.external.mapper.OrderCouponMapperImpl;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
@@ -14,19 +16,19 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class OrderSheetCouponMapperTest {
+public class OrderCouponMapperTest {
 
     private final MoneyMapper moneyMapper = Mappers.getMapper(MoneyMapper.class);
-    private final OrderSheetCouponMapper mapper = new OrderSheetCouponMapperImpl(moneyMapper);
+    private final OrderCouponMapper mapper = new OrderCouponMapperImpl(moneyMapper);
 
     @Test
     @DisplayName("주문 커맨드를 쿠폰 서비스 커맨드로 매핑한다")
     void toCommand() {
         //given
-        OrderSheetCommand.AppliedCouponItem item =
-                OrderSheetCommand.AppliedCouponItem.of(1L, Money.wons(10000L), 2, 2L);
-        OrderSheetCommand.CouponCalculate command =
-                OrderSheetCommand.CouponCalculate.of(1L, 1L, List.of(item));
+        OrderCouponCommand.AppliedCouponItem item =
+                OrderCouponCommand.AppliedCouponItem.of(1L, Money.wons(10000L), 2, 2L);
+        OrderCouponCommand.Calculate command =
+                OrderCouponCommand.Calculate.of(1L, 1L, List.of(item));
 
         CouponCommand.Item expectedItem = CouponCommand.Item.builder()
                 .productVariantId(1L)
@@ -68,25 +70,25 @@ public class OrderSheetCouponMapperTest {
                 .itemCoupons(List.of(itemCoupon))
                 .build();
 
-        OrderSheetCouponResult.CartCoupon expectedCartCoupon = OrderSheetCouponResult.CartCoupon.builder()
+        OrderCouponResult.CartCoupon expectedCartCoupon = OrderCouponResult.CartCoupon.builder()
                 .couponId(2L)
                 .couponName("1000원 할인 쿠폰")
                 .discountAmount(Money.wons(1000L))
                 .build();
 
-        OrderSheetCouponResult.ItemCoupon expectedItemCoupon = OrderSheetCouponResult.ItemCoupon.builder()
+        OrderCouponResult.ItemCoupon expectedItemCoupon = OrderCouponResult.ItemCoupon.builder()
                 .productVariantId(1L)
                 .couponId(1L)
                 .couponName("1000원 할인 쿠폰")
                 .discountAmount(Money.wons(1000L))
                 .build();
 
-        OrderSheetCouponResult.Calculate expectedResult = OrderSheetCouponResult.Calculate.builder()
+        OrderCouponResult.Calculate expectedResult = OrderCouponResult.Calculate.builder()
                 .cartCoupon(expectedCartCoupon)
                 .itemCoupons(List.of(expectedItemCoupon))
                 .build();
         //when
-        OrderSheetCouponResult.Calculate result = mapper.toResult(response);
+        OrderCouponResult.Calculate result = mapper.toResult(response);
         //then
         assertThat(result)
                 .usingRecursiveComparison()

@@ -8,5 +8,12 @@ public class OrderProductCommand {
     public record OrderItem(
             Long productVariantId,
             Integer quantity
-    ) {}
+    ) {
+        public static OrderItem of(Long productVariantId, Integer quantity) {
+            return OrderItem.builder()
+                    .productVariantId(productVariantId)
+                    .quantity(quantity)
+                    .build();
+        }
+    }
 }

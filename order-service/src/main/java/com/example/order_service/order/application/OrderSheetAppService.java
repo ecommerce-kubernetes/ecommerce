@@ -3,18 +3,19 @@ package com.example.order_service.order.application;
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.business.BusinessException;
 import com.example.order_service.order.application.dto.command.OrderSheetCommand;
-import com.example.order_service.order.application.dto.result.OrderSheetCouponResult;
-import com.example.order_service.order.application.dto.result.OrderSheetProductResult;
-import com.example.order_service.order.application.dto.result.OrderSheetResult;
-import com.example.order_service.order.application.dto.result.OrderSheetUserResult;
+import com.example.order_service.order.application.dto.result.*;
 import com.example.order_service.order.application.external.OrderCouponGateway;
 import com.example.order_service.order.application.external.OrderProductGateway;
 import com.example.order_service.order.application.external.OrderUserGateway;
-import com.example.order_service.order.domain.vo.OrderCouponSnapshot;
-import com.example.order_service.order.domain.vo.ShippingAddress;
+import com.example.order_service.order.application.external.dto.command.OrderCouponCommand;
+import com.example.order_service.order.application.external.dto.command.OrderProductCommand;
+import com.example.order_service.order.application.external.dto.result.OrderCouponResult;
+import com.example.order_service.order.application.external.dto.result.OrderProductResult;
 import com.example.order_service.order.domain.model.OrderSheet;
 import com.example.order_service.order.domain.model.OrderSheetItem;
 import com.example.order_service.order.domain.repository.OrderSheetRepository;
+import com.example.order_service.order.domain.vo.OrderCouponSnapshot;
+import com.example.order_service.order.domain.vo.ShippingAddress;
 import com.example.order_service.order.exception.OrderSheetErrorCode;
 import com.example.order_service.order.infrastructure.config.OrderSheetProperties;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +23,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 주문서(OrderSheet) Workflow 를 담당하는 애플리케이션 서비스
@@ -39,8 +41,8 @@ import java.util.*;
 @RequiredArgsConstructor
 public class OrderSheetAppService {
     private final OrderSheetProperties orderSheetProperties;
-    private final OrderProductGateway orderSheetProductGateway;
-    private final OrderCouponGateway orderSheetCouponGateway;
+    private final OrderProductGateway orderProductGateway;
+    private final OrderCouponGateway orderCouponGateway;
     private final OrderUserGateway orderSheetUserGateway;
     private final OrderSheetFactory factory;
     private final OrderSheetRepository repository;
@@ -56,38 +58,45 @@ public class OrderSheetAppService {
      */
     public OrderSheetResult.Create createOrderSheet(OrderSheetCommand.Create command) {
         OrderSheetUserResult.Profile userProfile = orderSheetUserGateway.getUserProfile(command.userId());
-        OrderSheetProductResult.ProductList products = orderSheetProductGateway.getProducts(command.items());
-        OrderSheetCouponResult.Calculate appliedCoupons = getAppliedCoupons(command, products);
+        OrderProductResult.ProductList products = getOrderedProducts(command.items());
+        OrderCouponResult.Calculate appliedCoupons = getAppliedCoupons(command, products);
         OrderSheet orderSheet = factory.createSheet(command, userProfile, products, appliedCoupons, orderSheetProperties.ttlMinutes());
         OrderSheet save = repository.save(orderSheet, Duration.ofMinutes(orderSheetProperties.ttlMinutes()));
         return OrderSheetResult.Create.from(save);
     }
 
-    private OrderSheetCouponResult.Calculate getAppliedCoupons(OrderSheetCommand.Create command,
-                                                               OrderSheetProductResult.ProductList products) {
-        if (!command.hasCoupons()) {
-            return OrderSheetCouponResult.Calculate.empty();
-        }
-        Map<Long, OrderSheetProductResult.Info> productMap = products.getProductsMap();
-        Map<Long, Long> couponMap = command.toCouponMap();
-        OrderSheetCommand.CouponCalculate couponCommand = mapToCouponCommand(command, productMap, couponMap);
-        return orderSheetCouponGateway.calculate(couponCommand);
+    private OrderProductResult.ProductList getOrderedProducts(List<OrderSheetCommand.OrderItem> items) {
+        List<OrderProductCommand.OrderItem> commands = items.stream().map(item ->
+                        OrderProductCommand.OrderItem.of(item.productVariantId(), item.quantity())).toList();
+
+        return orderProductGateway.getProducts(commands);
     }
 
-    private OrderSheetCommand.CouponCalculate mapToCouponCommand(OrderSheetCommand.Create command,
-                                                                 Map<Long, OrderSheetProductResult.Info> productMap,
-                                                                 Map<Long, Long> couponMap) {
-        List<OrderSheetCommand.AppliedCouponItem> appliedCouponItems = command.items().stream().map(item -> {
-            OrderSheetProductResult.Info product = productMap.get(item.productVariantId());
+    private OrderCouponResult.Calculate getAppliedCoupons(OrderSheetCommand.Create command,
+                                                          OrderProductResult.ProductList products) {
+        if (!command.hasCoupons()) {
+            return OrderCouponResult.Calculate.empty();
+        }
+        Map<Long, OrderProductResult.Info> productMap = products.getProductsMap();
+        Map<Long, Long> couponMap = command.toCouponMap();
+        OrderCouponCommand.Calculate couponCommand = mapToCouponCommand(command, productMap, couponMap);
+        return orderCouponGateway.calculate(couponCommand);
+    }
+
+    private OrderCouponCommand.Calculate mapToCouponCommand(OrderSheetCommand.Create command,
+                                                                  Map<Long, OrderProductResult.Info> productMap,
+                                                                  Map<Long, Long> couponMap) {
+        List<OrderCouponCommand.AppliedCouponItem> appliedCouponItems = command.items().stream().map(item -> {
+            OrderProductResult.Info product = productMap.get(item.productVariantId());
             Long itemCouponId = couponMap.get(item.productVariantId());
-            return OrderSheetCommand.AppliedCouponItem.of(
+            return OrderCouponCommand.AppliedCouponItem.of(
                     item.productVariantId(),
                     product.discountedPrice(),
                     item.quantity(),
                     itemCouponId
             );
         }).toList();
-        return OrderSheetCommand.CouponCalculate.of(command.userId(), command.cartCouponId(), appliedCouponItems);
+        return OrderCouponCommand.Calculate.of(command.userId(), command.cartCouponId(), appliedCouponItems);
     }
 
     /**
@@ -170,20 +179,20 @@ public class OrderSheetAppService {
     }
 
     private OrderCouponSnapshot getNewItemCouponSnapshot(OrderSheet orderSheet, String sheetItemId, Long newItemCouponId) {
-        List<OrderSheetCommand.AppliedCouponItem> appliedItems = createAppliedItemsWithTarget(orderSheet, sheetItemId, newItemCouponId);
-        OrderSheetCouponResult.Calculate calculate =
+        List<OrderCouponCommand.AppliedCouponItem> appliedItems = createAppliedItemsWithTarget(orderSheet, sheetItemId, newItemCouponId);
+        OrderCouponResult.Calculate calculate =
                 requestCouponCalculation(orderSheet.getOrderer().getUserId(), orderSheet.getCartCoupon().getCouponId(), appliedItems);
         OrderSheetItem sheetItem = orderSheet.getItem(sheetItemId);
         return factory.createItemCouponSnapshot(calculate, sheetItem.getProductVariantId());
     }
 
-    private List<OrderSheetCommand.AppliedCouponItem> createAppliedItemsWithTarget(
+    private List<OrderCouponCommand.AppliedCouponItem> createAppliedItemsWithTarget(
             OrderSheet orderSheet, String targetSheetItemId, Long targetCouponId
     ) {
         return orderSheet.getItems().stream()
                 .map(item -> {
                     Long couponId = item.getSheetItemId().equals(targetSheetItemId) ? targetCouponId : item.getCouponId();
-                    return OrderSheetCommand.AppliedCouponItem.of(
+                    return OrderCouponCommand.AppliedCouponItem.of(
                             item.getProductVariantId(), item.getDiscountedPrice(), item.getQuantity(), couponId
                     );
                 }).toList();
@@ -212,28 +221,28 @@ public class OrderSheetAppService {
     }
 
     private OrderCouponSnapshot getNewCartCouponSnapshot(OrderSheet orderSheet, Long newCartCouponId) {
-        List<OrderSheetCommand.AppliedCouponItem> appliedItems = createCurrentAppliedItems(orderSheet);
-        OrderSheetCouponResult.Calculate calculate =
+        List<OrderCouponCommand.AppliedCouponItem> appliedItems = createCurrentAppliedItems(orderSheet);
+        OrderCouponResult.Calculate calculate =
                 requestCouponCalculation(orderSheet.getOrderer().getUserId(), newCartCouponId, appliedItems);
         return factory.createCartCouponSnapshot(calculate.cartCoupon());
     }
 
-    private List<OrderSheetCommand.AppliedCouponItem> createCurrentAppliedItems(OrderSheet orderSheet) {
+    private List<OrderCouponCommand.AppliedCouponItem> createCurrentAppliedItems(OrderSheet orderSheet) {
         return orderSheet.getItems().stream()
-                .map(item -> OrderSheetCommand.AppliedCouponItem.of(
+                .map(item -> OrderCouponCommand.AppliedCouponItem.of(
                         item.getProductVariantId(), item.getDiscountedPrice(), item.getQuantity(), item.getCouponId()
                 )).toList();
     }
 
-    private OrderSheetCouponResult.Calculate requestCouponCalculation(
-            Long userId, Long cartCouponId, List<OrderSheetCommand.AppliedCouponItem> appliedItems
+    private OrderCouponResult.Calculate requestCouponCalculation(
+            Long userId, Long cartCouponId, List<OrderCouponCommand.AppliedCouponItem> appliedItems
     ) {
         boolean hasAnyItemCoupon = appliedItems.stream().anyMatch(item -> item.itemCouponId() != null);
         if (cartCouponId == null && !hasAnyItemCoupon) {
-            return OrderSheetCouponResult.Calculate.empty();
+            return OrderCouponResult.Calculate.empty();
         }
-        OrderSheetCommand.CouponCalculate command = OrderSheetCommand.CouponCalculate.of(userId, cartCouponId, appliedItems);
-        return orderSheetCouponGateway.calculate(command);
+        OrderCouponCommand.Calculate command = OrderCouponCommand.Calculate.of(userId, cartCouponId, appliedItems);
+        return orderCouponGateway.calculate(command);
     }
 
     private OrderSheet getValidateOrderSheet(String sheetId, Long userId) {
