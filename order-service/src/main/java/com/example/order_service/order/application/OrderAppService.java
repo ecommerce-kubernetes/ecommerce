@@ -53,34 +53,11 @@ public class OrderAppService {
         if (orderSheet.isExpired()){
             throw new BusinessException(OrderErrorCode.ORDER_SHEET_EXPIRED);
         }
-        OrderUserResult.UserPoint userPoints = orderUserGateway.getUserPointsForOrder(orderSheet.getOrderer().getUserId(),
-                orderSheet.getPointEligibleAmount(), orderSheet.getUsedPoints());
-        OrderProductResult.ProductList products = getProducts(orderSheet.getItems());
-        OrderCouponResult.Calculate appliedCoupon = getAppliedCoupon(orderSheet);
         //주문 생성
         //saga 이벤트 시작
         return null;
     }
 
-    private OrderProductResult.ProductList getProducts(List<OrderSheetItem> items){
-        List<OrderCommand.OrderItem> itemCommands = items.stream().map(item ->
-                        OrderCommand.OrderItem.of(item.getProductVariantId(), item.getQuantity())).toList();
-        return orderProductGateway.getProductsForOrder(itemCommands);
-    }
-
-    private OrderCouponResult.Calculate getAppliedCoupon(OrderSheet orderSheet) {
-        List<OrderCommand.AppliedCouponItem> appliedItems = orderSheet.getItems().stream().map(
-                item -> OrderCommand.AppliedCouponItem.of(
-                        item.getProductVariantId(),
-                        item.getDiscountedPrice(),
-                        item.getQuantity(),
-                        item.getCouponId()
-                )
-        ).toList();
-        OrderCommand.CouponCalculate couponCalculate = OrderCommand.CouponCalculate.of(orderSheet.getOrderer().getUserId(),
-                orderSheet.getCartCoupon().getCouponId(), appliedItems);
-        return orderCouponGateway.calculate(couponCalculate);
-    }
 
     public void preparePayment(String orderNo) {
         OrderDto orderDto = orderService.preparePaymentWaiting(orderNo);

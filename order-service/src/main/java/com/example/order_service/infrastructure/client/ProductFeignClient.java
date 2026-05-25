@@ -10,9 +10,6 @@ import java.util.List;
 
 @FeignClient(name = "product-service", contextId = "productClient", configuration = DefaultFeignConfig.class)
 public interface ProductFeignClient {
-    @PostMapping("/internal/variants/by-ids")
-    List<ProductClientResponse.ProductDeprecated> getProductsByVariantIds(ProductClientRequest.ProductVariantIds req);
-
     @PostMapping("/internal/variants/validate-for-order")
     ProductClientResponse.ProductList getProductsForOrder(ProductClientRequest.Validate request);
 

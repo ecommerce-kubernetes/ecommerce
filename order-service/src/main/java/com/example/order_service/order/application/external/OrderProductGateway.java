@@ -7,40 +7,60 @@ import com.example.order_service.common.exception.external.ExternalSystemUnavail
 import com.example.order_service.infrastructure.adaptor.ProductAdaptor;
 import com.example.order_service.infrastructure.dto.command.ProductCommand;
 import com.example.order_service.infrastructure.dto.response.ProductClientResponse;
-import com.example.order_service.order.application.dto.command.OrderCommand;
-import com.example.order_service.order.application.dto.result.OrderProductResult;
-import com.example.order_service.order.application.mapper.OrderProductMapper;
-import com.example.order_service.order.exception.OrderErrorCode;
+import com.example.order_service.order.application.dto.command.OrderSheetCommand;
+import com.example.order_service.order.application.dto.result.OrderSheetProductResult;
+import com.example.order_service.order.application.mapper.OrderSheetProductMapper;
+import com.example.order_service.order.exception.OrderSheetErrorCode;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+/**
+ * 주문 상품 도메인 통신을 담당하는 Gateway 서비스
+ * <p>
+ * 상품 도메인의 응답을 서비스 레이어의 Result로 매핑하여 반환
+ * 상품 도메인 통신중 발생하는 예외를 비지니스 예외로 변환
+ * </p>
+ *
+ * @author 최민식
+ * @since 2026. 05. 22
+ */
 @Service
-@Slf4j
 @RequiredArgsConstructor
 public class OrderProductGateway {
     private final ProductAdaptor productAdaptor;
-    private final OrderProductMapper mapper;
+    private final OrderSheetProductMapper mapper;
 
-    public OrderProductResult.ProductList getProductsForOrder(List<OrderCommand.OrderItem> items) {
-        List<ProductCommand.Item> itemCommands = items.stream().map(item ->
-                ProductCommand.Item.of(item.productVariantId(), item.quantity())).toList();
-        ProductCommand.Validate command = ProductCommand.Validate.of(itemCommands);
-        ProductClientResponse.ProductList productList = fetchProductWithTranslation(command);
+
+    /**
+     * 상품 도메인에 주문 상품 정보를 요청하여 상품의 정보를 반환
+     *
+     * @param items 주문 상품 정보
+     * @return 상품 정보 결과를 반환
+     * @throws BusinessException 상품 도메인 통신중 발생한 예외를 비지니스 예외로 변환
+     */
+    public OrderSheetProductResult.ProductList getProducts(List<OrderSheetCommand.OrderItem> items) {
+        List<ProductCommand.Item> commandItems = items.stream()
+                .map(item -> ProductCommand.Item.of(item.productVariantId(), item.quantity())).toList();
+        ProductCommand.Validate command = ProductCommand.Validate.of(commandItems);
+        ProductClientResponse.ProductList productList = fetchProductsWithTranslation(command);
         return mapper.toResult(productList);
     }
 
-    public ProductClientResponse.ProductList fetchProductWithTranslation(ProductCommand.Validate command) {
+    private ProductClientResponse.ProductList fetchProductsWithTranslation(ProductCommand.Validate command) {
         try {
+            //정상 응답
             return productAdaptor.getProductsForOrder(command);
         } catch (ExternalClientException e) {
-            throw new BusinessException(OrderErrorCode.ORDER_PRODUCT_CLIENT_ERROR);
+            //400번대 에러
+            throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_PRODUCT_CLIENT_ERROR);
         } catch (ExternalServerException e) {
-            throw new BusinessException(OrderErrorCode.ORDER_PRODUCT_SERVER_ERROR);
+            //500번대 에러
+            throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_PRODUCT_SERVER_ERROR);
         } catch (ExternalSystemUnavailableException e) {
-            throw new BusinessException(OrderErrorCode.ORDER_USER_UNAVAILABLE_SERVER_ERROR);
+            //서킷브레이커 열림(503 에러)
+            throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_PRODUCT_UNAVAILABLE_SERVER_ERROR);
         }
     }
 }

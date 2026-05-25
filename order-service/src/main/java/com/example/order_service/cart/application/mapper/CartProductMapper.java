@@ -11,13 +11,6 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring", uses = {MoneyMapper.class}, injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 public interface CartProductMapper {
 
-    @Mapping(source = "stockQuantity", target = "stock")
-    @Mapping(source = "unitPrice.originalPrice", target = "originalPrice")
-    @Mapping(source = "unitPrice.discountRate", target = "discountRate")
-    @Mapping(source = "unitPrice.discountAmount", target = "discountAmount")
-    @Mapping(source = "unitPrice.discountedPrice", target = "discountedPrice")
-    @Mapping(source = "itemOptions", target = "options")
-    CartProductResult.Info toResult(ProductClientResponse.ProductDeprecated productDeprecated);
 
     CartProductResult.Option toOption(ProductClientResponse.ProductOption option);
 

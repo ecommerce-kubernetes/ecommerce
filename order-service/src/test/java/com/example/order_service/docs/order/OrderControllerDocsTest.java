@@ -65,7 +65,7 @@ public class OrderControllerDocsTest extends RestDocSupport {
     void createOrder() throws Exception {
         //given
         OrderRequest.Create createOrderRequest = OrderRequest.Create.builder()
-                .orderSheetId(1L)
+                .orderSheetId("sheetId")
                 .build();
 
         OrderResult.Create result = OrderResult.Create.builder()

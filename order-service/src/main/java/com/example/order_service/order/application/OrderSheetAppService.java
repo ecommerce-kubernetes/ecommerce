@@ -7,9 +7,9 @@ import com.example.order_service.order.application.dto.result.OrderSheetCouponRe
 import com.example.order_service.order.application.dto.result.OrderSheetProductResult;
 import com.example.order_service.order.application.dto.result.OrderSheetResult;
 import com.example.order_service.order.application.dto.result.OrderSheetUserResult;
-import com.example.order_service.order.application.external.OrderSheetCouponGateway;
-import com.example.order_service.order.application.external.OrderSheetProductGateway;
-import com.example.order_service.order.application.external.OrderSheetUserGateway;
+import com.example.order_service.order.application.external.OrderCouponGateway;
+import com.example.order_service.order.application.external.OrderProductGateway;
+import com.example.order_service.order.application.external.OrderUserGateway;
 import com.example.order_service.order.domain.vo.OrderCouponSnapshot;
 import com.example.order_service.order.domain.vo.ShippingAddress;
 import com.example.order_service.order.domain.model.OrderSheet;
@@ -39,9 +39,9 @@ import java.util.*;
 @RequiredArgsConstructor
 public class OrderSheetAppService {
     private final OrderSheetProperties orderSheetProperties;
-    private final OrderSheetProductGateway orderSheetProductGateway;
-    private final OrderSheetCouponGateway orderSheetCouponGateway;
-    private final OrderSheetUserGateway orderSheetUserGateway;
+    private final OrderProductGateway orderSheetProductGateway;
+    private final OrderCouponGateway orderSheetCouponGateway;
+    private final OrderUserGateway orderSheetUserGateway;
     private final OrderSheetFactory factory;
     private final OrderSheetRepository repository;
 

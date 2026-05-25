@@ -19,12 +19,6 @@ public class ProductAdaptor {
     private final ProductFeignClient client;
     private final ExternalExceptionTranslator translator;
 
-    @CircuitBreaker(name = "productService", fallbackMethod = "getProductsByVariantIdsFallback")
-    public List<ProductClientResponse.ProductDeprecated> getProductsByVariantIds(List<Long> productVariantIds) {
-        ProductClientRequest.ProductVariantIds request = ProductClientRequest.ProductVariantIds.of(productVariantIds);
-        return client.getProductsByVariantIds(request);
-    }
-
     @CircuitBreaker(name = "productService", fallbackMethod = "getProductsForOrderFallback")
     public ProductClientResponse.ProductList getProductsForOrder(ProductCommand.Validate command) {
         ProductClientRequest.Validate request = ProductClientRequest.Validate.from(command);
@@ -32,10 +26,6 @@ public class ProductAdaptor {
     }
 
     private ProductClientResponse.ProductList getProductsForOrderFallback(ProductCommand.Validate command, Throwable throwable) throws Throwable {
-        throw translator.translate("PRODUCT-SERVICE", throwable);
-    }
-
-    private List<ProductClientResponse.ProductDeprecated> getProductsByVariantIdsFallback(List<Long> productVariantIds, Throwable throwable) throws Throwable {
         throw translator.translate("PRODUCT-SERVICE", throwable);
     }
 }

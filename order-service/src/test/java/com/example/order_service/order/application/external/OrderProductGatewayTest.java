@@ -28,10 +28,10 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
 
 @ExtendWith(MockitoExtension.class)
-public class OrderSheetProductGatewayTest {
+public class OrderProductGatewayTest {
 
     @InjectMocks
-    private OrderSheetProductGateway orderSheetProductGateway;
+    private OrderProductGateway orderProductGateway;
     @Mock
     private ProductAdaptor adaptor;
     @Mock
@@ -58,7 +58,7 @@ public class OrderSheetProductGatewayTest {
             given(adaptor.getProductsForOrder(any())).willReturn(productResponse);
             given(productMapper.toResult(any(ProductClientResponse.ProductList.class))).willReturn(productList);
             //when
-            OrderSheetProductResult.ProductList result = orderSheetProductGateway.getProducts(List.of(item1, item2));
+            OrderSheetProductResult.ProductList result = orderProductGateway.getProducts(List.of(item1, item2));
             //then
             assertThat(result).isNotNull();
         }
@@ -79,7 +79,7 @@ public class OrderSheetProductGatewayTest {
                     .given(adaptor).getProductsForOrder(any());
             //when
             //then
-            assertThatThrownBy(() -> orderSheetProductGateway.getProducts(List.of(item1, item2)))
+            assertThatThrownBy(() -> orderProductGateway.getProducts(List.of(item1, item2)))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(OrderSheetErrorCode.ORDER_SHEET_PRODUCT_SERVER_ERROR);
@@ -101,7 +101,7 @@ public class OrderSheetProductGatewayTest {
                     .given(adaptor).getProductsForOrder(any());
             //when
             //then
-            assertThatThrownBy(() -> orderSheetProductGateway.getProducts(List.of(item1, item2)))
+            assertThatThrownBy(() -> orderProductGateway.getProducts(List.of(item1, item2)))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(OrderSheetErrorCode.ORDER_SHEET_PRODUCT_CLIENT_ERROR);
@@ -123,7 +123,7 @@ public class OrderSheetProductGatewayTest {
                     .given(adaptor).getProductsForOrder(any());
             //when
             //then
-            assertThatThrownBy(() -> orderSheetProductGateway.getProducts(List.of(item1, item2)))
+            assertThatThrownBy(() -> orderProductGateway.getProducts(List.of(item1, item2)))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(OrderSheetErrorCode.ORDER_SHEET_PRODUCT_UNAVAILABLE_SERVER_ERROR);

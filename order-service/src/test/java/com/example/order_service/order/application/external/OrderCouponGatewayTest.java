@@ -6,18 +6,16 @@ import com.example.order_service.common.exception.external.ExternalServerExcepti
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
 import com.example.order_service.infrastructure.adaptor.CouponAdaptor;
 import com.example.order_service.infrastructure.dto.response.CouponClientResponse;
-import com.example.order_service.order.application.dto.result.OrderCouponResult;
-import com.example.order_service.order.application.mapper.OrderCouponMapper;
-import com.example.order_service.order.domain.model.vo.CouponValidationStatus;
-import com.example.order_service.order.exception.OrderErrorCode;
+import com.example.order_service.order.application.dto.command.OrderSheetCommand;
+import com.example.order_service.order.application.dto.result.OrderSheetCouponResult;
+import com.example.order_service.order.application.mapper.OrderSheetCouponMapper;
+import com.example.order_service.order.exception.OrderSheetErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mapstruct.factory.Mappers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static com.example.order_service.support.TestFixtureUtil.fixtureMonkey;
@@ -32,70 +30,72 @@ public class OrderCouponGatewayTest {
 
     @InjectMocks
     private OrderCouponGateway orderCouponGateway;
-
     @Mock
     private CouponAdaptor adaptor;
-    @Spy
-    private OrderCouponMapper couponMapper = Mappers.getMapper(OrderCouponMapper.class);
+    @Mock
+    private OrderSheetCouponMapper couponMapper;
 
     @Nested
-    @DisplayName("쿠폰 정보 조회")
-    class GetCoupon {
-
+    @DisplayName("쿠폰 검증")
+    class Calculate {
         @Test
         @DisplayName("쿠폰 정보를 조회한다")
-        void getCoupon(){
+        void calculate() {
             //given
-            CouponClientResponse.Calculate response = fixtureMonkey.giveMeBuilder(CouponClientResponse.Calculate.class)
-                    .set("code", "SUCCESS").sample();
-            given(adaptor.calculate(any()))
-                    .willReturn(response);
+            OrderSheetCommand.CouponCalculate command = fixtureMonkey.giveMeOne(OrderSheetCommand.CouponCalculate.class);
+            CouponClientResponse.Calculate response = fixtureMonkey.giveMeOne(CouponClientResponse.Calculate.class);
+            OrderSheetCouponResult.Calculate result = fixtureMonkey.giveMeOne(OrderSheetCouponResult.Calculate.class);
+            given(adaptor.calculate(any())).willReturn(response);
+            given(couponMapper.toResult(any())).willReturn(result);
             //when
-            OrderCouponResult.CouponValidation result = orderCouponGateway.calculateCouponDiscount(1L, 1L, 10000L);
+            OrderSheetCouponResult.Calculate calculate = orderCouponGateway.calculate(command);
             //then
-            assertThat(result.status()).isEqualTo(CouponValidationStatus.SUCCESS);
+            assertThat(calculate).isNotNull();
         }
 
         @Test
-        @DisplayName("쿠폰 조회중 쿠폰 서비스에서 서버 오류가 발생한 경우 비지니스 예외로 변경하여 던진다")
-        void getCoupon_ExternalServerException(){
+        @DisplayName("쿠폰 조회중 쿠폰 서비스에서 서버 오류가 발생한 경우 비지니스 예외가 발생한다")
+        void calculate_ExternalServerException() {
             //given
+            OrderSheetCommand.CouponCalculate command = fixtureMonkey.giveMeOne(OrderSheetCommand.CouponCalculate.class);
             willThrow(new ExternalServerException("INTERNAL_SERVER_ERROR", "처리중 오류가 발생했습니다"))
                     .given(adaptor).calculate(any());
             //when
             //then
-            assertThatThrownBy(() -> orderCouponGateway.calculateCouponDiscount(1L, 1L, 10000L))
+            assertThatThrownBy(() -> orderCouponGateway.calculate(command))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
-                    .isEqualTo(OrderErrorCode.ORDER_COUPON_SERVER_ERROR);
+                    .isEqualTo(OrderSheetErrorCode.ORDER_SHEET_COUPON_SERVER_ERROR);
         }
 
         @Test
-        @DisplayName("쿠폰 조회중 쿠폰 서비스에서 클라이언트 오류가 발생한 경우 비지니스 예외로 변환해 던진다")
-        void getCoupon_ExternalClientException(){
+        @DisplayName("쿠폰 조회중 쿠폰 서비스에서 클라이언트 오류가 발생한 경우 비지니스 예외가 발생한다")
+        void calculate_ExternalClientException() {
             //given
-            willThrow(new ExternalClientException("NOT_FOUND_COUPON", "쿠폰을 찾을 수 없습니다"))
+            OrderSheetCommand.CouponCalculate command = fixtureMonkey.giveMeOne(OrderSheetCommand.CouponCalculate.class);
+            willThrow(new ExternalClientException("COUPON_EXPIRED", "쿠폰이 만료되었습니다"))
                     .given(adaptor).calculate(any());
             //when
             //then
-            assertThatThrownBy(() -> orderCouponGateway.calculateCouponDiscount(1L, 1L, 10000L))
+            assertThatThrownBy(() -> orderCouponGateway.calculate(command))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
-                    .isEqualTo(OrderErrorCode.ORDER_COUPON_CLIENT_ERROR);
+                    .isEqualTo(OrderSheetErrorCode.ORDER_SHEET_COUPON_CLIENT_ERROR);
         }
 
         @Test
-        @DisplayName("쿠폰 조회중 서비스 불가 오류가 발생한 경우 비지니스 예외로 변환해 던진다")
-        void getCoupon_ExternalUnavailableException(){
+        @DisplayName("쿠폰 조회중 쿠폰 서비스에서 사용 불가 오류가 발생한 경우 비지니스 예외가 발생한다")
+        void calculate_ExternalUnavailableServerException() {
             //given
-            willThrow(new ExternalSystemUnavailableException("SERVICE_UNAVAILABLE", "쿠폰 서비스 통신장애"))
+            OrderSheetCommand.CouponCalculate command = fixtureMonkey.giveMeOne(OrderSheetCommand.CouponCalculate.class);
+            willThrow(new ExternalSystemUnavailableException("SERVICE_UNAVAILABLE", "쿠폰 서비스 통신 장애"))
                     .given(adaptor).calculate(any());
             //when
             //then
-            assertThatThrownBy(() -> orderCouponGateway.calculateCouponDiscount(1L, 1L, 10000L))
+            assertThatThrownBy(() -> orderCouponGateway.calculate(command))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
-                    .isEqualTo(OrderErrorCode.ORDER_COUPON_UNAVAILABLE_SERVER_ERROR);
+                    .isEqualTo(OrderSheetErrorCode.ORDER_SHEET_COUPON_UNAVAILABLE_SERVER_ERROR);
         }
     }
 }
