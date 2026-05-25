@@ -1,9 +1,9 @@
 package com.example.order_service.order.application;
 
 import com.example.order_service.order.application.dto.command.OrderSheetCommand;
-import com.example.order_service.order.application.dto.result.OrderSheetUserResult;
 import com.example.order_service.order.application.external.dto.result.OrderCouponResult;
 import com.example.order_service.order.application.external.dto.result.OrderProductResult;
+import com.example.order_service.order.application.external.dto.result.OrderUserResult;
 import com.example.order_service.order.domain.model.OrderSheet;
 import com.example.order_service.order.domain.model.OrderSheetItem;
 import com.example.order_service.order.domain.vo.*;
@@ -40,7 +40,7 @@ public class OrderSheetFactory {
      * @param ttlMinute     주문서 만료 시간
      * @return 주문서 애그리거트 루트
      */
-    public OrderSheet createSheet(OrderSheetCommand.Create command, OrderSheetUserResult.Profile userResult,
+    public OrderSheet createSheet(OrderSheetCommand.Create command, OrderUserResult.Profile userResult,
                                   OrderProductResult.ProductList productResult, OrderCouponResult.Calculate couponResult, long ttlMinute) {
         String sheetId = generateId();
         Orderer orderer = createOrderer(userResult);
@@ -50,12 +50,12 @@ public class OrderSheetFactory {
         return OrderSheet.create(sheetId, orderer, shippingAddress, sheetItems, cartCoupon, LocalDateTime.now(), ttlMinute);
     }
 
-    private Orderer createOrderer(OrderSheetUserResult.Profile profile) {
+    private Orderer createOrderer(OrderUserResult.Profile profile) {
         return Orderer.of(profile.userId(), profile.userName(), profile.phoneNumber());
     }
 
-    private ShippingAddress createShippingAddress(OrderSheetUserResult.Profile profile) {
-        OrderSheetUserResult.ShippingAddress shippingAddress = profile.shippingAddress();
+    private ShippingAddress createShippingAddress(OrderUserResult.Profile profile) {
+        OrderUserResult.ShippingAddress shippingAddress = profile.shippingAddress();
         return ShippingAddress.of(
                 shippingAddress.receiverName(), shippingAddress.receiverPhone(),
                 shippingAddress.zipCode(), shippingAddress.address(), shippingAddress.addressDetail()

@@ -7,8 +7,8 @@ import com.example.order_service.common.exception.external.ExternalServerExcepti
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
 import com.example.order_service.infrastructure.adaptor.UserAdaptor;
 import com.example.order_service.infrastructure.dto.response.UserClientResponse;
-import com.example.order_service.order.application.dto.result.OrderSheetUserResult;
-import com.example.order_service.order.application.mapper.OrderSheetUserMapper;
+import com.example.order_service.order.application.external.dto.result.OrderUserResult;
+import com.example.order_service.order.application.external.mapper.OrderUserMapper;
 import com.example.order_service.order.exception.OrderSheetErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -34,7 +34,7 @@ public class OrderUserGatewayTest {
     @Mock
     private UserAdaptor adaptor;
     @Mock
-    private OrderSheetUserMapper userMapper;
+    private OrderUserMapper userMapper;
 
     @Nested
     @DisplayName("유저 정보 조회")
@@ -46,11 +46,11 @@ public class OrderUserGatewayTest {
             //given
             Long userId = 1L;
             UserClientResponse.Profile userResponse = fixtureMonkey.giveMeOne(UserClientResponse.Profile.class);
-            OrderSheetUserResult.Profile profile = fixtureMonkey.giveMeOne(OrderSheetUserResult.Profile.class);
+            OrderUserResult.Profile profile = fixtureMonkey.giveMeOne(OrderUserResult.Profile.class);
             given(adaptor.getUserProfile(anyLong())).willReturn(userResponse);
             given(userMapper.toResult(any(UserClientResponse.Profile.class))).willReturn(profile);
             //when
-            OrderSheetUserResult.Profile userProfile = orderUserGateway.getUserProfile(userId);
+            OrderUserResult.Profile userProfile = orderUserGateway.getUserProfile(userId);
             //then
             assertThat(userProfile).isNotNull();
         }
@@ -112,11 +112,11 @@ public class OrderUserGatewayTest {
             Long userId = 1L;
             Money orderAmount = Money.wons(10000L);
             UserClientResponse.UserPoints response = fixtureMonkey.giveMeOne(UserClientResponse.UserPoints.class);
-            OrderSheetUserResult.UserPoint userPoint = fixtureMonkey.giveMeOne(OrderSheetUserResult.UserPoint.class);
+            OrderUserResult.UserPoint userPoint = fixtureMonkey.giveMeOne(OrderUserResult.UserPoint.class);
             given(adaptor.getUserPoints(anyLong(), anyLong())).willReturn(response);
             given(userMapper.toResult(any(UserClientResponse.UserPoints.class))).willReturn(userPoint);
             //when
-            OrderSheetUserResult.UserPoint result = orderUserGateway.getUserPoints(userId, orderAmount);
+            OrderUserResult.UserPoint result = orderUserGateway.getUserPoints(userId, orderAmount);
             //then
             assertThat(result).isNotNull();
         }
@@ -181,11 +181,11 @@ public class OrderUserGatewayTest {
             Money orderAmount = Money.wons(10000L);
             Money usedPoints = Money.wons(1000L);
             UserClientResponse.UserPoints response = fixtureMonkey.giveMeOne(UserClientResponse.UserPoints.class);
-            OrderSheetUserResult.UserPoint userPoint = fixtureMonkey.giveMeOne(OrderSheetUserResult.UserPoint.class);
+            OrderUserResult.UserPoint userPoint = fixtureMonkey.giveMeOne(OrderUserResult.UserPoint.class);
             given(adaptor.getUserPointsForOrder(anyLong(), anyLong(), anyLong())).willReturn(response);
             given(userMapper.toResult(any(UserClientResponse.UserPoints.class))).willReturn(userPoint);
             //when
-            OrderSheetUserResult.UserPoint result = orderUserGateway.getUserPointsForOrder(userId, orderAmount, usedPoints);
+            OrderUserResult.UserPoint result = orderUserGateway.getUserPointsForOrder(userId, orderAmount, usedPoints);
             //then
             assertThat(result).isNotNull();
         }

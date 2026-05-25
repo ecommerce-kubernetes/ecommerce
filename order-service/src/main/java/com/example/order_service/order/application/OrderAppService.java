@@ -1,5 +1,6 @@
 package com.example.order_service.order.application;
 
+import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.dto.PageDto;
 import com.example.order_service.common.exception.business.BusinessException;
 import com.example.order_service.common.exception.business.ErrorCode;
@@ -17,8 +18,14 @@ import com.example.order_service.order.application.external.OrderCouponGateway;
 import com.example.order_service.order.application.external.OrderPaymentGateway;
 import com.example.order_service.order.application.external.OrderProductGateway;
 import com.example.order_service.order.application.external.OrderUserGateway;
+import com.example.order_service.order.application.external.dto.command.OrderCouponCommand;
+import com.example.order_service.order.application.external.dto.command.OrderProductCommand;
+import com.example.order_service.order.application.external.dto.result.OrderCouponResult;
+import com.example.order_service.order.application.external.dto.result.OrderProductResult;
+import com.example.order_service.order.application.external.dto.result.OrderUserResult;
 import com.example.order_service.order.domain.model.OrderFailureCode;
 import com.example.order_service.order.domain.model.OrderSheet;
+import com.example.order_service.order.domain.model.OrderSheetItem;
 import com.example.order_service.order.domain.model.OrderStatus;
 import com.example.order_service.order.domain.model.vo.PaymentStatus;
 import com.example.order_service.order.domain.repository.OrderSheetRepository;
@@ -50,7 +57,6 @@ public class OrderAppService {
     private final ApplicationEventPublisher eventPublisher;
 
     public OrderResult.Create initialOrder(OrderCommand.Create command) {
-        //주문 시트를 조회하여 주문서 정보를 가져옴
         OrderSheet orderSheet = findOrderSheetById(command.orderSheetId());
         if (!orderSheet.isOwner(command.userId())) {
             throw new BusinessException(OrderErrorCode.ORDER_SHEET_ACCESS_DENIED);
@@ -58,11 +64,40 @@ public class OrderAppService {
         if (orderSheet.isExpired()){
             throw new BusinessException(OrderErrorCode.ORDER_SHEET_EXPIRED);
         }
+        OrderProductResult.ProductList products = getOrderedProducts(orderSheet.getItems());
+        OrderCouponResult.Calculate appliedCoupons = getAppliedCoupons(orderSheet);
+        OrderUserResult.UserPoint userPoints = getUserPoints(orderSheet);
         //주문 생성
         //saga 이벤트 시작
         return null;
     }
 
+    private OrderProductResult.ProductList getOrderedProducts(List<OrderSheetItem> items) {
+        List<OrderProductCommand.OrderItem> command = items.stream().map(item ->
+                        OrderProductCommand.OrderItem.of(item.getProductVariantId(), item.getQuantity())).toList();
+        return orderProductGateway.getProducts(command);
+    }
+
+    private OrderCouponResult.Calculate getAppliedCoupons(OrderSheet orderSheet) {
+        List<OrderCouponCommand.AppliedCouponItem> itemCouponCommand = orderSheet.getItems().stream().map(
+                item -> OrderCouponCommand.AppliedCouponItem.of(item.getProductVariantId(),
+                        item.getDiscountedPrice(),
+                        item.getQuantity(),
+                        item.getCouponId())
+        ).toList();
+        OrderCouponCommand.Calculate command = OrderCouponCommand.Calculate
+                .of(orderSheet.getOrderer().getUserId(),
+                        orderSheet.getCartCoupon().getCouponId(),
+                        itemCouponCommand);
+        return orderCouponGateway.calculate(command);
+    }
+
+    private OrderUserResult.UserPoint getUserPoints(OrderSheet orderSheet) {
+        Long userId = orderSheet.getOrderer().getUserId();
+        Money pointEligibleAmount = orderSheet.getPointEligibleAmount();
+        Money usedPoints = orderSheet.getUsedPoints();
+        return orderUserGateway.getUserPointsForOrder(userId, pointEligibleAmount, usedPoints);
+    }
 
     public void preparePayment(String orderNo) {
         OrderDto orderDto = orderService.preparePaymentWaiting(orderNo);

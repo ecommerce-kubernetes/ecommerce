@@ -1,11 +1,9 @@
-package com.example.order_service.order.application.mapper;
+package com.example.order_service.order.application.external.mapper;
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.mapper.MoneyMapper;
 import com.example.order_service.infrastructure.dto.response.ProductClientResponse;
 import com.example.order_service.order.application.external.dto.result.OrderProductResult;
-import com.example.order_service.order.application.external.mapper.OrderProductMapper;
-import com.example.order_service.order.application.external.mapper.OrderProductMapperImpl;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
@@ -14,7 +12,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class OrderSheetProductMapperTest {
+public class OrderProductMapperTest {
 
     private final MoneyMapper moneyMapper = Mappers.getMapper(MoneyMapper.class);
     private final OrderProductMapper mapper = new OrderProductMapperImpl(moneyMapper);

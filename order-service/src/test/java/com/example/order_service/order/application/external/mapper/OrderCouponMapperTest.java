@@ -1,4 +1,4 @@
-package com.example.order_service.order.application.mapper;
+package com.example.order_service.order.application.external.mapper;
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.mapper.MoneyMapper;

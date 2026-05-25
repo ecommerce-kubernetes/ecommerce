@@ -9,6 +9,7 @@ import com.example.order_service.order.application.external.OrderProductGateway;
 import com.example.order_service.order.application.external.OrderUserGateway;
 import com.example.order_service.order.application.external.dto.result.OrderCouponResult;
 import com.example.order_service.order.application.external.dto.result.OrderProductResult;
+import com.example.order_service.order.application.external.dto.result.OrderUserResult;
 import com.example.order_service.order.domain.vo.*;
 import com.example.order_service.order.domain.model.OrderSheet;
 import com.example.order_service.order.domain.model.OrderSheetItem;
@@ -69,7 +70,7 @@ public class OrderSheetAppServiceTest {
             OrderSheetCommand.Create command = createCouponAppliedCommand();
             OrderProductResult.ProductList products = createProducts();
             OrderCouponResult.Calculate coupon = createCoupon();
-            OrderSheetUserResult.Profile userProfile = createUserProfile();
+            OrderUserResult.Profile userProfile = createUserProfile();
             given(orderUserGateway.getUserProfile(any())).willReturn(userProfile);
             given(orderProductGateway.getProducts(anyList())).willReturn(products);
             given(orderCouponGateway.calculate(any())).willReturn(coupon);
@@ -89,7 +90,7 @@ public class OrderSheetAppServiceTest {
             //given
             OrderSheetCommand.Create command = createNotCouponAppliedCommand();
             OrderProductResult.ProductList products = createProducts();
-            OrderSheetUserResult.Profile userProfile = createUserProfile();
+            OrderUserResult.Profile userProfile = createUserProfile();
             given(orderUserGateway.getUserProfile(any())).willReturn(userProfile);
             given(orderProductGateway.getProducts(anyList())).willReturn(products);
             when(repository.save(any(), any())).then(returnsFirstArg());
@@ -133,15 +134,15 @@ public class OrderSheetAppServiceTest {
                     .build();
         }
 
-        private OrderSheetUserResult.Profile createUserProfile() {
-            OrderSheetUserResult.ShippingAddress shippingAddress = OrderSheetUserResult.ShippingAddress.builder()
+        private OrderUserResult.Profile createUserProfile() {
+            OrderUserResult.ShippingAddress shippingAddress = OrderUserResult.ShippingAddress.builder()
                     .receiverName("수령인")
                     .receiverPhone("010-1234-5678")
                     .zipCode("12345")
                     .address("서울시 테헤란로 123")
                     .addressDetail("123동 1234호")
                     .build();
-            return OrderSheetUserResult.Profile.builder()
+            return OrderUserResult.Profile.builder()
                     .userId(1L)
                     .userName("주문자")
                     .phoneNumber("010-1234-5678")
@@ -204,7 +205,7 @@ public class OrderSheetAppServiceTest {
         void getOrderSheet(){
             //given
             OrderSheet orderSheet = createOrderSheet();
-            OrderSheetUserResult.UserPoint point = OrderSheetUserResult.UserPoint.builder()
+            OrderUserResult.UserPoint point = OrderUserResult.UserPoint.builder()
                     .userId(1L)
                     .availablePoints(Money.wons(10000L))
                     .build();
@@ -268,7 +269,7 @@ public class OrderSheetAppServiceTest {
                     .addressDetail("321동 4321호")
                     .build();
             OrderSheet orderSheet = createOrderSheet();
-            OrderSheetUserResult.UserPoint point = OrderSheetUserResult.UserPoint.builder()
+            OrderUserResult.UserPoint point = OrderUserResult.UserPoint.builder()
                     .userId(1L)
                     .availablePoints(Money.wons(10000L))
                     .build();
@@ -387,7 +388,7 @@ public class OrderSheetAppServiceTest {
                     .userId(userId)
                     .usedPoints(Money.wons(2000L))
                     .build();
-            OrderSheetUserResult.UserPoint point = OrderSheetUserResult.UserPoint.builder()
+            OrderUserResult.UserPoint point = OrderUserResult.UserPoint.builder()
                     .userId(1L)
                     .availablePoints(Money.wons(10000L))
                     .build();
@@ -480,7 +481,7 @@ public class OrderSheetAppServiceTest {
             Long userId = 1L;
             OrderSheetCommand.UpdateItemCoupon command = OrderSheetCommand.UpdateItemCoupon.of(sheetId, sheetItemId, userId, null);
             OrderCouponResult.Calculate couponResult = createCouponNotUsedResult();
-            OrderSheetUserResult.UserPoint pointResult = createUserResult();
+            OrderUserResult.UserPoint pointResult = createUserResult();
             given(repository.findById(any())).willReturn(Optional.of(orderSheet));
             given(orderCouponGateway.calculate(any())).willReturn(couponResult);
             given(orderUserGateway.getUserPoints(any(), any())).willReturn(pointResult);
@@ -505,7 +506,7 @@ public class OrderSheetAppServiceTest {
             Long couponId = 10L;
             OrderSheetCommand.UpdateItemCoupon command = OrderSheetCommand.UpdateItemCoupon.of(sheetId, sheetItemId, userId, couponId);
             OrderCouponResult.Calculate couponResult = createCouponResult();
-            OrderSheetUserResult.UserPoint pointResult = createUserResult();
+            OrderUserResult.UserPoint pointResult = createUserResult();
             given(repository.findById(any())).willReturn(Optional.of(orderSheet));
             given(orderCouponGateway.calculate(any())).willReturn(couponResult);
             given(orderUserGateway.getUserPoints(any(), any())).willReturn(pointResult);
@@ -548,8 +549,8 @@ public class OrderSheetAppServiceTest {
                     .build();
         }
 
-        private OrderSheetUserResult.UserPoint createUserResult() {
-            return OrderSheetUserResult.UserPoint.builder()
+        private OrderUserResult.UserPoint createUserResult() {
+            return OrderUserResult.UserPoint.builder()
                     .userId(1L)
                     .ownedPoints(Money.wons(10000L))
                     .availablePoints(Money.wons(500L))
@@ -570,7 +571,7 @@ public class OrderSheetAppServiceTest {
             Long userId = 1L;
             OrderSheetCommand.UpdateCartCoupon command = OrderSheetCommand.UpdateCartCoupon.of(sheetId, userId, null);
             OrderCouponResult.Calculate couponResult = createCartCouponNotUsedResult();
-            OrderSheetUserResult.UserPoint userResult = createUserResult();
+            OrderUserResult.UserPoint userResult = createUserResult();
             given(repository.findById(any())).willReturn(Optional.of(orderSheet));
             given(orderCouponGateway.calculate(any())).willReturn(couponResult);
             given(orderUserGateway.getUserPoints(any(), any())).willReturn(userResult);
@@ -594,7 +595,7 @@ public class OrderSheetAppServiceTest {
             Long newCouponId = 10L;
             OrderSheetCommand.UpdateCartCoupon command = OrderSheetCommand.UpdateCartCoupon.of(sheetId, userId, newCouponId);
             OrderCouponResult.Calculate couponResult = createCouponResult();
-            OrderSheetUserResult.UserPoint userResult = createUserResult();
+            OrderUserResult.UserPoint userResult = createUserResult();
             given(repository.findById(any())).willReturn(Optional.of(orderSheet));
             given(orderCouponGateway.calculate(any())).willReturn(couponResult);
             given(orderUserGateway.getUserPoints(any(), any())).willReturn(userResult);
@@ -619,7 +620,7 @@ public class OrderSheetAppServiceTest {
             Long newCouponId = 10L;
             OrderSheetCommand.UpdateCartCoupon command = OrderSheetCommand.UpdateCartCoupon.of(sheetId, userId, newCouponId);
             OrderCouponResult.Calculate couponResult = createCouponResult();
-            OrderSheetUserResult.UserPoint userResult = createUserResult();
+            OrderUserResult.UserPoint userResult = createUserResult();
             given(repository.findById(any())).willReturn(Optional.of(orderSheet));
             given(orderCouponGateway.calculate(any())).willReturn(couponResult);
             given(orderUserGateway.getUserPoints(any(), any())).willReturn(userResult);
@@ -664,8 +665,8 @@ public class OrderSheetAppServiceTest {
                     .build();
         }
 
-        private OrderSheetUserResult.UserPoint createUserResult() {
-            return OrderSheetUserResult.UserPoint.builder()
+        private OrderUserResult.UserPoint createUserResult() {
+            return OrderUserResult.UserPoint.builder()
                     .userId(1L)
                     .ownedPoints(Money.wons(10000L))
                     .availablePoints(Money.wons(500L))

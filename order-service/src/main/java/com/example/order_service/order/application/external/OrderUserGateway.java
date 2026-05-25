@@ -7,8 +7,8 @@ import com.example.order_service.common.exception.external.ExternalServerExcepti
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
 import com.example.order_service.infrastructure.adaptor.UserAdaptor;
 import com.example.order_service.infrastructure.dto.response.UserClientResponse;
-import com.example.order_service.order.application.dto.result.OrderSheetUserResult;
-import com.example.order_service.order.application.mapper.OrderSheetUserMapper;
+import com.example.order_service.order.application.external.dto.result.OrderUserResult;
+import com.example.order_service.order.application.external.mapper.OrderUserMapper;
 import com.example.order_service.order.exception.OrderSheetErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -27,7 +27,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class OrderUserGateway {
     private final UserAdaptor userAdaptor;
-    private final OrderSheetUserMapper mapper;
+    private final OrderUserMapper mapper;
 
     /**
      * 유저 도메인에 유저 프로필 정보(유저 기본정보, 유저 배송 정보)를 조회
@@ -35,7 +35,7 @@ public class OrderUserGateway {
      * @param userId 조회 대상 유저 아이디
      * @return 유저 기본정보, 배송 정보 결과 반환
      */
-    public OrderSheetUserResult.Profile getUserProfile(Long userId) {
+    public OrderUserResult.Profile getUserProfile(Long userId) {
         UserClientResponse.Profile profile = fetchUserProfileWithTranslation(userId);
         return mapper.toResult(profile);
     }
@@ -48,7 +48,7 @@ public class OrderUserGateway {
      * @return 포인트 잔액, 적용 가능 포인트
      * @throws BusinessException 유저 도메인 통신중 발생한 예외를 비지니스 예외로 변환
      */
-    public OrderSheetUserResult.UserPoint getUserPoints(Long userId, Money orderAmount) {
+    public OrderUserResult.UserPoint getUserPoints(Long userId, Money orderAmount) {
         UserClientResponse.UserPoints userPoints = fetchUserPointsWithTranslation(userId, orderAmount.longValue());
         return mapper.toResult(userPoints);
     }
@@ -74,7 +74,7 @@ public class OrderUserGateway {
      * @return 포인트 잔액, 적용 가능 포인트
      * @throws BusinessException 유저 도메인 통신중 발생한 예외를 비지니스 예외로 변환
      */
-    public OrderSheetUserResult.UserPoint getUserPointsForOrder(Long userId, Money orderAmount, Money usedPoints) {
+    public OrderUserResult.UserPoint getUserPointsForOrder(Long userId, Money orderAmount, Money usedPoints) {
         UserClientResponse.UserPoints userPoints = fetchUserPointsForOrderWithTranslation(userId, orderAmount.longValue(), usedPoints.longValue());
         return mapper.toResult(userPoints);
     }
