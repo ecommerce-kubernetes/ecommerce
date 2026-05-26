@@ -5,6 +5,7 @@ import com.example.order_service.order.api.dto.request.OrderSearchCondition;
 import com.example.order_service.order.domain.model.Order;
 import com.example.order_service.order.domain.model.OrderFailureCode;
 import com.example.order_service.order.domain.repository.OrderRepository;
+import com.example.order_service.order.domain.service.dto.command.OrderContext;
 import com.example.order_service.order.domain.service.dto.command.OrderCreationContext;
 import com.example.order_service.order.domain.service.dto.command.PaymentCreationContext;
 import com.example.order_service.order.domain.service.dto.result.OrderDto;
@@ -29,6 +30,10 @@ public class OrderService {
         Order order = Order.create(context);
         Order savedOrder = orderRepository.save(order);
         return OrderDto.from(savedOrder);
+    }
+
+    public OrderDto saveOrder(OrderContext.CreateOrderContext context) {
+        return null;
     }
 
     @Transactional(readOnly = true)

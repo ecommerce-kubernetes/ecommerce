@@ -1,7 +1,6 @@
 package com.example.order_service.order.domain.repository;
 
 import com.example.order_service.common.domain.vo.Money;
-import com.example.order_service.order.domain.repository.OrderSheetRepository;
 import com.example.order_service.order.domain.vo.*;
 import com.example.order_service.order.domain.model.OrderSheet;
 import com.example.order_service.order.domain.model.OrderSheetItem;
@@ -100,17 +99,17 @@ class OrderSheetRepositoryTest {
         return OrderCouponSnapshot.of(1L, "1000원 할인 쿠폰", Money.wons(1000L));
     }
 
-    private OrderSheetItemProductSnapshot createProductSnapshot() {
-        return OrderSheetItemProductSnapshot.of(
+    private ProductSnapshot createProductSnapshot() {
+        return ProductSnapshot.of(
                 1L, 1L, "PROD_XL", "테스트 상품", "/product/product/thumbnail"
         );
     }
 
-    private OrderSheetItemPriceSnapshot createPriceSnapshot(){
-        return OrderSheetItemPriceSnapshot.of(Money.wons(10000L), 10, Money.wons(1000L), Money.wons(9000L));
+    private ProductPriceSnapshot createPriceSnapshot(){
+        return ProductPriceSnapshot.of(Money.wons(10000L), 10, Money.wons(1000L), Money.wons(9000L));
     }
 
-    private OrderSheetItemOptionSnapshot createProductOptionSnapshot() {
-        return OrderSheetItemOptionSnapshot.of("사이즈", "XL");
+    private ProductOptionSnapshot createProductOptionSnapshot() {
+        return ProductOptionSnapshot.of("사이즈", "XL");
     }
 }

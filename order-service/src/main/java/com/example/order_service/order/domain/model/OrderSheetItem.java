@@ -3,9 +3,9 @@ package com.example.order_service.order.domain.model;
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.domain.InvalidDomainValueException;
 import com.example.order_service.order.domain.vo.OrderCouponSnapshot;
-import com.example.order_service.order.domain.vo.OrderSheetItemOptionSnapshot;
-import com.example.order_service.order.domain.vo.OrderSheetItemPriceSnapshot;
-import com.example.order_service.order.domain.vo.OrderSheetItemProductSnapshot;
+import com.example.order_service.order.domain.vo.ProductOptionSnapshot;
+import com.example.order_service.order.domain.vo.ProductPriceSnapshot;
+import com.example.order_service.order.domain.vo.ProductSnapshot;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -23,14 +23,14 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class OrderSheetItem {
     private String sheetItemId;
-    private OrderSheetItemProductSnapshot productSnapshot;
-    private OrderSheetItemPriceSnapshot itemPrice;
+    private ProductSnapshot productSnapshot;
+    private ProductPriceSnapshot itemPrice;
     private OrderCouponSnapshot itemCoupon;
     private Integer quantity;
-    private List<OrderSheetItemOptionSnapshot> options;
+    private List<ProductOptionSnapshot> options;
 
     @Builder(builderMethodName = "reconstitute")
-    private OrderSheetItem(String sheetItemId, OrderSheetItemProductSnapshot productSnapshot, OrderSheetItemPriceSnapshot itemPrice, OrderCouponSnapshot itemCoupon, Integer quantity, List<OrderSheetItemOptionSnapshot> options) {
+    private OrderSheetItem(String sheetItemId, ProductSnapshot productSnapshot, ProductPriceSnapshot itemPrice, OrderCouponSnapshot itemCoupon, Integer quantity, List<ProductOptionSnapshot> options) {
         this.sheetItemId = sheetItemId;
         this.productSnapshot = productSnapshot;
         this.itemPrice = itemPrice;
@@ -52,8 +52,8 @@ public class OrderSheetItem {
      * @param options 상품 옵션
      * @return 주문 상품 도메인
      */
-    public static OrderSheetItem create(String sheetItemId, OrderSheetItemProductSnapshot productSnapshot, OrderSheetItemPriceSnapshot itemPrice,
-                                        OrderCouponSnapshot coupon, Integer quantity, List<OrderSheetItemOptionSnapshot> options) {
+    public static OrderSheetItem create(String sheetItemId, ProductSnapshot productSnapshot, ProductPriceSnapshot itemPrice,
+                                        OrderCouponSnapshot coupon, Integer quantity, List<ProductOptionSnapshot> options) {
         if (quantity == null || quantity <= 0) {
             throw new InvalidDomainValueException("OrderSheet 상품 주문 수량은 필수입니다");
         }

@@ -80,21 +80,21 @@ public class OrderSheetFactory {
         Long orderedVariantId = command.productVariantId();
         String sheetItemId = generateId();
         OrderProductResult.Info product = productsMap.get(orderedVariantId);
-        OrderSheetItemProductSnapshot productSnapshot = OrderSheetItemProductSnapshot.of(product.productId(),
+        ProductSnapshot productSnapshot = ProductSnapshot.of(product.productId(),
                 product.productVariantId(), product.sku(), product.productName(), product.thumbnail());
-        OrderSheetItemPriceSnapshot priceSnapshot = OrderSheetItemPriceSnapshot.of(
+        ProductPriceSnapshot priceSnapshot = ProductPriceSnapshot.of(
                 product.originalPrice(), product.discountRate(), product.discountAmount(), product.discountedPrice());
-        List<OrderSheetItemOptionSnapshot> optionSnapshots = createOptions(product.options());
+        List<ProductOptionSnapshot> optionSnapshots = createOptions(product.options());
         OrderCouponSnapshot couponSnapshot = createItemCoupon(itemCouponMap.get(orderedVariantId));
         return OrderSheetItem.create(sheetItemId, productSnapshot, priceSnapshot, couponSnapshot, command.quantity(), optionSnapshots);
     }
 
-    private List<OrderSheetItemOptionSnapshot> createOptions(List<OrderProductResult.Option> options) {
+    private List<ProductOptionSnapshot> createOptions(List<OrderProductResult.Option> options) {
         if (options == null || options.isEmpty()) {
             return Collections.emptyList();
         }
         return options.stream().map(option ->
-                OrderSheetItemOptionSnapshot.of(option.optionTypeName(), option.optionValueName())).toList();
+                ProductOptionSnapshot.of(option.optionTypeName(), option.optionValueName())).toList();
     }
 
     private String generateId() {

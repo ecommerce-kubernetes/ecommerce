@@ -23,13 +23,16 @@ import com.example.order_service.order.application.external.dto.command.OrderPro
 import com.example.order_service.order.application.external.dto.result.OrderCouponResult;
 import com.example.order_service.order.application.external.dto.result.OrderProductResult;
 import com.example.order_service.order.application.external.dto.result.OrderUserResult;
+import com.example.order_service.order.application.mapper.OrderMapper;
 import com.example.order_service.order.domain.model.OrderFailureCode;
 import com.example.order_service.order.domain.model.OrderSheet;
 import com.example.order_service.order.domain.model.OrderSheetItem;
 import com.example.order_service.order.domain.model.OrderStatus;
 import com.example.order_service.order.domain.model.vo.PaymentStatus;
+import com.example.order_service.order.domain.policy.PointUsagePolicy;
 import com.example.order_service.order.domain.repository.OrderSheetRepository;
 import com.example.order_service.order.domain.service.OrderService;
+import com.example.order_service.order.domain.service.dto.command.OrderContext;
 import com.example.order_service.order.domain.service.dto.command.PaymentCreationContext;
 import com.example.order_service.order.domain.service.dto.result.OrderDto;
 import com.example.order_service.order.exception.OrderErrorCode;
@@ -47,6 +50,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class OrderAppService {
 
+    private final OrderValidator validator;
+    private final OrderMapper orderMapper;
+    private final PointUsagePolicy pointPolicy;
     private final OrderUserGateway orderUserGateway;
     private final OrderProductGateway orderProductGateway;
     private final OrderPaymentGateway orderPaymentGateway;
@@ -67,9 +73,10 @@ public class OrderAppService {
         OrderProductResult.ProductList products = getOrderedProducts(orderSheet.getItems());
         OrderCouponResult.Calculate appliedCoupons = getAppliedCoupons(orderSheet);
         OrderUserResult.UserPoint userPoints = getUserPoints(orderSheet);
-        //주문 생성
-        //saga 이벤트 시작
-        return null;
+        validator.validate(orderSheet, products, appliedCoupons, userPoints, pointPolicy);
+        OrderContext.CreateOrderContext context = orderMapper.toContext(orderSheet);
+        OrderDto orderDto = orderService.saveOrder(context);
+        return orderMapper.toResult(orderDto);
     }
 
     private OrderProductResult.ProductList getOrderedProducts(List<OrderSheetItem> items) {

@@ -172,7 +172,7 @@ public class OrderSheetResult {
             Money discountAmount,
             Money discountedPrice
     ) {
-        public static OrderItemPrice from(OrderSheetItemPriceSnapshot price) {
+        public static OrderItemPrice from(ProductPriceSnapshot price) {
             return OrderItemPrice.builder()
                     .originalPrice(price.getOriginalPrice())
                     .discountRate(price.getDiscountRate())
@@ -187,14 +187,14 @@ public class OrderSheetResult {
             String optionTypeName,
             String optionValueName
     ) {
-        public static OrderItemOption from(OrderSheetItemOptionSnapshot option) {
+        public static OrderItemOption from(ProductOptionSnapshot option) {
             return OrderItemOption.builder()
                     .optionTypeName(option.getOptionTypeName())
                     .optionValueName(option.getOptionValueName())
                     .build();
         }
 
-        public static List<OrderItemOption> from(List<OrderSheetItemOptionSnapshot> options) {
+        public static List<OrderItemOption> from(List<ProductOptionSnapshot> options) {
             return options.stream().map(OrderItemOption::from).toList();
         }
     }

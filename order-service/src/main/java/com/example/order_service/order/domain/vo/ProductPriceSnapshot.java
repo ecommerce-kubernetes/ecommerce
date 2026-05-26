@@ -8,21 +8,21 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class OrderSheetItemPriceSnapshot {
+public class ProductPriceSnapshot {
     private Money originalPrice;
     private Integer discountRate;
     private Money discountAmount;
     private Money discountedPrice;
 
     @Builder(builderMethodName = "reconstitute")
-    private OrderSheetItemPriceSnapshot(Money originalPrice, Integer discountRate, Money discountAmount, Money discountedPrice) {
+    private ProductPriceSnapshot(Money originalPrice, Integer discountRate, Money discountAmount, Money discountedPrice) {
         this.originalPrice = originalPrice;
         this.discountRate = discountRate;
         this.discountAmount = discountAmount;
         this.discountedPrice =discountedPrice;
     }
 
-    public static OrderSheetItemPriceSnapshot of(Money originalPrice, Integer discountRate, Money discountAmount, Money discountedPrice) {
-        return new OrderSheetItemPriceSnapshot(originalPrice, discountRate, discountAmount, discountedPrice);
+    public static ProductPriceSnapshot of(Money originalPrice, Integer discountRate, Money discountAmount, Money discountedPrice) {
+        return new ProductPriceSnapshot(originalPrice, discountRate, discountAmount, discountedPrice);
     }
 }

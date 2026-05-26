@@ -676,13 +676,13 @@ public class OrderSheetAppServiceTest {
     private OrderSheet createOrderSheet() {
         Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
         ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678", "12345", "서울시 테헤란로 123", "123동 1234호");
-        OrderSheetItemProductSnapshot product = OrderSheetItemProductSnapshot.of(1L, 1L, "PROD1-XL-BLUE", "청바지", "/product/product/jean_1.jpg");
-        OrderSheetItemPriceSnapshot price = OrderSheetItemPriceSnapshot.of(Money.wons(10000L), 10, Money.wons(1000L), Money.wons(9000L));
+        ProductSnapshot product = ProductSnapshot.of(1L, 1L, "PROD1-XL-BLUE", "청바지", "/product/product/jean_1.jpg");
+        ProductPriceSnapshot price = ProductPriceSnapshot.of(Money.wons(10000L), 10, Money.wons(1000L), Money.wons(9000L));
         OrderCouponSnapshot itemCoupon = OrderCouponSnapshot.of(1L, "하의 1000원 쿠폰", Money.wons(1000L));
         OrderCouponSnapshot cartCoupon = OrderCouponSnapshot.of(2L, "첫구매 1000원 할인 쿠폰", Money.wons(1000L));
-        List<OrderSheetItemOptionSnapshot> options = List.of(
-                OrderSheetItemOptionSnapshot.of("사이즈", "XL"),
-                OrderSheetItemOptionSnapshot.of("색상", "BLUE")
+        List<ProductOptionSnapshot> options = List.of(
+                ProductOptionSnapshot.of("사이즈", "XL"),
+                ProductOptionSnapshot.of("색상", "BLUE")
         );
         OrderSheetItem sheetItem = OrderSheetItem.create("sheetItemId", product, price, itemCoupon, 1, options);
         return OrderSheet.create("sheetId", orderer, shippingAddress, List.of(sheetItem), cartCoupon, LocalDateTime.now(), 30);

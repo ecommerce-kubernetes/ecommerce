@@ -7,17 +7,17 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class OrderSheetItemOptionSnapshot {
+public class ProductOptionSnapshot {
     private String optionTypeName;
     private String optionValueName;
 
     @Builder(builderMethodName = "reconstitute")
-    private OrderSheetItemOptionSnapshot(String optionTypeName, String optionValueName) {
+    private ProductOptionSnapshot(String optionTypeName, String optionValueName) {
         this.optionTypeName = optionTypeName;
         this.optionValueName = optionValueName;
     }
 
-    public static OrderSheetItemOptionSnapshot of(String optionTypeName, String optionValueName) {
-        return new OrderSheetItemOptionSnapshot(optionTypeName, optionValueName);
+    public static ProductOptionSnapshot of(String optionTypeName, String optionValueName) {
+        return new ProductOptionSnapshot(optionTypeName, optionValueName);
     }
 }

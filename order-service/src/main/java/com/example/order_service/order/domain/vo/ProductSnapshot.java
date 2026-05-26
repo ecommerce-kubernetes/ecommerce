@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class OrderSheetItemProductSnapshot {
+public class ProductSnapshot {
     private Long productId;
     private Long productVariantId;
     private String sku;
@@ -15,7 +15,7 @@ public class OrderSheetItemProductSnapshot {
     private String thumbnail;
 
     @Builder(builderMethodName = "reconstitute")
-    private OrderSheetItemProductSnapshot(Long productId, Long productVariantId, String sku, String productName, String thumbnail) {
+    private ProductSnapshot(Long productId, Long productVariantId, String sku, String productName, String thumbnail) {
         this.productId = productId;
         this.productVariantId = productVariantId;
         this.sku = sku;
@@ -23,7 +23,7 @@ public class OrderSheetItemProductSnapshot {
         this.thumbnail = thumbnail;
     }
 
-    public static OrderSheetItemProductSnapshot of(Long productId, Long productVariantId, String sku, String productName, String thumbnail) {
-        return new OrderSheetItemProductSnapshot(productId, productVariantId, sku, productName, thumbnail);
+    public static ProductSnapshot of(Long productId, Long productVariantId, String sku, String productName, String thumbnail) {
+        return new ProductSnapshot(productId, productVariantId, sku, productName, thumbnail);
     }
 }

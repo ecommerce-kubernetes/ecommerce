@@ -1,11 +1,13 @@
 package com.example.order_service.order.application;
 
+import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.business.BusinessException;
 import com.example.order_service.order.application.external.dto.result.OrderCouponResult;
 import com.example.order_service.order.application.external.dto.result.OrderProductResult;
 import com.example.order_service.order.application.external.dto.result.OrderUserResult;
 import com.example.order_service.order.domain.model.OrderSheet;
 import com.example.order_service.order.domain.model.OrderSheetItem;
+import com.example.order_service.order.domain.policy.PointUsagePolicy;
 import com.example.order_service.order.exception.OrderErrorCode;
 import org.springframework.stereotype.Component;
 
@@ -17,10 +19,11 @@ public class OrderValidator {
     public void validate(OrderSheet orderSheet,
                          OrderProductResult.ProductList products,
                          OrderCouponResult.Calculate coupon,
-                         OrderUserResult.UserPoint userPoint) {
+                         OrderUserResult.UserPoint userPoint,
+                         PointUsagePolicy pointPolicy) {
         validateOrderProducts(orderSheet, products);
         validateCoupons(orderSheet, coupon);
-        validateUserPoints(orderSheet, userPoint);
+        validateUserPoints(orderSheet, userPoint, pointPolicy);
     }
 
     private void validateOrderProducts(OrderSheet orderSheet, OrderProductResult.ProductList products) {
@@ -48,6 +51,10 @@ public class OrderValidator {
         }
     }
 
-    private void validateUserPoints(OrderSheet orderSheet, OrderUserResult.UserPoint points) {
+    private void validateUserPoints(OrderSheet orderSheet, OrderUserResult.UserPoint points, PointUsagePolicy pointPolicy) {
+        Money availablePoints = orderSheet.calcAvailablePoints(points.ownedPoints(), pointPolicy);
+        if (orderSheet.getUsedPoints().isGreaterThan(availablePoints)) {
+            throw new BusinessException(OrderErrorCode.POINTS_DISCOUNT_CHANGE);
+        }
     }
 }

@@ -217,8 +217,7 @@ public class OrderSheetAppService {
     public OrderSheetResult.Detail updateCartCoupon(OrderSheetCommand.UpdateCartCoupon command) {
         OrderSheet orderSheet = getValidateOrderSheet(command.sheetId(), command.userId());
         OrderCouponSnapshot newCartCouponSnapshot = getNewCartCouponSnapshot(orderSheet, command.couponId());
-        OrderUserResult.UserPoint userPoints =
-                orderSheetUserGateway.getUserPoints(orderSheet.getOrderer().getUserId());
+        OrderUserResult.UserPoint userPoints = orderSheetUserGateway.getUserPoints(orderSheet.getOrderer().getUserId());
         // [NOTE] 장바구니 쿠폰 변경으로 인해 적용된 포인트가 사용 가능 포인트를 초과되는 경우 사용 가능 포인트로 조정됨
         orderSheet.changeCartCoupon(newCartCouponSnapshot, userPoints.ownedPoints(), pointUsagePolicy);
         Money availablePoints = orderSheet.calcAvailablePoints(userPoints.ownedPoints(), pointUsagePolicy);

@@ -3,12 +3,9 @@ package com.example.order_service.order.infrastructure.persistence;
 import com.example.order_service.common.mapper.MoneyMapper;
 import com.example.order_service.order.domain.model.OrderSheet;
 import com.example.order_service.order.domain.model.OrderSheetItem;
-import com.example.order_service.order.domain.vo.OrderCouponSnapshot;
-import com.example.order_service.order.domain.vo.OrderSheetItemOptionSnapshot;
-import com.example.order_service.order.domain.vo.OrderSheetItemPriceSnapshot;
-import com.example.order_service.order.domain.vo.OrderSheetItemProductSnapshot;
-import com.example.order_service.order.domain.vo.Orderer;
-import com.example.order_service.order.domain.vo.ShippingAddress;
+import com.example.order_service.order.domain.vo.*;
+import com.example.order_service.order.domain.vo.ProductOptionSnapshot;
+
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.processing.Generated;
@@ -233,71 +230,71 @@ class OrderSheetRedisMapperImpl implements OrderSheetRedisMapper {
         return orderCouponSnapshot.build();
     }
 
-    protected OrderSheetRedisEntity.PriceSnapshotRedisEntity orderSheetItemPriceSnapshotToPriceSnapshotRedisEntity(OrderSheetItemPriceSnapshot orderSheetItemPriceSnapshot) {
-        if ( orderSheetItemPriceSnapshot == null ) {
+    protected OrderSheetRedisEntity.PriceSnapshotRedisEntity orderSheetItemPriceSnapshotToPriceSnapshotRedisEntity(ProductPriceSnapshot productPriceSnapshot) {
+        if ( productPriceSnapshot == null ) {
             return null;
         }
 
         OrderSheetRedisEntity.PriceSnapshotRedisEntity.PriceSnapshotRedisEntityBuilder priceSnapshotRedisEntity = OrderSheetRedisEntity.PriceSnapshotRedisEntity.builder();
 
-        priceSnapshotRedisEntity.originalPrice( moneyMapper.toLong( orderSheetItemPriceSnapshot.getOriginalPrice() ) );
-        if ( orderSheetItemPriceSnapshot.getDiscountRate() != null ) {
-            priceSnapshotRedisEntity.discountRate( orderSheetItemPriceSnapshot.getDiscountRate() );
+        priceSnapshotRedisEntity.originalPrice( moneyMapper.toLong( productPriceSnapshot.getOriginalPrice() ) );
+        if ( productPriceSnapshot.getDiscountRate() != null ) {
+            priceSnapshotRedisEntity.discountRate( productPriceSnapshot.getDiscountRate() );
         }
-        priceSnapshotRedisEntity.discountAmount( moneyMapper.toLong( orderSheetItemPriceSnapshot.getDiscountAmount() ) );
-        priceSnapshotRedisEntity.discountedPrice( moneyMapper.toLong( orderSheetItemPriceSnapshot.getDiscountedPrice() ) );
+        priceSnapshotRedisEntity.discountAmount( moneyMapper.toLong( productPriceSnapshot.getDiscountAmount() ) );
+        priceSnapshotRedisEntity.discountedPrice( moneyMapper.toLong( productPriceSnapshot.getDiscountedPrice() ) );
 
         return priceSnapshotRedisEntity.build();
     }
 
-    protected OrderSheetRedisEntity.ProductSnapshotRedisEntity orderSheetItemProductSnapshotToProductSnapshotRedisEntity(OrderSheetItemProductSnapshot orderSheetItemProductSnapshot) {
-        if ( orderSheetItemProductSnapshot == null ) {
+    protected OrderSheetRedisEntity.ProductSnapshotRedisEntity orderSheetItemProductSnapshotToProductSnapshotRedisEntity(ProductSnapshot productSnapshot) {
+        if ( productSnapshot == null ) {
             return null;
         }
 
         OrderSheetRedisEntity.ProductSnapshotRedisEntity.ProductSnapshotRedisEntityBuilder productSnapshotRedisEntity = OrderSheetRedisEntity.ProductSnapshotRedisEntity.builder();
 
-        productSnapshotRedisEntity.productId( orderSheetItemProductSnapshot.getProductId() );
-        productSnapshotRedisEntity.productVariantId( orderSheetItemProductSnapshot.getProductVariantId() );
-        productSnapshotRedisEntity.sku( orderSheetItemProductSnapshot.getSku() );
-        productSnapshotRedisEntity.productName( orderSheetItemProductSnapshot.getProductName() );
-        productSnapshotRedisEntity.thumbnail( orderSheetItemProductSnapshot.getThumbnail() );
+        productSnapshotRedisEntity.productId( productSnapshot.getProductId() );
+        productSnapshotRedisEntity.productVariantId( productSnapshot.getProductVariantId() );
+        productSnapshotRedisEntity.sku( productSnapshot.getSku() );
+        productSnapshotRedisEntity.productName( productSnapshot.getProductName() );
+        productSnapshotRedisEntity.thumbnail( productSnapshot.getThumbnail() );
 
         return productSnapshotRedisEntity.build();
     }
 
-    protected OrderSheetRedisEntity.OptionSnapshot orderSheetItemOptionSnapshotToOptionSnapshot(OrderSheetItemOptionSnapshot orderSheetItemOptionSnapshot) {
-        if ( orderSheetItemOptionSnapshot == null ) {
+    protected OrderSheetRedisEntity.OptionSnapshot orderSheetItemOptionSnapshotToOptionSnapshot(ProductOptionSnapshot productOptionSnapshot) {
+        if ( productOptionSnapshot == null ) {
             return null;
         }
 
         OrderSheetRedisEntity.OptionSnapshot.OptionSnapshotBuilder optionSnapshot = OrderSheetRedisEntity.OptionSnapshot.builder();
 
-        optionSnapshot.optionTypeName( orderSheetItemOptionSnapshot.getOptionTypeName() );
-        optionSnapshot.optionValueName( orderSheetItemOptionSnapshot.getOptionValueName() );
+        optionSnapshot.optionTypeName( productOptionSnapshot.getOptionTypeName() );
+        optionSnapshot.optionValueName( productOptionSnapshot.getOptionValueName() );
 
         return optionSnapshot.build();
     }
 
-    protected List<OrderSheetRedisEntity.OptionSnapshot> orderSheetItemOptionSnapshotListToOptionSnapshotList(List<OrderSheetItemOptionSnapshot> list) {
+    protected List<OrderSheetRedisEntity.OptionSnapshot> orderSheetItemOptionSnapshotListToOptionSnapshotList(List<ProductOptionSnapshot> list) {
         if ( list == null ) {
             return null;
         }
 
         List<OrderSheetRedisEntity.OptionSnapshot> list1 = new ArrayList<OrderSheetRedisEntity.OptionSnapshot>( list.size() );
-        for ( OrderSheetItemOptionSnapshot orderSheetItemOptionSnapshot : list ) {
-            list1.add( orderSheetItemOptionSnapshotToOptionSnapshot( orderSheetItemOptionSnapshot ) );
+        for ( ProductOptionSnapshot productOptionSnapshot : list ) {
+            list1.add( orderSheetItemOptionSnapshotToOptionSnapshot(productOptionSnapshot) );
         }
 
         return list1;
     }
 
-    protected OrderSheetItemPriceSnapshot priceSnapshotRedisEntityToOrderSheetItemPriceSnapshot(OrderSheetRedisEntity.PriceSnapshotRedisEntity priceSnapshotRedisEntity) {
+    protected ProductPriceSnapshot priceSnapshotRedisEntityToOrderSheetItemPriceSnapshot(OrderSheetRedisEntity.PriceSnapshotRedisEntity priceSnapshotRedisEntity) {
         if ( priceSnapshotRedisEntity == null ) {
             return null;
         }
 
-        OrderSheetItemPriceSnapshot.OrderSheetItemPriceSnapshotBuilder orderSheetItemPriceSnapshot = OrderSheetItemPriceSnapshot.reconstitute();
+        ProductPriceSnapshot.OrderSheetItemPriceSnapshotBuilder orderSheetItemPriceSnapshot = ProductPriceSnapshot.reconstitute();
 
         orderSheetItemPriceSnapshot.originalPrice( moneyMapper.toMoney( priceSnapshotRedisEntity.getOriginalPrice() ) );
         orderSheetItemPriceSnapshot.discountRate( priceSnapshotRedisEntity.getDiscountRate() );
@@ -307,12 +304,12 @@ class OrderSheetRedisMapperImpl implements OrderSheetRedisMapper {
         return orderSheetItemPriceSnapshot.build();
     }
 
-    protected OrderSheetItemProductSnapshot productSnapshotRedisEntityToOrderSheetItemProductSnapshot(OrderSheetRedisEntity.ProductSnapshotRedisEntity productSnapshotRedisEntity) {
+    protected ProductSnapshot productSnapshotRedisEntityToOrderSheetItemProductSnapshot(OrderSheetRedisEntity.ProductSnapshotRedisEntity productSnapshotRedisEntity) {
         if ( productSnapshotRedisEntity == null ) {
             return null;
         }
 
-        OrderSheetItemProductSnapshot.OrderSheetItemProductSnapshotBuilder orderSheetItemProductSnapshot = OrderSheetItemProductSnapshot.reconstitute();
+        ProductSnapshot.OrderSheetItemProductSnapshotBuilder orderSheetItemProductSnapshot = ProductSnapshot.reconstitute();
 
         orderSheetItemProductSnapshot.productId( productSnapshotRedisEntity.getProductId() );
         orderSheetItemProductSnapshot.productVariantId( productSnapshotRedisEntity.getProductVariantId() );
@@ -323,12 +320,12 @@ class OrderSheetRedisMapperImpl implements OrderSheetRedisMapper {
         return orderSheetItemProductSnapshot.build();
     }
 
-    protected OrderSheetItemOptionSnapshot optionSnapshotToOrderSheetItemOptionSnapshot(OrderSheetRedisEntity.OptionSnapshot optionSnapshot) {
+    protected ProductOptionSnapshot optionSnapshotToOrderSheetItemOptionSnapshot(OrderSheetRedisEntity.OptionSnapshot optionSnapshot) {
         if ( optionSnapshot == null ) {
             return null;
         }
 
-        OrderSheetItemOptionSnapshot.OrderSheetItemOptionSnapshotBuilder orderSheetItemOptionSnapshot = OrderSheetItemOptionSnapshot.reconstitute();
+        ProductOptionSnapshot.OrderSheetItemOptionSnapshotBuilder orderSheetItemOptionSnapshot = ProductOptionSnapshot.reconstitute();
 
         orderSheetItemOptionSnapshot.optionTypeName( optionSnapshot.getOptionTypeName() );
         orderSheetItemOptionSnapshot.optionValueName( optionSnapshot.getOptionValueName() );
@@ -336,12 +333,12 @@ class OrderSheetRedisMapperImpl implements OrderSheetRedisMapper {
         return orderSheetItemOptionSnapshot.build();
     }
 
-    protected List<OrderSheetItemOptionSnapshot> optionSnapshotListToOrderSheetItemOptionSnapshotList(List<OrderSheetRedisEntity.OptionSnapshot> list) {
+    protected List<ProductOptionSnapshot> optionSnapshotListToOrderSheetItemOptionSnapshotList(List<OrderSheetRedisEntity.OptionSnapshot> list) {
         if ( list == null ) {
             return null;
         }
 
-        List<OrderSheetItemOptionSnapshot> list1 = new ArrayList<OrderSheetItemOptionSnapshot>( list.size() );
+        List<ProductOptionSnapshot> list1 = new ArrayList<ProductOptionSnapshot>( list.size() );
         for ( OrderSheetRedisEntity.OptionSnapshot optionSnapshot : list ) {
             list1.add( optionSnapshotToOrderSheetItemOptionSnapshot( optionSnapshot ) );
         }
