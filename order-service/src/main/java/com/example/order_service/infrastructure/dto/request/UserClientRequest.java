@@ -6,12 +6,10 @@ public class UserClientRequest {
 
     @Builder
     public record ValidatePoints(
-            Long orderAmount,
             Long usedPoints
     ) {
-        public static ValidatePoints of(Long orderAmount, Long usedPoints) {
+        public static ValidatePoints of(Long usedPoints) {
             return ValidatePoints.builder()
-                    .orderAmount(orderAmount)
                     .usedPoints(usedPoints)
                     .build();
         }

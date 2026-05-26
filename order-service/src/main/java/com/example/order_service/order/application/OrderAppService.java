@@ -94,9 +94,8 @@ public class OrderAppService {
 
     private OrderUserResult.UserPoint getUserPoints(OrderSheet orderSheet) {
         Long userId = orderSheet.getOrderer().getUserId();
-        Money pointEligibleAmount = orderSheet.getPointEligibleAmount();
         Money usedPoints = orderSheet.getUsedPoints();
-        return orderUserGateway.getUserPointsForOrder(userId, pointEligibleAmount, usedPoints);
+        return orderUserGateway.getUserPointsForOrder(userId, usedPoints);
     }
 
     public void preparePayment(String orderNo) {

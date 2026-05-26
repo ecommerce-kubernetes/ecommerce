@@ -2,6 +2,7 @@ package com.example.order_service.order.domain.model;
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.domain.InvalidDomainValueException;
+import com.example.order_service.order.domain.policy.PointUsagePolicy;
 import com.example.order_service.order.domain.vo.OrderCouponSnapshot;
 import com.example.order_service.order.domain.vo.Orderer;
 import com.example.order_service.order.domain.vo.ShippingAddress;
@@ -192,7 +193,7 @@ public class OrderSheet {
      * @throws InvalidDomainValueException 도메인 계층 예외
      */
     public void changeUsedPoints(Money usedPoints) {
-        Money eligibleAmount = getPointEligibleAmount();
+        Money eligibleAmount = calcPointEligibleAmount(this.items, this.cartCoupon);
         if (usedPoints.isGreaterThan(eligibleAmount)) {
             throw new InvalidDomainValueException("적용 포인트가 주문 결제 대상 금액을 초과할 수 없습니다");
         }
@@ -218,46 +219,19 @@ public class OrderSheet {
     }
 
     /**
-     * 상품 쿠폰 적용 후 포인트 사용 전 예상 주문 금액 반환
+     * 사용 가능한 포인트를 반환
      * <p>
-     * sheetItemId 주문 상품을 itemCouponSnapshot 을 적용했을 때의
-     * 포인트 사용 전 예상 주문 금액을 반환한다
+     * 주문에 사용할 수 있는 최대 포인트를 반환한다
      * </p>
      *
-     * @param sheetItemId        주문 상품 아이디
-     * @param itemCouponSnapshot 쿠폰 정보
-     * @return 포인트 사용 전 예상 주문 금액
+     * @param ownedPoints 보유 포인트
+     * @param pointPolicy 포인트 정책
+     * @return 사용할 수 있는 최대 포인트
      */
-    public Money calcEstimatedPointEligibleAmount(String sheetItemId, OrderCouponSnapshot itemCouponSnapshot) {
-        Money estimatedItemFinalPrice = this.items.stream().map(item ->
-                item.getSheetItemId().equals(sheetItemId)
-                        ? item.calcEstimatedFinalLineTotal(itemCouponSnapshot) : item.getFinalLineTotal()).reduce(Money.ZERO, Money::add);
-        return estimatedItemFinalPrice.subtract(estimatedItemFinalPrice.min(cartCoupon.getDiscountAmount()));
-    }
-
-    /**
-     * 장바구니 쿠폰 적용 후 포인트 사용 전 예상 주문 금액 반환
-     * <p>
-     * 장바구니 쿠폰을 itemCouponSnapshot을 적용했을때의 포인트 사용 전 예상 주문 금액을 반환한다
-     * </p>
-     *
-     * @param cartCoupon 장바구니 쿠폰 정보
-     * @return 포인트 사용 전 예상 주문 금액
-     */
-    public Money calcEstimatedPointEligibleAmount(OrderCouponSnapshot cartCoupon) {
-        return calcPointEligibleAmount(this.items, cartCoupon);
-    }
-
-    /**
-     * 포인트 적용 전 주문 금액
-     * <p>
-     * 포인트를 사용하기 전 주문 금액을 반환한다
-     * </p>
-     *
-     * @return 포인트 사용 전 주문 금액
-     */
-    public Money getPointEligibleAmount() {
-        return calcPointEligibleAmount(this.items, this.cartCoupon);
+    public Money calcAvailablePoints(Money ownedPoints, PointUsagePolicy pointPolicy) {
+        Money pointEligibleAmount = calcPointEligibleAmount(this.items, this.cartCoupon);
+        Money pointsLimit = pointPolicy.calculateMaxLimit(pointEligibleAmount);
+        return ownedPoints.min(pointsLimit);
     }
 
     /**
@@ -267,14 +241,15 @@ public class OrderSheet {
      * 상품 쿠폰을 변경하여 주문서에 적용된 포인트가 적용 가능 최대 포인트를 초과하는 경우 적용 가능 최대 포인트로 조정된다
      * </p>
      *
-     * @param sheetItemId        주문 상품 아이디
-     * @param newCouponSnapshot  새 쿠폰 정보
-     * @param maxAvailablePoints 적용 가능 포인트
+     * @param sheetItemId       주문 상품 아이디
+     * @param newCouponSnapshot 새 쿠폰 정보
+     * @param ownedPoints       보유 포인트
+     * @param pointPolicy       포인트 정책
      */
-    public void changeItemCoupon(String sheetItemId, OrderCouponSnapshot newCouponSnapshot, Money maxAvailablePoints) {
+    public void changeItemCoupon(String sheetItemId, OrderCouponSnapshot newCouponSnapshot, Money ownedPoints, PointUsagePolicy pointPolicy) {
         OrderSheetItem sheetItem = getItem(sheetItemId);
         sheetItem.changeCoupon(newCouponSnapshot);
-        recalculateTotals(maxAvailablePoints);
+        recalculateTotals(ownedPoints, pointPolicy);
     }
 
     /**
@@ -285,21 +260,22 @@ public class OrderSheet {
      * </p>
      *
      * @param newCartCouponSnapshot 새 장바구니 쿠폰 정보
-     * @param maxAvailablePoints    적용 가능 포인트
+     * @param ownedPoints           보유 포인트
+     * @param pointPolicy           포인트 정책
      */
-    public void changeCartCoupon(OrderCouponSnapshot newCartCouponSnapshot, Money maxAvailablePoints) {
+    public void changeCartCoupon(OrderCouponSnapshot newCartCouponSnapshot, Money ownedPoints, PointUsagePolicy pointPolicy) {
         this.cartCoupon = newCartCouponSnapshot;
-        recalculateTotals(maxAvailablePoints);
+        recalculateTotals(ownedPoints, pointPolicy);
     }
 
-    private void recalculateTotals(Money maxAvailablePoints) {
+    private void recalculateTotals(Money ownedPoints, PointUsagePolicy pointPolicy) {
         this.totalCouponDiscountAmount = calcAppliedCartCouponDiscount(this.items, this.cartCoupon)
                 .add(calcTotalItemCouponDiscountAmount(this.items));
-        Money pointEligibleAmount = getPointEligibleAmount();
+        Money pointEligibleAmount = calcPointEligibleAmount(this.items, this.cartCoupon);
         if (!this.usedPoints.equals(Money.ZERO)) {
-            Money trueMaxLimit = pointEligibleAmount.min(maxAvailablePoints);
-            if (this.usedPoints.isGreaterThan(trueMaxLimit)) {
-                this.usedPoints = trueMaxLimit;
+            Money availablePoints = calcAvailablePoints(ownedPoints, pointPolicy);
+            if (this.usedPoints.isGreaterThan(availablePoints)) {
+                this.usedPoints = availablePoints;
             }
         }
         this.totalPaymentAmount = pointEligibleAmount.subtract(this.usedPoints);

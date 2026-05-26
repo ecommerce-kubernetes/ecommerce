@@ -25,7 +25,6 @@ public class UserClientResponse {
     @Builder
     public record UserPoints(
             Long userId,
-            Long availablePoints,
             Long ownedPoints
     ) {
     }

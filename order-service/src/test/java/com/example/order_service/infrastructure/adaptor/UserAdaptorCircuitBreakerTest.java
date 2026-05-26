@@ -45,26 +45,26 @@ public class UserAdaptorCircuitBreakerTest {
     void circuitBreaker_opens_after_consecutive_server_failures(){
         //given
         Long userId = 1L;
-        given(client.getUserInfoForOrder(anyLong()))
+        given(client.getUserProfile(anyLong()))
                 .willThrow(new RuntimeException("Connection Timeout"));
         //when
         //then
         // 유저 서비스에서 연속으로 에러가 발생
         for (int i = 0; i < 3; i++) {
-            assertThatThrownBy(() -> adaptor.getUserInfoForOrder(userId))
+            assertThatThrownBy(() -> adaptor.getUserProfile(userId))
                     .isInstanceOf(ExternalSystemUnavailableException.class)
                     .hasMessage("USER-SERVICE 통신 장애");
         }
 
         // 서킷 브레이커가 열림
-        assertThatThrownBy(() -> adaptor.getUserInfoForOrder(userId))
+        assertThatThrownBy(() -> adaptor.getUserProfile(userId))
                 .isInstanceOf(ExternalSystemUnavailableException.class)
                 .hasMessage("USER-SERVICE 서킷 브레이커 열림")
                 .extracting("errorCode")
                 .isEqualTo("CIRCUIT_BREAKER_OPEN");
 
         // 서킷 브레이커가 열렸으므로 클라이언트는 4번의 요청중 3번만 호출됨
-        verify(client, times(3)).getUserInfoForOrder(anyLong());
+        verify(client, times(3)).getUserProfile(anyLong());
     }
 
     @Test
@@ -72,18 +72,18 @@ public class UserAdaptorCircuitBreakerTest {
     void circuitbreaker_close_after_consecutive_client_failures(){
         //given
         Long userId = 1L;
-        given(client.getUserInfoForOrder(anyLong()))
+        given(client.getUserProfile(anyLong()))
                 .willThrow(new ExternalClientException("NOT_FOUND_USER", "유저를 찾을 수 없습니다"));
         //when
         //then
         for (int i = 0; i < 3; i++) {
-            assertThatThrownBy(() -> adaptor.getUserInfoForOrder(userId))
+            assertThatThrownBy(() -> adaptor.getUserProfile(userId))
                     .isInstanceOf(ExternalClientException.class);
         }
-        assertThatThrownBy(() -> adaptor.getUserInfoForOrder(userId))
+        assertThatThrownBy(() -> adaptor.getUserProfile(userId))
                 .isInstanceOf(ExternalClientException.class);
 
         // 반복된 에러가 클라이언트 예외이므로 정상 요청이 실행되어 4번 호출됨
-        verify(client, times(4)).getUserInfoForOrder(anyLong());
+        verify(client, times(4)).getUserProfile(anyLong());
     }
 }

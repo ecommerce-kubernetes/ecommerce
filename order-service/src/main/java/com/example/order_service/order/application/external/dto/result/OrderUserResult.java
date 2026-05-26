@@ -27,8 +27,7 @@ public class OrderUserResult {
     @Builder
     public record UserPoint(
             Long userId,
-            Money ownedPoints,
-            Money availablePoints
+            Money ownedPoints
     ) {
 
     }

@@ -49,8 +49,5 @@ public class OrderValidator {
     }
 
     private void validateUserPoints(OrderSheet orderSheet, OrderUserResult.UserPoint points) {
-        if (orderSheet.getUsedPoints().isGreaterThan(points.availablePoints())){
-            throw new BusinessException(OrderErrorCode.POINTS_DISCOUNT_CHANGE);
-        }
     }
 }

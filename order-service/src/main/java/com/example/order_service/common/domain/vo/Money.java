@@ -114,6 +114,33 @@ public class Money {
     }
 
     /**
+     * multiplier 금액 곱하기
+     * <p>
+     * 곱한 결과가 부동 소수점이라면 소수점을 버린 금액을 반환한다
+     * </p>
+     *
+     * @param multiplier 곱할 금액
+     * @return 곱해진 금액
+     */
+    public Money multiple(BigDecimal multiplier) {
+        if (multiplier.compareTo(BigDecimal.ZERO) < 0) {
+            throw new InvalidDomainValueException("금액에 음수를 곱할 수 없습니다.");
+        }
+
+        if (multiplier.compareTo(BigDecimal.ZERO) == 0) {
+            return ZERO;
+        }
+
+        if (multiplier.compareTo(BigDecimal.ONE) == 0) {
+            return this;
+        }
+
+        BigDecimal multipliedAmount = amount.multiply(multiplier);
+        multipliedAmount = multipliedAmount.setScale(0, RoundingMode.DOWN);
+        return new Money(multipliedAmount);
+    }
+
+    /**
      * 금액 long 타입 반환
      * <p>
      * 금액을 long 타입으로 변환하여 반환한다

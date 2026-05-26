@@ -44,18 +44,17 @@ public class OrderUserGateway {
      * 유저 도메인에 유저 포인트 정보(포인트 잔액, 적용 가능 포인트)를 조회
      *
      * @param userId      조회 대상 유저 아이디
-     * @param orderAmount 주문 가격
      * @return 포인트 잔액, 적용 가능 포인트
      * @throws BusinessException 유저 도메인 통신중 발생한 예외를 비지니스 예외로 변환
      */
-    public OrderUserResult.UserPoint getUserPoints(Long userId, Money orderAmount) {
-        UserClientResponse.UserPoints userPoints = fetchUserPointsWithTranslation(userId, orderAmount.longValue());
+    public OrderUserResult.UserPoint getUserPoints(Long userId) {
+        UserClientResponse.UserPoints userPoints = fetchUserPointsWithTranslation(userId);
         return mapper.toResult(userPoints);
     }
 
-    private UserClientResponse.UserPoints fetchUserPointsWithTranslation(Long userId, Long orderAmount) {
+    private UserClientResponse.UserPoints fetchUserPointsWithTranslation(Long userId) {
         try {
-            return userAdaptor.getUserPoints(userId, orderAmount);
+            return userAdaptor.getUserPoints(userId);
         } catch (ExternalClientException e) {
             throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_USER_CLIENT_ERROR);
         } catch (ExternalServerException e) {
@@ -74,14 +73,14 @@ public class OrderUserGateway {
      * @return 포인트 잔액, 적용 가능 포인트
      * @throws BusinessException 유저 도메인 통신중 발생한 예외를 비지니스 예외로 변환
      */
-    public OrderUserResult.UserPoint getUserPointsForOrder(Long userId, Money orderAmount, Money usedPoints) {
-        UserClientResponse.UserPoints userPoints = fetchUserPointsForOrderWithTranslation(userId, orderAmount.longValue(), usedPoints.longValue());
+    public OrderUserResult.UserPoint getUserPointsForOrder(Long userId, Money usedPoints) {
+        UserClientResponse.UserPoints userPoints = fetchUserPointsForOrderWithTranslation(userId, usedPoints.longValue());
         return mapper.toResult(userPoints);
     }
 
-    private UserClientResponse.UserPoints fetchUserPointsForOrderWithTranslation(Long userId, Long orderAmount, Long usedPoints) {
+    private UserClientResponse.UserPoints fetchUserPointsForOrderWithTranslation(Long userId, Long usedPoints) {
         try {
-            return userAdaptor.getUserPointsForOrder(userId, orderAmount, usedPoints);
+            return userAdaptor.getUserPointsForOrder(userId, usedPoints);
         } catch (ExternalClientException e) {
             throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_USER_CLIENT_ERROR);
         } catch (ExternalServerException e) {

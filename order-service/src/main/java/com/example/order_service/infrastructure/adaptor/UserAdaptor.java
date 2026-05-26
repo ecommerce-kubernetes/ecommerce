@@ -15,24 +15,19 @@ public class UserAdaptor {
     private final UserFeignClient client;
     private final ExternalExceptionTranslator translator;
 
-    @CircuitBreaker(name = "userService", fallbackMethod = "getUserInfoForOrderFallback")
-    public UserClientResponse.UserInfo getUserInfoForOrder(Long userId) {
-        return client.getUserInfoForOrder(userId);
-    }
-
     @CircuitBreaker(name = "userService", fallbackMethod = "getUserProfileFallback")
     public UserClientResponse.Profile getUserProfile(Long userId) {
         return client.getUserProfile(userId);
     }
 
     @CircuitBreaker(name = "userService", fallbackMethod = "getUserPointsFallback")
-    public UserClientResponse.UserPoints getUserPoints(Long userId, Long orderAmount) {
-        return client.getUserPoints(userId, orderAmount);
+    public UserClientResponse.UserPoints getUserPoints(Long userId) {
+        return client.getUserPoints(userId);
     }
 
     @CircuitBreaker(name = "userService", fallbackMethod = "getUserPointsForOrderFallback")
-    public UserClientResponse.UserPoints getUserPointsForOrder(Long userId, Long orderAmount, Long usedPoints) {
-        UserClientRequest.ValidatePoints request = UserClientRequest.ValidatePoints.of(orderAmount, usedPoints);
+    public UserClientResponse.UserPoints getUserPointsForOrder(Long userId, Long usedPoints) {
+        UserClientRequest.ValidatePoints request = UserClientRequest.ValidatePoints.of(usedPoints);
         return client.getUserPointsForOrder(userId, request);
     }
 
@@ -44,11 +39,11 @@ public class UserAdaptor {
         throw translator.translate("USER-SERVICE", throwable);
     }
 
-    private UserClientResponse.UserPoints getUserPointsFallback(Long userId, Long orderAmount, Throwable throwable) throws Throwable {
+    private UserClientResponse.UserPoints getUserPointsFallback(Long userId, Throwable throwable) throws Throwable {
         throw translator.translate("USER-SERVICE", throwable);
     }
 
-    private UserClientResponse.UserPoints getUserPointsForOrderFallback(Long userId, Long orderAmount, Long usedPoints, Throwable throwable) throws Throwable {
+    private UserClientResponse.UserPoints getUserPointsForOrderFallback(Long userId, Long usedPoints, Throwable throwable) throws Throwable {
         throw translator.translate("USER-SERVICE", throwable);
     }
 }

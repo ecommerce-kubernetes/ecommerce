@@ -65,11 +65,10 @@ public class UserAdaptorTest {
     void getUserPoints(){
         //given
         Long userId = 1L;
-        Long orderAmount = 10000L;
         UserClientResponse.UserPoints mockResponse = fixtureMonkey.giveMeOne(UserClientResponse.UserPoints.class);
-        given(client.getUserPoints(any(), any())).willReturn(mockResponse);
+        given(client.getUserPoints(any())).willReturn(mockResponse);
         //when
-        UserClientResponse.UserPoints response = userAdaptor.getUserPoints(userId, orderAmount);
+        UserClientResponse.UserPoints response = userAdaptor.getUserPoints(userId);
         //then
         assertThat(response).usingRecursiveComparison()
                 .isEqualTo(mockResponse);
@@ -80,16 +79,15 @@ public class UserAdaptorTest {
     void getUserPoints_fallback_delegate_to_translator() throws Throwable {
         //given
         Long userId = 1L;
-        Long orderAmount = 10000L;
         RuntimeException feignException = new RuntimeException("feignClient 예외");
         ExternalSystemUnavailableException translatedException =
                 new ExternalSystemUnavailableException("CODE", "변환된 에러", feignException);
-        given(client.getUserPoints(any(), any())).willThrow(feignException);
+        given(client.getUserPoints(any())).willThrow(feignException);
         given(translator.translate(anyString(), any(Throwable.class)))
                 .willReturn(translatedException);
         //when
         //then
-        assertThatThrownBy(() -> userAdaptor.getUserPoints(userId, orderAmount))
+        assertThatThrownBy(() -> userAdaptor.getUserPoints(userId))
                 .isInstanceOf(ExternalSystemUnavailableException.class);
     }
 
@@ -98,12 +96,11 @@ public class UserAdaptorTest {
     void getUserPointsForOrder() {
         //given
         Long userId = 1L;
-        Long orderAmount = 10000L;
         Long usedPoints = 1000L;
         UserClientResponse.UserPoints mockResponse = fixtureMonkey.giveMeOne(UserClientResponse.UserPoints.class);
         given(client.getUserPointsForOrder(anyLong(), any())).willReturn(mockResponse);
         //when
-        UserClientResponse.UserPoints response = userAdaptor.getUserPointsForOrder(userId, orderAmount, usedPoints);
+        UserClientResponse.UserPoints response = userAdaptor.getUserPointsForOrder(userId, usedPoints);
         //then
         assertThat(response).usingRecursiveComparison().isEqualTo(mockResponse);
     }
@@ -113,7 +110,6 @@ public class UserAdaptorTest {
     void getUserPointsForOrder_fallback_delegate_to_translator() throws Throwable {
         //given
         Long userId = 1L;
-        Long orderAmount = 10000L;
         Long usedPoints = 1000L;
         RuntimeException feignException = new RuntimeException("feignClient 예외");
         ExternalSystemUnavailableException translatedException =
@@ -122,41 +118,7 @@ public class UserAdaptorTest {
         given(translator.translate(anyString(), any())).willReturn(translatedException);
         //when
         //then
-        assertThatThrownBy(() -> userAdaptor.getUserPointsForOrder(userId, orderAmount, usedPoints))
-                .isInstanceOf(ExternalSystemUnavailableException.class);
-    }
-
-    @Test
-    @DisplayName("유저 서비스에 주문에 필요한 유저 정보를 조회한다")
-    void getUserInfoForOrder(){
-        //given
-        Long userId = 1L;
-        UserClientResponse.UserInfo mockResponse = giveMeOne(UserClientResponse.UserInfo.class);
-        given(client.getUserInfoForOrder(anyLong()))
-                .willReturn(mockResponse);
-        //when
-        UserClientResponse.UserInfo response = userAdaptor.getUserInfoForOrder(userId);
-        //then
-        assertThat(response)
-                .usingRecursiveComparison()
-                .isEqualTo(mockResponse);
-    }
-
-    @Test
-    @DisplayName("유저 조회중 예외 발생시 translator를 호출하여 반환된 예외를 던진다")
-    void getUserInfoForOrder_fallback_delegate_to_translator() throws Throwable {
-        //given
-        //발생한 예외
-        RuntimeException feignException = new RuntimeException("feignClient 예외");
-        //변환된 예외
-        ExternalSystemUnavailableException translatedException =
-                new ExternalSystemUnavailableException("CODE", "변환된 에러", feignException);
-        willThrow(feignException).given(client).getUserInfoForOrder(anyLong());
-        given(translator.translate(anyString(), any(Throwable.class)))
-                .willReturn(translatedException);
-        //when
-        //then
-        assertThatThrownBy(() -> userAdaptor.getUserInfoForOrder(anyLong()))
+        assertThatThrownBy(() -> userAdaptor.getUserPointsForOrder(userId, usedPoints))
                 .isInstanceOf(ExternalSystemUnavailableException.class);
     }
 }

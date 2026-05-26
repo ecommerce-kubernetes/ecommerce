@@ -110,13 +110,12 @@ public class OrderUserGatewayTest {
         void getUserPoints(){
             //given
             Long userId = 1L;
-            Money orderAmount = Money.wons(10000L);
             UserClientResponse.UserPoints response = fixtureMonkey.giveMeOne(UserClientResponse.UserPoints.class);
             OrderUserResult.UserPoint userPoint = fixtureMonkey.giveMeOne(OrderUserResult.UserPoint.class);
-            given(adaptor.getUserPoints(anyLong(), anyLong())).willReturn(response);
+            given(adaptor.getUserPoints(anyLong())).willReturn(response);
             given(userMapper.toResult(any(UserClientResponse.UserPoints.class))).willReturn(userPoint);
             //when
-            OrderUserResult.UserPoint result = orderUserGateway.getUserPoints(userId, orderAmount);
+            OrderUserResult.UserPoint result = orderUserGateway.getUserPoints(userId);
             //then
             assertThat(result).isNotNull();
         }
@@ -126,12 +125,11 @@ public class OrderUserGatewayTest {
         void getUserPoints_ExternalClientException(){
             //given
             Long userId = 1L;
-            Money orderAmount = Money.wons(10000L);
             willThrow(new ExternalClientException("NOT_FOUND_USER", "유저를 찾을 수 없습니다"))
-                    .given(adaptor).getUserPoints(anyLong(), anyLong());
+                    .given(adaptor).getUserPoints(anyLong());
             //when
             //then
-            assertThatThrownBy(() -> orderUserGateway.getUserPoints(userId, orderAmount))
+            assertThatThrownBy(() -> orderUserGateway.getUserPoints(userId))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(OrderSheetErrorCode.ORDER_SHEET_USER_CLIENT_ERROR);
@@ -142,12 +140,11 @@ public class OrderUserGatewayTest {
         void getUserPoints_ExternalServerException() {
             //given
             Long userId = 1L;
-            Money orderAmount = Money.wons(10000L);
             willThrow(new ExternalServerException("INTERNAL_SERVER_ERROR", "알 수 없는 오류가 발생했습니다"))
-                    .given(adaptor).getUserPoints(anyLong(), anyLong());
+                    .given(adaptor).getUserPoints(anyLong());
             //when
             //then
-            assertThatThrownBy(() -> orderUserGateway.getUserPoints(userId, orderAmount))
+            assertThatThrownBy(() -> orderUserGateway.getUserPoints(userId))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(OrderSheetErrorCode.ORDER_SHEET_USER_SERVER_ERROR);
@@ -158,12 +155,11 @@ public class OrderUserGatewayTest {
         void getUserPoints_ExternalUnavailableServerException() {
             //given
             Long userId = 1L;
-            Money orderAmount = Money.wons(10000L);
             willThrow(new ExternalSystemUnavailableException("SERVICE_UNAVAILABLE", "유저 서비스 통신 장애"))
-                    .given(adaptor).getUserPoints(anyLong(), anyLong());
+                    .given(adaptor).getUserPoints(anyLong());
             //when
             //then
-            assertThatThrownBy(() -> orderUserGateway.getUserPoints(userId, orderAmount))
+            assertThatThrownBy(() -> orderUserGateway.getUserPoints(userId))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(OrderSheetErrorCode.ORDER_SHEET_USER_UNAVAILABLE_SERVER_ERROR);
@@ -178,14 +174,13 @@ public class OrderUserGatewayTest {
         void getUserPointsForOrder() {
             //given
             Long userId = 1L;
-            Money orderAmount = Money.wons(10000L);
             Money usedPoints = Money.wons(1000L);
             UserClientResponse.UserPoints response = fixtureMonkey.giveMeOne(UserClientResponse.UserPoints.class);
             OrderUserResult.UserPoint userPoint = fixtureMonkey.giveMeOne(OrderUserResult.UserPoint.class);
-            given(adaptor.getUserPointsForOrder(anyLong(), anyLong(), anyLong())).willReturn(response);
+            given(adaptor.getUserPointsForOrder(anyLong(), anyLong())).willReturn(response);
             given(userMapper.toResult(any(UserClientResponse.UserPoints.class))).willReturn(userPoint);
             //when
-            OrderUserResult.UserPoint result = orderUserGateway.getUserPointsForOrder(userId, orderAmount, usedPoints);
+            OrderUserResult.UserPoint result = orderUserGateway.getUserPointsForOrder(userId, usedPoints);
             //then
             assertThat(result).isNotNull();
         }
@@ -195,13 +190,12 @@ public class OrderUserGatewayTest {
         void getUserPointsForOrder_ExternalClientException() {
             //given
             Long userId = 1L;
-            Money orderAmount = Money.wons(10000L);
             Money usedPoints = Money.wons(1000L);
-            given(adaptor.getUserPointsForOrder(any(), any(), any()))
+            given(adaptor.getUserPointsForOrder(any(), any()))
                     .willThrow(new ExternalClientException("NOT_FOUND_USER", "유저를 찾을 수 없습니다"));
             //when
             //then
-            assertThatThrownBy(() -> orderUserGateway.getUserPointsForOrder(userId, orderAmount, usedPoints))
+            assertThatThrownBy(() -> orderUserGateway.getUserPointsForOrder(userId, usedPoints))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(OrderSheetErrorCode.ORDER_SHEET_USER_CLIENT_ERROR);
@@ -212,13 +206,12 @@ public class OrderUserGatewayTest {
         void getUserPointsForOrder_ExternalServerException() {
             //given
             Long userId = 1L;
-            Money orderAmount = Money.wons(10000L);
             Money usedPoints = Money.wons(1000L);
-            given(adaptor.getUserPointsForOrder(any(), any(), any()))
+            given(adaptor.getUserPointsForOrder(any(), any()))
                     .willThrow(new ExternalServerException("INTERNAL_SERVER_ERROR", "알 수 없는 에러가 발생했습니다"));
             //when
             //then
-            assertThatThrownBy(() -> orderUserGateway.getUserPointsForOrder(userId, orderAmount, usedPoints))
+            assertThatThrownBy(() -> orderUserGateway.getUserPointsForOrder(userId, usedPoints))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(OrderSheetErrorCode.ORDER_SHEET_USER_SERVER_ERROR);
@@ -229,13 +222,12 @@ public class OrderUserGatewayTest {
         void getUserPointsForOrder_ExternalUnavailableServiceException() {
             //given
             Long userId = 1L;
-            Money orderAmount = Money.wons(10000L);
             Money usedPoints = Money.wons(1000L);
-            given(adaptor.getUserPointsForOrder(any(), any(), any()))
+            given(adaptor.getUserPointsForOrder(any(), any()))
                     .willThrow(new ExternalSystemUnavailableException("SERVICE_UNAVAILABLE", "유저 서비스 통신 장애"));
             //when
             //then
-            assertThatThrownBy(() -> orderUserGateway.getUserPointsForOrder(userId, orderAmount, usedPoints))
+            assertThatThrownBy(() -> orderUserGateway.getUserPointsForOrder(userId, usedPoints))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(OrderSheetErrorCode.ORDER_SHEET_USER_UNAVAILABLE_SERVER_ERROR);

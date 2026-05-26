@@ -138,26 +138,23 @@ public class UserFeignClientTest {
         void getUserPoints() {
             //given
             Long userId = 1L;
-            Long orderAmount = 9000L;
             String mockJsonResponse = """
                     {
                         "userId": 1,
-                        "ownedPoints": 10000,
-                        "availablePoints": 5000
+                        "ownedPoints": 10000
                     }
                     """;
             UserClientResponse.UserPoints expected = UserClientResponse.UserPoints.builder()
                     .userId(1L)
                     .ownedPoints(10000L)
-                    .availablePoints(5000L)
                     .build();
-            stubFor(get(urlEqualTo("/internal/users/" + userId + "/points?orderAmount=" + orderAmount))
+            stubFor(get(urlEqualTo("/internal/users/" + userId + "/points"))
                     .willReturn(aResponse()
                             .withStatus(HttpStatus.OK.value())
                             .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
                             .withBody(mockJsonResponse)));
             //when
-            UserClientResponse.UserPoints response = client.getUserPoints(userId, orderAmount);
+            UserClientResponse.UserPoints response = client.getUserPoints(userId);
             //then
             assertThat(response)
                     .usingRecursiveComparison()
@@ -169,7 +166,6 @@ public class UserFeignClientTest {
         void getUserPoints_thrown_client_error_response() {
             //given
             Long userId = 1L;
-            Long orderAmount = 9000L;
             String mockJsonResponse = """
                     {
                         "code": "NOT_FOUND_USER",
@@ -178,14 +174,14 @@ public class UserFeignClientTest {
                         "path": "/internal/users/1/points"
                     }
                     """;
-            stubFor(get(urlEqualTo("/internal/users/" + userId + "/points?orderAmount=" + orderAmount))
+            stubFor(get(urlEqualTo("/internal/users/" + userId + "/points"))
                     .willReturn(aResponse()
                             .withStatus(HttpStatus.NOT_FOUND.value())
                             .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
                             .withBody(mockJsonResponse)));
             //when
             //then
-            assertThatThrownBy(() -> client.getUserPoints(userId, orderAmount))
+            assertThatThrownBy(() -> client.getUserPoints(userId))
                     .isInstanceOf(ExternalClientException.class)
                     .hasMessage("유저를 찾을 수 없습니다")
                     .extracting("errorCode")
@@ -197,7 +193,6 @@ public class UserFeignClientTest {
         void getUserPoints_thrown_server_error_response() {
             //given
             Long userId = 1L;
-            Long orderAmount = 9000L;
             String mockJsonResponse = """
                     {
                         "code": "INTERNAL_SERVER_ERROR",
@@ -206,103 +201,19 @@ public class UserFeignClientTest {
                         "path": "/internal/users/1/points"
                     }
                     """;
-            stubFor(get(urlEqualTo("/internal/users/" + userId + "/points?orderAmount=" + orderAmount))
+            stubFor(get(urlEqualTo("/internal/users/" + userId + "/points"))
                     .willReturn(aResponse()
                             .withStatus(HttpStatus.NOT_FOUND.value())
                             .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
                             .withBody(mockJsonResponse)));
             //when
             //then
-            assertThatThrownBy(() -> client.getUserPoints(userId, orderAmount))
+            assertThatThrownBy(() -> client.getUserPoints(userId))
                     .isInstanceOf(ExternalClientException.class)
                     .hasMessage("알 수 없는 에러가 발생했습니다")
                     .extracting("errorCode")
                     .isEqualTo("INTERNAL_SERVER_ERROR");
         }
-    }
-
-    @Test
-    @DisplayName("유저 서비스에서 주문 유저 정보를 조회한다")
-    void getUserInfoForOrder() {
-        //given
-        Long userId = 1L;
-        String mockJsonResponse = """
-                {
-                    "userId": 1,
-                    "pointBalance": 10000,
-                    "userName": "유저",
-                    "phoneNumber" : "010-1234-5678"
-                }
-                """;
-
-        //외부 서비스 호출 모킹
-        stubFor(get(urlEqualTo("/internal/users/" + userId + "/order-info"))
-                .willReturn(aResponse()
-                        .withStatus(HttpStatus.OK.value())
-                        .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
-                        .withBody(mockJsonResponse)));
-        //when
-        UserClientResponse.UserInfo response = client.getUserInfoForOrder(userId);
-        //then
-        assertThat(response.userId()).isEqualTo(1L);
-        assertThat(response.pointBalance()).isEqualTo(10000L);
-        assertThat(response.userName()).isEqualTo("유저");
-        assertThat(response.phoneNumber()).isEqualTo("010-1234-5678");
-    }
-
-    @Test
-    @DisplayName("유저 서비스에서 클라이언트 오류 응답 반환시 클라이언트 예외를 던진다")
-    void getUserInfoForOrder_thrown_client_error_response() {
-        Long userId = 1L;
-        //given
-        String mockJsonResponse = """
-                {
-                    "code": "NOT_FOUND_USER",
-                    "message": "유저를 찾을 수 없습니다",
-                    "timestamp": "2026-05-03 19:00:00",
-                    "path": "/internal/users/1/order-info"
-                }
-                """;
-        stubFor(get(urlEqualTo("/internal/users/" + userId + "/order-info"))
-                .willReturn(aResponse()
-                        .withStatus(HttpStatus.NOT_FOUND.value())
-                        .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
-                        .withBody(mockJsonResponse)));
-        //when
-        //then
-        assertThatThrownBy(() -> client.getUserInfoForOrder(userId))
-                .isInstanceOf(ExternalClientException.class)
-                .hasMessage("유저를 찾을 수 없습니다")
-                .extracting("errorCode")
-                .isEqualTo("NOT_FOUND_USER");
-    }
-
-    @Test
-    @DisplayName("유저 서비스에서 서버 오류 응답 반환시 서버 예외를 던진다")
-    void getUserinfoForOrder_thrown_server_error_response() {
-        //given
-        Long userId = 1L;
-        String mockJsonResponse = """
-                {
-                    "code": "INTERNAL_SERVER_ERROR",
-                    "message": "처리중 오류가 발생했습니다",
-                    "timestamp": "2026-05-03 19:00:00",
-                    "path": "/internal/users/1/order-info"
-                }
-                """;
-
-        stubFor(get(urlEqualTo("/internal/users/" + userId + "/order-info"))
-                .willReturn(aResponse()
-                        .withStatus(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                        .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
-                        .withBody(mockJsonResponse)));
-        //when
-        //then
-        assertThatThrownBy(() -> client.getUserInfoForOrder(userId))
-                .isInstanceOf(ExternalServerException.class)
-                .hasMessage("처리중 오류가 발생했습니다")
-                .extracting("errorCode")
-                .isEqualTo("INTERNAL_SERVER_ERROR");
     }
 
     @Nested
@@ -315,20 +226,17 @@ public class UserFeignClientTest {
             //given
             Long userId = 1L;
             UserClientRequest.ValidatePoints request = UserClientRequest.ValidatePoints.builder()
-                    .orderAmount(10000L)
                     .usedPoints(3000L)
                     .build();
             String mockJsonResponse = """
                     {
                         "userId": 1,
-                        "ownedPoints": 10000,
-                        "availablePoints": 5000
+                        "ownedPoints": 10000
                     }
                     """;
             UserClientResponse.UserPoints expected = UserClientResponse.UserPoints.builder()
                     .userId(1L)
                     .ownedPoints(10000L)
-                    .availablePoints(5000L)
                     .build();
             stubFor(post(urlEqualTo("/internal/users/" + userId + "/points/validate-for-order"))
                     .willReturn(aResponse()
@@ -347,7 +255,6 @@ public class UserFeignClientTest {
             //given
             Long userId = 1L;
             UserClientRequest.ValidatePoints request = UserClientRequest.ValidatePoints.builder()
-                    .orderAmount(10000L)
                     .usedPoints(3000L)
                     .build();
             String mockJsonResponse = """
@@ -378,7 +285,6 @@ public class UserFeignClientTest {
             //given
             Long userId = 1L;
             UserClientRequest.ValidatePoints request = UserClientRequest.ValidatePoints.builder()
-                    .orderAmount(10000L)
                     .usedPoints(3000L)
                     .build();
             String mockJsonResponse = """

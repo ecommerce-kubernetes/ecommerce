@@ -3,7 +3,7 @@ package com.example.order_service.order.application;
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.business.BusinessException;
 import com.example.order_service.order.application.dto.command.OrderSheetCommand;
-import com.example.order_service.order.application.dto.result.*;
+import com.example.order_service.order.application.dto.result.OrderSheetResult;
 import com.example.order_service.order.application.external.OrderCouponGateway;
 import com.example.order_service.order.application.external.OrderProductGateway;
 import com.example.order_service.order.application.external.OrderUserGateway;
@@ -14,6 +14,7 @@ import com.example.order_service.order.application.external.dto.result.OrderProd
 import com.example.order_service.order.application.external.dto.result.OrderUserResult;
 import com.example.order_service.order.domain.model.OrderSheet;
 import com.example.order_service.order.domain.model.OrderSheetItem;
+import com.example.order_service.order.domain.policy.PointUsagePolicy;
 import com.example.order_service.order.domain.repository.OrderSheetRepository;
 import com.example.order_service.order.domain.vo.OrderCouponSnapshot;
 import com.example.order_service.order.domain.vo.ShippingAddress;
@@ -45,6 +46,7 @@ public class OrderSheetAppService {
     private final OrderProductGateway orderProductGateway;
     private final OrderCouponGateway orderCouponGateway;
     private final OrderUserGateway orderSheetUserGateway;
+    private final PointUsagePolicy pointUsagePolicy;
     private final OrderSheetFactory factory;
     private final OrderSheetRepository repository;
 
@@ -103,7 +105,7 @@ public class OrderSheetAppService {
     /**
      * 사용자 주문서 조회
      * <p>
-     * 유저 포인트 정보를 반환하기 위해 BFF 방식으로 유저 도메인에서 요청 유저의 포인트 정보를 조회하여 결과에 포함해 반환
+     * 주문 정보 및 보유 포인트와 주문에 사용할 수 있는 최대 포인트를 반환
      * </p>
      *
      * @param sheetId 조회 주문서 아이디
@@ -112,8 +114,9 @@ public class OrderSheetAppService {
      */
     public OrderSheetResult.Detail getOrderSheet(String sheetId, Long userId) {
         OrderSheet orderSheet = getValidateOrderSheet(sheetId, userId);
-        OrderUserResult.UserPoint userPoints = orderSheetUserGateway.getUserPoints(userId, orderSheet.getPointEligibleAmount());
-        return OrderSheetResult.Detail.of(orderSheet, userPoints.ownedPoints(), userPoints.availablePoints());
+        OrderUserResult.UserPoint userPoints = orderSheetUserGateway.getUserPoints(userId);
+        Money availablePoints = orderSheet.calcAvailablePoints(userPoints.ownedPoints(), pointUsagePolicy);
+        return OrderSheetResult.Detail.of(orderSheet, userPoints.ownedPoints(), availablePoints);
     }
 
     /**
@@ -129,10 +132,10 @@ public class OrderSheetAppService {
         OrderSheet orderSheet = getValidateOrderSheet(command.sheetId(), command.userId());
         ShippingAddress newAddress = factory.createShippingAddress(command);
         orderSheet.changeShippingAddress(newAddress);
-        OrderUserResult.UserPoint userPoints =
-                orderSheetUserGateway.getUserPoints(command.userId(), orderSheet.getPointEligibleAmount());
+        OrderUserResult.UserPoint userPoints = orderSheetUserGateway.getUserPoints(command.userId());
+        Money availablePoints = orderSheet.calcAvailablePoints(userPoints.ownedPoints(), pointUsagePolicy);
         repository.save(orderSheet, orderSheet.getRemainingTtl());
-        return OrderSheetResult.Detail.of(orderSheet, userPoints.ownedPoints(), userPoints.availablePoints());
+        return OrderSheetResult.Detail.of(orderSheet, userPoints.ownedPoints(), availablePoints);
     }
 
     /**
@@ -148,13 +151,16 @@ public class OrderSheetAppService {
         OrderSheet orderSheet = getValidateOrderSheet(command.sheetId(), command.userId());
         OrderUserResult.UserPoint userPoints = orderSheetUserGateway.getUserPointsForOrder(
                 orderSheet.getOrderer().getUserId(),
-                orderSheet.getPointEligibleAmount(),
                 command.usedPoints()
         );
+        Money availablePoints = orderSheet.calcAvailablePoints(userPoints.ownedPoints(), pointUsagePolicy);
+        if (command.usedPoints().isGreaterThan(availablePoints)) {
+            throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_POINT_POLICY_VIOLATION);
+        }
         // [NOTE] 주문 가격 정보가 사용포인트에 맞추어 수정됨
         orderSheet.changeUsedPoints(command.usedPoints());
         repository.save(orderSheet, orderSheet.getRemainingTtl());
-        return OrderSheetResult.Detail.of(orderSheet, userPoints.ownedPoints(), userPoints.availablePoints());
+        return OrderSheetResult.Detail.of(orderSheet, userPoints.ownedPoints(), availablePoints);
     }
 
     /**
@@ -170,13 +176,12 @@ public class OrderSheetAppService {
     public OrderSheetResult.Detail updateItemCoupon(OrderSheetCommand.UpdateItemCoupon command) {
         OrderSheet orderSheet = getValidateOrderSheet(command.sheetId(), command.userId());
         OrderCouponSnapshot newCouponSnapshot = getNewItemCouponSnapshot(orderSheet, command.sheetItemId(), command.couponId());
-        Money estimatedEligibleAmount = orderSheet.calcEstimatedPointEligibleAmount(command.sheetItemId(), newCouponSnapshot);
-        OrderUserResult.UserPoint userPoints = orderSheetUserGateway.getUserPoints(orderSheet.getOrderer().getUserId(),
-                estimatedEligibleAmount);
+        OrderUserResult.UserPoint userPoints = orderSheetUserGateway.getUserPoints(orderSheet.getOrderer().getUserId());
         // [NOTE] 상품 쿠폰 변경으로 인해 적용된 포인트가 사용 가능 포인트를 초과되는 경우 사용가능 포인트로 조정됨
-        orderSheet.changeItemCoupon(command.sheetItemId(), newCouponSnapshot, userPoints.availablePoints());
+        orderSheet.changeItemCoupon(command.sheetItemId(), newCouponSnapshot, userPoints.ownedPoints(), pointUsagePolicy);
+        Money availablePoints = orderSheet.calcAvailablePoints(userPoints.ownedPoints(), pointUsagePolicy);
         repository.save(orderSheet, orderSheet.getRemainingTtl());
-        return OrderSheetResult.Detail.of(orderSheet, userPoints.ownedPoints(), userPoints.availablePoints());
+        return OrderSheetResult.Detail.of(orderSheet, userPoints.ownedPoints(), availablePoints);
     }
 
     private OrderCouponSnapshot getNewItemCouponSnapshot(OrderSheet orderSheet, String sheetItemId, Long newItemCouponId) {
@@ -212,13 +217,13 @@ public class OrderSheetAppService {
     public OrderSheetResult.Detail updateCartCoupon(OrderSheetCommand.UpdateCartCoupon command) {
         OrderSheet orderSheet = getValidateOrderSheet(command.sheetId(), command.userId());
         OrderCouponSnapshot newCartCouponSnapshot = getNewCartCouponSnapshot(orderSheet, command.couponId());
-        Money estimatedEligibleAmount = orderSheet.calcEstimatedPointEligibleAmount(newCartCouponSnapshot);
         OrderUserResult.UserPoint userPoints =
-                orderSheetUserGateway.getUserPoints(orderSheet.getOrderer().getUserId(), estimatedEligibleAmount);
+                orderSheetUserGateway.getUserPoints(orderSheet.getOrderer().getUserId());
         // [NOTE] 장바구니 쿠폰 변경으로 인해 적용된 포인트가 사용 가능 포인트를 초과되는 경우 사용 가능 포인트로 조정됨
-        orderSheet.changeCartCoupon(newCartCouponSnapshot, userPoints.availablePoints());
+        orderSheet.changeCartCoupon(newCartCouponSnapshot, userPoints.ownedPoints(), pointUsagePolicy);
+        Money availablePoints = orderSheet.calcAvailablePoints(userPoints.ownedPoints(), pointUsagePolicy);
         repository.save(orderSheet, orderSheet.getRemainingTtl());
-        return OrderSheetResult.Detail.of(orderSheet, userPoints.ownedPoints(), userPoints.availablePoints());
+        return OrderSheetResult.Detail.of(orderSheet, userPoints.ownedPoints(), availablePoints);
     }
 
     private OrderCouponSnapshot getNewCartCouponSnapshot(OrderSheet orderSheet, Long newCartCouponId) {

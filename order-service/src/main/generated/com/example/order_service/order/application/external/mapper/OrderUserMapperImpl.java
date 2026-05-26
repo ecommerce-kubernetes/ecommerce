@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-05-25T23:28:31+0900",
+    date = "2026-05-26T05:49:54+0900",
     comments = "version: 1.6.3, compiler: javac, environment: Java 21.0.10 (Eclipse Adoptium)"
 )
 @Component
@@ -66,7 +66,6 @@ public class OrderUserMapperImpl implements OrderUserMapper {
 
         userPoint.userId( points.userId() );
         userPoint.ownedPoints( moneyMapper.toMoney( points.ownedPoints() ) );
-        userPoint.availablePoints( moneyMapper.toMoney( points.availablePoints() ) );
 
         return userPoint.build();
     }

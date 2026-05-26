@@ -10,7 +10,6 @@ import com.example.order_service.infrastructure.dto.response.ProductClientRespon
 import com.example.order_service.order.application.external.dto.command.OrderProductCommand;
 import com.example.order_service.order.application.external.dto.result.OrderProductResult;
 import com.example.order_service.order.application.external.mapper.OrderProductMapper;
-import com.example.order_service.order.domain.model.OrderSheetItem;
 import com.example.order_service.order.exception.OrderSheetErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
