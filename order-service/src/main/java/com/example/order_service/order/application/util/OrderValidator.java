@@ -8,6 +8,7 @@ import com.example.order_service.order.application.external.dto.result.OrderUser
 import com.example.order_service.order.domain.model.OrderSheet;
 import com.example.order_service.order.domain.model.OrderSheetItem;
 import com.example.order_service.order.domain.policy.PointUsagePolicy;
+import com.example.order_service.order.domain.vo.OrderCouponSnapshot;
 import com.example.order_service.order.exception.OrderErrorCode;
 import org.springframework.stereotype.Component;
 
@@ -38,14 +39,14 @@ public class OrderValidator {
     }
 
     private void validateCoupons(OrderSheet orderSheet, OrderCouponResult.Calculate coupon) {
-        if (!orderSheet.getCartCoupon().getDiscountAmount().equals(coupon.cartCoupon().discountAmount())) {
+        if (!orderSheet.getCartCoupon().getDiscountAmount().equals(coupon.cartCoupon().getDiscountAmount())) {
             throw new BusinessException(OrderErrorCode.CART_COUPON_DISCOUNT_CHANGE);
         }
         List<OrderSheetItem> items = orderSheet.getItems();
-        Map<Long, OrderCouponResult.ItemCoupon> itemCouponMap = coupon.toItemCouponMap();
+        Map<Long, OrderCouponSnapshot> itemCouponMap = coupon.toItemCouponMap();
         for (OrderSheetItem item : items) {
-            OrderCouponResult.ItemCoupon itemCoupon = itemCouponMap.get(item.getProductVariantId());
-            if (!item.getAppliedCouponDiscount().equals(itemCoupon.discountAmount())){
+            OrderCouponSnapshot itemCoupon = itemCouponMap.get(item.getProductVariantId());
+            if (!item.getAppliedCouponDiscount().equals(itemCoupon.getDiscountAmount())){
                 throw new BusinessException(OrderErrorCode.ITEM_COUPON_DISCOUNT_CHANGE);
             }
         }

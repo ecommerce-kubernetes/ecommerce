@@ -186,19 +186,15 @@ public class OrderAppServiceTest {
     }
 
     private OrderCouponResult.Calculate createCouponResult() {
-        OrderCouponResult.CartCoupon cartCoupon = OrderCouponResult.CartCoupon.builder()
-                .couponId(2L)
-                .couponName("첫구매 1000원 할인 쿠폰")
-                .discountAmount(Money.wons(1000L))
-                .build();
-        OrderCouponResult.ItemCoupon itemCoupon = OrderCouponResult.ItemCoupon.builder()
-                .couponId(1L)
-                .couponName("하의 1000원 쿠폰")
-                .discountAmount(Money.wons(1000L))
+        OrderCouponSnapshot cartCoupon = OrderCouponSnapshot.of(2L, "첫구매 1000원 할인 쿠폰", Money.wons(1000L));
+        OrderCouponSnapshot itemCoupon = OrderCouponSnapshot.of(1L, "하의 1000원 할인 쿠폰", Money.wons(1000L));
+        OrderCouponResult.ItemCoupon itemCouponResult = OrderCouponResult.ItemCoupon.builder()
+                .productVariantId(1L)
+                .itemCoupon(itemCoupon)
                 .build();
         return OrderCouponResult.Calculate.builder()
                 .cartCoupon(cartCoupon)
-                .itemCoupons(List.of(itemCoupon))
+                .itemCoupons(List.of(itemCouponResult))
                 .build();
     }
 

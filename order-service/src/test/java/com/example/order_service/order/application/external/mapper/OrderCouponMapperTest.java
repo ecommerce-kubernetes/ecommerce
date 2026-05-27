@@ -8,6 +8,7 @@ import com.example.order_service.order.application.external.dto.command.OrderCou
 import com.example.order_service.order.application.external.dto.result.OrderCouponResult;
 import com.example.order_service.order.application.external.mapper.OrderCouponMapper;
 import com.example.order_service.order.application.external.mapper.OrderCouponMapperImpl;
+import com.example.order_service.order.domain.vo.OrderCouponSnapshot;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
@@ -70,19 +71,12 @@ public class OrderCouponMapperTest {
                 .itemCoupons(List.of(itemCoupon))
                 .build();
 
-        OrderCouponResult.CartCoupon expectedCartCoupon = OrderCouponResult.CartCoupon.builder()
-                .couponId(2L)
-                .couponName("1000원 할인 쿠폰")
-                .discountAmount(Money.wons(1000L))
-                .build();
-
+        OrderCouponSnapshot expectedCartCoupon = OrderCouponSnapshot.of(2L, "1000원 할인 쿠폰", Money.wons(1000L));
+        OrderCouponSnapshot resultItemCoupon = OrderCouponSnapshot.of(1L, "1000원 할인 쿠폰", Money.wons(1000L));
         OrderCouponResult.ItemCoupon expectedItemCoupon = OrderCouponResult.ItemCoupon.builder()
                 .productVariantId(1L)
-                .couponId(1L)
-                .couponName("1000원 할인 쿠폰")
-                .discountAmount(Money.wons(1000L))
+                .itemCoupon(resultItemCoupon)
                 .build();
-
         OrderCouponResult.Calculate expectedResult = OrderCouponResult.Calculate.builder()
                 .cartCoupon(expectedCartCoupon)
                 .itemCoupons(List.of(expectedItemCoupon))

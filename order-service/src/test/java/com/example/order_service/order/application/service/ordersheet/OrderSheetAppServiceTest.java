@@ -167,16 +167,11 @@ public class OrderSheetAppServiceTest {
         }
 
         private OrderCouponResult.Calculate createCoupon() {
-            OrderCouponResult.CartCoupon cartCoupon = OrderCouponResult.CartCoupon.builder()
-                    .couponId(1L)
-                    .couponName("1000원 할인 쿠폰")
-                    .discountAmount(Money.wons(1000L))
-                    .build();
+            OrderCouponSnapshot cartCoupon = OrderCouponSnapshot.of(1L, "첫구매 1000원 할인 쿠폰", Money.wons(1000L));
+            OrderCouponSnapshot itemCouponResult = OrderCouponSnapshot.of(2L, "하의 1000원 할인 쿠폰", Money.wons(1000L));
             OrderCouponResult.ItemCoupon itemCoupon = OrderCouponResult.ItemCoupon.builder()
                     .productVariantId(1L)
-                    .couponId(2L)
-                    .couponName("1000원 할인 쿠폰")
-                    .discountAmount(Money.wons(1000L))
+                    .itemCoupon(itemCouponResult)
                     .build();
             return OrderCouponResult.Calculate
                     .builder()
@@ -537,16 +532,11 @@ public class OrderSheetAppServiceTest {
         }
 
         private OrderCouponResult.Calculate createCouponResult() {
-            OrderCouponResult.CartCoupon cartCoupon = OrderCouponResult.CartCoupon.builder()
-                    .couponId(2L)
-                    .couponName("첫구매 1000원 할인 쿠폰")
-                    .discountAmount(Money.wons(1000L))
-                    .build();
+            OrderCouponSnapshot cartCoupon = OrderCouponSnapshot.of(2L, "첫구매 1000원 할인 쿠폰", Money.wons(1000L));
+            OrderCouponSnapshot itemCouponResult = OrderCouponSnapshot.of(10L, "전 품목 2000원 할인 쿠폰", Money.wons(2000L));
             OrderCouponResult.ItemCoupon itemCoupon = OrderCouponResult.ItemCoupon.builder()
                     .productVariantId(1L)
-                    .couponId(10L)
-                    .couponName("전 품목 2000원 할인 쿠폰")
-                    .discountAmount(Money.wons(2000L))
+                    .itemCoupon(itemCouponResult)
                     .build();
             return OrderCouponResult.Calculate.builder()
                     .cartCoupon(cartCoupon)
@@ -555,11 +545,7 @@ public class OrderSheetAppServiceTest {
         }
 
         private OrderCouponResult.Calculate createCouponNotUsedResult() {
-            OrderCouponResult.CartCoupon cartCoupon = OrderCouponResult.CartCoupon.builder()
-                    .couponId(2L)
-                    .couponName("첫구매 1000원 할인 쿠폰")
-                    .discountAmount(Money.wons(1000L))
-                    .build();
+            OrderCouponSnapshot cartCoupon = OrderCouponSnapshot.of(2L, "첫구매 1000원 할인 쿠폰", Money.wons(1000L));
             return OrderCouponResult.Calculate.builder()
                     .cartCoupon(cartCoupon)
                     .itemCoupons(List.of())
@@ -651,11 +637,10 @@ public class OrderSheetAppServiceTest {
         }
 
         private OrderCouponResult.Calculate createCartCouponNotUsedResult() {
+            OrderCouponSnapshot itemCouponResult = OrderCouponSnapshot.of(1L, "하의 1000원 할인 쿠폰", Money.wons(1000L));
             OrderCouponResult.ItemCoupon itemCoupon = OrderCouponResult.ItemCoupon.builder()
                     .productVariantId(1L)
-                    .couponId(1L)
-                    .couponName("하의 1000원 쿠폰")
-                    .discountAmount(Money.wons(1000L))
+                    .itemCoupon(itemCouponResult)
                     .build();
             return OrderCouponResult.Calculate.builder()
                     .cartCoupon(null)
@@ -664,16 +649,11 @@ public class OrderSheetAppServiceTest {
         }
 
         private OrderCouponResult.Calculate createCouponResult() {
-            OrderCouponResult.CartCoupon cartCoupon = OrderCouponResult.CartCoupon.builder()
-                    .couponId(10L)
-                    .couponName("첫구매 2000원 할인 쿠폰")
-                    .discountAmount(Money.wons(2000L))
-                    .build();
+            OrderCouponSnapshot cartCoupon = OrderCouponSnapshot.of(10L, "첫구매 2000원 할인 쿠폰", Money.wons(2000L));
+            OrderCouponSnapshot itemCouponResult = OrderCouponSnapshot.of(1L, "하의 1000원 할인 쿠폰", Money.wons(1000L));
             OrderCouponResult.ItemCoupon itemCoupon = OrderCouponResult.ItemCoupon.builder()
                     .productVariantId(1L)
-                    .couponId(1L)
-                    .couponName("하의 1000원 쿠폰")
-                    .discountAmount(Money.wons(1000L))
+                    .itemCoupon(itemCouponResult)
                     .build();
             return OrderCouponResult.Calculate.builder()
                     .cartCoupon(cartCoupon)

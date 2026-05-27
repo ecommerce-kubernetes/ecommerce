@@ -46,25 +46,18 @@ public class OrderSheetFactory {
         Orderer orderer = userResult.orderer();
         ShippingAddress shippingAddress = userResult.shippingAddress();
         List<OrderSheetItem> sheetItems = createItems(command, productResult, couponResult);
-        OrderCouponSnapshot cartCoupon = createCartCoupon(couponResult.cartCoupon());
+        OrderCouponSnapshot cartCoupon = couponResult.cartCoupon();
         return OrderSheet.create(sheetId, orderer, shippingAddress, sheetItems, cartCoupon, LocalDateTime.now(), ttlMinute);
-    }
-
-    private OrderCouponSnapshot createCartCoupon(OrderCouponResult.CartCoupon cartCoupon) {
-        if (cartCoupon == null) {
-            return OrderCouponSnapshot.empty();
-        }
-        return OrderCouponSnapshot.of(cartCoupon.couponId(), cartCoupon.couponName(), cartCoupon.discountAmount());
     }
 
     private List<OrderSheetItem> createItems(OrderSheetCommand.Create command, OrderProductResult.ProductList productResult, OrderCouponResult.Calculate couponResult) {
         Map<Long, OrderProductResult.Info> productsMap = productResult.getProductsMap();
-        Map<Long, OrderCouponResult.ItemCoupon> itemCouponMap = couponResult.toItemCouponMap();
+        Map<Long, OrderCouponSnapshot> itemCouponMap = couponResult.toItemCouponMap();
         return command.items().stream().map(item -> createItem(item, productsMap, itemCouponMap)).toList();
     }
 
     private OrderSheetItem createItem(OrderSheetCommand.OrderItem command, Map<Long, OrderProductResult.Info> productsMap,
-                                      Map<Long, OrderCouponResult.ItemCoupon> itemCouponMap) {
+                                      Map<Long, OrderCouponSnapshot> itemCouponMap) {
         Long orderedVariantId = command.productVariantId();
         String sheetItemId = generateId();
         OrderProductResult.Info product = productsMap.get(orderedVariantId);
@@ -90,15 +83,15 @@ public class OrderSheetFactory {
      * @return 상품 쿠폰 스냅샷 VO
      */
     public OrderCouponSnapshot createItemCouponSnapshot(OrderCouponResult.Calculate appliedCoupons, Long variantId) {
-        Map<Long, OrderCouponResult.ItemCoupon> itemCouponMap = appliedCoupons.toItemCouponMap();
+        Map<Long, OrderCouponSnapshot> itemCouponMap = appliedCoupons.toItemCouponMap();
         return createItemCoupon(itemCouponMap.get(variantId));
     }
 
-    private OrderCouponSnapshot createItemCoupon(OrderCouponResult.ItemCoupon itemCoupon) {
+    private OrderCouponSnapshot createItemCoupon(OrderCouponSnapshot itemCoupon) {
         if (itemCoupon == null) {
             return OrderCouponSnapshot.empty();
         }
-        return OrderCouponSnapshot.of(itemCoupon.couponId(), itemCoupon.couponName(), itemCoupon.discountAmount());
+        return itemCoupon;
     }
 
     /**
@@ -107,14 +100,14 @@ public class OrderSheetFactory {
      * 쿠폰 검증 결과를 통해 장바구니 쿠폰 스냅샷 VO를 생성
      * </p>
      *
-     * @param coupon 쿠폰 검증 결과
+     * @param cartCoupon 쿠폰 검증 결과
      * @return 장바구니 쿠폰 VO
      */
-    public OrderCouponSnapshot createCartCouponSnapshot(OrderCouponResult.CartCoupon coupon) {
-        if (coupon == null) {
+    public OrderCouponSnapshot createCartCouponSnapshot(OrderCouponSnapshot cartCoupon) {
+        if (cartCoupon == null) {
             return OrderCouponSnapshot.empty();
         }
-        return OrderCouponSnapshot.of(coupon.couponId(), coupon.couponName(), coupon.discountAmount());
+        return cartCoupon;
     }
 
     /**

@@ -5,6 +5,7 @@ import com.example.order_service.infrastructure.dto.command.CouponCommand;
 import com.example.order_service.infrastructure.dto.response.CouponClientResponse;
 import com.example.order_service.order.application.external.dto.command.OrderCouponCommand;
 import com.example.order_service.order.application.external.dto.result.OrderCouponResult;
+import com.example.order_service.order.domain.vo.OrderCouponSnapshot;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.processing.Generated;
@@ -13,7 +14,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-05-28T04:04:52+0900",
+    date = "2026-05-28T05:13:48+0900",
     comments = "version: 1.6.3, compiler: javac, environment: Java 21.0.10 (Eclipse Adoptium)"
 )
 @Component
@@ -66,25 +67,25 @@ public class OrderCouponMapperImpl implements OrderCouponMapper {
 
         OrderCouponResult.Calculate.CalculateBuilder calculate = OrderCouponResult.Calculate.builder();
 
-        calculate.cartCoupon( toCartCouponResult( response.cartCoupon() ) );
+        calculate.cartCoupon( toCartCouponSnapshot( response.cartCoupon() ) );
         calculate.itemCoupons( itemCouponListToItemCouponList( response.itemCoupons() ) );
 
         return calculate.build();
     }
 
     @Override
-    public OrderCouponResult.CartCoupon toCartCouponResult(CouponClientResponse.CartCoupon response) {
+    public OrderCouponSnapshot toCartCouponSnapshot(CouponClientResponse.CartCoupon response) {
         if ( response == null ) {
             return null;
         }
 
-        OrderCouponResult.CartCoupon.CartCouponBuilder cartCoupon = OrderCouponResult.CartCoupon.builder();
+        OrderCouponSnapshot.OrderCouponSnapshotBuilder orderCouponSnapshot = OrderCouponSnapshot.reconstitute();
 
-        cartCoupon.couponId( response.couponId() );
-        cartCoupon.couponName( response.couponName() );
-        cartCoupon.discountAmount( moneyMapper.toMoney( response.discountAmount() ) );
+        orderCouponSnapshot.couponId( response.couponId() );
+        orderCouponSnapshot.couponName( response.couponName() );
+        orderCouponSnapshot.discountAmount( moneyMapper.toMoney( response.discountAmount() ) );
 
-        return cartCoupon.build();
+        return orderCouponSnapshot.build();
     }
 
     @Override
@@ -95,12 +96,25 @@ public class OrderCouponMapperImpl implements OrderCouponMapper {
 
         OrderCouponResult.ItemCoupon.ItemCouponBuilder itemCoupon = OrderCouponResult.ItemCoupon.builder();
 
+        itemCoupon.itemCoupon( toItemCouponSnapshot( response ) );
         itemCoupon.productVariantId( response.productVariantId() );
-        itemCoupon.couponId( response.couponId() );
-        itemCoupon.couponName( response.couponName() );
-        itemCoupon.discountAmount( moneyMapper.toMoney( response.discountAmount() ) );
 
         return itemCoupon.build();
+    }
+
+    @Override
+    public OrderCouponSnapshot toItemCouponSnapshot(CouponClientResponse.ItemCoupon response) {
+        if ( response == null ) {
+            return null;
+        }
+
+        OrderCouponSnapshot.OrderCouponSnapshotBuilder orderCouponSnapshot = OrderCouponSnapshot.reconstitute();
+
+        orderCouponSnapshot.couponId( response.couponId() );
+        orderCouponSnapshot.couponName( response.couponName() );
+        orderCouponSnapshot.discountAmount( moneyMapper.toMoney( response.discountAmount() ) );
+
+        return orderCouponSnapshot.build();
     }
 
     protected List<CouponCommand.Item> appliedCouponItemListToItemList(List<OrderCouponCommand.AppliedCouponItem> list) {
