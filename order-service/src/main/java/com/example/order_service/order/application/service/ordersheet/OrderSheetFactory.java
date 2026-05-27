@@ -50,10 +50,6 @@ public class OrderSheetFactory {
         return OrderSheet.create(sheetId, orderer, shippingAddress, sheetItems, cartCoupon, LocalDateTime.now(), ttlMinute);
     }
 
-    private Orderer createOrderer(OrderUserResult.Profile profile) {
-        return profile.orderer();
-    }
-
     private OrderCouponSnapshot createCartCoupon(OrderCouponResult.CartCoupon cartCoupon) {
         if (cartCoupon == null) {
             return OrderCouponSnapshot.empty();
@@ -72,21 +68,11 @@ public class OrderSheetFactory {
         Long orderedVariantId = command.productVariantId();
         String sheetItemId = generateId();
         OrderProductResult.Info product = productsMap.get(orderedVariantId);
-        ProductSnapshot productSnapshot = ProductSnapshot.of(product.productId(),
-                product.productVariantId(), product.sku(), product.productName(), product.thumbnail());
-        ProductPriceSnapshot priceSnapshot = ProductPriceSnapshot.of(
-                product.originalPrice(), product.discountRate(), product.discountAmount(), product.discountedPrice());
-        List<ProductOptionSnapshot> optionSnapshots = createOptions(product.options());
+        ProductSnapshot productSnapshot = product.productSnapshot();
+        ProductPriceSnapshot priceSnapshot = product.priceSnapshot();
+        List<ProductOptionSnapshot> optionSnapshots = product.options();
         OrderCouponSnapshot couponSnapshot = createItemCoupon(itemCouponMap.get(orderedVariantId));
         return OrderSheetItem.create(sheetItemId, productSnapshot, priceSnapshot, couponSnapshot, command.quantity(), optionSnapshots);
-    }
-
-    private List<ProductOptionSnapshot> createOptions(List<OrderProductResult.Option> options) {
-        if (options == null || options.isEmpty()) {
-            return Collections.emptyList();
-        }
-        return options.stream().map(option ->
-                ProductOptionSnapshot.of(option.optionTypeName(), option.optionValueName())).toList();
     }
 
     private String generateId() {

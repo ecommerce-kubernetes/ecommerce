@@ -3,6 +3,9 @@ package com.example.order_service.order.application.external.mapper;
 import com.example.order_service.common.mapper.MoneyMapper;
 import com.example.order_service.infrastructure.dto.response.ProductClientResponse;
 import com.example.order_service.order.application.external.dto.result.OrderProductResult;
+import com.example.order_service.order.domain.vo.ProductOptionSnapshot;
+import com.example.order_service.order.domain.vo.ProductPriceSnapshot;
+import com.example.order_service.order.domain.vo.ProductSnapshot;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.processing.Generated;
@@ -11,7 +14,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-05-28T04:04:52+0900",
+    date = "2026-05-28T04:38:39+0900",
     comments = "version: 1.6.3, compiler: javac, environment: Java 21.0.10 (Eclipse Adoptium)"
 )
 @Component
@@ -46,32 +49,58 @@ public class OrderProductMapperImpl implements OrderProductMapper {
 
         OrderProductResult.Info.InfoBuilder info = OrderProductResult.Info.builder();
 
-        info.originalPrice( moneyMapper.toMoney( productUnitPriceOriginalPrice( product ) ) );
-        info.discountRate( productUnitPriceDiscountRate( product ) );
-        info.discountAmount( moneyMapper.toMoney( productUnitPriceDiscountAmount( product ) ) );
-        info.discountedPrice( moneyMapper.toMoney( productUnitPriceDiscountedPrice( product ) ) );
-        info.productId( product.productId() );
-        info.productVariantId( product.productVariantId() );
-        info.sku( product.sku() );
-        info.productName( product.productName() );
-        info.thumbnail( product.thumbnail() );
-        info.options( productOptionListToOptionList( product.options() ) );
+        info.productSnapshot( toProductSnapshot( product ) );
+        info.priceSnapshot( toPriceSnapshot( product.unitPrice() ) );
+        info.options( productOptionListToProductOptionSnapshotList( product.options() ) );
 
         return info.build();
     }
 
     @Override
-    public OrderProductResult.Option toOption(ProductClientResponse.ProductOption option) {
+    public ProductSnapshot toProductSnapshot(ProductClientResponse.Product product) {
+        if ( product == null ) {
+            return null;
+        }
+
+        ProductSnapshot.ProductSnapshotBuilder productSnapshot = ProductSnapshot.reconstitute();
+
+        productSnapshot.productId( product.productId() );
+        productSnapshot.productVariantId( product.productVariantId() );
+        productSnapshot.sku( product.sku() );
+        productSnapshot.productName( product.productName() );
+        productSnapshot.thumbnail( product.thumbnail() );
+
+        return productSnapshot.build();
+    }
+
+    @Override
+    public ProductPriceSnapshot toPriceSnapshot(ProductClientResponse.UnitPrice unitPrice) {
+        if ( unitPrice == null ) {
+            return null;
+        }
+
+        ProductPriceSnapshot.ProductPriceSnapshotBuilder productPriceSnapshot = ProductPriceSnapshot.reconstitute();
+
+        productPriceSnapshot.originalPrice( moneyMapper.toMoney( unitPrice.originalPrice() ) );
+        productPriceSnapshot.discountRate( unitPrice.discountRate() );
+        productPriceSnapshot.discountAmount( moneyMapper.toMoney( unitPrice.discountAmount() ) );
+        productPriceSnapshot.discountedPrice( moneyMapper.toMoney( unitPrice.discountedPrice() ) );
+
+        return productPriceSnapshot.build();
+    }
+
+    @Override
+    public ProductOptionSnapshot toOptionSnapshot(ProductClientResponse.ProductOption option) {
         if ( option == null ) {
             return null;
         }
 
-        OrderProductResult.Option.OptionBuilder option1 = OrderProductResult.Option.builder();
+        ProductOptionSnapshot.ProductOptionSnapshotBuilder productOptionSnapshot = ProductOptionSnapshot.reconstitute();
 
-        option1.optionTypeName( option.optionTypeName() );
-        option1.optionValueName( option.optionValueName() );
+        productOptionSnapshot.optionTypeName( option.optionTypeName() );
+        productOptionSnapshot.optionValueName( option.optionValueName() );
 
-        return option1.build();
+        return productOptionSnapshot.build();
     }
 
     protected List<OrderProductResult.Info> productListToInfoList(List<ProductClientResponse.Product> list) {
@@ -87,46 +116,14 @@ public class OrderProductMapperImpl implements OrderProductMapper {
         return list1;
     }
 
-    private Long productUnitPriceOriginalPrice(ProductClientResponse.Product product) {
-        ProductClientResponse.UnitPrice unitPrice = product.unitPrice();
-        if ( unitPrice == null ) {
-            return null;
-        }
-        return unitPrice.originalPrice();
-    }
-
-    private Integer productUnitPriceDiscountRate(ProductClientResponse.Product product) {
-        ProductClientResponse.UnitPrice unitPrice = product.unitPrice();
-        if ( unitPrice == null ) {
-            return null;
-        }
-        return unitPrice.discountRate();
-    }
-
-    private Long productUnitPriceDiscountAmount(ProductClientResponse.Product product) {
-        ProductClientResponse.UnitPrice unitPrice = product.unitPrice();
-        if ( unitPrice == null ) {
-            return null;
-        }
-        return unitPrice.discountAmount();
-    }
-
-    private Long productUnitPriceDiscountedPrice(ProductClientResponse.Product product) {
-        ProductClientResponse.UnitPrice unitPrice = product.unitPrice();
-        if ( unitPrice == null ) {
-            return null;
-        }
-        return unitPrice.discountedPrice();
-    }
-
-    protected List<OrderProductResult.Option> productOptionListToOptionList(List<ProductClientResponse.ProductOption> list) {
+    protected List<ProductOptionSnapshot> productOptionListToProductOptionSnapshotList(List<ProductClientResponse.ProductOption> list) {
         if ( list == null ) {
             return null;
         }
 
-        List<OrderProductResult.Option> list1 = new ArrayList<OrderProductResult.Option>( list.size() );
+        List<ProductOptionSnapshot> list1 = new ArrayList<ProductOptionSnapshot>( list.size() );
         for ( ProductClientResponse.ProductOption productOption : list ) {
-            list1.add( toOption( productOption ) );
+            list1.add( toOptionSnapshot( productOption ) );
         }
 
         return list1;

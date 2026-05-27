@@ -93,7 +93,7 @@ public class OrderSheetAppService {
             Long itemCouponId = couponMap.get(item.productVariantId());
             return OrderCouponCommand.AppliedCouponItem.of(
                     item.productVariantId(),
-                    product.discountedPrice(),
+                    product.priceSnapshot().getDiscountedPrice(),
                     item.quantity(),
                     itemCouponId
             );

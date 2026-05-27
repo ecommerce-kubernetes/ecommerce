@@ -1,12 +1,14 @@
 package com.example.order_service.order.domain.vo;
 
+import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@Embeddable
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ProductOptionSnapshot {
     private String optionTypeName;
     private String optionValueName;

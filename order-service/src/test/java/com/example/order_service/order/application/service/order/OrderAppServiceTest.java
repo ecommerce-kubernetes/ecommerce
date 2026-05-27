@@ -169,17 +169,14 @@ public class OrderAppServiceTest {
     }
 
     private OrderProductResult.ProductList createProductResult() {
-        OrderProductResult.Option xl = OrderProductResult.Option.builder().optionTypeName("사이즈").optionValueName("XL").build();
-        OrderProductResult.Option blue = OrderProductResult.Option.builder().optionTypeName("색상").optionValueName("BLUE").build();
+        ProductOptionSnapshot xl = ProductOptionSnapshot.of("사이즈", "XL");
+        ProductOptionSnapshot blue = ProductOptionSnapshot.of("색상", "BLUE");
+        ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "PROD-XL-BLUE", "청바지", "/product/product/jean_1.jpg");
+        ProductPriceSnapshot priceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L), 10,
+                Money.wons(1000L), Money.wons(9000L));
         OrderProductResult.Info product = OrderProductResult.Info.builder()
-                .productId(1L)
-                .productVariantId(1L)
-                .sku("PROD-XL-BLUE")
-                .productName("청바지")
-                .originalPrice(Money.wons(10000L))
-                .discountRate(10)
-                .discountAmount(Money.wons(1000L))
-                .discountedPrice(Money.wons(9000L))
+                .productSnapshot(productSnapshot)
+                .priceSnapshot(priceSnapshot)
                 .options(List.of(xl, blue))
                 .build();
 

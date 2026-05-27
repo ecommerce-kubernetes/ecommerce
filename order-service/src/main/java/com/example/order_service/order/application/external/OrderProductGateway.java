@@ -50,16 +50,12 @@ public class OrderProductGateway {
 
     private ProductClientResponse.ProductList fetchProductsWithTranslation(ProductCommand.Validate command) {
         try {
-            //정상 응답
             return productAdaptor.getProductsForOrder(command);
         } catch (ExternalClientException e) {
-            //400번대 에러
             throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_PRODUCT_CLIENT_ERROR);
         } catch (ExternalServerException e) {
-            //500번대 에러
             throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_PRODUCT_SERVER_ERROR);
         } catch (ExternalSystemUnavailableException e) {
-            //서킷브레이커 열림(503 에러)
             throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_PRODUCT_UNAVAILABLE_SERVER_ERROR);
         }
     }

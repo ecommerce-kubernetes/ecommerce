@@ -31,7 +31,7 @@ public class OrderValidator {
         Map<Long, OrderProductResult.Info> productsMap = products.getProductsMap();
         for (OrderSheetItem item : items) {
             OrderProductResult.Info product = productsMap.get(item.getProductVariantId());
-            if (!item.getDiscountedPrice().equals(product.discountedPrice())) {
+            if (!item.getDiscountedPrice().equals(product.priceSnapshot().getDiscountedPrice())) {
                 throw new BusinessException(OrderErrorCode.PRODUCT_PRICE_CHANGE);
             }
         }
