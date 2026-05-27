@@ -18,7 +18,7 @@ public class OrderDescriptor {
                 fieldWithPath("status").description("주문 상태"),
                 fieldWithPath("createdAt").description("주문 일시"),
                 fieldWithPath("orderName").description("주문 설명"),
-                fieldWithPath("finalPaymentAmount").description("최종 결제 금액")
+                fieldWithPath("totalPaymentAmount").description("최종 결제 금액")
         };
     }
 }

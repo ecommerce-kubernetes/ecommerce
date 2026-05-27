@@ -1,6 +1,6 @@
 package com.example.order_service.order.api.dto.request;
 
-import com.example.order_service.order.application.dto.command.OrderSheetCommand;
+import com.example.order_service.order.application.service.ordersheet.dto.command.OrderSheetCommand;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.Builder;

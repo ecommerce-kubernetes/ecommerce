@@ -1,10 +1,13 @@
 package com.example.order_service.order.mapper;
 
 import com.example.order_service.common.domain.vo.Money;
+import com.example.order_service.order.application.dto.result.OrderResult;
 import com.example.order_service.order.application.mapper.OrderMapper;
+import com.example.order_service.order.application.service.order.dto.result.OrderDto;
 import com.example.order_service.order.domain.model.OrderSheet;
 import com.example.order_service.order.domain.model.OrderSheetItem;
 import com.example.order_service.order.application.service.order.dto.command.OrderContext;
+import com.example.order_service.order.domain.model.OrderStatus;
 import com.example.order_service.order.domain.vo.*;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -25,7 +28,7 @@ public class OrderMapperTest {
         //given
         OrderSheet orderSheet = createOrderSheet();
         orderSheet.changeUsedPoints(Money.wons(1000L));
-        OrderContext.CreateOrderContext expected = expected();
+        OrderContext.CreateOrderContext expected = expectedContext();
         //when
         OrderContext.CreateOrderContext context = orderMapper.toContext(orderSheet);
         //then
@@ -33,7 +36,72 @@ public class OrderMapperTest {
                 .isEqualTo(expected);
     }
 
-    private OrderContext.CreateOrderContext expected() {
+    @Test
+    @DisplayName("주문 생성 결과 매핑")
+    void toResult(){
+        //given
+        OrderDto.Detail dto = createDto();
+        OrderResult.Create expected = expectedResult();
+        //when
+        OrderResult.Create result = orderMapper.toResult(dto);
+        //then
+        assertThat(result)
+                .usingRecursiveComparison()
+                .isEqualTo(expected);
+    }
+
+    private OrderResult.Create expectedResult() {
+        LocalDateTime createdAt = LocalDateTime.of(2026, 5, 27, 6, 40);
+        return OrderResult.Create.builder()
+                .orderNo("orderNo")
+                .status(OrderStatus.PENDING)
+                .orderName("청바지")
+                .totalPaymentAmount(Money.wons(6000L))
+                .createdAt(createdAt)
+                .build();
+    }
+
+    private OrderDto.Detail createDto() {
+        Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
+        ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678", "12345",
+                "서울시 테헤란로 123", "123동 1234호");
+        OrderCouponSnapshot cartCoupon = OrderCouponSnapshot.of(2L, "장바구니 1000원 할인", Money.wons(1000L));
+        LocalDateTime createdAt = LocalDateTime.of(2026, 5, 27, 6, 40);
+        return OrderDto.Detail.builder()
+                .orderNo("orderNo")
+                .status(OrderStatus.PENDING)
+                .orderName("청바지")
+                .orderer(orderer)
+                .shippingAddress(shippingAddress)
+                .orderItems(createItemDto())
+                .cartCoupon(cartCoupon)
+                .totalOriginalPrice(Money.wons(10000L))
+                .totalProductDiscountAmount(Money.wons(1000L))
+                .totalCouponDiscountAmount(Money.wons(2000L))
+                .usedPoints(Money.wons(1000L))
+                .totalPaymentAmount(Money.wons(6000L))
+                .failureCode(null)
+                .createdAt(createdAt)
+                .build();
+    }
+
+    private List<OrderDto.Item> createItemDto() {
+        ProductSnapshot product = ProductSnapshot.of(1L, 1L, "PROD-XL-BLUE", "청바지", "/product/product/jean_1.jpg");
+        ProductPriceSnapshot productPrice = ProductPriceSnapshot.of(Money.wons(10000L), 10, Money.wons(1000L), Money.wons(9000L));
+        OrderCouponSnapshot itemCoupon = OrderCouponSnapshot.of(1L, "청바지 1000원 할인", Money.wons(1000L));
+        ProductOptionSnapshot xl = ProductOptionSnapshot.of("사이즈", "XL");
+        ProductOptionSnapshot blue = ProductOptionSnapshot.of("색상", "BLUE");
+        OrderDto.Item item = OrderDto.Item.builder()
+                .product(product)
+                .productPrice(productPrice)
+                .itemCoupon(itemCoupon)
+                .quantity(1)
+                .options(List.of(xl, blue))
+                .build();
+        return List.of(item);
+    }
+
+    private OrderContext.CreateOrderContext expectedContext() {
         Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
         ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678", "12345", "서울시 테헤란로 123", "123동 1234호");
         ProductSnapshot product = ProductSnapshot.of(1L, 1L, "PROD1-XL-BLUE", "청바지", "/product/product/jean_1.jpg");

@@ -13,7 +13,7 @@ public class OrderResult {
             String orderNo,
             OrderStatus status,
             String orderName,
-            Money finalPaymentAmount,
+            Money totalPaymentAmount,
             LocalDateTime createdAt
     ) {}
 }

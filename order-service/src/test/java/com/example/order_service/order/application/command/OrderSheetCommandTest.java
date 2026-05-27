@@ -1,7 +1,7 @@
 package com.example.order_service.order.application.command;
 
 import com.example.order_service.common.exception.business.BusinessException;
-import com.example.order_service.order.application.dto.command.OrderSheetCommand;
+import com.example.order_service.order.application.service.ordersheet.dto.command.OrderSheetCommand;
 import com.example.order_service.order.exception.OrderSheetErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

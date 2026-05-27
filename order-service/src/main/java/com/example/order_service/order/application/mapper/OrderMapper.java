@@ -15,6 +15,7 @@ public interface OrderMapper {
     @Mapping(source = "items", target = "orderItems")
     OrderContext.CreateOrderContext toContext(OrderSheet orderSheet);
     OrderContext.ItemContext toItemContext(OrderSheetItem orderSheetItem);
-    OrderResult.Create toResult(OrderDto orderDto);
+
+    OrderResult.Create toResult(OrderDto.Detail orderDto);
 
 }

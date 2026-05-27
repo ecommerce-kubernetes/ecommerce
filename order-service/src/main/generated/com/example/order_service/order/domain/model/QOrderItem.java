@@ -31,9 +31,9 @@ public class QOrderItem extends EntityPathBase<OrderItem> {
 
     public final com.example.order_service.order.domain.vo.QOrderCouponSnapshot itemCoupon;
 
-    public final QOrder order;
+    public final ListPath<com.example.order_service.order.domain.vo.ProductOptionSnapshot, SimplePath<com.example.order_service.order.domain.vo.ProductOptionSnapshot>> options = this.<com.example.order_service.order.domain.vo.ProductOptionSnapshot, SimplePath<com.example.order_service.order.domain.vo.ProductOptionSnapshot>>createList("options", com.example.order_service.order.domain.vo.ProductOptionSnapshot.class, SimplePath.class, PathInits.DIRECT2);
 
-    public final ListPath<OrderItemOption, QOrderItemOption> orderItemOptions = this.<OrderItemOption, QOrderItemOption>createList("orderItemOptions", OrderItemOption.class, QOrderItemOption.class, PathInits.DIRECT2);
+    public final QOrder order;
 
     public final com.example.order_service.order.domain.vo.QProductSnapshot product;
 

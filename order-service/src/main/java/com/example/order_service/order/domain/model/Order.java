@@ -41,13 +41,11 @@ public class Order extends BaseEntity {
     private Money totalPaymentAmount;
     @Enumerated(EnumType.STRING)
     private OrderFailureCode failureCode;
-    @OneToMany(mappedBy = "order", cascade = CascadeType.PERSIST)
-    private List<Payment> payments = new ArrayList<>();
 
-    @Builder(access =AccessLevel.PRIVATE)
-    private Order (String orderNo, OrderStatus status, String orderName, Orderer orderer, ShippingAddress shippingAddress,
-                   OrderCouponSnapshot cartCoupon, Money totalOriginalPrice, Money totalProductDiscountAmount, Money totalCouponDiscountAmount,
-                   Money usedPoints, Money totalPaymentAmount, OrderFailureCode failureCode){
+    @Builder(access = AccessLevel.PRIVATE)
+    private Order(String orderNo, OrderStatus status, String orderName, Orderer orderer, ShippingAddress shippingAddress,
+                  OrderCouponSnapshot cartCoupon, Money totalOriginalPrice, Money totalProductDiscountAmount, Money totalCouponDiscountAmount,
+                  Money usedPoints, Money totalPaymentAmount, OrderFailureCode failureCode) {
         this.orderNo = orderNo;
         this.status = status;
         this.orderName = orderName;
@@ -60,5 +58,50 @@ public class Order extends BaseEntity {
         this.usedPoints = usedPoints;
         this.totalPaymentAmount = totalPaymentAmount;
         this.failureCode = failureCode;
+    }
+
+    public static Order init(String orderNo, Orderer orderer, ShippingAddress shippingAddress, OrderCouponSnapshot cartCoupon,
+                             List<OrderItem> orderItems, Money totalOriginalPrice, Money totalProductDiscountAmount,
+                             Money totalCouponDiscountAmount, Money usedPoints, Money totalPaymentAmount) {
+        String orderName = generateOrderName(orderItems);
+        Order order = create(orderNo, OrderStatus.PENDING, orderName, orderer, shippingAddress, cartCoupon, totalOriginalPrice,
+                totalProductDiscountAmount, totalCouponDiscountAmount, usedPoints, totalPaymentAmount, null);
+        for(OrderItem orderItem: orderItems) {
+            order.addItem(orderItem);
+        }
+        return order;
+    }
+
+    private static Order create(String orderNo, OrderStatus orderStatus, String orderName, Orderer orderer, ShippingAddress shippingAddress,
+                                OrderCouponSnapshot cartCoupon, Money totalOriginalPrice, Money totalProductDiscountAmount,
+                                Money totalCouponDiscountAmount, Money usedPoints, Money totalPaymentAmount, OrderFailureCode code) {
+        return Order.builder()
+                .orderNo(orderNo)
+                .status(orderStatus)
+                .orderName(orderName)
+                .orderer(orderer)
+                .shippingAddress(shippingAddress)
+                .cartCoupon(cartCoupon)
+                .totalOriginalPrice(totalOriginalPrice)
+                .totalProductDiscountAmount(totalProductDiscountAmount)
+                .totalCouponDiscountAmount(totalCouponDiscountAmount)
+                .usedPoints(usedPoints)
+                .totalPaymentAmount(totalPaymentAmount)
+                .failureCode(code)
+                .build();
+    }
+
+    private static String generateOrderName(List<OrderItem> items) {
+        String firstProdName = items.getFirst().getProduct().getProductName();
+        int size = items.size();
+        if (size == 1) {
+            return firstProdName;
+        }
+        return firstProdName + " 외 " + (size - 1) + "건";
+    }
+
+    private void addItem(OrderItem orderItem) {
+        this.orderItems.add(orderItem);
+        orderItem.setOrder(this);
     }
 }

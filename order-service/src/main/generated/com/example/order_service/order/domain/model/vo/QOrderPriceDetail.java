@@ -21,7 +21,7 @@ public class QOrderPriceDetail extends BeanPath<OrderPriceDetail> {
 
     public final NumberPath<Long> couponDiscount = createNumber("couponDiscount", Long.class);
 
-    public final NumberPath<Long> finalPaymentAmount = createNumber("finalPaymentAmount", Long.class);
+    public final NumberPath<Long> finalPaymentAmount = createNumber("totalPaymentAmount", Long.class);
 
     public final NumberPath<Long> pointDiscount = createNumber("pointDiscount", Long.class);
 

@@ -41,8 +41,6 @@ public class QOrder extends EntityPathBase<Order> {
 
     public final StringPath orderNo = createString("orderNo");
 
-    public final ListPath<Payment, QPayment> payments = this.<Payment, QPayment>createList("payments", Payment.class, QPayment.class, PathInits.DIRECT2);
-
     public final com.example.order_service.order.domain.vo.QShippingAddress shippingAddress;
 
     public final EnumPath<OrderStatus> status = createEnum("status", OrderStatus.class);

@@ -23,7 +23,7 @@ public class OrderResponse {
                     .orderNo(result.orderNo())
                     .status(result.status())
                     .orderName(result.orderName())
-                    .finalPaymentAmount(result.finalPaymentAmount().longValue())
+                    .finalPaymentAmount(result.totalPaymentAmount().longValue())
                     .createdAt(result.createdAt())
                     .build();
         }

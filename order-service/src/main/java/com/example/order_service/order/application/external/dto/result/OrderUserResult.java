@@ -29,7 +29,5 @@ public class OrderUserResult {
             Long userId,
             Money ownedPoints
     ) {
-
     }
-
 }

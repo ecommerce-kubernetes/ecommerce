@@ -10,7 +10,7 @@ import com.example.order_service.order.api.dto.request.OrderRequest;
 import com.example.order_service.order.api.dto.request.OrderSearchCondition;
 import com.example.order_service.order.api.dto.response.OrderResponse;
 import com.example.order_service.order.application.service.order.OrderAppService;
-import com.example.order_service.order.application.dto.command.OrderCommand;
+import com.example.order_service.order.application.service.order.dto.command.OrderCommand;
 import com.example.order_service.order.application.dto.result.OrderDetailResponse;
 import com.example.order_service.order.application.dto.result.OrderListResponse;
 import com.example.order_service.order.application.dto.result.OrderResult;
@@ -72,7 +72,7 @@ public class OrderControllerDocsTest extends RestDocSupport {
                 .orderNo("ORDER_NO")
                 .status(OrderStatus.PENDING)
                 .orderName("상품 1외 1건")
-                .finalPaymentAmount(Money.wons(9000L))
+                .totalPaymentAmount(Money.wons(9000L))
                 .createdAt(LocalDateTime.now())
                 .build();
         OrderResponse.Create response = OrderResponse.Create.from(result);
@@ -134,7 +134,7 @@ public class OrderControllerDocsTest extends RestDocSupport {
                 fieldWithPath("orderPrice.totalProductDiscount").description("상품 총 할인 금액"),
                 fieldWithPath("orderPrice.couponDiscount").description("쿠폰 할인 금액"),
                 fieldWithPath("orderPrice.pointDiscount").description("포인트 할인 금액"),
-                fieldWithPath("orderPrice.finalPaymentAmount").description("최종 주문 금액"),
+                fieldWithPath("orderPrice.totalPaymentAmount").description("최종 주문 금액"),
 
                 fieldWithPath("coupon.couponId").description("쿠폰 ID").optional(),
                 fieldWithPath("coupon.couponName").description("쿠폰 이름").optional(),
@@ -227,7 +227,7 @@ public class OrderControllerDocsTest extends RestDocSupport {
                 fieldWithPath("orderPrice.totalProductDiscount").description("상품 총 할인 금액"),
                 fieldWithPath("orderPrice.couponDiscount").description("쿠폰 할인 금액"),
                 fieldWithPath("orderPrice.pointDiscount").description("포인트 할인 금액"),
-                fieldWithPath("orderPrice.finalPaymentAmount").description("최종 주문 금액"),
+                fieldWithPath("orderPrice.totalPaymentAmount").description("최종 주문 금액"),
 
                 fieldWithPath("payment.paymentId").description("결제 ID").optional(),
                 fieldWithPath("payment.paymentKey").description("결제 키").optional(),

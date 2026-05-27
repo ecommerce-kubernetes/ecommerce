@@ -1,10 +1,10 @@
 package com.example.order_service.order.application.mapper;
 
 import com.example.order_service.order.application.dto.result.OrderResult;
-import com.example.order_service.order.domain.model.OrderSheet;
-import com.example.order_service.order.domain.model.OrderSheetItem;
 import com.example.order_service.order.application.service.order.dto.command.OrderContext;
 import com.example.order_service.order.application.service.order.dto.result.OrderDto;
+import com.example.order_service.order.domain.model.OrderSheet;
+import com.example.order_service.order.domain.model.OrderSheetItem;
 import com.example.order_service.order.domain.vo.ProductOptionSnapshot;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-05-27T03:44:29+0900",
+    date = "2026-05-27T18:53:20+0900",
     comments = "version: 1.6.3, compiler: javac, environment: Java 21.0.10 (Eclipse Adoptium)"
 )
 @Component
@@ -61,12 +61,18 @@ public class OrderMapperImpl implements OrderMapper {
     }
 
     @Override
-    public OrderResult.Create toResult(OrderDto orderDto) {
+    public OrderResult.Create toResult(OrderDto.Detail orderDto) {
         if ( orderDto == null ) {
             return null;
         }
 
         OrderResult.Create.CreateBuilder create = OrderResult.Create.builder();
+
+        create.orderNo( orderDto.orderNo() );
+        create.status( orderDto.status() );
+        create.orderName( orderDto.orderName() );
+        create.totalPaymentAmount( orderDto.totalPaymentAmount() );
+        create.createdAt( orderDto.createdAt() );
 
         return create.build();
     }

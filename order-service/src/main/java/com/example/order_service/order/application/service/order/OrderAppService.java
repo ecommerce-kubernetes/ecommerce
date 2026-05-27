@@ -4,8 +4,6 @@ import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.dto.PageDto;
 import com.example.order_service.common.exception.business.BusinessException;
 import com.example.order_service.order.api.dto.request.OrderSearchCondition;
-import com.example.order_service.order.application.util.OrderValidator;
-import com.example.order_service.order.application.dto.command.OrderCommand;
 import com.example.order_service.order.application.dto.result.OrderDetailResponse;
 import com.example.order_service.order.application.dto.result.OrderListResponse;
 import com.example.order_service.order.application.dto.result.OrderResult;
@@ -18,13 +16,15 @@ import com.example.order_service.order.application.external.dto.result.OrderCoup
 import com.example.order_service.order.application.external.dto.result.OrderProductResult;
 import com.example.order_service.order.application.external.dto.result.OrderUserResult;
 import com.example.order_service.order.application.mapper.OrderMapper;
+import com.example.order_service.order.application.service.order.dto.command.OrderCommand;
+import com.example.order_service.order.application.service.order.dto.command.OrderContext;
+import com.example.order_service.order.application.service.order.dto.result.OrderDto;
+import com.example.order_service.order.application.util.OrderValidator;
 import com.example.order_service.order.domain.model.OrderFailureCode;
 import com.example.order_service.order.domain.model.OrderSheet;
 import com.example.order_service.order.domain.model.OrderSheetItem;
 import com.example.order_service.order.domain.policy.PointUsagePolicy;
 import com.example.order_service.order.domain.repository.OrderSheetRepository;
-import com.example.order_service.order.application.service.order.dto.command.OrderContext;
-import com.example.order_service.order.application.service.order.dto.result.OrderDto;
 import com.example.order_service.order.exception.OrderErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -60,8 +60,8 @@ public class OrderAppService {
         OrderUserResult.UserPoint userPoints = getUserPoints(orderSheet);
         validator.validate(orderSheet, products, appliedCoupons, userPoints, pointPolicy);
         OrderContext.CreateOrderContext context = orderMapper.toContext(orderSheet);
-        OrderDto orderDto = orderService.saveOrder(context);
-        return orderMapper.toResult(orderDto);
+        OrderDto.Detail orderDetail = orderService.saveOrder(context);
+        return orderMapper.toResult(orderDetail);
     }
 
     private OrderProductResult.ProductList getOrderedProducts(List<OrderSheetItem> items) {

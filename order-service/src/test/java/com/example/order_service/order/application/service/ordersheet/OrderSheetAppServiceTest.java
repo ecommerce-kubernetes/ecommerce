@@ -1,17 +1,17 @@
-package com.example.order_service.order.application;
+package com.example.order_service.order.application.service.ordersheet;
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.business.BusinessException;
-import com.example.order_service.order.application.dto.command.OrderSheetCommand;
-import com.example.order_service.order.application.dto.result.*;
+import com.example.order_service.order.application.policy.DefaultPointUsagePolicy;
+import com.example.order_service.order.application.service.ordersheet.dto.command.OrderSheetCommand;
 import com.example.order_service.order.application.external.OrderCouponGateway;
 import com.example.order_service.order.application.external.OrderProductGateway;
 import com.example.order_service.order.application.external.OrderUserGateway;
 import com.example.order_service.order.application.external.dto.result.OrderCouponResult;
 import com.example.order_service.order.application.external.dto.result.OrderProductResult;
 import com.example.order_service.order.application.external.dto.result.OrderUserResult;
-import com.example.order_service.order.application.service.ordersheet.OrderSheetFactory;
-import com.example.order_service.order.application.service.ordersheet.OrderSheetAppService;
+import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetResult;
+import com.example.order_service.order.domain.policy.PointUsagePolicy;
 import com.example.order_service.order.domain.vo.*;
 import com.example.order_service.order.domain.model.OrderSheet;
 import com.example.order_service.order.domain.model.OrderSheetItem;
@@ -61,6 +61,8 @@ public class OrderSheetAppServiceTest {
     private OrderSheetProperties properties = new OrderSheetProperties(30L, BigDecimal.valueOf(0.1));
     @Spy
     private OrderSheetFactory factory = new OrderSheetFactory();
+    @Spy
+    private PointUsagePolicy pointUsagePolicy = new DefaultPointUsagePolicy(properties);
 
     @Nested
     @DisplayName("주문서 저장")
@@ -220,7 +222,7 @@ public class OrderSheetAppServiceTest {
             //then
             assertThat(result.sheetId()).isEqualTo("sheetId");
             assertThat(result.orderer().userId()).isEqualTo(1L);
-            assertThat(result.point().availablePoints()).isEqualTo(Money.wons(10000L));
+            assertThat(result.point().availablePoints()).isEqualTo(Money.wons(700L));
         }
 
         @Test
@@ -389,7 +391,7 @@ public class OrderSheetAppServiceTest {
             OrderSheetCommand.UpdatePoints command = OrderSheetCommand.UpdatePoints.builder()
                     .sheetId(sheetId)
                     .userId(userId)
-                    .usedPoints(Money.wons(2000L))
+                    .usedPoints(Money.wons(100L))
                     .build();
             OrderUserResult.UserPoint point = OrderUserResult.UserPoint.builder()
                     .userId(1L)
@@ -401,9 +403,36 @@ public class OrderSheetAppServiceTest {
             //when
             OrderSheetResult.Detail result = orderSheetAppService.updatePoints(command);
             //then
-            assertThat(result.point().usedPoints()).isEqualTo(Money.wons(2000L));
-            assertThat(result.paymentSummary().usedPoints()).isEqualTo(Money.wons(2000L));
-            assertThat(result.paymentSummary().totalPaymentAmount()).isEqualTo(Money.wons(5000L));
+            assertThat(result.point().usedPoints()).isEqualTo(Money.wons(100L));
+            assertThat(result.paymentSummary().usedPoints()).isEqualTo(Money.wons(100L));
+            assertThat(result.paymentSummary().totalPaymentAmount()).isEqualTo(Money.wons(6900L));
+        }
+
+        @Test
+        @DisplayName("사용 포인트가 주문에 적용할 수 있는 포인트를 초과하면 예외가 발생한다")
+        void updatePoints_point_policy_violation(){
+            //given
+            String sheetId = "sheetId";
+            Long userId = 1L;
+            OrderSheet orderSheet = createOrderSheet();
+            OrderSheetCommand.UpdatePoints command = OrderSheetCommand.UpdatePoints.builder()
+                    .sheetId(sheetId)
+                    .userId(userId)
+                    .usedPoints(Money.wons(5000L))
+                    .build();
+            OrderUserResult.UserPoint point = OrderUserResult.UserPoint.builder()
+                    .userId(1L)
+                    .ownedPoints(Money.wons(10000L))
+                    .build();
+            given(repository.findById(any())).willReturn(Optional.of(orderSheet));
+            given(orderUserGateway.getUserPointsForOrder(anyLong(), any())).willReturn(point);
+            //when
+            //then
+            assertThatThrownBy(() -> orderSheetAppService.updatePoints(command))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(OrderSheetErrorCode.ORDER_SHEET_POINT_POLICY_VIOLATION);
+
         }
 
         @Test
@@ -518,8 +547,8 @@ public class OrderSheetAppServiceTest {
             OrderSheetResult.Detail result = orderSheetAppService.updateItemCoupon(command);
             //then
             assertThat(result.paymentSummary().totalCouponDiscount()).isEqualTo(Money.wons(3000L));
-            assertThat(result.paymentSummary().usedPoints()).isEqualTo(Money.wons(500L));
-            assertThat(result.paymentSummary().totalPaymentAmount()).isEqualTo(Money.wons(5500L));
+            assertThat(result.paymentSummary().usedPoints()).isEqualTo(Money.wons(600L));
+            assertThat(result.paymentSummary().totalPaymentAmount()).isEqualTo(Money.wons(5400L));
         }
 
         private OrderCouponResult.Calculate createCouponResult() {
@@ -632,8 +661,8 @@ public class OrderSheetAppServiceTest {
             //then
             assertThat(result.cartCoupon().couponId()).isEqualTo(10L);
             assertThat(result.paymentSummary().totalCouponDiscount()).isEqualTo(Money.wons(3000L));
-            assertThat(result.paymentSummary().usedPoints()).isEqualTo(Money.wons(500L));
-            assertThat(result.paymentSummary().totalPaymentAmount()).isEqualTo(Money.wons(5500L));
+            assertThat(result.paymentSummary().usedPoints()).isEqualTo(Money.wons(600L));
+            assertThat(result.paymentSummary().totalPaymentAmount()).isEqualTo(Money.wons(5400L));
         }
 
         private OrderCouponResult.Calculate createCartCouponNotUsedResult() {
