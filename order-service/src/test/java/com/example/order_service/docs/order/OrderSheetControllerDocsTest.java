@@ -5,7 +5,7 @@ import com.example.order_service.docs.descriptor.OrderSheetDescriptor;
 import com.example.order_service.order.api.OrderSheetController;
 import com.example.order_service.order.api.dto.request.OrderSheetRequest;
 import com.example.order_service.order.api.dto.response.OrderSheetResponse;
-import com.example.order_service.order.application.OrderSheetAppService;
+import com.example.order_service.order.application.service.ordersheet.OrderSheetAppService;
 import com.example.order_service.order.application.dto.command.OrderSheetCommand;
 import com.example.order_service.order.application.dto.result.OrderSheetResult;
 import com.example.order_service.support.RestDocSupport;

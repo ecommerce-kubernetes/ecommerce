@@ -6,7 +6,7 @@ import com.example.order_service.common.dto.PageDto;
 import com.example.order_service.common.security.model.UserRole;
 import com.example.order_service.order.api.dto.request.*;
 import com.example.order_service.order.api.dto.response.OrderResponse;
-import com.example.order_service.order.application.OrderAppService;
+import com.example.order_service.order.application.service.order.OrderAppService;
 import com.example.order_service.order.application.dto.command.OrderCommand;
 import com.example.order_service.order.application.dto.result.OrderDetailResponse;
 import com.example.order_service.order.application.dto.result.OrderListResponse;

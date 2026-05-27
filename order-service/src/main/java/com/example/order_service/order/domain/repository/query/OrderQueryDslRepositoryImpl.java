@@ -77,6 +77,6 @@ public class OrderQueryDslRepositoryImpl implements OrderQueryDslRepository{
         if (productName == null || productName.isEmpty()) {
             return null;
         }
-        return orderItem.orderedProduct.productName.contains(productName);
+        return null;
     }
 }

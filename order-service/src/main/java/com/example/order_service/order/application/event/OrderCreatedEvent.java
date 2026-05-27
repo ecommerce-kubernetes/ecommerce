@@ -1,7 +1,7 @@
 package com.example.order_service.order.application.event;
 
-import com.example.order_service.order.domain.service.dto.result.OrderDto;
-import com.example.order_service.order.domain.service.dto.result.OrderItemDto;
+import com.example.order_service.order.application.service.order.dto.result.OrderDto;
+import com.example.order_service.order.application.service.order.dto.result.OrderItemDto;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -31,28 +31,15 @@ public class OrderCreatedEvent {
         private Integer quantity;
 
         private static OrderedItem from(OrderItemDto orderItemDto) {
-            return OrderedItem.builder()
-                    .productVariantId(orderItemDto.getOrderedProduct().getProductVariantId())
-                    .quantity(orderItemDto.getQuantity())
-                    .build();
+            return null;
         }
     }
 
     public static OrderCreatedEvent from(OrderDto orderDto) {
-        List<OrderedItem> orderedItems = orderDto.getOrderItems().stream().map(OrderedItem::from).toList();
-        return OrderCreatedEvent.builder()
-                .orderNo(orderDto.getOrderNo())
-                .userId(orderDto.getOrderer().getUserId())
-                .couponId(resolveCouponId(orderDto))
-                .orderedItems(orderedItems)
-                .usedPoint(orderDto.getOrderPriceInfo().getPointDiscount())
-                .build();
+        return null;
     }
 
     private static Long resolveCouponId(OrderDto orderDto) {
-        if (orderDto.getCouponInfo() == null) {
-            return null;
-        }
-        return orderDto.getCouponInfo().getCouponId();
+        return null;
     }
 }

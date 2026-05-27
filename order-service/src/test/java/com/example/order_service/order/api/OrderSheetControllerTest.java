@@ -5,7 +5,7 @@ import com.example.order_service.api.support.security.config.TestSecurityConfig;
 import com.example.order_service.common.security.model.UserRole;
 import com.example.order_service.order.api.dto.request.OrderSheetRequest;
 import com.example.order_service.order.api.dto.response.OrderSheetResponse;
-import com.example.order_service.order.application.OrderSheetAppService;
+import com.example.order_service.order.application.service.ordersheet.OrderSheetAppService;
 import com.example.order_service.order.application.dto.command.OrderSheetCommand;
 import com.example.order_service.order.application.dto.result.OrderSheetResult;
 import com.fasterxml.jackson.databind.ObjectMapper;

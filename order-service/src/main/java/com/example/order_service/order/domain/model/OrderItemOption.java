@@ -1,6 +1,6 @@
 package com.example.order_service.order.domain.model;
 
-import com.example.order_service.order.domain.service.dto.command.OrderItemCreationContext;
+import com.example.order_service.order.application.service.order.dto.command.OrderItemCreationContext;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;

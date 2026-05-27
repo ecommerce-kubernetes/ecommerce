@@ -1,6 +1,6 @@
 package com.example.order_service.order.application.dto.result;
 
-import com.example.order_service.order.domain.service.dto.result.OrderDto;
+import com.example.order_service.order.application.service.order.dto.result.OrderDto;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -24,12 +24,6 @@ public class CreateOrderResponse {
     }
 
     public static CreateOrderResponse from(OrderDto orderDto) {
-        return CreateOrderResponse.builder()
-                .orderNo(orderDto.getOrderNo())
-                .status(orderDto.getStatus().name())
-                .orderName(orderDto.getOrderName())
-                .finalPaymentAmount(orderDto.getOrderPriceInfo().getFinalPaymentAmount())
-                .createdAt(orderDto.getOrderedAt().toString())
-                .build();
+        return null;
     }
 }

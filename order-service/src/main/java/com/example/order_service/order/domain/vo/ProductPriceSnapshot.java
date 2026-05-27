@@ -1,13 +1,15 @@
 package com.example.order_service.order.domain.vo;
 
 import com.example.order_service.common.domain.vo.Money;
+import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@Embeddable
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ProductPriceSnapshot {
     private Money originalPrice;
     private Integer discountRate;

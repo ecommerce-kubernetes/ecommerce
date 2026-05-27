@@ -1,4 +1,4 @@
-package com.example.order_service.order.domain.service.dto.command;
+package com.example.order_service.order.application.service.order.dto.result;
 
 import com.example.order_service.order.domain.model.vo.PaymentMethod;
 import com.example.order_service.order.domain.model.vo.PaymentStatus;
@@ -9,10 +9,10 @@ import java.time.LocalDateTime;
 
 @Getter
 @Builder
-public class PaymentCreationContext {
+public class OrderPaymentInfo {
     private String orderNo;
     private String paymentKey;
-    private Long amount;
+    private Long totalAmount;
     private PaymentStatus status;
     private PaymentMethod method;
     private LocalDateTime approvedAt;

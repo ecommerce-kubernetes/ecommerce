@@ -2,13 +2,11 @@ package com.example.order_service.order.api;
 
 import com.example.order_service.common.dto.PageDto;
 import com.example.order_service.common.security.model.UserPrincipal;
-import com.example.order_service.order.api.dto.request.CreateOrderRequest;
 import com.example.order_service.order.api.dto.request.OrderConfirmRequest;
 import com.example.order_service.order.api.dto.request.OrderRequest;
 import com.example.order_service.order.api.dto.request.OrderSearchCondition;
 import com.example.order_service.order.api.dto.response.OrderResponse;
-import com.example.order_service.order.application.OrderAppService;
-import com.example.order_service.order.application.dto.command.CreateOrderItemCommand;
+import com.example.order_service.order.application.service.order.OrderAppService;
 import com.example.order_service.order.application.dto.command.OrderCommand;
 import com.example.order_service.order.application.dto.result.OrderDetailResponse;
 import com.example.order_service.order.application.dto.result.OrderListResponse;
@@ -20,8 +18,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -60,10 +56,5 @@ public class OrderController {
         OrderDetailResponse response = orderAppService.confirmOrderPayment(request.getOrderNo(),
                 userPrincipal.getUserId(), request.getPaymentKey(), request.getAmount());
         return ResponseEntity.ok(response);
-    }
-
-    private List<CreateOrderItemCommand> mappingCreateOrderItemDto(CreateOrderRequest request){
-        return request.getItems().stream().map(item -> CreateOrderItemCommand.of(item.getProductVariantId(), item.getQuantity()))
-                .toList();
     }
 }

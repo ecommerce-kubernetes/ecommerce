@@ -1,6 +1,6 @@
 package com.example.order_service.order.saga.listener;
 
-import com.example.order_service.order.application.OrderAppService;
+import com.example.order_service.order.application.service.order.OrderAppService;
 import com.example.order_service.order.application.event.OrderCreatedEvent;
 import com.example.order_service.order.application.event.PaymentCompletedEvent;
 import com.example.order_service.order.application.event.PaymentFailedEvent;

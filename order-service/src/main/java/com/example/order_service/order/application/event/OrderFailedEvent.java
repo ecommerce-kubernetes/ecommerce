@@ -1,6 +1,6 @@
 package com.example.order_service.order.application.event;
 
-import com.example.order_service.order.domain.service.dto.result.OrderDto;
+import com.example.order_service.order.application.service.order.dto.result.OrderDto;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -13,11 +13,6 @@ public class OrderFailedEvent {
     private String orderName;
 
     public static OrderFailedEvent from(OrderDto orderDto) {
-        return OrderFailedEvent.builder()
-                .orderNo(orderDto.getOrderNo())
-                .userId(orderDto.getOrderer().getUserId())
-                .code(orderDto.getOrderFailureCode().name())
-                .orderName(orderDto.getOrderName())
-                .build();
+        return null;
     }
 }
