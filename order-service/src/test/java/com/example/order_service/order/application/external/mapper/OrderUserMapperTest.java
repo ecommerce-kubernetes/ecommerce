@@ -6,6 +6,7 @@ import com.example.order_service.infrastructure.dto.response.UserClientResponse;
 import com.example.order_service.order.application.external.dto.result.OrderUserResult;
 import com.example.order_service.order.application.external.mapper.OrderUserMapper;
 import com.example.order_service.order.application.external.mapper.OrderUserMapperImpl;
+import com.example.order_service.order.domain.vo.Orderer;
 import com.example.order_service.order.domain.vo.ShippingAddress;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -28,10 +29,9 @@ public class OrderUserMapperTest {
                         response.defaultShippingAddress().zipCode(),
                         response.defaultShippingAddress().address(),
                         response.defaultShippingAddress().addressDetail());
+        Orderer orderer = Orderer.of(response.userId(), response.userName(), response.phoneNumber());
         OrderUserResult.Profile expectedResult = OrderUserResult.Profile.builder()
-                .userId(response.userId())
-                .userName(response.userName())
-                .phoneNumber(response.phoneNumber())
+                .orderer(orderer)
                 .shippingAddress(shippingAddress)
                 .build();
         //when

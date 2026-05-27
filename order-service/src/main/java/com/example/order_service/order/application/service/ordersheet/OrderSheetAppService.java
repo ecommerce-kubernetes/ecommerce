@@ -71,7 +71,6 @@ public class OrderSheetAppService {
     private OrderProductResult.ProductList getOrderedProducts(List<OrderSheetCommand.OrderItem> items) {
         List<OrderProductCommand.OrderItem> commands = items.stream().map(item ->
                         OrderProductCommand.OrderItem.of(item.productVariantId(), item.quantity())).toList();
-
         return orderProductGateway.getProducts(commands);
     }
 

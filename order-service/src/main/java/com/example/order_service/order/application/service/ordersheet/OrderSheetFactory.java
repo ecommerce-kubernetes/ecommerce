@@ -43,7 +43,7 @@ public class OrderSheetFactory {
     public OrderSheet createSheet(OrderSheetCommand.Create command, OrderUserResult.Profile userResult,
                                   OrderProductResult.ProductList productResult, OrderCouponResult.Calculate couponResult, long ttlMinute) {
         String sheetId = generateId();
-        Orderer orderer = createOrderer(userResult);
+        Orderer orderer = userResult.orderer();
         ShippingAddress shippingAddress = userResult.shippingAddress();
         List<OrderSheetItem> sheetItems = createItems(command, productResult, couponResult);
         OrderCouponSnapshot cartCoupon = createCartCoupon(couponResult.cartCoupon());
@@ -51,7 +51,7 @@ public class OrderSheetFactory {
     }
 
     private Orderer createOrderer(OrderUserResult.Profile profile) {
-        return Orderer.of(profile.userId(), profile.userName(), profile.phoneNumber());
+        return profile.orderer();
     }
 
     private OrderCouponSnapshot createCartCoupon(OrderCouponResult.CartCoupon cartCoupon) {

@@ -5,15 +5,6 @@ import lombok.Builder;
 public class UserClientResponse {
 
     @Builder
-    public record UserInfo(
-            Long userId,
-            Long pointBalance,
-            String userName,
-            String phoneNumber
-    ) {
-    }
-
-    @Builder
     public record Profile(
             Long userId,
             String userName,

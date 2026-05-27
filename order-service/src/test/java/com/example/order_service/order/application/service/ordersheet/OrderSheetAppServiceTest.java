@@ -142,10 +142,9 @@ public class OrderSheetAppServiceTest {
         private OrderUserResult.Profile createUserProfile() {
             ShippingAddress shippingAddress = ShippingAddress.of("수령인",
                     "010-1234-5678", "12345", "서울시 테헤란로 123", "123동 1234호");
+            Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
             return OrderUserResult.Profile.builder()
-                    .userId(1L)
-                    .userName("주문자")
-                    .phoneNumber("010-1234-5678")
+                    .orderer(orderer)
                     .shippingAddress(shippingAddress)
                     .build();
         }

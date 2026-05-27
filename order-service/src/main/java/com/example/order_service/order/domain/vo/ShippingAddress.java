@@ -1,11 +1,13 @@
 package com.example.order_service.order.domain.vo;
 
+import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
+@Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ShippingAddress {
     private String receiverName;
