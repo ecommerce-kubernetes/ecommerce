@@ -6,6 +6,7 @@ import com.example.order_service.infrastructure.dto.response.UserClientResponse;
 import com.example.order_service.order.application.external.dto.result.OrderUserResult;
 import com.example.order_service.order.application.external.mapper.OrderUserMapper;
 import com.example.order_service.order.application.external.mapper.OrderUserMapperImpl;
+import com.example.order_service.order.domain.vo.ShippingAddress;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -22,20 +23,17 @@ public class OrderUserMapperTest {
     void toResult() {
         //given
         UserClientResponse.Profile response = fixtureMonkey.giveMeOne(UserClientResponse.Profile.class);
-        OrderUserResult.ShippingAddress shippingAddress = OrderUserResult.ShippingAddress.builder()
-                .receiverName(response.defaultShippingAddress().receiverName())
-                .receiverPhone(response.defaultShippingAddress().receiverPhone())
-                .zipCode(response.defaultShippingAddress().zipCode())
-                .address(response.defaultShippingAddress().address())
-                .addressDetail(response.defaultShippingAddress().addressDetail())
-                .build();
+        ShippingAddress shippingAddress = ShippingAddress.of(response.defaultShippingAddress().receiverName(),
+                        response.defaultShippingAddress().receiverPhone(),
+                        response.defaultShippingAddress().zipCode(),
+                        response.defaultShippingAddress().address(),
+                        response.defaultShippingAddress().addressDetail());
         OrderUserResult.Profile expectedResult = OrderUserResult.Profile.builder()
                 .userId(response.userId())
                 .userName(response.userName())
                 .phoneNumber(response.phoneNumber())
                 .shippingAddress(shippingAddress)
                 .build();
-
         //when
         OrderUserResult.Profile result = mapper.toResult(response);
         //then

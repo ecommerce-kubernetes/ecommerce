@@ -12,6 +12,5 @@ public interface OrderUserMapper {
 
     @Mapping(source = "defaultShippingAddress", target = "shippingAddress")
     OrderUserResult.Profile toResult(UserClientResponse.Profile profile);
-    OrderUserResult.ShippingAddress toShippingAddressResult(UserClientResponse.ShippingAddress shippingAddress);
     OrderUserResult.UserPoint toResult(UserClientResponse.UserPoints points);
 }

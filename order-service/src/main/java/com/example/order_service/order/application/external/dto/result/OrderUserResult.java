@@ -1,6 +1,7 @@
 package com.example.order_service.order.application.external.dto.result;
 
 import com.example.order_service.common.domain.vo.Money;
+import com.example.order_service.order.domain.vo.ShippingAddress;
 import lombok.Builder;
 
 public class OrderUserResult {
@@ -11,16 +12,6 @@ public class OrderUserResult {
             String userName,
             String phoneNumber,
             ShippingAddress shippingAddress
-    ) {
-    }
-
-    @Builder
-    public record ShippingAddress(
-            String receiverName,
-            String receiverPhone,
-            String zipCode,
-            String address,
-            String addressDetail
     ) {
     }
 

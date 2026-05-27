@@ -140,13 +140,8 @@ public class OrderSheetAppServiceTest {
         }
 
         private OrderUserResult.Profile createUserProfile() {
-            OrderUserResult.ShippingAddress shippingAddress = OrderUserResult.ShippingAddress.builder()
-                    .receiverName("수령인")
-                    .receiverPhone("010-1234-5678")
-                    .zipCode("12345")
-                    .address("서울시 테헤란로 123")
-                    .addressDetail("123동 1234호")
-                    .build();
+            ShippingAddress shippingAddress = ShippingAddress.of("수령인",
+                    "010-1234-5678", "12345", "서울시 테헤란로 123", "123동 1234호");
             return OrderUserResult.Profile.builder()
                     .userId(1L)
                     .userName("주문자")
