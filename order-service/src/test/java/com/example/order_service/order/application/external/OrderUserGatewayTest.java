@@ -52,7 +52,7 @@ public class OrderUserGatewayTest {
             //when
             OrderUserResult.Profile userProfile = orderUserGateway.getUserProfile(userId);
             //then
-            assertThat(userProfile).isNotNull();
+            assertThat(userProfile).isEqualTo(profile);
         }
         
         @Test

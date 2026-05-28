@@ -35,10 +35,12 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import static com.example.order_service.support.TestFixtureUtil.fixtureMonkey;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
 
 @ExtendWith(MockitoExtension.class)
 public class OrderAppServiceTest {
@@ -57,8 +59,8 @@ public class OrderAppServiceTest {
     private OrderCouponGateway orderCouponGateway;
     @Mock
     private OrderUserGateway orderUserGateway;
-    @Spy
-    private OrderValidator orderValidator = new OrderValidator();
+    @Mock
+    private OrderValidator orderValidator;
 
     @Nested
     @DisplayName("주문 생성")
@@ -73,22 +75,29 @@ public class OrderAppServiceTest {
                     .orderSheetId("sheetId")
                     .userId(1L)
                     .build();
-            OrderUserResult.UserPoint userPoint = createUserResult();
-            OrderProductResult.ProductList productResult = createProductResult();
-            OrderCouponResult.Calculate couponResult = createCouponResult();
-            OrderContext.CreateOrderContext orderContext = createOrderContext();
-            OrderDto.Detail orderDto = createOrderDto();
+
+            OrderUserResult.UserPoint userPoint = fixtureMonkey.giveMeOne(OrderUserResult.UserPoint.class);
+            OrderProductResult.ProductList productResult = fixtureMonkey.giveMeOne(OrderProductResult.ProductList.class);
+            OrderCouponResult.Calculate couponResult = fixtureMonkey.giveMeOne(OrderCouponResult.Calculate.class);
+            OrderContext.CreateOrderContext orderContext = fixtureMonkey.giveMeOne(OrderContext.CreateOrderContext.class);
+            OrderDto.Detail orderDto = fixtureMonkey.giveMeOne(OrderDto.Detail.class);
+            OrderResult.Create expectedResult = fixtureMonkey.giveMeOne(OrderResult.Create.class);
+
             given(orderSheetRepository.findById(anyString())).willReturn(Optional.of(orderSheet));
             given(orderUserGateway.getUserPointsForOrder(anyLong(), any())).willReturn(userPoint);
             given(orderProductGateway.getProducts(anyList())).willReturn(productResult);
             given(orderCouponGateway.calculate(any())).willReturn(couponResult);
             given(orderMapper.toContext(any())).willReturn(orderContext);
             given(orderService.saveOrder(any())).willReturn(orderDto);
+            given(orderMapper.toResult(any())).willReturn(expectedResult);
             //when
             OrderResult.Create result = orderAppService.initialOrder(command);
             //then
-            assertThat(result.orderNo()).isEqualTo("orderNo");
-            assertThat(result.orderName()).isEqualTo("orderName");
+            assertThat(result).isEqualTo(expectedResult);
+            then(orderProductGateway).should().getProducts(anyList());
+            then(orderCouponGateway).should().calculate(any());
+            then(orderUserGateway).should().getUserPointsForOrder(anyLong(), any());
+            then(orderService).should().saveOrder(any());
         }
 
         @Test
@@ -159,117 +168,5 @@ public class OrderAppServiceTest {
         );
         OrderSheetItem sheetItem = OrderSheetItem.create("sheetItemId", product, price, itemCoupon, 1, options);
         return OrderSheet.create("sheetId", orderer, shippingAddress, List.of(sheetItem), cartCoupon, LocalDateTime.now(), 30);
-    }
-
-    private OrderUserResult.UserPoint createUserResult() {
-        return OrderUserResult.UserPoint.builder()
-                .userId(1L)
-                .ownedPoints(Money.wons(10000L))
-                .build();
-    }
-
-    private OrderProductResult.ProductList createProductResult() {
-        ProductOptionSnapshot xl = ProductOptionSnapshot.of("사이즈", "XL");
-        ProductOptionSnapshot blue = ProductOptionSnapshot.of("색상", "BLUE");
-        ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "PROD-XL-BLUE", "청바지", "/product/product/jean_1.jpg");
-        ProductPriceSnapshot priceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L), 10,
-                Money.wons(1000L), Money.wons(9000L));
-        OrderProductResult.Info product = OrderProductResult.Info.builder()
-                .productSnapshot(productSnapshot)
-                .priceSnapshot(priceSnapshot)
-                .options(List.of(xl, blue))
-                .build();
-
-        return OrderProductResult.ProductList.builder()
-                .products(List.of(product))
-                .build();
-    }
-
-    private OrderCouponResult.Calculate createCouponResult() {
-        OrderCouponSnapshot cartCoupon = OrderCouponSnapshot.of(2L, "첫구매 1000원 할인 쿠폰", Money.wons(1000L));
-        OrderCouponSnapshot itemCoupon = OrderCouponSnapshot.of(1L, "하의 1000원 할인 쿠폰", Money.wons(1000L));
-        OrderCouponResult.ItemCoupon itemCouponResult = OrderCouponResult.ItemCoupon.builder()
-                .productVariantId(1L)
-                .itemCoupon(itemCoupon)
-                .build();
-        return OrderCouponResult.Calculate.builder()
-                .cartCoupon(cartCoupon)
-                .itemCoupons(List.of(itemCouponResult))
-                .build();
-    }
-
-    private OrderContext.CreateOrderContext createOrderContext(){
-        Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
-        ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678", "12345", "서울시 테헤란로 123", "123동 1234호");
-        OrderCouponSnapshot cartCoupon = OrderCouponSnapshot.of(2L, "첫구매 1000원 할인 쿠폰", Money.wons(1000L));
-        List<OrderContext.ItemContext> orderItemContext = createOrderItemContext();
-        return OrderContext.CreateOrderContext.builder()
-                .orderer(orderer)
-                .shippingAddress(shippingAddress)
-                .orderItems(orderItemContext)
-                .cartCoupon(cartCoupon)
-                .totalOriginalPrice(Money.wons(10000L))
-                .totalProductDiscountAmount(Money.wons(1000L))
-                .totalCouponDiscountAmount(Money.wons(2000L))
-                .usedPoints(Money.ZERO)
-                .totalPaymentAmount(Money.wons(7000L))
-                .build();
-    }
-
-    private List<OrderContext.ItemContext> createOrderItemContext() {
-        ProductSnapshot product = ProductSnapshot.of(1L, 1L, "PROD-XL-BLUE", "청바지", "/product/product/jean_1.jpg");
-        ProductPriceSnapshot price = ProductPriceSnapshot.of(Money.wons(10000L), 10, Money.wons(1000L), Money.wons(9000L));
-        OrderCouponSnapshot itemCoupon = OrderCouponSnapshot.of(1L, "하의 1000원 쿠폰", Money.wons(1000L));
-        List<ProductOptionSnapshot> options = List.of(
-                ProductOptionSnapshot.of("사이즈", "XL"),
-                ProductOptionSnapshot.of("색상", "BLUE")
-        );
-        OrderContext.ItemContext item = OrderContext.ItemContext.builder()
-                .productSnapshot(product)
-                .itemPrice(price)
-                .itemCoupon(itemCoupon)
-                .quantity(1)
-                .options(options).build();
-        return List.of(item);
-    }
-
-    private OrderDto.Detail createOrderDto() {
-        Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
-        ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678", "12345", "서울시 테헤란로 123", "123동 1234호");
-        List<OrderDto.Item> orderItem = createOrderItem();
-        OrderCouponSnapshot cartCoupon = OrderCouponSnapshot.of(2L, "첫구매 1000원 할인 쿠폰", Money.wons(1000L));
-        return OrderDto.Detail.builder()
-                .id(1L)
-                .orderNo("orderNo")
-                .orderName("orderName")
-                .status(OrderStatus.PENDING)
-                .orderer(orderer)
-                .shippingAddress(shippingAddress)
-                .orderItems(orderItem)
-                .cartCoupon(cartCoupon)
-                .totalOriginalPrice(Money.wons(10000L))
-                .totalProductDiscountAmount(Money.wons(1000L))
-                .totalCouponDiscountAmount(Money.wons(2000L))
-                .usedPoints(Money.ZERO)
-                .totalPaymentAmount(Money.wons(7000L))
-                .build();
-    }
-
-    private List<OrderDto.Item> createOrderItem() {
-        ProductSnapshot product = ProductSnapshot.of(1L, 1L, "PROD-XL-BLUE", "청바지", "/product/product/jean_1.jpg");
-        ProductPriceSnapshot price = ProductPriceSnapshot.of(Money.wons(10000L), 10, Money.wons(1000L), Money.wons(9000L));
-        OrderCouponSnapshot itemCoupon = OrderCouponSnapshot.of(1L, "하의 1000원 쿠폰", Money.wons(1000L));
-        List<ProductOptionSnapshot> options = List.of(
-                ProductOptionSnapshot.of("사이즈", "XL"),
-                ProductOptionSnapshot.of("색상", "BLUE")
-        );
-        OrderDto.Item item = OrderDto.Item.builder()
-                .product(product)
-                .productPrice(price)
-                .itemCoupon(itemCoupon)
-                .quantity(1)
-                .options(options)
-                .build();
-        return List.of(item);
     }
 }

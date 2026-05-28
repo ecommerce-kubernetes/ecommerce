@@ -50,7 +50,7 @@ public class OrderCouponGatewayTest {
             //when
             OrderCouponResult.Calculate calculate = orderCouponGateway.calculate(command);
             //then
-            assertThat(calculate).isNotNull();
+            assertThat(calculate).isEqualTo(result);
         }
 
         @Test

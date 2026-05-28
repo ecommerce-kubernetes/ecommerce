@@ -129,7 +129,8 @@ public class OrderSheetAppService {
      */
     public OrderSheetResult.Detail updateShippingAddress(OrderSheetCommand.UpdateShippingAddress command) {
         OrderSheet orderSheet = getValidateOrderSheet(command.sheetId(), command.userId());
-        ShippingAddress newAddress = factory.createShippingAddress(command);
+        ShippingAddress newAddress = ShippingAddress.of(command.receiverName(), command.receiverPhone(), command.zipCode(),
+                command.address(), command.addressDetail());
         orderSheet.changeShippingAddress(newAddress);
         OrderUserResult.UserPoint userPoints = orderSheetUserGateway.getUserPoints(command.userId());
         Money availablePoints = orderSheet.calcAvailablePoints(userPoints.ownedPoints(), pointUsagePolicy);
@@ -188,7 +189,8 @@ public class OrderSheetAppService {
         OrderCouponResult.Calculate calculate =
                 requestCouponCalculation(orderSheet.getOrderer().getUserId(), orderSheet.getCartCoupon().getCouponId(), appliedItems);
         OrderSheetItem sheetItem = orderSheet.getItem(sheetItemId);
-        return factory.createItemCouponSnapshot(calculate, sheetItem.getProductVariantId());
+        Map<Long, OrderCouponSnapshot> itemCouponMap = calculate.toItemCouponMap();
+        return itemCouponMap.getOrDefault(sheetItem.getProductVariantId(), OrderCouponSnapshot.empty());
     }
 
     private List<OrderCouponCommand.AppliedCouponItem> createAppliedItemsWithTarget(
@@ -215,20 +217,16 @@ public class OrderSheetAppService {
      */
     public OrderSheetResult.Detail updateCartCoupon(OrderSheetCommand.UpdateCartCoupon command) {
         OrderSheet orderSheet = getValidateOrderSheet(command.sheetId(), command.userId());
-        OrderCouponSnapshot newCartCouponSnapshot = getNewCartCouponSnapshot(orderSheet, command.couponId());
+        List<OrderCouponCommand.AppliedCouponItem> appliedItems = createCurrentAppliedItems(orderSheet);
+        OrderCouponResult.Calculate calculate =
+                requestCouponCalculation(orderSheet.getOrderer().getUserId(), command.couponId(), appliedItems);
+        OrderCouponSnapshot newCartCouponSnapshot = calculate.cartCoupon() != null ? calculate.cartCoupon() : OrderCouponSnapshot.empty();
         OrderUserResult.UserPoint userPoints = orderSheetUserGateway.getUserPoints(orderSheet.getOrderer().getUserId());
         // [NOTE] 장바구니 쿠폰 변경으로 인해 적용된 포인트가 사용 가능 포인트를 초과되는 경우 사용 가능 포인트로 조정됨
         orderSheet.changeCartCoupon(newCartCouponSnapshot, userPoints.ownedPoints(), pointUsagePolicy);
         Money availablePoints = orderSheet.calcAvailablePoints(userPoints.ownedPoints(), pointUsagePolicy);
         repository.save(orderSheet, orderSheet.getRemainingTtl());
         return OrderSheetResult.Detail.of(orderSheet, userPoints.ownedPoints(), availablePoints);
-    }
-
-    private OrderCouponSnapshot getNewCartCouponSnapshot(OrderSheet orderSheet, Long newCartCouponId) {
-        List<OrderCouponCommand.AppliedCouponItem> appliedItems = createCurrentAppliedItems(orderSheet);
-        OrderCouponResult.Calculate calculate =
-                requestCouponCalculation(orderSheet.getOrderer().getUserId(), newCartCouponId, appliedItems);
-        return factory.createCartCouponSnapshot(calculate.cartCoupon());
     }
 
     private List<OrderCouponCommand.AppliedCouponItem> createCurrentAppliedItems(OrderSheet orderSheet) {

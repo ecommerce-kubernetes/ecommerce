@@ -280,4 +280,41 @@ public class OrderSheet {
         }
         this.totalPaymentAmount = pointEligibleAmount.subtract(this.usedPoints);
     }
+
+    /**
+     * 주문서에 쿠폰이 적용되어있는지 확인
+     * <p>
+     * 주문서에 장바구니 쿠폰 또는 상품 쿠폰이 적용되어있는지 확인
+     * </p>
+     *
+     * @return 쿠폰 적용 여부
+     */
+    public boolean hasAnyCoupon() {
+        return hasCartCoupon() || hasItemCoupon();
+    }
+
+    /**
+     * 주문서에 장바구니 쿠폰이 적용되어있는지 확인
+     * <p>
+     * 주문서에 장바구니 쿠폰이 적용되어있는지 확인한다
+     * </p>
+     *
+     * @return 장바구니 쿠폰 적용 여부
+     */
+    public boolean hasCartCoupon() {
+        return this.cartCoupon.getCouponId() != null;
+    }
+
+    /**
+     * 주문 상품에 상품 쿠폰이 적용된 상품이 있는지 확인
+     * <p>
+     * 주문 상품중 상품 쿠폰이 적용된 상품이 있는지 확인한다
+     * </p>
+     *
+     * @return 상품 쿠폰 적용 여부
+     */
+    public boolean hasItemCoupon() {
+        return this.items.stream()
+                .anyMatch(OrderSheetItem::hasCoupon);
+    }
 }

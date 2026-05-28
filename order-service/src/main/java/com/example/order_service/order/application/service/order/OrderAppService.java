@@ -71,6 +71,9 @@ public class OrderAppService {
     }
 
     private OrderCouponResult.Calculate getAppliedCoupons(OrderSheet orderSheet) {
+        if (!orderSheet.hasAnyCoupon()) {
+            return OrderCouponResult.Calculate.empty();
+        }
         List<OrderCouponCommand.AppliedCouponItem> itemCouponCommand = orderSheet.getItems().stream().map(
                 item -> OrderCouponCommand.AppliedCouponItem.of(item.getProductVariantId(),
                         item.getDiscountedPrice(),

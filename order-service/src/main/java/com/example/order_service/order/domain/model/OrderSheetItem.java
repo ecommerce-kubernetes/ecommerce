@@ -190,4 +190,8 @@ public class OrderSheetItem {
     public void changeCoupon(OrderCouponSnapshot itemCoupon) {
         this.itemCoupon = itemCoupon;
     }
+
+    public boolean hasCoupon() {
+        return this.itemCoupon.getCouponId() != null;
+    }
 }

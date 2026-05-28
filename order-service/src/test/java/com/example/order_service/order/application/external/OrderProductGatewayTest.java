@@ -60,7 +60,7 @@ public class OrderProductGatewayTest {
             //when
             OrderProductResult.ProductList result = orderProductGateway.getProducts(List.of(item1, item2));
             //then
-            assertThat(result).isNotNull();
+            assertThat(result).isEqualTo(productList);
         }
 
         @Test

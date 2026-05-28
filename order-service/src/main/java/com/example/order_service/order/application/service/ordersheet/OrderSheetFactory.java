@@ -46,7 +46,7 @@ public class OrderSheetFactory {
         Orderer orderer = userResult.orderer();
         ShippingAddress shippingAddress = userResult.shippingAddress();
         List<OrderSheetItem> sheetItems = createItems(command, productResult, couponResult);
-        OrderCouponSnapshot cartCoupon = couponResult.cartCoupon();
+        OrderCouponSnapshot cartCoupon = couponResult.cartCoupon() != null ? couponResult.cartCoupon() : OrderCouponSnapshot.empty();
         return OrderSheet.create(sheetId, orderer, shippingAddress, sheetItems, cartCoupon, LocalDateTime.now(), ttlMinute);
     }
 
@@ -64,63 +64,11 @@ public class OrderSheetFactory {
         ProductSnapshot productSnapshot = product.productSnapshot();
         ProductPriceSnapshot priceSnapshot = product.priceSnapshot();
         List<ProductOptionSnapshot> optionSnapshots = product.options();
-        OrderCouponSnapshot couponSnapshot = createItemCoupon(itemCouponMap.get(orderedVariantId));
+        OrderCouponSnapshot couponSnapshot = itemCouponMap.getOrDefault(orderedVariantId, OrderCouponSnapshot.empty());
         return OrderSheetItem.create(sheetItemId, productSnapshot, priceSnapshot, couponSnapshot, command.quantity(), optionSnapshots);
     }
 
     private String generateId() {
         return UUID.randomUUID().toString();
-    }
-
-    /**
-     * 상품 쿠폰 스냅샷(VO) 생성
-     * <p>
-     * 쿠폰 검증 결과와 상품 변형 아이디를 통해 상품 쿠폰 스냅샷 VO를 생성
-     * </p>
-     *
-     * @param appliedCoupons 쿠폰 검증 결과
-     * @param variantId      주문서 상품 아이디
-     * @return 상품 쿠폰 스냅샷 VO
-     */
-    public OrderCouponSnapshot createItemCouponSnapshot(OrderCouponResult.Calculate appliedCoupons, Long variantId) {
-        Map<Long, OrderCouponSnapshot> itemCouponMap = appliedCoupons.toItemCouponMap();
-        return createItemCoupon(itemCouponMap.get(variantId));
-    }
-
-    private OrderCouponSnapshot createItemCoupon(OrderCouponSnapshot itemCoupon) {
-        if (itemCoupon == null) {
-            return OrderCouponSnapshot.empty();
-        }
-        return itemCoupon;
-    }
-
-    /**
-     * 장바구니 쿠폰 스냅샷(VO) 생성
-     * <p>
-     * 쿠폰 검증 결과를 통해 장바구니 쿠폰 스냅샷 VO를 생성
-     * </p>
-     *
-     * @param cartCoupon 쿠폰 검증 결과
-     * @return 장바구니 쿠폰 VO
-     */
-    public OrderCouponSnapshot createCartCouponSnapshot(OrderCouponSnapshot cartCoupon) {
-        if (cartCoupon == null) {
-            return OrderCouponSnapshot.empty();
-        }
-        return cartCoupon;
-    }
-
-    /**
-     * 배송 정보(VO) 생성
-     * <p>
-     * 주문서 배송 정보 변경 커맨드를 통해 배송 정보 VO를 생성
-     * </p>
-     *
-     * @param command 배송 정보 수정 커맨드
-     * @return 배송 정보 VO
-     */
-    public ShippingAddress createShippingAddress(OrderSheetCommand.UpdateShippingAddress command) {
-        return ShippingAddress.of(command.receiverName(), command.receiverPhone(), command.zipCode(), command.address(),
-                command.addressDetail());
     }
 }

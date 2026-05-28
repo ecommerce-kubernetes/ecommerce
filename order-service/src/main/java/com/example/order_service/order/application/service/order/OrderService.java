@@ -54,7 +54,7 @@ public class OrderService {
     }
 
     private OrderItem createOrderItems(OrderContext.ItemContext itemContexts) {
-        return OrderItem.create(itemContexts.productSnapshot(), itemContexts.itemPrice()
-                , itemContexts.quantity(), itemContexts.options());
+        return OrderItem.create(itemContexts.productSnapshot(), itemContexts.itemPrice(),
+                itemContexts.quantity(), itemContexts.options());
     }
 }
