@@ -57,9 +57,9 @@ public class OrderEventListenerTest {
         OrderCreatedEvent orderCreatedEvent = OrderCreatedEvent.builder()
                 .orderNo(ORDER_NO)
                 .userId(1L)
-                .couponId(1L)
+
                 .orderedItems(List.of(item1, item2))
-                .usedPoint(1000L)
+
                 .build();
         //when
         orderEventListener.handleOrderCreated(orderCreatedEvent);

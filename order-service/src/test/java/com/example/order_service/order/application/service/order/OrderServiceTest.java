@@ -1,6 +1,7 @@
 package com.example.order_service.order.application.service.order;
 
 import com.example.order_service.common.domain.vo.Money;
+import com.example.order_service.order.application.event.OrderCreatedEvent;
 import com.example.order_service.order.application.service.order.dto.command.OrderContext;
 import com.example.order_service.order.application.service.order.dto.result.OrderDto;
 import com.example.order_service.order.domain.model.Order;
@@ -15,6 +16,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.BDDMockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.event.ApplicationEvents;
+import org.springframework.test.context.event.RecordApplicationEvents;
 
 import java.util.List;
 
@@ -23,12 +26,16 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.then;
 
 @SpringBootTest
+@RecordApplicationEvents
 @MockKafka
 @MockRedis
 public class OrderServiceTest {
 
     @Autowired
     private OrderService orderService;
+
+    @Autowired
+    private ApplicationEvents applicationEvents;
 
     @Nested
     @DisplayName("주문 저장")
@@ -45,6 +52,10 @@ public class OrderServiceTest {
             assertThat(result.orderNo()).isNotNull();
             assertThat(result.status()).isEqualTo(OrderStatus.PENDING);
             assertThat(result.orderItems()).hasSize(1);
+            long eventCount = applicationEvents.stream(OrderCreatedEvent.class).count();
+            assertThat(eventCount).isEqualTo(1);
+            OrderCreatedEvent createdEvent = applicationEvents.stream(OrderCreatedEvent.class).findFirst().orElseThrow();
+            assertThat(createdEvent.getOrderNo()).isEqualTo(result.orderNo());
         }
     }
 

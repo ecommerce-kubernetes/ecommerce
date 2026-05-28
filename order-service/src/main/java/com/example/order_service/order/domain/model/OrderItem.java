@@ -54,10 +54,11 @@ public class OrderItem extends BaseEntity {
         this.options = options;
     }
 
-    public static OrderItem create(ProductSnapshot product, ProductPriceSnapshot productPrice, Integer quantity, List<ProductOptionSnapshot> options) {
+    public static OrderItem create(ProductSnapshot product, ProductPriceSnapshot productPrice, OrderCouponSnapshot itemCoupon, Integer quantity, List<ProductOptionSnapshot> options) {
         return OrderItem.builder()
                 .product(product)
                 .productPrice(productPrice)
+                .itemCoupon(itemCoupon)
                 .quantity(quantity)
                 .options(options)
                 .build();

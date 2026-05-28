@@ -33,10 +33,9 @@ public class SagaStartCommand {
         return SagaStartCommand.builder()
                 .orderNo(event.getOrderNo())
                 .userId(event.getUserId())
-                .couponId(event.getCouponId())
+
                 .deductProductList(event.getOrderedItems().stream()
                         .map(DeductProduct::from).toList())
-                .usedPoint(event.getUsedPoint())
                 .build();
     }
 }
