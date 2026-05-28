@@ -56,4 +56,8 @@ public class OrderCreatedEvent {
                 .usedPoint(order.getUsedPoints())
                 .build();
     }
+
+    public List<Long> getItemCouponIds() {
+        return orderedItems.stream().map(OrderedItem::getItemCouponId).toList();
+    }
 }
