@@ -19,7 +19,6 @@ import com.example.order_service.order.application.mapper.OrderMapper;
 import com.example.order_service.order.application.service.order.dto.command.OrderCommand;
 import com.example.order_service.order.application.service.order.dto.command.OrderContext;
 import com.example.order_service.order.application.service.order.dto.result.OrderDto;
-import com.example.order_service.order.application.util.OrderValidator;
 import com.example.order_service.order.domain.model.OrderFailureCode;
 import com.example.order_service.order.domain.model.OrderSheet;
 import com.example.order_service.order.domain.model.OrderSheetItem;
