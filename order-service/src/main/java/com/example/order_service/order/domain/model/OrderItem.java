@@ -1,6 +1,7 @@
 package com.example.order_service.order.domain.model;
 
 import com.example.order_service.common.entity.BaseEntity;
+import com.example.order_service.common.util.ProductOptionSnapshotConverter;
 import com.example.order_service.order.domain.vo.OrderCouponSnapshot;
 import com.example.order_service.order.domain.vo.ProductOptionSnapshot;
 import com.example.order_service.order.domain.vo.ProductPriceSnapshot;
@@ -10,6 +11,8 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,10 +31,17 @@ public class OrderItem extends BaseEntity {
     @Embedded
     private ProductSnapshot product;
     @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "discountAmount", column = @Column(name = "product_discount_amount"))
+    })
     private ProductPriceSnapshot productPrice;
     @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "discountAmount", column = @Column(name = "coupon_discount_amount"))
+    })
     private OrderCouponSnapshot itemCoupon;
     private Integer quantity;
+    @Convert(converter = ProductOptionSnapshotConverter.class)
     private List<ProductOptionSnapshot> options;
 
     @Builder(access = AccessLevel.PRIVATE)
