@@ -18,6 +18,7 @@ import com.example.order_service.order.application.external.dto.result.OrderUser
 import com.example.order_service.order.application.mapper.OrderMapper;
 import com.example.order_service.order.application.service.order.dto.command.OrderCommand;
 import com.example.order_service.order.application.service.order.dto.command.OrderContext;
+import com.example.order_service.order.application.service.order.dto.command.OrderSearchCommand;
 import com.example.order_service.order.application.service.order.dto.result.OrderDto;
 import com.example.order_service.order.domain.model.OrderFailureCode;
 import com.example.order_service.order.domain.model.OrderSheet;
@@ -46,12 +47,21 @@ public class OrderAppService {
     private final OrderSheetRepository orderSheetRepository;
     private final OrderService orderService;
 
+    /**
+     * 주문 생성
+     * <p>
+     * 주문서가 주문이 가능한 상태인지 검증 후 대기상태의 주문을 생성
+     * </p>
+     *
+     * @param command 주문 생성 커맨드
+     * @return 생성된 주문 정보
+     */
     public OrderResult.Create initialOrder(OrderCommand.Create command) {
         OrderSheet orderSheet = findOrderSheetById(command.orderSheetId());
         if (!orderSheet.isOwner(command.userId())) {
             throw new BusinessException(OrderErrorCode.ORDER_SHEET_ACCESS_DENIED);
         }
-        if (orderSheet.isExpired()){
+        if (orderSheet.isExpired()) {
             throw new BusinessException(OrderErrorCode.ORDER_SHEET_EXPIRED);
         }
         OrderProductResult.ProductList products = getOrderedProducts(orderSheet.getItems());
@@ -65,7 +75,7 @@ public class OrderAppService {
 
     private OrderProductResult.ProductList getOrderedProducts(List<OrderSheetItem> items) {
         List<OrderProductCommand.OrderItem> command = items.stream().map(item ->
-                        OrderProductCommand.OrderItem.of(item.getProductVariantId(), item.getQuantity())).toList();
+                OrderProductCommand.OrderItem.of(item.getProductVariantId(), item.getQuantity())).toList();
         return orderProductGateway.getProducts(command);
     }
 
@@ -92,25 +102,44 @@ public class OrderAppService {
         return orderUserGateway.getUserPointsForOrder(userId, usedPoints);
     }
 
-    public void preparePayment(String orderNo) {
+    /**
+     * 주문 정보 조회
+     * <p>
+     * 주문 번호의 주문 상세 정보를 조회한다
+     * </p>
+     *
+     * @param userId  유저 아이디
+     * @param orderNo 주문 번호
+     * @return 주문 상세 정보
+     */
+    public OrderResult.Detail getOrder(Long userId, String orderNo) {
+        OrderDto.Detail order = orderService.getOrder(orderNo, userId);
+        return OrderResult.Detail.from(order);
     }
 
-    public void processOrderFailure(String orderNo, OrderFailureCode orderFailureCode){
-    }
-
-    public OrderDetailResponse confirmOrderPayment(String orderNo, Long userId, String paymentKey, Long amount) {
-
+    /**
+     * 주문 목록 조회
+     * <p>
+     * 유저의 주문 목록을 조회한다
+     * </p>
+     *
+     * @param userId    유저 아이디
+     * @param condition 조회 필터
+     * @return 주문 목록
+     */
+    public Page<OrderResult.Summary> getOrders(Long userId, OrderSearchCommand command) {
+        Page<OrderDto.Summary> orders = orderService.getOrders(userId, command);
         return null;
     }
 
-    public OrderDetailResponse getOrder(Long userId, String orderNo) {
-        OrderDto order = orderService.getOrder(orderNo, userId);
-        return OrderDetailResponse.from(order);
+    public void preparePayment(String orderNo) {
     }
 
-    public PageDto<OrderListResponse> getOrders(Long userId, OrderSearchCondition condition){
-        Page<OrderDto> orders = orderService.getOrders(userId, condition);
-        return PageDto.of(orders, OrderListResponse::from);
+    public void processOrderFailure(String orderNo, OrderFailureCode orderFailureCode) {
+    }
+
+    public OrderDetailResponse confirmOrderPayment(String orderNo, Long userId, String paymentKey, Long amount) {
+        return null;
     }
 
     private OrderSheet findOrderSheetById(String sheetId) {

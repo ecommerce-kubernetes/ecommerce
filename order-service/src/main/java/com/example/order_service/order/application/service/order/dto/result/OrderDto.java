@@ -53,6 +53,25 @@ public class OrderDto {
     }
 
     @Builder
+    public record Summary(
+            String orderNo,
+            OrderStatus status,
+            String orderName,
+            List<Item> orderItems,
+            LocalDateTime createdAt
+    ) {
+        public static Summary from(Order order) {
+            return Summary.builder()
+                    .orderNo(order.getOrderNo())
+                    .status(order.getStatus())
+                    .orderName(order.getOrderName())
+                    .orderItems(Item.from(order.getOrderItems()))
+                    .createdAt(order.getCreatedAt())
+                    .build();
+        }
+    }
+
+    @Builder
     public record Item(
             ProductSnapshot product,
             ProductPriceSnapshot productPrice,

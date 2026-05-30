@@ -1,4 +1,4 @@
-package com.example.order_service.order.domain.repository.query;
+package com.example.order_service.order.infrastructure.persistence;
 
 import com.querydsl.core.types.OrderSpecifier;
 import lombok.AllArgsConstructor;

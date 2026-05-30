@@ -1,7 +1,8 @@
-package com.example.order_service.order.domain.repository.query;
+package com.example.order_service.order.infrastructure.persistence;
 
-import com.example.order_service.order.api.dto.request.OrderSearchCondition;
+import com.example.order_service.order.application.service.order.dto.command.OrderSearchCommand;
 import com.example.order_service.order.domain.model.Order;
+import com.example.order_service.order.domain.repository.OrderQueryDslRepository;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -18,7 +19,7 @@ import static com.example.order_service.order.domain.model.QOrder.order;
 import static com.example.order_service.order.domain.model.QOrderItem.orderItem;
 
 @Repository
-public class OrderQueryDslRepositoryImpl implements OrderQueryDslRepository{
+public class OrderQueryDslRepositoryImpl implements OrderQueryDslRepository {
 
     public OrderQueryDslRepositoryImpl(EntityManager em) {
         this.queryFactory = new JPAQueryFactory(em);
@@ -27,16 +28,16 @@ public class OrderQueryDslRepositoryImpl implements OrderQueryDslRepository{
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public Page<Order> findByUserIdAndCondition(Long userId, OrderSearchCondition condition) {
-        Pageable pageable = condition.getPageable();
-        OrderSpecifier<?> sortOrder = OrderQueryMapper.toOrderSpecifier(condition.getSort());
-        List<Order> result = queryFactory.select(order).distinct()
+    public Page<Order> findByUserId(Long userId, OrderSearchCommand command) {
+        Pageable pageable = command.getPageable();
+        OrderSpecifier<?> sortOrder = OrderQueryMapper.toOrderSpecifier(command.getSort());
+        List<Order> result = queryFactory.selectFrom(order).distinct()
                 .from(order)
                 .join(order.orderItems, orderItem)
                 .where(
-                        yearEq(condition.getYear()),
+                        yearEq(command.getYear()),
                         order.orderer.userId.eq(userId),
-                        productNameEq(condition.getProductName())
+                        productNameEq(command.getProductName())
                 )
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
@@ -47,16 +48,15 @@ public class OrderQueryDslRepositoryImpl implements OrderQueryDslRepository{
                 .from(order)
                 .leftJoin(order.orderItems, orderItem)
                 .where(
-                        yearEq(condition.getYear()),
+                        yearEq(command.getYear()),
                         order.orderer.userId.eq(userId),
-                        productNameEq(condition.getProductName())
+                        productNameEq(command.getProductName())
                 )
                 .fetchOne();
-
         return new PageImpl<>(
                 result,
                 pageable,
-                totalElement != null ? totalElement : 0L
+                totalElement != null ? totalElement : 0
         );
     }
 

@@ -11,8 +11,10 @@ import com.example.order_service.order.application.service.order.dto.command.Ord
 import com.example.order_service.order.application.dto.result.OrderDetailResponse;
 import com.example.order_service.order.application.dto.result.OrderListResponse;
 import com.example.order_service.order.application.dto.result.OrderResult;
+import com.example.order_service.order.application.service.order.dto.command.OrderSearchCommand;
 import lombok.RequiredArgsConstructor;
 import org.apache.http.HttpStatus;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -37,17 +39,19 @@ public class OrderController {
     }
 
     @GetMapping("/{orderNo}")
-    public ResponseEntity<OrderDetailResponse> getOrder(@AuthenticationPrincipal UserPrincipal userPrincipal,
+    public ResponseEntity<OrderResponse.Detail> getOrder(@AuthenticationPrincipal UserPrincipal userPrincipal,
                                                         @PathVariable("orderNo") String orderNo) {
-        OrderDetailResponse response = orderAppService.getOrder(userPrincipal.getUserId(), orderNo);
+        OrderResult.Detail result = orderAppService.getOrder(userPrincipal.getUserId(), orderNo);
+        OrderResponse.Detail response = OrderResponse.Detail.from(result);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping
     public ResponseEntity<PageDto<OrderListResponse>> getOrders(@AuthenticationPrincipal UserPrincipal userPrincipal,
                                                                 @ModelAttribute OrderSearchCondition condition) {
-        PageDto<OrderListResponse> orders = orderAppService.getOrders(userPrincipal.getUserId(), condition);
-        return ResponseEntity.ok(orders);
+        OrderSearchCommand command = condition.toCommand();
+        Page<OrderResult.Summary> orders = orderAppService.getOrders(userPrincipal.getUserId(), command);
+        return null;
     }
 
     @PostMapping("/confirm")

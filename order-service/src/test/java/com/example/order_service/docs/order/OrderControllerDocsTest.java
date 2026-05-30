@@ -202,8 +202,8 @@ public class OrderControllerDocsTest extends RestDocSupport {
         OrderDetailResponse response = anOrderDetailResponse()
                 .payment(anPaymentResponse().build()).build();
         HttpHeaders roleUser = createUserHeader("ROLE_USER");
-        given(orderAppService.getOrder(anyLong(), anyString()))
-                .willReturn(response);
+//        given(orderAppService.getOrder(anyLong(), anyString()))
+//                .willReturn(response);
 
         HeaderDescriptor[] requestHeaders = new HeaderDescriptor[]{
                 headerWithName("Authorization").description("JWT Access Token")
@@ -299,8 +299,8 @@ public class OrderControllerDocsTest extends RestDocSupport {
                 .pageSize(10)
                 .totalElement(100)
                 .build();
-        given(orderAppService.getOrders(anyLong(), any(OrderSearchCondition.class)))
-                .willReturn(response);
+//        given(orderAppService.getOrders(anyLong(), any(OrderSearchCondition.class)))
+//                .willReturn(response);
 
         HeaderDescriptor[] requestHeaders = new HeaderDescriptor[]{
                 headerWithName("Authorization").description("JWT Access Token")

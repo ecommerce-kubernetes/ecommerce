@@ -28,4 +28,18 @@ public class OrderResponse {
                     .build();
         }
     }
+
+    @Builder
+    public record Detail () {
+        public static Detail from(OrderResult.Detail detail) {
+            return null;
+        }
+    }
+
+    @Builder
+    public record Summary() {
+        public static Summary from(OrderResult.Summary summary) {
+            return null;
+        }
+    }
 }

@@ -1,16 +1,20 @@
 package com.example.order_service.order.application.service.order;
 
+import com.example.order_service.common.exception.business.BusinessException;
 import com.example.order_service.order.api.dto.request.OrderSearchCondition;
 import com.example.order_service.order.application.event.OrderCreatedEvent;
 import com.example.order_service.order.application.service.order.dto.command.OrderContext;
+import com.example.order_service.order.application.service.order.dto.command.OrderSearchCommand;
 import com.example.order_service.order.application.service.order.dto.result.OrderDto;
 import com.example.order_service.order.domain.model.Order;
 import com.example.order_service.order.domain.model.OrderItem;
 import com.example.order_service.order.domain.repository.OrderRepository;
+import com.example.order_service.order.exception.OrderErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +30,7 @@ import java.util.UUID;
 public class OrderService {
     private final OrderRepository orderRepository;
     private final ApplicationEventPublisher eventPublisher;
+
     /**
      * 주문을 저장한다
      * <p>
@@ -44,13 +49,16 @@ public class OrderService {
     }
 
     @Transactional(readOnly = true)
-    public OrderDto getOrder(String orderNo, Long userId) {
-        return null;
+    public OrderDto.Detail getOrder(String orderNo, Long userId) {
+        Order order = orderRepository.findByOrderNoAndOrderer_UserId(orderNo, userId)
+                .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_NOT_FOUND));
+        return OrderDto.Detail.from(order);
     }
 
     @Transactional(readOnly = true)
-    public Page<OrderDto> getOrders(Long userId, OrderSearchCondition condition) {
-        return null;
+    public Page<OrderDto.Summary> getOrders(Long userId, OrderSearchCommand command) {
+        Page<Order> pageOrder = orderRepository.findByUserId(userId, command);
+        return pageOrder.map(OrderDto.Summary::from);
     }
 
     private Order initialOrder(OrderContext.CreateOrderContext context) {

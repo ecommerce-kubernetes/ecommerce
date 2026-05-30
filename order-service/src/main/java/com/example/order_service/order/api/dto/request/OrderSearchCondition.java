@@ -1,5 +1,6 @@
 package com.example.order_service.order.api.dto.request;
 
+import com.example.order_service.order.application.service.order.dto.command.OrderSearchCommand;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -49,7 +50,11 @@ public class OrderSearchCondition {
         }
     }
 
-    public Pageable getPageable(){
+    public OrderSearchCommand toCommand() {
+        return OrderSearchCommand.of(this.sort, this.year, this.productName, getPageable());
+    }
+
+    private Pageable getPageable(){
         return PageRequest.of(this.page - 1, this.size);
     }
 }

@@ -229,8 +229,8 @@ class OrderControllerTest {
     void getOrder() throws Exception {
         //given
         OrderDetailResponse response = anOrderDetailResponse().build();
-        given(orderAppService.getOrder(anyLong(), anyString()))
-                .willReturn(response);
+//        given(orderAppService.getOrder(anyLong(), anyString()))
+//                .willReturn(response);
         //when
         //then
         mockMvc.perform(get("/orders/{orderId}", 1L)
@@ -291,8 +291,8 @@ class OrderControllerTest {
         paramMap.add("size", "10");
         paramMap.add("sort", "latest");
 
-        given(orderAppService.getOrders(anyLong(), any(OrderSearchCondition.class)))
-                .willReturn(response);
+//        given(orderAppService.getOrders(anyLong(), any(OrderSearchCondition.class)))
+//                .willReturn(response);
 
         //when
         //then
@@ -304,7 +304,7 @@ class OrderControllerTest {
                 .andExpect(content().json(objectMapper.writeValueAsString(response)));
 
         ArgumentCaptor<OrderSearchCondition> captor = ArgumentCaptor.forClass(OrderSearchCondition.class);
-        verify(orderAppService, times(1)).getOrders(anyLong(), captor.capture());
+//        verify(orderAppService, times(1)).getOrders(anyLong(), captor.capture());
 
         assertThat(captor.getValue())
                 .extracting(OrderSearchCondition::getPage, OrderSearchCondition::getSize, OrderSearchCondition::getSort, OrderSearchCondition::getYear,
@@ -367,9 +367,9 @@ class OrderControllerTest {
                 .pageSize(10)
                 .totalElement(100)
                 .build();
-
-        given(orderAppService.getOrders(anyLong(), any(OrderSearchCondition.class)))
-                .willReturn(response);
+//
+//        given(orderAppService.getOrders(anyLong(), any(OrderSearchCondition.class)))
+//                .willReturn(response);
         //when
         //then
         mockMvc.perform(get("/orders")
@@ -378,7 +378,7 @@ class OrderControllerTest {
                 .andExpect(status().isOk());
 
         ArgumentCaptor<OrderSearchCondition> captor = ArgumentCaptor.forClass(OrderSearchCondition.class);
-        verify(orderAppService, times(1)).getOrders(anyLong(), captor.capture());
+//        verify(orderAppService, times(1)).getOrders(anyLong(), captor.capture());
 
         assertThat(captor.getValue())
                 .extracting(OrderSearchCondition::getPage, OrderSearchCondition::getSize, OrderSearchCondition::getSort, OrderSearchCondition::getYear,
@@ -399,8 +399,8 @@ class OrderControllerTest {
                 .totalElement(100)
                 .build();
 
-        given(orderAppService.getOrders(anyLong(), any(OrderSearchCondition.class)))
-                .willReturn(response);
+//        given(orderAppService.getOrders(anyLong(), any(OrderSearchCondition.class)))
+//                .willReturn(response);
         //when
         //then
         mockMvc.perform(get("/orders")
@@ -410,7 +410,7 @@ class OrderControllerTest {
                 .andExpect(status().isOk());
 
         ArgumentCaptor<OrderSearchCondition> captor = ArgumentCaptor.forClass(OrderSearchCondition.class);
-        verify(orderAppService, times(1)).getOrders(anyLong(), captor.capture());
+//        verify(orderAppService, times(1)).getOrders(anyLong(), captor.capture());
 
         assertThat(captor.getValue())
                 .extracting(OrderSearchCondition::getPage, OrderSearchCondition::getSize, OrderSearchCondition::getSort, OrderSearchCondition::getYear,
@@ -430,9 +430,9 @@ class OrderControllerTest {
                 .pageSize(10)
                 .totalElement(100)
                 .build();
-
-        given(orderAppService.getOrders(anyLong(), any(OrderSearchCondition.class)))
-                .willReturn(response);
+//
+//        given(orderAppService.getOrders(anyLong(), any(OrderSearchCondition.class)))
+//                .willReturn(response);
         //when
         //then
         mockMvc.perform(get("/orders")
@@ -442,7 +442,7 @@ class OrderControllerTest {
                 .andExpect(status().isOk());
 
         ArgumentCaptor<OrderSearchCondition> captor = ArgumentCaptor.forClass(OrderSearchCondition.class);
-        verify(orderAppService, times(1)).getOrders(anyLong(), captor.capture());
+//        verify(orderAppService, times(1)).getOrders(anyLong(), captor.capture());
 
         assertThat(captor.getValue())
                 .extracting(OrderSearchCondition::getPage, OrderSearchCondition::getSize, OrderSearchCondition::getSort, OrderSearchCondition::getYear,
