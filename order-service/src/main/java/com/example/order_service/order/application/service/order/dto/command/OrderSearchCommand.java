@@ -10,14 +10,12 @@ public class OrderSearchCommand {
     String sort;
     String year;
     String productName;
-    Pageable pageable;
 
-    public static OrderSearchCommand of(String sort, String year, String productName, Pageable pageable) {
+    public static OrderSearchCommand of(String sort, String year, String productName) {
         return OrderSearchCommand.builder()
                 .sort(sort)
                 .year(year)
                 .productName(productName)
-                .pageable(pageable)
                 .build();
     }
 }

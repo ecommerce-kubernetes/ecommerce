@@ -4,6 +4,7 @@ import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.business.BusinessException;
 import com.example.order_service.order.application.event.OrderCreatedEvent;
 import com.example.order_service.order.application.service.order.dto.command.OrderContext;
+import com.example.order_service.order.application.service.order.dto.command.OrderSearchCommand;
 import com.example.order_service.order.application.service.order.dto.result.OrderDto;
 import com.example.order_service.order.domain.model.Order;
 import com.example.order_service.order.domain.model.OrderItem;
@@ -18,8 +19,12 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.event.ApplicationEvents;
 import org.springframework.test.context.event.RecordApplicationEvents;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -92,6 +97,32 @@ public class OrderServiceTest {
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(OrderErrorCode.ORDER_NOT_FOUND);
+        }
+    }
+
+    @Nested
+    @DisplayName("주문 리스트 조회")
+    class GetOrders {
+
+        @Test
+        @DisplayName("주문 리스트를 조회한다")
+        void getOrders(){
+            //given
+            Order order1 = createOrder();
+            Order order2 = createOrder();
+            Pageable pageable = PageRequest.of(0, 20);
+            OrderSearchCommand command = OrderSearchCommand.of("latest", null, null);
+            ReflectionTestUtils.setField(order1, "orderNo", "ORD1");
+            ReflectionTestUtils.setField(order2, "orderNo", "ORD2");
+            orderRepository.saveAll(List.of(order1, order2));
+            //when
+            Page<OrderDto.Summary> orders = orderService.getOrders(1L, command, pageable);
+            //then
+            assertThat(orders.getContent()).hasSize(2);
+            assertThat(orders.getTotalPages()).isEqualTo(1);
+            assertThat(orders.getContent())
+                    .extracting("orderNo")
+                    .containsExactlyInAnyOrder("ORD1", "ORD2");
         }
     }
 

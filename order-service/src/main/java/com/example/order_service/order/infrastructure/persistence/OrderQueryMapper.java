@@ -11,12 +11,21 @@ import static com.example.order_service.order.domain.model.QOrder.order;
 public class OrderQueryMapper {
     @AllArgsConstructor
     private enum SortType {
-        LATEST("latest", order.createdAt.desc()),
-        OLDEST("oldest", order.createdAt.asc());
+        LATEST("latest") {
+            @Override
+            public OrderSpecifier<?> getSpecifier() {
+                return order.createdAt.desc();
+            }
+        },
+        OLDEST("oldest") {
+            @Override
+            public OrderSpecifier<?> getSpecifier(){
+                return order.createdAt.asc();
+            }
+        };
 
         private final String code;
-        @Getter
-        private final OrderSpecifier<?> specifier;
+        public abstract OrderSpecifier<?> getSpecifier();
 
         static SortType fromCode(String code) {
             return Arrays.stream(values())

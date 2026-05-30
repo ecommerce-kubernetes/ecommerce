@@ -1,7 +1,6 @@
 package com.example.order_service.order.application.service.order;
 
 import com.example.order_service.common.exception.business.BusinessException;
-import com.example.order_service.order.api.dto.request.OrderSearchCondition;
 import com.example.order_service.order.application.event.OrderCreatedEvent;
 import com.example.order_service.order.application.service.order.dto.command.OrderContext;
 import com.example.order_service.order.application.service.order.dto.command.OrderSearchCommand;
@@ -9,12 +8,13 @@ import com.example.order_service.order.application.service.order.dto.result.Orde
 import com.example.order_service.order.domain.model.Order;
 import com.example.order_service.order.domain.model.OrderItem;
 import com.example.order_service.order.domain.repository.OrderRepository;
+import com.example.order_service.order.domain.repository.OrderSearchRepository;
 import com.example.order_service.order.exception.OrderErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,6 +29,7 @@ import java.util.UUID;
 @Transactional
 public class OrderService {
     private final OrderRepository orderRepository;
+    private final OrderSearchRepository orderSearchRepository;
     private final ApplicationEventPublisher eventPublisher;
 
     /**
@@ -56,8 +57,8 @@ public class OrderService {
     }
 
     @Transactional(readOnly = true)
-    public Page<OrderDto.Summary> getOrders(Long userId, OrderSearchCommand command) {
-        Page<Order> pageOrder = orderRepository.findByUserId(userId, command);
+    public Page<OrderDto.Summary> getOrders(Long userId, OrderSearchCommand command, Pageable pageable) {
+        Page<Order> pageOrder = orderSearchRepository.searchOrders(userId, command, pageable);
         return pageOrder.map(OrderDto.Summary::from);
     }
 

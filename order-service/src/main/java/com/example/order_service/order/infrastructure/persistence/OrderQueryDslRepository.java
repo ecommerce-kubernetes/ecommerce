@@ -2,7 +2,7 @@ package com.example.order_service.order.infrastructure.persistence;
 
 import com.example.order_service.order.application.service.order.dto.command.OrderSearchCommand;
 import com.example.order_service.order.domain.model.Order;
-import com.example.order_service.order.domain.repository.OrderQueryDslRepository;
+import com.example.order_service.order.domain.repository.OrderSearchRepository;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -19,17 +19,16 @@ import static com.example.order_service.order.domain.model.QOrder.order;
 import static com.example.order_service.order.domain.model.QOrderItem.orderItem;
 
 @Repository
-public class OrderQueryDslRepositoryImpl implements OrderQueryDslRepository {
+public class OrderQueryDslRepository implements OrderSearchRepository {
 
-    public OrderQueryDslRepositoryImpl(EntityManager em) {
+    public OrderQueryDslRepository(EntityManager em) {
         this.queryFactory = new JPAQueryFactory(em);
     }
 
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public Page<Order> findByUserId(Long userId, OrderSearchCommand command) {
-        Pageable pageable = command.getPageable();
+    public Page<Order> searchOrders(Long userId, OrderSearchCommand command, Pageable pageable) {
         OrderSpecifier<?> sortOrder = OrderQueryMapper.toOrderSpecifier(command.getSort());
         List<Order> result = queryFactory.selectFrom(order).distinct()
                 .from(order)

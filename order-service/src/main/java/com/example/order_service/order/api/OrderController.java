@@ -15,6 +15,8 @@ import com.example.order_service.order.application.service.order.dto.command.Ord
 import lombok.RequiredArgsConstructor;
 import org.apache.http.HttpStatus;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -31,7 +33,7 @@ public class OrderController {
 
     @PostMapping
     public ResponseEntity<OrderResponse.Create> createOrder(@AuthenticationPrincipal UserPrincipal userPrincipal,
-                                                     @RequestBody @Validated OrderRequest.Create request){
+                                                            @RequestBody @Validated OrderRequest.Create request) {
         OrderCommand.Create command = request.toCommand(userPrincipal.getUserId());
         OrderResult.Create result = orderAppService.initialOrder(command);
         OrderResponse.Create response = OrderResponse.Create.from(result);
@@ -40,7 +42,7 @@ public class OrderController {
 
     @GetMapping("/{orderNo}")
     public ResponseEntity<OrderResponse.Detail> getOrder(@AuthenticationPrincipal UserPrincipal userPrincipal,
-                                                        @PathVariable("orderNo") String orderNo) {
+                                                         @PathVariable("orderNo") String orderNo) {
         OrderResult.Detail result = orderAppService.getOrder(userPrincipal.getUserId(), orderNo);
         OrderResponse.Detail response = OrderResponse.Detail.from(result);
         return ResponseEntity.ok(response);
@@ -48,9 +50,10 @@ public class OrderController {
 
     @GetMapping
     public ResponseEntity<PageDto<OrderListResponse>> getOrders(@AuthenticationPrincipal UserPrincipal userPrincipal,
-                                                                @ModelAttribute OrderSearchCondition condition) {
+                                                                @ModelAttribute OrderSearchCondition condition,
+                                                                @PageableDefault(size = 20, page = 0) Pageable pageable) {
         OrderSearchCommand command = condition.toCommand();
-        Page<OrderResult.Summary> orders = orderAppService.getOrders(userPrincipal.getUserId(), command);
+        Page<OrderResult.Summary> orders = orderAppService.getOrders(userPrincipal.getUserId(), command, pageable);
         return null;
     }
 

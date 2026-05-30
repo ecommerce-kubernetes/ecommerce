@@ -1,11 +1,8 @@
 package com.example.order_service.order.application.service.order;
 
 import com.example.order_service.common.domain.vo.Money;
-import com.example.order_service.common.dto.PageDto;
 import com.example.order_service.common.exception.business.BusinessException;
-import com.example.order_service.order.api.dto.request.OrderSearchCondition;
 import com.example.order_service.order.application.dto.result.OrderDetailResponse;
-import com.example.order_service.order.application.dto.result.OrderListResponse;
 import com.example.order_service.order.application.dto.result.OrderResult;
 import com.example.order_service.order.application.external.OrderCouponGateway;
 import com.example.order_service.order.application.external.OrderProductGateway;
@@ -29,6 +26,7 @@ import com.example.order_service.order.exception.OrderErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -123,13 +121,14 @@ public class OrderAppService {
      * 유저의 주문 목록을 조회한다
      * </p>
      *
-     * @param userId    유저 아이디
-     * @param condition 조회 필터
+     * @param userId   유저 아이디
+     * @param command  조회 필터
+     * @param pageable 페이지네이션
      * @return 주문 목록
      */
-    public Page<OrderResult.Summary> getOrders(Long userId, OrderSearchCommand command) {
-        Page<OrderDto.Summary> orders = orderService.getOrders(userId, command);
-        return null;
+    public Page<OrderResult.Summary> getOrders(Long userId, OrderSearchCommand command, Pageable pageable) {
+        Page<OrderDto.Summary> orders = orderService.getOrders(userId, command, pageable);
+        return orders.map(OrderResult.Summary::from);
     }
 
     public void preparePayment(String orderNo) {
