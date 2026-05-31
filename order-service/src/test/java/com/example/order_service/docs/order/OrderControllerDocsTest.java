@@ -141,7 +141,7 @@ public class OrderControllerDocsTest extends RestDocSupport {
                 fieldWithPath("orderPrice.totalProductDiscount").description("상품 총 할인 금액"),
                 fieldWithPath("orderPrice.couponDiscount").description("쿠폰 할인 금액"),
                 fieldWithPath("orderPrice.pointDiscount").description("포인트 할인 금액"),
-                fieldWithPath("orderPrice.totalPaymentAmount").description("최종 주문 금액"),
+                fieldWithPath("orderPrice.finalPaymentAmount").description("최종 주문 금액"),
 
                 fieldWithPath("coupon.couponId").description("쿠폰 ID").optional(),
                 fieldWithPath("coupon.couponName").description("쿠폰 이름").optional(),

@@ -16,7 +16,7 @@ public class OrderResponse {
             String orderNo,
             OrderStatus status,
             String orderName,
-            Long finalPaymentAmount,
+            Long totalPaymentAmount,
             @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
             LocalDateTime createdAt
     ) {
@@ -25,7 +25,7 @@ public class OrderResponse {
                     .orderNo(result.orderNo())
                     .status(result.status())
                     .orderName(result.orderName())
-                    .finalPaymentAmount(result.totalPaymentAmount().longValue())
+                    .totalPaymentAmount(result.totalPaymentAmount().longValue())
                     .createdAt(result.createdAt())
                     .build();
         }
