@@ -15,8 +15,6 @@ import com.example.order_service.order.application.external.dto.result.OrderUser
 import com.example.order_service.order.application.mapper.OrderMapper;
 import com.example.order_service.order.application.service.order.dto.command.OrderCommand;
 import com.example.order_service.order.application.service.order.dto.command.OrderContext;
-import com.example.order_service.order.application.service.order.dto.command.OrderSearchCommand;
-import com.example.order_service.order.application.service.order.dto.result.OrderDto;
 import com.example.order_service.order.domain.model.OrderFailureCode;
 import com.example.order_service.order.domain.model.OrderSheet;
 import com.example.order_service.order.domain.model.OrderSheetItem;
@@ -25,8 +23,6 @@ import com.example.order_service.order.domain.repository.OrderSheetRepository;
 import com.example.order_service.order.exception.OrderErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -67,8 +63,7 @@ public class OrderAppService {
         OrderUserResult.UserPoint userPoints = getUserPoints(orderSheet);
         validator.validate(orderSheet, products, appliedCoupons, userPoints, pointPolicy);
         OrderContext.CreateOrderContext context = orderMapper.toContext(orderSheet);
-        OrderDto.Detail orderDetail = orderService.saveOrder(context);
-        return orderMapper.toResult(orderDetail);
+        return orderService.saveOrder(context);
     }
 
     private OrderProductResult.ProductList getOrderedProducts(List<OrderSheetItem> items) {
@@ -98,37 +93,6 @@ public class OrderAppService {
         Long userId = orderSheet.getOrderer().getUserId();
         Money usedPoints = orderSheet.getUsedPoints();
         return orderUserGateway.getUserPointsForOrder(userId, usedPoints);
-    }
-
-    /**
-     * 주문 정보 조회
-     * <p>
-     * 주문 번호의 주문 상세 정보를 조회한다
-     * </p>
-     *
-     * @param userId  유저 아이디
-     * @param orderNo 주문 번호
-     * @return 주문 상세 정보
-     */
-    public OrderResult.Detail getOrder(Long userId, String orderNo) {
-        OrderDto.Detail order = orderService.getOrder(orderNo, userId);
-        return OrderResult.Detail.from(order);
-    }
-
-    /**
-     * 주문 목록 조회
-     * <p>
-     * 유저의 주문 목록을 조회한다
-     * </p>
-     *
-     * @param userId   유저 아이디
-     * @param command  조회 필터
-     * @param pageable 페이지네이션
-     * @return 주문 목록
-     */
-    public Page<OrderResult.Summary> getOrders(Long userId, OrderSearchCommand command, Pageable pageable) {
-        Page<OrderDto.Summary> orders = orderService.getOrders(userId, command, pageable);
-        return orders.map(OrderResult.Summary::from);
     }
 
     public void preparePayment(String orderNo) {

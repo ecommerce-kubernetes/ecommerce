@@ -7,9 +7,9 @@ import com.example.order_service.common.security.model.UserRole;
 import com.example.order_service.order.api.dto.request.*;
 import com.example.order_service.order.api.dto.response.OrderResponse;
 import com.example.order_service.order.application.service.order.OrderAppService;
+import com.example.order_service.order.application.service.order.OrderQueryService;
 import com.example.order_service.order.application.service.order.dto.command.OrderCommand;
 import com.example.order_service.order.application.dto.result.OrderDetailResponse;
-import com.example.order_service.order.application.dto.result.OrderListResponse;
 import com.example.order_service.order.application.dto.result.OrderResult;
 import com.example.order_service.order.application.service.order.dto.command.OrderSearchCommand;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -20,7 +20,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
@@ -37,13 +36,9 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import static com.example.order_service.api.support.fixture.order.OrderResponseFixture.anOrderDetailResponse;
-import static com.example.order_service.api.support.fixture.order.OrderResponseFixture.anOrderListResponse;
 import static com.example.order_service.support.TestFixtureUtil.fixtureMonkey;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -60,6 +55,8 @@ class OrderControllerTest {
     private ObjectMapper objectMapper;
     @MockitoBean
     private OrderAppService orderAppService;
+    @MockitoBean
+    private OrderQueryService orderQueryService;
     private static final String ORDER_NO = "ORD-20260101-AB12FVC";
 
     @Nested
@@ -233,7 +230,7 @@ class OrderControllerTest {
     void getOrder() throws Exception {
         //given
         OrderResult.Detail result = fixtureMonkey.giveMeOne(OrderResult.Detail.class);
-        given(orderAppService.getOrder(anyLong(), anyString()))
+        given(orderQueryService.getOrder(anyString(), anyLong()))
                 .willReturn(result);
         OrderResponse.Detail response = OrderResponse.Detail.from(result);
         //when
@@ -291,7 +288,7 @@ class OrderControllerTest {
         paramMap.add("size", "10");
         paramMap.add("sort", "latest");
         PageDto<OrderResponse.Summary> response = PageDto.of(result, OrderResponse.Summary::from);
-        given(orderAppService.getOrders(anyLong(), any(OrderSearchCommand.class), any(Pageable.class)))
+        given(orderQueryService.getOrders(anyLong(), any(OrderSearchCommand.class), any(Pageable.class)))
                 .willReturn(result);
 
         //when

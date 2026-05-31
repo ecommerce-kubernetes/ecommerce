@@ -1,7 +1,8 @@
 package com.example.order_service.order.application.dto.result;
 
 import com.example.order_service.common.domain.vo.Money;
-import com.example.order_service.order.application.service.order.dto.result.OrderDto;
+import com.example.order_service.order.domain.model.Order;
+import com.example.order_service.order.domain.model.OrderItem;
 import com.example.order_service.order.domain.model.OrderStatus;
 import com.example.order_service.order.domain.vo.*;
 import lombok.Builder;
@@ -19,6 +20,15 @@ public class OrderResult {
             Money totalPaymentAmount,
             LocalDateTime createdAt
     ) {
+        public static Create from(Order order) {
+            return Create.builder()
+                    .orderNo(order.getOrderNo())
+                    .status(order.getStatus())
+                    .orderName(order.getOrderName())
+                    .totalPaymentAmount(order.getTotalPaymentAmount())
+                    .createdAt(order.getCreatedAt())
+                    .build();
+        }
     }
 
     @Builder
@@ -37,21 +47,21 @@ public class OrderResult {
             Money totalPaymentAmount,
             LocalDateTime createdAt
     ) {
-        public static Detail from(OrderDto.Detail dto) {
+        public static Detail from(Order order) {
             return Detail.builder()
-                    .orderNo(dto.orderNo())
-                    .status(dto.status())
-                    .orderName(dto.orderName())
-                    .orderer(dto.orderer())
-                    .shippingAddress(dto.shippingAddress())
-                    .cartCoupon(dto.cartCoupon())
-                    .items(OrderedItem.from(dto.orderItems()))
-                    .totalOriginalPrice(dto.totalOriginalPrice())
-                    .totalProductDiscountAmount(dto.totalProductDiscountAmount())
-                    .totalCouponDiscountAmount(dto.totalCouponDiscountAmount())
-                    .usedPoints(dto.usedPoints())
-                    .totalPaymentAmount(dto.totalPaymentAmount())
-                    .createdAt(dto.createdAt())
+                    .orderNo(order.getOrderNo())
+                    .status(order.getStatus())
+                    .orderName(order.getOrderName())
+                    .orderer(order.getOrderer())
+                    .shippingAddress(order.getShippingAddress())
+                    .cartCoupon(order.getCartCoupon())
+                    .items(OrderedItem.from(order.getOrderItems()))
+                    .totalOriginalPrice(order.getTotalOriginalPrice())
+                    .totalProductDiscountAmount(order.getTotalProductDiscountAmount())
+                    .totalCouponDiscountAmount(order.getTotalCouponDiscountAmount())
+                    .usedPoints(order.getUsedPoints())
+                    .totalPaymentAmount(order.getTotalPaymentAmount())
+                    .createdAt(order.getCreatedAt())
                     .build();
         }
     }
@@ -64,13 +74,13 @@ public class OrderResult {
             List<OrderedItem> orderItems,
             LocalDateTime createdAt
     ) {
-        public static Summary from(OrderDto.Summary dto) {
+        public static Summary from(Order order) {
             return Summary.builder()
-                    .orderNo(dto.orderNo())
-                    .status(dto.status())
-                    .orderName(dto.orderName())
-                    .orderItems(OrderedItem.from(dto.orderItems()))
-                    .createdAt(dto.createdAt())
+                    .orderNo(order.getOrderNo())
+                    .status(order.getStatus())
+                    .orderName(order.getOrderName())
+                    .orderItems(OrderedItem.from(order.getOrderItems()))
+                    .createdAt(order.getCreatedAt())
                     .build();
 
         }
@@ -84,17 +94,17 @@ public class OrderResult {
             Integer quantity,
             List<ProductOptionSnapshot> options
     ) {
-        public static OrderedItem from(OrderDto.Item item) {
+        public static OrderedItem from(OrderItem item) {
             return OrderedItem.builder()
-                    .product(item.product())
-                    .productPrice(item.productPrice())
-                    .itemCoupon(item.itemCoupon())
-                    .quantity(item.quantity())
-                    .options(item.options())
+                    .product(item.getProduct())
+                    .productPrice(item.getProductPrice())
+                    .itemCoupon(item.getItemCoupon())
+                    .quantity(item.getQuantity())
+                    .options(item.getOptions())
                     .build();
         }
 
-        public static List<OrderedItem> from(List<OrderDto.Item> items) {
+        public static List<OrderedItem> from(List<OrderItem> items) {
             return items.stream().map(OrderedItem::from).toList();
         }
     }

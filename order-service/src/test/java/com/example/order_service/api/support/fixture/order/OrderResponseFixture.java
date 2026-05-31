@@ -1,7 +1,5 @@
 package com.example.order_service.api.support.fixture.order;
 
-import com.example.order_service.common.dto.PageDto;
-import com.example.order_service.order.application.dto.result.CreateOrderResponse;
 import com.example.order_service.order.application.dto.result.OrderDetailResponse;
 import com.example.order_service.order.application.dto.result.OrderDetailResponse.CouponResponse;
 import com.example.order_service.order.application.dto.result.OrderDetailResponse.OrderPriceResponse;

@@ -7,6 +7,7 @@ import com.example.order_service.order.api.dto.request.OrderRequest;
 import com.example.order_service.order.api.dto.request.OrderSearchCondition;
 import com.example.order_service.order.api.dto.response.OrderResponse;
 import com.example.order_service.order.application.service.order.OrderAppService;
+import com.example.order_service.order.application.service.order.OrderQueryService;
 import com.example.order_service.order.application.service.order.dto.command.OrderCommand;
 import com.example.order_service.order.application.dto.result.OrderDetailResponse;
 import com.example.order_service.order.application.dto.result.OrderListResponse;
@@ -30,6 +31,7 @@ import org.springframework.web.bind.annotation.*;
 public class OrderController {
 
     private final OrderAppService orderAppService;
+    private final OrderQueryService orderQueryService;
 
     @PostMapping
     public ResponseEntity<OrderResponse.Create> createOrder(@AuthenticationPrincipal UserPrincipal userPrincipal,
@@ -43,7 +45,7 @@ public class OrderController {
     @GetMapping("/{orderNo}")
     public ResponseEntity<OrderResponse.Detail> getOrder(@AuthenticationPrincipal UserPrincipal userPrincipal,
                                                          @PathVariable("orderNo") String orderNo) {
-        OrderResult.Detail result = orderAppService.getOrder(userPrincipal.getUserId(), orderNo);
+        OrderResult.Detail result = orderQueryService.getOrder(orderNo, userPrincipal.getUserId());
         OrderResponse.Detail response = OrderResponse.Detail.from(result);
         return ResponseEntity.ok(response);
     }
@@ -53,7 +55,7 @@ public class OrderController {
                                                                 @ModelAttribute OrderSearchCondition condition,
                                                                 @PageableDefault(size = 20, page = 0) Pageable pageable) {
         OrderSearchCommand command = condition.toCommand();
-        Page<OrderResult.Summary> orders = orderAppService.getOrders(userPrincipal.getUserId(), command, pageable);
+        Page<OrderResult.Summary> orders = orderQueryService.getOrders(userPrincipal.getUserId(), command, pageable);
         PageDto<OrderResponse.Summary> summaryPageDto = PageDto.of(orders, OrderResponse.Summary::from);
         return ResponseEntity.ok(summaryPageDto);
     }

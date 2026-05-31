@@ -7,9 +7,10 @@ import com.example.order_service.docs.descriptor.OrderDescriptor;
 import com.example.order_service.order.api.OrderController;
 import com.example.order_service.order.api.dto.request.OrderConfirmRequest;
 import com.example.order_service.order.api.dto.request.OrderRequest;
-import com.example.order_service.order.api.dto.request.OrderSearchCondition;
 import com.example.order_service.order.api.dto.response.OrderResponse;
 import com.example.order_service.order.application.service.order.OrderAppService;
+import com.example.order_service.order.application.service.order.OrderQueryService;
+import com.example.order_service.order.application.service.order.OrderQueryServiceTest;
 import com.example.order_service.order.application.service.order.dto.command.OrderCommand;
 import com.example.order_service.order.application.dto.result.OrderDetailResponse;
 import com.example.order_service.order.application.dto.result.OrderListResponse;
@@ -47,6 +48,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class OrderControllerDocsTest extends RestDocSupport {
     private static final String ORDER_NO = "ORD-20260101-AB12FVC";
     private OrderAppService orderAppService = mock(OrderAppService.class);
+    private OrderQueryService orderQueryService = mock(OrderQueryService.class);
 
     private static final String TAG = "ORDER";
 
@@ -57,7 +59,7 @@ public class OrderControllerDocsTest extends RestDocSupport {
 
     @Override
     protected Object initController() {
-        return new OrderController(orderAppService);
+        return new OrderController(orderAppService, orderQueryService);
     }
 
     @Test

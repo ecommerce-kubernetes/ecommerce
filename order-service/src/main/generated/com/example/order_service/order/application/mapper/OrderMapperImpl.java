@@ -1,8 +1,6 @@
 package com.example.order_service.order.application.mapper;
 
-import com.example.order_service.order.application.dto.result.OrderResult;
 import com.example.order_service.order.application.service.order.dto.command.OrderContext;
-import com.example.order_service.order.application.service.order.dto.result.OrderDto;
 import com.example.order_service.order.domain.model.OrderSheet;
 import com.example.order_service.order.domain.model.OrderSheetItem;
 import com.example.order_service.order.domain.vo.ProductOptionSnapshot;
@@ -13,7 +11,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-05-28T04:04:52+0900",
+    date = "2026-06-01T01:42:43+0900",
     comments = "version: 1.6.3, compiler: javac, environment: Java 21.0.10 (Eclipse Adoptium)"
 )
 @Component
@@ -30,7 +28,9 @@ public class OrderMapperImpl implements OrderMapper {
         createOrderContext.orderItems( orderSheetItemListToItemContextList( orderSheet.getItems() ) );
         createOrderContext.orderer( orderSheet.getOrderer() );
         createOrderContext.shippingAddress( orderSheet.getShippingAddress() );
-        createOrderContext.cartCoupon( orderSheet.getCartCoupon() );
+        if ( orderSheet.hasCartCoupon() ) {
+            createOrderContext.cartCoupon( orderSheet.getCartCoupon() );
+        }
         createOrderContext.totalOriginalPrice( orderSheet.getTotalOriginalPrice() );
         createOrderContext.totalProductDiscountAmount( orderSheet.getTotalProductDiscountAmount() );
         createOrderContext.totalCouponDiscountAmount( orderSheet.getTotalCouponDiscountAmount() );
@@ -58,23 +58,6 @@ public class OrderMapperImpl implements OrderMapper {
         }
 
         return itemContext.build();
-    }
-
-    @Override
-    public OrderResult.Create toResult(OrderDto.Detail orderDto) {
-        if ( orderDto == null ) {
-            return null;
-        }
-
-        OrderResult.Create.CreateBuilder create = OrderResult.Create.builder();
-
-        create.orderNo( orderDto.orderNo() );
-        create.status( orderDto.status() );
-        create.orderName( orderDto.orderName() );
-        create.totalPaymentAmount( orderDto.totalPaymentAmount() );
-        create.createdAt( orderDto.createdAt() );
-
-        return create.build();
     }
 
     protected List<OrderContext.ItemContext> orderSheetItemListToItemContextList(List<OrderSheetItem> list) {

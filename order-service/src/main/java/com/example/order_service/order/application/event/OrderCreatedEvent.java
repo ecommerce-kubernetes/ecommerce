@@ -1,8 +1,6 @@
 package com.example.order_service.order.application.event;
 
 import com.example.order_service.common.domain.vo.Money;
-import com.example.order_service.order.application.service.order.dto.result.OrderDto;
-import com.example.order_service.order.application.service.order.dto.result.OrderItemDto;
 import com.example.order_service.order.domain.model.Order;
 import com.example.order_service.order.domain.model.OrderItem;
 import lombok.Builder;

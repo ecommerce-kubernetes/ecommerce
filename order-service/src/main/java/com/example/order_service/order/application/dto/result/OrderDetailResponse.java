@@ -1,6 +1,5 @@
 package com.example.order_service.order.application.dto.result;
 
-import com.example.order_service.order.application.service.order.dto.result.OrderDto;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -20,9 +19,6 @@ public class OrderDetailResponse {
     private List<OrderItemResponse> orderItems;
     private String createdAt;
 
-    public static OrderDetailResponse from(OrderDto orderDto) {
-        return null;
-    }
 
     @Getter
     @Builder
@@ -58,6 +54,5 @@ public class OrderDetailResponse {
         private String status;
         private String method;
         private String approvedAt;
-
     }
 }

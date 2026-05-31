@@ -1,20 +1,15 @@
 package com.example.order_service.order.application.service.order;
 
-import com.example.order_service.common.exception.business.BusinessException;
+import com.example.order_service.order.application.dto.result.OrderResult;
 import com.example.order_service.order.application.event.OrderCreatedEvent;
 import com.example.order_service.order.application.service.order.dto.command.OrderContext;
-import com.example.order_service.order.application.service.order.dto.command.OrderSearchCommand;
-import com.example.order_service.order.application.service.order.dto.result.OrderDto;
 import com.example.order_service.order.domain.model.Order;
 import com.example.order_service.order.domain.model.OrderItem;
 import com.example.order_service.order.domain.repository.OrderRepository;
 import com.example.order_service.order.domain.repository.OrderSearchRepository;
-import com.example.order_service.order.exception.OrderErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,24 +37,11 @@ public class OrderService {
      * @param context 주문 생성 컨텍스트
      * @return 생성된 주문 DTO
      */
-    public OrderDto.Detail saveOrder(OrderContext.CreateOrderContext context) {
+    public OrderResult.Create saveOrder(OrderContext.CreateOrderContext context) {
         Order order = initialOrder(context);
         Order savedOrder = orderRepository.save(order);
         eventPublisher.publishEvent(OrderCreatedEvent.from(savedOrder));
-        return OrderDto.Detail.from(savedOrder);
-    }
-
-    @Transactional(readOnly = true)
-    public OrderDto.Detail getOrder(String orderNo, Long userId) {
-        Order order = orderRepository.findByOrderNoAndOrderer_UserId(orderNo, userId)
-                .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_NOT_FOUND));
-        return OrderDto.Detail.from(order);
-    }
-
-    @Transactional(readOnly = true)
-    public Page<OrderDto.Summary> getOrders(Long userId, OrderSearchCommand command, Pageable pageable) {
-        Page<Order> pageOrder = orderSearchRepository.searchOrders(userId, command, pageable);
-        return pageOrder.map(OrderDto.Summary::from);
+        return OrderResult.Create.from(savedOrder);
     }
 
     private Order initialOrder(OrderContext.CreateOrderContext context) {

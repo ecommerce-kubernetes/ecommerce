@@ -1,6 +1,5 @@
 package com.example.order_service.order.application.dto.result;
 
-import com.example.order_service.order.application.service.order.dto.result.OrderItemDto;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -17,10 +16,6 @@ public class OrderItemResponse {
     private OrderItemPriceResponse unitPrice;
     private Long lineTotal;
     private List<OrderItemOptionResponse> options;
-
-    public static OrderItemResponse from(OrderItemDto orderItemDto) {
-        return null;
-    }
 
     @Getter
     @Builder

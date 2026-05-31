@@ -12,7 +12,6 @@ import com.example.order_service.order.application.external.dto.result.OrderUser
 import com.example.order_service.order.application.mapper.OrderMapper;
 import com.example.order_service.order.application.service.order.dto.command.OrderCommand;
 import com.example.order_service.order.application.service.order.dto.command.OrderContext;
-import com.example.order_service.order.application.service.order.dto.result.OrderDto;
 import com.example.order_service.order.domain.model.OrderSheet;
 import com.example.order_service.order.domain.model.OrderSheetItem;
 import com.example.order_service.order.domain.repository.OrderSheetRepository;
@@ -76,7 +75,6 @@ public class OrderAppServiceTest {
             OrderProductResult.ProductList productResult = fixtureMonkey.giveMeOne(OrderProductResult.ProductList.class);
             OrderCouponResult.Calculate couponResult = fixtureMonkey.giveMeOne(OrderCouponResult.Calculate.class);
             OrderContext.CreateOrderContext orderContext = fixtureMonkey.giveMeOne(OrderContext.CreateOrderContext.class);
-            OrderDto.Detail orderDto = fixtureMonkey.giveMeOne(OrderDto.Detail.class);
             OrderResult.Create expectedResult = fixtureMonkey.giveMeOne(OrderResult.Create.class);
 
             given(orderSheetRepository.findById(anyString())).willReturn(Optional.of(orderSheet));
@@ -84,8 +82,7 @@ public class OrderAppServiceTest {
             given(orderProductGateway.getProducts(anyList())).willReturn(productResult);
             given(orderCouponGateway.calculate(any())).willReturn(couponResult);
             given(orderMapper.toContext(any())).willReturn(orderContext);
-            given(orderService.saveOrder(any())).willReturn(orderDto);
-            given(orderMapper.toResult(any())).willReturn(expectedResult);
+            given(orderService.saveOrder(any())).willReturn(expectedResult);
             //when
             OrderResult.Create result = orderAppService.initialOrder(command);
             //then
