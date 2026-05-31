@@ -1,11 +1,10 @@
 package com.example.order_service.order.domain.model;
 
+import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.order.domain.model.vo.PaymentMethod;
 import com.example.order_service.order.domain.model.vo.PaymentStatus;
-import com.example.order_service.order.domain.service.dto.command.PaymentCreationContext;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -24,33 +23,11 @@ public class Payment {
     @JoinColumn(name = "order_id")
     private Order order;
     private String paymentKey;
-    private Long amount;
+    private Money amount;
     @Enumerated(EnumType.STRING)
     private PaymentStatus status;
     @Enumerated(EnumType.STRING)
     private PaymentMethod method;
     private LocalDateTime approvedAt;
 
-    protected void setOrder(Order order) {
-        this.order = order;
-    }
-
-    @Builder(access = AccessLevel.PRIVATE)
-    private Payment(String paymentKey, Long amount, PaymentStatus status, PaymentMethod method, LocalDateTime approvedAt) {
-        this.paymentKey = paymentKey;
-        this.amount = amount;
-        this.status = status;
-        this.method = method;
-        this.approvedAt = approvedAt;
-    }
-
-    public static Payment create(PaymentCreationContext context) {
-        return Payment.builder()
-                .paymentKey(context.getPaymentKey())
-                .amount(context.getAmount())
-                .status(context.getStatus())
-                .method(context.getMethod())
-                .approvedAt(context.getApprovedAt())
-                .build();
-    }
 }

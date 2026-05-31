@@ -2,12 +2,17 @@ package com.example.order_service.notification.controller;
 
 import com.example.order_service.api.support.security.annotation.WithCustomMockUser;
 import com.example.order_service.api.support.security.config.TestSecurityConfig;
+import com.example.order_service.notification.service.NotificationService;
 import com.example.order_service.support.ControllerTestSupport;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
@@ -23,7 +28,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @Import(TestSecurityConfig.class)
-public class NotificationControllerTest extends ControllerTestSupport {
+@WebMvcTest(controllers = NotificationController.class)
+public class NotificationControllerTest {
+
+    @Autowired
+    protected MockMvc mockMvc;
+
+    @MockitoBean
+    protected NotificationService notificationService;
 
     @BeforeEach
     void setUp(WebApplicationContext context) {

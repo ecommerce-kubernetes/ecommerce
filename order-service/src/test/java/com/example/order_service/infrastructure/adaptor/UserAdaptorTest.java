@@ -9,12 +9,14 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
+import static com.example.order_service.support.TestFixtureUtil.fixtureMonkey;
 import static com.example.order_service.support.TestFixtureUtil.giveMeOne;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
+import static org.mockito.Mockito.mock;
 
 @IsolatedTest
 public class UserAdaptorTest {
@@ -26,15 +28,15 @@ public class UserAdaptorTest {
     private ExternalExceptionTranslator translator;
 
     @Test
-    @DisplayName("유저 서비스에 주문에 필요한 유저 정보를 조회한다")
-    void getUserInfoForOrder(){
+    @DisplayName("유저 프로필을 조회한다")
+    void getUserProfile() {
         //given
         Long userId = 1L;
-        UserClientResponse.UserInfo mockResponse = giveMeOne(UserClientResponse.UserInfo.class);
-        given(client.getUserInfoForOrder(anyLong()))
+        UserClientResponse.Profile mockResponse = giveMeOne(UserClientResponse.Profile.class);
+        given(client.getUserProfile(anyLong()))
                 .willReturn(mockResponse);
         //when
-        UserClientResponse.UserInfo response = userAdaptor.getUserInfoForOrder(userId);
+        UserClientResponse.Profile response = userAdaptor.getUserProfile(userId);
         //then
         assertThat(response)
                 .usingRecursiveComparison()
@@ -42,20 +44,81 @@ public class UserAdaptorTest {
     }
 
     @Test
-    @DisplayName("유저 조회중 예외 발생시 translator를 호출하여 반환된 예외를 던진다")
-    void getUserInfoForOrder_fallback_delegate_to_translator() throws Throwable {
+    @DisplayName("유저 프로필 조회중 예외 발생시 translator를 호출하여 변환된 예외가 발생한다")
+    void getUserProfile_fallback_delegate_to_translator() throws Throwable {
         //given
-        //발생한 예외
+        Long userId = 1L;
         RuntimeException feignException = new RuntimeException("feignClient 예외");
-        //변환된 예외
         ExternalSystemUnavailableException translatedException =
                 new ExternalSystemUnavailableException("CODE", "변환된 에러", feignException);
-        willThrow(feignException).given(client).getUserInfoForOrder(anyLong());
+        given(client.getUserProfile(any())).willThrow(feignException);
         given(translator.translate(anyString(), any(Throwable.class)))
                 .willReturn(translatedException);
         //when
         //then
-        assertThatThrownBy(() -> userAdaptor.getUserInfoForOrder(anyLong()))
+        assertThatThrownBy(() -> userAdaptor.getUserProfile(userId))
+                .isInstanceOf(ExternalSystemUnavailableException.class);
+    }
+
+    @Test
+    @DisplayName("유저 포인트 잔액을 조회한다")
+    void getUserPoints(){
+        //given
+        Long userId = 1L;
+        UserClientResponse.UserPoints mockResponse = fixtureMonkey.giveMeOne(UserClientResponse.UserPoints.class);
+        given(client.getUserPoints(any())).willReturn(mockResponse);
+        //when
+        UserClientResponse.UserPoints response = userAdaptor.getUserPoints(userId);
+        //then
+        assertThat(response).usingRecursiveComparison()
+                .isEqualTo(mockResponse);
+    }
+
+    @Test
+    @DisplayName("유저 포인트 잔액 조회중 예외 발생시 translator를 호출하여 변환된 예외가 발생한다")
+    void getUserPoints_fallback_delegate_to_translator() throws Throwable {
+        //given
+        Long userId = 1L;
+        RuntimeException feignException = new RuntimeException("feignClient 예외");
+        ExternalSystemUnavailableException translatedException =
+                new ExternalSystemUnavailableException("CODE", "변환된 에러", feignException);
+        given(client.getUserPoints(any())).willThrow(feignException);
+        given(translator.translate(anyString(), any(Throwable.class)))
+                .willReturn(translatedException);
+        //when
+        //then
+        assertThatThrownBy(() -> userAdaptor.getUserPoints(userId))
+                .isInstanceOf(ExternalSystemUnavailableException.class);
+    }
+
+    @Test
+    @DisplayName("유저 포인트 사용 검증 정보를 조회한다")
+    void getUserPointsForOrder() {
+        //given
+        Long userId = 1L;
+        Long usedPoints = 1000L;
+        UserClientResponse.UserPoints mockResponse = fixtureMonkey.giveMeOne(UserClientResponse.UserPoints.class);
+        given(client.getUserPointsForOrder(anyLong(), any())).willReturn(mockResponse);
+        //when
+        UserClientResponse.UserPoints response = userAdaptor.getUserPointsForOrder(userId, usedPoints);
+        //then
+        assertThat(response).usingRecursiveComparison().isEqualTo(mockResponse);
+    }
+
+    @Test
+    @DisplayName("유저 포인트 사용 검증 정보 조회중 예외 발생시 translator를 호출하여 변환된 예외가 발생한다")
+    void getUserPointsForOrder_fallback_delegate_to_translator() throws Throwable {
+        //given
+        Long userId = 1L;
+        Long usedPoints = 1000L;
+        RuntimeException feignException = new RuntimeException("feignClient 예외");
+        ExternalSystemUnavailableException translatedException =
+                new ExternalSystemUnavailableException("CODE", "변환된 에러", feignException);
+        given(client.getUserPointsForOrder(anyLong(), any())).willThrow(feignException);
+        given(translator.translate(anyString(), any())).willReturn(translatedException);
+        //when
+        //then
+        assertThatThrownBy(() -> userAdaptor.getUserPointsForOrder(userId, usedPoints))
                 .isInstanceOf(ExternalSystemUnavailableException.class);
     }
 }

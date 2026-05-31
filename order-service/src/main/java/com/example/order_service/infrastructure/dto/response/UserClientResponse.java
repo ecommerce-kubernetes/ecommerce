@@ -5,10 +5,29 @@ import lombok.Builder;
 public class UserClientResponse {
 
     @Builder
-    public record UserInfo(
+    public record Profile(
             Long userId,
-            Long pointBalance,
             String userName,
-            String phoneNumber
-    ) {}
+            String phoneNumber,
+            ShippingAddress defaultShippingAddress
+    ) {
+    }
+
+    @Builder
+    public record UserPoints(
+            Long userId,
+            Long ownedPoints
+    ) {
+    }
+
+    @Builder
+    public record ShippingAddress(
+            String receiverName,
+            String receiverPhone,
+            String zipCode,
+            String address,
+            String addressDetail
+    ) {
+    }
+
 }

@@ -1,0 +1,12 @@
+{
+  "userId": 1,
+  "userName": "주문자",
+  "phoneNumber": "010-1234-5678",
+  "defaultShippingAddress": {
+    "receiverName": "수령인",
+    "receiverPhone": "010-1234-5678",
+    "zipCode": "12345",
+    "address": "서울시 테헤란로 123",
+    "addressDetail": "123동 1234호"
+  }
+}

@@ -13,10 +13,11 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-@EnableAutoConfiguration(exclude = KafkaAutoConfiguration.class)
 @TestPropertySource(properties = {
         "spring.cloud.bus.enabled=false",
-        "spring.cloud.stream.enabled=false"
+        "spring.cloud.stream.enabled=false",
+        "spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration",
+        "spring.kafka.listener.auto-startup=false"
 })
 @Import(MockKafkaConfig.class)
 public @interface MockKafka {

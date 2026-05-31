@@ -3,6 +3,7 @@ package com.example.order_service.infrastructure.adaptor;
 import com.example.order_service.common.exception.external.ExternalClientException;
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
 import com.example.order_service.infrastructure.client.CouponFeignClient;
+import com.example.order_service.infrastructure.dto.command.CouponCommand;
 import com.example.order_service.infrastructure.dto.request.CouponClientRequest;
 import com.example.order_service.support.annotation.IsolatedTest;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
@@ -13,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
+import static com.example.order_service.support.TestFixtureUtil.fixtureMonkey;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -45,17 +47,18 @@ public class CouponAdaptorCircuitBreakerTest {
     @DisplayName("쿠폰 서비스에서 연속으로 서버 에러가 발생한 경우 서킷 브레이커가 열려 요청이 차단된다")
     void circuitbreaker_opens_after_consecutive_server_failures() {
         //given
+        CouponCommand.Calculate command = fixtureMonkey.giveMeOne(CouponCommand.Calculate.class);
         given(client.calculate(any(CouponClientRequest.Calculate.class)))
                 .willThrow(new RuntimeException("Connection Timeout"));
         //when
         //then
         for (int i = 0; i < 3; i++) {
-            assertThatThrownBy(() -> adaptor.calculate(1L, 1L, 10000L))
+            assertThatThrownBy(() -> adaptor.calculate(command))
                     .isInstanceOf(ExternalSystemUnavailableException.class)
                     .hasMessage("COUPON-SERVICE 통신 장애");
         }
 
-        assertThatThrownBy(() -> adaptor.calculate(1L, 1L, 10000L))
+        assertThatThrownBy(() -> adaptor.calculate(command))
                 .isInstanceOf(ExternalSystemUnavailableException.class)
                 .hasMessage("COUPON-SERVICE 서킷 브레이커 열림")
                 .extracting("errorCode")
@@ -69,15 +72,16 @@ public class CouponAdaptorCircuitBreakerTest {
     @DisplayName("쿠폰 서비스에서 연속으로 클라이언트 에러가 발생한 경우 서킷 브레이커는 닫혀있어야 한다")
     void circuitbreaker_close_after_consecutive_client_failures() {
         //given
+        CouponCommand.Calculate command = fixtureMonkey.giveMeOne(CouponCommand.Calculate.class);
         given(client.calculate(any(CouponClientRequest.Calculate.class)))
                 .willThrow(new ExternalClientException("NOT_FOUND_COUPON", "쿠폰을 찾을 수 없습니다"));
         //when
         //then
         for (int i = 0; i < 3; i++) {
-            assertThatThrownBy(() -> adaptor.calculate(1L, 1L, 10000L))
+            assertThatThrownBy(() -> adaptor.calculate(command))
                     .isInstanceOf(ExternalClientException.class);
         }
-        assertThatThrownBy(() -> adaptor.calculate(1L, 1L, 10000L))
+        assertThatThrownBy(() -> adaptor.calculate(command))
                 .isInstanceOf(ExternalClientException.class);
         //반복된 에러가 클라이언트 예외이므로 정상 요청이 실행되어 4번 호출됨
         verify(client, times(4)).calculate(any());

@@ -6,18 +6,16 @@ import com.example.order_service.common.exception.external.ExternalServerExcepti
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
 import com.example.order_service.infrastructure.adaptor.ProductAdaptor;
 import com.example.order_service.infrastructure.dto.response.ProductClientResponse;
-import com.example.order_service.order.application.dto.result.OrderProductResult;
-import com.example.order_service.order.application.mapper.OrderProductMapper;
-import com.example.order_service.order.domain.model.vo.ProductStatus;
-import com.example.order_service.order.exception.OrderErrorCode;
+import com.example.order_service.order.application.external.dto.command.OrderProductCommand;
+import com.example.order_service.order.application.external.dto.result.OrderProductResult;
+import com.example.order_service.order.application.external.mapper.OrderProductMapper;
+import com.example.order_service.order.exception.OrderSheetErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mapstruct.factory.Mappers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
@@ -25,9 +23,7 @@ import java.util.List;
 import static com.example.order_service.support.TestFixtureUtil.fixtureMonkey;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.api.BDDAssertions.tuple;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
 
@@ -36,74 +32,101 @@ public class OrderProductGatewayTest {
 
     @InjectMocks
     private OrderProductGateway orderProductGateway;
-
     @Mock
     private ProductAdaptor adaptor;
     @Mock
     private OrderProductMapper productMapper;
 
     @Nested
-    @DisplayName("상품 정보 조회")
+    @DisplayName("상품 조회")
     class GetProducts {
 
         @Test
         @DisplayName("주문 상품 정보를 조회한다")
-        void getProducts() {
+        void getProducts(){
             //given
-            List<Long> variantIds = List.of(1L, 2L);
-            List<ProductClientResponse.Product> productResponses = fixtureMonkey.giveMe(ProductClientResponse.Product.class, 2);
-            List<OrderProductResult.Info> mockInfos = fixtureMonkey.giveMe(OrderProductResult.Info.class, 2);
-            given(adaptor.getProductsByVariantIds(anyList())).willReturn(productResponses);
-            given(productMapper.toResult(any())).willReturn(mockInfos.get(0), mockInfos.get(1));
+            OrderProductCommand.OrderItem item1 = OrderProductCommand.OrderItem.builder()
+                    .productVariantId(1L)
+                    .quantity(1)
+                    .build();
+            OrderProductCommand.OrderItem item2 = OrderProductCommand.OrderItem.builder()
+                    .productVariantId(2L)
+                    .quantity(1)
+                    .build();
+            ProductClientResponse.ProductList productResponse = fixtureMonkey.giveMeOne(ProductClientResponse.ProductList.class);
+            OrderProductResult.ProductList productList = fixtureMonkey.giveMeOne(OrderProductResult.ProductList.class);
+            given(adaptor.getProductsForOrder(any())).willReturn(productResponse);
+            given(productMapper.toResult(any(ProductClientResponse.ProductList.class))).willReturn(productList);
             //when
-            List<OrderProductResult.Info> result = orderProductGateway.getProducts(variantIds);
+            OrderProductResult.ProductList result = orderProductGateway.getProducts(List.of(item1, item2));
             //then
-            assertThat(result).containsExactlyElementsOf(mockInfos);
+            assertThat(result).isEqualTo(productList);
         }
 
         @Test
         @DisplayName("상품 조회중 상품 서비스에서 서버 오류가 발생한 경우 비지니스 예외로 변경하여 던진다")
-        void getProducts_ExternalServerException() {
+        void getProducts_ExternalServerException(){
             //given
-            List<Long> variantIds = List.of(1L, 2L);
+            OrderProductCommand.OrderItem item1 = OrderProductCommand.OrderItem.builder()
+                    .productVariantId(1L)
+                    .quantity(1)
+                    .build();
+            OrderProductCommand.OrderItem item2 = OrderProductCommand.OrderItem.builder()
+                    .productVariantId(2L)
+                    .quantity(1)
+                    .build();
             willThrow(new ExternalServerException("INTERNAL_SERVER_ERROR", "처리중 오류가 발생했습니다"))
-                    .given(adaptor).getProductsByVariantIds(anyList());
+                    .given(adaptor).getProductsForOrder(any());
             //when
             //then
-            assertThatThrownBy(() -> orderProductGateway.getProducts(variantIds))
+            assertThatThrownBy(() -> orderProductGateway.getProducts(List.of(item1, item2)))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
-                    .isEqualTo(OrderErrorCode.ORDER_PRODUCT_SERVER_ERROR);
+                    .isEqualTo(OrderSheetErrorCode.ORDER_SHEET_PRODUCT_SERVER_ERROR);
         }
 
         @Test
         @DisplayName("상품 조회중 상품 서비스에서 클라이언트 오류가 발생한 경우 비지니스 예외로 변경하여 던진다")
-        void getProducts_ExternalClientException(){
+        void getProducts_ExternalClientException() {
             //given
-            List<Long> variantIds = List.of(1L, 2L);
+            OrderProductCommand.OrderItem item1 = OrderProductCommand.OrderItem.builder()
+                    .productVariantId(1L)
+                    .quantity(1)
+                    .build();
+            OrderProductCommand.OrderItem item2 = OrderProductCommand.OrderItem.builder()
+                    .productVariantId(2L)
+                    .quantity(1)
+                    .build();
             willThrow(new ExternalClientException("NOT_PERMISSION", "조회 권한이 없습니다"))
-                    .given(adaptor).getProductsByVariantIds(anyList());
+                    .given(adaptor).getProductsForOrder(any());
             //when
             //then
-            assertThatThrownBy(() -> orderProductGateway.getProducts(variantIds))
+            assertThatThrownBy(() -> orderProductGateway.getProducts(List.of(item1, item2)))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
-                    .isEqualTo(OrderErrorCode.ORDER_PRODUCT_CLIENT_ERROR);
+                    .isEqualTo(OrderSheetErrorCode.ORDER_SHEET_PRODUCT_CLIENT_ERROR);
         }
 
         @Test
         @DisplayName("상품 조회중 상품 서비스에서 사용 불가 오류가 발생한 경우 비지니스 예외로 변경하여 던진다")
-        void getProducts_ExternalUnavailableException() {
+        void getProducts_ExternalUnavailableException(){
             //given
-            List<Long> variantIds = List.of(1L, 2L);
-            willThrow(new ExternalSystemUnavailableException("SERVICE_UNAVAILABLE", "상품 서비스 통신 오류"))
-                    .given(adaptor).getProductsByVariantIds(anyList());
+            OrderProductCommand.OrderItem item1 = OrderProductCommand.OrderItem.builder()
+                    .productVariantId(1L)
+                    .quantity(1)
+                    .build();
+            OrderProductCommand.OrderItem item2 = OrderProductCommand.OrderItem.builder()
+                    .productVariantId(2L)
+                    .quantity(1)
+                    .build();
+            willThrow(new ExternalSystemUnavailableException("SERVICE_UNAVAILABLE", "상품 서비스 통신 장애"))
+                    .given(adaptor).getProductsForOrder(any());
             //when
             //then
-            assertThatThrownBy(() -> orderProductGateway.getProducts(variantIds))
+            assertThatThrownBy(() -> orderProductGateway.getProducts(List.of(item1, item2)))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
-                    .isEqualTo(OrderErrorCode.ORDER_PRODUCT_UNAVAILABLE_SERVER_ERROR);
+                    .isEqualTo(OrderSheetErrorCode.ORDER_SHEET_PRODUCT_UNAVAILABLE_SERVER_ERROR);
         }
     }
 }

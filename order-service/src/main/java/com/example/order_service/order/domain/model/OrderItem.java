@@ -1,17 +1,18 @@
 package com.example.order_service.order.domain.model;
 
 import com.example.order_service.common.entity.BaseEntity;
-import com.example.order_service.order.domain.model.vo.OrderItemPrice;
-import com.example.order_service.order.domain.model.vo.OrderedProduct;
-import com.example.order_service.order.domain.service.dto.command.OrderItemCreationContext;
-import com.example.order_service.order.domain.service.dto.command.OrderItemCreationContext.CreateItemOptionSpec;
-import com.example.order_service.order.domain.service.dto.command.OrderItemCreationContext.PriceSpec;
-import com.example.order_service.order.domain.service.dto.command.OrderItemCreationContext.ProductSpec;
+import com.example.order_service.common.util.ProductOptionSnapshotConverter;
+import com.example.order_service.order.domain.vo.OrderCouponSnapshot;
+import com.example.order_service.order.domain.vo.ProductOptionSnapshot;
+import com.example.order_service.order.domain.vo.ProductPriceSnapshot;
+import com.example.order_service.order.domain.vo.ProductSnapshot;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,65 +25,47 @@ public class OrderItem extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id")
     private Order order;
-
     @Embedded
-    private OrderedProduct orderedProduct;
+    private ProductSnapshot product;
     @Embedded
-    private OrderItemPrice orderItemPrice;
-    private Long lineTotal;
+    @AttributeOverrides({
+            @AttributeOverride(name = "discountAmount", column = @Column(name = "product_discount_amount"))
+    })
+    private ProductPriceSnapshot productPrice;
+    @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "discountAmount", column = @Column(name = "coupon_discount_amount"))
+    })
+    private OrderCouponSnapshot itemCoupon;
     private Integer quantity;
-
-    @OneToMany(mappedBy = "orderItem", cascade = CascadeType.PERSIST, orphanRemoval = true)
-    private List<OrderItemOption> orderItemOptions = new ArrayList<>();
+    @Convert(converter = ProductOptionSnapshotConverter.class)
+    private List<ProductOptionSnapshot> options;
 
     @Builder(access = AccessLevel.PRIVATE)
-    private OrderItem(OrderedProduct orderedProduct, OrderItemPrice orderItemPrice, Long lineTotal, Integer quantity){
-        this.orderedProduct = orderedProduct;
-        this.orderItemPrice = orderItemPrice;
-        this.lineTotal = lineTotal;
+    private OrderItem(ProductSnapshot product, ProductPriceSnapshot productPrice, OrderCouponSnapshot itemCoupon,
+                      Integer quantity, List<ProductOptionSnapshot> options) {
+        this.product = product;
+        this.productPrice = productPrice;
+        this.itemCoupon = itemCoupon;
         this.quantity = quantity;
+        this.options = options;
     }
 
-    protected void setOrder(Order order){
-        this.order = order;
-    }
-
-    public void addOrderItemOption(OrderItemOption orderItemOption){
-        this.orderItemOptions.add(orderItemOption);
-        orderItemOption.setOrderItem(this);
-    }
-
-    public static OrderItem create (OrderItemCreationContext itemContext) {
-        OrderItem orderItem = of(itemContext);
-        if (itemContext.getItemOptionSpecs() != null && !itemContext.getItemOptionSpecs().isEmpty()) {
-            for (CreateItemOptionSpec option : itemContext.getItemOptionSpecs()) {
-                orderItem.addOrderItemOption(OrderItemOption.create(option));
-            }
-        }
-        return orderItem;
-    }
-
-    public static OrderItem of(OrderItemCreationContext itemContext){
+    public static OrderItem create(ProductSnapshot product, ProductPriceSnapshot productPrice, OrderCouponSnapshot itemCoupon, Integer quantity, List<ProductOptionSnapshot> options) {
         return OrderItem.builder()
-                .orderedProduct(mapToOrderedProduct(itemContext.getProductSpec()))
-                .orderItemPrice(mapToOrderItemPrice(itemContext.getPriceSpec()))
-                .lineTotal(itemContext.getLineTotal())
-                .quantity(itemContext.getQuantity())
+                .product(product)
+                .productPrice(productPrice)
+                .itemCoupon(itemCoupon)
+                .quantity(quantity)
+                .options(options)
                 .build();
     }
 
-    private static OrderedProduct mapToOrderedProduct(ProductSpec productSpec) {
-        return OrderedProduct.of(productSpec.getProductId(), productSpec.getProductVariantId(),
-                productSpec.getSku(), productSpec.getProductName(), productSpec.getThumbnail());
-    }
-
-    private static OrderItemPrice mapToOrderItemPrice(PriceSpec priceSpec) {
-        return OrderItemPrice.of(priceSpec.getOriginPrice(), priceSpec.getDiscountRate(),
-                priceSpec.getDiscountAmount(), priceSpec.getDiscountedPrice());
+    protected void setOrder(Order order) {
+        this.order = order;
     }
 }
 

@@ -29,15 +29,15 @@ public class QOrderItem extends EntityPathBase<OrderItem> {
 
     public final NumberPath<Long> id = createNumber("id", Long.class);
 
-    public final NumberPath<Long> lineTotal = createNumber("lineTotal", Long.class);
+    public final com.example.order_service.order.domain.vo.QOrderCouponSnapshot itemCoupon;
+
+    public final ListPath<com.example.order_service.order.domain.vo.ProductOptionSnapshot, com.example.order_service.order.domain.vo.QProductOptionSnapshot> options = this.<com.example.order_service.order.domain.vo.ProductOptionSnapshot, com.example.order_service.order.domain.vo.QProductOptionSnapshot>createList("options", com.example.order_service.order.domain.vo.ProductOptionSnapshot.class, com.example.order_service.order.domain.vo.QProductOptionSnapshot.class, PathInits.DIRECT2);
 
     public final QOrder order;
 
-    public final com.example.order_service.order.domain.model.vo.QOrderedProduct orderedProduct;
+    public final com.example.order_service.order.domain.vo.QProductSnapshot product;
 
-    public final ListPath<OrderItemOption, QOrderItemOption> orderItemOptions = this.<OrderItemOption, QOrderItemOption>createList("orderItemOptions", OrderItemOption.class, QOrderItemOption.class, PathInits.DIRECT2);
-
-    public final com.example.order_service.order.domain.model.vo.QOrderItemPrice orderItemPrice;
+    public final com.example.order_service.order.domain.vo.QProductPriceSnapshot productPrice;
 
     public final NumberPath<Integer> quantity = createNumber("quantity", Integer.class);
 
@@ -62,9 +62,10 @@ public class QOrderItem extends EntityPathBase<OrderItem> {
 
     public QOrderItem(Class<? extends OrderItem> type, PathMetadata metadata, PathInits inits) {
         super(type, metadata, inits);
+        this.itemCoupon = inits.isInitialized("itemCoupon") ? new com.example.order_service.order.domain.vo.QOrderCouponSnapshot(forProperty("itemCoupon")) : null;
         this.order = inits.isInitialized("order") ? new QOrder(forProperty("order"), inits.get("order")) : null;
-        this.orderedProduct = inits.isInitialized("orderedProduct") ? new com.example.order_service.order.domain.model.vo.QOrderedProduct(forProperty("orderedProduct")) : null;
-        this.orderItemPrice = inits.isInitialized("orderItemPrice") ? new com.example.order_service.order.domain.model.vo.QOrderItemPrice(forProperty("orderItemPrice")) : null;
+        this.product = inits.isInitialized("product") ? new com.example.order_service.order.domain.vo.QProductSnapshot(forProperty("product")) : null;
+        this.productPrice = inits.isInitialized("productPrice") ? new com.example.order_service.order.domain.vo.QProductPriceSnapshot(forProperty("productPrice")) : null;
     }
 
 }

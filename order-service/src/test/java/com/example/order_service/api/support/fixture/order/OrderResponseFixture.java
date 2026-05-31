@@ -1,7 +1,5 @@
 package com.example.order_service.api.support.fixture.order;
 
-import com.example.order_service.common.dto.PageDto;
-import com.example.order_service.order.application.dto.result.CreateOrderResponse;
 import com.example.order_service.order.application.dto.result.OrderDetailResponse;
 import com.example.order_service.order.application.dto.result.OrderDetailResponse.CouponResponse;
 import com.example.order_service.order.application.dto.result.OrderDetailResponse.OrderPriceResponse;
@@ -18,30 +16,12 @@ import java.util.List;
 
 public class OrderResponseFixture {
     public static final String ORDER_NO = "ORD-20260101-adsvc";
-    public static CreateOrderResponse.CreateOrderResponseBuilder anCreateOrderResponse() {
-        return CreateOrderResponse.builder()
-                .orderNo(ORDER_NO)
-                .status(OrderStatus.PENDING.name())
-                .orderName("상품")
-                .finalPaymentAmount(7000L)
-                .createdAt(LocalDateTime.now().toString());
-    }
-
     public static OrderListResponse.OrderListResponseBuilder anOrderListResponse() {
         return OrderListResponse.builder()
                 .orderNo(ORDER_NO)
                 .orderStatus("COMPLETED")
                 .orderItems(List.of(anOrderItemResponse().build()))
                 .createdAt(LocalDateTime.now().toString());
-    }
-
-    public static PageDto.PageDtoBuilder<OrderListResponse> anOrderListPageResponse() {
-        return PageDto.<OrderListResponse>builder()
-                .content(List.of(anOrderListResponse().build()))
-                .currentPage(1)
-                .totalPage(1)
-                .pageSize(10)
-                .totalElement(1);
     }
 
     public static OrderDetailResponse.OrderDetailResponseBuilder anOrderDetailResponse() {

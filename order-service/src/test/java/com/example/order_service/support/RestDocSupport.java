@@ -122,10 +122,21 @@ public abstract class RestDocSupport {
         return createDocument(identifier, summary, description, AUTH_HEADER, requestFields, responseFields, pathParameters, new ParameterDescriptor[0]);
     }
 
-    protected RestDocumentationResultHandler createSecuredDocument(
+    protected RestDocumentationResultHandler createSecuredDocumentQuery(
             String identifier, String summary, String description,
-            ParameterDescriptor... pathParameters) {
-        return createDocument(identifier, summary, description, AUTH_HEADER, new FieldDescriptor[0], new FieldDescriptor[0], pathParameters, new ParameterDescriptor[0]);
+            FieldDescriptor[] responseFields,
+            ParameterDescriptor... queryParameters) {
+
+        return createDocument(
+                identifier,
+                summary,
+                description,
+                AUTH_HEADER,
+                new FieldDescriptor[0],
+                responseFields,
+                new ParameterDescriptor[0],
+                queryParameters
+        );
     }
 
     protected RestDocumentationResultHandler createSecuredDocument(
@@ -139,14 +150,6 @@ public abstract class RestDocSupport {
             String identifier, String summary, String description,
             ParameterDescriptor... queryParameters) {
         return createDocument(identifier, summary, description, AUTH_HEADER, new FieldDescriptor[0], new FieldDescriptor[0], new ParameterDescriptor[0], queryParameters);
-    }
-
-    protected RestDocumentationResultHandler createPublicDocument(
-            String identifier, String summary, String description,
-            FieldDescriptor[] responseFields,
-            ParameterDescriptor... pathParameters) {
-
-        return createDocument(identifier, summary, description, new HeaderDescriptor[0], new FieldDescriptor[0], responseFields, pathParameters, new ParameterDescriptor[0]);
     }
 
     protected HttpHeaders createAuthHeader(String role){

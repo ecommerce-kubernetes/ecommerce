@@ -1,15 +1,18 @@
 package com.example.order_service.common.error;
 
+import com.example.order_service.api.support.DummyController;
 import com.example.order_service.api.support.security.annotation.WithCustomMockUser;
 import com.example.order_service.support.ControllerTestSupport;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@WebMvcTest(controllers = DummyController.class)
 public class ControllerAdviceTest extends ControllerTestSupport {
     
     @Test

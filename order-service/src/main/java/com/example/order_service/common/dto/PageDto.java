@@ -19,7 +19,7 @@ public class PageDto<T> {
     public static <E, T> PageDto<T> of(Page<E> page, Function<E, T> mapper) {
         return PageDto.<T>builder()
                 .content(page.map(mapper).getContent())
-                .currentPage(page.getNumber() + 1)
+                .currentPage(page.getNumber())
                 .totalPage(page.getTotalPages())
                 .pageSize(page.getSize())
                 .totalElement(page.getTotalElements())

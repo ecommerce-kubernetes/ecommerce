@@ -24,18 +24,16 @@ public class QOrder extends EntityPathBase<Order> {
 
     public final com.example.order_service.common.entity.QBaseEntity _super = new com.example.order_service.common.entity.QBaseEntity(this);
 
-    public final QCoupon coupon;
+    public final com.example.order_service.order.domain.vo.QOrderCouponSnapshot cartCoupon;
 
     //inherited
     public final DateTimePath<java.time.LocalDateTime> createdAt = _super.createdAt;
-
-    public final StringPath deliveryAddress = createString("deliveryAddress");
 
     public final EnumPath<OrderFailureCode> failureCode = createEnum("failureCode", OrderFailureCode.class);
 
     public final NumberPath<Long> id = createNumber("id", Long.class);
 
-    public final com.example.order_service.order.domain.model.vo.QOrderer orderer;
+    public final com.example.order_service.order.domain.vo.QOrderer orderer;
 
     public final ListPath<OrderItem, QOrderItem> orderItems = this.<OrderItem, QOrderItem>createList("orderItems", OrderItem.class, QOrderItem.class, PathInits.DIRECT2);
 
@@ -43,14 +41,22 @@ public class QOrder extends EntityPathBase<Order> {
 
     public final StringPath orderNo = createString("orderNo");
 
-    public final com.example.order_service.order.domain.model.vo.QOrderPriceDetail orderPriceDetail;
-
-    public final ListPath<Payment, QPayment> payments = this.<Payment, QPayment>createList("payments", Payment.class, QPayment.class, PathInits.DIRECT2);
+    public final com.example.order_service.order.domain.vo.QShippingAddress shippingAddress;
 
     public final EnumPath<OrderStatus> status = createEnum("status", OrderStatus.class);
 
+    public final SimplePath<com.example.order_service.common.domain.vo.Money> totalCouponDiscountAmount = createSimple("totalCouponDiscountAmount", com.example.order_service.common.domain.vo.Money.class);
+
+    public final SimplePath<com.example.order_service.common.domain.vo.Money> totalOriginalPrice = createSimple("totalOriginalPrice", com.example.order_service.common.domain.vo.Money.class);
+
+    public final SimplePath<com.example.order_service.common.domain.vo.Money> totalPaymentAmount = createSimple("totalPaymentAmount", com.example.order_service.common.domain.vo.Money.class);
+
+    public final SimplePath<com.example.order_service.common.domain.vo.Money> totalProductDiscountAmount = createSimple("totalProductDiscountAmount", com.example.order_service.common.domain.vo.Money.class);
+
     //inherited
     public final DateTimePath<java.time.LocalDateTime> updatedAt = _super.updatedAt;
+
+    public final SimplePath<com.example.order_service.common.domain.vo.Money> usedPoints = createSimple("usedPoints", com.example.order_service.common.domain.vo.Money.class);
 
     public QOrder(String variable) {
         this(Order.class, forVariable(variable), INITS);
@@ -70,9 +76,9 @@ public class QOrder extends EntityPathBase<Order> {
 
     public QOrder(Class<? extends Order> type, PathMetadata metadata, PathInits inits) {
         super(type, metadata, inits);
-        this.coupon = inits.isInitialized("coupon") ? new QCoupon(forProperty("coupon"), inits.get("coupon")) : null;
-        this.orderer = inits.isInitialized("orderer") ? new com.example.order_service.order.domain.model.vo.QOrderer(forProperty("orderer")) : null;
-        this.orderPriceDetail = inits.isInitialized("orderPriceDetail") ? new com.example.order_service.order.domain.model.vo.QOrderPriceDetail(forProperty("orderPriceDetail")) : null;
+        this.cartCoupon = inits.isInitialized("cartCoupon") ? new com.example.order_service.order.domain.vo.QOrderCouponSnapshot(forProperty("cartCoupon")) : null;
+        this.orderer = inits.isInitialized("orderer") ? new com.example.order_service.order.domain.vo.QOrderer(forProperty("orderer")) : null;
+        this.shippingAddress = inits.isInitialized("shippingAddress") ? new com.example.order_service.order.domain.vo.QShippingAddress(forProperty("shippingAddress")) : null;
     }
 
 }

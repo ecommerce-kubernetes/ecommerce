@@ -6,18 +6,10 @@ import com.example.order_service.common.mapper.MoneyMapper;
 import com.example.order_service.infrastructure.dto.response.ProductClientResponse;
 import org.mapstruct.InjectionStrategy;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring", uses = {MoneyMapper.class}, injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 public interface CartProductMapper {
 
-    @Mapping(source = "stockQuantity", target = "stock")
-    @Mapping(source = "unitPrice.originalPrice", target = "originalPrice")
-    @Mapping(source = "unitPrice.discountRate", target = "discountRate")
-    @Mapping(source = "unitPrice.discountAmount", target = "discountAmount")
-    @Mapping(source = "unitPrice.discountedPrice", target = "discountedPrice")
-    @Mapping(source = "itemOptions", target = "options")
-    CartProductResult.Info toResult(ProductClientResponse.Product product);
 
     CartProductResult.Option toOption(ProductClientResponse.ProductOption option);
 

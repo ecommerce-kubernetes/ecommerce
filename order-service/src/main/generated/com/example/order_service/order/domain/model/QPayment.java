@@ -22,7 +22,7 @@ public class QPayment extends EntityPathBase<Payment> {
 
     public static final QPayment payment = new QPayment("payment");
 
-    public final NumberPath<Long> amount = createNumber("amount", Long.class);
+    public final SimplePath<com.example.order_service.common.domain.vo.Money> amount = createSimple("amount", com.example.order_service.common.domain.vo.Money.class);
 
     public final DateTimePath<java.time.LocalDateTime> approvedAt = createDateTime("approvedAt", java.time.LocalDateTime.class);
 

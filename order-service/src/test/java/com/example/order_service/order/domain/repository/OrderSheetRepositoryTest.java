@@ -1,0 +1,115 @@
+package com.example.order_service.order.domain.repository;
+
+import com.example.order_service.common.domain.vo.Money;
+import com.example.order_service.order.domain.vo.*;
+import com.example.order_service.order.domain.model.OrderSheet;
+import com.example.order_service.order.domain.model.OrderSheetItem;
+import com.example.order_service.support.annotation.MockKafka;
+import com.example.order_service.support.annotation.WithRedis;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+@SpringBootTest
+@WithRedis @MockKafka
+class OrderSheetRepositoryTest {
+
+    @Autowired
+    private OrderSheetRepository repository;
+
+    @Test
+    @DisplayName("주문서 데이터를 저장한다")
+    void save() {
+        //given
+        OrderSheet orderSheet = createOrderSheet();
+        //when
+        OrderSheet savedOrderSheet = repository.save(orderSheet, Duration.ofMinutes(30));
+        //then
+        assertThat(orderSheet)
+                .usingRecursiveComparison()
+                .isEqualTo(savedOrderSheet);
+    }
+
+    @Test
+    @DisplayName("주문서 데이터를 조회한다")
+    void findById() {
+        //given
+        OrderSheet saved = repository.save(createOrderSheet(), Duration.ofMinutes(30));
+        //when
+        Optional<OrderSheet> find = repository.findById(saved.getSheetId());
+        //then
+        assertThat(find).isPresent();
+        assertThat(find).get()
+                .usingRecursiveComparison()
+                .isEqualTo(saved);
+    }
+
+    @Test
+    @DisplayName("주문서 데이터가 없으면 빈 optional 이 반환된다")
+    void findById_not_found() {
+        //given
+        //when
+        Optional<OrderSheet> find = repository.findById("sheetId");
+        //then
+        assertThat(find).isEmpty();
+    }
+
+    private OrderSheet createOrderSheet() {
+        Orderer orderer = createOrderer();
+        ShippingAddress shippingAddress = createShippingAddress();
+        return OrderSheet.create(
+                "test",
+                orderer,
+                shippingAddress,
+                List.of(createOrderSheetItem()),
+                createOrderCouponSnapshot(),
+                LocalDateTime.now(),
+                30
+        );
+    }
+
+    private Orderer createOrderer() {
+        return Orderer.of(1L, "주문자", "010-1234-5678");
+    }
+
+    private ShippingAddress createShippingAddress() {
+        return ShippingAddress.of("수령인", "010-1234-5678", "12345", "서울시 테헤란로 123", "123동 1234호");
+    }
+
+    private OrderSheetItem createOrderSheetItem() {
+        return OrderSheetItem.create(
+                "sheetItemId",
+                createProductSnapshot(),
+                createPriceSnapshot(),
+                createOrderCouponSnapshot(),
+                1,
+                List.of(createProductOptionSnapshot())
+        );
+    }
+
+    private OrderCouponSnapshot createOrderCouponSnapshot() {
+        return OrderCouponSnapshot.of(1L, "1000원 할인 쿠폰", Money.wons(1000L));
+    }
+
+    private ProductSnapshot createProductSnapshot() {
+        return ProductSnapshot.of(
+                1L, 1L, "PROD_XL", "테스트 상품", "/product/product/thumbnail"
+        );
+    }
+
+    private ProductPriceSnapshot createPriceSnapshot(){
+        return ProductPriceSnapshot.of(Money.wons(10000L), 10, Money.wons(1000L), Money.wons(9000L));
+    }
+
+    private ProductOptionSnapshot createProductOptionSnapshot() {
+        return ProductOptionSnapshot.of("사이즈", "XL");
+    }
+}

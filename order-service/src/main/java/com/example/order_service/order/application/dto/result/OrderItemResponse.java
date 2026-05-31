@@ -1,8 +1,5 @@
 package com.example.order_service.order.application.dto.result;
 
-import com.example.order_service.order.domain.service.dto.result.OrderItemDto;
-import com.example.order_service.order.domain.service.dto.result.OrderItemDto.OrderItemOptionDto;
-import com.example.order_service.order.domain.service.dto.result.OrderItemDto.OrderItemPriceInfo;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -20,20 +17,6 @@ public class OrderItemResponse {
     private Long lineTotal;
     private List<OrderItemOptionResponse> options;
 
-    public static OrderItemResponse from(OrderItemDto orderItemDto) {
-        List<OrderItemOptionResponse> options = orderItemDto.getItemOptions().stream().map(OrderItemOptionResponse::from).toList();
-        return OrderItemResponse.builder()
-                .productId(orderItemDto.getOrderedProduct().getProductId())
-                .productVariantId(orderItemDto.getOrderedProduct().getProductVariantId())
-                .productName(orderItemDto.getOrderedProduct().getProductName())
-                .thumbnailUrl(orderItemDto.getOrderedProduct().getThumbnail())
-                .quantity(orderItemDto.getQuantity())
-                .unitPrice(OrderItemPriceResponse.from(orderItemDto.getOrderItemPrice()))
-                .lineTotal(orderItemDto.getLineTotal())
-                .options(options)
-                .build();
-    }
-
     @Getter
     @Builder
     public static class OrderItemPriceResponse {
@@ -42,14 +25,6 @@ public class OrderItemResponse {
         private long discountAmount;
         private long discountedPrice;
 
-        private static OrderItemPriceResponse from(OrderItemPriceInfo orderItemPriceInfo) {
-            return OrderItemPriceResponse.builder()
-                    .originalPrice(orderItemPriceInfo.getOriginPrice())
-                    .discountRate(orderItemPriceInfo.getDiscountRate())
-                    .discountAmount(orderItemPriceInfo.getDiscountAmount())
-                    .discountedPrice(orderItemPriceInfo.getDiscountedPrice())
-                    .build();
-        }
     }
     @Getter
     @Builder
@@ -57,11 +32,5 @@ public class OrderItemResponse {
         private String optionTypeName;
         private String optionValueName;
 
-        private static OrderItemOptionResponse from(OrderItemOptionDto optionDto) {
-            return OrderItemOptionResponse.builder()
-                    .optionTypeName(optionDto.getOptionTypeName())
-                    .optionValueName(optionDto.getOptionValueName())
-                    .build();
-        }
     }
 }

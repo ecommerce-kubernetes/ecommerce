@@ -7,16 +7,20 @@ import java.util.List;
 public class ProductClientResponse {
 
     @Builder
+    public record ProductList(
+            List<Product> products
+    ) {
+    }
+
+    @Builder
     public record Product(
             Long productId,
             Long productVariantId,
-            String status,
             String sku,
             String productName,
             String thumbnail,
             UnitPrice unitPrice,
-            Integer stockQuantity,
-            List<ProductOption> itemOptions
+            List<ProductOption> options
     ) {
     }
 
