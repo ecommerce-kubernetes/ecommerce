@@ -10,8 +10,7 @@ import com.example.order_service.order.application.service.order.OrderAppService
 import com.example.order_service.order.application.service.order.OrderQueryService;
 import com.example.order_service.order.application.service.order.dto.command.OrderCommand;
 import com.example.order_service.order.application.dto.result.OrderDetailResponse;
-import com.example.order_service.order.application.dto.result.OrderListResponse;
-import com.example.order_service.order.application.dto.result.OrderResult;
+import com.example.order_service.order.application.service.order.dto.result.OrderResult;
 import com.example.order_service.order.application.service.order.dto.command.OrderSearchCommand;
 import lombok.RequiredArgsConstructor;
 import org.apache.http.HttpStatus;

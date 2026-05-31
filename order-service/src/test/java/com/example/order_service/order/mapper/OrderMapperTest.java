@@ -1,12 +1,10 @@
 package com.example.order_service.order.mapper;
 
 import com.example.order_service.common.domain.vo.Money;
-import com.example.order_service.order.application.dto.result.OrderResult;
 import com.example.order_service.order.application.mapper.OrderMapper;
 import com.example.order_service.order.domain.model.OrderSheet;
 import com.example.order_service.order.domain.model.OrderSheetItem;
 import com.example.order_service.order.application.service.order.dto.command.OrderContext;
-import com.example.order_service.order.domain.model.OrderStatus;
 import com.example.order_service.order.domain.vo.*;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

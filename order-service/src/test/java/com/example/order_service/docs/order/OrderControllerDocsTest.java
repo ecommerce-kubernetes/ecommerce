@@ -10,15 +10,20 @@ import com.example.order_service.order.api.dto.request.OrderRequest;
 import com.example.order_service.order.api.dto.response.OrderResponse;
 import com.example.order_service.order.application.service.order.OrderAppService;
 import com.example.order_service.order.application.service.order.OrderQueryService;
-import com.example.order_service.order.application.service.order.OrderQueryServiceTest;
 import com.example.order_service.order.application.service.order.dto.command.OrderCommand;
 import com.example.order_service.order.application.dto.result.OrderDetailResponse;
 import com.example.order_service.order.application.dto.result.OrderListResponse;
-import com.example.order_service.order.application.dto.result.OrderResult;
+import com.example.order_service.order.application.service.order.dto.command.OrderSearchCommand;
+import com.example.order_service.order.application.service.order.dto.result.OrderResult;
 import com.example.order_service.order.domain.model.OrderStatus;
+import com.example.order_service.order.domain.vo.*;
 import com.example.order_service.support.RestDocSupport;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.restdocs.headers.HeaderDescriptor;
@@ -91,10 +96,10 @@ public class OrderControllerDocsTest extends RestDocSupport {
                 .andExpect(content().json(objectMapper.writeValueAsString(response)))
                 .andExpect(status().isAccepted())
                 .andDo(createSecuredDocument("01-order-01-create",
-                                "주문 생성",
-                                "주문을 생성한다",
-                                OrderDescriptor.getOrderCreateRequest(),
-                                OrderDescriptor.getOrderCreateResponse())
+                        "주문 생성",
+                        "주문을 생성한다",
+                        OrderDescriptor.getOrderCreateRequest(),
+                        OrderDescriptor.getOrderCreateResponse())
                 );
     }
 
@@ -201,61 +206,10 @@ public class OrderControllerDocsTest extends RestDocSupport {
     @DisplayName("주문 정보를 조회한다")
     void getOrder() throws Exception {
         //given
-        OrderDetailResponse response = anOrderDetailResponse()
-                .payment(anPaymentResponse().build()).build();
-        HttpHeaders roleUser = createUserHeader("ROLE_USER");
-//        given(orderAppService.getOrder(anyLong(), anyString()))
-//                .willReturn(response);
-
-        HeaderDescriptor[] requestHeaders = new HeaderDescriptor[]{
-                headerWithName("Authorization").description("JWT Access Token")
-        };
-
-        ParameterDescriptor[] pathParameters = new ParameterDescriptor[]{
-                parameterWithName("orderNo").description("조회할 주문 번호")
-        };
-        FieldDescriptor[] responseFields = new FieldDescriptor[]{
-                fieldWithPath("orderNo").description("주문 번호"),
-                fieldWithPath("status").description("주문 상태"),
-                fieldWithPath("orderName").description("주문 이름"),
-                fieldWithPath("deliveryAddress").description("배송지"),
-                fieldWithPath("createdAt").description("주문 시각"),
-
-                fieldWithPath("orderer.userId").description("주문자 아이디"),
-                fieldWithPath("orderer.userName").description("주문자 이름"),
-                fieldWithPath("orderer.phoneNumber").description("주문자 전화번호"),
-
-                fieldWithPath("orderPrice.totalOriginPrice").description("할인 전 주문 금액"),
-                fieldWithPath("orderPrice.totalProductDiscount").description("상품 총 할인 금액"),
-                fieldWithPath("orderPrice.couponDiscount").description("쿠폰 할인 금액"),
-                fieldWithPath("orderPrice.pointDiscount").description("포인트 할인 금액"),
-                fieldWithPath("orderPrice.totalPaymentAmount").description("최종 주문 금액"),
-
-                fieldWithPath("payment.paymentId").description("결제 ID").optional(),
-                fieldWithPath("payment.paymentKey").description("결제 키").optional(),
-                fieldWithPath("payment.amount").description("결제 금액").optional(),
-                fieldWithPath("payment.status").description("결제 상태").optional(),
-                fieldWithPath("payment.method").description("결제 방법").optional(),
-                fieldWithPath("payment.approvedAt").description("결제 시각").optional(),
-
-                fieldWithPath("coupon.couponId").description("사용 쿠폰 ID").optional(),
-                fieldWithPath("coupon.couponName").description("쿠폰 이름").optional(),
-                fieldWithPath("coupon.couponDiscount").description("쿠폰 할인 금액").optional(),
-
-                fieldWithPath("orderItems[].productId").description("주문 상품 ID(상품(ProductDeprecated) 식별자)"),
-                fieldWithPath("orderItems[].productVariantId").description("주문 상품 변형 ID"),
-                fieldWithPath("orderItems[].productName").description("주문 상품 이름"),
-                fieldWithPath("orderItems[].thumbnailUrl").description("주문 상품 썸네일"),
-                fieldWithPath("orderItems[].quantity").description("주문 수량"),
-                fieldWithPath("orderItems[].unitPrice.originalPrice").description("주문 상품 원본 가격"),
-                fieldWithPath("orderItems[].unitPrice.discountRate").description("상품 할인율"),
-                fieldWithPath("orderItems[].unitPrice.discountAmount").description("상품 할인 금액"),
-                fieldWithPath("orderItems[].unitPrice.discountedPrice").description("할인된 가격"),
-                fieldWithPath("orderItems[].lineTotal").description("주문 항목 총액"),
-                fieldWithPath("orderItems[].options[].optionTypeName").description("주문 상품 옵션 타입 (예: 사이즈)"),
-                fieldWithPath("orderItems[].options[].optionValueName").description("주문 상품 옵션 값 (예: XL)")
-        };
-
+        OrderResult.Detail result = createDetailResult();
+        HttpHeaders roleUser = createAuthHeader("ROLE_USER");
+        given(orderQueryService.getOrder(anyString(), anyLong()))
+                .willReturn(result);
         //when
         //then
         mockMvc.perform(get("/orders/{orderNo}", ORDER_NO)
@@ -263,28 +217,11 @@ public class OrderControllerDocsTest extends RestDocSupport {
                         .headers(roleUser))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andDo(
-                        document("01-order-03-get",
-                                preprocessRequest(prettyPrint(),
-                                        modifyHeaders()
-                                                .remove("X-User-Id")
-                                                .remove("X-User-Role")
-                                                .add("Authorization", "Bearer {ACCESS_TOKEN}")),
-                                preprocessResponse(prettyPrint()),
-                                resource(
-                                        ResourceSnippetParameters.builder()
-                                                .tag(TAG)
-                                                .summary("주문 조회")
-                                                .description("주문 상세 정보를 조회한다")
-                                                .requestHeaders(requestHeaders)
-                                                .pathParameters(pathParameters)
-                                                .responseFields(responseFields)
-                                                .build()
-                                ),
-                                requestHeaders(requestHeaders),
-                                pathParameters(pathParameters),
-                                responseFields(responseFields)
-                        )
+                .andDo(createSecuredDocument("01-order-03-get",
+                        "주문 조회",
+                        "주문을 조회한다",
+                        OrderDescriptor.getOrderDetailResponse(),
+                        parameterWithName("orderNo").description("조회할 주문 번호"))
                 );
 
     }
@@ -293,52 +230,10 @@ public class OrderControllerDocsTest extends RestDocSupport {
     @DisplayName("주문 목록 조회 API")
     void getOrders() throws Exception {
         //given
-        HttpHeaders roleUser = createUserHeader("ROLE_USER");
-        OrderListResponse orderListResponse = anOrderListResponse().build();
-        PageDto<OrderListResponse> response = PageDto.<OrderListResponse>builder().content(List.of(orderListResponse))
-                .currentPage(1)
-                .totalPage(10)
-                .pageSize(10)
-                .totalElement(100)
-                .build();
-//        given(orderAppService.getOrders(anyLong(), any(OrderSearchCondition.class)))
-//                .willReturn(response);
-
-        HeaderDescriptor[] requestHeaders = new HeaderDescriptor[]{
-                headerWithName("Authorization").description("JWT Access Token")
-        };
-
-        ParameterDescriptor[] queryParameters = new ParameterDescriptor[]{
-                parameterWithName("page").description("페이지 번호 (기본값: 1)").optional(),
-                parameterWithName("size").description("페이지 크기 (기본값: 20, 최대: 100)").optional(),
-                parameterWithName("sort").description("정렬 기준 (latest: 최신순, price_high: 높은가격순 등)").optional(),
-                parameterWithName("year").description("조회 연도 필터").optional(),
-                parameterWithName("productName").description("상품명 검색 키워드").optional()
-        };
-
-        FieldDescriptor[] responseFields = new FieldDescriptor[]{
-                fieldWithPath("content[].orderNo").description("주문 번호"),
-                fieldWithPath("content[].orderStatus").description("주문 상태"),
-                fieldWithPath("content[].createdAt").description("주문 시각"),
-
-                fieldWithPath("content[].orderItems[].productId").description("주문 상품 ID(상품(ProductDeprecated) 식별자)"),
-                fieldWithPath("content[].orderItems[].productVariantId").description("주문 상품 변형 ID"),
-                fieldWithPath("content[].orderItems[].productName").description("주문 상품 이름"),
-                fieldWithPath("content[].orderItems[].thumbnailUrl").description("주문 상품 썸네일"),
-                fieldWithPath("content[].orderItems[].quantity").description("주문 수량"),
-                fieldWithPath("content[].orderItems[].unitPrice.originalPrice").description("주문 상품 원본 가격"),
-                fieldWithPath("content[].orderItems[].unitPrice.discountRate").description("상품 할인율"),
-                fieldWithPath("content[].orderItems[].unitPrice.discountAmount").description("상품 할인 금액"),
-                fieldWithPath("content[].orderItems[].unitPrice.discountedPrice").description("할인된 가격"),
-                fieldWithPath("content[].orderItems[].lineTotal").description("주문 항목 총액"),
-                fieldWithPath("content[].orderItems[].options[].optionTypeName").description("주문 상품 옵션 타입 (예: 사이즈)"),
-                fieldWithPath("content[].orderItems[].options[].optionValueName").description("주문 상품 옵션 값 (예: XL)"),
-
-                fieldWithPath("currentPage").description("현재 페이지"),
-                fieldWithPath("totalPage").description("총 페이지"),
-                fieldWithPath("pageSize").description("페이지 크기"),
-                fieldWithPath("totalElement").description("총 데이터 양")
-        };
+        Page<OrderResult.Summary> summaryResult = createSummaryResult();
+        given(orderQueryService.getOrders(anyLong(), any(OrderSearchCommand.class), any(Pageable.class)))
+                .willReturn(summaryResult);
+        HttpHeaders roleUser = createAuthHeader("ROLE_USER");
         //when
         //then
         mockMvc.perform(get("/orders")
@@ -352,27 +247,15 @@ public class OrderControllerDocsTest extends RestDocSupport {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andDo(
-                        document("01-order-04-get-list",
-                                preprocessRequest(prettyPrint(),
-                                        modifyHeaders()
-                                                .remove("X-User-Id")
-                                                .remove("X-User-Role")
-                                                .add("Authorization", "Bearer {ACCESS_TOKEN}")),
-                                preprocessResponse(prettyPrint()),
-                                resource(
-                                        ResourceSnippetParameters.builder()
-                                                .tag(TAG)
-                                                .summary("주문 목록 조회")
-                                                .description("주문 목록을 조회한다")
-                                                .requestHeaders(requestHeaders)
-                                                .queryParameters(queryParameters)
-                                                .responseFields(responseFields)
-                                                .build()
-                                ),
-                                requestHeaders(requestHeaders),
-                                queryParameters(queryParameters),
-                                responseFields(responseFields)
-                        )
+                        createSecuredDocumentQuery("01-order-04-get-list",
+                                "주문 목록 조회",
+                                "주문 목록을 조회한다",
+                                OrderDescriptor.getOrderSummaryResponse(),
+                                parameterWithName("page").description("페이지 번호"),
+                                parameterWithName("size").description("페이지 크기"),
+                                parameterWithName("sort").description("정렬 기준"),
+                                parameterWithName("year").description("조회 연도 필터"),
+                                parameterWithName("productName").description("상품명"))
                 );
     }
 
@@ -383,4 +266,59 @@ public class OrderControllerDocsTest extends RestDocSupport {
         return headers;
     }
 
+    private OrderResult.Detail createDetailResult() {
+        Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
+        ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678",
+                "12345", "서울시 테헤란로 123", "123동 1234호");
+        OrderCouponSnapshot cartCoupon = OrderCouponSnapshot.of(1L, "장바구니 1000원 할인", Money.wons(1000L));
+        return OrderResult.Detail.builder()
+                .orderNo("orderNo")
+                .status(OrderStatus.COMPLETED)
+                .orderName("청바지")
+                .orderer(orderer)
+                .shippingAddress(shippingAddress)
+                .cartCoupon(cartCoupon)
+                .items(createItems())
+                .totalOriginalPrice(Money.wons(10000L))
+                .totalProductDiscountAmount(Money.wons(1000L))
+                .totalCouponDiscountAmount(Money.wons(2000L))
+                .usedPoints(Money.wons(1000L))
+                .totalPaymentAmount(Money.wons(6000L))
+                .createdAt(LocalDateTime.now())
+                .build();
+    }
+
+    private Page<OrderResult.Summary> createSummaryResult() {
+        OrderResult.Summary summary = OrderResult.Summary.builder()
+                .orderNo("orderNo")
+                .status(OrderStatus.COMPLETED)
+                .orderName("청바지")
+                .orderItems(createItems())
+                .createdAt(LocalDateTime.now())
+                .build();
+        Pageable pageable = PageRequest.of(0, 20);
+
+        return new PageImpl<>(
+                List.of(summary),
+                pageable,
+                1
+        );
+    }
+
+    private List<OrderResult.OrderedItem> createItems() {
+        ProductSnapshot product = ProductSnapshot.of(1L, 1L, "PROD1-XL-BLUE", "청바지", "/product/product/jean_1.jpg");
+        ProductPriceSnapshot price = ProductPriceSnapshot.of(Money.wons(10000L), 10, Money.wons(1000L), Money.wons(9000L));
+        OrderCouponSnapshot itemCoupon = OrderCouponSnapshot.of(1L, "하의 1000원 할인", Money.wons(1000L));
+        ProductOptionSnapshot xl = ProductOptionSnapshot.of("사이즈", "XL");
+        ProductOptionSnapshot blue = ProductOptionSnapshot.of("색상", "BLUE");
+        return List.of(
+                OrderResult.OrderedItem.builder()
+                        .product(product)
+                        .productPrice(price)
+                        .itemCoupon(itemCoupon)
+                        .quantity(1)
+                        .options(List.of(xl, blue))
+                        .build()
+        );
+    }
 }

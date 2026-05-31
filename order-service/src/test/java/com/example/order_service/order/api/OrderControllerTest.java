@@ -10,7 +10,7 @@ import com.example.order_service.order.application.service.order.OrderAppService
 import com.example.order_service.order.application.service.order.OrderQueryService;
 import com.example.order_service.order.application.service.order.dto.command.OrderCommand;
 import com.example.order_service.order.application.dto.result.OrderDetailResponse;
-import com.example.order_service.order.application.dto.result.OrderResult;
+import com.example.order_service.order.application.service.order.dto.result.OrderResult;
 import com.example.order_service.order.application.service.order.dto.command.OrderSearchCommand;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -242,106 +242,117 @@ class OrderControllerTest {
                 .andExpect(content().json(objectMapper.writeValueAsString(response)));
     }
 
-    @Test
-    @DisplayName("주문 정보를 조회할때는 유저 권한이여야 한다")
-    @WithCustomMockUser(userRole = UserRole.ROLE_ADMIN)
-    void getOrder_Admin_role() throws Exception {
-        //given
-        //when
-        //then
-        mockMvc.perform(get("/orders/{orderId}", 1L)
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andDo(print())
-                .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.code").value("FORBIDDEN"))
-                .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다"))
-                .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.path").value("/orders/1"));
+    @Nested
+    @DisplayName("주문 조회")
+    class GetOrder {
+
+        @Test
+        @DisplayName("주문 정보를 조회할때는 유저 권한이여야 한다")
+        @WithCustomMockUser(userRole = UserRole.ROLE_ADMIN)
+        void getOrder_Admin_role() throws Exception {
+            //given
+            //when
+            //then
+            mockMvc.perform(get("/orders/{orderNo}", "orderNo")
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andDo(print())
+                    .andExpect(status().isForbidden())
+                    .andExpect(jsonPath("$.code").value("FORBIDDEN"))
+                    .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다"))
+                    .andExpect(jsonPath("$.timestamp").exists())
+                    .andExpect(jsonPath("$.path").value("/orders/orderNo"));
+        }
+
+        @Test
+        @DisplayName("로그인 하지 않은 사용자는 주문 정보를 조회할 수 없다")
+        void getOrder_unAuthorized() throws Exception {
+            //given
+            //when
+            //then
+            mockMvc.perform(get("/orders/{orderNo}", "orderNo")
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andDo(print())
+                    .andExpect(status().isUnauthorized())
+                    .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
+                    .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다"))
+                    .andExpect(jsonPath("$.timestamp").exists())
+                    .andExpect(jsonPath("$.path").value("/orders/orderNo"));
+        }
     }
 
-    @Test
-    @DisplayName("로그인 하지 않은 사용자는 주문 정보를 조회할 수 없다")
-    void getOrder_unAuthorized() throws Exception {
-        //given
-        //when
-        //then
-        mockMvc.perform(get("/orders/{orderId}", 1L)
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andDo(print())
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
-                .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다"))
-                .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.path").value("/orders/1"));
-    }
-
-    @Test
+    @Nested
     @DisplayName("주문 목록 조회")
-    @WithCustomMockUser
-    void getOrders() throws Exception {
-        //given
-        List<OrderResult.Summary> summaries = fixtureMonkey.giveMe(OrderResult.Summary.class, 2);
-        Pageable pageable = PageRequest.of(0, 10);
-        PageImpl<OrderResult.Summary> result = new PageImpl<>(summaries, pageable, 2);
-        MultiValueMap<String, String> paramMap = new LinkedMultiValueMap<>();
-        paramMap.add("page", "1");
-        paramMap.add("size", "10");
-        paramMap.add("sort", "latest");
-        PageDto<OrderResponse.Summary> response = PageDto.of(result, OrderResponse.Summary::from);
-        given(orderQueryService.getOrders(anyLong(), any(OrderSearchCommand.class), any(Pageable.class)))
-                .willReturn(result);
+    class GetOrders {
 
-        //when
-        //then
-        mockMvc.perform(get("/orders")
-                .contentType(MediaType.APPLICATION_JSON)
-                .params(paramMap))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(response)));
-    }
+        @Test
+        @DisplayName("주문 목록 조회")
+        @WithCustomMockUser
+        void getOrders() throws Exception {
+            //given
+            List<OrderResult.Summary> summaries = fixtureMonkey.giveMe(OrderResult.Summary.class, 2);
+            Pageable pageable = PageRequest.of(0, 10);
+            PageImpl<OrderResult.Summary> result = new PageImpl<>(summaries, pageable, 2);
+            MultiValueMap<String, String> paramMap = new LinkedMultiValueMap<>();
+            paramMap.add("page", "1");
+            paramMap.add("size", "10");
+            paramMap.add("sort", "latest");
+            PageDto<OrderResponse.Summary> response = PageDto.of(result, OrderResponse.Summary::from);
+            given(orderQueryService.getOrders(anyLong(), any(OrderSearchCommand.class), any(Pageable.class)))
+                    .willReturn(result);
 
-    @Test
-    @DisplayName("주문 목록 조회시 권한은 유저여야 한다")
-    @WithCustomMockUser(userRole = UserRole.ROLE_ADMIN)
-    void getOrders_Admin_role() throws Exception {
-        //given
-        MultiValueMap<String, String> paramMap = new LinkedMultiValueMap<>();
-        paramMap.add("page", "1");
-        paramMap.add("size", "10");
-        paramMap.add("sort", "latest");
-        //when
-        //then
-        mockMvc.perform(get("/orders")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .params(paramMap))
-                .andDo(print())
-                .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.code").value("FORBIDDEN"))
-                .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다"))
-                .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.path").value("/orders"));
-    }
+            //when
+            //then
+            mockMvc.perform(get("/orders")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .params(paramMap))
+                    .andDo(print())
+                    .andExpect(status().isOk())
+                    .andExpect(content().json(objectMapper.writeValueAsString(response)));
+        }
 
-    @Test
-    @DisplayName("로그인 하지 않은 사용자는 주문 목록을 조회할 수 없다")
-    void getOrders_unAuthorized() throws Exception {
-        //given
-        MultiValueMap<String, String> paramMap = new LinkedMultiValueMap<>();
-        paramMap.add("page", "1");
-        paramMap.add("size", "10");
-        paramMap.add("sort", "latest");
-        //when
-        //then
-        mockMvc.perform(get("/orders")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .params(paramMap))
-                .andDo(print())
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
-                .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다"))
-                .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.path").value("/orders"));
+        @Test
+        @DisplayName("주문 목록 조회시 권한은 유저여야 한다")
+        @WithCustomMockUser(userRole = UserRole.ROLE_ADMIN)
+        void getOrders_Admin_role() throws Exception {
+            //given
+            MultiValueMap<String, String> paramMap = new LinkedMultiValueMap<>();
+            paramMap.add("page", "1");
+            paramMap.add("size", "10");
+            paramMap.add("sort", "latest");
+            //when
+            //then
+            mockMvc.perform(get("/orders")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .params(paramMap))
+                    .andDo(print())
+                    .andExpect(status().isForbidden())
+                    .andExpect(jsonPath("$.code").value("FORBIDDEN"))
+                    .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다"))
+                    .andExpect(jsonPath("$.timestamp").exists())
+                    .andExpect(jsonPath("$.path").value("/orders"));
+        }
+
+        @Test
+        @DisplayName("로그인 하지 않은 사용자는 주문 목록을 조회할 수 없다")
+        void getOrders_unAuthorized() throws Exception {
+            //given
+            MultiValueMap<String, String> paramMap = new LinkedMultiValueMap<>();
+            paramMap.add("page", "1");
+            paramMap.add("size", "10");
+            paramMap.add("sort", "latest");
+            //when
+            //then
+            mockMvc.perform(get("/orders")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .params(paramMap))
+                    .andDo(print())
+                    .andExpect(status().isUnauthorized())
+                    .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
+                    .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다"))
+                    .andExpect(jsonPath("$.timestamp").exists())
+                    .andExpect(jsonPath("$.path").value("/orders"));
+        }
+
     }
 
     private static Stream<Arguments> provideInvalidConfirmRequest(){

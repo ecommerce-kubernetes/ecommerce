@@ -3,7 +3,7 @@ package com.example.order_service.order.application.service.order;
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.business.BusinessException;
 import com.example.order_service.order.application.dto.result.OrderDetailResponse;
-import com.example.order_service.order.application.dto.result.OrderResult;
+import com.example.order_service.order.application.service.order.dto.result.OrderResult;
 import com.example.order_service.order.application.external.OrderCouponGateway;
 import com.example.order_service.order.application.external.OrderProductGateway;
 import com.example.order_service.order.application.external.OrderUserGateway;

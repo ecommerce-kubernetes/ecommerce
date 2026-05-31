@@ -28,8 +28,8 @@ public class OrderSheetResponse {
             String sheetId,
             @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
             LocalDateTime expiresAt,
-            Orderer orderer,
-            ShippingAddress shippingAddress,
+            OrdererResponse orderer,
+            ShippingAddressResponse shippingAddress,
             List<OrderItem> items,
             Coupon cartCoupon,
             Point point,
@@ -39,8 +39,8 @@ public class OrderSheetResponse {
             return Detail.builder()
                     .sheetId(result.sheetId())
                     .expiresAt(result.expiresAt())
-                    .orderer(Orderer.from(result.orderer()))
-                    .shippingAddress(ShippingAddress.from(result.shippingAddress()))
+                    .orderer(OrdererResponse.from(result.orderer()))
+                    .shippingAddress(ShippingAddressResponse.from(result.shippingAddress()))
                     .items(OrderItem.from(result.items()))
                     .cartCoupon(Coupon.from(result.cartCoupon()))
                     .point(Point.from(result.point()))
@@ -50,13 +50,13 @@ public class OrderSheetResponse {
     }
 
     @Builder
-    public record Orderer(
+    public record OrdererResponse(
             Long userId,
             String userName,
             String phoneNumber
     ) {
-        public static Orderer from(OrderSheetResult.OrdererInfo result) {
-            return Orderer.builder()
+        public static OrdererResponse from(OrderSheetResult.OrdererInfo result) {
+            return OrdererResponse.builder()
                     .userId(result.userId())
                     .userName(result.userName())
                     .phoneNumber(result.phoneNumber())
@@ -65,15 +65,15 @@ public class OrderSheetResponse {
     }
 
     @Builder
-    public record ShippingAddress(
+    public record ShippingAddressResponse(
             String receiverName,
             String receiverPhone,
             String zipCode,
             String address,
             String addressDetail
     ) {
-        public static ShippingAddress from(OrderSheetResult.ShippingInfo result) {
-            return ShippingAddress.builder()
+        public static ShippingAddressResponse from(OrderSheetResult.ShippingInfo result) {
+            return ShippingAddressResponse.builder()
                     .receiverName(result.receiverName())
                     .receiverPhone(result.receiverPhone())
                     .zipCode(result.zipCode())

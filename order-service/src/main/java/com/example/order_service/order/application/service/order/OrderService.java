@@ -1,6 +1,6 @@
 package com.example.order_service.order.application.service.order;
 
-import com.example.order_service.order.application.dto.result.OrderResult;
+import com.example.order_service.order.application.service.order.dto.result.OrderResult;
 import com.example.order_service.order.application.event.OrderCreatedEvent;
 import com.example.order_service.order.application.service.order.dto.command.OrderContext;
 import com.example.order_service.order.domain.model.Order;
@@ -24,7 +24,6 @@ import java.util.UUID;
 @Transactional
 public class OrderService {
     private final OrderRepository orderRepository;
-    private final OrderSearchRepository orderSearchRepository;
     private final ApplicationEventPublisher eventPublisher;
 
     /**

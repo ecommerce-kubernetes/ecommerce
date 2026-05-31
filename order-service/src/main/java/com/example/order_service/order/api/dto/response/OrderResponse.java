@@ -1,6 +1,6 @@
 package com.example.order_service.order.api.dto.response;
 
-import com.example.order_service.order.application.dto.result.OrderResult;
+import com.example.order_service.order.application.service.order.dto.result.OrderResult;
 import com.example.order_service.order.domain.model.OrderStatus;
 import com.example.order_service.order.domain.vo.*;
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -45,6 +45,7 @@ public class OrderResponse {
             Long totalCouponDiscountAmount,
             Long usedPoints,
             Long totalPaymentAmount,
+            @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
             LocalDateTime createdAt
     ) {
         public static Detail from(OrderResult.Detail detail) {
@@ -72,6 +73,7 @@ public class OrderResponse {
             OrderStatus status,
             String orderName,
             List<Item> orderItems,
+            @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
             LocalDateTime createdAt
     ) {
         public static Summary from(OrderResult.Summary summary) {
