@@ -2,7 +2,6 @@ package com.example.order_service.order.application.service.order.dto.command;
 
 import lombok.Builder;
 import lombok.Getter;
-import org.springframework.data.domain.Pageable;
 
 @Getter
 @Builder

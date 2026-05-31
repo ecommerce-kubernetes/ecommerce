@@ -7,6 +7,7 @@ import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -18,6 +19,7 @@ import java.util.List;
 import static com.example.order_service.order.domain.model.QOrder.order;
 import static com.example.order_service.order.domain.model.QOrderItem.orderItem;
 
+@Slf4j
 @Repository
 public class OrderQueryDslRepository implements OrderSearchRepository {
 
@@ -63,11 +65,9 @@ public class OrderQueryDslRepository implements OrderSearchRepository {
         if (yearString == null || yearString.isEmpty()){
             return null;
         }
-
         int year = Integer.parseInt(yearString);
         LocalDateTime start = LocalDateTime.of(year, 1, 1, 0, 0);
         LocalDateTime end = LocalDateTime.of(year + 1, 1, 1, 0, 0);
-
         return order.createdAt.goe(start)
                 .and(order.createdAt.lt(end));
     }
@@ -76,6 +76,6 @@ public class OrderQueryDslRepository implements OrderSearchRepository {
         if (productName == null || productName.isEmpty()) {
             return null;
         }
-        return null;
+        return orderItem.product.productName.contains(productName);
     }
 }

@@ -49,12 +49,13 @@ public class OrderController {
     }
 
     @GetMapping
-    public ResponseEntity<PageDto<OrderListResponse>> getOrders(@AuthenticationPrincipal UserPrincipal userPrincipal,
+    public ResponseEntity<PageDto<OrderResponse.Summary>> getOrders(@AuthenticationPrincipal UserPrincipal userPrincipal,
                                                                 @ModelAttribute OrderSearchCondition condition,
                                                                 @PageableDefault(size = 20, page = 0) Pageable pageable) {
         OrderSearchCommand command = condition.toCommand();
         Page<OrderResult.Summary> orders = orderAppService.getOrders(userPrincipal.getUserId(), command, pageable);
-        return null;
+        PageDto<OrderResponse.Summary> summaryPageDto = PageDto.of(orders, OrderResponse.Summary::from);
+        return ResponseEntity.ok(summaryPageDto);
     }
 
     @PostMapping("/confirm")

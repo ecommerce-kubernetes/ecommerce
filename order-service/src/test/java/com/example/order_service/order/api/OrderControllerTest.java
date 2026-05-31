@@ -11,6 +11,7 @@ import com.example.order_service.order.application.service.order.dto.command.Ord
 import com.example.order_service.order.application.dto.result.OrderDetailResponse;
 import com.example.order_service.order.application.dto.result.OrderListResponse;
 import com.example.order_service.order.application.dto.result.OrderResult;
+import com.example.order_service.order.application.service.order.dto.command.OrderSearchCommand;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
@@ -23,6 +24,9 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -228,9 +232,10 @@ class OrderControllerTest {
     @WithCustomMockUser
     void getOrder() throws Exception {
         //given
-        OrderDetailResponse response = anOrderDetailResponse().build();
-//        given(orderAppService.getOrder(anyLong(), anyString()))
-//                .willReturn(response);
+        OrderResult.Detail result = fixtureMonkey.giveMeOne(OrderResult.Detail.class);
+        given(orderAppService.getOrder(anyLong(), anyString()))
+                .willReturn(result);
+        OrderResponse.Detail response = OrderResponse.Detail.from(result);
         //when
         //then
         mockMvc.perform(get("/orders/{orderId}", 1L)
@@ -278,21 +283,16 @@ class OrderControllerTest {
     @WithCustomMockUser
     void getOrders() throws Exception {
         //given
-        OrderListResponse orderListResponse = anOrderListResponse().build();
-        PageDto<OrderListResponse> response = PageDto.<OrderListResponse>builder().content(List.of(orderListResponse))
-                .currentPage(1)
-                .totalPage(10)
-                .pageSize(10)
-                .totalElement(100)
-                .build();
+        List<OrderResult.Summary> summaries = fixtureMonkey.giveMe(OrderResult.Summary.class, 2);
+        Pageable pageable = PageRequest.of(0, 10);
+        PageImpl<OrderResult.Summary> result = new PageImpl<>(summaries, pageable, 2);
         MultiValueMap<String, String> paramMap = new LinkedMultiValueMap<>();
-
         paramMap.add("page", "1");
         paramMap.add("size", "10");
         paramMap.add("sort", "latest");
-
-//        given(orderAppService.getOrders(anyLong(), any(OrderSearchCondition.class)))
-//                .willReturn(response);
+        PageDto<OrderResponse.Summary> response = PageDto.of(result, OrderResponse.Summary::from);
+        given(orderAppService.getOrders(anyLong(), any(OrderSearchCommand.class), any(Pageable.class)))
+                .willReturn(result);
 
         //when
         //then
@@ -302,14 +302,6 @@ class OrderControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().json(objectMapper.writeValueAsString(response)));
-//
-//        ArgumentCaptor<OrderSearchCondition> captor = ArgumentCaptor.forClass(OrderSearchCondition.class);
-//        assertThat(captor.getValue())
-//                .extracting(OrderSearchCondition::getPage, OrderSearchCondition::getSize, OrderSearchCondition::getSort, OrderSearchCondition::getYear,
-//                        OrderSearchCondition::getProductName)
-//                .containsExactly(1, 10, "latest", null, null);//        verify(orderAppService, times(1)).getOrders(anyLong(), captor.capture());
-
-//
     }
 
     @Test
@@ -355,116 +347,12 @@ class OrderControllerTest {
                 .andExpect(jsonPath("$.path").value("/orders"));
     }
 
-    @Test
-    @DisplayName("주문 목록 조회시 page, size, sort 파라미터 값이 없으면 기본값으로 요청된다")
-    @WithCustomMockUser
-    void getOrders_default() throws Exception {
-        //given
-        OrderListResponse orderListResponse = anOrderListResponse().build();
-        PageDto<OrderListResponse> response = PageDto.<OrderListResponse>builder().content(List.of(orderListResponse))
-                .currentPage(1)
-                .totalPage(10)
-                .pageSize(10)
-                .totalElement(100)
-                .build();
-//
-//        given(orderAppService.getOrders(anyLong(), any(OrderSearchCondition.class)))
-//                .willReturn(response);
-        //when
-        //then
-        mockMvc.perform(get("/orders")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andDo(print())
-                .andExpect(status().isOk());
-
-        ArgumentCaptor<OrderSearchCondition> captor = ArgumentCaptor.forClass(OrderSearchCondition.class);
-//        verify(orderAppService, times(1)).getOrders(anyLong(), captor.capture());
-
-//        assertThat(captor.getValue())
-//                .extracting(OrderSearchCondition::getPage, OrderSearchCondition::getSize, OrderSearchCondition::getSort, OrderSearchCondition::getYear,
-//                        OrderSearchCondition::getProductName)
-//                .containsExactly(1, 20, "latest", null, null);
-    }
-    
-    @Test
-    @DisplayName("주문 목록 조회시 page 쿼리 파라미터가 0 이하면 page는 1로 요청된다")
-    @WithCustomMockUser
-    void getOrder_page_less_than_0() throws Exception {
-        //given
-        OrderListResponse orderListResponse = anOrderListResponse().build();
-        PageDto<OrderListResponse> response = PageDto.<OrderListResponse>builder().content(List.of(orderListResponse))
-                .currentPage(1)
-                .totalPage(10)
-                .pageSize(10)
-                .totalElement(100)
-                .build();
-
-//        given(orderAppService.getOrders(anyLong(), any(OrderSearchCondition.class)))
-//                .willReturn(response);
-        //when
-        //then
-        mockMvc.perform(get("/orders")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .param("page", "-1"))
-                .andDo(print())
-                .andExpect(status().isOk());
-
-        ArgumentCaptor<OrderSearchCondition> captor = ArgumentCaptor.forClass(OrderSearchCondition.class);
-//        verify(orderAppService, times(1)).getOrders(anyLong(), captor.capture());
-//
-//        assertThat(captor.getValue())
-//                .extracting(OrderSearchCondition::getPage, OrderSearchCondition::getSize, OrderSearchCondition::getSort, OrderSearchCondition::getYear,
-//                        OrderSearchCondition::getProductName)
-//                .containsExactly(1, 20, "latest", null, null);
-    }
-    
-    @Test
-    @DisplayName("주문 목록 조회시 size가 100 보다 크면 size는 100으로 요청된다")
-    @WithCustomMockUser
-    void getOrder_size_greater_than_100() throws Exception {
-        //given
-        OrderListResponse orderListResponse = anOrderListResponse().build();
-        PageDto<OrderListResponse> response = PageDto.<OrderListResponse>builder().content(List.of(orderListResponse))
-                .currentPage(1)
-                .totalPage(10)
-                .pageSize(10)
-                .totalElement(100)
-                .build();
-//
-//        given(orderAppService.getOrders(anyLong(), any(OrderSearchCondition.class)))
-//                .willReturn(response);
-        //when
-        //then
-        mockMvc.perform(get("/orders")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .param("size", "101"))
-                .andDo(print())
-                .andExpect(status().isOk());
-
-        ArgumentCaptor<OrderSearchCondition> captor = ArgumentCaptor.forClass(OrderSearchCondition.class);
-//        verify(orderAppService, times(1)).getOrders(anyLong(), captor.capture());
-
-//        assertThat(captor.getValue())
-//                .extracting(OrderSearchCondition::getPage, OrderSearchCondition::getSize, OrderSearchCondition::getSort, OrderSearchCondition::getYear,
-//                        OrderSearchCondition::getProductName)
-//                .containsExactly(1, 100, "latest", null, null);
-    }
-
     private static Stream<Arguments> provideInvalidConfirmRequest(){
         return Stream.of(
                 Arguments.of("주문 ID null", confirmBaseRequest().orderNo(null).build(), "주문 번호는 필수 입니다"),
                 Arguments.of("결제 키 null", confirmBaseRequest().paymentKey(null).build(), "결제 키는 필수 입니다"),
                 Arguments.of("결제 가격 null", confirmBaseRequest().amount(null).build(), "결제 가격은 필수 입니다")
         );
-    }
-
-    private static CreateOrderRequest.CreateOrderRequestBuilder createBaseRequest() {
-        return CreateOrderRequest.builder()
-                .items(List.of(CreateOrderItemRequest.builder().productVariantId(1L).quantity(1).build()))
-                .deliveryAddress("서울시 테헤란로 123")
-                .couponId(1L)
-                .pointToUse(300L)
-                .expectedPrice(2400L);
     }
 
     private static OrderConfirmRequest.OrderConfirmRequestBuilder confirmBaseRequest() {

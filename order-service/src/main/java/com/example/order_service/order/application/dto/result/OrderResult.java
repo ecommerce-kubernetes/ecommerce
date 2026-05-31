@@ -24,7 +24,7 @@ public class OrderResult {
     @Builder
     public record Detail(
             String orderNo,
-            String status,
+            OrderStatus status,
             String orderName,
             Orderer orderer,
             ShippingAddress shippingAddress,
@@ -34,17 +34,45 @@ public class OrderResult {
             Money totalProductDiscountAmount,
             Money totalCouponDiscountAmount,
             Money usedPoints,
-            Money totalPaymentAmount
+            Money totalPaymentAmount,
+            LocalDateTime createdAt
     ) {
         public static Detail from(OrderDto.Detail dto) {
-            return null;
+            return Detail.builder()
+                    .orderNo(dto.orderNo())
+                    .status(dto.status())
+                    .orderName(dto.orderName())
+                    .orderer(dto.orderer())
+                    .shippingAddress(dto.shippingAddress())
+                    .cartCoupon(dto.cartCoupon())
+                    .items(OrderedItem.from(dto.orderItems()))
+                    .totalOriginalPrice(dto.totalOriginalPrice())
+                    .totalProductDiscountAmount(dto.totalProductDiscountAmount())
+                    .totalCouponDiscountAmount(dto.totalCouponDiscountAmount())
+                    .usedPoints(dto.usedPoints())
+                    .totalPaymentAmount(dto.totalPaymentAmount())
+                    .createdAt(dto.createdAt())
+                    .build();
         }
     }
 
     @Builder
-    public record Summary() {
+    public record Summary(
+            String orderNo,
+            OrderStatus status,
+            String orderName,
+            List<OrderedItem> orderItems,
+            LocalDateTime createdAt
+    ) {
         public static Summary from(OrderDto.Summary dto) {
-            return null;
+            return Summary.builder()
+                    .orderNo(dto.orderNo())
+                    .status(dto.status())
+                    .orderName(dto.orderName())
+                    .orderItems(OrderedItem.from(dto.orderItems()))
+                    .createdAt(dto.createdAt())
+                    .build();
+
         }
     }
 
@@ -56,5 +84,18 @@ public class OrderResult {
             Integer quantity,
             List<ProductOptionSnapshot> options
     ) {
+        public static OrderedItem from(OrderDto.Item item) {
+            return OrderedItem.builder()
+                    .product(item.product())
+                    .productPrice(item.productPrice())
+                    .itemCoupon(item.itemCoupon())
+                    .quantity(item.quantity())
+                    .options(item.options())
+                    .build();
+        }
+
+        public static List<OrderedItem> from(List<OrderDto.Item> items) {
+            return items.stream().map(OrderedItem::from).toList();
+        }
     }
 }
