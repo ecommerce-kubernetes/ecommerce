@@ -6,7 +6,7 @@ import com.example.order_service.order.api.dto.request.OrderConfirmRequest;
 import com.example.order_service.order.api.dto.request.OrderRequest;
 import com.example.order_service.order.api.dto.request.OrderSearchCondition;
 import com.example.order_service.order.api.dto.response.OrderResponse;
-import com.example.order_service.order.application.service.order.OrderAppService;
+import com.example.order_service.order.application.service.order.OrderFacade;
 import com.example.order_service.order.application.service.order.OrderQueryService;
 import com.example.order_service.order.application.service.order.dto.command.OrderCommand;
 import com.example.order_service.order.application.dto.result.OrderDetailResponse;
@@ -29,14 +29,14 @@ import org.springframework.web.bind.annotation.*;
 @PreAuthorize("hasRole('USER')")
 public class OrderController {
 
-    private final OrderAppService orderAppService;
+    private final OrderFacade orderFacade;
     private final OrderQueryService orderQueryService;
 
     @PostMapping
     public ResponseEntity<OrderResponse.Create> createOrder(@AuthenticationPrincipal UserPrincipal userPrincipal,
                                                             @RequestBody @Validated OrderRequest.Create request) {
         OrderCommand.Create command = request.toCommand(userPrincipal.getUserId());
-        OrderResult.Create result = orderAppService.initialOrder(command);
+        OrderResult.Create result = orderFacade.initialOrder(command);
         OrderResponse.Create response = OrderResponse.Create.from(result);
         return ResponseEntity.status(HttpStatus.SC_ACCEPTED).body(response);
     }
@@ -62,7 +62,7 @@ public class OrderController {
     @PostMapping("/confirm")
     public ResponseEntity<OrderDetailResponse> confirm(@AuthenticationPrincipal UserPrincipal userPrincipal,
                                                        @RequestBody @Validated OrderConfirmRequest request) {
-        OrderDetailResponse response = orderAppService.confirmOrderPayment(request.getOrderNo(),
+        OrderDetailResponse response = orderFacade.confirmOrderPayment(request.getOrderNo(),
                 userPrincipal.getUserId(), request.getPaymentKey(), request.getAmount());
         return ResponseEntity.ok(response);
     }

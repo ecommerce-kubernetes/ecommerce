@@ -7,9 +7,9 @@ import com.example.order_service.cart.application.CartAppService;
 import com.example.order_service.notification.controller.NotificationController;
 import com.example.order_service.notification.service.NotificationService;
 import com.example.order_service.order.api.OrderController;
-import com.example.order_service.order.application.service.order.OrderAppService;
+import com.example.order_service.order.application.service.order.OrderFacade;
 import com.example.order_service.order.api.OrderSheetController;
-import com.example.order_service.order.application.service.ordersheet.OrderSheetAppService;
+import com.example.order_service.order.application.service.ordersheet.OrderSheetService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.navercorp.fixturemonkey.FixtureMonkey;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,9 +27,9 @@ public abstract class ControllerTestSupport {
     @MockitoBean
     protected CartAppService cartAppService;
     @MockitoBean
-    protected OrderAppService orderAppService;
+    protected OrderFacade orderFacade;
     @MockitoBean
     protected NotificationService notificationService;
     @MockitoBean
-    protected OrderSheetAppService orderSheetAppService;
+    protected OrderSheetService orderSheetService;
 }

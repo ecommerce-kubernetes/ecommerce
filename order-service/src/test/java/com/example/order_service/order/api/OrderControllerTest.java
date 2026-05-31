@@ -6,7 +6,7 @@ import com.example.order_service.common.dto.PageDto;
 import com.example.order_service.common.security.model.UserRole;
 import com.example.order_service.order.api.dto.request.*;
 import com.example.order_service.order.api.dto.response.OrderResponse;
-import com.example.order_service.order.application.service.order.OrderAppService;
+import com.example.order_service.order.application.service.order.OrderFacade;
 import com.example.order_service.order.application.service.order.OrderQueryService;
 import com.example.order_service.order.application.service.order.dto.command.OrderCommand;
 import com.example.order_service.order.application.dto.result.OrderDetailResponse;
@@ -54,7 +54,7 @@ class OrderControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
     @MockitoBean
-    private OrderAppService orderAppService;
+    private OrderFacade orderFacade;
     @MockitoBean
     private OrderQueryService orderQueryService;
     private static final String ORDER_NO = "ORD-20260101-AB12FVC";
@@ -70,7 +70,7 @@ class OrderControllerTest {
             //given
             OrderRequest.Create request = fixtureMonkey.giveMeOne(OrderRequest.Create.class);
             OrderResult.Create result = fixtureMonkey.giveMeOne(OrderResult.Create.class);
-            given(orderAppService.initialOrder(any(OrderCommand.Create.class)))
+            given(orderFacade.initialOrder(any(OrderCommand.Create.class)))
                     .willReturn(result);
             OrderResponse.Create response = OrderResponse.Create.from(result);
             //when
@@ -159,7 +159,7 @@ class OrderControllerTest {
         OrderConfirmRequest request = confirmBaseRequest().build();
         OrderDetailResponse response = anOrderDetailResponse().build();
 
-        given(orderAppService.confirmOrderPayment(anyString(), anyLong(), anyString(), anyLong()))
+        given(orderFacade.confirmOrderPayment(anyString(), anyLong(), anyString(), anyLong()))
                 .willReturn(response);
         //when
         //then

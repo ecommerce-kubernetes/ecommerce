@@ -5,7 +5,7 @@ import com.example.order_service.api.support.security.config.TestSecurityConfig;
 import com.example.order_service.common.security.model.UserRole;
 import com.example.order_service.order.api.dto.request.OrderSheetRequest;
 import com.example.order_service.order.api.dto.response.OrderSheetResponse;
-import com.example.order_service.order.application.service.ordersheet.OrderSheetAppService;
+import com.example.order_service.order.application.service.ordersheet.OrderSheetService;
 import com.example.order_service.order.application.service.ordersheet.dto.command.OrderSheetCommand;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -41,7 +41,7 @@ class OrderSheetControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
     @MockitoBean
-    private OrderSheetAppService orderSheetAppService;
+    private OrderSheetService orderSheetService;
 
     @Nested
     @DisplayName("주문서 저장")
@@ -63,7 +63,7 @@ class OrderSheetControllerTest {
                     .set("itemCoupons", List.of(itemCoupon))
                     .sample();
             OrderSheetResult.Create result = nonNull(fixtureMonkey.giveMeOne(OrderSheetResult.Create.class));
-            given(orderSheetAppService.createOrderSheet(any(OrderSheetCommand.Create.class)))
+            given(orderSheetService.createOrderSheet(any(OrderSheetCommand.Create.class)))
                     .willReturn(result);
             OrderSheetResponse.Create response = OrderSheetResponse.Create.from(result);
             //when
@@ -220,7 +220,7 @@ class OrderSheetControllerTest {
             Long userId = 1L;
             OrderSheetResult.Detail result = fixtureMonkey.giveMeOne(OrderSheetResult.Detail.class);
             OrderSheetResponse.Detail response = OrderSheetResponse.Detail.from(result);
-            given(orderSheetAppService.getOrderSheet(orderSheetId, userId))
+            given(orderSheetService.getOrderSheet(orderSheetId, userId))
                     .willReturn(result);
             //when
             //then
@@ -275,7 +275,7 @@ class OrderSheetControllerTest {
             //given
             OrderSheetRequest.UpdateShippingAddress request = fixtureMonkey.giveMeOne(OrderSheetRequest.UpdateShippingAddress.class);
             OrderSheetResult.Detail result = fixtureMonkey.giveMeOne(OrderSheetResult.Detail.class);
-            given(orderSheetAppService.updateShippingAddress(any(OrderSheetCommand.UpdateShippingAddress.class)))
+            given(orderSheetService.updateShippingAddress(any(OrderSheetCommand.UpdateShippingAddress.class)))
                     .willReturn(result);
             OrderSheetResponse.Detail response = OrderSheetResponse.Detail.from(result);
             //when
@@ -399,7 +399,7 @@ class OrderSheetControllerTest {
             OrderSheetRequest.UpdateUsedPoints request = fixtureMonkey.giveMeOne(OrderSheetRequest.UpdateUsedPoints.class);
             OrderSheetResult.Detail result = fixtureMonkey.giveMeOne(OrderSheetResult.Detail.class);
             OrderSheetResponse.Detail response = OrderSheetResponse.Detail.from(result);
-            given(orderSheetAppService.updatePoints(any())).willReturn(result);
+            given(orderSheetService.updatePoints(any())).willReturn(result);
             //when
             //then
             mockMvc.perform(patch("/order-sheets/{sheetId}/points", sheetId)
@@ -497,7 +497,7 @@ class OrderSheetControllerTest {
             OrderSheetRequest.UpdateCoupon request = fixtureMonkey.giveMeOne(OrderSheetRequest.UpdateCoupon.class);
             OrderSheetResult.Detail result = fixtureMonkey.giveMeOne(OrderSheetResult.Detail.class);
             OrderSheetResponse.Detail response = OrderSheetResponse.Detail.from(result);
-            given(orderSheetAppService.updateItemCoupon(any())).willReturn(result);
+            given(orderSheetService.updateItemCoupon(any())).willReturn(result);
             //when
             //then
             mockMvc.perform(patch("/order-sheets/{sheetId}/sheet-items/{sheetItemId}/coupon", sheetId, sheetItemId)
@@ -560,7 +560,7 @@ class OrderSheetControllerTest {
             OrderSheetRequest.UpdateCoupon request = fixtureMonkey.giveMeOne(OrderSheetRequest.UpdateCoupon.class);
             OrderSheetResult.Detail result = fixtureMonkey.giveMeOne(OrderSheetResult.Detail.class);
             OrderSheetResponse.Detail response = OrderSheetResponse.Detail.from(result);
-            given(orderSheetAppService.updateCartCoupon(any())).willReturn(result);
+            given(orderSheetService.updateCartCoupon(any())).willReturn(result);
             //when
             //then
             mockMvc.perform(patch("/order-sheets/" + sheetId + "/cart-coupon")

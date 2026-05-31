@@ -1,14 +1,13 @@
 package com.example.order_service.order.application.saga.listener;
 
 import com.example.order_service.order.application.saga.dto.SagaCommand;
-import com.example.order_service.order.application.service.order.OrderAppService;
+import com.example.order_service.order.application.service.order.OrderFacade;
 import com.example.order_service.order.application.event.OrderCreatedEvent;
 import com.example.order_service.order.application.event.PaymentCompletedEvent;
 import com.example.order_service.order.application.event.PaymentFailedEvent;
 import com.example.order_service.order.domain.model.OrderFailureCode;
 import com.example.order_service.order.application.saga.domain.model.SagaStep;
 import com.example.order_service.order.application.saga.orchestrator.SagaManager;
-import com.example.order_service.order.application.saga.orchestrator.dto.command.SagaStartCommand;
 import com.example.order_service.order.application.saga.orchestrator.dto.command.SagaStepResultCommand;
 import com.example.order_service.order.application.saga.orchestrator.event.SagaAbortEvent;
 import com.example.order_service.order.application.saga.orchestrator.event.SagaResourceSecuredEvent;
@@ -26,7 +25,7 @@ import java.util.List;
 @Slf4j
 public class OrderEventListener {
 
-    private final OrderAppService orderAppService;
+    private final OrderFacade orderFacade;
     private final SagaManager sagaManager;
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
@@ -63,13 +62,13 @@ public class OrderEventListener {
 
     @EventListener
     public void handleSagaCompleted(SagaResourceSecuredEvent event){
-        orderAppService.preparePayment(event.getOrderNo());
+        orderFacade.preparePayment(event.getOrderNo());
     }
 
     @EventListener
     public void handleSagaAborted(SagaAbortEvent event) {
         OrderFailureCode orderFailureCode = mapToOrderFailureCode(event.getFailureCode());
-        orderAppService.processOrderFailure(event.getOrderNo(), orderFailureCode);
+        orderFacade.processOrderFailure(event.getOrderNo(), orderFailureCode);
     }
 
     private OrderFailureCode mapToOrderFailureCode(String errorCode) {

@@ -41,7 +41,7 @@ import java.util.Map;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class OrderSheetAppService {
+public class OrderSheetService {
     private final OrderSheetProperties orderSheetProperties;
     private final OrderProductGateway orderProductGateway;
     private final OrderCouponGateway orderCouponGateway;

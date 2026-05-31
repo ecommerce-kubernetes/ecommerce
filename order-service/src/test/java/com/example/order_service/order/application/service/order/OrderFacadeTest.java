@@ -38,10 +38,10 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 
 @ExtendWith(MockitoExtension.class)
-public class OrderAppServiceTest {
+public class OrderFacadeTest {
 
     @InjectMocks
-    private OrderAppService orderAppService;
+    private OrderFacade orderFacade;
     @Mock
     private OrderSheetRepository orderSheetRepository;
     @Mock
@@ -84,7 +84,7 @@ public class OrderAppServiceTest {
             given(orderMapper.toContext(any())).willReturn(orderContext);
             given(orderService.saveOrder(any())).willReturn(expectedResult);
             //when
-            OrderResult.Create result = orderAppService.initialOrder(command);
+            OrderResult.Create result = orderFacade.initialOrder(command);
             //then
             assertThat(result).isEqualTo(expectedResult);
             then(orderProductGateway).should().getProducts(anyList());
@@ -104,7 +104,7 @@ public class OrderAppServiceTest {
             given(orderSheetRepository.findById(anyString())).willReturn(Optional.empty());
             //when
             //then
-            assertThatThrownBy(() -> orderAppService.initialOrder(command))
+            assertThatThrownBy(() -> orderFacade.initialOrder(command))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(OrderErrorCode.ORDER_SHEET_NOT_FOUND);
@@ -122,7 +122,7 @@ public class OrderAppServiceTest {
             given(orderSheetRepository.findById(anyString())).willReturn(Optional.of(orderSheet));
             //when
             //then
-            assertThatThrownBy(() -> orderAppService.initialOrder(command))
+            assertThatThrownBy(() -> orderFacade.initialOrder(command))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(OrderErrorCode.ORDER_SHEET_ACCESS_DENIED);
@@ -141,7 +141,7 @@ public class OrderAppServiceTest {
             given(orderSheetRepository.findById(anyString())).willReturn(Optional.of(orderSheet));
             //when
             //then
-            assertThatThrownBy(() -> orderAppService.initialOrder(command))
+            assertThatThrownBy(() -> orderFacade.initialOrder(command))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(OrderErrorCode.ORDER_SHEET_EXPIRED);

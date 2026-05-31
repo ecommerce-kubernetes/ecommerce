@@ -2,17 +2,15 @@ package com.example.order_service.docs.order;
 
 import com.epages.restdocs.apispec.ResourceSnippetParameters;
 import com.example.order_service.common.domain.vo.Money;
-import com.example.order_service.common.dto.PageDto;
 import com.example.order_service.docs.descriptor.OrderDescriptor;
 import com.example.order_service.order.api.OrderController;
 import com.example.order_service.order.api.dto.request.OrderConfirmRequest;
 import com.example.order_service.order.api.dto.request.OrderRequest;
 import com.example.order_service.order.api.dto.response.OrderResponse;
-import com.example.order_service.order.application.service.order.OrderAppService;
+import com.example.order_service.order.application.service.order.OrderFacade;
 import com.example.order_service.order.application.service.order.OrderQueryService;
 import com.example.order_service.order.application.service.order.dto.command.OrderCommand;
 import com.example.order_service.order.application.dto.result.OrderDetailResponse;
-import com.example.order_service.order.application.dto.result.OrderListResponse;
 import com.example.order_service.order.application.service.order.dto.command.OrderSearchCommand;
 import com.example.order_service.order.application.service.order.dto.result.OrderResult;
 import com.example.order_service.order.domain.model.OrderStatus;
@@ -28,7 +26,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.restdocs.headers.HeaderDescriptor;
 import org.springframework.restdocs.payload.FieldDescriptor;
-import org.springframework.restdocs.request.ParameterDescriptor;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -52,7 +49,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 public class OrderControllerDocsTest extends RestDocSupport {
     private static final String ORDER_NO = "ORD-20260101-AB12FVC";
-    private OrderAppService orderAppService = mock(OrderAppService.class);
+    private OrderFacade orderFacade = mock(OrderFacade.class);
     private OrderQueryService orderQueryService = mock(OrderQueryService.class);
 
     private static final String TAG = "ORDER";
@@ -64,7 +61,7 @@ public class OrderControllerDocsTest extends RestDocSupport {
 
     @Override
     protected Object initController() {
-        return new OrderController(orderAppService, orderQueryService);
+        return new OrderController(orderFacade, orderQueryService);
     }
 
     @Test
@@ -84,7 +81,7 @@ public class OrderControllerDocsTest extends RestDocSupport {
                 .build();
         OrderResponse.Create response = OrderResponse.Create.from(result);
         HttpHeaders roleUser = createAuthHeader("ROLE_USER");
-        given(orderAppService.initialOrder(any(OrderCommand.Create.class)))
+        given(orderFacade.initialOrder(any(OrderCommand.Create.class)))
                 .willReturn(result);
         //when
         //then
@@ -115,7 +112,7 @@ public class OrderControllerDocsTest extends RestDocSupport {
         HttpHeaders roleUser = createUserHeader("ROLE_USER");
         OrderDetailResponse response = anOrderDetailResponse()
                 .payment(anPaymentResponse().build()).build();
-        given(orderAppService.confirmOrderPayment(anyString(), anyLong(), anyString(), anyLong()))
+        given(orderFacade.confirmOrderPayment(anyString(), anyLong(), anyString(), anyLong()))
                 .willReturn(response);
 
         HeaderDescriptor[] requestHeaders = new HeaderDescriptor[]{

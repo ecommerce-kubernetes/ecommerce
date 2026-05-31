@@ -5,7 +5,7 @@ import com.example.order_service.docs.descriptor.OrderSheetDescriptor;
 import com.example.order_service.order.api.OrderSheetController;
 import com.example.order_service.order.api.dto.request.OrderSheetRequest;
 import com.example.order_service.order.api.dto.response.OrderSheetResponse;
-import com.example.order_service.order.application.service.ordersheet.OrderSheetAppService;
+import com.example.order_service.order.application.service.ordersheet.OrderSheetService;
 import com.example.order_service.order.application.service.ordersheet.dto.command.OrderSheetCommand;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetResult;
 import com.example.order_service.support.RestDocSupport;
@@ -27,7 +27,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class OrderSheetControllerDocsTest extends RestDocSupport {
-    private OrderSheetAppService orderSheetAppService = mock(OrderSheetAppService.class);
+    private OrderSheetService orderSheetService = mock(OrderSheetService.class);
 
     @Override
     protected String getTag() {
@@ -36,7 +36,7 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
 
     @Override
     protected Object initController() {
-        return new OrderSheetController(orderSheetAppService);
+        return new OrderSheetController(orderSheetService);
     }
 
     @Nested
@@ -61,7 +61,7 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
                     .build();
             OrderSheetResult.Create result = createOrderSheetResult();
             HttpHeaders roleUser = createAuthHeader("ROLE_USER");
-            given(orderSheetAppService.createOrderSheet(any(OrderSheetCommand.Create.class)))
+            given(orderSheetService.createOrderSheet(any(OrderSheetCommand.Create.class)))
                     .willReturn(result);
             OrderSheetResponse.Create response = OrderSheetResponse.Create.from(result);
             //when
@@ -97,7 +97,7 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
             String orderSheetId = "sheetId";
             OrderSheetResult.Detail result = createOrderSheetResult();
             HttpHeaders roleUser = createAuthHeader("ROLE_USER");
-            given(orderSheetAppService.getOrderSheet(anyString(), anyLong()))
+            given(orderSheetService.getOrderSheet(anyString(), anyLong()))
                     .willReturn(result);
             OrderSheetResponse.Detail response = OrderSheetResponse.Detail.from(result);
             //when
@@ -128,7 +128,7 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
             OrderSheetRequest.UpdateShippingAddress request = createOrderSheetRequest();
             HttpHeaders roleUser = createAuthHeader("ROLE_USER");
             OrderSheetResult.Detail result = createOrderSheetResult();
-            given(orderSheetAppService.updateShippingAddress(any(OrderSheetCommand.UpdateShippingAddress.class)))
+            given(orderSheetService.updateShippingAddress(any(OrderSheetCommand.UpdateShippingAddress.class)))
                     .willReturn(result);
             OrderSheetResponse.Detail response = OrderSheetResponse.Detail.from(result);
             //when
@@ -172,7 +172,7 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
             OrderSheetRequest.UpdateUsedPoints request = createOrderSheetRequest();
             HttpHeaders roleUser = createAuthHeader("ROLE_USER");
             OrderSheetResult.Detail result = createOrderSheetResult();
-            given(orderSheetAppService.updatePoints(any())).willReturn(result);
+            given(orderSheetService.updatePoints(any())).willReturn(result);
             OrderSheetResponse.Detail response = OrderSheetResponse.Detail.from(result);
             //when
             //then
@@ -212,7 +212,7 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
             OrderSheetRequest.UpdateCoupon request = createRequest();
             HttpHeaders roleUser = createAuthHeader("ROLE_USER");
             OrderSheetResult.Detail result = createOrderSheetResult();
-            given(orderSheetAppService.updateItemCoupon(any())).willReturn(result);
+            given(orderSheetService.updateItemCoupon(any())).willReturn(result);
             OrderSheetResponse.Detail response = OrderSheetResponse.Detail.from(result);
             //when
             //then
@@ -253,7 +253,7 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
             OrderSheetRequest.UpdateCoupon request = createRequest();
             OrderSheetResult.Detail result = createOrderSheetResult();
             OrderSheetResponse.Detail response = OrderSheetResponse.Detail.from(result);
-            given(orderSheetAppService.updateCartCoupon(any())).willReturn(result);
+            given(orderSheetService.updateCartCoupon(any())).willReturn(result);
             //when
             //then
             mockMvc.perform(patch("/order-sheets/{sheetId}/cart-coupon", sheetId)

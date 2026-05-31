@@ -46,9 +46,9 @@ import static org.mockito.Mockito.*;
 
 @Slf4j
 @ExtendWith(MockitoExtension.class)
-public class OrderSheetAppServiceTest {
+public class OrderSheetServiceTest {
     @InjectMocks
-    private OrderSheetAppService orderSheetAppService;
+    private OrderSheetService orderSheetService;
     @Mock
     private OrderProductGateway orderProductGateway;
     @Mock
@@ -81,7 +81,7 @@ public class OrderSheetAppServiceTest {
             given(orderCouponGateway.calculate(any())).willReturn(coupon);
             when(repository.save(any(), any())).then(returnsFirstArg());
             //when
-            OrderSheetResult.Create orderSheet = orderSheetAppService.createOrderSheet(command);
+            OrderSheetResult.Create orderSheet = orderSheetService.createOrderSheet(command);
             //then
             assertThat(orderSheet.sheetId()).isNotNull();
             assertThat(orderSheet.expiresAt()).isNotNull();
@@ -100,7 +100,7 @@ public class OrderSheetAppServiceTest {
             given(orderProductGateway.getProducts(anyList())).willReturn(products);
             when(repository.save(any(), any())).then(returnsFirstArg());
             //when
-            OrderSheetResult.Create orderSheet = orderSheetAppService.createOrderSheet(command);
+            OrderSheetResult.Create orderSheet = orderSheetService.createOrderSheet(command);
             //then
             assertThat(orderSheet.sheetId()).isNotNull();
             assertThat(orderSheet.expiresAt()).isNotNull();
@@ -198,7 +198,7 @@ public class OrderSheetAppServiceTest {
             given(repository.findById(anyString())).willReturn(Optional.of(orderSheet));
             given(orderUserGateway.getUserPoints(anyLong())).willReturn(point);
             //when
-            OrderSheetResult.Detail result = orderSheetAppService.getOrderSheet("sheetId", 1L);
+            OrderSheetResult.Detail result = orderSheetService.getOrderSheet("sheetId", 1L);
             //then
             assertThat(result.sheetId()).isEqualTo("sheetId");
             assertThat(result.orderer().userId()).isEqualTo(1L);
@@ -212,7 +212,7 @@ public class OrderSheetAppServiceTest {
             given(repository.findById(any())).willReturn(Optional.empty());
             //when
             //then
-            assertThatThrownBy(() -> orderSheetAppService.getOrderSheet("unKnown", 1L))
+            assertThatThrownBy(() -> orderSheetService.getOrderSheet("unKnown", 1L))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(OrderSheetErrorCode.ORDER_SHEET_NOT_FOUND);
@@ -226,7 +226,7 @@ public class OrderSheetAppServiceTest {
             given(repository.findById(any())).willReturn(Optional.of(orderSheet));
             //when
             //then
-            assertThatThrownBy(() -> orderSheetAppService.getOrderSheet("sheetId", 2L))
+            assertThatThrownBy(() -> orderSheetService.getOrderSheet("sheetId", 2L))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(OrderSheetErrorCode.ORDER_SHEET_NO_PERMISSION);
@@ -262,7 +262,7 @@ public class OrderSheetAppServiceTest {
             given(orderUserGateway.getUserPoints(any())).willReturn(point);
             when(repository.save(any(), any())).then(returnsFirstArg());
             //when
-            OrderSheetResult.Detail result = orderSheetAppService.updateShippingAddress(command);
+            OrderSheetResult.Detail result = orderSheetService.updateShippingAddress(command);
             //then
             assertThat(result.shippingAddress())
                     .extracting("receiverName", "receiverPhone", "zipCode", "address", "addressDetail")
@@ -299,7 +299,7 @@ public class OrderSheetAppServiceTest {
             given(repository.findById(any())).willReturn(Optional.empty());
             //when
             //then
-            assertThatThrownBy(() -> orderSheetAppService.updateShippingAddress(command))
+            assertThatThrownBy(() -> orderSheetService.updateShippingAddress(command))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(OrderSheetErrorCode.ORDER_SHEET_NOT_FOUND);
@@ -325,7 +325,7 @@ public class OrderSheetAppServiceTest {
             given(repository.findById(any())).willReturn(Optional.of(orderSheet));
             //when
             //then
-            assertThatThrownBy(() -> orderSheetAppService.updateShippingAddress(command))
+            assertThatThrownBy(() -> orderSheetService.updateShippingAddress(command))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(OrderSheetErrorCode.ORDER_SHEET_EXPIRED);
@@ -350,7 +350,7 @@ public class OrderSheetAppServiceTest {
             given(repository.findById(any())).willReturn(Optional.of(orderSheet));
             //when
             //then
-            assertThatThrownBy(() -> orderSheetAppService.updateShippingAddress(command))
+            assertThatThrownBy(() -> orderSheetService.updateShippingAddress(command))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(OrderSheetErrorCode.ORDER_SHEET_NO_PERMISSION);
@@ -381,7 +381,7 @@ public class OrderSheetAppServiceTest {
             given(orderUserGateway.getUserPointsForOrder(anyLong(), any())).willReturn(point);
             when(repository.save(any(), any())).then(returnsFirstArg());
             //when
-            OrderSheetResult.Detail result = orderSheetAppService.updatePoints(command);
+            OrderSheetResult.Detail result = orderSheetService.updatePoints(command);
             //then
             assertThat(result.point().usedPoints()).isEqualTo(Money.wons(100L));
             assertThat(result.paymentSummary().usedPoints()).isEqualTo(Money.wons(100L));
@@ -408,7 +408,7 @@ public class OrderSheetAppServiceTest {
             given(orderUserGateway.getUserPointsForOrder(anyLong(), any())).willReturn(point);
             //when
             //then
-            assertThatThrownBy(() -> orderSheetAppService.updatePoints(command))
+            assertThatThrownBy(() -> orderSheetService.updatePoints(command))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(OrderSheetErrorCode.ORDER_SHEET_POINT_POLICY_VIOLATION);
@@ -429,7 +429,7 @@ public class OrderSheetAppServiceTest {
             given(repository.findById(any())).willReturn(Optional.empty());
             //when
             //then
-            assertThatThrownBy(() -> orderSheetAppService.updatePoints(command))
+            assertThatThrownBy(() -> orderSheetService.updatePoints(command))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(OrderSheetErrorCode.ORDER_SHEET_NOT_FOUND);
@@ -450,7 +450,7 @@ public class OrderSheetAppServiceTest {
             given(repository.findById(any())).willReturn(Optional.of(orderSheet));
             //when
             //then
-            assertThatThrownBy(() -> orderSheetAppService.updatePoints(command))
+            assertThatThrownBy(() -> orderSheetService.updatePoints(command))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(OrderSheetErrorCode.ORDER_SHEET_NO_PERMISSION);
@@ -472,7 +472,7 @@ public class OrderSheetAppServiceTest {
             given(repository.findById(any())).willReturn(Optional.of(orderSheet));
             //when
             //then
-            assertThatThrownBy(() -> orderSheetAppService.updatePoints(command))
+            assertThatThrownBy(() -> orderSheetService.updatePoints(command))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(OrderSheetErrorCode.ORDER_SHEET_EXPIRED);
@@ -499,7 +499,7 @@ public class OrderSheetAppServiceTest {
             given(orderUserGateway.getUserPoints(any())).willReturn(pointResult);
             when(repository.save(any(), any())).then(returnsFirstArg());
             //when
-            OrderSheetResult.Detail result = orderSheetAppService.updateItemCoupon(command);
+            OrderSheetResult.Detail result = orderSheetService.updateItemCoupon(command);
             //then
             assertThat(result.paymentSummary().totalCouponDiscount()).isEqualTo(Money.wons(1000L));
             assertThat(result.paymentSummary().usedPoints()).isEqualTo(Money.ZERO);
@@ -524,7 +524,7 @@ public class OrderSheetAppServiceTest {
             given(orderUserGateway.getUserPoints(any())).willReturn(pointResult);
             when(repository.save(any(), any())).then(returnsFirstArg());
             //when
-            OrderSheetResult.Detail result = orderSheetAppService.updateItemCoupon(command);
+            OrderSheetResult.Detail result = orderSheetService.updateItemCoupon(command);
             //then
             assertThat(result.paymentSummary().totalCouponDiscount()).isEqualTo(Money.wons(3000L));
             assertThat(result.paymentSummary().usedPoints()).isEqualTo(Money.wons(600L));
@@ -579,7 +579,7 @@ public class OrderSheetAppServiceTest {
             given(orderUserGateway.getUserPoints(any())).willReturn(userResult);
             when(repository.save(any(), any())).then(returnsFirstArg());
             //when
-            OrderSheetResult.Detail result = orderSheetAppService.updateCartCoupon(command);
+            OrderSheetResult.Detail result = orderSheetService.updateCartCoupon(command);
             //then
             assertThat(result.cartCoupon().couponId()).isEqualTo(null);
             assertThat(result.paymentSummary().totalCouponDiscount()).isEqualTo(Money.wons(1000L));
@@ -603,7 +603,7 @@ public class OrderSheetAppServiceTest {
             given(orderUserGateway.getUserPoints(any())).willReturn(userResult);
             when(repository.save(any(), any())).then(returnsFirstArg());
             //when
-            OrderSheetResult.Detail result = orderSheetAppService.updateCartCoupon(command);
+            OrderSheetResult.Detail result = orderSheetService.updateCartCoupon(command);
             //then
             assertThat(result.cartCoupon().couponId()).isEqualTo(10L);
             assertThat(result.paymentSummary().totalCouponDiscount()).isEqualTo(Money.wons(3000L));
@@ -628,7 +628,7 @@ public class OrderSheetAppServiceTest {
             given(orderUserGateway.getUserPoints(any())).willReturn(userResult);
             when(repository.save(any(), any())).then(returnsFirstArg());
             //when
-            OrderSheetResult.Detail result = orderSheetAppService.updateCartCoupon(command);
+            OrderSheetResult.Detail result = orderSheetService.updateCartCoupon(command);
             //then
             assertThat(result.cartCoupon().couponId()).isEqualTo(10L);
             assertThat(result.paymentSummary().totalCouponDiscount()).isEqualTo(Money.wons(3000L));

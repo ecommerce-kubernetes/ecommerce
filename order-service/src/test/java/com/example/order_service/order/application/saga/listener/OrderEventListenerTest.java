@@ -3,7 +3,7 @@ package com.example.order_service.order.application.saga.listener;
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.order.application.event.OrderCreatedEvent;
 import com.example.order_service.order.application.saga.dto.SagaCommand;
-import com.example.order_service.order.application.service.order.OrderAppService;
+import com.example.order_service.order.application.service.order.OrderFacade;
 import com.example.order_service.order.application.event.PaymentCompletedEvent;
 import com.example.order_service.order.application.event.PaymentFailedEvent;
 import com.example.order_service.order.domain.model.OrderFailureCode;
@@ -38,7 +38,7 @@ public class OrderEventListenerTest {
     @Mock
     private SagaManager sagaManager;
     @Mock
-    private OrderAppService orderAppService;
+    private OrderFacade orderFacade;
     public static final String ORDER_NO = "ORD-20260101-AB12FVC";
     @Captor
     private ArgumentCaptor<SagaStepResultCommand> sagaStepResultCaptor;
@@ -85,7 +85,7 @@ public class OrderEventListenerTest {
         //when
         orderEventListener.handleSagaCompleted(sagaResourceSecuredEvent);
         //then
-        verify(orderAppService, times(1)).preparePayment(ORDER_NO);
+        verify(orderFacade, times(1)).preparePayment(ORDER_NO);
     }
 
     @Nested
@@ -135,7 +135,7 @@ public class OrderEventListenerTest {
             //when
             orderEventListener.handleSagaAborted(abortEvent);
             //then
-            verify(orderAppService).processOrderFailure(ORDER_NO, OrderFailureCode.INSUFFICIENT_POINT);
+            verify(orderFacade).processOrderFailure(ORDER_NO, OrderFailureCode.INSUFFICIENT_POINT);
         }
 
         @Test
@@ -146,7 +146,7 @@ public class OrderEventListenerTest {
             //when
             orderEventListener.handleSagaAborted(abortEvent);
             //then
-            verify(orderAppService).processOrderFailure(ORDER_NO, OrderFailureCode.INVALID_COUPON);
+            verify(orderFacade).processOrderFailure(ORDER_NO, OrderFailureCode.INVALID_COUPON);
         }
 
         @Test
@@ -157,7 +157,7 @@ public class OrderEventListenerTest {
             //when
             orderEventListener.handleSagaAborted(abortEvent);
             //then
-            verify(orderAppService).processOrderFailure(ORDER_NO, OrderFailureCode.COUPON_EXPIRED);
+            verify(orderFacade).processOrderFailure(ORDER_NO, OrderFailureCode.COUPON_EXPIRED);
         }
 
         @Test
@@ -168,7 +168,7 @@ public class OrderEventListenerTest {
             //when
             orderEventListener.handleSagaAborted(abortEvent);
             //then
-            verify(orderAppService).processOrderFailure(ORDER_NO, OrderFailureCode.INSUFFICIENT_STOCK);
+            verify(orderFacade).processOrderFailure(ORDER_NO, OrderFailureCode.INSUFFICIENT_STOCK);
         }
     }
 

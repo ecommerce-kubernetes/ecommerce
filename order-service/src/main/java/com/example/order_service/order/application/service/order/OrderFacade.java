@@ -30,7 +30,7 @@ import java.util.List;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class OrderAppService {
+public class OrderFacade {
 
     private final OrderValidator validator;
     private final OrderMapper orderMapper;
