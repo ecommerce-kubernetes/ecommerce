@@ -39,7 +39,7 @@ public class OrderFacade {
     private final OrderProductGateway orderProductGateway;
     private final OrderCouponGateway orderCouponGateway;
     private final OrderSheetRepository orderSheetRepository;
-    private final OrderService orderService;
+    private final OrderCommandService orderCommandService;
 
     /**
      * 주문 생성
@@ -63,7 +63,7 @@ public class OrderFacade {
         OrderUserResult.UserPoint userPoints = getUserPoints(orderSheet);
         validator.validate(orderSheet, products, appliedCoupons, userPoints, pointPolicy);
         OrderContext.CreateOrderContext context = orderMapper.toContext(orderSheet);
-        return orderService.saveOrder(context);
+        return orderCommandService.saveOrder(context);
     }
 
     private OrderProductResult.ProductList getOrderedProducts(List<OrderSheetItem> items) {

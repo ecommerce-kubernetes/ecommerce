@@ -45,7 +45,7 @@ public class OrderFacadeTest {
     @Mock
     private OrderSheetRepository orderSheetRepository;
     @Mock
-    private OrderService orderService;
+    private OrderCommandService orderCommandService;
     @Mock
     private OrderMapper orderMapper;
     @Mock
@@ -82,7 +82,7 @@ public class OrderFacadeTest {
             given(orderProductGateway.getProducts(anyList())).willReturn(productResult);
             given(orderCouponGateway.calculate(any())).willReturn(couponResult);
             given(orderMapper.toContext(any())).willReturn(orderContext);
-            given(orderService.saveOrder(any())).willReturn(expectedResult);
+            given(orderCommandService.saveOrder(any())).willReturn(expectedResult);
             //when
             OrderResult.Create result = orderFacade.initialOrder(command);
             //then
@@ -90,7 +90,7 @@ public class OrderFacadeTest {
             then(orderProductGateway).should().getProducts(anyList());
             then(orderCouponGateway).should().calculate(any());
             then(orderUserGateway).should().getUserPointsForOrder(anyLong(), any());
-            then(orderService).should().saveOrder(any());
+            then(orderCommandService).should().saveOrder(any());
         }
 
         @Test

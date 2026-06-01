@@ -3,7 +3,7 @@ package com.example.order_service.payment.api;
 import com.example.order_service.common.security.model.UserPrincipal;
 import com.example.order_service.payment.api.dto.request.PaymentRequest;
 import com.example.order_service.payment.api.dto.response.PaymentResponse;
-import com.example.order_service.payment.application.service.PaymentService;
+import com.example.order_service.payment.application.service.PaymentFacade;
 import com.example.order_service.payment.application.service.dto.command.PaymentCommand;
 import com.example.order_service.payment.application.service.dto.result.PaymentResult;
 import lombok.RequiredArgsConstructor;
@@ -22,13 +22,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/payments")
 public class PaymentController {
 
-    private final PaymentService paymentService;
+    private final PaymentFacade paymentFacade;
 
     @PostMapping("/confirm")
     public ResponseEntity<PaymentResponse.PaymentApproval> paymentConfirm(@AuthenticationPrincipal UserPrincipal userPrincipal,
                                                                           @RequestBody @Validated PaymentRequest.Confirm request) {
         PaymentCommand.Confirm command = request.toCommand(userPrincipal.getUserId());
-        PaymentResult.PaymentApproval confirm = paymentService.confirm(command);
+        PaymentResult.PaymentApproval confirm = paymentFacade.confirm(command);
         PaymentResponse.PaymentApproval response = PaymentResponse.PaymentApproval.from(confirm);
         return ResponseEntity.ok(response);
     }

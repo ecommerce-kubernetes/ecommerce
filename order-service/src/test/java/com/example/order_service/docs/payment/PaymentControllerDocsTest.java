@@ -5,14 +5,13 @@ import com.example.order_service.docs.descriptor.PaymentDescriptor;
 import com.example.order_service.payment.api.PaymentController;
 import com.example.order_service.payment.api.dto.request.PaymentRequest;
 import com.example.order_service.payment.api.dto.response.PaymentResponse;
-import com.example.order_service.payment.application.service.PaymentService;
+import com.example.order_service.payment.application.service.PaymentCommandService;
+import com.example.order_service.payment.application.service.PaymentFacade;
 import com.example.order_service.payment.application.service.dto.result.PaymentResult;
 import com.example.order_service.support.RestDocSupport;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.mockito.BDDMockito;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 
@@ -26,7 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class PaymentControllerDocsTest extends RestDocSupport {
-    private PaymentService paymentService = mock(PaymentService.class);
+    private PaymentFacade paymentFacade = mock(PaymentFacade.class);
 
     @Override
     protected String getTag() {
@@ -35,7 +34,7 @@ public class PaymentControllerDocsTest extends RestDocSupport {
 
     @Override
     protected Object initController() {
-        return new PaymentController(paymentService);
+        return new PaymentController(paymentFacade);
     }
 
     @Nested
@@ -59,7 +58,7 @@ public class PaymentControllerDocsTest extends RestDocSupport {
                     .status("DONE")
                     .approvedAt(LocalDateTime.now())
                     .build();
-            given(paymentService.confirm(any())).willReturn(result);
+            given(paymentFacade.confirm(any())).willReturn(result);
             PaymentResponse.PaymentApproval response = PaymentResponse.PaymentApproval.from(result);
             //when
             //then

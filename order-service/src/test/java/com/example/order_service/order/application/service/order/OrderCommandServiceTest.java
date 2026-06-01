@@ -27,10 +27,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 @MockKafka
 @MockRedis
 @Transactional
-public class OrderServiceTest {
+public class OrderCommandServiceTest {
 
     @Autowired
-    private OrderService orderService;
+    private OrderCommandService orderCommandService;
 
     @Autowired
     private OrderRepository orderRepository;
@@ -48,7 +48,7 @@ public class OrderServiceTest {
             //given
             OrderContext.CreateOrderContext context = createContext();
             //when
-            OrderResult.Create result = orderService.saveOrder(context);
+            OrderResult.Create result = orderCommandService.saveOrder(context);
             //then
             assertThat(result.orderNo()).isNotNull();
             assertThat(result.status()).isEqualTo(OrderStatus.PENDING);

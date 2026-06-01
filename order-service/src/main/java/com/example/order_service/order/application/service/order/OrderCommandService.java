@@ -6,7 +6,6 @@ import com.example.order_service.order.application.service.order.dto.command.Ord
 import com.example.order_service.order.domain.model.Order;
 import com.example.order_service.order.domain.model.OrderItem;
 import com.example.order_service.order.domain.repository.OrderRepository;
-import com.example.order_service.order.domain.repository.OrderSearchRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -22,7 +21,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Slf4j
 @Transactional
-public class OrderService {
+public class OrderCommandService {
     private final OrderRepository orderRepository;
     private final ApplicationEventPublisher eventPublisher;
 

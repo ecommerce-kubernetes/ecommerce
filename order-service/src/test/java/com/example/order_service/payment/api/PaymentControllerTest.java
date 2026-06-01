@@ -5,9 +5,9 @@ import com.example.order_service.api.support.security.config.TestSecurityConfig;
 import com.example.order_service.common.security.model.UserRole;
 import com.example.order_service.payment.api.dto.request.PaymentRequest;
 import com.example.order_service.payment.api.dto.response.PaymentResponse;
-import com.example.order_service.payment.application.service.PaymentService;
+import com.example.order_service.payment.application.service.PaymentCommandService;
+import com.example.order_service.payment.application.service.PaymentFacade;
 import com.example.order_service.payment.application.service.dto.result.PaymentResult;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -15,14 +15,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.BDDMockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import java.util.stream.Stream;
 
@@ -43,7 +41,7 @@ public class PaymentControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
     @MockitoBean
-    private PaymentService paymentService;
+    private PaymentFacade paymentFacade;
 
     @Nested
     @DisplayName("결제 승인")
@@ -57,7 +55,7 @@ public class PaymentControllerTest {
             PaymentRequest.Confirm request = fixtureMonkey.giveMeOne(PaymentRequest.Confirm.class);
             PaymentResult.PaymentApproval result = fixtureMonkey.giveMeOne(PaymentResult.PaymentApproval.class);
             PaymentResponse.PaymentApproval response = PaymentResponse.PaymentApproval.from(result);
-            given(paymentService.confirm(any())).willReturn(result);
+            given(paymentFacade.confirm(any())).willReturn(result);
             //when
             //then
             mockMvc.perform(post("/payments/confirm")
