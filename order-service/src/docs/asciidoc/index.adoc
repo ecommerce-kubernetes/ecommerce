@@ -23,3 +23,6 @@ include::api/notification/notification.adoc[]
 
 = OrderSheet
 include::api/ordersheet/ordersheet.adoc[]
+
+= Payment
+include::api/payment/payment.adoc[]
