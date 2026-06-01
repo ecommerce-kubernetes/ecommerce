@@ -3,10 +3,8 @@ package com.example.order_service.payment.domain.model;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-public enum PaymentStatus {
-    READY("승인 대기"),
-    DONE("완료"),
-    CANCELED("결제 취소"),
-    WAITING_FOR_DEPOSIT("입금 대기");
+public enum TransactionType {
+    PAYMENT("결제"),
+    REFOUND("환불");
     private final String description;
 }

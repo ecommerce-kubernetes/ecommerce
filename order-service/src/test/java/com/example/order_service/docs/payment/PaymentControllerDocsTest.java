@@ -8,6 +8,8 @@ import com.example.order_service.payment.api.dto.response.PaymentResponse;
 import com.example.order_service.payment.application.service.PaymentCommandService;
 import com.example.order_service.payment.application.service.PaymentFacade;
 import com.example.order_service.payment.application.service.dto.result.PaymentResult;
+import com.example.order_service.payment.domain.model.PaymentMethod;
+import com.example.order_service.payment.domain.model.PaymentStatus;
 import com.example.order_service.support.RestDocSupport;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -54,8 +56,8 @@ public class PaymentControllerDocsTest extends RestDocSupport {
                     .paymentKey("paymentKey")
                     .orderNo("orderNo")
                     .totalAmount(Money.wons(10000L))
-                    .method("CARD")
-                    .status("DONE")
+                    .method(PaymentMethod.CARD)
+                    .status(PaymentStatus.DONE)
                     .approvedAt(LocalDateTime.now())
                     .build();
             given(paymentFacade.confirm(any())).willReturn(result);

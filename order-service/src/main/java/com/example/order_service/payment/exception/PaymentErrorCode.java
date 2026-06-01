@@ -7,7 +7,7 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum PaymentErrorCode implements ErrorCode {
-    ORDER_NOT_PAYMENT_WAITING(409, "ORDER_NOT_PAYMENT_WAITING", "결제 승인을 진행할 수 없는 주문 입니다"),
+    ORDER_NOT_PENDING(409, "ORDER_NOT_PENDING", "결제를 진행할 수 없는 주문 입니다"),
     PAYMENT_ALREADY_PROCEED_PAYMENT(400, "PAYMENT_001", "이미 결제된 주문입니다"),
     PAYMENT_BAD_REQUEST(400, "PAYMENT_002", "잘못된 결제 요청입니다"),
     PAYMENT_NOT_FOUND(404, "PAYMENT_003", "존재하지 않은 결제 정보입니다"),

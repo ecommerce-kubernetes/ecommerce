@@ -8,13 +8,23 @@ import lombok.Builder;
 import java.time.LocalDateTime;
 
 @Builder
-public record PaymentContext(
-        Long userId,
-        String orderNo,
-        String paymentKey,
-        Money amount,
-        PaymentStatus status,
-        PaymentMethod method,
-        LocalDateTime approvedAt
-) {
+public class PaymentContext {
+
+    @Builder
+    public record Create (
+            Long userId,
+            String orderNo,
+            String paymentKey,
+            Money totalAmount
+    ) {}
+
+    @Builder
+    public record Approval(
+            Long paymentId,
+            Money amount,
+            PaymentStatus status,
+            PaymentMethod method,
+            LocalDateTime approvedAt
+    ){}
+
 }

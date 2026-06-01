@@ -25,15 +25,17 @@ public class PaymentFacade {
 
     public PaymentResult.PaymentApproval confirm(PaymentCommand.Confirm command) {
         OrderResult.Detail order = orderQueryService.getOrder(command.orderNo(), command.userId());
-        if (order.status() != OrderStatus.PAYMENT_WAITING) {
-            throw new BusinessException(PaymentErrorCode.ORDER_NOT_PAYMENT_WAITING);
+        if (order.status() != OrderStatus.PENDING) {
+            throw new BusinessException(PaymentErrorCode.ORDER_NOT_PENDING);
         }
-        if (!order.totalPaymentAmount().equals(command.amount())){
+        if (!order.totalPaymentAmount().equals(command.amount())) {
             throw new BusinessException(PaymentErrorCode.PAYMENT_AMOUNT_MISMATCH);
         }
+        PaymentContext.Create context = mapper.toContext(command);
+        PaymentResult.Default payment = paymentCommandService.save(context);
         PGPaymentCommand.Confirm gatewayCommand = PGPaymentCommand.Confirm.of(order.orderNo(), command.paymentKey(), order.totalPaymentAmount());
-        PgPaymentResult.Approval confirmResult = paymentGateway.confirm(gatewayCommand);
-        PaymentContext context = mapper.toContext(command.userId(), confirmResult);
-        return paymentCommandService.save(context);
+        PgPaymentResult.Approval confirm = paymentGateway.confirm(gatewayCommand);
+        PaymentContext.Approval approval = mapper.toContext(payment.id(), confirm);
+        return paymentCommandService.approve(approval);
     }
 }

@@ -1,6 +1,8 @@
 package com.example.order_service.payment.api.dto.response;
 
 import com.example.order_service.payment.application.service.dto.result.PaymentResult;
+import com.example.order_service.payment.domain.model.PaymentMethod;
+import com.example.order_service.payment.domain.model.PaymentStatus;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 
@@ -13,8 +15,8 @@ public class PaymentResponse {
             String paymentKey,
             String orderNo,
             Long totalAmount,
-            String method,
-            String status,
+            PaymentMethod method,
+            PaymentStatus status,
             @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
             LocalDateTime approvedAt
     ) {
