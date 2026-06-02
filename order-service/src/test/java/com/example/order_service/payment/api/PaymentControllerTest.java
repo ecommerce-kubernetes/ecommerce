@@ -1,13 +1,12 @@
 package com.example.order_service.payment.api;
 
-import com.example.order_service.api.support.security.annotation.WithCustomMockUser;
-import com.example.order_service.api.support.security.config.TestSecurityConfig;
 import com.example.order_service.common.security.model.UserRole;
 import com.example.order_service.payment.api.dto.request.PaymentRequest;
 import com.example.order_service.payment.api.dto.response.PaymentResponse;
-import com.example.order_service.payment.application.service.PaymentCommandService;
 import com.example.order_service.payment.application.service.PaymentFacade;
 import com.example.order_service.payment.application.service.dto.result.PaymentResult;
+import com.example.order_service.support.annotation.WithCustomMockUser;
+import com.example.order_service.support.config.TestSecurityConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -28,9 +27,7 @@ import static com.example.order_service.support.TestFixtureUtil.fixtureMonkey;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 @WebMvcTest(controllers = PaymentController.class)
 @Import(TestSecurityConfig.class)

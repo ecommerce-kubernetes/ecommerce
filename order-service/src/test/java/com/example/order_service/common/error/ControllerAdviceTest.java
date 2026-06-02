@@ -1,8 +1,8 @@
 package com.example.order_service.common.error;
 
-import com.example.order_service.api.support.DummyController;
-import com.example.order_service.api.support.security.annotation.WithCustomMockUser;
 import com.example.order_service.support.ControllerTestSupport;
+import com.example.order_service.support.DummyController;
+import com.example.order_service.support.annotation.WithCustomMockUser;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -25,7 +25,7 @@ public class ControllerAdviceTest extends ControllerTestSupport {
         mockMvc.perform(get("/exception")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("code").value("ORDER_001"))
+                .andExpect(jsonPath("code").value("ORDER_NOT_FOUND"))
                 .andExpect(jsonPath("message").value("주문을 찾을 수 없습니다"))
                 .andExpect(jsonPath("timestamp").isNotEmpty())
                 .andExpect(jsonPath("path").value("/exception"));

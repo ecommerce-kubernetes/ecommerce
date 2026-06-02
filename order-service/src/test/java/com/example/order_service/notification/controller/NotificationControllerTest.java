@@ -1,9 +1,8 @@
 package com.example.order_service.notification.controller;
 
-import com.example.order_service.api.support.security.annotation.WithCustomMockUser;
-import com.example.order_service.api.support.security.config.TestSecurityConfig;
 import com.example.order_service.notification.service.NotificationService;
-import com.example.order_service.support.ControllerTestSupport;
+import com.example.order_service.support.annotation.WithCustomMockUser;
+import com.example.order_service.support.config.TestSecurityConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

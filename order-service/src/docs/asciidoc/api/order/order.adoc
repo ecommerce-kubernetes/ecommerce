@@ -12,20 +12,6 @@ include::{snippets}/01-order-01-create/http-response.adoc[]
 ===== Response Fields
 include::{snippets}/01-order-01-create/response-fields.adoc[]
 
-[[order-confirm]]
-=== 결제 승인
-
-==== HTTP Request
-include::{snippets}/01-order-02-confirm/http-request.adoc[]
-===== Request Header
-include::{snippets}/01-order-02-confirm/request-headers.adoc[]
-===== Request Fields
-include::{snippets}/01-order-02-confirm/request-fields.adoc[]
-==== HTTP Response
-include::{snippets}/01-order-02-confirm/http-response.adoc[]
-===== Response Fields
-include::{snippets}/01-order-02-confirm/response-fields.adoc[]
-
 [[get-order]]
 === 주문 조회
 

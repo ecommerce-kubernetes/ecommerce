@@ -22,6 +22,7 @@ public class Payment {
     private Long userId;
     private String paymentKey;
     private Money totalAmount;
+    @Enumerated(EnumType.STRING)
     private PaymentStatus status;
 
     @OneToMany(mappedBy = "payment", cascade = CascadeType.ALL, orphanRemoval = true)

@@ -1,14 +1,12 @@
 package com.example.order_service.order.application.service.order;
 
-import com.example.order_service.order.application.service.order.dto.result.OrderResult;
-import com.example.order_service.order.application.event.OrderCreatedEvent;
 import com.example.order_service.order.application.service.order.dto.command.OrderContext;
+import com.example.order_service.order.application.service.order.dto.result.OrderResult;
 import com.example.order_service.order.domain.model.Order;
 import com.example.order_service.order.domain.model.OrderItem;
 import com.example.order_service.order.domain.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,13 +21,11 @@ import java.util.UUID;
 @Transactional
 public class OrderCommandService {
     private final OrderRepository orderRepository;
-    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * 주문을 저장한다
      * <p>
-     * 주문 생성 Context에 맞는 주문을 생성하여 저장하고 커밋이 완료된 이후
-     * 주문 생성 이벤트를 발행한다
+     * 주문 생성 Context에 맞는 주문을 생성하여 저장한다
      * </p>
      *
      * @param context 주문 생성 컨텍스트
@@ -38,7 +34,6 @@ public class OrderCommandService {
     public OrderResult.Create saveOrder(OrderContext.CreateOrderContext context) {
         Order order = initialOrder(context);
         Order savedOrder = orderRepository.save(order);
-        eventPublisher.publishEvent(OrderCreatedEvent.from(savedOrder));
         return OrderResult.Create.from(savedOrder);
     }
 

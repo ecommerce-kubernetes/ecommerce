@@ -5,7 +5,6 @@ import com.example.order_service.docs.descriptor.PaymentDescriptor;
 import com.example.order_service.payment.api.PaymentController;
 import com.example.order_service.payment.api.dto.request.PaymentRequest;
 import com.example.order_service.payment.api.dto.response.PaymentResponse;
-import com.example.order_service.payment.application.service.PaymentCommandService;
 import com.example.order_service.payment.application.service.PaymentFacade;
 import com.example.order_service.payment.application.service.dto.result.PaymentResult;
 import com.example.order_service.payment.domain.model.PaymentMethod;

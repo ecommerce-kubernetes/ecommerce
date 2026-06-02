@@ -3,8 +3,6 @@ package com.example.order_service.support;
 import com.example.order_service.common.domain.vo.Money;
 import com.navercorp.fixturemonkey.ArbitraryBuilder;
 import com.navercorp.fixturemonkey.FixtureMonkey;
-import com.navercorp.fixturemonkey.api.arbitrary.CombinableArbitrary;
-import com.navercorp.fixturemonkey.api.introspector.ArbitraryIntrospectorResult;
 import com.navercorp.fixturemonkey.api.introspector.BuilderArbitraryIntrospector;
 import com.navercorp.fixturemonkey.api.introspector.FailoverIntrospector;
 import com.navercorp.fixturemonkey.api.introspector.FieldReflectionArbitraryIntrospector;
@@ -28,12 +26,15 @@ public class TestFixtureUtil {
                     )
             ))
             .defaultNotNull(true)
-            .pushExactTypeArbitraryIntrospector(
-                    Money.class,
-                    context -> new ArbitraryIntrospectorResult(
-                            CombinableArbitrary.from(moneyArbitrary::sample)
-                    )
+            .register(Money.class, fixture -> fixture.giveMeBuilder(Money.class)
+                    .set("$", moneyArbitrary)
             )
+//            .pushExactTypeArbitraryIntrospector(
+//                    Money.class,
+//                    context -> new ArbitraryIntrospectorResult(
+//                            CombinableArbitrary.from(moneyArbitrary::sample)
+//                    )
+//            )
             .plugin(new JakartaValidationPlugin())
             .build();
 

@@ -7,6 +7,9 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum PaymentErrorCode implements ErrorCode {
+    PAYMENT_TOSS_UNAVAILABLE_ERROR(503, "TOSS_UNAVAILABLE_ERROR", "토스 서버 오류"),
+    PAYMENT_TOSS_SERVER_ERROR(500, "TOSS_SERVER_ERROR", "토스 서버 오류"),
+    PAYMENT_TOSS_CLIENT_ERROR(409, "TOSS_CLIENT_ERROR", "토스 결제 서버 클라이언트 오류"),
     ORDER_NOT_PENDING(409, "ORDER_NOT_PENDING", "결제를 진행할 수 없는 주문 입니다"),
     PAYMENT_ALREADY_PROCEED_PAYMENT(400, "PAYMENT_001", "이미 결제된 주문입니다"),
     PAYMENT_BAD_REQUEST(400, "PAYMENT_002", "잘못된 결제 요청입니다"),

@@ -1,4 +1,4 @@
-package com.example.order_service.api.support.security.config;
+package com.example.order_service.support.config;
 
 import com.example.order_service.common.security.filter.CustomAccessDeniedHandler;
 import com.example.order_service.common.security.filter.CustomAuthenticationEntryPoint;

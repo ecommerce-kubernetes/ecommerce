@@ -1,9 +1,8 @@
 package com.example.order_service.order.application.service.order;
 
 import com.example.order_service.common.domain.vo.Money;
-import com.example.order_service.order.application.service.order.dto.result.OrderResult;
-import com.example.order_service.order.application.event.OrderCreatedEvent;
 import com.example.order_service.order.application.service.order.dto.command.OrderContext;
+import com.example.order_service.order.application.service.order.dto.result.OrderResult;
 import com.example.order_service.order.domain.model.OrderStatus;
 import com.example.order_service.order.domain.repository.OrderRepository;
 import com.example.order_service.order.domain.vo.*;
@@ -14,8 +13,6 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.event.ApplicationEvents;
-import org.springframework.test.context.event.RecordApplicationEvents;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -23,7 +20,6 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
-@RecordApplicationEvents
 @MockKafka
 @MockRedis
 @Transactional
@@ -34,9 +30,6 @@ public class OrderCommandServiceTest {
 
     @Autowired
     private OrderRepository orderRepository;
-
-    @Autowired
-    private ApplicationEvents applicationEvents;
 
     @Nested
     @DisplayName("주문 저장")
@@ -52,10 +45,6 @@ public class OrderCommandServiceTest {
             //then
             assertThat(result.orderNo()).isNotNull();
             assertThat(result.status()).isEqualTo(OrderStatus.PENDING);
-            long eventCount = applicationEvents.stream(OrderCreatedEvent.class).count();
-            assertThat(eventCount).isEqualTo(1);
-            OrderCreatedEvent createdEvent = applicationEvents.stream(OrderCreatedEvent.class).findFirst().orElseThrow();
-            assertThat(createdEvent.getOrderNo()).isEqualTo(result.orderNo());
         }
     }
 

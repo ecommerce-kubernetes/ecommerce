@@ -1,6 +1,7 @@
 package com.example.order_service.payment.application.service;
 
 import com.example.order_service.common.exception.business.BusinessException;
+import com.example.order_service.payment.application.event.PaymentCompleteEvent;
 import com.example.order_service.payment.application.service.dto.command.PaymentContext;
 import com.example.order_service.payment.application.service.dto.result.PaymentResult;
 import com.example.order_service.payment.domain.model.Payment;
@@ -39,7 +40,9 @@ public class PaymentCommandService {
         payment.changeStatus(context.status());
 
         if (payment.getStatus() == PaymentStatus.DONE) {
-            eventPublisher.publishEvent("결제 승인 이벤트 발행");
+            PaymentCompleteEvent event = PaymentCompleteEvent.of(payment.getOrderNo(),
+                    payment.getPaymentKey());
+            eventPublisher.publishEvent(event);
         }
         return PaymentResult.PaymentApproval.of(payment, paymentRecord);
     }

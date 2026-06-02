@@ -4,8 +4,6 @@ import com.example.order_service.common.mapper.MoneyMapper;
 import com.example.order_service.common.mapper.MoneyMapperImpl;
 import com.example.order_service.infrastructure.dto.response.UserClientResponse;
 import com.example.order_service.order.application.external.dto.result.OrderUserResult;
-import com.example.order_service.order.application.external.mapper.OrderUserMapper;
-import com.example.order_service.order.application.external.mapper.OrderUserMapperImpl;
 import com.example.order_service.order.domain.vo.Orderer;
 import com.example.order_service.order.domain.vo.ShippingAddress;
 import org.junit.jupiter.api.DisplayName;

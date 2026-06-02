@@ -1,4 +1,4 @@
-package com.example.order_service.api.support;
+package com.example.order_service.support;
 
 import com.example.order_service.common.exception.business.BusinessException;
 import com.example.order_service.common.security.model.UserPrincipal;

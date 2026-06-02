@@ -4,7 +4,6 @@ import com.example.order_service.common.exception.external.ExternalClientExcepti
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
 import com.example.order_service.infrastructure.client.ProductFeignClient;
 import com.example.order_service.infrastructure.dto.command.ProductCommand;
-import com.example.order_service.infrastructure.dto.request.ProductClientRequest;
 import com.example.order_service.support.annotation.IsolatedTest;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,8 +12,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-
-import java.util.List;
 
 import static com.example.order_service.support.TestFixtureUtil.fixtureMonkey;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

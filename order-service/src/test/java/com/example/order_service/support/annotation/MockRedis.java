@@ -1,8 +1,6 @@
 package com.example.order_service.support.annotation;
 
 import com.example.order_service.support.config.MockRedisConfig;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.TestPropertySource;
 

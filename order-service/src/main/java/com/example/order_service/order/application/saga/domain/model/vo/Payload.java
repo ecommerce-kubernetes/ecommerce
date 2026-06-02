@@ -1,6 +1,5 @@
 package com.example.order_service.order.application.saga.domain.model.vo;
 
-import com.example.order_service.order.application.saga.orchestrator.dto.command.SagaStartCommand;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -19,11 +18,8 @@ public class Payload {
         private Long productVariantId;
         private Integer quantity;
 
-        public static SagaItem from(SagaStartCommand.DeductProduct item){
-            return SagaItem.builder()
-                    .productVariantId(item.getProductVariantId())
-                    .quantity(item.getQuantity())
-                    .build();
+        public static SagaItem from(){
+            return null;
         }
     }
 
@@ -38,14 +34,6 @@ public class Payload {
         this.useToPoint = useToPoint;
     }
 
-    public static Payload from(SagaStartCommand command){
-        return Payload.builder()
-                .userId(command.getUserId())
-                .sagaItems(convert(command.getDeductProductList()))
-                .couponId(command.getCouponId())
-                .useToPoint(command.getUsedPoint())
-                .build();
-    }
 
     public boolean hasCoupon() {
         return this.couponId != null;
@@ -53,9 +41,5 @@ public class Payload {
 
     public boolean hasPoints() {
         return this.useToPoint != null && this.useToPoint > 0;
-    }
-
-    private static List<SagaItem> convert(List<SagaStartCommand.DeductProduct> items){
-        return items.stream().map(SagaItem::from).toList();
     }
 }

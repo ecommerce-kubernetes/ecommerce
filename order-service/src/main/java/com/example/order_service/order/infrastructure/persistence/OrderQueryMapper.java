@@ -2,7 +2,6 @@ package com.example.order_service.order.infrastructure.persistence;
 
 import com.querydsl.core.types.OrderSpecifier;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
 
 import java.util.Arrays;
 

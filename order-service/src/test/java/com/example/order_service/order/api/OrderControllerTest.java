@@ -1,17 +1,16 @@
 package com.example.order_service.order.api;
 
-import com.example.order_service.api.support.security.annotation.WithCustomMockUser;
-import com.example.order_service.api.support.security.config.TestSecurityConfig;
 import com.example.order_service.common.dto.PageDto;
 import com.example.order_service.common.security.model.UserRole;
-import com.example.order_service.order.api.dto.request.*;
+import com.example.order_service.order.api.dto.request.OrderRequest;
 import com.example.order_service.order.api.dto.response.OrderResponse;
 import com.example.order_service.order.application.service.order.OrderFacade;
 import com.example.order_service.order.application.service.order.OrderQueryService;
 import com.example.order_service.order.application.service.order.dto.command.OrderCommand;
-import com.example.order_service.order.application.dto.result.OrderDetailResponse;
-import com.example.order_service.order.application.service.order.dto.result.OrderResult;
 import com.example.order_service.order.application.service.order.dto.command.OrderSearchCommand;
+import com.example.order_service.order.application.service.order.dto.result.OrderResult;
+import com.example.order_service.support.annotation.WithCustomMockUser;
+import com.example.order_service.support.config.TestSecurityConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
@@ -35,7 +34,6 @@ import org.springframework.util.MultiValueMap;
 import java.util.List;
 import java.util.stream.Stream;
 
-import static com.example.order_service.api.support.fixture.order.OrderResponseFixture.anOrderDetailResponse;
 import static com.example.order_service.support.TestFixtureUtil.fixtureMonkey;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
@@ -151,100 +149,27 @@ class OrderControllerTest {
         }
     }
 
-    @Test
-    @DisplayName("결제 승인시 해당 주문의 정보를 반환한다")
-    @WithCustomMockUser
-    void confirm() throws Exception {
-        //given
-        OrderConfirmRequest request = confirmBaseRequest().build();
-        OrderDetailResponse response = anOrderDetailResponse().build();
-
-        given(orderFacade.confirmOrderPayment(anyString(), anyLong(), anyString(), anyLong()))
-                .willReturn(response);
-        //when
-        //then
-        mockMvc.perform(post("/orders/confirm")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(response)));
-    }
-
-    @Test
-    @DisplayName("결제 승인시 권한은 유저 권한이여야 한다")
-    @WithCustomMockUser(userRole = UserRole.ROLE_ADMIN)
-    void confirm_Admin_role() throws Exception {
-        //given
-        OrderConfirmRequest request = confirmBaseRequest().build();
-        //when
-        //then
-        mockMvc.perform(post("/orders/confirm")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andDo(print())
-                .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.code").value("FORBIDDEN"))
-                .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다"))
-                .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.path").value("/orders/confirm"));
-    }
-
-    @Test
-    @DisplayName("로그인 하지 않은 사용자는 결제 승인을 요청할 수 없다")
-    void confirm_unAuthorized() throws Exception {
-        //given
-        OrderConfirmRequest request = confirmBaseRequest().build();
-        //when
-        //then
-        mockMvc.perform(post("/orders/confirm")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andDo(print())
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
-                .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다"))
-                .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.path").value("/orders/confirm"));
-    }
-
-    @ParameterizedTest(name = "{0}")
-    @DisplayName("결제 승인 요청시 유효성 검증에 실패하면 400 에러를 반환한다")
-    @MethodSource("provideInvalidConfirmRequest")
-    @WithCustomMockUser
-    void confirm_validation(String description, OrderConfirmRequest request, String errorMessage) throws Exception {
-        mockMvc.perform(post("/orders/confirm")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andDo(print())
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value("VALIDATION"))
-                .andExpect(jsonPath("$.message").value(errorMessage))
-                .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.path").value("/orders/confirm"));
-    }
-
-    @Test
-    @DisplayName("주문 정보를 조회한다")
-    @WithCustomMockUser
-    void getOrder() throws Exception {
-        //given
-        OrderResult.Detail result = fixtureMonkey.giveMeOne(OrderResult.Detail.class);
-        given(orderQueryService.getOrder(anyString(), anyLong()))
-                .willReturn(result);
-        OrderResponse.Detail response = OrderResponse.Detail.from(result);
-        //when
-        //then
-        mockMvc.perform(get("/orders/{orderId}", 1L)
-                .contentType(MediaType.APPLICATION_JSON))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(response)));
-    }
-
     @Nested
     @DisplayName("주문 조회")
     class GetOrder {
+
+        @Test
+        @DisplayName("주문 정보를 조회한다")
+        @WithCustomMockUser
+        void getOrder() throws Exception {
+            //given
+            OrderResult.Detail result = fixtureMonkey.giveMeOne(OrderResult.Detail.class);
+            given(orderQueryService.getOrder(anyString(), anyLong()))
+                    .willReturn(result);
+            OrderResponse.Detail response = OrderResponse.Detail.from(result);
+            //when
+            //then
+            mockMvc.perform(get("/orders/{orderId}", 1L)
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andDo(print())
+                    .andExpect(status().isOk())
+                    .andExpect(content().json(objectMapper.writeValueAsString(response)));
+        }
 
         @Test
         @DisplayName("주문 정보를 조회할때는 유저 권한이여야 한다")
@@ -353,20 +278,5 @@ class OrderControllerTest {
                     .andExpect(jsonPath("$.path").value("/orders"));
         }
 
-    }
-
-    private static Stream<Arguments> provideInvalidConfirmRequest(){
-        return Stream.of(
-                Arguments.of("주문 ID null", confirmBaseRequest().orderNo(null).build(), "주문 번호는 필수 입니다"),
-                Arguments.of("결제 키 null", confirmBaseRequest().paymentKey(null).build(), "결제 키는 필수 입니다"),
-                Arguments.of("결제 가격 null", confirmBaseRequest().amount(null).build(), "결제 가격은 필수 입니다")
-        );
-    }
-
-    private static OrderConfirmRequest.OrderConfirmRequestBuilder confirmBaseRequest() {
-        return OrderConfirmRequest.builder()
-                .orderNo(ORDER_NO)
-                .paymentKey("paymentKey")
-                .amount(10000L);
     }
 }

@@ -11,12 +11,13 @@ import java.time.LocalDateTime;
 public class PaymentContext {
 
     @Builder
-    public record Create (
+    public record Create(
             Long userId,
             String orderNo,
             String paymentKey,
             Money totalAmount
-    ) {}
+    ) {
+    }
 
     @Builder
     public record Approval(
@@ -25,6 +26,7 @@ public class PaymentContext {
             PaymentStatus status,
             PaymentMethod method,
             LocalDateTime approvedAt
-    ){}
+    ) {
+    }
 
 }
