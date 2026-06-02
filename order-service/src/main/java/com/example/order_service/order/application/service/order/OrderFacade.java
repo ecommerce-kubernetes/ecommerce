@@ -2,8 +2,6 @@ package com.example.order_service.order.application.service.order;
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.business.BusinessException;
-import com.example.order_service.order.application.dto.result.OrderDetailResponse;
-import com.example.order_service.order.application.service.order.dto.result.OrderResult;
 import com.example.order_service.order.application.external.OrderCouponGateway;
 import com.example.order_service.order.application.external.OrderProductGateway;
 import com.example.order_service.order.application.external.OrderUserGateway;
@@ -15,7 +13,7 @@ import com.example.order_service.order.application.external.dto.result.OrderUser
 import com.example.order_service.order.application.mapper.OrderMapper;
 import com.example.order_service.order.application.service.order.dto.command.OrderCommand;
 import com.example.order_service.order.application.service.order.dto.command.OrderContext;
-import com.example.order_service.order.domain.model.OrderFailureCode;
+import com.example.order_service.order.application.service.order.dto.result.OrderResult;
 import com.example.order_service.order.domain.model.OrderSheet;
 import com.example.order_service.order.domain.model.OrderSheetItem;
 import com.example.order_service.order.domain.policy.PointUsagePolicy;
@@ -27,6 +25,15 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+/**
+ * 주문 관련 플로우를 담당하는 오케스트레이션 서비스
+ * <p>
+ *     외부 MSA 도메인과의 통신을 통해 주문 생성 검증, 주문을 생성하는 플로우를 담당
+ * </p>
+ *
+ * @author 최민식
+ * @since 2026. 06. 02.
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -39,7 +46,7 @@ public class OrderFacade {
     private final OrderProductGateway orderProductGateway;
     private final OrderCouponGateway orderCouponGateway;
     private final OrderSheetRepository orderSheetRepository;
-    private final OrderService orderService;
+    private final OrderCommandService orderCommandService;
 
     /**
      * 주문 생성
@@ -63,7 +70,7 @@ public class OrderFacade {
         OrderUserResult.UserPoint userPoints = getUserPoints(orderSheet);
         validator.validate(orderSheet, products, appliedCoupons, userPoints, pointPolicy);
         OrderContext.CreateOrderContext context = orderMapper.toContext(orderSheet);
-        return orderService.saveOrder(context);
+        return orderCommandService.saveOrder(context);
     }
 
     private OrderProductResult.ProductList getOrderedProducts(List<OrderSheetItem> items) {
@@ -93,16 +100,6 @@ public class OrderFacade {
         Long userId = orderSheet.getOrderer().getUserId();
         Money usedPoints = orderSheet.getUsedPoints();
         return orderUserGateway.getUserPointsForOrder(userId, usedPoints);
-    }
-
-    public void preparePayment(String orderNo) {
-    }
-
-    public void processOrderFailure(String orderNo, OrderFailureCode orderFailureCode) {
-    }
-
-    public OrderDetailResponse confirmOrderPayment(String orderNo, Long userId, String paymentKey, Long amount) {
-        return null;
     }
 
     private OrderSheet findOrderSheetById(String sheetId) {

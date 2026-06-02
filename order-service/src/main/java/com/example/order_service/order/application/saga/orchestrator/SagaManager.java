@@ -2,11 +2,8 @@ package com.example.order_service.order.application.saga.orchestrator;
 
 import com.example.order_service.order.application.saga.domain.model.SagaStatus;
 import com.example.order_service.order.application.saga.domain.model.SagaStep;
-import com.example.order_service.order.application.saga.domain.model.vo.Payload;
 import com.example.order_service.order.application.saga.domain.service.SagaService;
 import com.example.order_service.order.application.saga.domain.service.dto.SagaInstanceDto;
-import com.example.order_service.order.application.saga.dto.SagaCommand;
-import com.example.order_service.order.application.saga.orchestrator.dto.command.SagaStartCommand;
 import com.example.order_service.order.application.saga.orchestrator.dto.command.SagaStepResultCommand;
 import com.example.order_service.order.application.saga.orchestrator.event.SagaAbortEvent;
 import com.example.order_service.order.application.saga.orchestrator.handler.SagaStepHandler;
@@ -28,19 +25,6 @@ public class SagaManager {
     private final SagaStepHandlerFactory handlerFactory;
     private final ApplicationEventPublisher applicationEventPublisher;
 
-    public void startSaga(SagaCommand.StartSaga command) {
-    }
-
-    public void startSaga(SagaStartCommand command) {
-        // payload  생성
-        Payload payload = Payload.from(command);
-        // 첫번째 단계 생성 [상품 재고 감소]
-        SagaStep firstStep = SagaFlow.initialStep(payload);
-        // saga 인스턴스 저장
-        SagaInstanceDto sagaInstanceDto = sagaService.initialize(command.getOrderNo(), payload, firstStep);
-        // sagaHandler를 찾아 saga를 진행
-        processStep(sagaInstanceDto);
-    }
 
     public void handleStepResult(SagaStepResultCommand command) {
         SagaInstanceDto saga = sagaService.getSagaByOrderNo(command.getOrderNo());

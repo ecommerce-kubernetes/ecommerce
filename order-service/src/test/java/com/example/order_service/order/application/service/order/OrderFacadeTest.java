@@ -2,7 +2,6 @@ package com.example.order_service.order.application.service.order;
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.business.BusinessException;
-import com.example.order_service.order.application.service.order.dto.result.OrderResult;
 import com.example.order_service.order.application.external.OrderCouponGateway;
 import com.example.order_service.order.application.external.OrderProductGateway;
 import com.example.order_service.order.application.external.OrderUserGateway;
@@ -12,6 +11,7 @@ import com.example.order_service.order.application.external.dto.result.OrderUser
 import com.example.order_service.order.application.mapper.OrderMapper;
 import com.example.order_service.order.application.service.order.dto.command.OrderCommand;
 import com.example.order_service.order.application.service.order.dto.command.OrderContext;
+import com.example.order_service.order.application.service.order.dto.result.OrderResult;
 import com.example.order_service.order.domain.model.OrderSheet;
 import com.example.order_service.order.domain.model.OrderSheetItem;
 import com.example.order_service.order.domain.repository.OrderSheetRepository;
@@ -45,7 +45,7 @@ public class OrderFacadeTest {
     @Mock
     private OrderSheetRepository orderSheetRepository;
     @Mock
-    private OrderService orderService;
+    private OrderCommandService orderCommandService;
     @Mock
     private OrderMapper orderMapper;
     @Mock
@@ -82,7 +82,7 @@ public class OrderFacadeTest {
             given(orderProductGateway.getProducts(anyList())).willReturn(productResult);
             given(orderCouponGateway.calculate(any())).willReturn(couponResult);
             given(orderMapper.toContext(any())).willReturn(orderContext);
-            given(orderService.saveOrder(any())).willReturn(expectedResult);
+            given(orderCommandService.saveOrder(any())).willReturn(expectedResult);
             //when
             OrderResult.Create result = orderFacade.initialOrder(command);
             //then
@@ -90,7 +90,7 @@ public class OrderFacadeTest {
             then(orderProductGateway).should().getProducts(anyList());
             then(orderCouponGateway).should().calculate(any());
             then(orderUserGateway).should().getUserPointsForOrder(anyLong(), any());
-            then(orderService).should().saveOrder(any());
+            then(orderCommandService).should().saveOrder(any());
         }
 
         @Test

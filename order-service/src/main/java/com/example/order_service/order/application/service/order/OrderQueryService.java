@@ -1,8 +1,8 @@
 package com.example.order_service.order.application.service.order;
 
 import com.example.order_service.common.exception.business.BusinessException;
-import com.example.order_service.order.application.service.order.dto.result.OrderResult;
 import com.example.order_service.order.application.service.order.dto.command.OrderSearchCommand;
+import com.example.order_service.order.application.service.order.dto.result.OrderResult;
 import com.example.order_service.order.domain.model.Order;
 import com.example.order_service.order.domain.repository.OrderRepository;
 import com.example.order_service.order.domain.repository.OrderSearchRepository;
@@ -13,6 +13,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * 주문 조회 담당 서비스
+ * <p>
+ *     주문 조회 로직을 담당하는 서비스
+ * </p>
+ * @author 최민식
+ * @since 2026. 06. 02
+ */
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)

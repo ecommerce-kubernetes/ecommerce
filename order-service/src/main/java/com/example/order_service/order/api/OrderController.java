@@ -2,16 +2,14 @@ package com.example.order_service.order.api;
 
 import com.example.order_service.common.dto.PageDto;
 import com.example.order_service.common.security.model.UserPrincipal;
-import com.example.order_service.order.api.dto.request.OrderConfirmRequest;
 import com.example.order_service.order.api.dto.request.OrderRequest;
 import com.example.order_service.order.api.dto.request.OrderSearchCondition;
 import com.example.order_service.order.api.dto.response.OrderResponse;
 import com.example.order_service.order.application.service.order.OrderFacade;
 import com.example.order_service.order.application.service.order.OrderQueryService;
 import com.example.order_service.order.application.service.order.dto.command.OrderCommand;
-import com.example.order_service.order.application.dto.result.OrderDetailResponse;
-import com.example.order_service.order.application.service.order.dto.result.OrderResult;
 import com.example.order_service.order.application.service.order.dto.command.OrderSearchCommand;
+import com.example.order_service.order.application.service.order.dto.result.OrderResult;
 import lombok.RequiredArgsConstructor;
 import org.apache.http.HttpStatus;
 import org.springframework.data.domain.Page;
@@ -57,13 +55,5 @@ public class OrderController {
         Page<OrderResult.Summary> orders = orderQueryService.getOrders(userPrincipal.getUserId(), command, pageable);
         PageDto<OrderResponse.Summary> summaryPageDto = PageDto.of(orders, OrderResponse.Summary::from);
         return ResponseEntity.ok(summaryPageDto);
-    }
-
-    @PostMapping("/confirm")
-    public ResponseEntity<OrderDetailResponse> confirm(@AuthenticationPrincipal UserPrincipal userPrincipal,
-                                                       @RequestBody @Validated OrderConfirmRequest request) {
-        OrderDetailResponse response = orderFacade.confirmOrderPayment(request.getOrderNo(),
-                userPrincipal.getUserId(), request.getPaymentKey(), request.getAmount());
-        return ResponseEntity.ok(response);
     }
 }

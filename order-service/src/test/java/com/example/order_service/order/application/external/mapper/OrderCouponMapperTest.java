@@ -6,8 +6,6 @@ import com.example.order_service.infrastructure.dto.command.CouponCommand;
 import com.example.order_service.infrastructure.dto.response.CouponClientResponse;
 import com.example.order_service.order.application.external.dto.command.OrderCouponCommand;
 import com.example.order_service.order.application.external.dto.result.OrderCouponResult;
-import com.example.order_service.order.application.external.mapper.OrderCouponMapper;
-import com.example.order_service.order.application.external.mapper.OrderCouponMapperImpl;
 import com.example.order_service.order.domain.vo.OrderCouponSnapshot;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

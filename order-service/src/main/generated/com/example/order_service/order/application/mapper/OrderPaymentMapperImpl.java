@@ -1,7 +1,7 @@
 package com.example.order_service.order.application.mapper;
 
 import com.example.order_service.infrastructure.dto.response.TossClientResponse;
-import com.example.order_service.order.application.dto.result.OrderPaymentResult;
+
 import javax.annotation.processing.Generated;
 import org.springframework.stereotype.Component;
 

@@ -20,7 +20,6 @@ public class CartProductGateway {
     public List<CartProductResult.Info> getProducts(List<Long> variantIds) {
         return null;
     }
-
     // fallback
     private List<ProductClientResponse> fetchProductWithTranslation(List<Long> ids) {
         return null;

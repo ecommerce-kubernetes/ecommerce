@@ -1,16 +1,13 @@
 package com.example.order_service.docs.order;
 
-import com.epages.restdocs.apispec.ResourceSnippetParameters;
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.docs.descriptor.OrderDescriptor;
 import com.example.order_service.order.api.OrderController;
-import com.example.order_service.order.api.dto.request.OrderConfirmRequest;
 import com.example.order_service.order.api.dto.request.OrderRequest;
 import com.example.order_service.order.api.dto.response.OrderResponse;
 import com.example.order_service.order.application.service.order.OrderFacade;
 import com.example.order_service.order.application.service.order.OrderQueryService;
 import com.example.order_service.order.application.service.order.dto.command.OrderCommand;
-import com.example.order_service.order.application.dto.result.OrderDetailResponse;
 import com.example.order_service.order.application.service.order.dto.command.OrderSearchCommand;
 import com.example.order_service.order.application.service.order.dto.result.OrderResult;
 import com.example.order_service.order.domain.model.OrderStatus;
@@ -24,23 +21,14 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.restdocs.headers.HeaderDescriptor;
-import org.springframework.restdocs.payload.FieldDescriptor;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static com.epages.restdocs.apispec.MockMvcRestDocumentationWrapper.document;
-import static com.epages.restdocs.apispec.ResourceDocumentation.resource;
-import static com.example.order_service.api.support.fixture.order.OrderResponseFixture.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
-import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
-import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
-import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
-import static org.springframework.restdocs.payload.PayloadDocumentation.*;
-import static org.springframework.restdocs.request.RequestDocumentation.*;
+import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -51,8 +39,6 @@ public class OrderControllerDocsTest extends RestDocSupport {
     private static final String ORDER_NO = "ORD-20260101-AB12FVC";
     private OrderFacade orderFacade = mock(OrderFacade.class);
     private OrderQueryService orderQueryService = mock(OrderQueryService.class);
-
-    private static final String TAG = "ORDER";
 
     @Override
     protected String getTag() {
@@ -97,105 +83,6 @@ public class OrderControllerDocsTest extends RestDocSupport {
                         "주문을 생성한다",
                         OrderDescriptor.getOrderCreateRequest(),
                         OrderDescriptor.getOrderCreateResponse())
-                );
-    }
-
-    @Test
-    @DisplayName("주문 결제 승인 API")
-    void confirm() throws Exception {
-        //given
-        OrderConfirmRequest request = OrderConfirmRequest.builder()
-                .orderNo(ORDER_NO)
-                .paymentKey("paymentKey")
-                .amount(1000L)
-                .build();
-        HttpHeaders roleUser = createUserHeader("ROLE_USER");
-        OrderDetailResponse response = anOrderDetailResponse()
-                .payment(anPaymentResponse().build()).build();
-        given(orderFacade.confirmOrderPayment(anyString(), anyLong(), anyString(), anyLong()))
-                .willReturn(response);
-
-        HeaderDescriptor[] requestHeaders = new HeaderDescriptor[]{
-                headerWithName("Authorization").description("JWT Access Token")
-        };
-
-        FieldDescriptor[] requestFields = new FieldDescriptor[]{
-                fieldWithPath("orderNo").description("주문 번호"),
-                fieldWithPath("paymentKey").description("결제 키"),
-                fieldWithPath("amount").description("결제 금액")
-        };
-
-        FieldDescriptor[] responseFields = new FieldDescriptor[]{
-                fieldWithPath("orderNo").description("주문 번호"),
-                fieldWithPath("status").description("주문 상태"),
-                fieldWithPath("orderName").description("주문 이름"),
-
-                fieldWithPath("orderer.userId").description("주문자 아이디"),
-                fieldWithPath("orderer.userName").description("주문자 이름"),
-                fieldWithPath("orderer.phoneNumber").description("주문자 전화번호"),
-
-                fieldWithPath("orderPrice.totalOriginPrice").description("할인 전 주문 금액"),
-                fieldWithPath("orderPrice.totalProductDiscount").description("상품 총 할인 금액"),
-                fieldWithPath("orderPrice.couponDiscount").description("쿠폰 할인 금액"),
-                fieldWithPath("orderPrice.pointDiscount").description("포인트 할인 금액"),
-                fieldWithPath("orderPrice.finalPaymentAmount").description("최종 주문 금액"),
-
-                fieldWithPath("coupon.couponId").description("쿠폰 ID").optional(),
-                fieldWithPath("coupon.couponName").description("쿠폰 이름").optional(),
-                fieldWithPath("coupon.couponDiscount").description("쿠폰 할인금").optional(),
-
-                fieldWithPath("deliveryAddress").description("배송지"),
-
-                fieldWithPath("payment.paymentId").description("결제 ID"),
-                fieldWithPath("payment.paymentKey").description("결제 키"),
-                fieldWithPath("payment.amount").description("결제 금액"),
-                fieldWithPath("payment.status").description("결제 상태"),
-                fieldWithPath("payment.method").description("결제 방법"),
-                fieldWithPath("payment.approvedAt").description("결제 시각"),
-
-                fieldWithPath("createdAt").description("주문 시각"),
-
-                fieldWithPath("orderItems[].productId").description("주문 상품 ID(상품(ProductDeprecated) 식별자)"),
-                fieldWithPath("orderItems[].productVariantId").description("주문 상품 변형 ID"),
-                fieldWithPath("orderItems[].productName").description("주문 상품 이름"),
-                fieldWithPath("orderItems[].thumbnailUrl").description("주문 상품 썸네일"),
-                fieldWithPath("orderItems[].quantity").description("주문 수량"),
-                fieldWithPath("orderItems[].unitPrice.originalPrice").description("주문 상품 원본 가격"),
-                fieldWithPath("orderItems[].unitPrice.discountRate").description("상품 할인율"),
-                fieldWithPath("orderItems[].unitPrice.discountAmount").description("상품 할인 금액"),
-                fieldWithPath("orderItems[].unitPrice.discountedPrice").description("할인된 가격"),
-                fieldWithPath("orderItems[].lineTotal").description("주문 항목 총액"),
-                fieldWithPath("orderItems[].options[].optionTypeName").description("주문 상품 옵션 타입 (예: 사이즈)"),
-                fieldWithPath("orderItems[].options[].optionValueName").description("주문 상품 옵션 값 (예: XL)")
-        };
-        //when
-        //then
-        mockMvc.perform(post("/orders/confirm")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request))
-                        .headers(roleUser))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andDo(document("01-order-02-confirm",
-                        preprocessRequest(prettyPrint(),
-                                modifyHeaders()
-                                        .remove("X-User-Id")
-                                        .remove("X-User-Role")
-                                        .add("Authorization", "Bearer {ACCESS_TOKEN}")),
-                        preprocessResponse(prettyPrint()),
-                        resource(
-                                ResourceSnippetParameters.builder()
-                                        .tag(TAG)
-                                        .summary("결제 승인")
-                                        .description("주문 결제를 승인한다")
-                                        .requestHeaders(requestHeaders)
-                                        .requestFields(requestFields)
-                                        .responseFields(responseFields)
-                                        .build()
-                        ),
-                        requestHeaders(requestHeaders),
-                        requestFields(requestFields),
-                        responseFields(responseFields))
                 );
     }
 
@@ -254,13 +141,6 @@ public class OrderControllerDocsTest extends RestDocSupport {
                                 parameterWithName("year").description("조회 연도 필터"),
                                 parameterWithName("productName").description("상품명"))
                 );
-    }
-
-    private HttpHeaders createUserHeader(String userRole) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("X-User-Id", "1");
-        headers.add("X-User-Role", userRole);
-        return headers;
     }
 
     private OrderResult.Detail createDetailResult() {

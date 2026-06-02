@@ -1,0 +1,22 @@
+package com.example.order_service.payment.application.external.dto.command;
+
+import com.example.order_service.common.domain.vo.Money;
+import lombok.Builder;
+
+public class PGPaymentCommand {
+
+    @Builder
+    public record Confirm(
+            String orderNo,
+            String paymentKey,
+            Money amount
+    ) {
+        public static Confirm of(String orderNo, String paymentKey, Money amount) {
+            return Confirm.builder()
+                    .orderNo(orderNo)
+                    .paymentKey(paymentKey)
+                    .amount(amount)
+                    .build();
+        }
+    }
+}

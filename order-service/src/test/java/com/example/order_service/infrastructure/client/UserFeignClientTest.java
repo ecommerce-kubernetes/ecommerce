@@ -17,7 +17,6 @@ import org.springframework.http.MediaType;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
-import static com.example.order_service.support.TestFixtureUtil.fixtureMonkey;
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
