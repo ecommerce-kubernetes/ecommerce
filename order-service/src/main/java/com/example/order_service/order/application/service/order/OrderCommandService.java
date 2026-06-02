@@ -15,6 +15,15 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * 주문 쓰기 담당 서비스
+ * <p>
+ * 주문 생성, 주문 상태 변경과 같은 주문 객체의 생성과 변경을 담당
+ * </p>
+ *
+ * @author 최민식
+ * @since 2026 06. 02
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j

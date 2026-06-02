@@ -15,6 +15,15 @@ import com.example.order_service.payment.exception.PaymentErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+/**
+ * 결제를 담당하는 오케스트레이션 서비스
+ * <p>
+ * 외부 결제 PG 호출 및 결제 생성 오케스트레이션을 담당
+ * </p>
+ *
+ * @author 최민식
+ * @since 2026 06. 02
+ */
 @Service
 @RequiredArgsConstructor
 public class PaymentFacade {
@@ -23,6 +32,15 @@ public class PaymentFacade {
     private final PaymentMapper mapper;
     private final PaymentGateway paymentGateway;
 
+    /**
+     * 결제 생성
+     * <p>
+     * 결제 생성과 PG를 통한 결제 승인, 결제 레코드 생성 흐름을 담당
+     * </p>
+     *
+     * @param command 결제 생성 커맨드
+     * @return 결제 승인 결과
+     */
     public PaymentResult.PaymentApproval confirm(PaymentCommand.Confirm command) {
         OrderResult.Detail order = orderQueryService.getOrder(command.orderNo(), command.userId());
         if (order.status() != OrderStatus.PENDING) {

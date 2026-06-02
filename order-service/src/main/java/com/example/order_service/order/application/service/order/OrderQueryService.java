@@ -13,6 +13,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * 주문 조회 담당 서비스
+ * <p>
+ *     주문 조회 로직을 담당하는 서비스
+ * </p>
+ * @author 최민식
+ * @since 2026. 06. 02
+ */
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)

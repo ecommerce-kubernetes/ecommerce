@@ -14,6 +14,15 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * 결제 쓰기 담당 서비스
+ * <p>
+ * 결제의 상태변경, 생성과 같은 도메인 쓰기 로직을 담당
+ * </p>
+ *
+ * @author 최민식
+ * @since 2026. 06. 02.
+ */
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -22,6 +31,16 @@ public class PaymentCommandService {
     private final PaymentRepository paymentRepository;
     private final ApplicationEventPublisher eventPublisher;
 
+    /**
+     * 결제 생성
+     * <p>
+     * PG 승인 전 결제를 생성 메서드
+     * 결제의 상태는 READY로 초기화 됨
+     * </p>
+     *
+     * @param context 결제 생성 커맨드
+     * @return 생성된 결제 결과
+     */
     public PaymentResult.Default save(PaymentContext.Create context) {
         Payment payment = createPayment(context);
         Payment savedPayment = paymentRepository.save(payment);
@@ -32,6 +51,15 @@ public class PaymentCommandService {
         return Payment.create(context.orderNo(), context.userId(), context.paymentKey(), context.totalAmount());
     }
 
+    /**
+     * 결제 승인 결과 저장
+     * <p>
+     * 결제 승인 결과를 결제 레코드로 저장
+     * </p>
+     *
+     * @param context 결제 승인 결과
+     * @return 결제 처리 결과
+     */
     public PaymentResult.PaymentApproval approve(PaymentContext.Approval context) {
         Payment payment = paymentRepository.findById(context.paymentId())
                 .orElseThrow(() -> new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND));

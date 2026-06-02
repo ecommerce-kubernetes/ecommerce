@@ -25,6 +25,15 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+/**
+ * 주문 관련 플로우를 담당하는 오케스트레이션 서비스
+ * <p>
+ *     외부 MSA 도메인과의 통신을 통해 주문 생성 검증, 주문을 생성하는 플로우를 담당
+ * </p>
+ *
+ * @author 최민식
+ * @since 2026. 06. 02.
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
