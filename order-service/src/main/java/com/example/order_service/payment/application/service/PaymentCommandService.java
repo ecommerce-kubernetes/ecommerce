@@ -66,10 +66,8 @@ public class PaymentCommandService {
         PaymentRecord paymentRecord = createApprovalPaymentRecord(context);
         payment.addRecord(paymentRecord);
         payment.changeStatus(context.status());
-
         if (payment.getStatus() == PaymentStatus.DONE) {
-            PaymentCompleteEvent event = PaymentCompleteEvent.of(payment.getOrderNo(),
-                    payment.getPaymentKey());
+            PaymentCompleteEvent event = PaymentCompleteEvent.of(payment.getOrderNo());
             eventPublisher.publishEvent(event);
         }
         return PaymentResult.PaymentApproval.of(payment, paymentRecord);
