@@ -63,7 +63,7 @@ public class OrderFacade {
             throw new BusinessException(OrderErrorCode.ORDER_SHEET_ACCESS_DENIED);
         }
         if (orderSheet.isExpired()) {
-            throw new BusinessException(OrderErrorCode.ORDER_SHEET_EXPIRED);
+            throw new BusinessException(OrderErrorCode.ORDER_EXPIRED);
         }
         OrderProductResult.ProductList products = getOrderedProducts(orderSheet.getItems());
         OrderCouponResult.Calculate appliedCoupons = getAppliedCoupons(orderSheet);

@@ -144,7 +144,7 @@ public class OrderFacadeTest {
             assertThatThrownBy(() -> orderFacade.initialOrder(command))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
-                    .isEqualTo(OrderErrorCode.ORDER_SHEET_EXPIRED);
+                    .isEqualTo(OrderErrorCode.ORDER_EXPIRED);
         }
     }
 

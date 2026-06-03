@@ -1,11 +1,13 @@
 package com.example.order_service.order.domain.model;
 
 import com.example.order_service.common.domain.vo.Money;
+import com.example.order_service.common.exception.business.BusinessException;
 import com.example.order_service.common.exception.domain.InvalidDomainValueException;
 import com.example.order_service.order.domain.policy.PointUsagePolicy;
 import com.example.order_service.order.domain.vo.OrderCouponSnapshot;
 import com.example.order_service.order.domain.vo.Orderer;
 import com.example.order_service.order.domain.vo.ShippingAddress;
+import com.example.order_service.order.exception.OrderErrorCode;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -135,6 +137,24 @@ public class OrderSheet {
     }
 
     /**
+     * 주문 접근 확인
+     * <p>
+     * 주문서의 주문자가 파라미터의 유저 아이디와 같은지 검증,
+     * 주문이 만료되었는지 검증
+     * </p>
+     *
+     * @param userId 유저 아이디
+     */
+    public void validateAccess(Long userId) {
+        if (!this.orderer.getUserId().equals(userId)) {
+            throw new BusinessException(OrderErrorCode.ORDER_ACCESS_DENIED);
+        }
+        if (this.isExpired()) {
+            throw new BusinessException(OrderErrorCode.ORDER_EXPIRED);
+        }
+    }
+
+    /**
      * 주문자 확인
      * <p>
      * 유저 아이디와 주문자의 유저 아이디의 일치 여부를 반환
@@ -192,10 +212,10 @@ public class OrderSheet {
      * @param usedPoints 적용 포인트
      * @throws InvalidDomainValueException 도메인 계층 예외
      */
-    public void changeUsedPoints(Money usedPoints) {
+    public void changeUsedPoints(Money usedPoints, Money availablePoints) {
         Money eligibleAmount = calcPointEligibleAmount(this.items, this.cartCoupon);
-        if (usedPoints.isGreaterThan(eligibleAmount)) {
-            throw new InvalidDomainValueException("적용 포인트가 주문 결제 대상 금액을 초과할 수 없습니다");
+        if (usedPoints.isGreaterThan(eligibleAmount) || usedPoints.isGreaterThan(availablePoints)) {
+            throw new BusinessException(OrderErrorCode.ORDER_POINT_POLICY_VIOLATION);
         }
         this.usedPoints = usedPoints;
         this.totalPaymentAmount = eligibleAmount.subtract(usedPoints);

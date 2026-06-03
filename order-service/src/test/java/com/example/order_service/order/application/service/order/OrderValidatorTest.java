@@ -19,6 +19,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static com.example.order_service.support.TestFixtureUtil.fixtureMonkey;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class OrderValidatorTest {
@@ -32,22 +33,18 @@ public class OrderValidatorTest {
     void validateOrderProduct() {
         //given
         OrderSheet orderSheet = createOrderSheet();
-        ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "PROD1-XL-BLUE", "청바지", "/product/product/jean_1.jpg");
-        ProductPriceSnapshot price = ProductPriceSnapshot.of(Money.wons(10000L), 0, Money.ZERO, Money.wons(10000L));
-        List<ProductOptionSnapshot> options = List.of(
-                ProductOptionSnapshot.of("사이즈", "XL"),
-                ProductOptionSnapshot.of("색상", "BLUE")
-        );
-        OrderProductResult.Info product = OrderProductResult.Info.builder()
-                .productSnapshot(productSnapshot)
-                .priceSnapshot(price)
-                .options(options)
-                .build();
-        OrderProductResult.ProductList productResult = OrderProductResult.ProductList.builder()
-                .products(List.of(product))
-                .build();
-        OrderCouponResult.Calculate couponResult = couponResult();
-        OrderUserResult.UserPoint userPoint = userResult();
+        List<OrderProductResult.Info> invalidProducts = orderSheet.getItems().stream()
+                .map(item -> fixtureMonkey.giveMeBuilder(OrderProductResult.Info.class)
+                        .set("productSnapshot.productVariantId", item.getProductVariantId())
+                        .set("priceSnapshot.discountedPrice", item.getDiscountedPrice().add(Money.wons(100L)))
+                        .sample()
+                ).toList();
+
+        OrderProductResult.ProductList productResult = fixtureMonkey.giveMeBuilder(OrderProductResult.ProductList.class)
+                .set("products", invalidProducts)
+                .sample();
+        OrderCouponResult.Calculate couponResult = createValidCouponResult(orderSheet);
+        OrderUserResult.UserPoint userPoint = createValidUserPoint(orderSheet);
         //when
         //then
         assertThatThrownBy(() -> orderValidator.validate(orderSheet, productResult, couponResult, userPoint, pointUsagePolicy))
@@ -61,20 +58,14 @@ public class OrderValidatorTest {
     void validateOrderCartCoupon() {
         //given
         OrderSheet orderSheet = createOrderSheet();
-        OrderProductResult.ProductList productList = productResult();
-        OrderCouponSnapshot cartCoupon = OrderCouponSnapshot.of(2L, "장바구니 500원 할인 쿠폰", Money.wons(500L));
-        OrderCouponSnapshot itemCouponSnapshot = OrderCouponSnapshot.of(1L, "하의 1000원 할인 쿠폰", Money.wons(1000L));
-        OrderCouponResult.ItemCoupon itemCoupon = OrderCouponResult.ItemCoupon.builder()
-                .productVariantId(1L)
-                .itemCoupon(itemCouponSnapshot)
-                .build();
-        OrderCouponResult.Calculate couponResult = OrderCouponResult.Calculate.builder().cartCoupon(cartCoupon)
-                .itemCoupons(List.of(itemCoupon))
-                .build();
-        OrderUserResult.UserPoint userPoint = userResult();
+        OrderProductResult.ProductList productResult = createValidProductList(orderSheet);
+        OrderCouponResult.Calculate couponResult = fixtureMonkey.giveMeBuilder(OrderCouponResult.Calculate.class)
+                .set("cartCoupon.discountAmount", orderSheet.getCartCoupon().getDiscountAmount().add(Money.wons(500L)))
+                .sample();
+        OrderUserResult.UserPoint userPoint = createValidUserPoint(orderSheet);
         //when
         //then
-        assertThatThrownBy(() -> orderValidator.validate(orderSheet, productList, couponResult, userPoint, pointUsagePolicy))
+        assertThatThrownBy(() -> orderValidator.validate(orderSheet, productResult, couponResult, userPoint, pointUsagePolicy))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(OrderErrorCode.CART_COUPON_DISCOUNT_CHANGE);
@@ -84,20 +75,22 @@ public class OrderValidatorTest {
     @DisplayName("상품 쿠폰 할인 가격이 다른 경우 예외가 발생한다")
     void validateOrderItemCoupon() {
         OrderSheet orderSheet = createOrderSheet();
-        OrderProductResult.ProductList productList = productResult();
-        OrderCouponSnapshot cartCoupon = OrderCouponSnapshot.of(2L, "장바구니 1000원 할인 쿠폰", Money.wons(1000L));
-        OrderCouponSnapshot itemCouponSnapshot = OrderCouponSnapshot.of(1L, "하의 500원 할인 쿠폰", Money.wons(500L));
-        OrderCouponResult.ItemCoupon itemCoupon = OrderCouponResult.ItemCoupon.builder()
-                .productVariantId(1L)
-                .itemCoupon(itemCouponSnapshot)
-                .build();
-        OrderCouponResult.Calculate couponResult = OrderCouponResult.Calculate.builder().cartCoupon(cartCoupon)
-                .itemCoupons(List.of(itemCoupon))
-                .build();
-        OrderUserResult.UserPoint userPoint = userResult();
+        OrderProductResult.ProductList productResult = createValidProductList(orderSheet);
+        List<OrderCouponResult.ItemCoupon> invalidItemCoupons = orderSheet.getItems().stream()
+                .map(item -> fixtureMonkey.giveMeBuilder(OrderCouponResult.ItemCoupon.class)
+                        .set("productVariantId", item.getProductVariantId())
+                        .set("itemCoupon.discountAmount", item.getAppliedCouponDiscount().add(Money.wons(100L)))
+                        .sample()
+                ).toList();
+
+        OrderCouponResult.Calculate couponResult = fixtureMonkey.giveMeBuilder(OrderCouponResult.Calculate.class)
+                .set("cartCoupon.discountAmount", orderSheet.getCartCoupon().getDiscountAmount())
+                .set("itemCoupons", invalidItemCoupons)
+                .sample();
+        OrderUserResult.UserPoint userPoint = createValidUserPoint(orderSheet);
         //when
         //then
-        assertThatThrownBy(() -> orderValidator.validate(orderSheet, productList, couponResult, userPoint, pointUsagePolicy))
+        assertThatThrownBy(() -> orderValidator.validate(orderSheet, productResult, couponResult, userPoint, pointUsagePolicy))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(OrderErrorCode.ITEM_COUPON_DISCOUNT_CHANGE);
@@ -108,13 +101,12 @@ public class OrderValidatorTest {
     void validateOrderPoints() {
         //given
         OrderSheet orderSheet = createOrderSheet();
-        orderSheet.changeUsedPoints(Money.wons(1000L));
-        OrderProductResult.ProductList productList = productResult();
-        OrderCouponResult.Calculate calculate = couponResult();
-        OrderUserResult.UserPoint pointResult = OrderUserResult.UserPoint.builder()
-                .userId(1L)
-                .ownedPoints(Money.wons(300L))
-                .build();
+        orderSheet.changeUsedPoints(Money.wons(1000L), Money.wons(10000L));
+        OrderProductResult.ProductList productList = createValidProductList(orderSheet);
+        OrderCouponResult.Calculate calculate = createValidCouponResult(orderSheet);
+        OrderUserResult.UserPoint pointResult = fixtureMonkey.giveMeBuilder(OrderUserResult.UserPoint.class)
+                .set("ownedPoints", Money.wons(500L))
+                .sample();
         //when
         //then
         assertThatThrownBy(() -> orderValidator.validate(orderSheet, productList, calculate, pointResult, pointUsagePolicy))
@@ -123,41 +115,37 @@ public class OrderValidatorTest {
                 .isEqualTo(OrderErrorCode.POINTS_DISCOUNT_CHANGE);
     }
 
-    private OrderUserResult.UserPoint userResult() {
-        return OrderUserResult.UserPoint.builder()
-                .userId(1L)
-                .ownedPoints(Money.wons(10000L))
-                .build();
+    private OrderProductResult.ProductList createValidProductList(OrderSheet orderSheet) {
+        List<OrderProductResult.Info> validProducts = orderSheet.getItems().stream()
+                .map(item -> fixtureMonkey.giveMeBuilder(OrderProductResult.Info.class)
+                        .set("productSnapshot.productVariantId", item.getProductVariantId())
+                        .set("priceSnapshot.discountedPrice", item.getDiscountedPrice())
+                        .sample()
+                ).toList();
+
+        return fixtureMonkey.giveMeBuilder(OrderProductResult.ProductList.class)
+                .set("products", validProducts)
+                .sample();
     }
 
-    private OrderCouponResult.Calculate couponResult() {
-        OrderCouponSnapshot cartCoupon = OrderCouponSnapshot.of(2L, "장바구니 1000원 할인 쿠폰", Money.wons(1000L));
-        OrderCouponSnapshot itemCoupon = OrderCouponSnapshot.of(1L, "하의 1000원 할인 쿠폰", Money.wons(1000L));
-        return OrderCouponResult.Calculate.builder()
-                .cartCoupon(cartCoupon)
-                .itemCoupons(
-                        List.of(OrderCouponResult.ItemCoupon.builder()
-                                .productVariantId(1L)
-                                .itemCoupon(itemCoupon)
-                                .build())
-                ).build();
+    private OrderCouponResult.Calculate createValidCouponResult(OrderSheet orderSheet) {
+        List<OrderCouponResult.ItemCoupon> validItemCoupons = orderSheet.getItems().stream()
+                .map(item -> fixtureMonkey.giveMeBuilder(OrderCouponResult.ItemCoupon.class)
+                        .set("productVariantId", item.getProductVariantId())
+                        .set("itemCoupon.discountAmount", item.getAppliedCouponDiscount())
+                        .sample())
+                .toList();
+
+        return fixtureMonkey.giveMeBuilder(OrderCouponResult.Calculate.class)
+                .set("cartCoupon.discountAmount", orderSheet.getCartCoupon().getDiscountAmount())
+                .set("itemCoupons", validItemCoupons)
+                .sample();
     }
 
-    private OrderProductResult.ProductList productResult() {
-        ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "PROD1-XL-BLUE", "청바지", "/product/product/jean_1.jpg");
-        ProductPriceSnapshot price = ProductPriceSnapshot.of(Money.wons(10000L), 10, Money.wons(1000L), Money.wons(9000L));
-        List<ProductOptionSnapshot> options = List.of(
-                ProductOptionSnapshot.of("사이즈", "XL"),
-                ProductOptionSnapshot.of("색상", "BLUE")
-        );
-        OrderProductResult.Info product = OrderProductResult.Info.builder()
-                .productSnapshot(productSnapshot)
-                .priceSnapshot(price)
-                .options(options)
-                .build();
-        return OrderProductResult.ProductList.builder()
-                .products(List.of(product))
-                .build();
+    private OrderUserResult.UserPoint createValidUserPoint(OrderSheet orderSheet) {
+        return fixtureMonkey.giveMeBuilder(OrderUserResult.UserPoint.class)
+                .set("ownedPoints", orderSheet.getUsedPoints().add(Money.wons(10000L)))
+                .sample();
     }
 
     private OrderSheet createOrderSheet() {

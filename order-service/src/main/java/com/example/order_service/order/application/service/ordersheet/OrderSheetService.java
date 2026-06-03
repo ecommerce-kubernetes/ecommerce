@@ -18,6 +18,7 @@ import com.example.order_service.order.domain.policy.PointUsagePolicy;
 import com.example.order_service.order.domain.repository.OrderSheetRepository;
 import com.example.order_service.order.domain.vo.OrderCouponSnapshot;
 import com.example.order_service.order.domain.vo.ShippingAddress;
+import com.example.order_service.order.exception.OrderErrorCode;
 import com.example.order_service.order.exception.OrderSheetErrorCode;
 import com.example.order_service.order.infrastructure.config.OrderSheetProperties;
 import lombok.RequiredArgsConstructor;
@@ -154,11 +155,8 @@ public class OrderSheetService {
                 command.usedPoints()
         );
         Money availablePoints = orderSheet.calcAvailablePoints(userPoints.ownedPoints(), pointUsagePolicy);
-        if (command.usedPoints().isGreaterThan(availablePoints)) {
-            throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_POINT_POLICY_VIOLATION);
-        }
         // [NOTE] 주문 가격 정보가 사용포인트에 맞추어 수정됨
-        orderSheet.changeUsedPoints(command.usedPoints());
+        orderSheet.changeUsedPoints(command.usedPoints(), availablePoints);
         repository.save(orderSheet, orderSheet.getRemainingTtl());
         return OrderSheetResult.Detail.of(orderSheet, userPoints.ownedPoints(), availablePoints);
     }
@@ -249,13 +247,8 @@ public class OrderSheetService {
 
     private OrderSheet getValidateOrderSheet(String sheetId, Long userId) {
         OrderSheet orderSheet = repository.findById(sheetId)
-                .orElseThrow(() -> new BusinessException(OrderSheetErrorCode.ORDER_SHEET_NOT_FOUND));
-        if (!orderSheet.isOwner(userId)) {
-            throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_NO_PERMISSION);
-        }
-        if (orderSheet.isExpired()) {
-            throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_EXPIRED);
-        }
+                .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_NOT_FOUND));
+        orderSheet.validateAccess(userId);
         return orderSheet;
     }
 }

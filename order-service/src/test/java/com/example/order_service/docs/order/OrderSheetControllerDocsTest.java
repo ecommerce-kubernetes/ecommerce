@@ -8,6 +8,7 @@ import com.example.order_service.order.api.dto.response.OrderSheetResponse;
 import com.example.order_service.order.application.service.ordersheet.OrderSheetService;
 import com.example.order_service.order.application.service.ordersheet.dto.command.OrderSheetCommand;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetResult;
+import com.example.order_service.order.domain.vo.*;
 import com.example.order_service.support.RestDocSupport;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -280,34 +281,25 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
     }
 
     private OrderSheetResult.Detail createOrderSheetResult() {
+        OrderCouponSnapshot cartCoupon = OrderCouponSnapshot.of(1L, "첫 구매 1000원 할인", Money.wons(1000L));
         return OrderSheetResult.Detail.builder()
                 .sheetId("sheetId")
                 .expiresAt(LocalDateTime.now().plusMinutes(30))
                 .orderer(createOrderer())
                 .shippingAddress(createShippingAddress())
                 .items(createItems())
-                .cartCoupon(createCartCoupon())
+                .cartCoupon(cartCoupon)
                 .point(createPoint())
                 .paymentSummary(createPaymentSummary())
                 .build();
     }
 
-    private OrderSheetResult.OrdererInfo createOrderer() {
-        return OrderSheetResult.OrdererInfo.builder()
-                .userId(1L)
-                .userName("주문자")
-                .phoneNumber("010-1234-5678")
-                .build();
+    private Orderer createOrderer() {
+        return Orderer.of(1L, "주문자", "010-1234-5678");
     }
 
-    private OrderSheetResult.ShippingInfo createShippingAddress() {
-        return OrderSheetResult.ShippingInfo.builder()
-                .receiverName("수령인")
-                .receiverPhone("010-1234-5678")
-                .zipCode("12345")
-                .address("서울시 테헤란로 123")
-                .addressDetail("123동 1234호")
-                .build();
+    private ShippingAddress createShippingAddress() {
+        return ShippingAddress.of("수령인", "010-1234-5678", "12345", "서울시 테헤란로 123", "123동 1234호");
     }
 
     private OrderSheetResult.PaymentSummary createPaymentSummary() {
@@ -329,6 +321,13 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
     }
 
     private List<OrderSheetResult.OrderItem> createItems() {
+        ProductPriceSnapshot productPriceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L), 10,
+                Money.wons(1000L), Money.wons(9000L));
+        OrderCouponSnapshot itemCoupon = OrderCouponSnapshot.of(2L, "하의 1000원 할인", Money.wons(1000L));
+        List<ProductOptionSnapshot> productOptionSnapshots = List.of(
+                ProductOptionSnapshot.of("사이즈", "XL"),
+                ProductOptionSnapshot.of("색상", "BLUE")
+        );
         return List.of(
                 OrderSheetResult.OrderItem.builder()
                         .sheetItemId("sheetItemId")
@@ -337,48 +336,10 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
                         .productName("청바지")
                         .thumbnail("/product/product/jean_1.jpg")
                         .quantity(1)
-                        .unitPrice(createItemPrice())
+                        .productPrice(productPriceSnapshot)
                         .lineTotal(Money.wons(8000L))
-                        .appliedItemCoupon(createItemCoupon())
-                        .options(createItemOption())
-                        .build()
-        );
-    }
-
-    private OrderSheetResult.OrderItemPrice createItemPrice() {
-        return OrderSheetResult.OrderItemPrice.builder()
-                .originalPrice(Money.wons(10000L))
-                .discountRate(10)
-                .discountAmount(Money.wons(1000L))
-                .discountedPrice(Money.wons(9000L))
-                .build();
-    }
-
-    private OrderSheetResult.Coupon createItemCoupon() {
-        return OrderSheetResult.Coupon.builder()
-                .couponId(2L)
-                .couponName("하의 1000원 할인")
-                .discountAmount(Money.wons(1000L))
-                .build();
-    }
-
-    private OrderSheetResult.Coupon createCartCoupon() {
-        return OrderSheetResult.Coupon.builder()
-                .couponId(1L)
-                .couponName("첫 구매 1000원 할인")
-                .discountAmount(Money.wons(1000L))
-                .build();
-    }
-
-    private List<OrderSheetResult.OrderItemOption> createItemOption() {
-        return List.of(
-                OrderSheetResult.OrderItemOption.builder()
-                        .optionTypeName("사이즈")
-                        .optionValueName("XL")
-                        .build(),
-                OrderSheetResult.OrderItemOption.builder()
-                        .optionTypeName("색상")
-                        .optionValueName("BLUE")
+                        .appliedItemCoupon(itemCoupon)
+                        .options(productOptionSnapshots)
                         .build()
         );
     }

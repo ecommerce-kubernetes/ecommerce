@@ -1,6 +1,7 @@
 package com.example.order_service.order.api.dto.response;
 
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetResult;
+import com.example.order_service.order.domain.vo.*;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 
@@ -31,7 +32,7 @@ public class OrderSheetResponse {
             OrdererResponse orderer,
             ShippingAddressResponse shippingAddress,
             List<OrderItem> items,
-            Coupon cartCoupon,
+            OrderCouponResponse cartCoupon,
             Point point,
             PaymentSummary paymentSummary
     ) {
@@ -42,7 +43,7 @@ public class OrderSheetResponse {
                     .orderer(OrdererResponse.from(result.orderer()))
                     .shippingAddress(ShippingAddressResponse.from(result.shippingAddress()))
                     .items(OrderItem.from(result.items()))
-                    .cartCoupon(Coupon.from(result.cartCoupon()))
+                    .cartCoupon(OrderCouponResponse.from(result.cartCoupon()))
                     .point(Point.from(result.point()))
                     .paymentSummary(PaymentSummary.from(result.paymentSummary()))
                     .build();
@@ -55,11 +56,11 @@ public class OrderSheetResponse {
             String userName,
             String phoneNumber
     ) {
-        public static OrdererResponse from(OrderSheetResult.OrdererInfo result) {
+        public static OrdererResponse from(Orderer orderer) {
             return OrdererResponse.builder()
-                    .userId(result.userId())
-                    .userName(result.userName())
-                    .phoneNumber(result.phoneNumber())
+                    .userId(orderer.getUserId())
+                    .userName(orderer.getUserName())
+                    .phoneNumber(orderer.getPhoneNumber())
                     .build();
         }
     }
@@ -72,28 +73,28 @@ public class OrderSheetResponse {
             String address,
             String addressDetail
     ) {
-        public static ShippingAddressResponse from(OrderSheetResult.ShippingInfo result) {
+        public static ShippingAddressResponse from(ShippingAddress shippingAddress) {
             return ShippingAddressResponse.builder()
-                    .receiverName(result.receiverName())
-                    .receiverPhone(result.receiverPhone())
-                    .zipCode(result.zipCode())
-                    .address(result.address())
-                    .addressDetail(result.addressDetail())
+                    .receiverName(shippingAddress.getReceiverName())
+                    .receiverPhone(shippingAddress.getReceiverPhone())
+                    .zipCode(shippingAddress.getZipCode())
+                    .address(shippingAddress.getAddress())
+                    .addressDetail(shippingAddress.getAddressDetail())
                     .build();
         }
     }
 
     @Builder
-    public record Coupon(
+    public record OrderCouponResponse(
             Long couponId,
             String couponName,
             Long discountAmount
     ) {
-        public static Coupon from(OrderSheetResult.Coupon result) {
-            return Coupon.builder()
-                    .couponId(result.couponId())
-                    .couponName(result.couponName())
-                    .discountAmount(result.discountAmount().longValue())
+        public static OrderCouponResponse from(OrderCouponSnapshot coupon) {
+            return OrderCouponResponse.builder()
+                    .couponId(coupon.getCouponId())
+                    .couponName(coupon.getCouponName())
+                    .discountAmount(coupon.getDiscountAmount().longValue())
                     .build();
         }
     }
@@ -121,10 +122,10 @@ public class OrderSheetResponse {
             String productName,
             String thumbnail,
             int quantity,
-            UnitPrice unitPrice,
+            ProductPriceResponse unitPrice,
             Long lineTotal,
-            Coupon appliedItemCoupon,
-            List<ItemOption> options
+            OrderCouponResponse appliedItemCoupon,
+            List<ProductOptionResponse> options
     ) {
         public static OrderItem from(OrderSheetResult.OrderItem result) {
             return OrderItem.builder()
@@ -134,10 +135,10 @@ public class OrderSheetResponse {
                     .productName(result.productName())
                     .thumbnail(result.thumbnail())
                     .quantity(result.quantity())
-                    .unitPrice(UnitPrice.from(result.unitPrice()))
+                    .unitPrice(ProductPriceResponse.from(result.productPrice()))
                     .lineTotal(result.lineTotal().longValue())
-                    .appliedItemCoupon(Coupon.from(result.appliedItemCoupon()))
-                    .options(ItemOption.from(result.options()))
+                    .appliedItemCoupon(OrderCouponResponse.from(result.appliedItemCoupon()))
+                    .options(ProductOptionResponse.from(result.options()))
                     .build();
         }
 
@@ -166,36 +167,36 @@ public class OrderSheetResponse {
     }
 
     @Builder
-    public record UnitPrice(
+    public record ProductPriceResponse(
             Long originalPrice,
             Integer discountRate,
             Long discountAmount,
             Long discountedPrice
     ) {
-        public static UnitPrice from(OrderSheetResult.OrderItemPrice result) {
-            return UnitPrice.builder()
-                    .originalPrice(result.originalPrice().longValue())
-                    .discountRate(result.discountRate())
-                    .discountAmount(result.discountAmount().longValue())
-                    .discountedPrice(result.discountedPrice().longValue())
+        public static ProductPriceResponse from(ProductPriceSnapshot productPrice) {
+            return ProductPriceResponse.builder()
+                    .originalPrice(productPrice.getOriginalPrice().longValue())
+                    .discountRate(productPrice.getDiscountRate())
+                    .discountAmount(productPrice.getDiscountAmount().longValue())
+                    .discountedPrice(productPrice.getDiscountedPrice().longValue())
                     .build();
         }
     }
 
     @Builder
-    public record ItemOption(
+    public record ProductOptionResponse(
             String optionTypeName,
             String optionValueName
     ) {
-        public static ItemOption from(OrderSheetResult.OrderItemOption result) {
-            return ItemOption.builder()
-                    .optionTypeName(result.optionTypeName())
-                    .optionValueName(result.optionValueName())
+        public static ProductOptionResponse from(ProductOptionSnapshot option) {
+            return ProductOptionResponse.builder()
+                    .optionTypeName(option.getOptionTypeName())
+                    .optionValueName(option.getOptionValueName())
                     .build();
         }
 
-        public static List<ItemOption> from(List<OrderSheetResult.OrderItemOption> results) {
-            return results.stream().map(ItemOption::from).toList();
+        public static List<ProductOptionResponse> from(List<ProductOptionSnapshot> options) {
+            return options.stream().map(ProductOptionResponse::from).toList();
         }
     }
 }
