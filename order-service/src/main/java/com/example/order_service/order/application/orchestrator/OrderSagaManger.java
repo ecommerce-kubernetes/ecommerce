@@ -1,6 +1,7 @@
-package com.example.order_service.order.application.saga.orchestrator;
+package com.example.order_service.order.application.orchestrator;
 
 import com.example.order_service.order.application.service.order.OrderCommandService;
+import com.example.order_service.order.application.service.order.dto.result.OrderResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -11,5 +12,6 @@ public class OrderSagaManger {
     private final OrderCommandService orderCommandService;
 
     public void startSaga(String orderNo, String paymentKey) {
+        OrderResult.Detail detail = orderCommandService.changePaid(orderNo);
     }
 }

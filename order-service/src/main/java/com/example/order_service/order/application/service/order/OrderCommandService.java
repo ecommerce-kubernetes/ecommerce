@@ -46,6 +46,10 @@ public class OrderCommandService {
         return OrderResult.Create.from(savedOrder);
     }
 
+    public OrderResult.Detail changePaid(String orderNo) {
+        return null;
+    }
+
     private Order initialOrder(OrderContext.CreateOrderContext context) {
         String orderNo = orderNo();
         List<OrderItem> orderItems = context.orderItems().stream().map(this::createOrderItems).toList();
