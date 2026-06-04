@@ -4,6 +4,7 @@ import com.example.order_service.common.entity.BaseEntity;
 import com.example.order_service.order.domain.vo.SagaPayload;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -21,7 +22,24 @@ public class OrderSagaInstance extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private SagaStatus status;
     @Embedded
-    private SagaPayload sagaPayload;
+    private SagaPayload payload;
     @Version
     private Long version;
+
+    @Builder(access = AccessLevel.PRIVATE)
+    private OrderSagaInstance(String orderNo, SagaStep currentStep, SagaStatus status, SagaPayload payload) {
+        this.orderNo = orderNo;
+        this.currentStep = currentStep;
+        this.status = status;
+        this.payload = payload;
+    }
+
+    public static OrderSagaInstance create(String orderNo, SagaStep currentStep, SagaPayload payload) {
+        return OrderSagaInstance.builder()
+                .orderNo(orderNo)
+                .currentStep(currentStep)
+                .status(SagaStatus.STARTED)
+                .payload(payload)
+                .build();
+    }
 }

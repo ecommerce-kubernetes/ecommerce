@@ -24,8 +24,7 @@ public class OrderSagaManager {
     public void startSaga(String orderNo) {
         OrderResult.Detail order = orderCommandService.changePaid(orderNo);
         SagaPayload payload = createPayload(order);
-        OrderSagaCommand.Create command = OrderSagaCommand.Create.of(order.orderNo(), SagaStep.INVENTORY_DEDUCT_PENDING,
-                SagaStatus.STARTED, payload);
+        OrderSagaCommand.Create command = OrderSagaCommand.Create.of(order.orderNo(), SagaStep.INVENTORY_DEDUCT_PENDING, payload);
         orderSagaService.createSaga(command);
     }
 
