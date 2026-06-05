@@ -4,7 +4,7 @@ import com.example.order_service.order.application.messaging.SagaMessageHandler;
 import com.example.order_service.order.application.messaging.dto.SagaMessage;
 import com.example.order_service.order.domain.saga.SagaStep;
 import com.example.order_service.order.infrastructure.config.SagaProperties;
-import com.example.order_service.order.infrastructure.messaging.dto.InventoryMessage;
+import com.example.order_service.order.infrastructure.messaging.dto.CouponMessage;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -13,36 +13,36 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class InventoryMessageHandler implements SagaMessageHandler {
-
+public class CouponMessageHandler implements SagaMessageHandler {
     private final ObjectMapper objectMapper;
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final SagaProperties sagaProperties;
 
+
     @Override
     public SagaStep supportsForward() {
-        return SagaStep.INVENTORY_DEDUCT_PENDING;
+        return SagaStep.COUPON_USE_PENDING;
     }
 
     @Override
     public SagaStep supportsCompensation() {
-        return SagaStep.INVENTORY_RESTORE_PENDING;
+        return SagaStep.COUPON_RESTORE_PENDING;
     }
 
     @Override
     public void compensate(SagaMessage message) {
-        InventoryMessage restore = InventoryMessage.restore(message);
+        CouponMessage restore = CouponMessage.restore(message);
         sendMessage(restore);
     }
 
     @Override
     public void forward(SagaMessage message) {
-        InventoryMessage deduct = InventoryMessage.deduct(message);
-        sendMessage(deduct);
+        CouponMessage used = CouponMessage.used(message);
+        sendMessage(used);
     }
 
-    private void sendMessage(InventoryMessage message) {
-        String topicName = sagaProperties.getInventorySagaCommand();
+    private void sendMessage(CouponMessage message) {
+        String topicName = sagaProperties.getCouponSagaCommand();
         String jsonPayload = toJson(message);
         kafkaTemplate.send(topicName, message.getOrderNo(), jsonPayload);
     }

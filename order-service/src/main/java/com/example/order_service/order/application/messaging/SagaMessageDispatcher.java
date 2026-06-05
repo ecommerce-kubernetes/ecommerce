@@ -12,8 +12,8 @@ import java.util.stream.Collectors;
 
 @Component
 public class SagaMessageDispatcher {
-    private Map<SagaStep, SagaMessageHandler> forwardHandlers;
-    private Map<SagaStep, SagaMessageHandler> compensationHandlers;
+    private final Map<SagaStep, SagaMessageHandler> forwardHandlers;
+    private final Map<SagaStep, SagaMessageHandler> compensationHandlers;
 
     public SagaMessageDispatcher(List<SagaMessageHandler> handlers) {
         this.forwardHandlers = handlers.stream()
