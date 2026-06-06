@@ -1,6 +1,7 @@
 package com.example.order_service.order.infrastructure.messaging.dto;
 
 import com.example.order_service.order.application.messaging.dto.SagaMessage;
+import com.example.order_service.order.domain.saga.SagaStep;
 import com.example.order_service.order.domain.vo.SagaPayload;
 import lombok.Builder;
 import lombok.Getter;
@@ -10,6 +11,7 @@ import lombok.Getter;
 public class PointsMessage {
     private SagaType type;
     private String orderNo;
+    private SagaStep step;
     private Points points;
 
     @Builder
@@ -29,6 +31,7 @@ public class PointsMessage {
         return PointsMessage.builder()
                 .type(SagaType.DEDUCT_POINTS)
                 .orderNo(message.getOrderNo())
+                .step(message.getStep())
                 .points(Points.from(message.getPayload()))
                 .build();
     }
@@ -37,6 +40,7 @@ public class PointsMessage {
         return PointsMessage.builder()
                 .type(SagaType.RESTORE_POINTS)
                 .orderNo(message.getOrderNo())
+                .step(message.getStep())
                 .points(Points.from(message.getPayload()))
                 .build();
     }

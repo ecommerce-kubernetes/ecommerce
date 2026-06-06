@@ -8,6 +8,9 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -26,6 +29,9 @@ public class OrderSagaInstance extends BaseEntity {
     @Version
     private Long version;
 
+    @OneToMany(mappedBy = "saga", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<SagaStepHistory> histories = new ArrayList<>();
+
     @Builder(access = AccessLevel.PRIVATE)
     private OrderSagaInstance(String orderNo, SagaStep currentStep, SagaStatus status, SagaPayload payload) {
         this.orderNo = orderNo;
@@ -41,5 +47,25 @@ public class OrderSagaInstance extends BaseEntity {
                 .status(SagaStatus.STARTED)
                 .payload(payload)
                 .build();
+    }
+
+    public void addHistory(SagaStepHistory history) {
+        histories.add(history);
+        history.setSaga(this);
+    }
+
+    public void transitionTo(SagaStep nextStep) {
+        this.currentStep = nextStep;
+        if (nextStep.isCompensation() && this.status != SagaStatus.COMPENSATING) {
+            this.status = SagaStatus.COMPENSATING;
+        }
+    }
+
+    public void complete(){
+        this.status = SagaStatus.COMPLETE;
+    }
+
+    public void failed() {
+        this.status = SagaStatus.FAILED;
     }
 }

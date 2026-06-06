@@ -5,10 +5,8 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public enum SagaStatus {
-    STARTED("진행중"),
-    COMPENSATING("보상 트랜잭션 진행중"),
-    COMPLETE("사가 완료"),
-    FAILED("사가 실패");
+public enum StepResult {
+    COMPLETED("SAGA 성공"),
+    FAILED("SAGA 실패");
     private final String description;
 }

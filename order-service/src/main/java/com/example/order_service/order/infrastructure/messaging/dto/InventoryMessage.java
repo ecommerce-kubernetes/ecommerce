@@ -1,6 +1,7 @@
 package com.example.order_service.order.infrastructure.messaging.dto;
 
 import com.example.order_service.order.application.messaging.dto.SagaMessage;
+import com.example.order_service.order.domain.saga.SagaStep;
 import com.example.order_service.order.domain.vo.SagaPayload;
 import lombok.Builder;
 import lombok.Getter;
@@ -12,6 +13,7 @@ import java.util.List;
 public class InventoryMessage {
     private SagaType type;
     private String orderNo;
+    private SagaStep step;
     private List<Item> items;
 
     @Builder
@@ -35,6 +37,7 @@ public class InventoryMessage {
         return InventoryMessage.builder()
                 .type(SagaType.DEDUCT_INVENTORY)
                 .orderNo(message.getOrderNo())
+                .step(message.getStep())
                 .items(Item.from(message.getPayload().getItems()))
                 .build();
     }
@@ -43,6 +46,7 @@ public class InventoryMessage {
         return InventoryMessage.builder()
                 .type(SagaType.RESTORE_INVENTORY)
                 .orderNo(message.getOrderNo())
+                .step(message.getStep())
                 .items(Item.from(message.getPayload().getItems()))
                 .build();
     }

@@ -1,6 +1,7 @@
 package com.example.order_service.order.infrastructure.messaging.dto;
 
 import com.example.order_service.order.application.messaging.dto.SagaMessage;
+import com.example.order_service.order.domain.saga.SagaStep;
 import com.example.order_service.order.domain.vo.SagaPayload;
 import lombok.Builder;
 import lombok.Getter;
@@ -12,6 +13,7 @@ import java.util.List;
 public class CouponMessage {
     private SagaType type;
     private String orderNo;
+    private SagaStep step;
     private CouponInfo coupon;
 
     @Builder
@@ -31,6 +33,7 @@ public class CouponMessage {
         return CouponMessage.builder()
                 .type(SagaType.USED_COUPON)
                 .orderNo(message.getOrderNo())
+                .step(message.getStep())
                 .coupon(CouponInfo.from(message.getPayload().getCoupon()))
                 .build();
     }
@@ -39,6 +42,7 @@ public class CouponMessage {
         return CouponMessage.builder()
                 .type(SagaType.RESTORE_COUPON)
                 .orderNo(message.getOrderNo())
+                .step(message.getStep())
                 .coupon(CouponInfo.from(message.getPayload().getCoupon()))
                 .build();
     }
