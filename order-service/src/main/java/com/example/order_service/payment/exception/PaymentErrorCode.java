@@ -14,6 +14,7 @@ public enum PaymentErrorCode implements ErrorCode {
     PAYMENT_ALREADY_PROCEED_PAYMENT(400, "PAYMENT_001", "이미 결제된 주문입니다"),
     PAYMENT_BAD_REQUEST(400, "PAYMENT_002", "잘못된 결제 요청입니다"),
     PAYMENT_NOT_FOUND(404, "PAYMENT_003", "존재하지 않은 결제 정보입니다"),
+    PAYMENT_APPROVAL_FORBIDDEN(403, "PAYMENT_APPROVAL_FORBIDDEN", "해당 주문에 대한 결제 승인 권한이 없습니다"),
     PAYMENT_APPROVAL_FAIL(400, "PAYMENT_004", "결제 승인이 거절되었습니다"),
     PAYMENT_AMOUNT_MISMATCH(409, "PAYMENT_AMOUNT_MISMATCH", "주문의 총 결제 금액과 결제 금액이 일치하지 않습니다"),
     PAYMENT_INSUFFICIENT_BALANCE(400, "PAYMENT_005", "잔액이 부족합니다"),

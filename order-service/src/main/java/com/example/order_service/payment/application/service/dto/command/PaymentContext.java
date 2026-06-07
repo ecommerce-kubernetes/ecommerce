@@ -29,4 +29,14 @@ public class PaymentContext {
     ) {
     }
 
+    @Builder
+    public record Cancellation(
+            Long paymentId,
+            Money amount,
+            PaymentStatus status,
+            PaymentMethod method,
+            LocalDateTime approvedAt
+    ) {
+    }
+
 }

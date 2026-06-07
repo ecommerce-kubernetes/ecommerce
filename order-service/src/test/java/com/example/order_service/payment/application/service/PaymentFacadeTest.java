@@ -72,7 +72,7 @@ public class PaymentFacadeTest {
             given(paymentCommandService.save(any(PaymentContext.Create.class)))
                     .willReturn(aDefault);
             given(paymentGateway.confirm(any())).willReturn(approval);
-            given(mapper.toContext(anyLong(), any())).willReturn(approvalContext);
+            given(mapper.toContext(anyLong(), any(PgPaymentResult.Approval.class))).willReturn(approvalContext);
             given(paymentCommandService.approve(any())).willReturn(approvalResult);
             //when
             PaymentResult.PaymentApproval confirm = paymentFacade.confirm(command);

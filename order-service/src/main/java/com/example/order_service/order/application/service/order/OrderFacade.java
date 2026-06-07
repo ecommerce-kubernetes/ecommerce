@@ -59,12 +59,7 @@ public class OrderFacade {
      */
     public OrderResult.Create initialOrder(OrderCommand.Create command) {
         OrderSheet orderSheet = findOrderSheetById(command.orderSheetId());
-        if (!orderSheet.isOwner(command.userId())) {
-            throw new BusinessException(OrderErrorCode.ORDER_SHEET_ACCESS_DENIED);
-        }
-        if (orderSheet.isExpired()) {
-            throw new BusinessException(OrderErrorCode.ORDER_EXPIRED);
-        }
+        orderSheet.validateAccess(command.userId());
         OrderProductResult.ProductList products = getOrderedProducts(orderSheet.getItems());
         OrderCouponResult.Calculate appliedCoupons = getAppliedCoupons(orderSheet);
         OrderUserResult.UserPoint userPoints = getUserPoints(orderSheet);

@@ -29,6 +29,7 @@ import org.springframework.stereotype.Service;
 public class PaymentFacade {
     private final OrderQueryService orderQueryService;
     private final PaymentCommandService paymentCommandService;
+    private final PaymentQueryService paymentQueryService;
     private final PaymentMapper mapper;
     private final PaymentGateway paymentGateway;
 
@@ -55,5 +56,14 @@ public class PaymentFacade {
         PgPaymentResult.Approval confirm = paymentGateway.confirm(gatewayCommand);
         PaymentContext.Approval approval = mapper.toContext(payment.id(), confirm);
         return paymentCommandService.approve(approval);
+    }
+
+    public void refound(String orderNo, String reason) {
+        PaymentResult.Default payment = paymentQueryService.getPayment(orderNo);
+        paymentCommandService.changeRefoundPending(payment.orderNo());
+        PGPaymentCommand.Cancel gatewayCommand = PGPaymentCommand.Cancel.of(payment.paymentKey(), reason);
+        PgPaymentResult.Cancellation cancel = paymentGateway.cancel(gatewayCommand);
+        PaymentContext.Cancellation context = mapper.toContext(payment.id(), cancel);
+        paymentCommandService.cancel(context);
     }
 }

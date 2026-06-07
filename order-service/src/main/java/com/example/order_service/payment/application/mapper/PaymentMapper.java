@@ -14,4 +14,6 @@ public interface PaymentMapper {
     PaymentContext.Create toContext(PaymentCommand.Confirm command);
     @Mapping(source = "result.totalAmount", target = "amount")
     PaymentContext.Approval toContext(Long paymentId, PgPaymentResult.Approval result);
+    @Mapping(source = "result.totalAmount", target = "amount")
+    PaymentContext.Cancellation toContext(Long paymentId, PgPaymentResult.Cancellation result);
 }

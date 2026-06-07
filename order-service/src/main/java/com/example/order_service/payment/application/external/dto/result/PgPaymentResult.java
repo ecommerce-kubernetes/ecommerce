@@ -18,4 +18,14 @@ public class PgPaymentResult {
            PaymentMethod method,
            LocalDateTime approvedAt
     ) {}
+
+    @Builder
+    public record Cancellation(
+            String orderNo,
+            String paymentKey,
+            Money totalAmount,
+            PaymentStatus status,
+            PaymentMethod method,
+            LocalDateTime approvedAt
+    ) {}
 }

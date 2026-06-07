@@ -2,6 +2,7 @@ package com.example.order_service.order.application.orchestrator;
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.order.application.service.order.OrderCommandService;
+import com.example.order_service.order.application.service.order.OrderQueryService;
 import com.example.order_service.order.application.service.order.dto.result.OrderResult;
 import com.example.order_service.order.application.service.saga.OrderSagaService;
 import com.example.order_service.order.application.service.saga.dto.OrderSagaCommand;
@@ -23,17 +24,31 @@ import java.util.List;
 @RequiredArgsConstructor
 public class OrderSagaManager {
 
+    private final OrderQueryService orderQueryService;
     private final OrderCommandService orderCommandService;
     private final OrderSagaService orderSagaService;
 
+    /**
+     * 주문 SAGA 시작
+     * <p>
+     * 주문의 상태를 결제 상태로 변경하고 SAGA를 진행한다
+     * </p>
+     *
+     * @param orderNo 주문 번호
+     */
     @Transactional
     public void startSaga(String orderNo) {
-        OrderResult.Detail order = orderCommandService.changePaid(orderNo);
+        orderCommandService.changePaid(orderNo);
+        OrderResult.Detail order = orderQueryService.getOrder(orderNo);
         SagaPayload payload = createPayload(order);
         OrderSagaCommand.Create command = OrderSagaCommand.Create.of(order.orderNo(), SagaStep.INVENTORY_DEDUCT_PENDING, payload);
         orderSagaService.createSaga(command);
     }
 
+    /**
+     * 다음 SAGA 진행
+     * @param message 수신 메시지
+     */
     @Transactional
     public void handleReply(SagaReplyMessage message) {
         OrderSagaResult.Default saga = orderSagaService.getSaga(message.getOrderNo());

@@ -50,4 +50,25 @@ public class PaymentResult {
                     .build();
         }
     }
+
+    @Builder
+    public record PaymentCancel(
+            String paymentKey,
+            String orderNo,
+            Money totalAmount,
+            PaymentMethod method,
+            PaymentStatus status,
+            LocalDateTime approvedAt
+    ) {
+        public static PaymentCancel of(Payment payment, PaymentRecord paymentRecord) {
+            return PaymentCancel.builder()
+                    .paymentKey(payment.getPaymentKey())
+                    .orderNo(payment.getOrderNo())
+                    .totalAmount(payment.getTotalAmount())
+                    .method(paymentRecord.getMethod())
+                    .status(payment.getStatus())
+                    .approvedAt(paymentRecord.getApprovedAt())
+                    .build();
+        }
+    }
 }

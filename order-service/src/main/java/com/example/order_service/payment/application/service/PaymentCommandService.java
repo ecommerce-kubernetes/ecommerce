@@ -76,4 +76,13 @@ public class PaymentCommandService {
     private PaymentRecord createApprovalPaymentRecord(PaymentContext.Approval context) {
         return PaymentRecord.createApproval(context.amount(), context.method(), context.approvedAt());
     }
+
+    public void changeRefoundPending(String orderNo) {
+
+    }
+
+    public PaymentResult.PaymentCancel cancel(PaymentContext.Cancellation context) {
+        return null;
+    }
+
 }

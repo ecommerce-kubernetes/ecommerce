@@ -19,4 +19,17 @@ public class PGPaymentCommand {
                     .build();
         }
     }
+
+    @Builder
+    public record Cancel(
+            String paymentKey,
+            String cancelReason
+    ) {
+        public static Cancel of(String paymentKey, String cancelReason) {
+            return Cancel.builder()
+                    .paymentKey(paymentKey)
+                    .cancelReason(cancelReason)
+                    .build();
+        }
+    }
 }

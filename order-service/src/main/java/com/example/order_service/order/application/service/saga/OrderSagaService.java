@@ -1,5 +1,7 @@
 package com.example.order_service.order.application.service.saga;
 
+import com.example.order_service.order.application.event.OrderSagaCompletedEvent;
+import com.example.order_service.order.application.event.OrderSagaFailedEvent;
 import com.example.order_service.order.application.event.OrderSagaProcessEvent;
 import com.example.order_service.order.application.service.saga.dto.OrderSagaCommand;
 import com.example.order_service.order.application.service.saga.dto.OrderSagaResult;
@@ -16,7 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Transactional
 public class OrderSagaService {
-    private final OrderSagaInstanceRepository repository;
+    private final OrderSagaInstanceRepository instanceRepository;
     private final ApplicationEventPublisher eventPublisher;
 
     public void createSaga(OrderSagaCommand.Create command) {
@@ -25,7 +27,7 @@ public class OrderSagaService {
                 command.step(),
                 command.payload()
         );
-        OrderSagaInstance saved = repository.save(saga);
+        OrderSagaInstance saved = instanceRepository.save(saga);
         OrderSagaProcessEvent event = OrderSagaProcessEvent.from(saved);
         eventPublisher.publishEvent(event);
     }
@@ -51,15 +53,20 @@ public class OrderSagaService {
     public void complete(String orderNo) {
         OrderSagaInstance instance = findSagaByOrderNo(orderNo);
         instance.complete();
+        OrderSagaCompletedEvent event = OrderSagaCompletedEvent.of(instance.getOrderNo());
+        eventPublisher.publishEvent(event);
     }
 
     public void fail(String orderNo) {
         OrderSagaInstance instance = findSagaByOrderNo(orderNo);
         instance.failed();
+        String causeCode = instance.getCauseCode();
+        OrderSagaFailedEvent event = OrderSagaFailedEvent.of(instance.getOrderNo(), causeCode);
+        eventPublisher.publishEvent(event);
     }
 
     private OrderSagaInstance findSagaByOrderNo(String orderNo) {
-        return repository.findByOrderNo(orderNo)
+        return instanceRepository.findByOrderNo(orderNo)
                 .orElseThrow(IllegalArgumentException::new);
     }
 }

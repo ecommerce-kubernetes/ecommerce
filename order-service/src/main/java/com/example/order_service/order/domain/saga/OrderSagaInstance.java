@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 @Entity
@@ -67,5 +68,13 @@ public class OrderSagaInstance extends BaseEntity {
 
     public void failed() {
         this.status = SagaStatus.FAILED;
+    }
+
+    public String getCauseCode() {
+        return this.histories.stream()
+                .filter(h -> h.getResult() == StepResult.FAILED)
+                .min(Comparator.comparing(SagaStepHistory::getId))
+                .map(SagaStepHistory::getCode)
+                .orElse("UNKNOWN_SAGA_ERROR");
     }
 }

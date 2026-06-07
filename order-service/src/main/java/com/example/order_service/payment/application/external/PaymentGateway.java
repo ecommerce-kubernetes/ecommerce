@@ -24,6 +24,10 @@ public class PaymentGateway {
         return pgMapper.toResult(confirm);
     }
 
+    public PgPaymentResult.Cancellation cancel(PGPaymentCommand.Cancel command) {
+        return null;
+    }
+
     private TossClientResponse.Confirm fetchTossConfirmWithTransactional(PGPaymentCommand.Confirm command) {
         try {
             return tossAdaptor.confirmPayment(command.orderNo(), command.paymentKey(), command.amount().longValue());

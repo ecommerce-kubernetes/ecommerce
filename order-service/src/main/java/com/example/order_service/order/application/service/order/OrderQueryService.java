@@ -16,8 +16,9 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * 주문 조회 담당 서비스
  * <p>
- *     주문 조회 로직을 담당하는 서비스
+ * 주문 조회 로직을 담당하는 서비스
  * </p>
+ *
  * @author 최민식
  * @since 2026. 06. 02
  */
@@ -32,7 +33,7 @@ public class OrderQueryService {
     /**
      * 주문 정보 조회
      * <p>
-     * 주문 번호의 주문 상세 정보를 조회한다
+     * 유저의 주문 번호의 주문을 조회한다
      * </p>
      *
      * @param userId  유저 아이디
@@ -41,6 +42,21 @@ public class OrderQueryService {
      */
     public OrderResult.Detail getOrder(String orderNo, Long userId) {
         Order order = orderRepository.findByOrderNoAndOrderer_UserId(orderNo, userId)
+                .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_NOT_FOUND));
+        return OrderResult.Detail.from(order);
+    }
+
+    /**
+     * 주문 정보 조회
+     * <p>
+     * 주문 번호의 주문을 조회한다
+     * </p>
+     *
+     * @param orderNo 주문 번호
+     * @return 주문 상세 정보
+     */
+    public OrderResult.Detail getOrder(String orderNo) {
+        Order order = orderRepository.findByOrderNo(orderNo)
                 .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_NOT_FOUND));
         return OrderResult.Detail.from(order);
     }

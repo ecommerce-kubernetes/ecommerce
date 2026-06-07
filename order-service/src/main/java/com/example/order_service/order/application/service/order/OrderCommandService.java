@@ -1,10 +1,12 @@
 package com.example.order_service.order.application.service.order;
 
+import com.example.order_service.common.exception.business.BusinessException;
 import com.example.order_service.order.application.service.order.dto.command.OrderContext;
 import com.example.order_service.order.application.service.order.dto.result.OrderResult;
 import com.example.order_service.order.domain.model.Order;
 import com.example.order_service.order.domain.model.OrderItem;
 import com.example.order_service.order.domain.repository.OrderRepository;
+import com.example.order_service.order.exception.OrderErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -46,8 +48,37 @@ public class OrderCommandService {
         return OrderResult.Create.from(savedOrder);
     }
 
-    public OrderResult.Detail changePaid(String orderNo) {
-        return null;
+    /**
+     * 주문 상태를 결제 상태로 변경한다
+     *
+     * @param orderNo 주문 번호
+     */
+    public void changePaid(String orderNo) {
+        Order order = orderRepository.findByOrderNo(orderNo)
+                .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_NOT_FOUND));
+        order.paid();
+    }
+
+    /**
+     * 주문 상태를 완료 상태로 변경한다
+     *
+     * @param orderNo 주문 번호
+     */
+    public void changeCompleted(String orderNo) {
+        Order order = orderRepository.findByOrderNo(orderNo)
+                .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_NOT_FOUND));
+        order.completed();
+    }
+
+    /**
+     * 주문 상태를 실패 상태로 변경한다
+     *
+     * @param orderNo 주문 번호
+     */
+    public void changeFailed(String orderNo, String reason) {
+        Order order = orderRepository.findByOrderNo(orderNo)
+                .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_NOT_FOUND));
+        order.failed(reason);
     }
 
     private Order initialOrder(OrderContext.CreateOrderContext context) {

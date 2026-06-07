@@ -7,6 +7,9 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum OrderErrorCode implements ErrorCode {
+    INVALID_ORDER_STATUS_FOR_FAIL(409, "INVALID_ORDER_STATUS_FOR_FAIL", "주문을 실패 상태로 변경할 수 없습니다"),
+    INVALID_ORDER_STATUS_FOR_COMPLETION(409, "INVALID_ORDER_STATUS_FOR_COMPLETION", "주문을 완료 상태로 변경할 수 없습니다"),
+    INVALID_ORDER_STATUS_FOR_PAYMENT(409, "INVALID_ORDER_STATUS_FOR_PAYMENT", "결제 가능한 주문이 아닙니다"),
     ORDER_POINT_POLICY_VIOLATION(409, "ORDER_POINT_POLICY_VIOLATION", "현재 주문에 사용할 수 있는 포인트를 초과했습니다"),
     ORDER_ACCESS_DENIED(403, "ORDER_ACCESS_DENIED", "주문 조회 권한이 없습니다"),
     POINTS_DISCOUNT_CHANGE(409, "POINT_DISCOUNT_CHANGE", "사용 가능 포인트가 변동되었습니다"),
