@@ -49,22 +49,30 @@ public class Payment {
                 .build();
     }
 
-    public void addRecord(PaymentRecord paymentRecord) {
+    private void addRecord(PaymentRecord paymentRecord) {
         this.paymentRecords.add(paymentRecord);
         paymentRecord.setPayment(this);
     }
 
-    public void approval(PaymentStatus status) {
+    public void approval(PaymentRecord approvalRecord, PaymentStatus status) {
         if (this.status != PaymentStatus.READY) {
             throw new BusinessException(PaymentErrorCode.INVALID_PAYMENT_STATUS_FOR_APPROVAL);
         }
+        this.addRecord(approvalRecord);
         this.status = status;
     }
 
-    public void cancel(PaymentStatus status) {
+    public void cancel(PaymentRecord cancelledRecord, PaymentStatus status) {
         if (this.status != PaymentStatus.REFUND_PENDING) {
             throw new BusinessException(PaymentErrorCode.INVALID_PAYMENT_STATUS_FOR_REFUND);
         }
+
+        Money remainingAmount = calculateRemainingAmount();
+        if (cancelledRecord.getAmount().isGreaterThan(remainingAmount)){
+            throw new BusinessException(PaymentErrorCode.EXCEEDED_REFUNDABLE_AMOUNT);
+        }
+
+        this.addRecord(cancelledRecord);
         this.status = status;
     }
 
@@ -73,6 +81,17 @@ public class Payment {
             throw new BusinessException(PaymentErrorCode.INVALID_PAYMENT_STATUS_FOR_REFUND_PENDING);
         }
         this.status = PaymentStatus.REFUND_PENDING;
+    }
+
+    public Money calculateTotalCanceledAmount(){
+        return this.paymentRecords.stream()
+                .filter(record -> record.getType() == TransactionType.REFUND)
+                .map(PaymentRecord::getAmount)
+                .reduce(Money.ZERO, Money::add);
+    }
+
+    public Money calculateRemainingAmount() {
+        return this.totalAmount.subtract(calculateTotalCanceledAmount());
     }
 
 }

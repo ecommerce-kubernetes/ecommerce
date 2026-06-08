@@ -10,7 +10,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 public class MockKafkaConfig {
     @Bean
     @Primary
-    public KafkaTemplate<String, Object> mockKafkaTemplate() {
+    public KafkaTemplate<String, String> mockKafkaTemplate() {
         return Mockito.mock(KafkaTemplate.class);
     }
 }

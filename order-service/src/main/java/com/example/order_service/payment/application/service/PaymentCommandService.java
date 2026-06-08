@@ -64,8 +64,7 @@ public class PaymentCommandService {
         Payment payment = paymentRepository.findById(context.paymentId())
                 .orElseThrow(() -> new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND));
         PaymentRecord paymentRecord = createApprovalPaymentRecord(context);
-        payment.addRecord(paymentRecord);
-        payment.approval(context.status());
+        payment.approval(paymentRecord, context.status());
         if (payment.getStatus() == PaymentStatus.DONE) {
             PaymentCompleteEvent event = PaymentCompleteEvent.of(payment.getOrderNo());
             eventPublisher.publishEvent(event);
@@ -98,8 +97,7 @@ public class PaymentCommandService {
         Payment payment = paymentRepository.findById(context.paymentId())
                 .orElseThrow(() -> new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND));
         PaymentRecord paymentRecord = createCancellationPaymentRecord(context);
-        payment.addRecord(paymentRecord);
-        payment.cancel(context.status());
+        payment.cancel(paymentRecord, context.status());
         return PaymentResult.PaymentCancel.of(payment, paymentRecord);
     }
 

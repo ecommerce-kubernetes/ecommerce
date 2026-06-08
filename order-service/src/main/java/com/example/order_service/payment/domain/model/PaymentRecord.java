@@ -45,7 +45,7 @@ public class PaymentRecord extends BaseEntity {
 
     public static PaymentRecord createCancellation(Money amount, PaymentMethod method, LocalDateTime approvedAt) {
         return PaymentRecord.builder()
-                .type(TransactionType.REFOUND)
+                .type(TransactionType.REFUND)
                 .amount(amount)
                 .method(method)
                 .approvedAt(approvedAt)

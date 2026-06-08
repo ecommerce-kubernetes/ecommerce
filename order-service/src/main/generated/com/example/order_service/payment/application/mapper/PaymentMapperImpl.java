@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-06-03T05:20:34+0900",
+    date = "2026-06-09T01:43:24+0900",
     comments = "version: 1.6.3, compiler: javac, environment: Java 21.0.10 (Eclipse Adoptium)"
 )
 @Component
@@ -47,5 +47,24 @@ public class PaymentMapperImpl implements PaymentMapper {
         approval.paymentId( paymentId );
 
         return approval.build();
+    }
+
+    @Override
+    public PaymentContext.Cancellation toContext(Long paymentId, PgPaymentResult.Cancellation result) {
+        if ( paymentId == null && result == null ) {
+            return null;
+        }
+
+        PaymentContext.Cancellation.CancellationBuilder cancellation = PaymentContext.Cancellation.builder();
+
+        if ( result != null ) {
+            cancellation.amount( result.totalAmount() );
+            cancellation.status( result.status() );
+            cancellation.method( result.method() );
+            cancellation.approvedAt( result.approvedAt() );
+        }
+        cancellation.paymentId( paymentId );
+
+        return cancellation.build();
     }
 }
