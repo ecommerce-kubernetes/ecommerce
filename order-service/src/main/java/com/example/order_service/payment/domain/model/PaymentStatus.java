@@ -7,6 +7,7 @@ public enum PaymentStatus {
     READY("승인 대기"),
     DONE("완료"),
     CANCELED("결제 취소"),
-    WAITING_FOR_DEPOSIT("입금 대기");
+    WAITING_FOR_DEPOSIT("입금 대기"),
+    REFOUND_PENDING("결제 취소 대기");
     private final String description;
 }

@@ -1,6 +1,8 @@
 package com.example.order_service.payment.domain.model;
 
 import com.example.order_service.common.domain.vo.Money;
+import com.example.order_service.common.exception.business.BusinessException;
+import com.example.order_service.payment.exception.PaymentErrorCode;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -54,6 +56,13 @@ public class Payment {
 
     public void changeStatus(PaymentStatus paymentStatus) {
         this.status = paymentStatus;
+    }
+
+    public void refoundPending() {
+        if (this.status != PaymentStatus.DONE) {
+            throw new BusinessException(PaymentErrorCode.INVALID_PAYMENT_STATUS_FOR_REFOUND);
+        }
+        this.status = PaymentStatus.REFOUND_PENDING;
     }
 
 }

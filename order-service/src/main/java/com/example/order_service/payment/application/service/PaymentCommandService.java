@@ -78,11 +78,22 @@ public class PaymentCommandService {
     }
 
     public void changeRefoundPending(String orderNo) {
-
+        Payment payment = paymentRepository.findByOrderNo(orderNo)
+                .orElseThrow(() -> new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND));
+        payment.refoundPending();
     }
 
     public PaymentResult.PaymentCancel cancel(PaymentContext.Cancellation context) {
-        return null;
+        Payment payment = paymentRepository.findById(context.paymentId())
+                .orElseThrow(() -> new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND));
+        PaymentRecord paymentRecord = createCancellationPaymentRecord(context);
+        payment.addRecord(paymentRecord);
+        payment.changeStatus(context.status());
+        return PaymentResult.PaymentCancel.of(payment, paymentRecord);
+    }
+
+    private PaymentRecord createCancellationPaymentRecord(PaymentContext.Cancellation context) {
+        return PaymentRecord.createCancellation(context.amount(), context.method(), context.approvedAt());
     }
 
 }
