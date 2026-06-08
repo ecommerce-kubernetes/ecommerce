@@ -15,6 +15,12 @@ import org.springframework.transaction.annotation.Transactional;
 public class PaymentQueryService {
     private final PaymentRepository paymentRepository;
 
+    /**
+     * 결제 조회
+     *
+     * @param orderNo 주문 번호
+     * @return 결제 정보
+     */
     public PaymentResult.Default getPayment(String orderNo) {
         Payment payment = paymentRepository.findByOrderNo(orderNo)
                 .orElseThrow(() -> new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND));

@@ -10,6 +10,15 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+/**
+ * SAGA 메시지 디스패처
+ * <p>
+ * SAGA 진행 메시지를 각 핸들러를 통해 보상 및 차감 실행
+ * </p>
+ *
+ * @author 최민식
+ * @since 2026. 06. 08
+ */
 @Component
 public class SagaMessageDispatcher {
     private final Map<SagaStep, SagaMessageHandler> forwardHandlers;
@@ -23,7 +32,15 @@ public class SagaMessageDispatcher {
                 .collect(Collectors.toMap(SagaMessageHandler::supportsCompensation, Function.identity()));
     }
 
-    public void dispatch(SagaMessage message){
+    /**
+     * SAGA 메시지 핸들러 호출
+     * <p>
+     * 각 Step 에 맞는 메시지 Handler 를 호출
+     * </p>
+     *
+     * @param message SAGA 메시지
+     */
+    public void dispatch(SagaMessage message) {
         if (message.getStatus() == SagaStatus.COMPENSATING) {
             SagaMessageHandler compensateHandler = compensationHandlers.get(message.getStep());
             compensateHandler.compensate(message);

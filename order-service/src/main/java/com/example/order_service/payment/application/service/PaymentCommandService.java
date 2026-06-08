@@ -77,12 +77,23 @@ public class PaymentCommandService {
         return PaymentRecord.createApproval(context.amount(), context.method(), context.approvedAt());
     }
 
+    /**
+     * 결제를 환불 대기 상태로 변경
+     *
+     * @param orderNo 주문 번호
+     */
     public void changeRefundPending(String orderNo) {
         Payment payment = paymentRepository.findByOrderNo(orderNo)
                 .orElseThrow(() -> new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND));
         payment.refundPending();
     }
 
+    /**
+     * 결제 취소 상태로 변경
+     *
+     * @param context 결제 취소 컨텍스트
+     * @return 결제 취소 정보
+     */
     public PaymentResult.PaymentCancel cancel(PaymentContext.Cancellation context) {
         Payment payment = paymentRepository.findById(context.paymentId())
                 .orElseThrow(() -> new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND));

@@ -58,6 +58,15 @@ public class PaymentFacade {
         return paymentCommandService.approve(approval);
     }
 
+    /**
+     * 결제 환불
+     * <p>
+     * 시스템 오류로 인한 결제 환불, 해당 주문의 결제 전체를 환불
+     * </p>
+     *
+     * @param orderNo 주문 번호
+     * @param reason  취소 이유
+     */
     public void revert(String orderNo, String reason) {
         PaymentResult.Default payment = paymentQueryService.getPayment(orderNo);
         paymentCommandService.changeRefundPending(payment.orderNo());

@@ -74,6 +74,7 @@ public class OrderCommandService {
      * 주문 상태를 실패 상태로 변경한다
      *
      * @param orderNo 주문 번호
+     * @param reason  주문 실패 이유
      */
     public void changeFailed(String orderNo, String reason) {
         Order order = orderRepository.findByOrderNo(orderNo)
