@@ -1,5 +1,6 @@
 package com.example.order_service.payment.application.external;
 
+import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.business.BusinessException;
 import com.example.order_service.common.exception.external.ExternalClientException;
 import com.example.order_service.common.exception.external.ExternalServerException;
@@ -25,12 +26,26 @@ public class PaymentGateway {
     }
 
     public PgPaymentResult.Cancellation cancel(PGPaymentCommand.Cancel command) {
-        return null;
+        TossClientResponse.Cancel cancel = fetchTossCancelWithTransactional(command);
+        return pgMapper.toResult(cancel);
     }
 
     private TossClientResponse.Confirm fetchTossConfirmWithTransactional(PGPaymentCommand.Confirm command) {
         try {
             return tossAdaptor.confirmPayment(command.orderNo(), command.paymentKey(), command.amount().longValue());
+        } catch (ExternalClientException e) {
+            throw new BusinessException(PaymentErrorCode.PAYMENT_TOSS_CLIENT_ERROR);
+        } catch (ExternalServerException e) {
+            throw new BusinessException(PaymentErrorCode.PAYMENT_TOSS_SERVER_ERROR);
+        } catch (ExternalSystemUnavailableException e) {
+            throw new BusinessException(PaymentErrorCode.PAYMENT_TOSS_UNAVAILABLE_ERROR);
+        }
+    }
+
+    private TossClientResponse.Cancel fetchTossCancelWithTransactional(PGPaymentCommand.Cancel command) {
+        try {
+            Long cancelAmount = command.amount() == null ? null : command.amount().longValue();
+            return tossAdaptor.cancelPayment(command.paymentKey(), command.cancelReason(), cancelAmount);
         } catch (ExternalClientException e) {
             throw new BusinessException(PaymentErrorCode.PAYMENT_TOSS_CLIENT_ERROR);
         } catch (ExternalServerException e) {

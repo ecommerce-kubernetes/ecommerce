@@ -23,12 +23,22 @@ public class PGPaymentCommand {
     @Builder
     public record Cancel(
             String paymentKey,
-            String cancelReason
+            String cancelReason,
+            Money amount
     ) {
-        public static Cancel of(String paymentKey, String cancelReason) {
+        public static Cancel ofFull(String paymentKey, String cancelReason) {
             return Cancel.builder()
                     .paymentKey(paymentKey)
                     .cancelReason(cancelReason)
+                    .amount(null)
+                    .build();
+        }
+
+        public static Cancel ofPartial(String paymentKey, String cancelReason, Money amount) {
+            return Cancel.builder()
+                    .paymentKey(paymentKey)
+                    .cancelReason(cancelReason)
+                    .amount(amount)
                     .build();
         }
     }

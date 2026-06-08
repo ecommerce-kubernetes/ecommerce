@@ -65,7 +65,7 @@ public class PaymentCommandService {
                 .orElseThrow(() -> new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND));
         PaymentRecord paymentRecord = createApprovalPaymentRecord(context);
         payment.addRecord(paymentRecord);
-        payment.changeStatus(context.status());
+        payment.approval(context.status());
         if (payment.getStatus() == PaymentStatus.DONE) {
             PaymentCompleteEvent event = PaymentCompleteEvent.of(payment.getOrderNo());
             eventPublisher.publishEvent(event);
@@ -77,10 +77,10 @@ public class PaymentCommandService {
         return PaymentRecord.createApproval(context.amount(), context.method(), context.approvedAt());
     }
 
-    public void changeRefoundPending(String orderNo) {
+    public void changeRefundPending(String orderNo) {
         Payment payment = paymentRepository.findByOrderNo(orderNo)
                 .orElseThrow(() -> new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND));
-        payment.refoundPending();
+        payment.refundPending();
     }
 
     public PaymentResult.PaymentCancel cancel(PaymentContext.Cancellation context) {
@@ -88,7 +88,7 @@ public class PaymentCommandService {
                 .orElseThrow(() -> new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND));
         PaymentRecord paymentRecord = createCancellationPaymentRecord(context);
         payment.addRecord(paymentRecord);
-        payment.changeStatus(context.status());
+        payment.cancel(context.status());
         return PaymentResult.PaymentCancel.of(payment, paymentRecord);
     }
 

@@ -11,7 +11,6 @@ import com.example.order_service.payment.application.mapper.PaymentMapper;
 import com.example.order_service.payment.application.service.dto.command.PaymentCommand;
 import com.example.order_service.payment.application.service.dto.command.PaymentContext;
 import com.example.order_service.payment.application.service.dto.result.PaymentResult;
-import com.example.order_service.payment.domain.model.PaymentStatus;
 import com.example.order_service.payment.exception.PaymentErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -59,10 +58,10 @@ public class PaymentFacade {
         return paymentCommandService.approve(approval);
     }
 
-    public void refound(String orderNo, String reason) {
+    public void revert(String orderNo, String reason) {
         PaymentResult.Default payment = paymentQueryService.getPayment(orderNo);
-        paymentCommandService.changeRefoundPending(payment.orderNo());
-        PGPaymentCommand.Cancel gatewayCommand = PGPaymentCommand.Cancel.of(payment.paymentKey(), reason);
+        paymentCommandService.changeRefundPending(payment.orderNo());
+        PGPaymentCommand.Cancel gatewayCommand = PGPaymentCommand.Cancel.ofFull(payment.paymentKey(), reason);
         PgPaymentResult.Cancellation cancel = paymentGateway.cancel(gatewayCommand);
         PaymentContext.Cancellation context = mapper.toContext(payment.id(), cancel);
         paymentCommandService.cancel(context);

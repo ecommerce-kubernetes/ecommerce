@@ -16,6 +16,9 @@ public interface PgMapper {
     @Mapping(source = "orderId", target = "orderNo")
     PgPaymentResult.Approval toResult(TossClientResponse.Confirm response);
 
+    @Mapping(source = "orderId", target = "orderNo")
+    PgPaymentResult.Cancellation toResult(TossClientResponse.Cancel response);
+
     default LocalDateTime map(OffsetDateTime offsetDateTime) {
         if (offsetDateTime == null) {
             return null;

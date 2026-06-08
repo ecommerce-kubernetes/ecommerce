@@ -54,15 +54,25 @@ public class Payment {
         paymentRecord.setPayment(this);
     }
 
-    public void changeStatus(PaymentStatus paymentStatus) {
-        this.status = paymentStatus;
+    public void approval(PaymentStatus status) {
+        if (this.status != PaymentStatus.READY) {
+            throw new BusinessException(PaymentErrorCode.INVALID_PAYMENT_STATUS_FOR_APPROVAL);
+        }
+        this.status = status;
     }
 
-    public void refoundPending() {
-        if (this.status != PaymentStatus.DONE) {
-            throw new BusinessException(PaymentErrorCode.INVALID_PAYMENT_STATUS_FOR_REFOUND);
+    public void cancel(PaymentStatus status) {
+        if (this.status != PaymentStatus.REFUND_PENDING) {
+            throw new BusinessException(PaymentErrorCode.INVALID_PAYMENT_STATUS_FOR_REFUND);
         }
-        this.status = PaymentStatus.REFOUND_PENDING;
+        this.status = status;
+    }
+
+    public void refundPending() {
+        if (this.status != PaymentStatus.DONE) {
+            throw new BusinessException(PaymentErrorCode.INVALID_PAYMENT_STATUS_FOR_REFUND_PENDING);
+        }
+        this.status = PaymentStatus.REFUND_PENDING;
     }
 
 }
