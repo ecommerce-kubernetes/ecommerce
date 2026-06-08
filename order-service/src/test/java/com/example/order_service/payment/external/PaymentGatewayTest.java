@@ -47,7 +47,7 @@ public class PaymentGatewayTest {
             TossClientResponse.Confirm response = fixtureMonkey.giveMeOne(TossClientResponse.Confirm.class);
             PgPaymentResult.Approval approval = fixtureMonkey.giveMeOne(PgPaymentResult.Approval.class);
             given(adaptor.confirmPayment(anyString(), anyString(), anyLong())).willReturn(response);
-            given(pgMapper.toResult(any())).willReturn(approval);
+            given(pgMapper.toResult(any(TossClientResponse.Confirm.class))).willReturn(approval);
             //when
             PgPaymentResult.Approval confirm = paymentGateway.confirm(command);
             //then
