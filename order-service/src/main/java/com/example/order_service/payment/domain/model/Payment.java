@@ -49,17 +49,19 @@ public class Payment {
                 .build();
     }
 
-    private void addRecord(PaymentRecord paymentRecord) {
-        this.paymentRecords.add(paymentRecord);
-        paymentRecord.setPayment(this);
-    }
-
     public void approval(PaymentRecord approvalRecord, PaymentStatus status) {
         if (this.status != PaymentStatus.READY) {
             throw new BusinessException(PaymentErrorCode.INVALID_PAYMENT_STATUS_FOR_APPROVAL);
         }
         this.addRecord(approvalRecord);
         this.status = status;
+    }
+
+    public void refundPending() {
+        if (this.status != PaymentStatus.DONE) {
+            throw new BusinessException(PaymentErrorCode.INVALID_PAYMENT_STATUS_FOR_REFUND_PENDING);
+        }
+        this.status = PaymentStatus.REFUND_PENDING;
     }
 
     public void cancel(PaymentRecord cancelledRecord, PaymentStatus status) {
@@ -76,13 +78,6 @@ public class Payment {
         this.status = status;
     }
 
-    public void refundPending() {
-        if (this.status != PaymentStatus.DONE) {
-            throw new BusinessException(PaymentErrorCode.INVALID_PAYMENT_STATUS_FOR_REFUND_PENDING);
-        }
-        this.status = PaymentStatus.REFUND_PENDING;
-    }
-
     public Money calculateTotalCanceledAmount(){
         return this.paymentRecords.stream()
                 .filter(record -> record.getType() == TransactionType.REFUND)
@@ -94,4 +89,8 @@ public class Payment {
         return this.totalAmount.subtract(calculateTotalCanceledAmount());
     }
 
+    private void addRecord(PaymentRecord paymentRecord) {
+        this.paymentRecords.add(paymentRecord);
+        paymentRecord.setPayment(this);
+    }
 }
