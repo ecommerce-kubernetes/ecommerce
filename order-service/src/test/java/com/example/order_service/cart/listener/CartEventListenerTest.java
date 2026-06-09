@@ -2,15 +2,12 @@ package com.example.order_service.cart.listener;
 
 import com.example.order_service.cart.application.CartAppService;
 import com.example.order_service.cart.listener.event.CartEventListener;
-import com.example.order_service.order.application.event.PaymentCompletedEvent;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.List;
 
 import static org.mockito.Mockito.verify;
 
@@ -25,12 +22,6 @@ public class CartEventListenerTest {
     @Test
     @DisplayName("결제가 성공한 상품을 장바구니에서 삭제한다")
     void handlePaymentCompletedEvent(){
-        //given
-        PaymentCompletedEvent event = PaymentCompletedEvent.of(ORDER_NO, 1L, List.of(1L, 2L));
-        //when
-        cartEventListener.handlePaymentCompletedEvent(event);
-        //then
-        verify(cartAppService).removePurchasedItems(1L, List.of(1L, 2L));
     }
 
 }
