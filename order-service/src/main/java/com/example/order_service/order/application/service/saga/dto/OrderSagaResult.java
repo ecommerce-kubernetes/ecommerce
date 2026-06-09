@@ -15,7 +15,8 @@ public class OrderSagaResult {
             String orderNo,
             SagaStep currentStep,
             SagaStatus status,
-            SagaPayload payload
+            SagaPayload payload,
+            String causeCode
     ) {
         public static Default from(OrderSagaInstance instance) {
             return Default.builder()
@@ -24,6 +25,7 @@ public class OrderSagaResult {
                     .currentStep(instance.getCurrentStep())
                     .status(instance.getStatus())
                     .payload(instance.getPayload())
+                    .causeCode(instance.getCauseCode())
                     .build();
         }
     }

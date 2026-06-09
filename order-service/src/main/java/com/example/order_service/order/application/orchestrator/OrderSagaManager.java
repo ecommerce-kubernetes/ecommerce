@@ -85,8 +85,14 @@ public class OrderSagaManager {
                     orderSagaService.complete(saga.orderNo());
                 }
             }
-            case POINTS_DEDUCT_PENDING -> orderSagaService.complete(saga.orderNo());
-            case INVENTORY_RESTORE_PENDING -> orderSagaService.fail(saga.orderNo());
+            case POINTS_DEDUCT_PENDING -> {
+                orderCommandService.changeCompleted(saga.orderNo());
+                orderSagaService.complete(saga.orderNo());
+            }
+            case INVENTORY_RESTORE_PENDING -> {
+                orderCommandService.changeFailed(saga.orderNo(), saga.causeCode());
+                orderSagaService.fail(saga.orderNo());
+            }
             case COUPON_RESTORE_PENDING -> orderSagaService.process(saga.orderNo(), SagaStep.INVENTORY_RESTORE_PENDING);
         }
     }
@@ -94,7 +100,10 @@ public class OrderSagaManager {
     private void processFailure(OrderSagaResult.Default saga) {
         SagaPayload payload = saga.payload();
         switch (saga.currentStep()) {
-            case INVENTORY_DEDUCT_PENDING -> orderSagaService.fail(saga.orderNo());
+            case INVENTORY_DEDUCT_PENDING -> {
+                orderCommandService.changeFailed(saga.orderNo(), saga.causeCode());
+                orderSagaService.fail(saga.orderNo());
+            }
             case COUPON_USE_PENDING -> orderSagaService.process(saga.orderNo(), SagaStep.INVENTORY_RESTORE_PENDING);
             case POINTS_DEDUCT_PENDING -> {
                 if (payload.getCoupon().getCartCouponId() != null || !payload.getCoupon().getItemCouponIds().isEmpty()) {
