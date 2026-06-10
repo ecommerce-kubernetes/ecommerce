@@ -69,6 +69,7 @@ public class OrderSagaInstance extends BaseEntity {
 
     public void failed() {
         this.status = SagaStatus.FAILED;
+        this.currentStep = SagaStep.END;
     }
 
     public String getCauseCode() {
