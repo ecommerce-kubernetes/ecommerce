@@ -11,7 +11,8 @@ public enum SagaStep {
     COUPON_USE_PENDING("쿠폰 무효화", false),
     COUPON_RESTORE_PENDING("쿠폰 복구", true),
     POINTS_DEDUCT_PENDING("포인트 감소", false),
-    POINTS_RESTORE_PENDING("포인트 복구", true);
+    POINTS_RESTORE_PENDING("포인트 복구", true),
+    END("완료", false);
     private final String description;
     private final boolean compensation;
 }

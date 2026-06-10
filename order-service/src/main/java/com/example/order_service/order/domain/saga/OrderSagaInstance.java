@@ -64,6 +64,7 @@ public class OrderSagaInstance extends BaseEntity {
 
     public void complete(){
         this.status = SagaStatus.COMPLETE;
+        this.currentStep = SagaStep.END;
     }
 
     public void failed() {

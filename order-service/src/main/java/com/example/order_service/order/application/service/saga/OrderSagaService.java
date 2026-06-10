@@ -61,30 +61,20 @@ public class OrderSagaService {
     }
 
     /**
-     * SAGA History 저장
-     * <p>
-     * 해당 SAGA의 RecordHistory를 저장
-     * </p>
-     *
-     * @param command History 저장 커맨드
-     */
-    public void recordHistory(OrderSagaCommand.RecordHistory command) {
-        OrderSagaInstance instance = findSagaByOrderNo(command.orderNo());
-        SagaStepHistory history = SagaStepHistory.from(command.step(), command.status(), command.code());
-        instance.addHistory(history);
-    }
-
-    /**
      * 다음 SAGA 스텝 진행
      * <p>
+     * SagaStepHistory를 저장하고
      * SAGA 스텝에 따라 SagaInstance 상태를 변경 후 다음 스텝 진행을 위한 이벤트 발행
      * </p>
      *
      * @param orderNo  주문 번호
      * @param nextStep 다음 단계
+     * @param command  history 저장 커맨드
      */
-    public void process(String orderNo, SagaStep nextStep) {
+    public void process(String orderNo, SagaStep nextStep, OrderSagaCommand.RecordHistory command) {
         OrderSagaInstance instance = findSagaByOrderNo(orderNo);
+        SagaStepHistory history = SagaStepHistory.from(command.step(), command.status(), command.code());
+        instance.addHistory(history);
         instance.transitionTo(nextStep);
         OrderSagaProcessEvent event = OrderSagaProcessEvent.from(instance);
         eventPublisher.publishEvent(event);
@@ -93,13 +83,16 @@ public class OrderSagaService {
     /**
      * Saga 완료 처리
      * <p>
-     * SagaInstance를 완료 처리하고 Saga 완료 이벤트 발행
+     * SagaStepHistory를 저장하고 SagaInstance를 완료 처리 후 Saga 완료 이벤트 발행
      * </p>
      *
      * @param orderNo 주문 번호
+     * @param command history 저장 커맨드
      */
-    public void complete(String orderNo) {
+    public void complete(String orderNo, OrderSagaCommand.RecordHistory command) {
         OrderSagaInstance instance = findSagaByOrderNo(orderNo);
+        SagaStepHistory history = SagaStepHistory.from(command.step(), command.status(), command.code());
+        instance.addHistory(history);
         instance.complete();
         OrderSagaCompletedEvent event = OrderSagaCompletedEvent.of(instance.getOrderNo());
         eventPublisher.publishEvent(event);
@@ -108,16 +101,18 @@ public class OrderSagaService {
     /**
      * Saga 실패 처리
      * <p>
-     * SagaInstance를 실패 처리하고 Saga 실패 이벤트 발행
+     * SagaStepHistory를 저장하고 SagaInstance를 실패 처리 후 Saga 실패 이벤트 발행
      * </p>
      *
      * @param orderNo 주문 번호
+     * @param command history 저장 커맨드
      */
-    public void fail(String orderNo) {
+    public void fail(String orderNo, OrderSagaCommand.RecordHistory command) {
         OrderSagaInstance instance = findSagaByOrderNo(orderNo);
+        SagaStepHistory history = SagaStepHistory.from(command.step(), command.status(), command.code());
+        instance.addHistory(history);
         instance.failed();
-        String causeCode = instance.getCauseCode();
-        OrderSagaFailedEvent event = OrderSagaFailedEvent.of(instance.getOrderNo(), causeCode);
+        OrderSagaFailedEvent event = OrderSagaFailedEvent.of(instance.getOrderNo(), instance.getCauseCode());
         eventPublisher.publishEvent(event);
     }
 
