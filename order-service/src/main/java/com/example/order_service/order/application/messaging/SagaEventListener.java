@@ -41,20 +41,6 @@ public class SagaEventListener {
     }
 
     /**
-     * 주문 SAGA 완료
-     * <p>
-     * SAGA 완료 이벤트 수신 후 주문 상태 변경
-     * </p>
-     *
-     * @param event SAGA 완료 이벤트
-     */
-    @Async
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void onSagaComplete(OrderSagaCompletedEvent event) {
-        orderCommandService.changeCompleted(event.getOrderNo());
-    }
-
-    /**
      * 주문 SAGA 실패
      * <p>
      * SAGA 실패 이벤트 수신후 결제 보상 호출

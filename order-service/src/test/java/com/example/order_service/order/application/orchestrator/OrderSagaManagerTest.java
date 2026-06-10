@@ -1,8 +1,6 @@
 package com.example.order_service.order.application.orchestrator;
 
-
 import com.example.order_service.common.domain.vo.Money;
-import com.example.order_service.order.application.messaging.dto.SagaMessage;
 import com.example.order_service.order.application.service.saga.OrderSagaService;
 import com.example.order_service.order.domain.model.Order;
 import com.example.order_service.order.domain.model.OrderItem;
@@ -21,7 +19,6 @@ import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -91,83 +88,147 @@ class OrderSagaManagerTest {
     }
 
     @Nested
-    @DisplayName("Saga 메시지 수신")
-    class HandleReply {
+    @DisplayName("Saga 정방향 처리")
+    class HandleReply_SUCCESS {
 
-        @Test
-        @DisplayName("재고 감소 성공 메시지를 수신하면 saga history를 저장하고 주문이 쿠폰을 사용했다면 쿠폰 단계로 넘어간다")
-        void handleReply_success_inventory_deducted_when_using_coupon(){
-            //given
-            String orderNo = "orderNo";
-            Long userId = 1L;
-            SagaReplyMessage message = SagaReplyMessage.builder().result(SagaResult.SUCCESS).orderNo(orderNo)
-                    .step(SagaStep.INVENTORY_DEDUCT_PENDING).code("INVENTORY_DEDUCT_SUCCESS")
-                    .build();
-            SagaPayload.CouponPayload couponPayload = SagaPayload.CouponPayload.of(1L, List.of(1L, 2L));
-            SagaPayload.ItemPayload itemPayload = SagaPayload.ItemPayload.of(1L, 1);
-            SagaPayload.PointPayload pointPayload = SagaPayload.PointPayload.of(Money.wons(1000L));
-            SagaPayload payload = SagaPayload.of(userId, List.of(itemPayload), couponPayload, pointPayload);
-            OrderSagaInstance instance = OrderSagaInstance.create(orderNo, SagaStep.INVENTORY_DEDUCT_PENDING, payload);
-            sagaRepository.save(instance);
-            //when
-            orderSagaManager.handleReply(message);
-            //then
-            OrderSagaInstance findInstance = sagaRepository.findByOrderNo(orderNo).orElseThrow();
-            assertThat(findInstance.getHistories()).hasSize(1);
-            assertThat(findInstance.getStatus()).isEqualTo(SagaStatus.STARTED);
-            assertThat(findInstance.getCurrentStep()).isEqualTo(SagaStep.COUPON_USE_PENDING);
+        @Nested
+        @DisplayName("재고 감소 성공 메시지 수신")
+        class INVENTORY_DEDUCTED {
+
+            @Test
+            @DisplayName("재고 감소 성공 메시지를 수신하면 saga history를 저장하고 주문이 쿠폰을 사용했다면 쿠폰 단계로 넘어간다")
+            void handleReply_success_inventory_deducted(){
+                //given
+                String orderNo = "orderNo";
+                Long userId = 1L;
+                SagaReplyMessage message = SagaReplyMessage.builder().result(SagaResult.SUCCESS).orderNo(orderNo)
+                        .step(SagaStep.INVENTORY_DEDUCT_PENDING).code("INVENTORY_DEDUCT_SUCCESS")
+                        .build();
+                SagaPayload.CouponPayload couponPayload = SagaPayload.CouponPayload.of(1L, List.of(1L, 2L));
+                SagaPayload.ItemPayload itemPayload = SagaPayload.ItemPayload.of(1L, 1);
+                SagaPayload.PointPayload pointPayload = SagaPayload.PointPayload.of(Money.wons(1000L));
+                SagaPayload payload = SagaPayload.of(userId, List.of(itemPayload), couponPayload, pointPayload);
+                OrderSagaInstance instance = OrderSagaInstance.create(orderNo, SagaStep.INVENTORY_DEDUCT_PENDING, payload);
+                sagaRepository.save(instance);
+                //when
+                orderSagaManager.handleReply(message);
+                //then
+                OrderSagaInstance findInstance = sagaRepository.findByOrderNoWithHistories(orderNo).orElseThrow();
+                assertThat(findInstance.getHistories()).hasSize(1);
+                assertThat(findInstance.getStatus()).isEqualTo(SagaStatus.STARTED);
+                assertThat(findInstance.getCurrentStep()).isEqualTo(SagaStep.COUPON_USE_PENDING);
+            }
+
+            @Test
+            @DisplayName("재고 감소 성공 메시지를 수신하면 saga history를 저장하고 주문이 쿠폰을 사용하지 않았다면 포인트 차감 단계로 넘어간다")
+            void handleReply_success_inventory_deducted_skip_coupon(){
+                //given
+                String orderNo = "orderNo";
+                Long userId = 1L;
+                SagaReplyMessage message = SagaReplyMessage.builder().result(SagaResult.SUCCESS).orderNo(orderNo)
+                        .step(SagaStep.INVENTORY_DEDUCT_PENDING).code("INVENTORY_DEDUCT_SUCCESS")
+                        .build();
+                SagaPayload.CouponPayload couponPayload = SagaPayload.CouponPayload.of(null, List.of());
+                SagaPayload.ItemPayload itemPayload = SagaPayload.ItemPayload.of(1L, 1);
+                SagaPayload.PointPayload pointPayload = SagaPayload.PointPayload.of(Money.wons(1000L));
+                SagaPayload payload = SagaPayload.of(userId, List.of(itemPayload), couponPayload, pointPayload);
+                OrderSagaInstance instance = OrderSagaInstance.create(orderNo, SagaStep.INVENTORY_DEDUCT_PENDING, payload);
+                sagaRepository.save(instance);
+                //when
+                orderSagaManager.handleReply(message);
+                //then
+                OrderSagaInstance findInstance = sagaRepository.findByOrderNoWithHistories(orderNo).orElseThrow();
+                assertThat(findInstance.getHistories()).hasSize(1);
+                assertThat(findInstance.getStatus()).isEqualTo(SagaStatus.STARTED);
+                assertThat(findInstance.getCurrentStep()).isEqualTo(SagaStep.POINTS_DEDUCT_PENDING);
+            }
+
+            @Test
+            @DisplayName("재고 감소 성공 메시지를 수신하면 saga history를 저장하고 쿠폰과 포인트를 사용하지 않았다면 Saga 와 주문을 완료 처리 한다")
+            void handleReply_success_inventory_deducted_skip_coupon_and_point(){
+                //given
+                String orderNo = "orderNo";
+                Long userId = 1L;
+                Order order = createOrder(orderNo);
+                order.paid();
+                SagaReplyMessage message = SagaReplyMessage.builder().result(SagaResult.SUCCESS).orderNo(orderNo)
+                        .step(SagaStep.INVENTORY_DEDUCT_PENDING).code("INVENTORY_DEDUCT_SUCCESS")
+                        .build();
+                SagaPayload.CouponPayload couponPayload = SagaPayload.CouponPayload.of(null, List.of());
+                SagaPayload.ItemPayload itemPayload = SagaPayload.ItemPayload.of(1L, 1);
+                SagaPayload.PointPayload pointPayload = SagaPayload.PointPayload.of(Money.ZERO);
+                SagaPayload payload = SagaPayload.of(userId, List.of(itemPayload), couponPayload, pointPayload);
+                OrderSagaInstance instance = OrderSagaInstance.create(orderNo, SagaStep.INVENTORY_DEDUCT_PENDING, payload);
+                sagaRepository.save(instance);
+                orderRepository.save(order);
+                //when
+                orderSagaManager.handleReply(message);
+                //then
+                OrderSagaInstance findInstance = sagaRepository.findByOrderNoWithHistories(orderNo).orElseThrow();
+                Order findOrder = orderRepository.findByOrderNo(orderNo).orElseThrow();
+                assertThat(findInstance.getHistories()).hasSize(1);
+                assertThat(findInstance.getStatus()).isEqualTo(SagaStatus.COMPLETE);
+                assertThat(findInstance.getCurrentStep()).isEqualTo(SagaStep.END);
+                assertThat(findOrder.getStatus()).isEqualTo(OrderStatus.COMPLETED);
+            }
         }
 
-        @Test
-        @DisplayName("재고 감소 성공 메시지를 수신하면 saga history를 저장하고 주문이 쿠폰을 사용하지 않았다면 포인트 차감 단계로 넘어간다")
-        @Transactional
-        void handleReply_success_inventory_deducted_skip_coupon(){
-            //given
-            String orderNo = "orderNo";
-            Long userId = 1L;
-            SagaReplyMessage message = SagaReplyMessage.builder().result(SagaResult.SUCCESS).orderNo(orderNo)
-                    .step(SagaStep.INVENTORY_DEDUCT_PENDING).code("INVENTORY_DEDUCT_SUCCESS")
-                    .build();
-            SagaPayload.CouponPayload couponPayload = SagaPayload.CouponPayload.of(null, List.of());
-            SagaPayload.ItemPayload itemPayload = SagaPayload.ItemPayload.of(1L, 1);
-            SagaPayload.PointPayload pointPayload = SagaPayload.PointPayload.of(Money.wons(1000L));
-            SagaPayload payload = SagaPayload.of(userId, List.of(itemPayload), couponPayload, pointPayload);
-            OrderSagaInstance instance = OrderSagaInstance.create(orderNo, SagaStep.INVENTORY_DEDUCT_PENDING, payload);
-            sagaRepository.save(instance);
-            //when
-            orderSagaManager.handleReply(message);
-            //then
-            assertThat(instance.getHistories()).hasSize(1);
-            assertThat(instance.getStatus()).isEqualTo(SagaStatus.STARTED);
-            assertThat(instance.getCurrentStep()).isEqualTo(SagaStep.POINTS_DEDUCT_PENDING);
-        }
+        @Nested
+        @DisplayName("쿠폰 무효화 성공 메시지 수신")
+        class COUPON_USED {
 
-        @Test
-        @DisplayName("재고 감소 성공 메시지를 수신하면 saga history를 저장하고 쿠폰과 포인트를 사용하지 않았다면 Saga 와 주문을 완료 처리 한다")
-        @Transactional
-        void handleReply_success_inventory_deducted_skip_coupon_and_point(){
-            //given
-            String orderNo = "orderNo";
-            Long userId = 1L;
-            Order order = createOrder(orderNo);
-            order.paid();
-            SagaReplyMessage message = SagaReplyMessage.builder().result(SagaResult.SUCCESS).orderNo(orderNo)
-                    .step(SagaStep.INVENTORY_DEDUCT_PENDING).code("INVENTORY_DEDUCT_SUCCESS")
-                    .build();
-            SagaPayload.CouponPayload couponPayload = SagaPayload.CouponPayload.of(null, List.of());
-            SagaPayload.ItemPayload itemPayload = SagaPayload.ItemPayload.of(1L, 1);
-            SagaPayload.PointPayload pointPayload = SagaPayload.PointPayload.of(Money.ZERO);
-            SagaPayload payload = SagaPayload.of(userId, List.of(itemPayload), couponPayload, pointPayload);
-            OrderSagaInstance instance = OrderSagaInstance.create(orderNo, SagaStep.INVENTORY_DEDUCT_PENDING, payload);
-            sagaRepository.save(instance);
-            orderRepository.save(order);
-            //when
-            orderSagaManager.handleReply(message);
-            //then
-            assertThat(instance.getHistories()).hasSize(1);
-            assertThat(instance.getStatus()).isEqualTo(SagaStatus.COMPLETE);
-            assertThat(instance.getCurrentStep()).isEqualTo(SagaStep.END);
-            assertThat(order.getStatus()).isEqualTo(OrderStatus.COMPLETED);
+            @Test
+            @DisplayName("쿠폰 무효화 성공 메시지를 수신하면 saga history를 저장하고 포인트 차감 단계를 진행한다")
+            void handleReply_success_coupon_used() {
+                //given
+                String orderNo = "orderNo";
+                Long userId = 1L;
+                SagaReplyMessage message = SagaReplyMessage.builder().result(SagaResult.SUCCESS).orderNo(orderNo)
+                        .step(SagaStep.COUPON_USE_PENDING).code("COUPON_USED_SUCCESS")
+                        .build();
+                SagaPayload.CouponPayload couponPayload = SagaPayload.CouponPayload.of(null, List.of());
+                SagaPayload.ItemPayload itemPayload = SagaPayload.ItemPayload.of(1L, 1);
+                SagaPayload.PointPayload pointPayload = SagaPayload.PointPayload.of(Money.wons(1000L));
+                SagaPayload payload = SagaPayload.of(userId, List.of(itemPayload), couponPayload, pointPayload);
+                OrderSagaInstance instance = OrderSagaInstance.create(orderNo, SagaStep.COUPON_USE_PENDING, payload);
+                sagaRepository.save(instance);
+                //when
+                orderSagaManager.handleReply(message);
+                //then
+                OrderSagaInstance findInstance = sagaRepository.findByOrderNoWithHistories(orderNo).orElseThrow();
+                assertThat(findInstance.getHistories()).hasSize(1);
+                assertThat(findInstance.getStatus()).isEqualTo(SagaStatus.STARTED);
+                assertThat(findInstance.getCurrentStep()).isEqualTo(SagaStep.POINTS_DEDUCT_PENDING);
+            }
+
+            @Test
+            @DisplayName("쿠폰 무효화 성공 메시지를 수신하면 saga history를 저장하고 주문이 포인트를 사용하지 않았다면 saga와 주문을 완료 처리한다")
+            void handleReply_success_coupon_used_skip_point_deduct() {
+                //given
+                String orderNo = "orderNo";
+                Long userId = 1L;
+                Order order = createOrder(orderNo);
+                order.paid();
+                SagaReplyMessage message = SagaReplyMessage.builder().result(SagaResult.SUCCESS).orderNo(orderNo)
+                        .step(SagaStep.COUPON_USE_PENDING).code("COUPON_USED_SUCCESS")
+                        .build();
+                SagaPayload.CouponPayload couponPayload = SagaPayload.CouponPayload.of(null, List.of());
+                SagaPayload.ItemPayload itemPayload = SagaPayload.ItemPayload.of(1L, 1);
+                SagaPayload.PointPayload pointPayload = SagaPayload.PointPayload.of(Money.ZERO);
+                SagaPayload payload = SagaPayload.of(userId, List.of(itemPayload), couponPayload, pointPayload);
+                OrderSagaInstance instance = OrderSagaInstance.create(orderNo, SagaStep.COUPON_USE_PENDING, payload);
+                sagaRepository.save(instance);
+                orderRepository.save(order);
+                //when
+                orderSagaManager.handleReply(message);
+                //then
+                OrderSagaInstance findInstance = sagaRepository.findByOrderNoWithHistories(orderNo).orElseThrow();
+                Order findOrder = orderRepository.findByOrderNo(orderNo).orElseThrow();
+                assertThat(findInstance.getHistories()).hasSize(1);
+                assertThat(findInstance.getStatus()).isEqualTo(SagaStatus.COMPLETE);
+                assertThat(findInstance.getCurrentStep()).isEqualTo(SagaStep.END);
+                assertThat(findOrder.getStatus()).isEqualTo(OrderStatus.COMPLETED);
+            }
         }
     }
 

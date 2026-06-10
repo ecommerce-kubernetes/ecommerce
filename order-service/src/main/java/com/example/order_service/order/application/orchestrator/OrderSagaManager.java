@@ -71,9 +71,9 @@ public class OrderSagaManager {
             return;
         }
         /*
-        [NOTE] SAGA 흐름
-        정방향 처리 : 재고 차감 -> 쿠폰 무효화 -> 포인트 차감 -> 주문 완료
-        롤백 처리 : 쿠폰 복구 -> 재고 복구 -> 주문 실패
+        [NOTE] Saga 흐름
+        SAGA 흐름은 재고 차감, 쿠폰 무효화, 포인트 차감 순으로 진행되고
+        보상 처리는 정방향의 역순으로 진행된다
          */
         if (message.getResult() == SagaResult.SUCCESS) {
             processSuccess(saga, message);
@@ -87,8 +87,6 @@ public class OrderSagaManager {
                 saga.orderNo(), StepResult.COMPLETED, saga.currentStep(), message.getCode()
         );
         SagaPayload payload = saga.payload();
-
-        //[NOTE] 정방향 처리가 필요 없는 경우 다음 단계로 넘어감
         switch (saga.currentStep()) {
             case INVENTORY_DEDUCT_PENDING -> {
                 if (payload.getCoupon().getCartCouponId() != null || !payload.getCoupon().getItemCouponIds().isEmpty()) {
