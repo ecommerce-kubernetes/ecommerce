@@ -116,6 +116,12 @@ public class OrderSagaService {
         eventPublisher.publishEvent(event);
     }
 
+    public void recordHistory(String orderNo, OrderSagaCommand.RecordHistory command) {
+        OrderSagaInstance instance = findSagaByOrderNo(orderNo);
+        SagaStepHistory history = SagaStepHistory.from(command.step(), command.status(), command.code());
+        instance.addHistory(history);
+    }
+
     private OrderSagaInstance findSagaByOrderNo(String orderNo) {
         return instanceRepository.findByOrderNo(orderNo)
                 .orElseThrow(IllegalArgumentException::new);

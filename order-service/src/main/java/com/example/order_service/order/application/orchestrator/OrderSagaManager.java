@@ -140,7 +140,11 @@ public class OrderSagaManager {
                     orderSagaService.process(saga.orderNo(), SagaStep.INVENTORY_RESTORE_PENDING, historyCommand);
                 }
             }
-            case COUPON_RESTORE_PENDING, INVENTORY_RESTORE_PENDING -> log.error("보상 실패 sagaId:{}", saga.sagaId());
+            case COUPON_RESTORE_PENDING, INVENTORY_RESTORE_PENDING -> {
+                orderSagaService.recordHistory(saga.orderNo(), historyCommand);
+                log.error("[FATAL ERROR] 보상 트랜잭션 실패로 SAGA 중단 orderNo:{}, step:{}, cause:{}",
+                        saga.orderNo(), saga.currentStep(), message.getCode());
+            }
         }
     }
 }

@@ -219,10 +219,11 @@ class OrderSagaManagerTest {
                             .step(SagaStep.INVENTORY_RESTORE_PENDING).code("INVENTORY_RESTORE_SUCCESS")
                             .build();
                     SagaPayload.ItemPayload itemPayload = SagaPayload.ItemPayload.of(1L, 1);
-                    SagaPayload.CouponPayload couponPayload = SagaPayload.CouponPayload.of(null, List.of());
+                    SagaPayload.CouponPayload couponPayload = SagaPayload.CouponPayload.of(1L, List.of());
                     SagaPayload.PointPayload pointPayload = SagaPayload.PointPayload.of(Money.ZERO);
                     SagaPayload payload = SagaPayload.of(userId, List.of(itemPayload), couponPayload, pointPayload);
-                    OrderSagaInstance instance = OrderSagaInstance.create(orderNo, SagaStep.INVENTORY_RESTORE_PENDING, payload);
+                    OrderSagaInstance instance = OrderSagaInstance.create(orderNo, SagaStep.COUPON_USE_PENDING, payload);
+                    instance.transitionTo(SagaStep.INVENTORY_RESTORE_PENDING);
                     sagaRepository.save(instance);
                     orderRepository.save(order);
                     //when
@@ -312,7 +313,8 @@ class OrderSagaManagerTest {
                     SagaPayload.ItemPayload itemPayload = SagaPayload.ItemPayload.of(1L, 1);
                     SagaPayload.PointPayload pointPayload = SagaPayload.PointPayload.of(Money.ZERO);
                     SagaPayload payload = SagaPayload.of(userId, List.of(itemPayload), couponPayload, pointPayload);
-                    OrderSagaInstance instance = OrderSagaInstance.create(orderNo, SagaStep.COUPON_RESTORE_PENDING, payload);
+                    OrderSagaInstance instance = OrderSagaInstance.create(orderNo, SagaStep.POINTS_DEDUCT_PENDING, payload);
+                    instance.transitionTo(SagaStep.COUPON_RESTORE_PENDING);
                     sagaRepository.save(instance);
                     //when
                     orderSagaManager.handleReply(message);
@@ -398,6 +400,36 @@ class OrderSagaManagerTest {
             }
 
             @Nested
+            @DisplayName("재고 복구 실패 메시지 수신시")
+            class INVENTORY_RESTORE {
+
+                @Test
+                @DisplayName("재고 보상 실패 메시지 수신시 saga 상태를 변경하지 않고 기존 상태를 유지한다")
+                void handleReply_fail_inventory_compensate(){
+                    //given
+                    String orderNo = "orderNo";
+                    Long userId = 1L;
+                    SagaReplyMessage message = SagaReplyMessage.builder().result(SagaResult.FAILURE).orderNo(orderNo)
+                            .step(SagaStep.INVENTORY_RESTORE_PENDING).code("DB_DEADLOCK_ERROR")
+                            .build();
+                    SagaPayload.CouponPayload couponPayload = SagaPayload.CouponPayload.of(1L, List.of(1L));
+                    SagaPayload.ItemPayload itemPayload = SagaPayload.ItemPayload.of(1L, 1);
+                    SagaPayload.PointPayload pointPayload = SagaPayload.PointPayload.of(Money.ZERO);
+                    SagaPayload payload = SagaPayload.of(userId, List.of(itemPayload), couponPayload, pointPayload);
+                    OrderSagaInstance instance = OrderSagaInstance.create(orderNo, SagaStep.COUPON_USE_PENDING, payload);
+                    instance.transitionTo(SagaStep.INVENTORY_RESTORE_PENDING);
+                    sagaRepository.save(instance);
+                    //when
+                    orderSagaManager.handleReply(message);
+                    //then
+                    OrderSagaInstance findInstance = sagaRepository.findByOrderNoWithHistories(orderNo).orElseThrow();
+                    assertThat(findInstance.getStatus()).isEqualTo(SagaStatus.COMPENSATING);
+                    assertThat(findInstance.getCurrentStep()).isEqualTo(SagaStep.INVENTORY_RESTORE_PENDING);
+                    assertThat(findInstance.getHistories()).hasSize(1);
+                }
+            }
+
+            @Nested
             @DisplayName("쿠폰 무효화 실패 메시지 수신")
             class COUPON_USED {
 
@@ -423,6 +455,36 @@ class OrderSagaManagerTest {
                     assertThat(findInstance.getHistories()).hasSize(1);
                     assertThat(findInstance.getStatus()).isEqualTo(SagaStatus.COMPENSATING);
                     assertThat(findInstance.getCurrentStep()).isEqualTo(SagaStep.INVENTORY_RESTORE_PENDING);
+                }
+            }
+
+            @Nested
+            @DisplayName("쿠폰 보상 실패")
+            class COUPON_RESTORE {
+
+                @Test
+                @DisplayName("쿠폰 보상 실패 메시지 수신시 saga 상태를 변경하지 않고 기존 상태를 유지한다")
+                void handleReply_fail_coupon_compensate(){
+                    //given
+                    String orderNo = "orderNo";
+                    Long userId = 1L;
+                    SagaReplyMessage message = SagaReplyMessage.builder().result(SagaResult.FAILURE).orderNo(orderNo)
+                            .step(SagaStep.COUPON_RESTORE_PENDING).code("DB_DEADLOCK_ERROR")
+                            .build();
+                    SagaPayload.CouponPayload couponPayload = SagaPayload.CouponPayload.of(1L, List.of(1L));
+                    SagaPayload.ItemPayload itemPayload = SagaPayload.ItemPayload.of(1L, 1);
+                    SagaPayload.PointPayload pointPayload = SagaPayload.PointPayload.of(Money.wons(1000L));
+                    SagaPayload payload = SagaPayload.of(userId, List.of(itemPayload), couponPayload, pointPayload);
+                    OrderSagaInstance instance = OrderSagaInstance.create(orderNo, SagaStep.POINTS_DEDUCT_PENDING, payload);
+                    instance.transitionTo(SagaStep.COUPON_RESTORE_PENDING);
+                    sagaRepository.save(instance);
+                    //when
+                    orderSagaManager.handleReply(message);
+                    //then
+                    OrderSagaInstance findInstance = sagaRepository.findByOrderNoWithHistories(orderNo).orElseThrow();
+                    assertThat(findInstance.getStatus()).isEqualTo(SagaStatus.COMPENSATING);
+                    assertThat(findInstance.getCurrentStep()).isEqualTo(SagaStep.COUPON_RESTORE_PENDING);
+                    assertThat(findInstance.getHistories()).hasSize(1);
                 }
             }
 
