@@ -1,5 +1,6 @@
 package com.example.order_service.order.application.service.saga;
 
+import com.example.order_service.common.exception.business.BusinessException;
 import com.example.order_service.order.application.event.OrderSagaCompletedEvent;
 import com.example.order_service.order.application.event.OrderSagaFailedEvent;
 import com.example.order_service.order.application.event.OrderSagaProcessEvent;
@@ -9,6 +10,7 @@ import com.example.order_service.order.domain.repository.OrderSagaInstanceReposi
 import com.example.order_service.order.domain.saga.OrderSagaInstance;
 import com.example.order_service.order.domain.saga.SagaStep;
 import com.example.order_service.order.domain.saga.SagaStepHistory;
+import com.example.order_service.order.exception.SagaErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -124,6 +126,6 @@ public class OrderSagaService {
 
     private OrderSagaInstance findSagaByOrderNo(String orderNo) {
         return instanceRepository.findByOrderNo(orderNo)
-                .orElseThrow(IllegalArgumentException::new);
+                .orElseThrow(() -> new BusinessException(SagaErrorCode.SAGA_INSTANCE_NOT_FOUND));
     }
 }
