@@ -42,7 +42,7 @@ public class InventoryMessageHandler implements SagaMessageHandler {
     }
 
     private void sendMessage(InventoryMessage message) {
-        String topicName = sagaProperties.getInventorySagaCommand();
+        String topicName = sagaProperties.productSagaCommand();
         String jsonPayload = toJson(message);
         kafkaTemplate.send(topicName, message.getOrderNo(), jsonPayload);
     }

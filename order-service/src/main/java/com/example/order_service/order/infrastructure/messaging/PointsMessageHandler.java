@@ -41,7 +41,7 @@ public class PointsMessageHandler implements SagaMessageHandler {
     }
 
     private void sendMessage(PointsMessage message) {
-        String topicName = sagaProperties.getPointsSagaCommand();
+        String topicName = sagaProperties.userSagaCommand();
         String jsonPayload = toJson(message);
         kafkaTemplate.send(topicName, message.getOrderNo(), jsonPayload);
     }

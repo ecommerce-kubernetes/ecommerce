@@ -42,7 +42,7 @@ public class CouponMessageHandler implements SagaMessageHandler {
     }
 
     private void sendMessage(CouponMessage message) {
-        String topicName = sagaProperties.getCouponSagaCommand();
+        String topicName = sagaProperties.couponSagaCommand();
         String jsonPayload = toJson(message);
         kafkaTemplate.send(topicName, message.getOrderNo(), jsonPayload);
     }
