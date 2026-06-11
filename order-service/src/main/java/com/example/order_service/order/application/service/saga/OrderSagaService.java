@@ -118,6 +118,11 @@ public class OrderSagaService {
         eventPublisher.publishEvent(event);
     }
 
+    /**
+     * Saga history 저장
+     * @param orderNo 주문 번호
+     * @param command history 저장 커맨드
+     */
     public void recordHistory(String orderNo, OrderSagaCommand.RecordHistory command) {
         OrderSagaInstance instance = findSagaByOrderNo(orderNo);
         SagaStepHistory history = SagaStepHistory.from(command.step(), command.status(), command.code());

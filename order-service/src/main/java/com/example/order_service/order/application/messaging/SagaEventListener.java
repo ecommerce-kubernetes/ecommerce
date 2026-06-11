@@ -1,10 +1,8 @@
 package com.example.order_service.order.application.messaging;
 
-import com.example.order_service.order.application.event.OrderSagaCompletedEvent;
 import com.example.order_service.order.application.event.OrderSagaFailedEvent;
 import com.example.order_service.order.application.event.OrderSagaProcessEvent;
 import com.example.order_service.order.application.messaging.dto.SagaMessage;
-import com.example.order_service.order.application.service.order.OrderCommandService;
 import com.example.order_service.payment.application.service.PaymentFacade;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Async;
@@ -22,7 +20,6 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @RequiredArgsConstructor
 public class SagaEventListener {
     private final PaymentFacade paymentFacade;
-    private final OrderCommandService orderCommandService;
     private final SagaMessageDispatcher dispatcher;
 
     /**
