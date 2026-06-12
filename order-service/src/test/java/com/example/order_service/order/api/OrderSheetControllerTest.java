@@ -2,13 +2,13 @@ package com.example.order_service.order.api;
 
 import com.example.order_service.common.security.model.UserRole;
 import com.example.order_service.order.api.dto.request.OrderSheetRequest;
-import com.example.order_service.order.api.dto.response.OrderSheetResponse;
 import com.example.order_service.order.application.service.ordersheet.OrderSheetService;
 import com.example.order_service.order.application.service.ordersheet.dto.command.OrderSheetCommand;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetResult;
 import com.example.order_service.support.annotation.WithCustomMockUser;
 import com.example.order_service.support.config.TestSecurityConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -25,8 +25,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.List;
 import java.util.stream.Stream;
 
-import static com.example.order_service.support.TestFixtureUtil.fixtureMonkey;
-import static com.example.order_service.support.TestFixtureUtil.nonNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -52,34 +50,51 @@ class OrderSheetControllerTest {
         @WithCustomMockUser
         void createOrderSheet() throws Exception {
             //given
-            OrderSheetRequest.OrderItem item = fixtureMonkey.giveMeBuilder(OrderSheetRequest.OrderItem.class)
-                    .set("productVariantId", 1L)
-                    .sample();
-            OrderSheetRequest.ItemCoupon itemCoupon = fixtureMonkey.giveMeBuilder(OrderSheetRequest.ItemCoupon.class)
-                    .set("productVariantId", 1L)
-                    .sample();
-            OrderSheetRequest.Create request = fixtureMonkey.giveMeBuilder(OrderSheetRequest.Create.class)
-                    .set("items", List.of(item))
-                    .set("itemCoupons", List.of(itemCoupon))
-                    .sample();
-            OrderSheetResult.Create result = nonNull(fixtureMonkey.giveMeOne(OrderSheetResult.Create.class));
+            Long productVariantId = 1L;
+            OrderSheetRequest.OrderItem item = OrderSheetRequest.OrderItem.builder()
+                    .productVariantId(productVariantId)
+                    .quantity(1)
+                    .build();
+            OrderSheetRequest.ItemCoupon itemCoupon = OrderSheetRequest.ItemCoupon.builder()
+                    .couponId(2L)
+                    .productVariantId(productVariantId)
+                    .build();
+            OrderSheetRequest.Create request = OrderSheetRequest.Create.builder()
+                    .items(List.of(item))
+                    .cartCouponId(1L)
+                    .itemCoupons(List.of(itemCoupon))
+                    .build();
+
+            OrderSheetResult.Create result = Instancio.create(OrderSheetResult.Create.class);
             given(orderSheetService.createOrderSheet(any(OrderSheetCommand.Create.class)))
                     .willReturn(result);
-            OrderSheetResponse.Create response = OrderSheetResponse.Create.from(result);
             //when
             //then
             mockMvc.perform(post("/order-sheets")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isCreated())
-                    .andExpect(content().json(objectMapper.writeValueAsString(response)));
+                    .andExpect(jsonPath("$.sheetId").value(result.sheetId()));
         }
 
         @Test
         @DisplayName("로그인 하지 않은 사용자는 주문서를 저장할 수 없다")
         void createOrderSheet_unAuthorized() throws Exception {
             //given
-            OrderSheetRequest.Create request = nonNull(fixtureMonkey.giveMeOne(OrderSheetRequest.Create.class));
+            Long productVariantId = 1L;
+            OrderSheetRequest.OrderItem item = OrderSheetRequest.OrderItem.builder()
+                    .productVariantId(productVariantId)
+                    .quantity(1)
+                    .build();
+            OrderSheetRequest.ItemCoupon itemCoupon = OrderSheetRequest.ItemCoupon.builder()
+                    .couponId(2L)
+                    .productVariantId(productVariantId)
+                    .build();
+            OrderSheetRequest.Create request = OrderSheetRequest.Create.builder()
+                    .items(List.of(item))
+                    .cartCouponId(1L)
+                    .itemCoupons(List.of(itemCoupon))
+                    .build();
             //when
             //then
             mockMvc.perform(post("/order-sheets")
@@ -97,7 +112,20 @@ class OrderSheetControllerTest {
         @WithCustomMockUser(userRole = UserRole.ROLE_ADMIN)
         void createOrderSheet_forbidden() throws Exception {
             //given
-            OrderSheetRequest.Create request = nonNull(fixtureMonkey.giveMeOne(OrderSheetRequest.Create.class));
+            Long productVariantId = 1L;
+            OrderSheetRequest.OrderItem item = OrderSheetRequest.OrderItem.builder()
+                    .productVariantId(productVariantId)
+                    .quantity(1)
+                    .build();
+            OrderSheetRequest.ItemCoupon itemCoupon = OrderSheetRequest.ItemCoupon.builder()
+                    .couponId(2L)
+                    .productVariantId(productVariantId)
+                    .build();
+            OrderSheetRequest.Create request = OrderSheetRequest.Create.builder()
+                    .items(List.of(item))
+                    .cartCouponId(1L)
+                    .itemCoupons(List.of(itemCoupon))
+                    .build();
             //when
             //then
             mockMvc.perform(post("/order-sheets")
@@ -218,8 +246,7 @@ class OrderSheetControllerTest {
             //given
             String orderSheetId = "sheetId";
             Long userId = 1L;
-            OrderSheetResult.Detail result = fixtureMonkey.giveMeOne(OrderSheetResult.Detail.class);
-            OrderSheetResponse.Detail response = OrderSheetResponse.Detail.from(result);
+            OrderSheetResult.Detail result = Instancio.create(OrderSheetResult.Detail.class);
             given(orderSheetService.getOrderSheet(orderSheetId, userId))
                     .willReturn(result);
             //when
@@ -227,7 +254,13 @@ class OrderSheetControllerTest {
             mockMvc.perform(get("/order-sheets/{sheetId}", orderSheetId)
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
-                    .andExpect(content().json(objectMapper.writeValueAsString(response)));
+                    .andExpect(jsonPath("$.sheetId").value(result.sheetId()))
+                    .andExpect(jsonPath("$.orderer.userId").value(result.orderer().getUserId()))
+                    .andExpect(jsonPath("$.items").isArray())
+                    .andExpect(jsonPath("$.items.length()").value(result.items().size()))
+                    .andExpect(jsonPath("$.orderer.userId").value(result.orderer().getUserId()))
+                    .andExpect(jsonPath("$.paymentSummary.totalPaymentAmount").value(result.paymentSummary().totalPaymentAmount().longValue()));
+
         }
 
         @Test
@@ -273,18 +306,28 @@ class OrderSheetControllerTest {
         @WithCustomMockUser
         void updateShippingAddress() throws Exception {
             //given
-            OrderSheetRequest.UpdateShippingAddress request = fixtureMonkey.giveMeOne(OrderSheetRequest.UpdateShippingAddress.class);
-            OrderSheetResult.Detail result = fixtureMonkey.giveMeOne(OrderSheetResult.Detail.class);
+            OrderSheetRequest.UpdateShippingAddress request = OrderSheetRequest.UpdateShippingAddress.builder()
+                    .receiverName("수령인")
+                    .receiverPhone("010-1234-5678")
+                    .zipCode("12345")
+                    .address("서울시 테헤란로 123")
+                    .addressDetail("123동 1234호")
+                    .build();
+            OrderSheetResult.Detail result = Instancio.create(OrderSheetResult.Detail.class);
             given(orderSheetService.updateShippingAddress(any(OrderSheetCommand.UpdateShippingAddress.class)))
                     .willReturn(result);
-            OrderSheetResponse.Detail response = OrderSheetResponse.Detail.from(result);
             //when
             //then
             mockMvc.perform(patch("/order-sheets/{sheetId}/shipping-address", "sheetId")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
-                    .andExpect(content().json(objectMapper.writeValueAsString(response)));
+                    .andExpect(jsonPath("$.sheetId").value(result.sheetId()))
+                    .andExpect(jsonPath("$.orderer.userId").value(result.orderer().getUserId()))
+                    .andExpect(jsonPath("$.items").isArray())
+                    .andExpect(jsonPath("$.items.length()").value(result.items().size()))
+                    .andExpect(jsonPath("$.orderer.userId").value(result.orderer().getUserId()))
+                    .andExpect(jsonPath("$.paymentSummary.totalPaymentAmount").value(result.paymentSummary().totalPaymentAmount().longValue()));
         }
 
         @Test
@@ -292,8 +335,13 @@ class OrderSheetControllerTest {
         void updateShippingAddress_unAuthorized() throws Exception {
             //given
             String sheetId = "sheetId";
-            OrderSheetRequest.UpdateShippingAddress request = fixtureMonkey.giveMeOne(OrderSheetRequest.UpdateShippingAddress.class);
-            //when
+            OrderSheetRequest.UpdateShippingAddress request = OrderSheetRequest.UpdateShippingAddress.builder()
+                    .receiverName("수령인")
+                    .receiverPhone("010-1234-5678")
+                    .zipCode("12345")
+                    .address("서울시 테헤란로 123")
+                    .addressDetail("123동 1234호")
+                    .build();            //when
             //then
             mockMvc.perform(patch("/order-sheets/{sheetId}/shipping-address", "sheetId")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -311,8 +359,13 @@ class OrderSheetControllerTest {
         void updateShippingAddress_forbidden() throws Exception {
             //given
             String sheetId = "sheetId";
-            OrderSheetRequest.UpdateShippingAddress request = fixtureMonkey.giveMeOne(OrderSheetRequest.UpdateShippingAddress.class);
-            //when
+            OrderSheetRequest.UpdateShippingAddress request = OrderSheetRequest.UpdateShippingAddress.builder()
+                    .receiverName("수령인")
+                    .receiverPhone("010-1234-5678")
+                    .zipCode("12345")
+                    .address("서울시 테헤란로 123")
+                    .addressDetail("123동 1234호")
+                    .build();            //when
             //then
             mockMvc.perform(patch("/order-sheets/{sheetId}/shipping-address", sheetId)
                             .contentType(MediaType.APPLICATION_JSON)
@@ -396,9 +449,10 @@ class OrderSheetControllerTest {
         void updatePoints() throws Exception {
             //given
             String sheetId = "sheetId";
-            OrderSheetRequest.UpdateUsedPoints request = fixtureMonkey.giveMeOne(OrderSheetRequest.UpdateUsedPoints.class);
-            OrderSheetResult.Detail result = fixtureMonkey.giveMeOne(OrderSheetResult.Detail.class);
-            OrderSheetResponse.Detail response = OrderSheetResponse.Detail.from(result);
+            OrderSheetRequest.UpdateUsedPoints request = OrderSheetRequest.UpdateUsedPoints.builder()
+                    .usedPoints(1000L)
+                    .build();
+            OrderSheetResult.Detail result = Instancio.create(OrderSheetResult.Detail.class);
             given(orderSheetService.updatePoints(any())).willReturn(result);
             //when
             //then
@@ -406,7 +460,12 @@ class OrderSheetControllerTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
-                    .andExpect(content().json(objectMapper.writeValueAsString(response)));
+                    .andExpect(jsonPath("$.sheetId").value(result.sheetId()))
+                    .andExpect(jsonPath("$.orderer.userId").value(result.orderer().getUserId()))
+                    .andExpect(jsonPath("$.items").isArray())
+                    .andExpect(jsonPath("$.items.length()").value(result.items().size()))
+                    .andExpect(jsonPath("$.orderer.userId").value(result.orderer().getUserId()))
+                    .andExpect(jsonPath("$.paymentSummary.totalPaymentAmount").value(result.paymentSummary().totalPaymentAmount().longValue()));
         }
 
         @Test
@@ -414,7 +473,9 @@ class OrderSheetControllerTest {
         void updatePoints_unAuthorized() throws Exception {
             //given
             String sheetId = "sheetId";
-            OrderSheetRequest.UpdateUsedPoints request = fixtureMonkey.giveMeOne(OrderSheetRequest.UpdateUsedPoints.class);
+            OrderSheetRequest.UpdateUsedPoints request = OrderSheetRequest.UpdateUsedPoints.builder()
+                    .usedPoints(1000L)
+                    .build();
             //when
             //then
             mockMvc.perform(patch("/order-sheets/{sheetId}/points", "sheetId")
@@ -433,7 +494,9 @@ class OrderSheetControllerTest {
         void updatePoints_forbidden() throws Exception {
             //given
             String sheetId = "sheetId";
-            OrderSheetRequest.UpdateUsedPoints request = fixtureMonkey.giveMeOne(OrderSheetRequest.UpdateUsedPoints.class);
+            OrderSheetRequest.UpdateUsedPoints request = OrderSheetRequest.UpdateUsedPoints.builder()
+                    .usedPoints(1000L)
+                    .build();
             //when
             //then
             mockMvc.perform(patch("/order-sheets/{sheetId}/points", "sheetId")
@@ -494,9 +557,10 @@ class OrderSheetControllerTest {
             //given
             String sheetId = "sheetId";
             String sheetItemId = "sheetItemId";
-            OrderSheetRequest.UpdateCoupon request = fixtureMonkey.giveMeOne(OrderSheetRequest.UpdateCoupon.class);
-            OrderSheetResult.Detail result = fixtureMonkey.giveMeOne(OrderSheetResult.Detail.class);
-            OrderSheetResponse.Detail response = OrderSheetResponse.Detail.from(result);
+            OrderSheetRequest.UpdateCoupon request = OrderSheetRequest.UpdateCoupon.builder()
+                    .couponId(1L)
+                    .build();
+            OrderSheetResult.Detail result = Instancio.create(OrderSheetResult.Detail.class);
             given(orderSheetService.updateItemCoupon(any())).willReturn(result);
             //when
             //then
@@ -504,7 +568,12 @@ class OrderSheetControllerTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
-                    .andExpect(content().json(objectMapper.writeValueAsString(response)));
+                    .andExpect(jsonPath("$.sheetId").value(result.sheetId()))
+                    .andExpect(jsonPath("$.orderer.userId").value(result.orderer().getUserId()))
+                    .andExpect(jsonPath("$.items").isArray())
+                    .andExpect(jsonPath("$.items.length()").value(result.items().size()))
+                    .andExpect(jsonPath("$.orderer.userId").value(result.orderer().getUserId()))
+                    .andExpect(jsonPath("$.paymentSummary.totalPaymentAmount").value(result.paymentSummary().totalPaymentAmount().longValue()));
         }
 
         @Test
@@ -513,7 +582,9 @@ class OrderSheetControllerTest {
             //given
             String sheetId = "sheetId";
             String sheetItemId = "sheetItemId";
-            OrderSheetRequest.UpdateCoupon request = fixtureMonkey.giveMeOne(OrderSheetRequest.UpdateCoupon.class);
+            OrderSheetRequest.UpdateCoupon request = OrderSheetRequest.UpdateCoupon.builder()
+                    .couponId(1L)
+                    .build();
             //when
             //then
             mockMvc.perform(patch("/order-sheets/{sheetId}/sheet-items/{sheetItemId}/coupon", sheetId, sheetItemId)
@@ -533,7 +604,9 @@ class OrderSheetControllerTest {
             //given
             String sheetId = "sheetId";
             String sheetItemId = "sheetItemId";
-            OrderSheetRequest.UpdateCoupon request = fixtureMonkey.giveMeOne(OrderSheetRequest.UpdateCoupon.class);
+            OrderSheetRequest.UpdateCoupon request = OrderSheetRequest.UpdateCoupon.builder()
+                    .couponId(1L)
+                    .build();
             //when
             //then
             mockMvc.perform(patch("/order-sheets/{sheetId}/sheet-items/{sheetItemId}/coupon", sheetId, sheetItemId)
@@ -557,9 +630,10 @@ class OrderSheetControllerTest {
         void updateCartCoupon() throws Exception {
             //given
             String sheetId = "sheetId";
-            OrderSheetRequest.UpdateCoupon request = fixtureMonkey.giveMeOne(OrderSheetRequest.UpdateCoupon.class);
-            OrderSheetResult.Detail result = fixtureMonkey.giveMeOne(OrderSheetResult.Detail.class);
-            OrderSheetResponse.Detail response = OrderSheetResponse.Detail.from(result);
+            OrderSheetRequest.UpdateCoupon request = OrderSheetRequest.UpdateCoupon.builder()
+                    .couponId(1L)
+                    .build();
+            OrderSheetResult.Detail result = Instancio.create(OrderSheetResult.Detail.class);
             given(orderSheetService.updateCartCoupon(any())).willReturn(result);
             //when
             //then
@@ -567,7 +641,12 @@ class OrderSheetControllerTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
-                    .andExpect(content().json(objectMapper.writeValueAsString(response)));
+                    .andExpect(jsonPath("$.sheetId").value(result.sheetId()))
+                    .andExpect(jsonPath("$.orderer.userId").value(result.orderer().getUserId()))
+                    .andExpect(jsonPath("$.items").isArray())
+                    .andExpect(jsonPath("$.items.length()").value(result.items().size()))
+                    .andExpect(jsonPath("$.orderer.userId").value(result.orderer().getUserId()))
+                    .andExpect(jsonPath("$.paymentSummary.totalPaymentAmount").value(result.paymentSummary().totalPaymentAmount().longValue()));
         }
 
         @Test
@@ -575,7 +654,9 @@ class OrderSheetControllerTest {
         void updateCartCoupon_unAuthorized() throws Exception {
             //given
             String sheetId = "sheetId";
-            OrderSheetRequest.UpdateCoupon request = fixtureMonkey.giveMeOne(OrderSheetRequest.UpdateCoupon.class);
+            OrderSheetRequest.UpdateCoupon request = OrderSheetRequest.UpdateCoupon.builder()
+                    .couponId(1L)
+                    .build();
             //when
             //then
             mockMvc.perform(patch("/order-sheets/" + sheetId + "/cart-coupon")
@@ -594,7 +675,9 @@ class OrderSheetControllerTest {
         void updateCartCoupon_forbidden() throws Exception {
             //given
             String sheetId = "sheetId";
-            OrderSheetRequest.UpdateCoupon request = fixtureMonkey.giveMeOne(OrderSheetRequest.UpdateCoupon.class);
+            OrderSheetRequest.UpdateCoupon request = OrderSheetRequest.UpdateCoupon.builder()
+                    .couponId(1L)
+                    .build();
             //when
             //then
             mockMvc.perform(patch("/order-sheets/" + sheetId + "/cart-coupon")
@@ -605,7 +688,6 @@ class OrderSheetControllerTest {
                     .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다"))
                     .andExpect(jsonPath("$.timestamp").exists())
                     .andExpect(jsonPath("$.path").value("/order-sheets/" + sheetId + "/cart-coupon"));
-
         }
     }
 }

@@ -122,6 +122,7 @@ dependencies {
     testImplementation 'org.springframework.cloud:spring-cloud-contract-wiremock'
     testImplementation 'org.springframework.security:spring-security-test'
     testImplementation 'com.navercorp.fixturemonkey:fixture-monkey-starter:1.1.19'
+    testImplementation 'org.instancio:instancio-junit:5.6.0'
     testImplementation 'org.springframework.boot:spring-boot-testcontainers'
     testImplementation 'org.testcontainers:testcontainers:2.0.2'
     testImplementation 'com.navercorp.fixturemonkey:fixture-monkey-jakarta-validation:1.1.19'

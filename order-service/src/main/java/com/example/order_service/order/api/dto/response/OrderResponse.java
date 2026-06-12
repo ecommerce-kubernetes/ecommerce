@@ -80,7 +80,7 @@ public class OrderResponse {
             return Summary.builder()
                     .orderNo(summary.orderNo())
                     .status(summary.status())
-                    .orderNo(summary.orderName())
+                    .orderName(summary.orderName())
                     .orderItems(Item.from(summary.orderItems()))
                     .createdAt(summary.createdAt())
                     .build();

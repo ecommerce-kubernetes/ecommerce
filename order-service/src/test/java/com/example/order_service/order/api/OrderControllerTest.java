@@ -1,9 +1,7 @@
 package com.example.order_service.order.api;
 
-import com.example.order_service.common.dto.PageDto;
 import com.example.order_service.common.security.model.UserRole;
 import com.example.order_service.order.api.dto.request.OrderRequest;
-import com.example.order_service.order.api.dto.response.OrderResponse;
 import com.example.order_service.order.application.service.order.OrderFacade;
 import com.example.order_service.order.application.service.order.OrderQueryService;
 import com.example.order_service.order.application.service.order.dto.command.OrderCommand;
@@ -13,6 +11,7 @@ import com.example.order_service.support.annotation.WithCustomMockUser;
 import com.example.order_service.support.config.TestSecurityConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -28,13 +27,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 
 import java.util.List;
 import java.util.stream.Stream;
 
-import static com.example.order_service.support.TestFixtureUtil.fixtureMonkey;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -55,7 +52,6 @@ class OrderControllerTest {
     private OrderFacade orderFacade;
     @MockitoBean
     private OrderQueryService orderQueryService;
-    private static final String ORDER_NO = "ORD-20260101-AB12FVC";
 
     @Nested
     @DisplayName("주문 생성")
@@ -66,11 +62,12 @@ class OrderControllerTest {
         @WithCustomMockUser
         void createOrder() throws Exception {
             //given
-            OrderRequest.Create request = fixtureMonkey.giveMeOne(OrderRequest.Create.class);
-            OrderResult.Create result = fixtureMonkey.giveMeOne(OrderResult.Create.class);
+            OrderRequest.Create request = OrderRequest.Create.builder()
+                    .orderSheetId("orderSheetId")
+                    .build();
+            OrderResult.Create result = Instancio.create(OrderResult.Create.class);
             given(orderFacade.initialOrder(any(OrderCommand.Create.class)))
                     .willReturn(result);
-            OrderResponse.Create response = OrderResponse.Create.from(result);
             //when
             //then
             mockMvc.perform(post("/orders")
@@ -78,7 +75,11 @@ class OrderControllerTest {
                             .content(objectMapper.writeValueAsString(request)))
                     .andDo(print())
                     .andExpect(status().isAccepted())
-                    .andExpect(content().json(objectMapper.writeValueAsString(response)));
+                    .andExpect(jsonPath("$.orderNo").value(result.orderNo()))
+                    .andExpect(jsonPath("$.totalPaymentAmount").value(result.totalPaymentAmount().longValue()))
+                    .andExpect(jsonPath("$.status").isString())
+                    .andExpect(jsonPath("$.createdAt").isString());
+
         }
 
         @Test
@@ -86,7 +87,9 @@ class OrderControllerTest {
         @WithCustomMockUser(userRole = UserRole.ROLE_ADMIN)
         void createOrderWithAdminPrincipal() throws Exception {
             //given
-            OrderRequest.Create request = fixtureMonkey.giveMeOne(OrderRequest.Create.class);
+            OrderRequest.Create request = OrderRequest.Create.builder()
+                    .orderSheetId("orderSheetId")
+                    .build();
             //when
             //then
             mockMvc.perform(post("/orders")
@@ -104,7 +107,9 @@ class OrderControllerTest {
         @DisplayName("로그인 하지 않은 사용자는 주문을 생성할 수 없다")
         void createOrder_unAuthorized() throws Exception {
             //given
-            OrderRequest.Create request = fixtureMonkey.giveMeOne(OrderRequest.Create.class);
+            OrderRequest.Create request = OrderRequest.Create.builder()
+                    .orderSheetId("orderSheetId")
+                    .build();
             //when
             //then
             mockMvc.perform(post("/orders")
@@ -158,17 +163,23 @@ class OrderControllerTest {
         @WithCustomMockUser
         void getOrder() throws Exception {
             //given
-            OrderResult.Detail result = fixtureMonkey.giveMeOne(OrderResult.Detail.class);
+            String orderNo = "orderNo";
+            OrderResult.Detail result = Instancio.create(OrderResult.Detail.class);
             given(orderQueryService.getOrder(anyString(), anyLong()))
                     .willReturn(result);
-            OrderResponse.Detail response = OrderResponse.Detail.from(result);
             //when
             //then
-            mockMvc.perform(get("/orders/{orderId}", 1L)
+            mockMvc.perform(get("/orders/{orderNo}", orderNo)
                             .contentType(MediaType.APPLICATION_JSON))
                     .andDo(print())
                     .andExpect(status().isOk())
-                    .andExpect(content().json(objectMapper.writeValueAsString(response)));
+                    .andExpect(jsonPath("$.orderNo").value(result.orderNo()))
+                    .andExpect(jsonPath("$.status").isString())
+                    .andExpect(jsonPath("$.totalOriginalPrice").value(result.totalOriginalPrice().longValue()))
+                    .andExpect(jsonPath("$.totalProductDiscountAmount").value(result.totalProductDiscountAmount().longValue()))
+                    .andExpect(jsonPath("$.totalCouponDiscountAmount").value(result.totalCouponDiscountAmount().longValue()))
+                    .andExpect(jsonPath("$.usedPoints").value(result.usedPoints().longValue()))
+                    .andExpect(jsonPath("$.totalPaymentAmount").value(result.totalPaymentAmount().longValue()));
         }
 
         @Test
@@ -176,9 +187,10 @@ class OrderControllerTest {
         @WithCustomMockUser(userRole = UserRole.ROLE_ADMIN)
         void getOrder_Admin_role() throws Exception {
             //given
+            String orderNo = "orderNo";
             //when
             //then
-            mockMvc.perform(get("/orders/{orderNo}", "orderNo")
+            mockMvc.perform(get("/orders/{orderNo}", orderNo)
                             .contentType(MediaType.APPLICATION_JSON))
                     .andDo(print())
                     .andExpect(status().isForbidden())
@@ -192,9 +204,10 @@ class OrderControllerTest {
         @DisplayName("로그인 하지 않은 사용자는 주문 정보를 조회할 수 없다")
         void getOrder_unAuthorized() throws Exception {
             //given
+            String orderNo = "orderNo";
             //when
             //then
-            mockMvc.perform(get("/orders/{orderNo}", "orderNo")
+            mockMvc.perform(get("/orders/{orderNo}", orderNo)
                             .contentType(MediaType.APPLICATION_JSON))
                     .andDo(print())
                     .andExpect(status().isUnauthorized())
@@ -214,25 +227,32 @@ class OrderControllerTest {
         @WithCustomMockUser
         void getOrders() throws Exception {
             //given
-            List<OrderResult.Summary> summaries = fixtureMonkey.giveMe(OrderResult.Summary.class, 2);
+            List<OrderResult.Summary> summaries = Instancio.ofList(OrderResult.Summary.class)
+                    .size(2)
+                    .create();
             Pageable pageable = PageRequest.of(0, 10);
             PageImpl<OrderResult.Summary> result = new PageImpl<>(summaries, pageable, 2);
-            MultiValueMap<String, String> paramMap = new LinkedMultiValueMap<>();
-            paramMap.add("page", "1");
-            paramMap.add("size", "10");
-            paramMap.add("sort", "latest");
-            PageDto<OrderResponse.Summary> response = PageDto.of(result, OrderResponse.Summary::from);
             given(orderQueryService.getOrders(anyLong(), any(OrderSearchCommand.class), any(Pageable.class)))
                     .willReturn(result);
-
             //when
             //then
             mockMvc.perform(get("/orders")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .params(paramMap))
+                            .param("page", "0")
+                            .param("size", "10")
+                            .param("sort", "latest"))
                     .andDo(print())
                     .andExpect(status().isOk())
-                    .andExpect(content().json(objectMapper.writeValueAsString(response)));
+                    .andExpect(jsonPath("$.currentPage").value(0))
+                    .andExpect(jsonPath("$.pageSize").value(10))
+                    .andExpect(jsonPath("$.totalElement").value(2))
+                    .andExpect(jsonPath("$.content.length()").value(2))
+                    .andExpect(jsonPath("$.content[*].orderNo", containsInAnyOrder(
+                            summaries.get(0).orderNo(),
+                            summaries.get(1).orderNo()
+                    )))
+                    .andExpect(jsonPath("$.content[0].orderItems").isArray())
+                    .andExpect(jsonPath("$.content[0].orderItems.length()").value(summaries.get(0).orderItems().size()));
         }
 
         @Test
@@ -240,15 +260,13 @@ class OrderControllerTest {
         @WithCustomMockUser(userRole = UserRole.ROLE_ADMIN)
         void getOrders_Admin_role() throws Exception {
             //given
-            MultiValueMap<String, String> paramMap = new LinkedMultiValueMap<>();
-            paramMap.add("page", "1");
-            paramMap.add("size", "10");
-            paramMap.add("sort", "latest");
             //when
             //then
             mockMvc.perform(get("/orders")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .params(paramMap))
+                            .param("page", "0")
+                            .param("size", "10")
+                            .param("sort", "latest"))
                     .andDo(print())
                     .andExpect(status().isForbidden())
                     .andExpect(jsonPath("$.code").value("FORBIDDEN"))
@@ -261,15 +279,13 @@ class OrderControllerTest {
         @DisplayName("로그인 하지 않은 사용자는 주문 목록을 조회할 수 없다")
         void getOrders_unAuthorized() throws Exception {
             //given
-            MultiValueMap<String, String> paramMap = new LinkedMultiValueMap<>();
-            paramMap.add("page", "1");
-            paramMap.add("size", "10");
-            paramMap.add("sort", "latest");
             //when
             //then
             mockMvc.perform(get("/orders")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .params(paramMap))
+                            .param("page", "0")
+                            .param("size", "10")
+                            .param("sort", "latest"))
                     .andDo(print())
                     .andExpect(status().isUnauthorized())
                     .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
@@ -277,6 +293,5 @@ class OrderControllerTest {
                     .andExpect(jsonPath("$.timestamp").exists())
                     .andExpect(jsonPath("$.path").value("/orders"));
         }
-
     }
 }
