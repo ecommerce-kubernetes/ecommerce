@@ -17,14 +17,13 @@ import com.example.order_service.order.domain.policy.PointUsagePolicy;
 import com.example.order_service.order.domain.repository.OrderSheetRepository;
 import com.example.order_service.order.domain.vo.*;
 import com.example.order_service.order.exception.OrderErrorCode;
-import com.example.order_service.order.exception.OrderSheetErrorCode;
 import com.example.order_service.order.infrastructure.config.OrderSheetProperties;
 import lombok.extern.slf4j.Slf4j;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
@@ -32,14 +31,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import static com.example.order_service.support.TestFixtureUtil.fixtureMonkey;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.instancio.Select.field;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -89,21 +87,15 @@ public class OrderSheetServiceTest {
                     .cartCouponId(2L)
                     .itemCoupons(List.of(itemCouponCommand))
                     .build();
-
-            OrderUserResult.Profile profile = fixtureMonkey.giveMeOne(OrderUserResult.Profile.class);
-            OrderProductResult.Info productInfo = fixtureMonkey.giveMeBuilder(OrderProductResult.Info.class)
-                    .set("productSnapshot.productVariantId", productVariantId)
-                    .sample();
-            OrderProductResult.ProductList products = fixtureMonkey.giveMeBuilder(OrderProductResult.ProductList.class)
-                    .set("products", List.of(productInfo))
-                    .sample();
-            OrderCouponResult.ItemCoupon itemCoupon = fixtureMonkey.giveMeBuilder(OrderCouponResult.ItemCoupon.class)
-                    .set("productVariantId", productVariantId)
-                    .sample();
-            OrderCouponResult.Calculate coupon = fixtureMonkey.giveMeBuilder(OrderCouponResult.Calculate.class)
-                    .setNotNull("cartCoupon")
-                    .set("itemCoupons", List.of(itemCoupon))
-                    .sample();
+            OrderUserResult.Profile profile = Instancio.create(OrderUserResult.Profile.class);
+            OrderProductResult.ProductList products = Instancio.of(OrderProductResult.ProductList.class)
+                    .generate(field(OrderProductResult.ProductList::products), gen -> gen.collection().size(1))
+                    .set(field(ProductSnapshot::getProductVariantId), productVariantId)
+                    .create();
+            OrderCouponResult.Calculate coupon = Instancio.of(OrderCouponResult.Calculate.class)
+                    .generate(field(OrderCouponResult.Calculate::itemCoupons), gen -> gen.collection().size(1))
+                    .set(field(OrderCouponResult.ItemCoupon::productVariantId), productVariantId)
+                    .create();
             given(orderUserGateway.getUserProfile(any())).willReturn(profile);
             given(orderProductGateway.getProducts(anyList())).willReturn(products);
             given(orderCouponGateway.calculate(any())).willReturn(coupon);
@@ -132,15 +124,11 @@ public class OrderSheetServiceTest {
                     .cartCouponId(null)
                     .itemCoupons(List.of())
                     .build();
-
-            OrderUserResult.Profile profile = fixtureMonkey.giveMeOne(OrderUserResult.Profile.class);
-            OrderProductResult.Info productInfo = fixtureMonkey.giveMeBuilder(OrderProductResult.Info.class)
-                    .set("productSnapshot.productVariantId", productVariantId)
-                    .sample();
-            OrderProductResult.ProductList products = fixtureMonkey.giveMeBuilder(OrderProductResult.ProductList.class)
-                    .set("products", List.of(productInfo))
-                    .sample();
-
+            OrderUserResult.Profile profile = Instancio.create(OrderUserResult.Profile.class);
+            OrderProductResult.ProductList products = Instancio.of(OrderProductResult.ProductList.class)
+                    .generate(field(OrderProductResult.ProductList::products), gen -> gen.collection().size(1))
+                    .set(field(ProductSnapshot::getProductVariantId), productVariantId)
+                    .create();
             given(orderUserGateway.getUserProfile(any())).willReturn(profile);
             given(orderProductGateway.getProducts(anyList())).willReturn(products);
             when(repository.save(any(), any())).then(returnsFirstArg());
@@ -163,9 +151,9 @@ public class OrderSheetServiceTest {
         void getOrderSheet(){
             //given
             OrderSheet orderSheet = createOrderSheet();
-            OrderUserResult.UserPoint point = fixtureMonkey.giveMeBuilder(OrderUserResult.UserPoint.class)
-                    .set("ownedPoints", Money.wons(10000L))
-                    .sample();
+            OrderUserResult.UserPoint point = Instancio.of(OrderUserResult.UserPoint.class)
+                    .set(field(OrderUserResult.UserPoint::ownedPoints), Money.wons(10000L))
+                    .create();
             Money expectedAvailablePoints = orderSheet.calcAvailablePoints(point.ownedPoints(), pointUsagePolicy);
             given(repository.findById(anyString())).willReturn(Optional.of(orderSheet));
             given(orderUserGateway.getUserPoints(anyLong())).willReturn(point);
@@ -233,14 +221,14 @@ public class OrderSheetServiceTest {
             //given
             String sheetId = "sheetId";
             Long userId = 1L;
-            OrderSheetCommand.UpdateShippingAddress command = fixtureMonkey.giveMeBuilder(OrderSheetCommand.UpdateShippingAddress.class)
-                    .set("sheetId", sheetId)
-                    .set("userId", userId)
-                    .sample();
+            OrderSheetCommand.UpdateShippingAddress command = Instancio.of(OrderSheetCommand.UpdateShippingAddress.class)
+                    .set(field(OrderSheetCommand.UpdateShippingAddress::sheetId), sheetId)
+                    .set(field(OrderSheetCommand.UpdateShippingAddress::userId), userId)
+                    .create();
             OrderSheet orderSheet = createOrderSheet();
-            OrderUserResult.UserPoint point = fixtureMonkey.giveMeBuilder(OrderUserResult.UserPoint.class)
-                    .set("ownedPoints", Money.wons(10000L))
-                    .sample();
+            OrderUserResult.UserPoint point = Instancio.of(OrderUserResult.UserPoint.class)
+                    .set(field(OrderUserResult.UserPoint::ownedPoints), Money.wons(10000L))
+                    .create();
             given(repository.findById(any())).willReturn(Optional.of(orderSheet));
             given(orderUserGateway.getUserPoints(any())).willReturn(point);
             when(repository.save(any(), any())).then(returnsFirstArg());
@@ -261,10 +249,10 @@ public class OrderSheetServiceTest {
             //given
             String sheetId = "sheetId";
             Long userId = 1L;
-            OrderSheetCommand.UpdateShippingAddress command = fixtureMonkey.giveMeBuilder(OrderSheetCommand.UpdateShippingAddress.class)
-                    .set("sheetId", sheetId)
-                    .set("userId", userId)
-                    .sample();
+            OrderSheetCommand.UpdateShippingAddress command = Instancio.of(OrderSheetCommand.UpdateShippingAddress.class)
+                    .set(field(OrderSheetCommand.UpdateShippingAddress::sheetId), sheetId)
+                    .set(field(OrderSheetCommand.UpdateShippingAddress::userId), userId)
+                    .create();
             given(repository.findById(any())).willReturn(Optional.empty());
             //when
             //then
@@ -278,12 +266,14 @@ public class OrderSheetServiceTest {
         @DisplayName("주문서가 만료되었으면 예외가 발생한다")
         void updateShippingAddress_expired(){
             //given
+            String sheetId = "sheetId";
+            Long userId = 1L;
             OrderSheet orderSheet = createOrderSheet();
             ReflectionTestUtils.setField(orderSheet, "expiresAt", LocalDateTime.now().minusMinutes(20));
-            OrderSheetCommand.UpdateShippingAddress command = fixtureMonkey.giveMeBuilder(OrderSheetCommand.UpdateShippingAddress.class)
-                    .set("sheetId", orderSheet.getSheetId())
-                    .set("userId", orderSheet.getOrderer().getUserId())
-                    .sample();
+            OrderSheetCommand.UpdateShippingAddress command = Instancio.of(OrderSheetCommand.UpdateShippingAddress.class)
+                    .set(field(OrderSheetCommand.UpdateShippingAddress::sheetId), sheetId)
+                    .set(field(OrderSheetCommand.UpdateShippingAddress::userId), userId)
+                    .create();
             given(repository.findById(any())).willReturn(Optional.of(orderSheet));
             //when
             //then
@@ -297,12 +287,13 @@ public class OrderSheetServiceTest {
         @DisplayName("주문자가 아니면 예외가 발생한다")
         void updateShippingAddress_no_permission(){
             //given
+            String sheetId = "sheetId";
             Long userId = 999L;
             OrderSheet orderSheet = createOrderSheet();
-            OrderSheetCommand.UpdateShippingAddress command = fixtureMonkey.giveMeBuilder(OrderSheetCommand.UpdateShippingAddress.class)
-                    .set("sheetId", orderSheet.getSheetId())
-                    .set("userId", userId)
-                    .sample();
+            OrderSheetCommand.UpdateShippingAddress command = Instancio.of(OrderSheetCommand.UpdateShippingAddress.class)
+                    .set(field(OrderSheetCommand.UpdateShippingAddress::sheetId), sheetId)
+                    .set(field(OrderSheetCommand.UpdateShippingAddress::userId), userId)
+                    .create();
             given(repository.findById(any())).willReturn(Optional.of(orderSheet));
             //when
             //then
@@ -328,9 +319,9 @@ public class OrderSheetServiceTest {
                     .userId(orderSheet.getOrderer().getUserId())
                     .usedPoints(usedPoints)
                     .build();
-            OrderUserResult.UserPoint point = fixtureMonkey.giveMeBuilder(OrderUserResult.UserPoint.class)
-                    .set("ownedPoints", Money.wons(10000L)).sample();
-
+            OrderUserResult.UserPoint point = Instancio.of(OrderUserResult.UserPoint.class)
+                    .set(field(OrderUserResult.UserPoint::ownedPoints), Money.wons(10000L))
+                    .create();
             given(repository.findById(any())).willReturn(Optional.of(orderSheet));
             given(orderUserGateway.getUserPointsForOrder(anyLong(), any())).willReturn(point);
             when(repository.save(any(), any())).then(returnsFirstArg());
@@ -351,10 +342,9 @@ public class OrderSheetServiceTest {
                     .userId(orderSheet.getOrderer().getUserId())
                     .usedPoints(Money.wons(5000L))
                     .build();
-
-            OrderUserResult.UserPoint point = fixtureMonkey.giveMeBuilder(OrderUserResult.UserPoint.class)
-                    .set("ownedPoints", Money.wons(10L)).sample();
-
+            OrderUserResult.UserPoint point = Instancio.of(OrderUserResult.UserPoint.class)
+                    .set(field(OrderUserResult.UserPoint::ownedPoints), Money.wons(10000L))
+                    .create();
             given(repository.findById(any())).willReturn(Optional.of(orderSheet));
             given(orderUserGateway.getUserPointsForOrder(anyLong(), any())).willReturn(point);
             //when
@@ -439,13 +429,13 @@ public class OrderSheetServiceTest {
             String sheetItemId = orderSheet.getItems().get(0).getSheetItemId();
             OrderSheetCommand.UpdateItemCoupon command = OrderSheetCommand.UpdateItemCoupon.of(orderSheet.getSheetId(),
                     sheetItemId, orderSheet.getOrderer().getUserId(), null);
-            OrderCouponResult.Calculate couponResult = fixtureMonkey.giveMeBuilder(OrderCouponResult.Calculate.class)
-                    .set("itemCoupons", List.of())
-                    .sample();
-            OrderUserResult.UserPoint pointResult = fixtureMonkey.giveMeOne(OrderUserResult.UserPoint.class);
+            OrderCouponResult.Calculate coupon = Instancio.of(OrderCouponResult.Calculate.class)
+                    .set(field(OrderCouponResult.Calculate::itemCoupons), List.of())
+                    .create();
+            OrderUserResult.UserPoint userPoint = Instancio.of(OrderUserResult.UserPoint.class).create();
             given(repository.findById(any())).willReturn(Optional.of(orderSheet));
-            given(orderCouponGateway.calculate(any())).willReturn(couponResult);
-            given(orderUserGateway.getUserPoints(any())).willReturn(pointResult);
+            given(orderCouponGateway.calculate(any())).willReturn(coupon);
+            given(orderUserGateway.getUserPoints(any())).willReturn(userPoint);
             when(repository.save(any(), any())).then(returnsFirstArg());
             //when
             OrderSheetResult.Detail result = orderSheetService.updateItemCoupon(command);
@@ -465,17 +455,14 @@ public class OrderSheetServiceTest {
             Long newCouponId = 10L;
             OrderSheetCommand.UpdateItemCoupon command = OrderSheetCommand.UpdateItemCoupon.of(orderSheet.getSheetId(),
                     sheetItemId, orderSheet.getOrderer().getUserId(), newCouponId);
-            OrderCouponResult.ItemCoupon itemCoupon = fixtureMonkey.giveMeBuilder(OrderCouponResult.ItemCoupon.class)
-                    .set("productVariantId", targetProductVariantId)
-                    .set("itemCoupon.couponId", newCouponId)
-                    .sample();
-            OrderCouponResult.Calculate couponResult = fixtureMonkey.giveMeBuilder(OrderCouponResult.Calculate.class)
-                    .set("itemCoupons", List.of(itemCoupon))
-                    .sample();
-            OrderUserResult.UserPoint pointResult = fixtureMonkey.giveMeOne(OrderUserResult.UserPoint.class);
+            OrderCouponResult.Calculate coupon = Instancio.of(OrderCouponResult.Calculate.class)
+                    .generate(field(OrderCouponResult.Calculate::itemCoupons), gen -> gen.collection().size(1))
+                    .set(field(OrderCouponResult.ItemCoupon::productVariantId), targetProductVariantId)
+                    .create();
+            OrderUserResult.UserPoint userPoint = Instancio.of(OrderUserResult.UserPoint.class).create();
             given(repository.findById(any())).willReturn(Optional.of(orderSheet));
-            given(orderCouponGateway.calculate(any())).willReturn(couponResult);
-            given(orderUserGateway.getUserPoints(any())).willReturn(pointResult);
+            given(orderCouponGateway.calculate(any())).willReturn(coupon);
+            given(orderUserGateway.getUserPoints(any())).willReturn(userPoint);
             when(repository.save(any(), any())).then(returnsFirstArg());
             //when
             OrderSheetResult.Detail result = orderSheetService.updateItemCoupon(command);
@@ -497,14 +484,14 @@ public class OrderSheetServiceTest {
             OrderSheet orderSheet = createOrderSheet();
             OrderSheetCommand.UpdateCartCoupon command = OrderSheetCommand.UpdateCartCoupon.of(orderSheet.getSheetId(),
                     orderSheet.getOrderer().getUserId(), null);
-            OrderCouponResult.Calculate couponResult = fixtureMonkey.giveMeBuilder(OrderCouponResult.Calculate.class)
-                    .setNull("cartCoupon")
-                    .sample();
-            OrderUserResult.UserPoint userResult = fixtureMonkey.giveMeOne(OrderUserResult.UserPoint.class);
-
+            OrderCouponResult.Calculate coupon = Instancio.of(OrderCouponResult.Calculate.class)
+                    .set(field(OrderCouponResult.Calculate::cartCoupon), null)
+                    .set(field(OrderCouponResult.Calculate::itemCoupons), List.of())
+                    .create();
+            OrderUserResult.UserPoint userPoint = Instancio.of(OrderUserResult.UserPoint.class).create();
             given(repository.findById(any())).willReturn(Optional.of(orderSheet));
-            given(orderCouponGateway.calculate(any())).willReturn(couponResult);
-            given(orderUserGateway.getUserPoints(any())).willReturn(userResult);
+            given(orderCouponGateway.calculate(any())).willReturn(coupon);
+            given(orderUserGateway.getUserPoints(any())).willReturn(userPoint);
             when(repository.save(any(), any())).then(returnsFirstArg());
             //when
             OrderSheetResult.Detail result = orderSheetService.updateCartCoupon(command);
@@ -523,13 +510,17 @@ public class OrderSheetServiceTest {
             Long newCouponId = 10L;
             OrderSheetCommand.UpdateCartCoupon command = OrderSheetCommand.UpdateCartCoupon.of(orderSheet.getSheetId(),
                     orderSheet.getOrderer().getUserId(), newCouponId);
-            OrderCouponResult.Calculate couponResult = fixtureMonkey.giveMeBuilder(OrderCouponResult.Calculate.class)
-                    .set("cartCoupon.couponId", newCouponId)
-                    .sample();
-            OrderUserResult.UserPoint userResult = fixtureMonkey.giveMeOne(OrderUserResult.UserPoint.class);
+            OrderCouponSnapshot cartCoupon = Instancio.of(OrderCouponSnapshot.class)
+                    .set(field(OrderCouponSnapshot::getCouponId), newCouponId)
+                    .create();
+            OrderCouponResult.Calculate coupon = Instancio.of(OrderCouponResult.Calculate.class)
+                    .set(field(OrderCouponResult.Calculate::cartCoupon), cartCoupon)
+                    .set(field(OrderCouponResult.Calculate::itemCoupons), List.of())
+                    .create();
+            OrderUserResult.UserPoint userPoint = Instancio.of(OrderUserResult.UserPoint.class).create();
             given(repository.findById(any())).willReturn(Optional.of(orderSheet));
-            given(orderCouponGateway.calculate(any())).willReturn(couponResult);
-            given(orderUserGateway.getUserPoints(any())).willReturn(userResult);
+            given(orderCouponGateway.calculate(any())).willReturn(coupon);
+            given(orderUserGateway.getUserPoints(any())).willReturn(userPoint);
             when(repository.save(any(), any())).then(returnsFirstArg());
             //when
             OrderSheetResult.Detail result = orderSheetService.updateCartCoupon(command);

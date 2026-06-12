@@ -75,9 +75,6 @@ public class OrderSheet {
      * @return 주문서 애그리거트 루트 도메인
      */
     public static OrderSheet create(String sheetId, Orderer orderer, ShippingAddress shippingAddress, List<OrderSheetItem> items, OrderCouponSnapshot coupon, LocalDateTime createdAt, long ttl) {
-        if (items == null || items.isEmpty()) {
-            throw new InvalidDomainValueException("OrderSheet 주문 상품은 필수입니다");
-        }
         Money totalOriginalPrice = calcTotalOriginalPrice(items);
         Money totalProductDiscount = calcTotalProductDiscountAmount(items);
         Money totalItemCouponDiscount = calcTotalItemCouponDiscountAmount(items);
@@ -152,19 +149,6 @@ public class OrderSheet {
         if (this.isExpired()) {
             throw new BusinessException(OrderErrorCode.ORDER_EXPIRED);
         }
-    }
-
-    /**
-     * 주문자 확인
-     * <p>
-     * 유저 아이디와 주문자의 유저 아이디의 일치 여부를 반환
-     * </p>
-     *
-     * @param userId 유저 아이디
-     * @return 일치 여부
-     */
-    public boolean isOwner(Long userId) {
-        return this.orderer.getUserId().equals(userId);
     }
 
     /**
