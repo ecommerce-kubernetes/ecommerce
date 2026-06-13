@@ -1,11 +1,12 @@
 package com.example.order_service.order.domain.model;
 
 import com.example.order_service.common.domain.vo.Money;
-import com.example.order_service.common.exception.domain.InvalidDomainValueException;
+import com.example.order_service.common.exception.business.BusinessException;
 import com.example.order_service.order.domain.vo.OrderCouponSnapshot;
 import com.example.order_service.order.domain.vo.ProductOptionSnapshot;
 import com.example.order_service.order.domain.vo.ProductPriceSnapshot;
 import com.example.order_service.order.domain.vo.ProductSnapshot;
+import com.example.order_service.order.exception.OrderErrorCode;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -55,7 +56,7 @@ public class OrderSheetItem {
     public static OrderSheetItem create(String sheetItemId, ProductSnapshot productSnapshot, ProductPriceSnapshot itemPrice,
                                         OrderCouponSnapshot coupon, Integer quantity, List<ProductOptionSnapshot> options) {
         if (quantity == null || quantity <= 0) {
-            throw new InvalidDomainValueException("OrderSheet 상품 주문 수량은 필수입니다");
+            throw new BusinessException(OrderErrorCode.QUANTITY_MUST_BE_GREATER_THAN_ZERO);
         }
         return OrderSheetItem.reconstitute()
                 .sheetItemId(sheetItemId)
@@ -91,20 +92,6 @@ public class OrderSheetItem {
         Money productTotal = getProductLineTotal();
         Money couponAmount = itemCoupon.getDiscountAmount();
         return productTotal.min(couponAmount);
-    }
-
-    /**
-     * 쿠폰 적용 예상 가격
-     * <p>
-     * 상품 쿠폰을 변경했을때 예상 최종 가격 금액 반환
-     * </p>
-     *
-     * @param newItemCoupon 새 상품 쿠폰
-     * @return 쿠폰 적용 예상 금액
-     */
-    public Money calcEstimatedFinalLineTotal(OrderCouponSnapshot newItemCoupon) {
-        Money productLineTotal = getProductLineTotal();
-        return productLineTotal.subtract(productLineTotal.min(newItemCoupon.getDiscountAmount()));
     }
 
     /**
