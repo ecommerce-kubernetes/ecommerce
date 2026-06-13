@@ -12,6 +12,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.util.Assert;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -75,6 +76,17 @@ public class OrderSheet {
      * @return 주문서 애그리거트 루트 도메인
      */
     public static OrderSheet create(String sheetId, Orderer orderer, ShippingAddress shippingAddress, List<OrderSheetItem> items, OrderCouponSnapshot coupon, LocalDateTime createdAt, long ttl) {
+        Assert.hasText(sheetId, "주문서 Id는 필수 입니다");
+        Assert.notNull(orderer, "주문자는 필수 입니다");
+        Assert.notNull(shippingAddress, "배송 정보는 필수 입니다");
+        Assert.notNull(items, "주문 상품은 필수 입니다");
+        Assert.notNull(coupon, "장바구니 쿠폰은 필수 입니다");
+        Assert.notNull(createdAt, "생성 시간은 필수 입니다");
+        Assert.notNull(ttl, "ttl은 필수 입니다");
+
+        if (items.isEmpty()) {
+            throw new BusinessException(OrderErrorCode.ORDER_ITEMS_REQUIRED);
+        }
         Money totalOriginalPrice = calcTotalOriginalPrice(items);
         Money totalProductDiscount = calcTotalProductDiscountAmount(items);
         Money totalItemCouponDiscount = calcTotalItemCouponDiscountAmount(items);

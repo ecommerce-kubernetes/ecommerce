@@ -1,6 +1,5 @@
 package com.example.order_service.common.domain.vo;
 
-import com.example.order_service.common.exception.domain.InvalidDomainValueException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -48,7 +47,7 @@ public class MoneyTest {
         //when
         //then
         assertThatThrownBy(() -> Money.wons(null))
-                .isInstanceOf(InvalidDomainValueException.class)
+                .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("금액은 null 이 될 수 없습니다.");
     }
 
@@ -59,7 +58,7 @@ public class MoneyTest {
         //when
         //then
         assertThatThrownBy(() -> Money.wons(-1L))
-                .isInstanceOf(InvalidDomainValueException.class)
+                .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("금액은 0 보다 작을 수 없습니다.");
     }
 
@@ -98,7 +97,7 @@ public class MoneyTest {
         //when
         //then
         assertThatThrownBy(() -> current.subtract(deducted))
-                .isInstanceOf(InvalidDomainValueException.class)
+                .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("차감 금액이 현재 금액보다 클 수 없습니다.");
     }
     
@@ -122,7 +121,7 @@ public class MoneyTest {
         //when
         //then
         assertThatThrownBy(() -> multiplicand.multiple(-1))
-                .isInstanceOf(InvalidDomainValueException.class)
+                .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("금액에 음수를 곱할 수 없습니다.");
     }
     

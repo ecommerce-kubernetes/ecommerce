@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum OrderErrorCode implements ErrorCode {
+    ORDER_ITEMS_REQUIRED(409, "ORDER_ITEMS_REQUIRED", "주문 상품은 최소 한개 이상이여야 합니다"),
     QUANTITY_MUST_BE_GREATER_THAN_ZERO(409, "QUANTITY_MUST_BE_GREATER_THAN_ZERO", "주문 수량은 최소 0 이상이여야 합니다"),
     INVALID_ORDER_STATUS_FOR_FAIL(409, "INVALID_ORDER_STATUS_FOR_FAIL", "주문을 실패 상태로 변경할 수 없습니다"),
     INVALID_ORDER_STATUS_FOR_COMPLETION(409, "INVALID_ORDER_STATUS_FOR_COMPLETION", "주문을 완료 상태로 변경할 수 없습니다"),
