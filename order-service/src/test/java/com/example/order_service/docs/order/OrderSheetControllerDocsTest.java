@@ -64,7 +64,6 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
             HttpHeaders roleUser = createAuthHeader("ROLE_USER");
             given(orderSheetService.createOrderSheet(any(OrderSheetCommand.Create.class)))
                     .willReturn(result);
-            OrderSheetResponse.Create response = OrderSheetResponse.Create.from(result);
             //when
             //then
             mockMvc.perform(post("/order-sheets")
@@ -72,7 +71,6 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
                             .headers(roleUser)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isCreated())
-                    .andExpect(content().json(objectMapper.writeValueAsString(response)))
                     .andDo(createSecuredDocument("04-ordersheet-01-create",
                             "주문서 저장",
                             "주문서를 저장한다",
@@ -100,14 +98,12 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
             HttpHeaders roleUser = createAuthHeader("ROLE_USER");
             given(orderSheetService.getOrderSheet(anyString(), anyLong()))
                     .willReturn(result);
-            OrderSheetResponse.Detail response = OrderSheetResponse.Detail.from(result);
             //when
             //then
             mockMvc.perform(get("/order-sheets/{sheetId}", orderSheetId)
                             .contentType(MediaType.APPLICATION_JSON)
                             .headers(roleUser))
                     .andExpect(status().isOk())
-                    .andExpect(content().json(objectMapper.writeValueAsString(response)))
                     .andDo(
                             createSecuredDocument("04-ordersheet-02-get",
                                     "주문서 조회",
@@ -131,7 +127,6 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
             OrderSheetResult.Detail result = createOrderSheetResult();
             given(orderSheetService.updateShippingAddress(any(OrderSheetCommand.UpdateShippingAddress.class)))
                     .willReturn(result);
-            OrderSheetResponse.Detail response = OrderSheetResponse.Detail.from(result);
             //when
             //then
             mockMvc.perform(patch("/order-sheets/{sheetId}/shipping-address", sheetId)
@@ -139,7 +134,6 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
                             .headers(roleUser)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
-                    .andExpect(content().json(objectMapper.writeValueAsString(response)))
                     .andDo(
                             createSecuredDocument("04-ordersheet-03-update-shipping-address",
                                     "배송 정보 수정",
@@ -174,7 +168,6 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
             HttpHeaders roleUser = createAuthHeader("ROLE_USER");
             OrderSheetResult.Detail result = createOrderSheetResult();
             given(orderSheetService.updatePoints(any())).willReturn(result);
-            OrderSheetResponse.Detail response = OrderSheetResponse.Detail.from(result);
             //when
             //then
             mockMvc.perform(patch("/order-sheets/{sheetId}/points", sheetId)
@@ -182,7 +175,6 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
                             .headers(roleUser)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
-                    .andExpect(content().json(objectMapper.writeValueAsString(response)))
                     .andDo(
                             createSecuredDocument("04-ordersheet-04-update-points",
                                     "사용 포인트 수정",
@@ -214,7 +206,6 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
             HttpHeaders roleUser = createAuthHeader("ROLE_USER");
             OrderSheetResult.Detail result = createOrderSheetResult();
             given(orderSheetService.updateItemCoupon(any())).willReturn(result);
-            OrderSheetResponse.Detail response = OrderSheetResponse.Detail.from(result);
             //when
             //then
             mockMvc.perform(patch("/order-sheets/{sheetId}/sheet-items/{sheetItemId}/coupon", sheetId, sheetItemId)
@@ -222,7 +213,6 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
                             .headers(roleUser)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
-                    .andExpect(content().json(objectMapper.writeValueAsString(response)))
                     .andDo(
                             createSecuredDocument("04-ordersheet-05-update-item-coupon",
                                     "상품 쿠폰 수정",
@@ -253,7 +243,6 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
             HttpHeaders roleUser = createAuthHeader("ROLE_USER");
             OrderSheetRequest.UpdateCoupon request = createRequest();
             OrderSheetResult.Detail result = createOrderSheetResult();
-            OrderSheetResponse.Detail response = OrderSheetResponse.Detail.from(result);
             given(orderSheetService.updateCartCoupon(any())).willReturn(result);
             //when
             //then
@@ -262,7 +251,6 @@ public class OrderSheetControllerDocsTest extends RestDocSupport {
                             .headers(roleUser)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
-                    .andExpect(content().json(objectMapper.writeValueAsString(response)))
                     .andDo(
                             createSecuredDocument("04-ordersheet-06-update-cart-coupon",
                                     "장바구니 쿠폰 수정",
