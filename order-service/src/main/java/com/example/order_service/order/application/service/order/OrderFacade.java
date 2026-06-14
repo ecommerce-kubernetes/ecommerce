@@ -23,6 +23,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.Clock;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -47,6 +49,7 @@ public class OrderFacade {
     private final OrderCouponGateway orderCouponGateway;
     private final OrderSheetRepository orderSheetRepository;
     private final OrderCommandService orderCommandService;
+    private final Clock clock;
 
     /**
      * 주문 생성
@@ -59,7 +62,7 @@ public class OrderFacade {
      */
     public OrderResult.Create initialOrder(OrderCommand.Create command) {
         OrderSheet orderSheet = findOrderSheetById(command.orderSheetId());
-        orderSheet.validateAccess(command.userId());
+        orderSheet.validateAccess(command.userId(), LocalDateTime.now(clock));
         OrderProductResult.ProductList products = getOrderedProducts(orderSheet.getItems());
         OrderCouponResult.Calculate appliedCoupons = getAppliedCoupons(orderSheet);
         OrderUserResult.UserPoint userPoints = getUserPoints(orderSheet);

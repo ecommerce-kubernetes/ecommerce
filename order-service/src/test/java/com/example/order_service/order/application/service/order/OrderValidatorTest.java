@@ -101,7 +101,7 @@ public class OrderValidatorTest {
     void validateOrderPoints() {
         //given
         OrderSheet orderSheet = createOrderSheet();
-        orderSheet.changeUsedPoints(Money.wons(1000L), Money.wons(10000L));
+        orderSheet.changeUsedPoints(Money.wons(1000L), Money.wons(10000L), pointUsagePolicy);
         OrderProductResult.ProductList productList = createValidProductList(orderSheet);
         OrderCouponResult.Calculate calculate = createValidCouponResult(orderSheet);
         OrderUserResult.UserPoint pointResult = fixtureMonkey.giveMeBuilder(OrderUserResult.UserPoint.class)

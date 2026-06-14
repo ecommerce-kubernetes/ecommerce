@@ -56,13 +56,6 @@ public class OrderSheetItem {
      */
     public static OrderSheetItem create(String sheetItemId, ProductSnapshot productSnapshot, ProductPriceSnapshot itemPrice,
                                         OrderCouponSnapshot coupon, Integer quantity, List<ProductOptionSnapshot> options) {
-        Assert.hasText(sheetItemId, "주문 상품 Id는 필수입니다");
-        Assert.notNull(productSnapshot, "상품 정보는 필수 입니다");
-        Assert.notNull(itemPrice, "상품 가격 정보는 필수 입니다");
-        Assert.notNull(coupon, "상품 쿠폰 정보는 필수 입니다");
-        Assert.notNull(quantity, "주문 수량은 필수 입니다");
-        Assert.notNull(options, "상품 옵션은 필수 입니다");
-
         if ( quantity <= 0) {
             throw new BusinessException(OrderErrorCode.QUANTITY_MUST_BE_GREATER_THAN_ZERO);
         }

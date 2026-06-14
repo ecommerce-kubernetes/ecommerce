@@ -76,14 +76,6 @@ public class OrderSheet {
      * @return 주문서 애그리거트 루트 도메인
      */
     public static OrderSheet create(String sheetId, Orderer orderer, ShippingAddress shippingAddress, List<OrderSheetItem> items, OrderCouponSnapshot coupon, LocalDateTime createdAt, long ttl) {
-        Assert.hasText(sheetId, "주문서 Id는 필수 입니다");
-        Assert.notNull(orderer, "주문자는 필수 입니다");
-        Assert.notNull(shippingAddress, "배송 정보는 필수 입니다");
-        Assert.notNull(items, "주문 상품은 필수 입니다");
-        Assert.notNull(coupon, "장바구니 쿠폰은 필수 입니다");
-        Assert.notNull(createdAt, "생성 시간은 필수 입니다");
-        Assert.notNull(ttl, "ttl은 필수 입니다");
-
         if (items.isEmpty()) {
             throw new BusinessException(OrderErrorCode.ORDER_ITEMS_REQUIRED);
         }
@@ -154,11 +146,11 @@ public class OrderSheet {
      *
      * @param userId 유저 아이디
      */
-    public void validateAccess(Long userId) {
+    public void validateAccess(Long userId, LocalDateTime currentTime) {
         if (!this.orderer.getUserId().equals(userId)) {
             throw new BusinessException(OrderErrorCode.ORDER_ACCESS_DENIED);
         }
-        if (this.isExpired()) {
+        if (this.isExpired(currentTime)) {
             throw new BusinessException(OrderErrorCode.ORDER_EXPIRED);
         }
     }
@@ -171,8 +163,8 @@ public class OrderSheet {
      *
      * @return 주문서 만료 여부
      */
-    public boolean isExpired() {
-        return LocalDateTime.now().isAfter(this.expiresAt);
+    public boolean isExpired(LocalDateTime currentTime) {
+        return currentTime.isAfter(this.expiresAt);
     }
 
     /**
@@ -183,8 +175,8 @@ public class OrderSheet {
      *
      * @return 만료까지 남은 시간
      */
-    public Duration getRemainingTtl() {
-        return Duration.between(LocalDateTime.now(), this.expiresAt);
+    public Duration getRemainingTtl(LocalDateTime currentTime) {
+        return Duration.between(currentTime, this.expiresAt);
     }
 
     /**
@@ -205,16 +197,18 @@ public class OrderSheet {
      * 주문서의 적용 포인트를 파라미터 포인트로 적용한다
      * </p>
      *
-     * @param usedPoints 적용 포인트
-     * @throws InvalidDomainValueException 도메인 계층 예외
+     * @param usedPoints  적용 포인트
+     * @param ownedPoints 보유중인 포인트
+     * @param policy      포인트 할인 정책
+     * @throws BusinessException 비지니스 예외
      */
-    public void changeUsedPoints(Money usedPoints, Money availablePoints) {
-        Money eligibleAmount = calcPointEligibleAmount(this.items, this.cartCoupon);
-        if (usedPoints.isGreaterThan(eligibleAmount) || usedPoints.isGreaterThan(availablePoints)) {
+    public void changeUsedPoints(Money usedPoints, Money ownedPoints, PointUsagePolicy policy) {
+        Money availablePoints = calcAvailablePoints(ownedPoints, policy);
+        if (usedPoints.isGreaterThan(availablePoints)) {
             throw new BusinessException(OrderErrorCode.ORDER_POINT_POLICY_VIOLATION);
         }
         this.usedPoints = usedPoints;
-        this.totalPaymentAmount = eligibleAmount.subtract(usedPoints);
+        this.totalPaymentAmount = calcPointEligibleAmount(this.items, this.cartCoupon).subtract(usedPoints);
     }
 
     /**
@@ -225,13 +219,13 @@ public class OrderSheet {
      *
      * @param sheetItemId 주문 상품 아이디
      * @return 주문 상품
-     * @throws InvalidDomainValueException 도메인 계층 예외
+     * @throws BusinessException 비지니스 예외
      */
     public OrderSheetItem getItem(String sheetItemId) {
         return this.items.stream()
                 .filter(item -> item.getSheetItemId().equals(sheetItemId))
                 .findFirst()
-                .orElseThrow(() -> new InvalidDomainValueException("주문 상품을 찾을 수 없음"));
+                .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_ITEM_NOT_FOUND));
     }
 
     /**

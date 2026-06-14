@@ -25,7 +25,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.Clock;
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -50,6 +52,7 @@ public class OrderSheetService {
     private final PointUsagePolicy pointUsagePolicy;
     private final OrderSheetFactory factory;
     private final OrderSheetRepository repository;
+    private final Clock clock;
 
     /**
      * 사용자 주문서 생성
@@ -129,13 +132,14 @@ public class OrderSheetService {
      * @return 배송 정보가 수정되어 저장이 완료된 주문서의 정보
      */
     public OrderSheetResult.Detail updateShippingAddress(OrderSheetCommand.UpdateShippingAddress command) {
+        LocalDateTime currentTime = LocalDateTime.now(clock);
         OrderSheet orderSheet = getValidateOrderSheet(command.sheetId(), command.userId());
         ShippingAddress newAddress = ShippingAddress.of(command.receiverName(), command.receiverPhone(), command.zipCode(),
                 command.address(), command.addressDetail());
         orderSheet.changeShippingAddress(newAddress);
         OrderUserResult.UserPoint userPoints = orderSheetUserGateway.getUserPoints(command.userId());
         Money availablePoints = orderSheet.calcAvailablePoints(userPoints.ownedPoints(), pointUsagePolicy);
-        repository.save(orderSheet, orderSheet.getRemainingTtl());
+        repository.save(orderSheet, orderSheet.getRemainingTtl(currentTime));
         return OrderSheetResult.Detail.of(orderSheet, userPoints.ownedPoints(), availablePoints);
     }
 
@@ -149,15 +153,16 @@ public class OrderSheetService {
      * @return 사용 포인트가 수정되어 저장이 완료된 주문서의 정보
      */
     public OrderSheetResult.Detail updatePoints(OrderSheetCommand.UpdatePoints command) {
+        LocalDateTime currentTime = LocalDateTime.now(clock);
         OrderSheet orderSheet = getValidateOrderSheet(command.sheetId(), command.userId());
         OrderUserResult.UserPoint userPoints = orderSheetUserGateway.getUserPointsForOrder(
                 orderSheet.getOrderer().getUserId(),
                 command.usedPoints()
         );
-        Money availablePoints = orderSheet.calcAvailablePoints(userPoints.ownedPoints(), pointUsagePolicy);
         // [NOTE] 주문 가격 정보가 사용포인트에 맞추어 수정됨
-        orderSheet.changeUsedPoints(command.usedPoints(), availablePoints);
-        repository.save(orderSheet, orderSheet.getRemainingTtl());
+        orderSheet.changeUsedPoints(command.usedPoints(), userPoints.ownedPoints(), pointUsagePolicy);
+        repository.save(orderSheet, orderSheet.getRemainingTtl(currentTime));
+        Money availablePoints = orderSheet.calcAvailablePoints(userPoints.ownedPoints(), pointUsagePolicy);
         return OrderSheetResult.Detail.of(orderSheet, userPoints.ownedPoints(), availablePoints);
     }
 
@@ -172,13 +177,14 @@ public class OrderSheetService {
      * @return 쿠폰 정보가 수정되어 저장이 완료된 주문서의 정보
      */
     public OrderSheetResult.Detail updateItemCoupon(OrderSheetCommand.UpdateItemCoupon command) {
+        LocalDateTime currentTime = LocalDateTime.now(clock);
         OrderSheet orderSheet = getValidateOrderSheet(command.sheetId(), command.userId());
         OrderCouponSnapshot newCouponSnapshot = getNewItemCouponSnapshot(orderSheet, command.sheetItemId(), command.couponId());
         OrderUserResult.UserPoint userPoints = orderSheetUserGateway.getUserPoints(orderSheet.getOrderer().getUserId());
         // [NOTE] 상품 쿠폰 변경으로 인해 적용된 포인트가 사용 가능 포인트를 초과되는 경우 사용가능 포인트로 조정됨
         orderSheet.changeItemCoupon(command.sheetItemId(), newCouponSnapshot, userPoints.ownedPoints(), pointUsagePolicy);
         Money availablePoints = orderSheet.calcAvailablePoints(userPoints.ownedPoints(), pointUsagePolicy);
-        repository.save(orderSheet, orderSheet.getRemainingTtl());
+        repository.save(orderSheet, orderSheet.getRemainingTtl(currentTime));
         return OrderSheetResult.Detail.of(orderSheet, userPoints.ownedPoints(), availablePoints);
     }
 
@@ -214,6 +220,7 @@ public class OrderSheetService {
      * @return 쿠폰 정보가 수정되어 저장이 완료된 주문서의 정보
      */
     public OrderSheetResult.Detail updateCartCoupon(OrderSheetCommand.UpdateCartCoupon command) {
+        LocalDateTime currentTime = LocalDateTime.now(clock);
         OrderSheet orderSheet = getValidateOrderSheet(command.sheetId(), command.userId());
         List<OrderCouponCommand.AppliedCouponItem> appliedItems = createCurrentAppliedItems(orderSheet);
         OrderCouponResult.Calculate calculate =
@@ -223,7 +230,7 @@ public class OrderSheetService {
         // [NOTE] 장바구니 쿠폰 변경으로 인해 적용된 포인트가 사용 가능 포인트를 초과되는 경우 사용 가능 포인트로 조정됨
         orderSheet.changeCartCoupon(newCartCouponSnapshot, userPoints.ownedPoints(), pointUsagePolicy);
         Money availablePoints = orderSheet.calcAvailablePoints(userPoints.ownedPoints(), pointUsagePolicy);
-        repository.save(orderSheet, orderSheet.getRemainingTtl());
+        repository.save(orderSheet, orderSheet.getRemainingTtl(currentTime));
         return OrderSheetResult.Detail.of(orderSheet, userPoints.ownedPoints(), availablePoints);
     }
 
@@ -248,7 +255,7 @@ public class OrderSheetService {
     private OrderSheet getValidateOrderSheet(String sheetId, Long userId) {
         OrderSheet orderSheet = repository.findById(sheetId)
                 .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_NOT_FOUND));
-        orderSheet.validateAccess(userId);
+        orderSheet.validateAccess(userId, LocalDateTime.now(clock));
         return orderSheet;
     }
 }

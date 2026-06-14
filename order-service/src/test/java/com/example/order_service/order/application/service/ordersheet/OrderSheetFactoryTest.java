@@ -10,6 +10,7 @@ import com.example.order_service.order.domain.vo.*;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -26,6 +27,7 @@ public class OrderSheetFactoryTest {
         OrderUserResult.Profile userProfile = createUserProfile();
         OrderProductResult.ProductList productList = createProductList();
         OrderCouponResult.Calculate couponResult = createCouponResult();
+        LocalDateTime currentTime = LocalDateTime.now();
         //when
         OrderSheet result = orderSheetFactory.createSheet(command, userProfile, productList, couponResult, 30);
         //then
@@ -34,7 +36,7 @@ public class OrderSheetFactoryTest {
         assertThat(result.getItems()).hasSize(command.items().size());
         assertThat(result.getCartCoupon()).isEqualTo(couponResult.cartCoupon());
         assertThat(result.getUsedPoints()).isEqualTo(Money.ZERO);
-        assertThat(result.isExpired()).isFalse();
+        assertThat(result.isExpired(currentTime)).isFalse();
     }
 
     private OrderSheetCommand.Create createCommand() {

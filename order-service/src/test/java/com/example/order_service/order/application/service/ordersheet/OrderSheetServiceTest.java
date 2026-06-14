@@ -31,7 +31,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
+import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 
@@ -63,6 +66,8 @@ public class OrderSheetServiceTest {
     private OrderSheetFactory factory = new OrderSheetFactory();
     @Spy
     private PointUsagePolicy pointUsagePolicy = new DefaultPointUsagePolicy(properties);
+    @Spy
+    private Clock clock = Clock.fixed(Instant.parse("2026-06-14T03:00:00Z"), ZoneId.of("Asia/Seoul"));
 
     @Nested
     @DisplayName("주문서 저장")
@@ -70,7 +75,7 @@ public class OrderSheetServiceTest {
 
         @Test
         @DisplayName("쿠폰을 적용한 경우 쿠폰 정보를 조회하고 주문서를 생성한다")
-        void createOrderSheet_coupon_applied(){
+        void createOrderSheet_coupon_applied() {
             //given
             Long productVariantId = 1L;
             OrderSheetCommand.OrderItem item = OrderSheetCommand.OrderItem.builder()
@@ -148,7 +153,7 @@ public class OrderSheetServiceTest {
 
         @Test
         @DisplayName("주문서를 조회한다")
-        void getOrderSheet(){
+        void getOrderSheet() {
             //given
             OrderSheet orderSheet = createOrderSheet();
             OrderUserResult.UserPoint point = Instancio.of(OrderUserResult.UserPoint.class)
@@ -167,7 +172,7 @@ public class OrderSheetServiceTest {
 
         @Test
         @DisplayName("주문서를 찾을 수 없는 경우 예외가 발생한다")
-        void getOrderSheet_notFound(){
+        void getOrderSheet_notFound() {
             //given
             String sheetId = "notFound";
             Long userId = 1L;
@@ -182,7 +187,7 @@ public class OrderSheetServiceTest {
 
         @Test
         @DisplayName("주문자가 아닌 경우 예외가 발생한다")
-        void getOrderSheet_not_match_ordererId(){
+        void getOrderSheet_not_match_ordererId() {
             //given
             Long userId = 999L;
             OrderSheet orderSheet = createOrderSheet();
@@ -197,10 +202,10 @@ public class OrderSheetServiceTest {
 
         @Test
         @DisplayName("주문서가 만료된 경우 예외가 발생한다")
-        void getOrderSheet_expired(){
+        void getOrderSheet_expired() {
             //given
             OrderSheet orderSheet = createOrderSheet();
-            ReflectionTestUtils.setField(orderSheet, "expiresAt", LocalDateTime.now().minusMinutes(20));
+            ReflectionTestUtils.setField(orderSheet, "expiresAt", LocalDateTime.now(clock).minusMinutes(20));
             given(repository.findById(any())).willReturn(Optional.of(orderSheet));
             //when
             //then
@@ -217,13 +222,15 @@ public class OrderSheetServiceTest {
 
         @Test
         @DisplayName("배송 정보를 수정한다")
-        void updateShippingAddress(){
+        void updateShippingAddress() {
             //given
             String sheetId = "sheetId";
             Long userId = 1L;
+            String newPhone = "010-9876-5432";
             OrderSheetCommand.UpdateShippingAddress command = Instancio.of(OrderSheetCommand.UpdateShippingAddress.class)
                     .set(field(OrderSheetCommand.UpdateShippingAddress::sheetId), sheetId)
                     .set(field(OrderSheetCommand.UpdateShippingAddress::userId), userId)
+                    .set(field(OrderSheetCommand.UpdateShippingAddress::receiverPhone), newPhone)
                     .create();
             OrderSheet orderSheet = createOrderSheet();
             OrderUserResult.UserPoint point = Instancio.of(OrderUserResult.UserPoint.class)
@@ -245,7 +252,7 @@ public class OrderSheetServiceTest {
 
         @Test
         @DisplayName("주문서를 찾을 수 없으면 예외가 발생한다")
-        void updateShippingAddress_notFound(){
+        void updateShippingAddress_notFound() {
             //given
             String sheetId = "sheetId";
             Long userId = 1L;
@@ -264,12 +271,12 @@ public class OrderSheetServiceTest {
 
         @Test
         @DisplayName("주문서가 만료되었으면 예외가 발생한다")
-        void updateShippingAddress_expired(){
+        void updateShippingAddress_expired() {
             //given
             String sheetId = "sheetId";
             Long userId = 1L;
             OrderSheet orderSheet = createOrderSheet();
-            ReflectionTestUtils.setField(orderSheet, "expiresAt", LocalDateTime.now().minusMinutes(20));
+            ReflectionTestUtils.setField(orderSheet, "expiresAt", LocalDateTime.now(clock).minusMinutes(20));
             OrderSheetCommand.UpdateShippingAddress command = Instancio.of(OrderSheetCommand.UpdateShippingAddress.class)
                     .set(field(OrderSheetCommand.UpdateShippingAddress::sheetId), sheetId)
                     .set(field(OrderSheetCommand.UpdateShippingAddress::userId), userId)
@@ -285,7 +292,7 @@ public class OrderSheetServiceTest {
 
         @Test
         @DisplayName("주문자가 아니면 예외가 발생한다")
-        void updateShippingAddress_no_permission(){
+        void updateShippingAddress_no_permission() {
             //given
             String sheetId = "sheetId";
             Long userId = 999L;
@@ -334,7 +341,7 @@ public class OrderSheetServiceTest {
 
         @Test
         @DisplayName("사용 포인트가 주문에 적용할 수 있는 포인트를 초과하면 예외가 발생한다")
-        void updatePoints_point_policy_violation(){
+        void updatePoints_point_policy_violation() {
             //given
             OrderSheet orderSheet = createOrderSheet();
             OrderSheetCommand.UpdatePoints command = OrderSheetCommand.UpdatePoints.builder()
@@ -401,7 +408,7 @@ public class OrderSheetServiceTest {
         void updatePoints_expired() {
             //given
             OrderSheet orderSheet = createOrderSheet();
-            ReflectionTestUtils.setField(orderSheet, "expiresAt", LocalDateTime.now().minusMinutes(20));
+            ReflectionTestUtils.setField(orderSheet, "expiresAt", LocalDateTime.now(clock).minusMinutes(20));
             OrderSheetCommand.UpdatePoints command = OrderSheetCommand.UpdatePoints.builder()
                     .sheetId(orderSheet.getSheetId())
                     .userId(orderSheet.getOrderer().getUserId())
@@ -423,7 +430,7 @@ public class OrderSheetServiceTest {
 
         @Test
         @DisplayName("상품 쿠폰을 해제한다")
-        void updateItemCoupon_clear_coupon(){
+        void updateItemCoupon_clear_coupon() {
             //given
             OrderSheet orderSheet = createOrderSheet();
             String sheetItemId = orderSheet.getItems().get(0).getSheetItemId();
@@ -447,7 +454,7 @@ public class OrderSheetServiceTest {
 
         @Test
         @DisplayName("상품 쿠폰을 수정한다")
-        void updateItemCoupon(){
+        void updateItemCoupon() {
             //given
             OrderSheet orderSheet = createOrderSheet();
             String sheetItemId = orderSheet.getItems().get(0).getSheetItemId();
@@ -479,7 +486,7 @@ public class OrderSheetServiceTest {
 
         @Test
         @DisplayName("장바구니 쿠폰 해제")
-        void updateCartCoupon_clear_coupon(){
+        void updateCartCoupon_clear_coupon() {
             //given
             OrderSheet orderSheet = createOrderSheet();
             OrderSheetCommand.UpdateCartCoupon command = OrderSheetCommand.UpdateCartCoupon.of(orderSheet.getSheetId(),
@@ -504,7 +511,7 @@ public class OrderSheetServiceTest {
 
         @Test
         @DisplayName("장바구니 쿠폰을 수정한다")
-        void updateCartCoupon_point_not_used(){
+        void updateCartCoupon_point_not_used() {
             //given
             OrderSheet orderSheet = createOrderSheet();
             Long newCouponId = 10L;
@@ -544,6 +551,6 @@ public class OrderSheetServiceTest {
                 ProductOptionSnapshot.of("색상", "BLUE")
         );
         OrderSheetItem sheetItem = OrderSheetItem.create("sheetItemId", product, price, itemCoupon, 1, options);
-        return OrderSheet.create("sheetId", orderer, shippingAddress, List.of(sheetItem), cartCoupon, LocalDateTime.now(), 30);
+        return OrderSheet.create("sheetId", orderer, shippingAddress, List.of(sheetItem), cartCoupon, LocalDateTime.now(clock), 30);
     }
 }

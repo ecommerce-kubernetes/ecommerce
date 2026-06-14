@@ -10,8 +10,12 @@ import com.example.order_service.order.exception.OrderErrorCode;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -171,5 +175,36 @@ public class OrderSheetItemTest {
         item.changeCoupon(newCoupon);
         //then
         assertThat(item.getItemCoupon()).isEqualTo(newCoupon);
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("provideCoupon")
+    void hasCoupon(String description, OrderCouponSnapshot coupon, boolean expectedResult) {
+        //given
+        String sheetItemId = "sheetItemId";
+        int quantity = 10;
+        ProductSnapshot product = Instancio.create(ProductSnapshot.class);
+        ProductPriceSnapshot price = ProductPriceSnapshot.of(Money.wons(10000L), 10, Money.wons(1000L), Money.wons(9000L));
+        List<ProductOptionSnapshot> options = Instancio.ofList(ProductOptionSnapshot.class).size(2).create();
+        OrderSheetItem item = OrderSheetItem.create(sheetItemId, product, price, coupon, quantity, options);
+        //when
+        boolean hasCoupon = item.hasCoupon();
+        //then
+        assertThat(hasCoupon).isEqualTo(expectedResult);
+    }
+
+    private static Stream<Arguments> provideCoupon() {
+        return Stream.of(
+                Arguments.of(
+                        "쿠폰 미적용",
+                        OrderCouponSnapshot.empty(),
+                        false
+                ),
+                Arguments.of(
+                        "쿠폰 적용",
+                        OrderCouponSnapshot.of(1L, "1000원 할인 쿠폰", Money.wons(1000L)),
+                        true
+                )
+        );
     }
 }
