@@ -17,6 +17,7 @@ import org.springframework.http.MediaType;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
@@ -33,6 +34,59 @@ class ProductFeignClientTest {
     private String readJson(String path) throws IOException {
         ClassPathResource resource = new ClassPathResource(path);
         return new String(resource.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+    }
+
+    @Nested
+    @DisplayName("상품 조회")
+    class GetProducts {
+
+        @Test
+        @DisplayName("상품 정보를 조회한다")
+        void getProducts() throws IOException {
+            //given
+            ProductClientRequest.BulkSearch request = ProductClientRequest.BulkSearch.from(List.of(1L, 2L));
+            String mockJsonResponse = readJson("product/product-response.json");
+            stubFor(post(urlEqualTo("/internal/variants"))
+                    .willReturn(aResponse()
+                            .withStatus(HttpStatus.OK.value())
+                            .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                            .withBody(mockJsonResponse)));
+            //when
+            ProductClientResponse.ProductList response = client.getProducts(request);
+            //then
+            assertThat(response.products()).hasSize(2);
+            assertThat(response.products().getFirst())
+                    .usingRecursiveComparison()
+                    .isEqualTo(expected());
+        }
+    }
+
+    private ProductClientResponse.Product expected() {
+        ProductClientResponse.UnitPrice unitPrice = ProductClientResponse.UnitPrice.builder()
+                .originalPrice(10000L)
+                .discountRate(10)
+                .discountAmount(1000L)
+                .discountedPrice(9000L)
+                .build();
+        ProductClientResponse.ProductOption xl = ProductClientResponse.ProductOption.builder()
+                .optionTypeName("사이즈")
+                .optionValueName("XL")
+                .build();
+        ProductClientResponse.ProductOption blue = ProductClientResponse.ProductOption.builder()
+                .optionTypeName("색상")
+                .optionValueName("BLUE")
+                .build();
+        return ProductClientResponse.Product.builder()
+                .productId(1L)
+                .productVariantId(1L)
+                .status("ON_SALE")
+                .stock(100)
+                .sku("PROD-XL-BLUE")
+                .productName("청바지")
+                .thumbnail("/product/product/jean_1.jpg")
+                .unitPrice(unitPrice)
+                .options(List.of(xl, blue))
+                .build();
     }
 
     @Nested

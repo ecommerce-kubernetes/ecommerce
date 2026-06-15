@@ -16,6 +16,8 @@ public class ProductClientResponse {
     public record Product(
             Long productId,
             Long productVariantId,
+            String status,
+            Integer stock,
             String sku,
             String productName,
             String thumbnail,

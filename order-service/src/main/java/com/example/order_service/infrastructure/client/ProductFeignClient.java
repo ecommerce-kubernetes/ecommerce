@@ -13,4 +13,7 @@ public interface ProductFeignClient {
 
     @PostMapping("/internal/variants/validate-for-cart")
     ProductClientResponse.ProductList getProductsForCart(ProductClientRequest.Validate request);
+
+    @PostMapping("/internal/variants")
+    ProductClientResponse.ProductList getProducts(ProductClientRequest.BulkSearch request);
 }
