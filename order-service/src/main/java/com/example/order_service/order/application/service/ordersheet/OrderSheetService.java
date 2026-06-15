@@ -19,7 +19,6 @@ import com.example.order_service.order.domain.repository.OrderSheetRepository;
 import com.example.order_service.order.domain.vo.OrderCouponSnapshot;
 import com.example.order_service.order.domain.vo.ShippingAddress;
 import com.example.order_service.order.exception.OrderErrorCode;
-import com.example.order_service.order.exception.OrderSheetErrorCode;
 import com.example.order_service.order.infrastructure.config.OrderSheetProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -155,10 +154,7 @@ public class OrderSheetService {
     public OrderSheetResult.Detail updatePoints(OrderSheetCommand.UpdatePoints command) {
         LocalDateTime currentTime = LocalDateTime.now(clock);
         OrderSheet orderSheet = getValidateOrderSheet(command.sheetId(), command.userId());
-        OrderUserResult.UserPoint userPoints = orderSheetUserGateway.getUserPointsForOrder(
-                orderSheet.getOrderer().getUserId(),
-                command.usedPoints()
-        );
+        OrderUserResult.UserPoint userPoints = orderSheetUserGateway.getUserPoints(orderSheet.getOrderer().getUserId());
         // [NOTE] 주문 가격 정보가 사용포인트에 맞추어 수정됨
         orderSheet.changeUsedPoints(command.usedPoints(), userPoints.ownedPoints(), pointUsagePolicy);
         repository.save(orderSheet, orderSheet.getRemainingTtl(currentTime));

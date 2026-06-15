@@ -5,6 +5,7 @@ import com.example.order_service.common.exception.external.ExternalServerExcepti
 import com.example.order_service.infrastructure.dto.request.ProductClientRequest;
 import com.example.order_service.infrastructure.dto.response.ProductClientResponse;
 import com.example.order_service.support.annotation.IsolatedTest;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -18,7 +19,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-import static com.example.order_service.support.TestFixtureUtil.fixtureMonkey;
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -44,7 +44,7 @@ class ProductFeignClientTest {
         void getProductsForOrder() throws IOException {
             //given
             String mockJsonResponse = readJson("product/validate-for-order-response.json");
-            ProductClientRequest.Validate request = fixtureMonkey.giveMeOne(ProductClientRequest.Validate.class);
+            ProductClientRequest.Validate request = Instancio.create(ProductClientRequest.Validate.class);
 
             ProductClientResponse.Product expected = createExpected();
             stubFor(post(urlEqualTo("/internal/variants/validate-for-order"))
@@ -65,7 +65,7 @@ class ProductFeignClientTest {
         @DisplayName("주문 상품 조회시 클라이언트 에러 응답이 반환되면 예외가 발생한다")
         void getProductsForOrder_client_error() {
             //given
-            ProductClientRequest.Validate request = fixtureMonkey.giveMeOne(ProductClientRequest.Validate.class);
+            ProductClientRequest.Validate request = Instancio.create(ProductClientRequest.Validate.class);
             String mockJsonResponse = """
                     {
                         "code": "INSUFFICIENT_STOCK",
@@ -92,7 +92,7 @@ class ProductFeignClientTest {
         @DisplayName("주문 상품 조회시 클라이언트 서버 에러 응답이 반환되면 예외가 발생한다")
         void getProductsForOrder_server_error() {
             //given
-            ProductClientRequest.Validate request = fixtureMonkey.giveMeOne(ProductClientRequest.Validate.class);
+            ProductClientRequest.Validate request = Instancio.create(ProductClientRequest.Validate.class);
             String mockJsonResponse = """
                     {
                         "code": "INTERNAL_SERVER_ERROR",
@@ -151,7 +151,7 @@ class ProductFeignClientTest {
         void getProductsForCart() throws IOException {
             //given
             String mockJsonResponse = readJson("product/validate-for-cart-response.json");
-            ProductClientRequest.Validate request = fixtureMonkey.giveMeOne(ProductClientRequest.Validate.class);
+            ProductClientRequest.Validate request = Instancio.create(ProductClientRequest.Validate.class);
 
             ProductClientResponse.Product expected = createExpected();
             stubFor(post(urlEqualTo("/internal/variants/validate-for-cart"))
@@ -172,7 +172,7 @@ class ProductFeignClientTest {
         @DisplayName("장바구니에 추가할 상품 조회시 클라이언트 에러 응답이 반환되면 예외가 발생한다")
         void getProductsForCart_client_error() {
             //given
-            ProductClientRequest.Validate request = fixtureMonkey.giveMeOne(ProductClientRequest.Validate.class);
+            ProductClientRequest.Validate request = Instancio.create(ProductClientRequest.Validate.class);
             String mockJsonResponse = """
                     {
                         "code": "INSUFFICIENT_STOCK",
@@ -199,7 +199,7 @@ class ProductFeignClientTest {
         @DisplayName("장바구니에 추가할 상품 조회시 클라이언트 서버 에러 응답이 반환되면 예외가 발생한다")
         void getProductsForCart_server_error() {
             //given
-            ProductClientRequest.Validate request = fixtureMonkey.giveMeOne(ProductClientRequest.Validate.class);
+            ProductClientRequest.Validate request = Instancio.create(ProductClientRequest.Validate.class);
             String mockJsonResponse = """
                     {
                         "code": "INTERNAL_SERVER_ERROR",

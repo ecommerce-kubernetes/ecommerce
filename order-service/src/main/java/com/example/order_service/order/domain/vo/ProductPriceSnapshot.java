@@ -1,8 +1,6 @@
 package com.example.order_service.order.domain.vo;
 
 import com.example.order_service.common.domain.vo.Money;
-import com.example.order_service.common.exception.business.BusinessException;
-import com.example.order_service.order.exception.OrderErrorCode;
 import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
 import lombok.Builder;

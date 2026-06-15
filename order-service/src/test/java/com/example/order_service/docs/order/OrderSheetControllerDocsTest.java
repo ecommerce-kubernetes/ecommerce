@@ -4,7 +4,6 @@ import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.docs.descriptor.OrderSheetDescriptor;
 import com.example.order_service.order.api.OrderSheetController;
 import com.example.order_service.order.api.dto.request.OrderSheetRequest;
-import com.example.order_service.order.api.dto.response.OrderSheetResponse;
 import com.example.order_service.order.application.service.ordersheet.OrderSheetService;
 import com.example.order_service.order.application.service.ordersheet.dto.command.OrderSheetCommand;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetResult;
@@ -24,7 +23,6 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class OrderSheetControllerDocsTest extends RestDocSupport {

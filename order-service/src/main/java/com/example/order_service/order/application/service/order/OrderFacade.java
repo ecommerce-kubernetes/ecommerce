@@ -1,6 +1,5 @@
 package com.example.order_service.order.application.service.order;
 
-import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.business.BusinessException;
 import com.example.order_service.order.application.external.OrderCouponGateway;
 import com.example.order_service.order.application.external.OrderProductGateway;
@@ -96,8 +95,7 @@ public class OrderFacade {
 
     private OrderUserResult.UserPoint getUserPoints(OrderSheet orderSheet) {
         Long userId = orderSheet.getOrderer().getUserId();
-        Money usedPoints = orderSheet.getUsedPoints();
-        return orderUserGateway.getUserPointsForOrder(userId, usedPoints);
+        return orderUserGateway.getUserPoints(userId);
     }
 
     private OrderSheet findOrderSheetById(String sheetId) {

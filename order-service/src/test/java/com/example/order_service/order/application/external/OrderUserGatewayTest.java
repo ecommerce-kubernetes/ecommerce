@@ -1,6 +1,5 @@
 package com.example.order_service.order.application.external;
 
-import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.business.BusinessException;
 import com.example.order_service.common.exception.external.ExternalClientException;
 import com.example.order_service.common.exception.external.ExternalServerException;
@@ -10,6 +9,7 @@ import com.example.order_service.infrastructure.dto.response.UserClientResponse;
 import com.example.order_service.order.application.external.dto.result.OrderUserResult;
 import com.example.order_service.order.application.external.mapper.OrderUserMapper;
 import com.example.order_service.order.exception.OrderSheetErrorCode;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -18,7 +18,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static com.example.order_service.support.TestFixtureUtil.fixtureMonkey;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -45,8 +44,8 @@ public class OrderUserGatewayTest {
         void getUserProfile() {
             //given
             Long userId = 1L;
-            UserClientResponse.Profile userResponse = fixtureMonkey.giveMeOne(UserClientResponse.Profile.class);
-            OrderUserResult.Profile profile = fixtureMonkey.giveMeOne(OrderUserResult.Profile.class);
+            UserClientResponse.Profile userResponse = Instancio.create(UserClientResponse.Profile.class);
+            OrderUserResult.Profile profile = Instancio.create(OrderUserResult.Profile.class);
             given(adaptor.getUserProfile(anyLong())).willReturn(userResponse);
             given(userMapper.toResult(any(UserClientResponse.Profile.class))).willReturn(profile);
             //when
@@ -110,8 +109,8 @@ public class OrderUserGatewayTest {
         void getUserPoints(){
             //given
             Long userId = 1L;
-            UserClientResponse.UserPoints response = fixtureMonkey.giveMeOne(UserClientResponse.UserPoints.class);
-            OrderUserResult.UserPoint userPoint = fixtureMonkey.giveMeOne(OrderUserResult.UserPoint.class);
+            UserClientResponse.UserPoints response = Instancio.create(UserClientResponse.UserPoints.class);
+            OrderUserResult.UserPoint userPoint = Instancio.create(OrderUserResult.UserPoint.class);
             given(adaptor.getUserPoints(anyLong())).willReturn(response);
             given(userMapper.toResult(any(UserClientResponse.UserPoints.class))).willReturn(userPoint);
             //when
@@ -165,73 +164,4 @@ public class OrderUserGatewayTest {
                     .isEqualTo(OrderSheetErrorCode.ORDER_SHEET_USER_UNAVAILABLE_SERVER_ERROR);
         }
     }
-
-    @Nested
-    @DisplayName("유저 포인트 잔액 검증")
-    class GetUserPointsForOrder {
-        @Test
-        @DisplayName("유저 포인트 잔액을 검증한다")
-        void getUserPointsForOrder() {
-            //given
-            Long userId = 1L;
-            Money usedPoints = Money.wons(1000L);
-            UserClientResponse.UserPoints response = fixtureMonkey.giveMeOne(UserClientResponse.UserPoints.class);
-            OrderUserResult.UserPoint userPoint = fixtureMonkey.giveMeOne(OrderUserResult.UserPoint.class);
-            given(adaptor.getUserPointsForOrder(anyLong(), anyLong())).willReturn(response);
-            given(userMapper.toResult(any(UserClientResponse.UserPoints.class))).willReturn(userPoint);
-            //when
-            OrderUserResult.UserPoint result = orderUserGateway.getUserPointsForOrder(userId, usedPoints);
-            //then
-            assertThat(result).isNotNull();
-        }
-
-        @Test
-        @DisplayName("유저 포인트 검증중 클라이언트 에러가 발생한 경우 비지니스 예외가 발생한다")
-        void getUserPointsForOrder_ExternalClientException() {
-            //given
-            Long userId = 1L;
-            Money usedPoints = Money.wons(1000L);
-            given(adaptor.getUserPointsForOrder(any(), any()))
-                    .willThrow(new ExternalClientException("NOT_FOUND_USER", "유저를 찾을 수 없습니다"));
-            //when
-            //then
-            assertThatThrownBy(() -> orderUserGateway.getUserPointsForOrder(userId, usedPoints))
-                    .isInstanceOf(BusinessException.class)
-                    .extracting("errorCode")
-                    .isEqualTo(OrderSheetErrorCode.ORDER_SHEET_USER_CLIENT_ERROR);
-        }
-
-        @Test
-        @DisplayName("유저 포인트 검증중 서버에러가 발생한 경우 비지니스 예외가 발생한다")
-        void getUserPointsForOrder_ExternalServerException() {
-            //given
-            Long userId = 1L;
-            Money usedPoints = Money.wons(1000L);
-            given(adaptor.getUserPointsForOrder(any(), any()))
-                    .willThrow(new ExternalServerException("INTERNAL_SERVER_ERROR", "알 수 없는 에러가 발생했습니다"));
-            //when
-            //then
-            assertThatThrownBy(() -> orderUserGateway.getUserPointsForOrder(userId, usedPoints))
-                    .isInstanceOf(BusinessException.class)
-                    .extracting("errorCode")
-                    .isEqualTo(OrderSheetErrorCode.ORDER_SHEET_USER_SERVER_ERROR);
-        }
-
-        @Test
-        @DisplayName("유저 포인트 검증중 서비스 사용 불가 오류가 발생한 경우 비지니스 예외가 발생한다")
-        void getUserPointsForOrder_ExternalUnavailableServiceException() {
-            //given
-            Long userId = 1L;
-            Money usedPoints = Money.wons(1000L);
-            given(adaptor.getUserPointsForOrder(any(), any()))
-                    .willThrow(new ExternalSystemUnavailableException("SERVICE_UNAVAILABLE", "유저 서비스 통신 장애"));
-            //when
-            //then
-            assertThatThrownBy(() -> orderUserGateway.getUserPointsForOrder(userId, usedPoints))
-                    .isInstanceOf(BusinessException.class)
-                    .extracting("errorCode")
-                    .isEqualTo(OrderSheetErrorCode.ORDER_SHEET_USER_UNAVAILABLE_SERVER_ERROR);
-        }
-    }
-
 }

@@ -4,12 +4,12 @@ import com.example.order_service.common.exception.external.ExternalSystemUnavail
 import com.example.order_service.infrastructure.client.UserFeignClient;
 import com.example.order_service.infrastructure.dto.response.UserClientResponse;
 import com.example.order_service.support.annotation.IsolatedTest;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
-import static com.example.order_service.support.TestFixtureUtil.fixtureMonkey;
 import static com.example.order_service.support.TestFixtureUtil.giveMeOne;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -63,7 +63,7 @@ public class UserAdaptorTest {
     void getUserPoints(){
         //given
         Long userId = 1L;
-        UserClientResponse.UserPoints mockResponse = fixtureMonkey.giveMeOne(UserClientResponse.UserPoints.class);
+        UserClientResponse.UserPoints mockResponse = Instancio.create(UserClientResponse.UserPoints.class);
         given(client.getUserPoints(any())).willReturn(mockResponse);
         //when
         UserClientResponse.UserPoints response = userAdaptor.getUserPoints(userId);
@@ -86,37 +86,6 @@ public class UserAdaptorTest {
         //when
         //then
         assertThatThrownBy(() -> userAdaptor.getUserPoints(userId))
-                .isInstanceOf(ExternalSystemUnavailableException.class);
-    }
-
-    @Test
-    @DisplayName("유저 포인트 사용 검증 정보를 조회한다")
-    void getUserPointsForOrder() {
-        //given
-        Long userId = 1L;
-        Long usedPoints = 1000L;
-        UserClientResponse.UserPoints mockResponse = fixtureMonkey.giveMeOne(UserClientResponse.UserPoints.class);
-        given(client.getUserPointsForOrder(anyLong(), any())).willReturn(mockResponse);
-        //when
-        UserClientResponse.UserPoints response = userAdaptor.getUserPointsForOrder(userId, usedPoints);
-        //then
-        assertThat(response).usingRecursiveComparison().isEqualTo(mockResponse);
-    }
-
-    @Test
-    @DisplayName("유저 포인트 사용 검증 정보 조회중 예외 발생시 translator를 호출하여 변환된 예외가 발생한다")
-    void getUserPointsForOrder_fallback_delegate_to_translator() throws Throwable {
-        //given
-        Long userId = 1L;
-        Long usedPoints = 1000L;
-        RuntimeException feignException = new RuntimeException("feignClient 예외");
-        ExternalSystemUnavailableException translatedException =
-                new ExternalSystemUnavailableException("CODE", "변환된 에러", feignException);
-        given(client.getUserPointsForOrder(anyLong(), any())).willThrow(feignException);
-        given(translator.translate(anyString(), any())).willReturn(translatedException);
-        //when
-        //then
-        assertThatThrownBy(() -> userAdaptor.getUserPointsForOrder(userId, usedPoints))
                 .isInstanceOf(ExternalSystemUnavailableException.class);
     }
 }

@@ -330,7 +330,7 @@ public class OrderSheetServiceTest {
                     .set(field(OrderUserResult.UserPoint::ownedPoints), Money.wons(10000L))
                     .create();
             given(repository.findById(any())).willReturn(Optional.of(orderSheet));
-            given(orderUserGateway.getUserPointsForOrder(anyLong(), any())).willReturn(point);
+            given(orderUserGateway.getUserPoints(anyLong())).willReturn(point);
             when(repository.save(any(), any())).then(returnsFirstArg());
             //when
             OrderSheetResult.Detail result = orderSheetService.updatePoints(command);
@@ -353,7 +353,7 @@ public class OrderSheetServiceTest {
                     .set(field(OrderUserResult.UserPoint::ownedPoints), Money.wons(10000L))
                     .create();
             given(repository.findById(any())).willReturn(Optional.of(orderSheet));
-            given(orderUserGateway.getUserPointsForOrder(anyLong(), any())).willReturn(point);
+            given(orderUserGateway.getUserPoints(anyLong())).willReturn(point);
             //when
             //then
             assertThatThrownBy(() -> orderSheetService.updatePoints(command))

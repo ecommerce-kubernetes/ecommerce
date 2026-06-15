@@ -2,7 +2,6 @@ package com.example.order_service.order.domain.model;
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.business.BusinessException;
-import com.example.order_service.common.exception.domain.InvalidDomainValueException;
 import com.example.order_service.order.domain.policy.PointUsagePolicy;
 import com.example.order_service.order.domain.vo.OrderCouponSnapshot;
 import com.example.order_service.order.domain.vo.Orderer;
@@ -12,7 +11,6 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.util.Assert;
 
 import java.time.Duration;
 import java.time.LocalDateTime;

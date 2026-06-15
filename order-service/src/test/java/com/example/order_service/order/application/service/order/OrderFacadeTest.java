@@ -87,7 +87,7 @@ public class OrderFacadeTest {
             OrderResult.Create expectedResult = Instancio.create(OrderResult.Create.class);
 
             given(orderSheetRepository.findById(anyString())).willReturn(Optional.of(orderSheet));
-            given(orderUserGateway.getUserPointsForOrder(anyLong(), any())).willReturn(userPoint);
+            given(orderUserGateway.getUserPoints(anyLong())).willReturn(userPoint);
             given(orderProductGateway.getProducts(anyList())).willReturn(productResult);
             given(orderCouponGateway.calculate(any())).willReturn(couponResult);
             given(orderMapper.toContext(any())).willReturn(orderContext);
@@ -100,7 +100,37 @@ public class OrderFacadeTest {
             then(orderCouponGateway).should().calculate(any());
             then(orderValidator).should().validate(any(OrderSheet.class), any(OrderProductResult.ProductList.class),
                     any(OrderCouponResult.Calculate.class), any(OrderUserResult.UserPoint.class), any(PointUsagePolicy.class));
-            then(orderUserGateway).should().getUserPointsForOrder(anyLong(), any());
+            then(orderUserGateway).should().getUserPoints(anyLong());
+            then(orderCommandService).should().saveOrder(any());
+        }
+
+        @Test
+        @DisplayName("적용된 쿠폰이 없다면 쿠폰 게이트웨이를 호출하지 않음")
+        void initialOrder_no_coupon() {
+            //given
+            OrderSheet orderSheet = createOrderSheetWithoutCoupon();
+            OrderCommand.Create command = OrderCommand.Create.builder()
+                    .orderSheetId("sheetId")
+                    .userId(1L)
+                    .build();
+            OrderUserResult.UserPoint userPoint = Instancio.create(OrderUserResult.UserPoint.class);
+            OrderProductResult.ProductList productResult = Instancio.create(OrderProductResult.ProductList.class);
+            OrderContext.CreateOrderContext orderContext = Instancio.create(OrderContext.CreateOrderContext.class);
+            OrderResult.Create expectedResult = Instancio.create(OrderResult.Create.class);
+            given(orderSheetRepository.findById(anyString())).willReturn(Optional.of(orderSheet));
+            given(orderUserGateway.getUserPoints(anyLong())).willReturn(userPoint);
+            given(orderProductGateway.getProducts(anyList())).willReturn(productResult);
+            given(orderMapper.toContext(any())).willReturn(orderContext);
+            given(orderCommandService.saveOrder(any())).willReturn(expectedResult);
+            //when
+            OrderResult.Create result = orderFacade.initialOrder(command);
+            //then
+            assertThat(result).isEqualTo(expectedResult);
+            then(orderProductGateway).should().getProducts(anyList());
+            then(orderCouponGateway).shouldHaveNoInteractions();
+            then(orderValidator).should().validate(any(OrderSheet.class), any(OrderProductResult.ProductList.class),
+                    any(OrderCouponResult.Calculate.class), any(OrderUserResult.UserPoint.class), any(PointUsagePolicy.class));
+            then(orderUserGateway).should().getUserPoints(anyLong());
             then(orderCommandService).should().saveOrder(any());
         }
 
@@ -166,6 +196,21 @@ public class OrderFacadeTest {
         ProductPriceSnapshot price = ProductPriceSnapshot.of(Money.wons(10000L), 10, Money.wons(1000L), Money.wons(9000L));
         OrderCouponSnapshot itemCoupon = OrderCouponSnapshot.of(1L, "하의 1000원 쿠폰", Money.wons(1000L));
         OrderCouponSnapshot cartCoupon = OrderCouponSnapshot.of(2L, "첫구매 1000원 할인 쿠폰", Money.wons(1000L));
+        List<ProductOptionSnapshot> options = List.of(
+                ProductOptionSnapshot.of("사이즈", "XL"),
+                ProductOptionSnapshot.of("색상", "BLUE")
+        );
+        OrderSheetItem sheetItem = OrderSheetItem.create("sheetItemId", product, price, itemCoupon, 1, options);
+        return OrderSheet.create("sheetId", orderer, shippingAddress, List.of(sheetItem), cartCoupon, LocalDateTime.now(clock), 30);
+    }
+
+    private OrderSheet createOrderSheetWithoutCoupon() {
+        Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
+        ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678", "12345", "서울시 테헤란로 123", "123동 1234호");
+        ProductSnapshot product = ProductSnapshot.of(1L, 1L, "PROD1-XL-BLUE", "청바지", "/product/product/jean_1.jpg");
+        ProductPriceSnapshot price = ProductPriceSnapshot.of(Money.wons(10000L), 10, Money.wons(1000L), Money.wons(9000L));
+        OrderCouponSnapshot itemCoupon = OrderCouponSnapshot.empty();
+        OrderCouponSnapshot cartCoupon = OrderCouponSnapshot.empty();
         List<ProductOptionSnapshot> options = List.of(
                 ProductOptionSnapshot.of("사이즈", "XL"),
                 ProductOptionSnapshot.of("색상", "BLUE")

@@ -2,7 +2,6 @@ package com.example.order_service.infrastructure.client;
 
 import com.example.order_service.common.exception.external.ExternalClientException;
 import com.example.order_service.common.exception.external.ExternalServerException;
-import com.example.order_service.infrastructure.dto.request.UserClientRequest;
 import com.example.order_service.infrastructure.dto.response.UserClientResponse;
 import com.example.order_service.support.annotation.IsolatedTest;
 import org.junit.jupiter.api.DisplayName;
@@ -209,101 +208,6 @@ public class UserFeignClientTest {
             //then
             assertThatThrownBy(() -> client.getUserPoints(userId))
                     .isInstanceOf(ExternalClientException.class)
-                    .hasMessage("알 수 없는 에러가 발생했습니다")
-                    .extracting("errorCode")
-                    .isEqualTo("INTERNAL_SERVER_ERROR");
-        }
-    }
-
-    @Nested
-    @DisplayName("포인트 사용 검증")
-    class GetUserPointsForOrder {
-
-        @Test
-        @DisplayName("포인트 정보를 조회한다")
-        void getUserPointsForOrder() {
-            //given
-            Long userId = 1L;
-            UserClientRequest.ValidatePoints request = UserClientRequest.ValidatePoints.builder()
-                    .usedPoints(3000L)
-                    .build();
-            String mockJsonResponse = """
-                    {
-                        "userId": 1,
-                        "ownedPoints": 10000
-                    }
-                    """;
-            UserClientResponse.UserPoints expected = UserClientResponse.UserPoints.builder()
-                    .userId(1L)
-                    .ownedPoints(10000L)
-                    .build();
-            stubFor(post(urlEqualTo("/internal/users/" + userId + "/points/validate-for-order"))
-                    .willReturn(aResponse()
-                            .withStatus(HttpStatus.OK.value())
-                            .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
-                            .withBody(mockJsonResponse)));
-            //when
-            UserClientResponse.UserPoints response = client.getUserPointsForOrder(userId, request);
-            //then
-            assertThat(response).usingRecursiveComparison().isEqualTo(expected);
-        }
-
-        @Test
-        @DisplayName("포인트 정보 조회중 클라이언트 에러 응답이 반환되면 예외가 발생한다")
-        void getUserPointsForOrder_thrown_client_error() {
-            //given
-            Long userId = 1L;
-            UserClientRequest.ValidatePoints request = UserClientRequest.ValidatePoints.builder()
-                    .usedPoints(3000L)
-                    .build();
-            String mockJsonResponse = """
-                    {
-                    "code": "NOT_FOUND_USER",
-                    "message": "유저를 찾을 수 없습니다",
-                    "timestamp": "2026-05-03 19:00:00",
-                    "path": "/internal/users/1/points/validate-for-order"
-                    }
-                    """;
-            stubFor(post(urlEqualTo("/internal/users/" + userId + "/points/validate-for-order"))
-                    .willReturn(aResponse()
-                            .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
-                            .withStatus(HttpStatus.BAD_REQUEST.value())
-                            .withBody(mockJsonResponse)));
-            //when
-            //then
-            assertThatThrownBy(() -> client.getUserPointsForOrder(userId, request))
-                    .isInstanceOf(ExternalClientException.class)
-                    .hasMessage("유저를 찾을 수 없습니다")
-                    .extracting("errorCode")
-                    .isEqualTo("NOT_FOUND_USER");
-        }
-
-        @Test
-        @DisplayName("포인트 정보 조회중 서버 오류 응답이 반환되면 예외가 발생한다")
-        void getUserPointsForOrder_thrown_server_error() {
-            //given
-            Long userId = 1L;
-            UserClientRequest.ValidatePoints request = UserClientRequest.ValidatePoints.builder()
-                    .usedPoints(3000L)
-                    .build();
-            String mockJsonResponse = """
-                    {
-                    "code": "INTERNAL_SERVER_ERROR",
-                    "message": "알 수 없는 에러가 발생했습니다",
-                    "timestamp": "2026-05-03 19:00:00",
-                    "path": "/internal/users/1/points/validate-for-order"
-                    }
-                    """;
-
-            stubFor(post(urlEqualTo("/internal/users/" + userId + "/points/validate-for-order"))
-                    .willReturn(aResponse()
-                            .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
-                            .withStatus(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                            .withBody(mockJsonResponse)));
-            //when
-            //then
-            assertThatThrownBy(() -> client.getUserPointsForOrder(userId, request))
-                    .isInstanceOf(ExternalServerException.class)
                     .hasMessage("알 수 없는 에러가 발생했습니다")
                     .extracting("errorCode")
                     .isEqualTo("INTERNAL_SERVER_ERROR");

@@ -7,6 +7,7 @@ import com.example.order_service.infrastructure.dto.command.CouponCommand;
 import com.example.order_service.infrastructure.dto.request.CouponClientRequest;
 import com.example.order_service.support.annotation.IsolatedTest;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -14,7 +15,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
-import static com.example.order_service.support.TestFixtureUtil.fixtureMonkey;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -47,7 +47,7 @@ public class CouponAdaptorCircuitBreakerTest {
     @DisplayName("쿠폰 서비스에서 연속으로 서버 에러가 발생한 경우 서킷 브레이커가 열려 요청이 차단된다")
     void circuitbreaker_opens_after_consecutive_server_failures() {
         //given
-        CouponCommand.Calculate command = fixtureMonkey.giveMeOne(CouponCommand.Calculate.class);
+        CouponCommand.Calculate command = Instancio.create(CouponCommand.Calculate.class);
         given(client.calculate(any(CouponClientRequest.Calculate.class)))
                 .willThrow(new RuntimeException("Connection Timeout"));
         //when
@@ -72,7 +72,7 @@ public class CouponAdaptorCircuitBreakerTest {
     @DisplayName("쿠폰 서비스에서 연속으로 클라이언트 에러가 발생한 경우 서킷 브레이커는 닫혀있어야 한다")
     void circuitbreaker_close_after_consecutive_client_failures() {
         //given
-        CouponCommand.Calculate command = fixtureMonkey.giveMeOne(CouponCommand.Calculate.class);
+        CouponCommand.Calculate command = Instancio.create(CouponCommand.Calculate.class);
         given(client.calculate(any(CouponClientRequest.Calculate.class)))
                 .willThrow(new ExternalClientException("NOT_FOUND_COUPON", "쿠폰을 찾을 수 없습니다"));
         //when

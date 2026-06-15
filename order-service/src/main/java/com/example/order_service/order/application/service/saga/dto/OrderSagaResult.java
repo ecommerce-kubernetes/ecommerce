@@ -5,7 +5,6 @@ import com.example.order_service.order.domain.saga.SagaStatus;
 import com.example.order_service.order.domain.saga.SagaStep;
 import com.example.order_service.order.domain.vo.SagaPayload;
 import lombok.Builder;
-import lombok.Getter;
 
 public class OrderSagaResult {
 

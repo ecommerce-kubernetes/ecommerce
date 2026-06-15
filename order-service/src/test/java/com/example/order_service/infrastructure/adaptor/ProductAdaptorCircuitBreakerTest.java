@@ -6,6 +6,7 @@ import com.example.order_service.infrastructure.client.ProductFeignClient;
 import com.example.order_service.infrastructure.dto.command.ProductCommand;
 import com.example.order_service.support.annotation.IsolatedTest;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -13,7 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
-import static com.example.order_service.support.TestFixtureUtil.fixtureMonkey;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -46,7 +46,7 @@ public class ProductAdaptorCircuitBreakerTest {
     @DisplayName("상품 서비스에서 연속으로 서버 에러가 발생한 경우 서킷브레이커가 열려 요청이 차단된다")
     void circuitbreaker_opens_after_consecutive_server_failures() {
         //given
-        ProductCommand.Validate command = fixtureMonkey.giveMeOne(ProductCommand.Validate.class);
+        ProductCommand.Validate command = Instancio.create(ProductCommand.Validate.class);
         // 타임 아웃 에러가 발생한다고 가정
         given(client.getProductsForOrder(any()))
                 .willThrow(new RuntimeException("Connection Timeout"));
@@ -74,7 +74,7 @@ public class ProductAdaptorCircuitBreakerTest {
     @DisplayName("상품 서비스에서 연속으로 클라이언트 에러가 발생한 경우 서킷브레이커는 닫혀있어야 한다")
     void circuitbreaker_close_after_consecutive_client_failures() {
         //given
-        ProductCommand.Validate command = fixtureMonkey.giveMeOne(ProductCommand.Validate.class);
+        ProductCommand.Validate command = Instancio.create(ProductCommand.Validate.class);
         given(client.getProductsForOrder(any()))
                 .willThrow(new ExternalClientException("NOT_PERMISSION", "조회할 권한이 없습니다"));
         //when
