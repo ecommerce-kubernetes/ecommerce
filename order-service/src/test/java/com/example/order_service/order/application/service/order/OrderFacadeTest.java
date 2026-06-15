@@ -14,23 +14,28 @@ import com.example.order_service.order.application.service.order.dto.command.Ord
 import com.example.order_service.order.application.service.order.dto.result.OrderResult;
 import com.example.order_service.order.domain.model.OrderSheet;
 import com.example.order_service.order.domain.model.OrderSheetItem;
+import com.example.order_service.order.domain.policy.PointUsagePolicy;
 import com.example.order_service.order.domain.repository.OrderSheetRepository;
 import com.example.order_service.order.domain.vo.*;
 import com.example.order_service.order.exception.OrderErrorCode;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 
-import static com.example.order_service.support.TestFixtureUtil.fixtureMonkey;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.*;
@@ -56,6 +61,11 @@ public class OrderFacadeTest {
     private OrderUserGateway orderUserGateway;
     @Mock
     private OrderValidator orderValidator;
+    @Mock
+    private PointUsagePolicy pointPolicy;
+    @Spy
+    private Clock clock = Clock.fixed(Instant.parse("2026-06-14T03:00:00Z"), ZoneId.of("Asia/Seoul"));
+
 
     @Nested
     @DisplayName("주문 생성")
@@ -70,12 +80,11 @@ public class OrderFacadeTest {
                     .orderSheetId("sheetId")
                     .userId(1L)
                     .build();
-
-            OrderUserResult.UserPoint userPoint = fixtureMonkey.giveMeOne(OrderUserResult.UserPoint.class);
-            OrderProductResult.ProductList productResult = fixtureMonkey.giveMeOne(OrderProductResult.ProductList.class);
-            OrderCouponResult.Calculate couponResult = fixtureMonkey.giveMeOne(OrderCouponResult.Calculate.class);
-            OrderContext.CreateOrderContext orderContext = fixtureMonkey.giveMeOne(OrderContext.CreateOrderContext.class);
-            OrderResult.Create expectedResult = fixtureMonkey.giveMeOne(OrderResult.Create.class);
+            OrderUserResult.UserPoint userPoint = Instancio.create(OrderUserResult.UserPoint.class);
+            OrderProductResult.ProductList productResult = Instancio.create(OrderProductResult.ProductList.class);
+            OrderCouponResult.Calculate couponResult = Instancio.create(OrderCouponResult.Calculate.class);
+            OrderContext.CreateOrderContext orderContext = Instancio.create(OrderContext.CreateOrderContext.class);
+            OrderResult.Create expectedResult = Instancio.create(OrderResult.Create.class);
 
             given(orderSheetRepository.findById(anyString())).willReturn(Optional.of(orderSheet));
             given(orderUserGateway.getUserPointsForOrder(anyLong(), any())).willReturn(userPoint);
@@ -89,6 +98,8 @@ public class OrderFacadeTest {
             assertThat(result).isEqualTo(expectedResult);
             then(orderProductGateway).should().getProducts(anyList());
             then(orderCouponGateway).should().calculate(any());
+            then(orderValidator).should().validate(any(OrderSheet.class), any(OrderProductResult.ProductList.class),
+                    any(OrderCouponResult.Calculate.class), any(OrderUserResult.UserPoint.class), any(PointUsagePolicy.class));
             then(orderUserGateway).should().getUserPointsForOrder(anyLong(), any());
             then(orderCommandService).should().saveOrder(any());
         }
@@ -125,7 +136,7 @@ public class OrderFacadeTest {
             assertThatThrownBy(() -> orderFacade.initialOrder(command))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
-                    .isEqualTo(OrderErrorCode.ORDER_SHEET_ACCESS_DENIED);
+                    .isEqualTo(OrderErrorCode.ORDER_ACCESS_DENIED);
         }
 
         @Test
@@ -133,7 +144,7 @@ public class OrderFacadeTest {
         void initialOrder_sheet_expired(){
             //given
             OrderSheet orderSheet = createOrderSheet();
-            ReflectionTestUtils.setField(orderSheet, "expiresAt", LocalDateTime.now().minusMinutes(20));
+            ReflectionTestUtils.setField(orderSheet, "expiresAt", LocalDateTime.now(clock).minusMinutes(20));
             OrderCommand.Create command = OrderCommand.Create.builder()
                     .orderSheetId("sheetId")
                     .userId(1L)
@@ -160,6 +171,6 @@ public class OrderFacadeTest {
                 ProductOptionSnapshot.of("색상", "BLUE")
         );
         OrderSheetItem sheetItem = OrderSheetItem.create("sheetItemId", product, price, itemCoupon, 1, options);
-        return OrderSheet.create("sheetId", orderer, shippingAddress, List.of(sheetItem), cartCoupon, LocalDateTime.now(), 30);
+        return OrderSheet.create("sheetId", orderer, shippingAddress, List.of(sheetItem), cartCoupon, LocalDateTime.now(clock), 30);
     }
 }

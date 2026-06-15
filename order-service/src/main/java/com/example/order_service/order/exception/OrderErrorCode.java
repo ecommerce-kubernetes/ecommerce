@@ -19,7 +19,6 @@ public enum OrderErrorCode implements ErrorCode {
     CART_COUPON_DISCOUNT_CHANGE(409, "CART_COUPON_DISCOUNT_CHANGE", "장바구니 상품 할인금이 변동되었습니다"),
     PRODUCT_PRICE_CHANGE(409, "PRODUCT_PRICE_CHANGE", "주문 상품 가격이 변동되었습니다"),
     ORDER_EXPIRED(409, "ORDER_EXPIRED", "주문이 만료되었습니다"),
-    ORDER_SHEET_ACCESS_DENIED(403, "ORDER_SHEET_ACCESS_DENIED", "주문 권한이 없습니다"),
     ORDER_ITEM_NOT_FOUND(404, "ORDER_ITEM_NOT_FOUND", "주문 상품을 찾을 수 없습니다"),
     ORDER_SHEET_NOT_FOUND(404, "ORDER-SHEET_NOT_FOUND", "주문서를 찾을 수 없습니다"),
     ORDER_NOT_FOUND(404, "ORDER_NOT_FOUND", "주문을 찾을 수 없습니다");
