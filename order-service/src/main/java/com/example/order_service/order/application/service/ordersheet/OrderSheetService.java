@@ -52,6 +52,7 @@ public class OrderSheetService {
     private final OrderCouponGateway orderCouponGateway;
     private final OrderUserGateway orderSheetUserGateway;
     private final PointUsagePolicy pointUsagePolicy;
+    private final OrderSheetValidator validator;
     private final OrderSheetFactory factory;
     private final OrderSheetRepository repository;
     private final Clock clock;
@@ -68,7 +69,7 @@ public class OrderSheetService {
     public OrderSheetResult.Create createOrderSheet(OrderSheetCommand.Create command) {
         OrderUserResult.Profile userProfile = orderSheetUserGateway.getUserProfile(command.userId());
         OrderProductResult.ProductList products = getOrderedProducts(command.items());
-        validateForOrder(products, command);
+        validator.validate(products, command);
         OrderCouponResult.Calculate appliedCoupons = getAppliedCoupons(command, products);
         OrderSheet orderSheet = factory.createSheet(command, userProfile, products, appliedCoupons, orderSheetProperties.ttlMinutes());
         OrderSheet save = repository.save(orderSheet, Duration.ofMinutes(orderSheetProperties.ttlMinutes()));
@@ -78,22 +79,7 @@ public class OrderSheetService {
     private OrderProductResult.ProductList getOrderedProducts(List<OrderSheetCommand.OrderItem> items) {
         List<OrderProductCommand.OrderItem> commands = items.stream().map(item ->
                         OrderProductCommand.OrderItem.of(item.productVariantId(), item.quantity())).toList();
-        return orderProductGateway.getProductsForOrder(commands);
-    }
-
-    private void validateForOrder(OrderProductResult.ProductList productList, OrderSheetCommand.Create command) {
-        Map<Long, Integer> reqItemMap = command.toQuantityMap();
-        Map<Long, OrderProductResult.Info> productsMap = productList.getProductsMap();
-        reqItemMap.forEach((reqId, reqQuantity) -> {
-            OrderProductResult.Info product = Optional.ofNullable(productsMap.get(reqId))
-                    .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_PRODUCT_NOT_FOUND));
-            if (product.status() != OrderProductStatus.ON_SALE) {
-                throw new BusinessException(OrderErrorCode.ORDER_PRODUCT_NOT_ON_SALE);
-            }
-            if (reqQuantity > product.stock()) {
-                throw new BusinessException(OrderErrorCode.ORDER_PRODUCT_INSUFFICIENT_STOCK);
-            }
-        });
+        return orderProductGateway.getProducts(commands);
     }
 
     private OrderCouponResult.Calculate getAppliedCoupons(OrderSheetCommand.Create command,
@@ -110,6 +96,8 @@ public class OrderSheetService {
     private OrderCouponCommand.Calculate mapToCouponCommand(OrderSheetCommand.Create command,
                                                                   Map<Long, OrderProductResult.Info> productMap,
                                                                   Map<Long, Long> couponMap) {
+        // [WARING] 페이로드 최적화를 위해 쿠폰 적용 상 filter를 걸면 안됨!
+        // 쿠폰 미적용 상품도 페이로드에 포함되어야 장바구니 쿠폰의 '최소 결제 금액', '제외 상품'등의 제약을 검사하고 할인 금액을 계산할 수 있음
         List<OrderCouponCommand.AppliedCouponItem> appliedCouponItems = command.items().stream().map(item -> {
             OrderProductResult.Info product = productMap.get(item.productVariantId());
             Long itemCouponId = couponMap.get(item.productVariantId());

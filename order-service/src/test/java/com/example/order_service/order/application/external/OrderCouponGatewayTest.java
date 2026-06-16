@@ -10,7 +10,7 @@ import com.example.order_service.infrastructure.dto.response.CouponClientRespons
 import com.example.order_service.order.application.external.dto.command.OrderCouponCommand;
 import com.example.order_service.order.application.external.dto.result.OrderCouponResult;
 import com.example.order_service.order.application.external.mapper.OrderCouponMapper;
-import com.example.order_service.order.exception.OrderSheetErrorCode;
+import com.example.order_service.order.exception.OrderErrorCode;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -68,7 +68,7 @@ public class OrderCouponGatewayTest {
             assertThatThrownBy(() -> orderCouponGateway.calculate(command))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
-                    .isEqualTo(OrderSheetErrorCode.ORDER_SHEET_COUPON_SERVER_ERROR);
+                    .isEqualTo(OrderErrorCode.ORDER_COUPON_SERVER_ERROR);
         }
 
         @Test
@@ -83,7 +83,7 @@ public class OrderCouponGatewayTest {
             assertThatThrownBy(() -> orderCouponGateway.calculate(command))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
-                    .isEqualTo(OrderSheetErrorCode.ORDER_SHEET_COUPON_CLIENT_ERROR);
+                    .isEqualTo(OrderErrorCode.ORDER_COUPON_CLIENT_ERROR);
         }
 
         @Test
@@ -98,7 +98,7 @@ public class OrderCouponGatewayTest {
             assertThatThrownBy(() -> orderCouponGateway.calculate(command))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
-                    .isEqualTo(OrderSheetErrorCode.ORDER_SHEET_COUPON_UNAVAILABLE_SERVER_ERROR);
+                    .isEqualTo(OrderErrorCode.ORDER_COUPON_UNAVAILABLE_SERVER_ERROR);
         }
     }
 }

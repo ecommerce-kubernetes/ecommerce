@@ -10,6 +10,7 @@ import com.example.order_service.infrastructure.dto.response.CouponClientRespons
 import com.example.order_service.order.application.external.dto.command.OrderCouponCommand;
 import com.example.order_service.order.application.external.dto.result.OrderCouponResult;
 import com.example.order_service.order.application.external.mapper.OrderCouponMapper;
+import com.example.order_service.order.exception.OrderErrorCode;
 import com.example.order_service.order.exception.OrderSheetErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -46,11 +47,11 @@ public class OrderCouponGateway {
         try {
             return couponAdaptor.calculate(command);
         } catch (ExternalClientException e) {
-            throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_COUPON_CLIENT_ERROR);
+            throw new BusinessException(OrderErrorCode.ORDER_COUPON_CLIENT_ERROR);
         } catch (ExternalServerException e) {
-            throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_COUPON_SERVER_ERROR);
+            throw new BusinessException(OrderErrorCode.ORDER_COUPON_SERVER_ERROR);
         } catch (ExternalSystemUnavailableException e) {
-            throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_COUPON_UNAVAILABLE_SERVER_ERROR);
+            throw new BusinessException(OrderErrorCode.ORDER_COUPON_UNAVAILABLE_SERVER_ERROR);
         }
     }
 }

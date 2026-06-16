@@ -8,7 +8,7 @@ import com.example.order_service.infrastructure.adaptor.UserAdaptor;
 import com.example.order_service.infrastructure.dto.response.UserClientResponse;
 import com.example.order_service.order.application.external.dto.result.OrderUserResult;
 import com.example.order_service.order.application.external.mapper.OrderUserMapper;
-import com.example.order_service.order.exception.OrderSheetErrorCode;
+import com.example.order_service.order.exception.OrderErrorCode;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -66,7 +66,7 @@ public class OrderUserGatewayTest {
             assertThatThrownBy(() -> orderUserGateway.getUserProfile(userId))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
-                    .isEqualTo(OrderSheetErrorCode.ORDER_SHEET_USER_CLIENT_ERROR);
+                    .isEqualTo(OrderErrorCode.ORDER_USER_CLIENT_ERROR);
         }
 
         @Test
@@ -81,7 +81,7 @@ public class OrderUserGatewayTest {
             assertThatThrownBy(() -> orderUserGateway.getUserProfile(userId))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
-                    .isEqualTo(OrderSheetErrorCode.ORDER_SHEET_USER_SERVER_ERROR);
+                    .isEqualTo(OrderErrorCode.ORDER_USER_SERVER_ERROR);
         }
 
         @Test
@@ -96,7 +96,7 @@ public class OrderUserGatewayTest {
             assertThatThrownBy(() -> orderUserGateway.getUserProfile(userId))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
-                    .isEqualTo(OrderSheetErrorCode.ORDER_SHEET_USER_UNAVAILABLE_SERVER_ERROR);
+                    .isEqualTo(OrderErrorCode.ORDER_USER_UNAVAILABLE_SERVER_ERROR);
         }
     }
 
@@ -131,7 +131,7 @@ public class OrderUserGatewayTest {
             assertThatThrownBy(() -> orderUserGateway.getUserPoints(userId))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
-                    .isEqualTo(OrderSheetErrorCode.ORDER_SHEET_USER_CLIENT_ERROR);
+                    .isEqualTo(OrderErrorCode.ORDER_USER_CLIENT_ERROR);
         }
 
         @Test
@@ -146,7 +146,7 @@ public class OrderUserGatewayTest {
             assertThatThrownBy(() -> orderUserGateway.getUserPoints(userId))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
-                    .isEqualTo(OrderSheetErrorCode.ORDER_SHEET_USER_SERVER_ERROR);
+                    .isEqualTo(OrderErrorCode.ORDER_USER_SERVER_ERROR);
         }
 
         @Test
@@ -161,7 +161,7 @@ public class OrderUserGatewayTest {
             assertThatThrownBy(() -> orderUserGateway.getUserPoints(userId))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
-                    .isEqualTo(OrderSheetErrorCode.ORDER_SHEET_USER_UNAVAILABLE_SERVER_ERROR);
+                    .isEqualTo(OrderErrorCode.ORDER_USER_UNAVAILABLE_SERVER_ERROR);
         }
     }
 }

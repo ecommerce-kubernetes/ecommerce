@@ -24,6 +24,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.BDDMockito;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
@@ -58,6 +59,8 @@ public class OrderSheetServiceTest {
     private OrderCouponGateway orderCouponGateway;
     @Mock
     private OrderUserGateway orderUserGateway;
+    @Mock
+    private OrderSheetValidator validator;
     @Mock
     private OrderSheetRepository repository;
     @Spy
@@ -102,7 +105,8 @@ public class OrderSheetServiceTest {
                     .set(field(OrderCouponResult.ItemCoupon::productVariantId), productVariantId)
                     .create();
             given(orderUserGateway.getUserProfile(any())).willReturn(profile);
-            given(orderProductGateway.getProductsForOrder(anyList())).willReturn(products);
+            doNothing().when(validator).validate(any(), any());
+            given(orderProductGateway.getProducts(anyList())).willReturn(products);
             given(orderCouponGateway.calculate(any())).willReturn(coupon);
             when(repository.save(any(), any())).then(returnsFirstArg());
             //when
@@ -110,7 +114,7 @@ public class OrderSheetServiceTest {
             //then
             assertThat(orderSheet.sheetId()).isNotNull();
             assertThat(orderSheet.expiresAt()).isNotNull();
-            verify(orderProductGateway).getProductsForOrder(anyList());
+            verify(orderProductGateway).getProducts(anyList());
             verify(orderCouponGateway).calculate(any());
         }
 
@@ -135,14 +139,15 @@ public class OrderSheetServiceTest {
                     .set(field(ProductSnapshot::getProductVariantId), productVariantId)
                     .create();
             given(orderUserGateway.getUserProfile(any())).willReturn(profile);
-            given(orderProductGateway.getProductsForOrder(anyList())).willReturn(products);
+            given(orderProductGateway.getProducts(anyList())).willReturn(products);
+            doNothing().when(validator).validate(any(), any());
             when(repository.save(any(), any())).then(returnsFirstArg());
             //when
             OrderSheetResult.Create orderSheet = orderSheetService.createOrderSheet(command);
             //then
             assertThat(orderSheet.sheetId()).isNotNull();
             assertThat(orderSheet.expiresAt()).isNotNull();
-            verify(orderProductGateway).getProductsForOrder(anyList());
+            verify(orderProductGateway).getProducts(anyList());
             verify(orderCouponGateway, never()).calculate(any());
         }
     }

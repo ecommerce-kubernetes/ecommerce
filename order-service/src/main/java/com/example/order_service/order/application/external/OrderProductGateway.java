@@ -40,6 +40,18 @@ public class OrderProductGateway {
         return mapper.toResult(productList);
     }
 
+    private ProductClientResponse.ProductList fetchProductsWithTranslation(ProductCommand.BulkSearch command) {
+        try {
+            return productAdaptor.getProducts(command);
+        } catch (ExternalClientException e) {
+            throw new BusinessException(OrderErrorCode.ORDER_PRODUCT_CLIENT_ERROR);
+        } catch (ExternalServerException e) {
+            throw new BusinessException(OrderErrorCode.ORDER_PRODUCT_SERVER_ERROR);
+        } catch (ExternalSystemUnavailableException e) {
+            throw new BusinessException(OrderErrorCode.ORDER_PRODUCT_UNAVAILABLE_SERVER_ERROR);
+        }
+    }
+
     /**
      * 상품 도메인에 주문 상품 정보를 요청하여 상품의 정보를 반환
      *
@@ -58,18 +70,6 @@ public class OrderProductGateway {
     private ProductClientResponse.ProductList fetchProductsWithTranslation(ProductCommand.Validate command) {
         try {
             return productAdaptor.getProductsForOrder(command);
-        } catch (ExternalClientException e) {
-            throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_PRODUCT_CLIENT_ERROR);
-        } catch (ExternalServerException e) {
-            throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_PRODUCT_SERVER_ERROR);
-        } catch (ExternalSystemUnavailableException e) {
-            throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_PRODUCT_UNAVAILABLE_SERVER_ERROR);
-        }
-    }
-
-    private ProductClientResponse.ProductList fetchProductsWithTranslation(ProductCommand.BulkSearch command) {
-        try {
-            return productAdaptor.getProducts(command);
         } catch (ExternalClientException e) {
             throw new BusinessException(OrderErrorCode.ORDER_PRODUCT_CLIENT_ERROR);
         } catch (ExternalServerException e) {

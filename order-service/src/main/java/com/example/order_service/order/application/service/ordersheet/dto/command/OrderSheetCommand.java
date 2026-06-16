@@ -2,6 +2,7 @@ package com.example.order_service.order.application.service.ordersheet.dto.comma
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.business.BusinessException;
+import com.example.order_service.order.exception.OrderErrorCode;
 import com.example.order_service.order.exception.OrderSheetErrorCode;
 import lombok.Builder;
 
@@ -22,12 +23,12 @@ public class OrderSheetCommand {
     ) {
         public Create {
             if (items == null || items.isEmpty()) {
-                throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_ITEMS_REQUIRED);
+                throw new BusinessException(OrderErrorCode.ORDER_ITEMS_REQUIRED);
             }
             Set<Long> orderItemVariantIds = new HashSet<>();
             for (OrderItem item : items) {
                 if (!orderItemVariantIds.add(item.productVariantId())) {
-                    throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_ITEMS_DUPLICATE);
+                    throw new BusinessException(OrderErrorCode.ORDER_ITEMS_DUPLICATE);
                 }
             }
             if (itemCoupons != null && !itemCoupons.isEmpty()) {
@@ -35,13 +36,13 @@ public class OrderSheetCommand {
                 Set<Long> itemCouponIds = new HashSet<>();
                 for (ItemCoupon coupon : itemCoupons) {
                     if (!orderItemVariantIds.contains(coupon.productVariantId())) {
-                        throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_COUPON_ITEM_NOT_IN_ITEMS);
+                        throw new BusinessException(OrderErrorCode.ORDER_COUPON_ITEM_NOT_IN_ITEMS);
                     }
                     if (!couponItemIds.add(coupon.productVariantId())) {
-                        throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_DUPLICATE_COUPON_APPLICATION);
+                        throw new BusinessException(OrderErrorCode.ORDER_DUPLICATE_COUPON_APPLICATION);
                     }
                     if (!itemCouponIds.add(coupon.couponId())) {
-                        throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_ALREADY_APPLIED_TO_ANOTHER_ITEM);
+                        throw new BusinessException(OrderErrorCode.ORDER_ALREADY_APPLIED_TO_ANOTHER_ITEM);
                     }
                 }
             }
