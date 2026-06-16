@@ -39,6 +39,8 @@ public class OrderSheetFactoryTest {
         assertThat(result.isExpired(currentTime)).isFalse();
     }
 
+    //TODO 빈 쿠폰 매핑 테스트 작성
+
     private OrderSheetCommand.Create createCommand() {
         OrderSheetCommand.OrderItem item = OrderSheetCommand.OrderItem.builder()
                 .productVariantId(1L)

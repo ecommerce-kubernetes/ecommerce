@@ -4,6 +4,7 @@ import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.business.BusinessException;
 import com.example.order_service.order.application.external.dto.result.OrderCouponResult;
 import com.example.order_service.order.application.external.dto.result.OrderProductResult;
+import com.example.order_service.order.application.external.dto.result.OrderProductStatus;
 import com.example.order_service.order.application.external.dto.result.OrderUserResult;
 import com.example.order_service.order.domain.model.OrderSheet;
 import com.example.order_service.order.domain.model.OrderSheetItem;
@@ -54,6 +55,15 @@ public class OrderValidator {
         Map<Long, OrderProductResult.Info> productsMap = products.getProductsMap();
         for (OrderSheetItem item : items) {
             OrderProductResult.Info product = productsMap.get(item.getProductVariantId());
+            if (product == null) {
+                throw new BusinessException(OrderErrorCode.ORDER_PRODUCT_NOT_FOUND);
+            }
+            if (product.status() != OrderProductStatus.ON_SALE) {
+                throw new BusinessException(OrderErrorCode.ORDER_PRODUCT_UNORDERABLE);
+            }
+            if (item.getQuantity() > product.stock()) {
+                throw new BusinessException(OrderErrorCode.ORDER_PRODUCT_INSUFFICIENT_STOCK);
+            }
             if (!item.getDiscountedPrice().equals(product.priceSnapshot().getDiscountedPrice())) {
                 throw new BusinessException(OrderErrorCode.PRODUCT_PRICE_CHANGE);
             }

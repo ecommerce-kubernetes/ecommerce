@@ -3,7 +3,6 @@ package com.example.order_service.order.application.service.ordersheet.dto.comma
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.business.BusinessException;
 import com.example.order_service.order.exception.OrderErrorCode;
-import com.example.order_service.order.exception.OrderSheetErrorCode;
 import lombok.Builder;
 
 import java.util.HashSet;

@@ -6,22 +6,18 @@ import com.example.order_service.order.application.service.order.dto.result.Orde
 import com.example.order_service.order.domain.model.OrderStatus;
 import com.example.order_service.order.domain.repository.OrderRepository;
 import com.example.order_service.order.domain.vo.*;
-import com.example.order_service.support.annotation.MockKafka;
-import com.example.order_service.support.annotation.MockRedis;
+import com.example.order_service.support.annotation.IsolatedTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest
-@MockKafka
-@MockRedis
+@IsolatedTest
 @Transactional
 public class OrderCommandServiceTest {
 

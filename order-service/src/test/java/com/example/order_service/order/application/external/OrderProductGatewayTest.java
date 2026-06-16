@@ -10,7 +10,6 @@ import com.example.order_service.order.application.external.dto.command.OrderPro
 import com.example.order_service.order.application.external.dto.result.OrderProductResult;
 import com.example.order_service.order.application.external.mapper.OrderProductMapper;
 import com.example.order_service.order.exception.OrderErrorCode;
-import com.example.order_service.order.exception.OrderSheetErrorCode;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -108,79 +107,6 @@ public class OrderProductGatewayTest {
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(OrderErrorCode.ORDER_PRODUCT_UNAVAILABLE_SERVER_ERROR);
-        }
-    }
-
-    @Nested
-    @DisplayName("상품 조회")
-    class GetProductsForOrder {
-
-        @Test
-        @DisplayName("주문 상품 정보를 조회한다")
-        void getProducts(){
-            //given
-            List<OrderProductCommand.OrderItem> orderItems = Instancio.ofList(OrderProductCommand.OrderItem.class)
-                    .size(2)
-                    .create();
-            ProductClientResponse.ProductList productResponse = Instancio.create(ProductClientResponse.ProductList.class);
-            OrderProductResult.ProductList productList = Instancio.create(OrderProductResult.ProductList.class);
-            given(adaptor.getProductsForOrder(any())).willReturn(productResponse);
-            given(productMapper.toResult(any(ProductClientResponse.ProductList.class))).willReturn(productList);
-            //when
-            OrderProductResult.ProductList result = orderProductGateway.getProductsForOrder(orderItems);
-            //then
-            assertThat(result).isEqualTo(productList);
-        }
-
-        @Test
-        @DisplayName("상품 조회중 상품 서비스에서 서버 오류가 발생한 경우 비지니스 예외로 변경하여 던진다")
-        void getProducts_ExternalServerException(){
-            //given
-            List<OrderProductCommand.OrderItem> orderItems = Instancio.ofList(OrderProductCommand.OrderItem.class)
-                    .size(2)
-                    .create();
-            willThrow(new ExternalServerException("INTERNAL_SERVER_ERROR", "처리중 오류가 발생했습니다"))
-                    .given(adaptor).getProductsForOrder(any());
-            //when
-            //then
-            assertThatThrownBy(() -> orderProductGateway.getProductsForOrder(orderItems))
-                    .isInstanceOf(BusinessException.class)
-                    .extracting("errorCode")
-                    .isEqualTo(OrderSheetErrorCode.ORDER_SHEET_PRODUCT_SERVER_ERROR);
-        }
-
-        @Test
-        @DisplayName("상품 조회중 상품 서비스에서 클라이언트 오류가 발생한 경우 비지니스 예외로 변경하여 던진다")
-        void getProducts_ExternalClientException() {
-            //given
-            List<OrderProductCommand.OrderItem> orderItems = Instancio.ofList(OrderProductCommand.OrderItem.class)
-                    .size(2)
-                    .create();
-            willThrow(new ExternalClientException("NOT_PERMISSION", "조회 권한이 없습니다"))
-                    .given(adaptor).getProductsForOrder(any());
-            //when
-            //then
-            assertThatThrownBy(() -> orderProductGateway.getProductsForOrder(orderItems))
-                    .isInstanceOf(BusinessException.class)
-                    .extracting("errorCode")
-                    .isEqualTo(OrderSheetErrorCode.ORDER_SHEET_PRODUCT_CLIENT_ERROR);
-        }
-
-        @Test
-        @DisplayName("상품 조회중 상품 서비스에서 사용 불가 오류가 발생한 경우 비지니스 예외로 변경하여 던진다")
-        void getProducts_ExternalUnavailableException(){
-            //given
-            List<OrderProductCommand.OrderItem> orderItems = Instancio.ofList(OrderProductCommand.OrderItem.class)
-                    .size(2)
-                    .create();
-            willThrow(new ExternalSystemUnavailableException("SERVICE_UNAVAILABLE", "상품 서비스 통신 장애"))
-                    .given(adaptor).getProductsForOrder(any());
-            //when
-            //then
-            assertThatThrownBy(() -> orderProductGateway.getProductsForOrder(orderItems))
-                    .isInstanceOf(BusinessException.class)
-                    .extracting("errorCode")
-                    .isEqualTo(OrderSheetErrorCode.ORDER_SHEET_PRODUCT_UNAVAILABLE_SERVER_ERROR);
         }
     }
 }

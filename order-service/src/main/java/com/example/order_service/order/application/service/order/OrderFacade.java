@@ -73,7 +73,7 @@ public class OrderFacade {
     private OrderProductResult.ProductList getOrderedProducts(List<OrderSheetItem> items) {
         List<OrderProductCommand.OrderItem> command = items.stream().map(item ->
                 OrderProductCommand.OrderItem.of(item.getProductVariantId(), item.getQuantity())).toList();
-        return orderProductGateway.getProductsForOrder(command);
+        return orderProductGateway.getProducts(command);
     }
 
     private OrderCouponResult.Calculate getAppliedCoupons(OrderSheet orderSheet) {

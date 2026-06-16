@@ -8,6 +8,15 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+/**
+ * TOSS PG와의 통신을 담당하는 Adaptor
+ * <p>
+ * TOSS PG FeignClient 호출, TOSS PG에 에러 발생시 서킷 브레이커를 통해 예외 전파를 관리
+ * </p>
+ *
+ * @author 최민식
+ * @since 2026. 06. 16
+ */
 @Slf4j
 @Component
 @RequiredArgsConstructor

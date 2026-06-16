@@ -16,28 +16,4 @@ public class ProductCommand {
                     .build();
         }
     }
-
-    @Builder
-    public record Validate(
-            List<Item> items
-    ) {
-        public static Validate of(List<Item> items) {
-            return Validate.builder()
-                    .items(items)
-                    .build();
-        }
-    }
-
-    @Builder
-    public record Item(
-            Long productVariantId,
-            Integer quantity
-    ) {
-        public static Item of(Long productVariantId, Integer quantity) {
-            return Item.builder()
-                    .productVariantId(productVariantId)
-                    .quantity(quantity)
-                    .build();
-        }
-    }
 }
