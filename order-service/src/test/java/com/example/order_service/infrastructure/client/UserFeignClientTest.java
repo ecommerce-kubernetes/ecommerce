@@ -111,7 +111,7 @@ public class UserFeignClientTest {
         }
 
         private UserClientResponse.Profile createExpected() {
-            UserClientResponse.ShippingAddress shippingAddress = UserClientResponse.ShippingAddress.builder()
+            UserClientResponse.ShippingInfo shippingInfo = UserClientResponse.ShippingInfo.builder()
                     .receiverName("수령인")
                     .receiverPhone("010-1234-5678")
                     .zipCode("12345")
@@ -122,7 +122,7 @@ public class UserFeignClientTest {
                     .userId(1L)
                     .userName("주문자")
                     .phoneNumber("010-1234-5678")
-                    .defaultShippingAddress(shippingAddress)
+                    .defaultShippingInfo(shippingInfo)
                     .build();
         }
     }

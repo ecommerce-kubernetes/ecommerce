@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-06-09T01:43:24+0900",
+    date = "2026-06-17T03:49:53+0900",
     comments = "version: 1.6.3, compiler: javac, environment: Java 21.0.10 (Eclipse Adoptium)"
 )
 @Component
@@ -31,7 +31,7 @@ public class OrderUserMapperImpl implements OrderUserMapper {
 
         OrderUserResult.Profile.ProfileBuilder profile1 = OrderUserResult.Profile.builder();
 
-        profile1.shippingAddress( toShippingAddress( profile.defaultShippingAddress() ) );
+        profile1.shippingAddress( toShippingAddress( profile.defaultShippingInfo() ) );
         profile1.orderer( toOrderer( profile ) );
 
         return profile1.build();
