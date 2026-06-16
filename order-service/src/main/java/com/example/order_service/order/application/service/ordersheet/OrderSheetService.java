@@ -9,6 +9,7 @@ import com.example.order_service.order.application.external.dto.command.OrderCou
 import com.example.order_service.order.application.external.dto.command.OrderProductCommand;
 import com.example.order_service.order.application.external.dto.result.OrderCouponResult;
 import com.example.order_service.order.application.external.dto.result.OrderProductResult;
+import com.example.order_service.order.application.external.dto.result.OrderProductStatus;
 import com.example.order_service.order.application.external.dto.result.OrderUserResult;
 import com.example.order_service.order.application.service.ordersheet.dto.command.OrderSheetCommand;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetResult;
@@ -29,6 +30,8 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * 주문서(OrderSheet) Workflow 를 담당하는 애플리케이션 서비스
@@ -65,6 +68,7 @@ public class OrderSheetService {
     public OrderSheetResult.Create createOrderSheet(OrderSheetCommand.Create command) {
         OrderUserResult.Profile userProfile = orderSheetUserGateway.getUserProfile(command.userId());
         OrderProductResult.ProductList products = getOrderedProducts(command.items());
+        validateForOrder(products, command);
         OrderCouponResult.Calculate appliedCoupons = getAppliedCoupons(command, products);
         OrderSheet orderSheet = factory.createSheet(command, userProfile, products, appliedCoupons, orderSheetProperties.ttlMinutes());
         OrderSheet save = repository.save(orderSheet, Duration.ofMinutes(orderSheetProperties.ttlMinutes()));
@@ -74,7 +78,22 @@ public class OrderSheetService {
     private OrderProductResult.ProductList getOrderedProducts(List<OrderSheetCommand.OrderItem> items) {
         List<OrderProductCommand.OrderItem> commands = items.stream().map(item ->
                         OrderProductCommand.OrderItem.of(item.productVariantId(), item.quantity())).toList();
-        return orderProductGateway.getProducts(commands);
+        return orderProductGateway.getProductsForOrder(commands);
+    }
+
+    private void validateForOrder(OrderProductResult.ProductList productList, OrderSheetCommand.Create command) {
+        Map<Long, Integer> reqItemMap = command.toQuantityMap();
+        Map<Long, OrderProductResult.Info> productsMap = productList.getProductsMap();
+        reqItemMap.forEach((reqId, reqQuantity) -> {
+            OrderProductResult.Info product = Optional.ofNullable(productsMap.get(reqId))
+                    .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_PRODUCT_NOT_FOUND));
+            if (product.status() != OrderProductStatus.ON_SALE) {
+                throw new BusinessException(OrderErrorCode.ORDER_PRODUCT_NOT_ON_SALE);
+            }
+            if (reqQuantity > product.stock()) {
+                throw new BusinessException(OrderErrorCode.ORDER_PRODUCT_INSUFFICIENT_STOCK);
+            }
+        });
     }
 
     private OrderCouponResult.Calculate getAppliedCoupons(OrderSheetCommand.Create command,

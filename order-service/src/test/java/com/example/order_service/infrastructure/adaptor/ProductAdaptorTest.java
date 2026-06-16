@@ -29,6 +29,39 @@ public class ProductAdaptorTest {
     private ExternalExceptionTranslator translator;
 
     @Nested
+    @DisplayName("상품 조회")
+    class GetProducts {
+
+        @Test
+        @DisplayName("상품을 조회한다")
+        void getProducts(){
+            //given
+            ProductCommand.BulkSearch command = Instancio.create(ProductCommand.BulkSearch.class);
+            ProductClientResponse.ProductList response = Instancio.create(ProductClientResponse.ProductList.class);
+            given(client.getProducts(any())).willReturn(response);
+            //when
+            ProductClientResponse.ProductList products = productAdaptor.getProducts(command);
+            //then
+            assertThat(products).isNotNull();
+        }
+
+        @Test
+        @DisplayName("상품 조회시 예외가 발생하면 translator를 호출하여 예외를 변환한다")
+        void getProducts_fallback_delegate_to_translator() throws Throwable {
+            //given
+            ProductCommand.BulkSearch command = Instancio.create(ProductCommand.BulkSearch.class);
+            RuntimeException feignException = new RuntimeException("feignClient 예외");
+            ExternalSystemUnavailableException translatedException =
+                    new ExternalSystemUnavailableException("CODE", "변환된 예외", feignException);
+            willThrow(feignException).given(client).getProducts(any());
+            given(translator.translate(anyString(), any(Throwable.class))).willReturn(translatedException);
+            //when
+            //then
+            assertThatThrownBy(() -> productAdaptor.getProducts(command)).isInstanceOf(ExternalSystemUnavailableException.class);
+        }
+    }
+
+    @Nested
     @DisplayName("주문 상품 조회")
     class GetProductsForOrder {
 

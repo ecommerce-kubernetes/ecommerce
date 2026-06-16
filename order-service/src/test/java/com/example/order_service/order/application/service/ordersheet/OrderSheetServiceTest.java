@@ -102,7 +102,7 @@ public class OrderSheetServiceTest {
                     .set(field(OrderCouponResult.ItemCoupon::productVariantId), productVariantId)
                     .create();
             given(orderUserGateway.getUserProfile(any())).willReturn(profile);
-            given(orderProductGateway.getProducts(anyList())).willReturn(products);
+            given(orderProductGateway.getProductsForOrder(anyList())).willReturn(products);
             given(orderCouponGateway.calculate(any())).willReturn(coupon);
             when(repository.save(any(), any())).then(returnsFirstArg());
             //when
@@ -110,7 +110,7 @@ public class OrderSheetServiceTest {
             //then
             assertThat(orderSheet.sheetId()).isNotNull();
             assertThat(orderSheet.expiresAt()).isNotNull();
-            verify(orderProductGateway).getProducts(anyList());
+            verify(orderProductGateway).getProductsForOrder(anyList());
             verify(orderCouponGateway).calculate(any());
         }
 
@@ -135,14 +135,14 @@ public class OrderSheetServiceTest {
                     .set(field(ProductSnapshot::getProductVariantId), productVariantId)
                     .create();
             given(orderUserGateway.getUserProfile(any())).willReturn(profile);
-            given(orderProductGateway.getProducts(anyList())).willReturn(products);
+            given(orderProductGateway.getProductsForOrder(anyList())).willReturn(products);
             when(repository.save(any(), any())).then(returnsFirstArg());
             //when
             OrderSheetResult.Create orderSheet = orderSheetService.createOrderSheet(command);
             //then
             assertThat(orderSheet.sheetId()).isNotNull();
             assertThat(orderSheet.expiresAt()).isNotNull();
-            verify(orderProductGateway).getProducts(anyList());
+            verify(orderProductGateway).getProductsForOrder(anyList());
             verify(orderCouponGateway, never()).calculate(any());
         }
     }

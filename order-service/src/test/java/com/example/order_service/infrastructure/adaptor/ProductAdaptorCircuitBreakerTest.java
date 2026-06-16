@@ -46,47 +46,47 @@ public class ProductAdaptorCircuitBreakerTest {
     @DisplayName("상품 서비스에서 연속으로 서버 에러가 발생한 경우 서킷브레이커가 열려 요청이 차단된다")
     void circuitbreaker_opens_after_consecutive_server_failures() {
         //given
-        ProductCommand.Validate command = Instancio.create(ProductCommand.Validate.class);
+        ProductCommand.BulkSearch command = Instancio.create(ProductCommand.BulkSearch.class);
         // 타임 아웃 에러가 발생한다고 가정
-        given(client.getProductsForOrder(any()))
+        given(client.getProducts(any()))
                 .willThrow(new RuntimeException("Connection Timeout"));
         //when
         //then
         // 상품 서비스 에러
         for (int i = 0; i < 3; i++) {
-            assertThatThrownBy(() -> adaptor.getProductsForOrder(command))
+            assertThatThrownBy(() -> adaptor.getProducts(command))
                     .isInstanceOf(ExternalSystemUnavailableException.class)
                     .hasMessage("PRODUCT-SERVICE 통신 장애");
         }
 
         //서킷브레이커 open
-        assertThatThrownBy(() -> adaptor.getProductsForOrder(command))
+        assertThatThrownBy(() -> adaptor.getProducts(command))
                 .isInstanceOf(ExternalSystemUnavailableException.class)
                 .hasMessage("PRODUCT-SERVICE 서킷 브레이커 열림")
                 .extracting("errorCode")
                 .isEqualTo("CIRCUIT_BREAKER_OPEN");
 
         //서킷브레이커가 열렸으므로 클라이언트는 4번의 요청중 3번만 호출됨
-        verify(client, times(3)).getProductsForOrder(any());
+        verify(client, times(3)).getProducts(any());
     }
     
     @Test
     @DisplayName("상품 서비스에서 연속으로 클라이언트 에러가 발생한 경우 서킷브레이커는 닫혀있어야 한다")
     void circuitbreaker_close_after_consecutive_client_failures() {
         //given
-        ProductCommand.Validate command = Instancio.create(ProductCommand.Validate.class);
-        given(client.getProductsForOrder(any()))
+        ProductCommand.BulkSearch command = Instancio.create(ProductCommand.BulkSearch.class);
+        given(client.getProducts(any()))
                 .willThrow(new ExternalClientException("NOT_PERMISSION", "조회할 권한이 없습니다"));
         //when
         //then
         for (int i = 0; i < 3; i++) {
-            assertThatThrownBy(() -> adaptor.getProductsForOrder(command))
+            assertThatThrownBy(() -> adaptor.getProducts(command))
                     .isInstanceOf(ExternalClientException.class);
         }
-        assertThatThrownBy(() -> adaptor.getProductsForOrder(command))
+        assertThatThrownBy(() -> adaptor.getProducts(command))
                 .isInstanceOf(ExternalClientException.class);
 
         //반복된 에러가 클라이언트 예외이므로 정상 요청이 실행되어 4번 호출됨
-        verify(client, times(4)).getProductsForOrder(any());
+        verify(client, times(4)).getProducts(any());
     }
 }

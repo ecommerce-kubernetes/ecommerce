@@ -22,7 +22,17 @@ public class ProductAdaptor {
         return client.getProductsForOrder(request);
     }
 
+    @CircuitBreaker(name = "productService", fallbackMethod = "getProductsFallback")
+    public ProductClientResponse.ProductList getProducts(ProductCommand.BulkSearch command) {
+        ProductClientRequest.BulkSearch request = ProductClientRequest.BulkSearch.from(command.variantIds());
+        return client.getProducts(request);
+    }
+
     private ProductClientResponse.ProductList getProductsForOrderFallback(ProductCommand.Validate command, Throwable throwable) throws Throwable {
+        throw translator.translate("PRODUCT-SERVICE", throwable);
+    }
+
+    private ProductClientResponse.ProductList getProductsFallback(ProductCommand.BulkSearch command, Throwable throwable) throws Throwable{
         throw translator.translate("PRODUCT-SERVICE", throwable);
     }
 }

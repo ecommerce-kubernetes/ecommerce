@@ -88,7 +88,7 @@ public class OrderFacadeTest {
 
             given(orderSheetRepository.findById(anyString())).willReturn(Optional.of(orderSheet));
             given(orderUserGateway.getUserPoints(anyLong())).willReturn(userPoint);
-            given(orderProductGateway.getProducts(anyList())).willReturn(productResult);
+            given(orderProductGateway.getProductsForOrder(anyList())).willReturn(productResult);
             given(orderCouponGateway.calculate(any())).willReturn(couponResult);
             given(orderMapper.toContext(any())).willReturn(orderContext);
             given(orderCommandService.saveOrder(any())).willReturn(expectedResult);
@@ -96,7 +96,7 @@ public class OrderFacadeTest {
             OrderResult.Create result = orderFacade.initialOrder(command);
             //then
             assertThat(result).isEqualTo(expectedResult);
-            then(orderProductGateway).should().getProducts(anyList());
+            then(orderProductGateway).should().getProductsForOrder(anyList());
             then(orderCouponGateway).should().calculate(any());
             then(orderValidator).should().validate(any(OrderSheet.class), any(OrderProductResult.ProductList.class),
                     any(OrderCouponResult.Calculate.class), any(OrderUserResult.UserPoint.class), any(PointUsagePolicy.class));
@@ -119,14 +119,14 @@ public class OrderFacadeTest {
             OrderResult.Create expectedResult = Instancio.create(OrderResult.Create.class);
             given(orderSheetRepository.findById(anyString())).willReturn(Optional.of(orderSheet));
             given(orderUserGateway.getUserPoints(anyLong())).willReturn(userPoint);
-            given(orderProductGateway.getProducts(anyList())).willReturn(productResult);
+            given(orderProductGateway.getProductsForOrder(anyList())).willReturn(productResult);
             given(orderMapper.toContext(any())).willReturn(orderContext);
             given(orderCommandService.saveOrder(any())).willReturn(expectedResult);
             //when
             OrderResult.Create result = orderFacade.initialOrder(command);
             //then
             assertThat(result).isEqualTo(expectedResult);
-            then(orderProductGateway).should().getProducts(anyList());
+            then(orderProductGateway).should().getProductsForOrder(anyList());
             then(orderCouponGateway).shouldHaveNoInteractions();
             then(orderValidator).should().validate(any(OrderSheet.class), any(OrderProductResult.ProductList.class),
                     any(OrderCouponResult.Calculate.class), any(OrderUserResult.UserPoint.class), any(PointUsagePolicy.class));

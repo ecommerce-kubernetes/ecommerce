@@ -15,11 +15,9 @@ public class ExternalExceptionTranslator {
             log.error("{} 서킷 브레이커 열림", service);
             return new ExternalSystemUnavailableException("CIRCUIT_BREAKER_OPEN", service + " 서킷 브레이커 열림", throwable);
         }
-
         if (throwable instanceof ExternalSystemException) {
             return throwable;
         }
-
         return new ExternalSystemUnavailableException("SERVICE_UNAVAILABLE", service + " 통신 장애", throwable);
     }
 }

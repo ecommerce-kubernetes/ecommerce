@@ -52,6 +52,10 @@ public class OrderSheetCommand {
                     .collect(Collectors.toMap(ItemCoupon::productVariantId, ItemCoupon::couponId));
         }
 
+        public Map<Long, Integer> toQuantityMap() {
+            return items.stream().collect(Collectors.toMap(OrderItem::productVariantId, OrderItem::quantity));
+        }
+
         public boolean hasCoupons() {
             return this.cartCouponId != null || (this.itemCoupons != null && !this.itemCoupons.isEmpty());
         }

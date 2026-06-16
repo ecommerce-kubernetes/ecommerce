@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-06-09T01:43:24+0900",
+    date = "2026-06-16T05:05:35+0900",
     comments = "version: 1.6.3, compiler: javac, environment: Java 21.0.10 (Eclipse Adoptium)"
 )
 @Component
@@ -52,6 +52,8 @@ public class OrderProductMapperImpl implements OrderProductMapper {
         info.productSnapshot( toProductSnapshot( product ) );
         info.priceSnapshot( toPriceSnapshot( product.unitPrice() ) );
         info.options( productOptionListToProductOptionSnapshotList( product.options() ) );
+        info.status( toOrderStatus( product.status() ) );
+        info.stock( product.stock() );
 
         return info.build();
     }
