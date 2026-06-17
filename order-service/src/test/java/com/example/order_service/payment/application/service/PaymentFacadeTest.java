@@ -13,6 +13,7 @@ import com.example.order_service.payment.application.service.dto.command.Payment
 import com.example.order_service.payment.application.service.dto.result.PaymentResult;
 import com.example.order_service.payment.exception.PaymentErrorCode;
 import lombok.extern.slf4j.Slf4j;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -25,10 +26,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static com.example.order_service.support.TestFixtureUtil.fixtureMonkey;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.instancio.Select.field;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.BDDMockito.willThrow;
+import static org.mockito.Mockito.*;
 
 @Slf4j
 @ExtendWith(MockitoExtension.class)
@@ -57,16 +59,16 @@ public class PaymentFacadeTest {
             PaymentCommand.Confirm command = PaymentCommand.Confirm.builder()
                     .userId(1L).orderNo("orderNo").paymentKey("paymentKey")
                     .amount(Money.wons(10000L)).build();
-            OrderResult.Detail order = fixtureMonkey.giveMeBuilder(OrderResult.Detail.class)
-                    .set("status", OrderStatus.PENDING)
-                    .set("totalPaymentAmount", Money.wons(10000L))
-                    .sample();
-            PaymentContext.Create createContext = fixtureMonkey.giveMeOne(PaymentContext.Create.class);
-            PaymentResult.Default savedPayment = fixtureMonkey.giveMeOne(PaymentResult.Default.class);
-            PgPaymentResult.Approval pgApproval = fixtureMonkey.giveMeOne(PgPaymentResult.Approval.class);
-            PaymentContext.Approval approvalContext = fixtureMonkey.giveMeOne(PaymentContext.Approval.class);
-            PaymentResult.PaymentApproval approvalResult = fixtureMonkey.giveMeOne(PaymentResult.PaymentApproval.class);
-            given(orderQueryService.getOrder("orderNo", 1L)).willReturn(order);
+            OrderResult.Detail order = Instancio.of(OrderResult.Detail.class)
+                    .set(field("status"), OrderStatus.PENDING)
+                    .set(field("totalPaymentAmount"), Money.wons(10000L))
+                    .create();
+            PaymentContext.Create createContext = Instancio.create(PaymentContext.Create.class);
+            PaymentResult.Default savedPayment = Instancio.create(PaymentResult.Default.class);
+            PgPaymentResult.Approval pgApproval = Instancio.create(PgPaymentResult.Approval.class);
+            PaymentContext.Approval approvalContext = Instancio.create(PaymentContext.Approval.class);
+            PaymentResult.PaymentApproval approvalResult = Instancio.create(PaymentResult.PaymentApproval.class);
+            given(orderQueryService.getOrder(anyString(), anyLong())).willReturn(order);
             given(mapper.toContext(any(PaymentCommand.Confirm.class))).willReturn(createContext);
             given(paymentCommandService.save(any(PaymentContext.Create.class))).willReturn(savedPayment);
             given(paymentGateway.confirm(any())).willReturn(pgApproval);
@@ -97,9 +99,9 @@ public class PaymentFacadeTest {
                     .paymentKey("paymentKey")
                     .amount(Money.wons(10000L))
                     .build();
-            OrderResult.Detail order = fixtureMonkey.giveMeBuilder(OrderResult.Detail.class)
-                    .set("status", OrderStatus.COMPLETED)
-                    .sample();
+            OrderResult.Detail order = Instancio.of(OrderResult.Detail.class)
+                    .set(field("status"), OrderStatus.PAID)
+                    .create();
             given(orderQueryService.getOrder(anyString(), anyLong()))
                     .willReturn(order);
             //when
@@ -123,10 +125,10 @@ public class PaymentFacadeTest {
                     .paymentKey("paymentKey")
                     .amount(Money.wons(10000L))
                     .build();
-            OrderResult.Detail order = fixtureMonkey.giveMeBuilder(OrderResult.Detail.class)
-                    .set("status", OrderStatus.PENDING)
-                    .set("totalPaymentAmount", Money.wons(4000L))
-                    .sample();
+            OrderResult.Detail order = Instancio.of(OrderResult.Detail.class)
+                    .set(field("status"), OrderStatus.PENDING)
+                    .set(field("totalPaymentAmount"), Money.wons(4000L))
+                    .create();
             given(orderQueryService.getOrder(anyString(), anyLong()))
                     .willReturn(order);
             //when
@@ -138,6 +140,161 @@ public class PaymentFacadeTest {
 
             verifyNoInteractions(paymentCommandService);
             verifyNoInteractions(paymentGateway);
+        }
+
+        @Test
+        @DisplayName("토스 결제 승인중 클라이언트 에러가 발생한 경우 결제를 취소한다")
+        void confirm_PG_client_error(){
+            //given
+            PaymentCommand.Confirm command = PaymentCommand.Confirm.builder()
+                    .userId(1L)
+                    .orderNo("orderNo")
+                    .paymentKey("paymentKey")
+                    .amount(Money.wons(10000L))
+                    .build();
+            OrderResult.Detail order = Instancio.of(OrderResult.Detail.class)
+                    .set(field("status"), OrderStatus.PENDING)
+                    .set(field("totalPaymentAmount"), Money.wons(10000L))
+                    .create();
+            PaymentContext.Create createContext = Instancio.create(PaymentContext.Create.class);
+            PaymentResult.Default savedPayment = Instancio.create(PaymentResult.Default.class);
+            given(orderQueryService.getOrder(anyString(), anyLong())).willReturn(order);
+            given(mapper.toContext(any(PaymentCommand.Confirm.class))).willReturn(createContext);
+            given(paymentCommandService.save(any(PaymentContext.Create.class))).willReturn(savedPayment);
+            willThrow(new BusinessException(PaymentErrorCode.PAYMENT_INSUFFICIENT_BALANCE)).given(paymentGateway).confirm(any());
+            //when
+            //then
+            assertThatThrownBy(() -> paymentFacade.confirm(command))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(PaymentErrorCode.PAYMENT_INSUFFICIENT_BALANCE);
+
+            verify(paymentCommandService).fail(anyLong(), anyString());
+        }
+
+        @Test
+        @DisplayName("PG사 결제 실패 후 DB 상태 갱신(fail) 중 에러가 발생해도, 원래의 PG 에러를 정상적으로 던진다")
+        void confirm_PgErrorWithDbSaveFailure_ThrowsOriginalPgError(){
+            //given
+            PaymentCommand.Confirm command = PaymentCommand.Confirm.builder()
+                    .userId(1L)
+                    .orderNo("orderNo")
+                    .paymentKey("paymentKey")
+                    .amount(Money.wons(10000L))
+                    .build();
+            OrderResult.Detail order = Instancio.of(OrderResult.Detail.class)
+                    .set(field("status"), OrderStatus.PENDING)
+                    .set(field("totalPaymentAmount"), Money.wons(10000L))
+                    .create();
+            PaymentContext.Create createContext = Instancio.create(PaymentContext.Create.class);
+            PaymentResult.Default savedPayment = Instancio.create(PaymentResult.Default.class);
+            given(orderQueryService.getOrder(anyString(), anyLong())).willReturn(order);
+            given(mapper.toContext(any(PaymentCommand.Confirm.class))).willReturn(createContext);
+            given(paymentCommandService.save(any(PaymentContext.Create.class))).willReturn(savedPayment);
+            willThrow(new BusinessException(PaymentErrorCode.PAYMENT_INSUFFICIENT_BALANCE)).given(paymentGateway).confirm(any());
+            willThrow(new RuntimeException()).given(paymentCommandService).fail(anyLong(), anyString());
+            //when
+            //then
+            assertThatThrownBy(() -> paymentFacade.confirm(command))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(PaymentErrorCode.PAYMENT_INSUFFICIENT_BALANCE);
+        }
+
+        @Test
+        @DisplayName("PG사 결제 승인 요청시 타임아웃 예외가 발생하면 예외를 그대로 던진다")
+        void confirm_PG_timeout_error(){
+            PaymentCommand.Confirm command = PaymentCommand.Confirm.builder()
+                    .userId(1L)
+                    .orderNo("orderNo")
+                    .paymentKey("paymentKey")
+                    .amount(Money.wons(10000L))
+                    .build();
+            OrderResult.Detail order = Instancio.of(OrderResult.Detail.class)
+                    .set(field("status"), OrderStatus.PENDING)
+                    .set(field("totalPaymentAmount"), Money.wons(10000L))
+                    .create();
+            PaymentContext.Create createContext = Instancio.create(PaymentContext.Create.class);
+            PaymentResult.Default savedPayment = Instancio.create(PaymentResult.Default.class);
+            given(orderQueryService.getOrder(anyString(), anyLong())).willReturn(order);
+            given(mapper.toContext(any(PaymentCommand.Confirm.class))).willReturn(createContext);
+            given(paymentCommandService.save(any(PaymentContext.Create.class))).willReturn(savedPayment);
+            willThrow(new BusinessException(PaymentErrorCode.PAYMENT_TOSS_TIME_OUT_ERROR)).given(paymentGateway).confirm(any());
+            //when
+            //then
+            assertThatThrownBy(() -> paymentFacade.confirm(command))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(PaymentErrorCode.PAYMENT_TOSS_TIME_OUT_ERROR);
+
+            verify(paymentCommandService, never()).fail(anyLong(), anyString());
+        }
+
+        @Test
+        @DisplayName("PG 승인 성공 후 Payment 저장에 실패하면 망취소를 수행한 뒤 예외가 발생한다")
+        void confirm_whenPaymentDoneFailAfterPGApproval_thenExecuteNetworkCancel(){
+            //given
+            PaymentCommand.Confirm command = PaymentCommand.Confirm.builder()
+                    .userId(1L)
+                    .orderNo("orderNo")
+                    .paymentKey("paymentKey")
+                    .amount(Money.wons(10000L))
+                    .build();
+            OrderResult.Detail order = Instancio.of(OrderResult.Detail.class)
+                    .set(field("status"), OrderStatus.PENDING)
+                    .set(field("totalPaymentAmount"), Money.wons(10000L))
+                    .create();
+            PaymentContext.Create createContext = Instancio.create(PaymentContext.Create.class);
+            PaymentResult.Default savedPayment = Instancio.create(PaymentResult.Default.class);
+            PgPaymentResult.Approval pgApproval = Instancio.create(PgPaymentResult.Approval.class);
+            PaymentContext.Approval approvalContext = Instancio.create(PaymentContext.Approval.class);
+            given(orderQueryService.getOrder(anyString(), anyLong())).willReturn(order);
+            given(mapper.toContext(any(PaymentCommand.Confirm.class))).willReturn(createContext);
+            given(paymentCommandService.save(any(PaymentContext.Create.class))).willReturn(savedPayment);
+            given(paymentGateway.confirm(any())).willReturn(pgApproval);
+            given(mapper.toContext(anyLong(), any(PgPaymentResult.Approval.class))).willReturn(approvalContext);
+            willThrow(new RuntimeException()).given(paymentCommandService).done(any());
+            //when
+            //then
+            assertThatThrownBy(() -> paymentFacade.confirm(command))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(PaymentErrorCode.PAYMENT_AUTO_CANCELED);
+            verify(paymentGateway).cancel(any());
+        }
+
+        @Test
+        @DisplayName("망취소에 실패하면 예외가 발생한다")
+        void confirm_throwException_whenNetworkCancelFails(){
+            //given
+            PaymentCommand.Confirm command = PaymentCommand.Confirm.builder()
+                    .userId(1L)
+                    .orderNo("orderNo")
+                    .paymentKey("paymentKey")
+                    .amount(Money.wons(10000L))
+                    .build();
+            OrderResult.Detail order = Instancio.of(OrderResult.Detail.class)
+                    .set(field("status"), OrderStatus.PENDING)
+                    .set(field("totalPaymentAmount"), Money.wons(10000L))
+                    .create();
+            PaymentContext.Create createContext = Instancio.create(PaymentContext.Create.class);
+            PaymentResult.Default savedPayment = Instancio.create(PaymentResult.Default.class);
+            PgPaymentResult.Approval pgApproval = Instancio.create(PgPaymentResult.Approval.class);
+            PaymentContext.Approval approvalContext = Instancio.create(PaymentContext.Approval.class);
+            given(orderQueryService.getOrder(anyString(), anyLong())).willReturn(order);
+            given(mapper.toContext(any(PaymentCommand.Confirm.class))).willReturn(createContext);
+            given(paymentCommandService.save(any(PaymentContext.Create.class))).willReturn(savedPayment);
+            given(paymentGateway.confirm(any())).willReturn(pgApproval);
+            given(mapper.toContext(anyLong(), any(PgPaymentResult.Approval.class))).willReturn(approvalContext);
+            willThrow(new RuntimeException()).given(paymentCommandService).done(any());
+            willThrow(new BusinessException(PaymentErrorCode.PAYMENT_TOSS_CLIENT_ERROR)).given(paymentGateway).cancel(any());
+            //when
+            //then
+            assertThatThrownBy(() -> paymentFacade.confirm(command))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(PaymentErrorCode.PAYMENT_REFUND_PENDING);
+            verify(paymentGateway).cancel(any());
         }
     }
 

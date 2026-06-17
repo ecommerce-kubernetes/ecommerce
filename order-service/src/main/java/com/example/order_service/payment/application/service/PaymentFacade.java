@@ -55,7 +55,6 @@ public class PaymentFacade {
         PaymentContext.Create context = mapper.toContext(command);
         PaymentResult.Default payment = paymentCommandService.save(context);
         PgPaymentResult.Approval pgResult = confirmWithPg(payment, order, command);
-
         return approveWithFallback(payment, pgResult);
     }
 
@@ -66,14 +65,27 @@ public class PaymentFacade {
                     order.totalPaymentAmount());
             return paymentGateway.confirm(gatewayCommand);
         } catch (BusinessException e) {
-            if (e.getErrorCode() != PaymentErrorCode.PAYMENT_TOSS_SERVER_ERROR
-                    && e.getErrorCode() != PaymentErrorCode.PAYMENT_TOSS_UNAVAILABLE_ERROR) {
-                paymentFail(payment.id(), e.getErrorCode().getCode());
+            // [NOTE] 토스 결제 승인중 에러 발생시 결제를 취소 처리함
+            // 토스 결제 승인중 타임아웃이 발생한다면 결제 승인이 처리되었는지 알 수 없음 따라서 대사 스케줄러를 통해 망취소를 진행함
+            if (e.getErrorCode() != PaymentErrorCode.PAYMENT_TOSS_TIME_OUT_ERROR) {
+                paymentFail(payment.id(), e.getMessage());
+            } else {
+                log.warn("토스 응답 타임아웃. 결제 미상 상태(READY) 유지 및 스케줄러 위임: {}", payment.id());
             }
             throw e;
         }
     }
 
+    /**
+     * [NOTE]
+     * 내부 DB의 결제 상태를 ABORT로 변경
+     * * [의도적인 예외 삼킴(Swallowing) 로직 포함]
+     * 이미 PG사 통신에서 실패가 확정되어 금전적 피해가 없는 안전한 상태
+     * 여기서 DB 업데이트 실패로 인해 예외를 밖으로 던지게 되면,
+     * 원래의 비즈니스 에러가 DB 시스템 에러로 덮어씌워짐
+     * 따라서 DB 갱신에 실패하더라도 예외를 삼키고 원래의 에러 흐름을 유지
+     * READY 상태의 Payment는 대사 스케줄러가 정리
+     */
     private void paymentFail(Long paymentId, String reason) {
         try {
             paymentCommandService.fail(paymentId, reason);
@@ -88,17 +100,23 @@ public class PaymentFacade {
             PaymentContext.Approval approvalContext = mapper.toContext(payment.id(), pgResult);
             return paymentCommandService.done(approvalContext);
         } catch (Exception e) {
-            attemptNetworkCancel(payment.paymentKey());
-            throw new BusinessException(PaymentErrorCode.PAYMENT_SYSTEM_ERROR);
+            boolean isCanceled = attemptNetworkCancel(payment.paymentKey());
+            if (isCanceled) {
+                throw new BusinessException(PaymentErrorCode.PAYMENT_AUTO_CANCELED);
+            } else {
+                throw new BusinessException(PaymentErrorCode.PAYMENT_REFUND_PENDING);
+            }
         }
     }
 
-    private void attemptNetworkCancel(String paymentKey) {
+    private boolean attemptNetworkCancel(String paymentKey) {
         try {
             PGPaymentCommand.Cancel cancelCommand = PGPaymentCommand.Cancel.ofFull(paymentKey, "내부 DB 저장 실패로 인한 망취소");
             paymentGateway.cancel(cancelCommand);
+            return true;
         } catch (Exception e) {
             log.error("망 취소 실패 {}", paymentKey, e);
+            return false;
         }
     }
 

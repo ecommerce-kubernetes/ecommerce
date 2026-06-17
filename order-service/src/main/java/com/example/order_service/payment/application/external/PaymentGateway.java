@@ -2,6 +2,7 @@ package com.example.order_service.payment.application.external;
 
 import com.example.order_service.common.exception.business.BusinessException;
 import com.example.order_service.common.exception.external.ExternalClientException;
+import com.example.order_service.common.exception.external.ExternalNetworkTimeoutException;
 import com.example.order_service.common.exception.external.ExternalServerException;
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
 import com.example.order_service.infrastructure.adaptor.TossAdaptor;
@@ -38,6 +39,8 @@ public class PaymentGateway {
             throw new BusinessException(PaymentErrorCode.PAYMENT_TOSS_SERVER_ERROR);
         } catch (ExternalSystemUnavailableException e) {
             throw new BusinessException(PaymentErrorCode.PAYMENT_TOSS_UNAVAILABLE_ERROR);
+        } catch (ExternalNetworkTimeoutException e) {
+            throw new BusinessException(PaymentErrorCode.PAYMENT_TOSS_TIME_OUT_ERROR);
         }
     }
 
@@ -51,6 +54,8 @@ public class PaymentGateway {
             throw new BusinessException(PaymentErrorCode.PAYMENT_TOSS_SERVER_ERROR);
         } catch (ExternalSystemUnavailableException e) {
             throw new BusinessException(PaymentErrorCode.PAYMENT_TOSS_UNAVAILABLE_ERROR);
+        } catch (ExternalNetworkTimeoutException e) {
+            throw new BusinessException(PaymentErrorCode.PAYMENT_TOSS_TIME_OUT_ERROR);
         }
     }
 }

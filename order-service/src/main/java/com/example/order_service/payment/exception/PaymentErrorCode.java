@@ -14,6 +14,7 @@ public enum PaymentErrorCode implements ErrorCode {
     PAYMENT_TOSS_UNAVAILABLE_ERROR(503, "TOSS_UNAVAILABLE_ERROR", "토스 서버 오류"),
     PAYMENT_TOSS_SERVER_ERROR(500, "TOSS_SERVER_ERROR", "토스 서버 오류"),
     PAYMENT_TOSS_CLIENT_ERROR(409, "TOSS_CLIENT_ERROR", "토스 결제 서버 클라이언트 오류"),
+    PAYMENT_TOSS_TIME_OUT_ERROR(500, "TOSS_TIME_OUT_ERROR", "토스 타임아웃 오류"),
     ORDER_NOT_PENDING(409, "ORDER_NOT_PENDING", "결제를 진행할 수 없는 주문 입니다"),
     PAYMENT_ALREADY_PROCEED_PAYMENT(400, "PAYMENT_001", "이미 결제된 주문입니다"),
     PAYMENT_BAD_REQUEST(400, "PAYMENT_002", "잘못된 결제 요청입니다"),
@@ -22,6 +23,8 @@ public enum PaymentErrorCode implements ErrorCode {
     PAYMENT_APPROVAL_FAIL(400, "PAYMENT_004", "결제 승인이 거절되었습니다"),
     PAYMENT_AMOUNT_MISMATCH(409, "PAYMENT_AMOUNT_MISMATCH", "주문의 총 결제 금액과 결제 금액이 일치하지 않습니다"),
     PAYMENT_INSUFFICIENT_BALANCE(400, "PAYMENT_005", "잔액이 부족합니다"),
+    PAYMENT_AUTO_CANCELED(500, "PAYMENT_AUTO_CANCELED", "시스템 오류로 인해 결제가 취소되었습니다"),
+    PAYMENT_REFUND_PENDING(500, "PAYMENT_REFUND_PENDING", "오류가 발생했습니다. 영업일 내로 결제 취소 됩니다"),
     PAYMENT_TIMEOUT(408, "PAYMENT_006", "결제 시간이 초과되었습니다"),
     PAYMENT_SYSTEM_ERROR(500, "PAYMENT_007", "시스템 오류로 결제를 진행할 수 없습니다");
     private final int status;
