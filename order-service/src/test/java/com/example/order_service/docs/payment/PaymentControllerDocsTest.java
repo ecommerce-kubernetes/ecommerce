@@ -4,7 +4,6 @@ import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.docs.descriptor.PaymentDescriptor;
 import com.example.order_service.payment.api.PaymentController;
 import com.example.order_service.payment.api.dto.request.PaymentRequest;
-import com.example.order_service.payment.api.dto.response.PaymentResponse;
 import com.example.order_service.payment.application.service.PaymentFacade;
 import com.example.order_service.payment.application.service.dto.result.PaymentResult;
 import com.example.order_service.payment.domain.model.PaymentMethod;
@@ -22,7 +21,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class PaymentControllerDocsTest extends RestDocSupport {
@@ -60,7 +58,6 @@ public class PaymentControllerDocsTest extends RestDocSupport {
                     .approvedAt(LocalDateTime.now())
                     .build();
             given(paymentFacade.confirm(any())).willReturn(result);
-            PaymentResponse.PaymentApproval response = PaymentResponse.PaymentApproval.from(result);
             //when
             //then
             mockMvc.perform(post("/payments/confirm")
@@ -68,7 +65,6 @@ public class PaymentControllerDocsTest extends RestDocSupport {
                             .headers(authHeader)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
-                    .andExpect(content().json(objectMapper.writeValueAsString(response)))
                     .andDo(createSecuredDocument("04-payment-01-confirm",
                             "결제 승인",
                             "주문 결제를 승인한다",

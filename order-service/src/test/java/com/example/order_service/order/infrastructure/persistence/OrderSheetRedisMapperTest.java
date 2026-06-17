@@ -3,13 +3,11 @@ package com.example.order_service.order.infrastructure.persistence;
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.mapper.MoneyMapper;
 import com.example.order_service.order.domain.model.OrderSheet;
-import net.jqwik.api.Arbitraries;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 
-import static com.example.order_service.support.TestFixtureUtil.fixtureMonkey;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.instancio.Select.all;
 

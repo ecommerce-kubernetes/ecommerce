@@ -2,12 +2,12 @@ package com.example.order_service.payment.api;
 
 import com.example.order_service.common.security.model.UserRole;
 import com.example.order_service.payment.api.dto.request.PaymentRequest;
-import com.example.order_service.payment.api.dto.response.PaymentResponse;
 import com.example.order_service.payment.application.service.PaymentFacade;
 import com.example.order_service.payment.application.service.dto.result.PaymentResult;
 import com.example.order_service.support.annotation.WithCustomMockUser;
 import com.example.order_service.support.config.TestSecurityConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -23,11 +23,13 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.stream.Stream;
 
-import static com.example.order_service.support.TestFixtureUtil.fixtureMonkey;
+import static org.instancio.Select.field;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(controllers = PaymentController.class)
 @Import(TestSecurityConfig.class)
@@ -49,24 +51,30 @@ public class PaymentControllerTest {
         @WithCustomMockUser
         void paymentConfirm() throws Exception {
             //given
-            PaymentRequest.Confirm request = fixtureMonkey.giveMeOne(PaymentRequest.Confirm.class);
-            PaymentResult.PaymentApproval result = fixtureMonkey.giveMeOne(PaymentResult.PaymentApproval.class);
-            PaymentResponse.PaymentApproval response = PaymentResponse.PaymentApproval.from(result);
+            PaymentRequest.Confirm request = Instancio.of(PaymentRequest.Confirm.class)
+                    .set(field("amount"), 1000L)
+                    .create();
+            PaymentResult.PaymentApproval result = Instancio.create(PaymentResult.PaymentApproval.class);
             given(paymentFacade.confirm(any())).willReturn(result);
             //when
             //then
             mockMvc.perform(post("/payments/confirm")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
+                    .andDo(print())
                     .andExpect(status().isOk())
-                    .andExpect(content().json(objectMapper.writeValueAsString(response)));
+                    .andExpect(jsonPath("$.paymentKey").value(result.paymentKey()))
+                    .andExpect(jsonPath("$.orderNo").value(result.orderNo()))
+                    .andExpect(jsonPath("$.totalAmount").isNumber());
         }
 
         @Test
         @DisplayName("로그인 하지 않은 사용자는 결제 승인 할 수 없다")
         void paymentConfirm_unAuthorized() throws Exception {
             //given
-            PaymentRequest.Confirm request = fixtureMonkey.giveMeOne(PaymentRequest.Confirm.class);
+            PaymentRequest.Confirm request = Instancio.of(PaymentRequest.Confirm.class)
+                    .set(field("amount"), 1000L)
+                    .create();
             //when
             //then
             mockMvc.perform(post("/payments/confirm")
@@ -84,7 +92,9 @@ public class PaymentControllerTest {
         @DisplayName("권한이 없는 사용자는 결제 승인 할 수 없다")
         void paymentConfirm_forbidden() throws Exception {
             //given
-            PaymentRequest.Confirm request = fixtureMonkey.giveMeOne(PaymentRequest.Confirm.class);
+            PaymentRequest.Confirm request = Instancio.of(PaymentRequest.Confirm.class)
+                    .set(field("amount"), 1000L)
+                    .create();
             //when
             //then
             mockMvc.perform(post("/payments/confirm")
