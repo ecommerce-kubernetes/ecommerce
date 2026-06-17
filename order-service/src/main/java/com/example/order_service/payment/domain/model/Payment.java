@@ -8,6 +8,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.security.core.parameters.P;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -55,6 +56,18 @@ public class Payment {
         }
         this.addRecord(approvalRecord);
         this.status = status;
+    }
+
+    public void done(PaymentRecord approvalRecord) {
+        if (this.status != PaymentStatus.READY) {
+            throw new BusinessException(PaymentErrorCode.INVALID_PAYMENT_STATUS_FOR_APPROVAL);
+        }
+        this.addRecord(approvalRecord);
+        this.status = PaymentStatus.DONE;
+    }
+
+    public void fail(String reason) {
+
     }
 
     public void refundPending() {

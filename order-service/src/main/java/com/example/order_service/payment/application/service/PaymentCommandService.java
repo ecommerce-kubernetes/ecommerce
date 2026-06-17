@@ -51,31 +51,27 @@ public class PaymentCommandService {
         return Payment.create(context.orderNo(), context.userId(), context.paymentKey(), context.totalAmount());
     }
 
-    /**
-     * 결제 승인 결과 저장
-     * <p>
-     * 결제 승인 결과를 결제 레코드로 저장
-     * </p>
-     *
-     * @param context 결제 승인 결과
-     * @return 결제 처리 결과
-     */
-    public PaymentResult.PaymentApproval approve(PaymentContext.Approval context) {
-        Payment payment = paymentRepository.findById(context.paymentId())
-                .orElseThrow(() -> new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND));
-        PaymentRecord paymentRecord = createApprovalPaymentRecord(context);
-        payment.approval(paymentRecord, context.status());
-        if (payment.getStatus() == PaymentStatus.DONE) {
-            PaymentCompleteEvent event = PaymentCompleteEvent.of(payment.getOrderNo());
-            eventPublisher.publishEvent(event);
-        }
-        return PaymentResult.PaymentApproval.of(payment, paymentRecord);
-    }
-
     private PaymentRecord createApprovalPaymentRecord(PaymentContext.Approval context) {
         return PaymentRecord.createApproval(context.amount(), context.method(), context.approvedAt());
     }
 
+    public void fail(Long id, String reason) {
+        Payment payment = paymentRepository.findById(id)
+                .orElseThrow(() -> new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND));
+        payment.fail(reason);
+    }
+
+    public PaymentResult.PaymentApproval done(PaymentContext.Approval context) {
+        Payment payment = paymentRepository.findById(context.paymentId())
+                .orElseThrow(() -> new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND));
+        PaymentRecord paymentRecord = createApprovalPaymentRecord(context);
+        payment.done(paymentRecord);
+        PaymentCompleteEvent event = PaymentCompleteEvent.of(payment.getOrderNo());
+        eventPublisher.publishEvent(event);
+        return PaymentResult.PaymentApproval.of(payment, paymentRecord);
+    }
+
+    //TODO orderNo 로 찾으면 주문 결제가 여러개인 경우는?
     /**
      * 결제를 환불 대기 상태로 변경
      *

@@ -71,7 +71,7 @@ public class PaymentFacadeTest {
             given(paymentCommandService.save(any(PaymentContext.Create.class))).willReturn(savedPayment);
             given(paymentGateway.confirm(any())).willReturn(pgApproval);
             given(mapper.toContext(anyLong(), any(PgPaymentResult.Approval.class))).willReturn(approvalContext);
-            given(paymentCommandService.approve(any())).willReturn(approvalResult);
+            given(paymentCommandService.done(any())).willReturn(approvalResult);
             //when
             PaymentResult.PaymentApproval confirm = paymentFacade.confirm(command);
             //then
@@ -84,7 +84,7 @@ public class PaymentFacadeTest {
             inOrder.verify(mapper).toContext(command);
             inOrder.verify(paymentCommandService).save(createContext);
             inOrder.verify(paymentGateway).confirm(any());
-            inOrder.verify(paymentCommandService).approve(approvalContext);
+            inOrder.verify(paymentCommandService).done(approvalContext);
         }
 
         @Test

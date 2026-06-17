@@ -13,6 +13,7 @@ import com.example.order_service.payment.application.service.dto.command.Payment
 import com.example.order_service.payment.application.service.dto.result.PaymentResult;
 import com.example.order_service.payment.exception.PaymentErrorCode;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 /**
@@ -24,6 +25,7 @@ import org.springframework.stereotype.Service;
  * @author 최민식
  * @since 2026 06. 02
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PaymentFacade {
@@ -52,10 +54,52 @@ public class PaymentFacade {
         }
         PaymentContext.Create context = mapper.toContext(command);
         PaymentResult.Default payment = paymentCommandService.save(context);
-        PGPaymentCommand.Confirm gatewayCommand = PGPaymentCommand.Confirm.of(order.orderNo(), command.paymentKey(), order.totalPaymentAmount());
-        PgPaymentResult.Approval confirm = paymentGateway.confirm(gatewayCommand);
-        PaymentContext.Approval approval = mapper.toContext(payment.id(), confirm);
-        return paymentCommandService.approve(approval);
+        PgPaymentResult.Approval pgResult = confirmWithPg(payment, order, command);
+
+        return approveWithFallback(payment, pgResult);
+    }
+
+    private PgPaymentResult.Approval confirmWithPg(PaymentResult.Default payment, OrderResult.Detail order,
+                                                   PaymentCommand.Confirm command) {
+        try {
+            PGPaymentCommand.Confirm gatewayCommand = PGPaymentCommand.Confirm.of(order.orderNo(), command.paymentKey(),
+                    order.totalPaymentAmount());
+            return paymentGateway.confirm(gatewayCommand);
+        } catch (BusinessException e) {
+            if (e.getErrorCode() != PaymentErrorCode.PAYMENT_TOSS_SERVER_ERROR
+                    && e.getErrorCode() != PaymentErrorCode.PAYMENT_TOSS_UNAVAILABLE_ERROR) {
+                paymentFail(payment.id(), e.getErrorCode().getCode());
+            }
+            throw e;
+        }
+    }
+
+    private void paymentFail(Long paymentId, String reason) {
+        try {
+            paymentCommandService.fail(paymentId, reason);
+        } catch (Exception e) {
+            log.error("결제 ABORT 변경 실패 {}", paymentId, e);
+        }
+    }
+
+    private PaymentResult.PaymentApproval approveWithFallback(PaymentResult.Default payment,
+                                                              PgPaymentResult.Approval pgResult) {
+        try {
+            PaymentContext.Approval approvalContext = mapper.toContext(payment.id(), pgResult);
+            return paymentCommandService.done(approvalContext);
+        } catch (Exception e) {
+            attemptNetworkCancel(payment.paymentKey());
+            throw new BusinessException(PaymentErrorCode.PAYMENT_SYSTEM_ERROR);
+        }
+    }
+
+    private void attemptNetworkCancel(String paymentKey) {
+        try {
+            PGPaymentCommand.Cancel cancelCommand = PGPaymentCommand.Cancel.ofFull(paymentKey, "내부 DB 저장 실패로 인한 망취소");
+            paymentGateway.cancel(cancelCommand);
+        } catch (Exception e) {
+            log.error("망 취소 실패 {}", paymentKey, e);
+        }
     }
 
     /**
