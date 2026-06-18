@@ -6,7 +6,6 @@ import com.example.order_service.payment.application.service.dto.command.Payment
 import com.example.order_service.payment.application.service.dto.result.PaymentResult;
 import com.example.order_service.payment.domain.model.Payment;
 import com.example.order_service.payment.domain.model.PaymentRecord;
-import com.example.order_service.payment.domain.model.PaymentStatus;
 import com.example.order_service.payment.domain.repository.PaymentRepository;
 import com.example.order_service.payment.exception.PaymentErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -41,7 +40,7 @@ public class PaymentCommandService {
      * @param context 결제 생성 커맨드
      * @return 생성된 결제 결과
      */
-    public PaymentResult.Default save(PaymentContext.Create context) {
+    public PaymentResult.Default create(PaymentContext.Create context) {
         Payment payment = createPayment(context);
         Payment savedPayment = paymentRepository.save(payment);
         return PaymentResult.Default.from(savedPayment);
@@ -59,11 +58,11 @@ public class PaymentCommandService {
      * @param context 결제 승인 command
      * @return 결제 승인 처리 결과
      */
-    public PaymentResult.PaymentApproval done(PaymentContext.Approval context) {
+    public PaymentResult.PaymentApproval approve(PaymentContext.Approval context) {
         Payment payment = paymentRepository.findById(context.paymentId())
                 .orElseThrow(() -> new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND));
         PaymentRecord paymentRecord = createApprovalPaymentRecord(context);
-        payment.done(paymentRecord);
+        payment.approve(paymentRecord, context.status());
         PaymentCompleteEvent event = PaymentCompleteEvent.of(payment.getOrderNo());
         eventPublisher.publishEvent(event);
         return PaymentResult.PaymentApproval.of(payment, paymentRecord);
@@ -114,7 +113,7 @@ public class PaymentCommandService {
     }
 
     private PaymentRecord createCancellationPaymentRecord(PaymentContext.Cancellation context) {
-        return PaymentRecord.createCancellation(context.amount(), context.method(), context.approvedAt());
+        return PaymentRecord.createCancellation(context.amount(), context.method(), context.cancelReason(), context.approvedAt());
     }
 
 }

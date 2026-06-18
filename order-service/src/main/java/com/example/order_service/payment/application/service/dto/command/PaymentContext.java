@@ -35,6 +35,7 @@ public class PaymentContext {
             Money amount,
             PaymentStatus status,
             PaymentMethod method,
+            String cancelReason,
             LocalDateTime approvedAt
     ) {
     }

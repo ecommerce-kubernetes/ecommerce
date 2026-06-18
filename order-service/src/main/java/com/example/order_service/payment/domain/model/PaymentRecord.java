@@ -25,13 +25,15 @@ public class PaymentRecord extends BaseEntity {
     private Money amount;
     private PaymentMethod method;
     private LocalDateTime approvedAt;
+    private String reason;
 
     @Builder(access = AccessLevel.PRIVATE)
-    private PaymentRecord(TransactionType type, Money amount, PaymentMethod method, LocalDateTime approvedAt) {
+    private PaymentRecord(TransactionType type, Money amount, PaymentMethod method, String reason, LocalDateTime approvedAt) {
         this.type = type;
         this.amount = amount;
         this.method = method;
         this.approvedAt = approvedAt;
+        this.reason = reason;
     }
 
     public static PaymentRecord createApproval(Money amount, PaymentMethod method, LocalDateTime approvedAt) {
@@ -39,15 +41,17 @@ public class PaymentRecord extends BaseEntity {
                 .type(TransactionType.PAYMENT)
                 .amount(amount)
                 .method(method)
+                .reason("정상 승인")
                 .approvedAt(approvedAt)
                 .build();
     }
 
-    public static PaymentRecord createCancellation(Money amount, PaymentMethod method, LocalDateTime approvedAt) {
+    public static PaymentRecord createCancellation(Money amount, PaymentMethod method, String reason, LocalDateTime approvedAt) {
         return PaymentRecord.builder()
                 .type(TransactionType.REFUND)
                 .amount(amount)
                 .method(method)
+                .reason(reason)
                 .approvedAt(approvedAt)
                 .build();
     }

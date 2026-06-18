@@ -8,7 +8,6 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.security.core.parameters.P;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -58,9 +57,15 @@ public class Payment {
         this.status = status;
     }
 
-    public void done(PaymentRecord approvalRecord) {
+    public void approve(PaymentRecord approvalRecord, PaymentStatus status) {
         if (this.status != PaymentStatus.READY) {
             throw new BusinessException(PaymentErrorCode.INVALID_PAYMENT_STATUS_FOR_APPROVAL);
+        }
+        if (status != PaymentStatus.DONE) {
+            throw new BusinessException(PaymentErrorCode.UNSUPPORTED_PAYMENT_STATUS);
+        }
+        if (!this.totalAmount.equals(approvalRecord.getAmount())) {
+            throw new BusinessException(PaymentErrorCode.PG_APPROVAL_AMOUNT_MISMATCH);
         }
         this.addRecord(approvalRecord);
         this.status = PaymentStatus.DONE;

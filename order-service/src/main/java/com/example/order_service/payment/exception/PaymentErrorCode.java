@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum PaymentErrorCode implements ErrorCode {
+    UNSUPPORTED_PAYMENT_STATUS(409, "UNSUPPORTED_PAYMENT_STATUS", "지원하지 않는 결제 방식입니다"),
     EXCEEDED_REFUNDABLE_AMOUNT(409, "EXCEEDED_REFUNDABLE_AMOUNT", "환불 가능 금액을 초과했습니다"),
     INVALID_PAYMENT_STATUS_FOR_REFUND_PENDING(409, "INVALID_PAYMENT_STATUS_FOR_REFUND_PENDING", "환불 요청 가능한 상태가 아닙니다"),
     INVALID_PAYMENT_STATUS_FOR_APPROVAL(409, "INVALID_PAYMENT_STATUS_FOR_APPROVAL", "승인 가능한 결제 상태가 아닙니다"),
@@ -22,6 +23,7 @@ public enum PaymentErrorCode implements ErrorCode {
     PAYMENT_APPROVAL_FORBIDDEN(403, "PAYMENT_APPROVAL_FORBIDDEN", "해당 주문에 대한 결제 승인 권한이 없습니다"),
     PAYMENT_APPROVAL_FAIL(400, "PAYMENT_004", "결제 승인이 거절되었습니다"),
     PAYMENT_AMOUNT_MISMATCH(409, "PAYMENT_AMOUNT_MISMATCH", "주문의 총 결제 금액과 결제 금액이 일치하지 않습니다"),
+    PG_APPROVAL_AMOUNT_MISMATCH(500, "PG_APPROVAL_AMOUNT_MISMATCH", "PG 승인 금액이 일치하지 않습니다"),
     PAYMENT_INSUFFICIENT_BALANCE(400, "PAYMENT_005", "잔액이 부족합니다"),
     PAYMENT_AUTO_CANCELED(500, "PAYMENT_AUTO_CANCELED", "시스템 오류로 인해 결제가 취소되었습니다"),
     PAYMENT_REFUND_PENDING(500, "PAYMENT_REFUND_PENDING", "오류가 발생했습니다. 영업일 내로 결제 취소 됩니다"),

@@ -70,10 +70,10 @@ public class PaymentFacadeTest {
             PaymentResult.PaymentApproval approvalResult = Instancio.create(PaymentResult.PaymentApproval.class);
             given(orderQueryService.getOrder(anyString(), anyLong())).willReturn(order);
             given(mapper.toContext(any(PaymentCommand.Confirm.class))).willReturn(createContext);
-            given(paymentCommandService.save(any(PaymentContext.Create.class))).willReturn(savedPayment);
+            given(paymentCommandService.create(any(PaymentContext.Create.class))).willReturn(savedPayment);
             given(paymentGateway.confirm(any())).willReturn(pgApproval);
             given(mapper.toContext(anyLong(), any(PgPaymentResult.Approval.class))).willReturn(approvalContext);
-            given(paymentCommandService.done(any())).willReturn(approvalResult);
+            given(paymentCommandService.approve(any())).willReturn(approvalResult);
             //when
             PaymentResult.PaymentApproval confirm = paymentFacade.confirm(command);
             //then
@@ -84,9 +84,9 @@ public class PaymentFacadeTest {
             );
             inOrder.verify(orderQueryService).getOrder("orderNo", 1L);
             inOrder.verify(mapper).toContext(command);
-            inOrder.verify(paymentCommandService).save(createContext);
+            inOrder.verify(paymentCommandService).create(createContext);
             inOrder.verify(paymentGateway).confirm(any());
-            inOrder.verify(paymentCommandService).done(approvalContext);
+            inOrder.verify(paymentCommandService).approve(approvalContext);
         }
 
         @Test
@@ -160,7 +160,7 @@ public class PaymentFacadeTest {
             PaymentResult.Default savedPayment = Instancio.create(PaymentResult.Default.class);
             given(orderQueryService.getOrder(anyString(), anyLong())).willReturn(order);
             given(mapper.toContext(any(PaymentCommand.Confirm.class))).willReturn(createContext);
-            given(paymentCommandService.save(any(PaymentContext.Create.class))).willReturn(savedPayment);
+            given(paymentCommandService.create(any(PaymentContext.Create.class))).willReturn(savedPayment);
             willThrow(new BusinessException(PaymentErrorCode.PAYMENT_INSUFFICIENT_BALANCE)).given(paymentGateway).confirm(any());
             //when
             //then
@@ -190,7 +190,7 @@ public class PaymentFacadeTest {
             PaymentResult.Default savedPayment = Instancio.create(PaymentResult.Default.class);
             given(orderQueryService.getOrder(anyString(), anyLong())).willReturn(order);
             given(mapper.toContext(any(PaymentCommand.Confirm.class))).willReturn(createContext);
-            given(paymentCommandService.save(any(PaymentContext.Create.class))).willReturn(savedPayment);
+            given(paymentCommandService.create(any(PaymentContext.Create.class))).willReturn(savedPayment);
             willThrow(new BusinessException(PaymentErrorCode.PAYMENT_INSUFFICIENT_BALANCE)).given(paymentGateway).confirm(any());
             willThrow(new RuntimeException()).given(paymentCommandService).fail(anyLong(), anyString());
             //when
@@ -218,7 +218,7 @@ public class PaymentFacadeTest {
             PaymentResult.Default savedPayment = Instancio.create(PaymentResult.Default.class);
             given(orderQueryService.getOrder(anyString(), anyLong())).willReturn(order);
             given(mapper.toContext(any(PaymentCommand.Confirm.class))).willReturn(createContext);
-            given(paymentCommandService.save(any(PaymentContext.Create.class))).willReturn(savedPayment);
+            given(paymentCommandService.create(any(PaymentContext.Create.class))).willReturn(savedPayment);
             willThrow(new BusinessException(PaymentErrorCode.PAYMENT_TOSS_TIME_OUT_ERROR)).given(paymentGateway).confirm(any());
             //when
             //then
@@ -231,8 +231,8 @@ public class PaymentFacadeTest {
         }
 
         @Test
-        @DisplayName("PG 승인 성공 후 Payment 저장에 실패하면 망취소를 수행한 뒤 예외가 발생한다")
-        void confirm_whenPaymentDoneFailAfterPGApproval_thenExecuteNetworkCancel(){
+        @DisplayName("PG 승인 성공 후 Payment 저장시 비지니스 예외가 발생하면 망 취소를 수행한 뒤 비지니스 예외를 그대로 넘긴다")
+        void confirm_whenPaymentDoneBusinessFailAfterPGApproval_thenExecuteNetworkCancel() {
             //given
             PaymentCommand.Confirm command = PaymentCommand.Confirm.builder()
                     .userId(1L)
@@ -250,10 +250,82 @@ public class PaymentFacadeTest {
             PaymentContext.Approval approvalContext = Instancio.create(PaymentContext.Approval.class);
             given(orderQueryService.getOrder(anyString(), anyLong())).willReturn(order);
             given(mapper.toContext(any(PaymentCommand.Confirm.class))).willReturn(createContext);
-            given(paymentCommandService.save(any(PaymentContext.Create.class))).willReturn(savedPayment);
+            given(paymentCommandService.create(any(PaymentContext.Create.class))).willReturn(savedPayment);
             given(paymentGateway.confirm(any())).willReturn(pgApproval);
             given(mapper.toContext(anyLong(), any(PgPaymentResult.Approval.class))).willReturn(approvalContext);
-            willThrow(new RuntimeException()).given(paymentCommandService).done(any());
+            willThrow(new BusinessException(PaymentErrorCode.UNSUPPORTED_PAYMENT_STATUS)).given(paymentCommandService).approve(any());
+            //when
+            //then
+            assertThatThrownBy(() -> paymentFacade.confirm(command))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(PaymentErrorCode.UNSUPPORTED_PAYMENT_STATUS);
+            verify(paymentGateway).cancel(any());
+        }
+
+        @Test
+        @DisplayName("PG 승인 성공 후 Payment 저장시 알 수 없는 예외가 발생하면 망취소를 수행한 뒤 예외가 발생한다")
+        void confirm_whenPaymentDoneUnKnownFailAfterPGApproval_thenExecuteNetworkCancel(){
+            //given
+            PaymentCommand.Confirm command = PaymentCommand.Confirm.builder()
+                    .userId(1L)
+                    .orderNo("orderNo")
+                    .paymentKey("paymentKey")
+                    .amount(Money.wons(10000L))
+                    .build();
+            OrderResult.Detail order = Instancio.of(OrderResult.Detail.class)
+                    .set(field("status"), OrderStatus.PENDING)
+                    .set(field("totalPaymentAmount"), Money.wons(10000L))
+                    .create();
+            PaymentContext.Create createContext = Instancio.create(PaymentContext.Create.class);
+            PaymentResult.Default savedPayment = Instancio.create(PaymentResult.Default.class);
+            PgPaymentResult.Approval pgApproval = Instancio.create(PgPaymentResult.Approval.class);
+            PaymentContext.Approval approvalContext = Instancio.create(PaymentContext.Approval.class);
+            PgPaymentResult.Cancellation cancellation = Instancio.create(PgPaymentResult.Cancellation.class);
+            given(orderQueryService.getOrder(anyString(), anyLong())).willReturn(order);
+            given(mapper.toContext(any(PaymentCommand.Confirm.class))).willReturn(createContext);
+            given(paymentCommandService.create(any(PaymentContext.Create.class))).willReturn(savedPayment);
+            given(paymentGateway.confirm(any())).willReturn(pgApproval);
+            given(mapper.toContext(anyLong(), any(PgPaymentResult.Approval.class))).willReturn(approvalContext);
+            willThrow(new RuntimeException()).given(paymentCommandService).approve(any());
+            given(paymentGateway.cancel(any())).willReturn(cancellation);
+            //when
+            //then
+            assertThatThrownBy(() -> paymentFacade.confirm(command))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(PaymentErrorCode.PAYMENT_AUTO_CANCELED);
+            verify(paymentGateway).cancel(any());
+            verify(paymentCommandService).cancel(any());
+        }
+        
+        @Test
+        @DisplayName("망취소 성공 후 환불 record 저장중 예외가 발생하여도 망 취소 결과에 대한 예외가 던져진다")
+        void confirm_whenSuccessNetworkCancel_thenPaymentCancelFail() {
+            //given
+            PaymentCommand.Confirm command = PaymentCommand.Confirm.builder()
+                    .userId(1L)
+                    .orderNo("orderNo")
+                    .paymentKey("paymentKey")
+                    .amount(Money.wons(10000L))
+                    .build();
+            OrderResult.Detail order = Instancio.of(OrderResult.Detail.class)
+                    .set(field("status"), OrderStatus.PENDING)
+                    .set(field("totalPaymentAmount"), Money.wons(10000L))
+                    .create();
+            PaymentContext.Create createContext = Instancio.create(PaymentContext.Create.class);
+            PaymentResult.Default savedPayment = Instancio.create(PaymentResult.Default.class);
+            PgPaymentResult.Approval pgApproval = Instancio.create(PgPaymentResult.Approval.class);
+            PaymentContext.Approval approvalContext = Instancio.create(PaymentContext.Approval.class);
+            PgPaymentResult.Cancellation cancellation = Instancio.create(PgPaymentResult.Cancellation.class);
+            given(orderQueryService.getOrder(anyString(), anyLong())).willReturn(order);
+            given(mapper.toContext(any(PaymentCommand.Confirm.class))).willReturn(createContext);
+            given(paymentCommandService.create(any(PaymentContext.Create.class))).willReturn(savedPayment);
+            given(paymentGateway.confirm(any())).willReturn(pgApproval);
+            given(mapper.toContext(anyLong(), any(PgPaymentResult.Approval.class))).willReturn(approvalContext);
+            willThrow(new RuntimeException()).given(paymentCommandService).approve(any());
+            given(paymentGateway.cancel(any())).willReturn(cancellation);
+            willThrow(new RuntimeException()).given(paymentCommandService).cancel(any());
             //when
             //then
             assertThatThrownBy(() -> paymentFacade.confirm(command))
@@ -283,10 +355,10 @@ public class PaymentFacadeTest {
             PaymentContext.Approval approvalContext = Instancio.create(PaymentContext.Approval.class);
             given(orderQueryService.getOrder(anyString(), anyLong())).willReturn(order);
             given(mapper.toContext(any(PaymentCommand.Confirm.class))).willReturn(createContext);
-            given(paymentCommandService.save(any(PaymentContext.Create.class))).willReturn(savedPayment);
+            given(paymentCommandService.create(any(PaymentContext.Create.class))).willReturn(savedPayment);
             given(paymentGateway.confirm(any())).willReturn(pgApproval);
             given(mapper.toContext(anyLong(), any(PgPaymentResult.Approval.class))).willReturn(approvalContext);
-            willThrow(new RuntimeException()).given(paymentCommandService).done(any());
+            willThrow(new RuntimeException()).given(paymentCommandService).approve(any());
             willThrow(new BusinessException(PaymentErrorCode.PAYMENT_TOSS_CLIENT_ERROR)).given(paymentGateway).cancel(any());
             //when
             //then

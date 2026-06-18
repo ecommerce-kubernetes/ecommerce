@@ -2,6 +2,8 @@ package com.example.order_service.payment.application.service;
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.business.BusinessException;
+import com.example.order_service.order.application.event.OrderSagaProcessEvent;
+import com.example.order_service.order.domain.saga.SagaStep;
 import com.example.order_service.payment.application.event.PaymentCompleteEvent;
 import com.example.order_service.payment.application.service.dto.command.PaymentContext;
 import com.example.order_service.payment.application.service.dto.result.PaymentResult;
@@ -24,6 +26,7 @@ import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.instancio.Select.field;
 
 @SpringBootTest
 @MockKafka
@@ -41,7 +44,7 @@ public class PaymentCommandServiceTest {
 
     @Test
     @DisplayName("결제를 저장한다")
-    void save() {
+    void create() {
         //given
         PaymentContext.Create context = PaymentContext.Create.builder()
                 .userId(1L)
@@ -50,7 +53,7 @@ public class PaymentCommandServiceTest {
                 .totalAmount(Money.wons(10000L))
                 .build();
         //when
-        PaymentResult.Default save = paymentCommandService.save(context);
+        PaymentResult.Default save = paymentCommandService.create(context);
         //then
         assertThat(save.id()).isNotNull();
         assertThat(save.orderNo()).isEqualTo("orderNo");
@@ -60,17 +63,120 @@ public class PaymentCommandServiceTest {
     }
 
     @Nested
-    @DisplayName("결제를 승인 처리 한다")
-    class Done {
+    @DisplayName("결제 승인")
+    class Approve {
+
+        @Test
+        @DisplayName("결제 승인 처리 후 결제 완료 이벤트를 발행한다")
+        void approve() {
+            //given
+            Payment payment = Payment.create("orderNo", 1L, "paymentKey", Money.wons(10000L));
+            paymentRepository.save(payment);
+            PaymentContext.Approval context = PaymentContext.Approval.builder()
+                    .paymentId(payment.getId())
+                    .amount(Money.wons(10000L))
+                    .status(PaymentStatus.DONE)
+                    .method(PaymentMethod.CARD)
+                    .approvedAt(LocalDateTime.now())
+                    .build();
+            //when
+            PaymentResult.PaymentApproval approve = paymentCommandService.approve(context);
+            //then
+            assertThat(approve)
+                    .extracting("paymentKey", "orderNo", "totalAmount", "method", "status")
+                    .containsExactlyInAnyOrder(
+                            "paymentKey", "orderNo", Money.wons(10000L), PaymentMethod.CARD, PaymentStatus.DONE
+                    );
+
+            long eventCount = applicationEvents.stream(PaymentCompleteEvent.class).count();
+            assertThat(eventCount).isEqualTo(1);
+            PaymentCompleteEvent event = applicationEvents.stream(PaymentCompleteEvent.class).findFirst().orElseThrow();
+            assertThat(event.getOrderNo()).isEqualTo("orderNo");
+        }
+
+        @Test
+        @DisplayName("결제 승인 금액이 결제 금액과 일치하지 않으면 예외가 발생한다")
+        void approve_mismatch_approval_amount() {
+            //given
+            Payment payment = Payment.create("orderNo", 1L, "paymentKey", Money.wons(10000L));
+            paymentRepository.save(payment);
+            PaymentContext.Approval context = PaymentContext.Approval.builder()
+                    .paymentId(payment.getId())
+                    .amount(Money.wons(5000L))
+                    .status(PaymentStatus.DONE)
+                    .method(PaymentMethod.CARD)
+                    .approvedAt(LocalDateTime.now())
+                    .build();
+            //when
+            //then
+            assertThatThrownBy(() -> paymentCommandService.approve(context))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(PaymentErrorCode.PG_APPROVAL_AMOUNT_MISMATCH);
+        }
+        
+        @Test
+        @DisplayName("현재 결제가 결제 승인을 할 수 없는 상태이면 예외가 발생한다")
+        void approve_invalid_payment_status() {
+            //given
+            Payment payment = Payment.create("orderNo", 1L, "paymentKey", Money.wons(10000L));
+            PaymentRecord paymentRecord = PaymentRecord.createApproval(Money.wons(10000L), PaymentMethod.CARD, LocalDateTime.now());
+            payment.approve(paymentRecord, PaymentStatus.DONE);
+            paymentRepository.save(payment);
+            PaymentContext.Approval context = Instancio.of(PaymentContext.Approval.class)
+                    .set(field("paymentId"), payment.getId())
+                    .create();
+            //when
+            //then
+            assertThatThrownBy(() -> paymentCommandService.approve(context))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(PaymentErrorCode.INVALID_PAYMENT_STATUS_FOR_APPROVAL);
+        }
+
+        @Test
+        @DisplayName("지원하지 않는 결제 승인 상태가 요청되면 예외가 발생한다")
+        void approve_unsupported_payment_status() {
+            //given
+            Payment payment = Payment.create("orderNo", 1L, "paymentKey", Money.wons(10000L));
+            paymentRepository.save(payment);
+            PaymentContext.Approval context = Instancio.of(PaymentContext.Approval.class)
+                    .set(field("paymentId"), payment.getId())
+                    .set(field("status"), PaymentStatus.WAITING_FOR_DEPOSIT)
+                    .create();
+            //when
+            //then
+            assertThatThrownBy(() -> paymentCommandService.approve(context))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(PaymentErrorCode.UNSUPPORTED_PAYMENT_STATUS);
+        }
 
         @Test
         @DisplayName("결제를 찾을 수 없으면 예외가 발생한다")
-        void done_payment_not_found(){
+        void approve_payment_not_found(){
             //given
             PaymentContext.Approval context = Instancio.create(PaymentContext.Approval.class);
             //when
             //then
-            assertThatThrownBy(() -> paymentCommandService.done(context))
+            assertThatThrownBy(() -> paymentCommandService.approve(context))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(PaymentErrorCode.PAYMENT_NOT_FOUND);
+        }
+    }
+
+    @Nested
+    @DisplayName("결제 취소")
+    class Fail {
+
+        @Test
+        @DisplayName("결제 승인 실패시 결제를 찾을 수 없으면 예외가 발생한다")
+        void fail_payment_not_found() {
+            //given
+            //when
+            //then
+            assertThatThrownBy(() -> paymentCommandService.fail(999L, "INSUFFICIENT_BALANCE"))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(PaymentErrorCode.PAYMENT_NOT_FOUND);
