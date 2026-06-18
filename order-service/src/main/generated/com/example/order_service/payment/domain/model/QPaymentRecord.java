@@ -37,6 +37,8 @@ public class QPaymentRecord extends EntityPathBase<PaymentRecord> {
 
     public final QPayment payment;
 
+    public final StringPath reason = createString("reason");
+
     public final EnumPath<TransactionType> type = createEnum("type", TransactionType.class);
 
     //inherited

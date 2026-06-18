@@ -117,7 +117,7 @@ public class PaymentTest {
         Money totalAmount = Money.wons(10000L);
         Payment payment = Payment.create(orderNo, userId, paymentKey, totalAmount);
         PaymentRecord done = PaymentRecord.createApproval(Money.wons(10000L), PaymentMethod.CARD, LocalDateTime.now());
-        PaymentRecord cancel = PaymentRecord.createCancellation(Money.wons(10000L), PaymentMethod.CARD, LocalDateTime.now());
+        PaymentRecord cancel = PaymentRecord.createCancellation(Money.wons(10000L), PaymentMethod.CARD, "정상 승인", LocalDateTime.now());
         payment.approval(done, PaymentStatus.DONE);
         payment.refundPending();
         //when
@@ -142,7 +142,7 @@ public class PaymentTest {
         Money totalAmount = Money.wons(10000L);
         Payment payment = Payment.create(orderNo, userId, paymentKey, totalAmount);
         PaymentRecord done = PaymentRecord.createApproval(Money.wons(10000L), PaymentMethod.CARD, LocalDateTime.now());
-        PaymentRecord cancel = PaymentRecord.createCancellation(Money.wons(10000L), PaymentMethod.CARD, LocalDateTime.now());
+        PaymentRecord cancel = PaymentRecord.createCancellation(Money.wons(10000L), PaymentMethod.CARD, "정상 승인", LocalDateTime.now());
         payment.approval(done, PaymentStatus.DONE);
         //when
         //then
@@ -162,7 +162,7 @@ public class PaymentTest {
         Money totalAmount = Money.wons(10000L);
         Payment payment = Payment.create(orderNo, userId, paymentKey, totalAmount);
         PaymentRecord done = PaymentRecord.createApproval(Money.wons(10000L), PaymentMethod.CARD, LocalDateTime.now());
-        PaymentRecord cancel = PaymentRecord.createCancellation(Money.wons(11000L), PaymentMethod.CARD, LocalDateTime.now());
+        PaymentRecord cancel = PaymentRecord.createCancellation(Money.wons(11000L), PaymentMethod.CARD, "정상 승인", LocalDateTime.now());
         payment.approval(done, PaymentStatus.DONE);
         payment.refundPending();
         //when
@@ -183,7 +183,7 @@ public class PaymentTest {
         Money totalAmount = Money.wons(10000L);
         Payment payment = Payment.create(orderNo, userId, paymentKey, totalAmount);
         PaymentRecord done = PaymentRecord.createApproval(Money.wons(10000L), PaymentMethod.CARD, LocalDateTime.now());
-        PaymentRecord cancel = PaymentRecord.createCancellation(Money.wons(8000L), PaymentMethod.CARD, LocalDateTime.now());
+        PaymentRecord cancel = PaymentRecord.createCancellation(Money.wons(8000L), PaymentMethod.CARD, "정상 승인", LocalDateTime.now());
         payment.approval(done, PaymentStatus.DONE);
         payment.refundPending();
         payment.cancel(cancel, PaymentStatus.CANCELED);
@@ -203,7 +203,7 @@ public class PaymentTest {
         Money totalAmount = Money.wons(10000L);
         Payment payment = Payment.create(orderNo, userId, paymentKey, totalAmount);
         PaymentRecord done = PaymentRecord.createApproval(Money.wons(10000L), PaymentMethod.CARD, LocalDateTime.now());
-        PaymentRecord cancel = PaymentRecord.createCancellation(Money.wons(8000L), PaymentMethod.CARD, LocalDateTime.now());
+        PaymentRecord cancel = PaymentRecord.createCancellation(Money.wons(8000L), PaymentMethod.CARD, "정상 승인", LocalDateTime.now());
         payment.approval(done, PaymentStatus.DONE);
         payment.refundPending();
         payment.cancel(cancel, PaymentStatus.CANCELED);

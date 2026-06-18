@@ -33,7 +33,7 @@ public class PaymentRecordTest {
         PaymentMethod method = PaymentMethod.CARD;
         LocalDateTime approvedAt = LocalDateTime.now();
         //when
-        PaymentRecord cancellation = PaymentRecord.createCancellation(amount, method, approvedAt);
+        PaymentRecord cancellation = PaymentRecord.createCancellation(amount, method, "정상 승인", approvedAt);
         //then
         assertThat(cancellation)
                 .extracting("type", "amount", "method")

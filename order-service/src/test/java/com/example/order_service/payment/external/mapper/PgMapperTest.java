@@ -29,8 +29,8 @@ public class PgMapperTest {
         OffsetDateTime approvedAt = OffsetDateTime.now();
         LocalDateTime expectedDateTime = approvedAt.toLocalDateTime();
         TossClientResponse.Confirm response = TossClientResponse.Confirm.builder()
-                .paymentKey("paymentKey")
-                .orderId("orderNo")
+//                .paymentKey("paymentKey")
+//                .orderId("orderNo")
                 .totalAmount(10000L)
                 .status("DONE")
                 .method("CARD")

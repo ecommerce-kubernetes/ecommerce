@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-06-18T04:18:42+0900",
+    date = "2026-06-19T04:49:14+0900",
     comments = "version: 1.6.3, compiler: javac, environment: Java 21.0.10 (Eclipse Adoptium)"
 )
 @Component
@@ -33,8 +33,6 @@ public class PgMapperImpl implements PgMapper {
 
         PgPaymentResult.Approval.ApprovalBuilder approval = PgPaymentResult.Approval.builder();
 
-        approval.orderNo( response.orderId() );
-        approval.paymentKey( response.paymentKey() );
         approval.totalAmount( moneyMapper.toMoney( response.totalAmount() ) );
         if ( response.status() != null ) {
             approval.status( Enum.valueOf( PaymentStatus.class, response.status() ) );
@@ -55,16 +53,9 @@ public class PgMapperImpl implements PgMapper {
 
         PgPaymentResult.Cancellation.CancellationBuilder cancellation = PgPaymentResult.Cancellation.builder();
 
-        cancellation.orderNo( response.orderId() );
-        cancellation.paymentKey( response.paymentKey() );
-        cancellation.totalAmount( moneyMapper.toMoney( response.totalAmount() ) );
         if ( response.status() != null ) {
             cancellation.status( Enum.valueOf( PaymentStatus.class, response.status() ) );
         }
-        if ( response.method() != null ) {
-            cancellation.method( Enum.valueOf( PaymentMethod.class, response.method() ) );
-        }
-        cancellation.approvedAt( map( response.approvedAt() ) );
 
         return cancellation.build();
     }

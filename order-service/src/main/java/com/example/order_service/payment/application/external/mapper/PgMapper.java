@@ -13,10 +13,8 @@ import java.time.OffsetDateTime;
 @Mapper(componentModel = "spring", uses = {MoneyMapper.class}, injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 public interface PgMapper {
 
-    @Mapping(source = "orderId", target = "orderNo")
     PgPaymentResult.Approval toResult(TossClientResponse.Confirm response);
 
-    @Mapping(source = "orderId", target = "orderNo")
     PgPaymentResult.Cancellation toResult(TossClientResponse.Cancel response);
 
     default LocalDateTime map(OffsetDateTime offsetDateTime) {
