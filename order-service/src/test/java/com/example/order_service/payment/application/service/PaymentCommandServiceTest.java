@@ -10,6 +10,7 @@ import com.example.order_service.payment.domain.repository.PaymentRepository;
 import com.example.order_service.payment.exception.PaymentErrorCode;
 import com.example.order_service.support.annotation.MockKafka;
 import com.example.order_service.support.annotation.MockRedis;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -38,28 +39,41 @@ public class PaymentCommandServiceTest {
     @Autowired
     private ApplicationEvents applicationEvents;
 
+    @Test
+    @DisplayName("결제를 저장한다")
+    void save() {
+        //given
+        PaymentContext.Create context = PaymentContext.Create.builder()
+                .userId(1L)
+                .orderNo("orderNo")
+                .paymentKey("paymentKey")
+                .totalAmount(Money.wons(10000L))
+                .build();
+        //when
+        PaymentResult.Default save = paymentCommandService.save(context);
+        //then
+        assertThat(save.id()).isNotNull();
+        assertThat(save.orderNo()).isEqualTo("orderNo");
+        assertThat(save.status()).isEqualTo(PaymentStatus.READY);
+        assertThat(save.paymentKey()).isEqualTo("paymentKey");
+        assertThat(save.totalAmount()).isEqualTo(Money.wons(10000L));
+    }
+
     @Nested
-    @DisplayName("결제 저장")
-    class Save {
+    @DisplayName("결제를 승인 처리 한다")
+    class Done {
 
         @Test
-        @DisplayName("결제를 저장한다")
-        void save() {
+        @DisplayName("결제를 찾을 수 없으면 예외가 발생한다")
+        void done_payment_not_found(){
             //given
-            PaymentContext.Create context = PaymentContext.Create.builder()
-                    .userId(1L)
-                    .orderNo("orderNo")
-                    .paymentKey("paymentKey")
-                    .totalAmount(Money.wons(10000L))
-                    .build();
+            PaymentContext.Approval context = Instancio.create(PaymentContext.Approval.class);
             //when
-            PaymentResult.Default save = paymentCommandService.save(context);
             //then
-            assertThat(save.id()).isNotNull();
-            assertThat(save.orderNo()).isEqualTo("orderNo");
-            assertThat(save.status()).isEqualTo(PaymentStatus.READY);
-            assertThat(save.paymentKey()).isEqualTo("paymentKey");
-            assertThat(save.totalAmount()).isEqualTo(Money.wons(10000L));
+            assertThatThrownBy(() -> paymentCommandService.done(context))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(PaymentErrorCode.PAYMENT_NOT_FOUND);
         }
     }
 

@@ -51,16 +51,14 @@ public class PaymentCommandService {
         return Payment.create(context.orderNo(), context.userId(), context.paymentKey(), context.totalAmount());
     }
 
-    private PaymentRecord createApprovalPaymentRecord(PaymentContext.Approval context) {
-        return PaymentRecord.createApproval(context.amount(), context.method(), context.approvedAt());
-    }
-
-    public void fail(Long id, String reason) {
-        Payment payment = paymentRepository.findById(id)
-                .orElseThrow(() -> new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND));
-        payment.fail(reason);
-    }
-
+    /**
+     * 결제 승인 성공
+     * <p>
+     *     결제 승인 상태로 변경하고 PaymentRecord를 저장한다
+     * </p>
+     * @param context 결제 승인 command
+     * @return 결제 승인 처리 결과
+     */
     public PaymentResult.PaymentApproval done(PaymentContext.Approval context) {
         Payment payment = paymentRepository.findById(context.paymentId())
                 .orElseThrow(() -> new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND));
@@ -69,6 +67,24 @@ public class PaymentCommandService {
         PaymentCompleteEvent event = PaymentCompleteEvent.of(payment.getOrderNo());
         eventPublisher.publishEvent(event);
         return PaymentResult.PaymentApproval.of(payment, paymentRecord);
+    }
+
+    private PaymentRecord createApprovalPaymentRecord(PaymentContext.Approval context) {
+        return PaymentRecord.createApproval(context.amount(), context.method(), context.approvedAt());
+    }
+
+    /**
+     * 결제 승인 실패
+     * <p>
+     *     결제 실패 상태로 변경한다
+     * </p>
+     * @param id 결제 아이디
+     * @param reason 실패 이유
+     */
+    public void fail(Long id, String reason) {
+        Payment payment = paymentRepository.findById(id)
+                .orElseThrow(() -> new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND));
+        payment.fail(reason);
     }
 
     //TODO orderNo 로 찾으면 주문 결제가 여러개인 경우는?
