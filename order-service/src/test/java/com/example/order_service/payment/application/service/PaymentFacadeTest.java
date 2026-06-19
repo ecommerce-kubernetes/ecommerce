@@ -253,13 +253,13 @@ public class PaymentFacadeTest {
             given(paymentCommandService.create(any(PaymentContext.Create.class))).willReturn(savedPayment);
             given(paymentGateway.confirm(any())).willReturn(pgApproval);
             given(mapper.toContext(anyLong(), any(PgPaymentResult.Approval.class))).willReturn(approvalContext);
-            willThrow(new BusinessException(PaymentErrorCode.UNSUPPORTED_PAYMENT_STATUS)).given(paymentCommandService).approve(any());
+            willThrow(new BusinessException(PaymentErrorCode.UNSUPPORTED_PAYMENT_METHOD)).given(paymentCommandService).approve(any());
             //when
             //then
             assertThatThrownBy(() -> paymentFacade.confirm(command))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
-                    .isEqualTo(PaymentErrorCode.UNSUPPORTED_PAYMENT_STATUS);
+                    .isEqualTo(PaymentErrorCode.UNSUPPORTED_PAYMENT_METHOD);
             verify(paymentGateway).cancel(any());
         }
 

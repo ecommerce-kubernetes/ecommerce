@@ -2,8 +2,6 @@ package com.example.order_service.payment.application.service;
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.business.BusinessException;
-import com.example.order_service.order.application.event.OrderSagaProcessEvent;
-import com.example.order_service.order.domain.saga.SagaStep;
 import com.example.order_service.payment.application.event.PaymentCompleteEvent;
 import com.example.order_service.payment.application.service.dto.command.PaymentContext;
 import com.example.order_service.payment.application.service.dto.result.PaymentResult;
@@ -149,7 +147,7 @@ public class PaymentCommandServiceTest {
             assertThatThrownBy(() -> paymentCommandService.approve(context))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
-                    .isEqualTo(PaymentErrorCode.UNSUPPORTED_PAYMENT_STATUS);
+                    .isEqualTo(PaymentErrorCode.UNSUPPORTED_PAYMENT_METHOD);
         }
 
         @Test

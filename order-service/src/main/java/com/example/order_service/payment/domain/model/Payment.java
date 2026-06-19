@@ -62,7 +62,7 @@ public class Payment {
             throw new BusinessException(PaymentErrorCode.INVALID_PAYMENT_STATUS_FOR_APPROVAL);
         }
         if (status != PaymentStatus.DONE) {
-            throw new BusinessException(PaymentErrorCode.UNSUPPORTED_PAYMENT_STATUS);
+            throw new BusinessException(PaymentErrorCode.UNSUPPORTED_PAYMENT_METHOD);
         }
         if (!this.totalAmount.equals(approvalRecord.getAmount())) {
             throw new BusinessException(PaymentErrorCode.PG_APPROVAL_AMOUNT_MISMATCH);

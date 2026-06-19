@@ -46,8 +46,8 @@ class PaymentMapperTest {
         //given
         LocalDateTime approvedAt = LocalDateTime.now();
         PgPaymentResult.Approval result = PgPaymentResult.Approval.builder()
-                .orderNo("orderNo")
-                .paymentKey("paymentKey")
+//                .orderNo("orderNo")
+//                .paymentKey("paymentKey")
                 .totalAmount(Money.wons(10000L))
                 .status(PaymentStatus.DONE)
                 .method(PaymentMethod.CARD)

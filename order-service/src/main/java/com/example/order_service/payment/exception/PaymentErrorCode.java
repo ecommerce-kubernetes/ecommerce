@@ -7,7 +7,7 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum PaymentErrorCode implements ErrorCode {
-    UNSUPPORTED_PAYMENT_STATUS(409, "UNSUPPORTED_PAYMENT_STATUS", "지원하지 않는 결제 방식입니다"),
+    UNSUPPORTED_PAYMENT_METHOD(409, "UNSUPPORTED_PAYMENT_METHOD", "지원하지 않는 결제 방식입니다"),
     EXCEEDED_REFUNDABLE_AMOUNT(409, "EXCEEDED_REFUNDABLE_AMOUNT", "환불 가능 금액을 초과했습니다"),
     INVALID_PAYMENT_STATUS_FOR_REFUND_PENDING(409, "INVALID_PAYMENT_STATUS_FOR_REFUND_PENDING", "환불 요청 가능한 상태가 아닙니다"),
     INVALID_PAYMENT_STATUS_FOR_APPROVAL(409, "INVALID_PAYMENT_STATUS_FOR_APPROVAL", "승인 가능한 결제 상태가 아닙니다"),
