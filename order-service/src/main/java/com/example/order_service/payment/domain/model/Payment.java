@@ -26,17 +26,21 @@ public class Payment {
     private Money totalAmount;
     @Enumerated(EnumType.STRING)
     private PaymentStatus status;
+    private PaymentMethod method;
+    private String lastTransactionKey;
 
     @OneToMany(mappedBy = "payment", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PaymentRecord> paymentRecords = new ArrayList<>();
 
     @Builder(access = AccessLevel.PRIVATE)
-    private Payment(String orderNo, Long userId, String paymentKey, Money totalAmount, PaymentStatus status) {
+    private Payment(String orderNo, Long userId, String paymentKey, Money totalAmount, PaymentStatus status, PaymentMethod method, String lastTransactionKey) {
         this.orderNo = orderNo;
         this.userId = userId;
         this.paymentKey = paymentKey;
         this.totalAmount = totalAmount;
         this.status = status;
+        this.method = method;
+        this.lastTransactionKey = lastTransactionKey;
     }
 
     public static Payment create(String orderNo, Long userId, String paymentKey, Money totalAmount) {
@@ -57,18 +61,19 @@ public class Payment {
         this.status = status;
     }
 
-    public void approve(PaymentRecord approvalRecord, PaymentStatus status) {
+    public void approve(PaymentRecord approvalRecord, PaymentStatus status, PaymentMethod method) {
         if (this.status != PaymentStatus.READY) {
             throw new BusinessException(PaymentErrorCode.INVALID_PAYMENT_STATUS_FOR_APPROVAL);
         }
-        if (status != PaymentStatus.DONE) {
+        if (method == PaymentMethod.VIRTUAL_ACCOUNT) {
             throw new BusinessException(PaymentErrorCode.UNSUPPORTED_PAYMENT_METHOD);
         }
         if (!this.totalAmount.equals(approvalRecord.getAmount())) {
             throw new BusinessException(PaymentErrorCode.PG_APPROVAL_AMOUNT_MISMATCH);
         }
         this.addRecord(approvalRecord);
-        this.status = PaymentStatus.DONE;
+        this.status = status;
+        this.method = method;
     }
 
     public void fail(String reason) {
@@ -88,7 +93,7 @@ public class Payment {
         }
 
         Money remainingAmount = calculateRemainingAmount();
-        if (cancelledRecord.getAmount().isGreaterThan(remainingAmount)){
+        if (cancelledRecord.getAmount().isGreaterThan(remainingAmount)) {
             throw new BusinessException(PaymentErrorCode.EXCEEDED_REFUNDABLE_AMOUNT);
         }
 
@@ -96,7 +101,7 @@ public class Payment {
         this.status = status;
     }
 
-    public Money calculateTotalCanceledAmount(){
+    public Money calculateTotalCanceledAmount() {
         return this.paymentRecords.stream()
                 .filter(record -> record.getType() == TransactionType.REFUND)
                 .map(PaymentRecord::getAmount)
@@ -110,5 +115,6 @@ public class Payment {
     private void addRecord(PaymentRecord paymentRecord) {
         this.paymentRecords.add(paymentRecord);
         paymentRecord.setPayment(this);
+        this.lastTransactionKey = paymentRecord.getTransactionKey();
     }
 }

@@ -44,9 +44,9 @@ public class PaymentResult {
                     .paymentKey(payment.getPaymentKey())
                     .orderNo(payment.getOrderNo())
                     .totalAmount(payment.getTotalAmount())
-                    .method(paymentRecord.getMethod())
+                    .method(payment.getMethod())
                     .status(payment.getStatus())
-                    .approvedAt(paymentRecord.getApprovedAt())
+                    .approvedAt(paymentRecord.getOccurredAt())
                     .build();
         }
     }
@@ -65,9 +65,9 @@ public class PaymentResult {
                     .paymentKey(payment.getPaymentKey())
                     .orderNo(payment.getOrderNo())
                     .totalAmount(payment.getTotalAmount())
-                    .method(paymentRecord.getMethod())
+                    .method(payment.getMethod())
                     .status(payment.getStatus())
-                    .approvedAt(paymentRecord.getApprovedAt())
+                    .approvedAt(paymentRecord.getOccurredAt())
                     .build();
         }
     }

@@ -62,14 +62,14 @@ public class PaymentCommandService {
         Payment payment = paymentRepository.findById(context.paymentId())
                 .orElseThrow(() -> new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND));
         PaymentRecord paymentRecord = createApprovalPaymentRecord(context);
-        payment.approve(paymentRecord, context.status());
+        payment.approve(paymentRecord, context.status(), context.method());
         PaymentCompleteEvent event = PaymentCompleteEvent.of(payment.getOrderNo());
         eventPublisher.publishEvent(event);
         return PaymentResult.PaymentApproval.of(payment, paymentRecord);
     }
 
     private PaymentRecord createApprovalPaymentRecord(PaymentContext.Approval context) {
-        return PaymentRecord.createApproval(context.amount(), context.method(), context.approvedAt());
+        return PaymentRecord.createApproval(context.transactionKey(), context.amount(), context.approvedAt());
     }
 
     /**
@@ -113,7 +113,7 @@ public class PaymentCommandService {
     }
 
     private PaymentRecord createCancellationPaymentRecord(PaymentContext.Cancellation context) {
-        return PaymentRecord.createCancellation(context.amount(), context.method(), context.cancelReason(), context.approvedAt());
+        return PaymentRecord.createCancellation("", context.amount(), context.cancelReason(), context.approvedAt());
     }
 
 }

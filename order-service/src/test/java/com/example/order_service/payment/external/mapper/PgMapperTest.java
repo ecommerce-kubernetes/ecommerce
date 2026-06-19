@@ -41,7 +41,7 @@ public class PgMapperTest {
                 .status(PaymentStatus.DONE)
                 .totalAmount(Money.wons(10000L))
                 .method(PaymentMethod.CARD)
-                .lastTransactionKey("9C62B18EEF0DE3EB7F4422EB6D14BC6E")
+                .transactionKey("9C62B18EEF0DE3EB7F4422EB6D14BC6E")
                 .approvedAt(expectedDateTime)
                 .build();
         //when

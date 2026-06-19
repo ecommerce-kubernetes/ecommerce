@@ -2,7 +2,6 @@ package com.example.order_service.payment.external;
 
 import com.example.order_service.common.exception.business.BusinessException;
 import com.example.order_service.common.exception.external.ExternalClientException;
-import com.example.order_service.common.exception.external.ExternalNetworkTimeoutException;
 import com.example.order_service.common.exception.external.ExternalServerException;
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
 import com.example.order_service.infrastructure.adaptor.TossAdaptor;
@@ -100,20 +99,6 @@ public class PaymentGatewayTest {
                     .isEqualTo(PaymentErrorCode.PAYMENT_TOSS_UNAVAILABLE_ERROR);
         }
 
-        @Test
-        @DisplayName("결제 승인중 타임아웃 에러가 발생한 경우 비지니스 예외가 발생한다")
-        void confirm_timeoutException() {
-            //given
-            PGPaymentCommand.Confirm command = Instancio.create(PGPaymentCommand.Confirm.class);
-            willThrow(new ExternalNetworkTimeoutException("TIMEOUT", "네트워크 응답 지연"))
-                    .given(adaptor).confirmPayment(anyString(), anyString(), anyLong());
-            //when
-            //then
-            assertThatThrownBy(() -> paymentGateway.confirm(command))
-                    .isInstanceOf(BusinessException.class)
-                    .extracting("errorCode")
-                    .isEqualTo(PaymentErrorCode.PAYMENT_TOSS_TIME_OUT_ERROR);
-        }
     }
 
     @Nested
@@ -177,21 +162,6 @@ public class PaymentGatewayTest {
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(PaymentErrorCode.PAYMENT_TOSS_UNAVAILABLE_ERROR);
-        }
-
-        @Test
-        @DisplayName("결제 취소중 타임아웃 에러가 발생한 경우 비지니스 예외가 발생한다")
-        void cancel_timeoutException() {
-            //given
-            PGPaymentCommand.Cancel command = Instancio.create(PGPaymentCommand.Cancel.class);
-            willThrow(new ExternalNetworkTimeoutException("TIMEOUT", "네트워크 응답 지연"))
-                    .given(adaptor).cancelPayment(anyString(), anyString(), anyLong());
-            //when
-            //then
-            assertThatThrownBy(() -> paymentGateway.cancel(command))
-                    .isInstanceOf(BusinessException.class)
-                    .extracting("errorCode")
-                    .isEqualTo(PaymentErrorCode.PAYMENT_TOSS_TIME_OUT_ERROR);
         }
     }
 }

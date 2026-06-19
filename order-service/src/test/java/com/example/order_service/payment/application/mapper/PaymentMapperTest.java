@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -44,27 +45,48 @@ class PaymentMapperTest {
     @DisplayName("결제 승인 컨텍스트 매핑")
     void toContext_approval(){
         //given
+        Long paymentId = 1L;
         LocalDateTime approvedAt = LocalDateTime.now();
         PgPaymentResult.Approval result = PgPaymentResult.Approval.builder()
-//                .orderNo("orderNo")
-//                .paymentKey("paymentKey")
-                .totalAmount(Money.wons(10000L))
                 .status(PaymentStatus.DONE)
+                .totalAmount(Money.wons(10000L))
                 .method(PaymentMethod.CARD)
+                .transactionKey("9C62B18EEF0DE3EB7F4422EB6D14BC6E")
                 .approvedAt(approvedAt)
                 .build();
 
         PaymentContext.Approval expected = PaymentContext.Approval.builder()
-                .paymentId(1L)
-                .amount(Money.wons(10000L))
+                .paymentId(paymentId)
                 .status(PaymentStatus.DONE)
+                .amount(Money.wons(10000L))
                 .method(PaymentMethod.CARD)
+                .transactionKey("9C62B18EEF0DE3EB7F4422EB6D14BC6E")
                 .approvedAt(approvedAt)
                 .build();
         //when
-        PaymentContext.Approval approval = paymentMapper.toContext(1L, result);
+        PaymentContext.Approval approval = paymentMapper.toContext(paymentId, result);
         //then
         assertThat(approval).usingRecursiveComparison()
                 .isEqualTo(expected);
+    }
+
+    @Test
+    @DisplayName("결제 취소 컨텍스트 매핑")
+    void toContext_cancellation() {
+        //given
+        Long paymentId = 1L;
+        LocalDateTime canceledAt = LocalDateTime.now();
+        PgPaymentResult.CancelReceipt cancelReceipt = PgPaymentResult.CancelReceipt.builder()
+                .transactionKey("090A796806E726BBB929F4A2CA7DB9A7")
+                .cancelAmount(Money.wons(10000L))
+                .cancelReason("테스트 결제 취소")
+                .canceledAt(canceledAt)
+                .build();
+        PgPaymentResult.Cancellation result = PgPaymentResult.Cancellation.builder()
+                .status(PaymentStatus.CANCELED)
+                .cancels(List.of(cancelReceipt))
+                .build();
+        //when
+        //then
     }
 }

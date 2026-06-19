@@ -69,13 +69,7 @@ public class PaymentFacade {
                     order.totalPaymentAmount());
             return paymentGateway.confirm(gatewayCommand);
         } catch (BusinessException e) {
-            // [NOTE] 토스 결제 승인중 에러 발생시 결제를 취소 처리함
-            // 토스 결제 승인중 타임아웃이 발생한다면 결제 승인이 처리되었는지 알 수 없음 따라서 대사 스케줄러를 통해 망취소를 진행함
-            if (e.getErrorCode() != PaymentErrorCode.PAYMENT_TOSS_TIME_OUT_ERROR) {
-                abortPayment(payment.id(), e.getMessage());
-            } else {
-                log.warn("토스 응답 타임아웃. 결제 미상 상태(READY) 유지 및 스케줄러 위임: {}", payment.id());
-            }
+            abortPayment(payment.id(), e.getMessage());
             throw e;
         }
     }

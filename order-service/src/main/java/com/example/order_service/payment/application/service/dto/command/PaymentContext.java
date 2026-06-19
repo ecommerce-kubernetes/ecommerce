@@ -22,9 +22,10 @@ public class PaymentContext {
     @Builder
     public record Approval(
             Long paymentId,
-            Money amount,
             PaymentStatus status,
+            Money amount,
             PaymentMethod method,
+            String transactionKey,
             LocalDateTime approvedAt
     ) {
     }

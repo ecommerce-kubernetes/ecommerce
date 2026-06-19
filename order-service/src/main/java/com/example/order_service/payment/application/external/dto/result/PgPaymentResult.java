@@ -15,7 +15,7 @@ public class PgPaymentResult {
            PaymentStatus status,
            Money totalAmount,
            PaymentMethod method,
-           String lastTransactionKey,
+           String transactionKey,
            LocalDateTime approvedAt
     ) {}
 
@@ -23,7 +23,11 @@ public class PgPaymentResult {
     public record Cancellation(
             PaymentStatus status,
             List<CancelReceipt> cancels
-    ) {}
+    ) {
+        public CancelReceipt lastCancel() {
+            return cancels.getLast();
+        }
+    }
 
     @Builder
     public record CancelReceipt(

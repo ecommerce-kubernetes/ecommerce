@@ -202,35 +202,6 @@ public class PaymentFacadeTest {
         }
 
         @Test
-        @DisplayName("PG사 결제 승인 요청시 타임아웃 예외가 발생하면 예외를 그대로 던진다")
-        void confirm_PG_timeout_error(){
-            PaymentCommand.Confirm command = PaymentCommand.Confirm.builder()
-                    .userId(1L)
-                    .orderNo("orderNo")
-                    .paymentKey("paymentKey")
-                    .amount(Money.wons(10000L))
-                    .build();
-            OrderResult.Detail order = Instancio.of(OrderResult.Detail.class)
-                    .set(field("status"), OrderStatus.PENDING)
-                    .set(field("totalPaymentAmount"), Money.wons(10000L))
-                    .create();
-            PaymentContext.Create createContext = Instancio.create(PaymentContext.Create.class);
-            PaymentResult.Default savedPayment = Instancio.create(PaymentResult.Default.class);
-            given(orderQueryService.getOrder(anyString(), anyLong())).willReturn(order);
-            given(mapper.toContext(any(PaymentCommand.Confirm.class))).willReturn(createContext);
-            given(paymentCommandService.create(any(PaymentContext.Create.class))).willReturn(savedPayment);
-            willThrow(new BusinessException(PaymentErrorCode.PAYMENT_TOSS_TIME_OUT_ERROR)).given(paymentGateway).confirm(any());
-            //when
-            //then
-            assertThatThrownBy(() -> paymentFacade.confirm(command))
-                    .isInstanceOf(BusinessException.class)
-                    .extracting("errorCode")
-                    .isEqualTo(PaymentErrorCode.PAYMENT_TOSS_TIME_OUT_ERROR);
-
-            verify(paymentCommandService, never()).fail(anyLong(), anyString());
-        }
-
-        @Test
         @DisplayName("PG 승인 성공 후 Payment 저장시 비지니스 예외가 발생하면 망 취소를 수행한 뒤 비지니스 예외를 그대로 넘긴다")
         void confirm_whenPaymentDoneBusinessFailAfterPGApproval_thenExecuteNetworkCancel() {
             //given
