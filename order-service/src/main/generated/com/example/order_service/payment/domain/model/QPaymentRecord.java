@@ -26,18 +26,18 @@ public class QPaymentRecord extends EntityPathBase<PaymentRecord> {
 
     public final SimplePath<com.example.order_service.common.domain.vo.Money> amount = createSimple("amount", com.example.order_service.common.domain.vo.Money.class);
 
-    public final DateTimePath<java.time.LocalDateTime> approvedAt = createDateTime("approvedAt", java.time.LocalDateTime.class);
-
     //inherited
     public final DateTimePath<java.time.LocalDateTime> createdAt = _super.createdAt;
 
     public final NumberPath<Long> id = createNumber("id", Long.class);
 
-    public final EnumPath<PaymentMethod> method = createEnum("method", PaymentMethod.class);
+    public final DateTimePath<java.time.LocalDateTime> occurredAt = createDateTime("occurredAt", java.time.LocalDateTime.class);
 
     public final QPayment payment;
 
     public final StringPath reason = createString("reason");
+
+    public final StringPath transactionKey = createString("transactionKey");
 
     public final EnumPath<TransactionType> type = createEnum("type", TransactionType.class);
 

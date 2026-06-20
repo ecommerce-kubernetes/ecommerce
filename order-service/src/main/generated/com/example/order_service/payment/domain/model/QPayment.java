@@ -20,7 +20,13 @@ public class QPayment extends EntityPathBase<Payment> {
 
     public static final QPayment payment = new QPayment("payment");
 
+    public final StringPath failureCode = createString("failureCode");
+
     public final NumberPath<Long> id = createNumber("id", Long.class);
+
+    public final StringPath lastTransactionKey = createString("lastTransactionKey");
+
+    public final EnumPath<PaymentMethod> method = createEnum("method", PaymentMethod.class);
 
     public final StringPath orderNo = createString("orderNo");
 

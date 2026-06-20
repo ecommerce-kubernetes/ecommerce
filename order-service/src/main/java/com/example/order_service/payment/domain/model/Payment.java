@@ -28,12 +28,13 @@ public class Payment {
     private PaymentStatus status;
     private PaymentMethod method;
     private String lastTransactionKey;
+    private String failureCode;
 
     @OneToMany(mappedBy = "payment", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PaymentRecord> paymentRecords = new ArrayList<>();
 
     @Builder(access = AccessLevel.PRIVATE)
-    private Payment(String orderNo, Long userId, String paymentKey, Money totalAmount, PaymentStatus status, PaymentMethod method, String lastTransactionKey) {
+    private Payment(String orderNo, Long userId, String paymentKey, Money totalAmount, PaymentStatus status, PaymentMethod method, String lastTransactionKey, String failureCode) {
         this.orderNo = orderNo;
         this.userId = userId;
         this.paymentKey = paymentKey;
@@ -41,6 +42,7 @@ public class Payment {
         this.status = status;
         this.method = method;
         this.lastTransactionKey = lastTransactionKey;
+        this.failureCode = failureCode;
     }
 
     public static Payment create(String orderNo, Long userId, String paymentKey, Money totalAmount) {
@@ -51,14 +53,6 @@ public class Payment {
                 .totalAmount(totalAmount)
                 .status(PaymentStatus.READY)
                 .build();
-    }
-
-    public void approval(PaymentRecord approvalRecord, PaymentStatus status) {
-        if (this.status != PaymentStatus.READY) {
-            throw new BusinessException(PaymentErrorCode.INVALID_PAYMENT_STATUS_FOR_APPROVAL);
-        }
-        this.addRecord(approvalRecord);
-        this.status = status;
     }
 
     public void approve(PaymentRecord approvalRecord, PaymentStatus status, PaymentMethod method) {
@@ -76,8 +70,12 @@ public class Payment {
         this.method = method;
     }
 
-    public void fail(String reason) {
-
+    public void fail(String failureCode) {
+        if (this.status != PaymentStatus.READY) {
+            throw new BusinessException(PaymentErrorCode.INVALID_PAYMENT_STATUS_FOR_FAIL);
+        }
+        this.status = PaymentStatus.ABORTED;
+        this.failureCode = failureCode;
     }
 
     public void refundPending() {

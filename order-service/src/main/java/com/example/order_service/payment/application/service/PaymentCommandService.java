@@ -78,12 +78,12 @@ public class PaymentCommandService {
      *     결제 실패 상태로 변경한다
      * </p>
      * @param id 결제 아이디
-     * @param reason 실패 이유
+     * @param failureCode 실패 코드
      */
-    public void fail(Long id, String reason) {
+    public void fail(Long id, String failureCode) {
         Payment payment = paymentRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND));
-        payment.fail(reason);
+        payment.fail(failureCode);
     }
 
     //TODO orderNo 로 찾으면 주문 결제가 여러개인 경우는?

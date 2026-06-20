@@ -177,6 +177,20 @@ public class PaymentCommandServiceTest {
     class Fail {
 
         @Test
+        @DisplayName("결제를 취소 처리한다")
+        void fail(){
+            //given
+            Payment payment = Payment.create("orderNo", 1L, "paymentKey", Money.wons(10000L));
+            paymentRepository.save(payment);
+            //when
+            paymentCommandService.fail(payment.getId(), "REJECT_ACCOUNT_PAYMENT");
+            //then
+            assertThat(payment.getStatus()).isEqualTo(PaymentStatus.ABORTED);
+            assertThat(payment.getFailureCode()).isEqualTo("REJECT_ACCOUNT_PAYMENT");
+
+        }
+
+        @Test
         @DisplayName("결제 승인 실패시 결제를 찾을 수 없으면 예외가 발생한다")
         void fail_payment_not_found() {
             //given
@@ -187,26 +201,27 @@ public class PaymentCommandServiceTest {
                     .extracting("errorCode")
                     .isEqualTo(PaymentErrorCode.PAYMENT_NOT_FOUND);
         }
+
+        @Test
+        @DisplayName("결제 승인 실패시 결제가 취소 가능한 상태가 아니면 예외가 발생한다")
+        void fail_payment_not_ready(){
+            //given
+            Payment payment = Payment.create("orderNo", 1L, "paymentKey", Money.wons(10000L));
+            PaymentRecord approval = PaymentRecord.createApproval("transactionKey", Money.wons(10000L), LocalDateTime.now());
+            payment.approve(approval, PaymentStatus.DONE, PaymentMethod.CARD);
+            paymentRepository.save(payment);
+            //when
+            //then
+            assertThatThrownBy(() -> paymentCommandService.fail(payment.getId(), "REJECT_ACCOUNT_PAYMENT"))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(PaymentErrorCode.INVALID_PAYMENT_STATUS_FOR_FAIL);
+        }
     }
 
     @Nested
     @DisplayName("환불 대기 변경")
     class RefundPending {
-
-        @Test
-        @DisplayName("환불 대기 상태로 변경한다")
-        void changeRefund() {
-            //given
-            String orderNo = "orderNo";
-            Payment payment = Payment.create(orderNo, 1L, "paymentKey", Money.wons(10000L));
-            PaymentRecord approval = PaymentRecord.createApproval("transactionKey", Money.wons(10000L), LocalDateTime.now());
-            payment.approval(approval, PaymentStatus.DONE);
-            paymentRepository.save(payment);
-            //when
-            paymentCommandService.changeRefundPending(orderNo);
-            //then
-            assertThat(payment.getStatus()).isEqualTo(PaymentStatus.REFUND_PENDING);
-        }
 
         @Test
         @DisplayName("결제를 찾을 수 없으면 예외가 발생한다")

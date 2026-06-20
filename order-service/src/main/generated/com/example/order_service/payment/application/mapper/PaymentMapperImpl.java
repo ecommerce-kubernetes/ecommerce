@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-06-19T04:49:14+0900",
+    date = "2026-06-21T02:18:58+0900",
     comments = "version: 1.6.3, compiler: javac, environment: Java 21.0.10 (Eclipse Adoptium)"
 )
 @Component
@@ -42,6 +42,7 @@ public class PaymentMapperImpl implements PaymentMapper {
             approval.amount( result.totalAmount() );
             approval.status( result.status() );
             approval.method( result.method() );
+            approval.transactionKey( result.transactionKey() );
             approval.approvedAt( result.approvedAt() );
         }
         approval.paymentId( paymentId );
@@ -58,10 +59,23 @@ public class PaymentMapperImpl implements PaymentMapper {
         PaymentContext.Cancellation.CancellationBuilder cancellation = PaymentContext.Cancellation.builder();
 
         if ( result != null ) {
-            cancellation.amount( result.totalAmount() );
             cancellation.status( result.status() );
-            cancellation.method( result.method() );
-            cancellation.approvedAt( result.approvedAt() );
+        }
+        cancellation.paymentId( paymentId );
+
+        return cancellation.build();
+    }
+
+    @Override
+    public PaymentContext.Cancellation toContext(Long paymentId, PgPaymentResult.CancelReceipt result) {
+        if ( paymentId == null && result == null ) {
+            return null;
+        }
+
+        PaymentContext.Cancellation.CancellationBuilder cancellation = PaymentContext.Cancellation.builder();
+
+        if ( result != null ) {
+            cancellation.cancelReason( result.cancelReason() );
         }
         cancellation.paymentId( paymentId );
 
