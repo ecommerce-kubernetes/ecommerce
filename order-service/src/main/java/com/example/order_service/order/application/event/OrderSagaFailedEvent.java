@@ -7,11 +7,13 @@ import lombok.Getter;
 @Builder
 public class OrderSagaFailedEvent {
     private String orderNo;
+    private Long paymentId;
     private String code;
 
-    public static OrderSagaFailedEvent of(String orderNo, String code) {
+    public static OrderSagaFailedEvent of(String orderNo, Long paymentId, String code) {
         return OrderSagaFailedEvent.builder()
                 .orderNo(orderNo)
+                .paymentId(paymentId)
                 .code(code)
                 .build();
     }

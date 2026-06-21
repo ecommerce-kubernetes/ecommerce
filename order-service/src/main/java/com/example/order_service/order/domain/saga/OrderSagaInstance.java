@@ -21,6 +21,7 @@ public class OrderSagaInstance extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String orderNo;
+    private Long paymentId;
     @Enumerated(EnumType.STRING)
     private SagaStep currentStep;
     @Enumerated(EnumType.STRING)
@@ -34,16 +35,18 @@ public class OrderSagaInstance extends BaseEntity {
     private List<SagaStepHistory> histories = new ArrayList<>();
 
     @Builder(access = AccessLevel.PRIVATE)
-    private OrderSagaInstance(String orderNo, SagaStep currentStep, SagaStatus status, SagaPayload payload) {
+    private OrderSagaInstance(String orderNo, Long paymentId, SagaStep currentStep, SagaStatus status, SagaPayload payload) {
         this.orderNo = orderNo;
+        this.paymentId = paymentId;
         this.currentStep = currentStep;
         this.status = status;
         this.payload = payload;
     }
 
-    public static OrderSagaInstance create(String orderNo, SagaStep currentStep, SagaPayload payload) {
+    public static OrderSagaInstance create(String orderNo, Long paymentId, SagaStep currentStep, SagaPayload payload) {
         return OrderSagaInstance.builder()
                 .orderNo(orderNo)
+                .paymentId(paymentId)
                 .currentStep(currentStep)
                 .status(SagaStatus.STARTED)
                 .payload(payload)

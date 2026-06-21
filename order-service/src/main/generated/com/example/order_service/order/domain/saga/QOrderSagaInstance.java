@@ -37,6 +37,8 @@ public class QOrderSagaInstance extends EntityPathBase<OrderSagaInstance> {
 
     public final com.example.order_service.order.domain.vo.QSagaPayload payload;
 
+    public final NumberPath<Long> paymentId = createNumber("paymentId", Long.class);
+
     public final EnumPath<SagaStatus> status = createEnum("status", SagaStatus.class);
 
     //inherited

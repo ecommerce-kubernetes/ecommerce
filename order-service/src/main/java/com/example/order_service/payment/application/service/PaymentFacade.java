@@ -16,8 +16,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
-
 /**
  * 결제를 담당하는 오케스트레이션 서비스
  * <p>
@@ -74,6 +72,33 @@ public class PaymentFacade {
         }
     }
 
+    private PaymentResult.PaymentApproval approveWithFallback(PaymentResult.Default payment,
+                                                              PgPaymentResult.Approval pgResult) {
+        try {
+            PaymentContext.Approval approvalContext = mapper.toContext(payment.id(), pgResult);
+            return paymentCommandService.approve(approvalContext);
+        } catch (Exception e) {
+            boolean isCanceled = attemptNetworkCancel(payment.paymentKey());
+            if (isCanceled) {
+                abortPayment(payment.id(), "NET-CANCEL");
+                throw new BusinessException(PaymentErrorCode.PAYMENT_AUTO_CANCELED);
+            } else {
+                throw new BusinessException(PaymentErrorCode.PAYMENT_REFUND_PENDING);
+            }
+        }
+    }
+
+    private boolean attemptNetworkCancel(String paymentKey) {
+        try {
+            PGPaymentCommand.Cancel cancelCommand = PGPaymentCommand.Cancel.ofFull(paymentKey, "내부 DB 저장 실패로 인한 망취소");
+            paymentGateway.cancel(cancelCommand);
+            return true;
+        } catch (Exception e) {
+            log.error("망 취소 실패 {}", paymentKey, e);
+            return false;
+        }
+    }
+
     /**
      * [NOTE]
      * 내부 DB의 결제 상태를 ABORT로 변경
@@ -86,58 +111,9 @@ public class PaymentFacade {
      */
     private void abortPayment(Long paymentId, String reason) {
         try {
-            paymentCommandService.fail(paymentId, reason);
+            paymentCommandService.abort(paymentId, reason);
         } catch (Exception e) {
             log.error("결제 ABORT 변경 실패 {}", paymentId, e);
-        }
-    }
-
-    private PaymentResult.PaymentApproval approveWithFallback(PaymentResult.Default payment,
-                                                              PgPaymentResult.Approval pgResult) {
-        try {
-            PaymentContext.Approval approvalContext = mapper.toContext(payment.id(), pgResult);
-            return paymentCommandService.approve(approvalContext);
-        } catch (Exception e) {
-            Optional<PgPaymentResult.Cancellation> cancelResultOpt = attemptNetworkCancel(payment.paymentKey());
-            cancelResultOpt.ifPresent(cancelResult ->
-                    recordCancelFallback(payment.id(), cancelResult)
-            );
-            if (e instanceof BusinessException) {
-                throw (BusinessException) e;
-            }
-            if (cancelResultOpt.isPresent()) {
-                throw new BusinessException(PaymentErrorCode.PAYMENT_AUTO_CANCELED);
-            } else {
-                throw new BusinessException(PaymentErrorCode.PAYMENT_REFUND_PENDING);
-            }
-        }
-    }
-
-    private Optional<PgPaymentResult.Cancellation> attemptNetworkCancel(String paymentKey) {
-        try {
-            PGPaymentCommand.Cancel cancelCommand = PGPaymentCommand.Cancel.ofFull(paymentKey, "내부 DB 저장 실패로 인한 망취소");
-            return Optional.of(paymentGateway.cancel(cancelCommand));
-        } catch (Exception e) {
-            log.error("망 취소 실패 {}", paymentKey, e);
-            return Optional.empty();
-        }
-    }
-
-    /**
-     * [NOTE]
-     * 망 취소 결과를 저장
-     * [의도적인 예외 삼킴(Swallowing) 로직 포함]
-     * 망취소 결과 저장중 발생한 예외를 그대로 던지는 경우 최초 발생 예외(예: 결제승인 성공후 성공 결과 DB 저장시 예외)가 마스킹 되어
-     * 사용자는 **시스템 문제 발생으로 즉시 환불** 과 같은 에러 메시지를 받는것이 아닌 결제 취소 실패 메시지를 받게 되기 때문에
-     * 망취소 후 결제 취소 저장시 발생한 예외는 예외를 삼켜 최초 발생 예외를 반환하도록 설계하여야 함
-     * 이후 결제 환불 결과 저장 실패의 경우 대사 스케줄러를 통해 정합성을 맞춤
-     */
-    private void recordCancelFallback(Long paymentId, PgPaymentResult.Cancellation cancellation) {
-        try {
-            PaymentContext.Cancellation context = mapper.toContext(paymentId, cancellation);
-            paymentCommandService.cancel(context);
-        } catch (Exception e) {
-            log.error("망취소는 성공했으나 DB 반영 실패. 스케줄러 위임: {}", paymentId, e);
         }
     }
 
@@ -147,15 +123,19 @@ public class PaymentFacade {
      * 시스템 오류로 인한 결제 환불, 해당 주문의 결제 전체를 환불
      * </p>
      *
-     * @param orderNo 주문 번호
+     * @param paymentId 결제 번호
      * @param reason  취소 이유
      */
-    public void revert(String orderNo, String reason) {
-        PaymentResult.Default payment = paymentQueryService.getPayment(orderNo);
-        paymentCommandService.changeRefundPending(payment.orderNo());
-        PGPaymentCommand.Cancel gatewayCommand = PGPaymentCommand.Cancel.ofFull(payment.paymentKey(), reason);
-        PgPaymentResult.Cancellation cancel = paymentGateway.cancel(gatewayCommand);
-        PaymentContext.Cancellation context = mapper.toContext(payment.id(), cancel);
-        paymentCommandService.cancel(context);
+    public void revert(Long paymentId, String reason) {
+        PaymentResult.Default payment = paymentQueryService.getPayment(paymentId);
+        paymentCommandService.changeRefundPending(payment.id());
+        try {
+            PGPaymentCommand.Cancel gatewayCommand = PGPaymentCommand.Cancel.ofFull(payment.paymentKey(), reason);
+            PgPaymentResult.Cancellation cancel = paymentGateway.cancel(gatewayCommand);
+            PaymentContext.Cancellation context = mapper.toContext(payment.id(), cancel.status(), cancel.lastCancel());
+            paymentCommandService.cancel(context);
+        } catch (Exception e) {
+            log.error("[SAGA 보상 지연] PG사 취소 또는 최종 DB 반영 실패. 스케줄러가 재처리 예정: {}", payment.paymentKey(), e);
+        }
     }
 }

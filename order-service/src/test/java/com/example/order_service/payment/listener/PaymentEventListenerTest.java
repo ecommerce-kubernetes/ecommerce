@@ -34,12 +34,13 @@ public class PaymentEventListenerTest {
     void onPaymentComplete(){
         //given
         String orderNo = "orderNo";
-        PaymentCompleteEvent paymentCompleteEvent = PaymentCompleteEvent.of(orderNo);
+        Long paymentId = 1L;
+        PaymentCompleteEvent paymentCompleteEvent = PaymentCompleteEvent.of(orderNo, paymentId);
         //when
         eventPublisher.publishEvent(paymentCompleteEvent);
         TestTransaction.flagForCommit();
         TestTransaction.end();
         //then
-        verify(orderSagaManager, times(1)).startSaga(orderNo);
+        verify(orderSagaManager, times(1)).startSaga(orderNo, paymentId);
     }
 }

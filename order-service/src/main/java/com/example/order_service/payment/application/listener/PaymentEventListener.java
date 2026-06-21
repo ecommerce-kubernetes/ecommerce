@@ -16,6 +16,6 @@ public class PaymentEventListener {
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onPaymentComplete(PaymentCompleteEvent event) {
-        orderSagaManager.startSaga(event.getOrderNo());
+        orderSagaManager.startSaga(event.getOrderNo(), event.getPaymentId());
     }
 }

@@ -43,6 +43,7 @@ public class OrderSagaService {
     public void createSaga(OrderSagaCommand.Create command) {
         OrderSagaInstance saga = OrderSagaInstance.create(
                 command.orderNo(),
+                command.paymentId(),
                 command.step(),
                 command.payload()
         );
@@ -114,7 +115,7 @@ public class OrderSagaService {
         SagaStepHistory history = SagaStepHistory.from(command.step(), command.status(), command.code());
         instance.addHistory(history);
         instance.failed();
-        OrderSagaFailedEvent event = OrderSagaFailedEvent.of(instance.getOrderNo(), instance.getCauseCode());
+        OrderSagaFailedEvent event = OrderSagaFailedEvent.of(instance.getOrderNo(), instance.getPaymentId(), instance.getCauseCode());
         eventPublisher.publishEvent(event);
     }
 

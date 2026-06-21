@@ -48,11 +48,12 @@ public class OrderSagaServiceTest {
         //given
         String orderNo = "orderNo";
         Long userId = 1L;
+        Long paymentId = 1L;
         SagaPayload.CouponPayload couponPayload = SagaPayload.CouponPayload.of(1L, List.of(1L, 2L));
         SagaPayload.ItemPayload itemPayload = SagaPayload.ItemPayload.of(1L, 1);
         SagaPayload.PointPayload pointPayload = SagaPayload.PointPayload.of(Money.wons(1000L));
         SagaPayload payload = SagaPayload.of(userId, List.of(itemPayload), couponPayload, pointPayload);
-        OrderSagaCommand.Create command = OrderSagaCommand.Create.of(orderNo, SagaStep.INVENTORY_DEDUCT_PENDING, payload);
+        OrderSagaCommand.Create command = OrderSagaCommand.Create.of(orderNo, paymentId, SagaStep.INVENTORY_DEDUCT_PENDING, payload);
         //when
         orderSagaService.createSaga(command);
         //then
@@ -74,11 +75,12 @@ public class OrderSagaServiceTest {
         //given
         String orderNo = "orderNo";
         Long userId = 1L;
+        Long paymentId = 1L;
         SagaPayload.CouponPayload couponPayload = SagaPayload.CouponPayload.of(1L, List.of(1L, 2L));
         SagaPayload.ItemPayload itemPayload = SagaPayload.ItemPayload.of(1L, 1);
         SagaPayload.PointPayload pointPayload = SagaPayload.PointPayload.of(Money.wons(1000L));
         SagaPayload payload = SagaPayload.of(userId, List.of(itemPayload), couponPayload, pointPayload);
-        OrderSagaInstance instance = OrderSagaInstance.create(orderNo, SagaStep.INVENTORY_DEDUCT_PENDING, payload);
+        OrderSagaInstance instance = OrderSagaInstance.create(orderNo, paymentId, SagaStep.INVENTORY_DEDUCT_PENDING, payload);
         repository.save(instance);
         //when
         OrderSagaResult.Default result = orderSagaService.getSaga(orderNo);
@@ -107,6 +109,7 @@ public class OrderSagaServiceTest {
         //given
         String orderNo = "orderNo";
         Long userId = 1L;
+        Long paymentId = 1L;
         SagaStep nextStep = SagaStep.COUPON_USE_PENDING;
         OrderSagaCommand.RecordHistory command = OrderSagaCommand.RecordHistory.of(orderNo, StepResult.COMPLETED,
                 SagaStep.INVENTORY_DEDUCT_PENDING, "INVENTORY_DEDUCT_SUCCESS");
@@ -114,7 +117,7 @@ public class OrderSagaServiceTest {
         SagaPayload.ItemPayload itemPayload = SagaPayload.ItemPayload.of(1L, 1);
         SagaPayload.PointPayload pointPayload = SagaPayload.PointPayload.of(Money.wons(1000L));
         SagaPayload payload = SagaPayload.of(userId, List.of(itemPayload), couponPayload, pointPayload);
-        OrderSagaInstance instance = OrderSagaInstance.create(orderNo, SagaStep.INVENTORY_DEDUCT_PENDING, payload);
+        OrderSagaInstance instance = OrderSagaInstance.create(orderNo, paymentId, SagaStep.INVENTORY_DEDUCT_PENDING, payload);
         repository.save(instance);
         //when
         orderSagaService.process(orderNo, nextStep, command);
@@ -156,13 +159,14 @@ public class OrderSagaServiceTest {
         //given
         String orderNo = "orderNo";
         Long userId = 1L;
+        Long paymentId = 1L;
         OrderSagaCommand.RecordHistory command = OrderSagaCommand.RecordHistory.of(orderNo, StepResult.COMPLETED,
                 SagaStep.INVENTORY_DEDUCT_PENDING, "INVENTORY_DEDUCT_SUCCESS");
         SagaPayload.CouponPayload couponPayload = SagaPayload.CouponPayload.of(1L, List.of(1L, 2L));
         SagaPayload.ItemPayload itemPayload = SagaPayload.ItemPayload.of(1L, 1);
         SagaPayload.PointPayload pointPayload = SagaPayload.PointPayload.of(Money.wons(1000L));
         SagaPayload payload = SagaPayload.of(userId, List.of(itemPayload), couponPayload, pointPayload);
-        OrderSagaInstance instance = OrderSagaInstance.create(orderNo, SagaStep.INVENTORY_DEDUCT_PENDING, payload);
+        OrderSagaInstance instance = OrderSagaInstance.create(orderNo, paymentId, SagaStep.INVENTORY_DEDUCT_PENDING, payload);
         repository.save(instance);
         //when
         orderSagaService.complete(orderNo, command);
@@ -203,13 +207,14 @@ public class OrderSagaServiceTest {
         //given
         String orderNo = "orderNo";
         Long userId = 1L;
+        Long paymentId = 1L;
         OrderSagaCommand.RecordHistory command = OrderSagaCommand.RecordHistory.of(orderNo, StepResult.FAILED,
                 SagaStep.INVENTORY_DEDUCT_PENDING, "INVENTORY_DEDUCT_FAIL");
         SagaPayload.CouponPayload couponPayload = SagaPayload.CouponPayload.of(1L, List.of(1L, 2L));
         SagaPayload.ItemPayload itemPayload = SagaPayload.ItemPayload.of(1L, 1);
         SagaPayload.PointPayload pointPayload = SagaPayload.PointPayload.of(Money.wons(1000L));
         SagaPayload payload = SagaPayload.of(userId, List.of(itemPayload), couponPayload, pointPayload);
-        OrderSagaInstance instance = OrderSagaInstance.create(orderNo, SagaStep.INVENTORY_DEDUCT_PENDING, payload);
+        OrderSagaInstance instance = OrderSagaInstance.create(orderNo, paymentId, SagaStep.INVENTORY_DEDUCT_PENDING, payload);
         repository.save(instance);
         //when
         orderSagaService.fail(orderNo, command);
@@ -227,6 +232,7 @@ public class OrderSagaServiceTest {
         assertThat(eventCount).isEqualTo(1);
         OrderSagaFailedEvent failedEvent = applicationEvents.stream(OrderSagaFailedEvent.class).findFirst().orElseThrow();
         assertThat(failedEvent.getOrderNo()).isEqualTo(orderNo);
+        assertThat(failedEvent.getPaymentId()).isEqualTo(paymentId);
         assertThat(failedEvent.getCode()).isEqualTo("INVENTORY_DEDUCT_FAIL");
     }
 
@@ -250,6 +256,7 @@ public class OrderSagaServiceTest {
     void recordHistory() {
         //given
         String orderNo = "orderNo";
+        Long paymentId = 1L;
         Long userId = 1L;
         OrderSagaCommand.RecordHistory command = OrderSagaCommand.RecordHistory.of(orderNo, StepResult.COMPLETED,
                 SagaStep.INVENTORY_DEDUCT_PENDING, "INVENTORY_DEDUCT_SUCCESS");
@@ -257,7 +264,7 @@ public class OrderSagaServiceTest {
         SagaPayload.ItemPayload itemPayload = SagaPayload.ItemPayload.of(1L, 1);
         SagaPayload.PointPayload pointPayload = SagaPayload.PointPayload.of(Money.wons(1000L));
         SagaPayload payload = SagaPayload.of(userId, List.of(itemPayload), couponPayload, pointPayload);
-        OrderSagaInstance instance = OrderSagaInstance.create(orderNo, SagaStep.INVENTORY_DEDUCT_PENDING, payload);
+        OrderSagaInstance instance = OrderSagaInstance.create(orderNo, paymentId, SagaStep.INVENTORY_DEDUCT_PENDING, payload);
         repository.save(instance);
         //when
         orderSagaService.recordHistory(orderNo, command);

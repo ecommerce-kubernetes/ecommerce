@@ -55,19 +55,17 @@ public class PaymentResult {
     public record PaymentCancel(
             String paymentKey,
             String orderNo,
-            Money totalAmount,
-            PaymentMethod method,
+            Money canceledAmount,
             PaymentStatus status,
-            LocalDateTime approvedAt
+            LocalDateTime canceledAt
     ) {
         public static PaymentCancel of(Payment payment, PaymentRecord paymentRecord) {
             return PaymentCancel.builder()
                     .paymentKey(payment.getPaymentKey())
                     .orderNo(payment.getOrderNo())
-                    .totalAmount(payment.getTotalAmount())
-                    .method(payment.getMethod())
+                    .canceledAmount(paymentRecord.getAmount())
                     .status(payment.getStatus())
-                    .approvedAt(paymentRecord.getOccurredAt())
+                    .canceledAt(paymentRecord.getOccurredAt())
                     .build();
         }
     }

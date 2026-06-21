@@ -37,11 +37,11 @@ public class OrderSagaManager {
      * @param orderNo 주문 번호
      */
     @Transactional
-    public void startSaga(String orderNo) {
+    public void startSaga(String orderNo, Long paymentId) {
         orderCommandService.changePaid(orderNo);
         OrderResult.Detail order = orderQueryService.getOrder(orderNo);
         SagaPayload payload = createPayload(order);
-        OrderSagaCommand.Create command = OrderSagaCommand.Create.of(order.orderNo(), SagaStep.INVENTORY_DEDUCT_PENDING, payload);
+        OrderSagaCommand.Create command = OrderSagaCommand.Create.of(order.orderNo(), paymentId, SagaStep.INVENTORY_DEDUCT_PENDING, payload);
         orderSagaService.createSaga(command);
     }
 

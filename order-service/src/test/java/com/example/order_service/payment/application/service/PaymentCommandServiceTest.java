@@ -20,6 +20,7 @@ import org.springframework.test.context.event.ApplicationEvents;
 import org.springframework.test.context.event.RecordApplicationEvents;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -96,6 +97,7 @@ public class PaymentCommandServiceTest {
             assertThat(eventCount).isEqualTo(1);
             PaymentCompleteEvent event = applicationEvents.stream(PaymentCompleteEvent.class).findFirst().orElseThrow();
             assertThat(event.getOrderNo()).isEqualTo("orderNo");
+            assertThat(event.getPaymentId()).isEqualTo(payment.getId());
         }
 
         @Test
@@ -174,16 +176,16 @@ public class PaymentCommandServiceTest {
 
     @Nested
     @DisplayName("결제 취소")
-    class Fail {
+    class Abort {
 
         @Test
         @DisplayName("결제를 취소 처리한다")
-        void fail(){
+        void abort(){
             //given
             Payment payment = Payment.create("orderNo", 1L, "paymentKey", Money.wons(10000L));
             paymentRepository.save(payment);
             //when
-            paymentCommandService.fail(payment.getId(), "REJECT_ACCOUNT_PAYMENT");
+            paymentCommandService.abort(payment.getId(), "REJECT_ACCOUNT_PAYMENT");
             //then
             assertThat(payment.getStatus()).isEqualTo(PaymentStatus.ABORTED);
             assertThat(payment.getFailureCode()).isEqualTo("REJECT_ACCOUNT_PAYMENT");
@@ -192,11 +194,11 @@ public class PaymentCommandServiceTest {
 
         @Test
         @DisplayName("결제 승인 실패시 결제를 찾을 수 없으면 예외가 발생한다")
-        void fail_payment_not_found() {
+        void abort_payment_not_found() {
             //given
             //when
             //then
-            assertThatThrownBy(() -> paymentCommandService.fail(999L, "INSUFFICIENT_BALANCE"))
+            assertThatThrownBy(() -> paymentCommandService.abort(999L, "INSUFFICIENT_BALANCE"))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(PaymentErrorCode.PAYMENT_NOT_FOUND);
@@ -204,7 +206,7 @@ public class PaymentCommandServiceTest {
 
         @Test
         @DisplayName("결제 승인 실패시 결제가 취소 가능한 상태가 아니면 예외가 발생한다")
-        void fail_payment_not_ready(){
+        void abort_payment_not_ready(){
             //given
             Payment payment = Payment.create("orderNo", 1L, "paymentKey", Money.wons(10000L));
             PaymentRecord approval = PaymentRecord.createApproval("transactionKey", Money.wons(10000L), LocalDateTime.now());
@@ -212,7 +214,7 @@ public class PaymentCommandServiceTest {
             paymentRepository.save(payment);
             //when
             //then
-            assertThatThrownBy(() -> paymentCommandService.fail(payment.getId(), "REJECT_ACCOUNT_PAYMENT"))
+            assertThatThrownBy(() -> paymentCommandService.abort(payment.getId(), "REJECT_ACCOUNT_PAYMENT"))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(PaymentErrorCode.INVALID_PAYMENT_STATUS_FOR_FAIL);
@@ -224,12 +226,27 @@ public class PaymentCommandServiceTest {
     class RefundPending {
 
         @Test
+        @DisplayName("결제를 환불 대기로 변경한다")
+        void changeRefund(){
+            //given
+            String orderNo = "orderNo";
+            Payment payment = Payment.create(orderNo, 1L, "paymentKey", Money.wons(10000L));
+            PaymentRecord approval = PaymentRecord.createApproval("transactionKey", Money.wons(10000L), LocalDateTime.now());
+            payment.approve(approval, PaymentStatus.DONE, PaymentMethod.CARD);
+            paymentRepository.save(payment);
+            //when
+            paymentCommandService.changeRefundPending(payment.getId());
+            //then
+            assertThat(payment.getStatus()).isEqualTo(PaymentStatus.REFUND_PENDING);
+        }
+
+        @Test
         @DisplayName("결제를 찾을 수 없으면 예외가 발생한다")
         void changeRefund_payment_not_found() {
             //given
             //when
             //then
-            assertThatThrownBy(() -> paymentCommandService.changeRefundPending("unknown"))
+            assertThatThrownBy(() -> paymentCommandService.changeRefundPending(999L))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(PaymentErrorCode.PAYMENT_NOT_FOUND);
@@ -244,10 +261,113 @@ public class PaymentCommandServiceTest {
             paymentRepository.save(payment);
             //when
             //then
-            assertThatThrownBy(() -> paymentCommandService.changeRefundPending(orderNo))
+            assertThatThrownBy(() -> paymentCommandService.changeRefundPending(payment.getId()))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(PaymentErrorCode.INVALID_PAYMENT_STATUS_FOR_REFUND_PENDING);
+        }
+    }
+
+    @Nested
+    @DisplayName("결제 환불")
+    class Cancel {
+
+        @Test
+        @DisplayName("결제를 환불한다")
+        void cancel(){
+            //given
+            String orderNo = "orderNo";
+            LocalDateTime canceledAt = LocalDateTime.now();
+            Payment payment = Payment.create(orderNo, 1L, "paymentKey", Money.wons(10000L));
+            PaymentRecord approval = PaymentRecord.createApproval("transactionKey", Money.wons(10000L), LocalDateTime.now());
+            payment.approve(approval, PaymentStatus.DONE, PaymentMethod.CARD);
+            payment.refundPending();
+            paymentRepository.save(payment);
+
+            PaymentContext.Cancellation context = PaymentContext.Cancellation.builder()
+                    .paymentId(payment.getId())
+                    .amount(Money.wons(10000L))
+                    .status(PaymentStatus.CANCELED)
+                    .transactionKey("lastTransactionKey")
+                    .cancelReason("테스트 결제 취소")
+                    .canceledAt(canceledAt)
+                    .build();
+            //when
+            PaymentResult.PaymentCancel cancel = paymentCommandService.cancel(context);
+            //then
+            assertThat(cancel)
+                    .extracting("orderNo", "canceledAmount", "status")
+                    .containsExactly(
+                            "orderNo", Money.wons(10000L), PaymentStatus.CANCELED
+                    );
+
+        }
+
+        @Test
+        @DisplayName("결제를 찾을 수 없으면 예외가 발생한다")
+        void cancel_not_found(){
+            //given
+            PaymentContext.Cancellation context = Instancio.create(PaymentContext.Cancellation.class);
+            //when
+            //then
+            assertThatThrownBy(() -> paymentCommandService.cancel(context))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(PaymentErrorCode.PAYMENT_NOT_FOUND);
+        }
+
+        @Test
+        @DisplayName("결제가 환불 대기 상태가 아니면 예외가 발생한다")
+        void cancel_payment_status_not_refundPending(){
+            //given
+            String orderNo = "orderNo";
+            LocalDateTime canceledAt = LocalDateTime.now();
+            Payment payment = Payment.create(orderNo, 1L, "paymentKey", Money.wons(10000L));
+            PaymentRecord approval = PaymentRecord.createApproval("transactionKey", Money.wons(10000L), LocalDateTime.now());
+            payment.approve(approval, PaymentStatus.DONE, PaymentMethod.CARD);
+            paymentRepository.save(payment);
+            PaymentContext.Cancellation context = PaymentContext.Cancellation.builder()
+                    .paymentId(payment.getId())
+                    .amount(Money.wons(10000L))
+                    .status(PaymentStatus.CANCELED)
+                    .transactionKey("lastTransactionKey")
+                    .cancelReason("테스트 결제 취소")
+                    .canceledAt(canceledAt)
+                    .build();
+            //when
+            //then
+            assertThatThrownBy(() -> paymentCommandService.cancel(context))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(PaymentErrorCode.INVALID_PAYMENT_STATUS_FOR_REFUND);
+        }
+
+        @Test
+        @DisplayName("환불 가능한 금액을 초과한 경우 예외가 발생한다")
+        void cancel_exceeded_refundable_amount(){
+            //given
+            String orderNo = "orderNo";
+            LocalDateTime canceledAt = LocalDateTime.now();
+            Payment payment = Payment.create(orderNo, 1L, "paymentKey", Money.wons(10000L));
+            PaymentRecord approval = PaymentRecord.createApproval("transactionKey", Money.wons(10000L), LocalDateTime.now());
+            payment.approve(approval, PaymentStatus.DONE, PaymentMethod.CARD);
+            payment.refundPending();
+            paymentRepository.save(payment);
+
+            PaymentContext.Cancellation context = PaymentContext.Cancellation.builder()
+                    .paymentId(payment.getId())
+                    .amount(Money.wons(11000L))
+                    .status(PaymentStatus.CANCELED)
+                    .transactionKey("lastTransactionKey")
+                    .cancelReason("테스트 결제 취소")
+                    .canceledAt(canceledAt)
+                    .build();
+            //when
+            //then
+            assertThatThrownBy(() -> paymentCommandService.cancel(context))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(PaymentErrorCode.EXCEEDED_REFUNDABLE_AMOUNT);
         }
     }
 }

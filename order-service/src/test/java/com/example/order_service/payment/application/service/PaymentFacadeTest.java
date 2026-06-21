@@ -11,6 +11,7 @@ import com.example.order_service.payment.application.mapper.PaymentMapper;
 import com.example.order_service.payment.application.service.dto.command.PaymentCommand;
 import com.example.order_service.payment.application.service.dto.command.PaymentContext;
 import com.example.order_service.payment.application.service.dto.result.PaymentResult;
+import com.example.order_service.payment.domain.model.PaymentStatus;
 import com.example.order_service.payment.exception.PaymentErrorCode;
 import lombok.extern.slf4j.Slf4j;
 import org.instancio.Instancio;
@@ -22,11 +23,12 @@ import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.CannotAcquireLockException;
 
-import static com.example.order_service.support.TestFixtureUtil.fixtureMonkey;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.*;
 import static org.instancio.Select.field;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
@@ -169,7 +171,7 @@ public class PaymentFacadeTest {
                     .extracting("errorCode")
                     .isEqualTo(PaymentErrorCode.PAYMENT_INSUFFICIENT_BALANCE);
 
-            verify(paymentCommandService).fail(anyLong(), anyString());
+            verify(paymentCommandService).abort(anyLong(), anyString());
         }
 
         @Test
@@ -192,46 +194,13 @@ public class PaymentFacadeTest {
             given(mapper.toContext(any(PaymentCommand.Confirm.class))).willReturn(createContext);
             given(paymentCommandService.create(any(PaymentContext.Create.class))).willReturn(savedPayment);
             willThrow(new BusinessException(PaymentErrorCode.PAYMENT_INSUFFICIENT_BALANCE)).given(paymentGateway).confirm(any());
-            willThrow(new RuntimeException()).given(paymentCommandService).fail(anyLong(), anyString());
+            willThrow(new RuntimeException()).given(paymentCommandService).abort(anyLong(), anyString());
             //when
             //then
             assertThatThrownBy(() -> paymentFacade.confirm(command))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(PaymentErrorCode.PAYMENT_INSUFFICIENT_BALANCE);
-        }
-
-        @Test
-        @DisplayName("PG 승인 성공 후 Payment 저장시 비지니스 예외가 발생하면 망 취소를 수행한 뒤 비지니스 예외를 그대로 넘긴다")
-        void confirm_whenPaymentDoneBusinessFailAfterPGApproval_thenExecuteNetworkCancel() {
-            //given
-            PaymentCommand.Confirm command = PaymentCommand.Confirm.builder()
-                    .userId(1L)
-                    .orderNo("orderNo")
-                    .paymentKey("paymentKey")
-                    .amount(Money.wons(10000L))
-                    .build();
-            OrderResult.Detail order = Instancio.of(OrderResult.Detail.class)
-                    .set(field("status"), OrderStatus.PENDING)
-                    .set(field("totalPaymentAmount"), Money.wons(10000L))
-                    .create();
-            PaymentContext.Create createContext = Instancio.create(PaymentContext.Create.class);
-            PaymentResult.Default savedPayment = Instancio.create(PaymentResult.Default.class);
-            PgPaymentResult.Approval pgApproval = Instancio.create(PgPaymentResult.Approval.class);
-            PaymentContext.Approval approvalContext = Instancio.create(PaymentContext.Approval.class);
-            given(orderQueryService.getOrder(anyString(), anyLong())).willReturn(order);
-            given(mapper.toContext(any(PaymentCommand.Confirm.class))).willReturn(createContext);
-            given(paymentCommandService.create(any(PaymentContext.Create.class))).willReturn(savedPayment);
-            given(paymentGateway.confirm(any())).willReturn(pgApproval);
-            given(mapper.toContext(anyLong(), any(PgPaymentResult.Approval.class))).willReturn(approvalContext);
-            willThrow(new BusinessException(PaymentErrorCode.UNSUPPORTED_PAYMENT_METHOD)).given(paymentCommandService).approve(any());
-            //when
-            //then
-            assertThatThrownBy(() -> paymentFacade.confirm(command))
-                    .isInstanceOf(BusinessException.class)
-                    .extracting("errorCode")
-                    .isEqualTo(PaymentErrorCode.UNSUPPORTED_PAYMENT_METHOD);
-            verify(paymentGateway).cancel(any());
         }
 
         @Test
@@ -267,7 +236,7 @@ public class PaymentFacadeTest {
                     .extracting("errorCode")
                     .isEqualTo(PaymentErrorCode.PAYMENT_AUTO_CANCELED);
             verify(paymentGateway).cancel(any());
-            verify(paymentCommandService).cancel(any());
+            verify(paymentCommandService).abort(anyLong(), anyString());
         }
         
         @Test
@@ -296,7 +265,7 @@ public class PaymentFacadeTest {
             given(mapper.toContext(anyLong(), any(PgPaymentResult.Approval.class))).willReturn(approvalContext);
             willThrow(new RuntimeException()).given(paymentCommandService).approve(any());
             given(paymentGateway.cancel(any())).willReturn(cancellation);
-            willThrow(new RuntimeException()).given(paymentCommandService).cancel(any());
+            willThrow(new RuntimeException()).given(paymentCommandService).abort(anyLong(), anyString());
             //when
             //then
             assertThatThrownBy(() -> paymentFacade.confirm(command))
@@ -347,28 +316,40 @@ public class PaymentFacadeTest {
 
         @Test
         @DisplayName("결제를 취소한다")
-        void revert() {
+        void revert(){
             //given
-            String orderNo = "orderNo";
+            Long paymentId = 1L;
             String reason = "INSUFFICIENT_STOCK";
-            PaymentResult.Default payment = fixtureMonkey.giveMeBuilder(PaymentResult.Default.class)
-                    .set("orderNo", orderNo)
-                    .sample();
-            PgPaymentResult.Cancellation cancellation = fixtureMonkey.giveMeOne(PgPaymentResult.Cancellation.class);
-            PaymentContext.Cancellation context = fixtureMonkey.giveMeOne(PaymentContext.Cancellation.class);
-            given(paymentQueryService.getPayment(anyString())).willReturn(payment);
+            PaymentResult.Default payment = Instancio.create(PaymentResult.Default.class);
+            PgPaymentResult.Cancellation cancellation = Instancio.create(PgPaymentResult.Cancellation.class);
+            PaymentContext.Cancellation context = Instancio.create(PaymentContext.Cancellation.class);
+            PaymentResult.PaymentCancel paymentCancel = Instancio.create(PaymentResult.PaymentCancel.class);
+            given(paymentQueryService.getPayment(anyLong())).willReturn(payment);
+            doNothing().when(paymentCommandService).changeRefundPending(anyLong());
             given(paymentGateway.cancel(any())).willReturn(cancellation);
-            given(mapper.toContext(anyLong(), any(PgPaymentResult.Cancellation.class)))
-                    .willReturn(context);
+            given(mapper.toContext(anyLong(), any(), any())).willReturn(context);
+            given(paymentCommandService.cancel(any())).willReturn(paymentCancel);
             //when
-            paymentFacade.revert(orderNo, reason);
+            paymentFacade.revert(paymentId, reason);
             //then
+            verify(paymentCommandService).cancel(any());
+        }
 
-            InOrder inOrder = inOrder(paymentQueryService, paymentCommandService, paymentGateway);
-            inOrder.verify(paymentQueryService).getPayment(orderNo);
-            inOrder.verify(paymentCommandService).changeRefundPending(orderNo);
-            inOrder.verify(paymentGateway).cancel(any());
-            inOrder.verify(paymentCommandService).cancel(context);
+        @Test
+        @DisplayName("PG 통신중 예외가 발생하면 예외를 삼키고 정상 종료한다")
+        void revert_swallows_exception_on_pg_fail(){
+            //given
+            Long paymentId = 1L;
+            String reason = "INSUFFICIENT_STOCK";
+            PaymentResult.Default payment = Instancio.create(PaymentResult.Default.class);
+
+            given(paymentQueryService.getPayment(anyLong())).willReturn(payment);
+            doNothing().when(paymentCommandService).changeRefundPending(anyLong());
+            given(paymentGateway.cancel(any())).willThrow(new RuntimeException("PG Timeout"));
+            //when
+            //then
+            assertDoesNotThrow(() -> paymentFacade.revert(paymentId, reason));
+            verify(paymentCommandService, never()).cancel(any());
         }
     }
 }

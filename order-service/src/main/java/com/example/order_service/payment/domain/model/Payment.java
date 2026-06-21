@@ -70,7 +70,7 @@ public class Payment {
         this.method = method;
     }
 
-    public void fail(String failureCode) {
+    public void abort(String failureCode) {
         if (this.status != PaymentStatus.READY) {
             throw new BusinessException(PaymentErrorCode.INVALID_PAYMENT_STATUS_FOR_FAIL);
         }

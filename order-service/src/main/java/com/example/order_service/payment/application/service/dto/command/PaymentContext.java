@@ -35,9 +35,9 @@ public class PaymentContext {
             Long paymentId,
             Money amount,
             PaymentStatus status,
-            PaymentMethod method,
+            String transactionKey,
             String cancelReason,
-            LocalDateTime approvedAt
+            LocalDateTime canceledAt
     ) {
     }
 

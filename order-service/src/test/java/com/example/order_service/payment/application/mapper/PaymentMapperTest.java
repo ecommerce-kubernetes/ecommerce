@@ -82,11 +82,20 @@ class PaymentMapperTest {
                 .cancelReason("테스트 결제 취소")
                 .canceledAt(canceledAt)
                 .build();
-        PgPaymentResult.Cancellation result = PgPaymentResult.Cancellation.builder()
+        PaymentContext.Cancellation expected = PaymentContext.Cancellation.builder()
+                .paymentId(paymentId)
+                .amount(Money.wons(10000L))
                 .status(PaymentStatus.CANCELED)
-                .cancels(List.of(cancelReceipt))
+                .transactionKey("090A796806E726BBB929F4A2CA7DB9A7")
+                .cancelReason("테스트 결제 취소")
+                .canceledAt(canceledAt)
                 .build();
         //when
+        PaymentContext.Cancellation context = paymentMapper.toContext(paymentId, PaymentStatus.CANCELED, cancelReceipt);
         //then
+        assertThat(context)
+                .usingRecursiveComparison()
+                .isEqualTo(expected);
+
     }
 }

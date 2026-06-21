@@ -16,8 +16,7 @@ import org.springframework.test.context.transaction.TestTransaction;
 import org.springframework.transaction.annotation.Transactional;
 
 import static com.example.order_service.support.TestFixtureUtil.fixtureMonkey;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -56,12 +55,13 @@ class SagaEventListenerTest {
     void onPaymentRefund(){
         //given
         String orderNo = "orderNo";
-        OrderSagaFailedEvent event = OrderSagaFailedEvent.of(orderNo, "INSUFFICIENT_STOCK");
+        Long paymentId = 1L;
+        OrderSagaFailedEvent event = OrderSagaFailedEvent.of(orderNo, paymentId, "INSUFFICIENT_STOCK");
         //when
         eventPublisher.publishEvent(event);
         TestTransaction.flagForCommit();
         TestTransaction.end();
         //then
-        verify(paymentFacade, times(1)).revert(anyString(), anyString());
+        verify(paymentFacade, times(1)).revert(anyLong(), anyString());
     }
 }

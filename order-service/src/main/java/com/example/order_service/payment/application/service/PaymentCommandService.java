@@ -41,13 +41,9 @@ public class PaymentCommandService {
      * @return 생성된 결제 결과
      */
     public PaymentResult.Default create(PaymentContext.Create context) {
-        Payment payment = createPayment(context);
+        Payment payment = Payment.create(context.orderNo(), context.userId(), context.paymentKey(), context.totalAmount());
         Payment savedPayment = paymentRepository.save(payment);
         return PaymentResult.Default.from(savedPayment);
-    }
-
-    private Payment createPayment(PaymentContext.Create context) {
-        return Payment.create(context.orderNo(), context.userId(), context.paymentKey(), context.totalAmount());
     }
 
     /**
@@ -61,15 +57,11 @@ public class PaymentCommandService {
     public PaymentResult.PaymentApproval approve(PaymentContext.Approval context) {
         Payment payment = paymentRepository.findById(context.paymentId())
                 .orElseThrow(() -> new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND));
-        PaymentRecord paymentRecord = createApprovalPaymentRecord(context);
+        PaymentRecord paymentRecord = PaymentRecord.createApproval(context.transactionKey(), context.amount(), context.approvedAt());
         payment.approve(paymentRecord, context.status(), context.method());
-        PaymentCompleteEvent event = PaymentCompleteEvent.of(payment.getOrderNo());
+        PaymentCompleteEvent event = PaymentCompleteEvent.of(payment.getOrderNo(), payment.getId());
         eventPublisher.publishEvent(event);
         return PaymentResult.PaymentApproval.of(payment, paymentRecord);
-    }
-
-    private PaymentRecord createApprovalPaymentRecord(PaymentContext.Approval context) {
-        return PaymentRecord.createApproval(context.transactionKey(), context.amount(), context.approvedAt());
     }
 
     /**
@@ -80,20 +72,19 @@ public class PaymentCommandService {
      * @param id 결제 아이디
      * @param failureCode 실패 코드
      */
-    public void fail(Long id, String failureCode) {
+    public void abort(Long id, String failureCode) {
         Payment payment = paymentRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND));
-        payment.fail(failureCode);
+        payment.abort(failureCode);
     }
 
-    //TODO orderNo 로 찾으면 주문 결제가 여러개인 경우는?
     /**
      * 결제를 환불 대기 상태로 변경
      *
-     * @param orderNo 주문 번호
+     * @param id 결제 아이디
      */
-    public void changeRefundPending(String orderNo) {
-        Payment payment = paymentRepository.findByOrderNo(orderNo)
+    public void changeRefundPending(Long id) {
+        Payment payment = paymentRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND));
         payment.refundPending();
     }
@@ -107,13 +98,9 @@ public class PaymentCommandService {
     public PaymentResult.PaymentCancel cancel(PaymentContext.Cancellation context) {
         Payment payment = paymentRepository.findById(context.paymentId())
                 .orElseThrow(() -> new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND));
-        PaymentRecord paymentRecord = createCancellationPaymentRecord(context);
+        PaymentRecord paymentRecord = PaymentRecord.createCancellation(context.transactionKey(), context.amount(),
+                context.cancelReason(), context.canceledAt());
         payment.cancel(paymentRecord, context.status());
         return PaymentResult.PaymentCancel.of(payment, paymentRecord);
     }
-
-    private PaymentRecord createCancellationPaymentRecord(PaymentContext.Cancellation context) {
-        return PaymentRecord.createCancellation("", context.amount(), context.cancelReason(), context.approvedAt());
-    }
-
 }
