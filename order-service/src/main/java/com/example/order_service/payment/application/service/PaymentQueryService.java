@@ -18,7 +18,7 @@ public class PaymentQueryService {
     /**
      * 결제 조회
      *
-     * @param orderNo 주문 번호
+     * @param id 결제 아이디
      * @return 결제 정보
      */
     public PaymentResult.Default getPayment(Long id) {
