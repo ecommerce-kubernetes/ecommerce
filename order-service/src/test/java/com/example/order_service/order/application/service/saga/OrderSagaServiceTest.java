@@ -83,7 +83,7 @@ public class OrderSagaServiceTest {
         OrderSagaInstance instance = OrderSagaInstance.create(orderNo, paymentId, SagaStep.INVENTORY_DEDUCT_PENDING, payload);
         repository.save(instance);
         //when
-        OrderSagaResult.Default result = orderSagaService.getSaga(orderNo);
+        OrderSagaResult.Default result = orderSagaService.getSaga(instance.getId());
         //then
         assertThat(result.orderNo()).isEqualTo(orderNo);
         assertThat(result.status()).isEqualTo(SagaStatus.STARTED);
@@ -94,10 +94,9 @@ public class OrderSagaServiceTest {
     @DisplayName("SagaInstance 조회시 SagaInstance를 찾을 수 없으면 예외가 발생한다")
     void getSaga_instance_notFound() {
         //given
-        String orderNo = "UNKNOWN";
         //when
         //then
-        assertThatThrownBy(() -> orderSagaService.getSaga(orderNo))
+        assertThatThrownBy(() -> orderSagaService.getSaga(999L))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(SagaErrorCode.SAGA_INSTANCE_NOT_FOUND);
@@ -120,7 +119,7 @@ public class OrderSagaServiceTest {
         OrderSagaInstance instance = OrderSagaInstance.create(orderNo, paymentId, SagaStep.INVENTORY_DEDUCT_PENDING, payload);
         repository.save(instance);
         //when
-        orderSagaService.process(orderNo, nextStep, command);
+        orderSagaService.process(instance.getId(), nextStep, command);
         //then
         OrderSagaInstance findInstance = repository.findByOrderNo(orderNo).orElseThrow();
         assertThat(findInstance.getOrderNo()).isEqualTo(orderNo);
@@ -142,12 +141,12 @@ public class OrderSagaServiceTest {
     @DisplayName("process 호출시 SagaInstance를 찾을 수 없는 경우 예외가 발생한다")
     void process_instance_not_found() {
         //given
-        String orderNo = "UNKNOWN";
+        String orderNo = "orderNo";
         OrderSagaCommand.RecordHistory command = OrderSagaCommand.RecordHistory.of(orderNo, StepResult.COMPLETED,
                 SagaStep.INVENTORY_DEDUCT_PENDING, "INVENTORY_DEDUCT_SUCCESS");
         //when
         //then
-        assertThatThrownBy(() -> orderSagaService.process(orderNo, SagaStep.COUPON_USE_PENDING, command))
+        assertThatThrownBy(() -> orderSagaService.process(999L, SagaStep.COUPON_USE_PENDING, command))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(SagaErrorCode.SAGA_INSTANCE_NOT_FOUND);
@@ -169,7 +168,7 @@ public class OrderSagaServiceTest {
         OrderSagaInstance instance = OrderSagaInstance.create(orderNo, paymentId, SagaStep.INVENTORY_DEDUCT_PENDING, payload);
         repository.save(instance);
         //when
-        orderSagaService.complete(orderNo, command);
+        orderSagaService.complete(instance.getId(), command);
         //then
         OrderSagaInstance findInstance = repository.findByOrderNo(orderNo).orElseThrow();
         assertThat(findInstance.getOrderNo()).isEqualTo(orderNo);
@@ -190,12 +189,12 @@ public class OrderSagaServiceTest {
     @DisplayName("complete 호출시 instance를 찾을 수 없으면 예외가 발생한다")
     void complete_instance_not_found() {
         //given
-        String orderNo = "UNKNOWN";
+        String orderNo = "orderNo";
         OrderSagaCommand.RecordHistory command = OrderSagaCommand.RecordHistory.of(orderNo, StepResult.COMPLETED,
                 SagaStep.INVENTORY_DEDUCT_PENDING, "INVENTORY_DEDUCT_SUCCESS");
         //when
         //then
-        assertThatThrownBy(() -> orderSagaService.complete(orderNo, command))
+        assertThatThrownBy(() -> orderSagaService.complete(999L, command))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(SagaErrorCode.SAGA_INSTANCE_NOT_FOUND);
@@ -217,7 +216,7 @@ public class OrderSagaServiceTest {
         OrderSagaInstance instance = OrderSagaInstance.create(orderNo, paymentId, SagaStep.INVENTORY_DEDUCT_PENDING, payload);
         repository.save(instance);
         //when
-        orderSagaService.fail(orderNo, command);
+        orderSagaService.fail(instance.getId(), command);
         //then
         OrderSagaInstance findInstance = repository.findByOrderNo(orderNo).orElseThrow();
         assertThat(findInstance.getOrderNo()).isEqualTo(orderNo);
@@ -240,12 +239,12 @@ public class OrderSagaServiceTest {
     @DisplayName("fail 호출시 instance를 찾을 수 없으면 예외가 발생한다")
     void fail_instance_not_found() {
         //given
-        String orderNo = "UNKNOWN";
+        String orderNo = "orderNo";
         OrderSagaCommand.RecordHistory command = OrderSagaCommand.RecordHistory.of(orderNo, StepResult.FAILED,
                 SagaStep.INVENTORY_DEDUCT_PENDING, "INVENTORY_DEDUCT_FAIL");
         //when
         //then
-        assertThatThrownBy(() -> orderSagaService.fail(orderNo, command))
+        assertThatThrownBy(() -> orderSagaService.fail(999L, command))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(SagaErrorCode.SAGA_INSTANCE_NOT_FOUND);
@@ -267,7 +266,7 @@ public class OrderSagaServiceTest {
         OrderSagaInstance instance = OrderSagaInstance.create(orderNo, paymentId, SagaStep.INVENTORY_DEDUCT_PENDING, payload);
         repository.save(instance);
         //when
-        orderSagaService.recordHistory(orderNo, command);
+        orderSagaService.recordHistory(instance.getId(), command);
         //then
         OrderSagaInstance findInstance = repository.findByOrderNo(orderNo).orElseThrow();
         assertThat(findInstance.getOrderNo()).isEqualTo(orderNo);
@@ -279,12 +278,12 @@ public class OrderSagaServiceTest {
     @DisplayName("history를 저장할때 instance를 찾을 수 없으면 예외가 발생한다")
     void recordHistory_instance_not_found() {
         //given
-        String orderNo = "UNKNOWN";
+        String orderNo = "orderNo";
         OrderSagaCommand.RecordHistory command = OrderSagaCommand.RecordHistory.of(orderNo, StepResult.COMPLETED,
                 SagaStep.INVENTORY_DEDUCT_PENDING, "INVENTORY_DEDUCT_SUCCESS");
         //when
         //then
-        assertThatThrownBy(() -> orderSagaService.recordHistory(orderNo, command))
+        assertThatThrownBy(() -> orderSagaService.recordHistory(999L, command))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(SagaErrorCode.SAGA_INSTANCE_NOT_FOUND);

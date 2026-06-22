@@ -55,12 +55,12 @@ public class OrderSagaService {
     /**
      * SAGA 인스턴스 조회
      *
-     * @param orderNo 주문 번호
+     * @param sagaId saga 아이디
      * @return SAGA 인스턴스 정보
      */
-    public OrderSagaResult.Default getSaga(String orderNo) {
-        OrderSagaInstance saga = findSagaByOrderNo(orderNo);
-        return OrderSagaResult.Default.from(saga);
+    public OrderSagaResult.Default getSaga(Long sagaId) {
+        OrderSagaInstance instance = findSagaById(sagaId);
+        return OrderSagaResult.Default.from(instance);
     }
 
     /**
@@ -70,12 +70,12 @@ public class OrderSagaService {
      * SAGA 스텝에 따라 SagaInstance 상태를 변경 후 다음 스텝 진행을 위한 이벤트 발행
      * </p>
      *
-     * @param orderNo  주문 번호
+     * @param sagaId  주문 번호
      * @param nextStep 다음 단계
      * @param command  history 저장 커맨드
      */
-    public void process(String orderNo, SagaStep nextStep, OrderSagaCommand.RecordHistory command) {
-        OrderSagaInstance instance = findSagaByOrderNo(orderNo);
+    public void process(Long sagaId, SagaStep nextStep, OrderSagaCommand.RecordHistory command) {
+        OrderSagaInstance instance = findSagaById(sagaId);
         SagaStepHistory history = SagaStepHistory.from(command.step(), command.status(), command.code());
         instance.addHistory(history);
         instance.transitionTo(nextStep);
@@ -89,11 +89,11 @@ public class OrderSagaService {
      * SagaStepHistory를 저장하고 SagaInstance를 완료 처리 후 Saga 완료 이벤트 발행
      * </p>
      *
-     * @param orderNo 주문 번호
+     * @param sagaId saga 아이디
      * @param command history 저장 커맨드
      */
-    public void complete(String orderNo, OrderSagaCommand.RecordHistory command) {
-        OrderSagaInstance instance = findSagaByOrderNo(orderNo);
+    public void complete(Long sagaId, OrderSagaCommand.RecordHistory command) {
+        OrderSagaInstance instance = findSagaById(sagaId);
         SagaStepHistory history = SagaStepHistory.from(command.step(), command.status(), command.code());
         instance.addHistory(history);
         instance.complete();
@@ -107,11 +107,11 @@ public class OrderSagaService {
      * SagaStepHistory를 저장하고 SagaInstance를 실패 처리 후 Saga 실패 이벤트 발행
      * </p>
      *
-     * @param orderNo 주문 번호
+     * @param sagaId saga 아이디
      * @param command history 저장 커맨드
      */
-    public void fail(String orderNo, OrderSagaCommand.RecordHistory command) {
-        OrderSagaInstance instance = findSagaByOrderNo(orderNo);
+    public void fail(Long sagaId, OrderSagaCommand.RecordHistory command) {
+        OrderSagaInstance instance = findSagaById(sagaId);
         SagaStepHistory history = SagaStepHistory.from(command.step(), command.status(), command.code());
         instance.addHistory(history);
         instance.failed();
@@ -121,17 +121,17 @@ public class OrderSagaService {
 
     /**
      * Saga history 저장
-     * @param orderNo 주문 번호
+     * @param sagaId saga 아이디
      * @param command history 저장 커맨드
      */
-    public void recordHistory(String orderNo, OrderSagaCommand.RecordHistory command) {
-        OrderSagaInstance instance = findSagaByOrderNo(orderNo);
+    public void recordHistory(Long sagaId, OrderSagaCommand.RecordHistory command) {
+        OrderSagaInstance instance = findSagaById(sagaId);
         SagaStepHistory history = SagaStepHistory.from(command.step(), command.status(), command.code());
         instance.addHistory(history);
     }
 
-    private OrderSagaInstance findSagaByOrderNo(String orderNo) {
-        return instanceRepository.findByOrderNo(orderNo)
+    private OrderSagaInstance findSagaById(Long sagaId) {
+        return instanceRepository.findById(sagaId)
                 .orElseThrow(() -> new BusinessException(SagaErrorCode.SAGA_INSTANCE_NOT_FOUND));
     }
 }

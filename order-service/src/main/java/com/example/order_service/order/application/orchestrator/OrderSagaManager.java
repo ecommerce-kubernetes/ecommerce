@@ -64,7 +64,7 @@ public class OrderSagaManager {
      */
     @Transactional
     public void handleReply(SagaReplyMessage message) {
-        OrderSagaResult.Default saga = orderSagaService.getSaga(message.getOrderNo());
+        OrderSagaResult.Default saga = orderSagaService.getSaga(message.getSagaId());
         if (saga.currentStep() != message.getStep()) {
             log.warn("Saga 지연/중복 응답 주문:{}, 스텝:{}", message.getOrderNo(), message.getStep());
             return;
@@ -89,34 +89,34 @@ public class OrderSagaManager {
         switch (saga.currentStep()) {
             case INVENTORY_DEDUCT_PENDING -> {
                 if (payload.getCoupon().getCartCouponId() != null || !payload.getCoupon().getItemCouponIds().isEmpty()) {
-                    orderSagaService.process(saga.orderNo(), SagaStep.COUPON_USE_PENDING, historyCommand);
+                    orderSagaService.process(saga.sagaId(), SagaStep.COUPON_USE_PENDING, historyCommand);
                 } else if (!payload.getPoints().getUsedPoints().equals(Money.ZERO)) {
-                    orderSagaService.process(saga.orderNo(), SagaStep.POINTS_DEDUCT_PENDING, historyCommand);
+                    orderSagaService.process(saga.sagaId(), SagaStep.POINTS_DEDUCT_PENDING, historyCommand);
                 } else {
                     orderCommandService.changeCompleted(saga.orderNo());
-                    orderSagaService.complete(saga.orderNo(), historyCommand);
+                    orderSagaService.complete(saga.sagaId(), historyCommand);
                 }
             }
 
             case INVENTORY_RESTORE_PENDING -> {
                 orderCommandService.changeFailed(saga.orderNo(), saga.causeCode());
-                orderSagaService.fail(saga.orderNo(), historyCommand);
+                orderSagaService.fail(saga.sagaId(), historyCommand);
             }
 
             case COUPON_USE_PENDING -> {
                 if (!payload.getPoints().getUsedPoints().equals(Money.ZERO)) {
-                    orderSagaService.process(saga.orderNo(), SagaStep.POINTS_DEDUCT_PENDING, historyCommand);
+                    orderSagaService.process(saga.sagaId(), SagaStep.POINTS_DEDUCT_PENDING, historyCommand);
                 } else {
                     orderCommandService.changeCompleted(saga.orderNo());
-                    orderSagaService.complete(saga.orderNo(), historyCommand);
+                    orderSagaService.complete(saga.sagaId(), historyCommand);
                 }
             }
 
-            case COUPON_RESTORE_PENDING -> orderSagaService.process(saga.orderNo(), SagaStep.INVENTORY_RESTORE_PENDING, historyCommand);
+            case COUPON_RESTORE_PENDING -> orderSagaService.process(saga.sagaId(), SagaStep.INVENTORY_RESTORE_PENDING, historyCommand);
 
             case POINTS_DEDUCT_PENDING -> {
                 orderCommandService.changeCompleted(saga.orderNo());
-                orderSagaService.complete(saga.orderNo(), historyCommand);
+                orderSagaService.complete(saga.sagaId(), historyCommand);
             }
         }
     }
@@ -129,18 +129,18 @@ public class OrderSagaManager {
         switch (saga.currentStep()) {
             case INVENTORY_DEDUCT_PENDING -> {
                 orderCommandService.changeFailed(saga.orderNo(), saga.causeCode());
-                orderSagaService.fail(saga.orderNo(), historyCommand);
+                orderSagaService.fail(saga.sagaId(), historyCommand);
             }
-            case COUPON_USE_PENDING -> orderSagaService.process(saga.orderNo(), SagaStep.INVENTORY_RESTORE_PENDING, historyCommand);
+            case COUPON_USE_PENDING -> orderSagaService.process(saga.sagaId(), SagaStep.INVENTORY_RESTORE_PENDING, historyCommand);
             case POINTS_DEDUCT_PENDING -> {
                 if (payload.getCoupon().getCartCouponId() != null || !payload.getCoupon().getItemCouponIds().isEmpty()) {
-                    orderSagaService.process(saga.orderNo(), SagaStep.COUPON_RESTORE_PENDING, historyCommand);
+                    orderSagaService.process(saga.sagaId(), SagaStep.COUPON_RESTORE_PENDING, historyCommand);
                 } else {
-                    orderSagaService.process(saga.orderNo(), SagaStep.INVENTORY_RESTORE_PENDING, historyCommand);
+                    orderSagaService.process(saga.sagaId(), SagaStep.INVENTORY_RESTORE_PENDING, historyCommand);
                 }
             }
             case COUPON_RESTORE_PENDING, INVENTORY_RESTORE_PENDING -> {
-                orderSagaService.recordHistory(saga.orderNo(), historyCommand);
+                orderSagaService.recordHistory(saga.sagaId(), historyCommand);
                 log.error("[FATAL ERROR] 보상 트랜잭션 실패로 SAGA 중단 orderNo:{}, step:{}, cause:{}",
                         saga.orderNo(), saga.currentStep(), message.getCode());
             }
