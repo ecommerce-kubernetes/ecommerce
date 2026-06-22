@@ -6,6 +6,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.support.KafkaHeaders;
+import org.springframework.messaging.handler.annotation.Header;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -16,8 +19,13 @@ public class SagaReplyListener {
     private final OrderSagaManager orderSagaManager;
 
     @KafkaListener(topics = "${order.topics.order-saga-reply}")
-    public void handleSagaReply(String payload) {
-        SagaReplyMessage message = toObject(payload);
+    public void handleSagaReply(@Payload String payload,
+                                @Header(KafkaHeaders.RECEIVED_KEY) String orderNo,
+                                @Header("X-SAGA-ID") Long sagaId) {
+        SagaReplyMessage parsePayload = toObject(payload);
+        SagaReplyMessage message = parsePayload.toBuilder()
+                .sagaId(sagaId)
+                .build();
         orderSagaManager.handleReply(message);
     }
 

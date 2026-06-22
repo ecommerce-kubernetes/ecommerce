@@ -5,9 +5,10 @@ import lombok.Builder;
 import lombok.Getter;
 
 @Getter
-@Builder
+@Builder(toBuilder = true)
 public class SagaReplyMessage {
     private SagaResult result;
+    private Long sagaId;
     private String orderNo;
     private SagaStep step;
     private String code;

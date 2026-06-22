@@ -6,6 +6,7 @@ import com.example.order_service.payment.application.service.PaymentFacade;
 import com.example.order_service.support.annotation.MockKafka;
 import com.example.order_service.support.annotation.MockRedis;
 import com.example.order_service.support.config.TestAsyncConfig;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,10 +38,7 @@ class SagaEventListenerTest {
     @Transactional
     void onSagaProcess(){
         //given
-        String orderNo = "orderNo";
-        OrderSagaProcessEvent event = fixtureMonkey.giveMeBuilder(OrderSagaProcessEvent.class)
-                .set("orderNo", orderNo)
-                .sample();
+        OrderSagaProcessEvent event = Instancio.create(OrderSagaProcessEvent.class);
         //when
         eventPublisher.publishEvent(event);
         TestTransaction.flagForCommit();
@@ -54,9 +52,7 @@ class SagaEventListenerTest {
     @Transactional
     void onPaymentRefund(){
         //given
-        String orderNo = "orderNo";
-        Long paymentId = 1L;
-        OrderSagaFailedEvent event = OrderSagaFailedEvent.of(orderNo, paymentId, "INSUFFICIENT_STOCK");
+        OrderSagaFailedEvent event = Instancio.create(OrderSagaFailedEvent.class);
         //when
         eventPublisher.publishEvent(event);
         TestTransaction.flagForCommit();

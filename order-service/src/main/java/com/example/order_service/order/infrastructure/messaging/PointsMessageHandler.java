@@ -9,6 +9,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.support.KafkaHeaders;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -31,19 +34,25 @@ public class PointsMessageHandler implements SagaMessageHandler {
     @Override
     public void compensate(SagaMessage message) {
         PointsMessage restore = PointsMessage.restore(message);
-        sendMessage(restore);
+        sendMessage(message.getSagaId(), restore);
     }
 
     @Override
     public void forward(SagaMessage message) {
         PointsMessage deduct = PointsMessage.deduct(message);
-        sendMessage(deduct);
+        sendMessage(message.getSagaId(), deduct);
     }
 
-    private void sendMessage(PointsMessage message) {
+    private void sendMessage(Long sagaId, PointsMessage message) {
         String topicName = sagaProperties.userSagaCommand();
         String jsonPayload = toJson(message);
-        kafkaTemplate.send(topicName, message.getOrderNo(), jsonPayload);
+        Message<String> kafkaMessage = MessageBuilder
+                .withPayload(jsonPayload)
+                .setHeader(KafkaHeaders.TOPIC, topicName)
+                .setHeader(KafkaHeaders.KEY, message.getOrderNo())
+                .setHeader("X-SAGA-ID", String.valueOf(sagaId))
+                .build();
+        kafkaTemplate.send(kafkaMessage);
     }
 
     private String toJson(Object o) {

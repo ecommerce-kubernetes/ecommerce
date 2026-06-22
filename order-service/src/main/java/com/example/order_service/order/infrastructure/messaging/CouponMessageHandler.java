@@ -9,6 +9,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.support.KafkaHeaders;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -32,19 +35,25 @@ public class CouponMessageHandler implements SagaMessageHandler {
     @Override
     public void compensate(SagaMessage message) {
         CouponMessage restore = CouponMessage.restore(message);
-        sendMessage(restore);
+        sendMessage(message.getSagaId(), restore);
     }
 
     @Override
     public void forward(SagaMessage message) {
         CouponMessage used = CouponMessage.used(message);
-        sendMessage(used);
+        sendMessage(message.getSagaId(), used);
     }
 
-    private void sendMessage(CouponMessage message) {
+    private void sendMessage(Long sagaId, CouponMessage message) {
         String topicName = sagaProperties.couponSagaCommand();
         String jsonPayload = toJson(message);
-        kafkaTemplate.send(topicName, message.getOrderNo(), jsonPayload);
+        Message<String> kafkaMessage = MessageBuilder
+                .withPayload(jsonPayload)
+                .setHeader(KafkaHeaders.TOPIC, topicName)
+                .setHeader(KafkaHeaders.KEY, message.getOrderNo())
+                .setHeader("X-SAGA-ID", String.valueOf(sagaId))
+                .build();
+        kafkaTemplate.send(kafkaMessage);
     }
 
     private String toJson(Object o) {
