@@ -109,19 +109,20 @@ class OrderSagaManagerTest {
             String orderNo = "orderNo";
             Long paymentId = 1L;
             Long userId = 1L;
-            SagaReplyMessage message = SagaReplyMessage.builder().result(SagaResult.SUCCESS).orderNo(orderNo)
-                    .step(SagaStep.INVENTORY_DEDUCT_PENDING).code("INVENTORY_DEDUCT_SUCCESS")
-                    .build();
             SagaPayload.CouponPayload couponPayload = SagaPayload.CouponPayload.of(1L, List.of(1L, 2L));
             SagaPayload.ItemPayload itemPayload = SagaPayload.ItemPayload.of(1L, 1);
             SagaPayload.PointPayload pointPayload = SagaPayload.PointPayload.of(Money.wons(1000L));
             SagaPayload payload = SagaPayload.of(userId, List.of(itemPayload), couponPayload, pointPayload);
             OrderSagaInstance instance = OrderSagaInstance.create(orderNo, paymentId, SagaStep.COUPON_USE_PENDING, payload);
             sagaRepository.save(instance);
+            SagaReplyMessage message = SagaReplyMessage.builder()
+                    .sagaId(instance.getId()).result(SagaResult.SUCCESS).orderNo(orderNo)
+                    .step(SagaStep.INVENTORY_DEDUCT_PENDING).code("INVENTORY_DEDUCT_SUCCESS")
+                    .build();
             //when
             orderSagaManager.handleReply(message);
             //then
-            then(orderSagaService).should(never()).process(any(), any(), any());
+            then(orderSagaService).should(never()).proceed(any(), any(), any());
         }
 
         @Nested
@@ -139,15 +140,16 @@ class OrderSagaManagerTest {
                     String orderNo = "orderNo";
                     Long paymentId = 1L;
                     Long userId = 1L;
-                    SagaReplyMessage message = SagaReplyMessage.builder().result(SagaResult.SUCCESS).orderNo(orderNo)
-                            .step(SagaStep.INVENTORY_DEDUCT_PENDING).code("INVENTORY_DEDUCT_SUCCESS")
-                            .build();
                     SagaPayload.CouponPayload couponPayload = SagaPayload.CouponPayload.of(1L, List.of(1L, 2L));
                     SagaPayload.ItemPayload itemPayload = SagaPayload.ItemPayload.of(1L, 1);
                     SagaPayload.PointPayload pointPayload = SagaPayload.PointPayload.of(Money.wons(1000L));
                     SagaPayload payload = SagaPayload.of(userId, List.of(itemPayload), couponPayload, pointPayload);
                     OrderSagaInstance instance = OrderSagaInstance.create(orderNo, paymentId, SagaStep.INVENTORY_DEDUCT_PENDING, payload);
                     sagaRepository.save(instance);
+                    SagaReplyMessage message = SagaReplyMessage.builder()
+                            .sagaId(instance.getId()).result(SagaResult.SUCCESS).orderNo(orderNo)
+                            .step(SagaStep.INVENTORY_DEDUCT_PENDING).code("INVENTORY_DEDUCT_SUCCESS")
+                            .build();
                     //when
                     orderSagaManager.handleReply(message);
                     //then
@@ -164,15 +166,16 @@ class OrderSagaManagerTest {
                     String orderNo = "orderNo";
                     Long paymentId = 1L;
                     Long userId = 1L;
-                    SagaReplyMessage message = SagaReplyMessage.builder().result(SagaResult.SUCCESS).orderNo(orderNo)
-                            .step(SagaStep.INVENTORY_DEDUCT_PENDING).code("INVENTORY_DEDUCT_SUCCESS")
-                            .build();
                     SagaPayload.CouponPayload couponPayload = SagaPayload.CouponPayload.of(null, List.of());
                     SagaPayload.ItemPayload itemPayload = SagaPayload.ItemPayload.of(1L, 1);
                     SagaPayload.PointPayload pointPayload = SagaPayload.PointPayload.of(Money.wons(1000L));
                     SagaPayload payload = SagaPayload.of(userId, List.of(itemPayload), couponPayload, pointPayload);
                     OrderSagaInstance instance = OrderSagaInstance.create(orderNo, paymentId, SagaStep.INVENTORY_DEDUCT_PENDING, payload);
                     sagaRepository.save(instance);
+                    SagaReplyMessage message = SagaReplyMessage.builder()
+                            .sagaId(instance.getId()).result(SagaResult.SUCCESS).orderNo(orderNo)
+                            .step(SagaStep.INVENTORY_DEDUCT_PENDING).code("INVENTORY_DEDUCT_SUCCESS")
+                            .build();
                     //when
                     orderSagaManager.handleReply(message);
                     //then
@@ -191,9 +194,6 @@ class OrderSagaManagerTest {
                     Long paymentId = 1L;
                     Order order = createOrder(orderNo);
                     order.paid();
-                    SagaReplyMessage message = SagaReplyMessage.builder().result(SagaResult.SUCCESS).orderNo(orderNo)
-                            .step(SagaStep.INVENTORY_DEDUCT_PENDING).code("INVENTORY_DEDUCT_SUCCESS")
-                            .build();
                     SagaPayload.CouponPayload couponPayload = SagaPayload.CouponPayload.of(null, List.of());
                     SagaPayload.ItemPayload itemPayload = SagaPayload.ItemPayload.of(1L, 1);
                     SagaPayload.PointPayload pointPayload = SagaPayload.PointPayload.of(Money.ZERO);
@@ -201,6 +201,10 @@ class OrderSagaManagerTest {
                     OrderSagaInstance instance = OrderSagaInstance.create(orderNo, paymentId, SagaStep.INVENTORY_DEDUCT_PENDING, payload);
                     sagaRepository.save(instance);
                     orderRepository.save(order);
+                    SagaReplyMessage message = SagaReplyMessage.builder()
+                            .sagaId(instance.getId()).result(SagaResult.SUCCESS).orderNo(orderNo)
+                            .step(SagaStep.INVENTORY_DEDUCT_PENDING).code("INVENTORY_DEDUCT_SUCCESS")
+                            .build();
                     //when
                     orderSagaManager.handleReply(message);
                     //then
@@ -225,17 +229,18 @@ class OrderSagaManagerTest {
                     Long paymentId = 1L;
                     Order order = createOrder(orderNo);
                     order.paid();
-                    SagaReplyMessage message = SagaReplyMessage.builder().result(SagaResult.SUCCESS).orderNo(orderNo)
-                            .step(SagaStep.INVENTORY_RESTORE_PENDING).code("INVENTORY_RESTORE_SUCCESS")
-                            .build();
                     SagaPayload.ItemPayload itemPayload = SagaPayload.ItemPayload.of(1L, 1);
                     SagaPayload.CouponPayload couponPayload = SagaPayload.CouponPayload.of(1L, List.of());
                     SagaPayload.PointPayload pointPayload = SagaPayload.PointPayload.of(Money.ZERO);
                     SagaPayload payload = SagaPayload.of(userId, List.of(itemPayload), couponPayload, pointPayload);
                     OrderSagaInstance instance = OrderSagaInstance.create(orderNo, paymentId, SagaStep.COUPON_USE_PENDING, payload);
-                    instance.transitionTo(SagaStep.INVENTORY_RESTORE_PENDING);
+                    instance.compensateTo(SagaStep.INVENTORY_RESTORE_PENDING);
                     sagaRepository.save(instance);
                     orderRepository.save(order);
+                    SagaReplyMessage message = SagaReplyMessage.builder()
+                            .sagaId(instance.getId()).result(SagaResult.SUCCESS).orderNo(orderNo)
+                            .step(SagaStep.INVENTORY_RESTORE_PENDING).code("INVENTORY_RESTORE_SUCCESS")
+                            .build();
                     //when
                     orderSagaManager.handleReply(message);
                     //then
@@ -259,15 +264,16 @@ class OrderSagaManagerTest {
                     String orderNo = "orderNo";
                     Long userId = 1L;
                     Long paymentId = 1L;
-                    SagaReplyMessage message = SagaReplyMessage.builder().result(SagaResult.SUCCESS).orderNo(orderNo)
-                            .step(SagaStep.COUPON_USE_PENDING).code("COUPON_USED_SUCCESS")
-                            .build();
                     SagaPayload.CouponPayload couponPayload = SagaPayload.CouponPayload.of(null, List.of());
                     SagaPayload.ItemPayload itemPayload = SagaPayload.ItemPayload.of(1L, 1);
                     SagaPayload.PointPayload pointPayload = SagaPayload.PointPayload.of(Money.wons(1000L));
                     SagaPayload payload = SagaPayload.of(userId, List.of(itemPayload), couponPayload, pointPayload);
                     OrderSagaInstance instance = OrderSagaInstance.create(orderNo, paymentId, SagaStep.COUPON_USE_PENDING, payload);
                     sagaRepository.save(instance);
+                    SagaReplyMessage message = SagaReplyMessage.builder()
+                            .sagaId(instance.getId()).result(SagaResult.SUCCESS).orderNo(orderNo)
+                            .step(SagaStep.COUPON_USE_PENDING).code("COUPON_USED_SUCCESS")
+                            .build();
                     //when
                     orderSagaManager.handleReply(message);
                     //then
@@ -286,9 +292,6 @@ class OrderSagaManagerTest {
                     Long paymentId = 1L;
                     Order order = createOrder(orderNo);
                     order.paid();
-                    SagaReplyMessage message = SagaReplyMessage.builder().result(SagaResult.SUCCESS).orderNo(orderNo)
-                            .step(SagaStep.COUPON_USE_PENDING).code("COUPON_USED_SUCCESS")
-                            .build();
                     SagaPayload.CouponPayload couponPayload = SagaPayload.CouponPayload.of(1L, List.of(2L, 3L));
                     SagaPayload.ItemPayload itemPayload = SagaPayload.ItemPayload.of(1L, 1);
                     SagaPayload.PointPayload pointPayload = SagaPayload.PointPayload.of(Money.ZERO);
@@ -296,6 +299,10 @@ class OrderSagaManagerTest {
                     OrderSagaInstance instance = OrderSagaInstance.create(orderNo, paymentId, SagaStep.COUPON_USE_PENDING, payload);
                     sagaRepository.save(instance);
                     orderRepository.save(order);
+                    SagaReplyMessage message = SagaReplyMessage.builder()
+                            .sagaId(instance.getId()).result(SagaResult.SUCCESS).orderNo(orderNo)
+                            .step(SagaStep.COUPON_USE_PENDING).code("COUPON_USED_SUCCESS")
+                            .build();
                     //when
                     orderSagaManager.handleReply(message);
                     //then
@@ -319,16 +326,17 @@ class OrderSagaManagerTest {
                     String orderNo = "orderNo";
                     Long userId = 1L;
                     Long paymentId = 1L;
-                    SagaReplyMessage message = SagaReplyMessage.builder().result(SagaResult.SUCCESS).orderNo(orderNo)
-                            .step(SagaStep.COUPON_RESTORE_PENDING).code("COUPON_RESTORE_SUCCESS")
-                            .build();
                     SagaPayload.CouponPayload couponPayload = SagaPayload.CouponPayload.of(1L, List.of(2L, 3L));
                     SagaPayload.ItemPayload itemPayload = SagaPayload.ItemPayload.of(1L, 1);
                     SagaPayload.PointPayload pointPayload = SagaPayload.PointPayload.of(Money.ZERO);
                     SagaPayload payload = SagaPayload.of(userId, List.of(itemPayload), couponPayload, pointPayload);
                     OrderSagaInstance instance = OrderSagaInstance.create(orderNo, paymentId, SagaStep.POINTS_DEDUCT_PENDING, payload);
-                    instance.transitionTo(SagaStep.COUPON_RESTORE_PENDING);
+                    instance.compensateTo(SagaStep.COUPON_RESTORE_PENDING);
                     sagaRepository.save(instance);
+                    SagaReplyMessage message = SagaReplyMessage.builder()
+                            .sagaId(instance.getId()).result(SagaResult.SUCCESS).orderNo(orderNo)
+                            .step(SagaStep.COUPON_RESTORE_PENDING).code("COUPON_RESTORE_SUCCESS")
+                            .build();
                     //when
                     orderSagaManager.handleReply(message);
                     //then
@@ -352,9 +360,6 @@ class OrderSagaManagerTest {
                     Long paymentId = 1L;
                     Order order = createOrder(orderNo);
                     order.paid();
-                    SagaReplyMessage message = SagaReplyMessage.builder().result(SagaResult.SUCCESS).orderNo(orderNo)
-                            .step(SagaStep.POINTS_DEDUCT_PENDING).code("POINTS_DEDUCT_PENDING")
-                            .build();
                     SagaPayload.CouponPayload couponPayload = SagaPayload.CouponPayload.of(null, List.of());
                     SagaPayload.ItemPayload itemPayload = SagaPayload.ItemPayload.of(1L, 1);
                     SagaPayload.PointPayload pointPayload = SagaPayload.PointPayload.of(Money.wons(1000L));
@@ -362,6 +367,10 @@ class OrderSagaManagerTest {
                     OrderSagaInstance instance = OrderSagaInstance.create(orderNo, paymentId, SagaStep.POINTS_DEDUCT_PENDING, payload);
                     sagaRepository.save(instance);
                     orderRepository.save(order);
+                    SagaReplyMessage message = SagaReplyMessage.builder()
+                            .sagaId(instance.getId()).result(SagaResult.SUCCESS).orderNo(orderNo)
+                            .step(SagaStep.POINTS_DEDUCT_PENDING).code("POINTS_DEDUCT_PENDING")
+                            .build();
                     //when
                     orderSagaManager.handleReply(message);
                     //then
@@ -392,9 +401,6 @@ class OrderSagaManagerTest {
                     Long paymentId = 1L;
                     Order order = createOrder(orderNo);
                     order.paid();
-                    SagaReplyMessage message = SagaReplyMessage.builder().result(SagaResult.FAILURE).orderNo(orderNo)
-                            .step(SagaStep.INVENTORY_DEDUCT_PENDING).code("INSUFFICIENT_STOCK")
-                            .build();
                     SagaPayload.CouponPayload couponPayload = SagaPayload.CouponPayload.of(null, List.of());
                     SagaPayload.ItemPayload itemPayload = SagaPayload.ItemPayload.of(1L, 1);
                     SagaPayload.PointPayload pointPayload = SagaPayload.PointPayload.of(Money.wons(1000L));
@@ -402,6 +408,10 @@ class OrderSagaManagerTest {
                     OrderSagaInstance instance = OrderSagaInstance.create(orderNo, paymentId, SagaStep.INVENTORY_DEDUCT_PENDING, payload);
                     sagaRepository.save(instance);
                     orderRepository.save(order);
+                    SagaReplyMessage message = SagaReplyMessage.builder()
+                            .sagaId(instance.getId()).result(SagaResult.FAILURE).orderNo(orderNo)
+                            .step(SagaStep.INVENTORY_DEDUCT_PENDING).code("INSUFFICIENT_STOCK")
+                            .build();
                     //when
                     orderSagaManager.handleReply(message);
                     //then
@@ -425,16 +435,17 @@ class OrderSagaManagerTest {
                     String orderNo = "orderNo";
                     Long userId = 1L;
                     Long paymentId = 1L;
-                    SagaReplyMessage message = SagaReplyMessage.builder().result(SagaResult.FAILURE).orderNo(orderNo)
-                            .step(SagaStep.INVENTORY_RESTORE_PENDING).code("DB_DEADLOCK_ERROR")
-                            .build();
                     SagaPayload.CouponPayload couponPayload = SagaPayload.CouponPayload.of(1L, List.of(1L));
                     SagaPayload.ItemPayload itemPayload = SagaPayload.ItemPayload.of(1L, 1);
                     SagaPayload.PointPayload pointPayload = SagaPayload.PointPayload.of(Money.ZERO);
                     SagaPayload payload = SagaPayload.of(userId, List.of(itemPayload), couponPayload, pointPayload);
                     OrderSagaInstance instance = OrderSagaInstance.create(orderNo, paymentId, SagaStep.COUPON_USE_PENDING, payload);
-                    instance.transitionTo(SagaStep.INVENTORY_RESTORE_PENDING);
+                    instance.compensateTo(SagaStep.INVENTORY_RESTORE_PENDING);
                     sagaRepository.save(instance);
+                    SagaReplyMessage message = SagaReplyMessage.builder()
+                            .sagaId(instance.getId()).result(SagaResult.FAILURE).orderNo(orderNo)
+                            .step(SagaStep.INVENTORY_RESTORE_PENDING).code("DB_DEADLOCK_ERROR")
+                            .build();
                     //when
                     orderSagaManager.handleReply(message);
                     //then
@@ -456,15 +467,16 @@ class OrderSagaManagerTest {
                     String orderNo = "orderNo";
                     Long userId = 1L;
                     Long paymentId = 1L;
-                    SagaReplyMessage message = SagaReplyMessage.builder().result(SagaResult.FAILURE).orderNo(orderNo)
-                            .step(SagaStep.COUPON_USE_PENDING).code("COUPON_EXPIRED")
-                            .build();
                     SagaPayload.CouponPayload couponPayload = SagaPayload.CouponPayload.of(1L, List.of(2L, 3L));
                     SagaPayload.ItemPayload itemPayload = SagaPayload.ItemPayload.of(1L, 1);
                     SagaPayload.PointPayload pointPayload = SagaPayload.PointPayload.of(Money.wons(1000L));
                     SagaPayload payload = SagaPayload.of(userId, List.of(itemPayload), couponPayload, pointPayload);
                     OrderSagaInstance instance = OrderSagaInstance.create(orderNo, paymentId, SagaStep.COUPON_USE_PENDING, payload);
                     sagaRepository.save(instance);
+                    SagaReplyMessage message = SagaReplyMessage.builder()
+                            .sagaId(instance.getId()).result(SagaResult.FAILURE).orderNo(orderNo)
+                            .step(SagaStep.COUPON_USE_PENDING).code("COUPON_EXPIRED")
+                            .build();
                     //when
                     orderSagaManager.handleReply(message);
                     //then
@@ -486,16 +498,17 @@ class OrderSagaManagerTest {
                     String orderNo = "orderNo";
                     Long userId = 1L;
                     Long paymentId = 1L;
-                    SagaReplyMessage message = SagaReplyMessage.builder().result(SagaResult.FAILURE).orderNo(orderNo)
-                            .step(SagaStep.COUPON_RESTORE_PENDING).code("DB_DEADLOCK_ERROR")
-                            .build();
                     SagaPayload.CouponPayload couponPayload = SagaPayload.CouponPayload.of(1L, List.of(1L));
                     SagaPayload.ItemPayload itemPayload = SagaPayload.ItemPayload.of(1L, 1);
                     SagaPayload.PointPayload pointPayload = SagaPayload.PointPayload.of(Money.wons(1000L));
                     SagaPayload payload = SagaPayload.of(userId, List.of(itemPayload), couponPayload, pointPayload);
                     OrderSagaInstance instance = OrderSagaInstance.create(orderNo, paymentId, SagaStep.POINTS_DEDUCT_PENDING, payload);
-                    instance.transitionTo(SagaStep.COUPON_RESTORE_PENDING);
+                    instance.compensateTo(SagaStep.COUPON_RESTORE_PENDING);
                     sagaRepository.save(instance);
+                    SagaReplyMessage message = SagaReplyMessage.builder()
+                            .sagaId(instance.getId()).result(SagaResult.FAILURE).orderNo(orderNo)
+                            .step(SagaStep.COUPON_RESTORE_PENDING).code("DB_DEADLOCK_ERROR")
+                            .build();
                     //when
                     orderSagaManager.handleReply(message);
                     //then
@@ -517,15 +530,16 @@ class OrderSagaManagerTest {
                     String orderNo = "orderNo";
                     Long userId = 1L;
                     Long paymentId = 1L;
-                    SagaReplyMessage message = SagaReplyMessage.builder().result(SagaResult.FAILURE).orderNo(orderNo)
-                            .step(SagaStep.POINTS_DEDUCT_PENDING).code("INSUFFICIENT_POINTS")
-                            .build();
                     SagaPayload.CouponPayload couponPayload = SagaPayload.CouponPayload.of(1L, List.of(2L, 3L));
                     SagaPayload.ItemPayload itemPayload = SagaPayload.ItemPayload.of(1L, 1);
                     SagaPayload.PointPayload pointPayload = SagaPayload.PointPayload.of(Money.wons(1000L));
                     SagaPayload payload = SagaPayload.of(userId, List.of(itemPayload), couponPayload, pointPayload);
                     OrderSagaInstance instance = OrderSagaInstance.create(orderNo, paymentId, SagaStep.POINTS_DEDUCT_PENDING, payload);
                     sagaRepository.save(instance);
+                    SagaReplyMessage message = SagaReplyMessage.builder()
+                            .sagaId(instance.getId()).result(SagaResult.FAILURE).orderNo(orderNo)
+                            .step(SagaStep.POINTS_DEDUCT_PENDING).code("INSUFFICIENT_POINTS")
+                            .build();
                     //when
                     orderSagaManager.handleReply(message);
                     //then
@@ -542,15 +556,16 @@ class OrderSagaManagerTest {
                     String orderNo = "orderNo";
                     Long userId = 1L;
                     Long paymentId = 1L;
-                    SagaReplyMessage message = SagaReplyMessage.builder().result(SagaResult.FAILURE).orderNo(orderNo)
-                            .step(SagaStep.POINTS_DEDUCT_PENDING).code("INSUFFICIENT_POINTS")
-                            .build();
                     SagaPayload.CouponPayload couponPayload = SagaPayload.CouponPayload.of(null, List.of());
                     SagaPayload.ItemPayload itemPayload = SagaPayload.ItemPayload.of(1L, 1);
                     SagaPayload.PointPayload pointPayload = SagaPayload.PointPayload.of(Money.wons(1000L));
                     SagaPayload payload = SagaPayload.of(userId, List.of(itemPayload), couponPayload, pointPayload);
                     OrderSagaInstance instance = OrderSagaInstance.create(orderNo, paymentId, SagaStep.POINTS_DEDUCT_PENDING, payload);
                     sagaRepository.save(instance);
+                    SagaReplyMessage message = SagaReplyMessage.builder()
+                            .sagaId(instance.getId()).result(SagaResult.FAILURE).orderNo(orderNo)
+                            .step(SagaStep.POINTS_DEDUCT_PENDING).code("INSUFFICIENT_POINTS")
+                            .build();
                     //when
                     orderSagaManager.handleReply(message);
                     //then

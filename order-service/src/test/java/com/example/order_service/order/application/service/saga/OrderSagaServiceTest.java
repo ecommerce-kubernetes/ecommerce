@@ -103,8 +103,8 @@ public class OrderSagaServiceTest {
     }
 
     @Test
-    @DisplayName("Saga History를 저장하고 SagaStep에 따라 SagaInstance를 변경하고 Saga 실행 이벤트를 발행한다")
-    void process() {
+    @DisplayName("Saga History를 저장하고 SagaStep을 변경후 Saga 실행 이벤트를 발행한다")
+    void proceed() {
         //given
         String orderNo = "orderNo";
         Long userId = 1L;
@@ -119,7 +119,7 @@ public class OrderSagaServiceTest {
         OrderSagaInstance instance = OrderSagaInstance.create(orderNo, paymentId, SagaStep.INVENTORY_DEDUCT_PENDING, payload);
         repository.save(instance);
         //when
-        orderSagaService.process(instance.getId(), nextStep, command);
+        orderSagaService.proceed(instance.getId(), nextStep, command);
         //then
         OrderSagaInstance findInstance = repository.findByOrderNo(orderNo).orElseThrow();
         assertThat(findInstance.getOrderNo()).isEqualTo(orderNo);
@@ -139,14 +139,64 @@ public class OrderSagaServiceTest {
 
     @Test
     @DisplayName("process 호출시 SagaInstance를 찾을 수 없는 경우 예외가 발생한다")
-    void process_instance_not_found() {
+    void proceed_instance_not_found() {
         //given
         String orderNo = "orderNo";
         OrderSagaCommand.RecordHistory command = OrderSagaCommand.RecordHistory.of(orderNo, StepResult.COMPLETED,
                 SagaStep.INVENTORY_DEDUCT_PENDING, "INVENTORY_DEDUCT_SUCCESS");
         //when
         //then
-        assertThatThrownBy(() -> orderSagaService.process(999L, SagaStep.COUPON_USE_PENDING, command))
+        assertThatThrownBy(() -> orderSagaService.proceed(999L, SagaStep.COUPON_USE_PENDING, command))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(SagaErrorCode.SAGA_INSTANCE_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("Saga History를 저장하고 SagaStatus와 Step을 변경 후 Saga 보상 이벤트를 발행한다")
+    void compensate(){
+        //given
+        String orderNo = "orderNo";
+        Long userId = 1L;
+        Long paymentId = 1L;
+        SagaStep nextStep = SagaStep.INVENTORY_RESTORE_PENDING;
+        OrderSagaCommand.RecordHistory command = OrderSagaCommand.RecordHistory.of(orderNo, StepResult.FAILED,
+                SagaStep.COUPON_USE_PENDING, "COUPON_NOT_FOUND");
+        SagaPayload.CouponPayload couponPayload = SagaPayload.CouponPayload.of(1L, List.of(1L, 2L));
+        SagaPayload.ItemPayload itemPayload = SagaPayload.ItemPayload.of(1L, 1);
+        SagaPayload.PointPayload pointPayload = SagaPayload.PointPayload.of(Money.wons(1000L));
+        SagaPayload payload = SagaPayload.of(userId, List.of(itemPayload), couponPayload, pointPayload);
+        OrderSagaInstance instance = OrderSagaInstance.create(orderNo, paymentId, SagaStep.COUPON_USE_PENDING, payload);
+        repository.save(instance);
+        //when
+        orderSagaService.compensate(instance.getId(), nextStep, command);
+        //then
+        OrderSagaInstance findInstance = repository.findByOrderNo(orderNo).orElseThrow();
+        assertThat(findInstance.getOrderNo()).isEqualTo(orderNo);
+        assertThat(findInstance.getStatus()).isEqualTo(SagaStatus.COMPENSATING);
+        assertThat(findInstance.getCurrentStep()).isEqualTo(SagaStep.INVENTORY_RESTORE_PENDING);
+        assertThat(findInstance.getHistories()).hasSize(1)
+                .extracting("step", "result")
+                .containsExactlyInAnyOrder(
+                        tuple(SagaStep.COUPON_USE_PENDING, StepResult.FAILED)
+                );
+        long eventCount = applicationEvents.stream(OrderSagaProcessEvent.class).count();
+        assertThat(eventCount).isEqualTo(1);
+        OrderSagaProcessEvent processEvent = applicationEvents.stream(OrderSagaProcessEvent.class).findFirst().orElseThrow();
+        assertThat(processEvent.getOrderNo()).isEqualTo(orderNo);
+        assertThat(processEvent.getStep()).isEqualTo(SagaStep.INVENTORY_RESTORE_PENDING);
+    }
+
+    @Test
+    @DisplayName("compensate 호출시 instance를 찾을 수 없으면 예외가 발생한다")
+    void compensate_instance_not_found(){
+        //given
+        String orderNo = "orderNo";
+        OrderSagaCommand.RecordHistory command = OrderSagaCommand.RecordHistory.of(orderNo, StepResult.FAILED,
+                SagaStep.COUPON_USE_PENDING, "NOT_FOUND_COUPON");
+        //when
+        //then
+        assertThatThrownBy(() -> orderSagaService.compensate(999L, SagaStep.INVENTORY_RESTORE_PENDING, command))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(SagaErrorCode.SAGA_INSTANCE_NOT_FOUND);

@@ -16,7 +16,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.transaction.TestTransaction;
 import org.springframework.transaction.annotation.Transactional;
 
-import static com.example.order_service.support.TestFixtureUtil.fixtureMonkey;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;

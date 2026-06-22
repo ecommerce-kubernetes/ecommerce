@@ -89,9 +89,9 @@ public class OrderSagaManager {
         switch (saga.currentStep()) {
             case INVENTORY_DEDUCT_PENDING -> {
                 if (payload.getCoupon().getCartCouponId() != null || !payload.getCoupon().getItemCouponIds().isEmpty()) {
-                    orderSagaService.process(saga.sagaId(), SagaStep.COUPON_USE_PENDING, historyCommand);
+                    orderSagaService.proceed(saga.sagaId(), SagaStep.COUPON_USE_PENDING, historyCommand);
                 } else if (!payload.getPoints().getUsedPoints().equals(Money.ZERO)) {
-                    orderSagaService.process(saga.sagaId(), SagaStep.POINTS_DEDUCT_PENDING, historyCommand);
+                    orderSagaService.proceed(saga.sagaId(), SagaStep.POINTS_DEDUCT_PENDING, historyCommand);
                 } else {
                     orderCommandService.changeCompleted(saga.orderNo());
                     orderSagaService.complete(saga.sagaId(), historyCommand);
@@ -105,14 +105,14 @@ public class OrderSagaManager {
 
             case COUPON_USE_PENDING -> {
                 if (!payload.getPoints().getUsedPoints().equals(Money.ZERO)) {
-                    orderSagaService.process(saga.sagaId(), SagaStep.POINTS_DEDUCT_PENDING, historyCommand);
+                    orderSagaService.proceed(saga.sagaId(), SagaStep.POINTS_DEDUCT_PENDING, historyCommand);
                 } else {
                     orderCommandService.changeCompleted(saga.orderNo());
                     orderSagaService.complete(saga.sagaId(), historyCommand);
                 }
             }
 
-            case COUPON_RESTORE_PENDING -> orderSagaService.process(saga.sagaId(), SagaStep.INVENTORY_RESTORE_PENDING, historyCommand);
+            case COUPON_RESTORE_PENDING -> orderSagaService.compensate(saga.sagaId(), SagaStep.INVENTORY_RESTORE_PENDING, historyCommand);
 
             case POINTS_DEDUCT_PENDING -> {
                 orderCommandService.changeCompleted(saga.orderNo());
@@ -131,12 +131,12 @@ public class OrderSagaManager {
                 orderCommandService.changeFailed(saga.orderNo(), saga.causeCode());
                 orderSagaService.fail(saga.sagaId(), historyCommand);
             }
-            case COUPON_USE_PENDING -> orderSagaService.process(saga.sagaId(), SagaStep.INVENTORY_RESTORE_PENDING, historyCommand);
+            case COUPON_USE_PENDING -> orderSagaService.compensate(saga.sagaId(), SagaStep.INVENTORY_RESTORE_PENDING, historyCommand);
             case POINTS_DEDUCT_PENDING -> {
                 if (payload.getCoupon().getCartCouponId() != null || !payload.getCoupon().getItemCouponIds().isEmpty()) {
-                    orderSagaService.process(saga.sagaId(), SagaStep.COUPON_RESTORE_PENDING, historyCommand);
+                    orderSagaService.compensate(saga.sagaId(), SagaStep.COUPON_RESTORE_PENDING, historyCommand);
                 } else {
-                    orderSagaService.process(saga.sagaId(), SagaStep.INVENTORY_RESTORE_PENDING, historyCommand);
+                    orderSagaService.compensate(saga.sagaId(), SagaStep.INVENTORY_RESTORE_PENDING, historyCommand);
                 }
             }
             case COUPON_RESTORE_PENDING, INVENTORY_RESTORE_PENDING -> {

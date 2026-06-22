@@ -74,11 +74,20 @@ public class OrderSagaService {
      * @param nextStep 다음 단계
      * @param command  history 저장 커맨드
      */
-    public void process(Long sagaId, SagaStep nextStep, OrderSagaCommand.RecordHistory command) {
+    public void proceed(Long sagaId, SagaStep nextStep, OrderSagaCommand.RecordHistory command) {
         OrderSagaInstance instance = findSagaById(sagaId);
         SagaStepHistory history = SagaStepHistory.from(command.step(), command.status(), command.code());
         instance.addHistory(history);
-        instance.transitionTo(nextStep);
+        instance.proceedTo(nextStep);
+        OrderSagaProcessEvent event = OrderSagaProcessEvent.from(instance);
+        eventPublisher.publishEvent(event);
+    }
+
+    public void compensate(Long sagaId, SagaStep nextStep, OrderSagaCommand.RecordHistory command) {
+        OrderSagaInstance instance = findSagaById(sagaId);
+        SagaStepHistory history = SagaStepHistory.from(command.step(), command.status(), command.code());
+        instance.addHistory(history);
+        instance.compensateTo(nextStep);
         OrderSagaProcessEvent event = OrderSagaProcessEvent.from(instance);
         eventPublisher.publishEvent(event);
     }

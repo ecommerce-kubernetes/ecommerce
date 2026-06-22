@@ -27,7 +27,6 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.UUID;
 
-import static com.example.order_service.support.TestFixtureUtil.fixtureMonkey;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.instancio.Select.field;
 

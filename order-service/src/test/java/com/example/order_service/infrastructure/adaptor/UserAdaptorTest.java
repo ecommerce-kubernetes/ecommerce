@@ -10,7 +10,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
-import static com.example.order_service.support.TestFixtureUtil.giveMeOne;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.*;
@@ -30,7 +29,7 @@ public class UserAdaptorTest {
     void getUserProfile() {
         //given
         Long userId = 1L;
-        UserClientResponse.Profile mockResponse = giveMeOne(UserClientResponse.Profile.class);
+        UserClientResponse.Profile mockResponse = Instancio.create(UserClientResponse.Profile.class);
         given(client.getUserProfile(anyLong()))
                 .willReturn(mockResponse);
         //when

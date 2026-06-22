@@ -58,9 +58,13 @@ public class OrderSagaInstance extends BaseEntity {
         history.setSaga(this);
     }
 
-    public void transitionTo(SagaStep nextStep) {
+    public void proceedTo(SagaStep nextStep) {
         this.currentStep = nextStep;
-        if (nextStep.isCompensation() && this.status != SagaStatus.COMPENSATING) {
+    }
+
+    public void compensateTo(SagaStep nextStep) {
+        this.currentStep = nextStep;
+        if (this.status != SagaStatus.COMPENSATING) {
             this.status = SagaStatus.COMPENSATING;
         }
     }

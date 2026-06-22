@@ -48,6 +48,46 @@ class OrderSagaInstanceTest {
     }
 
     @Test
+    @DisplayName("saga Step을 다음 스텝으로 변경한다")
+    void proceedTo(){
+        //given
+        String orderNo = "orderNo";
+        Long paymentId = 1L;
+        SagaStep step = SagaStep.INVENTORY_DEDUCT_PENDING;
+        SagaStep nextStep = SagaStep.COUPON_USE_PENDING;
+        SagaPayload sagaPayload = Instancio.create(SagaPayload.class);
+        OrderSagaInstance instance = OrderSagaInstance.create(orderNo, paymentId, step, sagaPayload);
+        //when
+        instance.proceedTo(nextStep);
+        //then
+        assertThat(instance)
+                .extracting("status", "currentStep")
+                .containsExactly(
+                        SagaStatus.STARTED, SagaStep.COUPON_USE_PENDING
+                );
+    }
+
+    @Test
+    @DisplayName("saga 상태를 보상 중으로 변경하고 다음 스텝을 변경한다")
+    void compensateTo(){
+        //given
+        String orderNo = "orderNo";
+        Long paymentId = 1L;
+        SagaStep step = SagaStep.COUPON_USE_PENDING;
+        SagaStep nextStep = SagaStep.INVENTORY_RESTORE_PENDING;
+        SagaPayload sagaPayload = Instancio.create(SagaPayload.class);
+        OrderSagaInstance instance = OrderSagaInstance.create(orderNo, paymentId, step, sagaPayload);
+        //when
+        instance.compensateTo(nextStep);
+        //then
+        assertThat(instance)
+                .extracting("status", "currentStep")
+                .containsExactly(
+                        SagaStatus.COMPENSATING, SagaStep.INVENTORY_RESTORE_PENDING
+                );
+    }
+
+    @Test
     @DisplayName("saga를 완료 처리한다")
     void complete() {
         //given

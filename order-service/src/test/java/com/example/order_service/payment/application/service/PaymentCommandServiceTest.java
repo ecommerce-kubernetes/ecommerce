@@ -5,7 +5,10 @@ import com.example.order_service.common.exception.business.BusinessException;
 import com.example.order_service.payment.application.event.PaymentCompleteEvent;
 import com.example.order_service.payment.application.service.dto.command.PaymentContext;
 import com.example.order_service.payment.application.service.dto.result.PaymentResult;
-import com.example.order_service.payment.domain.model.*;
+import com.example.order_service.payment.domain.model.Payment;
+import com.example.order_service.payment.domain.model.PaymentMethod;
+import com.example.order_service.payment.domain.model.PaymentRecord;
+import com.example.order_service.payment.domain.model.PaymentStatus;
 import com.example.order_service.payment.domain.repository.PaymentRepository;
 import com.example.order_service.payment.exception.PaymentErrorCode;
 import com.example.order_service.support.annotation.MockKafka;
@@ -20,7 +23,6 @@ import org.springframework.test.context.event.ApplicationEvents;
 import org.springframework.test.context.event.RecordApplicationEvents;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
