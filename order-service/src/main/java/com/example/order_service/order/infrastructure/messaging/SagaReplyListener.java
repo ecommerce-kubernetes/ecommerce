@@ -20,7 +20,6 @@ public class SagaReplyListener {
 
     @KafkaListener(topics = "${order.topics.order-saga-reply}")
     public void handleSagaReply(@Payload String payload,
-                                @Header(KafkaHeaders.RECEIVED_KEY) String orderNo,
                                 @Header("X-SAGA-ID") Long sagaId) {
         SagaReplyMessage parsePayload = toObject(payload);
         SagaReplyMessage message = parsePayload.toBuilder()
