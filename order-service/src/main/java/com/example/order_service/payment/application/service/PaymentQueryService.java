@@ -30,11 +30,11 @@ public class PaymentQueryService {
         return PaymentResult.Default.from(payment);
     }
 
-    public List<PaymentResult.Default> getReadyPaymentBefore(LocalDateTime threshold, int size) {
+    public List<PaymentResult.Default> getReadyPaymentsBefore(LocalDateTime threshold, int size) {
         return null;
     }
 
-    public List<PaymentResult.Default> getRefundPendingPaymentBefore(LocalDateTime threshold, int size) {
+    public List<PaymentResult.Default> getRefundPendingPaymentsBefore(LocalDateTime threshold, int size) {
         return null;
     }
 }
