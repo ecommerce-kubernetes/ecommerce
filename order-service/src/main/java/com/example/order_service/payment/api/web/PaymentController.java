@@ -1,8 +1,8 @@
-package com.example.order_service.payment.api;
+package com.example.order_service.payment.api.web;
 
 import com.example.order_service.common.security.model.UserPrincipal;
-import com.example.order_service.payment.api.dto.request.PaymentRequest;
-import com.example.order_service.payment.api.dto.response.PaymentResponse;
+import com.example.order_service.payment.api.web.dto.request.PaymentRequest;
+import com.example.order_service.payment.api.web.dto.response.PaymentResponse;
 import com.example.order_service.payment.application.service.PaymentFacade;
 import com.example.order_service.payment.application.service.dto.command.PaymentCommand;
 import com.example.order_service.payment.application.service.dto.result.PaymentResult;

@@ -115,6 +115,10 @@ dependencies {
     implementation 'io.micrometer:micrometer-registry-prometheus'
     implementation 'com.github.loki4j:loki-logback-appender:2.0.3'
 
+    //scheduler
+    implementation 'net.javacrumbs.shedlock:shedlock-spring:6.10.0'
+    implementation 'net.javacrumbs.shedlock:shedlock-provider-jdbc-template:6.10.0'
+
     //Test
     testImplementation 'org.projectlombok:lombok'
     testImplementation 'org.springframework.kafka:spring-kafka-test'

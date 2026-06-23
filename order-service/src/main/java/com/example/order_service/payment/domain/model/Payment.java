@@ -1,6 +1,7 @@
 package com.example.order_service.payment.domain.model;
 
 import com.example.order_service.common.domain.vo.Money;
+import com.example.order_service.common.entity.BaseEntity;
 import com.example.order_service.common.exception.business.BusinessException;
 import com.example.order_service.payment.exception.PaymentErrorCode;
 import jakarta.persistence.*;
@@ -15,7 +16,7 @@ import java.util.List;
 @Getter
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Payment {
+public class Payment extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

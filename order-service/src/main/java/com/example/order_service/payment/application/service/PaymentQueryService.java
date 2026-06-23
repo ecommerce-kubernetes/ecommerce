@@ -9,6 +9,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -25,5 +28,13 @@ public class PaymentQueryService {
         Payment payment = paymentRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND));
         return PaymentResult.Default.from(payment);
+    }
+
+    public List<PaymentResult.Default> getReadyPaymentBefore(LocalDateTime threshold, int size) {
+        return null;
+    }
+
+    public List<PaymentResult.Default> getRefundPendingPaymentBefore(LocalDateTime threshold, int size) {
+        return null;
     }
 }

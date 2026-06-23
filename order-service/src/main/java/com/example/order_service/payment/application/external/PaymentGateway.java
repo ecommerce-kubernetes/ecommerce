@@ -7,7 +7,7 @@ import com.example.order_service.common.exception.external.ExternalSystemUnavail
 import com.example.order_service.infrastructure.adaptor.TossAdaptor;
 import com.example.order_service.infrastructure.dto.response.TossClientResponse;
 import com.example.order_service.payment.application.external.dto.command.PGPaymentCommand;
-import com.example.order_service.payment.application.external.dto.result.PgPaymentResult;
+import com.example.order_service.payment.application.external.dto.result.PGPaymentResult;
 import com.example.order_service.payment.application.external.mapper.PgMapper;
 import com.example.order_service.payment.exception.PaymentErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -19,14 +19,18 @@ public class PaymentGateway {
     private final TossAdaptor tossAdaptor;
     private final PgMapper pgMapper;
 
-    public PgPaymentResult.Approval confirm(PGPaymentCommand.Confirm command) {
+    public PGPaymentResult.Approval confirm(PGPaymentCommand.Confirm command) {
         TossClientResponse.Confirm confirm = fetchTossConfirmWithTransactional(command);
         return pgMapper.toResult(confirm);
     }
 
-    public PgPaymentResult.Cancellation cancel(PGPaymentCommand.Cancel command) {
+    public PGPaymentResult.Cancellation cancel(PGPaymentCommand.Cancel command) {
         TossClientResponse.Cancel cancel = fetchTossCancelWithTransactional(command);
         return pgMapper.toResult(cancel);
+    }
+
+    public PGPaymentResult.Inquiry inquire(String paymentKey) {
+        return null;
     }
 
     private TossClientResponse.Confirm fetchTossConfirmWithTransactional(PGPaymentCommand.Confirm command) {

@@ -2,8 +2,8 @@ package com.example.order_service.docs.payment;
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.docs.descriptor.PaymentDescriptor;
-import com.example.order_service.payment.api.PaymentController;
-import com.example.order_service.payment.api.dto.request.PaymentRequest;
+import com.example.order_service.payment.api.web.PaymentController;
+import com.example.order_service.payment.api.web.dto.request.PaymentRequest;
 import com.example.order_service.payment.application.service.PaymentFacade;
 import com.example.order_service.payment.application.service.dto.result.PaymentResult;
 import com.example.order_service.payment.domain.model.PaymentMethod;

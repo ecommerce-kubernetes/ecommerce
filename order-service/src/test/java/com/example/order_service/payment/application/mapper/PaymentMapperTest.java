@@ -1,7 +1,7 @@
 package com.example.order_service.payment.application.mapper;
 
 import com.example.order_service.common.domain.vo.Money;
-import com.example.order_service.payment.application.external.dto.result.PgPaymentResult;
+import com.example.order_service.payment.application.external.dto.result.PGPaymentResult;
 import com.example.order_service.payment.application.service.dto.command.PaymentCommand;
 import com.example.order_service.payment.application.service.dto.command.PaymentContext;
 import com.example.order_service.payment.domain.model.PaymentMethod;
@@ -46,7 +46,7 @@ class PaymentMapperTest {
         //given
         Long paymentId = 1L;
         LocalDateTime approvedAt = LocalDateTime.now();
-        PgPaymentResult.Approval result = PgPaymentResult.Approval.builder()
+        PGPaymentResult.Approval result = PGPaymentResult.Approval.builder()
                 .status(PaymentStatus.DONE)
                 .totalAmount(Money.wons(10000L))
                 .method(PaymentMethod.CARD)
@@ -75,7 +75,7 @@ class PaymentMapperTest {
         //given
         Long paymentId = 1L;
         LocalDateTime canceledAt = LocalDateTime.now();
-        PgPaymentResult.CancelReceipt cancelReceipt = PgPaymentResult.CancelReceipt.builder()
+        PGPaymentResult.CancelReceipt cancelReceipt = PGPaymentResult.CancelReceipt.builder()
                 .transactionKey("090A796806E726BBB929F4A2CA7DB9A7")
                 .cancelAmount(Money.wons(10000L))
                 .cancelReason("테스트 결제 취소")

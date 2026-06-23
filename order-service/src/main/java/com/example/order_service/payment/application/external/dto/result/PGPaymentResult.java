@@ -8,16 +8,17 @@ import lombok.Builder;
 import java.time.LocalDateTime;
 import java.util.List;
 
-public class PgPaymentResult {
+public class PGPaymentResult {
 
     @Builder
     public record Approval(
-           PaymentStatus status,
-           Money totalAmount,
-           PaymentMethod method,
-           String transactionKey,
-           LocalDateTime approvedAt
-    ) {}
+            PaymentStatus status,
+            Money totalAmount,
+            PaymentMethod method,
+            String transactionKey,
+            LocalDateTime approvedAt
+    ) {
+    }
 
     @Builder
     public record Cancellation(
@@ -35,6 +36,31 @@ public class PgPaymentResult {
             Money cancelAmount,
             String cancelReason,
             LocalDateTime canceledAt
+    ) {
+    }
+
+    @Builder
+    public record Inquiry(
+            String paymentKey,
+            String orderNo,
+            PaymentStatus status,
+            Money totalAmount,
+            Money balanceAmount,
+            PaymentMethod method,
+            String lastTransactionKey,
+            LocalDateTime approvedAt,
+            FailureReason failure,
+            List<CancelReceipt> cancels
+    ) {
+        public CancelReceipt lastCancel() {
+            return cancels.getLast();
+        }
+    }
+
+    @Builder
+    public record FailureReason(
+            String code,
+            String message
     ) {
     }
 }

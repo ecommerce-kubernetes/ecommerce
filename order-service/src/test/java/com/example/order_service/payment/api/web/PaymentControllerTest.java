@@ -1,7 +1,7 @@
-package com.example.order_service.payment.api;
+package com.example.order_service.payment.api.web;
 
 import com.example.order_service.common.security.model.UserRole;
-import com.example.order_service.payment.api.dto.request.PaymentRequest;
+import com.example.order_service.payment.api.web.dto.request.PaymentRequest;
 import com.example.order_service.payment.application.service.PaymentFacade;
 import com.example.order_service.payment.application.service.dto.result.PaymentResult;
 import com.example.order_service.support.annotation.WithCustomMockUser;

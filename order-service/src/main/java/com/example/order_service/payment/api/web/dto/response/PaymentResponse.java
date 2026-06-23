@@ -1,4 +1,4 @@
-package com.example.order_service.payment.api.dto.response;
+package com.example.order_service.payment.api.web.dto.response;
 
 import com.example.order_service.payment.application.service.dto.result.PaymentResult;
 import com.example.order_service.payment.domain.model.PaymentMethod;

@@ -8,7 +8,7 @@ import com.example.order_service.infrastructure.adaptor.TossAdaptor;
 import com.example.order_service.infrastructure.dto.response.TossClientResponse;
 import com.example.order_service.payment.application.external.PaymentGateway;
 import com.example.order_service.payment.application.external.dto.command.PGPaymentCommand;
-import com.example.order_service.payment.application.external.dto.result.PgPaymentResult;
+import com.example.order_service.payment.application.external.dto.result.PGPaymentResult;
 import com.example.order_service.payment.application.external.mapper.PgMapper;
 import com.example.order_service.payment.exception.PaymentErrorCode;
 import org.instancio.Instancio;
@@ -45,11 +45,11 @@ public class PaymentGatewayTest {
             //given
             PGPaymentCommand.Confirm command = Instancio.create(PGPaymentCommand.Confirm.class);
             TossClientResponse.Confirm response = Instancio.create(TossClientResponse.Confirm.class);
-            PgPaymentResult.Approval approval = Instancio.create(PgPaymentResult.Approval.class);
+            PGPaymentResult.Approval approval = Instancio.create(PGPaymentResult.Approval.class);
             given(adaptor.confirmPayment(anyString(), anyString(), anyLong())).willReturn(response);
             given(pgMapper.toResult(any(TossClientResponse.Confirm.class))).willReturn(approval);
             //when
-            PgPaymentResult.Approval confirm = paymentGateway.confirm(command);
+            PGPaymentResult.Approval confirm = paymentGateway.confirm(command);
             //then
             assertThat(confirm).isEqualTo(approval);
         }
@@ -109,12 +109,12 @@ public class PaymentGatewayTest {
         void cancel() {
             //given
             PGPaymentCommand.Cancel command = Instancio.create(PGPaymentCommand.Cancel.class);
-            PgPaymentResult.Cancellation result = Instancio.create(PgPaymentResult.Cancellation.class);
+            PGPaymentResult.Cancellation result = Instancio.create(PGPaymentResult.Cancellation.class);
             TossClientResponse.Cancel response = Instancio.create(TossClientResponse.Cancel.class);
             given(adaptor.cancelPayment(anyString(), anyString(), anyLong())).willReturn(response);
             given(pgMapper.toResult(any(TossClientResponse.Cancel.class))).willReturn(result);
             //when
-            PgPaymentResult.Cancellation cancel = paymentGateway.cancel(command);
+            PGPaymentResult.Cancellation cancel = paymentGateway.cancel(command);
             //then
             assertThat(cancel).isEqualTo(result);
         }

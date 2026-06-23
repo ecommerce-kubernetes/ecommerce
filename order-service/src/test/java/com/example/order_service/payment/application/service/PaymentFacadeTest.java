@@ -6,7 +6,7 @@ import com.example.order_service.order.application.service.order.OrderQueryServi
 import com.example.order_service.order.application.service.order.dto.result.OrderResult;
 import com.example.order_service.order.domain.model.OrderStatus;
 import com.example.order_service.payment.application.external.PaymentGateway;
-import com.example.order_service.payment.application.external.dto.result.PgPaymentResult;
+import com.example.order_service.payment.application.external.dto.result.PGPaymentResult;
 import com.example.order_service.payment.application.mapper.PaymentMapper;
 import com.example.order_service.payment.application.service.dto.command.PaymentCommand;
 import com.example.order_service.payment.application.service.dto.command.PaymentContext;
@@ -65,14 +65,14 @@ public class PaymentFacadeTest {
                     .create();
             PaymentContext.Create createContext = Instancio.create(PaymentContext.Create.class);
             PaymentResult.Default savedPayment = Instancio.create(PaymentResult.Default.class);
-            PgPaymentResult.Approval pgApproval = Instancio.create(PgPaymentResult.Approval.class);
+            PGPaymentResult.Approval pgApproval = Instancio.create(PGPaymentResult.Approval.class);
             PaymentContext.Approval approvalContext = Instancio.create(PaymentContext.Approval.class);
             PaymentResult.PaymentApproval approvalResult = Instancio.create(PaymentResult.PaymentApproval.class);
             given(orderQueryService.getOrder(anyString(), anyLong())).willReturn(order);
             given(mapper.toContext(any(PaymentCommand.Confirm.class))).willReturn(createContext);
             given(paymentCommandService.create(any(PaymentContext.Create.class))).willReturn(savedPayment);
             given(paymentGateway.confirm(any())).willReturn(pgApproval);
-            given(mapper.toContext(anyLong(), any(PgPaymentResult.Approval.class))).willReturn(approvalContext);
+            given(mapper.toContext(anyLong(), any(PGPaymentResult.Approval.class))).willReturn(approvalContext);
             given(paymentCommandService.approve(any())).willReturn(approvalResult);
             //when
             PaymentResult.PaymentApproval confirm = paymentFacade.confirm(command);
@@ -217,14 +217,14 @@ public class PaymentFacadeTest {
                     .create();
             PaymentContext.Create createContext = Instancio.create(PaymentContext.Create.class);
             PaymentResult.Default savedPayment = Instancio.create(PaymentResult.Default.class);
-            PgPaymentResult.Approval pgApproval = Instancio.create(PgPaymentResult.Approval.class);
+            PGPaymentResult.Approval pgApproval = Instancio.create(PGPaymentResult.Approval.class);
             PaymentContext.Approval approvalContext = Instancio.create(PaymentContext.Approval.class);
-            PgPaymentResult.Cancellation cancellation = Instancio.create(PgPaymentResult.Cancellation.class);
+            PGPaymentResult.Cancellation cancellation = Instancio.create(PGPaymentResult.Cancellation.class);
             given(orderQueryService.getOrder(anyString(), anyLong())).willReturn(order);
             given(mapper.toContext(any(PaymentCommand.Confirm.class))).willReturn(createContext);
             given(paymentCommandService.create(any(PaymentContext.Create.class))).willReturn(savedPayment);
             given(paymentGateway.confirm(any())).willReturn(pgApproval);
-            given(mapper.toContext(anyLong(), any(PgPaymentResult.Approval.class))).willReturn(approvalContext);
+            given(mapper.toContext(anyLong(), any(PGPaymentResult.Approval.class))).willReturn(approvalContext);
             willThrow(new RuntimeException()).given(paymentCommandService).approve(any());
             given(paymentGateway.cancel(any())).willReturn(cancellation);
             //when
@@ -253,14 +253,14 @@ public class PaymentFacadeTest {
                     .create();
             PaymentContext.Create createContext = Instancio.create(PaymentContext.Create.class);
             PaymentResult.Default savedPayment = Instancio.create(PaymentResult.Default.class);
-            PgPaymentResult.Approval pgApproval = Instancio.create(PgPaymentResult.Approval.class);
+            PGPaymentResult.Approval pgApproval = Instancio.create(PGPaymentResult.Approval.class);
             PaymentContext.Approval approvalContext = Instancio.create(PaymentContext.Approval.class);
-            PgPaymentResult.Cancellation cancellation = Instancio.create(PgPaymentResult.Cancellation.class);
+            PGPaymentResult.Cancellation cancellation = Instancio.create(PGPaymentResult.Cancellation.class);
             given(orderQueryService.getOrder(anyString(), anyLong())).willReturn(order);
             given(mapper.toContext(any(PaymentCommand.Confirm.class))).willReturn(createContext);
             given(paymentCommandService.create(any(PaymentContext.Create.class))).willReturn(savedPayment);
             given(paymentGateway.confirm(any())).willReturn(pgApproval);
-            given(mapper.toContext(anyLong(), any(PgPaymentResult.Approval.class))).willReturn(approvalContext);
+            given(mapper.toContext(anyLong(), any(PGPaymentResult.Approval.class))).willReturn(approvalContext);
             willThrow(new RuntimeException()).given(paymentCommandService).approve(any());
             given(paymentGateway.cancel(any())).willReturn(cancellation);
             willThrow(new RuntimeException()).given(paymentCommandService).abort(anyLong(), anyString());
@@ -289,13 +289,13 @@ public class PaymentFacadeTest {
                     .create();
             PaymentContext.Create createContext = Instancio.create(PaymentContext.Create.class);
             PaymentResult.Default savedPayment = Instancio.create(PaymentResult.Default.class);
-            PgPaymentResult.Approval pgApproval = Instancio.create(PgPaymentResult.Approval.class);
+            PGPaymentResult.Approval pgApproval = Instancio.create(PGPaymentResult.Approval.class);
             PaymentContext.Approval approvalContext = Instancio.create(PaymentContext.Approval.class);
             given(orderQueryService.getOrder(anyString(), anyLong())).willReturn(order);
             given(mapper.toContext(any(PaymentCommand.Confirm.class))).willReturn(createContext);
             given(paymentCommandService.create(any(PaymentContext.Create.class))).willReturn(savedPayment);
             given(paymentGateway.confirm(any())).willReturn(pgApproval);
-            given(mapper.toContext(anyLong(), any(PgPaymentResult.Approval.class))).willReturn(approvalContext);
+            given(mapper.toContext(anyLong(), any(PGPaymentResult.Approval.class))).willReturn(approvalContext);
             willThrow(new RuntimeException()).given(paymentCommandService).approve(any());
             willThrow(new BusinessException(PaymentErrorCode.PAYMENT_TOSS_CLIENT_ERROR)).given(paymentGateway).cancel(any());
             //when
@@ -319,7 +319,7 @@ public class PaymentFacadeTest {
             Long paymentId = 1L;
             String reason = "INSUFFICIENT_STOCK";
             PaymentResult.Default payment = Instancio.create(PaymentResult.Default.class);
-            PgPaymentResult.Cancellation cancellation = Instancio.create(PgPaymentResult.Cancellation.class);
+            PGPaymentResult.Cancellation cancellation = Instancio.create(PGPaymentResult.Cancellation.class);
             PaymentContext.Cancellation context = Instancio.create(PaymentContext.Cancellation.class);
             PaymentResult.PaymentCancel paymentCancel = Instancio.create(PaymentResult.PaymentCancel.class);
             given(paymentQueryService.getPayment(anyLong())).willReturn(payment);

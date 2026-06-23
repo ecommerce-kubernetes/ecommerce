@@ -1,4 +1,4 @@
-package com.example.order_service.payment.api.dto.request;
+package com.example.order_service.payment.api.web.dto.request;
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.payment.application.service.dto.command.PaymentCommand;

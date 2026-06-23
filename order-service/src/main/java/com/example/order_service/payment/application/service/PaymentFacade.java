@@ -6,15 +6,20 @@ import com.example.order_service.order.application.service.order.dto.result.Orde
 import com.example.order_service.order.domain.model.OrderStatus;
 import com.example.order_service.payment.application.external.PaymentGateway;
 import com.example.order_service.payment.application.external.dto.command.PGPaymentCommand;
-import com.example.order_service.payment.application.external.dto.result.PgPaymentResult;
+import com.example.order_service.payment.application.external.dto.result.PGPaymentResult;
 import com.example.order_service.payment.application.mapper.PaymentMapper;
 import com.example.order_service.payment.application.service.dto.command.PaymentCommand;
 import com.example.order_service.payment.application.service.dto.command.PaymentContext;
 import com.example.order_service.payment.application.service.dto.result.PaymentResult;
+import com.example.order_service.payment.domain.model.PaymentStatus;
 import com.example.order_service.payment.exception.PaymentErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.time.Clock;
+import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 결제를 담당하는 오케스트레이션 서비스
@@ -34,6 +39,7 @@ public class PaymentFacade {
     private final PaymentQueryService paymentQueryService;
     private final PaymentMapper mapper;
     private final PaymentGateway paymentGateway;
+    private final Clock clock;
 
     /**
      * 결제 승인 처리
@@ -56,11 +62,11 @@ public class PaymentFacade {
         }
         PaymentContext.Create context = mapper.toContext(command);
         PaymentResult.Default payment = paymentCommandService.create(context);
-        PgPaymentResult.Approval pgResult = confirmWithPg(payment, order, command);
+        PGPaymentResult.Approval pgResult = confirmWithPg(payment, order, command);
         return approveWithFallback(payment, pgResult);
     }
 
-    private PgPaymentResult.Approval confirmWithPg(PaymentResult.Default payment, OrderResult.Detail order,
+    private PGPaymentResult.Approval confirmWithPg(PaymentResult.Default payment, OrderResult.Detail order,
                                                    PaymentCommand.Confirm command) {
         try {
             PGPaymentCommand.Confirm gatewayCommand = PGPaymentCommand.Confirm.of(order.orderNo(), command.paymentKey(),
@@ -73,12 +79,12 @@ public class PaymentFacade {
     }
 
     private PaymentResult.PaymentApproval approveWithFallback(PaymentResult.Default payment,
-                                                              PgPaymentResult.Approval pgResult) {
+                                                              PGPaymentResult.Approval pgResult) {
         try {
             PaymentContext.Approval approvalContext = mapper.toContext(payment.id(), pgResult);
             return paymentCommandService.approve(approvalContext);
         } catch (Exception e) {
-            boolean isCanceled = attemptNetworkCancel(payment.paymentKey());
+            boolean isCanceled = attemptNetworkCancel(payment.paymentKey(), "내부 DB 저장 실패로 인한 망취소");
             if (isCanceled) {
                 abortPayment(payment.id(), "NET-CANCEL");
                 throw new BusinessException(PaymentErrorCode.PAYMENT_AUTO_CANCELED);
@@ -88,9 +94,9 @@ public class PaymentFacade {
         }
     }
 
-    private boolean attemptNetworkCancel(String paymentKey) {
+    private boolean attemptNetworkCancel(String paymentKey, String cancelReason) {
         try {
-            PGPaymentCommand.Cancel cancelCommand = PGPaymentCommand.Cancel.ofFull(paymentKey, "내부 DB 저장 실패로 인한 망취소");
+            PGPaymentCommand.Cancel cancelCommand = PGPaymentCommand.Cancel.ofFull(paymentKey, cancelReason);
             paymentGateway.cancel(cancelCommand);
             return true;
         } catch (Exception e) {
@@ -124,18 +130,105 @@ public class PaymentFacade {
      * </p>
      *
      * @param paymentId 결제 번호
-     * @param reason  취소 이유
+     * @param reason    취소 이유
      */
     public void revert(Long paymentId, String reason) {
         PaymentResult.Default payment = paymentQueryService.getPayment(paymentId);
         paymentCommandService.changeRefundPending(payment.id());
         try {
             PGPaymentCommand.Cancel gatewayCommand = PGPaymentCommand.Cancel.ofFull(payment.paymentKey(), reason);
-            PgPaymentResult.Cancellation cancel = paymentGateway.cancel(gatewayCommand);
+            PGPaymentResult.Cancellation cancel = paymentGateway.cancel(gatewayCommand);
             PaymentContext.Cancellation context = mapper.toContext(payment.id(), cancel.status(), cancel.lastCancel());
             paymentCommandService.cancel(context);
         } catch (Exception e) {
             log.error("[SAGA 보상 지연] PG사 취소 또는 최종 DB 반영 실패. 스케줄러가 재처리 예정: {}", payment.paymentKey(), e);
+        }
+    }
+
+    /**
+     * 결제 승인 대사
+     * <p>
+     * 타임아웃된 READY 상태의 결제를 PG 사에 조회하여 결제된 상태라면 환불 후 실패 처리,
+     * 결제 되지 않은 상태라면 바로 실패처리한다
+     * </p>
+     */
+    public void reconcileReadyPayments() {
+        int chunkSize = 20;
+        LocalDateTime thresholdTime = LocalDateTime.now(clock).minusMinutes(3);
+        List<PaymentResult.Default> payments = paymentQueryService.getReadyPaymentBefore(thresholdTime, chunkSize);
+
+        if (payments.isEmpty()) {
+            return;
+        }
+
+        for (PaymentResult.Default payment : payments) {
+            try {
+                PGPaymentResult.Inquiry inquire = paymentGateway.inquire(payment.paymentKey());
+                if (inquire.status() == PaymentStatus.ABORTED) {
+                    paymentCommandService.abort(payment.id(), inquire.failure().code());
+                } else if (inquire.status() == PaymentStatus.CANCELED) {
+                    String cancelReason = "ALREADY_CANCELED_IN_PG";
+                    if (inquire.cancels() != null && !inquire.cancels().isEmpty()) {
+                        cancelReason = inquire.lastCancel().cancelReason();
+                    }
+                    paymentCommandService.abort(payment.id(), cancelReason);
+                } else if (inquire.status() == PaymentStatus.DONE) {
+                    boolean isCanceled = attemptNetworkCancel(payment.paymentKey(), "PAYMENT_TIME_OUT");
+                    if (isCanceled) {
+                        paymentCommandService.abort(payment.id(), "PAYMENT_TIME_OUT");
+                    }
+                }
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                log.error("[Payment Approval Reconciliation Error] 스로틀링 중 인터럽트 발생. 대사를 조기 종료");
+                break;
+            } catch (Exception e) {
+                log.error("[Payment Approval Reconciliation Error] paymentId = {}, orderNo = {}", payment.id(), payment.orderNo());
+            }
+        }
+    }
+
+    /**
+     * 환불 대사
+     * <p>
+     * 타임아웃된 REFUND_PENDING 상태의 결제를 PG 사에 조회하여 환불 된 상태라면 결제를 환불 처리,
+     * 환불되지 않은 상태라면 환불 후 결제를 환불 처리함
+     * </p>
+     */
+    public void reconcileRefundPendingPayments() {
+        int chunkSize = 20;
+        LocalDateTime thresholdTime = LocalDateTime.now(clock).minusMinutes(3);
+        List<PaymentResult.Default> payments = paymentQueryService.getRefundPendingPaymentBefore(thresholdTime, chunkSize);
+
+        if (payments.isEmpty()) {
+            return;
+        }
+
+        for (PaymentResult.Default payment : payments) {
+            try {
+                PGPaymentResult.Inquiry inquire = paymentGateway.inquire(payment.paymentKey());
+                if (inquire.status() == PaymentStatus.CANCELED) {
+                    PGPaymentResult.CancelReceipt cancelReceipt = inquire.lastCancel();
+                    PaymentContext.Cancellation context = mapper.toContext(payment.id(), PaymentStatus.CANCELED, cancelReceipt);
+                    paymentCommandService.cancel(context);
+                } else if (inquire.status() == PaymentStatus.DONE) {
+                    boolean isCanceled = attemptNetworkCancel(payment.paymentKey(), "PAYMENT_TIME_OUT");
+                    if (isCanceled) {
+                        PGPaymentResult.Inquiry result = paymentGateway.inquire(payment.paymentKey());
+                        PGPaymentResult.CancelReceipt cancelReceipt = result.lastCancel();
+                        PaymentContext.Cancellation context = mapper.toContext(payment.id(), PaymentStatus.CANCELED, cancelReceipt);
+                        paymentCommandService.cancel(context);
+                    }
+                }
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                log.error("[Payment Refund Reconciliation Error] 스로틀링 중 인터럽트 발생. 대사를 조기 종료");
+                break;
+            } catch (Exception e) {
+                log.error("[Payment Refund Reconciliation Error] paymentId = {}, orderNo = {}", payment.id(), payment.orderNo());
+            }
         }
     }
 }

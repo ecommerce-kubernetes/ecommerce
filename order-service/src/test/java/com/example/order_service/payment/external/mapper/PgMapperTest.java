@@ -3,7 +3,7 @@ package com.example.order_service.payment.external.mapper;
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.mapper.MoneyMapper;
 import com.example.order_service.infrastructure.dto.response.TossClientResponse;
-import com.example.order_service.payment.application.external.dto.result.PgPaymentResult;
+import com.example.order_service.payment.application.external.dto.result.PGPaymentResult;
 import com.example.order_service.payment.application.external.mapper.PgMapper;
 import com.example.order_service.payment.application.external.mapper.PgMapperImpl;
 import com.example.order_service.payment.domain.model.PaymentMethod;
@@ -37,7 +37,7 @@ public class PgMapperTest {
                 .approvedAt(approvedAt)
                 .build();
 
-        PgPaymentResult.Approval expected = PgPaymentResult.Approval.builder()
+        PGPaymentResult.Approval expected = PGPaymentResult.Approval.builder()
                 .status(PaymentStatus.DONE)
                 .totalAmount(Money.wons(10000L))
                 .method(PaymentMethod.CARD)
@@ -45,7 +45,7 @@ public class PgMapperTest {
                 .approvedAt(expectedDateTime)
                 .build();
         //when
-        PgPaymentResult.Approval result = mapper.toResult(response);
+        PGPaymentResult.Approval result = mapper.toResult(response);
         //then
         assertThat(result).usingRecursiveComparison()
                 .isEqualTo(expected);
@@ -68,18 +68,18 @@ public class PgMapperTest {
                 .cancels(List.of(cancelReceipt))
                 .build();
 
-        PgPaymentResult.CancelReceipt expectedReceipt = PgPaymentResult.CancelReceipt.builder()
+        PGPaymentResult.CancelReceipt expectedReceipt = PGPaymentResult.CancelReceipt.builder()
                 .transactionKey("090A796806E726BBB929F4A2CA7DB9A7")
                 .cancelAmount(Money.wons(10000L))
                 .canceledAt(expectedDateTime)
                 .cancelReason("테스트 결제 취소")
                 .build();
-        PgPaymentResult.Cancellation expectedResult = PgPaymentResult.Cancellation.builder()
+        PGPaymentResult.Cancellation expectedResult = PGPaymentResult.Cancellation.builder()
                 .status(PaymentStatus.CANCELED)
                 .cancels(List.of(expectedReceipt))
                 .build();
         //when
-        PgPaymentResult.Cancellation result = mapper.toResult(response);
+        PGPaymentResult.Cancellation result = mapper.toResult(response);
         //then
         assertThat(result)
                 .usingRecursiveComparison()
