@@ -1,6 +1,5 @@
 package com.example.order_service.payment.api.scheduler;
 
-import com.example.order_service.payment.application.service.PaymentFacade;
 import com.example.order_service.payment.application.service.PaymentReconciler;
 import lombok.RequiredArgsConstructor;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;

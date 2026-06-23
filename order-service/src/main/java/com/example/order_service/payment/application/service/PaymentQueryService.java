@@ -3,6 +3,9 @@ package com.example.order_service.payment.application.service;
 import com.example.order_service.common.exception.business.BusinessException;
 import com.example.order_service.payment.application.service.dto.result.PaymentResult;
 import com.example.order_service.payment.domain.model.Payment;
+import com.example.order_service.payment.domain.model.PaymentRecord;
+import com.example.order_service.payment.domain.model.PaymentStatus;
+import com.example.order_service.payment.domain.repository.PaymentQueryRepository;
 import com.example.order_service.payment.domain.repository.PaymentRepository;
 import com.example.order_service.payment.exception.PaymentErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +20,7 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class PaymentQueryService {
     private final PaymentRepository paymentRepository;
-
+    private final PaymentQueryRepository paymentQueryRepository;
     /**
      * 결제 조회
      *
@@ -31,10 +34,12 @@ public class PaymentQueryService {
     }
 
     public List<PaymentResult.Default> getReadyPaymentsBefore(LocalDateTime threshold, int size) {
-        return null;
+        List<Payment> payments = paymentQueryRepository.findPaymentsForReconciliation(PaymentStatus.READY, threshold, size);
+        return payments.stream().map(PaymentResult.Default::from).toList();
     }
 
     public List<PaymentResult.Default> getRefundPendingPaymentsBefore(LocalDateTime threshold, int size) {
-        return null;
+        List<Payment> payments = paymentQueryRepository.findPaymentsForReconciliation(PaymentStatus.REFUND_PENDING, threshold, size);
+        return payments.stream().map(PaymentResult.Default::from).toList();
     }
 }
