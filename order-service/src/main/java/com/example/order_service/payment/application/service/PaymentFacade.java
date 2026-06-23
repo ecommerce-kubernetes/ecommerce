@@ -84,7 +84,7 @@ public class PaymentFacade {
             PaymentContext.Approval approvalContext = mapper.toContext(payment.id(), pgResult);
             return paymentCommandService.approve(approvalContext);
         } catch (Exception e) {
-            boolean isCanceled = attemptNetworkCancel(payment.paymentKey(), "내부 DB 저장 실패로 인한 망취소");
+            boolean isCanceled = attemptNetworkCancel(payment.paymentKey());
             if (isCanceled) {
                 abortPayment(payment.id(), "NET-CANCEL");
                 throw new BusinessException(PaymentErrorCode.PAYMENT_AUTO_CANCELED);
@@ -94,9 +94,9 @@ public class PaymentFacade {
         }
     }
 
-    private boolean attemptNetworkCancel(String paymentKey, String cancelReason) {
+    private boolean attemptNetworkCancel(String paymentKey) {
         try {
-            PGPaymentCommand.Cancel cancelCommand = PGPaymentCommand.Cancel.ofFull(paymentKey, cancelReason);
+            PGPaymentCommand.Cancel cancelCommand = PGPaymentCommand.Cancel.ofFull(paymentKey, "내부 DB 저장 실패로 인한 망취소");
             paymentGateway.cancel(cancelCommand);
             return true;
         } catch (Exception e) {
@@ -173,10 +173,9 @@ public class PaymentFacade {
                     }
                     paymentCommandService.abort(payment.id(), cancelReason);
                 } else if (inquire.status() == PaymentStatus.DONE) {
-                    boolean isCanceled = attemptNetworkCancel(payment.paymentKey(), "PAYMENT_TIME_OUT");
-                    if (isCanceled) {
-                        paymentCommandService.abort(payment.id(), "PAYMENT_TIME_OUT");
-                    }
+                    PGPaymentCommand.Cancel cancelCommand = PGPaymentCommand.Cancel.ofFull(payment.paymentKey(), "PAYMENT_TIME_OUT");
+                    paymentGateway.cancel(cancelCommand);
+                    paymentCommandService.abort(payment.id(), "PAYMENT_TIME_OUT");
                 }
                 Thread.sleep(100);
             } catch (InterruptedException e) {
@@ -213,13 +212,11 @@ public class PaymentFacade {
                     PaymentContext.Cancellation context = mapper.toContext(payment.id(), PaymentStatus.CANCELED, cancelReceipt);
                     paymentCommandService.cancel(context);
                 } else if (inquire.status() == PaymentStatus.DONE) {
-                    boolean isCanceled = attemptNetworkCancel(payment.paymentKey(), "PAYMENT_TIME_OUT");
-                    if (isCanceled) {
-                        PGPaymentResult.Inquiry result = paymentGateway.inquire(payment.paymentKey());
-                        PGPaymentResult.CancelReceipt cancelReceipt = result.lastCancel();
-                        PaymentContext.Cancellation context = mapper.toContext(payment.id(), PaymentStatus.CANCELED, cancelReceipt);
-                        paymentCommandService.cancel(context);
-                    }
+                    PGPaymentCommand.Cancel gatewayCommand = PGPaymentCommand.Cancel.ofFull(payment.paymentKey(), "시스템 환불 대사 스케줄러에 의한 지연 취소");
+                    PGPaymentResult.Cancellation cancelResult = paymentGateway.cancel(gatewayCommand);
+
+                    PaymentContext.Cancellation context = mapper.toContext(payment.id(), PaymentStatus.CANCELED, cancelResult.lastCancel());
+                    paymentCommandService.cancel(context);
                 }
                 Thread.sleep(100);
             } catch (InterruptedException e) {
