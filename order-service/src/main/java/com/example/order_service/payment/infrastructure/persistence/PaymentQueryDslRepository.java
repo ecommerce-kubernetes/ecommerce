@@ -2,7 +2,6 @@ package com.example.order_service.payment.infrastructure.persistence;
 
 import com.example.order_service.payment.domain.model.Payment;
 import com.example.order_service.payment.domain.model.PaymentStatus;
-import com.example.order_service.payment.domain.model.QPayment;
 import com.example.order_service.payment.domain.repository.PaymentQueryRepository;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
