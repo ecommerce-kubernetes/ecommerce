@@ -10,6 +10,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,6 +31,7 @@ public class Payment extends BaseEntity {
     private PaymentMethod method;
     private String lastTransactionKey;
     private String failureCode;
+    private LocalDateTime refundPendingAt;
 
     @OneToMany(mappedBy = "payment", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PaymentRecord> paymentRecords = new ArrayList<>();
@@ -79,11 +81,12 @@ public class Payment extends BaseEntity {
         this.failureCode = failureCode;
     }
 
-    public void refundPending() {
+    public void refundPending(LocalDateTime refundPendingAt) {
         if (this.status != PaymentStatus.DONE) {
             throw new BusinessException(PaymentErrorCode.INVALID_PAYMENT_STATUS_FOR_REFUND_PENDING);
         }
         this.status = PaymentStatus.REFUND_PENDING;
+        this.refundPendingAt = refundPendingAt;
     }
 
     public void cancel(PaymentRecord cancelledRecord, PaymentStatus status) {

@@ -3,7 +3,6 @@ package com.example.order_service.payment.application.service;
 import com.example.order_service.common.exception.business.BusinessException;
 import com.example.order_service.payment.application.service.dto.result.PaymentResult;
 import com.example.order_service.payment.domain.model.Payment;
-import com.example.order_service.payment.domain.model.PaymentRecord;
 import com.example.order_service.payment.domain.model.PaymentStatus;
 import com.example.order_service.payment.domain.repository.PaymentQueryRepository;
 import com.example.order_service.payment.domain.repository.PaymentRepository;
@@ -34,12 +33,12 @@ public class PaymentQueryService {
     }
 
     public List<PaymentResult.Default> getReadyPaymentsBefore(LocalDateTime threshold, int size) {
-        List<Payment> payments = paymentQueryRepository.findPaymentsForReconciliation(PaymentStatus.READY, threshold, size);
+        List<Payment> payments = paymentQueryRepository.findReadyPaymentsBefore(threshold, size);
         return payments.stream().map(PaymentResult.Default::from).toList();
     }
 
     public List<PaymentResult.Default> getRefundPendingPaymentsBefore(LocalDateTime threshold, int size) {
-        List<Payment> payments = paymentQueryRepository.findPaymentsForReconciliation(PaymentStatus.REFUND_PENDING, threshold, size);
+        List<Payment> payments = paymentQueryRepository.findRefundPendingPaymentsBefore(threshold, size);
         return payments.stream().map(PaymentResult.Default::from).toList();
     }
 }

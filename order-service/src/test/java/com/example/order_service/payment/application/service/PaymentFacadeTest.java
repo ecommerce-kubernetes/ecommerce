@@ -21,7 +21,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneId;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -47,6 +52,8 @@ public class PaymentFacadeTest {
     private PaymentMapper mapper;
     @Mock
     private PaymentGateway paymentGateway;
+    @Spy
+    private Clock clock = Clock.fixed(Instant.parse("2026-06-14T03:00:00Z"), ZoneId.of("Asia/Seoul"));
 
     @Nested
     @DisplayName("결제 승인")
@@ -323,7 +330,7 @@ public class PaymentFacadeTest {
             PaymentContext.Cancellation context = Instancio.create(PaymentContext.Cancellation.class);
             PaymentResult.PaymentCancel paymentCancel = Instancio.create(PaymentResult.PaymentCancel.class);
             given(paymentQueryService.getPayment(anyLong())).willReturn(payment);
-            doNothing().when(paymentCommandService).changeRefundPending(anyLong());
+            doNothing().when(paymentCommandService).changeRefundPending(anyLong(), any());
             given(paymentGateway.cancel(any())).willReturn(cancellation);
             given(mapper.toContext(anyLong(), any(), any())).willReturn(context);
             given(paymentCommandService.cancel(any())).willReturn(paymentCancel);
@@ -342,7 +349,7 @@ public class PaymentFacadeTest {
             PaymentResult.Default payment = Instancio.create(PaymentResult.Default.class);
 
             given(paymentQueryService.getPayment(anyLong())).willReturn(payment);
-            doNothing().when(paymentCommandService).changeRefundPending(anyLong());
+            doNothing().when(paymentCommandService).changeRefundPending(anyLong(), any());
             given(paymentGateway.cancel(any())).willThrow(new RuntimeException("PG Timeout"));
             //when
             //then

@@ -149,6 +149,7 @@ public class PaymentTest {
     void refundPending() {
         //given
         String orderNo = "orderNo";
+        LocalDateTime refundPendingAt = LocalDateTime.now();
         Long userId = 1L;
         String paymentKey = "paymentKey";
         Money totalAmount = Money.wons(10000L);
@@ -156,9 +157,10 @@ public class PaymentTest {
         Payment payment = Payment.create(orderNo, userId, paymentKey, totalAmount);
         payment.approve(approval, PaymentStatus.DONE, PaymentMethod.CARD);
         //when
-        payment.refundPending();
+        payment.refundPending(refundPendingAt);
         //then
         assertThat(payment.getStatus()).isEqualTo(PaymentStatus.REFUND_PENDING);
+        assertThat(payment.getRefundPendingAt()).isEqualTo(refundPendingAt);
     }
 
     @Test
@@ -168,12 +170,13 @@ public class PaymentTest {
         String orderNo = "orderNo";
         Long userId = 1L;
         String paymentKey = "paymentKey";
+        LocalDateTime refundPendingAt = LocalDateTime.now();
         Money totalAmount = Money.wons(10000L);
         Payment payment = Payment.create(orderNo, userId, paymentKey, totalAmount);
         payment.abort("fail");
         //when
         //then
-        assertThatThrownBy(payment::refundPending)
+        assertThatThrownBy(() -> payment.refundPending(refundPendingAt))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(PaymentErrorCode.INVALID_PAYMENT_STATUS_FOR_REFUND_PENDING);
@@ -186,12 +189,13 @@ public class PaymentTest {
         String orderNo = "orderNo";
         Long userId = 1L;
         String paymentKey = "paymentKey";
+        LocalDateTime refundPendingAt = LocalDateTime.now();
         Money totalAmount = Money.wons(10000L);
         PaymentRecord approval = PaymentRecord.createApproval("transactionKey", Money.wons(10000L), LocalDateTime.now());
         PaymentRecord cancellation = PaymentRecord.createCancellation("lastTransactionKey", Money.wons(10000L), "테스트 결제 취소", LocalDateTime.now());
         Payment payment = Payment.create(orderNo, userId, paymentKey, totalAmount);
         payment.approve(approval, PaymentStatus.DONE, PaymentMethod.CARD);
-        payment.refundPending();
+        payment.refundPending(refundPendingAt);
         //when
         payment.cancel(cancellation, PaymentStatus.CANCELED);
         //then
@@ -209,13 +213,14 @@ public class PaymentTest {
         //given
         String orderNo = "orderNo";
         Long userId = 1L;
+        LocalDateTime refundPendingAt = LocalDateTime.now();
         String paymentKey = "paymentKey";
         Money totalAmount = Money.wons(10000L);
         PaymentRecord approval = PaymentRecord.createApproval("transactionKey", Money.wons(10000L), LocalDateTime.now());
         PaymentRecord cancellation = PaymentRecord.createCancellation("lastTransactionKey", Money.wons(11000L), "테스트 결제 취소", LocalDateTime.now());
         Payment payment = Payment.create(orderNo, userId, paymentKey, totalAmount);
         payment.approve(approval, PaymentStatus.DONE, PaymentMethod.CARD);
-        payment.refundPending();
+        payment.refundPending(refundPendingAt);
         //when
         //then
         assertThatThrownBy(() -> payment.cancel(cancellation, PaymentStatus.CANCELED))
@@ -250,13 +255,14 @@ public class PaymentTest {
         //given
         String orderNo = "orderNo";
         Long userId = 1L;
+        LocalDateTime refundPendingAt = LocalDateTime.now();
         String paymentKey = "paymentKey";
         Money totalAmount = Money.wons(10000L);
         PaymentRecord approval = PaymentRecord.createApproval("transactionKey", Money.wons(10000L), LocalDateTime.now());
         PaymentRecord cancellation = PaymentRecord.createCancellation("lastTransactionKey", Money.wons(7000L), "테스트 결제 취소", LocalDateTime.now());
         Payment payment = Payment.create(orderNo, userId, paymentKey, totalAmount);
         payment.approve(approval, PaymentStatus.DONE, PaymentMethod.CARD);
-        payment.refundPending();
+        payment.refundPending(refundPendingAt);
         payment.cancel(cancellation, PaymentStatus.PARTIAL_CANCELED);
         //when
         Money money = payment.calculateTotalCanceledAmount();
@@ -269,6 +275,7 @@ public class PaymentTest {
     void calculateRemainingAmount(){
         //given
         String orderNo = "orderNo";
+        LocalDateTime refundPendingAt = LocalDateTime.now();
         Long userId = 1L;
         String paymentKey = "paymentKey";
         Money totalAmount = Money.wons(10000L);
@@ -276,7 +283,7 @@ public class PaymentTest {
         PaymentRecord cancellation = PaymentRecord.createCancellation("lastTransactionKey", Money.wons(7000L), "테스트 결제 취소", LocalDateTime.now());
         Payment payment = Payment.create(orderNo, userId, paymentKey, totalAmount);
         payment.approve(approval, PaymentStatus.DONE, PaymentMethod.CARD);
-        payment.refundPending();
+        payment.refundPending(refundPendingAt);
         payment.cancel(cancellation, PaymentStatus.PARTIAL_CANCELED);
         //when
         Money money = payment.calculateRemainingAmount();

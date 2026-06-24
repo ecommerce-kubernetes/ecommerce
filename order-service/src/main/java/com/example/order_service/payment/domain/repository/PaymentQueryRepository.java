@@ -7,5 +7,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public interface PaymentQueryRepository {
-    List<Payment> findPaymentsForReconciliation(PaymentStatus status, LocalDateTime threshold, int size);
+    List<Payment> findReadyPaymentsBefore(LocalDateTime threshold, int size);
+    List<Payment> findRefundPendingPaymentsBefore(LocalDateTime threshold, int size);
 }

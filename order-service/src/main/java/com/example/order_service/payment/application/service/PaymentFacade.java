@@ -16,6 +16,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.Clock;
+import java.time.LocalDateTime;
+
 /**
  * 결제를 담당하는 오케스트레이션 서비스
  * <p>
@@ -34,6 +37,7 @@ public class PaymentFacade {
     private final PaymentQueryService paymentQueryService;
     private final PaymentMapper mapper;
     private final PaymentGateway paymentGateway;
+    private final Clock clock;
 
     /**
      * 결제 승인 처리
@@ -128,7 +132,8 @@ public class PaymentFacade {
      */
     public void revert(Long paymentId, String reason) {
         PaymentResult.Default payment = paymentQueryService.getPayment(paymentId);
-        paymentCommandService.changeRefundPending(payment.id());
+        LocalDateTime refundPendingAt = LocalDateTime.now(clock);
+        paymentCommandService.changeRefundPending(payment.id(), refundPendingAt);
         try {
             PGPaymentCommand.Cancel gatewayCommand = PGPaymentCommand.Cancel.ofFull(payment.paymentKey(), reason);
             PGPaymentResult.Cancellation cancel = paymentGateway.cancel(gatewayCommand);

@@ -13,6 +13,8 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+
 /**
  * 결제 쓰기 담당 서비스
  * <p>
@@ -83,10 +85,10 @@ public class PaymentCommandService {
      *
      * @param id 결제 아이디
      */
-    public void changeRefundPending(Long id) {
+    public void changeRefundPending(Long id, LocalDateTime refundPendingAt) {
         Payment payment = paymentRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND));
-        payment.refundPending();
+        payment.refundPending(refundPendingAt);
     }
 
     /**

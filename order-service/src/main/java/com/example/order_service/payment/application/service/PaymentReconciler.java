@@ -99,8 +99,9 @@ public class PaymentReconciler {
             commandService.abort(payment.id(), cancelReason);
         } else if (inquire.status() == PaymentStatus.DONE) {
             PGPaymentCommand.Cancel cancelCommand = PGPaymentCommand.Cancel.ofFull(payment.paymentKey(), "PAYMENT_TIME_OUT");
-            paymentGateway.cancel(cancelCommand);
-            commandService.abort(payment.id(), "PAYMENT_TIME_OUT");
+            PGPaymentResult.Cancellation cancellation = paymentGateway.cancel(cancelCommand);
+            PGPaymentResult.CancelReceipt cancelReceipt = cancellation.lastCancel();
+            commandService.abort(payment.id(), cancelReceipt.cancelReason());
         }
     }
 

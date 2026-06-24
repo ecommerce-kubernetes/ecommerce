@@ -232,14 +232,16 @@ public class PaymentCommandServiceTest {
         void changeRefund(){
             //given
             String orderNo = "orderNo";
+            LocalDateTime refundPendingAt = LocalDateTime.now();
             Payment payment = Payment.create(orderNo, 1L, "paymentKey", Money.wons(10000L));
             PaymentRecord approval = PaymentRecord.createApproval("transactionKey", Money.wons(10000L), LocalDateTime.now());
             payment.approve(approval, PaymentStatus.DONE, PaymentMethod.CARD);
             paymentRepository.save(payment);
             //when
-            paymentCommandService.changeRefundPending(payment.getId());
+            paymentCommandService.changeRefundPending(payment.getId(), refundPendingAt);
             //then
             assertThat(payment.getStatus()).isEqualTo(PaymentStatus.REFUND_PENDING);
+            assertThat(payment.getRefundPendingAt()).isEqualTo(refundPendingAt);
         }
 
         @Test
@@ -248,7 +250,7 @@ public class PaymentCommandServiceTest {
             //given
             //when
             //then
-            assertThatThrownBy(() -> paymentCommandService.changeRefundPending(999L))
+            assertThatThrownBy(() -> paymentCommandService.changeRefundPending(999L, LocalDateTime.now()))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(PaymentErrorCode.PAYMENT_NOT_FOUND);
@@ -259,11 +261,12 @@ public class PaymentCommandServiceTest {
         void changeRefund_payment_status_not_done() {
             //given
             String orderNo = "orderNo";
+            LocalDateTime refundPendingAt = LocalDateTime.now();
             Payment payment = Payment.create(orderNo, 1L, "paymentKey", Money.wons(10000L));
             paymentRepository.save(payment);
             //when
             //then
-            assertThatThrownBy(() -> paymentCommandService.changeRefundPending(payment.getId()))
+            assertThatThrownBy(() -> paymentCommandService.changeRefundPending(payment.getId(), refundPendingAt))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(PaymentErrorCode.INVALID_PAYMENT_STATUS_FOR_REFUND_PENDING);
@@ -280,10 +283,11 @@ public class PaymentCommandServiceTest {
             //given
             String orderNo = "orderNo";
             LocalDateTime canceledAt = LocalDateTime.now();
+            LocalDateTime refundPendingAt = LocalDateTime.now();
             Payment payment = Payment.create(orderNo, 1L, "paymentKey", Money.wons(10000L));
             PaymentRecord approval = PaymentRecord.createApproval("transactionKey", Money.wons(10000L), LocalDateTime.now());
             payment.approve(approval, PaymentStatus.DONE, PaymentMethod.CARD);
-            payment.refundPending();
+            payment.refundPending(refundPendingAt);
             paymentRepository.save(payment);
 
             PaymentContext.Cancellation context = PaymentContext.Cancellation.builder()
@@ -350,10 +354,11 @@ public class PaymentCommandServiceTest {
             //given
             String orderNo = "orderNo";
             LocalDateTime canceledAt = LocalDateTime.now();
+            LocalDateTime refundPendingAt = LocalDateTime.now();
             Payment payment = Payment.create(orderNo, 1L, "paymentKey", Money.wons(10000L));
             PaymentRecord approval = PaymentRecord.createApproval("transactionKey", Money.wons(10000L), LocalDateTime.now());
             payment.approve(approval, PaymentStatus.DONE, PaymentMethod.CARD);
-            payment.refundPending();
+            payment.refundPending(refundPendingAt);
             paymentRepository.save(payment);
 
             PaymentContext.Cancellation context = PaymentContext.Cancellation.builder()
