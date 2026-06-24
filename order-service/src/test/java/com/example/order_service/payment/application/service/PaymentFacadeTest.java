@@ -2,6 +2,8 @@ package com.example.order_service.payment.application.service;
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.application.BusinessException;
+import com.example.order_service.common.exception.application.GatewayRejectException;
+import com.example.order_service.common.exception.application.PaymentUnknownStateException;
 import com.example.order_service.order.application.service.order.OrderQueryService;
 import com.example.order_service.order.application.service.order.dto.result.OrderResult;
 import com.example.order_service.order.domain.model.OrderStatus;
@@ -150,8 +152,8 @@ public class PaymentFacadeTest {
         }
 
         @Test
-        @DisplayName("토스 결제 승인중 클라이언트 에러가 발생한 경우 결제를 취소한다")
-        void confirm_PG_client_error(){
+        @DisplayName("토스 결제 승인중 요청 거절이 발생한 경우 결제를 취소한다")
+        void confirm_PG_reject_exception(){
             //given
             PaymentCommand.Confirm command = PaymentCommand.Confirm.builder()
                     .userId(1L)
@@ -168,11 +170,11 @@ public class PaymentFacadeTest {
             given(orderQueryService.getOrder(anyString(), anyLong())).willReturn(order);
             given(mapper.toContext(any(PaymentCommand.Confirm.class))).willReturn(createContext);
             given(paymentCommandService.create(any(PaymentContext.Create.class))).willReturn(savedPayment);
-            willThrow(new BusinessException(PaymentErrorCode.PAYMENT_INSUFFICIENT_BALANCE)).given(paymentGateway).confirm(any());
+            willThrow(new GatewayRejectException(PaymentErrorCode.PAYMENT_INSUFFICIENT_BALANCE)).given(paymentGateway).confirm(any());
             //when
             //then
             assertThatThrownBy(() -> paymentFacade.confirm(command))
-                    .isInstanceOf(BusinessException.class)
+                    .isInstanceOf(GatewayRejectException.class)
                     .extracting("errorCode")
                     .isEqualTo(PaymentErrorCode.PAYMENT_INSUFFICIENT_BALANCE);
 
@@ -198,12 +200,12 @@ public class PaymentFacadeTest {
             given(orderQueryService.getOrder(anyString(), anyLong())).willReturn(order);
             given(mapper.toContext(any(PaymentCommand.Confirm.class))).willReturn(createContext);
             given(paymentCommandService.create(any(PaymentContext.Create.class))).willReturn(savedPayment);
-            willThrow(new BusinessException(PaymentErrorCode.PAYMENT_INSUFFICIENT_BALANCE)).given(paymentGateway).confirm(any());
+            willThrow(new GatewayRejectException(PaymentErrorCode.PAYMENT_INSUFFICIENT_BALANCE)).given(paymentGateway).confirm(any());
             willThrow(new RuntimeException()).given(paymentCommandService).abort(anyLong(), anyString());
             //when
             //then
             assertThatThrownBy(() -> paymentFacade.confirm(command))
-                    .isInstanceOf(BusinessException.class)
+                    .isInstanceOf(GatewayRejectException.class)
                     .extracting("errorCode")
                     .isEqualTo(PaymentErrorCode.PAYMENT_INSUFFICIENT_BALANCE);
         }
@@ -304,7 +306,7 @@ public class PaymentFacadeTest {
             given(paymentGateway.confirm(any())).willReturn(pgApproval);
             given(mapper.toContext(anyLong(), any(PGPaymentResult.Approval.class))).willReturn(approvalContext);
             willThrow(new RuntimeException()).given(paymentCommandService).approve(any());
-            willThrow(new BusinessException(PaymentErrorCode.PAYMENT_TOSS_CLIENT_ERROR)).given(paymentGateway).cancel(any());
+            willThrow(new GatewayRejectException(PaymentErrorCode.PAYMENT_TOSS_CLIENT_ERROR)).given(paymentGateway).cancel(any());
             //when
             //then
             assertThatThrownBy(() -> paymentFacade.confirm(command))
@@ -350,11 +352,28 @@ public class PaymentFacadeTest {
 
             given(paymentQueryService.getPayment(anyLong())).willReturn(payment);
             doNothing().when(paymentCommandService).changeRefundPending(anyLong(), any());
-            given(paymentGateway.cancel(any())).willThrow(new RuntimeException("PG Timeout"));
+            given(paymentGateway.cancel(any())).willThrow(new PaymentUnknownStateException(PaymentErrorCode.PAYMENT_TOSS_SERVER_ERROR));
             //when
             //then
             assertDoesNotThrow(() -> paymentFacade.revert(paymentId, reason));
             verify(paymentCommandService, never()).cancel(any());
+        }
+
+        @Test
+        @DisplayName("환불 저장중 예외가 발생하면 예외를 삼키고 정상 종료 한다")
+        void revert_swallows_exception_service_fail(){
+            //given
+            Long paymentId = 1L;
+            String reason = "INSUFFICIENT_STOCK";
+            PaymentResult.Default payment = Instancio.create(PaymentResult.Default.class);
+            PGPaymentResult.Cancellation cancellation = Instancio.create(PGPaymentResult.Cancellation.class);
+            given(paymentQueryService.getPayment(anyLong())).willReturn(payment);
+            doNothing().when(paymentCommandService).changeRefundPending(anyLong(), any());
+            given(paymentGateway.cancel(any())).willReturn(cancellation);
+            willThrow(new RuntimeException()).given(paymentCommandService).cancel(any());
+            //when
+            //then
+            assertDoesNotThrow(() -> paymentFacade.revert(paymentId, reason));
         }
     }
 }

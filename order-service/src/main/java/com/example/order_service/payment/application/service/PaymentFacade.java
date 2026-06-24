@@ -1,6 +1,8 @@
 package com.example.order_service.payment.application.service;
 
 import com.example.order_service.common.exception.application.BusinessException;
+import com.example.order_service.common.exception.application.GatewayRejectException;
+import com.example.order_service.common.exception.application.PaymentUnknownStateException;
 import com.example.order_service.order.application.service.order.OrderQueryService;
 import com.example.order_service.order.application.service.order.dto.result.OrderResult;
 import com.example.order_service.order.domain.model.OrderStatus;
@@ -70,8 +72,11 @@ public class PaymentFacade {
             PGPaymentCommand.Confirm gatewayCommand = PGPaymentCommand.Confirm.of(order.orderNo(), command.paymentKey(),
                     order.totalPaymentAmount());
             return paymentGateway.confirm(gatewayCommand);
-        } catch (BusinessException e) {
-            abortPayment(payment.id(), e.getMessage());
+        } catch (GatewayRejectException e) {
+            abortPayment(payment.id(), e.getErrorCode().getCode());
+            throw e;
+        } catch (PaymentUnknownStateException e) {
+            log.warn("[결제 망 장애] 대사 스케줄러로 위임 paymentId = {}, paymentKey = {}", payment.id(), command.paymentKey(), e);
             throw e;
         }
     }
@@ -97,8 +102,14 @@ public class PaymentFacade {
             PGPaymentCommand.Cancel cancelCommand = PGPaymentCommand.Cancel.ofFull(paymentKey, "내부 DB 저장 실패로 인한 망취소");
             paymentGateway.cancel(cancelCommand);
             return true;
+        } catch (GatewayRejectException e) {
+            log.error("[망 취소 거절] PG사 결제 취소 거절 paymentKey = {}", paymentKey, e);
+            return false;
+        } catch (PaymentUnknownStateException e) {
+            log.error("[망 취소 실패] PG사 예외 또는 통신 장애로 인한 취소 불명 paymentKey = {}", paymentKey, e);
+            return false;
         } catch (Exception e) {
-            log.error("망 취소 실패 {}", paymentKey, e);
+            log.error("[망 취소 시스템 에러] 내부 로직 오류 paymentKey = {}", paymentKey, e);
             return false;
         }
     }
@@ -117,7 +128,7 @@ public class PaymentFacade {
         try {
             paymentCommandService.abort(paymentId, reason);
         } catch (Exception e) {
-            log.error("결제 ABORT 변경 실패 {}", paymentId, e);
+            log.error("결제 ABORT 변경 실패 paymentId = {}, reason = {}", paymentId, reason, e);
         }
     }
 
@@ -139,8 +150,12 @@ public class PaymentFacade {
             PGPaymentResult.Cancellation cancel = paymentGateway.cancel(gatewayCommand);
             PaymentContext.Cancellation context = mapper.toContext(payment.id(), cancel.status(), cancel.lastCancel());
             paymentCommandService.cancel(context);
+        } catch (GatewayRejectException e) {
+            log.error("[SAGA 환불 거절] PG사 결제 취소 거절 {}", payment.paymentKey(), e);
+        } catch (PaymentUnknownStateException e) {
+            log.warn("[SAGA 환불 지연] 통신 장애로 인한 결제 취소 오류 스케줄러 재처리 {}", payment.paymentKey(), e);
         } catch (Exception e) {
-            log.error("[SAGA 보상 지연] PG사 취소 또는 최종 DB 반영 실패. 스케줄러가 재처리 예정: {}", payment.paymentKey(), e);
+            log.error("[SAGA 환불 시스템 에러] 로직 오류 또는 DB 반영 실패. 스케줄러 재처리 예정: {}", payment.paymentKey(), e);
         }
     }
 }
