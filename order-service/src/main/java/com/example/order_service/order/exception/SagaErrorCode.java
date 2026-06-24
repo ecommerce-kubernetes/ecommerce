@@ -1,6 +1,6 @@
 package com.example.order_service.order.exception;
 
-import com.example.order_service.common.exception.business.ErrorCode;
+import com.example.order_service.common.exception.application.ErrorCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

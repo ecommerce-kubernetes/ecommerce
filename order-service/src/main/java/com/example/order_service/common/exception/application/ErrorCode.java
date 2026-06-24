@@ -1,4 +1,4 @@
-package com.example.order_service.common.exception.business;
+package com.example.order_service.common.exception.application;
 
 import org.springframework.http.HttpStatus;
 

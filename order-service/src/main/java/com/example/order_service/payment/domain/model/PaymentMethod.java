@@ -11,6 +11,7 @@ public enum PaymentMethod {
     CULTURE_GIFT_CERTIFICATE("문화 상품권"),
     BOOK_CULTURE_GIFT_CERTIFICATE("도서 문화 상품권"),
     GAME_CULTURE_GIFT_CERTIFICATE("게임 문화 상품권"),
-    VIRTUAL_ACCOUNT("가상 계좌");
+    VIRTUAL_ACCOUNT("가상 계좌"),
+    UNKNOWN("알 수 없음");
     private final String description;
 }

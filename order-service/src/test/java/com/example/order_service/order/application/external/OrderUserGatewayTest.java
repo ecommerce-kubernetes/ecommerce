@@ -1,6 +1,6 @@
 package com.example.order_service.order.application.external;
 
-import com.example.order_service.common.exception.business.BusinessException;
+import com.example.order_service.common.exception.application.BusinessException;
 import com.example.order_service.common.exception.external.ExternalClientException;
 import com.example.order_service.common.exception.external.ExternalServerException;
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;

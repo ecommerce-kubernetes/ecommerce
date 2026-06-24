@@ -1,9 +1,8 @@
 package com.example.order_service.payment.application.service;
 
-import com.example.order_service.common.exception.business.BusinessException;
+import com.example.order_service.common.exception.application.BusinessException;
 import com.example.order_service.payment.application.service.dto.result.PaymentResult;
 import com.example.order_service.payment.domain.model.Payment;
-import com.example.order_service.payment.domain.model.PaymentStatus;
 import com.example.order_service.payment.domain.repository.PaymentQueryRepository;
 import com.example.order_service.payment.domain.repository.PaymentRepository;
 import com.example.order_service.payment.exception.PaymentErrorCode;

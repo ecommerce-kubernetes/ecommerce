@@ -1,7 +1,7 @@
 package com.example.order_service.payment.application.service;
 
 import com.example.order_service.common.domain.vo.Money;
-import com.example.order_service.common.exception.business.BusinessException;
+import com.example.order_service.common.exception.application.BusinessException;
 import com.example.order_service.order.application.service.order.OrderQueryService;
 import com.example.order_service.order.application.service.order.dto.result.OrderResult;
 import com.example.order_service.order.domain.model.OrderStatus;

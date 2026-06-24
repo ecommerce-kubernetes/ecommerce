@@ -1,5 +1,6 @@
 package com.example.order_service.infrastructure.adaptor;
 
+import com.example.order_service.common.exception.external.ExternalClientException;
 import com.example.order_service.common.exception.external.ExternalSystemException;
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
@@ -34,7 +35,7 @@ public class ExternalExceptionTranslatorTest {
     @DisplayName("시스템 예외가 던져진 경우 그대로 던진다")
     void translate_external_system_exception() throws Throwable {
         //given
-        ExternalSystemException exception = new ExternalSystemException("ERROR_CODE", "message");
+        ExternalSystemException exception = new ExternalClientException("ERROR_CODE", "message");
         //when
         Throwable result = translator.translate("SERVICE", exception);
         //then

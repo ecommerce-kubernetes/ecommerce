@@ -1,6 +1,8 @@
 package com.example.order_service.payment.application.external;
 
-import com.example.order_service.common.exception.business.BusinessException;
+import com.example.order_service.common.exception.application.GatewayRejectException;
+import com.example.order_service.common.exception.application.PaymentUnknownStateException;
+import com.example.order_service.common.exception.external.ExternalCircuitBreakerException;
 import com.example.order_service.common.exception.external.ExternalClientException;
 import com.example.order_service.common.exception.external.ExternalServerException;
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
@@ -20,41 +22,46 @@ public class PaymentGateway {
     private final PgMapper pgMapper;
 
     public PGPaymentResult.Approval confirm(PGPaymentCommand.Confirm command) {
-        TossClientResponse.Confirm confirm = fetchTossConfirmWithTransactional(command);
+        TossClientResponse.Confirm confirm = fetchTossConfirm(command);
         return pgMapper.toResult(confirm);
     }
 
+    private TossClientResponse.Confirm fetchTossConfirm(PGPaymentCommand.Confirm command) {
+        try {
+            return tossAdaptor.confirmPayment(command.orderNo(), command.paymentKey(), command.amount().longValue());
+        } catch (ExternalClientException e) {
+            throw new GatewayRejectException(PaymentErrorCode.PAYMENT_TOSS_CLIENT_ERROR);
+        } catch (ExternalCircuitBreakerException e) {
+            throw new GatewayRejectException(PaymentErrorCode.PAYMENT_TOSS_CIRCUIT_OPEN);
+        } catch (ExternalServerException e) {
+            throw new PaymentUnknownStateException(PaymentErrorCode.PAYMENT_TOSS_SERVER_ERROR);
+        } catch (ExternalSystemUnavailableException e) {
+            throw new PaymentUnknownStateException(PaymentErrorCode.PAYMENT_TOSS_UNAVAILABLE_ERROR);
+        }
+    }
+
     public PGPaymentResult.Cancellation cancel(PGPaymentCommand.Cancel command) {
-        TossClientResponse.Cancel cancel = fetchTossCancelWithTransactional(command);
+        TossClientResponse.Cancel cancel = fetchTossCancel(command);
         return pgMapper.toResult(cancel);
+    }
+
+    private TossClientResponse.Cancel fetchTossCancel(PGPaymentCommand.Cancel command) {
+        try {
+            Long cancelAmount = command.amount() == null ? null : command.amount().longValue();
+            return tossAdaptor.cancelPayment(command.paymentKey(), command.cancelReason(), cancelAmount);
+        } catch (ExternalClientException e) {
+            throw new GatewayRejectException(PaymentErrorCode.PAYMENT_TOSS_CLIENT_ERROR);
+        } catch (ExternalCircuitBreakerException e) {
+            throw new GatewayRejectException(PaymentErrorCode.PAYMENT_TOSS_CIRCUIT_OPEN);
+        } catch (ExternalServerException e) {
+            throw new PaymentUnknownStateException(PaymentErrorCode.PAYMENT_TOSS_SERVER_ERROR);
+        } catch (ExternalSystemUnavailableException e) {
+            throw new PaymentUnknownStateException(PaymentErrorCode.PAYMENT_TOSS_UNAVAILABLE_ERROR);
+        }
     }
 
     public PGPaymentResult.Inquiry inquire(String paymentKey) {
         return null;
     }
 
-    private TossClientResponse.Confirm fetchTossConfirmWithTransactional(PGPaymentCommand.Confirm command) {
-        try {
-            return tossAdaptor.confirmPayment(command.orderNo(), command.paymentKey(), command.amount().longValue());
-        } catch (ExternalClientException e) {
-            throw new BusinessException(PaymentErrorCode.PAYMENT_TOSS_CLIENT_ERROR);
-        } catch (ExternalServerException e) {
-            throw new BusinessException(PaymentErrorCode.PAYMENT_TOSS_SERVER_ERROR);
-        } catch (ExternalSystemUnavailableException e) {
-            throw new BusinessException(PaymentErrorCode.PAYMENT_TOSS_UNAVAILABLE_ERROR);
-        }
-    }
-
-    private TossClientResponse.Cancel fetchTossCancelWithTransactional(PGPaymentCommand.Cancel command) {
-        try {
-            Long cancelAmount = command.amount() == null ? null : command.amount().longValue();
-            return tossAdaptor.cancelPayment(command.paymentKey(), command.cancelReason(), cancelAmount);
-        } catch (ExternalClientException e) {
-            throw new BusinessException(PaymentErrorCode.PAYMENT_TOSS_CLIENT_ERROR);
-        } catch (ExternalServerException e) {
-            throw new BusinessException(PaymentErrorCode.PAYMENT_TOSS_SERVER_ERROR);
-        } catch (ExternalSystemUnavailableException e) {
-            throw new BusinessException(PaymentErrorCode.PAYMENT_TOSS_UNAVAILABLE_ERROR);
-        }
-    }
 }

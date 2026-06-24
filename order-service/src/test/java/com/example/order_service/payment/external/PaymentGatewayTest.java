@@ -1,6 +1,8 @@
 package com.example.order_service.payment.external;
 
-import com.example.order_service.common.exception.business.BusinessException;
+import com.example.order_service.common.exception.application.GatewayRejectException;
+import com.example.order_service.common.exception.application.PaymentUnknownStateException;
+import com.example.order_service.common.exception.external.ExternalCircuitBreakerException;
 import com.example.order_service.common.exception.external.ExternalClientException;
 import com.example.order_service.common.exception.external.ExternalServerException;
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
@@ -39,8 +41,9 @@ public class PaymentGatewayTest {
     @Nested
     @DisplayName("결제 승인")
     class Confirm {
+
         @Test
-        @DisplayName("결제를 승인한다")
+        @DisplayName("결제 승인 요청이 성공하면 승인 결과를 반환한다")
         void confirm() {
             //given
             PGPaymentCommand.Confirm command = Instancio.create(PGPaymentCommand.Confirm.class);
@@ -55,7 +58,7 @@ public class PaymentGatewayTest {
         }
 
         @Test
-        @DisplayName("결제 승인중 토스 서버에서 오류가 발생한 경우 비지니스 예외가 발생한다")
+        @DisplayName("결제 승인 시 PG 서버 오류가 발생하면 결제 상태를 알 수 없는 예외를 발생시킨다")
         void confirm_externalServerException() {
             //given
             PGPaymentCommand.Confirm command = Instancio.create(PGPaymentCommand.Confirm.class);
@@ -64,13 +67,13 @@ public class PaymentGatewayTest {
             //when
             //then
             assertThatThrownBy(() -> paymentGateway.confirm(command))
-                    .isInstanceOf(BusinessException.class)
+                    .isInstanceOf(PaymentUnknownStateException.class)
                     .extracting("errorCode")
                     .isEqualTo(PaymentErrorCode.PAYMENT_TOSS_SERVER_ERROR);
         }
 
         @Test
-        @DisplayName("결제 승인중 토스 서버에서 클라이언트 에러가 발생한 경우 비지니스 예외가 발생한다")
+        @DisplayName("결제 승인 시 PG가 요청을 거절하면 요청 거절 예외를 발생시킨다")
         void confirm_externalClientException() {
             //given
             PGPaymentCommand.Confirm command = Instancio.create(PGPaymentCommand.Confirm.class);
@@ -79,33 +82,48 @@ public class PaymentGatewayTest {
             //when
             //then
             assertThatThrownBy(() -> paymentGateway.confirm(command))
-                    .isInstanceOf(BusinessException.class)
+                    .isInstanceOf(GatewayRejectException.class)
                     .extracting("errorCode")
                     .isEqualTo(PaymentErrorCode.PAYMENT_TOSS_CLIENT_ERROR);
         }
 
         @Test
-        @DisplayName("결제 승인중 토스 서버 접근 불가 에러가 발생한 경우 비지니스 예외가 발생한다")
-        void confirm_unavailableServerException() {
+        @DisplayName("결제 승인 시 서킷 브레이커가 열려 있으면 요청 거절 예외를 발생시킨다")
+        void confirm_externalCircuitBreakerException() {
             //given
             PGPaymentCommand.Confirm command = Instancio.create(PGPaymentCommand.Confirm.class);
-            willThrow(new ExternalSystemUnavailableException("UNAVAILABLE", "오류가 발생했습니다"))
+            willThrow(new ExternalCircuitBreakerException("CIRCUIT_OPEN", "서킷 브레이커 열림"))
                     .given(adaptor).confirmPayment(anyString(), anyString(), anyLong());
             //when
             //then
             assertThatThrownBy(() -> paymentGateway.confirm(command))
-                    .isInstanceOf(BusinessException.class)
+                    .isInstanceOf(GatewayRejectException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(PaymentErrorCode.PAYMENT_TOSS_CIRCUIT_OPEN);
+        }
+
+        @Test
+        @DisplayName("결제 승인 시 PG와 통신할 수 없으면 결제 상태를 알 수 없는 예외를 발생시킨다")
+        void confirm_externalUnavailableException(){
+            //given
+            PGPaymentCommand.Confirm command = Instancio.create(PGPaymentCommand.Confirm.class);
+            willThrow(new ExternalSystemUnavailableException("SERVICE_UNAVAILABLE", "통신 장애"))
+                    .given(adaptor).confirmPayment(anyString(), anyString(), anyLong());
+            //when
+            //then
+            assertThatThrownBy(() -> paymentGateway.confirm(command))
+                    .isInstanceOf(PaymentUnknownStateException.class)
                     .extracting("errorCode")
                     .isEqualTo(PaymentErrorCode.PAYMENT_TOSS_UNAVAILABLE_ERROR);
         }
-
     }
 
     @Nested
     @DisplayName("환불")
     class Cancel {
+
         @Test
-        @DisplayName("결제를 취소한다")
+        @DisplayName("결제 취소 요청이 성공하면 취소 결과를 반환한다")
         void cancel() {
             //given
             PGPaymentCommand.Cancel command = Instancio.create(PGPaymentCommand.Cancel.class);
@@ -120,7 +138,7 @@ public class PaymentGatewayTest {
         }
 
         @Test
-        @DisplayName("결제 취소중 토스 서버에서 오류가 발생한 경우 비지니스 예외가 발생한다")
+        @DisplayName("결제 취소 시 PG 서버 오류가 발생하면 결제 상태를 알 수 없는 예외를 발생시킨다")
         void cancel_externalServerException() {
             //given
             PGPaymentCommand.Cancel command = Instancio.create(PGPaymentCommand.Cancel.class);
@@ -129,13 +147,13 @@ public class PaymentGatewayTest {
             //when
             //then
             assertThatThrownBy(() -> paymentGateway.cancel(command))
-                    .isInstanceOf(BusinessException.class)
+                    .isInstanceOf(PaymentUnknownStateException.class)
                     .extracting("errorCode")
                     .isEqualTo(PaymentErrorCode.PAYMENT_TOSS_SERVER_ERROR);
         }
 
         @Test
-        @DisplayName("결제 취소중 토스 서버에서 클라이언트 에러가 발생한 경우 비지니스 예외가 발생한다")
+        @DisplayName("결제 취소 시 PG가 요청을 거절하면 요청 거절 예외를 발생시킨다")
         void cancel_externalClientException() {
             //given
             PGPaymentCommand.Cancel command = Instancio.create(PGPaymentCommand.Cancel.class);
@@ -144,13 +162,28 @@ public class PaymentGatewayTest {
             //when
             //then
             assertThatThrownBy(() -> paymentGateway.cancel(command))
-                    .isInstanceOf(BusinessException.class)
+                    .isInstanceOf(GatewayRejectException.class)
                     .extracting("errorCode")
                     .isEqualTo(PaymentErrorCode.PAYMENT_TOSS_CLIENT_ERROR);
         }
 
         @Test
-        @DisplayName("결제 취소중 토스 서버 접근 불가 에러가 발생한 경우 비지니스 예외가 발생한다")
+        @DisplayName("결제 취소 시 서킷 브레이커가 열려 있으면 요청 거절 예외를 발생시킨다")
+        void cancel_externalCircuitBreakerException(){
+            //given
+            PGPaymentCommand.Cancel command = Instancio.create(PGPaymentCommand.Cancel.class);
+            willThrow(new ExternalCircuitBreakerException("CIRCUIT_OPEN", "서킷 브레이커 열림"))
+                    .given(adaptor).cancelPayment(anyString(), anyString(), anyLong());
+            //when
+            //then
+            assertThatThrownBy(() -> paymentGateway.cancel(command))
+                    .isInstanceOf(GatewayRejectException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(PaymentErrorCode.PAYMENT_TOSS_CIRCUIT_OPEN);
+        }
+
+        @Test
+        @DisplayName("결제 취소 시 PG와 통신할 수 없으면 결제 상태를 알 수 없는 예외를 발생시킨다")
         void cancel_unavailableServerException() {
             //given
             PGPaymentCommand.Cancel command = Instancio.create(PGPaymentCommand.Cancel.class);
@@ -159,7 +192,7 @@ public class PaymentGatewayTest {
             //when
             //then
             assertThatThrownBy(() -> paymentGateway.cancel(command))
-                    .isInstanceOf(BusinessException.class)
+                    .isInstanceOf(PaymentUnknownStateException.class)
                     .extracting("errorCode")
                     .isEqualTo(PaymentErrorCode.PAYMENT_TOSS_UNAVAILABLE_ERROR);
         }

@@ -1,6 +1,6 @@
 package com.example.order_service.payment.exception;
 
-import com.example.order_service.common.exception.business.ErrorCode;
+import com.example.order_service.common.exception.application.ErrorCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 @Getter
 @RequiredArgsConstructor
 public enum PaymentErrorCode implements ErrorCode {
+    PAYMENT_TOSS_CIRCUIT_OPEN(HttpStatus.SERVICE_UNAVAILABLE, "PAYMENT_TOSS_CIRCUIT_OPEN", "토스 결제 서킷 열림"),
     INVALID_PAYMENT_STATUS_FOR_FAIL(HttpStatus.CONFLICT, "INVALID_PAYMENT_STATUS_FOR_FAIL", "취소 가능한 결제 상태가 아닙니다"),
     UNSUPPORTED_PAYMENT_METHOD(HttpStatus.CONFLICT, "UNSUPPORTED_PAYMENT_METHOD", "지원하지 않는 결제 방식입니다"),
     EXCEEDED_REFUNDABLE_AMOUNT(HttpStatus.CONFLICT, "EXCEEDED_REFUNDABLE_AMOUNT", "환불 가능 금액을 초과했습니다"),

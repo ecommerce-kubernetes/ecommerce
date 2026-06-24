@@ -1,6 +1,6 @@
 package com.example.order_service.order.application.service.order;
 
-import com.example.order_service.common.exception.business.BusinessException;
+import com.example.order_service.common.exception.application.BusinessException;
 import com.example.order_service.order.application.service.order.dto.command.OrderContext;
 import com.example.order_service.order.application.service.order.dto.result.OrderResult;
 import com.example.order_service.order.domain.model.Order;

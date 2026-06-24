@@ -1,6 +1,6 @@
 package com.example.order_service.support;
 
-import com.example.order_service.common.exception.business.BusinessException;
+import com.example.order_service.common.exception.application.BusinessException;
 import com.example.order_service.common.security.model.UserPrincipal;
 import com.example.order_service.common.security.model.UserRole;
 import com.example.order_service.order.exception.OrderErrorCode;

@@ -1,5 +1,6 @@
 package com.example.order_service.infrastructure.adaptor;
 
+import com.example.order_service.common.exception.external.ExternalCircuitBreakerException;
 import com.example.order_service.common.exception.external.ExternalSystemException;
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
@@ -13,7 +14,7 @@ public class ExternalExceptionTranslator {
     public Throwable translate(String service, Throwable throwable) throws Throwable {
         if (throwable instanceof CallNotPermittedException) {
             log.error("{} 서킷 브레이커 열림", service);
-            return new ExternalSystemUnavailableException("CIRCUIT_BREAKER_OPEN", service + " 서킷 브레이커 열림", throwable);
+            return new ExternalCircuitBreakerException("CIRCUIT_BREAKER_OPEN", service + " 서킷 차단", throwable);
         }
 
         if (throwable instanceof ExternalSystemException) {

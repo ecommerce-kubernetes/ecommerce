@@ -40,8 +40,7 @@ public interface PgMapper {
             case "문화상품권" -> PaymentMethod.CULTURE_GIFT_CERTIFICATE;
             case "도서문화상품권" -> PaymentMethod.BOOK_CULTURE_GIFT_CERTIFICATE;
             case "게임문화상품권" -> PaymentMethod.GAME_CULTURE_GIFT_CERTIFICATE;
-
-            default -> throw new IllegalArgumentException("알 수 없는 결제 방식 :" + method);
+            default -> PaymentMethod.UNKNOWN;
         };
     }
 }

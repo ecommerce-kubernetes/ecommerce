@@ -6,7 +6,7 @@ import com.example.order_service.cart.domain.model.CartItem;
 import com.example.order_service.cart.domain.repository.CartRepository;
 import com.example.order_service.cart.domain.service.dto.result.CartItemDto;
 import com.example.order_service.cart.exception.CartErrorCode;
-import com.example.order_service.common.exception.business.BusinessException;
+import com.example.order_service.common.exception.application.BusinessException;
 import com.example.order_service.support.annotation.MockKafka;
 import com.example.order_service.support.annotation.MockRedis;
 import jakarta.persistence.EntityManager;

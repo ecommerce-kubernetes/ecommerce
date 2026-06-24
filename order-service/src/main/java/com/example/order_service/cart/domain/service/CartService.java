@@ -7,7 +7,7 @@ import com.example.order_service.cart.domain.repository.CartItemRepository;
 import com.example.order_service.cart.domain.repository.CartRepository;
 import com.example.order_service.cart.domain.service.dto.result.CartItemDto;
 import com.example.order_service.cart.exception.CartErrorCode;
-import com.example.order_service.common.exception.business.BusinessException;
+import com.example.order_service.common.exception.application.BusinessException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
