@@ -1,8 +1,10 @@
 package com.example.order_service.common.exception.business;
 
+import org.springframework.http.HttpStatus;
+
 public interface ErrorCode {
     String name();
-    int getStatus();
+    HttpStatus getStatus();
     String getMessage();
     String getCode();
 }
