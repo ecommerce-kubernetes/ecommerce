@@ -8,6 +8,14 @@ import org.springframework.http.HttpStatus;
 @Getter
 @RequiredArgsConstructor
 public enum PaymentErrorCode implements ErrorCode {
+    PAYMENT_PG_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "PAYMENT_PG_SERVER_ERROR", "PG사 또는 카드사 통신중 일시적인 장애가 발생했습니다"),
+    PAYMENT_INSUFFICIENT_BALANCE(HttpStatus.BAD_REQUEST, "PAYMENT_INSUFFICIENT_BALANCE", "잔액 또는 한도가 부족합니다"),
+    PAYMENT_METHOD_REJECTED(HttpStatus.BAD_REQUEST, "PAYMENT_METHOD_REJECT", "결제 수단 문제로 거절 되었습니다"),
+    PAYMENT_POLICY_RESTRICTED(HttpStatus.BAD_REQUEST, "PAYMENT_POLICY_RESTRICTED", "정책 또는 보안상 결제가 제한되었습니다"),
+    PAYMENT_INVALID_REQUEST(HttpStatus.BAD_REQUEST, "PAYMENT_INVALID_REQUEST", "잘못된 결제 요청이거나 세션이 만료되었습니다."),
+    PAYMENT_ALREADY_PROCESSED(HttpStatus.BAD_REQUEST, "PAYMENT_ALREADY_PROCESSED", "이미 처리된 결제입니다."),
+    PAYMENT_PG_AUTH_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "PAY-006", "PG사 인증 설정에 문제가 발생했습니다."),
+
     PAYMENT_TOSS_CIRCUIT_OPEN(HttpStatus.SERVICE_UNAVAILABLE, "PAYMENT_TOSS_CIRCUIT_OPEN", "토스 결제 서킷 열림"),
     INVALID_PAYMENT_STATUS_FOR_FAIL(HttpStatus.CONFLICT, "INVALID_PAYMENT_STATUS_FOR_FAIL", "취소 가능한 결제 상태가 아닙니다"),
     UNSUPPORTED_PAYMENT_METHOD(HttpStatus.CONFLICT, "UNSUPPORTED_PAYMENT_METHOD", "지원하지 않는 결제 방식입니다"),
@@ -26,7 +34,6 @@ public enum PaymentErrorCode implements ErrorCode {
     PAYMENT_APPROVAL_FAIL(HttpStatus.BAD_REQUEST, "PAYMENT_004", "결제 승인이 거절되었습니다"),
     PAYMENT_AMOUNT_MISMATCH(HttpStatus.CONFLICT, "PAYMENT_AMOUNT_MISMATCH", "주문의 총 결제 금액과 결제 금액이 일치하지 않습니다"),
     PG_APPROVAL_AMOUNT_MISMATCH(HttpStatus.INTERNAL_SERVER_ERROR, "PG_APPROVAL_AMOUNT_MISMATCH", "PG 승인 금액이 일치하지 않습니다"),
-    PAYMENT_INSUFFICIENT_BALANCE(HttpStatus.BAD_REQUEST, "PAYMENT_005", "잔액이 부족합니다"),
     PAYMENT_AUTO_CANCELED(HttpStatus.INTERNAL_SERVER_ERROR, "PAYMENT_AUTO_CANCELED", "시스템 오류로 인해 결제가 취소되었습니다"),
     PAYMENT_REFUND_PENDING(HttpStatus.INTERNAL_SERVER_ERROR, "PAYMENT_REFUND_PENDING", "오류가 발생했습니다. 영업일 내로 결제 취소 됩니다"),
     PAYMENT_TIMEOUT(HttpStatus.REQUEST_TIMEOUT, "PAYMENT_006", "결제 시간이 초과되었습니다"),

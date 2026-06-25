@@ -1,0 +1,52 @@
+package com.example.order_service.payment.application.external.mapper;
+
+import com.example.order_service.common.exception.ErrorTranslator;
+import com.example.order_service.payment.exception.PaymentErrorCode;
+import org.springframework.stereotype.Component;
+
+@Component
+public class PgErrorTranslator implements ErrorTranslator {
+
+    @Override
+    public PaymentErrorCode translate(String code) {
+        if (code == null) return PaymentErrorCode.PAYMENT_PG_SERVER_ERROR;
+
+        return switch (code) {
+
+            case "REJECT_ACCOUNT_PAYMENT", "REJECT_CARD_PAYMENT", "EXCEED_MAX_DAILY_PAYMENT_COUNT",
+                 "EXCEED_MAX_PAYMENT_AMOUNT", "EXCEED_MAX_ONE_DAY_WITHDRAW_AMOUNT",
+                 "EXCEED_MAX_ONE_TIME_WITHDRAW_AMOUNT", "EXCEED_MAX_AMOUNT",
+                 "EXCEED_MAX_MONTHLY_PAYMENT_AMOUNT", "EXCEED_MAX_ONE_DAY_AMOUNT"
+                    -> PaymentErrorCode.PAYMENT_INSUFFICIENT_BALANCE;
+
+            case "INVALID_REJECT_CARD", "INVALID_CARD_EXPIRATION", "INVALID_STOPPED_CARD",
+                 "INVALID_CARD_LOST_OR_STOLEN", "INVALID_CARD_NUMBER", "INVALID_ACCOUNT_INFO_RE_REGISTER",
+                 "REJECT_TOSSPAY_INVALID_ACCOUNT", "NOT_ALLOWED_POINT_USE", "INVALID_AUTHORIZE_AUTH",
+                 "INVALID_PASSWORD", "EXCEED_MAX_AUTH_COUNT", "EXCEED_MAX_CARD_INSTALLMENT_PLAN",
+                 "NOT_SUPPORTED_INSTALLMENT_PLAN_CARD_OR_MERCHANT", "INVALID_CARD_INSTALLMENT_PLAN",
+                 "NOT_SUPPORTED_MONTHLY_INSTALLMENT_PLAN", "NOT_SUPPORTED_MONTHLY_INSTALLMENT_PLAN_BELOW_AMOUNT"
+                    -> PaymentErrorCode.PAYMENT_METHOD_REJECTED;
+
+            case "NOT_AVAILABLE_PAYMENT", "NOT_AVAILABLE_BANK", "FDS_ERROR",
+                 "REJECT_CARD_COMPANY", "FORBIDDEN_REQUEST", "RESTRICTED_TRANSFER_ACCOUNT",
+                 "NOT_REGISTERED_BUSINESS", "INVALID_UNREGISTERED_SUBMALL", "NOT_FOUND_TERMINAL_ID"
+                    -> PaymentErrorCode.PAYMENT_POLICY_RESTRICTED;
+
+            case "INVALID_REQUEST", "BELOW_MINIMUM_AMOUNT", "UNAPPROVED_ORDER_ID",
+                 "NOT_FOUND_PAYMENT", "NOT_FOUND", "NOT_FOUND_PAYMENT_SESSION"
+                    -> PaymentErrorCode.PAYMENT_INVALID_REQUEST;
+
+            case "ALREADY_PROCESSED_PAYMENT"
+                    -> PaymentErrorCode.PAYMENT_ALREADY_PROCESSED;
+
+            case "UNAUTHORIZED_KEY", "INCORRECT_BASIC_AUTH_FORMAT", "INVALID_API_KEY"
+                    -> PaymentErrorCode.PAYMENT_PG_AUTH_ERROR;
+
+            case "PROVIDER_ERROR", "CARD_PROCESSING_ERROR", "FORBIDDEN_CONSECUTIVE_REQUEST",
+                 "FAILED_PAYMENT_INTERNAL_SYSTEM_PROCESSING", "FAILED_INTERNAL_SYSTEM_PROCESSING", "UNKNOWN_PAYMENT_ERROR"
+                    -> PaymentErrorCode.PAYMENT_PG_SERVER_ERROR;
+
+            default -> PaymentErrorCode.PAYMENT_PG_SERVER_ERROR;
+        };
+    }
+}

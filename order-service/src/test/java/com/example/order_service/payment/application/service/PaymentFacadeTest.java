@@ -170,7 +170,8 @@ public class PaymentFacadeTest {
             given(orderQueryService.getOrder(anyString(), anyLong())).willReturn(order);
             given(mapper.toContext(any(PaymentCommand.Confirm.class))).willReturn(createContext);
             given(paymentCommandService.create(any(PaymentContext.Create.class))).willReturn(savedPayment);
-            willThrow(new GatewayRejectException(PaymentErrorCode.PAYMENT_INSUFFICIENT_BALANCE)).given(paymentGateway).confirm(any());
+            willThrow(new GatewayRejectException(PaymentErrorCode.PAYMENT_INSUFFICIENT_BALANCE, "REJECT_ACCOUNT_PAYMENT",
+                    "잔액부족으로 결제에 실패했습니다.")).given(paymentGateway).confirm(any());
             //when
             //then
             assertThatThrownBy(() -> paymentFacade.confirm(command))
@@ -200,7 +201,8 @@ public class PaymentFacadeTest {
             given(orderQueryService.getOrder(anyString(), anyLong())).willReturn(order);
             given(mapper.toContext(any(PaymentCommand.Confirm.class))).willReturn(createContext);
             given(paymentCommandService.create(any(PaymentContext.Create.class))).willReturn(savedPayment);
-            willThrow(new GatewayRejectException(PaymentErrorCode.PAYMENT_INSUFFICIENT_BALANCE)).given(paymentGateway).confirm(any());
+            willThrow(new GatewayRejectException(PaymentErrorCode.PAYMENT_INSUFFICIENT_BALANCE, "REJECT_ACCOUNT_PAYMENT",
+                    "잔액부족으로 결제에 실패했습니다.")).given(paymentGateway).confirm(any());
             willThrow(new RuntimeException()).given(paymentCommandService).abort(anyLong(), anyString());
             //when
             //then
@@ -306,7 +308,8 @@ public class PaymentFacadeTest {
             given(paymentGateway.confirm(any())).willReturn(pgApproval);
             given(mapper.toContext(anyLong(), any(PGPaymentResult.Approval.class))).willReturn(approvalContext);
             willThrow(new RuntimeException()).given(paymentCommandService).approve(any());
-            willThrow(new GatewayRejectException(PaymentErrorCode.PAYMENT_TOSS_CLIENT_ERROR)).given(paymentGateway).cancel(any());
+            willThrow(new GatewayRejectException(PaymentErrorCode.PAYMENT_TOSS_CLIENT_ERROR, "INVALID_REQUEST", "잘못된 요청입니다."))
+                    .given(paymentGateway).cancel(any());
             //when
             //then
             assertThatThrownBy(() -> paymentFacade.confirm(command))
@@ -352,7 +355,7 @@ public class PaymentFacadeTest {
 
             given(paymentQueryService.getPayment(anyLong())).willReturn(payment);
             doNothing().when(paymentCommandService).changeRefundPending(anyLong(), any());
-            given(paymentGateway.cancel(any())).willThrow(new PaymentUnknownStateException(PaymentErrorCode.PAYMENT_TOSS_SERVER_ERROR));
+            given(paymentGateway.cancel(any())).willThrow(new PaymentUnknownStateException(PaymentErrorCode.PAYMENT_TOSS_SERVER_ERROR, "FAILED_REFUND_PROCESS", "FAILED_REFUND_PROCESS"));
             //when
             //then
             assertDoesNotThrow(() -> paymentFacade.revert(paymentId, reason));
