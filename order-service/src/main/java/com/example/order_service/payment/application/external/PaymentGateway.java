@@ -13,6 +13,8 @@ import com.example.order_service.payment.exception.PaymentErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.function.Supplier;
+
 @Service
 @RequiredArgsConstructor
 public class PaymentGateway {
@@ -21,13 +23,28 @@ public class PaymentGateway {
     private final PgErrorTranslator errorTranslator;
 
     public PGPaymentResult.Approval confirm(PGPaymentCommand.Confirm command) {
-        TossClientResponse.Confirm confirm = fetchTossConfirm(command);
+        TossClientResponse.Confirm confirm = executeExternalCall(() ->
+                tossAdaptor.confirmPayment(command.orderNo(), command.paymentKey(), command.amount().longValue()));
         return pgMapper.toResult(confirm);
     }
 
-    private TossClientResponse.Confirm fetchTossConfirm(PGPaymentCommand.Confirm command) {
+    public PGPaymentResult.Cancellation cancel(PGPaymentCommand.Cancel command) {
+        TossClientResponse.Cancel cancel = executeExternalCall(() -> {
+            Long cancelAmount = command.amount() == null ? null : command.amount().longValue();
+            return tossAdaptor.cancelPayment(command.paymentKey(), command.cancelReason(), cancelAmount);
+        });
+        return pgMapper.toResult(cancel);
+    }
+
+    public PGPaymentResult.Inquiry inquire(String paymentKey) {
+        TossClientResponse.Inquiry inquiry = executeExternalCall(() ->
+                tossAdaptor.inquirePayment(paymentKey));
+        return pgMapper.toResult(inquiry);
+    }
+
+    private <T> T executeExternalCall(Supplier<T> call) {
         try {
-            return tossAdaptor.confirmPayment(command.orderNo(), command.paymentKey(), command.amount().longValue());
+            return call.get();
         } catch (ExternalCircuitBreakerException e) {
             throw new GatewayRejectException(PaymentErrorCode.PAYMENT_TOSS_CIRCUIT_OPEN, e.getErrorCode(), e.getMessage());
         } catch (ExternalSystemUnavailableException e) {
@@ -43,29 +60,4 @@ public class PaymentGateway {
             throw new GatewayRejectException(errorCode, code, message);
         }
     }
-
-    public PGPaymentResult.Cancellation cancel(PGPaymentCommand.Cancel command) {
-        TossClientResponse.Cancel cancel = fetchTossCancel(command);
-        return pgMapper.toResult(cancel);
-    }
-
-    private TossClientResponse.Cancel fetchTossCancel(PGPaymentCommand.Cancel command) {
-        try {
-            Long cancelAmount = command.amount() == null ? null : command.amount().longValue();
-            return tossAdaptor.cancelPayment(command.paymentKey(), command.cancelReason(), cancelAmount);
-        } catch (ExternalClientException e) {
-            throw new GatewayRejectException(PaymentErrorCode.PAYMENT_TOSS_CLIENT_ERROR, e.getErrorCode(), e.getMessage());
-        } catch (ExternalCircuitBreakerException e) {
-            throw new GatewayRejectException(PaymentErrorCode.PAYMENT_TOSS_CIRCUIT_OPEN, e.getErrorCode(), e.getMessage());
-        } catch (ExternalServerException e) {
-            throw new PaymentUnknownStateException(PaymentErrorCode.PAYMENT_TOSS_SERVER_ERROR, e.getErrorCode(), e.getMessage());
-        } catch (ExternalSystemUnavailableException e) {
-            throw new PaymentUnknownStateException(PaymentErrorCode.PAYMENT_TOSS_UNAVAILABLE_ERROR, e.getErrorCode(), e.getMessage());
-        }
-    }
-
-    public PGPaymentResult.Inquiry inquire(String paymentKey) {
-        return null;
-    }
-
 }

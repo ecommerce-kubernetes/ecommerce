@@ -14,7 +14,12 @@ public enum PaymentErrorCode implements ErrorCode {
     PAYMENT_POLICY_RESTRICTED(HttpStatus.BAD_REQUEST, "PAYMENT_POLICY_RESTRICTED", "정책 또는 보안상 결제가 제한되었습니다"),
     PAYMENT_INVALID_REQUEST(HttpStatus.BAD_REQUEST, "PAYMENT_INVALID_REQUEST", "잘못된 결제 요청이거나 세션이 만료되었습니다."),
     PAYMENT_ALREADY_PROCESSED(HttpStatus.BAD_REQUEST, "PAYMENT_ALREADY_PROCESSED", "이미 처리된 결제입니다."),
-    PAYMENT_PG_AUTH_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "PAY-006", "PG사 인증 설정에 문제가 발생했습니다."),
+    PAYMENT_PG_AUTH_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "PAYMENT_PG_AUTH_ERROR", "PG사 인증 설정에 문제가 발생했습니다."),
+
+    PAYMENT_ALREADY_CANCELED(HttpStatus.BAD_REQUEST, "PAYMENT_ALREADY_CANCELED", "이미 취소 및 환불 처리가 완료된 결제입니다."),
+    PAYMENT_INVALID_REFUND_ACCOUNT(HttpStatus.BAD_REQUEST, "PAYMENT_INVALID_REFUND_ACCOUNT", "입력하신 환불 계좌 정보가 유효하지 않거나 예금주명이 일치하지 않습니다. 올바른 계좌 정보를 다시 확인해주세요."),
+    PAYMENT_CANCEL_REJECTED(HttpStatus.BAD_REQUEST, "PAYMENT_CANCEL_REJECTED", "결제사 정책(취소 기한 초과, 부분 취소 불가 등)으로 인해 환불이 거절되었습니다. 고객센터로 문의해주세요."),
+
 
     PAYMENT_TOSS_CIRCUIT_OPEN(HttpStatus.SERVICE_UNAVAILABLE, "PAYMENT_TOSS_CIRCUIT_OPEN", "토스 결제 서킷 열림"),
     INVALID_PAYMENT_STATUS_FOR_FAIL(HttpStatus.CONFLICT, "INVALID_PAYMENT_STATUS_FOR_FAIL", "취소 가능한 결제 상태가 아닙니다"),
@@ -27,17 +32,11 @@ public enum PaymentErrorCode implements ErrorCode {
     PAYMENT_TOSS_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "TOSS_SERVER_ERROR", "토스 서버 오류"),
     PAYMENT_TOSS_CLIENT_ERROR(HttpStatus.CONFLICT, "TOSS_CLIENT_ERROR", "토스 결제 서버 클라이언트 오류"),
     ORDER_NOT_PENDING(HttpStatus.CONFLICT, "ORDER_NOT_PENDING", "결제를 진행할 수 없는 주문 입니다"),
-    PAYMENT_ALREADY_PROCEED_PAYMENT(HttpStatus.BAD_REQUEST, "PAYMENT_001", "이미 결제된 주문입니다"),
-    PAYMENT_BAD_REQUEST(HttpStatus.BAD_REQUEST, "PAYMENT_002", "잘못된 결제 요청입니다"),
     PAYMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "PAYMENT_003", "존재하지 않은 결제 정보입니다"),
-    PAYMENT_APPROVAL_FORBIDDEN(HttpStatus.FORBIDDEN, "PAYMENT_APPROVAL_FORBIDDEN", "해당 주문에 대한 결제 승인 권한이 없습니다"),
-    PAYMENT_APPROVAL_FAIL(HttpStatus.BAD_REQUEST, "PAYMENT_004", "결제 승인이 거절되었습니다"),
     PAYMENT_AMOUNT_MISMATCH(HttpStatus.CONFLICT, "PAYMENT_AMOUNT_MISMATCH", "주문의 총 결제 금액과 결제 금액이 일치하지 않습니다"),
     PG_APPROVAL_AMOUNT_MISMATCH(HttpStatus.INTERNAL_SERVER_ERROR, "PG_APPROVAL_AMOUNT_MISMATCH", "PG 승인 금액이 일치하지 않습니다"),
     PAYMENT_AUTO_CANCELED(HttpStatus.INTERNAL_SERVER_ERROR, "PAYMENT_AUTO_CANCELED", "시스템 오류로 인해 결제가 취소되었습니다"),
-    PAYMENT_REFUND_PENDING(HttpStatus.INTERNAL_SERVER_ERROR, "PAYMENT_REFUND_PENDING", "오류가 발생했습니다. 영업일 내로 결제 취소 됩니다"),
-    PAYMENT_TIMEOUT(HttpStatus.REQUEST_TIMEOUT, "PAYMENT_006", "결제 시간이 초과되었습니다"),
-    PAYMENT_SYSTEM_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "PAYMENT_007", "시스템 오류로 결제를 진행할 수 없습니다");
+    PAYMENT_REFUND_PENDING(HttpStatus.INTERNAL_SERVER_ERROR, "PAYMENT_REFUND_PENDING", "오류가 발생했습니다. 영업일 내로 결제 취소 됩니다");
     private final HttpStatus status;
     private final String code;
     private final String message;

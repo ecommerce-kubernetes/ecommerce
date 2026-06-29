@@ -30,17 +30,26 @@ public class TossAdaptor {
         return client.confirmPayment(request);
     }
 
+    private TossClientResponse.Confirm confirmPaymentFallback(String orderId, String paymentKey, Long amount, Throwable throwable) throws Throwable {
+        throw translator.translate("TOSS-PAYMENTS", throwable);
+    }
+
     @CircuitBreaker(name = "tossPaymentService", fallbackMethod = "cancelPaymentFallback")
     public TossClientResponse.Cancel cancelPayment(String paymentKey, String cancelReason, Long cancelAmount) {
         TossClientRequest.Cancel request = TossClientRequest.Cancel.of(cancelReason, cancelAmount);
         return client.cancelPayment(paymentKey, request);
     }
 
-    private TossClientResponse.Confirm confirmPaymentFallback(String orderId, String paymentKey, Long amount, Throwable throwable) throws Throwable {
+    private TossClientResponse.Cancel cancelPaymentFallback(String paymentKey, String cancelReason, Long cancelAmount, Throwable throwable) throws Throwable {
         throw translator.translate("TOSS-PAYMENTS", throwable);
     }
 
-    private TossClientResponse.Cancel cancelPaymentFallback(String paymentKey, String cancelReason, Long cancelAmount, Throwable throwable) throws Throwable {
+    @CircuitBreaker(name = "tossPaymentService", fallbackMethod = "inquirePaymentFallback")
+    public TossClientResponse.Inquiry inquirePayment(String paymentKey) {
+        return client.inquirePayment(paymentKey);
+    }
+
+    private TossClientResponse.Inquiry inquirePaymentFallback(String paymentKey, Throwable throwable) throws Throwable {
         throw translator.translate("TOSS-PAYMENTS", throwable);
     }
 }
