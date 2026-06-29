@@ -31,13 +31,16 @@ public class Payment extends BaseEntity {
     private PaymentMethod method;
     private String lastTransactionKey;
     private String failureCode;
+    @Enumerated(EnumType.STRING)
+    private PaymentManualCheckReason manualCheckReason;
     private LocalDateTime refundPendingAt;
 
     @OneToMany(mappedBy = "payment", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PaymentRecord> paymentRecords = new ArrayList<>();
 
     @Builder(access = AccessLevel.PRIVATE)
-    private Payment(String orderNo, Long userId, String paymentKey, Money totalAmount, PaymentStatus status, PaymentMethod method, String lastTransactionKey, String failureCode) {
+    private Payment(String orderNo, Long userId, String paymentKey, Money totalAmount, PaymentStatus status, PaymentMethod method,
+                    String lastTransactionKey, String failureCode, PaymentManualCheckReason manualCheckReason, LocalDateTime refundPendingAt) {
         this.orderNo = orderNo;
         this.userId = userId;
         this.paymentKey = paymentKey;
@@ -46,6 +49,8 @@ public class Payment extends BaseEntity {
         this.method = method;
         this.lastTransactionKey = lastTransactionKey;
         this.failureCode = failureCode;
+        this.manualCheckReason = manualCheckReason;
+        this.refundPendingAt = refundPendingAt;
     }
 
     public static Payment create(String orderNo, Long userId, String paymentKey, Money totalAmount) {
@@ -87,6 +92,10 @@ public class Payment extends BaseEntity {
         }
         this.status = PaymentStatus.REFUND_PENDING;
         this.refundPendingAt = refundPendingAt;
+    }
+
+    public void manualChecking(PaymentManualCheckReason reason) {
+        this.manualCheckReason = reason;
     }
 
     public void cancel(PaymentRecord cancelledRecord, PaymentStatus status) {

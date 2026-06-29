@@ -5,6 +5,7 @@ import com.example.order_service.payment.application.event.PaymentCompleteEvent;
 import com.example.order_service.payment.application.service.dto.command.PaymentContext;
 import com.example.order_service.payment.application.service.dto.result.PaymentResult;
 import com.example.order_service.payment.domain.model.Payment;
+import com.example.order_service.payment.domain.model.PaymentManualCheckReason;
 import com.example.order_service.payment.domain.model.PaymentRecord;
 import com.example.order_service.payment.domain.repository.PaymentRepository;
 import com.example.order_service.payment.exception.PaymentErrorCode;
@@ -104,5 +105,17 @@ public class PaymentCommandService {
                 context.cancelReason(), context.canceledAt());
         payment.cancel(paymentRecord, context.status());
         return PaymentResult.PaymentCancel.of(payment, paymentRecord);
+    }
+
+    public void changeApprovalManualCheck(Long id) {
+        Payment payment = paymentRepository.findById(id)
+                .orElseThrow(() -> new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND));
+        payment.manualChecking(PaymentManualCheckReason.APPROVAL_RECON);
+    }
+
+    public void changeRefundManualCheck(Long id) {
+        Payment payment = paymentRepository.findById(id)
+                .orElseThrow(() -> new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND));
+        payment.manualChecking(PaymentManualCheckReason.REFUND_RECON);
     }
 }

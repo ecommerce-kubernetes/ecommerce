@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-06-25T05:31:13+0900",
+    date = "2026-06-29T22:37:42+0900",
     comments = "version: 1.6.3, compiler: javac, environment: Java 21.0.10 (Eclipse Adoptium)"
 )
 @Component
@@ -61,6 +61,30 @@ public class PgMapperImpl implements PgMapper {
         return cancellation.build();
     }
 
+    @Override
+    public PGPaymentResult.Inquiry toResult(TossClientResponse.Inquiry response) {
+        if ( response == null ) {
+            return null;
+        }
+
+        PGPaymentResult.Inquiry.InquiryBuilder inquiry = PGPaymentResult.Inquiry.builder();
+
+        inquiry.orderNo( response.orderId() );
+        inquiry.paymentKey( response.paymentKey() );
+        if ( response.status() != null ) {
+            inquiry.status( Enum.valueOf( PaymentStatus.class, response.status() ) );
+        }
+        inquiry.totalAmount( moneyMapper.toMoney( response.totalAmount() ) );
+        inquiry.balanceAmount( moneyMapper.toMoney( response.balanceAmount() ) );
+        inquiry.method( map( response.method() ) );
+        inquiry.lastTransactionKey( response.lastTransactionKey() );
+        inquiry.approvedAt( map( response.approvedAt() ) );
+        inquiry.failure( failureToFailureReason( response.failure() ) );
+        inquiry.cancels( cancelReceiptListToCancelReceiptList( response.cancels() ) );
+
+        return inquiry.build();
+    }
+
     protected PGPaymentResult.CancelReceipt cancelReceiptToCancelReceipt(TossClientResponse.CancelReceipt cancelReceipt) {
         if ( cancelReceipt == null ) {
             return null;
@@ -87,5 +111,18 @@ public class PgMapperImpl implements PgMapper {
         }
 
         return list1;
+    }
+
+    protected PGPaymentResult.FailureReason failureToFailureReason(TossClientResponse.Failure failure) {
+        if ( failure == null ) {
+            return null;
+        }
+
+        PGPaymentResult.FailureReason.FailureReasonBuilder failureReason = PGPaymentResult.FailureReason.builder();
+
+        failureReason.code( failure.code() );
+        failureReason.message( failure.message() );
+
+        return failureReason.build();
     }
 }

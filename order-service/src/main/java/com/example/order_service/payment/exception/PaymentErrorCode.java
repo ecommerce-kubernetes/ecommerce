@@ -19,6 +19,8 @@ public enum PaymentErrorCode implements ErrorCode {
     PAYMENT_PG_INVALID_REFUND_ACCOUNT(HttpStatus.BAD_REQUEST, "PAYMENT_PG_INVALID_REFUND_ACCOUNT", "입력하신 환불 계좌 정보가 유효하지 않거나 예금주명이 일치하지 않습니다. 올바른 계좌 정보를 다시 확인해주세요."),
     PAYMENT_PG_CANCEL_REJECTED(HttpStatus.BAD_REQUEST, "PAYMENT_PG_CANCEL_REJECTED", "결제사 정책(취소 기한 초과, 부분 취소 불가 등)으로 인해 환불이 거절되었습니다. 고객센터로 문의해주세요."),
 
+    PAYMENT_PG_NOT_FOUND(HttpStatus.NOT_FOUND, "PAYMENT_PG_NOT_FOUND", "PG사 결제를 찾을 수 없습니다"),
+
     PAYMENT_PG_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "PAYMENT_PG_SERVER_ERROR", "PG사 또는 카드사 통신중 일시적인 장애가 발생했습니다"),
     PAYMENT_PG_CIRCUIT_OPEN(HttpStatus.SERVICE_UNAVAILABLE, "PAYMENT_PG_CIRCUIT_OPEN", "PG사 결제 서킷 열림"),
     PAYMENT_PG_AUTH_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "PAYMENT_PG_AUTH_ERROR", "PG사 인증 설정에 문제가 발생했습니다."),
@@ -31,7 +33,7 @@ public enum PaymentErrorCode implements ErrorCode {
     INVALID_PAYMENT_STATUS_FOR_APPROVAL(HttpStatus.CONFLICT, "INVALID_PAYMENT_STATUS_FOR_APPROVAL", "승인 가능한 결제 상태가 아닙니다"),
     INVALID_PAYMENT_STATUS_FOR_REFUND(HttpStatus.CONFLICT, "INVALID_PAYMENT_STATUS_FOR_REFUND", "환불 가능한 결제 상태가 아닙니다"),
     PAYMENT_TOSS_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "TOSS_SERVER_ERROR", "토스 서버 오류"),
-    PAYMENT_TOSS_CLIENT_ERROR(HttpStatus.CONFLICT, "TOSS_CLIENT_ERROR", "토스 결제 서버 클라이언트 오류"),
+
     ORDER_NOT_PENDING(HttpStatus.CONFLICT, "ORDER_NOT_PENDING", "결제를 진행할 수 없는 주문 입니다"),
     PAYMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "PAYMENT_003", "존재하지 않은 결제 정보입니다"),
     PAYMENT_AMOUNT_MISMATCH(HttpStatus.CONFLICT, "PAYMENT_AMOUNT_MISMATCH", "주문의 총 결제 금액과 결제 금액이 일치하지 않습니다"),

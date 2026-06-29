@@ -2,8 +2,7 @@ package com.example.order_service.payment.application.service;
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.application.BusinessException;
-import com.example.order_service.common.exception.application.GatewayRejectException;
-import com.example.order_service.common.exception.application.PaymentUnknownStateException;
+import com.example.order_service.common.exception.application.GatewayException;
 import com.example.order_service.order.application.service.order.OrderQueryService;
 import com.example.order_service.order.application.service.order.dto.result.OrderResult;
 import com.example.order_service.order.domain.model.OrderStatus;
@@ -170,12 +169,12 @@ public class PaymentFacadeTest {
             given(orderQueryService.getOrder(anyString(), anyLong())).willReturn(order);
             given(mapper.toContext(any(PaymentCommand.Confirm.class))).willReturn(createContext);
             given(paymentCommandService.create(any(PaymentContext.Create.class))).willReturn(savedPayment);
-            willThrow(new GatewayRejectException(PaymentErrorCode.PAYMENT_PG_INSUFFICIENT_BALANCE, "REJECT_ACCOUNT_PAYMENT",
+            willThrow(new GatewayException(PaymentErrorCode.PAYMENT_PG_INSUFFICIENT_BALANCE, "REJECT_ACCOUNT_PAYMENT",
                     "잔액부족으로 결제에 실패했습니다.")).given(paymentGateway).confirm(any());
             //when
             //then
             assertThatThrownBy(() -> paymentFacade.confirm(command))
-                    .isInstanceOf(GatewayRejectException.class)
+                    .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(PaymentErrorCode.PAYMENT_PG_INSUFFICIENT_BALANCE);
 
@@ -201,13 +200,13 @@ public class PaymentFacadeTest {
             given(orderQueryService.getOrder(anyString(), anyLong())).willReturn(order);
             given(mapper.toContext(any(PaymentCommand.Confirm.class))).willReturn(createContext);
             given(paymentCommandService.create(any(PaymentContext.Create.class))).willReturn(savedPayment);
-            willThrow(new GatewayRejectException(PaymentErrorCode.PAYMENT_PG_INSUFFICIENT_BALANCE, "REJECT_ACCOUNT_PAYMENT",
+            willThrow(new GatewayException(PaymentErrorCode.PAYMENT_PG_INSUFFICIENT_BALANCE, "REJECT_ACCOUNT_PAYMENT",
                     "잔액부족으로 결제에 실패했습니다.")).given(paymentGateway).confirm(any());
             willThrow(new RuntimeException()).given(paymentCommandService).abort(anyLong(), anyString());
             //when
             //then
             assertThatThrownBy(() -> paymentFacade.confirm(command))
-                    .isInstanceOf(GatewayRejectException.class)
+                    .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(PaymentErrorCode.PAYMENT_PG_INSUFFICIENT_BALANCE);
         }
@@ -285,8 +284,8 @@ public class PaymentFacadeTest {
         }
 
         @Test
-        @DisplayName("망취소에 실패하면 예외가 발생한다")
-        void confirm_throwException_whenNetworkCancelFails(){
+        @DisplayName("망취소 시 PG 사에서 확정 거절을 응답하면 환불 대사 대기(REFUND_PENDING) 상태로 전환된다")
+        void confirm_throwException_whenNetworkCancelRejected(){
             //given
             PaymentCommand.Confirm command = PaymentCommand.Confirm.builder()
                     .userId(1L)
@@ -308,7 +307,7 @@ public class PaymentFacadeTest {
             given(paymentGateway.confirm(any())).willReturn(pgApproval);
             given(mapper.toContext(anyLong(), any(PGPaymentResult.Approval.class))).willReturn(approvalContext);
             willThrow(new RuntimeException()).given(paymentCommandService).approve(any());
-            willThrow(new GatewayRejectException(PaymentErrorCode.PAYMENT_TOSS_CLIENT_ERROR, "INVALID_REQUEST", "잘못된 요청입니다."))
+            willThrow(new GatewayException(PaymentErrorCode.PAYMENT_PG_CANCEL_REJECTED, "INVALID_REJECT_CARD", "카드 사용이 불가능 합니다"))
                     .given(paymentGateway).cancel(any());
             //when
             //then
@@ -317,6 +316,137 @@ public class PaymentFacadeTest {
                     .extracting("errorCode")
                     .isEqualTo(PaymentErrorCode.PAYMENT_REFUND_PENDING);
             verify(paymentGateway).cancel(any());
+        }
+
+        @Test
+        @DisplayName("망취소 중 타임아웃(상태 불명)이 발생하면 취소 도달 여부를 알 수 없으므로 환불 대사(REFUND_PENDING) 상태로 전환된다")
+        void confirm_throwException_whenNetworkCancelUnknown(){
+            //given
+            PaymentCommand.Confirm command = PaymentCommand.Confirm.builder()
+                    .userId(1L)
+                    .orderNo("orderNo")
+                    .paymentKey("paymentKey")
+                    .amount(Money.wons(10000L))
+                    .build();
+            OrderResult.Detail order = Instancio.of(OrderResult.Detail.class)
+                    .set(field("status"), OrderStatus.PENDING)
+                    .set(field("totalPaymentAmount"), Money.wons(10000L))
+                    .create();
+            PaymentContext.Create createContext = Instancio.create(PaymentContext.Create.class);
+            PaymentResult.Default savedPayment = Instancio.create(PaymentResult.Default.class);
+            PGPaymentResult.Approval pgApproval = Instancio.create(PGPaymentResult.Approval.class);
+            PaymentContext.Approval approvalContext = Instancio.create(PaymentContext.Approval.class);
+            given(orderQueryService.getOrder(anyString(), anyLong())).willReturn(order);
+            given(mapper.toContext(any(PaymentCommand.Confirm.class))).willReturn(createContext);
+            given(paymentCommandService.create(any(PaymentContext.Create.class))).willReturn(savedPayment);
+            given(paymentGateway.confirm(any())).willReturn(pgApproval);
+            given(mapper.toContext(anyLong(), any(PGPaymentResult.Approval.class))).willReturn(approvalContext);
+            willThrow(new RuntimeException()).given(paymentCommandService).approve(any());
+            willThrow(new GatewayException(PaymentErrorCode.PAYMENT_PG_UNAVAILABLE_ERROR, "PG_UNAVAILABLE", "통신 오류가 발생했습니다"))
+                    .given(paymentGateway).cancel(any());
+            //when
+            //then
+            assertThatThrownBy(() -> paymentFacade.confirm(command))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(PaymentErrorCode.PAYMENT_REFUND_PENDING);
+            verify(paymentGateway).cancel(any());
+        }
+
+        @Test
+        @DisplayName("PG 승인 중 unavailable 예외 발생시 abort 처리 없이 대사 위임용 예외를 던진다")
+        void confirm_PG_unknown_exception_does_not_abort(){
+            //given
+            PaymentCommand.Confirm command = PaymentCommand.Confirm.builder()
+                    .userId(1L)
+                    .orderNo("orderNo")
+                    .paymentKey("paymentKey")
+                    .amount(Money.wons(10000L))
+                    .build();
+            OrderResult.Detail order = Instancio.of(OrderResult.Detail.class)
+                    .set(field("status"), OrderStatus.PENDING)
+                    .set(field("totalPaymentAmount"), Money.wons(10000L))
+                    .create();
+            PaymentContext.Create createContext = Instancio.create(PaymentContext.Create.class);
+            PaymentResult.Default savedPayment = Instancio.create(PaymentResult.Default.class);
+            given(orderQueryService.getOrder(anyString(), anyLong())).willReturn(order);
+            given(mapper.toContext(any(PaymentCommand.Confirm.class))).willReturn(createContext);
+            given(paymentCommandService.create(any(PaymentContext.Create.class))).willReturn(savedPayment);
+            willThrow(new GatewayException(PaymentErrorCode.PAYMENT_PG_UNAVAILABLE_ERROR, "SERVICE_UNAVAILABLE", "PG 통신 장애"))
+                    .given(paymentGateway).confirm(any());
+            //when
+            //then
+            assertThatThrownBy(() -> paymentFacade.confirm(command))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(PaymentErrorCode.PAYMENT_PG_UNAVAILABLE_ERROR);
+            verify(paymentCommandService, never()).abort(anyLong(), anyString());
+        }
+
+        @Test
+        @DisplayName("PG 승인 중 핸들링할 수 없는 에러 코드가 발생하면 IllegalStateException을 던진다")
+        void confirm_unhandled_error_code_throws_illegal_state_exception() {
+            //given
+            PaymentCommand.Confirm command = PaymentCommand.Confirm.builder()
+                    .userId(1L)
+                    .orderNo("orderNo")
+                    .paymentKey("paymentKey")
+                    .amount(Money.wons(10000L))
+                    .build();
+            OrderResult.Detail order = Instancio.of(OrderResult.Detail.class)
+                    .set(field("status"), OrderStatus.PENDING)
+                    .set(field("totalPaymentAmount"), Money.wons(10000L))
+                    .create();
+            PaymentContext.Create createContext = Instancio.create(PaymentContext.Create.class);
+            PaymentResult.Default savedPayment = Instancio.create(PaymentResult.Default.class);
+            given(orderQueryService.getOrder(anyString(), anyLong())).willReturn(order);
+            given(mapper.toContext(any(PaymentCommand.Confirm.class))).willReturn(createContext);
+            given(paymentCommandService.create(any(PaymentContext.Create.class))).willReturn(savedPayment);
+            willThrow(new GatewayException(PaymentErrorCode.EXCEEDED_REFUNDABLE_AMOUNT, "UNKNOWN", "매핑할 수 없는 에러"))
+                    .given(paymentGateway).confirm(any());
+
+            //when
+            //then
+            assertThatThrownBy(() -> paymentFacade.confirm(command))
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessageContaining("Unhandled PaymentErrorCode");
+
+            verify(paymentCommandService, never()).abort(anyLong(), anyString());
+        }
+
+        @Test
+        @DisplayName("내부 저장 실패 후 망취소를 시도할 때 이미 취소된 건이면 자동 취소 예외를 발생시킨다")
+        void confirm_whenNetworkCancelReturnsAlreadyCanceled_thenTreatAsSuccess() {
+            //given
+            PaymentCommand.Confirm command = PaymentCommand.Confirm.builder()
+                    .userId(1L)
+                    .orderNo("orderNo")
+                    .paymentKey("paymentKey")
+                    .amount(Money.wons(10000L))
+                    .build();
+            OrderResult.Detail order = Instancio.of(OrderResult.Detail.class)
+                    .set(field("status"), OrderStatus.PENDING)
+                    .set(field("totalPaymentAmount"), Money.wons(10000L))
+                    .create();
+            PaymentContext.Create createContext = Instancio.create(PaymentContext.Create.class);
+            PaymentResult.Default savedPayment = Instancio.create(PaymentResult.Default.class);
+            PGPaymentResult.Approval pgApproval = Instancio.create(PGPaymentResult.Approval.class);
+            given(orderQueryService.getOrder(anyString(), anyLong())).willReturn(order);
+            given(mapper.toContext(any(PaymentCommand.Confirm.class))).willReturn(createContext);
+            given(paymentCommandService.create(any(PaymentContext.Create.class))).willReturn(savedPayment);
+            given(paymentGateway.confirm(any())).willReturn(pgApproval);
+            willThrow(new RuntimeException("DB 저장 실패")).given(paymentCommandService).approve(any());
+            willThrow(new GatewayException(PaymentErrorCode.PAYMENT_PG_ALREADY_CANCELED, "ALREADY_CANCELED", "이미 취소됨"))
+                    .given(paymentGateway).cancel(any());
+
+            //when
+            //then
+            assertThatThrownBy(() -> paymentFacade.confirm(command))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(PaymentErrorCode.PAYMENT_AUTO_CANCELED);
+
+            verify(paymentCommandService).abort(anyLong(), eq("NET-CANCEL"));
         }
     }
 
@@ -355,7 +485,8 @@ public class PaymentFacadeTest {
 
             given(paymentQueryService.getPayment(anyLong())).willReturn(payment);
             doNothing().when(paymentCommandService).changeRefundPending(anyLong(), any());
-            given(paymentGateway.cancel(any())).willThrow(new PaymentUnknownStateException(PaymentErrorCode.PAYMENT_TOSS_SERVER_ERROR, "FAILED_REFUND_PROCESS", "FAILED_REFUND_PROCESS"));
+            given(paymentGateway.cancel(any())).willThrow(new GatewayException(PaymentErrorCode.PAYMENT_PG_UNAVAILABLE_ERROR,
+                    "FAILED_REFUND_PROCESS", "FAILED_REFUND_PROCESS"));
             //when
             //then
             assertDoesNotThrow(() -> paymentFacade.revert(paymentId, reason));

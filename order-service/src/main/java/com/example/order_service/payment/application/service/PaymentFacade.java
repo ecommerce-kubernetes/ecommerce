@@ -2,8 +2,6 @@ package com.example.order_service.payment.application.service;
 
 import com.example.order_service.common.exception.application.BusinessException;
 import com.example.order_service.common.exception.application.GatewayException;
-import com.example.order_service.common.exception.application.GatewayRejectException;
-import com.example.order_service.common.exception.application.PaymentUnknownStateException;
 import com.example.order_service.order.application.service.order.OrderQueryService;
 import com.example.order_service.order.application.service.order.dto.result.OrderResult;
 import com.example.order_service.order.domain.model.OrderStatus;
@@ -86,7 +84,9 @@ public class PaymentFacade {
                      PAYMENT_PG_METHOD_REJECTED,
                      PAYMENT_PG_POLICY_RESTRICTED,
                      PAYMENT_PG_INVALID_REQUEST,
-                     PAYMENT_PG_ALREADY_PROCESSED:
+                     PAYMENT_PG_ALREADY_PROCESSED,
+                     PAYMENT_PG_NOT_FOUND,
+                     PAYMENT_PG_ALREADY_CANCELED:
                     log.info("[결제 승인 거절] PG사 거절. paymentId = {}, 사유 = {}", payment.id(), errorCode);
                     abortPayment(payment.id(), errorCode.getCode());
                     throw new BusinessException(errorCode);
@@ -170,10 +170,14 @@ public class PaymentFacade {
             PGPaymentResult.Cancellation cancel = paymentGateway.cancel(gatewayCommand);
             PaymentContext.Cancellation context = mapper.toContext(payment.id(), cancel.status(), cancel.lastCancel());
             paymentCommandService.cancel(context);
-        } catch (GatewayRejectException e) {
-            log.error("[SAGA 환불 거절] PG사 결제 취소 거절 {}", payment.paymentKey(), e);
-        } catch (PaymentUnknownStateException e) {
-            log.warn("[SAGA 환불 지연] 통신 장애로 인한 결제 취소 오류 스케줄러 재처리 {}", payment.paymentKey(), e);
+        } catch (GatewayException e) {
+            PaymentErrorCode errorCode = (PaymentErrorCode) e.getErrorCode();
+            switch (errorCode) {
+                case PAYMENT_PG_SERVER_ERROR, PAYMENT_PG_UNAVAILABLE_ERROR, PAYMENT_PG_CIRCUIT_OPEN, PAYMENT_PG_AUTH_ERROR ->
+                        log.warn("[SAGA 환불 지연] 통신 장애로 인한 결제 취소 지연. 스케줄러 대기 paymentKey = {}", payment.paymentKey(), e);
+                case PAYMENT_PG_ALREADY_CANCELED -> log.info("[SAGA 환불 멱등성] 이미 결제가 취소됨. 확실한 취소 내역 동기화를 위해 환불 대사 스케줄러로 위임 paymentKey = {}", payment.paymentKey());
+                default -> log.error("[SAGA 환불 거절] PG사 거절. 수동 환불 처리 필요. paymentKey = {}", payment.paymentKey(), e);
+            }
         } catch (Exception e) {
             log.error("[SAGA 환불 시스템 에러] 로직 오류 또는 DB 반영 실패. 스케줄러 재처리 예정: {}", payment.paymentKey(), e);
         }
