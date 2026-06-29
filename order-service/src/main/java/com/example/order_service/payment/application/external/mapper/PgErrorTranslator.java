@@ -32,8 +32,7 @@ public class PgErrorTranslator implements ErrorTranslator {
                  "NOT_REGISTERED_BUSINESS", "INVALID_UNREGISTERED_SUBMALL", "NOT_FOUND_TERMINAL_ID" ->
                     PaymentErrorCode.PAYMENT_POLICY_RESTRICTED;
 
-            case "INVALID_REQUEST", "BELOW_MINIMUM_AMOUNT", "UNAPPROVED_ORDER_ID",
-                 "NOT_FOUND_PAYMENT", "NOT_FOUND", "NOT_FOUND_PAYMENT_SESSION" ->
+            case "INVALID_REQUEST", "BELOW_MINIMUM_AMOUNT", "UNAPPROVED_ORDER_ID" ->
                     PaymentErrorCode.PAYMENT_INVALID_REQUEST;
 
             case "ALREADY_PROCESSED_PAYMENT" -> PaymentErrorCode.PAYMENT_ALREADY_PROCESSED;
@@ -51,6 +50,7 @@ public class PgErrorTranslator implements ErrorTranslator {
 
             case "UNAUTHORIZED_KEY", "INCORRECT_BASIC_AUTH_FORMAT", "INVALID_API_KEY" ->
                     PaymentErrorCode.PAYMENT_PG_AUTH_ERROR;
+            case "NOT_FOUND_PAYMENT", "NOT_FOUND", "NOT_FOUND_PAYMENT_SESSION" -> PaymentErrorCode.PAYMENT_NOT_FOUND;
 
             case "PROVIDER_ERROR", "CARD_PROCESSING_ERROR", "FORBIDDEN_CONSECUTIVE_REQUEST",
                  "FAILED_PAYMENT_INTERNAL_SYSTEM_PROCESSING", "FAILED_INTERNAL_SYSTEM_PROCESSING",
