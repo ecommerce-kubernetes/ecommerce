@@ -1,7 +1,6 @@
 package com.example.order_service.payment.application.external;
 
-import com.example.order_service.common.exception.application.GatewayRejectException;
-import com.example.order_service.common.exception.application.PaymentUnknownStateException;
+import com.example.order_service.common.exception.application.GatewayException;
 import com.example.order_service.common.exception.external.*;
 import com.example.order_service.infrastructure.adaptor.TossAdaptor;
 import com.example.order_service.infrastructure.dto.response.TossClientResponse;
@@ -46,18 +45,14 @@ public class PaymentGateway {
         try {
             return call.get();
         } catch (ExternalCircuitBreakerException e) {
-            throw new GatewayRejectException(PaymentErrorCode.PAYMENT_TOSS_CIRCUIT_OPEN, e.getErrorCode(), e.getMessage());
+            throw new GatewayException(PaymentErrorCode.PAYMENT_TOSS_CIRCUIT_OPEN, e.getErrorCode(), e.getMessage());
         } catch (ExternalSystemUnavailableException e) {
-            throw new PaymentUnknownStateException(PaymentErrorCode.PAYMENT_TOSS_UNAVAILABLE_ERROR, e.getErrorCode(), e.getMessage());
+            throw new GatewayException(PaymentErrorCode.PAYMENT_TOSS_UNAVAILABLE_ERROR, e.getErrorCode(), e.getMessage());
         } catch (ExternalSystemException e) {
             String code = e.getErrorCode();
             String message = e.getMessage();
             PaymentErrorCode errorCode = errorTranslator.translate(code);
-            if (errorCode == PaymentErrorCode.PAYMENT_PG_AUTH_ERROR ||
-                    errorCode == PaymentErrorCode.PAYMENT_PG_SERVER_ERROR) {
-                throw new PaymentUnknownStateException(errorCode, code, message);
-            }
-            throw new GatewayRejectException(errorCode, code, message);
+            throw new GatewayException(errorCode, code, message);
         }
     }
 }

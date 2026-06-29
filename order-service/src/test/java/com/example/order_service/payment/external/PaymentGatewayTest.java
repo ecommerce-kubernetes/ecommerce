@@ -1,5 +1,6 @@
 package com.example.order_service.payment.external;
 
+import com.example.order_service.common.exception.application.GatewayException;
 import com.example.order_service.common.exception.application.GatewayRejectException;
 import com.example.order_service.common.exception.application.PaymentUnknownStateException;
 import com.example.order_service.common.exception.external.ExternalCircuitBreakerException;
@@ -61,8 +62,8 @@ public class PaymentGatewayTest {
         }
 
         @Test
-        @DisplayName("결제 승인 시 결제 상태를 알 수 없는 에러가 발생하면 Unknown 예외를 발생시킨다")
-        void confirm_pg_status_unknown_exception() {
+        @DisplayName("결제 승인 요청시 외부 시스템 예외가 발생한 경우 에러 코드를 매핑하여 예외를 변환한다")
+        void confirm_External_System_exception() {
             //given
             PGPaymentCommand.Confirm command = Instancio.create(PGPaymentCommand.Confirm.class);
             String code = "FORBIDDEN_CONSECUTIVE_REQUEST";
@@ -73,27 +74,9 @@ public class PaymentGatewayTest {
             //when
             //then
             assertThatThrownBy(() -> paymentGateway.confirm(command))
-                    .isInstanceOf(PaymentUnknownStateException.class)
+                    .isInstanceOf(GatewayException.class)
                     .extracting("errorCode", "code", "message")
                     .containsExactly(PaymentErrorCode.PAYMENT_PG_SERVER_ERROR, code, message);
-        }
-
-        @Test
-        @DisplayName("결제 승인 시 결제가 확정 실패된 경우 Reject 예외를 발생시킨다")
-        void confirm_pg_reject() {
-            //given
-            PGPaymentCommand.Confirm command = Instancio.create(PGPaymentCommand.Confirm.class);
-            String code = "REJECT_ACCOUNT_PAYMENT";
-            String message = "잔액이 부족합니다.";
-            willThrow(new ExternalClientException(code, message))
-                    .given(adaptor).confirmPayment(anyString(), anyString(), anyLong());
-            given(errorTranslator.translate(code)).willReturn(PaymentErrorCode.PAYMENT_INSUFFICIENT_BALANCE);
-            //when
-            //then
-            assertThatThrownBy(() -> paymentGateway.confirm(command))
-                    .isInstanceOf(GatewayRejectException.class)
-                    .extracting("errorCode", "code", "message")
-                    .containsExactly(PaymentErrorCode.PAYMENT_INSUFFICIENT_BALANCE, code, message);
         }
 
         @Test
@@ -108,7 +91,7 @@ public class PaymentGatewayTest {
             //when
             //then
             assertThatThrownBy(() -> paymentGateway.confirm(command))
-                    .isInstanceOf(GatewayRejectException.class)
+                    .isInstanceOf(GatewayException.class)
                     .extracting("errorCode", "code", "message")
                     .containsExactly(PaymentErrorCode.PAYMENT_TOSS_CIRCUIT_OPEN, code, message);
         }
@@ -125,7 +108,7 @@ public class PaymentGatewayTest {
             //when
             //then
             assertThatThrownBy(() -> paymentGateway.confirm(command))
-                    .isInstanceOf(PaymentUnknownStateException.class)
+                    .isInstanceOf(GatewayException.class)
                     .extracting("errorCode", "code", "message")
                     .containsExactly(PaymentErrorCode.PAYMENT_TOSS_UNAVAILABLE_ERROR, code, message);
         }
@@ -151,8 +134,8 @@ public class PaymentGatewayTest {
         }
 
         @Test
-        @DisplayName("결제 취소 시 결제 상태를 알 수 없는 에러가 발생하면 Unknown 예외를 발생시킨다")
-        void cancel_pg_state_unknown_exception() {
+        @DisplayName("결제 취소 시 외부 시스템 에러가 발생한 경우 에러 코드를 매핑하여 예외를 변환한다")
+        void cancel_External_System_exception() {
             //given
             PGPaymentCommand.Cancel command = Instancio.create(PGPaymentCommand.Cancel.class);
             willThrow(new ExternalClientException("PROVIDER_ERROR", "일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요."))
@@ -161,25 +144,9 @@ public class PaymentGatewayTest {
             //when
             //then
             assertThatThrownBy(() -> paymentGateway.cancel(command))
-                    .isInstanceOf(PaymentUnknownStateException.class)
+                    .isInstanceOf(GatewayException.class)
                     .extracting("errorCode")
                     .isEqualTo(PaymentErrorCode.PAYMENT_PG_SERVER_ERROR);
-        }
-
-        @Test
-        @DisplayName("결제 취소 시 결제가 확정 실패된 경우 Reject 예외를 발생시킨다")
-        void cancel_pg_reject() {
-            //given
-            PGPaymentCommand.Cancel command = Instancio.create(PGPaymentCommand.Cancel.class);
-            willThrow(new ExternalClientException("REFUND_REJECTED", "환불이 거절됐습니다."))
-                    .given(adaptor).cancelPayment(anyString(), anyString(), anyLong());
-            given(errorTranslator.translate(any())).willReturn(PaymentErrorCode.PAYMENT_CANCEL_REJECTED);
-            //when
-            //then
-            assertThatThrownBy(() -> paymentGateway.cancel(command))
-                    .isInstanceOf(GatewayRejectException.class)
-                    .extracting("errorCode")
-                    .isEqualTo(PaymentErrorCode.PAYMENT_CANCEL_REJECTED);
         }
 
         @Test
@@ -194,7 +161,7 @@ public class PaymentGatewayTest {
             //when
             //then
             assertThatThrownBy(() -> paymentGateway.cancel(command))
-                    .isInstanceOf(GatewayRejectException.class)
+                    .isInstanceOf(GatewayException.class)
                     .extracting("errorCode")
                     .isEqualTo(PaymentErrorCode.PAYMENT_TOSS_CIRCUIT_OPEN);
         }
@@ -209,7 +176,7 @@ public class PaymentGatewayTest {
             //when
             //then
             assertThatThrownBy(() -> paymentGateway.cancel(command))
-                    .isInstanceOf(PaymentUnknownStateException.class)
+                    .isInstanceOf(GatewayException.class)
                     .extracting("errorCode")
                     .isEqualTo(PaymentErrorCode.PAYMENT_TOSS_UNAVAILABLE_ERROR);
         }

@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 @Getter
 @RequiredArgsConstructor
 public enum PaymentErrorCode implements ErrorCode {
+    // 결제 승인 PG 에러 코드
     PAYMENT_PG_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "PAYMENT_PG_SERVER_ERROR", "PG사 또는 카드사 통신중 일시적인 장애가 발생했습니다"),
     PAYMENT_INSUFFICIENT_BALANCE(HttpStatus.BAD_REQUEST, "PAYMENT_INSUFFICIENT_BALANCE", "잔액 또는 한도가 부족합니다"),
     PAYMENT_METHOD_REJECTED(HttpStatus.BAD_REQUEST, "PAYMENT_METHOD_REJECT", "결제 수단 문제로 거절 되었습니다"),
