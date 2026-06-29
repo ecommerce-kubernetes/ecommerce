@@ -1,6 +1,7 @@
 package com.example.order_service.payment.application.service;
 
 import com.example.order_service.common.exception.application.BusinessException;
+import com.example.order_service.common.exception.application.GatewayException;
 import com.example.order_service.common.exception.application.GatewayRejectException;
 import com.example.order_service.common.exception.application.PaymentUnknownStateException;
 import com.example.order_service.order.application.service.order.OrderQueryService;
@@ -72,12 +73,28 @@ public class PaymentFacade {
             PGPaymentCommand.Confirm gatewayCommand = PGPaymentCommand.Confirm.of(order.orderNo(), command.paymentKey(),
                     order.totalPaymentAmount());
             return paymentGateway.confirm(gatewayCommand);
-        } catch (GatewayRejectException e) {
-            abortPayment(payment.id(), e.getErrorCode().getCode());
-            throw e;
-        } catch (PaymentUnknownStateException e) {
-            log.warn("[결제 망 장애] 대사 스케줄러로 위임 paymentId = {}, paymentKey = {}", payment.id(), command.paymentKey(), e);
-            throw e;
+        } catch (GatewayException e) {
+            PaymentErrorCode errorCode = (PaymentErrorCode) e.getErrorCode();
+            switch (errorCode) {
+                case PAYMENT_PG_SERVER_ERROR,
+                     PAYMENT_PG_UNAVAILABLE_ERROR,
+                     PAYMENT_PG_CIRCUIT_OPEN,
+                     PAYMENT_PG_AUTH_ERROR:
+                    log.warn("[결제 승인 지연] PG 응답 불명. 대사 처리 대기. paymentId = {}", payment.id(), e);
+                    throw new BusinessException(errorCode);
+                case PAYMENT_PG_INSUFFICIENT_BALANCE,
+                     PAYMENT_PG_METHOD_REJECTED,
+                     PAYMENT_PG_POLICY_RESTRICTED,
+                     PAYMENT_PG_INVALID_REQUEST,
+                     PAYMENT_PG_ALREADY_PROCESSED:
+                    log.info("[결제 승인 거절] PG사 거절. paymentId = {}, 사유 = {}", payment.id(), errorCode);
+                    abortPayment(payment.id(), errorCode.getCode());
+                    throw new BusinessException(errorCode);
+                default:
+                    throw new IllegalStateException(
+                            "Unhandled PaymentErrorCode : " + errorCode
+                    );
+            }
         }
     }
 
@@ -102,15 +119,18 @@ public class PaymentFacade {
             PGPaymentCommand.Cancel cancelCommand = PGPaymentCommand.Cancel.ofFull(paymentKey, "내부 DB 저장 실패로 인한 망취소");
             paymentGateway.cancel(cancelCommand);
             return true;
-        } catch (GatewayRejectException e) {
-            log.error("[망 취소 거절] PG사 결제 취소 거절 paymentKey = {}", paymentKey, e);
-            return false;
-        } catch (PaymentUnknownStateException e) {
-            log.error("[망 취소 실패] PG사 예외 또는 통신 장애로 인한 취소 불명 paymentKey = {}", paymentKey, e);
-            return false;
-        } catch (Exception e) {
-            log.error("[망 취소 시스템 에러] 내부 로직 오류 paymentKey = {}", paymentKey, e);
-            return false;
+        } catch (GatewayException e) {
+            PaymentErrorCode errorCode = (PaymentErrorCode) e.getErrorCode();
+            switch (errorCode) {
+                case PAYMENT_PG_SERVER_ERROR, PAYMENT_PG_UNAVAILABLE_ERROR, PAYMENT_PG_CIRCUIT_OPEN, PAYMENT_PG_AUTH_ERROR:
+                    log.warn("[망취소] PG 응답 불명. 대사 처리 대기. paymentKey = {}", paymentKey);
+                    return false;
+                case PAYMENT_PG_ALREADY_CANCELED:
+                    return true;
+                default:
+                    log.info("[망취소] PG사 거절. paymentKey = {}", paymentKey);
+                    return false;
+            }
         }
     }
 

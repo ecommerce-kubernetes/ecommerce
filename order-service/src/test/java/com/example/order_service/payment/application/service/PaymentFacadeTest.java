@@ -170,14 +170,14 @@ public class PaymentFacadeTest {
             given(orderQueryService.getOrder(anyString(), anyLong())).willReturn(order);
             given(mapper.toContext(any(PaymentCommand.Confirm.class))).willReturn(createContext);
             given(paymentCommandService.create(any(PaymentContext.Create.class))).willReturn(savedPayment);
-            willThrow(new GatewayRejectException(PaymentErrorCode.PAYMENT_INSUFFICIENT_BALANCE, "REJECT_ACCOUNT_PAYMENT",
+            willThrow(new GatewayRejectException(PaymentErrorCode.PAYMENT_PG_INSUFFICIENT_BALANCE, "REJECT_ACCOUNT_PAYMENT",
                     "잔액부족으로 결제에 실패했습니다.")).given(paymentGateway).confirm(any());
             //when
             //then
             assertThatThrownBy(() -> paymentFacade.confirm(command))
                     .isInstanceOf(GatewayRejectException.class)
                     .extracting("errorCode")
-                    .isEqualTo(PaymentErrorCode.PAYMENT_INSUFFICIENT_BALANCE);
+                    .isEqualTo(PaymentErrorCode.PAYMENT_PG_INSUFFICIENT_BALANCE);
 
             verify(paymentCommandService).abort(anyLong(), anyString());
         }
@@ -201,7 +201,7 @@ public class PaymentFacadeTest {
             given(orderQueryService.getOrder(anyString(), anyLong())).willReturn(order);
             given(mapper.toContext(any(PaymentCommand.Confirm.class))).willReturn(createContext);
             given(paymentCommandService.create(any(PaymentContext.Create.class))).willReturn(savedPayment);
-            willThrow(new GatewayRejectException(PaymentErrorCode.PAYMENT_INSUFFICIENT_BALANCE, "REJECT_ACCOUNT_PAYMENT",
+            willThrow(new GatewayRejectException(PaymentErrorCode.PAYMENT_PG_INSUFFICIENT_BALANCE, "REJECT_ACCOUNT_PAYMENT",
                     "잔액부족으로 결제에 실패했습니다.")).given(paymentGateway).confirm(any());
             willThrow(new RuntimeException()).given(paymentCommandService).abort(anyLong(), anyString());
             //when
@@ -209,7 +209,7 @@ public class PaymentFacadeTest {
             assertThatThrownBy(() -> paymentFacade.confirm(command))
                     .isInstanceOf(GatewayRejectException.class)
                     .extracting("errorCode")
-                    .isEqualTo(PaymentErrorCode.PAYMENT_INSUFFICIENT_BALANCE);
+                    .isEqualTo(PaymentErrorCode.PAYMENT_PG_INSUFFICIENT_BALANCE);
         }
 
         @Test

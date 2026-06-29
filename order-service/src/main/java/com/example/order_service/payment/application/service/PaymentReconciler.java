@@ -110,7 +110,7 @@ public class PaymentReconciler {
                     PGPaymentResult.Cancellation cancellation = paymentGateway.cancel(cancelCommand);
                     commandService.abort(payment.id(), cancellation.lastCancel().cancelReason());
                 } catch (GatewayRejectException e) {
-                    if (e.getErrorCode() == PaymentErrorCode.PAYMENT_ALREADY_CANCELED) {
+                    if (e.getErrorCode() == PaymentErrorCode.PAYMENT_PG_ALREADY_CANCELED) {
                         log.info("[READY 대사] 이미 취소된 결제건 확인(멱등성 통과). paymentId={}", payment.id());
                         commandService.abort(payment.id(), "ALREADY_CANCELED_IN_PG");
                     } else {
@@ -119,7 +119,7 @@ public class PaymentReconciler {
                 }
             }
         } catch (GatewayRejectException e) {
-            if (e.getErrorCode() == PaymentErrorCode.PAYMENT_INVALID_REQUEST) {
+            if (e.getErrorCode() == PaymentErrorCode.PAYMENT_PG_INVALID_REQUEST) {
                 log.warn("[READY 대사] PG 결제가 존재하지 않음 paymentId = {}", payment.id());
                 commandService.abort(payment.id(), e.getCode());
             } else {
@@ -141,7 +141,7 @@ public class PaymentReconciler {
                     PaymentContext.Cancellation context = mapper.toContext(payment.id(), PaymentStatus.CANCELED, cancelResult.lastCancel());
                     commandService.cancel(context);
                 } catch (GatewayRejectException e) {
-                    if (e.getErrorCode() == PaymentErrorCode.PAYMENT_ALREADY_CANCELED) {
+                    if (e.getErrorCode() == PaymentErrorCode.PAYMENT_PG_ALREADY_CANCELED) {
                         log.info("[REFUND_PENDING 대사] 이미 환불된 결제건 확인(멱등성 통과). paymentId={}", payment.id());
                         commandService.cancel(mapper.toContext(payment.id(), PaymentStatus.CANCELED, null));
                     } else {
@@ -150,7 +150,7 @@ public class PaymentReconciler {
                 }
             }
         } catch (GatewayRejectException e) {
-            if (e.getErrorCode() == PaymentErrorCode.PAYMENT_INVALID_REQUEST) {
+            if (e.getErrorCode() == PaymentErrorCode.PAYMENT_PG_INVALID_REQUEST) {
                 log.error("[REFUND_PENDING 대사] PG 조회 NOT_FOUND. 수동 확인 필요. paymentId={}", payment.id());
             } else {
                 throw e;

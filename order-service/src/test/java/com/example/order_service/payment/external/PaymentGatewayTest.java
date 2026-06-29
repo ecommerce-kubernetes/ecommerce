@@ -1,8 +1,6 @@
 package com.example.order_service.payment.external;
 
 import com.example.order_service.common.exception.application.GatewayException;
-import com.example.order_service.common.exception.application.GatewayRejectException;
-import com.example.order_service.common.exception.application.PaymentUnknownStateException;
 import com.example.order_service.common.exception.external.ExternalCircuitBreakerException;
 import com.example.order_service.common.exception.external.ExternalClientException;
 import com.example.order_service.common.exception.external.ExternalServerException;
@@ -93,7 +91,7 @@ public class PaymentGatewayTest {
             assertThatThrownBy(() -> paymentGateway.confirm(command))
                     .isInstanceOf(GatewayException.class)
                     .extracting("errorCode", "code", "message")
-                    .containsExactly(PaymentErrorCode.PAYMENT_TOSS_CIRCUIT_OPEN, code, message);
+                    .containsExactly(PaymentErrorCode.PAYMENT_PG_CIRCUIT_OPEN, code, message);
         }
 
         @Test
@@ -110,7 +108,7 @@ public class PaymentGatewayTest {
             assertThatThrownBy(() -> paymentGateway.confirm(command))
                     .isInstanceOf(GatewayException.class)
                     .extracting("errorCode", "code", "message")
-                    .containsExactly(PaymentErrorCode.PAYMENT_TOSS_UNAVAILABLE_ERROR, code, message);
+                    .containsExactly(PaymentErrorCode.PAYMENT_PG_UNAVAILABLE_ERROR, code, message);
         }
     }
 
@@ -163,7 +161,7 @@ public class PaymentGatewayTest {
             assertThatThrownBy(() -> paymentGateway.cancel(command))
                     .isInstanceOf(GatewayException.class)
                     .extracting("errorCode")
-                    .isEqualTo(PaymentErrorCode.PAYMENT_TOSS_CIRCUIT_OPEN);
+                    .isEqualTo(PaymentErrorCode.PAYMENT_PG_CIRCUIT_OPEN);
         }
 
         @Test
@@ -178,7 +176,7 @@ public class PaymentGatewayTest {
             assertThatThrownBy(() -> paymentGateway.cancel(command))
                     .isInstanceOf(GatewayException.class)
                     .extracting("errorCode")
-                    .isEqualTo(PaymentErrorCode.PAYMENT_TOSS_UNAVAILABLE_ERROR);
+                    .isEqualTo(PaymentErrorCode.PAYMENT_PG_UNAVAILABLE_ERROR);
         }
     }
 }

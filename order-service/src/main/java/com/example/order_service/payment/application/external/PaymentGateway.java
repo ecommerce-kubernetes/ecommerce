@@ -45,9 +45,9 @@ public class PaymentGateway {
         try {
             return call.get();
         } catch (ExternalCircuitBreakerException e) {
-            throw new GatewayException(PaymentErrorCode.PAYMENT_TOSS_CIRCUIT_OPEN, e.getErrorCode(), e.getMessage());
+            throw new GatewayException(PaymentErrorCode.PAYMENT_PG_CIRCUIT_OPEN, e.getErrorCode(), e.getMessage());
         } catch (ExternalSystemUnavailableException e) {
-            throw new GatewayException(PaymentErrorCode.PAYMENT_TOSS_UNAVAILABLE_ERROR, e.getErrorCode(), e.getMessage());
+            throw new GatewayException(PaymentErrorCode.PAYMENT_PG_UNAVAILABLE_ERROR, e.getErrorCode(), e.getMessage());
         } catch (ExternalSystemException e) {
             String code = e.getErrorCode();
             String message = e.getMessage();
