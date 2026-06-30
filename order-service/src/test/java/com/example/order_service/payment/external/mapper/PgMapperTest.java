@@ -85,4 +85,40 @@ public class PgMapperTest {
                 .usingRecursiveComparison()
                 .isEqualTo(expectedResult);
     }
+
+    @Test
+    @DisplayName("토스 조회 응답을 매핑한다")
+    void toResult_tossInquiryResponse(){
+        //given
+        OffsetDateTime approvedAt = OffsetDateTime.now();
+        LocalDateTime expectedDateTime = approvedAt.toLocalDateTime();
+        TossClientResponse.Inquiry response = TossClientResponse.Inquiry.builder()
+                .paymentKey("paymentKey")
+                .orderId("orderNo")
+                .status("DONE")
+                .totalAmount(1000L)
+                .balanceAmount(1000L)
+                .method("카드")
+                .lastTransactionKey("transactionKey")
+                .approvedAt(approvedAt)
+                .build();
+
+        PGPaymentResult.Inquiry expected = PGPaymentResult.Inquiry.builder()
+                .paymentKey("paymentKey")
+                .orderNo("orderNo")
+                .status(PaymentStatus.DONE)
+                .totalAmount(Money.wons(1000L))
+                .balanceAmount(Money.wons(1000L))
+                .method(PaymentMethod.CARD)
+                .lastTransactionKey("transactionKey")
+                .approvedAt(expectedDateTime)
+                .build();
+
+        //when
+        PGPaymentResult.Inquiry result = mapper.toResult(response);
+        //then
+        assertThat(result)
+                .usingRecursiveComparison()
+                .isEqualTo(expected);
+    }
 }

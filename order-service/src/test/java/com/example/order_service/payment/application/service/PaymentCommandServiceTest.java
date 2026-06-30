@@ -417,7 +417,7 @@ public class PaymentCommandServiceTest {
             payment.refundPending(refundPendingAt);
             paymentRepository.save(payment);
             //when
-            paymentCommandService.changeApprovalManualCheck(payment.getId());
+            paymentCommandService.changeRefundManualCheck(payment.getId());
             //then
             assertThat(payment.getStatus()).isEqualTo(PaymentStatus.MANUAL_CHECK);
             assertThat(payment.getManualCheckReason()).isEqualTo(PaymentManualCheckReason.REFUND_RECON);

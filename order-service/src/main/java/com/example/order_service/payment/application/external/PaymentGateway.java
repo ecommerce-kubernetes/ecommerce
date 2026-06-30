@@ -1,7 +1,9 @@
 package com.example.order_service.payment.application.external;
 
 import com.example.order_service.common.exception.application.GatewayException;
-import com.example.order_service.common.exception.external.*;
+import com.example.order_service.common.exception.external.ExternalCircuitBreakerException;
+import com.example.order_service.common.exception.external.ExternalSystemException;
+import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
 import com.example.order_service.infrastructure.adaptor.TossAdaptor;
 import com.example.order_service.infrastructure.dto.response.TossClientResponse;
 import com.example.order_service.payment.application.external.dto.command.PGPaymentCommand;

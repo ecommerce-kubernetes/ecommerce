@@ -179,4 +179,72 @@ public class PaymentGatewayTest {
                     .isEqualTo(PaymentErrorCode.PAYMENT_PG_UNAVAILABLE_ERROR);
         }
     }
+
+    @Nested
+    @DisplayName("결제 조회")
+    class Inquiry {
+
+        @Test
+        @DisplayName("결제를 조회한다")
+        void inquire(){
+            //given
+            String paymentKey = "paymentKey";
+            TossClientResponse.Inquiry response = Instancio.create(TossClientResponse.Inquiry.class);
+            PGPaymentResult.Inquiry result = Instancio.create(PGPaymentResult.Inquiry.class);
+            given(adaptor.inquirePayment(anyString())).willReturn(response);
+            given(pgMapper.toResult(any(TossClientResponse.Inquiry.class))).willReturn(result);
+            //when
+            PGPaymentResult.Inquiry inquire = paymentGateway.inquire(paymentKey);
+            //then
+            assertThat(inquire).isEqualTo(result);
+        }
+
+        @Test
+        @DisplayName("결제 조회 시 외부 시스템 에러가 발생한 경우 에러 코드를 매핑하여 예외를 변환한다")
+        void inquire_External_System_exception() {
+            //given
+            String paymentKey = "paymentKey";
+            willThrow(new ExternalClientException("PAYMENT_NOT_FOUND", "결제를 찾을 수 없습니다"))
+                    .given(adaptor).inquirePayment(anyString());
+            given(errorTranslator.translate(any())).willReturn(PaymentErrorCode.PAYMENT_PG_NOT_FOUND);
+            //when
+            //then
+            assertThatThrownBy(() -> paymentGateway.inquire(paymentKey))
+                    .isInstanceOf(GatewayException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(PaymentErrorCode.PAYMENT_PG_NOT_FOUND);
+        }
+
+        @Test
+        @DisplayName("결제 취소 시 서킷 브레이커가 열려 있으면 요청 거절 예외를 발생시킨다")
+        void inquire_externalCircuitBreakerException(){
+            //given
+            String paymentKey = "paymentKey";
+            String code = "CIRCUIT_OPEN";
+            String message = "서킷 브레이커 열림";
+            willThrow(new ExternalCircuitBreakerException(code, message))
+                    .given(adaptor).inquirePayment(anyString());
+            //when
+            //then
+            assertThatThrownBy(() -> paymentGateway.inquire(paymentKey))
+                    .isInstanceOf(GatewayException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(PaymentErrorCode.PAYMENT_PG_CIRCUIT_OPEN);
+        }
+
+        @Test
+        @DisplayName("결제 취소 시 PG와 통신할 수 없으면 결제 상태를 알 수 없는 예외를 발생시킨다")
+        void cancel_unavailableServerException() {
+            //given
+            String paymentKey = "paymentKey";
+            willThrow(new ExternalSystemUnavailableException("UNAVAILABLE", "오류가 발생했습니다"))
+                    .given(adaptor).inquirePayment(anyString());
+            //when
+            //then
+            assertThatThrownBy(() -> paymentGateway.inquire(paymentKey))
+                    .isInstanceOf(GatewayException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(PaymentErrorCode.PAYMENT_PG_UNAVAILABLE_ERROR);
+        }
+    }
 }
