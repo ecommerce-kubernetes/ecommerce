@@ -1,4 +1,4 @@
-package com.example.order_service.order.api.dto.request;
+package com.example.order_service.order.api.web.dto.request;
 
 import com.example.order_service.order.application.service.order.dto.command.OrderSearchCommand;
 import lombok.Getter;

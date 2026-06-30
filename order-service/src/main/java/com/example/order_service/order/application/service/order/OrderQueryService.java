@@ -13,6 +13,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 /**
  * 주문 조회 담당 서비스
  * <p>
@@ -75,5 +78,10 @@ public class OrderQueryService {
     public Page<OrderResult.Summary> getOrders(Long userId, OrderSearchCommand command, Pageable pageable) {
         Page<Order> orders = orderSearchRepository.searchOrders(userId, command, pageable);
         return orders.map(OrderResult.Summary::from);
+    }
+
+    public List<OrderResult.Summary> getPendingOrdersBefore(LocalDateTime threshold, int size) {
+        List<Order> orders = orderSearchRepository.findOrdersBefore(threshold, size);
+        return orders.stream().map(OrderResult.Summary::from).toList();
     }
 }

@@ -88,7 +88,7 @@ public class Order extends BaseEntity {
     }
 
     public void failed(String reason) {
-        if (this.status != OrderStatus.PAID) {
+        if (this.status != OrderStatus.PAID && this.status != OrderStatus.PENDING) {
             throw new BusinessException(OrderErrorCode.INVALID_ORDER_STATUS_FOR_FAIL);
         }
         this.status = OrderStatus.FAILED;

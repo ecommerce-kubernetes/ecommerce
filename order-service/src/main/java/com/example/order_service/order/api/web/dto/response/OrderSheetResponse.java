@@ -1,4 +1,4 @@
-package com.example.order_service.order.api.dto.response;
+package com.example.order_service.order.api.web.dto.response;
 
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetResult;
 import com.example.order_service.order.domain.vo.*;

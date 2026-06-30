@@ -1,7 +1,7 @@
-package com.example.order_service.order.api;
+package com.example.order_service.order.api.web;
 
 import com.example.order_service.common.security.model.UserRole;
-import com.example.order_service.order.api.dto.request.OrderSheetRequest;
+import com.example.order_service.order.api.web.dto.request.OrderSheetRequest;
 import com.example.order_service.order.application.service.ordersheet.OrderSheetService;
 import com.example.order_service.order.application.service.ordersheet.dto.command.OrderSheetCommand;
 import com.example.order_service.order.application.service.ordersheet.dto.result.OrderSheetResult;

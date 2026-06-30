@@ -2,6 +2,7 @@ package com.example.order_service.order.infrastructure.persistence;
 
 import com.example.order_service.order.application.service.order.dto.command.OrderSearchCommand;
 import com.example.order_service.order.domain.model.Order;
+import com.example.order_service.order.domain.model.OrderStatus;
 import com.example.order_service.order.domain.repository.OrderSearchRepository;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
@@ -77,5 +78,18 @@ public class OrderQueryDslRepository implements OrderSearchRepository {
             return null;
         }
         return orderItem.product.productName.contains(productName);
+    }
+
+    @Override
+    public List<Order> findOrdersBefore(LocalDateTime threshold, int size) {
+        return queryFactory
+                .selectFrom(order)
+                .where(
+                        order.status.eq(OrderStatus.PENDING),
+                        order.createdAt.before(threshold)
+                )
+                .orderBy(order.createdAt.asc())
+                .limit(size)
+                .fetch();
     }
 }
