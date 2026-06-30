@@ -1,7 +1,6 @@
 package com.example.order_service.cart.api;
 
 import com.example.order_service.cart.api.dto.request.CartRequest;
-import com.example.order_service.cart.api.dto.response.CartResponse;
 import com.example.order_service.cart.application.CartAppService;
 import com.example.order_service.cart.application.dto.command.CartCommand;
 import com.example.order_service.cart.application.dto.result.CartResult;
@@ -9,6 +8,7 @@ import com.example.order_service.common.security.model.UserRole;
 import com.example.order_service.support.annotation.WithCustomMockUser;
 import com.example.order_service.support.config.TestSecurityConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -25,8 +25,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.List;
 import java.util.stream.Stream;
 
-import static com.example.order_service.support.TestFixtureUtil.fixtureMonkey;
-import static com.example.order_service.support.TestFixtureUtil.nonNull;
+import static org.instancio.Select.field;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -53,11 +52,13 @@ class CartControllerTest {
         @WithCustomMockUser
         void addCartItem() throws Exception {
             //given
-            CartRequest.AddItems request = nonNull(fixtureMonkey.giveMeOne(CartRequest.AddItems.class));
-            CartResult.Cart result = nonNull(fixtureMonkey.giveMeOne(CartResult.Cart.class));
+            CartRequest.AddItems request = Instancio.create(CartRequest.AddItems.class);
+            CartResult.CartItemResult item = Instancio.create(CartResult.CartItemResult.class);
+            CartResult.Cart result = Instancio.of(CartResult.Cart.class)
+                    .set(field("items"), List.of(item))
+                    .create();
             given(cartAppService.addItems(any(CartCommand.AddItems.class)))
                     .willReturn(result);
-            CartResponse.Cart response = CartResponse.Cart.from(result);
             //when
             //then
             mockMvc.perform(post("/carts")
@@ -65,7 +66,9 @@ class CartControllerTest {
                             .content(objectMapper.writeValueAsString(request)))
                     .andDo(print())
                     .andExpect(status().isCreated())
-                    .andExpect(content().json(objectMapper.writeValueAsString(response)));
+                    .andExpect(jsonPath("$.items").isNotEmpty())
+                    .andExpect(jsonPath("$.items[0].id").value(item.id()))
+                    .andExpect(jsonPath("$.items[0].status").value(item.status().name()));
         }
 
         @Test
@@ -73,7 +76,7 @@ class CartControllerTest {
         @WithCustomMockUser(userRole = UserRole.ROLE_ADMIN)
         void addCartItemWithAdminPrincipal() throws Exception {
             //given
-            CartRequest.AddItems request = fixtureMonkey.giveMeOne(CartRequest.AddItems.class);
+            CartRequest.AddItems request = Instancio.create(CartRequest.AddItems.class);
             //when
             //then
             mockMvc.perform(post("/carts")
@@ -91,7 +94,7 @@ class CartControllerTest {
         @DisplayName("로그인 하지 않은 사용자는 장바구니에 상품을 추가할 수 없다")
         void addCartItem_unAuthorized() throws Exception {
             //given
-            CartRequest.AddItems request = fixtureMonkey.giveMeOne(CartRequest.AddItems.class);
+            CartRequest.AddItems request = Instancio.create(CartRequest.AddItems.class);
             //when
             //then
             mockMvc.perform(post("/carts")
@@ -155,16 +158,20 @@ class CartControllerTest {
         @WithCustomMockUser
         void getAllCartItem() throws Exception {
             //given
-            CartResult.Cart result = nonNull(fixtureMonkey.giveMeOne(CartResult.Cart.class));
+            CartResult.CartItemResult item = Instancio.create(CartResult.CartItemResult.class);
+            CartResult.Cart result = Instancio.of(CartResult.Cart.class)
+                    .set(field("items"), List.of(item))
+                    .create();
             given(cartAppService.getCartDetails(anyLong()))
                     .willReturn(result);
-            CartResponse.Cart response = CartResponse.Cart.from(result);
             //when
             //then
             mockMvc.perform(get("/carts")
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
-                    .andExpect(content().json(objectMapper.writeValueAsString(response)));
+                    .andExpect(jsonPath("$.items").isNotEmpty())
+                    .andExpect(jsonPath("$.items[0].id").value(item.id()))
+                    .andExpect(jsonPath("$.items[0].status").value(item.status().name()));
         }
 
         @Test
@@ -266,11 +273,10 @@ class CartControllerTest {
         @WithCustomMockUser
         void updateQuantity() throws Exception {
             //given
-            CartRequest.UpdateQuantity request = nonNull(fixtureMonkey.giveMeOne(CartRequest.UpdateQuantity.class));
-            CartResult.Update result = nonNull(fixtureMonkey.giveMeOne(CartResult.Update.class));
+            CartRequest.UpdateQuantity request = Instancio.create(CartRequest.UpdateQuantity.class);
+            CartResult.Update result = Instancio.create(CartResult.Update.class);
             given(cartAppService.updateCartItemQuantity(any(CartCommand.UpdateQuantity.class)))
                     .willReturn(result);
-            CartResponse.Update response = CartResponse.Update.from(result);
             //when
             //then
             mockMvc.perform(patch("/carts/{cartItemId}", 1)
@@ -278,7 +284,8 @@ class CartControllerTest {
                             .content(objectMapper.writeValueAsString(request)))
                     .andDo(print())
                     .andExpect(status().isOk())
-                    .andExpect(content().json(objectMapper.writeValueAsString(response)));
+                    .andExpect(jsonPath("$.id").value(result.id()))
+                    .andExpect(jsonPath("$.quantity").value(result.quantity()));
         }
 
         @Test
@@ -286,7 +293,7 @@ class CartControllerTest {
         @WithCustomMockUser(userRole = UserRole.ROLE_ADMIN)
         void updateQuantity_Admin_role() throws Exception {
             //given
-            CartRequest.UpdateQuantity request = nonNull(fixtureMonkey.giveMeOne(CartRequest.UpdateQuantity.class));
+            CartRequest.UpdateQuantity request = Instancio.create(CartRequest.UpdateQuantity.class);
             //when
             //then
             mockMvc.perform(patch("/carts/{cartItemId}", 1)
@@ -304,7 +311,7 @@ class CartControllerTest {
         @DisplayName("로그인 하지 않은 사용자는 장바구니 상품의 수량을 수정할 수 없다")
         void updateQuantity_unAuthorized() throws Exception {
             //given
-            CartRequest.UpdateQuantity request = nonNull(fixtureMonkey.giveMeOne(CartRequest.UpdateQuantity.class));
+            CartRequest.UpdateQuantity request = Instancio.create(CartRequest.UpdateQuantity.class);
             //when
             //then
             mockMvc.perform(patch("/carts/{cartItemId}", 1)

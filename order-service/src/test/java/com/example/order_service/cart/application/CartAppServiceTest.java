@@ -9,6 +9,7 @@ import com.example.order_service.cart.domain.service.CartService;
 import com.example.order_service.cart.domain.service.dto.result.CartItemDto;
 import com.example.order_service.cart.exception.CartErrorCode;
 import com.example.order_service.common.exception.application.BusinessException;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -19,9 +20,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 
-import static com.example.order_service.support.TestFixtureUtil.fixtureMonkey;
-import static com.example.order_service.support.TestFixtureUtil.sample;
 import static org.assertj.core.api.Assertions.*;
+import static org.instancio.Select.field;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.*;
 
@@ -43,17 +43,20 @@ public class CartAppServiceTest {
         @DisplayName("요청한 상품 중 장바구니에 추가할 수 없는 상품이 있는 경우 예외가 발생한다")
         void addItem_fail_ProductNotOnSale() {
             //given
-            CartCommand.AddItems command = sample(fixtureMonkey.giveMeBuilder(CartCommand.AddItems.class)
-                    .size("items", 2));
+            CartCommand.AddItems command = Instancio.of(CartCommand.AddItems.class)
+                    .generate(field(CartCommand.AddItems::items),
+                            gen -> gen.collection().size(2))
+                    .create();
             Long firstId = command.items().getFirst().productVariantId();
             Long secondId = command.items().get(1).productVariantId();
-            CartProductResult.Info onSaleProduct = sample(fixtureMonkey.giveMeBuilder(CartProductResult.Info.class)
-                    .set("productVariantId", firstId)
-                    .set("status", ProductStatus.AVAILABLE));
-            CartProductResult.Info stopSaleProduct = sample(fixtureMonkey.giveMeBuilder(CartProductResult.Info.class)
-                    .set("productVariantId", secondId)
-                    .set("status", ProductStatus.UNAVAILABLE));
-
+            CartProductResult.Info onSaleProduct = Instancio.of(CartProductResult.Info.class)
+                    .set(field("productVariantId"), firstId)
+                    .set(field("status"), ProductStatus.AVAILABLE)
+                    .create();
+            CartProductResult.Info stopSaleProduct = Instancio.of(CartProductResult.Info.class)
+                    .set(field("productVariantId"), secondId)
+                    .set(field("status"), ProductStatus.UNAVAILABLE)
+                    .create();
             given(cartProductGateway.getProducts(anyList()))
                     .willReturn(List.of(onSaleProduct, stopSaleProduct));
             //when
@@ -66,14 +69,17 @@ public class CartAppServiceTest {
 
         @Test
         @DisplayName("상품 정보에 누락된 상품이 있는 경우 예외가 발생한다")
-        void addItem_fail_product_not_found(){
+        void addItem_fail_product_not_found() {
             //given
-            CartCommand.AddItems command = sample(fixtureMonkey.giveMeBuilder(CartCommand.AddItems.class)
-                    .size("items", 2));
+            CartCommand.AddItems command = Instancio.of(CartCommand.AddItems.class)
+                    .generate(field(CartCommand.AddItems::items),
+                            gen -> gen.collection().size(2))
+                    .create();
             Long firstId = command.items().getFirst().productVariantId();
-            CartProductResult.Info onSaleProduct = sample(fixtureMonkey.giveMeBuilder(CartProductResult.Info.class)
-                    .set("productVariantId", firstId)
-                    .set("status", ProductStatus.AVAILABLE));
+            CartProductResult.Info onSaleProduct = Instancio.of(CartProductResult.Info.class)
+                    .set(field("productVariantId"), firstId)
+                    .set(field("status"), ProductStatus.AVAILABLE)
+                    .create();
             given(cartProductGateway.getProducts(anyList()))
                     .willReturn(List.of(onSaleProduct));
             //when
@@ -88,32 +94,30 @@ public class CartAppServiceTest {
         @DisplayName("장바구니에 상품이 추가되면 상품 정보가 포함된 응답값을 반환한다")
         void addItem() {
             //given
-            CartCommand.AddItems command = sample(fixtureMonkey.giveMeBuilder(CartCommand.AddItems.class)
-                    .size("items", 2));
+            CartCommand.AddItems command = Instancio.of(CartCommand.AddItems.class)
+                    .generate(field(CartCommand.AddItems::items),
+                            gen -> gen.collection().size(2))
+                    .create();
             Long firstId = command.items().get(0).productVariantId();
             int firstQuantity = command.items().getFirst().quantity();
             Long secondId = command.items().get(1).productVariantId();
             int secondQuantity = command.items().get(1).quantity();
-            CartProductResult.Info firstProduct = sample(
-                    fixtureMonkey.giveMeBuilder(CartProductResult.Info.class)
-                            .set("productVariantId", firstId)
-                            .set("status", ProductStatus.AVAILABLE) // 통과 조건
-            );
-            CartProductResult.Info secondProduct = sample(
-                    fixtureMonkey.giveMeBuilder(CartProductResult.Info.class)
-                            .set("productVariantId", secondId)
-                            .set("status", ProductStatus.AVAILABLE)
-            );
-            CartItemDto firstDto = sample(
-                    fixtureMonkey.giveMeBuilder(CartItemDto.class)
-                            .set("productVariantId", firstId)
-                            .set("quantity", firstQuantity)
-            );
-            CartItemDto secondDto = sample(
-                    fixtureMonkey.giveMeBuilder(CartItemDto.class)
-                            .set("productVariantId", secondId)
-                            .set("quantity", secondQuantity)
-            );
+            CartProductResult.Info firstProduct = Instancio.of(CartProductResult.Info.class)
+                    .set(field("productVariantId"), firstId)
+                    .set(field("status"), ProductStatus.AVAILABLE)
+                    .create();
+            CartProductResult.Info secondProduct = Instancio.of(CartProductResult.Info.class)
+                    .set(field("productVariantId"), secondId)
+                    .set(field("status"), ProductStatus.AVAILABLE)
+                    .create();
+            CartItemDto firstDto = Instancio.of(CartItemDto.class)
+                    .set(field("productVariantId"), firstId)
+                    .set(field("quantity"), firstQuantity)
+                    .create();
+            CartItemDto secondDto = Instancio.of(CartItemDto.class)
+                    .set(field("productVariantId"), secondId)
+                    .set(field("quantity"), secondQuantity)
+                    .create();
 
             given(cartProductGateway.getProducts(anyList()))
                     .willReturn(List.of(firstProduct, secondProduct));
@@ -155,22 +159,29 @@ public class CartAppServiceTest {
         void getCartDetails() {
             //given
             List<CartItemDto> cartItems = List.of(
-                    sample(fixtureMonkey.giveMeBuilder(CartItemDto.class).set("productVariantId", 1L)
-                            .set("quantity", 1)),
-                    sample(fixtureMonkey.giveMeBuilder(CartItemDto.class).set("productVariantId", 2L)
-                            .set("quantity", 1)),
-                    sample(fixtureMonkey.giveMeBuilder(CartItemDto.class).set("productVariantId", 3L)
-                            .set("quantity", 1))
+                    Instancio.of(CartItemDto.class)
+                            .set(field("productVariantId"), 1L)
+                            .set(field("quantity"), 1)
+                            .create(),
+                    Instancio.of(CartItemDto.class)
+                            .set(field("productVariantId"), 2L)
+                            .set(field("quantity"), 1)
+                            .create(),
+                    Instancio.of(CartItemDto.class)
+                            .set(field("productVariantId"), 3L)
+                            .set(field("quantity"), 1)
+                            .create()
             );
 
             List<CartProductResult.Info> productInfos = List.of(
-                    sample(fixtureMonkey.giveMeBuilder(CartProductResult.Info.class)
-                            .set("productVariantId", 1L)
-                            .set("status", ProductStatus.AVAILABLE)),
-                    sample(fixtureMonkey.giveMeBuilder(CartProductResult.Info.class)
-                            .set("productVariantId", 2L)
-                            .set("status", ProductStatus.UNAVAILABLE))
-            );
+                    Instancio.of(CartProductResult.Info.class)
+                            .set(field("productVariantId"), 1L)
+                            .set(field("status"), ProductStatus.AVAILABLE)
+                            .create(),
+                    Instancio.of(CartProductResult.Info.class)
+                            .set(field("productVariantId"), 2L)
+                            .set(field("status"), ProductStatus.UNAVAILABLE)
+                            .create());
 
             given(cartService.getCartItems(1L))
                     .willReturn(cartItems);
