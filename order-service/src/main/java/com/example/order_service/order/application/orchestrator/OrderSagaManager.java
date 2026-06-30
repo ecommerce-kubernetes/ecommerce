@@ -7,6 +7,7 @@ import com.example.order_service.order.application.service.order.dto.result.Orde
 import com.example.order_service.order.application.service.saga.OrderSagaService;
 import com.example.order_service.order.application.service.saga.dto.OrderSagaCommand;
 import com.example.order_service.order.application.service.saga.dto.OrderSagaResult;
+import com.example.order_service.order.domain.saga.SagaStatus;
 import com.example.order_service.order.domain.saga.SagaStep;
 import com.example.order_service.order.domain.saga.StepResult;
 import com.example.order_service.order.domain.vo.SagaPayload;
@@ -145,5 +146,22 @@ public class OrderSagaManager {
                         saga.orderNo(), saga.currentStep(), message.getCode());
             }
         }
+    }
+
+    @Transactional
+    public void timeoutSaga(Long sagaId) {
+        OrderSagaResult.Default saga = orderSagaService.getSaga(sagaId);
+        if (saga.status() != SagaStatus.STARTED && saga.status() != SagaStatus.COMPENSATING) {
+            log.info("SAGA 타임아웃 처리 중단: 이미 완료되거나 종료된 인스턴스 sagaId={}", sagaId);
+            return;
+        }
+        SagaReplyMessage timeoutMessage = SagaReplyMessage.builder()
+                .sagaId(saga.sagaId())
+                .orderNo(saga.orderNo())
+                .step(saga.currentStep())
+                .result(SagaResult.FAILURE)
+                .code("SYSTEM_TIMEOUT")
+                .build();
+        processFailure(saga, timeoutMessage);
     }
 }

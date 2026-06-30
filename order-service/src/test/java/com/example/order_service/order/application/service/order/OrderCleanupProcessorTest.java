@@ -16,6 +16,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.instancio.Select.field;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
@@ -58,5 +59,48 @@ class OrderCleanupProcessorTest {
         orderCleanupProcessor.cleanupExpiredPendingOrders();
         //then
         verify(commandService, never()).changeFailed(any(), anyString());
+    }
+
+    @Test
+    @DisplayName("처리 중 하나의 주문에서 예외가 발생해도 다음 주문 처리를 계속 진행한다")
+    void cleanupExpiredPendingOrders_continueOnException() {
+        // given
+        OrderResult.Summary order1 = Instancio.of(OrderResult.Summary.class)
+                .set(field("orderNo"), "ORD-FAIL-123")
+                .create();
+        OrderResult.Summary order2 = Instancio.of(OrderResult.Summary.class)
+                .set(field("orderNo"), "ORD-SUCCESS-456")
+                .create();
+
+        given(queryService.getPendingOrdersBefore(any(), anyInt())).willReturn(List.of(order1, order2));
+
+        doThrow(new RuntimeException("DB Connection Timeout"))
+                .when(commandService).changeFailed(eq("ORD-FAIL-123"), anyString());
+
+        // when
+        orderCleanupProcessor.cleanupExpiredPendingOrders();
+
+        // then
+        verify(commandService).changeFailed(eq("ORD-FAIL-123"), eq("SYSTEM_TIMEOUT"));
+        verify(commandService).changeFailed(eq("ORD-SUCCESS-456"), eq("SYSTEM_TIMEOUT"));
+    }
+
+    @Test
+    @DisplayName("스레드 인터럽트 발생 시 조기 종료하고 인터럽트 상태를 복구한다 (Graceful Shutdown)")
+    void cleanupExpiredPendingOrders_interrupted() {
+        // given
+        OrderResult.Summary order1 = Instancio.of(OrderResult.Summary.class).create();
+        OrderResult.Summary order2 = Instancio.of(OrderResult.Summary.class).create();
+        given(queryService.getPendingOrdersBefore(any(), anyInt())).willReturn(List.of(order1, order2));
+        Thread.currentThread().interrupt();
+
+        // when
+        orderCleanupProcessor.cleanupExpiredPendingOrders();
+
+        // then
+        verify(commandService).changeFailed(eq(order1.orderNo()), eq("SYSTEM_TIMEOUT"));
+        verify(commandService, never()).changeFailed(eq(order2.orderNo()), anyString());
+        assertThat(Thread.currentThread().isInterrupted()).isTrue();
+        boolean interrupted = Thread.interrupted();
     }
 }

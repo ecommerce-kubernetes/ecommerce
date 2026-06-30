@@ -8,13 +8,18 @@ import com.example.order_service.order.application.service.saga.dto.OrderSagaCom
 import com.example.order_service.order.application.service.saga.dto.OrderSagaResult;
 import com.example.order_service.order.domain.repository.OrderSagaInstanceRepository;
 import com.example.order_service.order.domain.saga.OrderSagaInstance;
+import com.example.order_service.order.domain.saga.SagaStatus;
 import com.example.order_service.order.domain.saga.SagaStep;
 import com.example.order_service.order.domain.saga.SagaStepHistory;
 import com.example.order_service.order.exception.SagaErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 주문 SAGA 서비스
@@ -142,5 +147,16 @@ public class OrderSagaService {
     private OrderSagaInstance findSagaById(Long sagaId) {
         return instanceRepository.findById(sagaId)
                 .orElseThrow(() -> new BusinessException(SagaErrorCode.SAGA_INSTANCE_NOT_FOUND));
+    }
+
+    public List<OrderSagaResult.Default> getSagasBefore(LocalDateTime threshold, int size) {
+        List<SagaStatus> targetStatuses = List.of(SagaStatus.STARTED, SagaStatus.COMPENSATING);
+
+        PageRequest limit = PageRequest.of(0, size);
+
+        return instanceRepository.findTimeoutSagas(targetStatuses, threshold, limit)
+                .stream()
+                .map(OrderSagaResult.Default::from)
+                .toList();
     }
 }
