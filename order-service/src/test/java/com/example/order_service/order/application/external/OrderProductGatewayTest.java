@@ -1,6 +1,7 @@
 package com.example.order_service.order.application.external;
 
-import com.example.order_service.common.exception.application.BusinessException;
+import com.example.order_service.common.exception.application.GatewayException;
+import com.example.order_service.common.exception.external.ExternalCircuitBreakerException;
 import com.example.order_service.common.exception.external.ExternalClientException;
 import com.example.order_service.common.exception.external.ExternalServerException;
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
@@ -59,7 +60,7 @@ public class OrderProductGatewayTest {
         }
 
         @Test
-        @DisplayName("상품 조회중 상품 서비스에서 서버 오류 발생시 비지니스 예외로 변환된다")
+        @DisplayName("상품 조회중 상품 서비스에서 서버 오류 발생시 예외로 변환된다")
         void getProducts_ExternalServerException(){
             //given
             List<OrderProductCommand.OrderItem> orderItems = Instancio.ofList(OrderProductCommand.OrderItem.class)
@@ -70,13 +71,13 @@ public class OrderProductGatewayTest {
             //when
             //then
             assertThatThrownBy(() -> orderProductGateway.getProducts(orderItems))
-                    .isInstanceOf(BusinessException.class)
+                    .isInstanceOf(GatewayException.class)
                     .extracting("errorCode")
                     .isEqualTo(OrderErrorCode.ORDER_PRODUCT_SERVER_ERROR);
         }
 
         @Test
-        @DisplayName("상품 조회중 상품 서비스에서 클라이언트 오류 발생시 비지니스 예외로 변환된다")
+        @DisplayName("상품 조회중 상품 서비스에서 클라이언트 오류 발생시 예외로 변환된다")
         void getProducts_ExternalClientException(){
             //given
             List<OrderProductCommand.OrderItem> orderItems = Instancio.ofList(OrderProductCommand.OrderItem.class)
@@ -87,13 +88,13 @@ public class OrderProductGatewayTest {
             //when
             //then
             assertThatThrownBy(() -> orderProductGateway.getProducts(orderItems))
-                    .isInstanceOf(BusinessException.class)
+                    .isInstanceOf(GatewayException.class)
                     .extracting("errorCode")
                     .isEqualTo(OrderErrorCode.ORDER_PRODUCT_CLIENT_ERROR);
         }
 
         @Test
-        @DisplayName("상품 조회중 상품 서비스에서 가용 불가 오류 발생시 비지니스 예외로 변환된다")
+        @DisplayName("상품 조회중 상품 서비스에서 가용 불가 오류 발생시 예외로 변환된다")
         void getProducts_ExternalSystemUnavailableException(){
             //given
             List<OrderProductCommand.OrderItem> orderItems = Instancio.ofList(OrderProductCommand.OrderItem.class)
@@ -104,9 +105,26 @@ public class OrderProductGatewayTest {
             //when
             //then
             assertThatThrownBy(() -> orderProductGateway.getProducts(orderItems))
-                    .isInstanceOf(BusinessException.class)
+                    .isInstanceOf(GatewayException.class)
                     .extracting("errorCode")
                     .isEqualTo(OrderErrorCode.ORDER_PRODUCT_UNAVAILABLE_SERVER_ERROR);
+        }
+
+        @Test
+        @DisplayName("상품 조회중 상품 서비스 서킷 브레이커가 열린 경우 예외가 발생한다")
+        void getProducts_ExternalCircuitBreakerException(){
+            //given
+            List<OrderProductCommand.OrderItem> orderItems = Instancio.ofList(OrderProductCommand.OrderItem.class)
+                    .size(2)
+                    .create();
+            willThrow(new ExternalCircuitBreakerException("PRODUCT_CIRCUIT_OPEN", "상품 서비스 서킷 오픈"))
+                    .given(adaptor).getProducts(any());
+            //when
+            //then
+            assertThatThrownBy(() -> orderProductGateway.getProducts(orderItems))
+                    .isInstanceOf(GatewayException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(OrderErrorCode.ORDER_PRODUCT_CIRCUIT_OPEN);
         }
     }
 }

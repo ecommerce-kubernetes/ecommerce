@@ -79,7 +79,7 @@ public class PaymentFacade {
                      PAYMENT_PG_CIRCUIT_OPEN,
                      PAYMENT_PG_AUTH_ERROR:
                     log.warn("[결제 승인 지연] PG 응답 불명. 대사 처리 대기. paymentId = {}", payment.id(), e);
-                    throw new BusinessException(errorCode);
+                    throw e;
                 case PAYMENT_PG_INSUFFICIENT_BALANCE,
                      PAYMENT_PG_METHOD_REJECTED,
                      PAYMENT_PG_POLICY_RESTRICTED,
@@ -89,7 +89,7 @@ public class PaymentFacade {
                      PAYMENT_PG_ALREADY_CANCELED:
                     log.info("[결제 승인 거절] PG사 거절. paymentId = {}, 사유 = {}", payment.id(), errorCode);
                     abortPayment(payment.id(), errorCode.getCode());
-                    throw new BusinessException(errorCode);
+                    throw e;
                 default:
                     throw new IllegalStateException(
                             "Unhandled PaymentErrorCode : " + errorCode

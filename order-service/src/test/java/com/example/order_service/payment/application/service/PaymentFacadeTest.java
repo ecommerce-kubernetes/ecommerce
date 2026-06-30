@@ -174,7 +174,7 @@ public class PaymentFacadeTest {
             //when
             //then
             assertThatThrownBy(() -> paymentFacade.confirm(command))
-                    .isInstanceOf(BusinessException.class)
+                    .isInstanceOf(GatewayException.class)
                     .extracting("errorCode")
                     .isEqualTo(PaymentErrorCode.PAYMENT_PG_INSUFFICIENT_BALANCE);
 
@@ -206,7 +206,7 @@ public class PaymentFacadeTest {
             //when
             //then
             assertThatThrownBy(() -> paymentFacade.confirm(command))
-                    .isInstanceOf(BusinessException.class)
+                    .isInstanceOf(GatewayException.class)
                     .extracting("errorCode")
                     .isEqualTo(PaymentErrorCode.PAYMENT_PG_INSUFFICIENT_BALANCE);
         }
@@ -377,7 +377,7 @@ public class PaymentFacadeTest {
             //when
             //then
             assertThatThrownBy(() -> paymentFacade.confirm(command))
-                    .isInstanceOf(BusinessException.class)
+                    .isInstanceOf(GatewayException.class)
                     .extracting("errorCode")
                     .isEqualTo(PaymentErrorCode.PAYMENT_PG_UNAVAILABLE_ERROR);
             verify(paymentCommandService, never()).abort(anyLong(), anyString());

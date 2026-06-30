@@ -5,12 +5,14 @@ import com.example.order_service.order.application.service.saga.dto.OrderSagaRes
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
+import org.springframework.stereotype.Service;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Slf4j
+@Service
 @RequiredArgsConstructor
 public class SagaCleanupProcessor {
 

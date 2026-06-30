@@ -1,6 +1,8 @@
 package com.example.order_service.order.application.external;
 
 import com.example.order_service.common.exception.application.BusinessException;
+import com.example.order_service.common.exception.application.GatewayException;
+import com.example.order_service.common.exception.external.ExternalCircuitBreakerException;
 import com.example.order_service.common.exception.external.ExternalClientException;
 import com.example.order_service.common.exception.external.ExternalServerException;
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
@@ -43,11 +45,13 @@ public class OrderUserGateway {
         try {
             return userAdaptor.getUserProfile(userId);
         } catch (ExternalClientException e) {
-            throw new BusinessException(OrderErrorCode.ORDER_USER_CLIENT_ERROR);
+            throw new GatewayException(OrderErrorCode.ORDER_USER_CLIENT_ERROR, e.getErrorCode(), e.getMessage());
         } catch (ExternalServerException e) {
-            throw new BusinessException(OrderErrorCode.ORDER_USER_SERVER_ERROR);
+            throw new GatewayException(OrderErrorCode.ORDER_USER_SERVER_ERROR, e.getErrorCode(), e.getMessage());
         } catch (ExternalSystemUnavailableException e) {
-            throw new BusinessException(OrderErrorCode.ORDER_USER_UNAVAILABLE_SERVER_ERROR);
+            throw new GatewayException(OrderErrorCode.ORDER_USER_UNAVAILABLE_SERVER_ERROR, e.getErrorCode(), e.getMessage());
+        } catch (ExternalCircuitBreakerException e) {
+            throw new GatewayException(OrderErrorCode.ORDER_USER_CIRCUIT_OPEN, e.getErrorCode(), e.getMessage());
         }
     }
 
@@ -56,7 +60,6 @@ public class OrderUserGateway {
      *
      * @param userId      조회 대상 유저 아이디
      * @return 포인트 잔액, 적용 가능 포인트
-     * @throws BusinessException 유저 도메인 통신중 발생한 예외를 비지니스 예외로 변환
      */
     public OrderUserResult.UserPoint getUserPoints(Long userId) {
         UserClientResponse.UserPoints userPoints = fetchUserPointsWithTranslation(userId);
@@ -67,11 +70,13 @@ public class OrderUserGateway {
         try {
             return userAdaptor.getUserPoints(userId);
         } catch (ExternalClientException e) {
-            throw new BusinessException(OrderErrorCode.ORDER_USER_CLIENT_ERROR);
+            throw new GatewayException(OrderErrorCode.ORDER_USER_CLIENT_ERROR, e.getErrorCode(), e.getMessage());
         } catch (ExternalServerException e) {
-            throw new BusinessException(OrderErrorCode.ORDER_USER_SERVER_ERROR);
+            throw new GatewayException(OrderErrorCode.ORDER_USER_SERVER_ERROR, e.getErrorCode(), e.getMessage());
         } catch (ExternalSystemUnavailableException e) {
-            throw new BusinessException(OrderErrorCode.ORDER_USER_UNAVAILABLE_SERVER_ERROR);
+            throw new GatewayException(OrderErrorCode.ORDER_USER_UNAVAILABLE_SERVER_ERROR, e.getErrorCode(), e.getMessage());
+        } catch (ExternalCircuitBreakerException e) {
+            throw new GatewayException(OrderErrorCode.ORDER_USER_CIRCUIT_OPEN, e.getErrorCode(), e.getMessage());
         }
     }
 }

@@ -1,6 +1,7 @@
 package com.example.order_service.order.application.external;
 
-import com.example.order_service.common.exception.application.BusinessException;
+import com.example.order_service.common.exception.application.GatewayException;
+import com.example.order_service.common.exception.external.ExternalCircuitBreakerException;
 import com.example.order_service.common.exception.external.ExternalClientException;
 import com.example.order_service.common.exception.external.ExternalServerException;
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
@@ -55,7 +56,7 @@ public class OrderUserGatewayTest {
         }
         
         @Test
-        @DisplayName("유저 조회중 유저 서비스에서 클라이언트 오류가 발생한 경우 비지니스 예외로 변환된다")
+        @DisplayName("유저 조회중 유저 서비스에서 클라이언트 오류가 발생한 경우 예외가 발생한다")
         void getUserProfile_ExternalClientException() {
             //given
             Long userId = 1L;
@@ -64,13 +65,13 @@ public class OrderUserGatewayTest {
             //when
             //then
             assertThatThrownBy(() -> orderUserGateway.getUserProfile(userId))
-                    .isInstanceOf(BusinessException.class)
+                    .isInstanceOf(GatewayException.class)
                     .extracting("errorCode")
                     .isEqualTo(OrderErrorCode.ORDER_USER_CLIENT_ERROR);
         }
 
         @Test
-        @DisplayName("유저 조회중 유저 서비스에서 서버 오류가 발생한 경우 비지니스 예외로 변환된다")
+        @DisplayName("유저 조회중 유저 서비스에서 서버 오류가 발생한 경우 예외가 발생한다")
         void getUserProfile_ExternalServerException() {
             //given
             Long userId = 1L;
@@ -79,13 +80,13 @@ public class OrderUserGatewayTest {
             //when
             //then
             assertThatThrownBy(() -> orderUserGateway.getUserProfile(userId))
-                    .isInstanceOf(BusinessException.class)
+                    .isInstanceOf(GatewayException.class)
                     .extracting("errorCode")
                     .isEqualTo(OrderErrorCode.ORDER_USER_SERVER_ERROR);
         }
 
         @Test
-        @DisplayName("유저 조회중 유저 서비스에서 서버 오류가 발생한 경우 비지니스 예외로 변환된다")
+        @DisplayName("유저 조회중 유저 서비스에서 서버 오류가 발생한 경우 예외가 발생한다")
         void getUserProfile_ExternalUnavailableServerException() {
             //given
             Long userId = 1L;
@@ -94,9 +95,24 @@ public class OrderUserGatewayTest {
             //when
             //then
             assertThatThrownBy(() -> orderUserGateway.getUserProfile(userId))
-                    .isInstanceOf(BusinessException.class)
+                    .isInstanceOf(GatewayException.class)
                     .extracting("errorCode")
                     .isEqualTo(OrderErrorCode.ORDER_USER_UNAVAILABLE_SERVER_ERROR);
+        }
+
+        @Test
+        @DisplayName("유저 조회중 유저 서비스 서킷 브레이커가 열린 경우 예외가 발생한다")
+        void getUserProfile_ExternalCircuitBreakerException() {
+            //given
+            Long userId = 1L;
+            willThrow(new ExternalCircuitBreakerException("CIRCUIT_OPEN", "유저 서킷 열림"))
+                    .given(adaptor).getUserProfile(anyLong());
+            //when
+            //then
+            assertThatThrownBy(() -> orderUserGateway.getUserProfile(userId))
+                    .isInstanceOf(GatewayException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(OrderErrorCode.ORDER_USER_CIRCUIT_OPEN);
         }
     }
 
@@ -129,7 +145,7 @@ public class OrderUserGatewayTest {
             //when
             //then
             assertThatThrownBy(() -> orderUserGateway.getUserPoints(userId))
-                    .isInstanceOf(BusinessException.class)
+                    .isInstanceOf(GatewayException.class)
                     .extracting("errorCode")
                     .isEqualTo(OrderErrorCode.ORDER_USER_CLIENT_ERROR);
         }
@@ -144,7 +160,7 @@ public class OrderUserGatewayTest {
             //when
             //then
             assertThatThrownBy(() -> orderUserGateway.getUserPoints(userId))
-                    .isInstanceOf(BusinessException.class)
+                    .isInstanceOf(GatewayException.class)
                     .extracting("errorCode")
                     .isEqualTo(OrderErrorCode.ORDER_USER_SERVER_ERROR);
         }
@@ -159,9 +175,24 @@ public class OrderUserGatewayTest {
             //when
             //then
             assertThatThrownBy(() -> orderUserGateway.getUserPoints(userId))
-                    .isInstanceOf(BusinessException.class)
+                    .isInstanceOf(GatewayException.class)
                     .extracting("errorCode")
                     .isEqualTo(OrderErrorCode.ORDER_USER_UNAVAILABLE_SERVER_ERROR);
+        }
+
+        @Test
+        @DisplayName("유저 포인트 잔액 조회중 유저 서킷이 열린 경우 예외가 발생한다")
+        void getUserPoints_ExternalCircuitException() {
+            //given
+            Long userId = 1L;
+            willThrow(new ExternalCircuitBreakerException("CIRCUIT_OPEN", "유저 서비스 서킷 열림"))
+                    .given(adaptor).getUserPoints(anyLong());
+            //when
+            //then
+            assertThatThrownBy(() -> orderUserGateway.getUserPoints(userId))
+                    .isInstanceOf(GatewayException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(OrderErrorCode.ORDER_USER_CIRCUIT_OPEN);
         }
     }
 }

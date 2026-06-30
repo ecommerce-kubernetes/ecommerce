@@ -80,7 +80,7 @@ public class OrderFacade {
         if (!orderSheet.hasAnyCoupon()) {
             return OrderCouponResult.Calculate.empty();
         }
-        // [WARING] 페이로드 최적화를 위해 쿠폰 적용 상 filter를 걸면 안됨!
+        // [WARING] 페이로드 최적화를 위해 쿠폰 적용 상 filter를 걸면 안됨
         // 쿠폰 미적용 상품도 페이로드에 포함되어야 장바구니 쿠폰의 '최소 결제 금액', '제외 상품'등의 제약을 검사하고 할인 금액을 계산할 수 있음
         List<OrderCouponCommand.AppliedCouponItem> itemCouponCommand = orderSheet.getItems().stream().map(
                 item -> OrderCouponCommand.AppliedCouponItem.of(item.getProductVariantId(),
