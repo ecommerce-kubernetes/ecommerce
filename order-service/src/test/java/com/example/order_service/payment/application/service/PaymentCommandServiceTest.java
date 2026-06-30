@@ -5,10 +5,7 @@ import com.example.order_service.common.exception.application.BusinessException;
 import com.example.order_service.payment.application.event.PaymentCompleteEvent;
 import com.example.order_service.payment.application.service.dto.command.PaymentContext;
 import com.example.order_service.payment.application.service.dto.result.PaymentResult;
-import com.example.order_service.payment.domain.model.Payment;
-import com.example.order_service.payment.domain.model.PaymentMethod;
-import com.example.order_service.payment.domain.model.PaymentRecord;
-import com.example.order_service.payment.domain.model.PaymentStatus;
+import com.example.order_service.payment.domain.model.*;
 import com.example.order_service.payment.domain.repository.PaymentRepository;
 import com.example.order_service.payment.exception.PaymentErrorCode;
 import com.example.order_service.support.annotation.MockKafka;
@@ -375,6 +372,67 @@ public class PaymentCommandServiceTest {
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(PaymentErrorCode.EXCEEDED_REFUNDABLE_AMOUNT);
+        }
+    }
+
+    @Nested
+    @DisplayName("결제 수동 확인 변경")
+    class ManualCheck {
+
+        @Test
+        @DisplayName("결제 승인 수동 확인 상태로 변경한다")
+        void changeApprovalManualCheck(){
+            //given
+            String orderNo = "orderNo";
+            Payment payment = Payment.create(orderNo, 1L, "paymentKey", Money.wons(10000L));
+            paymentRepository.save(payment);
+            //when
+            paymentCommandService.changeApprovalManualCheck(payment.getId());
+            //then
+            assertThat(payment.getStatus()).isEqualTo(PaymentStatus.MANUAL_CHECK);
+            assertThat(payment.getManualCheckReason()).isEqualTo(PaymentManualCheckReason.APPROVAL_RECON);
+        }
+
+        @Test
+        @DisplayName("결제를 찾을 수 없으면 예외가 발생한다")
+        void changeApprovalManualCheck_notFound(){
+            //given
+            //when
+            //then
+            assertThatThrownBy(() -> paymentCommandService.changeApprovalManualCheck(999L))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(PaymentErrorCode.PAYMENT_NOT_FOUND);
+        }
+
+        @Test
+        @DisplayName("결제 환불 수동 확인 상태로 변경한다")
+        void changeRefundManualCheck(){
+            //given
+            String orderNo = "orderNo";
+            LocalDateTime refundPendingAt = LocalDateTime.now();
+            Payment payment = Payment.create(orderNo, 1L, "paymentKey", Money.wons(10000L));
+            PaymentRecord approval = PaymentRecord.createApproval("transactionKey", Money.wons(10000L), LocalDateTime.now());
+            payment.approve(approval, PaymentStatus.DONE, PaymentMethod.CARD);
+            payment.refundPending(refundPendingAt);
+            paymentRepository.save(payment);
+            //when
+            paymentCommandService.changeApprovalManualCheck(payment.getId());
+            //then
+            assertThat(payment.getStatus()).isEqualTo(PaymentStatus.MANUAL_CHECK);
+            assertThat(payment.getManualCheckReason()).isEqualTo(PaymentManualCheckReason.REFUND_RECON);
+        }
+
+        @Test
+        @DisplayName("결제를 찾을 수 없으면 예외가 발생한다")
+        void changeRefundManualCheck_notFound(){
+            //given
+            //when
+            //then
+            assertThatThrownBy(() -> paymentCommandService.changeRefundManualCheck(999L))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(PaymentErrorCode.PAYMENT_NOT_FOUND);
         }
     }
 }

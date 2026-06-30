@@ -107,12 +107,20 @@ public class PaymentCommandService {
         return PaymentResult.PaymentCancel.of(payment, paymentRecord);
     }
 
+    /**
+     * 결제 승인 수동 확인으로 변경
+     * @param id 결제 아이디
+     */
     public void changeApprovalManualCheck(Long id) {
         Payment payment = paymentRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND));
         payment.manualChecking(PaymentManualCheckReason.APPROVAL_RECON);
     }
 
+    /**
+     * 결제 환불 수동 확인으로 변경
+     * @param id 결제 아이디
+     */
     public void changeRefundManualCheck(Long id) {
         Payment payment = paymentRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND));

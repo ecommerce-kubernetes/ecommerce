@@ -290,4 +290,21 @@ public class PaymentTest {
         //then
         assertThat(money).isEqualTo(Money.wons(3000L));
     }
+
+    @Test
+    @DisplayName("수동 확인 상태로 변경한다")
+    void manualChecking(){
+        //given
+        String orderNo = "orderNo";
+        Long userId = 1L;
+        PaymentManualCheckReason reason = PaymentManualCheckReason.APPROVAL_RECON;
+        String paymentKey = "paymentKey";
+        Money totalAmount = Money.wons(10000L);
+        Payment payment = Payment.create(orderNo, userId, paymentKey, totalAmount);
+        //when
+        payment.manualChecking(reason);
+        //then
+        assertThat(payment.getStatus()).isEqualTo(PaymentStatus.MANUAL_CHECK);
+        assertThat(payment.getManualCheckReason()).isEqualTo(PaymentManualCheckReason.APPROVAL_RECON);
+    }
 }

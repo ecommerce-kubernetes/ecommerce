@@ -95,6 +95,7 @@ public class Payment extends BaseEntity {
     }
 
     public void manualChecking(PaymentManualCheckReason reason) {
+        this.status = PaymentStatus.MANUAL_CHECK;
         this.manualCheckReason = reason;
     }
 

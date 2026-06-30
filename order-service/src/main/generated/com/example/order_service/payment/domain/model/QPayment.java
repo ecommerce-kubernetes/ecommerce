@@ -31,6 +31,8 @@ public class QPayment extends EntityPathBase<Payment> {
 
     public final StringPath lastTransactionKey = createString("lastTransactionKey");
 
+    public final EnumPath<PaymentManualCheckReason> manualCheckReason = createEnum("manualCheckReason", PaymentManualCheckReason.class);
+
     public final EnumPath<PaymentMethod> method = createEnum("method", PaymentMethod.class);
 
     public final StringPath orderNo = createString("orderNo");
