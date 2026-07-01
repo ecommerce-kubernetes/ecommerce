@@ -14,12 +14,12 @@ import org.springframework.stereotype.Component;
 public class CartProductMapperImpl implements CartProductMapper {
 
     @Override
-    public CartProductResult.Option toOption(ProductClientResponse.ProductOption option) {
+    public CartProductResult.ProductOption toOption(ProductClientResponse.ProductOption option) {
         if ( option == null ) {
             return null;
         }
 
-        CartProductResult.Option.OptionBuilder option1 = CartProductResult.Option.builder();
+        CartProductResult.ProductOption.OptionBuilder option1 = CartProductResult.ProductOption.builder();
 
         option1.optionTypeName( option.optionTypeName() );
         option1.optionValueName( option.optionValueName() );

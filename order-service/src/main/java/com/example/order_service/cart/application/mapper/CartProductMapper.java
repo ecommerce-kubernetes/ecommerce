@@ -11,7 +11,7 @@ import org.mapstruct.Mapper;
 public interface CartProductMapper {
 
 
-    CartProductResult.Option toOption(ProductClientResponse.ProductOption option);
+    CartProductResult.ProductOption toOption(ProductClientResponse.ProductOption option);
 
     default ProductStatus translateStatus(String status) {
         if (status == null) {

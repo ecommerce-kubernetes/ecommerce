@@ -1,10 +1,10 @@
 package com.example.order_service.cart.application.service;
 
+import com.example.order_service.cart.application.external.dto.result.CartProductStatus;
 import com.example.order_service.cart.application.service.dto.command.CartCommand;
 import com.example.order_service.cart.application.external.dto.result.CartProductResult;
 import com.example.order_service.cart.application.service.dto.result.CartResult;
 import com.example.order_service.cart.application.external.CartProductGateway;
-import com.example.order_service.cart.domain.model.vo.ProductStatus;
 import com.example.order_service.cart.domain.service.CartService;
 import com.example.order_service.cart.domain.service.dto.result.CartItemDto;
 import com.example.order_service.cart.exception.CartErrorCode;
@@ -60,14 +60,11 @@ public class CartFacade {
     }
 
     private void validateProductForAddCart(List<CartProductResult.Info> products, List<Long> variantIds) {
-        // 누락된 상품이 있는지 검증
         if (products.size() != variantIds.size()){
             throw new BusinessException(CartErrorCode.CART_PRODUCT_NOT_FOUND);
         }
-
-        // 추가할 상품이 추가 가능한지 검증
         for(CartProductResult.Info product: products) {
-            if (product.status() != ProductStatus.AVAILABLE) {
+            if (product.status() != CartProductStatus.ON_SALE) {
                 throw new BusinessException(CartErrorCode.CART_PRODUCT_CANNOT_ADD);
             }
         }

@@ -1,7 +1,6 @@
 package com.example.order_service.cart.application.service.dto.result;
 
 import com.example.order_service.cart.application.external.dto.result.CartProductResult;
-import com.example.order_service.cart.domain.model.vo.ProductStatus;
 import com.example.order_service.cart.domain.service.dto.result.CartItemDto;
 import com.example.order_service.common.domain.vo.Money;
 import lombok.Builder;
@@ -47,7 +46,6 @@ public class CartResult {
     @Builder
     public record CartItemResult(
             Long id,
-            ProductStatus status,
             boolean isAvailable,
             Long productId,
             Long productVariantId,
@@ -61,8 +59,7 @@ public class CartResult {
         public static CartItemResult of(CartItemDto cartItemDto, CartProductResult.Info product) {
             return CartItemResult.builder()
                     .id(cartItemDto.getId())
-                    .status(product.status())
-                    .isAvailable(product.status() == ProductStatus.AVAILABLE)
+                    .isAvailable(true)
                     .productId(product.productId())
                     .productVariantId(product.productVariantId())
                     .productName(product.productName())
@@ -77,7 +74,6 @@ public class CartResult {
         public static CartItemResult unAvailable(Long id, Long productVariantId, int quantity) {
             return CartItemResult.builder()
                     .id(id)
-                    .status(ProductStatus.UNAVAILABLE)
                     .isAvailable(false)
                     .productVariantId(productVariantId)
                     .quantity(quantity)
@@ -85,7 +81,7 @@ public class CartResult {
                     .build();
         }
 
-        private static List<CartItemOption> mapToOptions(List<CartProductResult.Option> options) {
+        private static List<CartItemOption> mapToOptions(List<CartProductResult.ProductOption> options) {
             return options.stream().map(CartItemOption::from).toList();
         }
     }
@@ -112,7 +108,7 @@ public class CartResult {
             String optionTypeName,
             String optionValueName
     ) {
-        public static CartItemOption from (CartProductResult.Option option) {
+        public static CartItemOption from (CartProductResult.ProductOption option) {
             return CartItemOption.builder()
                     .optionTypeName(option.optionTypeName())
                     .optionValueName(option.optionValueName())
