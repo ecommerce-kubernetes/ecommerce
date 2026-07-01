@@ -1,6 +1,5 @@
 package com.example.order_service.payment.external;
 
-import com.example.order_service.common.exception.application.GatewayException;
 import com.example.order_service.common.exception.external.ExternalCircuitBreakerException;
 import com.example.order_service.common.exception.external.ExternalClientException;
 import com.example.order_service.common.exception.external.ExternalServerException;
@@ -13,6 +12,7 @@ import com.example.order_service.payment.application.external.dto.result.PGPayme
 import com.example.order_service.payment.application.external.mapper.PgErrorTranslator;
 import com.example.order_service.payment.application.external.mapper.PgMapper;
 import com.example.order_service.payment.exception.PaymentErrorCode;
+import com.example.order_service.payment.exception.PaymentGatewayException;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -66,15 +66,16 @@ public class PaymentGatewayTest {
             PGPaymentCommand.Confirm command = Instancio.create(PGPaymentCommand.Confirm.class);
             String code = "FORBIDDEN_CONSECUTIVE_REQUEST";
             String message = "반복적인 요청 제한";
-            willThrow(new ExternalServerException("FORBIDDEN_CONSECUTIVE_REQUEST", "반복적인 요청 제한"))
+            willThrow(new ExternalServerException(code, message))
                     .given(adaptor).confirmPayment(anyString(), anyString(), anyLong());
             given(errorTranslator.translate(code)).willReturn(PaymentErrorCode.PAYMENT_PG_SERVER_ERROR);
             //when
             //then
             assertThatThrownBy(() -> paymentGateway.confirm(command))
-                    .isInstanceOf(GatewayException.class)
-                    .extracting("errorCode", "code", "message")
-                    .containsExactly(PaymentErrorCode.PAYMENT_PG_SERVER_ERROR, code, message);
+                    .isInstanceOf(PaymentGatewayException.class)
+                    .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
+                    .extracting("errorCode", "externalErrorCode")
+                    .containsExactly(PaymentErrorCode.PAYMENT_PG_SERVER_ERROR, code);
         }
 
         @Test
@@ -89,9 +90,10 @@ public class PaymentGatewayTest {
             //when
             //then
             assertThatThrownBy(() -> paymentGateway.confirm(command))
-                    .isInstanceOf(GatewayException.class)
-                    .extracting("errorCode", "code", "message")
-                    .containsExactly(PaymentErrorCode.PAYMENT_PG_CIRCUIT_OPEN, code, message);
+                    .isInstanceOf(PaymentGatewayException.class)
+                    .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
+                    .extracting("errorCode", "externalErrorCode")
+                    .containsExactly(PaymentErrorCode.PAYMENT_PG_CIRCUIT_OPEN, code);
         }
 
         @Test
@@ -106,9 +108,10 @@ public class PaymentGatewayTest {
             //when
             //then
             assertThatThrownBy(() -> paymentGateway.confirm(command))
-                    .isInstanceOf(GatewayException.class)
-                    .extracting("errorCode", "code", "message")
-                    .containsExactly(PaymentErrorCode.PAYMENT_PG_UNAVAILABLE_ERROR, code, message);
+                    .isInstanceOf(PaymentGatewayException.class)
+                    .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
+                    .extracting("errorCode", "externalErrorCode")
+                    .containsExactly(PaymentErrorCode.PAYMENT_PG_UNAVAILABLE_ERROR, code);
         }
     }
 
@@ -135,16 +138,19 @@ public class PaymentGatewayTest {
         @DisplayName("결제 취소 시 외부 시스템 에러가 발생한 경우 에러 코드를 매핑하여 예외를 변환한다")
         void cancel_External_System_exception() {
             //given
+            String code = "PROVIDER_ERROR";
+            String message = "일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
             PGPaymentCommand.Cancel command = Instancio.create(PGPaymentCommand.Cancel.class);
-            willThrow(new ExternalClientException("PROVIDER_ERROR", "일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요."))
+            willThrow(new ExternalClientException(code, message))
                     .given(adaptor).cancelPayment(anyString(), anyString(), anyLong());
             given(errorTranslator.translate(any())).willReturn(PaymentErrorCode.PAYMENT_PG_SERVER_ERROR);
             //when
             //then
             assertThatThrownBy(() -> paymentGateway.cancel(command))
-                    .isInstanceOf(GatewayException.class)
-                    .extracting("errorCode")
-                    .isEqualTo(PaymentErrorCode.PAYMENT_PG_SERVER_ERROR);
+                    .isInstanceOf(PaymentGatewayException.class)
+                    .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
+                    .extracting("errorCode", "externalErrorCode")
+                    .containsExactly(PaymentErrorCode.PAYMENT_PG_SERVER_ERROR, code);
         }
 
         @Test
@@ -159,24 +165,28 @@ public class PaymentGatewayTest {
             //when
             //then
             assertThatThrownBy(() -> paymentGateway.cancel(command))
-                    .isInstanceOf(GatewayException.class)
-                    .extracting("errorCode")
-                    .isEqualTo(PaymentErrorCode.PAYMENT_PG_CIRCUIT_OPEN);
+                    .isInstanceOf(PaymentGatewayException.class)
+                    .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
+                    .extracting("errorCode", "externalErrorCode")
+                    .containsExactly(PaymentErrorCode.PAYMENT_PG_CIRCUIT_OPEN, code);
         }
 
         @Test
         @DisplayName("결제 취소 시 PG와 통신할 수 없으면 결제 상태를 알 수 없는 예외를 발생시킨다")
         void cancel_unavailableServerException() {
             //given
+            String code = "UNAVAILABLE";
+            String message = "오류가 발생했습니다";
             PGPaymentCommand.Cancel command = Instancio.create(PGPaymentCommand.Cancel.class);
-            willThrow(new ExternalSystemUnavailableException("UNAVAILABLE", "오류가 발생했습니다"))
+            willThrow(new ExternalSystemUnavailableException(code, message))
                     .given(adaptor).cancelPayment(anyString(), anyString(), anyLong());
             //when
             //then
             assertThatThrownBy(() -> paymentGateway.cancel(command))
-                    .isInstanceOf(GatewayException.class)
-                    .extracting("errorCode")
-                    .isEqualTo(PaymentErrorCode.PAYMENT_PG_UNAVAILABLE_ERROR);
+                    .isInstanceOf(PaymentGatewayException.class)
+                    .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
+                    .extracting("errorCode", "externalErrorCode")
+                    .containsExactly(PaymentErrorCode.PAYMENT_PG_UNAVAILABLE_ERROR, code);
         }
     }
 
@@ -203,20 +213,23 @@ public class PaymentGatewayTest {
         @DisplayName("결제 조회 시 외부 시스템 에러가 발생한 경우 에러 코드를 매핑하여 예외를 변환한다")
         void inquire_External_System_exception() {
             //given
+            String code = "PAYMENT_NOT_FOUND";
+            String message = "결제를 찾을 수 없습니다";
             String paymentKey = "paymentKey";
-            willThrow(new ExternalClientException("PAYMENT_NOT_FOUND", "결제를 찾을 수 없습니다"))
+            willThrow(new ExternalClientException(code, message))
                     .given(adaptor).inquirePayment(anyString());
             given(errorTranslator.translate(any())).willReturn(PaymentErrorCode.PAYMENT_PG_NOT_FOUND);
             //when
             //then
             assertThatThrownBy(() -> paymentGateway.inquire(paymentKey))
-                    .isInstanceOf(GatewayException.class)
-                    .extracting("errorCode")
-                    .isEqualTo(PaymentErrorCode.PAYMENT_PG_NOT_FOUND);
+                    .isInstanceOf(PaymentGatewayException.class)
+                    .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
+                    .extracting("errorCode", "externalErrorCode")
+                    .containsExactly(PaymentErrorCode.PAYMENT_PG_NOT_FOUND, code);
         }
 
         @Test
-        @DisplayName("결제 취소 시 서킷 브레이커가 열려 있으면 요청 거절 예외를 발생시킨다")
+        @DisplayName("결제 조회 시 서킷 브레이커가 열려 있으면 요청 거절 예외를 발생시킨다")
         void inquire_externalCircuitBreakerException(){
             //given
             String paymentKey = "paymentKey";
@@ -227,24 +240,28 @@ public class PaymentGatewayTest {
             //when
             //then
             assertThatThrownBy(() -> paymentGateway.inquire(paymentKey))
-                    .isInstanceOf(GatewayException.class)
-                    .extracting("errorCode")
-                    .isEqualTo(PaymentErrorCode.PAYMENT_PG_CIRCUIT_OPEN);
+                    .isInstanceOf(PaymentGatewayException.class)
+                    .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
+                    .extracting("errorCode", "externalErrorCode")
+                    .containsExactly(PaymentErrorCode.PAYMENT_PG_CIRCUIT_OPEN, code);
         }
 
         @Test
-        @DisplayName("결제 취소 시 PG와 통신할 수 없으면 결제 상태를 알 수 없는 예외를 발생시킨다")
-        void cancel_unavailableServerException() {
+        @DisplayName("결제 조회 시 PG와 통신할 수 없으면 결제 상태를 알 수 없는 예외를 발생시킨다")
+        void inquire_unavailableServerException() {
             //given
+            String code = "UNAVAILABLE";
+            String message = "오류가 발생했습니다";
             String paymentKey = "paymentKey";
-            willThrow(new ExternalSystemUnavailableException("UNAVAILABLE", "오류가 발생했습니다"))
+            willThrow(new ExternalSystemUnavailableException(code, message))
                     .given(adaptor).inquirePayment(anyString());
             //when
             //then
             assertThatThrownBy(() -> paymentGateway.inquire(paymentKey))
-                    .isInstanceOf(GatewayException.class)
-                    .extracting("errorCode")
-                    .isEqualTo(PaymentErrorCode.PAYMENT_PG_UNAVAILABLE_ERROR);
+                    .isInstanceOf(PaymentGatewayException.class)
+                    .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
+                    .extracting("errorCode", "externalErrorCode")
+                    .containsExactly(PaymentErrorCode.PAYMENT_PG_UNAVAILABLE_ERROR, code);
         }
     }
 }

@@ -2,7 +2,6 @@ package com.example.order_service.payment.application.service;
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.application.BusinessException;
-import com.example.order_service.common.exception.application.GatewayException;
 import com.example.order_service.order.application.service.order.OrderQueryService;
 import com.example.order_service.order.application.service.order.dto.result.OrderResult;
 import com.example.order_service.order.domain.model.OrderStatus;
@@ -13,6 +12,7 @@ import com.example.order_service.payment.application.service.dto.command.Payment
 import com.example.order_service.payment.application.service.dto.command.PaymentContext;
 import com.example.order_service.payment.application.service.dto.result.PaymentResult;
 import com.example.order_service.payment.exception.PaymentErrorCode;
+import com.example.order_service.payment.exception.PaymentGatewayException;
 import lombok.extern.slf4j.Slf4j;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.DisplayName;
@@ -169,12 +169,12 @@ public class PaymentFacadeTest {
             given(orderQueryService.getOrder(anyString(), anyLong())).willReturn(order);
             given(mapper.toContext(any(PaymentCommand.Confirm.class))).willReturn(createContext);
             given(paymentCommandService.create(any(PaymentContext.Create.class))).willReturn(savedPayment);
-            willThrow(new GatewayException(PaymentErrorCode.PAYMENT_PG_INSUFFICIENT_BALANCE, "REJECT_ACCOUNT_PAYMENT",
+            willThrow(new PaymentGatewayException(PaymentErrorCode.PAYMENT_PG_INSUFFICIENT_BALANCE, "REJECT_ACCOUNT_PAYMENT",
                     "잔액부족으로 결제에 실패했습니다.")).given(paymentGateway).confirm(any());
             //when
             //then
             assertThatThrownBy(() -> paymentFacade.confirm(command))
-                    .isInstanceOf(GatewayException.class)
+                    .isInstanceOf(PaymentGatewayException.class)
                     .extracting("errorCode")
                     .isEqualTo(PaymentErrorCode.PAYMENT_PG_INSUFFICIENT_BALANCE);
 
@@ -200,13 +200,13 @@ public class PaymentFacadeTest {
             given(orderQueryService.getOrder(anyString(), anyLong())).willReturn(order);
             given(mapper.toContext(any(PaymentCommand.Confirm.class))).willReturn(createContext);
             given(paymentCommandService.create(any(PaymentContext.Create.class))).willReturn(savedPayment);
-            willThrow(new GatewayException(PaymentErrorCode.PAYMENT_PG_INSUFFICIENT_BALANCE, "REJECT_ACCOUNT_PAYMENT",
+            willThrow(new PaymentGatewayException(PaymentErrorCode.PAYMENT_PG_INSUFFICIENT_BALANCE, "REJECT_ACCOUNT_PAYMENT",
                     "잔액부족으로 결제에 실패했습니다.")).given(paymentGateway).confirm(any());
             willThrow(new RuntimeException()).given(paymentCommandService).abort(anyLong(), anyString());
             //when
             //then
             assertThatThrownBy(() -> paymentFacade.confirm(command))
-                    .isInstanceOf(GatewayException.class)
+                    .isInstanceOf(PaymentGatewayException.class)
                     .extracting("errorCode")
                     .isEqualTo(PaymentErrorCode.PAYMENT_PG_INSUFFICIENT_BALANCE);
         }
@@ -307,7 +307,7 @@ public class PaymentFacadeTest {
             given(paymentGateway.confirm(any())).willReturn(pgApproval);
             given(mapper.toContext(anyLong(), any(PGPaymentResult.Approval.class))).willReturn(approvalContext);
             willThrow(new RuntimeException()).given(paymentCommandService).approve(any());
-            willThrow(new GatewayException(PaymentErrorCode.PAYMENT_PG_CANCEL_REJECTED, "INVALID_REJECT_CARD", "카드 사용이 불가능 합니다"))
+            willThrow(new PaymentGatewayException(PaymentErrorCode.PAYMENT_PG_CANCEL_REJECTED, "INVALID_REJECT_CARD", "카드 사용이 불가능 합니다"))
                     .given(paymentGateway).cancel(any());
             //when
             //then
@@ -342,7 +342,7 @@ public class PaymentFacadeTest {
             given(paymentGateway.confirm(any())).willReturn(pgApproval);
             given(mapper.toContext(anyLong(), any(PGPaymentResult.Approval.class))).willReturn(approvalContext);
             willThrow(new RuntimeException()).given(paymentCommandService).approve(any());
-            willThrow(new GatewayException(PaymentErrorCode.PAYMENT_PG_UNAVAILABLE_ERROR, "PG_UNAVAILABLE", "통신 오류가 발생했습니다"))
+            willThrow(new PaymentGatewayException(PaymentErrorCode.PAYMENT_PG_UNAVAILABLE_ERROR, "PG_UNAVAILABLE", "통신 오류가 발생했습니다"))
                     .given(paymentGateway).cancel(any());
             //when
             //then
@@ -372,12 +372,12 @@ public class PaymentFacadeTest {
             given(orderQueryService.getOrder(anyString(), anyLong())).willReturn(order);
             given(mapper.toContext(any(PaymentCommand.Confirm.class))).willReturn(createContext);
             given(paymentCommandService.create(any(PaymentContext.Create.class))).willReturn(savedPayment);
-            willThrow(new GatewayException(PaymentErrorCode.PAYMENT_PG_UNAVAILABLE_ERROR, "SERVICE_UNAVAILABLE", "PG 통신 장애"))
+            willThrow(new PaymentGatewayException(PaymentErrorCode.PAYMENT_PG_UNAVAILABLE_ERROR, "SERVICE_UNAVAILABLE", "PG 통신 장애"))
                     .given(paymentGateway).confirm(any());
             //when
             //then
             assertThatThrownBy(() -> paymentFacade.confirm(command))
-                    .isInstanceOf(GatewayException.class)
+                    .isInstanceOf(PaymentGatewayException.class)
                     .extracting("errorCode")
                     .isEqualTo(PaymentErrorCode.PAYMENT_PG_UNAVAILABLE_ERROR);
             verify(paymentCommandService, never()).abort(anyLong(), anyString());
@@ -402,7 +402,7 @@ public class PaymentFacadeTest {
             given(orderQueryService.getOrder(anyString(), anyLong())).willReturn(order);
             given(mapper.toContext(any(PaymentCommand.Confirm.class))).willReturn(createContext);
             given(paymentCommandService.create(any(PaymentContext.Create.class))).willReturn(savedPayment);
-            willThrow(new GatewayException(PaymentErrorCode.EXCEEDED_REFUNDABLE_AMOUNT, "UNKNOWN", "매핑할 수 없는 에러"))
+            willThrow(new PaymentGatewayException(PaymentErrorCode.EXCEEDED_REFUNDABLE_AMOUNT, "UNKNOWN", "매핑할 수 없는 에러"))
                     .given(paymentGateway).confirm(any());
 
             //when
@@ -436,7 +436,7 @@ public class PaymentFacadeTest {
             given(paymentCommandService.create(any(PaymentContext.Create.class))).willReturn(savedPayment);
             given(paymentGateway.confirm(any())).willReturn(pgApproval);
             willThrow(new RuntimeException("DB 저장 실패")).given(paymentCommandService).approve(any());
-            willThrow(new GatewayException(PaymentErrorCode.PAYMENT_PG_ALREADY_CANCELED, "ALREADY_CANCELED", "이미 취소됨"))
+            willThrow(new PaymentGatewayException(PaymentErrorCode.PAYMENT_PG_ALREADY_CANCELED, "ALREADY_CANCELED", "이미 취소됨"))
                     .given(paymentGateway).cancel(any());
 
             //when
@@ -485,7 +485,7 @@ public class PaymentFacadeTest {
 
             given(paymentQueryService.getPayment(anyLong())).willReturn(payment);
             doNothing().when(paymentCommandService).changeRefundPending(anyLong(), any());
-            given(paymentGateway.cancel(any())).willThrow(new GatewayException(PaymentErrorCode.PAYMENT_PG_UNAVAILABLE_ERROR,
+            given(paymentGateway.cancel(any())).willThrow(new PaymentGatewayException(PaymentErrorCode.PAYMENT_PG_UNAVAILABLE_ERROR,
                     "FAILED_REFUND_PROCESS", "FAILED_REFUND_PROCESS"));
             //when
             //then

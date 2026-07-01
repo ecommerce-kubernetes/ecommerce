@@ -1,6 +1,6 @@
 package com.example.order_service.order.application.external;
 
-import com.example.order_service.common.exception.application.GatewayException;
+import com.example.order_service.common.exception.application.DefaultGatewayException;
 import com.example.order_service.common.exception.external.ExternalCircuitBreakerException;
 import com.example.order_service.common.exception.external.ExternalClientException;
 import com.example.order_service.common.exception.external.ExternalServerException;
@@ -63,68 +63,80 @@ public class OrderProductGatewayTest {
         @DisplayName("상품 조회중 상품 서비스에서 서버 오류 발생시 예외로 변환된다")
         void getProducts_ExternalServerException(){
             //given
+            String code = "INTERNAL_SERVER_ERROR";
+            String message = "알 수 없는 에러가 발생했습니다";
             List<OrderProductCommand.OrderItem> orderItems = Instancio.ofList(OrderProductCommand.OrderItem.class)
                     .size(2)
                     .create();
-            willThrow(new ExternalServerException("INTERNAL_SERVER_ERROR", "알 수 없는 에러가 발생했습니다"))
+            willThrow(new ExternalServerException(code, message))
                     .given(adaptor).getProducts(any());
             //when
             //then
             assertThatThrownBy(() -> orderProductGateway.getProducts(orderItems))
-                    .isInstanceOf(GatewayException.class)
-                    .extracting("errorCode")
-                    .isEqualTo(OrderErrorCode.ORDER_PRODUCT_SERVER_ERROR);
+                    .isInstanceOf(DefaultGatewayException.class)
+                    .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
+                    .extracting("errorCode", "externalErrorCode")
+                    .containsExactly(OrderErrorCode.ORDER_PRODUCT_SERVER_ERROR, code);
         }
 
         @Test
         @DisplayName("상품 조회중 상품 서비스에서 클라이언트 오류 발생시 예외로 변환된다")
         void getProducts_ExternalClientException(){
             //given
+            String code = "INVALID_PRODUCT_REQUEST";
+            String message = "잘못된 상품 조회 요청입니다";
             List<OrderProductCommand.OrderItem> orderItems = Instancio.ofList(OrderProductCommand.OrderItem.class)
                     .size(2)
                     .create();
-            willThrow(new ExternalClientException("INVALID_PRODUCT_REQUEST", "잘못된 상품 조회 요청입니다"))
+            willThrow(new ExternalClientException(code, message))
                     .given(adaptor).getProducts(any());
             //when
             //then
             assertThatThrownBy(() -> orderProductGateway.getProducts(orderItems))
-                    .isInstanceOf(GatewayException.class)
-                    .extracting("errorCode")
-                    .isEqualTo(OrderErrorCode.ORDER_PRODUCT_CLIENT_ERROR);
+                    .isInstanceOf(DefaultGatewayException.class)
+                    .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
+                    .extracting("errorCode", "externalErrorCode")
+                    .containsExactly(OrderErrorCode.ORDER_PRODUCT_CLIENT_ERROR, code);
         }
 
         @Test
         @DisplayName("상품 조회중 상품 서비스에서 가용 불가 오류 발생시 예외로 변환된다")
         void getProducts_ExternalSystemUnavailableException(){
             //given
+            String code = "SERVICE_UNAVAILABLE";
+            String message = "상품 서비스 통신 장애";
             List<OrderProductCommand.OrderItem> orderItems = Instancio.ofList(OrderProductCommand.OrderItem.class)
                     .size(2)
                     .create();
-            willThrow(new ExternalSystemUnavailableException("SERVICE_UNAVAILABLE", "상품 서비스 통신 장애"))
+            willThrow(new ExternalSystemUnavailableException(code, message))
                     .given(adaptor).getProducts(any());
             //when
             //then
             assertThatThrownBy(() -> orderProductGateway.getProducts(orderItems))
-                    .isInstanceOf(GatewayException.class)
-                    .extracting("errorCode")
-                    .isEqualTo(OrderErrorCode.ORDER_PRODUCT_UNAVAILABLE_SERVER_ERROR);
+                    .isInstanceOf(DefaultGatewayException.class)
+                    .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
+                    .extracting("errorCode", "externalErrorCode")
+                    .containsExactly(OrderErrorCode.ORDER_PRODUCT_UNAVAILABLE_SERVER_ERROR, code);
         }
 
         @Test
         @DisplayName("상품 조회중 상품 서비스 서킷 브레이커가 열린 경우 예외가 발생한다")
         void getProducts_ExternalCircuitBreakerException(){
             //given
+            String code = "PRODUCT_CIRCUIT_OPEN";
+            String message = "상품 서비스 서킷 오픈";
             List<OrderProductCommand.OrderItem> orderItems = Instancio.ofList(OrderProductCommand.OrderItem.class)
                     .size(2)
                     .create();
-            willThrow(new ExternalCircuitBreakerException("PRODUCT_CIRCUIT_OPEN", "상품 서비스 서킷 오픈"))
+            willThrow(new ExternalCircuitBreakerException(code, message))
                     .given(adaptor).getProducts(any());
             //when
             //then
             assertThatThrownBy(() -> orderProductGateway.getProducts(orderItems))
-                    .isInstanceOf(GatewayException.class)
-                    .extracting("errorCode")
-                    .isEqualTo(OrderErrorCode.ORDER_PRODUCT_CIRCUIT_OPEN);
+                    .isInstanceOf(DefaultGatewayException.class)
+                    .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
+                    .extracting("errorCode", "externalErrorCode")
+                    .containsExactly(OrderErrorCode.ORDER_PRODUCT_CIRCUIT_OPEN, code);
         }
     }
 }

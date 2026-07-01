@@ -1,6 +1,5 @@
 package com.example.order_service.payment.application.service;
 
-import com.example.order_service.common.exception.application.GatewayException;
 import com.example.order_service.payment.application.external.PaymentGateway;
 import com.example.order_service.payment.application.external.dto.command.PGPaymentCommand;
 import com.example.order_service.payment.application.external.dto.result.PGPaymentResult;
@@ -9,6 +8,7 @@ import com.example.order_service.payment.application.service.dto.command.Payment
 import com.example.order_service.payment.application.service.dto.result.PaymentResult;
 import com.example.order_service.payment.domain.model.PaymentStatus;
 import com.example.order_service.payment.exception.PaymentErrorCode;
+import com.example.order_service.payment.exception.PaymentGatewayException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -65,8 +65,8 @@ public class PaymentReconciler {
         }
     }
 
-    private void handleReadyPaymentError(PaymentResult.Default payment, GatewayException e) {
-        PaymentErrorCode errorCode = (PaymentErrorCode) e.getErrorCode();
+    private void handleReadyPaymentError(PaymentResult.Default payment, PaymentGatewayException e) {
+        PaymentErrorCode errorCode = e.errorCode();
         switch (errorCode) {
             case PAYMENT_PG_NOT_FOUND -> {
                 log.info("[결제 승인 대사] PG 결제 내역 없음 실패 처리 paymentKey = {}", payment.paymentKey());
@@ -82,7 +82,7 @@ public class PaymentReconciler {
     }
 
     private void processPayments(List<PaymentResult.Default> payments, String taskName, Consumer<PaymentResult.Default> task,
-                                 BiConsumer<PaymentResult.Default, GatewayException> errorHandler) {
+                                 BiConsumer<PaymentResult.Default, PaymentGatewayException> errorHandler) {
         if (payments.isEmpty()) {
             return;
         }
@@ -95,7 +95,7 @@ public class PaymentReconciler {
                 log.info("[{}] 조기 종료", taskName);
                 Thread.currentThread().interrupt();
                 return;
-            } catch (GatewayException e) {
+            } catch (PaymentGatewayException e) {
                 errorHandler.accept(payment, e);
             } catch (Exception e) {
                 log.error("[{}] 내부 시스템 에러. 다음 스케줄러 대기. paymentKey = {}", taskName, payment.paymentKey(), e);
@@ -109,8 +109,8 @@ public class PaymentReconciler {
             PGPaymentCommand.Cancel cancelCommand = PGPaymentCommand.Cancel.ofFull(payment.paymentKey(), reason);
             PGPaymentResult.Cancellation cancellation = paymentGateway.cancel(cancelCommand);
             onSuccess.accept(cancellation);
-        } catch (GatewayException e) {
-            PaymentErrorCode errorCode = (PaymentErrorCode) e.getErrorCode();
+        } catch (PaymentGatewayException e) {
+            PaymentErrorCode errorCode = e.errorCode();
             switch (errorCode) {
                 case PAYMENT_PG_SERVER_ERROR, PAYMENT_PG_UNAVAILABLE_ERROR, PAYMENT_PG_CIRCUIT_OPEN ->
                         log.warn("[{}] DONE 건 망취소 통신 장애. READY 상태 유지 (다음 배치 재시도) paymentKey = {}", taskName, payment.paymentKey());
@@ -162,8 +162,8 @@ public class PaymentReconciler {
         }
     }
 
-    private void reconcileRefundPendingErrorHandle(PaymentResult.Default payment, GatewayException e) {
-        PaymentErrorCode errorCode = (PaymentErrorCode) e.getErrorCode();
+    private void reconcileRefundPendingErrorHandle(PaymentResult.Default payment, PaymentGatewayException e) {
+        PaymentErrorCode errorCode = e.errorCode();
         switch (errorCode) {
             case PAYMENT_PG_NOT_FOUND -> {
                 log.error("[결제 환불 대사] PG 결제 내역 없음. 데이터 정합성 오류, 수동 확인 필요 paymentKey = {}", payment.paymentKey());

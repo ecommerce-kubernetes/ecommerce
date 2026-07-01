@@ -1,6 +1,6 @@
 package com.example.order_service.order.application.external;
 
-import com.example.order_service.common.exception.application.GatewayException;
+import com.example.order_service.common.exception.application.DefaultGatewayException;
 import com.example.order_service.common.exception.external.ExternalCircuitBreakerException;
 import com.example.order_service.common.exception.external.ExternalClientException;
 import com.example.order_service.common.exception.external.ExternalServerException;
@@ -61,60 +61,72 @@ public class OrderCouponGatewayTest {
         @DisplayName("쿠폰 조회중 쿠폰 서비스에서 서버 오류가 발생한 경우 예외가 발생한다")
         void calculate_ExternalServerException() {
             //given
+            String code = "INTERNAL_SERVER_ERROR";
+            String message = "처리중 오류가 발생했습니다";
             OrderCouponCommand.Calculate command = Instancio.create(OrderCouponCommand.Calculate.class);
-            willThrow(new ExternalServerException("INTERNAL_SERVER_ERROR", "처리중 오류가 발생했습니다"))
+            willThrow(new ExternalServerException(code, message))
                     .given(adaptor).calculate(any());
             //when
             //then
             assertThatThrownBy(() -> orderCouponGateway.calculate(command))
-                    .isInstanceOf(GatewayException.class)
-                    .extracting("errorCode")
-                    .isEqualTo(OrderErrorCode.ORDER_COUPON_SERVER_ERROR);
+                    .isInstanceOf(DefaultGatewayException.class)
+                    .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
+                    .extracting("errorCode", "externalErrorCode")
+                    .containsExactly(OrderErrorCode.ORDER_COUPON_SERVER_ERROR, code);
         }
 
         @Test
         @DisplayName("쿠폰 조회중 쿠폰 서비스에서 클라이언트 오류가 발생한 경우 예외가 발생한다")
         void calculate_ExternalClientException() {
             //given
+            String code = "COUPON_EXPIRED";
+            String message = "쿠폰이 만료되었습니다";
             OrderCouponCommand.Calculate command = Instancio.create(OrderCouponCommand.Calculate.class);
-            willThrow(new ExternalClientException("COUPON_EXPIRED", "쿠폰이 만료되었습니다"))
+            willThrow(new ExternalClientException(code, message))
                     .given(adaptor).calculate(any());
             //when
             //then
             assertThatThrownBy(() -> orderCouponGateway.calculate(command))
-                    .isInstanceOf(GatewayException.class)
-                    .extracting("errorCode")
-                    .isEqualTo(OrderErrorCode.ORDER_COUPON_CLIENT_ERROR);
+                    .isInstanceOf(DefaultGatewayException.class)
+                    .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
+                    .extracting("errorCode", "externalErrorCode")
+                    .containsExactly(OrderErrorCode.ORDER_COUPON_CLIENT_ERROR, code);
         }
 
         @Test
         @DisplayName("쿠폰 조회중 쿠폰 서비스 서킷 브레이커가 열린 경우 예외가 발생한다")
         void calculate_ExternalCircuitBreakerException(){
             //given
+            String code = "COUPON_CIRCUIT_OPEN";
+            String message = "쿠폰 서비스 서킷 브레이커 열림";
             OrderCouponCommand.Calculate command = Instancio.create(OrderCouponCommand.Calculate.class);
-            willThrow(new ExternalCircuitBreakerException("COUPON_CIRCUIT_OPEN", "쿠폰 서비스 서킷 브레이커 열림"))
+            willThrow(new ExternalCircuitBreakerException(code, message))
                     .given(adaptor).calculate(any());
             //when
             //then
             assertThatThrownBy(() -> orderCouponGateway.calculate(command))
-                    .isInstanceOf(GatewayException.class)
-                    .extracting("errorCode")
-                    .isEqualTo(OrderErrorCode.ORDER_COUPON_CIRCUIT_OPEN);
+                    .isInstanceOf(DefaultGatewayException.class)
+                    .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
+                    .extracting("errorCode", "externalErrorCode")
+                    .containsExactly(OrderErrorCode.ORDER_COUPON_CIRCUIT_OPEN, code);
         }
 
         @Test
         @DisplayName("쿠폰 조회중 쿠폰 서비스에서 사용 불가 오류가 발생한 경우 예외가 발생한다")
         void calculate_ExternalUnavailableServerException() {
             //given
+            String code = "SERVICE_UNAVAILABLE";
+            String message = "쿠폰 서비스 통신 장애";
             OrderCouponCommand.Calculate command = Instancio.create(OrderCouponCommand.Calculate.class);
-            willThrow(new ExternalSystemUnavailableException("SERVICE_UNAVAILABLE", "쿠폰 서비스 통신 장애"))
+            willThrow(new ExternalSystemUnavailableException(code, message))
                     .given(adaptor).calculate(any());
             //when
             //then
             assertThatThrownBy(() -> orderCouponGateway.calculate(command))
-                    .isInstanceOf(GatewayException.class)
-                    .extracting("errorCode")
-                    .isEqualTo(OrderErrorCode.ORDER_COUPON_UNAVAILABLE_SERVER_ERROR);
+                    .isInstanceOf(DefaultGatewayException.class)
+                    .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
+                    .extracting("errorCode", "externalErrorCode")
+                    .containsExactly(OrderErrorCode.ORDER_COUPON_UNAVAILABLE_SERVER_ERROR, code);
         }
     }
 }

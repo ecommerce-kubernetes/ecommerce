@@ -1,6 +1,5 @@
 package com.example.order_service.payment.application.external;
 
-import com.example.order_service.common.exception.application.GatewayException;
 import com.example.order_service.common.exception.external.ExternalCircuitBreakerException;
 import com.example.order_service.common.exception.external.ExternalSystemException;
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
@@ -11,6 +10,7 @@ import com.example.order_service.payment.application.external.dto.result.PGPayme
 import com.example.order_service.payment.application.external.mapper.PgErrorTranslator;
 import com.example.order_service.payment.application.external.mapper.PgMapper;
 import com.example.order_service.payment.exception.PaymentErrorCode;
+import com.example.order_service.payment.exception.PaymentGatewayException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -47,14 +47,14 @@ public class PaymentGateway {
         try {
             return call.get();
         } catch (ExternalCircuitBreakerException e) {
-            throw new GatewayException(PaymentErrorCode.PAYMENT_PG_CIRCUIT_OPEN, e.getErrorCode(), e.getMessage());
+            throw new PaymentGatewayException(PaymentErrorCode.PAYMENT_PG_CIRCUIT_OPEN, e.getErrorCode(), e.getMessage());
         } catch (ExternalSystemUnavailableException e) {
-            throw new GatewayException(PaymentErrorCode.PAYMENT_PG_UNAVAILABLE_ERROR, e.getErrorCode(), e.getMessage());
+            throw new PaymentGatewayException(PaymentErrorCode.PAYMENT_PG_UNAVAILABLE_ERROR, e.getErrorCode(), e.getMessage());
         } catch (ExternalSystemException e) {
             String code = e.getErrorCode();
             String message = e.getMessage();
             PaymentErrorCode errorCode = errorTranslator.translate(code);
-            throw new GatewayException(errorCode, code, message);
+            throw new PaymentGatewayException(errorCode, code, message);
         }
     }
 }

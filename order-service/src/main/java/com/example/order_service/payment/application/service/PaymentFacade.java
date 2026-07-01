@@ -1,7 +1,6 @@
 package com.example.order_service.payment.application.service;
 
 import com.example.order_service.common.exception.application.BusinessException;
-import com.example.order_service.common.exception.application.GatewayException;
 import com.example.order_service.order.application.service.order.OrderQueryService;
 import com.example.order_service.order.application.service.order.dto.result.OrderResult;
 import com.example.order_service.order.domain.model.OrderStatus;
@@ -13,6 +12,7 @@ import com.example.order_service.payment.application.service.dto.command.Payment
 import com.example.order_service.payment.application.service.dto.command.PaymentContext;
 import com.example.order_service.payment.application.service.dto.result.PaymentResult;
 import com.example.order_service.payment.exception.PaymentErrorCode;
+import com.example.order_service.payment.exception.PaymentGatewayException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -71,8 +71,8 @@ public class PaymentFacade {
             PGPaymentCommand.Confirm gatewayCommand = PGPaymentCommand.Confirm.of(order.orderNo(), command.paymentKey(),
                     order.totalPaymentAmount());
             return paymentGateway.confirm(gatewayCommand);
-        } catch (GatewayException e) {
-            PaymentErrorCode errorCode = (PaymentErrorCode) e.getErrorCode();
+        } catch (PaymentGatewayException e) {
+            PaymentErrorCode errorCode = e.errorCode();
             switch (errorCode) {
                 case PAYMENT_PG_SERVER_ERROR,
                      PAYMENT_PG_UNAVAILABLE_ERROR,
@@ -119,8 +119,8 @@ public class PaymentFacade {
             PGPaymentCommand.Cancel cancelCommand = PGPaymentCommand.Cancel.ofFull(paymentKey, "내부 DB 저장 실패로 인한 망취소");
             paymentGateway.cancel(cancelCommand);
             return true;
-        } catch (GatewayException e) {
-            PaymentErrorCode errorCode = (PaymentErrorCode) e.getErrorCode();
+        } catch (PaymentGatewayException e) {
+            PaymentErrorCode errorCode = e.errorCode();
             switch (errorCode) {
                 case PAYMENT_PG_SERVER_ERROR, PAYMENT_PG_UNAVAILABLE_ERROR, PAYMENT_PG_CIRCUIT_OPEN, PAYMENT_PG_AUTH_ERROR:
                     log.warn("[망취소] PG 응답 불명. 대사 처리 대기. paymentKey = {}", paymentKey);
@@ -170,8 +170,8 @@ public class PaymentFacade {
             PGPaymentResult.Cancellation cancel = paymentGateway.cancel(gatewayCommand);
             PaymentContext.Cancellation context = mapper.toContext(payment.id(), cancel.status(), cancel.lastCancel());
             paymentCommandService.cancel(context);
-        } catch (GatewayException e) {
-            PaymentErrorCode errorCode = (PaymentErrorCode) e.getErrorCode();
+        } catch (PaymentGatewayException e) {
+            PaymentErrorCode errorCode = e.errorCode();
             switch (errorCode) {
                 case PAYMENT_PG_SERVER_ERROR, PAYMENT_PG_UNAVAILABLE_ERROR, PAYMENT_PG_CIRCUIT_OPEN, PAYMENT_PG_AUTH_ERROR ->
                         log.warn("[SAGA 환불 지연] 통신 장애로 인한 결제 취소 지연. 스케줄러 대기 paymentKey = {}", payment.paymentKey(), e);

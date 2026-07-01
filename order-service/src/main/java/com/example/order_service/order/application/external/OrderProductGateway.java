@@ -1,7 +1,6 @@
 package com.example.order_service.order.application.external;
 
-import com.example.order_service.common.exception.application.BusinessException;
-import com.example.order_service.common.exception.application.GatewayException;
+import com.example.order_service.common.exception.application.DefaultGatewayException;
 import com.example.order_service.common.exception.external.ExternalCircuitBreakerException;
 import com.example.order_service.common.exception.external.ExternalClientException;
 import com.example.order_service.common.exception.external.ExternalServerException;
@@ -45,13 +44,13 @@ public class OrderProductGateway {
         try {
             return productAdaptor.getProducts(command);
         } catch (ExternalClientException e) {
-            throw new GatewayException(OrderErrorCode.ORDER_PRODUCT_CLIENT_ERROR, e.getErrorCode(), e.getMessage());
+            throw new DefaultGatewayException(OrderErrorCode.ORDER_PRODUCT_CLIENT_ERROR, e.getErrorCode(), e.getMessage());
         } catch (ExternalServerException e) {
-            throw new GatewayException(OrderErrorCode.ORDER_PRODUCT_SERVER_ERROR, e.getErrorCode(), e.getMessage());
+            throw new DefaultGatewayException(OrderErrorCode.ORDER_PRODUCT_SERVER_ERROR, e.getErrorCode(), e.getMessage());
         } catch (ExternalSystemUnavailableException e) {
-            throw new GatewayException(OrderErrorCode.ORDER_PRODUCT_UNAVAILABLE_SERVER_ERROR, e.getErrorCode(), e.getMessage());
+            throw new DefaultGatewayException(OrderErrorCode.ORDER_PRODUCT_UNAVAILABLE_SERVER_ERROR, e.getErrorCode(), e.getMessage());
         } catch (ExternalCircuitBreakerException e) {
-            throw new GatewayException(OrderErrorCode.ORDER_PRODUCT_CIRCUIT_OPEN, e.getErrorCode(), e.getMessage());
+            throw new DefaultGatewayException(OrderErrorCode.ORDER_PRODUCT_CIRCUIT_OPEN, e.getErrorCode(), e.getMessage());
         }
     }
 }
