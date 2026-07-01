@@ -1,9 +1,9 @@
 package com.example.order_service.cart.api;
 
 import com.example.order_service.cart.api.dto.request.CartRequest;
-import com.example.order_service.cart.application.CartAppService;
-import com.example.order_service.cart.application.dto.command.CartCommand;
-import com.example.order_service.cart.application.dto.result.CartResult;
+import com.example.order_service.cart.application.service.CartFacade;
+import com.example.order_service.cart.application.service.dto.command.CartCommand;
+import com.example.order_service.cart.application.service.dto.result.CartResult;
 import com.example.order_service.common.security.model.UserRole;
 import com.example.order_service.support.annotation.WithCustomMockUser;
 import com.example.order_service.support.config.TestSecurityConfig;
@@ -42,7 +42,7 @@ class CartControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
     @MockitoBean
-    private CartAppService cartAppService;
+    private CartFacade cartFacade;
 
     @Nested
     @DisplayName("장바구니 상품 추가")
@@ -58,7 +58,7 @@ class CartControllerTest {
             CartResult.Cart result = Instancio.of(CartResult.Cart.class)
                     .set(field("items"), List.of(item))
                     .create();
-            given(cartAppService.addItems(any(CartCommand.AddItems.class)))
+            given(cartFacade.addItems(any(CartCommand.AddItems.class)))
                     .willReturn(result);
             //when
             //then
@@ -163,7 +163,7 @@ class CartControllerTest {
             CartResult.Cart result = Instancio.of(CartResult.Cart.class)
                     .set(field("items"), List.of(item))
                     .create();
-            given(cartAppService.getCartDetails(anyLong()))
+            given(cartFacade.getCartDetails(anyLong()))
                     .willReturn(result);
             //when
             //then
@@ -218,7 +218,7 @@ class CartControllerTest {
         @WithCustomMockUser
         void deleteCartItems() throws Exception {
             //given
-            willDoNothing().given(cartAppService).removeCartItems(anyLong(), anyList());
+            willDoNothing().given(cartFacade).removeCartItems(anyLong(), anyList());
             //when
             //then
             mockMvc.perform(delete("/carts")
@@ -275,8 +275,11 @@ class CartControllerTest {
         void updateQuantity() throws Exception {
             //given
             CartRequest.UpdateQuantity request = Instancio.create(CartRequest.UpdateQuantity.class);
-            CartResult.Update result = Instancio.create(CartResult.Update.class);
-            given(cartAppService.updateCartItemQuantity(any(CartCommand.UpdateQuantity.class)))
+            CartResult.CartItemResult cartItemResult = Instancio.create(CartResult.CartItemResult.class);
+            CartResult.Cart result = Instancio.of(CartResult.Cart.class)
+                    .set(field("items"), List.of(cartItemResult))
+                    .create();
+            given(cartFacade.updateCartItemQuantity(any(CartCommand.UpdateQuantity.class)))
                     .willReturn(result);
             //when
             //then
@@ -285,8 +288,11 @@ class CartControllerTest {
                             .content(objectMapper.writeValueAsString(request)))
                     .andDo(print())
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.id").value(result.id()))
-                    .andExpect(jsonPath("$.quantity").value(result.quantity()));
+                    .andExpect(jsonPath("$.items").isArray())
+                    .andExpect(jsonPath("$.items[0].id").value(cartItemResult.id()))
+                    .andExpect(jsonPath("$.items[0].status").value(cartItemResult.status().name()))
+                    .andExpect(jsonPath("$.items[0].price.originalPrice").value(cartItemResult.price().originalPrice().longValue()))
+                    .andExpect(jsonPath("$.items[0].options").isArray());
         }
 
         @Test

@@ -1,6 +1,6 @@
 package com.example.order_service.cart.application.mapper;
 
-import com.example.order_service.cart.application.dto.result.CartProductResult;
+import com.example.order_service.cart.application.external.dto.result.CartProductResult;
 import com.example.order_service.infrastructure.dto.response.ProductClientResponse;
 import javax.annotation.processing.Generated;
 import org.springframework.stereotype.Component;

@@ -3,9 +3,9 @@ package com.example.order_service.docs.cart;
 import com.example.order_service.cart.api.CartController;
 import com.example.order_service.cart.api.dto.request.CartRequest;
 import com.example.order_service.cart.api.dto.response.CartResponse;
-import com.example.order_service.cart.application.CartAppService;
-import com.example.order_service.cart.application.dto.command.CartCommand;
-import com.example.order_service.cart.application.dto.result.CartResult;
+import com.example.order_service.cart.application.service.CartFacade;
+import com.example.order_service.cart.application.service.dto.command.CartCommand;
+import com.example.order_service.cart.application.service.dto.result.CartResult;
 import com.example.order_service.cart.domain.model.vo.ProductStatus;
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.docs.descriptor.CartDescriptor;
@@ -29,7 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 public class CartControllerDocsTest extends RestDocSupport {
 
-    private CartAppService cartAppService = Mockito.mock(CartAppService.class);
+    private CartFacade cartFacade = Mockito.mock(CartFacade.class);
 
     @Override
     protected String getTag() {
@@ -40,7 +40,7 @@ public class CartControllerDocsTest extends RestDocSupport {
 
     @Override
     protected Object initController() {
-        return new CartController(cartAppService);
+        return new CartController(cartFacade);
     }
 
     @Test
@@ -57,7 +57,7 @@ public class CartControllerDocsTest extends RestDocSupport {
 
         HttpHeaders roleUser = createAuthHeader("ROLE_USER");
         CartResult.Cart result = createCartAddResult();
-        given(cartAppService.addItems(any(CartCommand.AddItems.class)))
+        given(cartFacade.addItems(any(CartCommand.AddItems.class)))
                 .willReturn(result);
         CartResponse.Cart response = CartResponse.Cart.from(result);
         //when
@@ -84,7 +84,7 @@ public class CartControllerDocsTest extends RestDocSupport {
         HttpHeaders roleUser = createAuthHeader("ROLE_USER");
         CartResult.Cart result = createCartResult();
         CartResponse.Cart response = CartResponse.Cart.from(result);
-        given(cartAppService.getCartDetails(anyLong()))
+        given(cartFacade.getCartDetails(anyLong()))
                 .willReturn(result);
 
         //when
@@ -106,7 +106,7 @@ public class CartControllerDocsTest extends RestDocSupport {
     void removeCartItem() throws Exception {
         //given
         HttpHeaders roleUser = createAuthHeader("ROLE_USER");
-        willDoNothing().given(cartAppService).removeCartItems(anyLong(), anyList());
+        willDoNothing().given(cartFacade).removeCartItems(anyLong(), anyList());
         //when
         //then
         mockMvc.perform(delete("/carts")
@@ -128,14 +128,9 @@ public class CartControllerDocsTest extends RestDocSupport {
         CartRequest.UpdateQuantity request = CartRequest.UpdateQuantity.builder()
                 .quantity(3)
                 .build();
-        CartResult.Update result = CartResult.Update.builder()
-                .id(1L)
-                .quantity(3)
-                .build();
-        given(cartAppService.updateCartItemQuantity(any(CartCommand.UpdateQuantity.class)))
-                .willReturn(result);
-
-
+        CartResult.Cart cartResult = createCartResult();
+        given(cartFacade.updateCartItemQuantity(any(CartCommand.UpdateQuantity.class)))
+                .willReturn(cartResult);
         //when
         //then
         mockMvc.perform(patch("/carts/{cartItemId}", 1)
@@ -149,7 +144,7 @@ public class CartControllerDocsTest extends RestDocSupport {
                                 "장바구니 상품 수량 변경",
                                 "장바구니의 상품 수량을 변경한다",
                                 CartDescriptor.getCartUpdateRequest(),
-                                CartDescriptor.getUpdateCartResponse(),
+                                CartDescriptor.getCartItemResponse(),
                                 parameterWithName("cartItemId").description("장바구니 상품 ID(장바구니 상품 식별자)")
                         )
                 );

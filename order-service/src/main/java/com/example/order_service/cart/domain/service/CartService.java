@@ -1,6 +1,6 @@
 package com.example.order_service.cart.domain.service;
 
-import com.example.order_service.cart.application.dto.command.CartCommand;
+import com.example.order_service.cart.application.service.dto.command.CartCommand;
 import com.example.order_service.cart.domain.model.Cart;
 import com.example.order_service.cart.domain.model.CartItem;
 import com.example.order_service.cart.domain.repository.CartItemRepository;

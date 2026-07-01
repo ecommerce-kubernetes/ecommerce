@@ -1,4 +1,4 @@
-package com.example.order_service.cart.application.dto.result;
+package com.example.order_service.cart.application.external.dto.result;
 
 import com.example.order_service.cart.domain.model.vo.ProductStatus;
 import com.example.order_service.common.domain.vo.Money;

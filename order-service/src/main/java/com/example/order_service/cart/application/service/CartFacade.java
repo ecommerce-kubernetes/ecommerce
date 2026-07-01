@@ -1,8 +1,8 @@
-package com.example.order_service.cart.application;
+package com.example.order_service.cart.application.service;
 
-import com.example.order_service.cart.application.dto.command.CartCommand;
-import com.example.order_service.cart.application.dto.result.CartProductResult;
-import com.example.order_service.cart.application.dto.result.CartResult;
+import com.example.order_service.cart.application.service.dto.command.CartCommand;
+import com.example.order_service.cart.application.external.dto.result.CartProductResult;
+import com.example.order_service.cart.application.service.dto.result.CartResult;
 import com.example.order_service.cart.application.external.CartProductGateway;
 import com.example.order_service.cart.domain.model.vo.ProductStatus;
 import com.example.order_service.cart.domain.service.CartService;
@@ -21,17 +21,14 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class CartAppService {
+public class CartFacade {
     private final CartService cartService;
     private final CartProductGateway cartProductGateway;
 
     public CartResult.Cart addItems(CartCommand.AddItems command) {
         List<Long> requestedIds = command.toProductVariantIds();
         List<CartProductResult.Info> products = cartProductGateway.getProducts(requestedIds);
-
-        //상품 검증
         validateProductForAddCart(products, requestedIds);
-
         List<CartItemDto> cartItems = cartService.addItemToCart(command);
         List<CartResult.CartItemResult> cartItemResults = mapToCartItemResult(cartItems, products);
         return CartResult.Cart.from(cartItemResults);
@@ -39,7 +36,6 @@ public class CartAppService {
 
     public CartResult.Cart getCartDetails(Long userId){
         List<CartItemDto> cartItems = cartService.getCartItems(userId);
-        //장바구니에 상품이 없는 경우 빈 장바구니 반환
         if(cartItems.isEmpty()) {
             return CartResult.Cart.empty();
         }
@@ -49,9 +45,10 @@ public class CartAppService {
         return CartResult.Cart.from(cartItemResults);
     }
 
-    public CartResult.Update updateCartItemQuantity(CartCommand.UpdateQuantity command){
+    public CartResult.Cart updateCartItemQuantity(CartCommand.UpdateQuantity command){
         CartItemDto cartItemDto = cartService.updateQuantity(command.userId(), command.cartItemId(), command.quantity());
-        return CartResult.Update.from(cartItemDto);
+//        return CartResult.Update.from(cartItemDto);
+        return null;
     }
 
     public void removeCartItems(Long userId, List<Long> cartItemIds){

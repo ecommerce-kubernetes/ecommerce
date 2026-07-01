@@ -1,6 +1,6 @@
 package com.example.order_service.cart.api.dto.response;
 
-import com.example.order_service.cart.application.dto.result.CartResult;
+import com.example.order_service.cart.application.service.dto.result.CartResult;
 import com.example.order_service.cart.domain.model.vo.ProductStatus;
 import lombok.Builder;
 
