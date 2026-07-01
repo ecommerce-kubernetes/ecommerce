@@ -5,7 +5,6 @@ import com.example.order_service.order.application.external.OrderCouponGateway;
 import com.example.order_service.order.application.external.OrderProductGateway;
 import com.example.order_service.order.application.external.OrderUserGateway;
 import com.example.order_service.order.application.external.dto.command.OrderCouponCommand;
-import com.example.order_service.order.application.external.dto.command.OrderProductCommand;
 import com.example.order_service.order.application.external.dto.result.OrderCouponResult;
 import com.example.order_service.order.application.external.dto.result.OrderProductResult;
 import com.example.order_service.order.application.external.dto.result.OrderUserResult;
@@ -71,9 +70,8 @@ public class OrderFacade {
     }
 
     private OrderProductResult.ProductList getOrderedProducts(List<OrderSheetItem> items) {
-        List<OrderProductCommand.OrderItem> command = items.stream().map(item ->
-                OrderProductCommand.OrderItem.of(item.getProductVariantId(), item.getQuantity())).toList();
-        return orderProductGateway.getProducts(command);
+        List<Long> variantIds = items.stream().map(OrderSheetItem::getProductVariantId).toList();
+        return orderProductGateway.getProducts(variantIds);
     }
 
     private OrderCouponResult.Calculate getAppliedCoupons(OrderSheet orderSheet) {

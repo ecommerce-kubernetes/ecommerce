@@ -6,7 +6,6 @@ import com.example.order_service.order.application.external.OrderCouponGateway;
 import com.example.order_service.order.application.external.OrderProductGateway;
 import com.example.order_service.order.application.external.OrderUserGateway;
 import com.example.order_service.order.application.external.dto.command.OrderCouponCommand;
-import com.example.order_service.order.application.external.dto.command.OrderProductCommand;
 import com.example.order_service.order.application.external.dto.result.OrderCouponResult;
 import com.example.order_service.order.application.external.dto.result.OrderProductResult;
 import com.example.order_service.order.application.external.dto.result.OrderUserResult;
@@ -74,9 +73,8 @@ public class OrderSheetService {
     }
 
     private OrderProductResult.ProductList getOrderedProducts(List<OrderSheetCommand.OrderItem> items) {
-        List<OrderProductCommand.OrderItem> commands = items.stream().map(item ->
-                        OrderProductCommand.OrderItem.of(item.productVariantId(), item.quantity())).toList();
-        return orderProductGateway.getProducts(commands);
+        List<Long> variantIds = items.stream().map(OrderSheetCommand.OrderItem::productVariantId).toList();
+        return orderProductGateway.getProducts(variantIds);
     }
 
     private OrderCouponResult.Calculate getAppliedCoupons(OrderSheetCommand.Create command,

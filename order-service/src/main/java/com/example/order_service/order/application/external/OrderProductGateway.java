@@ -8,7 +8,6 @@ import com.example.order_service.common.exception.external.ExternalSystemUnavail
 import com.example.order_service.infrastructure.adaptor.ProductAdaptor;
 import com.example.order_service.infrastructure.dto.command.ProductCommand;
 import com.example.order_service.infrastructure.dto.response.ProductClientResponse;
-import com.example.order_service.order.application.external.dto.command.OrderProductCommand;
 import com.example.order_service.order.application.external.dto.result.OrderProductResult;
 import com.example.order_service.order.application.external.mapper.OrderProductMapper;
 import com.example.order_service.order.exception.OrderErrorCode;
@@ -33,8 +32,7 @@ public class OrderProductGateway {
     private final ProductAdaptor productAdaptor;
     private final OrderProductMapper mapper;
 
-    public OrderProductResult.ProductList getProducts(List<OrderProductCommand.OrderItem> items) {
-        List<Long> variantIds = items.stream().map(OrderProductCommand.OrderItem::productVariantId).toList();
+    public OrderProductResult.ProductList getProducts(List<Long> variantIds) {
         ProductCommand.BulkSearch command = ProductCommand.BulkSearch.from(variantIds);
         ProductClientResponse.ProductList productList = fetchProductsWithTranslation(command);
         return mapper.toResult(productList);
