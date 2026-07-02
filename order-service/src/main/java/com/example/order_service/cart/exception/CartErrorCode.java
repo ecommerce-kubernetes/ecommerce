@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 @Getter
 @RequiredArgsConstructor
 public enum CartErrorCode implements ErrorCode {
+    CART_PRODUCT_STOCK_INSUFFICIENT(HttpStatus.CONFLICT, "CART_PRODUCT_STOCK_INSUFFICIENT", "수량이 부족합니다"),
     CART_ITEM_MINIMUM_ONE_REQUIRED(HttpStatus.BAD_REQUEST, "CART_001", "상품 수량은 한개 이상이여야 합니다"),
     CART_NO_PERMISSION(HttpStatus.FORBIDDEN, "CART_002", "장바구니에 접근할 권한이 없습니다"),
     CART_NOT_FOUND(HttpStatus.NOT_FOUND, "CART_003", "장바구니를 찾을 수 없습니다"),

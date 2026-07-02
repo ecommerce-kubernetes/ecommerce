@@ -17,7 +17,7 @@ public class CartProductGateway {
     private final ProductAdaptor adaptor;
     private final CartProductMapper mapper;
 
-    public List<CartProductResult.Info> getProducts(List<Long> variantIds) {
+    public CartProductResult.ProductList getProducts(List<Long> variantIds) {
         return null;
     }
     // fallback

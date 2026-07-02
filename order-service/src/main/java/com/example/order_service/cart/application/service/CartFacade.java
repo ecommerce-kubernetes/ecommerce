@@ -27,22 +27,34 @@ public class CartFacade {
 
     public CartResult.Cart addItems(CartCommand.AddItems command) {
         List<Long> requestedIds = command.toProductVariantIds();
-        List<CartProductResult.Info> products = cartProductGateway.getProducts(requestedIds);
-        validateProductForAddCart(products, requestedIds);
+        CartProductResult.ProductList productResult = cartProductGateway.getProducts(requestedIds);
+        Map<Long, Integer> quantityMap = command.toQuantityMap();
+        for(CartProductResult.Info product : productResult.products()) {
+            if (!quantityMap.containsKey(product.productVariantId())) {
+                throw new BusinessException(CartErrorCode.CART_PRODUCT_NOT_FOUND);
+            }
+            if (product.status() != CartProductStatus.ON_SALE) {
+                throw new BusinessException(CartErrorCode.CART_PRODUCT_CANNOT_ADD);
+            }
+            Integer quantity = quantityMap.get(product.productVariantId());
+            if (quantity > product.stock()) {
+                throw new BusinessException(CartErrorCode.CART_PRODUCT_STOCK_INSUFFICIENT);
+            }
+        }
         List<CartItemDto> cartItems = cartService.addItemToCart(command);
-        List<CartResult.CartItemResult> cartItemResults = mapToCartItemResult(cartItems, products);
-        return CartResult.Cart.from(cartItemResults);
+        return null;
     }
 
     public CartResult.Cart getCartDetails(Long userId){
-        List<CartItemDto> cartItems = cartService.getCartItems(userId);
-        if(cartItems.isEmpty()) {
-            return CartResult.Cart.empty();
-        }
-        List<Long> variantIds = getProductVariantId(cartItems);
-        List<CartProductResult.Info> products = cartProductGateway.getProducts(variantIds);
-        List<CartResult.CartItemResult> cartItemResults = mapToCartItemResult(cartItems, products);
-        return CartResult.Cart.from(cartItemResults);
+//        List<CartItemDto> cartItems = cartService.getCartItems(userId);
+//        if(cartItems.isEmpty()) {
+//            return CartResult.Cart.empty();
+//        }
+//        List<Long> variantIds = getProductVariantId(cartItems);
+//        List<CartProductResult.Info> products = cartProductGateway.getProducts(variantIds);
+//        List<CartResult.CartItemResult> cartItemResults = mapToCartItemResult(cartItems, products);
+//        return CartResult.Cart.from(cartItemResults);
+        return null;
     }
 
     public CartResult.Cart updateCartItemQuantity(CartCommand.UpdateQuantity command){
