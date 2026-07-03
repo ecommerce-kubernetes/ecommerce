@@ -1,9 +1,6 @@
 package com.example.order_service.order.application.service.order.dto.command;
 
-import com.example.order_service.common.domain.vo.Money;
 import lombok.Builder;
-
-import java.util.List;
 
 public class OrderCommand {
 

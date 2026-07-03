@@ -1,11 +1,11 @@
-package com.example.order_service.cart.domain.service;
+package com.example.order_service.cart.application.service;
 
 import com.example.order_service.cart.application.service.dto.command.CartCommand;
 import com.example.order_service.cart.domain.model.Cart;
 import com.example.order_service.cart.domain.model.CartItem;
 import com.example.order_service.cart.domain.repository.CartItemRepository;
 import com.example.order_service.cart.domain.repository.CartRepository;
-import com.example.order_service.cart.domain.service.dto.result.CartItemDto;
+import com.example.order_service.cart.application.service.dto.result.CartItemDto;
 import com.example.order_service.cart.exception.CartErrorCode;
 import com.example.order_service.common.exception.application.BusinessException;
 import lombok.RequiredArgsConstructor;

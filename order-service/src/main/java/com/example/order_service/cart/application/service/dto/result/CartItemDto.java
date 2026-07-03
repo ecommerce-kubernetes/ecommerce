@@ -1,4 +1,4 @@
-package com.example.order_service.cart.domain.service.dto.result;
+package com.example.order_service.cart.application.service.dto.result;
 
 import com.example.order_service.cart.domain.model.CartItem;
 import lombok.Builder;

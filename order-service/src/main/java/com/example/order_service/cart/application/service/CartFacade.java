@@ -5,8 +5,7 @@ import com.example.order_service.cart.application.service.dto.command.CartComman
 import com.example.order_service.cart.application.external.dto.result.CartProductResult;
 import com.example.order_service.cart.application.service.dto.result.CartResult;
 import com.example.order_service.cart.application.external.CartProductGateway;
-import com.example.order_service.cart.domain.service.CartService;
-import com.example.order_service.cart.domain.service.dto.result.CartItemDto;
+import com.example.order_service.cart.application.service.dto.result.CartItemDto;
 import com.example.order_service.cart.exception.CartErrorCode;
 import com.example.order_service.common.exception.application.BusinessException;
 import lombok.RequiredArgsConstructor;
