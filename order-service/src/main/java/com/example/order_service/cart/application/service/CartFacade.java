@@ -1,11 +1,13 @@
 package com.example.order_service.cart.application.service;
 
 import com.example.order_service.cart.application.external.dto.result.CartProductStatus;
+import com.example.order_service.cart.application.service.dto.command.AddCartItemsCommand;
 import com.example.order_service.cart.application.service.dto.command.CartCommand;
 import com.example.order_service.cart.application.external.dto.result.CartProductResult;
-import com.example.order_service.cart.application.service.dto.result.CartResult;
+import com.example.order_service.cart.application.service.dto.result.CartItemResult;
 import com.example.order_service.cart.application.external.CartProductGateway;
 import com.example.order_service.cart.application.service.dto.result.CartItemDto;
+import com.example.order_service.cart.application.service.dto.result.GetCartResult;
 import com.example.order_service.cart.exception.CartErrorCode;
 import com.example.order_service.common.exception.application.BusinessException;
 import lombok.RequiredArgsConstructor;
@@ -24,27 +26,12 @@ public class CartFacade {
     private final CartService cartService;
     private final CartProductGateway cartProductGateway;
 
-    public CartResult.Cart addItems(CartCommand.AddItems command) {
-        List<Long> requestedIds = command.toProductVariantIds();
-        CartProductResult.ProductList productResult = cartProductGateway.getProducts(requestedIds);
-        Map<Long, Integer> quantityMap = command.toQuantityMap();
-        for(CartProductResult.Info product : productResult.products()) {
-            if (!quantityMap.containsKey(product.productVariantId())) {
-                throw new BusinessException(CartErrorCode.CART_PRODUCT_NOT_FOUND);
-            }
-            if (product.status() != CartProductStatus.ON_SALE) {
-                throw new BusinessException(CartErrorCode.CART_PRODUCT_CANNOT_ADD);
-            }
-            Integer quantity = quantityMap.get(product.productVariantId());
-            if (quantity > product.stock()) {
-                throw new BusinessException(CartErrorCode.CART_PRODUCT_STOCK_INSUFFICIENT);
-            }
-        }
-        List<CartItemDto> cartItems = cartService.addItemToCart(command);
+    public GetCartResult addItems(AddCartItemsCommand command) {
+        command.toProductVariantIds();
         return null;
     }
 
-    public CartResult.Cart getCartDetails(Long userId){
+    public GetCartResult getCartDetails(Long userId){
 //        List<CartItemDto> cartItems = cartService.getCartItems(userId);
 //        if(cartItems.isEmpty()) {
 //            return CartResult.Cart.empty();
@@ -56,7 +43,7 @@ public class CartFacade {
         return null;
     }
 
-    public CartResult.Cart updateCartItemQuantity(CartCommand.UpdateQuantity command){
+    public GetCartResult updateCartItemQuantity(CartCommand.UpdateQuantity command){
         CartItemDto cartItemDto = cartService.updateQuantity(command.userId(), command.cartItemId(), command.quantity());
 //        return CartResult.Update.from(cartItemDto);
         return null;
@@ -85,7 +72,7 @@ public class CartFacade {
         return cartItems.stream().map(CartItemDto::getProductVariantId).toList();
     }
 
-    private List<CartResult.CartItemResult> mapToCartItemResult(List<CartItemDto> cartItems, List<CartProductResult.Info> products) {
+    private List<CartItemResult> mapToCartItemResult(List<CartItemDto> cartItems, List<CartProductResult.Info> products) {
         Map<Long, CartProductResult.Info> productMap = products.stream().collect(Collectors.toMap(
                 CartProductResult.Info::productVariantId,
                 Function.identity()
@@ -98,10 +85,7 @@ public class CartFacade {
                 }).toList();
     }
 
-    private CartResult.CartItemResult createCartItemResult(CartItemDto item, CartProductResult.Info product) {
-        if (product == null) {
-            return CartResult.CartItemResult.unAvailable(item.getId(), item.getProductVariantId(), item.getQuantity());
-        }
-        return CartResult.CartItemResult.of(item, product);
+    private CartItemResult createCartItemResult(CartItemDto item, CartProductResult.Info product) {
+        return null;
     }
 }

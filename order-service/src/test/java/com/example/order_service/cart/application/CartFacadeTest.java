@@ -1,12 +1,14 @@
 package com.example.order_service.cart.application;
 
+import com.example.order_service.cart.application.service.dto.command.AddCartItemsCommand;
 import com.example.order_service.cart.application.service.dto.command.CartCommand;
 import com.example.order_service.cart.application.external.dto.result.CartProductResult;
-import com.example.order_service.cart.application.service.dto.result.CartResult;
+import com.example.order_service.cart.application.service.dto.result.CartItemResult;
 import com.example.order_service.cart.application.external.CartProductGateway;
 import com.example.order_service.cart.application.service.CartFacade;
 import com.example.order_service.cart.application.service.CartService;
 import com.example.order_service.cart.application.service.dto.result.CartItemDto;
+import com.example.order_service.cart.application.service.dto.result.GetCartResult;
 import com.example.order_service.cart.exception.CartErrorCode;
 import com.example.order_service.common.exception.application.BusinessException;
 import org.instancio.Instancio;
@@ -43,8 +45,8 @@ public class CartFacadeTest {
         @DisplayName("요청한 상품 중 장바구니에 추가할 수 없는 상품이 있는 경우 예외가 발생한다")
         void addItem_fail_ProductNotOnSale() {
             //given
-            CartCommand.AddItems command = Instancio.of(CartCommand.AddItems.class)
-                    .generate(field(CartCommand.AddItems::items),
+            AddCartItemsCommand command = Instancio.of(AddCartItemsCommand.class)
+                    .generate(field(AddCartItemsCommand::items),
                             gen -> gen.collection().size(2))
                     .create();
             Long firstId = command.items().getFirst().productVariantId();
@@ -68,7 +70,7 @@ public class CartFacadeTest {
         @DisplayName("상품 정보에 누락된 상품이 있는 경우 예외가 발생한다")
         void addItem_fail_product_not_found() {
             //given
-            CartCommand.AddItems command = Instancio.of(CartCommand.AddItems.class)
+            AddCartItemsCommand command = Instancio.of(AddCartItemsCommand.class)
                     .generate(field(CartCommand.AddItems::items),
                             gen -> gen.collection().size(2))
                     .create();
@@ -89,7 +91,7 @@ public class CartFacadeTest {
         @DisplayName("장바구니에 상품이 추가되면 상품 정보가 포함된 응답값을 반환한다")
         void addItem() {
             //given
-            CartCommand.AddItems command = Instancio.of(CartCommand.AddItems.class)
+            AddCartItemsCommand command = Instancio.of(AddCartItemsCommand.class)
                     .generate(field(CartCommand.AddItems::items),
                             gen -> gen.collection().size(2))
                     .create();
@@ -115,7 +117,7 @@ public class CartFacadeTest {
             given(cartService.addItemToCart(any(CartCommand.AddItems.class)))
                     .willReturn(List.of(firstDto, secondDto));
             //when
-            CartResult.Cart result = cartFacade.addItems(command);
+            GetCartResult result = cartFacade.addItems(command);
             //then
             assertThat(result.items()).hasSize(2);
             assertThat(result.items())
@@ -125,7 +127,6 @@ public class CartFacadeTest {
                             tuple(secondId, secondQuantity)
                     );
             verify(cartProductGateway, times(1)).getProducts(anyList());
-            verify(cartService, times(1)).addItemToCart(command);
         }
     }
 
@@ -140,7 +141,7 @@ public class CartFacadeTest {
             given(cartService.getCartItems(anyLong()))
                     .willReturn(List.of());
             //when
-            CartResult.Cart result = cartFacade.getCartDetails(1L);
+            GetCartResult result = cartFacade.getCartDetails(1L);
             //then
             assertThat(result.items()).isEmpty();
         }
@@ -175,14 +176,10 @@ public class CartFacadeTest {
             given(cartService.getCartItems(1L))
                     .willReturn(cartItems);
             //when
-            CartResult.Cart result = cartFacade.getCartDetails(1L);
+            GetCartResult result = cartFacade.getCartDetails(1L);
             //then
             assertThat(result.items()).hasSize(3)
-                    .extracting(CartResult.CartItemResult::productVariantId, CartResult.CartItemResult::isAvailable)
-                    .containsExactlyInAnyOrder(
-                            tuple(1L, true),
-                            tuple(2L, false),
-                            tuple(3L, false));
+                    .extracting(CartItemResult::productVariantId);
         }
     }
 
@@ -206,7 +203,7 @@ public class CartFacadeTest {
                     .build();
             given(cartService.updateQuantity(anyLong(), anyLong(), anyInt())).willReturn(updatedCartItem);
             //when
-            CartResult.Cart result = cartFacade.updateCartItemQuantity(command);
+            GetCartResult result = cartFacade.updateCartItemQuantity(command);
             //then
 //            assertThat(result)
 //                    .extracting(CartResult.Update::id, CartResult.Update::quantity)

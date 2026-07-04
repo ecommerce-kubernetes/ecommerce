@@ -1,6 +1,6 @@
 package com.example.order_service.cart.api.dto.response;
 
-import com.example.order_service.cart.application.service.dto.result.CartResult;
+import com.example.order_service.cart.application.service.dto.result.*;
 import lombok.Builder;
 
 import java.util.List;
@@ -23,9 +23,9 @@ public record AddCartItemsResponse(
             long lineTotal,
             List<Option> options
     ) {
-        public static Item from(CartResult.CartItemResult item) {
+        public static Item from(CartItemResult item) {
             return Item.builder()
-                    .cartItemId(item.id())
+                    .cartItemId(item.cartItemId())
                     .status(item.status().name())
                     .productId(item.productId())
                     .productVariantId(item.productVariantId())
@@ -38,7 +38,7 @@ public record AddCartItemsResponse(
                     .build();
         }
 
-        public static List<Item> from(List<CartResult.CartItemResult> items) {
+        public static List<Item> from(List<CartItemResult> items) {
             return items.stream().map(Item::from).toList();
         }
     }
@@ -51,7 +51,7 @@ public record AddCartItemsResponse(
             long discountedPrice
     ) {
 
-        public static Price from(CartResult.CartItemPrice price) {
+        public static Price from(CartItemPrice price) {
             return Price.builder()
                     .originalPrice(price.originalPrice().longValue())
                     .discountRate(price.discountRate())
@@ -66,19 +66,19 @@ public record AddCartItemsResponse(
             String optionTypeName,
             String optionValueName
     ) {
-        public static Option from(CartResult.CartItemOption option) {
+        public static Option from(CartItemOption option) {
             return Option.builder()
                     .optionTypeName(option.optionTypeName())
                     .optionValueName(option.optionValueName())
                     .build();
         }
 
-        public static List<Option> from(List<CartResult.CartItemOption> options) {
+        public static List<Option> from(List<CartItemOption> options) {
             return options.stream().map(Option::from).toList();
         }
     }
 
-    public static AddCartItemsResponse from(CartResult.Cart result) {
+    public static AddCartItemsResponse from(GetCartResult result) {
         return AddCartItemsResponse.builder()
                 .items(Item.from(result.items()))
                 .build();

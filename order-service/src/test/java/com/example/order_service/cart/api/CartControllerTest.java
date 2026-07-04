@@ -4,8 +4,10 @@ import com.example.order_service.cart.api.dto.request.AddCartItemsRequest;
 
 import com.example.order_service.cart.api.dto.request.UpdateCartItemQuantityRequest;
 import com.example.order_service.cart.application.service.CartFacade;
+import com.example.order_service.cart.application.service.dto.command.AddCartItemsCommand;
 import com.example.order_service.cart.application.service.dto.command.CartCommand;
-import com.example.order_service.cart.application.service.dto.result.CartResult;
+import com.example.order_service.cart.application.service.dto.result.CartItemResult;
+import com.example.order_service.cart.application.service.dto.result.GetCartResult;
 import com.example.order_service.common.security.model.UserRole;
 import com.example.order_service.support.annotation.WithCustomMockUser;
 import com.example.order_service.support.config.TestSecurityConfig;
@@ -56,11 +58,11 @@ class CartControllerTest {
         void addCartItem() throws Exception {
             //given
             AddCartItemsRequest request = Instancio.create(AddCartItemsRequest.class);
-            CartResult.CartItemResult item = Instancio.create(CartResult.CartItemResult.class);
-            CartResult.Cart result = Instancio.of(CartResult.Cart.class)
+            CartItemResult item = Instancio.create(CartItemResult.class);
+            GetCartResult result = Instancio.of(GetCartResult.class)
                     .set(field("items"), List.of(item))
                     .create();
-            given(cartFacade.addItems(any(CartCommand.AddItems.class)))
+            given(cartFacade.addItems(any(AddCartItemsCommand.class)))
                     .willReturn(result);
             //when
             //then
@@ -70,7 +72,7 @@ class CartControllerTest {
                     .andDo(print())
                     .andExpect(status().isCreated())
                     .andExpect(jsonPath("$.items").isNotEmpty())
-                    .andExpect(jsonPath("$.items[0].cartItemId").value(item.id()))
+                    .andExpect(jsonPath("$.items[0].cartItemId").value(item.cartItemId()))
                     .andExpect(jsonPath("$.items[0].status").value(item.status().name()));
         }
 
@@ -166,8 +168,8 @@ class CartControllerTest {
         @WithCustomMockUser
         void getAllCartItem() throws Exception {
             //given
-            CartResult.CartItemResult item = Instancio.create(CartResult.CartItemResult.class);
-            CartResult.Cart result = Instancio.of(CartResult.Cart.class)
+            CartItemResult item = Instancio.create(CartItemResult.class);
+            GetCartResult result = Instancio.of(GetCartResult.class)
                     .set(field("items"), List.of(item))
                     .create();
             given(cartFacade.getCartDetails(anyLong()))
@@ -178,7 +180,7 @@ class CartControllerTest {
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.items").isNotEmpty())
-                    .andExpect(jsonPath("$.items[0].cartItemId").value(item.id()))
+                    .andExpect(jsonPath("$.items[0].cartItemId").value(item.cartItemId()))
                     .andExpect(jsonPath("$.items[0].status").value(item.status().name()));
         }
 
@@ -282,8 +284,8 @@ class CartControllerTest {
         void updateQuantity() throws Exception {
             //given
             UpdateCartItemQuantityRequest request = Instancio.create(UpdateCartItemQuantityRequest.class);
-            CartResult.CartItemResult cartItemResult = Instancio.create(CartResult.CartItemResult.class);
-            CartResult.Cart result = Instancio.of(CartResult.Cart.class)
+            CartItemResult cartItemResult = Instancio.create(CartItemResult.class);
+            GetCartResult result = Instancio.of(GetCartResult.class)
                     .set(field("items"), List.of(cartItemResult))
                     .create();
             given(cartFacade.updateCartItemQuantity(any(CartCommand.UpdateQuantity.class)))
@@ -296,7 +298,7 @@ class CartControllerTest {
                     .andDo(print())
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.items").isArray())
-                    .andExpect(jsonPath("$.items[0].cartItemId").value(cartItemResult.id()))
+                    .andExpect(jsonPath("$.items[0].cartItemId").value(cartItemResult.cartItemId()))
                     .andExpect(jsonPath("$.items[0].status").value(cartItemResult.status().name()))
                     .andExpect(jsonPath("$.items[0].price.originalPrice").value(cartItemResult.price().originalPrice().longValue()))
                     .andExpect(jsonPath("$.items[0].options").isArray());

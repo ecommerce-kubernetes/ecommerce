@@ -5,8 +5,9 @@ import com.example.order_service.cart.api.dto.request.AddCartItemsRequest;
 import com.example.order_service.cart.api.dto.request.UpdateCartItemQuantityRequest;
 import com.example.order_service.cart.application.external.dto.result.CartProductStatus;
 import com.example.order_service.cart.application.service.CartFacade;
+import com.example.order_service.cart.application.service.dto.command.AddCartItemsCommand;
 import com.example.order_service.cart.application.service.dto.command.CartCommand;
-import com.example.order_service.cart.application.service.dto.result.CartResult;
+import com.example.order_service.cart.application.service.dto.result.*;
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.docs.descriptor.CartDescriptor;
@@ -56,8 +57,8 @@ public class CartControllerDocsTest extends RestDocSupport {
                 .build();
 
         HttpHeaders roleUser = createAuthHeader("ROLE_USER");
-        CartResult.Cart result = createCartAddResult();
-        given(cartFacade.addItems(any(CartCommand.AddItems.class)))
+        GetCartResult result = createCartAddResult();
+        given(cartFacade.addItems(any(AddCartItemsCommand.class)))
                 .willReturn(result);
         //when
         //then
@@ -80,7 +81,7 @@ public class CartControllerDocsTest extends RestDocSupport {
     void addAllCartItem() throws Exception {
         //given
         HttpHeaders roleUser = createAuthHeader("ROLE_USER");
-        CartResult.Cart result = createCartResult();
+        GetCartResult result = createCartResult();
         given(cartFacade.getCartDetails(anyLong()))
                 .willReturn(result);
 
@@ -124,7 +125,7 @@ public class CartControllerDocsTest extends RestDocSupport {
         UpdateCartItemQuantityRequest request = UpdateCartItemQuantityRequest.builder()
                 .quantity(3)
                 .build();
-        CartResult.Cart cartResult = createCartResult();
+        GetCartResult cartResult = createCartResult();
         given(cartFacade.updateCartItemQuantity(any(CartCommand.UpdateQuantity.class)))
                 .willReturn(cartResult);
         //when
@@ -146,18 +147,17 @@ public class CartControllerDocsTest extends RestDocSupport {
                 );
     }
 
-    private CartResult.Cart createCartAddResult() {
-        CartResult.CartItemResult cartResult = CartResult.CartItemResult.builder()
-                .id(1L)
+    private GetCartResult createCartAddResult() {
+        CartItemResult cartResult = CartItemResult.builder()
+                .cartItemId(1L)
                 .productId(1L)
                 .productVariantId(1L)
                 .productName("상품1")
                 .status(CartProductStatus.ON_SALE)
-                .isAvailable(true)
                 .thumbnail("/product/product/PROD1_thumbnail.jpg")
                 .quantity(2)
                 .price(
-                        CartResult.CartItemPrice.builder()
+                        CartItemPrice.builder()
                                 .originalPrice(Money.wons(3000L))
                                 .discountAmount(Money.wons(300L))
                                 .discountedPrice(Money.wons(2700L))
@@ -167,28 +167,27 @@ public class CartControllerDocsTest extends RestDocSupport {
                 .lineTotal(Money.wons(5400L))
                 .options(
                         List.of(
-                                CartResult.CartItemOption.builder()
+                                CartItemOption.builder()
                                         .optionTypeName("사이즈")
                                         .optionValueName("XL")
                                         .build()
                         )
                 )
                 .build();
-        return CartResult.Cart.builder().items(List.of(cartResult)).build();
+        return GetCartResult.builder().items(List.of(cartResult)).build();
     }
 
-    private CartResult.Cart createCartResult() {
-        CartResult.CartItemResult cartResult = CartResult.CartItemResult.builder()
-                .id(1L)
+    private GetCartResult createCartResult() {
+        CartItemResult cartResult = CartItemResult.builder()
+                .cartItemId(1L)
                 .productId(1L)
                 .productVariantId(1L)
                 .productName("상품1")
                 .status(CartProductStatus.ON_SALE)
-                .isAvailable(true)
                 .thumbnail("/product/product/PROD1_thumbnail.jpg")
                 .quantity(2)
                 .price(
-                        CartResult.CartItemPrice.builder()
+                        CartItemPrice.builder()
                                 .originalPrice(Money.wons(3000L))
                                 .discountAmount(Money.wons(300L))
                                 .discountedPrice(Money.wons(2700L))
@@ -198,14 +197,14 @@ public class CartControllerDocsTest extends RestDocSupport {
                 .lineTotal(Money.wons(5400L))
                 .options(
                         List.of(
-                                CartResult.CartItemOption.builder()
+                                CartItemOption.builder()
                                         .optionTypeName("사이즈")
                                         .optionValueName("XL")
                                         .build()
                         )
                 )
                 .build();
-        return CartResult.Cart.builder().items(List.of(cartResult))
+        return GetCartResult.builder().items(List.of(cartResult))
                 .build();
     }
 }
