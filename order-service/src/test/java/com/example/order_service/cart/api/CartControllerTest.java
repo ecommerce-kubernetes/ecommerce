@@ -1,6 +1,8 @@
 package com.example.order_service.cart.api;
 
-import com.example.order_service.cart.api.dto.request.CartRequest;
+import com.example.order_service.cart.api.dto.request.AddCartItemsRequest;
+
+import com.example.order_service.cart.api.dto.request.UpdateCartItemQuantityRequest;
 import com.example.order_service.cart.application.service.CartFacade;
 import com.example.order_service.cart.application.service.dto.command.CartCommand;
 import com.example.order_service.cart.application.service.dto.result.CartResult;
@@ -53,7 +55,7 @@ class CartControllerTest {
         @WithCustomMockUser
         void addCartItem() throws Exception {
             //given
-            CartRequest.AddItems request = Instancio.create(CartRequest.AddItems.class);
+            AddCartItemsRequest request = Instancio.create(AddCartItemsRequest.class);
             CartResult.CartItemResult item = Instancio.create(CartResult.CartItemResult.class);
             CartResult.Cart result = Instancio.of(CartResult.Cart.class)
                     .set(field("items"), List.of(item))
@@ -68,7 +70,7 @@ class CartControllerTest {
                     .andDo(print())
                     .andExpect(status().isCreated())
                     .andExpect(jsonPath("$.items").isNotEmpty())
-                    .andExpect(jsonPath("$.items[0].id").value(item.id()))
+                    .andExpect(jsonPath("$.items[0].cartItemId").value(item.id()))
                     .andExpect(jsonPath("$.items[0].status").value(item.status().name()));
         }
 
@@ -77,7 +79,7 @@ class CartControllerTest {
         @WithCustomMockUser(userRole = UserRole.ROLE_ADMIN)
         void addCartItemWithAdminPrincipal() throws Exception {
             //given
-            CartRequest.AddItems request = Instancio.create(CartRequest.AddItems.class);
+            AddCartItemsRequest request = Instancio.create(AddCartItemsRequest.class);
             //when
             //then
             mockMvc.perform(post("/carts")
@@ -95,7 +97,7 @@ class CartControllerTest {
         @DisplayName("로그인 하지 않은 사용자는 장바구니에 상품을 추가할 수 없다")
         void addCartItem_unAuthorized() throws Exception {
             //given
-            CartRequest.AddItems request = Instancio.create(CartRequest.AddItems.class);
+            AddCartItemsRequest request = Instancio.create(AddCartItemsRequest.class);
             //when
             //then
             mockMvc.perform(post("/carts")
@@ -113,7 +115,7 @@ class CartControllerTest {
         @DisplayName("장바구니에 상품 추가시 유효성 검증에 실패하면 400 에러를 반환한다")
         @MethodSource("provideInvalidAddRequest")
         @WithCustomMockUser
-        void addCartItem_Validation(String description, CartRequest.AddItems request, String errorMessage) throws Exception {
+        void addCartItem_Validation(String description, AddCartItemsRequest request, String errorMessage) throws Exception {
             mockMvc.perform(post("/carts")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
@@ -126,26 +128,31 @@ class CartControllerTest {
         }
 
         private static Stream<Arguments> provideInvalidAddRequest() {
-            CartRequest.Item VALID_BASE_ITEM = CartRequest.Item
-                    .builder()
-                    .productVariantId(1L)
-                    .quantity(1)
-                    .build();
             return Stream.of(
                     Arguments.of("추가할 아이템 리스트가 0",
-                            CartRequest.AddItems.builder().items(List.of()).build(),
+                            AddCartItemsRequest.builder().items(List.of()).build(),
                             "장바구니에 추가할 상품이 하나 이상 있어야 합니다."),
                     Arguments.of("상품 Id null",
-                            CartRequest.AddItems.builder().items(
-                                    List.of(VALID_BASE_ITEM.toBuilder().productVariantId(null).build())).build(),
+                            AddCartItemsRequest.builder().items(
+                                            List.of(AddCartItemsRequest.Item.builder()
+                                                    .quantity(1)
+                                                    .build()))
+                                    .build(),
                             "productVariantId는 필수값입니다"),
                     Arguments.of("수량 null",
-                            CartRequest.AddItems.builder().items(
-                                    List.of(VALID_BASE_ITEM.toBuilder().quantity(null).build())).build(),
+                            AddCartItemsRequest.builder().items(
+                                            List.of(AddCartItemsRequest.Item.builder()
+                                                    .productVariantId(1L)
+                                                    .build()))
+                                    .build(),
                             "quantity는 필수값입니다"),
                     Arguments.of("요청 수량 0이하",
-                            CartRequest.AddItems.builder().items(
-                                    List.of(VALID_BASE_ITEM.toBuilder().quantity(0).build())).build(),
+                            AddCartItemsRequest.builder().items(
+                                            List.of(AddCartItemsRequest.Item.builder()
+                                                    .productVariantId(1L)
+                                                    .quantity(0)
+                                                    .build()))
+                                    .build(),
                             "quantity는 1이상 이여야 합니다")
             );
         }
@@ -171,7 +178,7 @@ class CartControllerTest {
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.items").isNotEmpty())
-                    .andExpect(jsonPath("$.items[0].id").value(item.id()))
+                    .andExpect(jsonPath("$.items[0].cartItemId").value(item.id()))
                     .andExpect(jsonPath("$.items[0].status").value(item.status().name()));
         }
 
@@ -274,7 +281,7 @@ class CartControllerTest {
         @WithCustomMockUser
         void updateQuantity() throws Exception {
             //given
-            CartRequest.UpdateQuantity request = Instancio.create(CartRequest.UpdateQuantity.class);
+            UpdateCartItemQuantityRequest request = Instancio.create(UpdateCartItemQuantityRequest.class);
             CartResult.CartItemResult cartItemResult = Instancio.create(CartResult.CartItemResult.class);
             CartResult.Cart result = Instancio.of(CartResult.Cart.class)
                     .set(field("items"), List.of(cartItemResult))
@@ -289,7 +296,7 @@ class CartControllerTest {
                     .andDo(print())
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.items").isArray())
-                    .andExpect(jsonPath("$.items[0].id").value(cartItemResult.id()))
+                    .andExpect(jsonPath("$.items[0].cartItemId").value(cartItemResult.id()))
                     .andExpect(jsonPath("$.items[0].status").value(cartItemResult.status().name()))
                     .andExpect(jsonPath("$.items[0].price.originalPrice").value(cartItemResult.price().originalPrice().longValue()))
                     .andExpect(jsonPath("$.items[0].options").isArray());
@@ -300,7 +307,7 @@ class CartControllerTest {
         @WithCustomMockUser(userRole = UserRole.ROLE_ADMIN)
         void updateQuantity_Admin_role() throws Exception {
             //given
-            CartRequest.UpdateQuantity request = Instancio.create(CartRequest.UpdateQuantity.class);
+            UpdateCartItemQuantityRequest request = Instancio.create(UpdateCartItemQuantityRequest.class);
             //when
             //then
             mockMvc.perform(patch("/carts/{cartItemId}", 1)
@@ -318,7 +325,7 @@ class CartControllerTest {
         @DisplayName("로그인 하지 않은 사용자는 장바구니 상품의 수량을 수정할 수 없다")
         void updateQuantity_unAuthorized() throws Exception {
             //given
-            CartRequest.UpdateQuantity request = Instancio.create(CartRequest.UpdateQuantity.class);
+            UpdateCartItemQuantityRequest request = Instancio.create(UpdateCartItemQuantityRequest.class);
             //when
             //then
             mockMvc.perform(patch("/carts/{cartItemId}", 1)
@@ -336,7 +343,7 @@ class CartControllerTest {
         @DisplayName("장바구니 상품 수량 변경 검증 테스트")
         @MethodSource("provideInvalidUpdateRequest")
         @WithCustomMockUser
-        void updateQuantityValidation(String description, CartRequest.UpdateQuantity request, String message) throws Exception {
+        void updateQuantityValidation(String description, UpdateCartItemQuantityRequest request, String message) throws Exception {
             //given
             //when
             //then
@@ -355,12 +362,12 @@ class CartControllerTest {
             return Stream.of(
                     Arguments.of(
                             "수량이 null",
-                            CartRequest.UpdateQuantity.builder().quantity(null).build(),
+                            UpdateCartItemQuantityRequest.builder().build(),
                             "수량은 필수값 입니다"
                     ),
                     Arguments.of(
                             "수량이 1미만",
-                            CartRequest.UpdateQuantity.builder().quantity(0).build(),
+                            UpdateCartItemQuantityRequest.builder().quantity(0).build(),
                             "수량은 1이상이여야 합니다"
                     )
             );

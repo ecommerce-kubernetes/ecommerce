@@ -1,7 +1,10 @@
 package com.example.order_service.cart.api;
 
-import com.example.order_service.cart.api.dto.request.CartRequest;
-import com.example.order_service.cart.api.dto.response.CartResponse;
+import com.example.order_service.cart.api.dto.request.AddCartItemsRequest;
+import com.example.order_service.cart.api.dto.request.UpdateCartItemQuantityRequest;
+import com.example.order_service.cart.api.dto.response.AddCartItemsResponse;
+import com.example.order_service.cart.api.dto.response.GetCartResponse;
+import com.example.order_service.cart.api.dto.response.UpdateCartItemQuantityResponse;
 import com.example.order_service.cart.application.service.CartFacade;
 import com.example.order_service.cart.application.service.dto.command.CartCommand;
 import com.example.order_service.cart.application.service.dto.result.CartResult;
@@ -27,28 +30,28 @@ public class CartController {
     private final CartFacade cartFacade;
 
     @PostMapping
-    public ResponseEntity<CartResponse.Cart> addCartItem(@AuthenticationPrincipal UserPrincipal userPrincipal,
-                                                    @RequestBody @Validated CartRequest.AddItems request){
+    public ResponseEntity<AddCartItemsResponse> addCartItem(@AuthenticationPrincipal UserPrincipal userPrincipal,
+                                                            @RequestBody @Validated AddCartItemsRequest request){
         CartCommand.AddItems command = request.toCommand(userPrincipal.getUserId());
         CartResult.Cart result = cartFacade.addItems(command);
-        CartResponse.Cart response = CartResponse.Cart.from(result);
+        AddCartItemsResponse response = AddCartItemsResponse.from(result);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @GetMapping
-    public ResponseEntity<CartResponse.Cart> getAllCartItem(@AuthenticationPrincipal UserPrincipal userPrincipal) {
+    public ResponseEntity<GetCartResponse> getAllCartItem(@AuthenticationPrincipal UserPrincipal userPrincipal) {
         CartResult.Cart result = cartFacade.getCartDetails(userPrincipal.getUserId());
-        CartResponse.Cart response = CartResponse.Cart.from(result);
+        GetCartResponse response = GetCartResponse.from(result);
         return ResponseEntity.ok(response);
     }
 
     @PatchMapping("/{cartItemId}")
-    public ResponseEntity<CartResponse.Cart> updateQuantity(@AuthenticationPrincipal UserPrincipal userPrincipal,
-                                                           @PathVariable("cartItemId") Long cartItemId,
-                                                           @RequestBody @Validated CartRequest.UpdateQuantity request){
+    public ResponseEntity<UpdateCartItemQuantityResponse> updateQuantity(@AuthenticationPrincipal UserPrincipal userPrincipal,
+                                                                         @PathVariable("cartItemId") Long cartItemId,
+                                                                         @RequestBody @Validated UpdateCartItemQuantityRequest request){
         CartCommand.UpdateQuantity command = request.toCommand(userPrincipal.getUserId(), cartItemId);
         CartResult.Cart result = cartFacade.updateCartItemQuantity(command);
-        CartResponse.Cart response = CartResponse.Cart.from(result);
+        UpdateCartItemQuantityResponse response = UpdateCartItemQuantityResponse.from(result);
         return ResponseEntity.ok(response);
     }
 

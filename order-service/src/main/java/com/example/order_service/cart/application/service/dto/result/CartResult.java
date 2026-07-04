@@ -1,6 +1,7 @@
 package com.example.order_service.cart.application.service.dto.result;
 
 import com.example.order_service.cart.application.external.dto.result.CartProductResult;
+import com.example.order_service.cart.application.external.dto.result.CartProductStatus;
 import com.example.order_service.common.domain.vo.Money;
 import lombok.Builder;
 
@@ -45,6 +46,7 @@ public class CartResult {
     @Builder
     public record CartItemResult(
             Long id,
+            CartProductStatus status,
             boolean isAvailable,
             Long productId,
             Long productVariantId,

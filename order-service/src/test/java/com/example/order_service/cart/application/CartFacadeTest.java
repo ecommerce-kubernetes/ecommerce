@@ -5,7 +5,6 @@ import com.example.order_service.cart.application.external.dto.result.CartProduc
 import com.example.order_service.cart.application.service.dto.result.CartResult;
 import com.example.order_service.cart.application.external.CartProductGateway;
 import com.example.order_service.cart.application.service.CartFacade;
-import com.example.order_service.cart.domain.model.vo.ProductStatus;
 import com.example.order_service.cart.application.service.CartService;
 import com.example.order_service.cart.application.service.dto.result.CartItemDto;
 import com.example.order_service.cart.exception.CartErrorCode;
@@ -52,14 +51,11 @@ public class CartFacadeTest {
             Long secondId = command.items().get(1).productVariantId();
             CartProductResult.Info onSaleProduct = Instancio.of(CartProductResult.Info.class)
                     .set(field("productVariantId"), firstId)
-                    .set(field("status"), ProductStatus.AVAILABLE)
                     .create();
             CartProductResult.Info stopSaleProduct = Instancio.of(CartProductResult.Info.class)
                     .set(field("productVariantId"), secondId)
-                    .set(field("status"), ProductStatus.UNAVAILABLE)
                     .create();
-            given(cartProductGateway.getProducts(anyList()))
-                    .willReturn(List.of(onSaleProduct, stopSaleProduct));
+
             //when
             //then
             assertThatThrownBy(() -> cartFacade.addItems(command))
@@ -79,10 +75,8 @@ public class CartFacadeTest {
             Long firstId = command.items().getFirst().productVariantId();
             CartProductResult.Info onSaleProduct = Instancio.of(CartProductResult.Info.class)
                     .set(field("productVariantId"), firstId)
-                    .set(field("status"), ProductStatus.AVAILABLE)
                     .create();
-            given(cartProductGateway.getProducts(anyList()))
-                    .willReturn(List.of(onSaleProduct));
+
             //when
             //then
             assertThatThrownBy(() -> cartFacade.addItems(command))
@@ -105,11 +99,9 @@ public class CartFacadeTest {
             int secondQuantity = command.items().get(1).quantity();
             CartProductResult.Info firstProduct = Instancio.of(CartProductResult.Info.class)
                     .set(field("productVariantId"), firstId)
-                    .set(field("status"), ProductStatus.AVAILABLE)
                     .create();
             CartProductResult.Info secondProduct = Instancio.of(CartProductResult.Info.class)
                     .set(field("productVariantId"), secondId)
-                    .set(field("status"), ProductStatus.AVAILABLE)
                     .create();
             CartItemDto firstDto = Instancio.of(CartItemDto.class)
                     .set(field("productVariantId"), firstId)
@@ -120,8 +112,6 @@ public class CartFacadeTest {
                     .set(field("quantity"), secondQuantity)
                     .create();
 
-            given(cartProductGateway.getProducts(anyList()))
-                    .willReturn(List.of(firstProduct, secondProduct));
             given(cartService.addItemToCart(any(CartCommand.AddItems.class)))
                     .willReturn(List.of(firstDto, secondDto));
             //when
@@ -177,17 +167,13 @@ public class CartFacadeTest {
             List<CartProductResult.Info> productInfos = List.of(
                     Instancio.of(CartProductResult.Info.class)
                             .set(field("productVariantId"), 1L)
-                            .set(field("status"), ProductStatus.AVAILABLE)
                             .create(),
                     Instancio.of(CartProductResult.Info.class)
                             .set(field("productVariantId"), 2L)
-                            .set(field("status"), ProductStatus.UNAVAILABLE)
                             .create());
 
             given(cartService.getCartItems(1L))
                     .willReturn(cartItems);
-            given(cartProductGateway.getProducts(anyList()))
-                    .willReturn(productInfos);
             //when
             CartResult.Cart result = cartFacade.getCartDetails(1L);
             //then

@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-07-02T01:32:34+0900",
+    date = "2026-07-04T20:09:32+0900",
     comments = "version: 1.6.3, compiler: javac, environment: Java 21.0.10 (Eclipse Adoptium)"
 )
 @Component
@@ -19,11 +19,11 @@ public class CartProductMapperImpl implements CartProductMapper {
             return null;
         }
 
-        CartProductResult.ProductOption.OptionBuilder option1 = CartProductResult.ProductOption.builder();
+        CartProductResult.ProductOption.ProductOptionBuilder productOption = CartProductResult.ProductOption.builder();
 
-        option1.optionTypeName( option.optionTypeName() );
-        option1.optionValueName( option.optionValueName() );
+        productOption.optionTypeName( option.optionTypeName() );
+        productOption.optionValueName( option.optionValueName() );
 
-        return option1.build();
+        return productOption.build();
     }
 }

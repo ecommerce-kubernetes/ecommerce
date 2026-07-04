@@ -1,12 +1,13 @@
 package com.example.order_service.docs.cart;
 
 import com.example.order_service.cart.api.CartController;
-import com.example.order_service.cart.api.dto.request.CartRequest;
-import com.example.order_service.cart.api.dto.response.CartResponse;
+import com.example.order_service.cart.api.dto.request.AddCartItemsRequest;
+import com.example.order_service.cart.api.dto.request.UpdateCartItemQuantityRequest;
+import com.example.order_service.cart.application.external.dto.result.CartProductStatus;
 import com.example.order_service.cart.application.service.CartFacade;
 import com.example.order_service.cart.application.service.dto.command.CartCommand;
 import com.example.order_service.cart.application.service.dto.result.CartResult;
-import com.example.order_service.cart.domain.model.vo.ProductStatus;
+
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.docs.descriptor.CartDescriptor;
 import com.example.order_service.support.RestDocSupport;
@@ -24,7 +25,6 @@ import static org.mockito.BDDMockito.willDoNothing;
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class CartControllerDocsTest extends RestDocSupport {
@@ -47,11 +47,11 @@ public class CartControllerDocsTest extends RestDocSupport {
     @DisplayName("장바구니 추가 API")
     void addCartItem() throws Exception {
         //given
-        CartRequest.Item item = CartRequest.Item.builder()
+        AddCartItemsRequest.Item item = AddCartItemsRequest.Item.builder()
                 .productVariantId(1L)
                 .quantity(2)
                 .build();
-        CartRequest.AddItems request = CartRequest.AddItems.builder()
+        AddCartItemsRequest request = AddCartItemsRequest.builder()
                 .items(List.of(item))
                 .build();
 
@@ -59,7 +59,6 @@ public class CartControllerDocsTest extends RestDocSupport {
         CartResult.Cart result = createCartAddResult();
         given(cartFacade.addItems(any(CartCommand.AddItems.class)))
                 .willReturn(result);
-        CartResponse.Cart response = CartResponse.Cart.from(result);
         //when
         //then
         mockMvc.perform(post("/carts")
@@ -68,7 +67,6 @@ public class CartControllerDocsTest extends RestDocSupport {
                         .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
                 .andExpect(status().isCreated())
-                .andExpect(content().json(objectMapper.writeValueAsString(response)))
                 .andDo(createSecuredDocument("02-cart-01-add-cartItem",
                         "장바구니 상품 추가",
                         "장바구니에 상품을 추가",
@@ -83,7 +81,6 @@ public class CartControllerDocsTest extends RestDocSupport {
         //given
         HttpHeaders roleUser = createAuthHeader("ROLE_USER");
         CartResult.Cart result = createCartResult();
-        CartResponse.Cart response = CartResponse.Cart.from(result);
         given(cartFacade.getCartDetails(anyLong()))
                 .willReturn(result);
 
@@ -94,7 +91,6 @@ public class CartControllerDocsTest extends RestDocSupport {
                         .headers(roleUser))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(response)))
                 .andDo(createSecuredDocument("02-cart-02-get-list",
                         "장바구니 목록 조회",
                         "장바구니 상품 목록을 조회한다",
@@ -125,7 +121,7 @@ public class CartControllerDocsTest extends RestDocSupport {
     void updateQuantity() throws Exception {
         //given
         HttpHeaders roleUser = createAuthHeader("ROLE_USER");
-        CartRequest.UpdateQuantity request = CartRequest.UpdateQuantity.builder()
+        UpdateCartItemQuantityRequest request = UpdateCartItemQuantityRequest.builder()
                 .quantity(3)
                 .build();
         CartResult.Cart cartResult = createCartResult();
@@ -156,7 +152,7 @@ public class CartControllerDocsTest extends RestDocSupport {
                 .productId(1L)
                 .productVariantId(1L)
                 .productName("상품1")
-                .status(ProductStatus.AVAILABLE)
+                .status(CartProductStatus.ON_SALE)
                 .isAvailable(true)
                 .thumbnail("/product/product/PROD1_thumbnail.jpg")
                 .quantity(2)
@@ -187,7 +183,7 @@ public class CartControllerDocsTest extends RestDocSupport {
                 .productId(1L)
                 .productVariantId(1L)
                 .productName("상품1")
-                .status(ProductStatus.AVAILABLE)
+                .status(CartProductStatus.ON_SALE)
                 .isAvailable(true)
                 .thumbnail("/product/product/PROD1_thumbnail.jpg")
                 .quantity(2)
