@@ -35,4 +35,12 @@ public record CartItemResult(
                 .options(CartItemOption.from(product.options()))
                 .build();
     }
+
+    public static CartItemResult unknown(CartItemData data, CartItemAvailability status) {
+        return CartItemResult.builder()
+                .cartItemId(data.cartItemId())
+                .status(status)
+                .quantity(data.quantity())
+                .build();
+    }
 }

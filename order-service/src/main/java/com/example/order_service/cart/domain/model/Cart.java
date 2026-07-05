@@ -1,6 +1,5 @@
 package com.example.order_service.cart.domain.model;
 
-import com.example.order_service.cart.application.dto.command.CartCommand;
 import com.example.order_service.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -10,7 +9,6 @@ import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)

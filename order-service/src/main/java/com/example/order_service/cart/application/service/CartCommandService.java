@@ -1,11 +1,14 @@
 package com.example.order_service.cart.application.service;
 
 import com.example.order_service.cart.application.dto.command.AddCartItemsCommand;
+import com.example.order_service.cart.application.dto.command.UpdateCartItemQuantityCommand;
 import com.example.order_service.cart.domain.model.Cart;
 import com.example.order_service.cart.domain.repository.CartRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @Transactional
@@ -20,5 +23,13 @@ public class CartCommandService {
             cart.addItem(item.productVariantId(), item.quantity());
         }
         cartRepository.save(cart);
+    }
+
+    public void updateCartItemQuantity(UpdateCartItemQuantityCommand command) {
+
+    }
+
+    public void deleteCartItems(Long userId, List<Long> cartItemIds) {
+
     }
 }

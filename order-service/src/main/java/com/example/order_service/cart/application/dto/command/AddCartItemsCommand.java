@@ -3,8 +3,6 @@ package com.example.order_service.cart.application.dto.command;
 import lombok.Builder;
 
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Builder
 public record AddCartItemsCommand(

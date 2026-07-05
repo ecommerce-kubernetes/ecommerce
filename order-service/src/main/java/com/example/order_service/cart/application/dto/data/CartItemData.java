@@ -9,7 +9,6 @@ public record CartItemData(
         Long productVariantId,
         Integer quantity
 ) {
-
     public static CartItemData from(CartItem cartItem) {
         return CartItemData.builder()
                 .cartItemId(cartItem.getId())

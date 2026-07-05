@@ -3,11 +3,11 @@ package com.example.order_service.docs.cart;
 import com.example.order_service.cart.api.CartController;
 import com.example.order_service.cart.api.dto.request.AddCartItemsRequest;
 import com.example.order_service.cart.api.dto.request.UpdateCartItemQuantityRequest;
+import com.example.order_service.cart.application.dto.command.DeleteCartItemsCommand;
+import com.example.order_service.cart.application.dto.command.UpdateCartItemQuantityCommand;
 import com.example.order_service.cart.application.dto.result.*;
-import com.example.order_service.cart.application.external.dto.CartProductStatus;
 import com.example.order_service.cart.application.facade.CartFacade;
 import com.example.order_service.cart.application.dto.command.AddCartItemsCommand;
-import com.example.order_service.cart.application.dto.command.CartCommand;
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.docs.descriptor.CartDescriptor;
@@ -103,7 +103,7 @@ public class CartControllerDocsTest extends RestDocSupport {
     void removeCartItem() throws Exception {
         //given
         HttpHeaders roleUser = createAuthHeader("ROLE_USER");
-        willDoNothing().given(cartFacade).removeCartItems(anyLong(), anyList());
+        willDoNothing().given(cartFacade).removeCartItems(any(DeleteCartItemsCommand.class));
         //when
         //then
         mockMvc.perform(delete("/carts")
@@ -126,7 +126,7 @@ public class CartControllerDocsTest extends RestDocSupport {
                 .quantity(3)
                 .build();
         CartResult cartResult = createCartResult();
-        given(cartFacade.updateCartItemQuantity(any(CartCommand.UpdateQuantity.class)))
+        given(cartFacade.updateCartItemQuantity(any(UpdateCartItemQuantityCommand.class)))
                 .willReturn(cartResult);
         //when
         //then

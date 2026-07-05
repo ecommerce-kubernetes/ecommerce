@@ -5,9 +5,10 @@ import com.example.order_service.cart.api.dto.request.UpdateCartItemQuantityRequ
 import com.example.order_service.cart.api.dto.response.AddCartItemsResponse;
 import com.example.order_service.cart.api.dto.response.GetCartResponse;
 import com.example.order_service.cart.api.dto.response.UpdateCartItemQuantityResponse;
+import com.example.order_service.cart.application.dto.command.DeleteCartItemsCommand;
+import com.example.order_service.cart.application.dto.command.UpdateCartItemQuantityCommand;
 import com.example.order_service.cart.application.facade.CartFacade;
 import com.example.order_service.cart.application.dto.command.AddCartItemsCommand;
-import com.example.order_service.cart.application.dto.command.CartCommand;
 import com.example.order_service.cart.application.dto.result.CartResult;
 import com.example.order_service.common.security.model.UserPrincipal;
 import lombok.RequiredArgsConstructor;
@@ -50,7 +51,7 @@ public class CartController {
     public ResponseEntity<UpdateCartItemQuantityResponse> updateQuantity(@AuthenticationPrincipal UserPrincipal userPrincipal,
                                                                          @PathVariable("cartItemId") Long cartItemId,
                                                                          @RequestBody @Validated UpdateCartItemQuantityRequest request){
-        CartCommand.UpdateQuantity command = request.toCommand(userPrincipal.getUserId(), cartItemId);
+        UpdateCartItemQuantityCommand command = request.toCommand(userPrincipal.getUserId(), cartItemId);
         CartResult result = cartFacade.updateCartItemQuantity(command);
         UpdateCartItemQuantityResponse response = UpdateCartItemQuantityResponse.from(result);
         return ResponseEntity.ok(response);
@@ -59,7 +60,8 @@ public class CartController {
     @DeleteMapping
     public ResponseEntity<Void> deleteCartItems(@AuthenticationPrincipal UserPrincipal userPrincipal,
                                                @RequestParam List<Long> cartItemIds){
-        cartFacade.removeCartItems(userPrincipal.getUserId(), cartItemIds);
+        DeleteCartItemsCommand command = DeleteCartItemsCommand.of(userPrincipal.getUserId(), cartItemIds);
+        cartFacade.removeCartItems(command);
         return ResponseEntity.noContent().build();
     }
 }

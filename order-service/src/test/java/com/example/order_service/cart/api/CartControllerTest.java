@@ -3,9 +3,10 @@ package com.example.order_service.cart.api;
 import com.example.order_service.cart.api.dto.request.AddCartItemsRequest;
 
 import com.example.order_service.cart.api.dto.request.UpdateCartItemQuantityRequest;
+import com.example.order_service.cart.application.dto.command.DeleteCartItemsCommand;
+import com.example.order_service.cart.application.dto.command.UpdateCartItemQuantityCommand;
 import com.example.order_service.cart.application.facade.CartFacade;
 import com.example.order_service.cart.application.dto.command.AddCartItemsCommand;
-import com.example.order_service.cart.application.dto.command.CartCommand;
 import com.example.order_service.cart.application.dto.result.CartItemResult;
 import com.example.order_service.cart.application.dto.result.CartResult;
 import com.example.order_service.common.security.model.UserRole;
@@ -227,7 +228,7 @@ class CartControllerTest {
         @WithCustomMockUser
         void deleteCartItems() throws Exception {
             //given
-            willDoNothing().given(cartFacade).removeCartItems(anyLong(), anyList());
+            willDoNothing().given(cartFacade).removeCartItems(any(DeleteCartItemsCommand.class));
             //when
             //then
             mockMvc.perform(delete("/carts")
@@ -288,7 +289,7 @@ class CartControllerTest {
             CartResult result = Instancio.of(CartResult.class)
                     .set(field("items"), List.of(cartItemResult))
                     .create();
-            given(cartFacade.updateCartItemQuantity(any(CartCommand.UpdateQuantity.class)))
+            given(cartFacade.updateCartItemQuantity(any(UpdateCartItemQuantityCommand.class)))
                     .willReturn(result);
             //when
             //then
