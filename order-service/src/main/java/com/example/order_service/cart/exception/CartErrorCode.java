@@ -8,6 +8,11 @@ import org.springframework.http.HttpStatus;
 @Getter
 @RequiredArgsConstructor
 public enum CartErrorCode implements ErrorCode {
+    CART_PRODUCT_CLIENT_ERROR(HttpStatus.CONFLICT, "CART_PRODUCT_CLIENT_ERROR", "상품 추가중 에러가 발생했습니다"),
+    CART_PRODUCT_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "CART_PRODUCT_SERVER_ERROR", "상품 추가중 에러가 발생했습니다"),
+    CART_PRODUCT_UNAVAILABLE_SERVER_ERROR(HttpStatus.SERVICE_UNAVAILABLE, "CART_PRODUCT_UNAVAILABLE_SERVER_ERROR", "상품 추가중 일시적인 에러가 발생했습니다 잠시후 다시 시도해주세요"),
+    CART_PRODUCT_CIRCUIT_OPEN(HttpStatus.SERVICE_UNAVAILABLE, "CART_PRODUCT_CIRCUIT_OPEN", "상품 추가중 일시적인 에러가 발생했습니다 잠시후 다시 시도해주세요"),
+
     CART_PRODUCT_NOT_FOUND(HttpStatus.NOT_FOUND, "CART_PRODUCT_NOT_FOUND", "상품 정보를 찾을 수 없습니다"),
     CART_PRODUCT_CANNOT_ADD(HttpStatus.NOT_FOUND, "CART_PRODUCT_CANNOT_ADD", "장바구니에 추가할 수 없는 상품이 있습니다"),
     CART_PRODUCT_STOCK_INSUFFICIENT(HttpStatus.CONFLICT, "CART_PRODUCT_STOCK_INSUFFICIENT", "수량이 부족합니다"),

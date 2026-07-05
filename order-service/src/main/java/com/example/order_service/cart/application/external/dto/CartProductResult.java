@@ -10,14 +10,14 @@ public record CartProductResult(
         Long productId,
         Long productVariantId,
         CartProductStatus status,
+        Integer stock,
         String sku,
         String productName,
-        Integer stock,
+        String thumbnail,
         Money originalPrice,
         Integer discountRate,
         Money discountAmount,
         Money discountedPrice,
-        String thumbnail,
         List<ProductOption> options
 ) {
     @Builder
