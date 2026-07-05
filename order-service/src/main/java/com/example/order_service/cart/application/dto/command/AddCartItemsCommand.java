@@ -22,8 +22,4 @@ public record AddCartItemsCommand(
     public List<Long> toProductVariantIds() {
         return items.stream().map(Item::productVariantId).toList();
     }
-
-    public Map<Long, Integer> toQuantityMap() {
-        return items.stream().collect(Collectors.toMap(Item::productVariantId, Item::quantity));
-    }
 }

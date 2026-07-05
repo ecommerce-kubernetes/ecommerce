@@ -12,6 +12,8 @@ import com.example.order_service.cart.application.dto.command.AddCartItemsComman
 import com.example.order_service.cart.application.dto.command.CartCommand;
 import com.example.order_service.cart.application.external.CartProductGateway;
 import com.example.order_service.cart.application.dto.result.CartResult;
+import com.example.order_service.cart.exception.CartErrorCode;
+import com.example.order_service.common.exception.application.BusinessException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -27,40 +29,30 @@ public class CartFacade {
     private final CartService cartService;
     private final CartCommandService cartCommandService;
     private final CartProductGateway cartProductGateway;
+    private final CartItemValidator cartItemValidator;
 
     public CartResult addItems(AddCartItemsCommand command) {
         List<Long> productVariantIds = command.toProductVariantIds();
         CartProductListResult result = cartProductGateway.getProducts(productVariantIds);
-        Map<Long, CartProductResult> resultMap = result.toMap();
-        for (AddCartItemsCommand.Item item : command.items()) {
-            if (resultMap.get(item.productVariantId()) == null) {
-                throw new RuntimeException();
-            }
-            CartProductResult product = resultMap.get(item.productVariantId());
-            if (product.status() != CartProductStatus.ON_SALE) {
-                throw new RuntimeException();
-            }
-            if (product.stock() < item.quantity()) {
-                throw new RuntimeException();
-            }
-        }
+        Map<Long, CartProductResult> productMap = result.toMap();
+        cartItemValidator.validate(command, productMap);
         List<CartItemData> cartItemData = cartCommandService.addCartItems(command);
-        List<CartItemResult> returnResult = new ArrayList<>();
-        for (CartItemData itemData : cartItemData) {
-            CartProductResult product = resultMap.get(itemData.productVariantId());
-            CartProductStatus status = product.status();
-            CartItemAvailability availability;
-            if (status == CartProductStatus.ON_SALE) {
-                availability = CartItemAvailability.AVAILABLE;
-            } else {
-                availability = CartItemAvailability.NOT_FOR_SALE;
-            }
-            CartItemResult cartItemResult = CartItemResult.from(itemData, product, availability);
-            returnResult.add(cartItemResult);
-        }
+        List<CartItemResult> returnResult = cartItemData.stream()
+                .map(itemData -> {
+                    CartProductResult product = productMap.get(itemData.productVariantId());
+                    CartItemAvailability availability = determineAvailability(product.status());
+                    return CartItemResult.from(itemData, product, availability);
+                })
+                .toList();
         return CartResult.builder()
                 .items(returnResult)
                 .build();
+    }
+
+    private CartItemAvailability determineAvailability(CartProductStatus status) {
+        return status == CartProductStatus.ON_SALE
+                ? CartItemAvailability.AVAILABLE
+                : CartItemAvailability.NOT_FOR_SALE;
     }
 
     public CartResult getCartDetails(Long userId) {
