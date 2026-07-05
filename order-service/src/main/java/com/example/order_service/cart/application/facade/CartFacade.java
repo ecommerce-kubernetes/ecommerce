@@ -7,6 +7,7 @@ import com.example.order_service.cart.application.external.dto.CartProductListRe
 import com.example.order_service.cart.application.external.dto.CartProductResult;
 import com.example.order_service.cart.application.external.dto.CartProductStatus;
 import com.example.order_service.cart.application.service.CartCommandService;
+import com.example.order_service.cart.application.service.CartQueryService;
 import com.example.order_service.cart.application.service.CartService;
 import com.example.order_service.cart.application.dto.command.AddCartItemsCommand;
 import com.example.order_service.cart.application.dto.command.CartCommand;
@@ -28,6 +29,7 @@ import java.util.Map;
 public class CartFacade {
     private final CartService cartService;
     private final CartCommandService cartCommandService;
+    private final CartQueryService cartQueryService;
     private final CartProductGateway cartProductGateway;
     private final CartItemValidator cartItemValidator;
 
@@ -36,7 +38,8 @@ public class CartFacade {
         CartProductListResult result = cartProductGateway.getProducts(productVariantIds);
         Map<Long, CartProductResult> productMap = result.toMap();
         cartItemValidator.validate(command, productMap);
-        List<CartItemData> cartItemData = cartCommandService.addCartItems(command);
+        cartCommandService.addCartItems(command);
+        List<CartItemData> cartItemData = cartQueryService.getCartItems(command.userId());
         List<CartItemResult> returnResult = cartItemData.stream()
                 .map(itemData -> {
                     CartProductResult product = productMap.get(itemData.productVariantId());

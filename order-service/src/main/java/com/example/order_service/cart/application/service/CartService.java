@@ -24,11 +24,7 @@ public class CartService {
     private final CartItemRepository cartItemRepository;
 
     public List<CartItemDto> addItemToCart(CartCommand.AddItems command) {
-        Cart cart = cartRepository.findWithItemsByUserId(command.userId())
-                .orElseGet(() -> cartRepository.save(Cart.create(command.userId())));
-        List<CartItem> cartItems = cart.addItems(command.items());
-        cartRepository.flush();
-        return CartItemDto.from(cartItems);
+        return null;
     }
 
     @Transactional(readOnly = true)

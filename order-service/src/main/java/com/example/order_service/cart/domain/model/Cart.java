@@ -36,24 +36,23 @@ public class Cart extends BaseEntity {
                 .build();
     }
 
-    public List<CartItem> addItems(List<CartCommand.Item> items) {
-        return items.stream().map(item -> addItem(item.productVariantId(), item.quantity())).toList();
-    }
-
-    public CartItem addItem(Long productVariantId, int quantity){
-        Optional<CartItem> existCartItem = this.cartItems.stream()
-                .filter(item -> item.getProductVariantId().equals(productVariantId))
-                .findFirst();
-
-        if(existCartItem.isPresent()){
-            existCartItem.get().addQuantity(quantity);
-            return existCartItem.get();
+    public void addItem(Long productVariantId, int quantity){
+        CartItem existing = findItem(productVariantId);
+        if(existing != null) {
+            existing.addQuantity(quantity);
+            return;
         }
 
         CartItem cartItem = CartItem.create(productVariantId, quantity);
         this.cartItems.add(cartItem);
         cartItem.setCart(this);
-        return cartItem;
+    }
+
+    public CartItem findItem(Long productVariantId) {
+        return cartItems.stream()
+                .filter(item -> item.getProductVariantId().equals(productVariantId))
+                .findFirst()
+                .orElse(null);
     }
 
     public void clearItems(){

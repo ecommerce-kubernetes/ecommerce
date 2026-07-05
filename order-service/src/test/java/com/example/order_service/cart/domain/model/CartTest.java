@@ -36,10 +36,10 @@ public class CartTest {
             //given
             Cart cart = Cart.create(1L);
             //when
-            CartItem cartItem = cart.addItem(1L, 2);
+            cart.addItem(1L, 2);
             //then
             assertThat(cart.getCartItems()).hasSize(1);
-            assertThat(cartItem)
+            assertThat(cart.findItem(1L))
                     .extracting(CartItem::getProductVariantId, CartItem::getQuantity)
                     .contains(1L, 2);
         }
@@ -51,10 +51,10 @@ public class CartTest {
             Cart cart = Cart.create(1L);
             cart.getCartItems().add(CartItem.create(1L, 2));
             //when
-            CartItem cartItem = cart.addItem(1L, 3);
+            cart.addItem(1L, 3);
             //then
             assertThat(cart.getCartItems()).hasSize(1);
-            assertThat(cartItem)
+            assertThat(cart.findItem(1L))
                     .extracting("productVariantId", "quantity")
                     .contains(1L, 5);
         }

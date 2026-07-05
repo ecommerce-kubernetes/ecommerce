@@ -11,6 +11,7 @@ import com.example.order_service.cart.application.external.dto.CartProductListRe
 import com.example.order_service.cart.application.external.dto.CartProductResult;
 import com.example.order_service.cart.application.external.dto.CartProductStatus;
 import com.example.order_service.cart.application.service.CartCommandService;
+import com.example.order_service.cart.application.service.CartQueryService;
 import com.example.order_service.cart.application.service.CartService;
 import com.example.order_service.cart.application.dto.result.CartItemDto;
 import com.example.order_service.cart.application.dto.result.CartResult;
@@ -44,6 +45,8 @@ public class CartFacadeTest {
     @Mock
     private CartCommandService cartCommandService;
     @Mock
+    private CartQueryService cartQueryService;
+    @Mock
     private CartItemValidator validator;
     @Mock
     private CartService cartService;
@@ -76,7 +79,8 @@ public class CartFacadeTest {
                     .create();
             given(cartProductGateway.getProducts(anyList())).willReturn(productList);
             doNothing().when(validator).validate(any(AddCartItemsCommand.class), any());
-            given(cartCommandService.addCartItems(any(AddCartItemsCommand.class))).willReturn(List.of(savedItem));
+            doNothing().when(cartCommandService).addCartItems(any(AddCartItemsCommand.class));
+            given(cartQueryService.getCartItems(anyLong())).willReturn(List.of(savedItem));
             //when
             CartResult cartResult = cartFacade.addItems(command);
             //then
