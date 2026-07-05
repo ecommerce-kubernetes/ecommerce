@@ -1,6 +1,6 @@
 package com.example.order_service.cart.listener.event;
 
-import com.example.order_service.cart.application.service.CartFacade;
+import com.example.order_service.cart.application.facade.CartFacade;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

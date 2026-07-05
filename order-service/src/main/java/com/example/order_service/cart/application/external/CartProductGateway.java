@@ -1,7 +1,7 @@
 package com.example.order_service.cart.application.external;
 
-import com.example.order_service.cart.application.external.dto.result.CartProductResult;
-import com.example.order_service.cart.application.mapper.CartProductMapper;
+import com.example.order_service.cart.application.external.dto.CartProductListResult;
+import com.example.order_service.cart.application.external.mapper.CartProductMapper;
 import com.example.order_service.infrastructure.adaptor.ProductAdaptor;
 import com.example.order_service.infrastructure.dto.response.ProductClientResponse;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +17,7 @@ public class CartProductGateway {
     private final ProductAdaptor adaptor;
     private final CartProductMapper mapper;
 
-    public CartProductResult.ProductList getProducts(List<Long> variantIds) {
+    public CartProductListResult getProducts(List<Long> variantIds) {
         return null;
     }
     // fallback

@@ -1,6 +1,9 @@
 package com.example.order_service.cart.api.dto.response;
 
-import com.example.order_service.cart.application.service.dto.result.*;
+import com.example.order_service.cart.application.dto.result.CartItemOption;
+import com.example.order_service.cart.application.dto.result.CartItemPrice;
+import com.example.order_service.cart.application.dto.result.CartItemResult;
+import com.example.order_service.cart.application.dto.result.CartResult;
 import lombok.Builder;
 
 import java.util.List;
@@ -79,7 +82,7 @@ public record UpdateCartItemQuantityResponse(
         }
     }
 
-    public static UpdateCartItemQuantityResponse from(GetCartResult result) {
+    public static UpdateCartItemQuantityResponse from(CartResult result) {
         return UpdateCartItemQuantityResponse.builder()
                 .items(Item.from(result.items()))
                 .totalCount(result.items().size())

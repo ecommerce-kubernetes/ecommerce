@@ -3,11 +3,11 @@ package com.example.order_service.cart.api;
 import com.example.order_service.cart.api.dto.request.AddCartItemsRequest;
 
 import com.example.order_service.cart.api.dto.request.UpdateCartItemQuantityRequest;
-import com.example.order_service.cart.application.service.CartFacade;
-import com.example.order_service.cart.application.service.dto.command.AddCartItemsCommand;
-import com.example.order_service.cart.application.service.dto.command.CartCommand;
-import com.example.order_service.cart.application.service.dto.result.CartItemResult;
-import com.example.order_service.cart.application.service.dto.result.GetCartResult;
+import com.example.order_service.cart.application.facade.CartFacade;
+import com.example.order_service.cart.application.dto.command.AddCartItemsCommand;
+import com.example.order_service.cart.application.dto.command.CartCommand;
+import com.example.order_service.cart.application.dto.result.CartItemResult;
+import com.example.order_service.cart.application.dto.result.CartResult;
 import com.example.order_service.common.security.model.UserRole;
 import com.example.order_service.support.annotation.WithCustomMockUser;
 import com.example.order_service.support.config.TestSecurityConfig;
@@ -59,7 +59,7 @@ class CartControllerTest {
             //given
             AddCartItemsRequest request = Instancio.create(AddCartItemsRequest.class);
             CartItemResult item = Instancio.create(CartItemResult.class);
-            GetCartResult result = Instancio.of(GetCartResult.class)
+            CartResult result = Instancio.of(CartResult.class)
                     .set(field("items"), List.of(item))
                     .create();
             given(cartFacade.addItems(any(AddCartItemsCommand.class)))
@@ -169,7 +169,7 @@ class CartControllerTest {
         void getAllCartItem() throws Exception {
             //given
             CartItemResult item = Instancio.create(CartItemResult.class);
-            GetCartResult result = Instancio.of(GetCartResult.class)
+            CartResult result = Instancio.of(CartResult.class)
                     .set(field("items"), List.of(item))
                     .create();
             given(cartFacade.getCartDetails(anyLong()))
@@ -285,7 +285,7 @@ class CartControllerTest {
             //given
             UpdateCartItemQuantityRequest request = Instancio.create(UpdateCartItemQuantityRequest.class);
             CartItemResult cartItemResult = Instancio.create(CartItemResult.class);
-            GetCartResult result = Instancio.of(GetCartResult.class)
+            CartResult result = Instancio.of(CartResult.class)
                     .set(field("items"), List.of(cartItemResult))
                     .create();
             given(cartFacade.updateCartItemQuantity(any(CartCommand.UpdateQuantity.class)))

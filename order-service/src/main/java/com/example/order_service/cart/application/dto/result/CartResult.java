@@ -1,11 +1,11 @@
-package com.example.order_service.cart.application.service.dto.result;
+package com.example.order_service.cart.application.dto.result;
 
 import lombok.Builder;
 
 import java.util.List;
 
 @Builder
-public record GetCartResult(
+public record CartResult(
         List<CartItemResult> items
 ) {
 

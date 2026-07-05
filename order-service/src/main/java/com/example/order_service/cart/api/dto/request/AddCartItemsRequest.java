@@ -1,7 +1,6 @@
 package com.example.order_service.cart.api.dto.request;
 
-import com.example.order_service.cart.application.service.dto.command.AddCartItemsCommand;
-import com.example.order_service.cart.application.service.dto.command.CartCommand;
+import com.example.order_service.cart.application.dto.command.AddCartItemsCommand;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;

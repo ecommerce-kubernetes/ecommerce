@@ -1,4 +1,4 @@
-package com.example.order_service.cart.application.service.dto.command;
+package com.example.order_service.cart.application.dto.command;
 
 import lombok.Builder;
 

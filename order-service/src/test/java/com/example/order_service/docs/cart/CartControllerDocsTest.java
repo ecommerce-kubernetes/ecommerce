@@ -3,11 +3,14 @@ package com.example.order_service.docs.cart;
 import com.example.order_service.cart.api.CartController;
 import com.example.order_service.cart.api.dto.request.AddCartItemsRequest;
 import com.example.order_service.cart.api.dto.request.UpdateCartItemQuantityRequest;
-import com.example.order_service.cart.application.external.dto.result.CartProductStatus;
-import com.example.order_service.cart.application.service.CartFacade;
-import com.example.order_service.cart.application.service.dto.command.AddCartItemsCommand;
-import com.example.order_service.cart.application.service.dto.command.CartCommand;
-import com.example.order_service.cart.application.service.dto.result.*;
+import com.example.order_service.cart.application.dto.result.CartItemOption;
+import com.example.order_service.cart.application.dto.result.CartItemPrice;
+import com.example.order_service.cart.application.dto.result.CartItemResult;
+import com.example.order_service.cart.application.dto.result.CartResult;
+import com.example.order_service.cart.application.external.dto.CartProductStatus;
+import com.example.order_service.cart.application.facade.CartFacade;
+import com.example.order_service.cart.application.dto.command.AddCartItemsCommand;
+import com.example.order_service.cart.application.dto.command.CartCommand;
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.docs.descriptor.CartDescriptor;
@@ -57,7 +60,7 @@ public class CartControllerDocsTest extends RestDocSupport {
                 .build();
 
         HttpHeaders roleUser = createAuthHeader("ROLE_USER");
-        GetCartResult result = createCartAddResult();
+        CartResult result = createCartAddResult();
         given(cartFacade.addItems(any(AddCartItemsCommand.class)))
                 .willReturn(result);
         //when
@@ -81,7 +84,7 @@ public class CartControllerDocsTest extends RestDocSupport {
     void addAllCartItem() throws Exception {
         //given
         HttpHeaders roleUser = createAuthHeader("ROLE_USER");
-        GetCartResult result = createCartResult();
+        CartResult result = createCartResult();
         given(cartFacade.getCartDetails(anyLong()))
                 .willReturn(result);
 
@@ -125,7 +128,7 @@ public class CartControllerDocsTest extends RestDocSupport {
         UpdateCartItemQuantityRequest request = UpdateCartItemQuantityRequest.builder()
                 .quantity(3)
                 .build();
-        GetCartResult cartResult = createCartResult();
+        CartResult cartResult = createCartResult();
         given(cartFacade.updateCartItemQuantity(any(CartCommand.UpdateQuantity.class)))
                 .willReturn(cartResult);
         //when
@@ -147,7 +150,7 @@ public class CartControllerDocsTest extends RestDocSupport {
                 );
     }
 
-    private GetCartResult createCartAddResult() {
+    private CartResult createCartAddResult() {
         CartItemResult cartResult = CartItemResult.builder()
                 .cartItemId(1L)
                 .productId(1L)
@@ -174,10 +177,10 @@ public class CartControllerDocsTest extends RestDocSupport {
                         )
                 )
                 .build();
-        return GetCartResult.builder().items(List.of(cartResult)).build();
+        return CartResult.builder().items(List.of(cartResult)).build();
     }
 
-    private GetCartResult createCartResult() {
+    private CartResult createCartResult() {
         CartItemResult cartResult = CartItemResult.builder()
                 .cartItemId(1L)
                 .productId(1L)
@@ -204,7 +207,7 @@ public class CartControllerDocsTest extends RestDocSupport {
                         )
                 )
                 .build();
-        return GetCartResult.builder().items(List.of(cartResult))
+        return CartResult.builder().items(List.of(cartResult))
                 .build();
     }
 }
