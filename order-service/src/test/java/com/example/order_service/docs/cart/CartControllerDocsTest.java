@@ -3,10 +3,7 @@ package com.example.order_service.docs.cart;
 import com.example.order_service.cart.api.CartController;
 import com.example.order_service.cart.api.dto.request.AddCartItemsRequest;
 import com.example.order_service.cart.api.dto.request.UpdateCartItemQuantityRequest;
-import com.example.order_service.cart.application.dto.result.CartItemOption;
-import com.example.order_service.cart.application.dto.result.CartItemPrice;
-import com.example.order_service.cart.application.dto.result.CartItemResult;
-import com.example.order_service.cart.application.dto.result.CartResult;
+import com.example.order_service.cart.application.dto.result.*;
 import com.example.order_service.cart.application.external.dto.CartProductStatus;
 import com.example.order_service.cart.application.facade.CartFacade;
 import com.example.order_service.cart.application.dto.command.AddCartItemsCommand;
@@ -156,7 +153,7 @@ public class CartControllerDocsTest extends RestDocSupport {
                 .productId(1L)
                 .productVariantId(1L)
                 .productName("상품1")
-                .status(CartProductStatus.ON_SALE)
+                .status(CartItemAvailability.AVAILABLE)
                 .thumbnail("/product/product/PROD1_thumbnail.jpg")
                 .quantity(2)
                 .price(
@@ -186,7 +183,7 @@ public class CartControllerDocsTest extends RestDocSupport {
                 .productId(1L)
                 .productVariantId(1L)
                 .productName("상품1")
-                .status(CartProductStatus.ON_SALE)
+                .status(CartItemAvailability.AVAILABLE)
                 .thumbnail("/product/product/PROD1_thumbnail.jpg")
                 .quantity(2)
                 .price(

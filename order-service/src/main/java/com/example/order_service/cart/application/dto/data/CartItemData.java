@@ -1,4 +1,11 @@
 package com.example.order_service.cart.application.dto.data;
 
-public class CartItemData {
+import lombok.Builder;
+
+@Builder
+public record CartItemData(
+        Long cartItemId,
+        Long productVariantId,
+        Integer quantity
+) {
 }

@@ -1,5 +1,6 @@
 package com.example.order_service.cart.application.dto.result;
 
+import com.example.order_service.cart.application.external.dto.CartProductResult;
 import com.example.order_service.common.domain.vo.Money;
 import lombok.Builder;
 
@@ -10,4 +11,12 @@ public record CartItemPrice(
         Money discountAmount,
         Money discountedPrice
 ) {
+    public static CartItemPrice from(CartProductResult result) {
+        return CartItemPrice.builder()
+                .originalPrice(result.originalPrice())
+                .discountRate(result.discountRate())
+                .discountAmount(result.discountAmount())
+                .discountedPrice(result.discountedPrice())
+                .build();
+    }
 }

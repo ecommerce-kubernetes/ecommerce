@@ -8,5 +8,4 @@ import java.util.List;
 public record CartResult(
         List<CartItemResult> items
 ) {
-
 }

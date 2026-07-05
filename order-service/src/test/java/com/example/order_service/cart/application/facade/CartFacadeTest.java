@@ -3,8 +3,14 @@ package com.example.order_service.cart.application.facade;
 import com.example.order_service.cart.application.dto.command.AddCartItemsCommand;
 import com.example.order_service.cart.application.dto.command.CartCommand;
 
+import com.example.order_service.cart.application.dto.data.CartItemData;
+import com.example.order_service.cart.application.dto.result.CartItemAvailability;
 import com.example.order_service.cart.application.dto.result.CartItemResult;
 import com.example.order_service.cart.application.external.CartProductGateway;
+import com.example.order_service.cart.application.external.dto.CartProductListResult;
+import com.example.order_service.cart.application.external.dto.CartProductResult;
+import com.example.order_service.cart.application.external.dto.CartProductStatus;
+import com.example.order_service.cart.application.service.CartCommandService;
 import com.example.order_service.cart.application.service.CartService;
 import com.example.order_service.cart.application.dto.result.CartItemDto;
 import com.example.order_service.cart.application.dto.result.CartResult;
@@ -32,6 +38,8 @@ public class CartFacadeTest {
     @Mock
     private CartProductGateway cartProductGateway;
     @Mock
+    private CartCommandService cartCommandService;
+    @Mock
     private CartService cartService;
 
     @Nested
@@ -39,37 +47,124 @@ public class CartFacadeTest {
     class AddItems {
 
         @Test
-        @DisplayName("장바구니에 상품이 추가되면 상품 정보가 포함된 응답값을 반환한다")
+        @DisplayName("상품을 조회하여 상품 검증 후 장바구니에 추가한다")
         void addItem() {
             //given
+            AddCartItemsCommand.Item item = Instancio.create(AddCartItemsCommand.Item.class);
             AddCartItemsCommand command = Instancio.of(AddCartItemsCommand.class)
-                    .generate(field(CartCommand.AddItems::items),
-                            gen -> gen.collection().size(2))
+                    .set(field("items"), List.of(item))
                     .create();
-        }
-
-        @Test
-        @DisplayName("요청한 상품 중 장바구니에 추가할 수 없는 상품이 있는 경우 예외가 발생한다")
-        void addItem_fail_ProductNotOnSale() {
-            //given
-            AddCartItemsCommand command = Instancio.of(AddCartItemsCommand.class)
-                    .generate(field(AddCartItemsCommand::items),
-                            gen -> gen.collection().size(2))
+            CartProductResult product = Instancio.of(CartProductResult.class)
+                    .set(field("productVariantId"), item.productVariantId())
+                    .set(field("status"), CartProductStatus.ON_SALE)
+                    .set(field("stock"), item.quantity() + 100)
                     .create();
+            CartProductListResult productList = Instancio.of(CartProductListResult.class)
+                    .set(field("products"), List.of(product))
+                    .create();
+            CartItemData savedItem = Instancio.of(CartItemData.class)
+                    .set(field("productVariantId"), item.productVariantId())
+                    .set(field("quantity"), item.quantity())
+                    .create();
+            given(cartProductGateway.getProducts(anyList())).willReturn(productList);
+            given(cartCommandService.addCartItems(any(AddCartItemsCommand.class))).willReturn(List.of(savedItem));
             //when
+            CartResult cartResult = cartFacade.addItems(command);
             //then
+            assertThat(cartResult.items()).hasSize(1);
+            assertThat(cartResult.items())
+                    .extracting("status", "productVariantId")
+                    .containsExactly(
+                            tuple(CartItemAvailability.AVAILABLE, item.productVariantId())
+                    );
         }
 
         @Test
         @DisplayName("상품 정보에 누락된 상품이 있는 경우 예외가 발생한다")
         void addItem_fail_product_not_found() {
             //given
+            AddCartItemsCommand.Item item1 = Instancio.create(AddCartItemsCommand.Item.class);
+            AddCartItemsCommand.Item item2 = Instancio.create(AddCartItemsCommand.Item.class);
             AddCartItemsCommand command = Instancio.of(AddCartItemsCommand.class)
-                    .generate(field(CartCommand.AddItems::items),
-                            gen -> gen.collection().size(2))
+                    .set(field("items"), List.of(item1, item2))
                     .create();
+
+            CartProductResult product = Instancio.of(CartProductResult.class)
+                    .set(field("productVariantId"), item1.productVariantId())
+                    .set(field("status"), CartProductStatus.ON_SALE)
+                    .set(field("stock"), item1.quantity() + 100)
+                    .create();
+            CartProductListResult productList = Instancio.of(CartProductListResult.class)
+                    .set(field("products"), List.of(product))
+                    .create();
+
+            given(cartProductGateway.getProducts(anyList())).willReturn(productList);
             //when
             //then
+            assertThatThrownBy(() -> cartFacade.addItems(command))
+                    .isInstanceOf(RuntimeException.class);
+        }
+
+        @Test
+        @DisplayName("요청한 상품 중 장바구니에 추가할 수 없는 상품이 있는 경우 예외가 발생한다")
+        void addItem_fail_ProductNotOnSale() {
+            //given
+            AddCartItemsCommand.Item item1 = Instancio.create(AddCartItemsCommand.Item.class);
+            AddCartItemsCommand.Item item2 = Instancio.create(AddCartItemsCommand.Item.class);
+            AddCartItemsCommand command = Instancio.of(AddCartItemsCommand.class)
+                    .set(field("items"), List.of(item1, item2))
+                    .create();
+
+            CartProductResult product1 = Instancio.of(CartProductResult.class)
+                    .set(field("productVariantId"), item1.productVariantId())
+                    .set(field("status"), CartProductStatus.ON_SALE)
+                    .set(field("stock"), item1.quantity() + 100)
+                    .create();
+            CartProductResult product2 = Instancio.of(CartProductResult.class)
+                    .set(field("productVariantId"), item1.productVariantId())
+                    .set(field("status"), CartProductStatus.STOP_SALE)
+                    .set(field("stock"), item2.quantity() + 100)
+                    .create();
+            CartProductListResult productList = Instancio.of(CartProductListResult.class)
+                    .set(field("products"), List.of(product1, product2))
+                    .create();
+
+            given(cartProductGateway.getProducts(anyList())).willReturn(productList);
+            //when
+            //then
+            assertThatThrownBy(() -> cartFacade.addItems(command))
+                    .isInstanceOf(RuntimeException.class);
+        }
+
+        @Test
+        @DisplayName("요청한 상품 중 수량이 부족한 상품이 있는 경우 예외가 발생한다")
+        void addItem_fail_product_stock_insufficient() {
+            //given
+            AddCartItemsCommand.Item item1 = Instancio.create(AddCartItemsCommand.Item.class);
+            AddCartItemsCommand.Item item2 = Instancio.create(AddCartItemsCommand.Item.class);
+            AddCartItemsCommand command = Instancio.of(AddCartItemsCommand.class)
+                    .set(field("items"), List.of(item1, item2))
+                    .create();
+
+            CartProductResult product1 = Instancio.of(CartProductResult.class)
+                    .set(field("productVariantId"), item1.productVariantId())
+                    .set(field("status"), CartProductStatus.ON_SALE)
+                    .set(field("stock"), item1.quantity() + 100)
+                    .create();
+            CartProductResult product2 = Instancio.of(CartProductResult.class)
+                    .set(field("productVariantId"), item1.productVariantId())
+                    .set(field("status"), CartProductStatus.ON_SALE)
+                    .set(field("stock"), item2.quantity() - 10)
+                    .create();
+            CartProductListResult productList = Instancio.of(CartProductListResult.class)
+                    .set(field("products"), List.of(product1, product2))
+                    .create();
+
+            given(cartProductGateway.getProducts(anyList())).willReturn(productList);
+            //when
+            //then
+            assertThatThrownBy(() -> cartFacade.addItems(command))
+                    .isInstanceOf(RuntimeException.class);
         }
     }
 
