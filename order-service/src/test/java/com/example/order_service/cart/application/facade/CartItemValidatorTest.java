@@ -1,6 +1,7 @@
 package com.example.order_service.cart.application.facade;
 
 import com.example.order_service.cart.application.dto.command.AddCartItemsCommand;
+import com.example.order_service.cart.application.external.dto.CartProductListResult;
 import com.example.order_service.cart.application.external.dto.CartProductResult;
 import com.example.order_service.cart.application.external.dto.CartProductStatus;
 import com.example.order_service.cart.exception.CartErrorCode;
@@ -38,10 +39,12 @@ class CartItemValidatorTest {
                 .set(field("status"), CartProductStatus.ON_SALE)
                 .set(field("stock"), item1.quantity() + 100)
                 .create();
-        Map<Long, CartProductResult> resultMap = Map.of(product1.productVariantId(), product1);
+        CartProductListResult productData = Instancio.of(CartProductListResult.class)
+                .set(field("products"), List.of(product1))
+                .create();
         //when
         //then
-        assertThatThrownBy(() -> validator.validate(command, resultMap))
+        assertThatThrownBy(() -> validator.validate(command, productData))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(CartErrorCode.CART_PRODUCT_NOT_FOUND);
@@ -73,11 +76,12 @@ class CartItemValidatorTest {
                 .set(field("stock"), item2.quantity() + 100)
                 .create();
 
-        Map<Long, CartProductResult> resultMap = Map.of(product1.productVariantId(), product1,
-                product2.productVariantId(), product2);
+        CartProductListResult productData = Instancio.of(CartProductListResult.class)
+                .set(field("products"), List.of(product1, product2))
+                .create();
         //when
         //then
-        assertThatThrownBy(() -> validator.validate(command, resultMap))
+        assertThatThrownBy(() -> validator.validate(command, productData))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(CartErrorCode.CART_PRODUCT_CANNOT_ADD);

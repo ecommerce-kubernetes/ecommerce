@@ -3,6 +3,7 @@ package com.example.order_service.cart.application.facade;
 import com.example.order_service.cart.application.dto.command.DeleteCartItemsCommand;
 import com.example.order_service.cart.application.dto.command.UpdateCartItemQuantityCommand;
 import com.example.order_service.cart.application.dto.data.CartItemData;
+import com.example.order_service.cart.application.dto.result.AddCartItemsResult;
 import com.example.order_service.cart.application.dto.result.CartItemAvailability;
 import com.example.order_service.cart.application.dto.result.CartItemResult;
 import com.example.order_service.cart.application.external.dto.CartProductListResult;
@@ -29,14 +30,8 @@ public class CartFacade {
     private final CartProductGateway cartProductGateway;
     private final CartItemValidator cartItemValidator;
 
-    public CartResult addItems(AddCartItemsCommand command) {
-        List<Long> productVariantIds = command.toProductVariantIds();
-        CartProductListResult result = cartProductGateway.getProducts(productVariantIds);
-        Map<Long, CartProductResult> productMap = result.toMap();
-        cartItemValidator.validate(command, productMap);
-        cartCommandService.addCartItems(command);
-        List<CartItemData> cartItems = cartQueryService.getCartItems(command.userId());
-        return assembleResult(cartItems);
+    public AddCartItemsResult addItems(AddCartItemsCommand command) {
+        return null;
     }
 
     public CartResult getCartDetails(Long userId) {

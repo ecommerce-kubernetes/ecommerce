@@ -7,6 +7,7 @@ import com.example.order_service.cart.api.dto.response.GetCartResponse;
 import com.example.order_service.cart.api.dto.response.UpdateCartItemQuantityResponse;
 import com.example.order_service.cart.application.dto.command.DeleteCartItemsCommand;
 import com.example.order_service.cart.application.dto.command.UpdateCartItemQuantityCommand;
+import com.example.order_service.cart.application.dto.result.AddCartItemsResult;
 import com.example.order_service.cart.application.facade.CartFacade;
 import com.example.order_service.cart.application.dto.command.AddCartItemsCommand;
 import com.example.order_service.cart.application.dto.result.CartResult;
@@ -35,7 +36,7 @@ public class CartController {
     public ResponseEntity<AddCartItemsResponse> addCartItem(@AuthenticationPrincipal UserPrincipal userPrincipal,
                                                             @RequestBody @Validated AddCartItemsRequest request){
         AddCartItemsCommand command = request.toCommand(userPrincipal.getUserId());
-        CartResult result = cartFacade.addItems(command);
+        AddCartItemsResult result = cartFacade.addItems(command);
         AddCartItemsResponse response = AddCartItemsResponse.from(result);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }

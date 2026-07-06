@@ -5,6 +5,7 @@ import com.example.order_service.cart.api.dto.request.AddCartItemsRequest;
 import com.example.order_service.cart.api.dto.request.UpdateCartItemQuantityRequest;
 import com.example.order_service.cart.application.dto.command.DeleteCartItemsCommand;
 import com.example.order_service.cart.application.dto.command.UpdateCartItemQuantityCommand;
+import com.example.order_service.cart.application.dto.result.AddCartItemsResult;
 import com.example.order_service.cart.application.facade.CartFacade;
 import com.example.order_service.cart.application.dto.command.AddCartItemsCommand;
 import com.example.order_service.cart.application.dto.result.CartItemResult;
@@ -59,12 +60,11 @@ class CartControllerTest {
         void addCartItem() throws Exception {
             //given
             AddCartItemsRequest request = Instancio.create(AddCartItemsRequest.class);
-            CartItemResult item = Instancio.create(CartItemResult.class);
-            CartResult result = Instancio.of(CartResult.class)
+            AddCartItemsResult.CartItemResult item = Instancio.create(AddCartItemsResult.CartItemResult.class);
+            AddCartItemsResult result = Instancio.of(AddCartItemsResult.class)
                     .set(field("items"), List.of(item))
                     .create();
-            given(cartFacade.addItems(any(AddCartItemsCommand.class)))
-                    .willReturn(result);
+            given(cartFacade.addItems(any(AddCartItemsCommand.class))).willReturn(result);
             //when
             //then
             mockMvc.perform(post("/carts")

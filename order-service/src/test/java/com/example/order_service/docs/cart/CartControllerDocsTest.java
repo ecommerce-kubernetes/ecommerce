@@ -57,9 +57,6 @@ public class CartControllerDocsTest extends RestDocSupport {
                 .build();
 
         HttpHeaders roleUser = createAuthHeader("ROLE_USER");
-        CartResult result = createCartAddResult();
-        given(cartFacade.addItems(any(AddCartItemsCommand.class)))
-                .willReturn(result);
         //when
         //then
         mockMvc.perform(post("/carts")
@@ -145,36 +142,6 @@ public class CartControllerDocsTest extends RestDocSupport {
                                 parameterWithName("cartItemId").description("장바구니 상품 ID(장바구니 상품 식별자)")
                         )
                 );
-    }
-
-    private CartResult createCartAddResult() {
-        CartItemResult cartResult = CartItemResult.builder()
-                .cartItemId(1L)
-                .productId(1L)
-                .productVariantId(1L)
-                .productName("상품1")
-                .status(CartItemAvailability.AVAILABLE)
-                .thumbnail("/product/product/PROD1_thumbnail.jpg")
-                .quantity(2)
-                .price(
-                        CartItemPrice.builder()
-                                .originalPrice(Money.wons(3000L))
-                                .discountAmount(Money.wons(300L))
-                                .discountedPrice(Money.wons(2700L))
-                                .discountRate(10)
-                                .build()
-                )
-                .lineTotal(Money.wons(5400L))
-                .options(
-                        List.of(
-                                CartItemOption.builder()
-                                        .optionTypeName("사이즈")
-                                        .optionValueName("XL")
-                                        .build()
-                        )
-                )
-                .build();
-        return CartResult.builder().items(List.of(cartResult)).build();
     }
 
     private CartResult createCartResult() {
