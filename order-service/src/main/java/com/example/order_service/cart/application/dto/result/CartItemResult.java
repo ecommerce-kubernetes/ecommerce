@@ -39,6 +39,7 @@ public record CartItemResult(
     public static CartItemResult unknown(CartItemData data, CartItemAvailability status) {
         return CartItemResult.builder()
                 .cartItemId(data.cartItemId())
+                .productVariantId(data.productVariantId())
                 .status(status)
                 .quantity(data.quantity())
                 .build();
