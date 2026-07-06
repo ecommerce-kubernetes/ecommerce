@@ -82,38 +82,4 @@ class CartItemValidatorTest {
                 .extracting("errorCode")
                 .isEqualTo(CartErrorCode.CART_PRODUCT_CANNOT_ADD);
     }
-
-    @Test
-    @DisplayName("재고 수량이 부족하면 예외가 발생한다")
-    void validate_insufficient_stock() {
-        //given
-        AddCartItemsCommand.Item item1 = Instancio.of(AddCartItemsCommand.Item.class)
-                .set(field("productVariantId"), 1L)
-                .create();
-        AddCartItemsCommand.Item item2 = Instancio.of(AddCartItemsCommand.Item.class)
-                .set(field("productVariantId"), 2L)
-                .create();
-        AddCartItemsCommand command = Instancio.of(AddCartItemsCommand.class)
-                .set(field("items"), List.of(item1, item2))
-                .create();
-
-        CartProductResult product1 = Instancio.of(CartProductResult.class)
-                .set(field("productVariantId"), item1.productVariantId())
-                .set(field("status"), CartProductStatus.ON_SALE)
-                .set(field("stock"), item1.quantity() + 100)
-                .create();
-        CartProductResult product2 = Instancio.of(CartProductResult.class)
-                .set(field("productVariantId"), item2.productVariantId())
-                .set(field("status"), CartProductStatus.ON_SALE)
-                .set(field("stock"), item2.quantity() - 10)
-                .create();
-        Map<Long, CartProductResult> resultMap = Map.of(product1.productVariantId(), product1,
-                product2.productVariantId(), product2);
-        //when
-        //then
-        assertThatThrownBy(() -> validator.validate(command, resultMap))
-                .isInstanceOf(BusinessException.class)
-                .extracting("errorCode")
-                .isEqualTo(CartErrorCode.CART_PRODUCT_STOCK_INSUFFICIENT);
-    }
 }

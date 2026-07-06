@@ -21,9 +21,6 @@ public class CartItemValidator {
             if (product.status() != CartProductStatus.ON_SALE) {
                 throw new BusinessException(CartErrorCode.CART_PRODUCT_CANNOT_ADD);
             }
-            if (product.stock() < item.quantity()) {
-                throw new BusinessException(CartErrorCode.CART_PRODUCT_STOCK_INSUFFICIENT);
-            }
         }
     }
 }
