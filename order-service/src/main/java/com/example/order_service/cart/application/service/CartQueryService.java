@@ -22,4 +22,8 @@ public class CartQueryService {
                         .toList())
                 .orElse(Collections.emptyList());
     }
+
+    public List<CartItemData> getCartItems(Long userId, List<Long> productVariantIds) {
+        return null;
+    }
 }
