@@ -40,8 +40,7 @@ public class CartFacade {
     }
 
     public CartResult getCartDetails(Long userId) {
-        List<CartItemData> cartItems = cartQueryService.getCartItems(userId);
-        return assembleResult(cartItems);
+        return null;
     }
 
     public CartResult updateCartItemQuantity(UpdateCartItemQuantityCommand command) {

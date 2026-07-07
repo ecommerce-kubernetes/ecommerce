@@ -24,6 +24,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.*;
@@ -109,6 +110,87 @@ public class CartFacadeTest {
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(CartErrorCode.CART_PRODUCT_CANNOT_ADD);
+        }
+    }
+
+    @Nested
+    @DisplayName("장바구니 조회")
+    class GetCartDetails {
+
+        @Test
+        @DisplayName("장바구니가 빈 경우 상품을 조회하지 않고 빈 결과를 반환한다")
+        void getCartDetails_empty_cart(){
+            //given
+            Long userId = 1L;
+            given(cartQueryService.getCartItems(anyLong())).willReturn(Collections.emptyList());
+            //when
+            CartResult result = cartFacade.getCartDetails(userId);
+            //then
+            assertThat(result.items()).isEmpty();
+            verify(cartProductGateway, never()).getProducts(any());
+        }
+
+        @Test
+        @DisplayName("장바구니 조회 시 상품 정보가 없는 항목도 함께 반환한다")
+        void getCartDetails_missing_productData(){
+            //given
+            Long userId = 1L;
+            Long productVariantId = 1L;
+            int quantity = 2;
+            CartItemData cartItemData = createCartItemData(productVariantId, quantity);
+
+            CartProductListResult productData = Instancio.of(CartProductListResult.class)
+                    .set(field("products"), Collections.emptyList())
+                    .create();
+
+            given(cartQueryService.getCartItems(anyLong())).willReturn(List.of(cartItemData));
+            given(cartProductGateway.getProducts(anyList())).willReturn(productData);
+            //when
+            CartResult result = cartFacade.getCartDetails(userId);
+            //then
+            assertThat(result.items()).hasSize(1);
+
+            assertThat(result.items())
+                    .extracting("productVariantId", "status", "quantity")
+                    .containsExactlyInAnyOrder(
+                            tuple(productVariantId, CartItemAvailability.NOT_FOR_SALE, quantity)
+                    );
+        }
+
+        @Test
+        @DisplayName("장바구니 항목 상품 정보를 반환한다")
+        void getCartDetails(){
+            //given
+            Long userId = 1L;
+            CartItemData item1 = createCartItemData(1L, 3);
+            CartItemData item2 = createCartItemData(2L, 3);
+
+            CartProductResult product1 = Instancio.of(CartProductResult.class)
+                    .set(field("productVariantId"), item1.productVariantId())
+                    .set(field("status"), CartProductStatus.ON_SALE)
+                    .create();
+
+            CartProductResult product2 = Instancio.of(CartProductResult.class)
+                    .set(field("productVariantId"), item2.productVariantId())
+                    .set(field("status"), CartProductStatus.STOP_SALE)
+                    .create();
+
+            CartProductListResult productData = Instancio.of(CartProductListResult.class)
+                    .set(field("products"), List.of(product1, product2))
+                    .create();
+
+            given(cartQueryService.getCartItems(anyLong())).willReturn(List.of(item1, item2));
+            given(cartProductGateway.getProducts(anyList())).willReturn(productData);
+            //when
+            CartResult result = cartFacade.getCartDetails(userId);
+            //then
+            assertThat(result.items()).hasSize(2);
+            assertThat(result.items())
+                    .extracting("productVariantId", "status", "quantity")
+                    .containsExactlyInAnyOrder(
+                            tuple(1L, CartItemAvailability.AVAILABLE, 3),
+                            tuple(2L, CartItemAvailability.NOT_FOR_SALE, 3)
+                    );
         }
     }
 
