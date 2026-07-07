@@ -31,7 +31,12 @@ public class CartFacade {
     private final CartItemValidator cartItemValidator;
 
     public AddCartItemsResult addItems(AddCartItemsCommand command) {
-        return null;
+        List<Long> variantIds = command.toProductVariantIds();
+        CartProductListResult productData = cartProductGateway.getProducts(variantIds);
+        cartItemValidator.validate(command, productData);
+        cartCommandService.addCartItems(command);
+        List<CartItemData> cartItems = cartQueryService.getCartItems(command.userId(), variantIds);
+        return AddCartItemsResult.from(cartItems);
     }
 
     public CartResult getCartDetails(Long userId) {

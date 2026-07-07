@@ -66,7 +66,7 @@ public class CartFacadeTest {
             //then
 
             assertThat(result.items())
-                    .hasSize(3);
+                    .hasSize(1);
 
             assertThat(result.items())
                     .allSatisfy(item ->
@@ -85,7 +85,7 @@ public class CartFacadeTest {
             //given
             AddCartItemsCommand addCommand = createAddCommand(1L, 3);
             willThrow(new DefaultGatewayException(CartErrorCode.CART_PRODUCT_SERVER_ERROR, "INTERNAL_SERVER_ERROR", "알 수 없는 에러가 발생했습니다"))
-                    .given(cartProductGateway.getProducts(anyList()));
+                    .given(cartProductGateway).getProducts(anyList());
             //when
             //then
             assertThatThrownBy(() -> cartFacade.addItems(addCommand))
