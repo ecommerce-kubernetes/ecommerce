@@ -1,13 +1,14 @@
 package com.example.order_service.cart.domain.model;
 
+import com.example.order_service.cart.exception.CartErrorCode;
+import com.example.order_service.common.exception.application.BusinessException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
+import static org.assertj.core.api.Assertions.*;
 
 public class CartTest {
 
@@ -31,17 +32,21 @@ public class CartTest {
     class AddItem {
 
         @Test
-        @DisplayName("동일한 상품이 없다면 새로운 상품을 생성해 추가한다")
-        void addItemWhenNew() {
+        @DisplayName("상품을 추가한다")
+        void addItem() {
             //given
             Cart cart = Cart.create(1L);
+            Long productVariantId = 1L;
+            int quantity = 3;
             //when
-            cart.addItem(1L, 2);
+            cart.addItem(productVariantId, quantity);
             //then
             assertThat(cart.getCartItems()).hasSize(1);
-            assertThat(cart.findItem(1L))
-                    .extracting(CartItem::getProductVariantId, CartItem::getQuantity)
-                    .contains(1L, 2);
+            assertThat(cart.getCartItems())
+                    .extracting("productVariantId", "quantity")
+                    .containsExactlyInAnyOrder(
+                            tuple(productVariantId, quantity)
+                    );
         }
 
         @Test
@@ -49,14 +54,31 @@ public class CartTest {
         void addItemWhenExist(){
             //given
             Cart cart = Cart.create(1L);
-            cart.getCartItems().add(CartItem.create(1L, 2));
+            Long productVariantId = 1L;
+            cart.addItem(productVariantId, 3);
             //when
-            cart.addItem(1L, 3);
+            cart.addItem(productVariantId, 2);
             //then
             assertThat(cart.getCartItems()).hasSize(1);
             assertThat(cart.findItem(1L))
                     .extracting("productVariantId", "quantity")
                     .contains(1L, 5);
+        }
+
+        @Test
+        @DisplayName("장바구니 최대 항목이 초과한 경우 예외가 발생한다")
+        void addItemExceedCartSize() {
+            //given
+            Cart cart = Cart.create(1L);
+            for(long i=0; i<20L; i++) {
+                cart.addItem(i, 3);
+            }
+            //when
+            //then
+            assertThatThrownBy(() -> cart.addItem(999L, 3))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(CartErrorCode.EXCEED_AVAILABLE_CART_SIZE);
         }
     }
 

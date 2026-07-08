@@ -8,6 +8,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.Objects;
+
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
@@ -20,12 +22,13 @@ public class CartItem {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cart_id")
     private Cart cart;
+
     private Long productVariantId;
+
     private int quantity;
 
-    @Builder(access = AccessLevel.PRIVATE)
-    public CartItem(Long productVariantId, int quantity){
-        this.productVariantId = productVariantId;
+    private CartItem(Long productVariantId, int quantity){
+        this.productVariantId = Objects.requireNonNull(productVariantId, "장바구니 항목 생성시 상품 변형 아이디는 필수입니다.");
         this.quantity = quantity;
     }
 
@@ -33,10 +36,7 @@ public class CartItem {
         if (quantity <= 0) {
             throw new BusinessException(CartErrorCode.CART_ITEM_MINIMUM_ONE_REQUIRED);
         }
-        return CartItem.builder()
-                .productVariantId(productVariantId)
-                .quantity(quantity)
-                .build();
+        return new CartItem(productVariantId, quantity);
     }
 
     public void addQuantity(int quantity){

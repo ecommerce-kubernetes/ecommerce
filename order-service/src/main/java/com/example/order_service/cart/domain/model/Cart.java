@@ -1,6 +1,8 @@
 package com.example.order_service.cart.domain.model;
 
+import com.example.order_service.cart.exception.CartErrorCode;
 import com.example.order_service.common.entity.BaseEntity;
+import com.example.order_service.common.exception.application.BusinessException;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -9,6 +11,7 @@ import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -20,22 +23,25 @@ public class Cart extends BaseEntity {
     private Long id;
 
     private Long userId;
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
-    List<CartItem> cartItems = new ArrayList<>();
 
-    @Builder(access = AccessLevel.PRIVATE)
-    public Cart(Long userId){
-        this.userId = userId;
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<CartItem> cartItems = new ArrayList<>();
+
+    private Cart(Long userId){
+        this.userId = Objects.requireNonNull(userId, "장바구니 생성시 유저 아이디는 필수입니다.");
     }
 
     public static Cart create(Long userId){
-        return Cart.builder()
-                .userId(userId)
-                .build();
+        return new Cart(userId);
     }
 
     public void addItem(Long productVariantId, int quantity){
+        if (this.cartItems.size() >= 20) {
+            throw new BusinessException(CartErrorCode.EXCEED_AVAILABLE_CART_SIZE);
+        }
+
         CartItem existing = findItem(productVariantId);
+
         if(existing != null) {
             existing.addQuantity(quantity);
             return;
