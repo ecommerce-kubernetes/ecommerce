@@ -6,8 +6,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
-
 import static org.assertj.core.api.Assertions.*;
 
 public class CartTest {
@@ -60,7 +58,7 @@ public class CartTest {
             cart.addItem(productVariantId, 2);
             //then
             assertThat(cart.getCartItems()).hasSize(1);
-            assertThat(cart.findItem(1L))
+            assertThat(cart.findItemByProductVariantId(1L).get())
                     .extracting("productVariantId", "quantity")
                     .contains(1L, 5);
         }

@@ -5,7 +5,6 @@ import com.example.order_service.common.entity.BaseEntity;
 import com.example.order_service.common.exception.application.BusinessException;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -41,10 +40,10 @@ public class Cart extends BaseEntity {
             throw new BusinessException(CartErrorCode.EXCEED_AVAILABLE_CART_SIZE);
         }
 
-        CartItem existing = findItem(productVariantId);
+        Optional<CartItem> existing = findItemByProductVariantId(productVariantId);
 
-        if(existing != null) {
-            existing.addQuantity(quantity);
+        if(existing.isPresent()) {
+            existing.get().addQuantity(quantity);
             return;
         }
 
@@ -53,11 +52,10 @@ public class Cart extends BaseEntity {
         cartItem.setCart(this);
     }
 
-    public CartItem findItem(Long productVariantId) {
+    public Optional<CartItem> findItemByProductVariantId(Long productVariantId) {
         return cartItems.stream()
                 .filter(item -> item.getProductVariantId().equals(productVariantId))
-                .findFirst()
-                .orElse(null);
+                .findFirst();
     }
 
     public Optional<CartItem> findItemByCartItemId(Long cartItemId) {
@@ -75,5 +73,11 @@ public class Cart extends BaseEntity {
 
     public boolean isOwner(Long accessUserId) {
         return this.userId.equals(accessUserId);
+    }
+
+    public void updateItemQuantity(Long cartItemId, Integer quantity) {
+        CartItem cartItem = findItemByCartItemId(cartItemId)
+                .orElseThrow(() -> new BusinessException(CartErrorCode.CART_ITEM_NOT_FOUND));
+        cartItem.updateQuantity(quantity);
     }
 }

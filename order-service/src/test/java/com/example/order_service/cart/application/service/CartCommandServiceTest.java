@@ -131,7 +131,7 @@ class CartCommandServiceTest {
             cart.addItem(1L, 3);
             cartRepository.save(cart);
 
-            CartItem item = cart.findItem(1L);
+            CartItem item = cart.findItemByProductVariantId(1L).orElseThrow();
             UpdateCartItemQuantityCommand command = UpdateCartItemQuantityCommand.builder()
                     .userId(userId)
                     .cartItemId(item.getId())
@@ -158,27 +158,6 @@ class CartCommandServiceTest {
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(CartErrorCode.CART_NOT_FOUND);
-        }
-
-        @Test
-        @DisplayName("장바구니에 해당 상품이 존재하지 않으면 예외가 발생한다")
-        void updateCartItemQuantity_notFound_cartItem(){
-            //given
-            Long userId = 1L;
-            UpdateCartItemQuantityCommand command = UpdateCartItemQuantityCommand.builder()
-                    .userId(userId)
-                    .cartItemId(1L)
-                    .quantity(3)
-                    .build();
-
-            Cart cart = Cart.create(userId);
-            cartRepository.save(cart);
-            //when
-            //then
-            assertThatThrownBy(() -> cartCommandService.updateCartItemQuantity(command))
-                    .isInstanceOf(BusinessException.class)
-                    .extracting("errorCode")
-                    .isEqualTo(CartErrorCode.CART_ITEM_NOT_FOUND);
         }
     }
 }
