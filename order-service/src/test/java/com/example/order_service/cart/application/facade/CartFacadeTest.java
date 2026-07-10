@@ -2,6 +2,7 @@ package com.example.order_service.cart.application.facade;
 
 import com.example.order_service.cart.application.dto.command.AddCartItemsCommand;
 
+import com.example.order_service.cart.application.dto.command.DeleteCartItemsCommand;
 import com.example.order_service.cart.application.dto.command.UpdateCartItemQuantityCommand;
 import com.example.order_service.cart.application.dto.data.CartItemData;
 import com.example.order_service.cart.application.dto.result.AddCartItemsResult;
@@ -252,6 +253,46 @@ public class CartFacadeTest {
                     .extracting("errorCode")
                     .isEqualTo(CartErrorCode.CART_ITEM_MINIMUM_ONE_REQUIRED);
         }
+    }
+
+    @Nested
+    @DisplayName("장바구니 상품 삭제")
+    class DeleteCartItems {
+
+        @Test
+        @DisplayName("장바구니 상품을 삭제한다")
+        void deleteCartItems() {
+            //given
+            Long cartItemId = 1L;
+            DeleteCartItemsCommand command = createDeleteCommand(cartItemId);
+            doNothing().when(cartCommandService).deleteCartItems(any(DeleteCartItemsCommand.class));
+            //when
+            //then
+            assertThatCode(() -> cartFacade.deleteCartItems(command))
+                    .doesNotThrowAnyException();
+        }
+
+        @Test
+        @DisplayName("상품 삭제중 예외가 발생하면 예외를 전파한다")
+        void deleteCartItems_commandService_thrown_exception() {
+            //given
+            Long cartItemId = 1L;
+            DeleteCartItemsCommand command = createDeleteCommand(cartItemId);
+            willThrow(new BusinessException(CartErrorCode.CART_ITEM_NOT_FOUND))
+                    .given(cartCommandService).deleteCartItems(any(DeleteCartItemsCommand.class));
+            //when
+            //then
+            assertThatThrownBy(() -> cartFacade.deleteCartItems(command))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(CartErrorCode.CART_ITEM_NOT_FOUND);
+        }
+    }
+
+    private DeleteCartItemsCommand createDeleteCommand(Long cartItemId) {
+        return Instancio.of(DeleteCartItemsCommand.class)
+                .set(field("cartItemIds"), List.of(cartItemId))
+                .create();
     }
 
     private UpdateCartItemQuantityCommand createUpdateQuantityCommand(Long cartItemId, int quantity) {

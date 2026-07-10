@@ -104,22 +104,6 @@ public class CartTest {
     @DisplayName("장바구니 상품 삭제")
     class RemoveItemsByVariantId {
 
-        @Test
-        @DisplayName("장바구니 상품들중 variantId와 동일한 상품을 제거한다")
-        void removeItemsByVariantIds(){
-            //given
-            Cart cart = Cart.create(1L);
-            cart.addItem(1L, 3);
-            cart.addItem(2L, 6);
-            //when
-            cart.removeItemsByVariantIds(List.of(1L));
-            //then
-            assertThat(cart.getCartItems()).hasSize(1)
-                    .extracting(CartItem::getProductVariantId, CartItem::getQuantity)
-                    .containsExactly(
-                            tuple(2L, 6)
-                    );
-        }
     }
 
     @Nested

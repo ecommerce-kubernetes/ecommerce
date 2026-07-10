@@ -15,12 +15,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -68,15 +64,6 @@ public class CartFacade {
                 .build();
     }
 
-    public UpdateCartItemQuantityResult updateCartItemQuantity(UpdateCartItemQuantityCommand command) {
-        cartCommandService.updateCartItemQuantity(command);
-        CartItemData cartItem = cartQueryService.getCartItem(command.cartItemId());
-        return UpdateCartItemQuantityResult.from(cartItem);
-    }
-
-    public void removeCartItems(DeleteCartItemsCommand command) {
-        cartCommandService.deleteCartItems(command.userId(), command.cartItemIds());
-    }
     private CartItemAvailability determineAvailability(CartProductStatus status, CartProductResult product, int cartQuantity) {
         if (status != CartProductStatus.ON_SALE) {
             return CartItemAvailability.NOT_FOR_SALE;
@@ -87,5 +74,15 @@ public class CartFacade {
         }
 
         return CartItemAvailability.AVAILABLE;
+    }
+
+    public UpdateCartItemQuantityResult updateCartItemQuantity(UpdateCartItemQuantityCommand command) {
+        cartCommandService.updateCartItemQuantity(command);
+        CartItemData cartItem = cartQueryService.getCartItem(command.cartItemId());
+        return UpdateCartItemQuantityResult.from(cartItem);
+    }
+
+    public void deleteCartItems(DeleteCartItemsCommand command) {
+        cartCommandService.deleteCartItems(command);
     }
 }

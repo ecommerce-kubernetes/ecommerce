@@ -63,7 +63,7 @@ public class CartController {
     public ResponseEntity<Void> deleteCartItems(@AuthenticationPrincipal UserPrincipal userPrincipal,
                                                @RequestParam List<Long> cartItemIds){
         DeleteCartItemsCommand command = DeleteCartItemsCommand.of(userPrincipal.getUserId(), cartItemIds);
-        cartFacade.removeCartItems(command);
+        cartFacade.deleteCartItems(command);
         return ResponseEntity.noContent().build();
     }
 }

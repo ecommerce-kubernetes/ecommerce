@@ -229,7 +229,7 @@ class CartControllerTest {
         @WithCustomMockUser
         void deleteCartItems() throws Exception {
             //given
-            willDoNothing().given(cartFacade).removeCartItems(any(DeleteCartItemsCommand.class));
+            willDoNothing().given(cartFacade).deleteCartItems(any(DeleteCartItemsCommand.class));
             //when
             //then
             mockMvc.perform(delete("/carts")

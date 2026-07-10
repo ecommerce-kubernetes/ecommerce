@@ -4,10 +4,8 @@ import com.example.order_service.cart.api.CartController;
 import com.example.order_service.cart.api.dto.request.AddCartItemsRequest;
 import com.example.order_service.cart.api.dto.request.UpdateCartItemQuantityRequest;
 import com.example.order_service.cart.application.dto.command.DeleteCartItemsCommand;
-import com.example.order_service.cart.application.dto.command.UpdateCartItemQuantityCommand;
 import com.example.order_service.cart.application.dto.result.*;
 import com.example.order_service.cart.application.facade.CartFacade;
-import com.example.order_service.cart.application.dto.command.AddCartItemsCommand;
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.docs.descriptor.CartDescriptor;
@@ -100,7 +98,7 @@ public class CartControllerDocsTest extends RestDocSupport {
     void removeCartItem() throws Exception {
         //given
         HttpHeaders roleUser = createAuthHeader("ROLE_USER");
-        willDoNothing().given(cartFacade).removeCartItems(any(DeleteCartItemsCommand.class));
+        willDoNothing().given(cartFacade).deleteCartItems(any(DeleteCartItemsCommand.class));
         //when
         //then
         mockMvc.perform(delete("/carts")

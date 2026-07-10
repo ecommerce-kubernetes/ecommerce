@@ -66,16 +66,6 @@ public class Cart extends BaseEntity {
         cartItems.clear();
     }
 
-    public void removeItemsByVariantIds(List<Long> productVariantIds) {
-        this.cartItems.removeIf(item -> {
-            if (productVariantIds.contains(item.getProductVariantId())){
-                item.setCart(null);
-                return true; //리스트에서 제거
-            }
-            return false;
-        });
-    }
-
     public boolean isOwner(Long accessUserId) {
         return this.userId.equals(accessUserId);
     }
