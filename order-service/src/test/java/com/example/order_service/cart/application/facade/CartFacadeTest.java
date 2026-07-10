@@ -5,19 +5,15 @@ import com.example.order_service.cart.application.dto.command.AddCartItemsComman
 import com.example.order_service.cart.application.dto.command.DeleteCartItemsCommand;
 import com.example.order_service.cart.application.dto.command.UpdateCartItemQuantityCommand;
 import com.example.order_service.cart.application.dto.data.CartItemData;
-import com.example.order_service.cart.application.dto.result.AddCartItemsResult;
-import com.example.order_service.cart.application.dto.result.CartItemAvailability;
-import com.example.order_service.cart.application.dto.result.UpdateCartItemQuantityResult;
+import com.example.order_service.cart.application.dto.result.*;
 import com.example.order_service.cart.application.external.CartProductGateway;
 import com.example.order_service.cart.application.external.dto.CartProductListResult;
 import com.example.order_service.cart.application.external.dto.CartProductResult;
 import com.example.order_service.cart.application.external.dto.CartProductStatus;
 import com.example.order_service.cart.application.service.CartCommandService;
 import com.example.order_service.cart.application.service.CartQueryService;
-import com.example.order_service.cart.application.dto.result.CartResult;
 import com.example.order_service.cart.exception.CartErrorCode;
 import com.example.order_service.common.exception.application.BusinessException;
-import com.example.order_service.common.exception.application.DefaultGatewayException;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -81,21 +77,6 @@ public class CartFacadeTest {
                     .containsExactly(
                             tuple(1L, 3)
                     );
-        }
-
-        @Test
-        @DisplayName("상품 정보 조회중 예외가 발생하면 예외를 전파한다")
-        void addItems_cartProductGateway_thrown_gatewayException() {
-            //given
-            AddCartItemsCommand addCommand = createAddCommand(1L, 3);
-            willThrow(new DefaultGatewayException(CartErrorCode.CART_PRODUCT_SERVER_ERROR, "INTERNAL_SERVER_ERROR", "알 수 없는 에러가 발생했습니다"))
-                    .given(cartProductGateway).getProducts(anyList());
-            //when
-            //then
-            assertThatThrownBy(() -> cartFacade.addItems(addCommand))
-                    .isInstanceOf(DefaultGatewayException.class)
-                    .extracting("errorCode")
-                    .isEqualTo(CartErrorCode.CART_PRODUCT_SERVER_ERROR);
         }
 
         @Test
@@ -195,23 +176,70 @@ public class CartFacadeTest {
                             tuple(2L, CartItemAvailability.NOT_FOR_SALE, 3)
                     );
         }
+    }
+
+    @Nested
+    @DisplayName("장바구니 항목 정보 조회")
+    class GetCatItemDetails {
 
         @Test
-        @DisplayName("상품 조회중 예외가 발생하면 예외를 전파한다")
-        void getCartDetails_gateway_thrown_gatewayException() {
+        @DisplayName("장바구니 항목 정보를 조회한다")
+        void getCartItemDetails() {
             //given
             Long userId = 1L;
+            Long cartItemId = 1L;
             CartItemData cartItemData = createCartItemData(1L, 3);
-
-            given(cartQueryService.getCartItems(anyLong())).willReturn(List.of(cartItemData));
-            willThrow(new DefaultGatewayException(CartErrorCode.CART_PRODUCT_SERVER_ERROR, "INTERNAL_ERROR", "알 수 없는 예외가 발생했습니다"))
-                    .given(cartProductGateway).getProducts(anyList());
+            CartProductListResult productData = createProductList(1L, CartProductStatus.ON_SALE);
+            given(cartQueryService.getCartItem(anyLong(), anyLong())).willReturn(cartItemData);
+            given(cartProductGateway.getProducts(anyList())).willReturn(productData);
             //when
+            CartItemResult result = cartFacade.getCartItemDetails(userId, cartItemId);
             //then
-            assertThatThrownBy(() -> cartFacade.getCartDetails(userId))
-                    .isInstanceOf(DefaultGatewayException.class)
-                    .extracting("errorCode")
-                    .isEqualTo(CartErrorCode.CART_PRODUCT_SERVER_ERROR);
+            assertThat(result)
+                    .extracting("cartItemId", "status", "quantity")
+                    .containsExactly(
+                            cartItemData.cartItemId(), CartItemAvailability.AVAILABLE, 3
+                    );
+        }
+
+        @Test
+        @DisplayName("장바구니 항목의 상품 정보가 누락된 경우 구매불가 상태의 기본 정보를 반환한다")
+        void getCartItemDetails_missing_product() {
+            //given
+            Long userId = 1L;
+            Long cartItemId = 1L;
+            CartItemData cartItemData = createCartItemData(1L, 3);
+            CartProductListResult productData = CartProductListResult.builder().products(Collections.emptyList()).build();
+            given(cartQueryService.getCartItem(anyLong(), anyLong())).willReturn(cartItemData);
+            given(cartProductGateway.getProducts(anyList())).willReturn(productData);
+            //when
+            CartItemResult result = cartFacade.getCartItemDetails(userId, cartItemId);
+            //then
+            assertThat(result)
+                    .extracting("cartItemId", "status", "quantity")
+                    .containsExactly(
+                            cartItemData.cartItemId(), CartItemAvailability.NOT_FOR_SALE, 3
+                    );
+        }
+
+        @Test
+        @DisplayName("장바구니 항목이 판매 불가인 경우 판매 불가 상태를 반환한다")
+        void getCartItemDetails_item_not_availability() {
+            //given
+            Long userId = 1L;
+            Long cartItemId = 1L;
+            CartItemData cartItemData = createCartItemData(1L, 3);
+            CartProductListResult productData = createProductList(1L, CartProductStatus.STOP_SALE);
+            given(cartQueryService.getCartItem(anyLong(), anyLong())).willReturn(cartItemData);
+            given(cartProductGateway.getProducts(anyList())).willReturn(productData);
+            //when
+            CartItemResult result = cartFacade.getCartItemDetails(userId, cartItemId);
+            //then
+            assertThat(result)
+                    .extracting("cartItemId", "status", "quantity")
+                    .containsExactly(
+                            cartItemData.cartItemId(), CartItemAvailability.NOT_FOR_SALE, 3
+                    );
         }
     }
 
@@ -229,7 +257,7 @@ public class CartFacadeTest {
             UpdateCartItemQuantityCommand command = createUpdateQuantityCommand(cartItemId, quantity);
             CartItemData cartItemData = createCartItemData(productVariantId, quantity);
             doNothing().when(cartCommandService).updateCartItemQuantity(any());
-            given(cartQueryService.getCartItem(anyLong())).willReturn(cartItemData);
+            given(cartQueryService.getCartItem(anyLong(), anyLong())).willReturn(cartItemData);
             //when
             UpdateCartItemQuantityResult result = cartFacade.updateCartItemQuantity(command);
             //then

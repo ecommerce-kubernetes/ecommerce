@@ -29,7 +29,7 @@ public class CartQueryService {
         return null;
     }
 
-    public CartItemData getCartItem(Long cartItemId) {
+    public CartItemData getCartItem(Long userId, Long cartItemId) {
         return null;
     }
 }

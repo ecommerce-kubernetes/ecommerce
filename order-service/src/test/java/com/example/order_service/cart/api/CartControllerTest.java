@@ -165,10 +165,11 @@ class CartControllerTest {
     @Nested
     @DisplayName("장바구니 목록 조회")
     class GetCart {
+
         @Test
         @DisplayName("장바구니 목록을 조회한다")
         @WithCustomMockUser
-        void getAllCartItem() throws Exception {
+        void getCart() throws Exception {
             //given
             CartItemResult item = Instancio.create(CartItemResult.class);
             CartResult result = Instancio.of(CartResult.class)
@@ -189,7 +190,7 @@ class CartControllerTest {
         @Test
         @DisplayName("장바구니 목록을 조회할때는 유저 권한이여야 한다")
         @WithCustomMockUser(userRole = UserRole.ROLE_ADMIN)
-        void getAllCartItemWithAdminPrincipal() throws Exception {
+        void getCartWithAdminPrincipal() throws Exception {
             //given
             //when
             //then
@@ -205,7 +206,7 @@ class CartControllerTest {
 
         @Test
         @DisplayName("로그인 하지 않은 회원은 장바구니를 조회할 수 없다")
-        void getAllCartItem_unAuthorized() throws Exception {
+        void getCart_unAuthorized() throws Exception {
             //given
             //when
             //then
@@ -217,6 +218,64 @@ class CartControllerTest {
                     .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다"))
                     .andExpect(jsonPath("$.timestamp").exists())
                     .andExpect(jsonPath("$.path").value("/carts"));
+        }
+    }
+
+    @Nested
+    @DisplayName("장바구니 상품 조회")
+    class GetCartItem {
+
+        @Test
+        @DisplayName("장바구니 상품 정보를 조회한다")
+        @WithCustomMockUser
+        void getCartItem() throws Exception {
+            //given
+            Long cartItemId = 1L;
+            CartItemResult cartItem = Instancio.of(CartItemResult.class)
+                    .set(field("cartItemId"), cartItemId)
+                    .create();
+            given(cartFacade.getCartItemDetails(anyLong(), anyLong())).willReturn(cartItem);
+            //when
+            //then
+            mockMvc.perform(get("/carts/{cartItemId}", cartItemId)
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("cartItemId").value(cartItem.cartItemId()))
+                    .andExpect(jsonPath("quantity").value(cartItem.quantity()));
+        }
+
+        @Test
+        @DisplayName("장바구니 상품 정보를 조회할때는 유저 권한이여야 한다")
+        @WithCustomMockUser(userRole = UserRole.ROLE_ADMIN)
+        void getCartItemWithAdminPrincipal() throws Exception {
+            //given
+            Long cartItemId = 1L;
+            //when
+            //then
+            mockMvc.perform(get("/carts/{cartItemId}", cartItemId)
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andDo(print())
+                    .andExpect(status().isForbidden())
+                    .andExpect(jsonPath("$.code").value("FORBIDDEN"))
+                    .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다"))
+                    .andExpect(jsonPath("$.timestamp").exists())
+                    .andExpect(jsonPath("$.path").value("/carts/" + cartItemId));
+        }
+
+        @Test
+        @DisplayName("로그인 하지 않은 회원은 장바구니 상품을 조회할 수 없다")
+        void getCartItem_unAuthorized() throws Exception {
+            //given
+            Long cartItemId = 1L;
+            //when
+            //then
+            mockMvc.perform(get("/carts/{cartItemId}", cartItemId)
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andDo(print())
+                    .andExpect(status().isUnauthorized())
+                    .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
+                    .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다"))
+                    .andExpect(jsonPath("$.timestamp").exists())
+                    .andExpect(jsonPath("$.path").value("/carts/" + cartItemId));
         }
     }
 

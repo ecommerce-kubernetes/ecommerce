@@ -3,11 +3,13 @@ package com.example.order_service.cart.api;
 import com.example.order_service.cart.api.dto.request.AddCartItemsRequest;
 import com.example.order_service.cart.api.dto.request.UpdateCartItemQuantityRequest;
 import com.example.order_service.cart.api.dto.response.AddCartItemsResponse;
+import com.example.order_service.cart.api.dto.response.CartItemResponse;
 import com.example.order_service.cart.api.dto.response.CartResponse;
 import com.example.order_service.cart.api.dto.response.UpdateCartItemQuantityResponse;
 import com.example.order_service.cart.application.dto.command.DeleteCartItemsCommand;
 import com.example.order_service.cart.application.dto.command.UpdateCartItemQuantityCommand;
 import com.example.order_service.cart.application.dto.result.AddCartItemsResult;
+import com.example.order_service.cart.application.dto.result.CartItemResult;
 import com.example.order_service.cart.application.dto.result.UpdateCartItemQuantityResult;
 import com.example.order_service.cart.application.facade.CartFacade;
 import com.example.order_service.cart.application.dto.command.AddCartItemsCommand;
@@ -43,9 +45,17 @@ public class CartController {
     }
 
     @GetMapping
-    public ResponseEntity<CartResponse> getAllCartItem(@AuthenticationPrincipal UserPrincipal userPrincipal) {
+    public ResponseEntity<CartResponse> getCart(@AuthenticationPrincipal UserPrincipal userPrincipal) {
         CartResult result = cartFacade.getCartDetails(userPrincipal.getUserId());
         CartResponse response = CartResponse.from(result);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{cartItemId}")
+    public ResponseEntity<CartItemResponse> getCartItem(@AuthenticationPrincipal UserPrincipal userPrincipal,
+                                                        @PathVariable("cartItemId") Long cartItemId) {
+        CartItemResult result = cartFacade.getCartItemDetails(userPrincipal.getUserId(), cartItemId);
+        CartItemResponse response = CartItemResponse.from(result);
         return ResponseEntity.ok(response);
     }
 

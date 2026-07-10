@@ -64,6 +64,24 @@ public class CartFacade {
                 .build();
     }
 
+    public CartItemResult getCartItemDetails(Long userId, Long cartItemId) {
+        CartItemData cartItem = cartQueryService.getCartItem(userId, cartItemId);
+
+        CartProductListResult productData = cartProductGateway.getProducts(List.of(cartItem.cartItemId()));
+
+        return cartCartItemResult(productData, cartItem);
+    }
+
+    private CartItemResult cartCartItemResult(CartProductListResult productData, CartItemData cartItem) {
+        Map<Long, CartProductResult> map = productData.toMap();
+        CartProductResult product = map.get(cartItem.productVariantId());
+        if (product == null) {
+            return CartItemResult.unknown(cartItem, CartItemAvailability.NOT_FOR_SALE);
+        }
+        CartItemAvailability availability = determineAvailability(product.status(), product, cartItem.quantity());
+        return CartItemResult.from(cartItem, product, availability);
+    }
+
     private CartItemAvailability determineAvailability(CartProductStatus status, CartProductResult product, int cartQuantity) {
         if (status != CartProductStatus.ON_SALE) {
             return CartItemAvailability.NOT_FOR_SALE;
@@ -78,7 +96,7 @@ public class CartFacade {
 
     public UpdateCartItemQuantityResult updateCartItemQuantity(UpdateCartItemQuantityCommand command) {
         cartCommandService.updateCartItemQuantity(command);
-        CartItemData cartItem = cartQueryService.getCartItem(command.cartItemId());
+        CartItemData cartItem = cartQueryService.getCartItem(command.userId(), command.cartItemId());
         return UpdateCartItemQuantityResult.from(cartItem);
     }
 
