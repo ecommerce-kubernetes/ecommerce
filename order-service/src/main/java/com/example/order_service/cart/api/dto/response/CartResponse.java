@@ -9,7 +9,7 @@ import lombok.Builder;
 import java.util.List;
 
 @Builder
-public record GetCartResponse(
+public record CartResponse(
         List<Item> items,
         long totalCount
 ) {
@@ -82,8 +82,8 @@ public record GetCartResponse(
         }
     }
 
-    public static GetCartResponse from(CartResult result) {
-        return GetCartResponse.builder()
+    public static CartResponse from(CartResult result) {
+        return CartResponse.builder()
                 .items(Item.from(result.items()))
                 .totalCount(result.items().size())
                 .build();

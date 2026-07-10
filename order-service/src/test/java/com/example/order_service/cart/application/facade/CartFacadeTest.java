@@ -192,6 +192,38 @@ public class CartFacadeTest {
                             tuple(2L, CartItemAvailability.NOT_FOR_SALE, 3)
                     );
         }
+
+        @Test
+        @DisplayName("상품 조회중 예외가 발생하면 예외를 전파한다")
+        void getCartDetails_gateway_thrown_gatewayException() {
+            //given
+            Long userId = 1L;
+            CartItemData cartItemData = createCartItemData(1L, 3);
+
+            given(cartQueryService.getCartItems(anyLong())).willReturn(List.of(cartItemData));
+            willThrow(new DefaultGatewayException(CartErrorCode.CART_PRODUCT_SERVER_ERROR, "INTERNAL_ERROR", "알 수 없는 예외가 발생했습니다"))
+                    .given(cartProductGateway).getProducts(anyList());
+            //when
+            //then
+            assertThatThrownBy(() -> cartFacade.getCartDetails(userId))
+                    .isInstanceOf(DefaultGatewayException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(CartErrorCode.CART_PRODUCT_SERVER_ERROR);
+        }
+    }
+
+    @Nested
+    @DisplayName("장바구니 항목 수량 변경")
+    class UpdateCartItemQuantity {
+
+        @Test
+        @DisplayName("장바구니 항목의 수량을 변경한다")
+        void updateCartItemQuantity() {
+            //given
+
+            //when
+            //then
+        }
     }
 
     private AddCartItemsCommand createAddCommand(Long productVariantId, int quantity) {

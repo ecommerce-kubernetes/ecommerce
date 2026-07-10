@@ -3,11 +3,12 @@ package com.example.order_service.cart.api;
 import com.example.order_service.cart.api.dto.request.AddCartItemsRequest;
 import com.example.order_service.cart.api.dto.request.UpdateCartItemQuantityRequest;
 import com.example.order_service.cart.api.dto.response.AddCartItemsResponse;
-import com.example.order_service.cart.api.dto.response.GetCartResponse;
+import com.example.order_service.cart.api.dto.response.CartResponse;
 import com.example.order_service.cart.api.dto.response.UpdateCartItemQuantityResponse;
 import com.example.order_service.cart.application.dto.command.DeleteCartItemsCommand;
 import com.example.order_service.cart.application.dto.command.UpdateCartItemQuantityCommand;
 import com.example.order_service.cart.application.dto.result.AddCartItemsResult;
+import com.example.order_service.cart.application.dto.result.UpdateCartItemQuantityResult;
 import com.example.order_service.cart.application.facade.CartFacade;
 import com.example.order_service.cart.application.dto.command.AddCartItemsCommand;
 import com.example.order_service.cart.application.dto.result.CartResult;
@@ -42,9 +43,9 @@ public class CartController {
     }
 
     @GetMapping
-    public ResponseEntity<GetCartResponse> getAllCartItem(@AuthenticationPrincipal UserPrincipal userPrincipal) {
+    public ResponseEntity<CartResponse> getAllCartItem(@AuthenticationPrincipal UserPrincipal userPrincipal) {
         CartResult result = cartFacade.getCartDetails(userPrincipal.getUserId());
-        GetCartResponse response = GetCartResponse.from(result);
+        CartResponse response = CartResponse.from(result);
         return ResponseEntity.ok(response);
     }
 
@@ -53,7 +54,7 @@ public class CartController {
                                                                          @PathVariable("cartItemId") Long cartItemId,
                                                                          @RequestBody @Validated UpdateCartItemQuantityRequest request){
         UpdateCartItemQuantityCommand command = request.toCommand(userPrincipal.getUserId(), cartItemId);
-        CartResult result = cartFacade.updateCartItemQuantity(command);
+        UpdateCartItemQuantityResult result = cartFacade.updateCartItemQuantity(command);
         UpdateCartItemQuantityResponse response = UpdateCartItemQuantityResponse.from(result);
         return ResponseEntity.ok(response);
     }

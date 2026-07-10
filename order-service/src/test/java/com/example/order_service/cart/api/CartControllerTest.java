@@ -6,6 +6,7 @@ import com.example.order_service.cart.api.dto.request.UpdateCartItemQuantityRequ
 import com.example.order_service.cart.application.dto.command.DeleteCartItemsCommand;
 import com.example.order_service.cart.application.dto.command.UpdateCartItemQuantityCommand;
 import com.example.order_service.cart.application.dto.result.AddCartItemsResult;
+import com.example.order_service.cart.application.dto.result.UpdateCartItemQuantityResult;
 import com.example.order_service.cart.application.facade.CartFacade;
 import com.example.order_service.cart.application.dto.command.AddCartItemsCommand;
 import com.example.order_service.cart.application.dto.result.CartItemResult;
@@ -285,10 +286,7 @@ class CartControllerTest {
         void updateQuantity() throws Exception {
             //given
             UpdateCartItemQuantityRequest request = Instancio.create(UpdateCartItemQuantityRequest.class);
-            CartItemResult cartItemResult = Instancio.create(CartItemResult.class);
-            CartResult result = Instancio.of(CartResult.class)
-                    .set(field("items"), List.of(cartItemResult))
-                    .create();
+            UpdateCartItemQuantityResult result = Instancio.create(UpdateCartItemQuantityResult.class);
             given(cartFacade.updateCartItemQuantity(any(UpdateCartItemQuantityCommand.class)))
                     .willReturn(result);
             //when
@@ -298,11 +296,9 @@ class CartControllerTest {
                             .content(objectMapper.writeValueAsString(request)))
                     .andDo(print())
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.items").isArray())
-                    .andExpect(jsonPath("$.items[0].cartItemId").value(cartItemResult.cartItemId()))
-                    .andExpect(jsonPath("$.items[0].status").value(cartItemResult.status().name()))
-                    .andExpect(jsonPath("$.items[0].price.originalPrice").value(cartItemResult.price().originalPrice().longValue()))
-                    .andExpect(jsonPath("$.items[0].options").isArray());
+                    .andExpect(jsonPath("cartItemId").value(result.cartItemId()))
+                    .andExpect(jsonPath("productVariantId").value(result.productVariantId()))
+                    .andExpect(jsonPath("quantity").value(result.quantity()));
         }
 
         @Test

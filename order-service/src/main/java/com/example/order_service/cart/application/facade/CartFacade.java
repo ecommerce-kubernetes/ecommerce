@@ -3,9 +3,7 @@ package com.example.order_service.cart.application.facade;
 import com.example.order_service.cart.application.dto.command.DeleteCartItemsCommand;
 import com.example.order_service.cart.application.dto.command.UpdateCartItemQuantityCommand;
 import com.example.order_service.cart.application.dto.data.CartItemData;
-import com.example.order_service.cart.application.dto.result.AddCartItemsResult;
-import com.example.order_service.cart.application.dto.result.CartItemAvailability;
-import com.example.order_service.cart.application.dto.result.CartItemResult;
+import com.example.order_service.cart.application.dto.result.*;
 import com.example.order_service.cart.application.external.dto.CartProductListResult;
 import com.example.order_service.cart.application.external.dto.CartProductResult;
 import com.example.order_service.cart.application.external.dto.CartProductStatus;
@@ -13,7 +11,6 @@ import com.example.order_service.cart.application.service.CartCommandService;
 import com.example.order_service.cart.application.service.CartQueryService;
 import com.example.order_service.cart.application.dto.command.AddCartItemsCommand;
 import com.example.order_service.cart.application.external.CartProductGateway;
-import com.example.order_service.cart.application.dto.result.CartResult;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -57,34 +54,18 @@ public class CartFacade {
 
     private CartResult createCartResult(CartProductListResult productData, List<CartItemData> cartItems) {
         Map<Long, CartProductResult> map = productData.toMap();
-
-        List<CartItemResult> list = new ArrayList<>();
-        for(CartItemData cartItem: cartItems) {
-            if (map.get(cartItem.productVariantId()) == null) {
-                list.add(CartItemResult.unknown(cartItem, CartItemAvailability.NOT_FOR_SALE));
-                continue;
-            }
-
-            CartProductResult product = map.get(cartItem.productVariantId());
-            if (product.status() != CartProductStatus.ON_SALE) {
-                list.add(CartItemResult.from(cartItem, product, CartItemAvailability.NOT_FOR_SALE));
-                continue;
-            }
-            list.add(CartItemResult.from(cartItem, product, CartItemAvailability.AVAILABLE));
-        }
+        List<CartItemResult> list = cartItems.stream()
+                .map(item -> {
+                    CartProductResult product = map.get(item.productVariantId());
+                    if (product == null) {
+                        return CartItemResult.unknown(item, CartItemAvailability.NOT_FOR_SALE);
+                    }
+                    CartItemAvailability availability = determineAvailability(product.status(), product, item.quantity());
+                    return CartItemResult.from(item, product, availability);
+                }).toList();
         return CartResult.builder()
                 .items(list)
                 .build();
-    }
-
-    public CartResult updateCartItemQuantity(UpdateCartItemQuantityCommand command) {
-        cartCommandService.updateCartItemQuantity(command);
-        List<CartItemData> cartItems = cartQueryService.getCartItems(command.userId());
-        return assembleResult(cartItems);
-    }
-
-    public void removeCartItems(DeleteCartItemsCommand command) {
-        cartCommandService.deleteCartItems(command.userId(), command.cartItemIds());
     }
 
     private CartResult assembleResult(List<CartItemData> cartItemData) {
@@ -104,6 +85,16 @@ public class CartFacade {
         return CartResult.builder()
                 .items(returnResult)
                 .build();
+    }
+
+    public UpdateCartItemQuantityResult updateCartItemQuantity(UpdateCartItemQuantityCommand command) {
+        cartCommandService.updateCartItemQuantity(command);
+        List<CartItemData> cartItems = cartQueryService.getCartItems(command.userId());
+        return null;
+    }
+
+    public void removeCartItems(DeleteCartItemsCommand command) {
+        cartCommandService.deleteCartItems(command.userId(), command.cartItemIds());
     }
     private CartItemAvailability determineAvailability(CartProductStatus status, CartProductResult product, int cartQuantity) {
         if (status != CartProductStatus.ON_SALE) {

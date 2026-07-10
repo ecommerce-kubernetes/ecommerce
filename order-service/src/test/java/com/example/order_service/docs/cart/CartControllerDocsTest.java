@@ -45,7 +45,7 @@ public class CartControllerDocsTest extends RestDocSupport {
     }
 
     @Test
-    @DisplayName("장바구니 추가 API")
+    @DisplayName("장바구니 추가")
     void addCartItem() throws Exception {
         //given
         AddCartItemsRequest.Item item = AddCartItemsRequest.Item.builder()
@@ -122,9 +122,6 @@ public class CartControllerDocsTest extends RestDocSupport {
         UpdateCartItemQuantityRequest request = UpdateCartItemQuantityRequest.builder()
                 .quantity(3)
                 .build();
-        CartResult cartResult = createCartResult();
-        given(cartFacade.updateCartItemQuantity(any(UpdateCartItemQuantityCommand.class)))
-                .willReturn(cartResult);
         //when
         //then
         mockMvc.perform(patch("/carts/{cartItemId}", 1)
