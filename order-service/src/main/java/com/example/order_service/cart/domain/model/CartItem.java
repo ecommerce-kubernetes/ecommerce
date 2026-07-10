@@ -50,11 +50,6 @@ public class CartItem {
         this.quantity = quantity;
     }
 
-    public void removeFromCart(){
-        this.cart.getCartItems().remove(this);
-        this.cart = null;
-    }
-
     protected void setCart(Cart cart){
         this.cart = cart;
     }
