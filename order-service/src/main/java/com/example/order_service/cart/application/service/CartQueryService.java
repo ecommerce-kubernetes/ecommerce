@@ -2,6 +2,8 @@ package com.example.order_service.cart.application.service;
 
 import com.example.order_service.cart.application.dto.data.CartItemData;
 import com.example.order_service.cart.domain.repository.CartRepository;
+import com.example.order_service.cart.exception.CartErrorCode;
+import com.example.order_service.common.exception.application.BusinessException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +26,10 @@ public class CartQueryService {
     }
 
     public List<CartItemData> getCartItems(Long userId, List<Long> productVariantIds) {
+        return null;
+    }
+
+    public CartItemData getCartItem(Long cartItemId) {
         return null;
     }
 }

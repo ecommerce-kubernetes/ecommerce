@@ -2,9 +2,11 @@ package com.example.order_service.cart.application.facade;
 
 import com.example.order_service.cart.application.dto.command.AddCartItemsCommand;
 
+import com.example.order_service.cart.application.dto.command.UpdateCartItemQuantityCommand;
 import com.example.order_service.cart.application.dto.data.CartItemData;
 import com.example.order_service.cart.application.dto.result.AddCartItemsResult;
 import com.example.order_service.cart.application.dto.result.CartItemAvailability;
+import com.example.order_service.cart.application.dto.result.UpdateCartItemQuantityResult;
 import com.example.order_service.cart.application.external.CartProductGateway;
 import com.example.order_service.cart.application.external.dto.CartProductListResult;
 import com.example.order_service.cart.application.external.dto.CartProductResult;
@@ -52,7 +54,7 @@ public class CartFacadeTest {
 
         @Test
         @DisplayName("장바구니에 상품을 추가한 뒤 추가된 장바구니 상품 정보를 조회하여 반환한다")
-        void addItems(){
+        void addItems() {
             //given
             AddCartItemsCommand addCommand = createAddCommand(1L, 3);
             CartProductListResult productData = createProductList(1L, CartProductStatus.ON_SALE);
@@ -82,7 +84,7 @@ public class CartFacadeTest {
 
         @Test
         @DisplayName("상품 정보 조회중 예외가 발생하면 예외를 전파한다")
-        void addItems_cartProductGateway_thrown_gatewayException(){
+        void addItems_cartProductGateway_thrown_gatewayException() {
             //given
             AddCartItemsCommand addCommand = createAddCommand(1L, 3);
             willThrow(new DefaultGatewayException(CartErrorCode.CART_PRODUCT_SERVER_ERROR, "INTERNAL_SERVER_ERROR", "알 수 없는 에러가 발생했습니다"))
@@ -97,7 +99,7 @@ public class CartFacadeTest {
 
         @Test
         @DisplayName("상품 검증중 예외가 발생하면 예외를 전파한다")
-        void addItems_CartItemValidator_thrown_BusinessException(){
+        void addItems_CartItemValidator_thrown_BusinessException() {
             //given
             AddCartItemsCommand addCommand = createAddCommand(1L, 3);
             CartProductListResult productData = createProductList(1L, CartProductStatus.ON_SALE);
@@ -119,7 +121,7 @@ public class CartFacadeTest {
 
         @Test
         @DisplayName("장바구니가 빈 경우 상품을 조회하지 않고 빈 결과를 반환한다")
-        void getCartDetails_empty_cart(){
+        void getCartDetails_empty_cart() {
             //given
             Long userId = 1L;
             given(cartQueryService.getCartItems(anyLong())).willReturn(Collections.emptyList());
@@ -132,7 +134,7 @@ public class CartFacadeTest {
 
         @Test
         @DisplayName("장바구니 조회 시 상품 정보가 없는 항목도 함께 반환한다")
-        void getCartDetails_missing_productData(){
+        void getCartDetails_missing_productData() {
             //given
             Long userId = 1L;
             Long productVariantId = 1L;
@@ -159,7 +161,7 @@ public class CartFacadeTest {
 
         @Test
         @DisplayName("장바구니 항목 상품 정보를 반환한다")
-        void getCartDetails(){
+        void getCartDetails() {
             //given
             Long userId = 1L;
             CartItemData item1 = createCartItemData(1L, 3);
@@ -220,10 +222,43 @@ public class CartFacadeTest {
         @DisplayName("장바구니 항목의 수량을 변경한다")
         void updateCartItemQuantity() {
             //given
+            Long cartItemId = 1L;
+            Long productVariantId = 1L;
+            int quantity = 3;
+            UpdateCartItemQuantityCommand command = createUpdateQuantityCommand(cartItemId, quantity);
+            CartItemData cartItemData = createCartItemData(productVariantId, quantity);
+            doNothing().when(cartCommandService).updateCartItemQuantity(any());
+            given(cartQueryService.getCartItem(anyLong())).willReturn(cartItemData);
+            //when
+            UpdateCartItemQuantityResult result = cartFacade.updateCartItemQuantity(command);
+            //then
+            assertThat(result.productVariantId()).isEqualTo(productVariantId);
+            assertThat(result.quantity()).isEqualTo(quantity);
+        }
 
+        @Test
+        @DisplayName("수량 변경중 예외가 발생하면 예외를 전파한다")
+        void updateCartItemQuantity_commandService_thrown_exception() {
+            //given
+            Long cartItemId = 1L;
+            int quantity = 3;
+            UpdateCartItemQuantityCommand command = createUpdateQuantityCommand(cartItemId, quantity);
+            willThrow(new BusinessException(CartErrorCode.CART_ITEM_MINIMUM_ONE_REQUIRED))
+                    .given(cartCommandService).updateCartItemQuantity(any(UpdateCartItemQuantityCommand.class));
             //when
             //then
+            assertThatThrownBy(() -> cartFacade.updateCartItemQuantity(command))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(CartErrorCode.CART_ITEM_MINIMUM_ONE_REQUIRED);
         }
+    }
+
+    private UpdateCartItemQuantityCommand createUpdateQuantityCommand(Long cartItemId, int quantity) {
+        return Instancio.of(UpdateCartItemQuantityCommand.class)
+                .set(field("cartItemId"), cartItemId)
+                .set(field("quantity"), quantity)
+                .create();
     }
 
     private AddCartItemsCommand createAddCommand(Long productVariantId, int quantity) {

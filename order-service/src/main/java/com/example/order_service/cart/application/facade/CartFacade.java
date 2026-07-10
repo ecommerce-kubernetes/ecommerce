@@ -68,29 +68,10 @@ public class CartFacade {
                 .build();
     }
 
-    private CartResult assembleResult(List<CartItemData> cartItemData) {
-        List<Long> variantIds = cartItemData.stream().map(CartItemData::productVariantId).toList();
-        CartProductListResult result = cartProductGateway.getProducts(variantIds);
-        Map<Long, CartProductResult> productMap = result.toMap();
-        List<CartItemResult> returnResult = cartItemData.stream()
-                .map(item -> {
-                    CartProductResult product = productMap.get(item.productVariantId());
-                    if (product == null) {
-                        return CartItemResult.unknown(item, CartItemAvailability.NOT_FOR_SALE);
-                    }
-                    CartItemAvailability availability = determineAvailability(product.status(), product, item.quantity());
-                    return CartItemResult.from(item, product, availability);
-                })
-                .toList();
-        return CartResult.builder()
-                .items(returnResult)
-                .build();
-    }
-
     public UpdateCartItemQuantityResult updateCartItemQuantity(UpdateCartItemQuantityCommand command) {
         cartCommandService.updateCartItemQuantity(command);
-        List<CartItemData> cartItems = cartQueryService.getCartItems(command.userId());
-        return null;
+        CartItemData cartItem = cartQueryService.getCartItem(command.cartItemId());
+        return UpdateCartItemQuantityResult.from(cartItem);
     }
 
     public void removeCartItems(DeleteCartItemsCommand command) {
