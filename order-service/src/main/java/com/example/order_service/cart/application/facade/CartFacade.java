@@ -18,8 +18,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -40,7 +44,37 @@ public class CartFacade {
     }
 
     public CartResult getCartDetails(Long userId) {
-        return null;
+        List<CartItemData> cartItems = cartQueryService.getCartItems(userId);
+        if (cartItems.isEmpty()) {
+            return CartResult.empty();
+        }
+
+        List<Long> variantIds = cartItems.stream().map(CartItemData::productVariantId).toList();
+        CartProductListResult productData = cartProductGateway.getProducts(variantIds);
+
+        return createCartResult(productData, cartItems);
+    }
+
+    private CartResult createCartResult(CartProductListResult productData, List<CartItemData> cartItems) {
+        Map<Long, CartProductResult> map = productData.toMap();
+
+        List<CartItemResult> list = new ArrayList<>();
+        for(CartItemData cartItem: cartItems) {
+            if (map.get(cartItem.productVariantId()) == null) {
+                list.add(CartItemResult.unknown(cartItem, CartItemAvailability.NOT_FOR_SALE));
+                continue;
+            }
+
+            CartProductResult product = map.get(cartItem.productVariantId());
+            if (product.status() != CartProductStatus.ON_SALE) {
+                list.add(CartItemResult.from(cartItem, product, CartItemAvailability.NOT_FOR_SALE));
+                continue;
+            }
+            list.add(CartItemResult.from(cartItem, product, CartItemAvailability.AVAILABLE));
+        }
+        return CartResult.builder()
+                .items(list)
+                .build();
     }
 
     public CartResult updateCartItemQuantity(UpdateCartItemQuantityCommand command) {
