@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -57,6 +58,12 @@ public class Cart extends BaseEntity {
                 .filter(item -> item.getProductVariantId().equals(productVariantId))
                 .findFirst()
                 .orElse(null);
+    }
+
+    public Optional<CartItem> findItemByCartItemId(Long cartItemId) {
+        return cartItems.stream()
+                .filter(item -> item.getId().equals(cartItemId))
+                .findFirst();
     }
 
     public void clearItems(){
