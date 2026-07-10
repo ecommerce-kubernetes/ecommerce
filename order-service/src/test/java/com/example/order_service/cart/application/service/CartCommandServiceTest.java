@@ -1,6 +1,7 @@
 package com.example.order_service.cart.application.service;
 
 import com.example.order_service.cart.application.dto.command.AddCartItemsCommand;
+import com.example.order_service.cart.application.dto.command.DeleteCartItemsCommand;
 import com.example.order_service.cart.application.dto.command.UpdateCartItemQuantityCommand;
 import com.example.order_service.cart.domain.model.Cart;
 import com.example.order_service.cart.domain.model.CartItem;
@@ -8,6 +9,7 @@ import com.example.order_service.cart.domain.repository.CartRepository;
 import com.example.order_service.cart.exception.CartErrorCode;
 import com.example.order_service.common.exception.application.BusinessException;
 import com.example.order_service.support.annotation.IsolatedTest;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -140,7 +142,9 @@ class CartCommandServiceTest {
             //when
             cartCommandService.updateCartItemQuantity(command);
             //then
-            assertThat(item.getQuantity()).isEqualTo(2);
+            Cart findCart = cartRepository.findByUserId(userId).orElseThrow();
+            CartItem findItem = findCart.findItemByCartItemId(item.getId()).orElseThrow();
+            assertThat(findItem.getQuantity()).isEqualTo(2);
         }
 
         @Test
@@ -155,6 +159,45 @@ class CartCommandServiceTest {
             //when
             //then
             assertThatThrownBy(() -> cartCommandService.updateCartItemQuantity(command))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(CartErrorCode.CART_NOT_FOUND);
+        }
+    }
+
+    @Nested
+    @DisplayName("장바구니 항목 삭제")
+    class DeleteCartItems {
+
+        @Test
+        @DisplayName("장바구니에 담긴 항목을 제거한다")
+        void deleteCartItems(){
+            //given
+            Long userId = 1L;
+
+            Cart cart = Cart.create(userId);
+            cart.addItem(1L, 3);
+            cart.addItem(2L, 3);
+            cartRepository.save(cart);
+
+            CartItem item1 = cart.findItemByProductVariantId(1L).orElseThrow();
+            CartItem item2 = cart.findItemByProductVariantId(2L).orElseThrow();
+            DeleteCartItemsCommand command = DeleteCartItemsCommand.of(userId, List.of(item1.getId(), item2.getId()));
+            //when
+            cartCommandService.deleteCartItems(command);
+            //then
+            Cart findCart = cartRepository.findByUserId(userId).orElseThrow();
+            assertThat(findCart.getCartItems()).isEmpty();
+        }
+
+        @Test
+        @DisplayName("장바구니를 찾을 수 없으면 예외가 발생한다")
+        void deleteCartItems_notFound_cart(){
+            //given
+            DeleteCartItemsCommand command = Instancio.create(DeleteCartItemsCommand.class);
+            //when
+            //then
+            assertThatThrownBy(() -> cartCommandService.deleteCartItems(command))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(CartErrorCode.CART_NOT_FOUND);

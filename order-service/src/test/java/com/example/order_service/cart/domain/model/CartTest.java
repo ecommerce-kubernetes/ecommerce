@@ -16,7 +16,7 @@ public class CartTest {
 
         @Test
         @DisplayName("장바구니를 생성한다")
-        void create(){
+        void create() {
             //given
             //when
             Cart cart = Cart.create(1L);
@@ -49,7 +49,7 @@ public class CartTest {
 
         @Test
         @DisplayName("동일한 상품이 있다면 기존 상품에 수량을 증가시킨다")
-        void addItemWhenExist(){
+        void addItemWhenExist() {
             //given
             Cart cart = Cart.create(1L);
             Long productVariantId = 1L;
@@ -68,7 +68,7 @@ public class CartTest {
         void addItemExceedCartSize() {
             //given
             Cart cart = Cart.create(1L);
-            for(long i=0; i<20L; i++) {
+            for (long i = 0; i < 20L; i++) {
                 cart.addItem(i, 3);
             }
             //when
@@ -77,57 +77,6 @@ public class CartTest {
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(CartErrorCode.EXCEED_AVAILABLE_CART_SIZE);
-        }
-    }
-
-    @Nested
-    @DisplayName("장바구니 비우기")
-    class ClearItems {
-
-        @Test
-        @DisplayName("장바구니의 모든 상품을 제거한다")
-        void clearItems(){
-            //given
-            Cart cart = Cart.create(1L);
-            cart.addItem(1L, 3);
-            cart.addItem(2L, 6);
-            //when
-            cart.clearItems();
-            //then
-            assertThat(cart.getCartItems()).isEmpty();
-        }
-    }
-
-    @Nested
-    @DisplayName("장바구니 상품 삭제")
-    class RemoveItemsByVariantId {
-
-    }
-
-    @Nested
-    @DisplayName("장바구니 유저 검증")
-    class IsOwner {
-
-        @Test
-        @DisplayName("장바구니의 userId 가 일치하면 true를 반환한다")
-        void isOwner_true(){
-            //given
-            Cart cart = Cart.create(1L);
-            //when
-            boolean isOwner = cart.isOwner(1L);
-            //then
-            assertThat(isOwner).isTrue();
-        }
-
-        @Test
-        @DisplayName("장바구니의 userId 가 일치하지 않으면 false를 반환한다")
-        void isOwner_false(){
-            //given
-            Cart cart = Cart.create(1L);
-            //when
-            boolean isOwner = cart.isOwner(2L);
-            //then
-            assertThat(isOwner).isFalse();
         }
     }
 }

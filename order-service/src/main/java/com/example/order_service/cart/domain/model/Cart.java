@@ -64,20 +64,16 @@ public class Cart extends BaseEntity {
                 .findFirst();
     }
 
-    public void clearItems(){
-        for (CartItem cartItem : cartItems) {
-            cartItem.setCart(null);
-        }
-        cartItems.clear();
-    }
-
-    public boolean isOwner(Long accessUserId) {
-        return this.userId.equals(accessUserId);
-    }
-
     public void updateItemQuantity(Long cartItemId, Integer quantity) {
         CartItem cartItem = findItemByCartItemId(cartItemId)
                 .orElseThrow(() -> new BusinessException(CartErrorCode.CART_ITEM_NOT_FOUND));
         cartItem.updateQuantity(quantity);
+    }
+
+    public void deleteItem(Long cartItemId) {
+        CartItem cartItem = findItemByCartItemId(cartItemId)
+                .orElseThrow(() -> new BusinessException(CartErrorCode.CART_ITEM_NOT_FOUND));
+        cartItems.remove(cartItem);
+        cartItem.setCart(null);
     }
 }

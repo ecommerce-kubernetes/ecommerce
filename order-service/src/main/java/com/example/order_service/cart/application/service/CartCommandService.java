@@ -33,6 +33,10 @@ public class CartCommandService {
     }
 
     public void deleteCartItems(DeleteCartItemsCommand command) {
-
+        Cart cart = cartRepository.findByUserId(command.userId())
+                .orElseThrow(() -> new BusinessException(CartErrorCode.CART_NOT_FOUND));
+        for(Long cartItemId: command.cartItemIds()) {
+            cart.deleteItem(cartItemId);
+        }
     }
 }
