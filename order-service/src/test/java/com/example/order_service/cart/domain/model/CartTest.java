@@ -5,32 +5,19 @@ import com.example.order_service.common.exception.application.BusinessException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.assertj.core.api.Assertions.*;
 
 public class CartTest {
 
-    @Nested
-    @DisplayName("장바구니 생성")
-    class Create {
-
-        @Test
-        @DisplayName("장바구니를 생성한다")
-        void create() {
-            //given
-            //when
-            Cart cart = Cart.create(1L);
-            //then
-            assertThat(cart.getUserId()).isEqualTo(1L);
-        }
-    }
 
     @Nested
     @DisplayName("장바구니 상품 추가")
     class AddItem {
 
         @Test
-        @DisplayName("상품을 추가한다")
+        @DisplayName("항목을 추가한다")
         void addItem() {
             //given
             Cart cart = Cart.create(1L);
@@ -48,7 +35,7 @@ public class CartTest {
         }
 
         @Test
-        @DisplayName("동일한 상품이 있다면 기존 상품에 수량을 증가시킨다")
+        @DisplayName("동일한 항목이 있다면 기존 항목의 수량을 증가시킨다")
         void addItemWhenExist() {
             //given
             Cart cart = Cart.create(1L);
@@ -58,7 +45,8 @@ public class CartTest {
             cart.addItem(productVariantId, 2);
             //then
             assertThat(cart.getCartItems()).hasSize(1);
-            assertThat(cart.findItemByProductVariantId(1L).get())
+            CartItem findItem = cart.findItemByProductVariantId(productVariantId).orElseThrow();
+            assertThat(findItem)
                     .extracting("productVariantId", "quantity")
                     .contains(1L, 5);
         }
@@ -77,6 +65,73 @@ public class CartTest {
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(CartErrorCode.EXCEED_AVAILABLE_CART_SIZE);
+        }
+    }
+
+    @Nested
+    @DisplayName("항목 수량 변경")
+    class UpdateItemQuantity {
+
+        @Test
+        @DisplayName("항목 수량을 변경한다")
+        void updateItemQuantity(){
+            //given
+            Cart cart = Cart.create(1L);
+            Long cartItemId = 1L;
+            CartItem cartItem = CartItem.create(1L, 3);
+            ReflectionTestUtils.setField(cartItem, "id", cartItemId);
+            cart.getCartItems().add(cartItem);
+            //when
+            cart.updateItemQuantity(cartItemId, 5);
+            //then
+            CartItem item = cart.findItemByCartItemId(cartItemId).orElseThrow();
+            assertThat(item.getQuantity()).isEqualTo(5);
+        }
+
+        @Test
+        @DisplayName("항목을 찾을 수 없으면 예외가 발생한다")
+        void updateItemQuantity_notFound_cartItem(){
+            //given
+            Cart cart = Cart.create(1L);
+            //when
+            //then
+            assertThatThrownBy(() -> cart.updateItemQuantity(999L, 3))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(CartErrorCode.CART_ITEM_NOT_FOUND);
+        }
+    }
+
+    @Nested
+    @DisplayName("장바구니 항목 삭제")
+    class DeleteItem {
+
+        @Test
+        @DisplayName("항목을 삭제한다")
+        void deleteItem(){
+            //given
+            Cart cart = Cart.create(1L);
+            Long cartItemId = 1L;
+            CartItem cartItem = CartItem.create(1L, 3);
+            ReflectionTestUtils.setField(cartItem, "id", cartItemId);
+            cart.getCartItems().add(cartItem);
+            //when
+            cart.deleteItem(cartItemId);
+            //then
+            assertThat(cart.getCartItems()).hasSize(0);
+        }
+
+        @Test
+        @DisplayName("항목을 찾을 수 없으면 예외가 발생한다")
+        void deleteItem_notFound_cartItem(){
+            //given
+            Cart cart = Cart.create(1L);
+            //when
+            //then
+            assertThatThrownBy(() -> cart.deleteItem(999L))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(CartErrorCode.CART_ITEM_NOT_FOUND);
         }
     }
 }
