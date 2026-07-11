@@ -60,7 +60,7 @@ public class CartFacadeTest {
             given(cartProductGateway.getProducts(anyList())).willReturn(productData);
             doNothing().when(validator).validate(any(AddCartItemsCommand.class), any(CartProductListResult.class));
             doNothing().when(cartCommandService).addCartItems(any(AddCartItemsCommand.class));
-            given(cartQueryService.getCartItems(anyLong(), anyList())).willReturn(List.of(cartItemData));
+            given(cartQueryService.findCartItemsByVariantIds(anyLong(), anyList())).willReturn(List.of(cartItemData));
             //when
             AddCartItemsResult result = cartFacade.addItems(addCommand);
             //then
@@ -86,14 +86,14 @@ public class CartFacadeTest {
             AddCartItemsCommand addCommand = createAddCommand(1L, 3);
             CartProductListResult productData = createProductList(1L, CartProductStatus.ON_SALE);
             given(cartProductGateway.getProducts(anyList())).willReturn(productData);
-            willThrow(new BusinessException(CartErrorCode.CART_PRODUCT_CANNOT_ADD))
+            willThrow(new BusinessException(CartErrorCode.PRODUCT_NOT_ON_SALE))
                     .given(validator).validate(any(AddCartItemsCommand.class), any(CartProductListResult.class));
             //when
             //then
             assertThatThrownBy(() -> cartFacade.addItems(addCommand))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
-                    .isEqualTo(CartErrorCode.CART_PRODUCT_CANNOT_ADD);
+                    .isEqualTo(CartErrorCode.PRODUCT_NOT_ON_SALE);
         }
     }
 
@@ -106,7 +106,7 @@ public class CartFacadeTest {
         void getCartDetails_empty_cart() {
             //given
             Long userId = 1L;
-            given(cartQueryService.getCartItems(anyLong())).willReturn(Collections.emptyList());
+            given(cartQueryService.findCartItems(anyLong())).willReturn(Collections.emptyList());
             //when
             CartResult result = cartFacade.getCartDetails(userId);
             //then
@@ -127,7 +127,7 @@ public class CartFacadeTest {
                     .set(field("products"), Collections.emptyList())
                     .create();
 
-            given(cartQueryService.getCartItems(anyLong())).willReturn(List.of(cartItemData));
+            given(cartQueryService.findCartItems(anyLong())).willReturn(List.of(cartItemData));
             given(cartProductGateway.getProducts(anyList())).willReturn(productData);
             //when
             CartResult result = cartFacade.getCartDetails(userId);
@@ -163,7 +163,7 @@ public class CartFacadeTest {
                     .set(field("products"), List.of(product1, product2))
                     .create();
 
-            given(cartQueryService.getCartItems(anyLong())).willReturn(List.of(item1, item2));
+            given(cartQueryService.findCartItems(anyLong())).willReturn(List.of(item1, item2));
             given(cartProductGateway.getProducts(anyList())).willReturn(productData);
             //when
             CartResult result = cartFacade.getCartDetails(userId);
@@ -272,14 +272,14 @@ public class CartFacadeTest {
             Long cartItemId = 1L;
             int quantity = 3;
             UpdateCartItemQuantityCommand command = createUpdateQuantityCommand(cartItemId, quantity);
-            willThrow(new BusinessException(CartErrorCode.CART_ITEM_MINIMUM_ONE_REQUIRED))
+            willThrow(new BusinessException(CartErrorCode.INVALID_CART_ITEM_QUANTITY))
                     .given(cartCommandService).updateCartItemQuantity(any(UpdateCartItemQuantityCommand.class));
             //when
             //then
             assertThatThrownBy(() -> cartFacade.updateCartItemQuantity(command))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
-                    .isEqualTo(CartErrorCode.CART_ITEM_MINIMUM_ONE_REQUIRED);
+                    .isEqualTo(CartErrorCode.INVALID_CART_ITEM_QUANTITY);
         }
     }
 

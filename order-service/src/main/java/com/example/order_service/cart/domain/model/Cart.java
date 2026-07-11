@@ -37,7 +37,7 @@ public class Cart extends BaseEntity {
 
     public void addItem(Long productVariantId, int quantity){
         if (this.cartItems.size() >= 20) {
-            throw new BusinessException(CartErrorCode.EXCEED_AVAILABLE_CART_SIZE);
+            throw new BusinessException(CartErrorCode.CART_SIZE_LIMIT_EXCEEDED);
         }
 
         Optional<CartItem> existing = findItemByProductVariantId(productVariantId);

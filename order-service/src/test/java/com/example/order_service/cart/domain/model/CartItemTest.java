@@ -36,7 +36,7 @@ public class CartItemTest {
             assertThatThrownBy(() -> CartItem.create(1L, 0))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
-                    .isEqualTo(CartErrorCode.CART_ITEM_MINIMUM_ONE_REQUIRED);
+                    .isEqualTo(CartErrorCode.INVALID_CART_ITEM_QUANTITY);
         }
     }
 
@@ -65,7 +65,7 @@ public class CartItemTest {
             assertThatThrownBy(() -> cartItem.updateQuantity(0))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
-                    .isEqualTo(CartErrorCode.CART_ITEM_MINIMUM_ONE_REQUIRED);
+                    .isEqualTo(CartErrorCode.INVALID_CART_ITEM_QUANTITY);
         }
     }
 }

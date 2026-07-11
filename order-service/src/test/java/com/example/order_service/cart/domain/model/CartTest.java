@@ -64,7 +64,7 @@ public class CartTest {
             assertThatThrownBy(() -> cart.addItem(999L, 3))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
-                    .isEqualTo(CartErrorCode.EXCEED_AVAILABLE_CART_SIZE);
+                    .isEqualTo(CartErrorCode.CART_SIZE_LIMIT_EXCEEDED);
         }
     }
 

@@ -1,6 +1,8 @@
 package com.example.order_service.cart.application.service;
 
 import com.example.order_service.cart.application.dto.data.CartItemData;
+import com.example.order_service.cart.domain.model.Cart;
+import com.example.order_service.cart.domain.model.CartItem;
 import com.example.order_service.cart.domain.repository.CartRepository;
 import com.example.order_service.cart.exception.CartErrorCode;
 import com.example.order_service.common.exception.application.BusinessException;
@@ -10,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Transactional(readOnly = true)
@@ -18,18 +21,29 @@ public class CartQueryService {
 
     private final CartRepository cartRepository;
 
-    public List<CartItemData> getCartItems(Long userId) {
+    public List<CartItemData> findCartItems(Long userId) {
         return cartRepository.findByUserId(userId)
                 .map(cart -> cart.getCartItems().stream().map(CartItemData::from)
                         .toList())
                 .orElse(Collections.emptyList());
     }
 
-    public List<CartItemData> getCartItems(Long userId, List<Long> productVariantIds) {
-        return null;
+    public List<CartItemData> findCartItemsByVariantIds(Long userId, List<Long> productVariantIds) {
+        return cartRepository.findByUserId(userId)
+                .map(cart -> productVariantIds.stream()
+                        .flatMap(id -> cart.findItemByProductVariantId(id).stream())
+                        .map(CartItemData::from)
+                        .toList())
+                .orElse(Collections.emptyList());
     }
 
     public CartItemData getCartItem(Long userId, Long cartItemId) {
-        return null;
+        Cart cart = cartRepository.findByUserId(userId)
+                .orElseThrow(() -> new BusinessException(CartErrorCode.CART_NOT_FOUND));
+
+        CartItem cartItem = cart.findItemByCartItemId(cartItemId)
+                .orElseThrow(() -> new BusinessException(CartErrorCode.CART_ITEM_NOT_FOUND));
+
+        return CartItemData.from(cartItem);
     }
 }

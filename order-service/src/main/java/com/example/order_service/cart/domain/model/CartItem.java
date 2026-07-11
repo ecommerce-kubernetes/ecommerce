@@ -4,7 +4,6 @@ import com.example.order_service.cart.exception.CartErrorCode;
 import com.example.order_service.common.exception.application.BusinessException;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -34,7 +33,7 @@ public class CartItem {
 
     public static CartItem create(Long productVariantId, int quantity){
         if (quantity <= 0) {
-            throw new BusinessException(CartErrorCode.CART_ITEM_MINIMUM_ONE_REQUIRED);
+            throw new BusinessException(CartErrorCode.INVALID_CART_ITEM_QUANTITY);
         }
         return new CartItem(productVariantId, quantity);
     }
@@ -45,7 +44,7 @@ public class CartItem {
 
     public void updateQuantity(int quantity) {
         if(quantity <= 0){
-            throw new BusinessException(CartErrorCode.CART_ITEM_MINIMUM_ONE_REQUIRED);
+            throw new BusinessException(CartErrorCode.INVALID_CART_ITEM_QUANTITY);
         }
         this.quantity = quantity;
     }

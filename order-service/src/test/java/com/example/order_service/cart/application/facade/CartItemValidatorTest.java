@@ -11,7 +11,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
-import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.instancio.Select.field;
@@ -47,7 +46,7 @@ class CartItemValidatorTest {
         assertThatThrownBy(() -> validator.validate(command, productData))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
-                .isEqualTo(CartErrorCode.CART_PRODUCT_NOT_FOUND);
+                .isEqualTo(CartErrorCode.PRODUCT_NOT_FOUND);
     }
 
     @Test
@@ -84,6 +83,6 @@ class CartItemValidatorTest {
         assertThatThrownBy(() -> validator.validate(command, productData))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
-                .isEqualTo(CartErrorCode.CART_PRODUCT_CANNOT_ADD);
+                .isEqualTo(CartErrorCode.PRODUCT_NOT_ON_SALE);
     }
 }

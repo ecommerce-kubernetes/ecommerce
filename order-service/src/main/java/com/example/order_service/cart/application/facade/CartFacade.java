@@ -32,12 +32,12 @@ public class CartFacade {
         CartProductListResult productData = cartProductGateway.getProducts(variantIds);
         cartItemValidator.validate(command, productData);
         cartCommandService.addCartItems(command);
-        List<CartItemData> cartItems = cartQueryService.getCartItems(command.userId(), variantIds);
+        List<CartItemData> cartItems = cartQueryService.findCartItemsByVariantIds(command.userId(), variantIds);
         return AddCartItemsResult.from(cartItems);
     }
 
     public CartResult getCartDetails(Long userId) {
-        List<CartItemData> cartItems = cartQueryService.getCartItems(userId);
+        List<CartItemData> cartItems = cartQueryService.findCartItems(userId);
         if (cartItems.isEmpty()) {
             return CartResult.empty();
         }

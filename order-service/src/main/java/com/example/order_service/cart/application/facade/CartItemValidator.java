@@ -18,10 +18,10 @@ public class CartItemValidator {
         for (AddCartItemsCommand.Item item : command.items()) {
             CartProductResult product = productDataMap.get(item.productVariantId());
             if (product == null) {
-                throw new BusinessException(CartErrorCode.CART_PRODUCT_NOT_FOUND);
+                throw new BusinessException(CartErrorCode.PRODUCT_NOT_FOUND);
             }
             if (product.status() != CartProductStatus.ON_SALE) {
-                throw new BusinessException(CartErrorCode.CART_PRODUCT_CANNOT_ADD);
+                throw new BusinessException(CartErrorCode.PRODUCT_NOT_ON_SALE);
             }
         }
     }
