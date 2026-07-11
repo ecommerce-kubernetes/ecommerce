@@ -5,6 +5,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.Builder;
 
 import java.util.List;
@@ -13,7 +14,7 @@ import java.util.List;
 public record AddCartItemsRequest(
 
         @Valid
-        @NotEmpty(message = "장바구니에 추가할 상품이 하나 이상 있어야 합니다.")
+        @Size(min = 1, max = 20, message = "{cart.items.size}")
         List<Item> items
 ) {
     public AddCartItemsCommand toCommand(Long userId) {
@@ -29,10 +30,10 @@ public record AddCartItemsRequest(
 
     @Builder
     public record Item(
-            @NotNull(message = "productVariantId는 필수값입니다")
+            @NotNull(message = "{cart.item.productVariantId.notNull}")
             Long productVariantId,
-            @NotNull(message = "quantity는 필수값입니다")
-            @Min(value = 1, message = "quantity는 1이상 이여야 합니다")
+            @NotNull(message = "{cart.item.quantity.notNull}")
+            @Min(value = 1, message = "{cart.item.quantity.min}")
             Integer quantity
     ) {
         public AddCartItemsCommand.Item toCommand() {

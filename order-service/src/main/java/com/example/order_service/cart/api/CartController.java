@@ -36,7 +36,7 @@ public class CartController {
     private final CartFacade cartFacade;
 
     @PostMapping
-    public ResponseEntity<AddCartItemsResponse> addCartItem(@AuthenticationPrincipal UserPrincipal userPrincipal,
+    public ResponseEntity<AddCartItemsResponse> addCartItems(@AuthenticationPrincipal UserPrincipal userPrincipal,
                                                             @RequestBody @Validated AddCartItemsRequest request){
         AddCartItemsCommand command = request.toCommand(userPrincipal.getUserId());
         AddCartItemsResult result = cartFacade.addItems(command);

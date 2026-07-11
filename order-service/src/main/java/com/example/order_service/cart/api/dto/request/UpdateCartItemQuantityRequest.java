@@ -7,8 +7,8 @@ import lombok.Builder;
 
 @Builder
 public record UpdateCartItemQuantityRequest(
-        @NotNull(message = "수량은 필수값 입니다")
-        @Min(value = 1, message = "수량은 1이상이여야 합니다")
+        @NotNull(message = "{cart.item.quantity.notNull}")
+        @Min(value = 1, message = "{cart.item.quantity.min}")
         Integer quantity
 ) {
 
