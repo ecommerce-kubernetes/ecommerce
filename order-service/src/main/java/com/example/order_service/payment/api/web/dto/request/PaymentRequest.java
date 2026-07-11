@@ -11,12 +11,12 @@ public class PaymentRequest {
 
     @Builder(toBuilder = true)
     public record Confirm(
-            @NotEmpty(message = "주문 번호는 필수입니다")
+            @NotEmpty(message = "{payment.orderNo}")
             String orderNo,
-            @NotEmpty(message = "결제 키는 필수입니다")
+            @NotEmpty(message = "{payment.paymentKey}")
             String paymentKey,
-            @NotNull(message = "결제 금액은 필수입니다")
-            @Min(value = 1, message = "결제 금액은 1원 미만일 수 없습니다")
+            @NotNull(message = "{payment.amount}")
+            @Min(value = 1, message = "{payment.amount.min}")
             Long amount
     ) {
         public PaymentCommand.Confirm toCommand(Long userId) {

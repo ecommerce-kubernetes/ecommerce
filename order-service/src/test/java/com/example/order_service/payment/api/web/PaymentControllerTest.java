@@ -82,7 +82,7 @@ public class PaymentControllerTest {
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isUnauthorized())
                     .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
-                    .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다"))
+                    .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다."))
                     .andExpect(jsonPath("$.timestamp").exists())
                     .andExpect(jsonPath("$.path").value("/payments/confirm"));
         }
@@ -102,7 +102,7 @@ public class PaymentControllerTest {
                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isForbidden())
                     .andExpect(jsonPath("$.code").value("FORBIDDEN"))
-                    .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다"))
+                    .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다."))
                     .andExpect(jsonPath("$.timestamp").exists())
                     .andExpect(jsonPath("$.path").value("/payments/confirm"));
         }
@@ -111,7 +111,7 @@ public class PaymentControllerTest {
         @DisplayName("결제 승인 입력 검증 테스트")
         @MethodSource("provideInvalidConfirm")
         @WithCustomMockUser
-        void paymentConfirm_validation(String description, PaymentRequest.Confirm request, String message) throws Exception {
+        void paymentConfirm_validation(String description, PaymentRequest.Confirm request, String expectedField, String expectedMessage) throws Exception {
             //given
             //when
             //then
@@ -120,7 +120,9 @@ public class PaymentControllerTest {
                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.code").value("VALIDATION"))
-                    .andExpect(jsonPath("$.message").value(message))
+                    .andExpect(jsonPath("$.message").value("입력값이 올바르지 않습니다."))
+                    .andExpect(jsonPath("$.errors[0].field").value(expectedField))
+                    .andExpect(jsonPath("$.errors[0].reason").value(expectedMessage))
                     .andExpect(jsonPath("$.timestamp").exists())
                     .andExpect(jsonPath("$.path").value("/payments/confirm"));
         }
@@ -133,24 +135,28 @@ public class PaymentControllerTest {
                     .build();
             return Stream.of(
                     Arguments.of(
-                            "주문 번호 미입력",
+                            "주문 번호가 없으면 검증에 실패한다",
                             BASE.toBuilder().orderNo(null).build(),
-                            "주문 번호는 필수입니다"
+                            "orderNo",
+                            "주문 번호는 필수입니다."
                     ),
                     Arguments.of(
-                            "결제 키 미입력",
+                            "결제 키가 없으면 검증에 실패한다",
                             BASE.toBuilder().paymentKey(null).build(),
-                            "결제 키는 필수입니다"
+                            "paymentKey",
+                            "결제 키는 필수입니다."
                     ),
                     Arguments.of(
-                            "결제 금액 미입력",
+                            "결제 금액이 없으면 검증에 실패한다",
                             BASE.toBuilder().amount(null).build(),
-                            "결제 금액은 필수입니다"
+                            "amount",
+                            "결제 금액은 필수입니다."
                     ),
                     Arguments.of(
-                            "결제 금액 0 미만 입력",
+                            "결제 금액이 1원보다 작으면 검증에 실패한다.",
                             BASE.toBuilder().amount(0L).build(),
-                            "결제 금액은 1원 미만일 수 없습니다"
+                            "amount",
+                            "결제 금액은 1원 이상이어야 합니다."
                     )
             );
         }

@@ -103,7 +103,7 @@ class OrderSheetControllerTest {
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isUnauthorized())
                     .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
-                    .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다"))
+                    .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다."))
                     .andExpect(jsonPath("$.timestamp").exists())
                     .andExpect(jsonPath("$.path").value("/order-sheets"));
         }
@@ -134,7 +134,7 @@ class OrderSheetControllerTest {
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isForbidden())
                     .andExpect(jsonPath("$.code").value("FORBIDDEN"))
-                    .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다"))
+                    .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다."))
                     .andExpect(jsonPath("$.timestamp").exists())
                     .andExpect(jsonPath("$.path").value("/order-sheets"));
         }
@@ -143,7 +143,7 @@ class OrderSheetControllerTest {
         @DisplayName("주문서 저장 입력 검증 테스트")
         @MethodSource("provideInvalidCreateRequest")
         @WithCustomMockUser
-        void createOrderSheet_validate(String description, OrderSheetRequest.Create req, String message) throws Exception {
+        void createOrderSheet_validate(String description, OrderSheetRequest.Create req, String expectedField, String expectedMessage) throws Exception {
             //given
             //when
             //then
@@ -152,7 +152,9 @@ class OrderSheetControllerTest {
                             .content(objectMapper.writeValueAsString(req)))
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.code").value("VALIDATION"))
-                    .andExpect(jsonPath("$.message").value(message))
+                    .andExpect(jsonPath("$.message").value("입력값이 올바르지 않습니다."))
+                    .andExpect(jsonPath("$.errors[0].field").value(expectedField))
+                    .andExpect(jsonPath("$.errors[0].reason").value(expectedMessage))
                     .andExpect(jsonPath("$.timestamp").exists())
                     .andExpect(jsonPath("$.path").value("/order-sheets"));
         }
@@ -168,61 +170,69 @@ class OrderSheetControllerTest {
                     .build();
             return Stream.of(
                     Arguments.of(
-                            "상품이 없음",
+                            "주문 상품 리스트가 빈 경우 검증에 실패한다",
                             OrderSheetRequest.Create.builder()
                                     .cartCouponId(null)
                                     .itemCoupons(List.of())
                                     .build(),
-                            "주문 상품은 한개 이상이여야 합니다"
+                            "items",
+                            "주문 상품은 한개 이상이여야 합니다."
                     ),
+
                     Arguments.of(
-                            "상품 변형 id가 null",
+                            "상품 변형 Id 가 없는 경우 검증에 실패한다",
                             OrderSheetRequest.Create.builder()
                                     .items(List.of(VALID_BASE_ITEM.toBuilder().productVariantId(null).build()))
                                     .cartCouponId(null)
                                     .itemCoupons(List.of())
                                     .build(),
-                            "productVariantId는 필수값입니다"
+                            "items[0].productVariantId",
+                            "상품 식별자(productVariantId)는 필수값입니다."
                     ),
+
                     Arguments.of(
-                            "수량이 null",
+                            "수량이 없는 경우 검증에 실패한다",
                             OrderSheetRequest.Create.builder()
                                     .items(List.of(VALID_BASE_ITEM.toBuilder().quantity(null).build()))
                                     .cartCouponId(null)
                                     .itemCoupons(List.of())
                                     .build(),
-                            "quantity는 필수값입니다"
+                            "items[0].quantity",
+                            "수량(quantity)은 필수값입니다."
                     ),
                     Arguments.of(
-                            "수량이 1미만",
+                            "수량이 0개 이하인 경우 검증에 실패한다",
                             OrderSheetRequest.Create.builder()
                                     .items(List.of(VALID_BASE_ITEM.toBuilder().quantity(0).build()))
                                     .cartCouponId(null)
                                     .itemCoupons(List.of())
                                     .build(),
-                            "quantity는 1이상 이여야 합니다"
+                            "items[0].quantity",
+                            "수량(quantity)은 1개 이상이어야 합니다."
                     ),
                     Arguments.of(
-                            "상품 쿠폰이 null",
+                            "상품 쿠폰이 null인 경우 검증에 실패한다",
                             OrderSheetRequest.Create.builder()
                                     .items(List.of(VALID_BASE_ITEM))
                                     .cartCouponId(null)
                                     .itemCoupons(null)
                                     .build(),
-                            "상품 쿠폰은 필수값 입니다"
+                            "itemCoupons",
+                            "상품 쿠폰은 필수값 입니다."
                     ),
                     Arguments.of(
-                            "상품 쿠폰 사용 상품 variantId가 null",
+                            "상품 쿠폰 사용 상품 식별자가 없는 경우 검증에 실패한다",
                             OrderSheetRequest.Create.builder()
                                     .items(List.of(VALID_BASE_ITEM))
                                     .cartCouponId(null)
                                     .itemCoupons(List.of(VALID_BASE_ITEM_COUPON.toBuilder()
                                             .productVariantId(null).build()))
                                     .build(),
-                            "쿠폰을 적용할 상품 변형 아이디는 필수값 입니다"
+                            "itemCoupons[0].productVariantId",
+                            "쿠폰을 적용할 상품 식별자(productVariantId)는 필수값 입니다."
                     ),
                     Arguments.of(
-                            "상품 쿠폰 아이디가 null",
+                            "상품 쿠폰 아이디가 없는 경우 검증에 실패한다",
                             OrderSheetRequest.Create.builder()
                                     .items(List.of(VALID_BASE_ITEM))
                                     .cartCouponId(null)
@@ -230,7 +240,8 @@ class OrderSheetControllerTest {
                                             .couponId(null)
                                             .build()))
                                     .build(),
-                            "적용할 쿠폰 아이디는 필수값 입니다"
+                            "itemCoupons[0].couponId",
+                            "쿠폰 식별자(couponId)는 필수값 입니다."
                     )
             );
         }
@@ -275,7 +286,7 @@ class OrderSheetControllerTest {
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isUnauthorized())
                     .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
-                    .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다"))
+                    .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다."))
                     .andExpect(jsonPath("$.timestamp").exists())
                     .andExpect(jsonPath("$.path").value("/order-sheets/" + orderSheetId));
         }
@@ -292,7 +303,7 @@ class OrderSheetControllerTest {
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isForbidden())
                     .andExpect(jsonPath("$.code").value("FORBIDDEN"))
-                    .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다"))
+                    .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다."))
                     .andExpect(jsonPath("$.timestamp").exists())
                     .andExpect(jsonPath("$.path").value("/order-sheets/" + orderSheetId));
         }
@@ -349,7 +360,7 @@ class OrderSheetControllerTest {
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isUnauthorized())
                     .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
-                    .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다"))
+                    .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다."))
                     .andExpect(jsonPath("$.timestamp").exists())
                     .andExpect(jsonPath("$.path").value("/order-sheets/" + sheetId + "/shipping-address"));
         }
@@ -373,7 +384,7 @@ class OrderSheetControllerTest {
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isForbidden())
                     .andExpect(jsonPath("$.code").value("FORBIDDEN"))
-                    .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다"))
+                    .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다."))
                     .andExpect(jsonPath("$.timestamp").exists())
                     .andExpect(jsonPath("$.path").value("/order-sheets/" + sheetId + "/shipping-address"));
         }
@@ -382,7 +393,7 @@ class OrderSheetControllerTest {
         @DisplayName("배송 정보 수정 입력 검증 테스트")
         @MethodSource("provideInvalidRequest")
         @WithCustomMockUser
-        void updateShippingAddress_validate(String description, OrderSheetRequest.UpdateShippingAddress req, String message) throws Exception {
+        void updateShippingAddress_validate(String description, OrderSheetRequest.UpdateShippingAddress req, String expectedField, String expectedMessage) throws Exception {
             //given
             String sheetId = "sheetId";
             //when
@@ -392,7 +403,9 @@ class OrderSheetControllerTest {
                             .content(objectMapper.writeValueAsString(req)))
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.code").value("VALIDATION"))
-                    .andExpect(jsonPath("$.message").value(message))
+                    .andExpect(jsonPath("$.message").value("입력값이 올바르지 않습니다."))
+                    .andExpect(jsonPath("$.errors[0].field").value(expectedField))
+                    .andExpect(jsonPath("$.errors[0].reason").value(expectedMessage))
                     .andExpect(jsonPath("$.timestamp").exists())
                     .andExpect(jsonPath("$.path").value("/order-sheets/" + sheetId + "/shipping-address"));
         }
@@ -407,34 +420,40 @@ class OrderSheetControllerTest {
                     .build();
             return Stream.of(
                     Arguments.of(
-                            "수령인 미입력",
+                            "수령인이 없으면 검증에 실패한다",
                             VALID_REQUEST.toBuilder().receiverName(null).build(),
-                            "수령인 이름은 필수입니다"
+                            "receiverName",
+                            "수령인 이름은 필수입니다."
                     ),
                     Arguments.of(
-                            "수령인 전화번호 미입력",
+                            "수령인 전화번호가 없으면 검증에 실패한다",
                             VALID_REQUEST.toBuilder().receiverPhone(null).build(),
-                            "수령인 전화번호는 필수입니다"
+                            "receiverPhone",
+                            "수령인 전화번호는 필수입니다."
                     ),
                     Arguments.of(
-                            "수령인 전화번호 형식 오류",
+                            "수령인 전화번호 형식이 올바르지 않으면 검증에 실패한다",
                             VALID_REQUEST.toBuilder().receiverPhone("123123").build(),
-                            "전화번호 형식이 올바르지 않습니다 (예: 010-1234-5678)"
+                            "receiverPhone",
+                            "전화번호 형식이 올바르지 않습니다. (예: 010-1234-5678)"
                     ),
                     Arguments.of(
-                            "우편 번호 미입력",
+                            "우편 번호가 없으면 검증에 실패한다",
                             VALID_REQUEST.toBuilder().zipCode(null).build(),
-                            "우편 번호는 필수입니다"
+                            "zipCode",
+                            "우편 번호는 필수입니다."
                     ),
                     Arguments.of(
-                            "기본 주소 미입력",
+                            "기본 주소가 없으면 검증에 실패한다",
                             VALID_REQUEST.toBuilder().address(null).build(),
-                            "기본 주소는 필수입니다"
+                            "address",
+                            "기본 주소는 필수입니다."
                     ),
                     Arguments.of(
-                            "상세 주소 미입력",
+                            "상세 주소가 없으면 검증에 실패한다",
                             VALID_REQUEST.toBuilder().addressDetail(null).build(),
-                            "상세 주소는 필수입니다"
+                            "addressDetail",
+                            "상세 주소는 필수입니다."
                     )
             );
         }
@@ -484,7 +503,7 @@ class OrderSheetControllerTest {
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isUnauthorized())
                     .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
-                    .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다"))
+                    .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다."))
                     .andExpect(jsonPath("$.timestamp").exists())
                     .andExpect(jsonPath("$.path").value("/order-sheets/" + sheetId + "/points"));
         }
@@ -505,7 +524,7 @@ class OrderSheetControllerTest {
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isForbidden())
                     .andExpect(jsonPath("$.code").value("FORBIDDEN"))
-                    .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다"))
+                    .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다."))
                     .andExpect(jsonPath("$.timestamp").exists())
                     .andExpect(jsonPath("$.path").value("/order-sheets/" + sheetId + "/points"));
         }
@@ -514,7 +533,7 @@ class OrderSheetControllerTest {
         @MethodSource("provideInvalidRequest")
         @DisplayName("사용 포인트 수정 입력 검증 테스트")
         @WithCustomMockUser
-        void updatePoints_validate(String description, OrderSheetRequest.UpdateUsedPoints req, String message) throws Exception {
+        void updatePoints_validate(String description, OrderSheetRequest.UpdateUsedPoints req, String expectedField, String expectedMessage) throws Exception {
             //given
             String sheetId = "sheetId";
             //when
@@ -524,7 +543,9 @@ class OrderSheetControllerTest {
                             .content(objectMapper.writeValueAsString(req)))
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.code").value("VALIDATION"))
-                    .andExpect(jsonPath("$.message").value(message))
+                    .andExpect(jsonPath("$.message").value("입력값이 올바르지 않습니다."))
+                    .andExpect(jsonPath("$.errors[0].field").value(expectedField))
+                    .andExpect(jsonPath("$.errors[0].reason").value(expectedMessage))
                     .andExpect(jsonPath("$.timestamp").exists())
                     .andExpect(jsonPath("$.path").value("/order-sheets/" + sheetId + "/points"));
         }
@@ -532,16 +553,18 @@ class OrderSheetControllerTest {
         private static Stream<Arguments> provideInvalidRequest() {
             return Stream.of(
                     Arguments.of(
-                            "포인트 미입력",
+                            "포인트가 없으면 검증에 실패한다",
                             OrderSheetRequest.UpdateUsedPoints.builder()
                                     .usedPoints(null).build(),
-                            "사용 포인트는 필수입니다"
+                            "usedPoints",
+                            "사용 포인트는 필수입니다."
                     ),
                     Arguments.of(
-                            "포인트 0 미만",
+                            "포인트 0가 0 미만이면 검증에 실패한다",
                             OrderSheetRequest.UpdateUsedPoints.builder()
                                     .usedPoints(-1L).build(),
-                            "사용 포인트는 0 미만일 수 없습니다"
+                            "usedPoints",
+                            "사용 포인트는 0이상이어야 합니다."
                     )
             );
         }
@@ -593,7 +616,7 @@ class OrderSheetControllerTest {
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isUnauthorized())
                     .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
-                    .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다"))
+                    .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다."))
                     .andExpect(jsonPath("$.timestamp").exists())
                     .andExpect(jsonPath("$.path").value("/order-sheets/" + sheetId + "/sheet-items/" + sheetItemId + "/coupon"));
         }
@@ -615,7 +638,7 @@ class OrderSheetControllerTest {
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isForbidden())
                     .andExpect(jsonPath("$.code").value("FORBIDDEN"))
-                    .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다"))
+                    .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다."))
                     .andExpect(jsonPath("$.timestamp").exists())
                     .andExpect(jsonPath("$.path").value("/order-sheets/" + sheetId + "/sheet-items/" + sheetItemId + "/coupon"));
         }
@@ -665,7 +688,7 @@ class OrderSheetControllerTest {
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isUnauthorized())
                     .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
-                    .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다"))
+                    .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다."))
                     .andExpect(jsonPath("$.timestamp").exists())
                     .andExpect(jsonPath("$.path").value("/order-sheets/" + sheetId + "/cart-coupon"));
         }
@@ -686,7 +709,7 @@ class OrderSheetControllerTest {
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isForbidden())
                     .andExpect(jsonPath("$.code").value("FORBIDDEN"))
-                    .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다"))
+                    .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다."))
                     .andExpect(jsonPath("$.timestamp").exists())
                     .andExpect(jsonPath("$.path").value("/order-sheets/" + sheetId + "/cart-coupon"));
         }

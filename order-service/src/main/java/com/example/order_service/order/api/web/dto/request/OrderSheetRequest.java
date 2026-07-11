@@ -12,11 +12,11 @@ public class OrderSheetRequest {
     @Builder
     public record Create(
             @Valid
-            @NotEmpty(message = "주문 상품은 한개 이상이여야 합니다")
+            @NotEmpty(message = "{orderSheet.items.notEmpty}")
             List<OrderItem> items,
             Long cartCouponId,
             @Valid
-            @NotNull(message = "상품 쿠폰은 필수값 입니다")
+            @NotNull(message = "{orderSheet.itemCoupons.notNull}")
             List<ItemCoupon> itemCoupons
     ) {
 
@@ -40,10 +40,10 @@ public class OrderSheetRequest {
 
     @Builder(toBuilder = true)
     public record OrderItem(
-            @NotNull(message = "productVariantId는 필수값입니다")
+            @NotNull(message = "{orderSheet.item.productVariantId.notNull}")
             Long productVariantId,
-            @NotNull(message = "quantity는 필수값입니다")
-            @Min(value = 1, message = "quantity는 1이상 이여야 합니다")
+            @NotNull(message = "{orderSheet.item.quantity.notNull}")
+            @Min(value = 1, message = "{orderSheet.item.quantity.min}")
             Integer quantity
     ) {
         public OrderSheetCommand.OrderItem toCommand() {
@@ -56,9 +56,9 @@ public class OrderSheetRequest {
 
     @Builder(toBuilder = true)
     public record ItemCoupon(
-            @NotNull(message = "쿠폰을 적용할 상품 변형 아이디는 필수값 입니다")
+            @NotNull(message = "{orderSheet.itemCoupon.productVariantId.notNull}")
             Long productVariantId,
-            @NotNull(message = "적용할 쿠폰 아이디는 필수값 입니다")
+            @NotNull(message = "{orderSheet.itemCoupon.couponId.notNull}")
             Long couponId
     ) {
         public OrderSheetCommand.ItemCoupon toCommand() {
@@ -71,17 +71,17 @@ public class OrderSheetRequest {
 
     @Builder(toBuilder = true)
     public record UpdateShippingAddress(
-            @NotBlank(message = "수령인 이름은 필수입니다")
+            @NotBlank(message = "{orderSheet.receiverName.notNull}")
             String receiverName,
-            @Pattern(regexp = "^01[016-9]-\\d{3,4}-\\d{4}$", message = "전화번호 형식이 올바르지 않습니다 (예: 010-1234-5678)")
-            @NotBlank(message = "수령인 전화번호는 필수입니다")
+            @Pattern(regexp = "^01[016-9]-\\d{3,4}-\\d{4}$", message = "{orderSheet.receiverPhone.pattern}")
+            @NotBlank(message = "{orderSheet.receiverPhone.notNull}")
             String receiverPhone,
-            @NotBlank(message = "우편 번호는 필수입니다")
-            @Pattern(regexp = "^[0-9]{5}$", message = "우편번호는 5자리 숫자여야 합니다.")
+            @NotBlank(message = "{orderSheet.zipCode.notNull}")
+            @Pattern(regexp = "^[0-9]{5}$", message = "{orderSheet.zipCode.pattern}")
             String zipCode,
-            @NotBlank(message = "기본 주소는 필수입니다")
+            @NotBlank(message = "{orderSheet.address.notNull}")
             String address,
-            @NotBlank(message = "상세 주소는 필수입니다")
+            @NotBlank(message = "{orderSheet.addressDetail.notNull}")
             String addressDetail
     ) {
         public OrderSheetCommand.UpdateShippingAddress toCommand(String sheetId, Long userId) {
@@ -91,8 +91,8 @@ public class OrderSheetRequest {
 
     @Builder
     public record UpdateUsedPoints(
-            @NotNull(message = "사용 포인트는 필수입니다")
-            @Min(value = 0, message = "사용 포인트는 0 미만일 수 없습니다")
+            @NotNull(message = "{orderSheet.usedPoints.notNull}")
+            @Min(value = 0, message = "{orderSheet.usedPoints.min}")
             Long usedPoints
     ) {
         public OrderSheetCommand.UpdatePoints toCommand(String sheetId, Long userId) {
