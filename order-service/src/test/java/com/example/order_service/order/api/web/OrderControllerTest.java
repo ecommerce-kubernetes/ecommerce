@@ -99,7 +99,7 @@ class OrderControllerTest {
                     .andDo(print())
                     .andExpect(status().isForbidden())
                     .andExpect(jsonPath("$.code").value("FORBIDDEN"))
-                    .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다"))
+                    .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다."))
                     .andExpect(jsonPath("$.timestamp").exists())
                     .andExpect(jsonPath("$.path").value("/orders"));
         }
@@ -119,7 +119,7 @@ class OrderControllerTest {
                     .andDo(print())
                     .andExpect(status().isUnauthorized())
                     .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
-                    .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다"))
+                    .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다."))
                     .andExpect(jsonPath("$.timestamp").exists())
                     .andExpect(jsonPath("$.path").value("/orders"));
         }
@@ -128,7 +128,7 @@ class OrderControllerTest {
         @DisplayName("주문 요청시 유효성 검증에 실패하면 400 에러를 반환한다")
         @MethodSource("provideInvalidCreateOrderRequest")
         @WithCustomMockUser
-        void createOrder_validation(String description, OrderRequest.Create request, String errorMessage) throws Exception {
+        void createOrder_validation(String description, OrderRequest.Create request, String expectedField, String expectedMessage) throws Exception {
             //given
             //when, then
             mockMvc.perform(post("/orders")
@@ -137,7 +137,9 @@ class OrderControllerTest {
                     .andDo(print())
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.code").value("VALIDATION"))
-                    .andExpect(jsonPath("$.message").value(errorMessage))
+                    .andExpect(jsonPath("$.message").value("입력값이 올바르지 않습니다."))
+                    .andExpect(jsonPath("$.errors[0].field").value(expectedField))
+                    .andExpect(jsonPath("$.errors[0].reason").value(expectedMessage))
                     .andExpect(jsonPath("$.timestamp").exists())
                     .andExpect(jsonPath("$.path").value("/orders"));
         }
@@ -145,11 +147,12 @@ class OrderControllerTest {
         private static Stream<Arguments> provideInvalidCreateOrderRequest() {
             return Stream.of(
                     Arguments.of(
-                            "orderSheet id null",
+                            "주문서 아이디가 없는 경우 검증에 실패한다",
                             OrderRequest.Create.builder()
                                     .orderSheetId(null)
                                     .build(),
-                            "주문서 ID는 필수 입니다"
+                            "orderSheetId",
+                            "주문서 식별자(orderSheetId)는 필수 입니다."
                     )
             );
         }
@@ -196,7 +199,7 @@ class OrderControllerTest {
                     .andDo(print())
                     .andExpect(status().isForbidden())
                     .andExpect(jsonPath("$.code").value("FORBIDDEN"))
-                    .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다"))
+                    .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다."))
                     .andExpect(jsonPath("$.timestamp").exists())
                     .andExpect(jsonPath("$.path").value("/orders/orderNo"));
         }
@@ -213,7 +216,7 @@ class OrderControllerTest {
                     .andDo(print())
                     .andExpect(status().isUnauthorized())
                     .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
-                    .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다"))
+                    .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다."))
                     .andExpect(jsonPath("$.timestamp").exists())
                     .andExpect(jsonPath("$.path").value("/orders/orderNo"));
         }
@@ -271,7 +274,7 @@ class OrderControllerTest {
                     .andDo(print())
                     .andExpect(status().isForbidden())
                     .andExpect(jsonPath("$.code").value("FORBIDDEN"))
-                    .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다"))
+                    .andExpect(jsonPath("$.message").value("요청 권한이 부족합니다."))
                     .andExpect(jsonPath("$.timestamp").exists())
                     .andExpect(jsonPath("$.path").value("/orders"));
         }
@@ -290,7 +293,7 @@ class OrderControllerTest {
                     .andDo(print())
                     .andExpect(status().isUnauthorized())
                     .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
-                    .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다"))
+                    .andExpect(jsonPath("$.message").value("인증이 필요한 접근입니다."))
                     .andExpect(jsonPath("$.timestamp").exists())
                     .andExpect(jsonPath("$.path").value("/orders"));
         }

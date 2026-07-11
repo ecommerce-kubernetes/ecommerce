@@ -8,7 +8,7 @@ public class OrderRequest {
 
     @Builder
     public record Create(
-            @NotNull(message = "주문서 ID는 필수 입니다")
+            @NotNull(message = "{order.orderSheetId.notNull}")
             String orderSheetId
     ) {
         public OrderCommand.Create toCommand(Long userId) {
