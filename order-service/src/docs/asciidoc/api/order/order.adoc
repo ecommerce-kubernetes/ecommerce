@@ -1,40 +1,40 @@
-= [[order-create]]
+[[create]]
 === 주문 생성
 
 ==== HTTP Request
-include::{snippets}/01-order-01-create/http-request.adoc[]
+include::{snippets}/orders/create/http-request.adoc[]
 ===== Request Header
-include::{snippets}/01-order-01-create/request-headers.adoc[]
+include::{snippets}/orders/create/request-headers.adoc[]
 ===== Request Fields
-include::{snippets}/01-order-01-create/request-fields.adoc[]
+include::{snippets}/orders/create/request-fields.adoc[]
 ==== HTTP Response
-include::{snippets}/01-order-01-create/http-response.adoc[]
+include::{snippets}/orders/create/http-response.adoc[]
 ===== Response Fields
-include::{snippets}/01-order-01-create/response-fields.adoc[]
+include::{snippets}/orders/create/response-fields.adoc[]
 
-[[get-order]]
+[[get]]
 === 주문 조회
 
 ==== HTTP Request
-include::{snippets}/01-order-03-get/http-request.adoc[]
+include::{snippets}/orders/get/http-request.adoc[]
 ===== Request Header
-include::{snippets}/01-order-03-get/request-headers.adoc[]
+include::{snippets}/orders/get/request-headers.adoc[]
 ===== HTTP PathParam
-include::{snippets}/01-order-03-get/path-parameters.adoc[]
+include::{snippets}/orders/get/path-parameters.adoc[]
 ==== HTTP Response
-include::{snippets}/01-order-03-get/http-response.adoc[]
+include::{snippets}/orders/get/http-response.adoc[]
 ===== Response Fields
-include::{snippets}/01-order-03-get/response-fields.adoc[]
+include::{snippets}/orders/get/response-fields.adoc[]
 
 [[get-orders]]
 === 주문 목록 조회
 ==== HTTP Request
-include::{snippets}/01-order-04-get-list/http-request.adoc[]
+include::{snippets}/orders/get-list/http-request.adoc[]
 ===== Request Header
-include::{snippets}/01-order-04-get-list/request-headers.adoc[]
+include::{snippets}/orders/get-list/request-headers.adoc[]
 ===== Request Params
-include::{snippets}/01-order-04-get-list/query-parameters.adoc[]
+include::{snippets}/orders/get-list/query-parameters.adoc[]
 ==== HTTP Response
-include::{snippets}/01-order-04-get-list/http-response.adoc[]
+include::{snippets}/orders/get-list/http-response.adoc[]
 ===== Response Fields
-include::{snippets}/01-order-04-get-list/response-fields.adoc[]
+include::{snippets}/orders/get-list/response-fields.adoc[]
