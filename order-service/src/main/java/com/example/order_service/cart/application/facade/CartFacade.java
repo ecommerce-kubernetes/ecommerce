@@ -30,14 +30,18 @@ public class CartFacade {
     public AddCartItemsResult addItems(AddCartItemsCommand command) {
         List<Long> variantIds = command.toProductVariantIds();
         CartProductListResult productData = cartProductGateway.getProducts(variantIds);
+
         cartItemValidator.validate(command, productData);
+
         cartCommandService.addCartItems(command);
+
         List<CartItemData> cartItems = cartQueryService.findCartItemsByVariantIds(command.userId(), variantIds);
         return AddCartItemsResult.from(cartItems);
     }
 
     public CartResult getCartDetails(Long userId) {
         List<CartItemData> cartItems = cartQueryService.findCartItems(userId);
+
         if (cartItems.isEmpty()) {
             return CartResult.empty();
         }
@@ -48,33 +52,28 @@ public class CartFacade {
         return createCartResult(productData, cartItems);
     }
 
+    public CartItemResult getCartItemDetails(Long userId, Long cartItemId) {
+        CartItemData cartItem = cartQueryService.getCartItem(userId, cartItemId);
+
+        CartProductListResult productData = cartProductGateway.getProducts(List.of(cartItem.productVariantId()));
+
+        Map<Long, CartProductResult> productMap = productData.toMap();
+        CartProductResult product = productMap.get(cartItem.productVariantId());
+
+        return createCartItemResult(product, cartItem);
+    }
+
     private CartResult createCartResult(CartProductListResult productData, List<CartItemData> cartItems) {
-        Map<Long, CartProductResult> map = productData.toMap();
+        Map<Long, CartProductResult> productMap = productData.toMap();
         List<CartItemResult> list = cartItems.stream()
-                .map(item -> {
-                    CartProductResult product = map.get(item.productVariantId());
-                    if (product == null) {
-                        return CartItemResult.unknown(item, CartItemAvailability.NOT_FOR_SALE);
-                    }
-                    CartItemAvailability availability = determineAvailability(product.status(), product, item.quantity());
-                    return CartItemResult.from(item, product, availability);
-                }).toList();
+                .map(item -> createCartItemResult(productMap.get(item.productVariantId()), item))
+                .toList();
         return CartResult.builder()
                 .items(list)
                 .build();
     }
 
-    public CartItemResult getCartItemDetails(Long userId, Long cartItemId) {
-        CartItemData cartItem = cartQueryService.getCartItem(userId, cartItemId);
-
-        CartProductListResult productData = cartProductGateway.getProducts(List.of(cartItem.cartItemId()));
-
-        return cartCartItemResult(productData, cartItem);
-    }
-
-    private CartItemResult cartCartItemResult(CartProductListResult productData, CartItemData cartItem) {
-        Map<Long, CartProductResult> map = productData.toMap();
-        CartProductResult product = map.get(cartItem.productVariantId());
+    private CartItemResult createCartItemResult(CartProductResult product, CartItemData cartItem) {
         if (product == null) {
             return CartItemResult.unknown(cartItem, CartItemAvailability.NOT_FOR_SALE);
         }
@@ -96,7 +95,9 @@ public class CartFacade {
 
     public UpdateCartItemQuantityResult updateCartItemQuantity(UpdateCartItemQuantityCommand command) {
         cartCommandService.updateCartItemQuantity(command);
+
         CartItemData cartItem = cartQueryService.getCartItem(command.userId(), command.cartItemId());
+
         return UpdateCartItemQuantityResult.from(cartItem);
     }
 
