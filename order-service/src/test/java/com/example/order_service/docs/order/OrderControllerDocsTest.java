@@ -28,7 +28,12 @@ import java.util.List;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
-import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
+import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
+import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
+import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
+import static org.springframework.restdocs.payload.PayloadDocumentation.requestFields;
+import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
+import static org.springframework.restdocs.request.RequestDocumentation.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -36,14 +41,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class OrderControllerDocsTest extends RestDocSupport {
-    private static final String ORDER_NO = "ORD-20260101-AB12FVC";
     private OrderFacade orderFacade = mock(OrderFacade.class);
     private OrderQueryService orderQueryService = mock(OrderQueryService.class);
-
-    @Override
-    protected String getTag() {
-        return "ORDER";
-    }
 
     @Override
     protected Object initController() {
@@ -78,12 +77,19 @@ public class OrderControllerDocsTest extends RestDocSupport {
                 .andDo(print())
                 .andExpect(content().json(objectMapper.writeValueAsString(response)))
                 .andExpect(status().isAccepted())
-                .andDo(createSecuredDocument("01-order-01-create",
-                        "주문 생성",
-                        "주문을 생성한다",
-                        OrderDescriptor.getOrderCreateRequest(),
-                        OrderDescriptor.getOrderCreateResponse())
-                );
+                .andDo(document(
+                        "orders/create",
+                        preprocessRequest(
+                                prettyPrint(),
+                                modifyHeaders()
+                                        .remove("X-User-Id")
+                                        .remove("X-User-Role")
+                        ),
+                        preprocessResponse(prettyPrint()),
+                        requestHeaders(AUTH_HEADER),
+                        requestFields(OrderDescriptor.getOrderCreateRequest()),
+                        responseFields(OrderDescriptor.getOrderCreateResponse())
+                ));
     }
 
     @Test
@@ -96,17 +102,27 @@ public class OrderControllerDocsTest extends RestDocSupport {
                 .willReturn(result);
         //when
         //then
-        mockMvc.perform(get("/orders/{orderNo}", ORDER_NO)
+        mockMvc.perform(get("/orders/{orderNo}", "ORDER_NO")
                         .contentType(MediaType.APPLICATION_JSON)
                         .headers(roleUser))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andDo(createSecuredDocument("01-order-03-get",
-                        "주문 조회",
-                        "주문을 조회한다",
-                        OrderDescriptor.getOrderDetailResponse(),
-                        parameterWithName("orderNo").description("조회할 주문 번호"))
-                );
+                .andDo(document(
+                        "orders/get",
+                        preprocessRequest(
+                                prettyPrint(),
+                                modifyHeaders()
+                                        .remove("X-User-Id")
+                                        .remove("X-User-Role")
+                        ),
+                        preprocessResponse(prettyPrint()),
+                        requestHeaders(AUTH_HEADER),
+                        responseFields(OrderDescriptor.getOrderDetailResponse()),
+                        pathParameters(
+                                parameterWithName("orderNo")
+                                        .description("주문 번호")
+                        )
+                ));
 
     }
 
@@ -130,17 +146,30 @@ public class OrderControllerDocsTest extends RestDocSupport {
                         .param("productName", "나이키"))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andDo(
-                        createSecuredDocumentQuery("01-order-04-get-list",
-                                "주문 목록 조회",
-                                "주문 목록을 조회한다",
-                                OrderDescriptor.getOrderSummaryResponse(),
-                                parameterWithName("page").description("페이지 번호"),
-                                parameterWithName("size").description("페이지 크기"),
-                                parameterWithName("sort").description("정렬 기준"),
-                                parameterWithName("year").description("조회 연도 필터"),
-                                parameterWithName("productName").description("상품명"))
-                );
+                .andDo(document(
+                        "orders/get-list",
+                        preprocessRequest(
+                                prettyPrint(),
+                                modifyHeaders()
+                                        .remove("X-User-Id")
+                                        .remove("X-User-Role")
+                        ),
+                        preprocessResponse(prettyPrint()),
+                        requestHeaders(AUTH_HEADER),
+                        responseFields(OrderDescriptor.getOrderSummaryResponse()),
+                        queryParameters(
+                                parameterWithName("page")
+                                        .description("페이지 번호"),
+                                parameterWithName("size")
+                                        .description("페이지 크기"),
+                                parameterWithName("sort")
+                                        .description("정렬 기준"),
+                                parameterWithName("year")
+                                        .description("주문 연도"),
+                                parameterWithName("productName")
+                                        .description("상품 이름")
+                        )
+                ));
     }
 
     private OrderResult.Detail createDetailResult() {

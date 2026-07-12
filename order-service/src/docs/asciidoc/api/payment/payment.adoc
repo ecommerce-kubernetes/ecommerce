@@ -2,12 +2,12 @@
 === 결제 승인
 
 ==== HTTP Request
-include::{snippets}/04-payment-01-confirm/http-request.adoc[]
+include::{snippets}/payments/confirm/http-request.adoc[]
 ===== Request Header
-include::{snippets}/04-payment-01-confirm/request-headers.adoc[]
+include::{snippets}/payments/confirm/request-headers.adoc[]
 ===== Request Fields
-include::{snippets}/04-payment-01-confirm/request-fields.adoc[]
+include::{snippets}/payments/confirm/request-fields.adoc[]
 ==== HTTP Response
-include::{snippets}/04-payment-01-confirm/http-response.adoc[]
+include::{snippets}/payments/confirm/http-response.adoc[]
 ===== Response Fields
-include::{snippets}/04-payment-01-confirm/response-fields.adoc[]
+include::{snippets}/payments/confirm/response-fields.adoc[]
