@@ -1,8 +1,16 @@
 package com.example.order_service.cart.application.external;
 
-import com.example.order_service.cart.application.dto.result.CartProductResult;
-import com.example.order_service.cart.application.mapper.CartProductMapper;
+import com.example.order_service.cart.application.external.dto.CartProductListResult;
+import com.example.order_service.cart.application.external.mapper.CartProductMapper;
+import com.example.order_service.cart.exception.CartErrorCode;
+import com.example.order_service.common.exception.gateway.DefaultGatewayException;
+import com.example.order_service.common.exception.external.ExternalCircuitBreakerException;
+import com.example.order_service.common.exception.external.ExternalClientException;
+import com.example.order_service.common.exception.external.ExternalServerException;
+import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
+import com.example.order_service.common.exception.gateway.ProductGatewayErrorCode;
 import com.example.order_service.infrastructure.adaptor.ProductAdaptor;
+import com.example.order_service.infrastructure.dto.command.ProductCommand;
 import com.example.order_service.infrastructure.dto.response.ProductClientResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,14 +22,26 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 public class CartProductGateway {
-    private final ProductAdaptor adaptor;
+    private final ProductAdaptor productAdaptor;
     private final CartProductMapper mapper;
 
-    public List<CartProductResult.Info> getProducts(List<Long> variantIds) {
-        return null;
+    public CartProductListResult getProducts(List<Long> variantIds) {
+        ProductCommand.BulkSearch command = ProductCommand.BulkSearch.from(variantIds);
+        ProductClientResponse.ProductList productList = executeGetProducts(command);
+        return mapper.toResult(productList);
     }
-    // fallback
-    private List<ProductClientResponse> fetchProductWithTranslation(List<Long> ids) {
-        return null;
+
+    private ProductClientResponse.ProductList executeGetProducts(ProductCommand.BulkSearch command) {
+        try {
+            return productAdaptor.getProducts(command);
+        } catch (ExternalClientException e) {
+            throw new DefaultGatewayException(ProductGatewayErrorCode.PRODUCT_CLIENT_ERROR, e.getErrorCode(), e.getMessage());
+        } catch (ExternalServerException e) {
+            throw new DefaultGatewayException(ProductGatewayErrorCode.PRODUCT_SERVER_ERROR, e.getErrorCode(), e.getMessage());
+        } catch (ExternalSystemUnavailableException e) {
+            throw new DefaultGatewayException(ProductGatewayErrorCode.PRODUCT_UNAVAILABLE_SERVER_ERROR, e.getErrorCode(), e.getMessage());
+        } catch (ExternalCircuitBreakerException e) {
+            throw new DefaultGatewayException(ProductGatewayErrorCode.PRODUCT_CIRCUIT_OPEN, e.getErrorCode(), e.getMessage());
+        }
     }
 }

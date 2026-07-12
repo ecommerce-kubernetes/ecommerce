@@ -1,15 +1,16 @@
 package com.example.order_service.cart.domain.model;
 
-import com.example.order_service.cart.application.dto.command.CartCommand;
+import com.example.order_service.cart.exception.CartErrorCode;
 import com.example.order_service.common.entity.BaseEntity;
+import com.example.order_service.common.exception.BusinessException;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Entity
@@ -22,58 +23,57 @@ public class Cart extends BaseEntity {
     private Long id;
 
     private Long userId;
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
-    List<CartItem> cartItems = new ArrayList<>();
 
-    @Builder(access = AccessLevel.PRIVATE)
-    public Cart(Long userId){
-        this.userId = userId;
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<CartItem> cartItems = new ArrayList<>();
+
+    private Cart(Long userId){
+        this.userId = Objects.requireNonNull(userId, "장바구니 생성시 유저 아이디는 필수입니다.");
     }
 
     public static Cart create(Long userId){
-        return Cart.builder()
-                .userId(userId)
-                .build();
+        return new Cart(userId);
     }
 
-    public List<CartItem> addItems(List<CartCommand.Item> items) {
-        return items.stream().map(item -> addItem(item.productVariantId(), item.quantity())).toList();
-    }
+    public void addItem(Long productVariantId, int quantity){
+        if (this.cartItems.size() >= 20) {
+            throw new BusinessException(CartErrorCode.CART_SIZE_LIMIT_EXCEEDED);
+        }
 
-    public CartItem addItem(Long productVariantId, int quantity){
-        Optional<CartItem> existCartItem = this.cartItems.stream()
-                .filter(item -> item.getProductVariantId().equals(productVariantId))
-                .findFirst();
+        Optional<CartItem> existing = findItemByProductVariantId(productVariantId);
 
-        if(existCartItem.isPresent()){
-            existCartItem.get().addQuantity(quantity);
-            return existCartItem.get();
+        if(existing.isPresent()) {
+            existing.get().addQuantity(quantity);
+            return;
         }
 
         CartItem cartItem = CartItem.create(productVariantId, quantity);
         this.cartItems.add(cartItem);
         cartItem.setCart(this);
-        return cartItem;
     }
 
-    public void clearItems(){
-        for (CartItem cartItem : cartItems) {
-            cartItem.setCart(null);
-        }
-        cartItems.clear();
+    public Optional<CartItem> findItemByProductVariantId(Long productVariantId) {
+        return cartItems.stream()
+                .filter(item -> item.getProductVariantId().equals(productVariantId))
+                .findFirst();
     }
 
-    public void removeItemsByVariantIds(List<Long> productVariantIds) {
-        this.cartItems.removeIf(item -> {
-            if (productVariantIds.contains(item.getProductVariantId())){
-                item.setCart(null);
-                return true; //리스트에서 제거
-            }
-            return false;
-        });
+    public Optional<CartItem> findItemByCartItemId(Long cartItemId) {
+        return cartItems.stream()
+                .filter(item -> item.getId().equals(cartItemId))
+                .findFirst();
     }
 
-    public boolean isOwner(Long accessUserId) {
-        return this.userId.equals(accessUserId);
+    public void updateItemQuantity(Long cartItemId, Integer quantity) {
+        CartItem cartItem = findItemByCartItemId(cartItemId)
+                .orElseThrow(() -> new BusinessException(CartErrorCode.CART_ITEM_NOT_FOUND));
+        cartItem.updateQuantity(quantity);
+    }
+
+    public void deleteItem(Long cartItemId) {
+        CartItem cartItem = findItemByCartItemId(cartItemId)
+                .orElseThrow(() -> new BusinessException(CartErrorCode.CART_ITEM_NOT_FOUND));
+        cartItems.remove(cartItem);
+        cartItem.setCart(null);
     }
 }

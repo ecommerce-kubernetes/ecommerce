@@ -7,12 +7,12 @@ import lombok.Getter;
 @Builder
 public class PaymentCompleteEvent {
     private String orderNo;
-    private String paymentKey;
+    private Long paymentId;
 
-    public static PaymentCompleteEvent of(String orderNo, String paymentKey) {
+    public static PaymentCompleteEvent of(String orderNo, Long paymentId) {
         return PaymentCompleteEvent.builder()
                 .orderNo(orderNo)
-                .paymentKey(paymentKey)
+                .paymentId(paymentId)
                 .build();
     }
 }

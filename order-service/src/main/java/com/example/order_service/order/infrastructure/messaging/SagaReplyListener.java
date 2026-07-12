@@ -1,0 +1,37 @@
+package com.example.order_service.order.infrastructure.messaging;
+
+import com.example.order_service.order.application.orchestrator.OrderSagaManager;
+import com.example.order_service.order.infrastructure.messaging.dto.SagaReplyMessage;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.messaging.handler.annotation.Header;
+import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.stereotype.Component;
+
+@Component
+@RequiredArgsConstructor
+public class SagaReplyListener {
+
+    private final ObjectMapper objectMapper;
+    private final OrderSagaManager orderSagaManager;
+
+    @KafkaListener(topics = "${order.topics.order-saga-reply}")
+    public void handleSagaReply(@Payload String payload,
+                                @Header("X-SAGA-ID") Long sagaId) {
+        SagaReplyMessage parsePayload = toObject(payload);
+        SagaReplyMessage message = parsePayload.toBuilder()
+                .sagaId(sagaId)
+                .build();
+        orderSagaManager.handleReply(message);
+    }
+
+    private SagaReplyMessage toObject(String payload) {
+        try {
+            return objectMapper.readValue(payload, SagaReplyMessage.class);
+        } catch (JsonProcessingException e) {
+            throw new IllegalArgumentException("메시지 직렬화 실패",e);
+        }
+    }
+}

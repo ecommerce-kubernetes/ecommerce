@@ -1,11 +1,12 @@
 package com.example.order_service.order.domain.model;
 
 import com.example.order_service.common.domain.vo.Money;
-import com.example.order_service.common.exception.domain.InvalidDomainValueException;
+import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.order.domain.policy.PointUsagePolicy;
 import com.example.order_service.order.domain.vo.OrderCouponSnapshot;
 import com.example.order_service.order.domain.vo.Orderer;
 import com.example.order_service.order.domain.vo.ShippingAddress;
+import com.example.order_service.order.exception.OrderErrorCode;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -73,8 +74,8 @@ public class OrderSheet {
      * @return 주문서 애그리거트 루트 도메인
      */
     public static OrderSheet create(String sheetId, Orderer orderer, ShippingAddress shippingAddress, List<OrderSheetItem> items, OrderCouponSnapshot coupon, LocalDateTime createdAt, long ttl) {
-        if (items == null || items.isEmpty()) {
-            throw new InvalidDomainValueException("OrderSheet 주문 상품은 필수입니다");
+        if (items.isEmpty()) {
+            throw new BusinessException(OrderErrorCode.ORDER_ITEMS_REQUIRED);
         }
         Money totalOriginalPrice = calcTotalOriginalPrice(items);
         Money totalProductDiscount = calcTotalProductDiscountAmount(items);
@@ -135,16 +136,21 @@ public class OrderSheet {
     }
 
     /**
-     * 주문자 확인
+     * 주문 접근 확인
      * <p>
-     * 유저 아이디와 주문자의 유저 아이디의 일치 여부를 반환
+     * 주문서의 주문자가 파라미터의 유저 아이디와 같은지 검증,
+     * 주문이 만료되었는지 검증
      * </p>
      *
      * @param userId 유저 아이디
-     * @return 일치 여부
      */
-    public boolean isOwner(Long userId) {
-        return this.orderer.getUserId().equals(userId);
+    public void validateAccess(Long userId, LocalDateTime currentTime) {
+        if (!this.orderer.getUserId().equals(userId)) {
+            throw new BusinessException(OrderErrorCode.ORDER_ACCESS_DENIED);
+        }
+        if (this.isExpired(currentTime)) {
+            throw new BusinessException(OrderErrorCode.ORDER_EXPIRED);
+        }
     }
 
     /**
@@ -155,8 +161,8 @@ public class OrderSheet {
      *
      * @return 주문서 만료 여부
      */
-    public boolean isExpired() {
-        return LocalDateTime.now().isAfter(this.expiresAt);
+    public boolean isExpired(LocalDateTime currentTime) {
+        return currentTime.isAfter(this.expiresAt);
     }
 
     /**
@@ -167,8 +173,8 @@ public class OrderSheet {
      *
      * @return 만료까지 남은 시간
      */
-    public Duration getRemainingTtl() {
-        return Duration.between(LocalDateTime.now(), this.expiresAt);
+    public Duration getRemainingTtl(LocalDateTime currentTime) {
+        return Duration.between(currentTime, this.expiresAt);
     }
 
     /**
@@ -189,16 +195,18 @@ public class OrderSheet {
      * 주문서의 적용 포인트를 파라미터 포인트로 적용한다
      * </p>
      *
-     * @param usedPoints 적용 포인트
-     * @throws InvalidDomainValueException 도메인 계층 예외
+     * @param usedPoints  적용 포인트
+     * @param ownedPoints 보유중인 포인트
+     * @param policy      포인트 할인 정책
+     * @throws BusinessException 비지니스 예외
      */
-    public void changeUsedPoints(Money usedPoints) {
-        Money eligibleAmount = calcPointEligibleAmount(this.items, this.cartCoupon);
-        if (usedPoints.isGreaterThan(eligibleAmount)) {
-            throw new InvalidDomainValueException("적용 포인트가 주문 결제 대상 금액을 초과할 수 없습니다");
+    public void changeUsedPoints(Money usedPoints, Money ownedPoints, PointUsagePolicy policy) {
+        Money availablePoints = calcAvailablePoints(ownedPoints, policy);
+        if (usedPoints.isGreaterThan(availablePoints)) {
+            throw new BusinessException(OrderErrorCode.ORDER_POINT_POLICY_VIOLATION);
         }
         this.usedPoints = usedPoints;
-        this.totalPaymentAmount = eligibleAmount.subtract(usedPoints);
+        this.totalPaymentAmount = calcPointEligibleAmount(this.items, this.cartCoupon).subtract(usedPoints);
     }
 
     /**
@@ -209,13 +217,13 @@ public class OrderSheet {
      *
      * @param sheetItemId 주문 상품 아이디
      * @return 주문 상품
-     * @throws InvalidDomainValueException 도메인 계층 예외
+     * @throws BusinessException 비지니스 예외
      */
     public OrderSheetItem getItem(String sheetItemId) {
         return this.items.stream()
                 .filter(item -> item.getSheetItemId().equals(sheetItemId))
                 .findFirst()
-                .orElseThrow(() -> new InvalidDomainValueException("주문 상품을 찾을 수 없음"));
+                .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_ITEM_NOT_FOUND));
     }
 
     /**

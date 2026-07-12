@@ -1,7 +1,7 @@
 package com.example.order_service.order.application.external;
 
-import com.example.order_service.common.domain.vo.Money;
-import com.example.order_service.common.exception.business.BusinessException;
+import com.example.order_service.common.exception.gateway.DefaultGatewayException;
+import com.example.order_service.common.exception.external.ExternalCircuitBreakerException;
 import com.example.order_service.common.exception.external.ExternalClientException;
 import com.example.order_service.common.exception.external.ExternalServerException;
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
@@ -9,7 +9,7 @@ import com.example.order_service.infrastructure.adaptor.UserAdaptor;
 import com.example.order_service.infrastructure.dto.response.UserClientResponse;
 import com.example.order_service.order.application.external.dto.result.OrderUserResult;
 import com.example.order_service.order.application.external.mapper.OrderUserMapper;
-import com.example.order_service.order.exception.OrderSheetErrorCode;
+import com.example.order_service.order.exception.OrderErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -40,12 +40,25 @@ public class OrderUserGateway {
         return mapper.toResult(profile);
     }
 
+    private UserClientResponse.Profile fetchUserProfileWithTranslation(Long userId) {
+        try {
+            return userAdaptor.getUserProfile(userId);
+        } catch (ExternalClientException e) {
+            throw new DefaultGatewayException(OrderErrorCode.ORDER_USER_CLIENT_ERROR, e.getErrorCode(), e.getMessage());
+        } catch (ExternalServerException e) {
+            throw new DefaultGatewayException(OrderErrorCode.ORDER_USER_SERVER_ERROR, e.getErrorCode(), e.getMessage());
+        } catch (ExternalSystemUnavailableException e) {
+            throw new DefaultGatewayException(OrderErrorCode.ORDER_USER_UNAVAILABLE_SERVER_ERROR, e.getErrorCode(), e.getMessage());
+        } catch (ExternalCircuitBreakerException e) {
+            throw new DefaultGatewayException(OrderErrorCode.ORDER_USER_CIRCUIT_OPEN, e.getErrorCode(), e.getMessage());
+        }
+    }
+
     /**
      * 유저 도메인에 유저 포인트 정보(포인트 잔액, 적용 가능 포인트)를 조회
      *
      * @param userId      조회 대상 유저 아이디
      * @return 포인트 잔액, 적용 가능 포인트
-     * @throws BusinessException 유저 도메인 통신중 발생한 예외를 비지니스 예외로 변환
      */
     public OrderUserResult.UserPoint getUserPoints(Long userId) {
         UserClientResponse.UserPoints userPoints = fetchUserPointsWithTranslation(userId);
@@ -56,50 +69,13 @@ public class OrderUserGateway {
         try {
             return userAdaptor.getUserPoints(userId);
         } catch (ExternalClientException e) {
-            throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_USER_CLIENT_ERROR);
+            throw new DefaultGatewayException(OrderErrorCode.ORDER_USER_CLIENT_ERROR, e.getErrorCode(), e.getMessage());
         } catch (ExternalServerException e) {
-            throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_USER_SERVER_ERROR);
+            throw new DefaultGatewayException(OrderErrorCode.ORDER_USER_SERVER_ERROR, e.getErrorCode(), e.getMessage());
         } catch (ExternalSystemUnavailableException e) {
-            throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_USER_UNAVAILABLE_SERVER_ERROR);
+            throw new DefaultGatewayException(OrderErrorCode.ORDER_USER_UNAVAILABLE_SERVER_ERROR, e.getErrorCode(), e.getMessage());
+        } catch (ExternalCircuitBreakerException e) {
+            throw new DefaultGatewayException(OrderErrorCode.ORDER_USER_CIRCUIT_OPEN, e.getErrorCode(), e.getMessage());
         }
     }
-
-    /**
-     * 유저 도메인에 적용 포인트를 검증하고 결과를 반환
-     *
-     * @param userId      조회 대상 유저 아이디
-     * @param orderAmount 주문 가격
-     * @param usedPoints  적용 포인트
-     * @return 포인트 잔액, 적용 가능 포인트
-     * @throws BusinessException 유저 도메인 통신중 발생한 예외를 비지니스 예외로 변환
-     */
-    public OrderUserResult.UserPoint getUserPointsForOrder(Long userId, Money usedPoints) {
-        UserClientResponse.UserPoints userPoints = fetchUserPointsForOrderWithTranslation(userId, usedPoints.longValue());
-        return mapper.toResult(userPoints);
-    }
-
-    private UserClientResponse.UserPoints fetchUserPointsForOrderWithTranslation(Long userId, Long usedPoints) {
-        try {
-            return userAdaptor.getUserPointsForOrder(userId, usedPoints);
-        } catch (ExternalClientException e) {
-            throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_USER_CLIENT_ERROR);
-        } catch (ExternalServerException e) {
-            throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_USER_SERVER_ERROR);
-        } catch (ExternalSystemUnavailableException e) {
-            throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_USER_UNAVAILABLE_SERVER_ERROR);
-        }
-    }
-
-    private UserClientResponse.Profile fetchUserProfileWithTranslation(Long userId) {
-        try {
-            return userAdaptor.getUserProfile(userId);
-        } catch (ExternalClientException e) {
-            throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_USER_CLIENT_ERROR);
-        } catch (ExternalServerException e) {
-            throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_USER_SERVER_ERROR);
-        } catch (ExternalSystemUnavailableException e) {
-            throw new BusinessException(OrderSheetErrorCode.ORDER_SHEET_USER_UNAVAILABLE_SERVER_ERROR);
-        }
-    }
-
 }

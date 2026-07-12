@@ -91,11 +91,7 @@ dependencies {
     implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
     implementation 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j'
     implementation 'org.springframework.boot:spring-boot-starter-security'
-
     implementation 'org.mapstruct:mapstruct:1.6.3'
-
-    //kafka module
-    implementation 'com.github.ecommerce-kubernetes:common-dto:3.0.9'
 
     //QueryDsl
     implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
@@ -115,6 +111,10 @@ dependencies {
     implementation 'io.micrometer:micrometer-registry-prometheus'
     implementation 'com.github.loki4j:loki-logback-appender:2.0.3'
 
+    //scheduler
+    implementation 'net.javacrumbs.shedlock:shedlock-spring:6.10.0'
+    implementation 'net.javacrumbs.shedlock:shedlock-provider-jdbc-template:6.10.0'
+
     //Test
     testImplementation 'org.projectlombok:lombok'
     testImplementation 'org.springframework.kafka:spring-kafka-test'
@@ -122,6 +122,7 @@ dependencies {
     testImplementation 'org.springframework.cloud:spring-cloud-contract-wiremock'
     testImplementation 'org.springframework.security:spring-security-test'
     testImplementation 'com.navercorp.fixturemonkey:fixture-monkey-starter:1.1.19'
+    testImplementation 'org.instancio:instancio-junit:5.6.0'
     testImplementation 'org.springframework.boot:spring-boot-testcontainers'
     testImplementation 'org.testcontainers:testcontainers:2.0.2'
     testImplementation 'com.navercorp.fixturemonkey:fixture-monkey-jakarta-validation:1.1.19'

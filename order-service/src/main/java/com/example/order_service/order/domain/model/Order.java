@@ -2,9 +2,11 @@ package com.example.order_service.order.domain.model;
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.entity.BaseEntity;
+import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.order.domain.vo.OrderCouponSnapshot;
 import com.example.order_service.order.domain.vo.Orderer;
 import com.example.order_service.order.domain.vo.ShippingAddress;
+import com.example.order_service.order.exception.OrderErrorCode;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -39,13 +41,12 @@ public class Order extends BaseEntity {
     private Money totalCouponDiscountAmount;
     private Money usedPoints;
     private Money totalPaymentAmount;
-    @Enumerated(EnumType.STRING)
-    private OrderFailureCode failureCode;
+    private String failureReason;
 
     @Builder(access = AccessLevel.PRIVATE)
     private Order(String orderNo, OrderStatus status, String orderName, Orderer orderer, ShippingAddress shippingAddress,
                   OrderCouponSnapshot cartCoupon, Money totalOriginalPrice, Money totalProductDiscountAmount, Money totalCouponDiscountAmount,
-                  Money usedPoints, Money totalPaymentAmount, OrderFailureCode failureCode) {
+                  Money usedPoints, Money totalPaymentAmount, String failureReason) {
         this.orderNo = orderNo;
         this.status = status;
         this.orderName = orderName;
@@ -57,27 +58,49 @@ public class Order extends BaseEntity {
         this.totalCouponDiscountAmount = totalCouponDiscountAmount;
         this.usedPoints = usedPoints;
         this.totalPaymentAmount = totalPaymentAmount;
-        this.failureCode = failureCode;
+        this.failureReason = failureReason;
     }
 
     public static Order init(String orderNo, Orderer orderer, ShippingAddress shippingAddress, OrderCouponSnapshot cartCoupon,
                              List<OrderItem> orderItems, Money totalOriginalPrice, Money totalProductDiscountAmount,
                              Money totalCouponDiscountAmount, Money usedPoints, Money totalPaymentAmount) {
         String orderName = generateOrderName(orderItems);
-        Order order = create(orderNo, OrderStatus.PENDING, orderName, orderer, shippingAddress, cartCoupon, totalOriginalPrice,
-                totalProductDiscountAmount, totalCouponDiscountAmount, usedPoints, totalPaymentAmount, null);
+        Order order = create(orderNo, orderName, orderer, shippingAddress, cartCoupon, totalOriginalPrice,
+                totalProductDiscountAmount, totalCouponDiscountAmount, usedPoints, totalPaymentAmount);
         for(OrderItem orderItem: orderItems) {
             order.addItem(orderItem);
         }
         return order;
     }
 
-    private static Order create(String orderNo, OrderStatus orderStatus, String orderName, Orderer orderer, ShippingAddress shippingAddress,
+    public void paid() {
+        if (this.status != OrderStatus.PENDING) {
+            throw new BusinessException(OrderErrorCode.INVALID_ORDER_STATUS_FOR_PAYMENT);
+        }
+        this.status = OrderStatus.PAID;
+    }
+
+    public void completed() {
+        if (this.status != OrderStatus.PAID) {
+            throw new BusinessException(OrderErrorCode.INVALID_ORDER_STATUS_FOR_COMPLETION);
+        }
+        this.status = OrderStatus.COMPLETED;
+    }
+
+    public void failed(String reason) {
+        if (this.status != OrderStatus.PAID && this.status != OrderStatus.PENDING) {
+            throw new BusinessException(OrderErrorCode.INVALID_ORDER_STATUS_FOR_FAIL);
+        }
+        this.status = OrderStatus.FAILED;
+        this.failureReason = reason;
+    }
+
+    private static Order create(String orderNo, String orderName, Orderer orderer, ShippingAddress shippingAddress,
                                 OrderCouponSnapshot cartCoupon, Money totalOriginalPrice, Money totalProductDiscountAmount,
-                                Money totalCouponDiscountAmount, Money usedPoints, Money totalPaymentAmount, OrderFailureCode code) {
+                                Money totalCouponDiscountAmount, Money usedPoints, Money totalPaymentAmount) {
         return Order.builder()
                 .orderNo(orderNo)
-                .status(orderStatus)
+                .status(OrderStatus.PENDING)
                 .orderName(orderName)
                 .orderer(orderer)
                 .shippingAddress(shippingAddress)
@@ -87,7 +110,7 @@ public class Order extends BaseEntity {
                 .totalCouponDiscountAmount(totalCouponDiscountAmount)
                 .usedPoints(usedPoints)
                 .totalPaymentAmount(totalPaymentAmount)
-                .failureCode(code)
+                .failureReason(null)
                 .build();
     }
 

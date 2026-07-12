@@ -26,6 +26,18 @@ public class ProductSnapshot {
     }
 
     public static ProductSnapshot of(Long productId, Long productVariantId, String sku, String productName, String thumbnail) {
+        if (productId == null || productVariantId == null) {
+            throw new IllegalArgumentException("상품 식별자는 필수 입니다");
+        }
+        if (sku == null || sku.isBlank()) {
+            throw new IllegalArgumentException("상품 SKU 는 필수입니다");
+        }
+        if (productName == null || productName.isBlank()) {
+            throw new IllegalArgumentException("상품명은 필수입니다");
+        }
+        if (thumbnail == null || thumbnail.isBlank()) {
+            throw new IllegalArgumentException("상품 썸네일은 필수입니다");
+        }
         return new ProductSnapshot(productId, productVariantId, sku, productName, thumbnail);
     }
 }

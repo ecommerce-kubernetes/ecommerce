@@ -1,7 +1,7 @@
 package com.example.order_service.order.application.service.order;
 
 import com.example.order_service.common.domain.vo.Money;
-import com.example.order_service.common.exception.business.BusinessException;
+import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.order.application.external.OrderCouponGateway;
 import com.example.order_service.order.application.external.OrderProductGateway;
 import com.example.order_service.order.application.external.OrderUserGateway;
@@ -14,23 +14,28 @@ import com.example.order_service.order.application.service.order.dto.command.Ord
 import com.example.order_service.order.application.service.order.dto.result.OrderResult;
 import com.example.order_service.order.domain.model.OrderSheet;
 import com.example.order_service.order.domain.model.OrderSheetItem;
+import com.example.order_service.order.domain.policy.PointUsagePolicy;
 import com.example.order_service.order.domain.repository.OrderSheetRepository;
 import com.example.order_service.order.domain.vo.*;
 import com.example.order_service.order.exception.OrderErrorCode;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 
-import static com.example.order_service.support.TestFixtureUtil.fixtureMonkey;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.*;
@@ -56,6 +61,11 @@ public class OrderFacadeTest {
     private OrderUserGateway orderUserGateway;
     @Mock
     private OrderValidator orderValidator;
+    @Mock
+    private PointUsagePolicy pointPolicy;
+    @Spy
+    private Clock clock = Clock.fixed(Instant.parse("2026-06-14T03:00:00Z"), ZoneId.of("Asia/Seoul"));
+
 
     @Nested
     @DisplayName("주문 생성")
@@ -70,15 +80,14 @@ public class OrderFacadeTest {
                     .orderSheetId("sheetId")
                     .userId(1L)
                     .build();
-
-            OrderUserResult.UserPoint userPoint = fixtureMonkey.giveMeOne(OrderUserResult.UserPoint.class);
-            OrderProductResult.ProductList productResult = fixtureMonkey.giveMeOne(OrderProductResult.ProductList.class);
-            OrderCouponResult.Calculate couponResult = fixtureMonkey.giveMeOne(OrderCouponResult.Calculate.class);
-            OrderContext.CreateOrderContext orderContext = fixtureMonkey.giveMeOne(OrderContext.CreateOrderContext.class);
-            OrderResult.Create expectedResult = fixtureMonkey.giveMeOne(OrderResult.Create.class);
+            OrderUserResult.UserPoint userPoint = Instancio.create(OrderUserResult.UserPoint.class);
+            OrderProductResult.ProductList productResult = Instancio.create(OrderProductResult.ProductList.class);
+            OrderCouponResult.Calculate couponResult = Instancio.create(OrderCouponResult.Calculate.class);
+            OrderContext.CreateOrderContext orderContext = Instancio.create(OrderContext.CreateOrderContext.class);
+            OrderResult.Create expectedResult = Instancio.create(OrderResult.Create.class);
 
             given(orderSheetRepository.findById(anyString())).willReturn(Optional.of(orderSheet));
-            given(orderUserGateway.getUserPointsForOrder(anyLong(), any())).willReturn(userPoint);
+            given(orderUserGateway.getUserPoints(anyLong())).willReturn(userPoint);
             given(orderProductGateway.getProducts(anyList())).willReturn(productResult);
             given(orderCouponGateway.calculate(any())).willReturn(couponResult);
             given(orderMapper.toContext(any())).willReturn(orderContext);
@@ -89,7 +98,39 @@ public class OrderFacadeTest {
             assertThat(result).isEqualTo(expectedResult);
             then(orderProductGateway).should().getProducts(anyList());
             then(orderCouponGateway).should().calculate(any());
-            then(orderUserGateway).should().getUserPointsForOrder(anyLong(), any());
+            then(orderValidator).should().validate(any(OrderSheet.class), any(OrderProductResult.ProductList.class),
+                    any(OrderCouponResult.Calculate.class), any(OrderUserResult.UserPoint.class), any(PointUsagePolicy.class));
+            then(orderUserGateway).should().getUserPoints(anyLong());
+            then(orderCommandService).should().saveOrder(any());
+        }
+
+        @Test
+        @DisplayName("적용된 쿠폰이 없다면 쿠폰 게이트웨이를 호출하지 않음")
+        void initialOrder_no_coupon() {
+            //given
+            OrderSheet orderSheet = createOrderSheetWithoutCoupon();
+            OrderCommand.Create command = OrderCommand.Create.builder()
+                    .orderSheetId("sheetId")
+                    .userId(1L)
+                    .build();
+            OrderUserResult.UserPoint userPoint = Instancio.create(OrderUserResult.UserPoint.class);
+            OrderProductResult.ProductList productResult = Instancio.create(OrderProductResult.ProductList.class);
+            OrderContext.CreateOrderContext orderContext = Instancio.create(OrderContext.CreateOrderContext.class);
+            OrderResult.Create expectedResult = Instancio.create(OrderResult.Create.class);
+            given(orderSheetRepository.findById(anyString())).willReturn(Optional.of(orderSheet));
+            given(orderUserGateway.getUserPoints(anyLong())).willReturn(userPoint);
+            given(orderProductGateway.getProducts(anyList())).willReturn(productResult);
+            given(orderMapper.toContext(any())).willReturn(orderContext);
+            given(orderCommandService.saveOrder(any())).willReturn(expectedResult);
+            //when
+            OrderResult.Create result = orderFacade.initialOrder(command);
+            //then
+            assertThat(result).isEqualTo(expectedResult);
+            then(orderProductGateway).should().getProducts(anyList());
+            then(orderCouponGateway).shouldHaveNoInteractions();
+            then(orderValidator).should().validate(any(OrderSheet.class), any(OrderProductResult.ProductList.class),
+                    any(OrderCouponResult.Calculate.class), any(OrderUserResult.UserPoint.class), any(PointUsagePolicy.class));
+            then(orderUserGateway).should().getUserPoints(anyLong());
             then(orderCommandService).should().saveOrder(any());
         }
 
@@ -125,7 +166,7 @@ public class OrderFacadeTest {
             assertThatThrownBy(() -> orderFacade.initialOrder(command))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
-                    .isEqualTo(OrderErrorCode.ORDER_SHEET_ACCESS_DENIED);
+                    .isEqualTo(OrderErrorCode.ORDER_ACCESS_DENIED);
         }
 
         @Test
@@ -133,7 +174,7 @@ public class OrderFacadeTest {
         void initialOrder_sheet_expired(){
             //given
             OrderSheet orderSheet = createOrderSheet();
-            ReflectionTestUtils.setField(orderSheet, "expiresAt", LocalDateTime.now().minusMinutes(20));
+            ReflectionTestUtils.setField(orderSheet, "expiresAt", LocalDateTime.now(clock).minusMinutes(20));
             OrderCommand.Create command = OrderCommand.Create.builder()
                     .orderSheetId("sheetId")
                     .userId(1L)
@@ -144,7 +185,7 @@ public class OrderFacadeTest {
             assertThatThrownBy(() -> orderFacade.initialOrder(command))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
-                    .isEqualTo(OrderErrorCode.ORDER_SHEET_EXPIRED);
+                    .isEqualTo(OrderErrorCode.ORDER_EXPIRED);
         }
     }
 
@@ -160,6 +201,21 @@ public class OrderFacadeTest {
                 ProductOptionSnapshot.of("색상", "BLUE")
         );
         OrderSheetItem sheetItem = OrderSheetItem.create("sheetItemId", product, price, itemCoupon, 1, options);
-        return OrderSheet.create("sheetId", orderer, shippingAddress, List.of(sheetItem), cartCoupon, LocalDateTime.now(), 30);
+        return OrderSheet.create("sheetId", orderer, shippingAddress, List.of(sheetItem), cartCoupon, LocalDateTime.now(clock), 30);
+    }
+
+    private OrderSheet createOrderSheetWithoutCoupon() {
+        Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
+        ShippingAddress shippingAddress = ShippingAddress.of("수령인", "010-1234-5678", "12345", "서울시 테헤란로 123", "123동 1234호");
+        ProductSnapshot product = ProductSnapshot.of(1L, 1L, "PROD1-XL-BLUE", "청바지", "/product/product/jean_1.jpg");
+        ProductPriceSnapshot price = ProductPriceSnapshot.of(Money.wons(10000L), 10, Money.wons(1000L), Money.wons(9000L));
+        OrderCouponSnapshot itemCoupon = OrderCouponSnapshot.empty();
+        OrderCouponSnapshot cartCoupon = OrderCouponSnapshot.empty();
+        List<ProductOptionSnapshot> options = List.of(
+                ProductOptionSnapshot.of("사이즈", "XL"),
+                ProductOptionSnapshot.of("색상", "BLUE")
+        );
+        OrderSheetItem sheetItem = OrderSheetItem.create("sheetItemId", product, price, itemCoupon, 1, options);
+        return OrderSheet.create("sheetId", orderer, shippingAddress, List.of(sheetItem), cartCoupon, LocalDateTime.now(clock), 30);
     }
 }

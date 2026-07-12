@@ -4,6 +4,7 @@ import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.mapper.MoneyMapper;
 import com.example.order_service.infrastructure.dto.response.ProductClientResponse;
 import com.example.order_service.order.application.external.dto.result.OrderProductResult;
+import com.example.order_service.order.application.external.dto.result.OrderProductStatus;
 import com.example.order_service.order.domain.vo.ProductOptionSnapshot;
 import com.example.order_service.order.domain.vo.ProductPriceSnapshot;
 import com.example.order_service.order.domain.vo.ProductSnapshot;
@@ -52,6 +53,8 @@ public class OrderProductMapperTest {
         ProductClientResponse.Product product = ProductClientResponse.Product.builder()
                 .productId(1L)
                 .productVariantId(1L)
+                .status("ON_SALE")
+                .stock(100)
                 .sku("PROD1-XL-BLUE")
                 .productName("청바지")
                 .thumbnail("/product/product/jean_1.jpg")
@@ -72,6 +75,8 @@ public class OrderProductMapperTest {
                 Money.wons(1000L), Money.wons(9000L));
         OrderProductResult.Info product = OrderProductResult.Info.builder()
                 .productSnapshot(productSnapshot)
+                .status(OrderProductStatus.ON_SALE)
+                .stock(100)
                 .priceSnapshot(productPriceSnapshot)
                 .options(List.of(xl, blue))
                 .build();

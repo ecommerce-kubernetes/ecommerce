@@ -29,7 +29,7 @@ public class QOrder extends EntityPathBase<Order> {
     //inherited
     public final DateTimePath<java.time.LocalDateTime> createdAt = _super.createdAt;
 
-    public final EnumPath<OrderFailureCode> failureCode = createEnum("failureCode", OrderFailureCode.class);
+    public final StringPath failureReason = createString("failureReason");
 
     public final NumberPath<Long> id = createNumber("id", Long.class);
 

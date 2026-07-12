@@ -1,12 +1,10 @@
 package com.example.order_service.order.application.service.order;
 
-import com.example.order_service.common.domain.vo.Money;
-import com.example.order_service.common.exception.business.BusinessException;
+import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.order.application.external.OrderCouponGateway;
 import com.example.order_service.order.application.external.OrderProductGateway;
 import com.example.order_service.order.application.external.OrderUserGateway;
 import com.example.order_service.order.application.external.dto.command.OrderCouponCommand;
-import com.example.order_service.order.application.external.dto.command.OrderProductCommand;
 import com.example.order_service.order.application.external.dto.result.OrderCouponResult;
 import com.example.order_service.order.application.external.dto.result.OrderProductResult;
 import com.example.order_service.order.application.external.dto.result.OrderUserResult;
@@ -23,6 +21,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.Clock;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -47,6 +47,7 @@ public class OrderFacade {
     private final OrderCouponGateway orderCouponGateway;
     private final OrderSheetRepository orderSheetRepository;
     private final OrderCommandService orderCommandService;
+    private final Clock clock;
 
     /**
      * 주문 생성
@@ -59,12 +60,7 @@ public class OrderFacade {
      */
     public OrderResult.Create initialOrder(OrderCommand.Create command) {
         OrderSheet orderSheet = findOrderSheetById(command.orderSheetId());
-        if (!orderSheet.isOwner(command.userId())) {
-            throw new BusinessException(OrderErrorCode.ORDER_SHEET_ACCESS_DENIED);
-        }
-        if (orderSheet.isExpired()) {
-            throw new BusinessException(OrderErrorCode.ORDER_SHEET_EXPIRED);
-        }
+        orderSheet.validateAccess(command.userId(), LocalDateTime.now(clock));
         OrderProductResult.ProductList products = getOrderedProducts(orderSheet.getItems());
         OrderCouponResult.Calculate appliedCoupons = getAppliedCoupons(orderSheet);
         OrderUserResult.UserPoint userPoints = getUserPoints(orderSheet);
@@ -74,15 +70,16 @@ public class OrderFacade {
     }
 
     private OrderProductResult.ProductList getOrderedProducts(List<OrderSheetItem> items) {
-        List<OrderProductCommand.OrderItem> command = items.stream().map(item ->
-                OrderProductCommand.OrderItem.of(item.getProductVariantId(), item.getQuantity())).toList();
-        return orderProductGateway.getProducts(command);
+        List<Long> variantIds = items.stream().map(OrderSheetItem::getProductVariantId).toList();
+        return orderProductGateway.getProducts(variantIds);
     }
 
     private OrderCouponResult.Calculate getAppliedCoupons(OrderSheet orderSheet) {
         if (!orderSheet.hasAnyCoupon()) {
             return OrderCouponResult.Calculate.empty();
         }
+        // [WARING] 페이로드 최적화를 위해 쿠폰 적용 상 filter를 걸면 안됨
+        // 쿠폰 미적용 상품도 페이로드에 포함되어야 장바구니 쿠폰의 '최소 결제 금액', '제외 상품'등의 제약을 검사하고 할인 금액을 계산할 수 있음
         List<OrderCouponCommand.AppliedCouponItem> itemCouponCommand = orderSheet.getItems().stream().map(
                 item -> OrderCouponCommand.AppliedCouponItem.of(item.getProductVariantId(),
                         item.getDiscountedPrice(),
@@ -98,8 +95,7 @@ public class OrderFacade {
 
     private OrderUserResult.UserPoint getUserPoints(OrderSheet orderSheet) {
         Long userId = orderSheet.getOrderer().getUserId();
-        Money usedPoints = orderSheet.getUsedPoints();
-        return orderUserGateway.getUserPointsForOrder(userId, usedPoints);
+        return orderUserGateway.getUserPoints(userId);
     }
 
     private OrderSheet findOrderSheetById(String sheetId) {

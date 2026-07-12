@@ -25,6 +25,8 @@ public class OrderProductResult {
     @Builder
     public record Info(
             ProductSnapshot productSnapshot,
+            OrderProductStatus status,
+            Integer stock,
             ProductPriceSnapshot priceSnapshot,
             List<ProductOptionSnapshot> options
     ) {

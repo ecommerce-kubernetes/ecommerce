@@ -1,8 +1,8 @@
 package com.example.order_service.order.application.command;
 
-import com.example.order_service.common.exception.business.BusinessException;
+import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.order.application.service.ordersheet.dto.command.OrderSheetCommand;
-import com.example.order_service.order.exception.OrderSheetErrorCode;
+import com.example.order_service.order.exception.OrderErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -26,7 +26,7 @@ class OrderSheetCommandTest {
                 .build())
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
-                .isEqualTo(OrderSheetErrorCode.ORDER_SHEET_ITEMS_REQUIRED);
+                .isEqualTo(OrderErrorCode.ORDER_ITEMS_REQUIRED);
     }
 
     @Test
@@ -47,7 +47,7 @@ class OrderSheetCommandTest {
                 .build())
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
-                .isEqualTo(OrderSheetErrorCode.ORDER_SHEET_ITEMS_DUPLICATE);
+                .isEqualTo(OrderErrorCode.ORDER_ITEMS_DUPLICATE);
     }
 
     @Test
@@ -73,7 +73,7 @@ class OrderSheetCommandTest {
                 .build())
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
-                .isEqualTo(OrderSheetErrorCode.ORDER_SHEET_COUPON_ITEM_NOT_IN_ITEMS);
+                .isEqualTo(OrderErrorCode.ORDER_COUPON_ITEM_NOT_IN_ITEMS);
     }
 
     @Test
@@ -102,7 +102,7 @@ class OrderSheetCommandTest {
                 .build())
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
-                .isEqualTo(OrderSheetErrorCode.ORDER_SHEET_DUPLICATE_COUPON_APPLICATION);
+                .isEqualTo(OrderErrorCode.ORDER_DUPLICATE_COUPON_APPLICATION);
     }
 
     @Test
@@ -135,6 +135,6 @@ class OrderSheetCommandTest {
                 .build())
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
-                .isEqualTo(OrderSheetErrorCode.ORDER_SHEET_ALREADY_APPLIED_TO_ANOTHER_ITEM);
+                .isEqualTo(OrderErrorCode.ORDER_ALREADY_APPLIED_TO_ANOTHER_ITEM);
     }
 }

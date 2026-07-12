@@ -6,12 +6,12 @@ import com.example.order_service.infrastructure.dto.command.CouponCommand;
 import com.example.order_service.infrastructure.dto.request.CouponClientRequest;
 import com.example.order_service.infrastructure.dto.response.CouponClientResponse;
 import com.example.order_service.support.annotation.IsolatedTest;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
-import static com.example.order_service.support.TestFixtureUtil.fixtureMonkey;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -30,8 +30,8 @@ public class CouponAdaptorTest {
     @DisplayName("쿠폰 서비스에 쿠폰 할인 정보를 조회한다")
     void calculate(){
         //given
-        CouponCommand.Calculate command = fixtureMonkey.giveMeOne(CouponCommand.Calculate.class);
-        CouponClientResponse.Calculate mockResponse = fixtureMonkey.giveMeOne(CouponClientResponse.Calculate.class);
+        CouponCommand.Calculate command = Instancio.create(CouponCommand.Calculate.class);
+        CouponClientResponse.Calculate mockResponse = Instancio.create(CouponClientResponse.Calculate.class);
         given(client.calculate(any(CouponClientRequest.Calculate.class)))
                 .willReturn(mockResponse);
         //when
@@ -46,7 +46,7 @@ public class CouponAdaptorTest {
     @DisplayName("쿠폰 서비스 조회에서 예외 발생시 translator를 호출하여 반환된 예외를 던진다")
     void calculate_fallback_delegate_to_translator() throws Throwable {
         //given
-        CouponCommand.Calculate command = fixtureMonkey.giveMeOne(CouponCommand.Calculate.class);
+        CouponCommand.Calculate command = Instancio.create(CouponCommand.Calculate.class);
         //발생한 예외
         RuntimeException feignException = new RuntimeException("feignClient 예외");
         //변환된 예외

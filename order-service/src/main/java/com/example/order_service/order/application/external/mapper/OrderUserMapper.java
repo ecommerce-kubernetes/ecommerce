@@ -12,7 +12,7 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring", uses = {MoneyMapper.class}, injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 public interface OrderUserMapper {
 
-    @Mapping(source = "defaultShippingAddress", target = "shippingAddress")
+    @Mapping(source = "defaultShippingInfo", target = "shippingAddress")
     @Mapping(source = ".", target = "orderer")
     OrderUserResult.Profile toResult(UserClientResponse.Profile profile);
     OrderUserResult.UserPoint toResult(UserClientResponse.UserPoints points);
@@ -24,7 +24,7 @@ public interface OrderUserMapper {
         return Orderer.of(profile.userId(), profile.userName(), profile.phoneNumber());
     }
 
-    default ShippingAddress toShippingAddress(UserClientResponse.ShippingAddress address) {
+    default ShippingAddress toShippingAddress(UserClientResponse.ShippingInfo address) {
         if (address == null) {
             return null;
         }

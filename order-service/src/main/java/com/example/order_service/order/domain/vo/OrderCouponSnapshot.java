@@ -23,6 +23,15 @@ public class OrderCouponSnapshot {
     }
 
     public static OrderCouponSnapshot of(Long couponId, String couponName, Money discountAmount) {
+        if (couponId == null) {
+            throw new IllegalArgumentException("적용 쿠폰 Id 는 필수 입니다");
+        }
+        if (couponName == null || couponName.isBlank()) {
+            throw new IllegalArgumentException("적용 쿠폰 이름은 필수입니다");
+        }
+        if (discountAmount == null) {
+            throw new IllegalArgumentException("적용 쿠폰 할인금은 0원 이상이여야 합니다");
+        }
         return OrderCouponSnapshot.reconstitute()
                 .couponId(couponId)
                 .couponName(couponName)

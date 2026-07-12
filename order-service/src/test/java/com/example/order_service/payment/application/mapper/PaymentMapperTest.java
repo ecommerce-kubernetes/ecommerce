@@ -1,7 +1,7 @@
 package com.example.order_service.payment.application.mapper;
 
 import com.example.order_service.common.domain.vo.Money;
-import com.example.order_service.payment.application.external.dto.result.PgPaymentResult;
+import com.example.order_service.payment.application.external.dto.result.PGPaymentResult;
 import com.example.order_service.payment.application.service.dto.command.PaymentCommand;
 import com.example.order_service.payment.application.service.dto.command.PaymentContext;
 import com.example.order_service.payment.domain.model.PaymentMethod;
@@ -44,27 +44,57 @@ class PaymentMapperTest {
     @DisplayName("결제 승인 컨텍스트 매핑")
     void toContext_approval(){
         //given
+        Long paymentId = 1L;
         LocalDateTime approvedAt = LocalDateTime.now();
-        PgPaymentResult.Approval result = PgPaymentResult.Approval.builder()
-                .orderNo("orderNo")
-                .paymentKey("paymentKey")
-                .totalAmount(Money.wons(10000L))
+        PGPaymentResult.Approval result = PGPaymentResult.Approval.builder()
                 .status(PaymentStatus.DONE)
+                .totalAmount(Money.wons(10000L))
                 .method(PaymentMethod.CARD)
+                .transactionKey("9C62B18EEF0DE3EB7F4422EB6D14BC6E")
                 .approvedAt(approvedAt)
                 .build();
 
         PaymentContext.Approval expected = PaymentContext.Approval.builder()
-                .paymentId(1L)
-                .amount(Money.wons(10000L))
+                .paymentId(paymentId)
                 .status(PaymentStatus.DONE)
+                .amount(Money.wons(10000L))
                 .method(PaymentMethod.CARD)
+                .transactionKey("9C62B18EEF0DE3EB7F4422EB6D14BC6E")
                 .approvedAt(approvedAt)
                 .build();
         //when
-        PaymentContext.Approval approval = paymentMapper.toContext(1L, result);
+        PaymentContext.Approval approval = paymentMapper.toContext(paymentId, result);
         //then
         assertThat(approval).usingRecursiveComparison()
                 .isEqualTo(expected);
+    }
+
+    @Test
+    @DisplayName("결제 취소 컨텍스트 매핑")
+    void toContext_cancellation() {
+        //given
+        Long paymentId = 1L;
+        LocalDateTime canceledAt = LocalDateTime.now();
+        PGPaymentResult.CancelReceipt cancelReceipt = PGPaymentResult.CancelReceipt.builder()
+                .transactionKey("090A796806E726BBB929F4A2CA7DB9A7")
+                .cancelAmount(Money.wons(10000L))
+                .cancelReason("테스트 결제 취소")
+                .canceledAt(canceledAt)
+                .build();
+        PaymentContext.Cancellation expected = PaymentContext.Cancellation.builder()
+                .paymentId(paymentId)
+                .amount(Money.wons(10000L))
+                .status(PaymentStatus.CANCELED)
+                .transactionKey("090A796806E726BBB929F4A2CA7DB9A7")
+                .cancelReason("테스트 결제 취소")
+                .canceledAt(canceledAt)
+                .build();
+        //when
+        PaymentContext.Cancellation context = paymentMapper.toContext(paymentId, PaymentStatus.CANCELED, cancelReceipt);
+        //then
+        assertThat(context)
+                .usingRecursiveComparison()
+                .isEqualTo(expected);
+
     }
 }

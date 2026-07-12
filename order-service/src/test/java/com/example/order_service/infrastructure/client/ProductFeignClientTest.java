@@ -5,6 +5,9 @@ import com.example.order_service.common.exception.external.ExternalServerExcepti
 import com.example.order_service.infrastructure.dto.request.ProductClientRequest;
 import com.example.order_service.infrastructure.dto.response.ProductClientResponse;
 import com.example.order_service.support.annotation.IsolatedTest;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -18,7 +21,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-import static com.example.order_service.support.TestFixtureUtil.fixtureMonkey;
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -29,6 +31,8 @@ class ProductFeignClientTest {
 
     @Autowired
     private ProductFeignClient client;
+    @Autowired
+    private ObjectMapper objectMapper;
 
     private String readJson(String path) throws IOException {
         ClassPathResource resource = new ClassPathResource(path);
@@ -36,216 +40,115 @@ class ProductFeignClientTest {
     }
 
     @Nested
-    @DisplayName("주문 상품 조회")
-    class GetProductsForOrder {
+    @DisplayName("상품 조회")
+    class GetProducts {
 
         @Test
-        @DisplayName("주문할 상품을 조회한다")
-        void getProductsForOrder() throws IOException {
+        @DisplayName("상품 정보를 조회한다")
+        void getProducts() throws IOException {
             //given
-            String mockJsonResponse = readJson("product/validate-for-order-response.json");
-            ProductClientRequest.Validate request = fixtureMonkey.giveMeOne(ProductClientRequest.Validate.class);
-
-            ProductClientResponse.Product expected = createExpected();
-            stubFor(post(urlEqualTo("/internal/variants/validate-for-order"))
+            ProductClientRequest.BulkSearch request = Instancio.create(ProductClientRequest.BulkSearch.class);
+            String expectedRequestBody = objectMapper.writeValueAsString(request);
+            String mockJsonResponse = readJson("product/product-response.json");
+            stubFor(post(urlEqualTo("/internal/variants"))
+                    .withRequestBody(equalToJson(expectedRequestBody))
                     .willReturn(aResponse()
                             .withStatus(HttpStatus.OK.value())
                             .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
                             .withBody(mockJsonResponse)));
             //when
-            ProductClientResponse.ProductList response = client.getProductsForOrder(request);
+            ProductClientResponse.ProductList response = client.getProducts(request);
             //then
             assertThat(response.products()).hasSize(2);
-            assertThat(response.products().get(0))
+            assertThat(response.products().getFirst())
                     .usingRecursiveComparison()
-                    .isEqualTo(expected);
+                    .isEqualTo(expected());
         }
-        
+
         @Test
-        @DisplayName("주문 상품 조회시 클라이언트 에러 응답이 반환되면 예외가 발생한다")
-        void getProductsForOrder_client_error() {
+        @DisplayName("상품 조회시 클라이언트 에러 응답이 반환되면 예외가 발생한다")
+        void getProducts_client_error() throws JsonProcessingException {
             //given
-            ProductClientRequest.Validate request = fixtureMonkey.giveMeOne(ProductClientRequest.Validate.class);
+            ProductClientRequest.BulkSearch request = Instancio.create(ProductClientRequest.BulkSearch.class);
+            String expectedRequestBody = objectMapper.writeValueAsString(request);
             String mockJsonResponse = """
                     {
-                        "code": "INSUFFICIENT_STOCK",
-                        "message": "재고가 부족합니다",
+                        "code": "INVALID_PRODUCT_REQUEST",
+                        "message": "잘못된 상품 조회 요청입니다",
                         "timestamp": "2026-05-03 19:00:00",
-                        "path": "/internal/variants/validate-for-order"
+                        "path": "/internal/variants"
                     }
                     """;
-            stubFor(post(urlEqualTo("/internal/variants/validate-for-order"))
+            stubFor(post(urlEqualTo("/internal/variants"))
+                    .withRequestBody(equalToJson(expectedRequestBody))
                     .willReturn(aResponse()
-                            .withStatus(HttpStatus.BAD_REQUEST.value())
+                            .withStatus(HttpStatus.CONFLICT.value())
                             .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
                             .withBody(mockJsonResponse)));
             //when
             //then
-            assertThatThrownBy(() -> client.getProductsForOrder(request))
+            assertThatThrownBy(() -> client.getProducts(request))
                     .isInstanceOf(ExternalClientException.class)
-                    .hasMessage("재고가 부족합니다")
+                    .hasMessage("잘못된 상품 조회 요청입니다")
                     .extracting("errorCode")
-                    .isEqualTo("INSUFFICIENT_STOCK");
+                    .isEqualTo("INVALID_PRODUCT_REQUEST");
         }
 
         @Test
-        @DisplayName("주문 상품 조회시 클라이언트 서버 에러 응답이 반환되면 예외가 발생한다")
-        void getProductsForOrder_server_error() {
+        @DisplayName("상품 조회시 서버 에러 응답이 반환되면 예외가 발생한다")
+        void getProducts_server_error() throws JsonProcessingException {
             //given
-            ProductClientRequest.Validate request = fixtureMonkey.giveMeOne(ProductClientRequest.Validate.class);
+            ProductClientRequest.BulkSearch request = Instancio.create(ProductClientRequest.BulkSearch.class);
+            String expectedRequestBody = objectMapper.writeValueAsString(request);
             String mockJsonResponse = """
                     {
                         "code": "INTERNAL_SERVER_ERROR",
                         "message": "알 수 없는 오류가 발생했습니다",
                         "timestamp": "2026-05-03 19:00:00",
-                        "path": "/internal/variants/validate-for-order"
+                        "path": "/internal/variants"
                     }
                     """;
-            stubFor(post(urlEqualTo("/internal/variants/validate-for-order"))
+            stubFor(post(urlEqualTo("/internal/variants"))
+                    .withRequestBody(equalToJson(expectedRequestBody))
                     .willReturn(aResponse()
                             .withStatus(HttpStatus.INTERNAL_SERVER_ERROR.value())
                             .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
                             .withBody(mockJsonResponse)));
             //when
             //then
-            assertThatThrownBy(() -> client.getProductsForOrder(request))
+            assertThatThrownBy(() -> client.getProducts(request))
                     .isInstanceOf(ExternalServerException.class)
                     .hasMessage("알 수 없는 오류가 발생했습니다")
                     .extracting("errorCode")
                     .isEqualTo("INTERNAL_SERVER_ERROR");
-        }
-
-        private ProductClientResponse.Product createExpected() {
-            ProductClientResponse.UnitPrice unitPrice = ProductClientResponse.UnitPrice.builder()
-                    .originalPrice(10000L)
-                    .discountRate(10)
-                    .discountAmount(1000L)
-                    .discountedPrice(9000L)
-                    .build();
-            ProductClientResponse.ProductOption xl = ProductClientResponse.ProductOption.builder()
-                    .optionTypeName("사이즈")
-                    .optionValueName("XL")
-                    .build();
-            ProductClientResponse.ProductOption blue = ProductClientResponse.ProductOption.builder()
-                    .optionTypeName("색상")
-                    .optionValueName("BLUE")
-                    .build();
-            return ProductClientResponse.Product.builder()
-                    .productId(1L)
-                    .productVariantId(1L)
-                    .sku("PROD-XL-BLUE")
-                    .productName("청바지")
-                    .thumbnail("/product/product/jean_1.jpg")
-                    .unitPrice(unitPrice)
-                    .options(List.of(xl, blue))
-                    .build();
         }
     }
 
-    @Nested
-    @DisplayName("장바구니 추가 상품 조회")
-    class GetProductsForCart {
-
-        @Test
-        @DisplayName("장바구니에 추가할 상품을 조회한다")
-        void getProductsForCart() throws IOException {
-            //given
-            String mockJsonResponse = readJson("product/validate-for-cart-response.json");
-            ProductClientRequest.Validate request = fixtureMonkey.giveMeOne(ProductClientRequest.Validate.class);
-
-            ProductClientResponse.Product expected = createExpected();
-            stubFor(post(urlEqualTo("/internal/variants/validate-for-cart"))
-                    .willReturn(aResponse()
-                            .withStatus(HttpStatus.OK.value())
-                            .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
-                            .withBody(mockJsonResponse)));
-            //when
-            ProductClientResponse.ProductList response = client.getProductsForCart(request);
-            //then
-            assertThat(response.products()).hasSize(2);
-            assertThat(response.products().get(0))
-                    .usingRecursiveComparison()
-                    .isEqualTo(expected);
-        }
-
-        @Test
-        @DisplayName("장바구니에 추가할 상품 조회시 클라이언트 에러 응답이 반환되면 예외가 발생한다")
-        void getProductsForCart_client_error() {
-            //given
-            ProductClientRequest.Validate request = fixtureMonkey.giveMeOne(ProductClientRequest.Validate.class);
-            String mockJsonResponse = """
-                    {
-                        "code": "INSUFFICIENT_STOCK",
-                        "message": "재고가 부족합니다",
-                        "timestamp": "2026-05-03 19:00:00",
-                        "path": "/internal/variants/validate-for-cart"
-                    }
-                    """;
-            stubFor(post(urlEqualTo("/internal/variants/validate-for-cart"))
-                    .willReturn(aResponse()
-                            .withStatus(HttpStatus.BAD_REQUEST.value())
-                            .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
-                            .withBody(mockJsonResponse)));
-            //when
-            //then
-            assertThatThrownBy(() -> client.getProductsForCart(request))
-                    .isInstanceOf(ExternalClientException.class)
-                    .hasMessage("재고가 부족합니다")
-                    .extracting("errorCode")
-                    .isEqualTo("INSUFFICIENT_STOCK");
-        }
-
-        @Test
-        @DisplayName("장바구니에 추가할 상품 조회시 클라이언트 서버 에러 응답이 반환되면 예외가 발생한다")
-        void getProductsForCart_server_error() {
-            //given
-            ProductClientRequest.Validate request = fixtureMonkey.giveMeOne(ProductClientRequest.Validate.class);
-            String mockJsonResponse = """
-                    {
-                        "code": "INTERNAL_SERVER_ERROR",
-                        "message": "알 수 없는 오류가 발생했습니다",
-                        "timestamp": "2026-05-03 19:00:00",
-                        "path": "/internal/variants/validate-for-cart"
-                    }
-                    """;
-            stubFor(post(urlEqualTo("/internal/variants/validate-for-cart"))
-                    .willReturn(aResponse()
-                            .withStatus(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                            .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
-                            .withBody(mockJsonResponse)));
-            //when
-            //then
-            assertThatThrownBy(() -> client.getProductsForCart(request))
-                    .isInstanceOf(ExternalServerException.class)
-                    .hasMessage("알 수 없는 오류가 발생했습니다")
-                    .extracting("errorCode")
-                    .isEqualTo("INTERNAL_SERVER_ERROR");
-        }
-
-        private ProductClientResponse.Product createExpected() {
-            ProductClientResponse.UnitPrice unitPrice = ProductClientResponse.UnitPrice.builder()
-                    .originalPrice(10000L)
-                    .discountRate(10)
-                    .discountAmount(1000L)
-                    .discountedPrice(9000L)
-                    .build();
-            ProductClientResponse.ProductOption xl = ProductClientResponse.ProductOption.builder()
-                    .optionTypeName("사이즈")
-                    .optionValueName("XL")
-                    .build();
-            ProductClientResponse.ProductOption blue = ProductClientResponse.ProductOption.builder()
-                    .optionTypeName("색상")
-                    .optionValueName("BLUE")
-                    .build();
-            return ProductClientResponse.Product.builder()
-                    .productId(1L)
-                    .productVariantId(1L)
-                    .sku("PROD-XL-BLUE")
-                    .productName("청바지")
-                    .thumbnail("/product/product/jean_1.jpg")
-                    .unitPrice(unitPrice)
-                    .options(List.of(xl, blue))
-                    .build();
-        }
+    private ProductClientResponse.Product expected() {
+        ProductClientResponse.UnitPrice unitPrice = ProductClientResponse.UnitPrice.builder()
+                .originalPrice(10000L)
+                .discountRate(10)
+                .discountAmount(1000L)
+                .discountedPrice(9000L)
+                .build();
+        ProductClientResponse.ProductOption xl = ProductClientResponse.ProductOption.builder()
+                .optionTypeName("사이즈")
+                .optionValueName("XL")
+                .build();
+        ProductClientResponse.ProductOption blue = ProductClientResponse.ProductOption.builder()
+                .optionTypeName("색상")
+                .optionValueName("BLUE")
+                .build();
+        return ProductClientResponse.Product.builder()
+                .productId(1L)
+                .productVariantId(1L)
+                .status("ON_SALE")
+                .stock(100)
+                .sku("PROD-XL-BLUE")
+                .productName("청바지")
+                .thumbnail("/product/product/jean_1.jpg")
+                .unitPrice(unitPrice)
+                .options(List.of(xl, blue))
+                .build();
     }
 }

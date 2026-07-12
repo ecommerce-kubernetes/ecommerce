@@ -1,6 +1,5 @@
 package com.example.order_service.common.domain.vo;
 
-import com.example.order_service.common.exception.domain.InvalidDomainValueException;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
@@ -30,14 +29,14 @@ public class Money {
      *
      * @param amount 금액
      * @return 금액 VO
-     * @throws InvalidDomainValueException 도메인 계층 예외
+     * @throws IllegalArgumentException 도메인 예외
      */
     public static Money wons(Long amount) {
         if (amount == null) {
-            throw new InvalidDomainValueException("금액은 null 이 될 수 없습니다.");
+            throw new IllegalArgumentException("금액은 null 이 될 수 없습니다.");
         }
         if (amount < 0) {
-            throw new InvalidDomainValueException("금액은 0 보다 작을 수 없습니다.");
+            throw new IllegalArgumentException("금액은 0 보다 작을 수 없습니다.");
         }
         if (amount == 0) {
             return ZERO;
@@ -60,11 +59,11 @@ public class Money {
      *
      * @param deducted 빼는 금액
      * @return 빼진 금액
-     * @throws InvalidDomainValueException 도메인 계층 예외
+     * @throws IllegalArgumentException 도메인 예외
      */
     public Money subtract(Money deducted) {
         if (isLessThan(deducted)) {
-            throw new InvalidDomainValueException("차감 금액이 현재 금액보다 클 수 없습니다.");
+            throw new IllegalArgumentException("차감 금액이 현재 금액보다 클 수 없습니다.");
         }
         return new Money(amount.subtract(deducted.amount));
     }
@@ -74,11 +73,11 @@ public class Money {
      *
      * @param multiplier 곱하는 금액
      * @return 곱해진 금액
-     * @throws InvalidDomainValueException 도메인 계층 예외
+     * @throws IllegalArgumentException 도메인 예외
      */
     public Money multiple(long multiplier) {
         if (multiplier < 0) {
-            throw new InvalidDomainValueException("금액에 음수를 곱할 수 없습니다.");
+            throw new IllegalArgumentException("금액에 음수를 곱할 수 없습니다.");
         }
         if (multiplier == 0) {
             return ZERO;
@@ -100,7 +99,7 @@ public class Money {
      */
     public Money multiple(double multiplier) {
         if (multiplier < 0.0) {
-            throw new InvalidDomainValueException("금액에 음수를 곱할 수 없습니다.");
+            throw new IllegalArgumentException("금액에 음수를 곱할 수 없습니다.");
         }
         if (multiplier == 0.0) {
             return ZERO;
@@ -124,7 +123,7 @@ public class Money {
      */
     public Money multiple(BigDecimal multiplier) {
         if (multiplier.compareTo(BigDecimal.ZERO) < 0) {
-            throw new InvalidDomainValueException("금액에 음수를 곱할 수 없습니다.");
+            throw new IllegalArgumentException("금액에 음수를 곱할 수 없습니다.");
         }
 
         if (multiplier.compareTo(BigDecimal.ZERO) == 0) {

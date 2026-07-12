@@ -1,14 +1,15 @@
 package com.example.order_service.payment.application.mapper;
 
-import com.example.order_service.payment.application.external.dto.result.PgPaymentResult;
+import com.example.order_service.payment.application.external.dto.result.PGPaymentResult;
 import com.example.order_service.payment.application.service.dto.command.PaymentCommand;
 import com.example.order_service.payment.application.service.dto.command.PaymentContext;
+import com.example.order_service.payment.domain.model.PaymentStatus;
 import javax.annotation.processing.Generated;
 import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-06-02T04:12:26+0900",
+    date = "2026-07-12T02:54:55+0900",
     comments = "version: 1.6.3, compiler: javac, environment: Java 21.0.10 (Eclipse Adoptium)"
 )
 @Component
@@ -31,7 +32,7 @@ public class PaymentMapperImpl implements PaymentMapper {
     }
 
     @Override
-    public PaymentContext.Approval toContext(Long paymentId, PgPaymentResult.Approval result) {
+    public PaymentContext.Approval toContext(Long paymentId, PGPaymentResult.Approval result) {
         if ( paymentId == null && result == null ) {
             return null;
         }
@@ -42,10 +43,31 @@ public class PaymentMapperImpl implements PaymentMapper {
             approval.amount( result.totalAmount() );
             approval.status( result.status() );
             approval.method( result.method() );
+            approval.transactionKey( result.transactionKey() );
             approval.approvedAt( result.approvedAt() );
         }
         approval.paymentId( paymentId );
 
         return approval.build();
+    }
+
+    @Override
+    public PaymentContext.Cancellation toContext(Long paymentId, PaymentStatus status, PGPaymentResult.CancelReceipt result) {
+        if ( paymentId == null && status == null && result == null ) {
+            return null;
+        }
+
+        PaymentContext.Cancellation.CancellationBuilder cancellation = PaymentContext.Cancellation.builder();
+
+        if ( result != null ) {
+            cancellation.amount( result.cancelAmount() );
+            cancellation.transactionKey( result.transactionKey() );
+            cancellation.cancelReason( result.cancelReason() );
+            cancellation.canceledAt( result.canceledAt() );
+        }
+        cancellation.paymentId( paymentId );
+        cancellation.status( status );
+
+        return cancellation.build();
     }
 }

@@ -21,25 +21,38 @@ public class PaymentRecord extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "payment_id")
     private Payment payment;
+    private String transactionKey;
     private TransactionType type;
     private Money amount;
-    private PaymentMethod method;
-    private LocalDateTime approvedAt;
+    private String reason;
+    private LocalDateTime occurredAt;
 
     @Builder(access = AccessLevel.PRIVATE)
-    private PaymentRecord(TransactionType type, Money amount, PaymentMethod method, LocalDateTime approvedAt) {
+    private PaymentRecord(String transactionKey, TransactionType type, Money amount, String reason, LocalDateTime occurredAt) {
+        this.transactionKey = transactionKey;
         this.type = type;
         this.amount = amount;
-        this.method = method;
-        this.approvedAt = approvedAt;
+        this.reason = reason;
+        this.occurredAt = occurredAt;
     }
 
-    public static PaymentRecord createApproval(Money amount, PaymentMethod method, LocalDateTime approvedAt) {
+    public static PaymentRecord createApproval(String transactionKey, Money amount, LocalDateTime occurredAt) {
         return PaymentRecord.builder()
+                .transactionKey(transactionKey)
                 .type(TransactionType.PAYMENT)
                 .amount(amount)
-                .method(method)
-                .approvedAt(approvedAt)
+                .reason("정상 승인")
+                .occurredAt(occurredAt)
+                .build();
+    }
+
+    public static PaymentRecord createCancellation(String transactionKey, Money amount, String reason, LocalDateTime occurredAt) {
+        return PaymentRecord.builder()
+                .transactionKey(transactionKey)
+                .type(TransactionType.REFUND)
+                .amount(amount)
+                .reason(reason)
+                .occurredAt(occurredAt)
                 .build();
     }
 

@@ -44,9 +44,28 @@ public class PaymentResult {
                     .paymentKey(payment.getPaymentKey())
                     .orderNo(payment.getOrderNo())
                     .totalAmount(payment.getTotalAmount())
-                    .method(paymentRecord.getMethod())
+                    .method(payment.getMethod())
                     .status(payment.getStatus())
-                    .approvedAt(paymentRecord.getApprovedAt())
+                    .approvedAt(paymentRecord.getOccurredAt())
+                    .build();
+        }
+    }
+
+    @Builder
+    public record PaymentCancel(
+            String paymentKey,
+            String orderNo,
+            Money canceledAmount,
+            PaymentStatus status,
+            LocalDateTime canceledAt
+    ) {
+        public static PaymentCancel of(Payment payment, PaymentRecord paymentRecord) {
+            return PaymentCancel.builder()
+                    .paymentKey(payment.getPaymentKey())
+                    .orderNo(payment.getOrderNo())
+                    .canceledAmount(paymentRecord.getAmount())
+                    .status(payment.getStatus())
+                    .canceledAt(paymentRecord.getOccurredAt())
                     .build();
         }
     }

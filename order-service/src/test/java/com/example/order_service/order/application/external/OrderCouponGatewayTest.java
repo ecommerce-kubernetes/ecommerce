@@ -1,15 +1,18 @@
 package com.example.order_service.order.application.external;
 
-import com.example.order_service.common.exception.business.BusinessException;
+import com.example.order_service.common.exception.gateway.DefaultGatewayException;
+import com.example.order_service.common.exception.external.ExternalCircuitBreakerException;
 import com.example.order_service.common.exception.external.ExternalClientException;
 import com.example.order_service.common.exception.external.ExternalServerException;
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
 import com.example.order_service.infrastructure.adaptor.CouponAdaptor;
+import com.example.order_service.infrastructure.dto.command.CouponCommand;
 import com.example.order_service.infrastructure.dto.response.CouponClientResponse;
 import com.example.order_service.order.application.external.dto.command.OrderCouponCommand;
 import com.example.order_service.order.application.external.dto.result.OrderCouponResult;
 import com.example.order_service.order.application.external.mapper.OrderCouponMapper;
-import com.example.order_service.order.exception.OrderSheetErrorCode;
+import com.example.order_service.order.exception.OrderErrorCode;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -18,7 +21,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static com.example.order_service.support.TestFixtureUtil.fixtureMonkey;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -42,9 +44,11 @@ public class OrderCouponGatewayTest {
         @DisplayName("쿠폰 정보를 조회한다")
         void calculate() {
             //given
-            OrderCouponCommand.Calculate command = fixtureMonkey.giveMeOne(OrderCouponCommand.Calculate.class);
-            CouponClientResponse.Calculate response = fixtureMonkey.giveMeOne(CouponClientResponse.Calculate.class);
-            OrderCouponResult.Calculate result = fixtureMonkey.giveMeOne(OrderCouponResult.Calculate.class);
+            OrderCouponCommand.Calculate command = Instancio.create(OrderCouponCommand.Calculate.class);
+            CouponCommand.Calculate couponCommand = Instancio.create(CouponCommand.Calculate.class);
+            CouponClientResponse.Calculate response = Instancio.create(CouponClientResponse.Calculate.class);
+            OrderCouponResult.Calculate result = Instancio.create(OrderCouponResult.Calculate.class);
+            given(couponMapper.toCommand(any())).willReturn(couponCommand);
             given(adaptor.calculate(any())).willReturn(response);
             given(couponMapper.toResult(any())).willReturn(result);
             //when
@@ -54,48 +58,75 @@ public class OrderCouponGatewayTest {
         }
 
         @Test
-        @DisplayName("쿠폰 조회중 쿠폰 서비스에서 서버 오류가 발생한 경우 비지니스 예외가 발생한다")
+        @DisplayName("쿠폰 조회중 쿠폰 서비스에서 서버 오류가 발생한 경우 예외가 발생한다")
         void calculate_ExternalServerException() {
             //given
-            OrderCouponCommand.Calculate command = fixtureMonkey.giveMeOne(OrderCouponCommand.Calculate.class);
-            willThrow(new ExternalServerException("INTERNAL_SERVER_ERROR", "처리중 오류가 발생했습니다"))
+            String code = "INTERNAL_SERVER_ERROR";
+            String message = "처리중 오류가 발생했습니다";
+            OrderCouponCommand.Calculate command = Instancio.create(OrderCouponCommand.Calculate.class);
+            willThrow(new ExternalServerException(code, message))
                     .given(adaptor).calculate(any());
             //when
             //then
             assertThatThrownBy(() -> orderCouponGateway.calculate(command))
-                    .isInstanceOf(BusinessException.class)
-                    .extracting("errorCode")
-                    .isEqualTo(OrderSheetErrorCode.ORDER_SHEET_COUPON_SERVER_ERROR);
+                    .isInstanceOf(DefaultGatewayException.class)
+                    .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
+                    .extracting("errorCode", "externalErrorCode")
+                    .containsExactly(OrderErrorCode.ORDER_COUPON_SERVER_ERROR, code);
         }
 
         @Test
-        @DisplayName("쿠폰 조회중 쿠폰 서비스에서 클라이언트 오류가 발생한 경우 비지니스 예외가 발생한다")
+        @DisplayName("쿠폰 조회중 쿠폰 서비스에서 클라이언트 오류가 발생한 경우 예외가 발생한다")
         void calculate_ExternalClientException() {
             //given
-            OrderCouponCommand.Calculate command = fixtureMonkey.giveMeOne(OrderCouponCommand.Calculate.class);
-            willThrow(new ExternalClientException("COUPON_EXPIRED", "쿠폰이 만료되었습니다"))
+            String code = "COUPON_EXPIRED";
+            String message = "쿠폰이 만료되었습니다";
+            OrderCouponCommand.Calculate command = Instancio.create(OrderCouponCommand.Calculate.class);
+            willThrow(new ExternalClientException(code, message))
                     .given(adaptor).calculate(any());
             //when
             //then
             assertThatThrownBy(() -> orderCouponGateway.calculate(command))
-                    .isInstanceOf(BusinessException.class)
-                    .extracting("errorCode")
-                    .isEqualTo(OrderSheetErrorCode.ORDER_SHEET_COUPON_CLIENT_ERROR);
+                    .isInstanceOf(DefaultGatewayException.class)
+                    .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
+                    .extracting("errorCode", "externalErrorCode")
+                    .containsExactly(OrderErrorCode.ORDER_COUPON_CLIENT_ERROR, code);
         }
 
         @Test
-        @DisplayName("쿠폰 조회중 쿠폰 서비스에서 사용 불가 오류가 발생한 경우 비지니스 예외가 발생한다")
-        void calculate_ExternalUnavailableServerException() {
+        @DisplayName("쿠폰 조회중 쿠폰 서비스 서킷 브레이커가 열린 경우 예외가 발생한다")
+        void calculate_ExternalCircuitBreakerException(){
             //given
-            OrderCouponCommand.Calculate command = fixtureMonkey.giveMeOne(OrderCouponCommand.Calculate.class);
-            willThrow(new ExternalSystemUnavailableException("SERVICE_UNAVAILABLE", "쿠폰 서비스 통신 장애"))
+            String code = "COUPON_CIRCUIT_OPEN";
+            String message = "쿠폰 서비스 서킷 브레이커 열림";
+            OrderCouponCommand.Calculate command = Instancio.create(OrderCouponCommand.Calculate.class);
+            willThrow(new ExternalCircuitBreakerException(code, message))
                     .given(adaptor).calculate(any());
             //when
             //then
             assertThatThrownBy(() -> orderCouponGateway.calculate(command))
-                    .isInstanceOf(BusinessException.class)
-                    .extracting("errorCode")
-                    .isEqualTo(OrderSheetErrorCode.ORDER_SHEET_COUPON_UNAVAILABLE_SERVER_ERROR);
+                    .isInstanceOf(DefaultGatewayException.class)
+                    .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
+                    .extracting("errorCode", "externalErrorCode")
+                    .containsExactly(OrderErrorCode.ORDER_COUPON_CIRCUIT_OPEN, code);
+        }
+
+        @Test
+        @DisplayName("쿠폰 조회중 쿠폰 서비스에서 사용 불가 오류가 발생한 경우 예외가 발생한다")
+        void calculate_ExternalUnavailableServerException() {
+            //given
+            String code = "SERVICE_UNAVAILABLE";
+            String message = "쿠폰 서비스 통신 장애";
+            OrderCouponCommand.Calculate command = Instancio.create(OrderCouponCommand.Calculate.class);
+            willThrow(new ExternalSystemUnavailableException(code, message))
+                    .given(adaptor).calculate(any());
+            //when
+            //then
+            assertThatThrownBy(() -> orderCouponGateway.calculate(command))
+                    .isInstanceOf(DefaultGatewayException.class)
+                    .hasMessage(String.format("Gateway Error: [%s] %s", code, message))
+                    .extracting("errorCode", "externalErrorCode")
+                    .containsExactly(OrderErrorCode.ORDER_COUPON_UNAVAILABLE_SERVER_ERROR, code);
         }
     }
 }

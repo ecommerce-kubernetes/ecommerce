@@ -21,7 +21,7 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
         String message = (String) request.getAttribute("authError");
         LocalDateTime now = LocalDateTime.now();
         if (message == null) {
-            message = "인증이 필요한 접근입니다";
+            message = "인증이 필요한 접근입니다.";
         }
         writeErrorResponse(response, message, now, request.getRequestURI());
     }

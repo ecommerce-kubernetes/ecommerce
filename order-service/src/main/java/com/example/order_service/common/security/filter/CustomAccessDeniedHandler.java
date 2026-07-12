@@ -17,7 +17,7 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException) throws IOException, ServletException {
         LocalDateTime now = LocalDateTime.now();
-        writeErrorResponse(response, "요청 권한이 부족합니다", now, request.getRequestURI());
+        writeErrorResponse(response, "요청 권한이 부족합니다.", now, request.getRequestURI());
     }
 
     private void writeErrorResponse(HttpServletResponse response, String message, LocalDateTime requestAt, String requestUrl) throws IOException {

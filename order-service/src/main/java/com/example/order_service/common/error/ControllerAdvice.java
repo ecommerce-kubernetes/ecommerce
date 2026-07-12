@@ -1,7 +1,8 @@
 package com.example.order_service.common.error;
 
 import com.example.order_service.common.error.dto.response.ErrorResponse;
-import com.example.order_service.common.exception.business.BusinessException;
+import com.example.order_service.common.error.dto.response.ValidationErrorResponse;
+import com.example.order_service.common.exception.BusinessException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,17 +20,23 @@ import java.util.List;
 public class ControllerAdvice {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> validationExceptionHandler(HttpServletRequest request,
+    public ResponseEntity<ValidationErrorResponse> validationExceptionHandler(HttpServletRequest request,
                                                                     MethodArgumentNotValidException e){
         LocalDateTime now = LocalDateTime.now();
         List<FieldError> fieldErrors = e.getBindingResult().getFieldErrors();
-        String message = fieldErrors.get(0).getDefaultMessage();
-        ErrorResponse response = ErrorResponse.builder()
+
+        List<ValidationErrorResponse.FieldDetail> fieldDetails = fieldErrors.stream().map(
+                field -> ValidationErrorResponse.FieldDetail.of(field.getField(), field.getDefaultMessage())
+        ).toList();
+
+        ValidationErrorResponse response = ValidationErrorResponse.builder()
                 .code("VALIDATION")
-                .message(message)
-                .timestamp(now.toString())
+                .message("입력값이 올바르지 않습니다.")
+                .errors(fieldDetails)
+                .timestamp(now)
                 .path(request.getRequestURI())
                 .build();
+
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 

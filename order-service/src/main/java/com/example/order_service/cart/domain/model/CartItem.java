@@ -1,12 +1,13 @@
 package com.example.order_service.cart.domain.model;
 
 import com.example.order_service.cart.exception.CartErrorCode;
-import com.example.order_service.common.exception.business.BusinessException;
+import com.example.order_service.common.exception.BusinessException;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.util.Objects;
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -20,23 +21,21 @@ public class CartItem {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cart_id")
     private Cart cart;
+
     private Long productVariantId;
+
     private int quantity;
 
-    @Builder(access = AccessLevel.PRIVATE)
-    public CartItem(Long productVariantId, int quantity){
-        this.productVariantId = productVariantId;
+    private CartItem(Long productVariantId, int quantity){
+        this.productVariantId = Objects.requireNonNull(productVariantId, "장바구니 항목 생성시 상품 변형 아이디는 필수입니다.");
         this.quantity = quantity;
     }
 
     public static CartItem create(Long productVariantId, int quantity){
         if (quantity <= 0) {
-            throw new BusinessException(CartErrorCode.CART_ITEM_MINIMUM_ONE_REQUIRED);
+            throw new BusinessException(CartErrorCode.INVALID_CART_ITEM_QUANTITY);
         }
-        return CartItem.builder()
-                .productVariantId(productVariantId)
-                .quantity(quantity)
-                .build();
+        return new CartItem(productVariantId, quantity);
     }
 
     public void addQuantity(int quantity){
@@ -45,14 +44,9 @@ public class CartItem {
 
     public void updateQuantity(int quantity) {
         if(quantity <= 0){
-            throw new BusinessException(CartErrorCode.CART_ITEM_MINIMUM_ONE_REQUIRED);
+            throw new BusinessException(CartErrorCode.INVALID_CART_ITEM_QUANTITY);
         }
         this.quantity = quantity;
-    }
-
-    public void removeFromCart(){
-        this.cart.getCartItems().remove(this);
-        this.cart = null;
     }
 
     protected void setCart(Cart cart){

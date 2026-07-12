@@ -1,129 +1,137 @@
 package com.example.order_service.cart.domain.model;
 
+import com.example.order_service.cart.exception.CartErrorCode;
+import com.example.order_service.common.exception.BusinessException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
+import static org.assertj.core.api.Assertions.*;
 
 public class CartTest {
 
-    @Nested
-    @DisplayName("장바구니 생성")
-    class Create {
-
-        @Test
-        @DisplayName("장바구니를 생성한다")
-        void create(){
-            //given
-            //when
-            Cart cart = Cart.create(1L);
-            //then
-            assertThat(cart.getUserId()).isEqualTo(1L);
-        }
-    }
 
     @Nested
     @DisplayName("장바구니 상품 추가")
     class AddItem {
 
         @Test
-        @DisplayName("동일한 상품이 없다면 새로운 상품을 생성해 추가한다")
-        void addItemWhenNew() {
+        @DisplayName("항목을 추가한다")
+        void addItem() {
             //given
             Cart cart = Cart.create(1L);
+            Long productVariantId = 1L;
+            int quantity = 3;
             //when
-            CartItem cartItem = cart.addItem(1L, 2);
+            cart.addItem(productVariantId, quantity);
             //then
             assertThat(cart.getCartItems()).hasSize(1);
-            assertThat(cartItem)
-                    .extracting(CartItem::getProductVariantId, CartItem::getQuantity)
-                    .contains(1L, 2);
+            assertThat(cart.getCartItems())
+                    .extracting("productVariantId", "quantity")
+                    .containsExactlyInAnyOrder(
+                            tuple(productVariantId, quantity)
+                    );
         }
 
         @Test
-        @DisplayName("동일한 상품이 있다면 기존 상품에 수량을 증가시킨다")
-        void addItemWhenExist(){
+        @DisplayName("동일한 항목이 있다면 기존 항목의 수량을 증가시킨다")
+        void addItemWhenExist() {
             //given
             Cart cart = Cart.create(1L);
-            cart.getCartItems().add(CartItem.create(1L, 2));
+            Long productVariantId = 1L;
+            cart.addItem(productVariantId, 3);
             //when
-            CartItem cartItem = cart.addItem(1L, 3);
+            cart.addItem(productVariantId, 2);
             //then
             assertThat(cart.getCartItems()).hasSize(1);
-            assertThat(cartItem)
+            CartItem findItem = cart.findItemByProductVariantId(productVariantId).orElseThrow();
+            assertThat(findItem)
                     .extracting("productVariantId", "quantity")
                     .contains(1L, 5);
         }
-    }
-
-    @Nested
-    @DisplayName("장바구니 비우기")
-    class ClearItems {
 
         @Test
-        @DisplayName("장바구니의 모든 상품을 제거한다")
-        void clearItems(){
+        @DisplayName("장바구니 최대 항목이 초과한 경우 예외가 발생한다")
+        void addItemExceedCartSize() {
             //given
             Cart cart = Cart.create(1L);
-            cart.addItem(1L, 3);
-            cart.addItem(2L, 6);
+            for (long i = 0; i < 20L; i++) {
+                cart.addItem(i, 3);
+            }
             //when
-            cart.clearItems();
             //then
-            assertThat(cart.getCartItems()).isEmpty();
+            assertThatThrownBy(() -> cart.addItem(999L, 3))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(CartErrorCode.CART_SIZE_LIMIT_EXCEEDED);
         }
     }
 
     @Nested
-    @DisplayName("장바구니 상품 삭제")
-    class RemoveItemsByVariantId {
+    @DisplayName("항목 수량 변경")
+    class UpdateItemQuantity {
 
         @Test
-        @DisplayName("장바구니 상품들중 variantId와 동일한 상품을 제거한다")
-        void removeItemsByVariantIds(){
+        @DisplayName("항목 수량을 변경한다")
+        void updateItemQuantity(){
             //given
             Cart cart = Cart.create(1L);
-            cart.addItem(1L, 3);
-            cart.addItem(2L, 6);
+            Long cartItemId = 1L;
+            CartItem cartItem = CartItem.create(1L, 3);
+            ReflectionTestUtils.setField(cartItem, "id", cartItemId);
+            cart.getCartItems().add(cartItem);
             //when
-            cart.removeItemsByVariantIds(List.of(1L));
+            cart.updateItemQuantity(cartItemId, 5);
             //then
-            assertThat(cart.getCartItems()).hasSize(1)
-                    .extracting(CartItem::getProductVariantId, CartItem::getQuantity)
-                    .containsExactly(
-                            tuple(2L, 6)
-                    );
+            CartItem item = cart.findItemByCartItemId(cartItemId).orElseThrow();
+            assertThat(item.getQuantity()).isEqualTo(5);
+        }
+
+        @Test
+        @DisplayName("항목을 찾을 수 없으면 예외가 발생한다")
+        void updateItemQuantity_notFound_cartItem(){
+            //given
+            Cart cart = Cart.create(1L);
+            //when
+            //then
+            assertThatThrownBy(() -> cart.updateItemQuantity(999L, 3))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(CartErrorCode.CART_ITEM_NOT_FOUND);
         }
     }
 
     @Nested
-    @DisplayName("장바구니 유저 검증")
-    class IsOwner {
+    @DisplayName("장바구니 항목 삭제")
+    class DeleteItem {
 
         @Test
-        @DisplayName("장바구니의 userId 가 일치하면 true를 반환한다")
-        void isOwner_true(){
+        @DisplayName("항목을 삭제한다")
+        void deleteItem(){
             //given
             Cart cart = Cart.create(1L);
+            Long cartItemId = 1L;
+            CartItem cartItem = CartItem.create(1L, 3);
+            ReflectionTestUtils.setField(cartItem, "id", cartItemId);
+            cart.getCartItems().add(cartItem);
             //when
-            boolean isOwner = cart.isOwner(1L);
+            cart.deleteItem(cartItemId);
             //then
-            assertThat(isOwner).isTrue();
+            assertThat(cart.getCartItems()).hasSize(0);
         }
 
         @Test
-        @DisplayName("장바구니의 userId 가 일치하지 않으면 false를 반환한다")
-        void isOwner_false(){
+        @DisplayName("항목을 찾을 수 없으면 예외가 발생한다")
+        void deleteItem_notFound_cartItem(){
             //given
             Cart cart = Cart.create(1L);
             //when
-            boolean isOwner = cart.isOwner(2L);
             //then
-            assertThat(isOwner).isFalse();
+            assertThatThrownBy(() -> cart.deleteItem(999L))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(CartErrorCode.CART_ITEM_NOT_FOUND);
         }
     }
 }

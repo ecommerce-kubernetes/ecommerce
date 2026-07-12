@@ -9,7 +9,7 @@ public class UserClientResponse {
             Long userId,
             String userName,
             String phoneNumber,
-            ShippingAddress defaultShippingAddress
+            ShippingInfo defaultShippingInfo
     ) {
     }
 
@@ -21,7 +21,7 @@ public class UserClientResponse {
     }
 
     @Builder
-    public record ShippingAddress(
+    public record ShippingInfo(
             String receiverName,
             String receiverPhone,
             String zipCode,
