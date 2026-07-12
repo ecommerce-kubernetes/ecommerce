@@ -7,32 +7,32 @@ import java.util.List;
 
 @Builder
 public record AddCartItemsResult(
-        List<CartItemResult> items
+        List<AddedItemResult> items
 ) {
 
     @Builder
-    public record CartItemResult(
+    public record AddedItemResult(
             Long cartItemId,
             Long productVariantId,
             int quantity
     ) {
 
-        public static CartItemResult from(CartItemData data) {
-            return CartItemResult.builder()
+        public static AddedItemResult from(CartItemData data) {
+            return AddedItemResult.builder()
                     .cartItemId(data.cartItemId())
                     .productVariantId(data.productVariantId())
                     .quantity(data.quantity())
                     .build();
         }
 
-        public static List<CartItemResult> from(List<CartItemData> data) {
-            return data.stream().map(CartItemResult::from).toList();
+        public static List<AddedItemResult> from(List<CartItemData> data) {
+            return data.stream().map(AddedItemResult::from).toList();
         }
     }
 
     public static AddCartItemsResult from(List<CartItemData> data) {
         return AddCartItemsResult.builder()
-                .items(CartItemResult.from(data))
+                .items(AddedItemResult.from(data))
                 .build();
     }
 }

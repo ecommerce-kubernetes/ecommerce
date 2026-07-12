@@ -3,7 +3,9 @@ package com.example.order_service.docs.cart;
 import com.example.order_service.cart.api.CartController;
 import com.example.order_service.cart.api.dto.request.AddCartItemsRequest;
 import com.example.order_service.cart.api.dto.request.UpdateCartItemQuantityRequest;
+import com.example.order_service.cart.application.dto.command.AddCartItemsCommand;
 import com.example.order_service.cart.application.dto.command.DeleteCartItemsCommand;
+import com.example.order_service.cart.application.dto.command.UpdateCartItemQuantityCommand;
 import com.example.order_service.cart.application.dto.result.*;
 import com.example.order_service.cart.application.facade.CartFacade;
 
@@ -35,8 +37,6 @@ public class CartControllerDocsTest extends RestDocSupport {
         return "Cart";
     }
 
-    private static final String TAG = "CART";
-
     @Override
     protected Object initController() {
         return new CartController(cartFacade);
@@ -44,7 +44,7 @@ public class CartControllerDocsTest extends RestDocSupport {
 
     @Test
     @DisplayName("장바구니 추가")
-    void addCartItem() throws Exception {
+    void addCartItems() throws Exception {
         //given
         AddCartItemsRequest.Item item = AddCartItemsRequest.Item.builder()
                 .productVariantId(1L)
@@ -55,6 +55,9 @@ public class CartControllerDocsTest extends RestDocSupport {
                 .build();
 
         HttpHeaders roleUser = createAuthHeader("ROLE_USER");
+        AddCartItemsResult addCartItemsResult = createAddCartItemsResult();
+        given(cartFacade.addItems(any(AddCartItemsCommand.class)))
+                .willReturn(addCartItemsResult);
         //when
         //then
         mockMvc.perform(post("/carts")
@@ -67,13 +70,13 @@ public class CartControllerDocsTest extends RestDocSupport {
                         "장바구니 상품 추가",
                         "장바구니에 상품을 추가",
                         CartDescriptor.getAddCartItemRequest(),
-                        CartDescriptor.getCartItemResponse())
+                        CartDescriptor.getAddCartItemsResponse())
                 );
     }
 
     @Test
-    @DisplayName("장바구니 목록 조회")
-    void addAllCartItem() throws Exception {
+    @DisplayName("장바구니 전체 항목 조회")
+    void getCart() throws Exception {
         //given
         HttpHeaders roleUser = createAuthHeader("ROLE_USER");
         CartResult result = createCartResult();
@@ -90,7 +93,30 @@ public class CartControllerDocsTest extends RestDocSupport {
                 .andDo(createSecuredDocument("02-cart-02-get-list",
                         "장바구니 목록 조회",
                         "장바구니 상품 목록을 조회한다",
-                        CartDescriptor.getCartItemResponse()));
+                        CartDescriptor.getCartResponse()));
+    }
+
+    @Test
+    @DisplayName("장바구니 항목 조회")
+    void getCartItem() throws Exception {
+        //given
+        HttpHeaders roleUser = createAuthHeader("ROLE_USER");
+        CartItemResult cartItemResult = createCartItemResult();
+        given(cartFacade.getCartItemDetails(anyLong(), anyLong()))
+                .willReturn(cartItemResult);
+        //when
+        //then
+        mockMvc.perform(get("/carts/{cartItemId}", 1L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .headers(roleUser))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(createSecuredDocument("02-cart-o2-get",
+                        "장바구니 항목 조회",
+                        "장바구니 항목을 조회한다",
+                        CartDescriptor.getCartItemResponse(),
+                        parameterWithName("cartItemId").description("장바구니 항목 ID(장바구니 항목 식별자)"))
+                );
     }
 
     @Test
@@ -107,9 +133,9 @@ public class CartControllerDocsTest extends RestDocSupport {
                 .andDo(print())
                 .andExpect(status().isNoContent())
                 .andDo(createSecuredDocumentWithQuery("02-cart-03-delete-item",
-                        "장바구니 상품 삭제",
-                        "장바구니 상품을 삭제한다",
-                        parameterWithName("cartItemIds").description("삭제할 장바구니 상품 ID 목록 (콤마로 구분하여 전달)")));
+                        "장바구니 항목 삭제",
+                        "장바구니 항목을 삭제한다",
+                        parameterWithName("cartItemIds").description("삭제할 장바구니 항목 ID 목록 (콤마로 구분하여 전달)")));
     }
 
     @Test
@@ -120,6 +146,11 @@ public class CartControllerDocsTest extends RestDocSupport {
         UpdateCartItemQuantityRequest request = UpdateCartItemQuantityRequest.builder()
                 .quantity(3)
                 .build();
+        UpdateCartItemQuantityResult result = createUpdateCartItemQuantityResult();
+
+        given(cartFacade.updateCartItemQuantity(any(UpdateCartItemQuantityCommand.class)))
+                .willReturn(result);
+
         //when
         //then
         mockMvc.perform(patch("/carts/{cartItemId}", 1)
@@ -130,23 +161,30 @@ public class CartControllerDocsTest extends RestDocSupport {
                 .andExpect(status().isOk())
                 .andDo(createSecuredDocument(
                                 "02-cart-05-update-quantity",
-                                "장바구니 상품 수량 변경",
-                                "장바구니의 상품 수량을 변경한다",
+                                "장바구니 항목 수량 변경",
+                                "장바구니의 항목 수량을 변경한다",
                                 CartDescriptor.getCartUpdateRequest(),
-                                CartDescriptor.getCartItemResponse(),
-                                parameterWithName("cartItemId").description("장바구니 상품 ID(장바구니 상품 식별자)")
+                                CartDescriptor.getUpdateCartItemQuantityResponse(),
+                                parameterWithName("cartItemId").description("장바구니 항목 ID(장바구니 항목 식별자)")
                         )
                 );
     }
 
     private CartResult createCartResult() {
-        CartItemResult cartResult = CartItemResult.builder()
+        CartItemResult cartItemResult = createCartItemResult();
+        return CartResult.builder()
+                .items(List.of(cartItemResult))
+                .build();
+    }
+
+    private CartItemResult createCartItemResult() {
+        return CartItemResult.builder()
                 .cartItemId(1L)
+                .status(CartItemAvailability.AVAILABLE)
                 .productId(1L)
                 .productVariantId(1L)
-                .productName("상품1")
-                .status(CartItemAvailability.AVAILABLE)
-                .thumbnail("/product/product/PROD1_thumbnail.jpg")
+                .productName("청바지")
+                .thumbnail("/product/product/jean_1.jpg")
                 .quantity(2)
                 .price(
                         CartItemPrice.builder()
@@ -166,7 +204,24 @@ public class CartControllerDocsTest extends RestDocSupport {
                         )
                 )
                 .build();
-        return CartResult.builder().items(List.of(cartResult))
+    }
+
+    private AddCartItemsResult createAddCartItemsResult() {
+        AddCartItemsResult.AddedItemResult item = AddCartItemsResult.AddedItemResult.builder()
+                .cartItemId(1L)
+                .productVariantId(1L)
+                .quantity(2)
+                .build();
+        return AddCartItemsResult.builder()
+                .items(List.of(item))
+                .build();
+    }
+
+    private UpdateCartItemQuantityResult createUpdateCartItemQuantityResult() {
+        return UpdateCartItemQuantityResult.builder()
+                .cartItemId(1L)
+                .productVariantId(1L)
+                .quantity(3)
                 .build();
     }
 }

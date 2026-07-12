@@ -53,11 +53,11 @@ class CartControllerTest {
     private CartFacade cartFacade;
 
     @Nested
-    @DisplayName("장바구니 상품 추가")
+    @DisplayName("장바구니 항목 추가")
     class AddCartItems {
 
         @Test
-        @DisplayName("장바구니에 상품을 추가한다")
+        @DisplayName("장바구니에 항목을 추가한다")
         @WithCustomMockUser
         void addCartItems() throws Exception {
             //given
@@ -65,7 +65,7 @@ class CartControllerTest {
                     .generate(field(AddCartItemsRequest.class, "items"), gen -> gen.collection().minSize(1))
                     .generate(field(AddCartItemsRequest.Item.class, "quantity"), gen -> gen.ints().range(1, 100))
                     .create();
-            AddCartItemsResult.CartItemResult item = Instancio.create(AddCartItemsResult.CartItemResult.class);
+            AddCartItemsResult.AddedItemResult item = Instancio.create(AddCartItemsResult.AddedItemResult.class);
             AddCartItemsResult result = Instancio.of(AddCartItemsResult.class)
                     .set(field("items"), List.of(item))
                     .create();
@@ -83,7 +83,7 @@ class CartControllerTest {
         }
 
         @Test
-        @DisplayName("장바구니에 상품을 추가할 때는 유저 권한이여야 한다")
+        @DisplayName("장바구니에 항목을 추가할 때는 유저 권한이여야 한다")
         @WithCustomMockUser(userRole = UserRole.ROLE_ADMIN)
         void addCartItemsWithAdminPrincipal() throws Exception {
             //given
@@ -105,7 +105,7 @@ class CartControllerTest {
         }
 
         @Test
-        @DisplayName("로그인 하지 않은 사용자는 장바구니에 상품을 추가할 수 없다")
+        @DisplayName("로그인 하지 않은 사용자는 장바구니에 항목을 추가할 수 없다")
         void addCartItems_unAuthorized() throws Exception {
             //given
             AddCartItemsRequest request = Instancio.of(AddCartItemsRequest.class)
@@ -126,7 +126,7 @@ class CartControllerTest {
         }
 
         @ParameterizedTest(name = "{0}")
-        @DisplayName("장바구니에 상품 추가시 유효성 검증에 실패하면 400 에러를 반환한다")
+        @DisplayName("장바구니에 항목 추가시 유효성 검증에 실패하면 400 에러를 반환한다")
         @MethodSource("provideInvalidAddRequest")
         @WithCustomMockUser
         void addCartItems_Validation(String description, AddCartItemsRequest request, String expectedField, String expectedMessage) throws Exception {
@@ -196,11 +196,11 @@ class CartControllerTest {
     }
 
     @Nested
-    @DisplayName("장바구니 목록 조회")
+    @DisplayName("장바구니 전체 조회")
     class GetCart {
 
         @Test
-        @DisplayName("장바구니 목록을 조회한다")
+        @DisplayName("장바구니 전체 항목을 조회한다")
         @WithCustomMockUser
         void getCart() throws Exception {
             //given
@@ -221,7 +221,7 @@ class CartControllerTest {
         }
 
         @Test
-        @DisplayName("장바구니 목록을 조회할때는 유저 권한이여야 한다")
+        @DisplayName("장바구니 전체 항목을 조회할때는 유저 권한이여야 한다")
         @WithCustomMockUser(userRole = UserRole.ROLE_ADMIN)
         void getCartWithAdminPrincipal() throws Exception {
             //given
@@ -238,7 +238,7 @@ class CartControllerTest {
         }
 
         @Test
-        @DisplayName("로그인 하지 않은 회원은 장바구니를 조회할 수 없다")
+        @DisplayName("로그인 하지 않은 회원은 장바구니 전체 항목을 조회할 수 없다")
         void getCart_unAuthorized() throws Exception {
             //given
             //when
@@ -255,11 +255,11 @@ class CartControllerTest {
     }
 
     @Nested
-    @DisplayName("장바구니 상품 조회")
+    @DisplayName("장바구니 항목 조회")
     class GetCartItem {
 
         @Test
-        @DisplayName("장바구니 상품 정보를 조회한다")
+        @DisplayName("장바구니 항목 정보를 조회한다")
         @WithCustomMockUser
         void getCartItem() throws Exception {
             //given
@@ -277,7 +277,7 @@ class CartControllerTest {
         }
 
         @Test
-        @DisplayName("장바구니 상품 정보를 조회할때는 유저 권한이여야 한다")
+        @DisplayName("장바구니 항목 정보를 조회할때는 유저 권한이여야 한다")
         @WithCustomMockUser(userRole = UserRole.ROLE_ADMIN)
         void getCartItemWithAdminPrincipal() throws Exception {
             //given
@@ -295,7 +295,7 @@ class CartControllerTest {
         }
 
         @Test
-        @DisplayName("로그인 하지 않은 회원은 장바구니 상품을 조회할 수 없다")
+        @DisplayName("로그인 하지 않은 회원은 장바구니 항목을 조회할 수 없다")
         void getCartItem_unAuthorized() throws Exception {
             //given
             Long cartItemId = 1L;
@@ -313,11 +313,11 @@ class CartControllerTest {
     }
 
     @Nested
-    @DisplayName("장바구니 상품 삭제")
+    @DisplayName("장바구니 항목 삭제")
     class DeleteCartItems {
 
         @Test
-        @DisplayName("장바구니에서 상품을 삭제한다")
+        @DisplayName("장바구니에서 항목을 삭제한다")
         @WithCustomMockUser
         void deleteCartItems() throws Exception {
             //given
@@ -333,7 +333,7 @@ class CartControllerTest {
 
 
         @Test
-        @DisplayName("장바구에서 상품을 삭제할때는 유저 권한이여야 한다")
+        @DisplayName("장바구에서 항목을 삭제할때는 유저 권한이여야 한다")
         @WithCustomMockUser(userRole = UserRole.ROLE_ADMIN)
         void deleteCartItemsWithAdminPrincipal() throws Exception {
             //given
@@ -351,7 +351,7 @@ class CartControllerTest {
         }
 
         @Test
-        @DisplayName("로그인 하지 않은 사용자는 장바구니에 상품을 삭제할 수 없다")
+        @DisplayName("로그인 하지 않은 사용자는 장바구니에 항목을 삭제할 수 없다")
         void deleteCartItems_unAuthorized() throws Exception {
             //given
             //when
@@ -369,11 +369,11 @@ class CartControllerTest {
     }
 
     @Nested
-    @DisplayName("장바구니 상품 수량 변경")
+    @DisplayName("장바구니 항목 수량 변경")
     class UpdateQuantity {
 
         @Test
-        @DisplayName("장바구니에 담긴 상품 수량을 수정한다")
+        @DisplayName("장바구니에 담긴 항목 수량을 수정한다")
         @WithCustomMockUser
         void updateQuantity() throws Exception {
             //given
@@ -396,7 +396,7 @@ class CartControllerTest {
         }
 
         @Test
-        @DisplayName("장바구니 상품 수량 수정은 유저 권한이여야 한다")
+        @DisplayName("장바구니 항목 수량 수정은 유저 권한이여야 한다")
         @WithCustomMockUser(userRole = UserRole.ROLE_ADMIN)
         void updateQuantity_Admin_role() throws Exception {
             //given
@@ -417,7 +417,7 @@ class CartControllerTest {
         }
 
         @Test
-        @DisplayName("로그인 하지 않은 사용자는 장바구니 상품의 수량을 수정할 수 없다")
+        @DisplayName("로그인 하지 않은 사용자는 장바구니 항목의 수량을 수정할 수 없다")
         void updateQuantity_unAuthorized() throws Exception {
             //given
             UpdateCartItemQuantityRequest request = Instancio.of(UpdateCartItemQuantityRequest.class)
@@ -437,7 +437,7 @@ class CartControllerTest {
         }
 
         @ParameterizedTest(name = "{0}")
-        @DisplayName("장바구니 상품 수량 변경 검증 테스트")
+        @DisplayName("장바구니 항목 수량 변경 검증 테스트")
         @MethodSource("provideInvalidUpdateRequest")
         @WithCustomMockUser
         void updateQuantityValidation(String description, UpdateCartItemQuantityRequest request, String expectedField, String expectedMessage) throws Exception {

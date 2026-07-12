@@ -16,7 +16,7 @@ public record AddCartItemsResponse(
             Long productVariantId,
             int quantity
     ) {
-        public static Item from(AddCartItemsResult.CartItemResult item) {
+        public static Item from(AddCartItemsResult.AddedItemResult item) {
             return Item.builder()
                     .cartItemId(item.cartItemId())
                     .productVariantId(item.productVariantId())
@@ -24,7 +24,7 @@ public record AddCartItemsResponse(
                     .build();
         }
 
-        public static List<Item> from(List<AddCartItemsResult.CartItemResult> items) {
+        public static List<Item> from(List<AddCartItemsResult.AddedItemResult> items) {
             return items.stream().map(Item::from).toList();
         }
     }
