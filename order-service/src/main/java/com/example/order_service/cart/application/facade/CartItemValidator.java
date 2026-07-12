@@ -5,7 +5,7 @@ import com.example.order_service.cart.application.external.dto.CartProductListRe
 import com.example.order_service.cart.application.external.dto.CartProductResult;
 import com.example.order_service.cart.application.external.dto.CartProductStatus;
 import com.example.order_service.cart.exception.CartErrorCode;
-import com.example.order_service.common.exception.application.BusinessException;
+import com.example.order_service.common.exception.BusinessException;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;

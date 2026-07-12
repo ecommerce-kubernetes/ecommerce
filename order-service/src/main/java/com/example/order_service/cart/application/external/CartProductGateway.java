@@ -3,11 +3,12 @@ package com.example.order_service.cart.application.external;
 import com.example.order_service.cart.application.external.dto.CartProductListResult;
 import com.example.order_service.cart.application.external.mapper.CartProductMapper;
 import com.example.order_service.cart.exception.CartErrorCode;
-import com.example.order_service.common.exception.application.DefaultGatewayException;
+import com.example.order_service.common.exception.gateway.DefaultGatewayException;
 import com.example.order_service.common.exception.external.ExternalCircuitBreakerException;
 import com.example.order_service.common.exception.external.ExternalClientException;
 import com.example.order_service.common.exception.external.ExternalServerException;
 import com.example.order_service.common.exception.external.ExternalSystemUnavailableException;
+import com.example.order_service.common.exception.gateway.ProductGatewayErrorCode;
 import com.example.order_service.infrastructure.adaptor.ProductAdaptor;
 import com.example.order_service.infrastructure.dto.command.ProductCommand;
 import com.example.order_service.infrastructure.dto.response.ProductClientResponse;
@@ -34,13 +35,13 @@ public class CartProductGateway {
         try {
             return productAdaptor.getProducts(command);
         } catch (ExternalClientException e) {
-            throw new DefaultGatewayException(CartErrorCode.CART_PRODUCT_CLIENT_ERROR, e.getErrorCode(), e.getMessage());
+            throw new DefaultGatewayException(ProductGatewayErrorCode.PRODUCT_CLIENT_ERROR, e.getErrorCode(), e.getMessage());
         } catch (ExternalServerException e) {
-            throw new DefaultGatewayException(CartErrorCode.CART_PRODUCT_SERVER_ERROR, e.getErrorCode(), e.getMessage());
+            throw new DefaultGatewayException(ProductGatewayErrorCode.PRODUCT_SERVER_ERROR, e.getErrorCode(), e.getMessage());
         } catch (ExternalSystemUnavailableException e) {
-            throw new DefaultGatewayException(CartErrorCode.CART_PRODUCT_UNAVAILABLE_SERVER_ERROR, e.getErrorCode(), e.getMessage());
+            throw new DefaultGatewayException(ProductGatewayErrorCode.PRODUCT_UNAVAILABLE_SERVER_ERROR, e.getErrorCode(), e.getMessage());
         } catch (ExternalCircuitBreakerException e) {
-            throw new DefaultGatewayException(CartErrorCode.CART_PRODUCT_CIRCUIT_OPEN, e.getErrorCode(), e.getMessage());
+            throw new DefaultGatewayException(ProductGatewayErrorCode.PRODUCT_CIRCUIT_OPEN, e.getErrorCode(), e.getMessage());
         }
     }
 }

@@ -1,7 +1,7 @@
 package com.example.order_service.cart.domain.model;
 
 import com.example.order_service.cart.exception.CartErrorCode;
-import com.example.order_service.common.exception.application.BusinessException;
+import com.example.order_service.common.exception.BusinessException;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;

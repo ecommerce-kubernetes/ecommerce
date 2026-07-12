@@ -5,14 +5,13 @@ import com.example.order_service.cart.domain.model.Cart;
 import com.example.order_service.cart.domain.model.CartItem;
 import com.example.order_service.cart.domain.repository.CartRepository;
 import com.example.order_service.cart.exception.CartErrorCode;
-import com.example.order_service.common.exception.application.BusinessException;
+import com.example.order_service.common.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @Transactional(readOnly = true)

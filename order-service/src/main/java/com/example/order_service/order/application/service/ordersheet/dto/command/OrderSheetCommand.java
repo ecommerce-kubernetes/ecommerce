@@ -1,7 +1,7 @@
 package com.example.order_service.order.application.service.ordersheet.dto.command;
 
 import com.example.order_service.common.domain.vo.Money;
-import com.example.order_service.common.exception.application.BusinessException;
+import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.order.exception.OrderErrorCode;
 import lombok.Builder;
 

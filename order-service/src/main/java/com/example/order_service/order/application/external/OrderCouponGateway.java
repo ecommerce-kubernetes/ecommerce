@@ -1,7 +1,7 @@
 package com.example.order_service.order.application.external;
 
-import com.example.order_service.common.exception.application.BusinessException;
-import com.example.order_service.common.exception.application.DefaultGatewayException;
+import com.example.order_service.common.exception.BusinessException;
+import com.example.order_service.common.exception.gateway.DefaultGatewayException;
 import com.example.order_service.common.exception.external.ExternalCircuitBreakerException;
 import com.example.order_service.common.exception.external.ExternalClientException;
 import com.example.order_service.common.exception.external.ExternalServerException;

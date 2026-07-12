@@ -13,7 +13,7 @@ import com.example.order_service.cart.application.external.dto.CartProductStatus
 import com.example.order_service.cart.application.service.CartCommandService;
 import com.example.order_service.cart.application.service.CartQueryService;
 import com.example.order_service.cart.exception.CartErrorCode;
-import com.example.order_service.common.exception.application.BusinessException;
+import com.example.order_service.common.exception.BusinessException;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;

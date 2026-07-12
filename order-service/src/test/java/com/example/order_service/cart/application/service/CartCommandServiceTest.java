@@ -7,7 +7,7 @@ import com.example.order_service.cart.domain.model.Cart;
 import com.example.order_service.cart.domain.model.CartItem;
 import com.example.order_service.cart.domain.repository.CartRepository;
 import com.example.order_service.cart.exception.CartErrorCode;
-import com.example.order_service.common.exception.application.BusinessException;
+import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.support.annotation.IsolatedTest;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.DisplayName;

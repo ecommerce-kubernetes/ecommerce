@@ -1,6 +1,6 @@
 package com.example.order_service.order.application.service.saga;
 
-import com.example.order_service.common.exception.application.BusinessException;
+import com.example.order_service.common.exception.BusinessException;
 import com.example.order_service.order.application.event.OrderSagaCompletedEvent;
 import com.example.order_service.order.application.event.OrderSagaFailedEvent;
 import com.example.order_service.order.application.event.OrderSagaProcessEvent;

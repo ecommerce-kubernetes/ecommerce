@@ -1,6 +1,6 @@
 package com.example.order_service.payment.exception;
 
-import com.example.order_service.common.exception.application.GatewayException;
+import com.example.order_service.common.exception.gateway.GatewayException;
 
 public class PaymentGatewayException extends GatewayException {
     private final PaymentErrorCode errorCode;

@@ -1,5 +1,6 @@
-package com.example.order_service.common.exception.application;
+package com.example.order_service.common.exception.gateway;
 
+import com.example.order_service.common.exception.ErrorCode;
 import lombok.Getter;
 
 @Getter
