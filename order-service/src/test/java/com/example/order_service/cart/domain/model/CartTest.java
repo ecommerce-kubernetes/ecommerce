@@ -11,6 +11,32 @@ import static org.assertj.core.api.Assertions.*;
 
 public class CartTest {
 
+    @Nested
+    @DisplayName("장바구니  생성")
+    class Create {
+
+        @Test
+        @DisplayName("장바구니를 생성한다.")
+        void create(){
+            //given
+            Long userId = 1L;
+            //when
+            Cart cart = Cart.create(userId);
+            //then
+            assertThat(cart.getUserId()).isEqualTo(userId);
+        }
+
+        @Test
+        @DisplayName("장바구니를 생성할때 유저 아이디가 누락되면 예외가 발생한다.")
+        void create_userId_null(){
+            //given
+            //when
+            //then
+            assertThatThrownBy(() -> Cart.create(null))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessage("장바구니 생성시 유저 아이디는 필수입니다.");
+        }
+    }
 
     @Nested
     @DisplayName("장바구니 상품 추가")

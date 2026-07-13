@@ -12,11 +12,11 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class CartItemTest {
 
     @Nested
-    @DisplayName("장바구니 상품 생성")
+    @DisplayName("장바구니 항목 생성")
     class Create {
 
         @Test
-        @DisplayName("장바구니 상품을 생성한다")
+        @DisplayName("장바구니 항목을 생성한다")
         void create(){
             //given
             //when
@@ -28,7 +28,18 @@ public class CartItemTest {
         }
 
         @Test
-        @DisplayName("수량이 1미만인 상품은 생성할 수 없다")
+        @DisplayName("상품 판매 단위 식별자가 없으면 예외가 발생한다")
+        void create_productVariantId_null(){
+            //given
+            //when
+            //then
+            assertThatThrownBy(() -> CartItem.create(null, 3))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessage("장바구니 항목 생성시 상품 변형 아이디는 필수입니다.");
+        }
+
+        @Test
+        @DisplayName("수량이 1미만인 항목은 생성할 수 없다")
         void create_quantity_less_than_1(){
             //given
             //when

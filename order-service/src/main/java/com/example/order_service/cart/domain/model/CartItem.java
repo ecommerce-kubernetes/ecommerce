@@ -6,8 +6,7 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.util.Objects;
+import org.springframework.util.Assert;
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -26,30 +25,32 @@ public class CartItem {
 
     private int quantity;
 
-    private CartItem(Long productVariantId, int quantity){
-        this.productVariantId = Objects.requireNonNull(productVariantId, "장바구니 항목 생성시 상품 변형 아이디는 필수입니다.");
+    private CartItem(Long productVariantId, int quantity) {
+        Assert.notNull(productVariantId, "장바구니 항목 생성시 상품 변형 아이디는 필수입니다.");
+
+        this.productVariantId = productVariantId;
         this.quantity = quantity;
     }
 
-    public static CartItem create(Long productVariantId, int quantity){
+    public static CartItem create(Long productVariantId, int quantity) {
         if (quantity <= 0) {
             throw new BusinessException(CartErrorCode.INVALID_CART_ITEM_QUANTITY);
         }
         return new CartItem(productVariantId, quantity);
     }
 
-    public void addQuantity(int quantity){
+    public void addQuantity(int quantity) {
         this.quantity = this.quantity + quantity;
     }
 
     public void updateQuantity(int quantity) {
-        if(quantity <= 0){
+        if (quantity <= 0) {
             throw new BusinessException(CartErrorCode.INVALID_CART_ITEM_QUANTITY);
         }
         this.quantity = quantity;
     }
 
-    protected void setCart(Cart cart){
+    protected void setCart(Cart cart) {
         this.cart = cart;
     }
 }

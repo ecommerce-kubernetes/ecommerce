@@ -7,6 +7,7 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.util.Assert;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,22 +28,23 @@ public class Cart extends BaseEntity {
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CartItem> cartItems = new ArrayList<>();
 
-    private Cart(Long userId){
-        this.userId = Objects.requireNonNull(userId, "장바구니 생성시 유저 아이디는 필수입니다.");
+    private Cart(Long userId) {
+        Assert.notNull(userId, "장바구니 생성시 유저 아이디는 필수입니다.");
+        this.userId = userId;
     }
 
-    public static Cart create(Long userId){
+    public static Cart create(Long userId) {
         return new Cart(userId);
     }
 
-    public void addItem(Long productVariantId, int quantity){
+    public void addItem(Long productVariantId, int quantity) {
         if (this.cartItems.size() >= 20) {
             throw new BusinessException(CartErrorCode.CART_SIZE_LIMIT_EXCEEDED);
         }
 
         Optional<CartItem> existing = findItemByProductVariantId(productVariantId);
 
-        if(existing.isPresent()) {
+        if (existing.isPresent()) {
             existing.get().addQuantity(quantity);
             return;
         }
