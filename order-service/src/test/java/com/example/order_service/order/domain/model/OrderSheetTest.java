@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class OrderSheetTest {
@@ -19,8 +20,23 @@ public class OrderSheetTest {
     @DisplayName("주문서를 생성하면 주문 항목을 토대로 가격이 계산된다.")
     void create() {
         //given
+        Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");
+        OrderSheetItem item = createOrderSheetItem();
+        LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
         //when
+        OrderSheet orderSheet = OrderSheet.create(orderer, List.of(item), expiresAt);
         //then
+        assertThat(orderSheet.getOrderer()).isEqualTo(orderer);
+        assertThat(orderSheet.getItems()).hasSize(1)
+                        .containsExactly(item);
+
+        assertThat(orderSheet.getExpiresAt()).isEqualTo(expiresAt);
+
+        assertThat(orderSheet)
+                .extracting(OrderSheet::getTotalOriginalPrice, OrderSheet::getTotalProductDiscountAmount, OrderSheet::getTotalPaymentAmount)
+                .containsExactly(
+                        item.getOriginalLineTotal(), item.getDiscountLineTotal(), item.getDiscountedPrice()
+                );
     }
 
     @Test
@@ -37,7 +53,7 @@ public class OrderSheetTest {
     }
 
     @Test
-    @DisplayName("주문서를 생성할때 주문 항목이 1개 이하인 경우 예외가 발생한다.")
+    @DisplayName("주문서를 생성할때 주문 항목이 0개 이하인 경우 예외가 발생한다.")
     void create_items_empty() {
         //given
         Orderer orderer = Orderer.of(1L, "주문자", "010-1234-5678");

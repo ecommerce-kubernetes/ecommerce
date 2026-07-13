@@ -93,18 +93,6 @@ public class OrderSheetItem {
     }
 
     /**
-     * 주문 상품의 총 가격
-     * <p>
-     * 주문 상품의 총 주문 가격을 반환한다
-     * </p>
-     *
-     * @return 주문 상품 총 주문 가격
-     */
-    public Money getProductLineTotal() {
-        return priceSnapshot.getDiscountedPrice().multiple(quantity);
-    }
-
-    /**
      * 주문 상품 쿠폰 할인 금액
      * <p>
      * 주문 상품 적용 쿠폰 할인 금액을 반환한다
@@ -113,21 +101,9 @@ public class OrderSheetItem {
      * @return 주문 상품 쿠폰 할인 금액
      */
     public Money getAppliedCouponDiscount() {
-        Money productTotal = getProductLineTotal();
+        Money productTotal = getLineTotal();
         Money couponAmount = itemCouponSnapshot.getDiscountAmount();
         return productTotal.min(couponAmount);
-    }
-
-    /**
-     * 총 주문 상품 할인 금액
-     * <p>
-     * 총 주문 상품 할인 금액을 반환한다
-     * </p>
-     *
-     * @return 총 주문 상품 할인 금액
-     */
-    public Money getDiscountLineTotal() {
-        return priceSnapshot.getDiscountAmount().multiple(quantity);
     }
 
     /**
@@ -143,6 +119,30 @@ public class OrderSheetItem {
     }
 
     /**
+     * 총 주문 상품 할인 금액
+     * <p>
+     * 총 주문 상품 할인 금액을 반환한다
+     * </p>
+     *
+     * @return 총 주문 상품 할인 금액
+     */
+    public Money getDiscountLineTotal() {
+        return priceSnapshot.getDiscountAmount().multiple(quantity);
+    }
+
+    /**
+     * 주문 상품의 총 가격
+     * <p>
+     * 주문 상품의 총 주문 가격을 반환한다
+     * </p>
+     *
+     * @return 주문 상품 총 주문 가격
+     */
+    public Money getLineTotal() {
+        return priceSnapshot.getDiscountedPrice().multiple(quantity);
+    }
+
+    /**
      * 총 주문 상품의 쿠폰 적용 금액
      * <p>
      * 총 주문 상품의 쿠폰 적용 금액을 반환한다
@@ -151,7 +151,7 @@ public class OrderSheetItem {
      * @return 총 주문 상품 쿠폰 적용 금액
      */
     public Money getFinalLineTotal() {
-        return getProductLineTotal().subtract(getAppliedCouponDiscount());
+        return getLineTotal().subtract(getAppliedCouponDiscount());
     }
 
     /**

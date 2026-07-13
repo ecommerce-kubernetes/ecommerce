@@ -2,20 +2,15 @@ package com.example.order_service.order.domain.model;
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.BusinessException;
-import com.example.order_service.order.domain.vo.OrderCouponSnapshot;
 import com.example.order_service.order.domain.vo.ProductOptionSnapshot;
 import com.example.order_service.order.domain.vo.ProductPriceSnapshot;
 import com.example.order_service.order.domain.vo.ProductSnapshot;
 import com.example.order_service.order.exception.OrderErrorCode;
-import org.instancio.Instancio;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 
+import java.util.Collections;
 import java.util.List;
-import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -24,7 +19,7 @@ public class OrderSheetItemTest {
 
     @Test
     @DisplayName("주문 항목을 생성한다")
-    void create(){
+    void create() {
         //given
         ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "PROD1_XL",
                 "청바지", "/product/product/jean1.jpg");
@@ -44,7 +39,7 @@ public class OrderSheetItemTest {
         assertThat(result.getOptionSnapshots())
                 .containsExactly(productOption);
     }
-    
+
     @Test
     @DisplayName("주문 항목을 생성할때 상품 스냅샷이 누락되면 예외가 발생한다.")
     void create_productSnapshot_null() {
@@ -76,8 +71,8 @@ public class OrderSheetItemTest {
     }
 
     @Test
-    @DisplayName("주문서 상품의 주문 수량이 0 이하면 예외가 발생한다.")
-    void create_quantity_less_than_1(){
+    @DisplayName("주문서 항목의 주문 수량이 0 이하면 예외가 발생한다.")
+    void create_quantity_less_than_1() {
         //given
         ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "PROD1_XL",
                 "청바지", "/product/product/jean1.jpg");
@@ -94,7 +89,7 @@ public class OrderSheetItemTest {
     }
 
     @Test
-    @DisplayName("주문 항목을 생성할때 상품 옵션이 누락되면 예외가 발생한다")
+    @DisplayName("주문 항목을 생성할때 상품 옵션이 누락되면 예외가 발생한다.")
     void create_optionSnapshots_null() {
         //given
         ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "PROD1_XL",
@@ -108,4 +103,53 @@ public class OrderSheetItemTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("주문 항목(OrderSheetItem) 생성시 상품 옵션은 필수이다.");
     }
+
+    @Test
+    @DisplayName("총 상품 원 가격을 계산한다.")
+    void getOriginalLineTotal() {
+        //given
+        ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "PROD1_XL",
+                "청바지", "/product/product/jean1.jpg");
+        ProductPriceSnapshot priceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L), 10,
+                Money.wons(1000L), Money.wons(9000L));
+        int quantity = 3;
+        OrderSheetItem item = OrderSheetItem.create(productSnapshot, priceSnapshot, quantity, Collections.emptyList());
+        //when
+        Money result = item.getOriginalLineTotal();
+        //then
+        assertThat(result).isEqualTo(priceSnapshot.getOriginalPrice().multiple(quantity));
+    }
+
+    @Test
+    @DisplayName("총 상품 할인 금액을 계산한다.")
+    void getDiscountLineTotal(){
+        //given
+        ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "PROD1_XL",
+                "청바지", "/product/product/jean1.jpg");
+        ProductPriceSnapshot priceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L), 10,
+                Money.wons(1000L), Money.wons(9000L));
+        int quantity = 3;
+        OrderSheetItem item = OrderSheetItem.create(productSnapshot, priceSnapshot, quantity, Collections.emptyList());
+        //when
+        Money result = item.getDiscountLineTotal();
+        //then
+        assertThat(result).isEqualTo(priceSnapshot.getDiscountAmount().multiple(quantity));
+    }
+
+    @Test
+    @DisplayName("총 상품 가격을 계산한다.")
+    void getLineTotal(){
+        //given
+        ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "PROD1_XL",
+                "청바지", "/product/product/jean1.jpg");
+        ProductPriceSnapshot priceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L), 10,
+                Money.wons(1000L), Money.wons(9000L));
+        int quantity = 3;
+        OrderSheetItem item = OrderSheetItem.create(productSnapshot, priceSnapshot, quantity, Collections.emptyList());
+        //when
+        Money result = item.getLineTotal();
+        //then
+        assertThat(result).isEqualTo(priceSnapshot.getDiscountedPrice().multiple(quantity));
+    }
+
 }
