@@ -21,7 +21,7 @@ public class OrderSheetRepositoryImpl implements OrderSheetRepository {
 
     @Override
     public OrderSheet save(OrderSheet orderSheet, Duration ttl) {
-        String key = PREFIX_ORDER_SHEET + orderSheet.getSheetId();
+        String key = PREFIX_ORDER_SHEET + orderSheet.getId();
         OrderSheetRedisEntity entity = redisMapper.toEntity(orderSheet);
         String value = entityToString(entity);
         redisTemplate.opsForValue().set(key, value, ttl);

@@ -18,7 +18,7 @@ public class OrderSheetResult {
     ) {
         public static Create from(OrderSheet orderSheet) {
             return Create.builder()
-                    .sheetId(orderSheet.getSheetId())
+                    .sheetId(orderSheet.getId())
                     .expiresAt(orderSheet.getExpiresAt())
                     .build();
         }
@@ -37,7 +37,7 @@ public class OrderSheetResult {
     ) {
         public static Detail of(OrderSheet orderSheet, Money ownedPoints, Money availablePoints) {
             return Detail.builder()
-                    .sheetId(orderSheet.getSheetId())
+                    .sheetId(orderSheet.getId())
                     .expiresAt(orderSheet.getExpiresAt())
                     .orderer(orderSheet.getOrderer())
                     .shippingAddress(orderSheet.getShippingAddress())
@@ -98,16 +98,16 @@ public class OrderSheetResult {
     ) {
         public static OrderItem from(OrderSheetItem item) {
             return OrderItem.builder()
-                    .sheetItemId(item.getSheetItemId())
+                    .sheetItemId(item.getId())
                     .productId(item.getProductSnapshot().getProductId())
                     .productVariantId(item.getProductSnapshot().getProductVariantId())
                     .productName(item.getProductSnapshot().getProductName())
                     .thumbnail(item.getProductSnapshot().getThumbnail())
                     .quantity(item.getQuantity())
-                    .productPrice(item.getItemPrice())
+                    .productPrice(item.getPriceSnapshot())
                     .lineTotal(item.getFinalLineTotal())
-                    .appliedItemCoupon(item.getItemCoupon())
-                    .options(item.getOptions())
+                    .appliedItemCoupon(item.getItemCouponSnapshot())
+                    .options(item.getOptionSnapshots())
                     .build();
         }
 

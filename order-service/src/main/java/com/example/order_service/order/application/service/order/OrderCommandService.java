@@ -98,6 +98,6 @@ public class OrderCommandService {
 
     private OrderItem createOrderItems(OrderContext.ItemContext itemContexts) {
         return OrderItem.create(itemContexts.productSnapshot(), itemContexts.itemPrice(), itemContexts.itemCoupon(),
-                itemContexts.quantity(), itemContexts.options());
+                itemContexts.quantity(), itemContexts.optionSnapshots());
     }
 }

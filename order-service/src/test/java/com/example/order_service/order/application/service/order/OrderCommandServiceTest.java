@@ -60,7 +60,7 @@ public class OrderCommandServiceTest {
                 .itemPrice(priceSnapshot)
                 .itemCoupon(itemCoupon)
                 .quantity(1)
-                .options(List.of(xl, blue))
+                .optionSnapshots(List.of(xl, blue))
                 .build();
 
         return OrderContext.CreateOrderContext.builder()

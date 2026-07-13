@@ -16,9 +16,9 @@ interface OrderSheetRedisMapper {
     OrderSheetRedisEntity toEntity(OrderSheet domain);
     OrderSheet toDomain(OrderSheetRedisEntity entity);
 
-    @Mapping(source = "itemPrice", target = "priceSnapshot")
+    @Mapping(source = "priceSnapshot", target = "priceSnapshot")
     OrderSheetRedisEntity.OrderSheetItemRedisEntity toItemEntity(OrderSheetItem domain);
-    @Mapping(source = "priceSnapshot", target = "itemPrice")
+    @Mapping(source = "priceSnapshot", target = "priceSnapshot")
     OrderSheetItem toItemDomain(OrderSheetRedisEntity.OrderSheetItemRedisEntity entity);
 
     OrderSheetRedisEntity.OrderSheetOrdererRedisEntity toOrdererEntity(Orderer domain);

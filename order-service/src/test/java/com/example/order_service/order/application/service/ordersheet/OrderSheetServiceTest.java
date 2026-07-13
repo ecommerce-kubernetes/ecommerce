@@ -167,9 +167,9 @@ public class OrderSheetServiceTest {
             given(repository.findById(anyString())).willReturn(Optional.of(orderSheet));
             given(orderUserGateway.getUserPoints(anyLong())).willReturn(point);
             //when
-            OrderSheetResult.Detail result = orderSheetService.getOrderSheet(orderSheet.getSheetId(), orderSheet.getOrderer().getUserId());
+            OrderSheetResult.Detail result = orderSheetService.getOrderSheet(orderSheet.getId(), orderSheet.getOrderer().getUserId());
             //then
-            assertThat(result.sheetId()).isEqualTo(orderSheet.getSheetId());
+            assertThat(result.sheetId()).isEqualTo(orderSheet.getId());
             assertThat(result.orderer().getUserId()).isEqualTo(orderSheet.getOrderer().getUserId());
             assertThat(result.point().availablePoints()).isEqualTo(expectedAvailablePoints);
         }
@@ -198,7 +198,7 @@ public class OrderSheetServiceTest {
             given(repository.findById(any())).willReturn(Optional.of(orderSheet));
             //when
             //then
-            assertThatThrownBy(() -> orderSheetService.getOrderSheet(orderSheet.getSheetId(), userId))
+            assertThatThrownBy(() -> orderSheetService.getOrderSheet(orderSheet.getId(), userId))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(OrderErrorCode.ORDER_ACCESS_DENIED);
@@ -213,7 +213,7 @@ public class OrderSheetServiceTest {
             given(repository.findById(any())).willReturn(Optional.of(orderSheet));
             //when
             //then
-            assertThatThrownBy(() -> orderSheetService.getOrderSheet(orderSheet.getSheetId(), orderSheet.getOrderer().getUserId()))
+            assertThatThrownBy(() -> orderSheetService.getOrderSheet(orderSheet.getId(), orderSheet.getOrderer().getUserId()))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo(OrderErrorCode.ORDER_EXPIRED);
@@ -326,7 +326,7 @@ public class OrderSheetServiceTest {
             Money usedPoints = Money.wons(100L);
             OrderSheet orderSheet = createOrderSheet();
             OrderSheetCommand.UpdatePoints command = OrderSheetCommand.UpdatePoints.builder()
-                    .sheetId(orderSheet.getSheetId())
+                    .sheetId(orderSheet.getId())
                     .userId(orderSheet.getOrderer().getUserId())
                     .usedPoints(usedPoints)
                     .build();
@@ -349,7 +349,7 @@ public class OrderSheetServiceTest {
             //given
             OrderSheet orderSheet = createOrderSheet();
             OrderSheetCommand.UpdatePoints command = OrderSheetCommand.UpdatePoints.builder()
-                    .sheetId(orderSheet.getSheetId())
+                    .sheetId(orderSheet.getId())
                     .userId(orderSheet.getOrderer().getUserId())
                     .usedPoints(Money.wons(5000L))
                     .build();
@@ -394,7 +394,7 @@ public class OrderSheetServiceTest {
             Long userId = 999L;
             OrderSheet orderSheet = createOrderSheet();
             OrderSheetCommand.UpdatePoints command = OrderSheetCommand.UpdatePoints.builder()
-                    .sheetId(orderSheet.getSheetId())
+                    .sheetId(orderSheet.getId())
                     .userId(userId)
                     .usedPoints(Money.wons(2000L))
                     .build();
@@ -414,7 +414,7 @@ public class OrderSheetServiceTest {
             OrderSheet orderSheet = createOrderSheet();
             ReflectionTestUtils.setField(orderSheet, "expiresAt", LocalDateTime.now(clock).minusMinutes(20));
             OrderSheetCommand.UpdatePoints command = OrderSheetCommand.UpdatePoints.builder()
-                    .sheetId(orderSheet.getSheetId())
+                    .sheetId(orderSheet.getId())
                     .userId(orderSheet.getOrderer().getUserId())
                     .usedPoints(Money.wons(2000L))
                     .build();
@@ -437,8 +437,8 @@ public class OrderSheetServiceTest {
         void updateItemCoupon_clear_coupon() {
             //given
             OrderSheet orderSheet = createOrderSheet();
-            String sheetItemId = orderSheet.getItems().get(0).getSheetItemId();
-            OrderSheetCommand.UpdateItemCoupon command = OrderSheetCommand.UpdateItemCoupon.of(orderSheet.getSheetId(),
+            String sheetItemId = orderSheet.getItems().get(0).getId();
+            OrderSheetCommand.UpdateItemCoupon command = OrderSheetCommand.UpdateItemCoupon.of(orderSheet.getId(),
                     sheetItemId, orderSheet.getOrderer().getUserId(), null);
             OrderCouponResult.Calculate coupon = Instancio.of(OrderCouponResult.Calculate.class)
                     .set(field(OrderCouponResult.Calculate::itemCoupons), List.of())
@@ -461,10 +461,10 @@ public class OrderSheetServiceTest {
         void updateItemCoupon() {
             //given
             OrderSheet orderSheet = createOrderSheet();
-            String sheetItemId = orderSheet.getItems().get(0).getSheetItemId();
+            String sheetItemId = orderSheet.getItems().get(0).getId();
             Long targetProductVariantId = orderSheet.getItems().get(0).getProductVariantId();
             Long newCouponId = 10L;
-            OrderSheetCommand.UpdateItemCoupon command = OrderSheetCommand.UpdateItemCoupon.of(orderSheet.getSheetId(),
+            OrderSheetCommand.UpdateItemCoupon command = OrderSheetCommand.UpdateItemCoupon.of(orderSheet.getId(),
                     sheetItemId, orderSheet.getOrderer().getUserId(), newCouponId);
             OrderCouponResult.Calculate coupon = Instancio.of(OrderCouponResult.Calculate.class)
                     .generate(field(OrderCouponResult.Calculate::itemCoupons), gen -> gen.collection().size(1))
@@ -493,7 +493,7 @@ public class OrderSheetServiceTest {
         void updateCartCoupon_clear_coupon() {
             //given
             OrderSheet orderSheet = createOrderSheet();
-            OrderSheetCommand.UpdateCartCoupon command = OrderSheetCommand.UpdateCartCoupon.of(orderSheet.getSheetId(),
+            OrderSheetCommand.UpdateCartCoupon command = OrderSheetCommand.UpdateCartCoupon.of(orderSheet.getId(),
                     orderSheet.getOrderer().getUserId(), null);
             OrderCouponResult.Calculate coupon = Instancio.of(OrderCouponResult.Calculate.class)
                     .set(field(OrderCouponResult.Calculate::cartCoupon), null)
@@ -519,7 +519,7 @@ public class OrderSheetServiceTest {
             //given
             OrderSheet orderSheet = createOrderSheet();
             Long newCouponId = 10L;
-            OrderSheetCommand.UpdateCartCoupon command = OrderSheetCommand.UpdateCartCoupon.of(orderSheet.getSheetId(),
+            OrderSheetCommand.UpdateCartCoupon command = OrderSheetCommand.UpdateCartCoupon.of(orderSheet.getId(),
                     orderSheet.getOrderer().getUserId(), newCouponId);
             OrderCouponSnapshot cartCoupon = Instancio.of(OrderCouponSnapshot.class)
                     .set(field(OrderCouponSnapshot::getCouponId), newCouponId)

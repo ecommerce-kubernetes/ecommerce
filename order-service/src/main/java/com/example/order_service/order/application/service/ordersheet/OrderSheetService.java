@@ -200,7 +200,7 @@ public class OrderSheetService {
     ) {
         return orderSheet.getItems().stream()
                 .map(item -> {
-                    Long couponId = item.getSheetItemId().equals(targetSheetItemId) ? targetCouponId : item.getCouponId();
+                    Long couponId = item.getId().equals(targetSheetItemId) ? targetCouponId : item.getCouponId();
                     return OrderCouponCommand.AppliedCouponItem.of(
                             item.getProductVariantId(), item.getDiscountedPrice(), item.getQuantity(), couponId
                     );

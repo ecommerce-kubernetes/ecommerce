@@ -11,8 +11,10 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.util.Assert;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * 주문 상품 도메인
@@ -23,21 +25,27 @@ import java.util.List;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class OrderSheetItem {
-    private String sheetItemId;
+    private String id;
     private ProductSnapshot productSnapshot;
-    private ProductPriceSnapshot itemPrice;
-    private OrderCouponSnapshot itemCoupon;
-    private Integer quantity;
-    private List<ProductOptionSnapshot> options;
+    private ProductPriceSnapshot priceSnapshot;
+    private OrderCouponSnapshot itemCouponSnapshot;
+    private int quantity;
+    private List<ProductOptionSnapshot> optionSnapshots;
 
     @Builder(builderMethodName = "reconstitute")
-    private OrderSheetItem(String sheetItemId, ProductSnapshot productSnapshot, ProductPriceSnapshot itemPrice, OrderCouponSnapshot itemCoupon, Integer quantity, List<ProductOptionSnapshot> options) {
-        this.sheetItemId = sheetItemId;
+    private OrderSheetItem(String id, ProductSnapshot productSnapshot, ProductPriceSnapshot priceSnapshot, OrderCouponSnapshot itemCoupon,
+                           int quantity, List<ProductOptionSnapshot> optionSnapshots) {
+        Assert.hasText(id, "주문 항목(OrderSheetItem) 생성시 아이디는 필수이다.");
+        Assert.notNull(productSnapshot, "주문 항목(OrderSheetItem) 생성시 상품 정보는 필수이다.");
+        Assert.notNull(priceSnapshot, "주문 항목(OrderSheetItem) 생성시 상품 가격은 필수이다.");
+        Assert.notNull(optionSnapshots, "주문 항목(OrderSheetItem) 생성시 상품 옵션은 필수이다.");
+
+        this.id = id;
         this.productSnapshot = productSnapshot;
-        this.itemPrice = itemPrice;
-        this.itemCoupon = itemCoupon;
+        this.priceSnapshot = priceSnapshot;
+        this.itemCouponSnapshot = itemCoupon;
         this.quantity = quantity;
-        this.options = options;
+        this.optionSnapshots = optionSnapshots;
     }
 
     /**
@@ -59,12 +67,28 @@ public class OrderSheetItem {
             throw new BusinessException(OrderErrorCode.QUANTITY_MUST_BE_GREATER_THAN_ZERO);
         }
         return OrderSheetItem.reconstitute()
-                .sheetItemId(sheetItemId)
+                .id(sheetItemId)
                 .productSnapshot(productSnapshot)
-                .itemPrice(itemPrice)
+                .priceSnapshot(itemPrice)
                 .itemCoupon(coupon)
                 .quantity(quantity)
-                .options(options)
+                .optionSnapshots(options)
+                .build();
+    }
+
+    public static OrderSheetItem create(ProductSnapshot productSnapshot, ProductPriceSnapshot priceSnapshot, int quantity, List<ProductOptionSnapshot> optionSnapshots) {
+        String id = UUID.randomUUID().toString();
+
+        if (quantity <= 0) {
+            throw new BusinessException(OrderErrorCode.INVALID_ITEM_QUANTITY);
+        }
+
+        return OrderSheetItem.reconstitute()
+                .id(id)
+                .productSnapshot(productSnapshot)
+                .priceSnapshot(priceSnapshot)
+                .quantity(quantity)
+                .optionSnapshots(optionSnapshots)
                 .build();
     }
 
@@ -77,7 +101,7 @@ public class OrderSheetItem {
      * @return 주문 상품 총 주문 가격
      */
     public Money getProductLineTotal() {
-        return itemPrice.getDiscountedPrice().multiple(quantity);
+        return priceSnapshot.getDiscountedPrice().multiple(quantity);
     }
 
     /**
@@ -90,7 +114,7 @@ public class OrderSheetItem {
      */
     public Money getAppliedCouponDiscount() {
         Money productTotal = getProductLineTotal();
-        Money couponAmount = itemCoupon.getDiscountAmount();
+        Money couponAmount = itemCouponSnapshot.getDiscountAmount();
         return productTotal.min(couponAmount);
     }
 
@@ -103,7 +127,7 @@ public class OrderSheetItem {
      * @return 총 주문 상품 할인 금액
      */
     public Money getDiscountLineTotal() {
-        return itemPrice.getDiscountAmount().multiple(quantity);
+        return priceSnapshot.getDiscountAmount().multiple(quantity);
     }
 
     /**
@@ -115,7 +139,7 @@ public class OrderSheetItem {
      * @return 총 주문 상품 원본 금액
      */
     public Money getOriginalLineTotal() {
-        return itemPrice.getOriginalPrice().multiple(quantity);
+        return priceSnapshot.getOriginalPrice().multiple(quantity);
     }
 
     /**
@@ -151,7 +175,7 @@ public class OrderSheetItem {
      * @return 주문 상품 쿠폰 아이디
      */
     public Long getCouponId() {
-        return this.getItemCoupon().getCouponId();
+        return this.getItemCouponSnapshot().getCouponId();
     }
 
     /**
@@ -163,7 +187,7 @@ public class OrderSheetItem {
      * @return 주문 상품 판매 금액
      */
     public Money getDiscountedPrice() {
-        return this.getItemPrice().getDiscountedPrice();
+        return this.getPriceSnapshot().getDiscountedPrice();
     }
 
     /**
@@ -175,10 +199,10 @@ public class OrderSheetItem {
      * @param itemCoupon 주문 상품 쿠폰 정보
      */
     public void changeCoupon(OrderCouponSnapshot itemCoupon) {
-        this.itemCoupon = itemCoupon;
+        this.itemCouponSnapshot = itemCoupon;
     }
 
     public boolean hasCoupon() {
-        return this.itemCoupon.getCouponId() != null;
+        return this.itemCouponSnapshot.getCouponId() != null;
     }
 }

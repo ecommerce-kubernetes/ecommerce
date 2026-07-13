@@ -82,21 +82,43 @@
 | totalPaymentAmount         | Money                | 예상 결제 금액      |
 | expiresAt                  | LocalDateTime        | 주문서 만료 시간     |
 
+#### 행위
+
+- 주문서 생성: 주문서를 생성한다.
+
+#### 규칙
+
+- 주문서를 생성할 때 주문자 정보가 필요하다.
+- 주문서를 생성할 때 하나 이상의 주문 상품 정보가 필요하다.
+- 주문서를 생성할 때 주문 상품 정보를 토대로 주문 가격이 계산된다.
+- 주문서를 생성할 때 만료시간이 필요하다.
+
 ### 주문 항목(OrderSheetItem)
 
 주문서의 상품 정보를 관리하는 하위 엔티티
 
 #### 속성
 
-| 필드명             | 타입                          | 설명             |
-|-----------------|-----------------------------|----------------|
-| id              | String                      | 주문서 상품 아이디     |
-| productSnapshot | ProductSnapshot             | 주문 시점 상품 정보    |
-| itemPrice       | ProductPriceSnapshot        | 주문 시점 상품 가격 정보 |
-| itemCoupon      | OrderCouponSnapshot         | 적용 상품 쿠폰       |
-| quantity        | Integer                     | 상품 주문 수량       |
-| options         | List<ProductOptionSnapshot> | 주문 상품 옵션 정보    |
+| 필드명                | 타입                          | 설명             |
+|--------------------|-----------------------------|----------------|
+| id                 | String                      | 주문서 상품 아이디     |
+| productSnapshot    | ProductSnapshot             | 주문 시점 상품 정보    |
+| priceSnapshot      | ProductPriceSnapshot        | 주문 시점 상품 가격 정보 |
+| itemCouponSnapshot | OrderCouponSnapshot         | 적용 상품 쿠폰       |
+| quantity           | Integer                     | 상품 주문 수량       |
+| optionSnapshots    | List<ProductOptionSnapshot> | 주문 상품 옵션 정보 목록 |
 
+#### 행위
+
+- 주문 항목 생성: 주문 항목을 생성한다
+
+#### 규칙
+
+- 주문 항목을 생성할 때 상품 스냅샷이 필요하다.
+- 주문 항목을 생성할 때 주문 시점의 가격 정보가 필요하다.
+- 주문 항목을 생성할 때 주문 수량이 필요하다.
+- 주문 항목을 생성할 때 주문 수량은 1개 이상이어야 한다.
+- 상품 옵션 정보는 빈 목록일 수 있지만 `null`일 수 없다.
 ---
 
 ## 값 객체(VO)

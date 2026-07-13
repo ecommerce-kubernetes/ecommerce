@@ -75,10 +75,10 @@ public class CartDescriptor {
                         .type(JsonFieldType.NUMBER)
                         .description("장바구니 항목 총액 (상품 판매 금액 * 항목 수량)"),
 
-                fieldWithPath("items[].options[].optionTypeName")
+                fieldWithPath("items[].optionSnapshots[].optionTypeName")
                         .type(JsonFieldType.STRING)
                         .description("상품 옵션 이름 (예: 사이즈)"),
-                fieldWithPath("items[].options[].optionValueName")
+                fieldWithPath("items[].optionSnapshots[].optionValueName")
                         .type(JsonFieldType.STRING)
                         .description("상품 옵션 값 (예: XL)"),
 
@@ -129,10 +129,10 @@ public class CartDescriptor {
                         .type(JsonFieldType.NUMBER)
                         .description("장바구니 항목 총액 (상품 판매 금액 * 항목 수량)"),
 
-                fieldWithPath("options[].optionTypeName")
+                fieldWithPath("optionSnapshots[].optionTypeName")
                         .type(JsonFieldType.STRING)
                         .description("상품 옵션 이름 (예: 사이즈)"),
-                fieldWithPath("options[].optionValueName")
+                fieldWithPath("optionSnapshots[].optionValueName")
                         .type(JsonFieldType.STRING)
                         .description("상품 옵션 값 (예: XL)")
         };

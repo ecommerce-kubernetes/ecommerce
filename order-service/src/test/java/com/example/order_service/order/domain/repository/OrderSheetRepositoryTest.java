@@ -44,7 +44,7 @@ class OrderSheetRepositoryTest {
         //given
         OrderSheet saved = repository.save(createOrderSheet(), Duration.ofMinutes(30));
         //when
-        Optional<OrderSheet> find = repository.findById(saved.getSheetId());
+        Optional<OrderSheet> find = repository.findById(saved.getId());
         //then
         assertThat(find).isPresent();
         assertThat(find).get()

@@ -38,8 +38,8 @@ public class OrderValidatorTest {
                 .productSnapshot(item.getProductSnapshot())
                 .status(OrderProductStatus.ON_SALE)
                 .stock(100)
-                .priceSnapshot(item.getItemPrice())
-                .options(item.getOptions())
+                .priceSnapshot(item.getPriceSnapshot())
+                .options(item.getOptionSnapshots())
                 .build();
         OrderProductResult.ProductList productList = OrderProductResult.ProductList.builder()
                 .products(List.of(info))
@@ -64,8 +64,8 @@ public class OrderValidatorTest {
                         .productSnapshot(item.getProductSnapshot())
                         .status(OrderProductStatus.STOP_SALE)
                         .stock(item.getQuantity() + 100)
-                        .priceSnapshot(item.getItemPrice())
-                        .options(item.getOptions())
+                        .priceSnapshot(item.getPriceSnapshot())
+                        .options(item.getOptionSnapshots())
                         .build()).toList();
         OrderProductResult.ProductList productList = OrderProductResult.ProductList.builder()
                 .products(infos)
@@ -90,8 +90,8 @@ public class OrderValidatorTest {
                         .productSnapshot(item.getProductSnapshot())
                         .status(OrderProductStatus.ON_SALE)
                         .stock(item.getQuantity() - 1)
-                        .priceSnapshot(item.getItemPrice())
-                        .options(item.getOptions())
+                        .priceSnapshot(item.getPriceSnapshot())
+                        .options(item.getOptionSnapshots())
                         .build()).toList();
         OrderProductResult.ProductList productList = OrderProductResult.ProductList.builder()
                 .products(infos)
@@ -120,7 +120,7 @@ public class OrderValidatorTest {
                             .status(OrderProductStatus.ON_SALE)
                             .stock(item.getQuantity() + 100)
                             .priceSnapshot(resultPrice)
-                            .options(item.getOptions())
+                            .options(item.getOptionSnapshots())
                             .build();
                 }).toList();
         OrderProductResult.ProductList productList = OrderProductResult.ProductList.builder()
@@ -144,7 +144,7 @@ public class OrderValidatorTest {
         OrderProductResult.ProductList productResult = createValidProductList(orderSheet);
         List<OrderCouponResult.ItemCoupon> itemCoupons = orderSheet.getItems().stream().map(item -> OrderCouponResult.ItemCoupon.builder()
                 .productVariantId(item.getProductVariantId())
-                .itemCoupon(item.getItemCoupon())
+                .itemCoupon(item.getItemCouponSnapshot())
                 .build()).toList();
         OrderCouponResult.Calculate couponResult = OrderCouponResult.Calculate.builder()
                 .cartCoupon(OrderCouponSnapshot.of(orderSheet.getCartCoupon().getCouponId(),
@@ -167,9 +167,9 @@ public class OrderValidatorTest {
         OrderProductResult.ProductList productResult = createValidProductList(orderSheet);
         List<OrderCouponResult.ItemCoupon> invalidItemCoupons = orderSheet.getItems().stream()
                 .map(item -> {
-                    OrderCouponSnapshot itemCoupon = item.getItemCoupon().getCouponId() == null ?
-                            OrderCouponSnapshot.empty() : OrderCouponSnapshot.of(item.getCouponId(), item.getItemCoupon().getCouponName(),
-                            item.getItemCoupon().getDiscountAmount().add(Money.wons(1000L)));
+                    OrderCouponSnapshot itemCoupon = item.getItemCouponSnapshot().getCouponId() == null ?
+                            OrderCouponSnapshot.empty() : OrderCouponSnapshot.of(item.getCouponId(), item.getItemCouponSnapshot().getCouponName(),
+                            item.getItemCouponSnapshot().getDiscountAmount().add(Money.wons(1000L)));
                     return OrderCouponResult.ItemCoupon.builder()
                             .productVariantId(item.getProductVariantId())
                             .itemCoupon(itemCoupon)
@@ -214,8 +214,8 @@ public class OrderValidatorTest {
                                 .productSnapshot(item.getProductSnapshot())
                                 .status(OrderProductStatus.ON_SALE)
                                 .stock(item.getQuantity() + 100)
-                                .priceSnapshot(item.getItemPrice())
-                                .options(item.getOptions()).build())
+                                .priceSnapshot(item.getPriceSnapshot())
+                                .options(item.getOptionSnapshots()).build())
                 .toList();
         return OrderProductResult.ProductList.builder()
                 .products(infos)
@@ -226,7 +226,7 @@ public class OrderValidatorTest {
         List<OrderCouponResult.ItemCoupon> validItemCoupons = orderSheet.getItems().stream()
                 .map(item -> OrderCouponResult.ItemCoupon.builder()
                         .productVariantId(item.getProductVariantId())
-                        .itemCoupon(item.getItemCoupon())
+                        .itemCoupon(item.getItemCouponSnapshot())
                         .build()).toList();
 
         return OrderCouponResult.Calculate.builder()

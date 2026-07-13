@@ -11,10 +11,12 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.util.Assert;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * 주문서 도메인
@@ -29,7 +31,7 @@ import java.util.List;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class OrderSheet {
-    private String sheetId;
+    private String id;
     private Orderer orderer;
     private ShippingAddress shippingAddress;
     private List<OrderSheetItem> items;
@@ -42,10 +44,15 @@ public class OrderSheet {
     private LocalDateTime expiresAt;
 
     @Builder(builderMethodName = "reconstitute")
-    private OrderSheet(String sheetId, Orderer orderer, ShippingAddress shippingAddress, List<OrderSheetItem> items, OrderCouponSnapshot cartCoupon,
+    private OrderSheet(String id, Orderer orderer, ShippingAddress shippingAddress, List<OrderSheetItem> items, OrderCouponSnapshot cartCoupon,
                        Money totalOriginalPrice, Money totalProductDiscountAmount, Money totalCouponDiscountAmount,
                        Money usedPoints, Money totalPaymentAmount, LocalDateTime expiresAt) {
-        this.sheetId = sheetId;
+        Assert.hasText(id, "주문서(OrderSheet) 생성시 아이디는 필수이다.");
+        Assert.notNull(orderer, "주문서(OrderSheet) 생성시 주문자는 필수이다.");
+        Assert.notNull(items, "주문서(OrderSheet) 생성시 주문 항목은 필수이다.");
+        Assert.notNull(expiresAt, "주문서(OrderSheet) 생성시 만료 시간은 필수이다.");
+
+        this.id = id;
         this.orderer = orderer;
         this.shippingAddress = shippingAddress;
         this.items = items;
@@ -83,7 +90,7 @@ public class OrderSheet {
         Money appliedCartDiscount = calcAppliedCartCouponDiscount(items, coupon);
         Money pointEligibleAmount = calcPointEligibleAmount(items, coupon);
         return OrderSheet.reconstitute()
-                .sheetId(sheetId)
+                .id(sheetId)
                 .orderer(orderer)
                 .shippingAddress(shippingAddress)
                 .items(items)
@@ -94,6 +101,19 @@ public class OrderSheet {
                 .usedPoints(Money.ZERO)
                 .totalPaymentAmount(pointEligibleAmount)
                 .expiresAt(createdAt.plusMinutes(ttl))
+                .build();
+    }
+
+    public static OrderSheet create(Orderer orderer, List<OrderSheetItem> items, LocalDateTime expiresAt) {
+        if (items.isEmpty()) {
+            throw new BusinessException(OrderErrorCode.ORDER_ITEMS_REQUIRED);
+        }
+        String id = UUID.randomUUID().toString();
+        return OrderSheet.reconstitute()
+                .id(id)
+                .orderer(orderer)
+                .items(items)
+                .expiresAt(expiresAt)
                 .build();
     }
 
@@ -221,7 +241,7 @@ public class OrderSheet {
      */
     public OrderSheetItem getItem(String sheetItemId) {
         return this.items.stream()
-                .filter(item -> item.getSheetItemId().equals(sheetItemId))
+                .filter(item -> item.getId().equals(sheetItemId))
                 .findFirst()
                 .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_ITEM_NOT_FOUND));
     }

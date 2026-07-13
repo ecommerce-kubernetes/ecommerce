@@ -27,6 +27,6 @@ public class OrderContext {
             ProductPriceSnapshot itemPrice,
             OrderCouponSnapshot itemCoupon,
             Integer quantity,
-            List<ProductOptionSnapshot> options
+            List<ProductOptionSnapshot> optionSnapshots
     ) {}
 }

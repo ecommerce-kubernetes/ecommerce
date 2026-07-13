@@ -35,8 +35,8 @@ public class OrderMapperTest {
         OrderSheetItem firstSheetItem = orderSheet.getItems().get(0);
 
         assertThat(firstItemContext.productSnapshot()).usingRecursiveComparison().isEqualTo(firstSheetItem.getProductSnapshot());
-        assertThat(firstItemContext.itemPrice()).usingRecursiveComparison().isEqualTo(firstSheetItem.getItemPrice());
-        assertThat(firstItemContext.itemCoupon()).usingRecursiveComparison().isEqualTo(firstSheetItem.getItemCoupon());
+        assertThat(firstItemContext.itemPrice()).usingRecursiveComparison().isEqualTo(firstSheetItem.getPriceSnapshot());
+        assertThat(firstItemContext.itemCoupon()).usingRecursiveComparison().isEqualTo(firstSheetItem.getItemCouponSnapshot());
         assertThat(firstItemContext.quantity()).isEqualTo(firstSheetItem.getQuantity());
 
         assertThat(context.totalOriginalPrice()).isEqualTo(orderSheet.getTotalOriginalPrice());

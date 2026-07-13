@@ -47,7 +47,7 @@ class OrderSheetRedisEntity {
         private PriceSnapshotRedisEntity priceSnapshot;
         private CouponSnapshotRedisEntity itemCoupon;
         private int quantity;
-        private List<OptionSnapshot> options;
+        private List<OptionSnapshot> optionSnapshots;
     }
 
     @Getter
