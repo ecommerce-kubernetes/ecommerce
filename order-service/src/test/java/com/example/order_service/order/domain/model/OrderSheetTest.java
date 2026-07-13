@@ -35,7 +35,7 @@ public class OrderSheetTest {
         assertThat(orderSheet)
                 .extracting(OrderSheet::getTotalOriginalPrice, OrderSheet::getTotalProductDiscountAmount, OrderSheet::getTotalPaymentAmount)
                 .containsExactly(
-                        item.getOriginalLineTotal(), item.getDiscountLineTotal(), item.getDiscountedPrice()
+                        item.getOriginalLineTotal(), item.getProductDiscountLineTotal(), item.getLineTotal()
                 );
     }
 

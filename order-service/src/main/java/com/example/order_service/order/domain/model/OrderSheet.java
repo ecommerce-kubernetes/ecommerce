@@ -84,8 +84,8 @@ public class OrderSheet {
         if (items.isEmpty()) {
             throw new BusinessException(OrderErrorCode.ORDER_ITEMS_REQUIRED);
         }
-        Money totalOriginalPrice = calcTotalOriginalPrice(items);
-        Money totalProductDiscount = calcTotalProductDiscountAmount(items);
+        Money totalOriginalPrice = calculateTotalOriginalPrice(items);
+        Money totalProductDiscount = calculateTotalProductDiscountAmount(items);
         Money totalItemCouponDiscount = calcTotalItemCouponDiscountAmount(items);
         Money appliedCartDiscount = calcAppliedCartCouponDiscount(items, coupon);
         Money pointEligibleAmount = calcPointEligibleAmount(items, coupon);
@@ -109,23 +109,36 @@ public class OrderSheet {
             throw new BusinessException(OrderErrorCode.ORDER_ITEMS_REQUIRED);
         }
         String id = UUID.randomUUID().toString();
+
+        Money totalOriginalPrice = calculateTotalOriginalPrice(items);
+        Money totalProductDiscountAmount = calculateTotalProductDiscountAmount(items);
+        Money totalPaymentAmount = calculateTotalPaymentAmount(items);
         return OrderSheet.reconstitute()
                 .id(id)
                 .orderer(orderer)
                 .items(items)
+                .totalOriginalPrice(totalOriginalPrice)
+                .totalProductDiscountAmount(totalProductDiscountAmount)
+                .totalPaymentAmount(totalPaymentAmount)
                 .expiresAt(expiresAt)
                 .build();
     }
 
-    private static Money calcTotalOriginalPrice(List<OrderSheetItem> items) {
+    private static Money calculateTotalOriginalPrice(List<OrderSheetItem> items) {
         return items.stream()
                 .map(OrderSheetItem::getOriginalLineTotal)
                 .reduce(Money.ZERO, Money::add);
     }
 
-    private static Money calcTotalProductDiscountAmount(List<OrderSheetItem> items) {
+    private static Money calculateTotalProductDiscountAmount(List<OrderSheetItem> items) {
         return items.stream()
-                .map(OrderSheetItem::getDiscountLineTotal)
+                .map(OrderSheetItem::getProductDiscountLineTotal)
+                .reduce(Money.ZERO, Money::add);
+    }
+
+    private static Money calculateTotalPaymentAmount(List<OrderSheetItem> items) {
+        return items.stream()
+                .map(OrderSheetItem::getLineTotal)
                 .reduce(Money.ZERO, Money::add);
     }
 

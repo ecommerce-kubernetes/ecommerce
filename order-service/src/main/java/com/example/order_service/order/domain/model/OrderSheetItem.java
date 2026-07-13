@@ -126,7 +126,7 @@ public class OrderSheetItem {
      *
      * @return 총 주문 상품 할인 금액
      */
-    public Money getDiscountLineTotal() {
+    public Money getProductDiscountLineTotal() {
         return priceSnapshot.getDiscountAmount().multiple(quantity);
     }
 
