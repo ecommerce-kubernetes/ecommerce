@@ -20,11 +20,11 @@
 
 #### 속성
 
-| 필드명       | 타입   | 설명                    |
-|-----------|------|-----------------------|
-| id        | Long | 장바구니 식별자              |
-| userId    | Long | 장바구니의 소유자 식별자         |
-| cartItems | List | 장바구니에 담긴 개별 상품 항목 리스트 |
+| 필드명       | 타입             | 설명                    |
+|-----------|----------------|-----------------------|
+| id        | Long           | 장바구니 식별자              |
+| userId    | Long           | 장바구니의 소유자 식별자         |
+| cartItems | List<CartItem> | 장바구니에 담긴 개별 상품 항목 리스트 |
 
 #### 행위
 
@@ -48,7 +48,7 @@
 | 필드명              | 타입      | 설명          |
 |------------------|---------|-------------|
 | id               | Long    | 장바구니 항목 아이디 |
-| cart             | Object  | 장바구니        |
+| cart             | Cart    | 장바구니        |
 | productVariantId | Long    | 상품 변형 아이디   |
 | quantity         | Integer | 담은 수량       |
 
@@ -68,34 +68,34 @@
 
 #### 속성
 
-| 필드명                        | 타입            | 설명            |
-|----------------------------|---------------|---------------|
-| id                         | String        | 주문서 아이디       |
-| orderer                    | Object        | 주문자 정보        |
-| shippingAddress            | Object        | 배송 정보         |
-| items                      | List          | 주문 상품 리스트     |
-| cartCoupon                 | Object        | 장바구니 쿠폰       |
-| totalOriginalPrice         | Object        | 총 주문 상품 원가격   |
-| totalProductDiscountAmount | Object        | 총 상품 할인 금액    |
-| totalCouponDiscountAmount  | Object        | 총 적용 쿠폰 할인 금액 |
-| usedPoints                 | Object        | 적용 포인트 금액     |
-| totalPaymentAmount         | Object        | 예상 결제 금액      |
-| expiresAt                  | LocalDateTime | 주문서 만료 시간     |
+| 필드명                        | 타입                   | 설명            |
+|----------------------------|----------------------|---------------|
+| id                         | String               | 주문서 아이디       |
+| orderer                    | Orderer              | 주문자 정보        |
+| shippingAddress            | ShippingAddress      | 배송 정보         |
+| items                      | List<OrderSheetItem> | 주문 상품 리스트     |
+| cartCoupon                 | OrderCouponSnapshot  | 장바구니 쿠폰       |
+| totalOriginalPrice         | Money                | 총 주문 상품 원가격   |
+| totalProductDiscountAmount | Money                | 총 상품 할인 금액    |
+| totalCouponDiscountAmount  | Money                | 총 적용 쿠폰 할인 금액 |
+| usedPoints                 | Money                | 적용 포인트 금액     |
+| totalPaymentAmount         | Money                | 예상 결제 금액      |
+| expiresAt                  | LocalDateTime        | 주문서 만료 시간     |
 
-### 주문서 상품(OrderSheetItem)
+### 주문 항목(OrderSheetItem)
 
-임시 주문 상품 정보를 관리하는 하위 엔티티
+주문서의 상품 정보를 관리하는 하위 엔티티
 
 #### 속성
 
-| 필드명             | 타입     | 설명             |
-|-----------------|--------|----------------|
-| id              | String | 주문서 상품 아이디     |
-| productSnapshot | Object | 주문 시점 상품 정보    |
-| itemPrice       | Object | 주문 시점 상품 가격 정보 |
-| itemCoupon      | Object | 적용 상품 쿠폰       |
-| quantity        | int    | 상품 주문 수량       |
-| options         | List   | 주문 상품 옵션 정보    |
+| 필드명             | 타입                          | 설명             |
+|-----------------|-----------------------------|----------------|
+| id              | String                      | 주문서 상품 아이디     |
+| productSnapshot | ProductSnapshot             | 주문 시점 상품 정보    |
+| itemPrice       | ProductPriceSnapshot        | 주문 시점 상품 가격 정보 |
+| itemCoupon      | OrderCouponSnapshot         | 적용 상품 쿠폰       |
+| quantity        | Integer                     | 상품 주문 수량       |
+| options         | List<ProductOptionSnapshot> | 주문 상품 옵션 정보    |
 
 ---
 
@@ -141,3 +141,27 @@
 | couponName     | String | 쿠폰 이름     |
 | discountAmount | Object | 쿠폰 할인 금액  |
 
+### 5. 상품 정보(ProductSnapshot)
+
+주문 시점의 상품 정보
+
+### 속성
+
+| 필드명              | 타입     | 설명        |
+|------------------|--------|-----------|
+| productId        | Long   | 상품 아이디    |
+| productVariantId | Long   | 상품 변형 아이디 |
+| sku              | String | 상품 SKU    |
+| productName      | String | 상품 이름     |           
+| thumbnail        | String | 상품 대표 이미지 |
+
+### 6. 상품 옵션(ProductOptionSnapshot)
+
+주문 시점의 상품 옵션 정보
+
+### 속성
+
+| 필드명             | 타입     | 설명    |
+|-----------------|--------|-------|
+| optionTypeName  | String | 옵션 이름 |
+| optionValueName | String | 옵션 값  |
