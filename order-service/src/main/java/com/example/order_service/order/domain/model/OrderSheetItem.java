@@ -112,7 +112,7 @@ public class OrderSheetItem {
         return lineTotal.subtract(itemCouponSnapshot.getDiscountAmount());
     }
 
-    public void applyItemCoupon(ItemCouponSnapshot itemCoupon) {
+    protected void applyItemCoupon(ItemCouponSnapshot itemCoupon) {
         Money lineTotal = getLineTotal();
         if (lineTotal.isLessThan(itemCoupon.getDiscountAmount())) {
             throw new BusinessException(OrderErrorCode.INVALID_ITEM_COUPON);

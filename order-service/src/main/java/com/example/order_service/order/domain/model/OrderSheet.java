@@ -80,7 +80,7 @@ public class OrderSheet {
 
         Money totalOriginalPrice = calculateTotalOriginalPrice(items);
         Money totalProductDiscountAmount = calculateTotalProductDiscountAmount(items);
-        Money totalPaymentAmount = calculateTotalPaymentAmount(items);
+        Money totalItemFinalAmount = calculateTotalItemFinalAmount(items);
         return OrderSheet.reconstitute()
                 .id(id)
                 .orderer(orderer)
@@ -89,7 +89,7 @@ public class OrderSheet {
                 .totalProductDiscountAmount(totalProductDiscountAmount)
                 .totalCouponDiscountAmount(Money.ZERO)
                 .usedPoints(Money.ZERO)
-                .totalPaymentAmount(totalPaymentAmount)
+                .totalPaymentAmount(totalItemFinalAmount)
                 .expiresAt(expiresAt)
                 .build();
     }
@@ -106,7 +106,7 @@ public class OrderSheet {
                 .reduce(Money.ZERO, Money::add);
     }
 
-    private static Money calculateTotalPaymentAmount(List<OrderSheetItem> items) {
+    private static Money calculateTotalItemFinalAmount(List<OrderSheetItem> items) {
         return items.stream()
                 .map(OrderSheetItem::getFinalAmount)
                 .reduce(Money.ZERO, Money::add);
@@ -119,8 +119,37 @@ public class OrderSheet {
     public void applyItemCoupon(String orderSheetItemId, ItemCouponSnapshot itemCoupon) {
         OrderSheetItem item = findOrderSheetItem(orderSheetItemId)
                 .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_ITEM_NOT_FOUND));
-
+        validateCartCouponConflict(item, itemCoupon);
         item.applyItemCoupon(itemCoupon);
+        recalculateTotals();
+    }
+
+    private void validateCartCouponConflict(OrderSheetItem targetItem, ItemCouponSnapshot itemCoupon) {
+        if (this.cartCoupon == null) {
+            return;
+        }
+        Money lineTotal = targetItem.getLineTotal();
+        if (itemCoupon.getDiscountAmount().isGreaterThan(lineTotal)) {
+            throw new BusinessException(OrderErrorCode.INVALID_ITEM_COUPON);
+        }
+        Money expectedFinalAmount = lineTotal.subtract(itemCoupon.getDiscountAmount());
+        Money currentTotalItemFinalAmount = calculateTotalItemFinalAmount(this.items);
+        Money expectedTotalItemFinalAmount = currentTotalItemFinalAmount
+                .subtract(targetItem.getFinalAmount())
+                .add(expectedFinalAmount);
+
+        if (this.cartCoupon.getDiscountAmount().isGreaterThan(expectedTotalItemFinalAmount)) {
+            throw new BusinessException(OrderErrorCode.INVALID_ITEM_COUPON);
+        }
+    }
+
+    public void applyCartCoupon(CartCouponSnapshot cartCoupon) {
+        Money totalItemFinalAmount = calculateTotalItemFinalAmount(this.items);
+
+        if (cartCoupon.getDiscountAmount().isGreaterThan(totalItemFinalAmount)) {
+            throw new BusinessException(OrderErrorCode.INVALID_CART_COUPON);
+        }
+        this.cartCoupon = cartCoupon;
         recalculateTotals();
     }
 
@@ -131,7 +160,11 @@ public class OrderSheet {
 
         this.totalCouponDiscountAmount = (this.cartCoupon == null) ?
                 totalItemCouponDiscount : totalItemCouponDiscount.add(cartCoupon.getDiscountAmount());
-        this.totalPaymentAmount = calculateTotalPaymentAmount(this.items);
+
+        Money totalItemFinalAmount = calculateTotalItemFinalAmount(this.items);
+        Money totalDiscountOrderAmount = (this.cartCoupon == null) ?
+                totalItemFinalAmount : totalItemFinalAmount.subtract(cartCoupon.getDiscountAmount());
+        this.totalPaymentAmount = totalDiscountOrderAmount.subtract(usedPoints);
     }
 
     private Optional<OrderSheetItem> findOrderSheetItem(String orderSheetItemId) {
