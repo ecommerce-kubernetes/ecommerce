@@ -2,6 +2,7 @@ package com.example.order_service.order.domain.model;
 
 import com.example.order_service.common.domain.vo.Money;
 import com.example.order_service.common.exception.BusinessException;
+import com.example.order_service.order.domain.vo.ItemCouponSnapshot;
 import com.example.order_service.order.domain.vo.ProductOptionSnapshot;
 import com.example.order_service.order.domain.vo.ProductPriceSnapshot;
 import com.example.order_service.order.domain.vo.ProductSnapshot;
@@ -150,6 +151,58 @@ public class OrderSheetItemTest {
         Money result = item.getLineTotal();
         //then
         assertThat(result).isEqualTo(priceSnapshot.getDiscountedPrice().multiple(quantity));
+    }
+
+    @Test
+    @DisplayName("상품 쿠폰을 적용한다.")
+    void changeItemCoupon() {
+        //given
+        ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "PROD1_XL",
+                "청바지", "/product/product/jean1.jpg");
+        ProductPriceSnapshot priceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L), 10,
+                Money.wons(1000L), Money.wons(9000L));
+        int quantity = 3;
+        OrderSheetItem item = OrderSheetItem.create(productSnapshot, priceSnapshot, quantity, Collections.emptyList());
+
+        ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(1L, "청바지 1000원 할인", Money.wons(1000L));
+        //when
+        item.changeItemCoupon(itemCoupon);
+        //then
+        assertThat(item.getItemCouponSnapshot()).isEqualTo(itemCoupon);
+    }
+
+    @Test
+    @DisplayName("주문 항목의 최종 금액을 계산한다. (상품 쿠폰 미적용)")
+    void getFinalAmount_not_applied_itemCoupon() {
+        //given
+        ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "PROD1_XL",
+                "청바지", "/product/product/jean1.jpg");
+        ProductPriceSnapshot priceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L), 10,
+                Money.wons(1000L), Money.wons(9000L));
+        int quantity = 3;
+        OrderSheetItem item = OrderSheetItem.create(productSnapshot, priceSnapshot, quantity, Collections.emptyList());
+        //when
+        Money result = item.getFinalAmount();
+        //then
+        assertThat(result).isEqualTo(item.getLineTotal());
+    }
+
+    @Test
+    @DisplayName("주문 항목의 최종 금액을 계산한다. (상품 쿠폰 적용)")
+    void getFinalAmount_applied_itemCoupon() {
+        //given
+        ProductSnapshot productSnapshot = ProductSnapshot.of(1L, 1L, "PROD1_XL",
+                "청바지", "/product/product/jean1.jpg");
+        ProductPriceSnapshot priceSnapshot = ProductPriceSnapshot.of(Money.wons(10000L), 10,
+                Money.wons(1000L), Money.wons(9000L));
+        int quantity = 3;
+        OrderSheetItem item = OrderSheetItem.create(productSnapshot, priceSnapshot, quantity, Collections.emptyList());
+        ItemCouponSnapshot itemCoupon = ItemCouponSnapshot.of(1L, "청바지 1000원 할인", Money.wons(1000L));
+        item.changeItemCoupon(itemCoupon);
+        //when
+        Money result = item.getFinalAmount();
+        //then
+        assertThat(result).isEqualTo(item.getLineTotal().subtract(itemCoupon.getDiscountAmount()));
     }
 
 }

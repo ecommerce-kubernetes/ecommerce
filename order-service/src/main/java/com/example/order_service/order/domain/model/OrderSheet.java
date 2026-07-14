@@ -247,7 +247,7 @@ public class OrderSheet {
      */
     public void changeItemCoupon(String sheetItemId, ItemCouponSnapshot newCouponSnapshot, Money ownedPoints, PointUsagePolicy pointPolicy) {
         OrderSheetItem sheetItem = getItem(sheetItemId);
-        sheetItem.changeCoupon(newCouponSnapshot);
+        sheetItem.changeItemCoupon(newCouponSnapshot);
         recalculateTotals(ownedPoints, pointPolicy);
     }
 

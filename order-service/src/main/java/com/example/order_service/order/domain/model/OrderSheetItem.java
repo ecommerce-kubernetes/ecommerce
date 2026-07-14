@@ -90,20 +90,6 @@ public class OrderSheetItem {
     }
 
     /**
-     * 주문 상품 쿠폰 할인 금액
-     * <p>
-     * 주문 상품 적용 쿠폰 할인 금액을 반환한다
-     * </p>
-     *
-     * @return 주문 상품 쿠폰 할인 금액
-     */
-    public Money getAppliedCouponDiscount() {
-        Money productTotal = getLineTotal();
-        Money couponAmount = itemCouponSnapshot.getDiscountAmount();
-        return productTotal.min(couponAmount);
-    }
-
-    /**
      * 총 주문 상품 원본 금액
      * <p>
      * 총 주문 상품의 원본 금액을 반환한다
@@ -139,6 +125,13 @@ public class OrderSheetItem {
         return priceSnapshot.getDiscountedPrice().multiple(quantity);
     }
 
+    public Money getFinalAmount() {
+        Money lineTotal = getLineTotal();
+        if (this.itemCouponSnapshot == null) {
+            return lineTotal;
+        }
+        return lineTotal.subtract(itemCouponSnapshot.getDiscountAmount());
+    }
     /**
      * 총 주문 상품의 쿠폰 적용 금액
      * <p>
@@ -149,6 +142,20 @@ public class OrderSheetItem {
      */
     public Money getFinalLineTotal() {
         return getLineTotal().subtract(getAppliedCouponDiscount());
+    }
+
+    /**
+     * 주문 상품 쿠폰 할인 금액
+     * <p>
+     * 주문 상품 적용 쿠폰 할인 금액을 반환한다
+     * </p>
+     *
+     * @return 주문 상품 쿠폰 할인 금액
+     */
+    public Money getAppliedCouponDiscount() {
+        Money productTotal = getLineTotal();
+        Money couponAmount = itemCouponSnapshot.getDiscountAmount();
+        return productTotal.min(couponAmount);
     }
 
     /**
@@ -195,8 +202,8 @@ public class OrderSheetItem {
      *
      * @param itemCoupon 주문 상품 쿠폰 정보
      */
-    public void changeCoupon(ItemCouponSnapshot itemCoupon) {
-        this.itemCouponSnapshot = itemCoupon;
+    public void changeItemCoupon(ItemCouponSnapshot newItemCoupon) {
+        this.itemCouponSnapshot = newItemCoupon;
     }
 
     public boolean hasCoupon() {
